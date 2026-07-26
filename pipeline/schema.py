@@ -17,7 +17,7 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "talent_intel.db"
 
-SCHEMA = """
+TABLES = """
 CREATE TABLE IF NOT EXISTS signals (
     row_id            INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -37,9 +37,17 @@ CREATE TABLE IF NOT EXISTS signals (
     pillar            TEXT    NOT NULL,
     signal_direction  TEXT    NOT NULL,
 
+    -- Where the ROLES are, taken from the source text only.
     city              TEXT,
     region            TEXT,
     country           TEXT,
+
+    -- Where the EMPLOYER is headquartered. Distinct provenance: this is not a
+    -- claim the source made, so it is never presented as the event location.
+    -- It exists so "Revolut CEO steps down" is findable under London, the same
+    -- union the sibling tracker exposes as country_basis=any.
+    hq_city           TEXT,
+    hq_country        TEXT,
 
     confidence        TEXT    NOT NULL,
 
@@ -68,13 +76,6 @@ CREATE TABLE IF NOT EXISTS signals (
     notes             TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_signals_current  ON signals(is_current);
-CREATE INDEX IF NOT EXISTS idx_signals_geo      ON signals(country, city);
-CREATE INDEX IF NOT EXISTS idx_signals_pillar   ON signals(pillar);
-CREATE INDEX IF NOT EXISTS idx_signals_pub      ON signals(published_date);
-CREATE INDEX IF NOT EXISTS idx_signals_company  ON signals(company_key);
-CREATE INDEX IF NOT EXISTS idx_signals_sigid    ON signals(signal_id, revision);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
 
 -- Every URL we have ever looked at, so we never pay an LLM for it twice.
 -- Spec 4 rule 2: this removed ~60% of daily extraction volume on the sibling.
@@ -98,11 +99,53 @@ CREATE TABLE IF NOT EXISTS source_health (
 );
 """
 
+INDEXES = """
+CREATE INDEX IF NOT EXISTS idx_signals_current  ON signals(is_current);
+CREATE INDEX IF NOT EXISTS idx_signals_geo      ON signals(country, city);
+CREATE INDEX IF NOT EXISTS idx_signals_hq       ON signals(hq_country, hq_city);
+CREATE INDEX IF NOT EXISTS idx_signals_pillar   ON signals(pillar);
+CREATE INDEX IF NOT EXISTS idx_signals_pub      ON signals(published_date);
+CREATE INDEX IF NOT EXISTS idx_signals_company  ON signals(company_key);
+CREATE INDEX IF NOT EXISTS idx_signals_sigid    ON signals(signal_id, revision);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
+"""
+
+
+# Columns added after the first release. CREATE TABLE IF NOT EXISTS does
+# nothing to an existing table, and the database is committed to the repo and
+# long-lived, so every new column needs an entry here or an old checkout breaks
+# the moment an index references it.
+#
+# Append only. Never remove or reorder — rows must stay reconstructable.
+MIGRATIONS = (
+    ("signals", "hq_city", "TEXT"),
+    ("signals", "hq_country", "TEXT"),
+)
+
+
+def _migrate(conn: sqlite3.Connection) -> list[str]:
+    """Add any missing columns. Returns what it added, for logging."""
+    applied = []
+    for table, column, decl in MIGRATIONS:
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if not existing:
+            continue  # table not created yet; the CREATE covers it
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+            applied.append(f"{table}.{column}")
+    return applied
+
 
 def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     path = Path(db_path) if db_path else DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
+
+    # Order matters: create tables, then add missing columns, then indexes —
+    # an index on a not-yet-added column is what broke this the first time.
+    conn.executescript(TABLES)
+    _migrate(conn)
+    conn.executescript(INDEXES)
+    conn.commit()
     return conn

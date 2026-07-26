@@ -33,6 +33,8 @@ class Signal:
     city: str | None
     region: str | None
     country: str | None
+    hq_city: str | None
+    hq_country: str | None
     confidence: str
     source_url: str
     source_name: str
@@ -149,6 +151,7 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
     # The summary restates the source and may not.
     assert_figures_are_sourced(summary, raw_text)
 
+    # Job location: from the source text only.
     city = region = None
     country = vocab.normalize_country(classified.get("country", "") or raw.get("country", ""))
     hit = vocab.normalize_city(classified.get("city", ""))
@@ -159,8 +162,21 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
     if country and not region:
         region = _region_for_country(country)
 
-    if not country:
-        raise Rejected("no geography — a talent signal without a place is not actionable")
+    # Employer HQ: the model's own knowledge of the company, kept in separate
+    # columns. "Revolut CEO steps down" names no place, but it is a London
+    # talent signal — the same union the sibling exposes as country_basis=any.
+    # Never merged into `country`: one is sourced, the other is not.
+    hq_city = hq_country = None
+    hq_hit = vocab.normalize_city(classified.get("headquarters_city", ""))
+    if hq_hit:
+        hq_city, _hq_region, hq_country = hq_hit
+    else:
+        hq_country = vocab.normalize_country(classified.get("headquarters_country", ""))
+
+    if not (country or hq_country):
+        raise Rejected(
+            "no geography — neither a place in the source nor a known employer HQ"
+        )
 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     ckey = vocab.company_key(company)
@@ -179,6 +195,8 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
         city=city,
         region=region,
         country=country,
+        hq_city=hq_city,
+        hq_country=hq_country,
         confidence=infer_confidence(source_url, classified.get("confidence")),
         source_url=source_url,
         source_name=(raw.get("source_name") or host).strip(),
