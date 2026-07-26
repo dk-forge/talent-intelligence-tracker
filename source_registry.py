@@ -43,18 +43,26 @@ class Market:
 # Hiring-side only. Layoffs, WARN and redundancies are read from the sibling
 # tracker's API and never collected here (spec 17).
 
+# Ordered highest-precision first: the daily broad query uses the leading
+# terms, so anything ambiguous must not sit near the top.
+#
+# The first live run is why there is no bare "expansion" here. That single word
+# returned MLB expansion, World of Warcraft expansion, Medicaid expansion,
+# cattle herd expansion and war escalation — 25 candidates, zero of them about
+# employment. Every term below names people or a workplace explicitly.
 BASE_VOCABULARY = (
-    "hiring spree", "to create jobs", "new jobs", "jobs announcement",
-    "headcount growth", "expanding workforce", "opens office", "new office",
-    "opens hub", "new hub", "expansion", "ramp up hiring", "recruitment drive",
-    "workforce expansion", "new facility", "opens campus", "investment creates",
+    "to create jobs", "will create jobs", "new jobs at", "jobs announcement",
+    "hiring spree", "recruitment drive", "ramp up hiring", "headcount growth",
+    "expanding its workforce", "workforce expansion", "adding roles",
+    "opens new office", "opens new hub", "new engineering hub",
+    "opening a new facility", "opens campus", "investment creating jobs",
     "appointed chief executive", "names chief executive", "appoints CEO",
     "steps down as CEO", "new chief people officer", "appoints CFO",
-    "leadership change", "executive appointment", "joins as chief",
-    "pay rise", "salary increase", "retention bonus", "compensation package",
-    "pay transparency", "equity refresh", "raises minimum salary",
-    "return to office", "remote work policy", "hybrid working policy",
-    "four-day week", "relocates headquarters", "office reopening",
+    "executive appointment", "joins as chief",
+    "pay rise for staff", "salary increase for employees", "retention bonus",
+    "compensation package", "pay transparency", "raises minimum salary",
+    "return to office policy", "remote work policy", "hybrid working policy",
+    "four-day week", "relocates headquarters",
 )
 
 # --- Layer 3: euphemisms, run STANDALONE ----------------------------------

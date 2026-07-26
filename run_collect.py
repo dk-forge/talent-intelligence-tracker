@@ -17,7 +17,7 @@ from datetime import date
 
 import source_registry as registry
 from collectors import google_news
-from pipeline import classify, schema, store, validate
+from pipeline import classify, prefilter, schema, store, validate
 
 RUNS_PER_DAY = 2
 SEGMENTS_PER_RUN = 4
@@ -60,14 +60,31 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
             print(f"[{collector}] FETCH FAILED: {exc}", file=sys.stderr)
             return 1
 
-    if limit:
-        items = items[:limit]
-
     found = len(items)
-    stored = duplicates = rejected = skipped = 0
-    print(f"[{collector}] {found} candidates fetched\n")
 
+    # Order matters, cheapest first. Each stage throws work away before a more
+    # expensive one has to look at it:
+    #   fetch (done) -> prefilter (free) -> limit -> resolve (HTTP) -> LLM (paid)
+    kept, filtered = [], 0
     for item in items:
+        ok, reason = prefilter.passes(item.get("raw_text", ""))
+        if ok:
+            kept.append(item)
+        else:
+            filtered += 1
+            print(f"  filtered  {item.get('headline','')[:60]}  ({reason})")
+
+    if limit:
+        kept = kept[:limit]
+
+    if not offline:
+        kept = [google_news.resolve_source_url(item) for item in kept]
+
+    stored = duplicates = rejected = skipped = 0
+    print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
+          f"{len(kept)} going to the classifier\n")
+
+    for item in kept:
         url = item.get("source_url") or item.get("discovery_url") or ""
 
         # Deduplicate BEFORE the LLM, never after (spec 4 rule 2).
@@ -77,6 +94,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
 
         try:
             classified = _stub_classify(item) if offline else classify.classify(item)
+        except classify.AuthFailed as exc:
+            # A bad key is permanent for this run. The first live run printed
+            # the same 401 twenty-five times before anyone learned anything.
+            print(f"\nSTOPPING: {exc}", file=sys.stderr)
+            store.report_health(conn, collector, status="error",
+                                items_found=found, items_stored=stored,
+                                detail=f"auth failed: {str(exc)[:200]}")
+            conn.commit()
+            return 1
         except classify.CreditsExhausted as exc:
             print(f"\nSTOPPING: {exc}", file=sys.stderr)
             store.report_health(conn, collector, status="error",
@@ -129,7 +155,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
     #   - found nothing at all: the feed or the query is broken
     #   - found plenty and kept none of it, with nothing even landing as a
     #     duplicate: the classifier or a guard is broken, not the news
-    everything_rejected = found > 0 and stored == 0 and duplicates == 0
+    everything_rejected = len(kept) > 0 and stored == 0 and duplicates == 0
     broken = found == 0 or everything_rejected
 
     store.report_health(

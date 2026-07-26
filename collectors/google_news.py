@@ -106,8 +106,13 @@ def resolve_source_url(item: dict, *, timeout: int = 15, session=None) -> dict:
     return item
 
 
-def collect(queries: list[str], *, resolve: bool = True, pause: float = 1.0) -> list[dict]:
-    """Fetch every query, de-duplicating by URL within the run."""
+def collect(queries: list[str], *, pause: float = 1.0) -> list[dict]:
+    """Fetch every query, de-duplicating by URL within the run.
+
+    Deliberately does NOT resolve redirects. Resolution costs a full HTTP round
+    trip per item, so it belongs after the free filters have thrown most
+    candidates away — see the ordering in run_collect.py.
+    """
     seen: set[str] = set()
     out: list[dict] = []
 
@@ -117,7 +122,7 @@ def collect(queries: list[str], *, resolve: bool = True, pause: float = 1.0) -> 
             if key in seen:
                 continue
             seen.add(key)
-            out.append(resolve_source_url(item) if resolve else item)
+            out.append(item)
         time.sleep(pause)
 
     return out

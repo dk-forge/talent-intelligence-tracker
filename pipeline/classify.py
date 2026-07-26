@@ -44,15 +44,29 @@ class CreditsExhausted(RuntimeError):
     """Raised on a 402 so the caller stops cleanly (spec 4 rule 4)."""
 
 
+class AuthFailed(RuntimeError):
+    """Raised on a 401. A bad key is permanent for the run, so retrying it 25
+    times just prints the same error 25 times — the first live run did exactly
+    that."""
+
+
 class ClassifyError(RuntimeError):
     pass
 
 
 def classify(raw: dict, *, timeout: int = 45) -> dict | None:
     """Classify one candidate. Returns None if it is not a talent signal."""
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+    # Strip: a key pasted into a secrets box often carries a trailing newline,
+    # which makes the Authorization header malformed and the failure look like
+    # a missing key rather than a whitespace problem.
+    api_key = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
     if not api_key:
-        raise ClassifyError("OPENROUTER_API_KEY is not set")
+        raise AuthFailed("OPENROUTER_API_KEY is not set")
+    if "..." in api_key or len(api_key) < 40:
+        raise AuthFailed(
+            "OPENROUTER_API_KEY looks truncated — it may be the abbreviated "
+            "value shown in the dashboard rather than the full key"
+        )
 
     text = (raw.get("raw_text") or "").strip()
     if not text:
@@ -81,6 +95,8 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
 
     if resp.status_code == 402:
         raise CreditsExhausted("OpenRouter returned 402 — stopping the run")
+    if resp.status_code == 401:
+        raise AuthFailed(f"OpenRouter rejected the API key (401): {resp.text[:200]}")
     if resp.status_code >= 400:
         raise ClassifyError(f"OpenRouter {resp.status_code}: {resp.text[:300]}")
 
