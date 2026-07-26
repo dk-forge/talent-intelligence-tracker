@@ -76,6 +76,12 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
         "model": MODEL,
         "temperature": 0,
         "response_format": {"type": "json_object"},
+        # OpenRouter routes a model across several providers, and not all of
+        # them honour response_format. One that ignores it returns empty
+        # content, which looks like a parse bug rather than a routing one —
+        # 8 of the first 10 live classifications failed this way. This pins
+        # routing to providers that actually support the parameters we send.
+        "provider": {"require_parameters": True},
         "messages": [
             {"role": "system", "content": MINI_SYSTEM},
             {"role": "user", "content": f"{SCHEMA_HINT}\n\n---\n{text[:4000]}"},
@@ -101,11 +107,34 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
         raise ClassifyError(f"OpenRouter {resp.status_code}: {resp.text[:300]}")
 
     try:
-        content = resp.json()["choices"][0]["message"]["content"]
-        parsed = json.loads(content)
+        choice = resp.json()["choices"][0]
     except (KeyError, IndexError, ValueError) as exc:
-        raise ClassifyError(f"unparseable model response: {exc}") from exc
+        raise ClassifyError(f"unexpected response shape: {exc}") from exc
+
+    content = (choice.get("message", {}).get("content") or "").strip()
+    if not content:
+        # Say WHY it was empty. "Expecting value: line 1 column 1" tells you
+        # nothing; finish_reason usually tells you everything.
+        raise ClassifyError(
+            f"model returned empty content (finish_reason="
+            f"{choice.get('finish_reason')!r}, provider={resp.json().get('provider')!r})"
+        )
+
+    try:
+        parsed = json.loads(_strip_fences(content))
+    except ValueError as exc:
+        raise ClassifyError(f"unparseable model response: {exc} — got {content[:200]!r}") from exc
 
     if not parsed.get("is_talent_signal"):
         return None
     return parsed
+
+
+def _strip_fences(content: str) -> str:
+    """Models wrap JSON in ```json fences often enough to be worth handling."""
+    text = content.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[-1]
+        text = text.rsplit("```", 1)[0]
+    start, end = text.find("{"), text.rfind("}")
+    return text[start:end + 1] if start != -1 and end > start else text

@@ -90,6 +90,57 @@ def test_gulf_cooperation_council_is_not_a_capability_centre():
     assert not keep
 
 
+# Verbatim from the first run that actually reached the model. Each of these
+# was classified and THEN rejected for geography we do not cover — money spent
+# to learn something a free check already knew.
+UNCOVERED_GEOGRAPHY = [
+    "Uzbekistan bets on digitalization to create jobs and compete globally",
+    "Investing in Somalia's Climate Resilience Now to Create Jobs",
+    "DeWine: Ohio approves 7 projects to create jobs and boost local economy",
+    "Big Rapids mayor targets economic development to create jobs",
+]
+
+
+@pytest.mark.parametrize("headline", UNCOVERED_GEOGRAPHY)
+def test_uncovered_geography_is_detectable_but_not_gated(headline):
+    """The helper spots these, and we deliberately let them through anyway.
+
+    Gating on geography was tried and reverted: it also dropped "Revolut CEO
+    steps down" (no place in the headline), "Intel opens new facility in
+    Leixlip" and "BMS opens Mumbai capability centre". Recall is worth more
+    than the fraction of a cent it saves.
+    """
+    assert not prefilter.has_covered_geography(headline)
+    keep, _ = prefilter.passes(headline)
+    assert keep
+
+
+@pytest.mark.parametrize("headline", [
+    "Stripe to create 300 new jobs in Dublin",
+    "SAP raises minimum salary across German sites",
+    "US telecom giant T-Mobile sets up global tech centre in Hyderabad",
+    "Intel to create 500 jobs in Ireland",
+])
+def test_covered_geography_survives(headline):
+    keep, reason = prefilter.passes(headline)
+    assert keep, reason
+
+
+def test_lowercase_us_is_not_the_united_states():
+    """'\\bus\\b' case-insensitively would let 'join us' through as the USA."""
+    assert not prefilter.has_covered_geography("Come join us and create jobs")
+
+
+def test_uppercase_US_is_the_united_states():
+    assert prefilter.has_covered_geography("US firm to create 400 jobs")
+
+
+def test_geography_terms_track_the_registry():
+    """The gate is built from vocab, so a new market needs no edit here."""
+    assert prefilter.has_covered_geography("hiring in Kraków")
+    assert not prefilter.has_covered_geography("hiring in Ulaanbaatar")
+
+
 def test_empty_text_is_filtered():
     assert prefilter.passes("") == (False, "empty text")
 

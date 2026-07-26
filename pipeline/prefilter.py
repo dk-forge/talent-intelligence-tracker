@@ -59,6 +59,54 @@ _OFF_TOPIC_TERMS = (
 _OFF_TOPIC = re.compile(r"\b(?:" + "|".join(_OFF_TOPIC_TERMS) + r")\b", re.I)
 
 
+# --- Geography gate --------------------------------------------------------
+#
+# We claim eight markets. A signal in a place we do not cover gets rejected by
+# validate.py anyway ("no geography"), so classifying it first is pure waste —
+# the first successful live run paid for exactly that on Uzbekistan, Somalia,
+# Ohio and Anglesey. Checking here costs nothing.
+#
+# Grows automatically as source_registry.MARKETS grows: nothing to hand-edit.
+
+def _geography_terms() -> tuple[re.Pattern, re.Pattern]:
+    from . import vocab
+
+    long_terms, short_codes = set(), set()
+
+    def add(term: str) -> None:
+        (long_terms if len(term) >= 4 else short_codes).add(re.escape(term))
+
+    for alias, (city, _region, _iso2) in vocab._CITY_ALIASES.items():
+        add(alias)
+        add(city)
+    for name in vocab.COUNTRY_NAMES.values():
+        add(name)
+    for alias in vocab._COUNTRY_ALIASES:
+        add(alias)
+
+    # Adjectival forms carry the geography just as well: "across German sites".
+    long_terms.update({
+        "irish", "german", "french", "dutch", "belgian", "british", "english",
+        "scottish", "welsh", "spanish", "portuguese", "italian", "swedish",
+        "danish", "norwegian", "finnish", "swiss", "polish", "czech",
+        "romanian", "indian", "japanese", "australian", "american",
+    })
+
+    return (
+        re.compile(r"\b(?:" + "|".join(sorted(long_terms)) + r")\b", re.I),
+        # Short codes match case-sensitively on purpose: a lowercase "us" is
+        # the pronoun, and "\bus\b" would let "join us" through as the USA.
+        re.compile(r"\b(?:" + "|".join(sorted(c.upper() for c in short_codes)) + r")\b"),
+    )
+
+
+_GEO_LONG, _GEO_SHORT = _geography_terms()
+
+
+def has_covered_geography(text: str) -> bool:
+    return bool(_GEO_LONG.search(text) or _GEO_SHORT.search(text))
+
+
 def passes(text: str) -> tuple[bool, str]:
     """Return (keep, reason). Reason is empty when kept."""
     if not text or not text.strip():
@@ -73,4 +121,12 @@ def passes(text: str) -> tuple[bool, str]:
     if not (_EMPLOYMENT.search(text) or _SITE.search(text)):
         return False, "no employment or site-opening term"
 
+    # NOTE: geography is deliberately NOT a gate here, though the helper above
+    # exists and is tested. Gating on it looked like an easy saving — several
+    # items were classified and then rejected for uncovered geography — but it
+    # drops "Revolut CEO steps down" (no place in the headline at all), "Intel
+    # opens new facility in Leixlip" and "BMS opens Mumbai capability centre".
+    # A headline often carries no place while the body does, and the model can
+    # infer it from the employer. Recall is the harder problem; validate.py
+    # rejects on geography later with full context, for a fraction of a cent.
     return True, ""
