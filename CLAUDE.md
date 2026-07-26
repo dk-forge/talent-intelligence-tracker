@@ -30,6 +30,11 @@ source_registry.py   markets, tiers, search vocabulary — all as data
 GitHub Actions cron collects 2x/day, commits the database back, and (once the
 plugin exists) POSTs to a keyed WordPress endpoint that renders the dashboard.
 
+**Collection is DORMANT right now.** The schedule in `collect.yml` is commented
+out until `OPENROUTER_API_KEY` is in this repo's secrets and a human has read a
+live dry run and agreed with it. Arm it by uncommenting the two schedule lines.
+Run it manually with `dry_run` ticked first.
+
 **There is no Railway deployment.** Collection runs on Actions because the
 database must be committed back to the repo; an ephemeral container discards
 it. If you find a Railway service pointed at this repo, it is a leftover.

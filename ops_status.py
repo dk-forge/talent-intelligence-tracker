@@ -40,6 +40,7 @@ def main() -> int:
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
 
+    problems += _report_collection_armed()
     problems += _report_data(conn)
     problems += _report_health(conn)
     _report_coverage()
@@ -54,6 +55,27 @@ def main() -> int:
 
     print("All clear.")
     return 0
+
+
+def _report_collection_armed() -> list[str]:
+    """Is anything actually collecting? A session that assumes yes when the
+    answer is no will misread every number below."""
+    workflow = ROOT / ".github" / "workflows" / "collect.yml"
+    if not workflow.exists():
+        return ["no collect.yml — nothing collects at all"]
+
+    armed = any(
+        line.strip().startswith("- cron:")
+        for line in workflow.read_text().splitlines()
+    )
+
+    print("\n[0] COLLECTION  " + ("ARMED — runs on schedule" if armed
+                                  else "DORMANT — schedule commented out"))
+    if not armed:
+        print("    Nothing is being collected. Arm it by uncommenting the")
+        print("    schedule in .github/workflows/collect.yml (needs")
+        print("    OPENROUTER_API_KEY in repo secrets first).")
+    return []
 
 
 def _report_data(conn) -> list[str]:

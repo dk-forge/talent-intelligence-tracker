@@ -4,11 +4,16 @@ name: collect
 # deliberate: the repo is the system's memory, so any future session (human or
 # agent) can diff what changed and reconstruct what we knew on any past date.
 
+# DORMANT. The schedule is deliberately commented out until two things are
+# true: OPENROUTER_API_KEY exists in this repo's secrets, and a human has read
+# the output of a live dry run and agreed it looks right. Arming a collector
+# before seeing what it actually stores is how bad data gets in.
+#
+# To arm: uncomment the two schedule lines below and push. Nothing else needs
+# to change. To check it first, run the workflow manually with dry_run ticked.
 on:
-  schedule:
-    # 06:00 and 18:00 UTC. Twice a day is plenty — news breaks over hours, and
-    # higher cadence costs money without improving coverage.
-    - cron: '0 6,18 * * *'
+  # schedule:
+  #   - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC
   workflow_dispatch:
     inputs:
       dry_run:
