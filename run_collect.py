@@ -174,9 +174,18 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
 
 
 def _print_signal(s) -> None:
+    # Show which basis the geography came from. A row can be stored on employer
+    # HQ alone, and printing a bare "None" for country hides that entirely.
+    if s.country:
+        where = ", ".join(p for p in (s.city, s.country) if p)
+    elif s.hq_country:
+        where = ", ".join(p for p in (s.hq_city, s.hq_country) if p) + " (HQ)"
+    else:
+        where = "unknown"
+
     print(f"  STORE   {s.company} — {s.headline[:70]}")
     print(f"          {s.pillar} / {s.signal_direction} / {s.confidence}")
-    print(f"          {s.city or '-'}, {s.country}   published {s.published_date or 'unknown'}")
+    print(f"          {where}   published {s.published_date or 'unknown'}")
     print(f"          read-through: {s.talent_readthrough[:100]}")
     print(f"          source: {s.source_url[:90]}")
 
