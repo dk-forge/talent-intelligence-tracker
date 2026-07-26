@@ -1,0 +1,117 @@
+name: deploy-plugin
+
+# DORMANT until WP_PLUGIN_REMOTE_DIR exists and the owner has read the guard
+# output once. Uncomment the push trigger to arm.
+on:
+  # push:
+  #   branches: [main]
+  #   paths: ['wordpress-plugin/**']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run every check but upload nothing'
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy-plugin
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      # A syntax error in a WordPress plugin fatals the whole site section.
+      # Nothing uploads until every file parses.
+      - name: Lint every PHP file
+        run: |
+          set -e
+          find wordpress-plugin -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+      # THE GUARD. The AI Layoff Tracker is live on the same host. Uploading
+      # this plugin over its directory would take down a running product, so
+      # the target path is checked before anything connects.
+      - name: Refuse to deploy anywhere but our own plugin directory
+        env:
+          REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+        run: |
+          set -e
+          if [ -z "$REMOTE_DIR" ]; then
+            echo "::error::WP_PLUGIN_REMOTE_DIR is not set."
+            exit 1
+          fi
+          echo "Target: $REMOTE_DIR"
+
+          case "$REMOTE_DIR" in
+            *ai-layoff-tracker*)
+              echo "::error::Target contains 'ai-layoff-tracker'. That is the LIVE sibling product. Refusing."
+              exit 1 ;;
+          esac
+
+          case "$REMOTE_DIR" in
+            */talent-intelligence-tracker|*/talent-intelligence-tracker/) ;;
+            *)
+              echo "::error::Target must end with /talent-intelligence-tracker. Got: $REMOTE_DIR"
+              exit 1 ;;
+          esac
+
+          case "$REMOTE_DIR" in
+            */wp-content/plugins/*) ;;
+            *)
+              echo "::error::Target must sit under wp-content/plugins/. Got: $REMOTE_DIR"
+              exit 1 ;;
+          esac
+
+          echo "Guard passed."
+
+      - name: Confirm the version was bumped
+        run: |
+          set -e
+          FILE=wordpress-plugin/talent-intelligence-tracker/talent-intelligence-tracker.php
+          HEADER=$(grep -m1 '^ \* Version:' "$FILE" | sed 's/.*Version: *//')
+          CONST=$(grep -m1 "define('TIT_VERSION'" "$FILE" | sed "s/.*'\([0-9.]*\)'.*/\1/")
+          echo "header=$HEADER const=$CONST"
+          if [ "$HEADER" != "$CONST" ]; then
+            echo "::error::Version header ($HEADER) and TIT_VERSION ($CONST) disagree."
+            exit 1
+          fi
+          # FTP bypasses activation hooks, so the version bump is the ONLY
+          # trigger for migrations and cache flushes. Shipping without one
+          # means the new code runs against the old table.
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREV=$(git show HEAD~1:"$FILE" 2>/dev/null | grep -m1 "define('TIT_VERSION'" | sed "s/.*'\([0-9.]*\)'.*/\1/" || echo "")
+            if [ -n "$PREV" ] && [ "$PREV" = "$CONST" ]; then
+              echo "::warning::TIT_VERSION unchanged since the previous commit. Migrations and cache flush will not run."
+            fi
+          fi
+
+      - name: Upload over FTPS
+        if: ${{ !inputs.dry_run }}
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+        run: |
+          set -e
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          lftp -c "
+            set ftp:ssl-force true;
+            set ssl:verify-certificate no;
+            open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
+            mirror --reverse --delete --verbose \
+              wordpress-plugin/talent-intelligence-tracker '$REMOTE_DIR';
+          "
+
+      - name: Dry run notice
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Dry run: lint and guards passed, nothing was uploaded."

@@ -1,0 +1,71 @@
+/* Talent Intelligence Tracker.
+   Mobile first. Nothing may bleed horizontally: wide content scrolls inside
+   its own container, never the page body. */
+
+.tit-wrap { --tit-fg:#1a1d21; --tit-mut:#5b6570; --tit-line:#e3e7ec; --tit-accent:#1f6feb;
+  color:var(--tit-fg); font-size:15px; line-height:1.5; max-width:100%; }
+
+.tit-empty { border:1px solid var(--tit-line); border-radius:10px; padding:28px; text-align:center; }
+.tit-empty h2 { margin:0 0 8px; font-size:19px; }
+.tit-empty p { margin:0 auto; max-width:52ch; color:var(--tit-mut); }
+
+.tit-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:0 0 22px; }
+@media (min-width:640px){ .tit-stats { grid-template-columns:repeat(4,1fr); } }
+.tit-stat { border:1px solid var(--tit-line); border-radius:10px; padding:14px; text-align:center; }
+.tit-n { display:block; font-size:26px; font-weight:700; line-height:1.1; }
+.tit-l { display:block; font-size:12px; color:var(--tit-mut); text-transform:uppercase; letter-spacing:.04em; margin-top:4px; }
+
+.tit-pillars { display:grid; gap:12px; margin:0 0 22px; }
+@media (min-width:760px){ .tit-pillars { grid-template-columns:repeat(2,1fr); gap:12px 24px; } }
+.tit-pillar-head { display:flex; justify-content:space-between; gap:12px; font-size:14px; margin-bottom:5px; }
+/* Long names ellipsize instead of pushing the layout wider. */
+.tit-pillar-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.tit-pillar-n { font-variant-numeric:tabular-nums; color:var(--tit-mut); flex:none; }
+.tit-bar { background:#eef1f5; border-radius:99px; height:7px; overflow:hidden; }
+.tit-bar span { display:block; height:100%; background:var(--tit-accent); border-radius:99px; }
+
+.tit-filters { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.tit-filters select, .tit-filters input {
+  flex:1 1 150px; min-width:0; padding:8px 10px; font-size:14px;
+  border:1px solid var(--tit-line); border-radius:8px; background:#fff; color:inherit; }
+
+.tit-note { font-size:13px; color:var(--tit-mut); margin:0 0 14px; max-width:70ch; }
+
+/* The table scrolls inside this box. The page never scrolls sideways. */
+.tit-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch;
+  border:1px solid var(--tit-line); border-radius:10px; }
+.tit-table { width:100%; border-collapse:collapse; font-size:14px; min-width:720px; }
+.tit-table th, .tit-table td { padding:11px 12px; text-align:left; vertical-align:top;
+  border-bottom:1px solid var(--tit-line); }
+.tit-table th { font-size:12px; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--tit-mut); background:#fafbfc; position:sticky; top:0; }
+.tit-table tr:last-child td { border-bottom:0; }
+
+.tit-headline { max-width:420px; }
+.tit-h { display:block; font-weight:600; }
+/* Our interpretation, visually separated from the sourced fact. */
+.tit-rt { display:block; margin-top:4px; font-size:13px; color:var(--tit-mut);
+  border-left:2px solid var(--tit-line); padding-left:8px; }
+
+.tit-tag, .tit-conf { display:inline-block; padding:2px 8px; border-radius:99px;
+  font-size:12px; white-space:nowrap; }
+.tit-tag { background:#eef1f5; }
+.tit-hiring { background:#e6f4ea; color:#0f6b34; }
+.tit-displacement { background:#fdecea; color:#9c2b1f; }
+.tit-comp_shift { background:#fff4e5; color:#8a5300; }
+
+.tit-conf { border:1px solid var(--tit-line); }
+.tit-c-verified { background:#e6f4ea; color:#0f6b34; border-color:#bfe3cc; }
+.tit-c-rumored  { background:#f6f7f9; color:var(--tit-mut); font-style:italic; }
+
+.tit-hq { font-size:11px; padding:1px 5px; border-radius:4px; background:#eef1f5; color:var(--tit-mut); }
+
+.tit-cite { margin:14px 0 0; font-size:12.5px; color:var(--tit-mut); }
+
+@media (prefers-color-scheme: dark) {
+  .tit-wrap { --tit-fg:#e7ebf0; --tit-mut:#9aa5b1; --tit-line:#2b3138; }
+  .tit-table th { background:#1c2126; }
+  .tit-filters select, .tit-filters input { background:#171b1f; }
+  .tit-bar { background:#2b3138; }
+  .tit-tag, .tit-hq { background:#242a30; }
+}
