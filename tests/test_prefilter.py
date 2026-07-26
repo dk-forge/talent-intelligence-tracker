@@ -21,6 +21,20 @@ REAL_NOISE = [
     "The Daily Grind: Where is the line between an expansion and a DLC?",
 ]
 
+# Verbatim from the SECOND live run, where the first version of this filter
+# dropped every one of them. A capability centre opening is a hiring event even
+# when the headline never says "jobs", and these are exactly what the
+# standalone euphemism queries were written to surface.
+SITE_OPENINGS = [
+    "US telecom giant T-Mobile sets up global tech centre in Hyderabad",
+    "Heineken launches global capability centre in Hyderabad",
+    "US Biotech Regeneron to launch Global Capability Centre in Hyderabad",
+    "TruBridge Launches Chennai Global Capability Center (GCC)",
+    "Lonza To Establish Global Capability Centre In Hyderabad",
+    "BMS opens Mumbai capability centre",
+    "GI Outsourcing opens Global Capability Centre in Hyderabad",
+]
+
 REAL_SIGNALS = [
     "Stripe to create 300 new jobs at expanded Dublin engineering hub",
     "Workday appoints new chief people officer as it expands in London",
@@ -42,6 +56,18 @@ def test_real_noise_is_filtered_before_the_llm(headline):
 def test_real_signals_survive(headline):
     keep, reason = prefilter.passes(headline)
     assert keep, f"dropped a genuine signal ({reason}): {headline}"
+
+
+@pytest.mark.parametrize("headline", SITE_OPENINGS)
+def test_site_openings_survive_without_the_word_jobs(headline):
+    keep, reason = prefilter.passes(headline)
+    assert keep, f"dropped a site-opening signal ({reason}): {headline}"
+
+
+def test_gulf_cooperation_council_is_not_a_capability_centre():
+    """'GCC' is deliberately not a site term — it is also a trade bloc."""
+    keep, _ = prefilter.passes("GCC leaders meet in Riyadh to discuss trade")
+    assert not keep
 
 
 def test_empty_text_is_filtered():

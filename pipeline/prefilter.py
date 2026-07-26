@@ -25,6 +25,23 @@ _EMPLOYMENT_TERMS = (
 )
 _EMPLOYMENT = re.compile(r"\b(?:" + "|".join(_EMPLOYMENT_TERMS) + r")\b", re.I)
 
+# Site-establishment terms. A company opening a capability centre IS a hiring
+# event, even when the headline never says "jobs" — and this is precisely the
+# phrasing the standalone euphemism queries exist to surface. The first version
+# of this filter dropped every one of them, which would have made those queries
+# dead on arrival exactly as the sibling's did.
+#
+# "GCC" is deliberately absent: it is also the Gulf Cooperation Council.
+_SITE_TERMS = (
+    r"capability cent(?:re|er)s?", r"cent(?:re|er)s? of excellence",
+    r"delivery cent(?:re|er)s?", r"shared services", r"tech(?:nology)? cent(?:re|er)s?",
+    r"engineering cent(?:re|er)s?", r"r&d cent(?:re|er)s?", r"innovation cent(?:re|er)s?",
+    r"development cent(?:re|er)s?", r"opens? (?:a |its |new )?(?:office|hub|campus|site)",
+    r"sets? up (?:a |its |new )?(?:office|hub|centre|center)",
+    r"new (?:office|hub|campus|facility|plant|site)",
+)
+_SITE = re.compile(r"\b(?:" + "|".join(_SITE_TERMS) + r")\b", re.I)
+
 # Domains where "expansion", "hiring" and "roster" mean something else entirely.
 # Cheap to check, and they were most of the noise in the first live run.
 _OFF_TOPIC_TERMS = (
@@ -48,7 +65,7 @@ def passes(text: str) -> tuple[bool, str]:
         hit = _OFF_TOPIC.search(text).group(0)
         return False, f"off-topic domain ({hit})"
 
-    if not _EMPLOYMENT.search(text):
-        return False, "no employment term — not about people at an employer"
+    if not (_EMPLOYMENT.search(text) or _SITE.search(text)):
+        return False, "no employment or site-opening term"
 
     return True, ""
