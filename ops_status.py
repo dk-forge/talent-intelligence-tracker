@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sqlite3
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 import source_registry as registry
@@ -156,7 +156,7 @@ def _report_surfaces() -> None:
     print("\n[4] SURFACES")
     print(f"    dashboard  {LIVE_URL}")
     print(f"    sibling    {SIBLING_URL}  (layoffs are READ from its API, never collected here)")
-    print(f"    repo       https://github.com/dakotta-labs/talent-intelligence-tracker")
+    print(f"    repo       https://github.com/dk-forge/talent-intelligence-tracker")
 
 
 if __name__ == "__main__":

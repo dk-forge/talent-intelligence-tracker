@@ -40,9 +40,16 @@ jobs:
       # instead of re-running the same slice twice.
       - name: Pick run index
         id: idx
-        # 10# forces base 10 — bash reads a leading-zero hour like 08 as octal
-        # and errors out.
-        run: echo "value=$(( 10#$(date -u +%H) >= 12 ? 1 : 0 ))" >> "$GITHUB_OUTPUT"
+        # Block scalar, not a plain one: a shell ternary contains " : ", which
+        # YAML would read as a mapping key and refuse to parse the file.
+        # 10# forces base 10 — bash reads a leading-zero hour like 08 as octal.
+        run: |
+          hour=$((10#$(date -u +%H)))
+          if [ "$hour" -ge 12 ]; then
+            echo "value=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=0" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Collect
         env:

@@ -5,7 +5,7 @@ city / region / country. Sibling project to the AI Layoff Tracker; the two
 cross-link and share a host, but share no code and no database.
 
 - **Live:** https://asktherecruiter.com/blog/talent-intelligence-tracker/
-- **Repo:** https://github.com/dakotta-labs/talent-intelligence-tracker (public — keeps Actions minutes free, so never make it private and never commit a secret)
+- **Repo:** https://github.com/dk-forge/talent-intelligence-tracker (public — keeps Actions minutes free, so never make it private and never commit a secret)
 - **Sibling:** https://asktherecruiter.com/blog/ai-layoff-tracker/
 
 ## Start here, every session
