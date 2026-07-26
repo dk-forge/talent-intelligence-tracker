@@ -1,0 +1,70 @@
+name: collect
+
+# The database is committed back to the repo after every run. That is
+# deliberate: the repo is the system's memory, so any future session (human or
+# agent) can diff what changed and reconstruct what we knew on any past date.
+
+on:
+  schedule:
+    # 06:00 and 18:00 UTC. Twice a day is plenty — news breaks over hours, and
+    # higher cadence costs money without improving coverage.
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Show what would be stored, write nothing'
+        type: boolean
+        default: false
+
+# Two runs writing the database at once would race on the commit.
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # Which of the two daily runs this is, so the segment matrix rotates
+      # instead of re-running the same slice twice.
+      - name: Pick run index
+        id: idx
+        # 10# forces base 10 — bash reads a leading-zero hour like 08 as octal
+        # and errors out.
+        run: echo "value=$(( 10#$(date -u +%H) >= 12 ? 1 : 0 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Collect
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python run_collect.py \
+            --run-index "${{ steps.idx.outputs.value }}" \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Status
+        if: ${{ !inputs.dry_run }}
+        run: python ops_status.py || true
+
+      - name: Commit the database
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: collect $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
