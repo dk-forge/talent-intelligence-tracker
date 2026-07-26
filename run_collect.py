@@ -124,14 +124,27 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
         conn.rollback()
         return 0
 
-    store.report_health(conn, collector, status="ok",
-                        items_found=found, items_stored=stored,
-                        detail=f"{duplicates} dup, {rejected} rejected")
+    # Fail loud (spec 6 rule 4). Two distinct breakages, both of which look
+    # like a quiet day if you only count stored rows:
+    #   - found nothing at all: the feed or the query is broken
+    #   - found plenty and kept none of it, with nothing even landing as a
+    #     duplicate: the classifier or a guard is broken, not the news
+    everything_rejected = found > 0 and stored == 0 and duplicates == 0
+    broken = found == 0 or everything_rejected
+
+    store.report_health(
+        conn, collector,
+        status="degraded" if broken else "ok",
+        items_found=found, items_stored=stored,
+        detail=(f"{duplicates} dup, {rejected} rejected"
+                + (" | every candidate rejected" if everything_rejected else "")),
+    )
     conn.commit()
 
-    # Fail loud: a run that found nothing is a broken collector, not a quiet
-    # news day (spec 6 rule 4).
-    return 1 if found == 0 else 0
+    if everything_rejected:
+        print(f"\n[{collector}] DEGRADED: {found} candidates, none stored, none duplicate.",
+              file=sys.stderr)
+    return 1 if broken else 0
 
 
 def _print_signal(s) -> None:
