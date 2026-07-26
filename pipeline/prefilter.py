@@ -20,6 +20,11 @@ _EMPLOYMENT_TERMS = (
     r"employees?", r"workers?", r"workforce", r"recruit\w*", r"vacanc\w+",
     r"appoint\w*", r"names? (?:its |a |new )?(?:chief|ceo|cfo|cto|president)",
     r"steps? down", r"resign\w*", r"succeeds?", r"chief \w+ officer",
+    # Structural leadership news names no individual and no headcount, but is
+    # squarely the leadership pillar. Kept narrow on purpose: bare "leadership"
+    # matches an endless supply of AI-strategy think pieces.
+    r"leadership (?:structure|team|reshuffle|shake-?up|transition)",
+    r"management team", r"executive team", r"board appoint\w*",
     r"salar\w+", r"pay(?:rise|\srise)?", r"wages?", r"bonus\w*", r"compensation",
     r"remote work", r"hybrid work\w*", r"return to office", r"four-day week",
 )

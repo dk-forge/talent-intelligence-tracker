@@ -64,6 +64,26 @@ def test_site_openings_survive_without_the_word_jobs(headline):
     assert keep, f"dropped a site-opening signal ({reason}): {headline}"
 
 
+def test_structural_leadership_news_survives():
+    """Verbatim from a live run. Names no person and no headcount, but is
+    squarely the leadership pillar."""
+    keep, reason = prefilter.passes(
+        "Woolworths reshapes leadership structure to accelerate growth"
+    )
+    assert keep, reason
+
+
+@pytest.mark.parametrize("headline", [
+    "Why leadership capability building is the most underrated AI skill",
+    "A new era of shared leadership - South Jersey Media",
+    "India vies for strategic leadership as GCC host",
+])
+def test_bare_leadership_think_pieces_stay_filtered(headline):
+    """The term is deliberately narrow — 'leadership' alone is endless noise."""
+    keep, _ = prefilter.passes(headline)
+    assert not keep
+
+
 def test_gulf_cooperation_council_is_not_a_capability_centre():
     """'GCC' is deliberately not a site term — it is also a trade bloc."""
     keep, _ = prefilter.passes("GCC leaders meet in Riyadh to discuss trade")
