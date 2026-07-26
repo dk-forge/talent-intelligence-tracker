@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>"new jobs" - Google News</title>
+    <item>
+      <title>Stripe to create 300 new jobs at expanded Dublin engineering hub</title>
+      <link>https://news.google.com/rss/articles/CBMiTGh0dHBzOi8vZXhhbXBsZS1maXh0dXJl</link>
+      <pubDate>Mon, 20 Jul 2026 08:14:00 GMT</pubDate>
+      <description>Stripe to create 300 new jobs at expanded Dublin engineering hub</description>
+      <source url="https://www.irishtimes.com">The Irish Times</source>
+    </item>
+    <item>
+      <title>Workday appoints new chief people officer as it expands in London</title>
+      <link>https://news.google.com/rss/articles/CBMiTGh0dHBzOi8vZXhhbXBsZS1maXh0dXJlMg</link>
+      <pubDate>Tue, 21 Jul 2026 11:02:00 GMT</pubDate>
+      <description>Workday appoints new chief people officer as it expands in London</description>
+      <source url="https://www.ft.com">Financial Times</source>
+    </item>
+    <item>
+      <title>SAP raises minimum salary across German sites in retention push</title>
+      <link>https://news.google.com/rss/articles/CBMiTGh0dHBzOi8vZXhhbXBsZS1maXh0dXJlMw</link>
+      <pubDate>Wed, 22 Jul 2026 06:45:00 GMT</pubDate>
+      <description>SAP raises minimum salary across German sites in retention push</description>
+      <source url="https://www.handelsblatt.com">Handelsblatt</source>
+    </item>
+    <item>
+      <title>Item with no source element at all</title>
+      <link>https://news.google.com/rss/articles/CBMiTGh0dHBzOi8vZXhhbXBsZS1maXh0dXJlNA</link>
+      <pubDate>Thu, 23 Jul 2026 09:00:00 GMT</pubDate>
+      <description>Edge case: no source element, so source_url falls back to the Google link.</description>
+    </item>
+  </channel>
+</rss>

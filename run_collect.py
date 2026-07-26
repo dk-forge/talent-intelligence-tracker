@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""Collector entrypoint.
+
+    python run_collect.py --dry-run           # show what WOULD be stored
+    python run_collect.py --dry-run --offline # no network, no LLM, fixtures only
+    python run_collect.py                     # actually store
+
+Nothing is stored until a dry run looks right (spec 11 step 2).
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from dataclasses import asdict
+from datetime import date
+
+import source_registry as registry
+from collectors import google_news
+from pipeline import classify, schema, store, validate
+
+RUNS_PER_DAY = 2
+SEGMENTS_PER_RUN = 4
+
+
+def build_queries(run_index: int) -> list[str]:
+    """Layer 1 broad sweep + a rotating slice of the segment matrix, plus the
+    standalone euphemism queries that must never be AND-ed with the base
+    vocabulary (spec 14)."""
+    base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
+
+    segments = registry.rotate(
+        registry.build_segments(),
+        day_of_year=date.today().timetuple().tm_yday,
+        run_index=run_index,
+        runs_per_day=RUNS_PER_DAY,
+        per_run=SEGMENTS_PER_RUN,
+    )
+
+    queries = [base]
+    queries += [f"({base}) AND \"{segment}\"" for segment in segments]
+    queries += list(registry.STANDALONE_QUERIES)
+    return queries
+
+
+def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> int:
+    conn = schema.connect()
+    collector = google_news.COLLECTOR
+
+    if offline:
+        items = _fixture_items()
+    else:
+        queries = build_queries(run_index)
+        print(f"[{collector}] {len(queries)} queries")
+        try:
+            items = google_news.collect(queries)
+        except Exception as exc:
+            store.report_health(conn, collector, status="error", detail=str(exc)[:400])
+            conn.commit()
+            print(f"[{collector}] FETCH FAILED: {exc}", file=sys.stderr)
+            return 1
+
+    if limit:
+        items = items[:limit]
+
+    found = len(items)
+    stored = duplicates = rejected = skipped = 0
+    print(f"[{collector}] {found} candidates fetched\n")
+
+    for item in items:
+        url = item.get("source_url") or item.get("discovery_url") or ""
+
+        # Deduplicate BEFORE the LLM, never after (spec 4 rule 2).
+        if url and store.already_seen(conn, url):
+            skipped += 1
+            continue
+
+        try:
+            classified = _stub_classify(item) if offline else classify.classify(item)
+        except classify.CreditsExhausted as exc:
+            print(f"\nSTOPPING: {exc}", file=sys.stderr)
+            store.report_health(conn, collector, status="error",
+                                items_found=found, items_stored=stored,
+                                detail="OpenRouter credits exhausted")
+            conn.commit()
+            return 1
+        except classify.ClassifyError as exc:
+            rejected += 1
+            print(f"  REJECT  {item.get('headline','')[:70]}\n          classify: {exc}")
+            continue
+
+        if classified is None:
+            rejected += 1
+            continue
+
+        try:
+            signal = validate.build_signal(classified, item, collector)
+        except validate.Rejected as exc:
+            rejected += 1
+            print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")
+            continue
+
+        if dry_run:
+            _print_signal(signal)
+            stored += 1
+            continue
+
+        outcome = store.store(conn, signal)
+        store.mark_seen(conn, url, collector, outcome)
+        if outcome == "stored":
+            stored += 1
+            _print_signal(signal)
+        else:
+            duplicates += 1
+
+    print(
+        f"\n[{collector}] found={found} "
+        f"{'would store' if dry_run else 'stored'}={stored} "
+        f"duplicate={duplicates} rejected={rejected} already-seen={skipped}"
+    )
+
+    if dry_run:
+        print("\nDRY RUN — nothing was written.")
+        conn.rollback()
+        return 0
+
+    store.report_health(conn, collector, status="ok",
+                        items_found=found, items_stored=stored,
+                        detail=f"{duplicates} dup, {rejected} rejected")
+    conn.commit()
+
+    # Fail loud: a run that found nothing is a broken collector, not a quiet
+    # news day (spec 6 rule 4).
+    return 1 if found == 0 else 0
+
+
+def _print_signal(s) -> None:
+    print(f"  STORE   {s.company} — {s.headline[:70]}")
+    print(f"          {s.pillar} / {s.signal_direction} / {s.confidence}")
+    print(f"          {s.city or '-'}, {s.country}   published {s.published_date or 'unknown'}")
+    print(f"          read-through: {s.talent_readthrough[:100]}")
+    print(f"          source: {s.source_url[:90]}")
+
+
+def _fixture_items() -> list[dict]:
+    from pathlib import Path
+    fixture = Path(__file__).parent / "tests" / "fixtures" / "google_news_sample.xml"
+    return google_news.parse(fixture.read_bytes(), query="offline-fixture")
+
+
+def _stub_classify(item: dict) -> dict | None:
+    """Deterministic stand-in so --offline exercises the whole path without
+    spending a cent. Never used in a real run."""
+    text = item.get("raw_text", "")
+    lowered = text.lower()
+    if "appoint" in lowered or "chief executive" in lowered or "steps down" in lowered:
+        pillar, direction = "leadership_change", "neutral"
+    elif "pay" in lowered or "salary" in lowered or "bonus" in lowered:
+        pillar, direction = "rewards_comp", "comp_shift"
+    elif "office" in lowered or "remote" in lowered or "hybrid" in lowered:
+        pillar, direction = "how_we_work", "neutral"
+    else:
+        pillar, direction = "company_development", "hiring"
+
+    city = next((c for c in ("Dublin", "London", "Berlin", "Amsterdam", "Paris")
+                 if c.lower() in lowered), "")
+    country = next((c for c in ("Irish", "German", "French", "Dutch", "British")
+                    if c.lower() in lowered), "")
+    country = {"Irish": "Ireland", "German": "Germany", "French": "France",
+               "Dutch": "Netherlands", "British": "United Kingdom"}.get(country, "")
+
+    return {
+        "is_talent_signal": True,
+        "company": (item.get("headline", "").split()[0] or "Unknown"),
+        "pillar": pillar,
+        "signal_direction": direction,
+        "city": city,
+        "country": country,
+        "confidence": "reported",
+        "headline": item.get("headline", ""),
+        "summary": item.get("headline", ""),
+        "talent_readthrough": "Offline stub — not a real read-through.",
+        "predicted_outcome": "",
+        "check_after_date": "",
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Collect talent intelligence signals.")
+    parser.add_argument("--dry-run", action="store_true", help="show what would be stored")
+    parser.add_argument("--offline", action="store_true", help="fixtures only, no network or LLM")
+    parser.add_argument("--run-index", type=int, default=0, help="0 or 1, for segment rotation")
+    parser.add_argument("--limit", type=int, help="cap candidates, for cheap testing")
+    args = parser.parse_args()
+
+    if args.offline and not args.dry_run:
+        parser.error("--offline is only meaningful with --dry-run")
+
+    return run(dry_run=args.dry_run, offline=args.offline,
+               run_index=args.run_index, limit=args.limit)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
