@@ -71,6 +71,35 @@ jobs:
 
           echo "Guard passed."
 
+      # Second guard, on the remote side: prove the target really is inside a
+      # WordPress install before mirroring anything into it. Deliberately no
+      # default value anywhere in this file — a default is how files land in
+      # the wrong folder when a secret goes missing.
+      - name: Prove the target is a WordPress install
+        if: ${{ !inputs.dry_run }}
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+        run: |
+          set -e
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          WP_ROOT="$(dirname "$(dirname "$(dirname "$REMOTE_DIR")")")"
+          echo "Expecting wp-config.php in $WP_ROOT"
+          FOUND=$(lftp -c "
+            set ftp:ssl-force true;
+            set ssl:verify-certificate no;
+            open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
+            cls -1 '$WP_ROOT' 2>/dev/null;
+          " | grep -c '^wp-config.php$' || true)
+          if [ "$FOUND" -eq 0 ]; then
+            echo "::error::No wp-config.php at $WP_ROOT. The target is not inside a WordPress install. Refusing."
+            exit 1
+          fi
+          echo "WordPress install confirmed."
+
       - name: Confirm the version was bumped
         run: |
           set -e
