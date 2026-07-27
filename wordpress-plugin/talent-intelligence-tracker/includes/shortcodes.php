@@ -48,6 +48,17 @@ function tit_dashboard_shortcode() {
         "SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND confidence = 'verified'"
     );
 
+    $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
+    $hiring     = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND signal_direction = 'hiring'");
+    $funded     = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND funding_amount IS NOT NULL");
+    $by_country = $wpdb->get_results(
+        "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
+          WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
+          GROUP BY k ORDER BY n DESC LIMIT 6", ARRAY_A) ?: array();
+    $by_direction = $wpdb->get_results(
+        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE is_current = 1
+          GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
+
     $rows = $wpdb->get_results(
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
@@ -98,6 +109,24 @@ function tit_dashboard_shortcode() {
     ?>
     <div class="tit-wrap" id="tit-dashboard">
 
+      <div class="tit-hero">
+        <div class="tit-live"><span class="tit-live-dot"></span>
+          Live<?php if ($newest_run) : ?> · last updated
+          <?php echo esc_html(date_i18n('M j, g:i A', strtotime($newest_run . ' UTC'))); ?>
+          <?php endif; ?>
+        </div>
+        <h2>Who is hiring, who is raising money, and who is changing leadership</h2>
+        <p>Every update here links to the filing or article that makes the claim.
+           We do not estimate. Figures appear only when the source states them,
+           and a source that reports a plan is never shown as a confirmed fact.</p>
+        <div class="tit-hero-figs">
+          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($hiring)); ?></strong>hiring up</div>
+          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($funded)); ?></strong>raised money</div>
+          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($companies)); ?></strong>employers tracked</div>
+          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($verified)); ?></strong>from official filings</div>
+        </div>
+      </div>
+
       <div class="tit-stats">
         <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($total)); ?></span><span class="tit-l">updates</span></div>
         <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($companies)); ?></span><span class="tit-l">employers</span></div>
@@ -117,6 +146,42 @@ function tit_dashboard_shortcode() {
             <div class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></div>
           </div>
         <?php endforeach; ?>
+      </div>
+
+      <div class="tit-charts">
+        <div class="tit-chart">
+          <h3>Where the activity is</h3>
+          <p class="tit-sub">Job location, falling back to the employer's headquarters.</p>
+          <div class="tit-rank">
+            <?php
+            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
+            foreach ($by_country as $c) : ?>
+              <div class="tit-rank-row">
+                <span class="tit-rank-name"><?php echo esc_html($c['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <div class="tit-chart">
+          <h3>Growing or shrinking</h3>
+          <p class="tit-sub">What each update means for headcount at that employer.</p>
+          <div class="tit-rank">
+            <?php
+            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
+            foreach ($by_direction as $d) : ?>
+              <div class="tit-rank-row">
+                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
       </div>
 
       <div class="tit-filters">

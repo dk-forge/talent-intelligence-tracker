@@ -137,3 +137,76 @@
   margin:6px 0 22px; font-size:14.5px; color:var(--tit-mut); max-width:78ch; }
 .tit-callout strong { color:var(--tit-fg); }
 .tit-sources .tit-table { min-width:720px; }
+
+/* ======================================================================
+   Visual layer. The palette is the validated colourblind-safe set (blue /
+   orange / violet / teal, worst adjacent CVD separation dE 24.7). Colour is
+   always paired with a word or an icon so it never carries meaning alone.
+   ====================================================================== */
+
+.tit-wrap {
+  --tit-blue:#2a78d6; --tit-orange:#eb6834; --tit-violet:#4a3aa7;
+  --tit-teal:#1baf7a; --tit-ink-blue:#17457d; --tit-ink-orange:#8c3410;
+  --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
+}
+
+/* --- Hero -------------------------------------------------------------- */
+.tit-hero { border:1px solid var(--tit-line); border-radius:16px;
+  padding:22px 22px 20px; margin:0 0 22px;
+  background:linear-gradient(140deg,#f4f8fe 0%,#fdf6f2 55%,#f7f4fd 100%); }
+.tit-hero h2 { margin:0 0 6px; font-size:23px; color:var(--tit-fg); font-weight:650; }
+.tit-hero p { margin:0; color:var(--tit-mut); font-size:15px; max-width:62ch; }
+.tit-live { display:inline-flex; align-items:center; gap:7px; font-size:13px;
+  font-weight:600; color:var(--tit-ink-teal); background:#e4f6ee;
+  border:1px solid #b9e6d3; border-radius:99px; padding:4px 11px; margin:0 0 12px; }
+.tit-live-dot { width:8px; height:8px; border-radius:50%; background:var(--tit-teal);
+  box-shadow:0 0 0 3px rgba(27,175,122,.22); }
+.tit-hero-figs { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.tit-hero-fig { background:#fff; border:1px solid var(--tit-line); border-radius:10px;
+  padding:9px 13px; font-size:14px; color:var(--tit-mut); }
+.tit-hero-fig strong { color:var(--tit-fg); font-size:17px; margin-right:5px;
+  font-variant-numeric:tabular-nums; }
+
+/* --- Stat tiles get their own accent ---------------------------------- */
+.tit-stat { position:relative; overflow:hidden; }
+.tit-stat::before { content:""; position:absolute; inset:0 auto 0 0; width:4px;
+  background:var(--tit-blue); }
+.tit-stat:nth-child(2)::before { background:var(--tit-orange); }
+.tit-stat:nth-child(3)::before { background:var(--tit-violet); }
+.tit-stat:nth-child(4)::before { background:var(--tit-teal); }
+
+/* --- Pillar bars, one hue each, with a label chip ---------------------- */
+.tit-pillar-name::before { content:""; display:inline-block; width:9px; height:9px;
+  border-radius:2px; margin-right:8px; background:var(--tit-blue); vertical-align:middle; }
+.tit-pillar:nth-child(2) .tit-pillar-name::before { background:var(--tit-orange); }
+.tit-pillar:nth-child(3) .tit-pillar-name::before { background:var(--tit-violet); }
+.tit-pillar:nth-child(4) .tit-pillar-name::before { background:var(--tit-teal); }
+.tit-pillar:nth-child(2) .tit-bar span { background:var(--tit-orange); }
+.tit-pillar:nth-child(3) .tit-bar span { background:var(--tit-violet); }
+.tit-pillar:nth-child(4) .tit-bar span { background:var(--tit-teal); }
+
+/* --- Charts ------------------------------------------------------------ */
+.tit-charts { display:grid; grid-template-columns:1fr; gap:16px; margin:0 0 24px; }
+@media (min-width:820px){ .tit-charts { grid-template-columns:1fr 1fr; } }
+.tit-chart { border:1px solid var(--tit-line); border-radius:12px; padding:16px 18px;
+  background:#fff; }
+.tit-chart h3 { margin:0 0 3px; font-size:15px; color:var(--tit-fg); font-weight:650; }
+.tit-chart .tit-sub { margin:0 0 14px; font-size:13px; color:var(--tit-mut); }
+.tit-rank { display:grid; gap:9px; }
+.tit-rank-row { display:grid; grid-template-columns:96px 1fr auto; gap:10px;
+  align-items:center; font-size:14px; }
+.tit-rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--tit-fg); }
+.tit-rank-track { background:#eef1f5; border-radius:99px; height:10px; overflow:hidden; }
+.tit-rank-fill { display:block; height:100%; border-radius:99px; background:var(--tit-blue); }
+.tit-rank-n { font-variant-numeric:tabular-nums; color:var(--tit-mut);
+  font-weight:600; min-width:22px; text-align:right; }
+.tit-rank-row:nth-child(2) .tit-rank-fill { background:var(--tit-orange); }
+.tit-rank-row:nth-child(3) .tit-rank-fill { background:var(--tit-violet); }
+.tit-rank-row:nth-child(4) .tit-rank-fill { background:var(--tit-teal); }
+.tit-rank-row:nth-child(n+5) .tit-rank-fill { background:#6b7684; }
+
+/* --- Table: colour the direction column, keep the words ---------------- */
+.tit-table tbody tr:hover { background:#f9fbfd; }
+.tit-h a { text-decoration:none; }
+.tit-h a:hover { text-decoration:underline; }
