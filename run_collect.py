@@ -178,7 +178,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if not offline and source == "google_news":
         kept = [google_news.resolve_source_url(item) for item in kept]
 
-    stored = duplicates = rejected = skipped = 0
+    stored = duplicates = rejected = skipped = throttled = 0
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
 
@@ -208,6 +208,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                                 detail="OpenRouter credits exhausted")
             conn.commit()
             return 1
+        except classify.Throttled as exc:
+            # Not a verdict on the candidate. Counted separately, printed as
+            # DEFER, and deliberately NOT marked seen, so the next run picks it
+            # up instead of losing it. A busy provider must never look like a
+            # quiet news day.
+            throttled += 1
+            print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
+            continue
         except classify.ClassifyError as exc:
             rejected += 1
             print(f"  REJECT  {item.get('headline','')[:70]}\n          classify: {exc}")
@@ -250,7 +258,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     print(
         f"\n[{collector}] found={found} "
         f"{'would store' if dry_run else 'stored'}={stored} "
-        f"duplicate={duplicates} rejected={rejected} already-seen={skipped}"
+        f"duplicate={duplicates} rejected={rejected} "
+        f"deferred={throttled} already-seen={skipped}"
     )
 
     if dry_run:
@@ -264,14 +273,21 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     #   - found plenty and kept none of it, with nothing even landing as a
     #     duplicate: the classifier or a guard is broken, not the news
     everything_rejected = len(kept) > 0 and stored == 0 and duplicates == 0
-    broken = found == 0 or everything_rejected
+    # A run that mostly hit a busy provider stored little through no fault of
+    # the pipeline. That is still not "ok": it means coverage has a hole that
+    # only the next run can fill, and silence about it is how a throttled
+    # source looks like a quiet news day for a month.
+    mostly_throttled = throttled > 0 and throttled >= max(1, len(kept) // 2)
+    broken = found == 0 or everything_rejected or mostly_throttled
 
     store.report_health(
         conn, collector,
         status="degraded" if broken else "ok",
         items_found=found, items_stored=stored,
-        detail=(f"{duplicates} dup, {rejected} rejected"
-                + (" | every candidate rejected" if everything_rejected else "")),
+        detail=(f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
+                + (" | every candidate rejected" if everything_rejected else "")
+                + (f" | {throttled} deferred to the next run, provider was busy"
+                   if mostly_throttled else "")),
     )
     conn.commit()
 

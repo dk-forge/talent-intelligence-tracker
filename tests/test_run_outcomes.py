@@ -56,3 +56,40 @@ def test_ops_status_flags_a_degraded_collector(conn, capsys):
     problems = ops_status._report_health(conn)
 
     assert any("degraded" in p for p in problems)
+
+
+def test_a_busy_provider_is_deferred_not_rejected():
+    """A 429 is the upstream provider being busy, not a verdict on the story.
+
+    Treating it as one threw five real candidates away in a single dry run,
+    OpenAI tripling its Dublin headcount among them, and printed them as
+    REJECT, which reads exactly like the model declining them.
+    """
+    import inspect
+
+    import run_collect
+    from pipeline import classify
+
+    assert 429 in classify.TRANSIENT_STATUS
+    assert issubclass(classify.Throttled, RuntimeError)
+    # Throttled must not inherit from ClassifyError, or the reject branch
+    # would swallow it before the defer branch is ever reached.
+    assert not issubclass(classify.Throttled, classify.ClassifyError)
+
+    src = inspect.getsource(run_collect.run)
+    defer = src.index("except classify.Throttled")
+    reject = src.index("except classify.ClassifyError")
+    assert defer < reject, "the Throttled handler must come first"
+    # The candidate has to stay unseen so a later run retries it.
+    assert "throttled += 1" in src
+
+
+def test_a_mostly_throttled_run_reports_degraded():
+    """Storing little because the provider was busy is not a quiet news day."""
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    assert "mostly_throttled" in src
+    assert "or mostly_throttled" in src

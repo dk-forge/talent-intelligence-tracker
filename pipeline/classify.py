@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import os
 
+import time
+
 import requests
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -81,6 +83,18 @@ A weak read-through is worse than none. Compare:
 """
 
 
+# Statuses that say "not now", never "no".
+TRANSIENT_STATUS = frozenset({408, 425, 429, 500, 502, 503, 504})
+RETRIES = 4
+BACKOFF_SECONDS = 2.0
+MAX_BACKOFF_SECONDS = 30.0
+
+
+class Throttled(RuntimeError):
+    """The provider was busy. The candidate is untouched and must be retried on
+    a later run, not recorded as rejected and not marked seen."""
+
+
 class CreditsExhausted(RuntimeError):
     """Raised on a 402 so the caller stops cleanly (spec 4 rule 4)."""
 
@@ -129,17 +143,33 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
         ],
     }
 
-    resp = requests.post(
-        OPENROUTER_URL,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": USER_AGENT,
-        },
-        json=body,
-        timeout=timeout,
-    )
+    # A 429 here is the upstream provider being busy, not a verdict on the
+    # candidate. Treating it as one threw five real stories away in a single
+    # dry run — OpenAI tripling its Dublin headcount among them — and reported
+    # them as REJECT, which reads exactly like the model declining them.
+    # The sibling paid for this same lesson with transient 5xx from its host.
+    resp = None
+    for attempt in range(RETRIES):
+        resp = requests.post(
+            OPENROUTER_URL,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": USER_AGENT,
+            },
+            json=body,
+            timeout=timeout,
+        )
+        if resp.status_code not in TRANSIENT_STATUS or attempt == RETRIES - 1:
+            break
+        # Honour Retry-After when the provider sends one, else back off.
+        wait = float(resp.headers.get("Retry-After") or 0) or BACKOFF_SECONDS * (2 ** attempt)
+        time.sleep(min(wait, MAX_BACKOFF_SECONDS))
 
+    if resp.status_code in TRANSIENT_STATUS:
+        raise Throttled(
+            f"OpenRouter {resp.status_code} after {RETRIES} attempts: {resp.text[:200]}"
+        )
     if resp.status_code == 402:
         raise CreditsExhausted("OpenRouter returned 402 — stopping the run")
     if resp.status_code == 401:
