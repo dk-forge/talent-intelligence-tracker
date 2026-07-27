@@ -75,13 +75,18 @@ def call(model: str, system: str, schema: str, headline: str, key: str) -> tuple
     body = {
         "model": model,
         "temperature": 0,
-        "response_format": {"type": "json_object"},
-        "provider": {"require_parameters": True},
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": f"{schema}\n\n---\n{headline}"},
         ],
     }
+    # Anthropic endpoints on OpenRouter do not advertise response_format, so
+    # require_parameters filters every provider out and the request 404s with
+    # "No endpoints found". Claude follows a JSON-only instruction reliably, and
+    # the brace extraction below handles the response either way.
+    if not model.startswith("anthropic/"):
+        body["response_format"] = {"type": "json_object"}
+        body["provider"] = {"require_parameters": True}
     try:
         resp = requests.post(
             ENDPOINT,
