@@ -216,9 +216,15 @@ function tit_dashboard_shortcode() {
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
 
 function tit_enqueue_assets() {
-    if (!is_singular()) return;
-    global $post;
-    if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
+    // Company profile pages carry no shortcode and are not singular posts, so
+    // a shortcode-only check left them completely unstyled.
+    $is_company = (bool) get_query_var('tit_company');
+
+    if (!$is_company) {
+        if (!is_singular()) return;
+        global $post;
+        if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
+    }
 
     // TIT_VERSION busts the cache on every deploy, which matters because FTP
     // uploads do not touch WordPress's own cache-busting.

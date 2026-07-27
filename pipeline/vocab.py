@@ -431,7 +431,7 @@ def company_key(name: str) -> str:
     k = _key(name)
     k = re.sub(r"[^\w\s&-]", " ", k)
     k = re.sub(
-        r"\b(inc|llc|ltd|limited|plc|corp|corporation|co|gmbh|ag|sa|nv|bv|ab|as|oy|spa|srl|pte|pty)\b",
+        r"\b(inc|llc|ltd|limited|plc|corp|corporation|co|pbc|lp|llp|gmbh|ag|sa|nv|bv|ab|as|oy|spa|srl|pte|pty)\b",
         " ",
         k,
     )
