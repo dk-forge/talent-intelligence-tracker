@@ -1,0 +1,682 @@
+[
+ {
+  "name": "SEC EDGAR 8-K (Item 5.02)",
+  "url": "https://www.sec.gov/edgar.shtml",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Executive hire",
+   "Executive departure",
+   "Board appointment"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": "Legally required within four business days. Primary source, so records earn verified confidence."
+ },
+ {
+  "name": "SEC EDGAR Form D",
+  "url": "https://www.sec.gov/edgar.shtml",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Funding",
+   "Private placement"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred."
+ },
+ {
+  "name": "GDELT DOC 2.0",
+  "url": "https://www.gdeltproject.org/",
+  "status": "live",
+  "category": "News aggregation",
+  "signals": [
+   "Hiring",
+   "Office opening",
+   "Leadership change"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "Worldwide, machine-translated from 65 languages. Returns real article URLs. Throttles erratically, so lost queries are logged as coverage gaps."
+ },
+ {
+  "name": "Google News RSS",
+  "url": "https://news.google.com/",
+  "status": "candidate",
+  "category": "News aggregation",
+  "signals": [
+   "Discovery only"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "DISCOVERY POINTER ONLY. Its <source> element gives the outlet homepage, its redirect no longer resolves, and the article URL is not recoverable. A homepage is not a receipt, so nothing it produces is stored as a source."
+ },
+ {
+  "name": "SEC EDGAR 8-K (Items 1.01 / 2.01)",
+  "url": "https://www.sec.gov/edgar.shtml",
+  "status": "candidate",
+  "category": "Regulatory filings",
+  "signals": [
+   "M&A",
+   "Acquisition"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "USAspending.gov",
+  "url": "https://www.usaspending.gov/",
+  "status": "candidate",
+  "category": "Government open data",
+  "signals": [
+   "Federal contract",
+   "Government contract"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": "Free API, no key. Contract awards precede hiring."
+ },
+ {
+  "name": "UK Companies House",
+  "url": "https://www.gov.uk/government/organisations/companies-house",
+  "status": "candidate",
+  "category": "Regulatory filings",
+  "signals": [
+   "Board appointment",
+   "Incorporation"
+  ],
+  "coverage": "National",
+  "country": "GB",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "IDA Ireland",
+  "url": "https://www.idaireland.com/",
+  "status": "candidate",
+  "category": "Investment promotion agency",
+  "signals": [
+   "Hiring",
+   "Office opening",
+   "Job creation"
+  ],
+  "coverage": "National",
+  "country": "IE",
+  "rss": "",
+  "free": true,
+  "notes": "Announces 'X company, Y jobs, Z city' as official releases. Pre-structured headcount and location, free."
+ },
+ {
+  "name": "Invest Northern Ireland",
+  "url": "https://www.investni.com/",
+  "status": "candidate",
+  "category": "Investment promotion agency",
+  "signals": [
+   "Hiring",
+   "Job creation"
+  ],
+  "coverage": "Regional",
+  "country": "GB",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Business France",
+  "url": "https://www.businessfrance.fr/",
+  "status": "candidate",
+  "category": "Investment promotion agency",
+  "signals": [
+   "Hiring",
+   "Office opening"
+  ],
+  "coverage": "National",
+  "country": "FR",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Germany Trade & Invest",
+  "url": "https://www.gtai.de/",
+  "status": "candidate",
+  "category": "Investment promotion agency",
+  "signals": [
+   "Hiring",
+   "Facility expansion"
+  ],
+  "coverage": "National",
+  "country": "DE",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "US Bureau of Labor Statistics (JOLTS)",
+  "url": "https://www.bls.gov/jlt/",
+  "status": "candidate",
+  "category": "Labour market data",
+  "signals": [
+   "Labor market trends"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "https://www.bls.gov/feed/",
+  "free": true,
+  "notes": "Context only, never mixed into counts."
+ },
+ {
+  "name": "PR Newswire",
+  "url": "https://www.prnewswire.com/",
+  "status": "candidate",
+  "category": "Press release wire",
+  "signals": [
+   "Funding",
+   "Executive hire",
+   "Expansion"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "https://www.prnewswire.com/rss/",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Business Wire",
+  "url": "https://www.businesswire.com/",
+  "status": "candidate",
+  "category": "Press release wire",
+  "signals": [
+   "Executive hire",
+   "M&A",
+   "Expansion"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "TechCrunch",
+  "url": "https://techcrunch.com/",
+  "status": "candidate",
+  "category": "Technology press",
+  "signals": [
+   "Funding",
+   "M&A",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "https://techcrunch.com/feed/",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Sifted",
+  "url": "https://sifted.eu/",
+  "status": "candidate",
+  "category": "Technology press",
+  "signals": [
+   "Funding",
+   "Hiring"
+  ],
+  "coverage": "Regional",
+  "country": "GB",
+  "rss": "https://sifted.eu/feed/",
+  "free": true,
+  "notes": "Best single source for European startups."
+ },
+ {
+  "name": "GeekWire",
+  "url": "https://www.geekwire.com/",
+  "status": "candidate",
+  "category": "Regional business press",
+  "signals": [
+   "Hiring",
+   "Office opening",
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "US",
+  "rss": "https://www.geekwire.com/feed/",
+  "free": true,
+  "notes": "Pacific Northwest: the Amazon and Microsoft ecosystem."
+ },
+ {
+  "name": "BetaKit",
+  "url": "https://betakit.com/",
+  "status": "candidate",
+  "category": "Technology press",
+  "signals": [
+   "Funding",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "CA",
+  "rss": "https://betakit.com/feed/",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "EU-Startups",
+  "url": "https://www.eu-startups.com/",
+  "status": "candidate",
+  "category": "Technology press",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "ES",
+  "rss": "https://www.eu-startups.com/feed/",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Tech in Asia",
+  "url": "https://www.techinasia.com/",
+  "status": "candidate",
+  "category": "Technology press",
+  "signals": [
+   "Funding",
+   "Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "SG",
+  "rss": "https://www.techinasia.com/feed",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Crunchbase News",
+  "url": "https://news.crunchbase.com/",
+  "status": "candidate",
+  "category": "Venture capital press",
+  "signals": [
+   "Funding",
+   "M&A"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "https://news.crunchbase.com/feed/",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "FierceBiotech",
+  "url": "https://www.fiercebiotech.com/",
+  "status": "candidate",
+  "category": "Trade publication",
+  "signals": [
+   "Funding",
+   "Hiring",
+   "FDA approval"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "https://www.fiercebiotech.com/rss/xml",
+  "free": true,
+  "notes": "Biotech hiring follows FDA milestones."
+ },
+ {
+  "name": "AI Layoff Tracker (sibling)",
+  "url": "https://asktherecruiter.com/blog/ai-layoff-tracker/",
+  "status": "candidate",
+  "category": "Sibling product",
+  "signals": [
+   "Layoffs",
+   "WARN notices"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "READ ONLY, never re-collected. One source of truth per fact."
+ },
+ {
+  "name": "Reuters",
+  "url": "https://www.reuters.com",
+  "status": "candidate",
+  "category": "Global business press",
+  "signals": [
+   "M&A",
+   "Layoffs",
+   "Executive hire"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Bloomberg",
+  "url": "https://www.bloomberg.com",
+  "status": "candidate",
+  "category": "Financial press",
+  "signals": [
+   "M&A",
+   "IPO",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Associated Press",
+  "url": "https://apnews.com",
+  "status": "candidate",
+  "category": "Global business press",
+  "signals": [
+   "M&A",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "CNBC",
+  "url": "https://www.cnbc.com",
+  "status": "candidate",
+  "category": "Financial press",
+  "signals": [
+   "Earnings",
+   "M&A",
+   "Executive hire"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Financial Times",
+  "url": "https://www.ft.com",
+  "status": "candidate",
+  "category": "Financial press",
+  "signals": [
+   "M&A",
+   "Hiring",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "The Wall Street Journal",
+  "url": "https://www.wsj.com",
+  "status": "candidate",
+  "category": "Financial press",
+  "signals": [
+   "M&A",
+   "Executive hire"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Fortune",
+  "url": "https://fortune.com",
+  "status": "candidate",
+  "category": "Business press",
+  "signals": [
+   "Executive hire",
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Forbes",
+  "url": "https://www.forbes.com",
+  "status": "candidate",
+  "category": "Business press",
+  "signals": [
+   "Funding",
+   "Executive hire"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Business Insider",
+  "url": "https://www.businessinsider.com",
+  "status": "candidate",
+  "category": "Business press",
+  "signals": [
+   "Layoffs",
+   "Hiring"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Axios",
+  "url": "https://www.axios.com",
+  "status": "candidate",
+  "category": "Business press",
+  "signals": [
+   "Funding",
+   "M&A"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "Pro Rata is the most-read daily deal-flow newsletter in venture."
+ },
+ {
+  "name": "SiliconANGLE",
+  "url": "https://siliconangle.com",
+  "status": "candidate",
+  "category": "Technology press",
+  "signals": [
+   "Funding",
+   "Product launch"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Crunchbase",
+  "url": "https://www.crunchbase.com",
+  "status": "candidate",
+  "category": "Startup intelligence",
+  "signals": [
+   "Funding",
+   "M&A"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": "Licensed data. Free tier is not sufficient for systematic use."
+ },
+ {
+  "name": "PitchBook",
+  "url": "https://pitchbook.com",
+  "status": "candidate",
+  "category": "Venture and private equity",
+  "signals": [
+   "Funding",
+   "PE buyout"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "CB Insights",
+  "url": "https://www.cbinsights.com",
+  "status": "candidate",
+  "category": "Market intelligence",
+  "signals": [
+   "Funding",
+   "M&A"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "S&P Global Market Intelligence",
+  "url": "https://www.spglobal.com/marketintelligence",
+  "status": "candidate",
+  "category": "Market intelligence",
+  "signals": [
+   "M&A",
+   "Financial results"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Morningstar",
+  "url": "https://www.morningstar.com",
+  "status": "candidate",
+  "category": "Financial data",
+  "signals": [
+   "Financial results"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Yahoo Finance",
+  "url": "https://finance.yahoo.com",
+  "status": "candidate",
+  "category": "Financial data",
+  "signals": [
+   "Earnings",
+   "Financial results"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "Investing.com",
+  "url": "https://www.investing.com",
+  "status": "candidate",
+  "category": "Financial data",
+  "signals": [
+   "Earnings"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "MarketWatch",
+  "url": "https://www.marketwatch.com",
+  "status": "candidate",
+  "category": "Markets press",
+  "signals": [
+   "Earnings",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": ""
+ },
+ {
+  "name": "AlphaSense",
+  "url": "https://www.alpha-sense.com",
+  "status": "candidate",
+  "category": "Market intelligence",
+  "signals": [
+   "Earnings",
+   "Executive commentary"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Dealroom",
+  "url": "https://dealroom.co",
+  "status": "candidate",
+  "category": "Startup intelligence",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ },
+ {
+  "name": "Tracxn",
+  "url": "https://tracxn.com",
+  "status": "candidate",
+  "category": "Startup intelligence",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": ""
+ }
+]

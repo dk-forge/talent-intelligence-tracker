@@ -128,3 +128,12 @@
 .tit-event-meta { margin:9px 0 0; font-size:14px; color:var(--tit-mut); }
 .tit-event-meta strong { color:var(--tit-fg); }
 .tit-event .tit-tag { margin-right:5px; }
+
+/* --- Sources page ------------------------------------------------------ */
+.tit-sources h1 { font-size:32px; margin:6px 0 10px; color:var(--tit-fg); }
+.tit-src-cat { font-size:19px; margin:28px 0 10px; color:var(--tit-fg); }
+.tit-callout { border:1px solid var(--tit-line); border-left:4px solid var(--tit-hiring);
+  background:var(--tit-surface); border-radius:10px; padding:14px 16px;
+  margin:6px 0 22px; font-size:14.5px; color:var(--tit-mut); max-width:78ch; }
+.tit-callout strong { color:var(--tit-fg); }
+.tit-sources .tit-table { min-width:720px; }
