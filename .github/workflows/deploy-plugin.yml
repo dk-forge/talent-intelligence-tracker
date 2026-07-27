@@ -12,6 +12,10 @@ on:
         description: 'Run every check but upload nothing'
         type: boolean
         default: true
+      probe:
+        description: 'List the FTP tree and exit. Read only, uploads nothing.'
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-plugin
@@ -23,13 +27,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Read only. Finds where WordPress actually lives, because an FTP account
+      # is usually chrooted to its own home and an absolute-looking path from
+      # the control panel is often not what the FTP session sees.
+      - name: Probe the FTP tree
+        if: ${{ inputs.probe }}
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+        run: |
+          set -e
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          for DIR in / /blog /wp-content /wp-content/plugins /blog/wp-content/plugins; do
+            echo "===== $DIR ====="
+            lftp -c "
+              set ftp:ssl-force true;
+              set ssl:verify-certificate no;
+              open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
+              cls -1 '$DIR';
+            " 2>&1 | head -40 || echo "(not listable)"
+          done
+
+      - name: Stop after probing
+        if: ${{ inputs.probe }}
+        run: |
+          echo "Probe only. Nothing was uploaded."
+          exit 0
+
       - uses: shivammathur/setup-php@v2
+        if: ${{ !inputs.probe }}
         with:
           php-version: '8.2'
 
       # A syntax error in a WordPress plugin fatals the whole site section.
       # Nothing uploads until every file parses.
       - name: Lint every PHP file
+        if: ${{ !inputs.probe }}
         run: |
           set -e
           find wordpress-plugin -name '*.php' -print0 \
@@ -39,6 +74,7 @@ jobs:
       # this plugin over its directory would take down a running product, so
       # the target path is checked before anything connects.
       - name: Refuse to deploy anywhere but our own plugin directory
+        if: ${{ !inputs.probe }}
         env:
           REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
         run: |
@@ -76,7 +112,7 @@ jobs:
       # default value anywhere in this file — a default is how files land in
       # the wrong folder when a secret goes missing.
       - name: Prove the target is a WordPress install
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && !inputs.probe }}
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -101,6 +137,7 @@ jobs:
           echo "WordPress install confirmed."
 
       - name: Confirm the version was bumped
+        if: ${{ !inputs.probe }}
         run: |
           set -e
           FILE=wordpress-plugin/talent-intelligence-tracker/talent-intelligence-tracker.php
@@ -122,7 +159,7 @@ jobs:
           fi
 
       - name: Upload over FTPS
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && !inputs.probe }}
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -141,6 +178,6 @@ jobs:
           "
 
       - name: Dry run notice
-        if: ${{ inputs.dry_run }}
+        if: ${{ inputs.dry_run && !inputs.probe }}
         run: |
           echo "Dry run: lint and guards passed, nothing was uploaded."
