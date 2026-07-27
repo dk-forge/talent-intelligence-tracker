@@ -54,3 +54,24 @@ function tit_ensure_dashboard_page() {
     }
 }
 add_action('init', 'tit_ensure_dashboard_page', 20);
+
+/**
+ * Keep the site's Table of Contents plugin out of the dashboard.
+ *
+ * Easy Table of Contents inserts itself into any post carrying headings, and
+ * on this page it lands inside the hero: a list of links to two chart titles,
+ * above the numbers people came for. It is right for an article and wrong for
+ * a dashboard.
+ *
+ * This only ever returns false on our own pages, so ordinary blog posts keep
+ * their table of contents.
+ */
+function tit_is_our_page() {
+    return get_query_var('tit_company')
+        || get_query_var('tit_sources')
+        || is_page(TIT_PAGE_SLUG);
+}
+
+add_filter('ez_toc_maybe_apply_the_content_filter', function ($apply) {
+    return tit_is_our_page() ? false : $apply;
+}, 99);

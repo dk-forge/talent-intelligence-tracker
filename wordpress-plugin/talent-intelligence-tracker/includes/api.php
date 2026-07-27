@@ -74,15 +74,23 @@ function tit_build_where(WP_REST_Request $req, array &$params) {
     global $wpdb;
     $where = array('is_current = 1');
 
+    // A comma-separated list is accepted so one request can cover a region
+    // ("Europe" is a set of countries, not a country). Codes are filtered to
+    // exactly two letters, which is both the ISO shape and the whole of the
+    // sanitising needed before they reach a prepared IN clause.
     $country = strtoupper(sanitize_text_field($req->get_param('country') ?? ''));
-    if ($country !== '') {
+    $codes = array_values(array_unique(array_filter(
+        array_map('trim', explode(',', $country)),
+        fn($c) => (bool) preg_match('/^[A-Z]{2}$/', $c)
+    )));
+    if ($codes) {
+        $slots = implode(', ', array_fill(0, count($codes), '%s'));
         if (sanitize_text_field($req->get_param('country_basis') ?? 'any') === 'location') {
-            $where[] = 'country = %s';
-            $params[] = $country;
+            $where[] = "country IN ($slots)";
+            $params = array_merge($params, $codes);
         } else {
-            $where[] = '(country = %s OR (country IS NULL AND hq_country = %s))';
-            $params[] = $country;
-            $params[] = $country;
+            $where[] = "(country IN ($slots) OR (country IS NULL AND hq_country IN ($slots)))";
+            $params = array_merge($params, $codes, $codes);
         }
     }
 

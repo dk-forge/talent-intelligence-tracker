@@ -210,3 +210,44 @@
 .tit-table tbody tr:hover { background:#f9fbfd; }
 .tit-h a { text-decoration:none; }
 .tit-h a:hover { text-decoration:underline; }
+
+/* ---------------------------------------------------------------------------
+   The theme's Table of Contents plugin injects itself into any post with
+   headings, and it lands in the middle of the hero. This stylesheet only ever
+   loads on our own routes, so hiding it here cannot affect a normal blog post.
+   The server-side filter in page.php is the real fix; this covers the case
+   where the TOC plugin renders through a path the filter does not reach.
+   --------------------------------------------------------------------------- */
+.tit-wrap #ez-toc-container,
+.tit-wrap .ez-toc-title-container,
+#tit-dashboard #ez-toc-container { display:none !important; }
+
+/* At a glance ------------------------------------------------------------ */
+.tit-glance { margin:16px 0 0; border-top:1px solid var(--tit-line); }
+.tit-glance-row { display:grid; grid-template-columns:1fr; gap:2px;
+  padding:11px 0; border-bottom:1px solid var(--tit-line); }
+@media (min-width:640px){
+  .tit-glance-row { grid-template-columns:120px 1fr; gap:16px; align-items:baseline; }
+}
+.tit-wrap .tit-glance-when { font-size:13px; font-weight:650; color:var(--tit-fg);
+  text-transform:uppercase; letter-spacing:.04em; }
+.tit-wrap .tit-glance-what { font-size:15px; color:var(--tit-mut); }
+.tit-wrap .tit-glance-what strong { color:var(--tit-fg); font-size:17px;
+  font-variant-numeric:tabular-nums; }
+.tit-hero-fine { margin:14px 0 0 !important; font-size:13.5px; }
+
+/* Region strip ----------------------------------------------------------- */
+.tit-regions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px; }
+.tit-wrap .tit-region { display:inline-flex; align-items:center; gap:8px;
+  padding:8px 13px; border:1px solid var(--tit-line); border-radius:99px;
+  background:#fff; color:var(--tit-fg); font-size:14px; font-weight:550;
+  cursor:pointer; line-height:1.2; font-family:inherit; }
+.tit-wrap .tit-region:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-region:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+/* Selection is a filled pill plus a weight change, never colour alone. */
+.tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
+  color:#fff; font-weight:700; }
+.tit-region-flag { font-size:15px; }
+.tit-region-n { font-size:12.5px; font-variant-numeric:tabular-nums;
+  color:var(--tit-mut); background:#f1f4f8; border-radius:99px; padding:1px 7px; }
+.tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.24); color:#fff; }

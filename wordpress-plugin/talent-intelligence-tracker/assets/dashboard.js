@@ -97,6 +97,10 @@
       var value = inputs[key] && inputs[key].value.trim();
       if (value) params.set(key, value);
     });
+    // A region is a list of country codes, so it takes the same parameter as the
+    // country select. Whichever the person touched last is the one that counts —
+    // silently ANDing "Europe" with "Japan" would return nothing and look broken.
+    if (region) params.set('country', region);
     params.set('per_page', '50');
 
     if (pending) pending.abort();
@@ -124,8 +128,32 @@
 
   Object.keys(inputs).forEach(function (key) {
     if (!inputs[key]) return;
-    inputs[key].addEventListener(inputs[key].tagName === 'SELECT' ? 'change' : 'input', debounced);
+    inputs[key].addEventListener(inputs[key].tagName === 'SELECT' ? 'change' : 'input', function () {
+      if (key === 'country') setRegion(null);
+      debounced();
+    });
   });
+
+  var region = null;
+  var tabs = Array.prototype.slice.call(root.querySelectorAll('.tit-region'));
+
+  function setRegion(codes) {
+    region = codes || null;
+    tabs.forEach(function (t) {
+      var on = (t.dataset.codes || '') === (region || '');
+      t.classList.toggle('is-on', on);
+      t.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      setRegion(t.dataset.codes);
+      if (inputs.country) inputs.country.value = '';
+      refresh();
+    });
+  });
+  setRegion(null);
 
   populateFacets();
 })();

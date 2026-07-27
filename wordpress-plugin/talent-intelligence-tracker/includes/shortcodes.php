@@ -49,8 +49,11 @@ function tit_dashboard_shortcode() {
     );
 
     $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
-    $hiring     = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND signal_direction = 'hiring'");
-    $funded     = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND funding_amount IS NOT NULL");
+    $glance = tit_glance($table);
+    $counts_by_country = array_column($wpdb->get_results(
+        "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
+          WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
+          GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
     $by_country = $wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
@@ -119,12 +122,22 @@ function tit_dashboard_shortcode() {
         <p>Every update here links to the filing or article that makes the claim.
            We do not estimate. Figures appear only when the source states them,
            and a source that reports a plan is never shown as a confirmed fact.</p>
-        <div class="tit-hero-figs">
-          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($hiring)); ?></strong>hiring up</div>
-          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($funded)); ?></strong>raised money</div>
-          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($companies)); ?></strong>employers tracked</div>
-          <div class="tit-hero-fig"><strong><?php echo esc_html(number_format_i18n($verified)); ?></strong>from official filings</div>
+        <div class="tit-glance">
+          <?php foreach ($glance as $g) : ?>
+            <div class="tit-glance-row">
+              <span class="tit-glance-when"><?php echo esc_html($g['when']); ?></span>
+              <span class="tit-glance-what"><?php echo wp_kses_post($g['what']); ?></span>
+            </div>
+          <?php endforeach; ?>
         </div>
+        <p class="tit-hero-fine">
+          <?php echo esc_html(number_format_i18n($total)); ?> updates from
+          <?php echo esc_html(number_format_i18n($companies)); ?> employers in
+          <?php echo esc_html(number_format_i18n($countries)); ?> countries.
+          <?php echo esc_html(number_format_i18n($verified)); ?> come straight from
+          official filings. <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">See every source</a>
+          · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
+        </p>
       </div>
 
       <div class="tit-stats">
@@ -145,6 +158,17 @@ function tit_dashboard_shortcode() {
             </div>
             <div class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></div>
           </div>
+        <?php endforeach; ?>
+      </div>
+
+      <div class="tit-regions" role="group" aria-label="Filter by region">
+        <?php foreach (tit_regions($counts_by_country) as $r) : ?>
+          <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
+                  data-codes="<?php echo esc_attr($r['codes']); ?>">
+            <span class="tit-region-flag" aria-hidden="true"><?php echo $r['flag']; ?></span>
+            <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
+            <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
+          </button>
         <?php endforeach; ?>
       </div>
 
@@ -279,6 +303,110 @@ function tit_dashboard_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
+
+/**
+ * The four at-a-glance lines: today, this week, this month, this year.
+ *
+ * A period with nothing in it still prints, saying so in words. Hiding the
+ * empty ones would make a quiet Sunday look like a busy one, and the whole
+ * point of the block is to be readable in about ten seconds.
+ *
+ * Dates come from published_date, the date the source carries, not the date we
+ * happened to read it. A filing published on Friday and collected on Monday
+ * belongs to Friday.
+ */
+function tit_glance($table) {
+    global $wpdb;
+    $today = current_time('Y-m-d');
+    $periods = array(
+        array('Today',      $today),
+        array('This week',  date('Y-m-d', strtotime($today . ' -6 days'))),
+        array('This month', date('Y-m-01', strtotime($today))),
+        array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
+    );
+
+    $out = array();
+    foreach ($periods as [$when, $from]) {
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT COUNT(*) n,
+                    SUM(signal_direction = 'hiring') hiring,
+                    SUM(funding_amount IS NOT NULL AND funding_amount <> '') funded,
+                    SUM(confidence = 'verified') verified
+               FROM {$table}
+              WHERE is_current = 1
+                AND COALESCE(published_date, DATE(captured_at)) >= %s",
+            $from
+        ), ARRAY_A);
+
+        $n = (int) ($row['n'] ?? 0);
+        if ($n === 0) {
+            $out[] = array('when' => $when, 'what' => 'nothing published yet');
+            continue;
+        }
+
+        $top = $wpdb->get_row($wpdb->prepare(
+            "SELECT company, headline FROM {$table}
+              WHERE is_current = 1
+                AND COALESCE(published_date, DATE(captured_at)) >= %s
+              ORDER BY (confidence = 'verified') DESC,
+                       COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
+              LIMIT 1",
+            $from
+        ), ARRAY_A);
+
+        $bits = array(sprintf('<strong>%s</strong> %s',
+            number_format_i18n($n), $n === 1 ? 'update' : 'updates'));
+        if ((int) $row['hiring'])   $bits[] = number_format_i18n((int) $row['hiring']) . ' hiring up';
+        if ((int) $row['funded'])   $bits[] = number_format_i18n((int) $row['funded']) . ' raised money';
+        if ((int) $row['verified']) $bits[] = number_format_i18n((int) $row['verified']) . ' from filings';
+        if (!empty($top['company'])) $bits[] = 'latest: ' . esc_html($top['company']);
+
+        $out[] = array('when' => $when, 'what' => implode(' · ', $bits));
+    }
+    return $out;
+}
+
+/**
+ * The region strip above the charts.
+ *
+ * Regions are groups of country codes, not a separate dimension in the data —
+ * "Europe" is a shorthand for a list, and the tab sends that list to the API.
+ *
+ * A region with nothing in it is dropped rather than shown at zero. An empty
+ * tab reads as a filter that broke, and a strip of them reads as coverage we
+ * do not have. Worldwide always survives so there is always a way back.
+ */
+function tit_regions(array $counts) {
+    $defs = array(
+        array('World',         '🌐', ''),
+        array('United States', '🇺🇸', 'US'),
+        array('Canada',        '🇨🇦', 'CA'),
+        array('United Kingdom','🇬🇧', 'GB'),
+        array('Europe',        '🇪🇺', 'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,CZ,GR,RO,HU'),
+        array('India',         '🇮🇳', 'IN'),
+        array('Asia Pacific',  '🌏', 'IN,SG,JP,CN,HK,AU,NZ,KR,MY,PH,ID,TH,VN,TW'),
+        array('Latin America', '🌎', 'BR,MX,AR,CL,CO,PE,UY,CR'),
+        array('Middle East',   '🕌', 'AE,SA,IL,QA,KW,BH,OM,TR'),
+        array('Africa',        '🌍', 'ZA,NG,KE,EG,MA,GH,ET'),
+    );
+    $total = array_sum(array_map('intval', $counts));
+
+    $out = array();
+    foreach ($defs as [$name, $flag, $codes]) {
+        if ($codes === '') {
+            $out[] = compact('name', 'flag', 'codes') + array('n' => $total);
+            continue;
+        }
+        $n = 0;
+        foreach (explode(',', $codes) as $c) {
+            $n += (int) ($counts[$c] ?? 0);
+        }
+        if ($n > 0) {
+            $out[] = compact('name', 'flag', 'codes') + array('n' => $n);
+        }
+    }
+    return $out;
+}
 
 function tit_enqueue_assets() {
     // Our own routed pages (company profiles, sources) carry no shortcode and
