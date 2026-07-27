@@ -265,3 +265,34 @@
 
 @media (min-width:560px){ .tit-rank-row { grid-template-columns:150px 1fr auto; } }
 .tit-wrap .tit-chart-wide { margin:0 0 16px; }
+
+/* ---------------------------------------------------------------------------
+   Narrow screens: the table becomes cards.
+   A six-column table squeezed into a phone gives every headline a column about
+   one word wide, and side-scrolling a table means the employer scrolls out of
+   view while you read what happened to them. Below the breakpoint each row
+   becomes a card and each cell wears its column name.
+   --------------------------------------------------------------------------- */
+@media (max-width:860px){
+  .tit-table-scroll { overflow-x:visible; border:0; border-radius:0; }
+  .tit-table { min-width:0; display:block; }
+  .tit-table thead { position:absolute; width:1px; height:1px; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap; }
+  .tit-table tbody, .tit-table tr, .tit-table td { display:block; }
+  .tit-table tr { border:1px solid var(--tit-line); border-radius:12px;
+    padding:14px 16px; margin:0 0 12px; background:#fff; }
+  .tit-table td { border:0; padding:0; }
+  .tit-table td + td { margin-top:9px; }
+  /* The headline leads the card, so it is the one cell with no label. */
+  .tit-table td[data-label]:not(.tit-headline)::before {
+    content:attr(data-label) ": "; font-size:12px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--tit-mut); margin-right:6px; }
+  .tit-headline { max-width:none; }
+  .tit-wrap .tit-table .tit-h { font-size:16px; }
+  .tit-wrap .tit-table .tit-rt { border-left:3px solid var(--tit-line);
+    padding-left:11px; margin-top:8px; }
+}
+
+/* A single inline figure wants proportional numerals. Tabular figures pad the
+   narrow "1" to a full advance width, which made "11" read as "1 1". */
+.tit-wrap .tit-glance-what strong { font-variant-numeric:normal; }

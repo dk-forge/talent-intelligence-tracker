@@ -71,20 +71,23 @@
     var isHq = !r.city && !r.country;
     var place = r.city || r.hq_city || '';
     var code = r.country || r.hq_country || '';
-    var where = esc([place, code].filter(Boolean).join(', '));
+    var country = (TIT.countries && TIT.countries[code]) || code;
+    var where = esc([place, country].filter(Boolean).join(', '));
     if (isHq && where) {
       where += ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
     }
 
+    // data-label mirrors the header text. Below the table breakpoint each row
+    // becomes a card and the labels are the only thing naming the fields.
     return '<tr>' +
-      '<td class="tit-headline"><span class="tit-h">' + esc(r.headline) + '</span>' +
+      '<td class="tit-headline" data-label="What happened"><span class="tit-h">' + esc(r.headline) + '</span>' +
       '<span class="tit-rt">' + esc(r.talent_readthrough) + '</span></td>' +
-      '<td>' + esc(r.company) + '</td>' +
-      '<td>' + where + '</td>' +
-      '<td><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
+      '<td data-label="Employer">' + esc(r.company) + '</td>' +
+      '<td data-label="Where">' + where + '</td>' +
+      '<td data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
         esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
-      '<td><span class="tit-conf tit-c-' + esc(r.confidence) + '">' + esc(r.confidence) + '</span></td>' +
-      '<td><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
+      '<td data-label="How solid"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' + esc(r.confidence) + '</span></td>' +
+      '<td data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
         esc(r.source_name) + '</a></td>' +
       '</tr>';
   }

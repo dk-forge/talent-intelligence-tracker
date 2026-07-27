@@ -266,11 +266,11 @@ function tit_dashboard_shortcode() {
           <tbody id="tit-rows">
             <?php foreach ($rows as $r) : ?>
               <tr>
-                <td class="tit-headline">
+                <td class="tit-headline" data-label="What happened">
                   <span class="tit-h"><?php echo esc_html($r['headline']); ?></span>
                   <span class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></span>
                 </td>
-                <td><?php
+                <td data-label="Employer"><?php
                   $ck = $r['company_key'] ?? '';
                   if ($ck && function_exists('tit_company_url')) {
                       printf('<a href="%s">%s</a>', esc_url(tit_company_url($ck)), esc_html($r['company']));
@@ -278,18 +278,18 @@ function tit_dashboard_shortcode() {
                       echo esc_html($r['company']);
                   }
                 ?></td>
-                <td>
+                <td data-label="Where">
                   <?php
                   $place = $r['city'] ?: $r['hq_city'];
                   $cc    = $r['country'] ?: $r['hq_country'];
                   $is_hq = !$r['city'] && !$r['country'];
-                  echo esc_html(trim(($place ? $place . ', ' : '') . $cc, ', '));
+                  echo esc_html(trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', '));
                   if ($is_hq) echo ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
                   ?>
                 </td>
-                <td><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
-                <td><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span></td>
-                <td><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
+                <td data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
+                <td data-label="How solid"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span></td>
+                <td data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -315,8 +315,8 @@ add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
  * The list covers what we actually collect from; an unknown code falls through
  * to the code itself rather than to a guess.
  */
-function tit_country_name($code) {
-    static $names = array(
+function tit_country_names() {
+    return array(
         'US' => 'United States', 'CA' => 'Canada', 'GB' => 'United Kingdom',
         'IE' => 'Ireland', 'DE' => 'Germany', 'FR' => 'France',
         'NL' => 'Netherlands', 'BE' => 'Belgium', 'ES' => 'Spain',
@@ -336,6 +336,10 @@ function tit_country_name($code) {
         'ZA' => 'South Africa', 'NG' => 'Nigeria', 'KE' => 'Kenya',
         'EG' => 'Egypt', 'MA' => 'Morocco',
     );
+}
+
+function tit_country_name($code) {
+    $names = tit_country_names();
     return $names[$code] ?? $code;
 }
 
@@ -463,6 +467,9 @@ function tit_enqueue_assets() {
     wp_enqueue_script('tit-dashboard', TIT_URL . 'assets/dashboard.js', array(), TIT_VERSION, true);
     wp_localize_script('tit-dashboard', 'TIT', array(
         'api' => esc_url_raw(rest_url('talent/v1/')),
+        // The filtered rows are rendered in the browser, so it needs the same
+        // country names the server used. Two copies of this list would drift.
+        'countries' => tit_country_names(),
     ));
 }
 add_action('wp_enqueue_scripts', 'tit_enqueue_assets');
