@@ -113,44 +113,40 @@ function tit_dashboard_shortcode() {
     <div class="tit-wrap" id="tit-dashboard">
 
       <div class="tit-hero">
-        <div class="tit-live"><span class="tit-live-dot"></span>
-          Live<?php if ($newest_run) : ?> · last updated
-          <?php echo esc_html(date_i18n('M j, g:i A', strtotime($newest_run . ' UTC'))); ?>
-          <?php endif; ?>
+        <div class="tit-hero-top">
+          <h2>Who is hiring, who is raising money, and who is changing leadership</h2>
+          <div class="tit-live"><span class="tit-live-dot"></span>
+            Live<?php if ($newest_run) : ?> ·
+            <?php echo esc_html(date_i18n('M j, g:i A', strtotime($newest_run . ' UTC'))); ?>
+            <?php endif; ?>
+          </div>
         </div>
-        <h2>Who is hiring, who is raising money, and who is changing leadership</h2>
-        <p>Every update here links to the filing or article that makes the claim.
-           We do not estimate. Figures appear only when the source states them,
-           and a source that reports a plan is never shown as a confirmed fact.</p>
+
         <div class="tit-glance">
           <?php foreach ($glance as $g) : ?>
-            <div class="tit-glance-row">
+            <div class="tit-glance-cell">
               <span class="tit-glance-when"><?php echo esc_html($g['when']); ?></span>
-              <span class="tit-glance-what"><?php echo wp_kses_post($g['what']); ?></span>
+              <span class="tit-glance-n"><?php echo esc_html(number_format_i18n($g['n'])); ?></span>
+              <span class="tit-glance-detail"><?php echo esc_html($g['detail']); ?></span>
             </div>
           <?php endforeach; ?>
         </div>
+
         <p class="tit-hero-fine">
-          <?php echo esc_html(number_format_i18n($total)); ?> updates from
-          <?php echo esc_html(number_format_i18n($companies)); ?> employers in
-          <?php echo esc_html(number_format_i18n($countries)); ?> countries.
-          <?php echo esc_html(number_format_i18n($verified)); ?> come straight from
-          official filings. <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">See every source</a>
+          <?php echo esc_html(number_format_i18n($total)); ?> updates ·
+          <?php echo esc_html(number_format_i18n($companies)); ?> employers ·
+          <?php echo esc_html(number_format_i18n($countries)); ?> countries ·
+          <?php echo esc_html(number_format_i18n($verified)); ?> from official filings.
+          Every update links to the document that makes the claim, and no figure
+          appears unless the source states it.
+          <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>
       </div>
 
-      <div class="tit-stats">
-        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($total)); ?></span><span class="tit-l">updates</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($companies)); ?></span><span class="tit-l">employers</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($countries)); ?></span><span class="tit-l">countries</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($verified)); ?></span><span class="tit-l">from official filings</span></div>
-      </div>
-
       <div class="tit-sec">
         <h3>The market right now</h3>
-        <p>Pick a region to narrow the updates listed further down. The counts
-           beside each region are what we currently hold for it.</p>
+        <p>Pick a region to narrow the updates below.</p>
       </div>
 
       <div class="tit-regions" role="group" aria-label="Filter by region">
@@ -164,7 +160,8 @@ function tit_dashboard_shortcode() {
         <?php endforeach; ?>
       </div>
 
-      <div class="tit-chart tit-chart-wide">
+      <div class="tit-charts">
+      <div class="tit-chart">
         <h3>What kind of update</h3>
         <p class="tit-sub">Every update falls into one of four kinds.</p>
       <div class="tit-pillars">
@@ -181,8 +178,6 @@ function tit_dashboard_shortcode() {
         <?php endforeach; ?>
       </div>
       </div>
-
-      <div class="tit-charts">
         <div class="tit-chart">
           <h3>Where the activity is</h3>
           <p class="tit-sub">Job location, falling back to the employer's headquarters.</p>
@@ -220,9 +215,8 @@ function tit_dashboard_shortcode() {
 
       <div class="tit-sec">
         <h3>Every update</h3>
-        <p>Newest first. The read-through is our interpretation; the headline
-           and any figures come from the linked source, and confidence reflects
-           what the source is rather than how sure we feel.</p>
+        <p>Newest first. The read-through is ours; the headline, the figures and
+           the confidence all come from the linked source.</p>
       </div>
 
       <div class="tit-filters">
@@ -351,28 +345,20 @@ function tit_glance($table) {
 
         $n = (int) ($row['n'] ?? 0);
         if ($n === 0) {
-            $out[] = array('when' => $when, 'what' => 'nothing published yet');
+            $out[] = array('when' => $when, 'n' => 0, 'detail' => 'nothing yet');
             continue;
         }
 
-        $top = $wpdb->get_row($wpdb->prepare(
-            "SELECT company, headline FROM {$table}
-              WHERE is_current = 1
-                AND COALESCE(published_date, DATE(captured_at)) >= %s
-              ORDER BY (confidence = 'verified') DESC,
-                       COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
-              LIMIT 1",
-            $from
-        ), ARRAY_A);
-
-        $bits = array(sprintf('<strong>%s</strong> %s',
-            number_format_i18n($n), $n === 1 ? 'update' : 'updates'));
+        $bits = array();
         if ((int) $row['hiring'])   $bits[] = number_format_i18n((int) $row['hiring']) . ' hiring up';
         if ((int) $row['funded'])   $bits[] = number_format_i18n((int) $row['funded']) . ' raised money';
         if ((int) $row['verified']) $bits[] = number_format_i18n((int) $row['verified']) . ' from filings';
-        if (!empty($top['company'])) $bits[] = 'latest: ' . esc_html($top['company']);
 
-        $out[] = array('when' => $when, 'what' => implode(' · ', $bits));
+        $out[] = array(
+            'when'   => $when,
+            'n'      => $n,
+            'detail' => $bits ? implode(' · ', $bits) : ($n === 1 ? 'one update' : 'updates'),
+        );
     }
     return $out;
 }
