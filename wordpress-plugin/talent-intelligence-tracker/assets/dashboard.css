@@ -296,3 +296,23 @@
 /* A single inline figure wants proportional numerals. Tabular figures pad the
    narrow "1" to a full advance width, which made "11" read as "1 1". */
 .tit-wrap .tit-glance-what strong { font-variant-numeric:normal; }
+
+/* ---------------------------------------------------------------------------
+   Full bleed on phones.
+   The theme nests two padded containers, which on a 375px screen leaves the
+   dashboard 219px to work in: the headline breaks over six lines and the stat
+   tiles have no room for their numbers. This cancels both containers so the
+   content spans the viewport, and puts back a single sane gutter. Standard
+   full-bleed, so nothing can exceed the viewport width.
+   --------------------------------------------------------------------------- */
+@media (max-width:700px){
+  .tit-wrap { box-sizing:border-box; width:auto;
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    padding-left:14px; padding-right:14px; }
+  .tit-hero { padding:16px 15px 15px; border-radius:12px; }
+  .tit-wrap .tit-hero h2 { font-size:20px; line-height:1.25; }
+  .tit-wrap .tit-hero p { font-size:14.5px; }
+  .tit-glance-row { padding:10px 0; }
+  .tit-wrap .tit-n { font-size:26px; }
+  .tit-stat { padding:14px 10px; }
+}
