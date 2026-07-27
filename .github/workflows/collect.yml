@@ -65,6 +65,13 @@ jobs:
             echo "value=0" >> "$GITHUB_OUTPUT"
           fi
 
+      # A budget that only warns is a forecast. This is the hard stop, and it
+      # runs before any token is spent.
+      - name: Check the spend ceiling
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --enforce
+
       - name: Collect
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

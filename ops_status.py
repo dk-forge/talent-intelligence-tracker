@@ -45,6 +45,7 @@ def main() -> int:
     problems += _report_health(conn)
     _report_coverage()
     _report_surfaces()
+    _report_spend()
 
     print("\n" + "-" * 64)
     if problems:
@@ -172,6 +173,14 @@ def _report_coverage() -> None:
 
     candidates = sum(len(m.candidate_official_sources) for m in registry.MARKETS)
     print(f"    {candidates} researched official source(s) not yet built (roadmap, not coverage)")
+
+
+def _report_spend() -> None:
+    """Spend needs a key, which ops_status deliberately does not require, so
+    this only points at where to look."""
+    print("\n[5] SPEND")
+    print("    python spend.py            (needs OPENROUTER_API_KEY)")
+    print("    Enforced before every collection run via spend.py --enforce")
 
 
 def _report_surfaces() -> None:
