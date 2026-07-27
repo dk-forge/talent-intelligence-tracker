@@ -44,6 +44,10 @@ _SITE_TERMS = (
     r"development cent(?:re|er)s?", r"opens? (?:a |its |new )?(?:office|hub|campus|site)",
     r"sets? up (?:a |its |new )?(?:office|hub|centre|center)",
     r"new (?:office|hub|campus|facility|plant|site)",
+    # Bare "GCC" stays out (Gulf Cooperation Council), but a verb in front of
+    # it is unambiguous: in Indian business press "opens a new GCC" is a Global
+    # Capability Centre, which is exactly the category we want.
+    r"(?:new|opens?|open|launch(?:es|ing)?|sets? up|establish(?:es|ing)?)\s+(?:a\s+|its\s+|the\s+)?(?:new\s+)?gcc\b",
 )
 _SITE = re.compile(r"\b(?:" + "|".join(_SITE_TERMS) + r")\b", re.I)
 
@@ -55,6 +59,15 @@ _OFF_TOPIC_TERMS = (
     r"medicaid", r"medicare", r"nuclear weapons?", r"ceasefire", r"airstrikes?",
     r"herd", r"cattle", r"livestock", r"acreage",
     r"world of warcraft", r"dlc", r"expansion pack", r"video game",
+    # Government and civil-service exam notices. These are instructions to
+    # applicants ("registration closes tomorrow", "admit card released"), not
+    # intelligence about an employer's plans. A live run stored UPPSC PCS and
+    # Indian Navy SSC notices before this existed.
+    r"recruitment 20\d\d", r"admit card", r"answer key", r"exam date",
+    r"registration closes", r"apply online", r"notification (?:out|released)",
+    r"\d+\s+posts?\b", r"uppsc", r"upsc", r"ssc\s+(?:cgl|chsl|gd|mts|officer)",
+    r"bharti", r"sarkari", r"vacanc(?:y|ies) notification",
+    r"police constable", r"assistant teacher recruitment",
 )
 _OFF_TOPIC = re.compile(r"\b(?:" + "|".join(_OFF_TOPIC_TERMS) + r")\b", re.I)
 
