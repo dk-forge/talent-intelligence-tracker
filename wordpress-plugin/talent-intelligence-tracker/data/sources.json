@@ -16,6 +16,23 @@
   "notes": "Worldwide, machine-translated from 65 languages. Returns real article URLs. Throttles erratically, so lost queries are logged as coverage gaps."
  },
  {
+  "name": "Google News RSS",
+  "url": "https://news.google.com/",
+  "status": "live",
+  "category": "News aggregation",
+  "signals": [
+   "Hiring",
+   "Funding",
+   "Leadership change",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "Keyless, unthrottled and worldwide. Its links are encoded redirects, but Google's own resolution endpoint returns the publisher URL, so records cite the article rather than an outlet homepage."
+ },
+ {
   "name": "SEC EDGAR 8-K (Item 5.02)",
   "url": "https://www.sec.gov/edgar.shtml",
   "status": "live",
@@ -3088,20 +3105,6 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
- },
- {
-  "name": "Google News RSS",
-  "url": "https://news.google.com/",
-  "status": "candidate",
-  "category": "News aggregation",
-  "signals": [
-   "Discovery only"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": true,
-  "notes": "DISCOVERY POINTER ONLY. Its <source> element gives the outlet homepage, its redirect no longer resolves, and the article URL is not recoverable. A homepage is not a receipt, so nothing it produces is stored as a source."
  },
  {
   "name": "Google Newsroom",

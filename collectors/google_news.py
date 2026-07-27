@@ -1,16 +1,25 @@
 """Google News RSS collector.
 
-Free, keyless, and the single best discovery source: headlines carry the
-figures even when the article is paywalled. The sibling replaced a $449/month
-news API with this and coverage went up (spec 5).
+Free, keyless, unthrottled, and the single best discovery source: headlines
+carry the figures even when the article is paywalled. The sibling replaced a
+$449/month news API with this and coverage went up (spec 5).
 
-Google News is a **discovery pointer only**. What we store is the primary
-source it points at (spec 2 rule 5), which is why every item is resolved
-through its redirect before it is offered to the pipeline.
+**Resolving the real article URL.** Google wraps every link in an encoded
+`news.google.com/rss/articles/CBMi...` redirect, and following it does not
+resolve. It is tempting to conclude the publisher URL is unrecoverable — that
+conclusion was reached here once and it was wrong. Google exposes its own
+resolution endpoint: the article page carries a signature and timestamp, and
+posting those to `batchexecute` returns the publisher URL.
+
+That matters because a homepage is not a receipt. With resolution working, what
+we store is the article that makes the claim (spec 2 rule 5); without it,
+nothing from this collector is storable at all.
 """
 
 from __future__ import annotations
 
+import json
+import re
 import time
 import urllib.parse
 import xml.etree.ElementTree as ET
@@ -79,12 +88,32 @@ def parse(xml_bytes: bytes, query: str = "") -> list[dict]:
     return items
 
 
-def resolve_source_url(item: dict, *, timeout: int = 15, session=None) -> dict:
-    """Follow the Google redirect to the publisher's own URL.
+# Google's resolution endpoint expects a browser. Its own UA rule (a descriptive
+# agent for the WP host) does not apply here.
+BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
+BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 
-    Best effort. If resolution fails the item keeps whatever `source_url` the
-    RSS `<source>` element gave, and validate.py rejects it if that is still an
-    aggregator host — a record is dropped rather than attributed to Google.
+_SIG = re.compile(r'data-n-a-sg="([^"]+)"')
+_TS = re.compile(r'data-n-a-ts="([^"]+)"')
+# The URL comes back inside an escaped JSON string, so the naive
+# `"(https?://[^"]+)"` match stops at the backslash and finds nothing.
+_RESOLVED = re.compile(r'garturlres\\",\\"(https?://[^\\"]+)')
+
+
+def article_id(discovery_url: str) -> str:
+    return discovery_url.rstrip("/").rsplit("/", 1)[-1].split("?")[0]
+
+
+def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
+    """Recover the publisher's own URL from Google's encoded redirect.
+
+    Two steps: read the signature and timestamp off the article page, then ask
+    Google's batchexecute endpoint to resolve the id. Best effort — on failure
+    the item keeps the outlet homepage from the RSS <source> element, and
+    validate.py rejects it as a bare domain rather than crediting Google.
     """
     url = item.get("discovery_url") or ""
     if "news.google.com" not in url:
@@ -92,16 +121,31 @@ def resolve_source_url(item: dict, *, timeout: int = 15, session=None) -> dict:
 
     http = session or requests
     try:
-        resp = http.get(
-            url,
-            headers={"User-Agent": USER_AGENT},
+        aid = article_id(url)
+        page = http.get(f"https://news.google.com/rss/articles/{aid}",
+                        headers={"User-Agent": BROWSER_UA}, timeout=timeout)
+        sig, ts = _SIG.search(page.text), _TS.search(page.text)
+        if not (sig and ts):
+            return item
+
+        inner = json.dumps([
+            "garturlreq",
+            [["X", "X", ["X", "X"], None, None, 1, 1, "US:en", None, 1,
+              None, None, None, None, None, 0, 1],
+             "X", "X", 1, [1, 1, 1], 1, 1, None, 0, 0, None, 0],
+            aid, int(ts.group(1)), sig.group(1),
+        ])
+        resp = http.post(
+            BATCH_URL,
+            headers={"User-Agent": BROWSER_UA,
+                     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"},
+            data={"f.req": json.dumps([[["Fbv4je", inner]]])},
             timeout=timeout,
-            allow_redirects=True,
         )
-        final = resp.url
-        if final and "news.google.com" not in final:
-            item["source_url"] = final
-    except requests.RequestException:
+        hit = _RESOLVED.search(resp.text)
+        if hit:
+            item["source_url"] = hit.group(1)
+    except (requests.RequestException, ValueError, IndexError):
         pass
     return item
 

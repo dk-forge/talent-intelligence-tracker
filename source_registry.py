@@ -150,12 +150,13 @@ SOURCES = (
            notes="Worldwide, machine-translated from 65 languages. Returns real "
                  "article URLs. Throttles erratically, so lost queries are logged "
                  "as coverage gaps."),
-    Source("Google News RSS", "https://news.google.com/", "candidate",
-           "News aggregation", ("Discovery only",), "Global",
-           notes="DISCOVERY POINTER ONLY. Its <source> element gives the outlet "
-                 "homepage, its redirect no longer resolves, and the article URL is "
-                 "not recoverable. A homepage is not a receipt, so nothing it "
-                 "produces is stored as a source."),
+    Source("Google News RSS", "https://news.google.com/", "live",
+           "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
+           "Global",
+           notes="Keyless, unthrottled and worldwide. Its links are encoded "
+                 "redirects, but Google's own resolution endpoint returns the "
+                 "publisher URL, so records cite the article rather than an "
+                 "outlet homepage."),
 
     # --- candidate: researched, real, not yet connected --------------------
     Source("SEC EDGAR 8-K (Items 1.01 / 2.01)", "https://www.sec.gov/edgar.shtml",

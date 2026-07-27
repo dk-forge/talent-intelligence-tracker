@@ -32,11 +32,14 @@ def test_live_sources_are_only_the_ones_with_collectors():
         "SEC EDGAR 8-K (Item 5.02)",
         "SEC EDGAR Form D",
         "GDELT DOC 2.0",
+        "Google News RSS",
     }
 
 
-def test_google_news_is_not_claimed_as_a_source():
-    """It cannot produce article URLs, so it is a discovery pointer only."""
+def test_google_news_is_live_because_urls_now_resolve():
+    """It was listed candidate on the belief that publisher URLs were
+    unrecoverable. They are recoverable through Google's own resolution
+    endpoint, so it is a real source and the page says so."""
     gn = next(s for s in registry.SOURCES if "Google News" in s.name)
-    assert gn.status == "candidate"
-    assert "homepage is not a receipt" in gn.notes
+    assert gn.status == "live"
+    assert "resolution endpoint" in gn.notes
