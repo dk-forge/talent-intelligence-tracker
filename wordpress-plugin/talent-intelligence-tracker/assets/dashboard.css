@@ -306,8 +306,11 @@
    full-bleed, so nothing can exceed the viewport width.
    --------------------------------------------------------------------------- */
 @media (max-width:700px){
-  .tit-wrap { box-sizing:border-box; width:auto;
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  /* Block themes set `.entry-content > * { margin-inline:auto }`, which beats a
+     single-class selector. The theme's own container is what we are cancelling,
+     so its rule is exactly the one that has to lose. */
+  .entry-content .tit-wrap, .tit-wrap { box-sizing:border-box; width:auto;
+    margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
     padding-left:14px; padding-right:14px; }
   .tit-hero { padding:16px 15px 15px; border-radius:12px; }
   .tit-wrap .tit-hero h2 { font-size:20px; line-height:1.25; }
