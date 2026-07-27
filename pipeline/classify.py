@@ -50,8 +50,16 @@ Set is_talent_signal true for any of these at a NAMED EMPLOYER:
  - a location decision: new office, hub, capability centre, RTO policy
  - FUNDING: a round raised, investment received, or capital raised. Funding is
    a leading indicator of hiring, so it counts as company_development with
-   signal_direction "hiring". Say so plainly in the read-through: what the money
-   means for who they will hire, and where.
+   signal_direction "hiring".
+   For a funding read-through, state what IS known and say plainly what is not.
+   A filing reports money, not hiring plans, so do not hedge about what might
+   happen — name the fact and the gap.
+     BAD:  "Holobiome's $10M funding suggests upcoming hiring in biotech roles."
+     GOOD: "Holobiome has $10M of new capital in Boston. The filing does not
+            disclose hiring plans; watch its careers page for biotech roles."
+     BAD:  "The $1.9M may lead to new hires in retail."
+     GOOD: "Peace Coffee has $1.9M of new capital in Minneapolis. No headcount
+            is disclosed in the filing."
 
 Set is_talent_signal false for anything else, and for anything with no named
 employer (government programmes, economic-development announcements, single job
