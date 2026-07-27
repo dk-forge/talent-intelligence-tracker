@@ -88,3 +88,36 @@ def test_deploy_is_dormant_until_armed():
     yml = DEPLOY.read_text()
     active_push = re.search(r"^on:\n(?:\s*#.*\n)*\s{2}push:", yml, re.M)
     assert active_push is None, "deploy-plugin.yml is armed; that should be deliberate"
+
+
+def test_assets_are_versioned_by_content_not_just_by_constant():
+    """Autoptimize serves a rewritten copy keyed on whatever version string we
+    hand it, and an FTP deploy can ship a CSS-only fix without moving the
+    constant. Same string, same stale copy, and the deploy looks like it never
+    landed. The mtime is what makes the bust real.
+    """
+    from pathlib import Path
+
+    php = (Path(__file__).parent.parent / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "includes" / "shortcodes.php").read_text()
+    assert "tit_asset_version('assets/dashboard.css')" in php
+    assert "tit_asset_version('assets/dashboard.js')" in php
+
+    boot = (Path(__file__).parent.parent / "wordpress-plugin"
+            / "talent-intelligence-tracker" / "talent-intelligence-tracker.php").read_text()
+    assert "function tit_asset_version" in boot
+    assert "filemtime" in boot
+    # An FTP deploy has a window where the file is not on disk yet, and an
+    # unguarded filemtime() warns into the response body.
+    assert "is_readable($file)" in boot
+
+
+def test_the_stylesheet_the_page_asks_for_actually_exists():
+    from pathlib import Path
+
+    css = (Path(__file__).parent.parent / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "assets" / "dashboard.css")
+    assert css.is_file() and css.stat().st_size > 5000
+    body = css.read_text()
+    for selector in (".tit-hero", ".tit-glance-cell", ".tit-region", ".tit-table"):
+        assert selector in body, selector

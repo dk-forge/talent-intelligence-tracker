@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.12.0
+ * Version: 1.13.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.12.0');
+define('TIT_VERSION', '1.13.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -70,6 +70,24 @@ function tit_maybe_upgrade() {
     }
     update_option('tit_installed_version', TIT_VERSION, false);
 }
+/**
+ * Cache-busting version for a bundled asset: the plugin version plus the
+ * file's own modification time.
+ *
+ * The version alone is not enough. FTP deploys can ship a CSS-only fix without
+ * moving the constant, and this host runs Autoptimize, which serves a rewritten
+ * copy of the file keyed on whatever version string we hand it. Same string,
+ * same stale copy, and the deploy looks like it never landed.
+ *
+ * filemtime() on a missing file warns and returns false, and an FTP deploy has
+ * a window where the file is not there yet, so it is guarded.
+ */
+function tit_asset_version($relative_path) {
+    $file = TIT_PATH . $relative_path;
+    $mtime = is_readable($file) ? filemtime($file) : 0;
+    return $mtime ? TIT_VERSION . '.' . $mtime : TIT_VERSION;
+}
+
 /**
  * ISO codes are how the data is stored and a bad thing to read. "BE" is not a
  * country to anyone who is not already thinking in codes.

@@ -419,10 +419,16 @@ function tit_enqueue_assets() {
         if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
     }
 
-    // TIT_VERSION busts the cache on every deploy, which matters because FTP
-    // uploads do not touch WordPress's own cache-busting.
-    wp_enqueue_style('tit-dashboard', TIT_URL . 'assets/dashboard.css', array(), TIT_VERSION);
-    wp_enqueue_script('tit-dashboard', TIT_URL . 'assets/dashboard.js', array(), TIT_VERSION, true);
+    // Version is TIT_VERSION plus the file's own mtime, the same shape the
+    // sibling plugin uses. TIT_VERSION alone is not enough: an FTP deploy can
+    // change the stylesheet without the constant moving (a CSS-only fix), and
+    // this site runs Autoptimize, which caches a rewritten copy of the file
+    // keyed on that version string. Without the mtime the visitor keeps the
+    // old rewritten copy and the deploy appears not to have landed.
+    wp_enqueue_style('tit-dashboard', TIT_URL . 'assets/dashboard.css', array(),
+        tit_asset_version('assets/dashboard.css'));
+    wp_enqueue_script('tit-dashboard', TIT_URL . 'assets/dashboard.js', array(),
+        tit_asset_version('assets/dashboard.js'), true);
     wp_localize_script('tit-dashboard', 'TIT', array(
         'api' => esc_url_raw(rest_url('talent/v1/')),
         // The filtered rows are rendered in the browser, so it needs the same

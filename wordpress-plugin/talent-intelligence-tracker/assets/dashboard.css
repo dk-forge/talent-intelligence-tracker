@@ -12,16 +12,30 @@
      own container, never the page body.
 */
 
+/* Tokens are the AI Layoff Tracker's, copied from its live layoffs.css rather
+   than approximated, so the two products are one family and not two dialects.
+   Its blue is #2a78d6 and its secondary is #D55E00.
+
+   One deliberate divergence: the sibling's --alt-muted (#868a93) is about
+   3.4:1 on white, which fails AA for body text. It is kept here as --tit-faint
+   for genuinely decorative labels only, and anything you have to read uses
+   --tit-mut (#4a4d55, the sibling's own --alt-ink-2) at 8.6:1. */
 .tit-wrap {
-  --tit-fg:#111418;         /* 16.1:1 on white */
-  --tit-mut:#4a5560;        /* 7.9:1 on white — readable, not decorative */
-  --tit-line:#d9dee5;
-  --tit-surface:#f7f9fb;
-  --tit-hiring:#2a78d6;     /* blue   */
-  --tit-cutting:#eb6834;    /* orange */
-  --tit-pay:#4a3aa7;        /* violet */
-  --tit-neutral:#5b6570;
-  color:var(--tit-fg); font-size:16px; line-height:1.55; max-width:100%;
+  --tit-fg:#16181d;         /* alt-ink      15.9:1 on white */
+  --tit-mut:#4a4d55;        /* alt-ink-2     8.6:1 on white */
+  --tit-faint:#868a93;      /* alt-muted    decorative only */
+  --tit-line:#e2e3e8;       /* alt-border  */
+  --tit-grid:#e7e8ec;       /* alt-grid    */
+  --tit-surface:#f7f8fa;    /* alt-surface-2 */
+  --tit-ground:#fafaf8;     /* atr-bg, the off-white page ground */
+  --tit-hiring:#2a78d6;     /* alt-blue    */
+  --tit-cutting:#D55E00;    /* alt-red     */
+  --tit-pay:#4a3aa7;        /* violet, third series */
+  --tit-neutral:#52607a;
+  --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  color:var(--tit-fg); font-size:16px; line-height:1.6; max-width:100%;
 }
 .tit-wrap, .tit-wrap p, .tit-wrap td, .tit-wrap th, .tit-wrap span, .tit-wrap a {
   -webkit-text-size-adjust:100%;
@@ -85,12 +99,12 @@
 .tit-tag, .tit-conf { display:inline-block; padding:3px 9px; border-radius:99px;
   font-size:13px; white-space:nowrap; font-weight:500; }
 .tit-tag { background:#eef1f5; color:var(--tit-fg); }
-.tit-hiring     { background:#e3edfa; color:#17457d; box-shadow:inset 0 0 0 1px #b9d3f2; }
-.tit-displacement { background:#fdeae1; color:#8c3410; box-shadow:inset 0 0 0 1px #f6c7ae; }
+.tit-hiring     { background:var(--tit-blue-tint); color:#1c5cab; box-shadow:inset 0 0 0 1px #b9d3f2; }
+.tit-displacement { background:var(--tit-red-tint); color:#8c3d00; box-shadow:inset 0 0 0 1px #f3c6ab; }
 .tit-comp_shift { background:#eae7f7; color:#332874; box-shadow:inset 0 0 0 1px #cbc4ec; }
 
 .tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg); }
-.tit-c-verified { background:#e3edfa; color:#17457d; border-color:#b9d3f2; }
+.tit-c-verified { background:var(--tit-blue-tint); color:#1c5cab; border-color:#b9d3f2; }
 .tit-c-rumored  { background:#f4f6f8; color:var(--tit-mut); font-style:italic; }
 
 .tit-hq { font-size:12px; padding:2px 6px; border-radius:5px;
@@ -145,9 +159,10 @@
    ====================================================================== */
 
 .tit-wrap {
-  --tit-blue:#2a78d6; --tit-orange:#eb6834; --tit-violet:#4a3aa7;
-  --tit-teal:#1baf7a; --tit-ink-blue:#17457d; --tit-ink-orange:#8c3410;
+  --tit-blue:#2a78d6; --tit-orange:#D55E00; --tit-violet:#4a3aa7;
+  --tit-teal:#1baf7a; --tit-ink-blue:#1c5cab; --tit-ink-orange:#8c3d00;
   --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
+  --tit-blue-tint:#eef4fc; --tit-red-tint:#fdeeee;
 }
 
 /* --- Hero -------------------------------------------------------------- */
@@ -475,3 +490,44 @@
   color:var(--tit-mut); background:var(--tit-surface);
   border:1px solid var(--tit-line); border-left:4px solid var(--tit-blue);
   border-radius:10px; max-width:78ch; }
+
+
+/* ===========================================================================
+   Family styling, taken from the sibling tracker's live stylesheet.
+   =========================================================================== */
+
+/* Its pill: white ground, a 2px border in the tab's own colour, 22px radius.
+   Each region carries a hue exactly as .alt-tab-usa / -europe / -asia do. */
+.tit-wrap .tit-region {
+  --tabc:#52607a;
+  padding:7px 14px; border:2px solid var(--tabc); border-radius:22px;
+  background:#fff; color:var(--tabc); font-weight:700; font-size:13.5px;
+}
+.tit-wrap .tit-region:nth-child(1) { --tabc:#52607a; }
+.tit-wrap .tit-region:nth-child(2) { --tabc:#2a78d6; }
+.tit-wrap .tit-region:nth-child(3) { --tabc:#c2417e; }
+.tit-wrap .tit-region:nth-child(4) { --tabc:#7a3fa8; }
+.tit-wrap .tit-region:nth-child(5) { --tabc:#6b4bd6; }
+.tit-wrap .tit-region:nth-child(6) { --tabc:#c62f2e; }
+.tit-wrap .tit-region:nth-child(7) { --tabc:#b8860b; }
+.tit-wrap .tit-region:nth-child(8) { --tabc:#2e8b57; }
+.tit-wrap .tit-region:nth-child(9) { --tabc:#d2691e; }
+.tit-wrap .tit-region:hover { background:var(--tit-surface); border-color:var(--tabc); }
+.tit-wrap .tit-region.is-on { background:var(--tabc); border-color:var(--tabc); color:#fff; }
+.tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.26); color:#fff; }
+.tit-region-n { color:var(--tit-mut); background:var(--tit-surface); }
+
+/* Cards sit on white with the family's two-stop shadow, on an off-white ground. */
+.tit-hero, .tit-chart, .tit-filters, .tit-table-scroll, .tit-stat, .tit-glance {
+  box-shadow:var(--tit-shadow);
+}
+.tit-hero { background:var(--tit-ground); border-color:var(--tit-line); }
+.tit-chart, .tit-table-scroll { background:#fff; }
+.tit-filters { background:var(--tit-ground); }
+.tit-table th, .tit-table td { border-color:var(--tit-grid); }
+.tit-wrap .tit-table th { background:var(--tit-surface); }
+
+/* The third and fourth series keep the accents distinct from the two family
+   hues without inventing new ones: they are the same violet and teal already
+   validated for CVD separation against blue and #D55E00. */
+.tit-bar span, .tit-rank-fill { border-radius:22px; }
