@@ -152,4 +152,4 @@ def test_the_date_window_uses_the_source_date():
            / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
     assert "COALESCE(published_date, DATE(captured_at)) {$op} %s" in php
     # A malformed date must be ignored, not passed through.
-    assert "preg_match('/^\\\\d{4}-\\\\d{2}-\\\\d{2}$/', $value)" in php
+    assert r"preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)" in php
