@@ -28,9 +28,9 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "pillar": "company_development|leadership_change|rewards_comp|how_we_work",
  "signal_direction": "hiring|displacement|neutral|comp_shift",
  "city": "city named IN THE TEXT where the roles are, or empty. Do not guess.",
- "country": "country named IN THE TEXT, or empty. Do not guess.",
- "headquarters_city": "the employer's headquarters city, from your own knowledge of the company. Empty if unsure.",
- "headquarters_country": "the employer's headquarters country. Empty if unsure.",
+ "country": "country IN THE TEXT. The dateline, the outlet's own country, and a nationality in the story all count as in the text ('Egyptian startup' means Egypt). Empty only if the text really carries no country.",
+ "headquarters_city": "the employer's headquarters city, from your own knowledge. Empty if you do not know the company.",
+ "headquarters_country": "the employer's headquarters country, from your own knowledge. This is recorded separately from the sourced country and shown to readers as the employer's HQ, never as the story's location, so answer whenever you know the company. Empty only if you do not.",
  "confidence": "verified|reported|rumored",
  "functions": ["closed list, pick every one the text supports: engineering, data_ai, it_infrastructure, product, design, finance, hr_people, sales, marketing, customer_support, operations, supply_chain, manufacturing, legal_compliance, research, clinical_healthcare, executive. Empty list if the text names none."],
  "industry": "the employer's industry: technology, financial_services, healthcare, pharma_biotech, retail_ecommerce, manufacturing, energy_utilities, telecom, media_entertainment, transport_logistics, professional_services, public_sector, hospitality_travel, education, food_beverage, automotive, aerospace_defence, real_estate_construction. Empty if unclear.",
@@ -52,14 +52,20 @@ Set is_talent_signal true for any of these at a NAMED EMPLOYER:
    a leading indicator of hiring, so it counts as company_development with
    signal_direction "hiring".
    For a funding read-through, state what IS known and say plainly what is not.
-   A filing reports money, not hiring plans, so do not hedge about what might
-   happen — name the fact and the gap.
+   Money is reported, hiring plans usually are not, so do not hedge about what
+   might happen — name the fact and the gap.
+   Call the source what it is: "the filing" only for an SEC filing, otherwise
+   "the announcement" or "the report".
+   Say what the company does and where, so the line is worth reading. A row of
+   read-throughs that differ only by the number is not useful to anyone.
      BAD:  "Holobiome's $10M funding suggests upcoming hiring in biotech roles."
      GOOD: "Holobiome has $10M of new capital in Boston. The filing does not
             disclose hiring plans; watch its careers page for biotech roles."
-     BAD:  "The $1.9M may lead to new hires in retail."
-     GOOD: "Peace Coffee has $1.9M of new capital in Minneapolis. No headcount
-            is disclosed in the filing."
+     BAD:  "Enigma has $71M of new capital. The filing does not disclose hiring
+            plans; watch its careers page."
+     GOOD: "Enigma raised $71M in seed for physical-AI robotics, a stage where
+            headcount usually goes into research and engineering. The
+            announcement names no roles."
 
 Set is_talent_signal false for anything else, and for anything with no named
 employer (government programmes, economic-development announcements, single job
