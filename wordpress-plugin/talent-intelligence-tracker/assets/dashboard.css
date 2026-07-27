@@ -356,3 +356,22 @@
 .tit-filters { background:var(--tit-surface); border:1px solid var(--tit-line);
   border-radius:12px; padding:14px; }
 .tit-filters select, .tit-filters input { background:#fff; }
+
+/* ---------------------------------------------------------------------------
+   Measure, on every route.
+   The theme's container runs to about 1500px on a wide monitor. At that width
+   the hero paragraph wraps at its 62ch and leaves half the box empty, the
+   at-a-glance lines float in a sea of white, and the table columns drift so far
+   apart that the employer and the source stop reading as one row. 1160px is
+   about as wide as this content stays coherent.
+   --------------------------------------------------------------------------- */
+.tit-wrap { max-width:1160px; margin-left:auto; margin-right:auto; }
+
+/* Two columns of at-a-glance once there is room for them. */
+@media (min-width:1000px){
+  .tit-glance { display:grid; grid-template-columns:1fr 1fr; column-gap:34px; }
+  .tit-glance-row { grid-template-columns:112px 1fr; }
+  /* Keep the top border on the first row of each column, not just the first. */
+  .tit-glance-row:nth-child(2) { border-top:0; }
+}
+.tit-hero p { max-width:78ch; }
