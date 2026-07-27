@@ -94,6 +94,17 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: python ops_status.py || true
 
+      # A run checks out main, collects for several minutes, then pushes. Any
+      # push to main in that window rejects it, and the records are gone: the
+      # first armed run collected 28 and lost every one of them to a plugin
+      # deploy that landed mid-collection. Six dry runs could never find this,
+      # because a dry run writes nothing.
+      #
+      # Rebasing a SQLite file is not sensible, so this does not try. Our copy
+      # is the checked-out database plus this run's rows, and this job is the
+      # only writer (the concurrency group keeps two collects from overlapping),
+      # so resetting to the remote and putting our file back is always correct
+      # and can never conflict.
       - name: Commit the database
         if: ${{ !inputs.dry_run }}
         run: |
@@ -104,5 +115,27 @@ jobs:
             echo "No data change."
             exit 0
           fi
-          git commit -m "data: collect $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push
+
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "data: collect $(date -u +%Y-%m-%dT%H:%MZ)" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — replaying onto the current main."
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this data."
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the database after 5 attempts. \
+          This run's records exist only on the runner and are lost."
+          exit 1
