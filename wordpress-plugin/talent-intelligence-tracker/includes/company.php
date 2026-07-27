@@ -43,8 +43,21 @@ function tit_company_maybe_flush() {
 }
 add_action('init', 'tit_company_maybe_flush', 99);
 
+/**
+ * company_key holds spaces ("peace coffee"); a URL should not. Hyphens survive
+ * the rewrite rule intact where %20 does not, so the slug is the hyphenated
+ * form and the lookup converts back.
+ */
+function tit_company_slug($company_key) {
+    return rawurlencode(str_replace(' ', '-', $company_key));
+}
+
+function tit_company_key_from_slug($slug) {
+    return str_replace('-', ' ', rawurldecode($slug));
+}
+
 function tit_company_url($company_key) {
-    return home_url('/' . TIT_COMPANY_BASE . '/' . rawurlencode($company_key) . '/');
+    return home_url('/' . TIT_COMPANY_BASE . '/' . tit_company_slug($company_key) . '/');
 }
 
 /** Rows for one employer, newest first. */
@@ -67,7 +80,8 @@ function tit_company_template() {
     $key = get_query_var('tit_company');
     if (!$key) return;
 
-    $rows = tit_company_rows(sanitize_text_field($key));
+    $company_key = tit_company_key_from_slug(sanitize_text_field($key));
+    $rows = tit_company_rows($company_key);
     if (!$rows) {
         status_header(404);
         nocache_headers();
@@ -77,7 +91,7 @@ function tit_company_template() {
         exit;
     }
 
-    tit_company_render($rows, $key);
+    tit_company_render($rows, $company_key);
     exit;
 }
 add_action('template_redirect', 'tit_company_template');
@@ -190,7 +204,7 @@ function tit_company_render($rows, $key) {
 function tit_company_title($title) {
     $key = get_query_var('tit_company');
     if (!$key) return $title;
-    $rows = tit_company_rows(sanitize_text_field($key));
+    $rows = tit_company_rows(tit_company_key_from_slug(sanitize_text_field($key)));
     if (!$rows) return $title;
     return $rows[0]['company'] . ' — hiring, funding and leadership signals';
 }
