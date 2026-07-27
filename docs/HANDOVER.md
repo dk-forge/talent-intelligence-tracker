@@ -4,7 +4,7 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: 2026-07-27, after the accessibility and language overhaul (v1.2.1).
+Last updated: 2026-07-27, after company pages and the funding collector (v1.3.2).
 
 ---
 
@@ -41,6 +41,24 @@ Run `python3 ops_status.py` first, every session. No deps, no keys.
 - Recruiter language: "updates" not "signals", "Hiring up"/"Cutting back"/"Pay
   change" not "direction", columns read "What happened / What it means / How solid"
 - All eight filters on the page, responsive 1/2/3 columns
+
+**Done since the overhaul:**
+- `collectors/sec_form_d.py` — funding, free and primary-sourced. Form D is
+  structured XML: issuer, industry, city, state, amount actually sold. The money
+  figure is read off a legal filing, never produced by a model.
+  Funds are excluded twice: by `industryGroupType`, and by name pattern (real
+  estate syndications and DSTs file under "Other Real Estate").
+- Company profile pages at `/talent-intelligence-tracker/company/{slug}/`.
+  Slug is the hyphenated `company_key` — `%20` does not survive the rewrite.
+  404 when we hold nothing, rather than a shell page for every slug.
+- 9 records live: 6 leadership moves, 3 funding rounds, all `verified`.
+
+**Two traps found building those:**
+- The classifier prompt listed only hiring/leadership/comp/location as talent
+  signals, so it silently discarded every funding filing. It was following
+  instructions; the instructions were wrong. Funding is now explicitly in scope.
+- `is_talent_signal: false` printed nothing at all. Every failure tonight hid in
+  a silent path. It now prints per candidate.
 
 **Not done:**
 - Collection is DORMANT (schedule commented out in `collect.yml`)
