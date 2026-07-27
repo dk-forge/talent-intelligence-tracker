@@ -213,10 +213,22 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
     else:
         hq_country = vocab.normalize_country(classified.get("headquarters_country", ""))
 
-    if not (country or hq_country):
-        raise Rejected(
-            "no geography — neither a place in the source nor a known employer HQ"
-        )
+    # Deliberately NOT a rejection. Geography is how this product segments, but
+    # it is not what makes a record true: the credibility rules are the source
+    # URL, figures appearing verbatim, and confidence capped by the source, and
+    # an unplaced record breaks none of them.
+    #
+    # The live dry run on 2026-07-27 threw away six of twelve classified
+    # candidates here, all real leadership changes at real employers, and all
+    # after the model had already been paid for. "Sidus Space Names New CEO" is
+    # a talent signal whether or not we can say which state Sidus Space is in.
+    #
+    # Unplaced records are stored with country NULL, appear under World, are
+    # excluded from every country and region filter, and the page says
+    # "Location not stated" rather than guessing. Guessing from the Google News
+    # edition was considered and rejected: the US edition returns stories from
+    # Zimbabwe, Nigeria and Fiji, so the edition says where we asked, not where
+    # the story is.
 
     # US state, for the state filter. Only meaningful inside the US.
     state = None

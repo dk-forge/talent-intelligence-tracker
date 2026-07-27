@@ -284,8 +284,15 @@ function tit_dashboard_shortcode() {
                   $place = $r['city'] ?: $r['hq_city'];
                   $cc    = $r['country'] ?: $r['hq_country'];
                   $is_hq = !$r['city'] && !$r['country'];
-                  echo esc_html(trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', '));
-                  if ($is_hq) echo ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
+                  $where = trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', ');
+                  if ($where === '') {
+                      // Stored anyway: geography is how we segment, not what
+                      // makes the record true. Saying so beats a blank cell.
+                      echo '<span class="tit-nowhere">Location not stated</span>';
+                  } else {
+                      echo esc_html($where);
+                      if ($is_hq) echo ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
+                  }
                   ?>
                 </td>
                 <td data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>

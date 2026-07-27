@@ -134,9 +134,19 @@ def test_direction_outside_the_vocabulary_is_rejected():
         validate.build_signal(classified(signal_direction="vibes"), raw(), "google_news")
 
 
-def test_no_geography_is_rejected():
-    with pytest.raises(validate.Rejected, match="no geography"):
-        validate.build_signal(classified(city="", country=""), raw(), "google_news")
+def test_a_record_we_cannot_place_is_kept_not_discarded():
+    """Geography is how this product segments; it is not what makes a record
+    true. A live dry run threw away six of twelve classified candidates for
+    this, all real leadership changes at real employers, all after the model
+    had already been paid for. They are stored unplaced and excluded from the
+    country filters instead."""
+    signal = validate.build_signal(
+        classified(city="", country="", headquarters_city="", headquarters_country=""),
+        raw(), "google_news")
+    assert signal.country is None
+    assert signal.hq_country is None
+    # The credibility rules are untouched: it still had to have a real source.
+    assert signal.source_url.startswith("http")
 
 
 def test_missing_readthrough_is_rejected():

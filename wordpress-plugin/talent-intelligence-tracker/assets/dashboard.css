@@ -549,3 +549,8 @@
   .tit-table td[data-label="Employer"] a { border-bottom:0; color:var(--tit-mut); }
   .tit-table td[data-label="Employer"] + .tit-headline { margin-top:2px; }
 }
+
+/* A record we could not place. Said out loud rather than left blank, and never
+   guessed: the Google News edition tells us where we asked, not where the
+   story is. */
+.tit-nowhere { color:var(--tit-faint); font-style:italic; font-size:13.5px; }

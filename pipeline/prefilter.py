@@ -28,6 +28,31 @@ _EMPLOYMENT_TERMS = (
     r"salar\w+", r"pay(?:rise|\srise)?", r"wages?", r"bonus\w*", r"compensation",
     r"remote work", r"hybrid work\w*", r"return to office", r"four-day week",
 )
+# Funding, in every language we query. This block is why the gate exists at all
+# in its current form: without it, "who is raising money" was dead on arrival.
+#
+# The failure was silent and total. A funding headline says "Enigma Raises $71M
+# in Seed Funding" and contains no employment word, so the employment gate threw
+# away every single one. A live dry run on 2026-07-27 fetched 140 candidates and
+# filtered 96; 78 of those 96 were funding stories. One of the four pillars had
+# never produced a news record and nothing reported an error, because a free
+# filter rejecting everything looks exactly like a quiet news day.
+#
+# A raise is a hiring signal: it is the money that pays for the roles. That is
+# why it is a pillar, and why the page headline says "who is raising money".
+_FUNDING_TERMS = (
+    r"rais(?:e[sd]?|ing)", r"series [a-e]\b", r"seed (?:funding|round)",
+    r"pre-?seed", r"funding round", r"secures? (?:\$|€|£|₹|us\$)?[\d.,]+",
+    r"private placement", r"venture round", r"led the round",
+    # German, French, Spanish, Portuguese, Italian, Dutch
+    r"finanzierungsrunde", r"eingesammelt", r"kapitalrunde",
+    r"lev\w*e de fonds", r"tour de table",
+    r"ronda de (?:financiaci\w*n|inversi\w*n)", r"capta\w*",
+    r"rodada de (?:investimento|financiamento)",
+    r"round di finanziamento", r"raccoglie",
+    r"financieringsronde",
+)
+
 # The same gate in the languages Google News is queried in. Without these, a
 # German or Portuguese headline fails the free filter and is dropped before it
 # ever reaches the model, so querying those editions would have produced
@@ -64,7 +89,7 @@ _EMPLOYMENT_TERMS_INTL = (
 )
 
 _EMPLOYMENT = re.compile(
-    r"\b(?:" + "|".join(_EMPLOYMENT_TERMS + _EMPLOYMENT_TERMS_INTL) + r")\b",
+    r"\b(?:" + "|".join(_EMPLOYMENT_TERMS + _EMPLOYMENT_TERMS_INTL + _FUNDING_TERMS) + r")\b",
     re.I | re.UNICODE,
 )
 

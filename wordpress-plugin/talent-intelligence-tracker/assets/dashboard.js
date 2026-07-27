@@ -73,7 +73,9 @@
     var code = r.country || r.hq_country || '';
     var country = (TIT.countries && TIT.countries[code]) || code;
     var where = esc([place, country].filter(Boolean).join(', '));
-    if (isHq && where) {
+    if (!where) {
+      where = '<span class="tit-nowhere">Location not stated</span>';
+    } else if (isHq) {
       where += ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
     }
 
