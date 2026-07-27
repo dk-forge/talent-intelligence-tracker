@@ -49,7 +49,7 @@ function tit_dashboard_shortcode() {
     );
 
     $rows = $wpdb->get_results(
-        "SELECT signal_id, headline, talent_readthrough, company, pillar, signal_direction,
+        "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
                 published_date
            FROM {$table} WHERE is_current = 1
@@ -177,7 +177,14 @@ function tit_dashboard_shortcode() {
                   <span class="tit-h"><?php echo esc_html($r['headline']); ?></span>
                   <span class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></span>
                 </td>
-                <td><?php echo esc_html($r['company']); ?></td>
+                <td><?php
+                  $ck = $r['company_key'] ?? '';
+                  if ($ck && function_exists('tit_company_url')) {
+                      printf('<a href="%s">%s</a>', esc_url(tit_company_url($ck)), esc_html($r['company']));
+                  } else {
+                      echo esc_html($r['company']);
+                  }
+                ?></td>
                 <td>
                   <?php
                   $place = $r['city'] ?: $r['hq_city'];

@@ -108,3 +108,23 @@
    white background — the exact unreadability this rewrite set out to fix.
    Our surface is not ours to control, so we style for the surface we are
    actually given. Revisit only if the theme gains a real dark mode. */
+
+/* --- Company profile pages -------------------------------------------- */
+.tit-company h1 { font-size:32px; margin:6px 0 8px; color:var(--tit-fg); }
+.tit-crumb { font-size:14px; color:var(--tit-mut); margin:0 0 4px; }
+.tit-crumb span { margin:0 4px; }
+
+.tit-timeline { list-style:none; margin:22px 0 0; padding:0; }
+.tit-event { display:grid; grid-template-columns:1fr; gap:4px;
+  padding:18px 0; border-top:1px solid var(--tit-line); }
+@media (min-width:700px){
+  .tit-event { grid-template-columns:118px 1fr; gap:20px; }
+}
+.tit-event-when { font-size:14px; color:var(--tit-mut);
+  font-variant-numeric:tabular-nums; padding-top:3px; }
+.tit-company .tit-h { font-size:18px; margin:8px 0 0; font-weight:600; }
+.tit-company .tit-rt { margin:7px 0 0; border-left:3px solid var(--tit-line);
+  padding-left:10px; color:var(--tit-mut); font-size:15px; }
+.tit-event-meta { margin:9px 0 0; font-size:14px; color:var(--tit-mut); }
+.tit-event-meta strong { color:var(--tit-fg); }
+.tit-event .tit-tag { margin-right:5px; }
