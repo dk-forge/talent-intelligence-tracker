@@ -117,6 +117,22 @@ Do not weaken these without understanding what they caught.
 
 ## Gotchas that cost real time
 
+**0. Grepping the page for `dashboard.css` finds nothing, and the CSS is still
+loading.** This site runs Autoptimize. It rewrites our enqueue to
+`wp-content/cache/autoptimize/css/autoptimize_single_<hash>.css`, carrying our
+version string through as `?ver=`. So `grep dashboard.css` on the served HTML
+returns zero while every rule is present and applying. To check whether the
+stylesheet is really live, grep for `?ver=<TIT_VERSION>` instead, then curl that
+file and grep it for a selector you shipped.
+
+The real hazard underneath: Autoptimize keys its rewritten copy on the version
+string we hand it. `TIT_VERSION` alone was not enough, because an FTP deploy can
+ship a CSS-only fix without the constant moving, and visitors then keep the old
+rewritten copy. Assets are versioned `TIT_VERSION . '.' . filemtime()` for that
+reason (`tit_asset_version()`), which is also what the sibling does. Pinned by
+`tests/test_plugin_separation.py`.
+
+
 1. **OpenRouter + `require_parameters` + `response_format` excludes all Claude
    endpoints** — 404 "No endpoints found". Skip both for `anthropic/*`.
 2. **OpenRouter routes across providers; some ignore `response_format`** and
