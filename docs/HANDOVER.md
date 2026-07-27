@@ -22,49 +22,51 @@ Run `python3 ops_status.py` first, every session. No deps, no keys.
 
 ---
 
-## Current state (2026-07-27)
+## Current state (2026-07-27, evening)
 
-**Working and live:**
-- WordPress plugin v1.1.0 deployed via FTPS from Actions
-- 6 records published, all SEC 8-K filings, all `verified` confidence
-- REST API: `query`, `aggregate`, `facets`, `source-health`, keyed `add`/`bulk`/`retract`
-- Filters live in the API: country, city, pillar, direction, confidence, company,
-  industry, state, function, funding, min_headcount, free-text `q`
-- 170 tests, CI green
+**Live:** plugin **v1.9.0**, 13 records, 198 tests green.
+`https://asktherecruiter.com/blog/talent-intelligence-tracker/`
 
-**Done since first publish:**
-- Colourblind-safe palette (blue/orange/violet, CVD dE 24.7 validated). The old
-  green/red was the classic red-green failure case.
-- WCAG AA contrast. NOTE: a `prefers-color-scheme: dark` block was added and
-  then removed — the WP theme forces a white page, so dark styles rendered as
-  light text on white. Do not re-add it without a real theme dark mode.
-- Recruiter language: "updates" not "signals", "Hiring up"/"Cutting back"/"Pay
-  change" not "direction", columns read "What happened / What it means / How solid"
-- All eight filters on the page, responsive 1/2/3 columns
+**The page now:**
+- Hero with a live/last-updated pill and four at-a-glance lines: today, this
+  week, this month, this year. Empty periods still print and say so.
+- Four stat tiles, each with its own accent stripe.
+- Region strip: World / United States / Europe / India / Asia Pacific, with
+  counts. Regions with nothing in them are dropped; World always survives.
+- Three chart cards (kind of update, where the activity is, growing or
+  shrinking), plain HTML and CSS, no chart library.
+- Eight filters, then the table.
+- **On phones (<=860px) the table becomes cards**, each cell labelled from
+  `data-label`. Below 700px the wrap goes full bleed to cancel the theme's two
+  nested padded containers, which otherwise left it 219px wide on a 375px screen.
 
-**Done since the overhaul:**
-- `collectors/sec_form_d.py` — funding, free and primary-sourced. Form D is
-  structured XML: issuer, industry, city, state, amount actually sold. The money
-  figure is read off a legal filing, never produced by a model.
-  Funds are excluded twice: by `industryGroupType`, and by name pattern (real
-  estate syndications and DSTs file under "Other Real Estate").
-- Company profile pages at `/talent-intelligence-tracker/company/{slug}/`.
-  Slug is the hyphenated `company_key` — `%20` does not survive the rewrite.
-  404 when we hold nothing, rather than a shell page for every slug.
-- 9 records live: 6 leadership moves, 3 funding rounds, all `verified`.
+**Sources, after the audit:** 160 listed, **4 running**. The imported catalogue
+was cut from 383 rows to 111 by one rule — a row survives only if it carries an
+RSS feed, an API, or is an official filing system. 272 rows were names with
+nothing to connect to. Pinned by `tests/test_sources_page.py`.
 
-**Two traps found building those:**
-- The classifier prompt listed only hiring/leadership/comp/location as talent
-  signals, so it silently discarded every funding filing. It was following
-  instructions; the instructions were wrong. Funding is now explicitly in scope.
-- `is_talent_signal: false` printed nothing at all. Every failure tonight hid in
-  a silent path. It now prints per candidate.
+**What has actually produced a stored record:**
+
+| collector | stored |
+|---|---|
+| `sec_edgar` (8-K Item 5.02) | 6 |
+| `google_news` | 4 |
+| `sec_form_d` | 3 |
+| `gdelt` | **0** |
+
+GDELT throttles erratically (~50% success even at 12s spacing) and has never
+produced a record. It is the next thing to either fix or retire.
 
 **Not done:**
-- Collection is DORMANT (schedule commented out in `collect.yml`)
-- No spend ceiling in code
+- Collection is still DORMANT (schedule commented out in `collect.yml`)
+- Filters change the table but **not** the stat tiles or charts. The stated goal
+  is "every number, chart and row below updates to match" — the charts are
+  server-rendered from the unfiltered set and do not yet re-fetch.
+- Google News is not yet locale-parameterised (`hl`/`gl`/`ceid` per country,
+  rotated by day-of-year). Today it is `US:en` only, which is wrong for a
+  global product.
+- No date-range control, no sort, no quick views
 - Model switch (Gemini Flash-Lite gate + Haiku read-through) designed, not applied
-- Roo-style status banner, company profiles, momentum score: not started
 
 ---
 
