@@ -224,6 +224,22 @@ function tit_dashboard_shortcode() {
            the confidence all come from the linked source.</p>
       </div>
 
+      <div class="tit-quick" role="group" aria-label="Quick views">
+        <span class="tit-quick-label">Quick views</span>
+        <button type="button" class="tit-qv" data-qv="">Everything</button>
+        <button type="button" class="tit-qv" data-qv="since=<?php echo esc_attr(date('Y-m-d', strtotime('-7 days'))); ?>">This week</button>
+        <button type="button" class="tit-qv" data-qv="direction=hiring">Hiring up</button>
+        <button type="button" class="tit-qv" data-qv="funding=1">Raised money</button>
+        <button type="button" class="tit-qv" data-qv="pillar=leadership_change">Leadership moves</button>
+        <button type="button" class="tit-qv" data-qv="confidence=verified">From official filings</button>
+        <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="largest">Most roles first</option>
+          <option value="employer">By employer</option>
+        </select>
+      </div>
+
       <div class="tit-filters">
         <select id="tit-f-pillar" aria-label="What kind of update">
           <option value="">Anything happening</option>

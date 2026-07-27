@@ -146,7 +146,18 @@ function tit_build_where(WP_REST_Request $req, array &$params) {
     }
 
     if ($req->get_param('funding') === '1') {
-        $where[] = 'funding_amount IS NOT NULL';
+        $where[] = "funding_amount IS NOT NULL AND funding_amount != ''";
+    }
+
+    // Date window on the source's own published_date, falling back to when we
+    // captured it. Filtering on capture date would move a story between
+    // periods depending on when a collector happened to run.
+    foreach (array('since' => '>=', 'until' => '<=') as $param => $op) {
+        $value = sanitize_text_field($req->get_param($param) ?? '');
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            $where[] = "COALESCE(published_date, DATE(captured_at)) {$op} %s";
+            $params[] = $value;
+        }
     }
 
     $min_headcount = (int) ($req->get_param('min_headcount') ?: 0);
@@ -181,6 +192,16 @@ function tit_api_query(WP_REST_Request $req) {
     $where  = tit_build_where($req, $params);
     $table  = tit_table_name();
 
+    // A closed list, never interpolated from the request: this string goes
+    // straight into the SQL, where $wpdb->prepare cannot help.
+    $orders = array(
+        'newest'   => 'COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC',
+        'oldest'   => 'COALESCE(published_date, DATE(captured_at)) ASC, row_id ASC',
+        'largest'  => 'headcount DESC, COALESCE(published_date, DATE(captured_at)) DESC',
+        'employer' => 'company_key ASC, COALESCE(published_date, DATE(captured_at)) DESC',
+    );
+    $order = $orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['newest'];
+
     $per_page = min(200, max(1, (int) ($req->get_param('per_page') ?: 50)));
     $page     = max(1, (int) ($req->get_param('page') ?: 1));
     $offset   = ($page - 1) * $per_page;
@@ -194,7 +215,7 @@ function tit_api_query(WP_REST_Request $req) {
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
                         confidence, source_url, source_name, published_date, captured_at
                    FROM {$table} WHERE {$where}
-                  ORDER BY COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
+                  ORDER BY {$order}
                   LIMIT %d OFFSET %d";
     $rows = $wpdb->get_results($wpdb->prepare($rows_sql, array_merge($params, array($per_page, $offset))), ARRAY_A);
 

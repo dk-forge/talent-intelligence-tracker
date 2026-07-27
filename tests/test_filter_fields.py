@@ -126,3 +126,30 @@ def test_us_city_implies_its_state():
 ])
 def test_state_normalisation(value, expected):
     assert vocab.normalize_state(value) == expected
+
+
+def test_sort_is_a_closed_list_not_request_text():
+    """The ORDER BY string goes straight into the SQL, where $wpdb->prepare
+    cannot help. It must never be built from the request."""
+    from pathlib import Path
+
+    php = (Path(__file__).parent.parent / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
+    block = php[php.index("$orders = array("):php.index("$per_page =")]
+    for key in ("newest", "oldest", "largest", "employer"):
+        assert f"'{key}'" in block, key
+    # Lookup with a fallback, never interpolation of the parameter itself.
+    assert "$orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['newest']" in php
+    assert "ORDER BY {$order}" in php
+
+
+def test_the_date_window_uses_the_source_date():
+    """Filtering on capture date would move a story between periods depending
+    on when a collector happened to run."""
+    from pathlib import Path
+
+    php = (Path(__file__).parent.parent / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
+    assert "COALESCE(published_date, DATE(captured_at)) {$op} %s" in php
+    # A malformed date must be ignored, not passed through.
+    assert "preg_match('/^\\\\d{4}-\\\\d{2}-\\\\d{2}$/', $value)" in php

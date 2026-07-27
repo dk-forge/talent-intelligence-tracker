@@ -19,7 +19,8 @@
     country: document.getElementById('tit-f-country'),
     state: document.getElementById('tit-f-state'),
     company: document.getElementById('tit-f-company'),
-    q: document.getElementById('tit-f-q')
+    q: document.getElementById('tit-f-q'),
+    sort: document.getElementById('tit-f-sort')
   };
 
   var DIRECTION_CLASS = {
@@ -192,6 +193,15 @@
     // country select. Whichever the person touched last is the one that counts —
     // silently ANDing "Europe" with "Japan" would return nothing and look broken.
     if (region) params.set('country', region);
+    // A quick view is a saved set of parameters, applied on top of whatever
+    // else is selected rather than replacing it: someone who has picked Europe
+    // and then clicks "Raised money" means both.
+    if (quickView) {
+      quickView.split('&').forEach(function (pair) {
+        var kv = pair.split('=');
+        if (kv[0]) params.set(kv[0], decodeURIComponent(kv[1] || ''));
+      });
+    }
     params.set('per_page', '50');
 
     // Charts and figures move with the same querystring the table uses, so the
@@ -249,6 +259,22 @@
     });
   });
   setRegion(null);
+
+  var quickView = null;
+  var quickButtons = Array.prototype.slice.call(root.querySelectorAll('.tit-qv'));
+
+  quickButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      quickView = b.dataset.qv || null;
+      quickButtons.forEach(function (o) {
+        var on = (o.dataset.qv || '') === (quickView || '');
+        o.classList.toggle('is-on', on);
+        o.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      refresh();
+    });
+  });
+  if (quickButtons.length) quickButtons[0].classList.add('is-on');
 
   populateFacets();
 })();

@@ -557,3 +557,20 @@
 
 /* A chart with nothing in it says so. A blank card reads as broken. */
 .tit-rank-empty { margin:0; font-size:13.5px; color:var(--tit-mut); font-style:italic; }
+
+/* Quick views ------------------------------------------------------------ */
+.tit-quick { display:flex; flex-wrap:wrap; align-items:center; gap:7px;
+  margin:0 0 10px; }
+.tit-quick-label { font-size:12px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--tit-mut); margin-right:2px; }
+.tit-wrap .tit-qv { padding:6px 12px; border:1px solid var(--tit-line);
+  border-radius:8px; background:#fff; color:var(--tit-fg); font-size:13.5px;
+  font-weight:600; font-family:inherit; cursor:pointer; line-height:1.25; }
+.tit-wrap .tit-qv:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-qv:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-wrap .tit-qv.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
+  color:#fff; }
+.tit-wrap .tit-sort { margin-left:auto; padding:6px 10px; font-size:13.5px;
+  border:1px solid var(--tit-line); border-radius:8px; background:#fff;
+  color:var(--tit-fg); font-family:inherit; }
+@media (max-width:700px){ .tit-wrap .tit-sort { margin-left:0; width:100%; } }
