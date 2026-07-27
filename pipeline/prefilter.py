@@ -159,6 +159,14 @@ def _geography_terms() -> tuple[re.Pattern, re.Pattern]:
         add(name)
     for alias in vocab._COUNTRY_ALIASES:
         add(alias)
+    # The two-letter codes of the editions we actually query. Deliberately NOT
+    # all 198: uppercase "IT", "IN", "AT" and "NO" are ordinary words in a
+    # headline, and this helper feeds a geography hint, not a gate, so a false
+    # positive costs nothing while a false "IT department" would be noise.
+    for code in ("US", "GB", "CA", "AU", "IE", "IN", "SG", "NZ", "ZA", "PH",
+                 "NG", "DE", "FR", "NL", "ES", "MX", "AR", "CL", "CO", "BR",
+                 "PT", "AT", "CH", "BE"):
+        short_codes.add(re.escape(code))
 
     # Adjectival forms carry the geography just as well: "across German sites".
     long_terms.update({

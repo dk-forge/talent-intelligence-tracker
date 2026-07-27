@@ -90,29 +90,36 @@ def test_gulf_cooperation_council_is_not_a_capability_centre():
     assert not keep
 
 
-# Verbatim from the first run that actually reached the model. Each of these
-# was classified and THEN rejected for geography we do not cover — money spent
-# to learn something a free check already knew.
-UNCOVERED_GEOGRAPHY = [
+# Verbatim from the first run that actually reached the model. Two of these
+# named countries the vocabulary did not know at the time; it now covers all
+# 198, so the useful assertion is not "the helper misses them" but "the filter
+# lets them through either way".
+GEOGRAPHY_EDGE_CASES = [
     "Uzbekistan bets on digitalization to create jobs and compete globally",
     "Investing in Somalia's Climate Resilience Now to Create Jobs",
     "DeWine: Ohio approves 7 projects to create jobs and boost local economy",
     "Big Rapids mayor targets economic development to create jobs",
+    "Revolut CEO steps down after eight years",
 ]
 
 
-@pytest.mark.parametrize("headline", UNCOVERED_GEOGRAPHY)
-def test_uncovered_geography_is_detectable_but_not_gated(headline):
-    """The helper spots these, and we deliberately let them through anyway.
-
-    Gating on geography was tried and reverted: it also dropped "Revolut CEO
+@pytest.mark.parametrize("headline", GEOGRAPHY_EDGE_CASES)
+def test_geography_is_never_a_gate(headline):
+    """Gating on geography was tried and reverted: it also dropped "Revolut CEO
     steps down" (no place in the headline), "Intel opens new facility in
     Leixlip" and "BMS opens Mumbai capability centre". Recall is worth more
-    than the fraction of a cent it saves.
+    than the fraction of a cent it saves, and a record we cannot place is
+    stored unplaced rather than discarded.
     """
-    assert not prefilter.has_covered_geography(headline)
-    keep, _ = prefilter.passes(headline)
-    assert keep
+    keep, why = prefilter.passes(headline)
+    assert keep, why
+
+
+def test_the_helper_now_knows_the_countries_it_used_to_miss():
+    """Uzbekistan and Somalia were classified and then rejected, money spent to
+    learn something the vocabulary should have known."""
+    assert prefilter.has_covered_geography("Uzbekistan bets on digitalization")
+    assert prefilter.has_covered_geography("Investing in Somalia's resilience")
 
 
 @pytest.mark.parametrize("headline", [
