@@ -1,0 +1,60 @@
+name: retract
+
+# Withdraw a published record. Nothing is deleted: the row is marked
+# not-current with a reason, so the corrections log can show what was published
+# and when it was withdrawn.
+
+on:
+  workflow_dispatch:
+    inputs:
+      signal_id:
+        description: 'signal_id to retract (leave blank to use bare_domains)'
+        type: string
+        default: ''
+      reason:
+        description: 'Why it is being withdrawn (shown in the corrections log)'
+        type: string
+        required: true
+      bare_domains:
+        description: 'Retract every row whose source link is an outlet homepage'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+
+jobs:
+  retract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Retract
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          if [ "${{ inputs.bare_domains }}" = "true" ]; then
+            python retract.py --bare-domains "${{ inputs.reason }}"
+          else
+            python retract.py "${{ inputs.signal_id }}" "${{ inputs.reason }}"
+          fi
+
+      - name: Commit the database
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: retract $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
