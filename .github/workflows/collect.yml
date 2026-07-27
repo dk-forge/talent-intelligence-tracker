@@ -20,6 +20,11 @@ on:
         description: 'Show what would be stored, write nothing'
         type: boolean
         default: false
+      source:
+        description: 'Collector to run'
+        type: choice
+        options: [google_news, gdelt]
+        default: google_news
       limit:
         description: 'Cap candidates sent to the LLM (blank = no cap)'
         type: string
