@@ -95,6 +95,78 @@ STANDALONE_QUERIES = (
 # see today's news rather than a stale week. Operators go inside the query
 # string, which is what makes Google News queryable rather than a firehose.
 
+# Google News is per-locale AND per-language, and the second half is the part
+# that matters. Measured on 2026-07-27, the same English phrases returned:
+#
+#   US:en  23 items    DE:de  2 items    BR:pt  0 items
+#
+# and the German phrasing returned 20 for the same German edition. Rotating the
+# hl/gl parameters while keeping English phrases would have looked like global
+# coverage and delivered almost nothing outside the English-speaking world.
+#
+# So a locale is only in the rotation once its language has a phrase set below.
+# Adding a language is what adds countries; the locale list is downstream of it.
+GOOGLE_NEWS_ANCHOR = ("en", "US")
+
+# Leadership / hiring / funding, in each language's own newsroom phrasing.
+# These are deliberately the same three intents in every language rather than a
+# translation of all eleven English queries: a phrase that does not match is a
+# silent zero, and three well-chosen ones beat eleven guesses.
+GOOGLE_NEWS_VOCAB = {
+    "en": (
+        '("appoints chief executive" OR "names new CEO" OR "steps down as CEO") when:3d',
+        '("plans to hire" OR "hiring spree" OR "to create jobs" OR "opens new office") when:3d',
+        '("raises" OR "raised") ("Series A" OR "Series B" OR "seed funding") when:3d',
+    ),
+    "de": (
+        '("neuer Vorstandsvorsitzender" OR "wird CEO" OR "verlässt das Unternehmen" OR "tritt zurück") when:3d',
+        '("will einstellen" OR "schafft Arbeitsplätze" OR "neue Stellen" OR "eröffnet Standort") when:3d',
+        '("Finanzierungsrunde" OR "sammelt ein" OR "Millionen eingesammelt") when:3d',
+    ),
+    "fr": (
+        '("nommé directeur général" OR "devient PDG" OR "quitte ses fonctions" OR "nouveau PDG") when:3d',
+        '("va recruter" OR "créer des emplois" OR "ouvre un site" OR "plan de recrutement") when:3d',
+        '("levée de fonds" OR "lève" "millions") when:3d',
+    ),
+    "es": (
+        '("nuevo consejero delegado" OR "nombrado director general" OR "deja el cargo" OR "nuevo CEO") when:3d',
+        '("creará empleo" OR "contratará" OR "nuevos puestos" OR "abre oficina") when:3d',
+        '("ronda de financiación" OR "capta" "millones") when:3d',
+    ),
+    "pt": (
+        '("novo presidente-executivo" OR "assume como CEO" OR "deixa o cargo" OR "novo CEO") when:3d',
+        '("vai contratar" OR "cria empregos" OR "novas vagas" OR "abre escritório") when:3d',
+        '("rodada de investimento" OR "capta" "milhões") when:3d',
+    ),
+    "it": (
+        '("nuovo amministratore delegato" OR "nominato CEO" OR "lascia la guida") when:3d',
+        '("assumerà" OR "nuove assunzioni" OR "crea posti di lavoro" OR "apre una sede") when:3d',
+        '("round di finanziamento" OR "raccoglie" "milioni") when:3d',
+    ),
+    "nl": (
+        '("nieuwe topman" OR "wordt CEO" OR "stapt op" OR "benoemd tot bestuursvoorzitter") when:3d',
+        '("gaat aannemen" OR "nieuwe banen" OR "opent vestiging" OR "breidt uit") when:3d',
+        '("financieringsronde" OR "haalt" "miljoen op") when:3d',
+    ),
+}
+
+GOOGLE_NEWS_LOCALES = (
+    ("en", "GB"), ("en", "CA"), ("en", "AU"), ("en", "IN"), ("en", "IE"),
+    ("en", "SG"), ("en", "NZ"), ("en", "ZA"), ("en", "PH"), ("en", "NG"),
+    ("de", "DE"), ("de", "AT"), ("de", "CH"),
+    ("fr", "FR"), ("fr", "BE"),
+    ("es", "ES"), ("es", "MX"), ("es", "AR"), ("es", "CL"), ("es", "CO"),
+    ("pt", "BR"), ("pt", "PT"),
+    ("it", "IT"),
+    ("nl", "NL"),
+)
+
+
+def google_news_queries(lang: str) -> list[str]:
+    """Phrases for one edition. English is the fallback and the anchor."""
+    return list(GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"]))
+
+
 GOOGLE_NEWS_QUERIES = (
     '("appoints chief executive" OR "names chief executive" OR "appointed CEO") when:3d',
     '("appoints chief financial officer" OR "appoints CFO" OR "new chief people officer") when:3d',

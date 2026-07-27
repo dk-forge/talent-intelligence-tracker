@@ -28,7 +28,45 @@ _EMPLOYMENT_TERMS = (
     r"salar\w+", r"pay(?:rise|\srise)?", r"wages?", r"bonus\w*", r"compensation",
     r"remote work", r"hybrid work\w*", r"return to office", r"four-day week",
 )
-_EMPLOYMENT = re.compile(r"\b(?:" + "|".join(_EMPLOYMENT_TERMS) + r")\b", re.I)
+# The same gate in the languages Google News is queried in. Without these, a
+# German or Portuguese headline fails the free filter and is dropped before it
+# ever reaches the model, so querying those editions would have produced
+# exactly zero records while looking like it was working.
+#
+# Grouped by language for review. Each group is the vocabulary of the three
+# intents its queries ask about: who is leading, who is hiring, who raised.
+_EMPLOYMENT_TERMS_INTL = (
+    # German
+    r"stellen", r"arbeitspl\w+", r"mitarbeiter\w*", r"besch\w*ftigt\w*",
+    r"vorstandsvorsitzend\w+", r"gesch\w*ftsf\w*hrer\w*", r"personalchef\w*",
+    r"einstell\w+", r"tritt zur\w*ck", r"geh\w*lt\w*", r"l\w*hne",
+    r"finanzierungsrunde", r"eingesammelt",
+    # French
+    r"emplois?", r"salari\w+", r"recrut\w+", r"embauch\w+", r"effectifs?",
+    r"directeur g\w*n\w*ral", r"pdg", r"d\w*mission\w*", r"salaires?",
+    r"lev\w*e de fonds",
+    # Spanish
+    r"empleos?", r"empleados?", r"contrata\w*", r"plantilla", r"puestos?",
+    r"consejero delegado", r"director general", r"dimit\w+", r"salarios?",
+    r"ronda de financiaci\w*n",
+    # Portuguese
+    r"empregos?", r"funcion\w*rios?", r"contrat\w+", r"vagas?", r"quadro de pessoal",
+    r"presidente-executivo", r"diretor-?geral", r"demiss\w+", r"sal\w*rios?",
+    r"rodada de investimento",
+    # Italian
+    r"posti di lavoro", r"dipendenti", r"assunzion\w+", r"assumer\w+", r"organico",
+    r"amministratore delegato", r"dimission\w+", r"stipend\w+",
+    r"round di finanziamento",
+    # Dutch
+    r"banen", r"medewerkers?", r"personeel", r"aannem\w+", r"vacatures?",
+    r"topman", r"bestuursvoorzitter", r"stapt op", r"salaris\w*",
+    r"financieringsronde",
+)
+
+_EMPLOYMENT = re.compile(
+    r"\b(?:" + "|".join(_EMPLOYMENT_TERMS + _EMPLOYMENT_TERMS_INTL) + r")\b",
+    re.I | re.UNICODE,
+)
 
 # Site-establishment terms. A company opening a capability centre IS a hiring
 # event, even when the headline never says "jobs" — and this is precisely the

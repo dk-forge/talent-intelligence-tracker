@@ -54,6 +54,66 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     return queries
 
 
+# Three editions a run, twice a day, sweeps the whole list in about four days.
+LOCALES_PER_RUN = 3
+
+# Going multilingual took one run from ~25 candidates to ~215, because seven
+# editions each return their own local press. Candidates are what cost money,
+# so the run now carries its own cap instead of relying on --limit being passed.
+# 40 a run, twice a day, is about 2,400 classifications a month, which is what
+# the budget buys. Already-seen URLs are skipped before this, so in steady
+# state the cap is rarely the binding constraint.
+DEFAULT_CANDIDATE_CAP = 40
+
+
+def build_locales(run_index: int) -> list[tuple[str, str]]:
+    """The US anchor plus a deterministic slice of the rest.
+
+    The anchor never rotates out: it is the largest market and the one the SEC
+    collectors also cover, so dropping it on a given day would leave a visible
+    hole for no benefit.
+    """
+    rotating = registry.rotate(
+        list(registry.GOOGLE_NEWS_LOCALES),
+        day_of_year=date.today().timetuple().tm_yday,
+        run_index=run_index,
+        runs_per_day=RUNS_PER_DAY,
+        per_run=LOCALES_PER_RUN,
+    )
+    return [registry.GOOGLE_NEWS_ANCHOR] + rotating
+
+
+def fair_share(items: list[dict], limit: int) -> list[dict]:
+    """Cap the run without starving the queries that ran last.
+
+    A flat head slice is the trap the sibling fell into: with a broad sweep
+    first, the targeted company queries filled the cap and never fired. Taking
+    one item from each query in turn means every query contributes before any
+    query contributes twice.
+    """
+    if len(items) <= limit:
+        return items
+
+    buckets: dict[str, list[dict]] = {}
+    for item in items:
+        buckets.setdefault(item.get("query", ""), []).append(item)
+
+    out: list[dict] = []
+    round_index = 0
+    while len(out) < limit:
+        added = False
+        for bucket in buckets.values():
+            if round_index < len(bucket):
+                out.append(bucket[round_index])
+                added = True
+                if len(out) == limit:
+                    break
+        if not added:
+            break
+        round_index += 1
+    return out
+
+
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
@@ -72,7 +132,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         else:
             print(f"[{collector}] {len(queries)} queries")
         try:
-            items = module.collect(queries)
+            if source == "google_news":
+                locales = build_locales(run_index)
+                print(f"[{collector}] editions: "
+                      + ", ".join(f"{c}:{l}" for l, c in locales))
+                items = module.collect(queries, locales=locales,
+                                       queries_for=registry.google_news_queries)
+            else:
+                items = module.collect(queries)
         except Exception as exc:
             store.report_health(conn, collector, status="error", detail=str(exc)[:400])
             conn.commit()
@@ -99,8 +166,11 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             filtered += 1
             print(f"  filtered  {item.get('headline','')[:60]}  ({reason})")
 
-    if limit:
-        kept = kept[:limit]
+    cap = limit or DEFAULT_CANDIDATE_CAP
+    if len(kept) > cap:
+        print(f"[{collector}] capping {len(kept)} candidates to {cap}, "
+              f"one per query in turn")
+        kept = fair_share(kept, cap)
 
     # Google News hands back an aggregator redirect and needs resolving. GDELT
     # already returns the publisher's own URL, which is the whole reason it

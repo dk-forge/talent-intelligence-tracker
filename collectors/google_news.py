@@ -150,8 +150,19 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
     return item
 
 
-def collect(queries: list[str], *, pause: float = 1.0) -> list[dict]:
-    """Fetch every query, de-duplicating by URL within the run.
+def collect(queries: list[str], *, pause: float = 1.0,
+            locales: list[tuple[str, str]] | None = None,
+            queries_for=None) -> list[dict]:
+    """Fetch every query in every locale, de-duplicating by URL within the run.
+
+    `locales` is a list of (lang, country) pairs selecting the Google News
+    edition. Asking the US English edition about hiring in Germany returns
+    whatever US outlets happened to cover it, which is almost nothing, so a
+    global product has to ask each edition itself. Every request is still
+    keyless and free, which is why worldwide coverage costs nothing.
+
+    Dedup happens here, before anything paid runs: the same story surfaces in
+    several editions and the same URL must not be classified twice.
 
     Deliberately does NOT resolve redirects. Resolution costs a full HTTP round
     trip per item, so it belongs after the free filters have thrown most
@@ -160,14 +171,24 @@ def collect(queries: list[str], *, pause: float = 1.0) -> list[dict]:
     seen: set[str] = set()
     out: list[dict] = []
 
-    for query in queries:
-        for item in fetch(query):
-            key = item["discovery_url"]
-            if key in seen:
+    for lang, country in (locales or [("en", "US")]):
+        # Each edition asks in its own language. Reusing the English phrases
+        # everywhere returned 2 items from the German edition against 20 for
+        # the German phrasing, and 0 from Brazil.
+        for query in (queries_for(lang) if queries_for else queries):
+            try:
+                items = fetch(query, lang=lang, country=country)
+            except requests.RequestException:
+                # One edition being unreachable must not lose the other forty.
                 continue
-            seen.add(key)
-            out.append(item)
-        time.sleep(pause)
+            for item in items:
+                key = item["discovery_url"]
+                if key in seen:
+                    continue
+                seen.add(key)
+                item["locale"] = f"{country}:{lang}"
+                out.append(item)
+            time.sleep(pause)
 
     return out
 
