@@ -118,7 +118,7 @@ function tit_company_render($rows, $key) {
         if (!$latest_place) {
             $place = $r['city'] ?: $r['hq_city'];
             $cc    = $r['country'] ?: $r['hq_country'];
-            $latest_place = trim(($place ? $place . ', ' : '') . $cc, ', ');
+            $latest_place = trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', ');
         }
         if ($r['confidence'] === 'verified') $verified++;
     }
@@ -148,7 +148,7 @@ function tit_company_render($rows, $key) {
         <?php foreach ($rows as $r) :
             $place = $r['city'] ?: $r['hq_city'];
             $cc    = $r['country'] ?: $r['hq_country'];
-            $where = trim(($place ? $place . ', ' : '') . $cc, ', ');
+            $where = trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', ');
             $fns   = $r['functions'] ? json_decode($r['functions'], true) : array(); ?>
           <li class="tit-event">
             <div class="tit-event-when">

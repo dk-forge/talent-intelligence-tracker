@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.9.0
+ * Version: 1.9.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.9.0');
+define('TIT_VERSION', '1.9.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -70,6 +70,41 @@ function tit_maybe_upgrade() {
     }
     update_option('tit_installed_version', TIT_VERSION, false);
 }
+/**
+ * ISO codes are how the data is stored and a bad thing to read. "BE" is not a
+ * country to anyone who is not already thinking in codes.
+ *
+ * The list covers what we actually collect from; an unknown code falls through
+ * to the code itself rather than to a guess.
+ */
+function tit_country_names() {
+    return array(
+        'US' => 'United States', 'CA' => 'Canada', 'GB' => 'United Kingdom',
+        'IE' => 'Ireland', 'DE' => 'Germany', 'FR' => 'France',
+        'NL' => 'Netherlands', 'BE' => 'Belgium', 'ES' => 'Spain',
+        'IT' => 'Italy', 'SE' => 'Sweden', 'NO' => 'Norway',
+        'DK' => 'Denmark', 'FI' => 'Finland', 'PL' => 'Poland',
+        'CH' => 'Switzerland', 'AT' => 'Austria', 'PT' => 'Portugal',
+        'CZ' => 'Czechia', 'GR' => 'Greece', 'RO' => 'Romania',
+        'HU' => 'Hungary', 'IN' => 'India', 'SG' => 'Singapore',
+        'JP' => 'Japan', 'CN' => 'China', 'HK' => 'Hong Kong',
+        'AU' => 'Australia', 'NZ' => 'New Zealand', 'KR' => 'South Korea',
+        'MY' => 'Malaysia', 'PH' => 'Philippines', 'ID' => 'Indonesia',
+        'TH' => 'Thailand', 'VN' => 'Vietnam', 'TW' => 'Taiwan',
+        'BR' => 'Brazil', 'MX' => 'Mexico', 'AR' => 'Argentina',
+        'CL' => 'Chile', 'CO' => 'Colombia', 'PE' => 'Peru',
+        'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia',
+        'IL' => 'Israel', 'QA' => 'Qatar', 'TR' => 'Turkey',
+        'ZA' => 'South Africa', 'NG' => 'Nigeria', 'KE' => 'Kenya',
+        'EG' => 'Egypt', 'MA' => 'Morocco',
+    );
+}
+
+function tit_country_name($code) {
+    $names = tit_country_names();
+    return $names[$code] ?? $code;
+}
+
 add_action('init', 'tit_maybe_upgrade', 1);
 
 /**

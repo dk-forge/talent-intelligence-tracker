@@ -309,41 +309,6 @@ function tit_dashboard_shortcode() {
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
 
 /**
- * ISO codes are how the data is stored and a bad thing to read. "BE" is not a
- * country to anyone who is not already thinking in codes.
- *
- * The list covers what we actually collect from; an unknown code falls through
- * to the code itself rather than to a guess.
- */
-function tit_country_names() {
-    return array(
-        'US' => 'United States', 'CA' => 'Canada', 'GB' => 'United Kingdom',
-        'IE' => 'Ireland', 'DE' => 'Germany', 'FR' => 'France',
-        'NL' => 'Netherlands', 'BE' => 'Belgium', 'ES' => 'Spain',
-        'IT' => 'Italy', 'SE' => 'Sweden', 'NO' => 'Norway',
-        'DK' => 'Denmark', 'FI' => 'Finland', 'PL' => 'Poland',
-        'CH' => 'Switzerland', 'AT' => 'Austria', 'PT' => 'Portugal',
-        'CZ' => 'Czechia', 'GR' => 'Greece', 'RO' => 'Romania',
-        'HU' => 'Hungary', 'IN' => 'India', 'SG' => 'Singapore',
-        'JP' => 'Japan', 'CN' => 'China', 'HK' => 'Hong Kong',
-        'AU' => 'Australia', 'NZ' => 'New Zealand', 'KR' => 'South Korea',
-        'MY' => 'Malaysia', 'PH' => 'Philippines', 'ID' => 'Indonesia',
-        'TH' => 'Thailand', 'VN' => 'Vietnam', 'TW' => 'Taiwan',
-        'BR' => 'Brazil', 'MX' => 'Mexico', 'AR' => 'Argentina',
-        'CL' => 'Chile', 'CO' => 'Colombia', 'PE' => 'Peru',
-        'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia',
-        'IL' => 'Israel', 'QA' => 'Qatar', 'TR' => 'Turkey',
-        'ZA' => 'South Africa', 'NG' => 'Nigeria', 'KE' => 'Kenya',
-        'EG' => 'Egypt', 'MA' => 'Morocco',
-    );
-}
-
-function tit_country_name($code) {
-    $names = tit_country_names();
-    return $names[$code] ?? $code;
-}
-
-/**
  * The four at-a-glance lines: today, this week, this month, this year.
  *
  * A period with nothing in it still prints, saying so in words. Hiding the
