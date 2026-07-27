@@ -168,12 +168,15 @@
   font-variant-numeric:tabular-nums; }
 
 /* --- Stat tiles get their own accent ---------------------------------- */
-.tit-stat { position:relative; overflow:hidden; }
-.tit-stat::before { content:""; position:absolute; inset:0 auto 0 0; width:4px;
-  background:var(--tit-blue); }
-.tit-stat:nth-child(2)::before { background:var(--tit-orange); }
-.tit-stat:nth-child(3)::before { background:var(--tit-violet); }
-.tit-stat:nth-child(4)::before { background:var(--tit-teal); }
+/* An absolutely positioned bar cannot follow a rounded corner: clipping it with
+   overflow:hidden leaves a hairline of background between the stripe and the
+   border, which read as the tile bleeding at the edge. An inset shadow is drawn
+   inside the border box and follows the radius exactly. */
+.tit-stat { box-shadow:inset 4px 0 0 var(--tit-blue); }
+.tit-stat:nth-child(2) { box-shadow:inset 4px 0 0 var(--tit-orange); }
+.tit-stat:nth-child(3) { box-shadow:inset 4px 0 0 var(--tit-violet); }
+.tit-stat:nth-child(4) { box-shadow:inset 4px 0 0 var(--tit-teal); }
+.tit-stat:nth-child(5) { box-shadow:inset 4px 0 0 #5b6570; }
 
 /* --- Pillar bars, one hue each, with a label chip ---------------------- */
 .tit-pillar-name::before { content:""; display:inline-block; width:9px; height:9px;
@@ -453,3 +456,22 @@
 .tit-table th, .tit-table td { padding:9px 12px; }
 .tit-wrap .tit-table .tit-rt { font-size:13px; line-height:1.45; margin-top:3px; }
 .tit-table tbody tr:hover { background:var(--tit-surface); }
+
+
+/* Company profiles ---------------------------------------------------------
+   The tile count varies with what we actually hold, so the grid follows it
+   rather than assuming four. */
+.tit-stats-2 { grid-template-columns:repeat(2,1fr); }
+.tit-stats-3, .tit-stats-5 { grid-template-columns:repeat(2,1fr); }
+@media (min-width:700px){
+  .tit-stats-2 { grid-template-columns:repeat(2,1fr); }
+  .tit-stats-3 { grid-template-columns:repeat(3,1fr); }
+  .tit-stats-5 { grid-template-columns:repeat(5,1fr); }
+}
+/* A place name or a category is not a number and should not be set like one. */
+.tit-wrap .tit-n-word { font-size:16px; font-weight:650; line-height:1.3; }
+
+.tit-thin { margin:14px 0 0; padding:12px 14px; font-size:13.5px;
+  color:var(--tit-mut); background:var(--tit-surface);
+  border:1px solid var(--tit-line); border-left:4px solid var(--tit-blue);
+  border-radius:10px; max-width:78ch; }

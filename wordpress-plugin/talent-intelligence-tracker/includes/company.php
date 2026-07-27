@@ -137,12 +137,36 @@ function tit_company_render($rows, $key) {
         Every line links to the filing or report it came from.
       </p>
 
-      <div class="tit-stats">
-        <div class="tit-stat"><span class="tit-n"><?php echo count($rows); ?></span><span class="tit-l">updates</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo $verified; ?></span><span class="tit-l">from official filings</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo $funding ? esc_html($funding[0]) : '—'; ?></span><span class="tit-l">latest raise</span></div>
-        <div class="tit-stat"><span class="tit-n" style="font-size:19px"><?php echo $latest_place ? esc_html($latest_place) : '—'; ?></span><span class="tit-l">where</span></div>
+      <?php
+      // Only facts we hold. A tile reading "0" or a dash is not a fact, it is
+      // an empty slot, and four of them make a thin profile look broken rather
+      // than young.
+      $facts = array(array(count($rows), count($rows) === 1 ? 'update' : 'updates'));
+      if ($verified) $facts[] = array($verified, 'from official filings');
+      if ($funding)  $facts[] = array($funding[0], 'latest raise');
+      if ($latest_place) $facts[] = array($latest_place, 'where');
+      $latest_kind = $rows ? ($labels[$rows[0]['pillar']] ?? '') : '';
+      if ($latest_kind) $facts[] = array($latest_kind, 'most recent');
+      ?>
+      <div class="tit-stats tit-stats-<?php echo count($facts); ?>">
+        <?php foreach ($facts as [$n, $label]) : ?>
+          <div class="tit-stat">
+            <span class="tit-n<?php echo is_string($n) && strlen($n) > 3 ? ' tit-n-word' : ''; ?>"><?php echo esc_html($n); ?></span>
+            <span class="tit-l"><?php echo esc_html($label); ?></span>
+          </div>
+        <?php endforeach; ?>
       </div>
+
+      <?php if (count($rows) < 3) : ?>
+        <p class="tit-thin">
+          This profile is thin because we hold
+          <?php echo count($rows) === 1 ? 'one update' : count($rows) . ' updates'; ?>
+          on <?php echo esc_html($name); ?> so far, not because nothing else has
+          happened there. We only publish what we have read on a primary source
+          and can link to, so a profile fills up as filings and reports come in
+          rather than being seeded from an estimate.
+        </p>
+      <?php endif; ?>
 
       <ol class="tit-timeline">
         <?php foreach ($rows as $r) :
