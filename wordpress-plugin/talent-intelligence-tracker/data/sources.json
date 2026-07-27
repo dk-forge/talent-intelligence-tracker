@@ -1,21 +1,5 @@
 [
  {
-  "name": "GDELT DOC 2.0",
-  "url": "https://www.gdeltproject.org/",
-  "status": "live",
-  "category": "News aggregation",
-  "signals": [
-   "Hiring",
-   "Office opening",
-   "Leadership change"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": true,
-  "notes": "Worldwide, machine-translated from 65 languages. Returns real article URLs. Throttles erratically, so lost queries are logged as coverage gaps."
- },
- {
   "name": "Google News RSS",
   "url": "https://news.google.com/",
   "status": "live",
@@ -1193,6 +1177,22 @@
   "rss": "https://www.freightwaves.com/feed",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "GDELT DOC 2.0",
+  "url": "https://www.gdeltproject.org/",
+  "status": "candidate",
+  "category": "News aggregation",
+  "signals": [
+   "Hiring",
+   "Office opening",
+   "Leadership change"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "Retired 2026-07-27. Machine-translated from 65 languages and returns real article URLs, but throttled too hard to be usable: zero stored records, and 429s on two of three requests even at 8-second spacing. Google News covers the same ground."
  },
  {
   "name": "GeekWire",

@@ -242,12 +242,23 @@ SOURCES = (
            "National", "US",
            notes="Structured XML: issuer, industry, city, state and amount sold. "
                  "The money figure is read off the filing, never inferred."),
-    Source("GDELT DOC 2.0", "https://www.gdeltproject.org/", "live",
+    # RETIRED 2026-07-27. Not deleted: the collector and its tests still work,
+    # and re-testing it is one workflow_dispatch away. But it has produced zero
+    # stored records in its entire life, and a fair last test on the day it was
+    # retired returned 429 on two of three requests at 8-second spacing, each
+    # taking 10-16 seconds. The one that succeeded returned a local US
+    # leadership story that Google News already finds.
+    #
+    # "Coverage is earned." A source that has never yielded a record is not
+    # coverage, and counting it as one made the sources page say 4 running when
+    # 3 things run.
+    Source("GDELT DOC 2.0", "https://www.gdeltproject.org/", "candidate",
            "News aggregation", ("Hiring", "Office opening", "Leadership change"),
            "Global",
-           notes="Worldwide, machine-translated from 65 languages. Returns real "
-                 "article URLs. Throttles erratically, so lost queries are logged "
-                 "as coverage gaps."),
+           notes="Retired 2026-07-27. Machine-translated from 65 languages and "
+                 "returns real article URLs, but throttled too hard to be usable: "
+                 "zero stored records, and 429s on two of three requests even at "
+                 "8-second spacing. Google News covers the same ground."),
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
            "25 country editions, 7 languages",
