@@ -171,6 +171,33 @@ are primary sources (so records earn `verified`), and SEC allows 10 req/s.
 
 ---
 
+## What the first REAL runs found (the dry runs could not)
+
+**The commit-back raced and lost 28 records.** A run checks out main, collects
+for several minutes, then pushes. A plugin deploy landed in that window, the
+push was rejected as non-fast-forward, and the commit existed only on the
+runner: collection happened, money was spent, nothing reached the repo. Six dry
+runs could never have found this, because a dry run writes nothing. The step now
+resets to the current main, puts our database back and retries five times,
+failing loudly if it still cannot push. It hit the retry path on its very first
+real run ("Pushed on attempt 2").
+
+**GDELT was retired and un-retired the same day.** It had produced zero records
+in its whole life, so it was retired on the "coverage is earned" rule. That was
+the wrong attribution: the cause was the six pipeline bugs below, not GDELT.
+Its first run with those fixed stored three, including a Namibian recruitment
+drive and a V&A strike ballot that no Google News edition we query carries.
+**A source that yields nothing is either a dead source or a broken pipeline, and
+from outside the two look identical. Retire nothing until the pipeline is proven
+on a source that does work.**
+
+**A funding floor is not needed yet.** The worry was that admitting news funding
+would fill the page with micro-rounds. Every raise actually stored is $1.45M or
+more; the sub-$1M rounds were already being dropped further down the pipeline.
+Revisit only if a real run stores one.
+
+---
+
 ## What six dry runs found
 
 Each of these was invisible until a real run was read line by line. Every one
@@ -261,7 +288,10 @@ reason (`tit_asset_version()`), which is also what the sibling does. Pinned by
     full-bleed rule silently moved nothing until the selector out-specified it.
     And `max-width:100%` resolves against the *padded* container, so it pinned
     the width back even once the negative margins applied.
-13. **Tabular figures pad a narrow `1` to a full advance width.** Right in a
+13. **`pytest -q | tail -2 && git commit` ships a red suite.** `tail` exits 0
+    whatever pytest did, so the `&&` chain continues and CI catches it a minute
+    later. Run pytest on its own line and read the exit code.
+14. **Tabular figures pad a narrow `1` to a full advance width.** Right in a
     stacked column, wrong for a single inline number: `13` rendered as `1 3` on
     every tile. Use proportional numerals for standalone figures.
 
