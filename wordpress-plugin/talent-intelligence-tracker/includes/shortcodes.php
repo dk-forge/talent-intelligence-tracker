@@ -147,6 +147,12 @@ function tit_dashboard_shortcode() {
         <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($verified)); ?></span><span class="tit-l">from official filings</span></div>
       </div>
 
+      <div class="tit-sec">
+        <h3>The market right now</h3>
+        <p>Pick a region to narrow the updates listed further down. The counts
+           beside each region are what we currently hold for it.</p>
+      </div>
+
       <div class="tit-regions" role="group" aria-label="Filter by region">
         <?php foreach (tit_regions($counts_by_country) as $r) : ?>
           <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
@@ -212,6 +218,13 @@ function tit_dashboard_shortcode() {
         </div>
       </div>
 
+      <div class="tit-sec">
+        <h3>Every update</h3>
+        <p>Newest first. The read-through is our interpretation; the headline
+           and any figures come from the linked source, and confidence reflects
+           what the source is rather than how sure we feel.</p>
+      </div>
+
       <div class="tit-filters">
         <select id="tit-f-pillar" aria-label="What kind of update">
           <option value="">Anything happening</option>
@@ -248,12 +261,6 @@ function tit_dashboard_shortcode() {
         <input type="search" id="tit-f-q" placeholder="Search anything"
                aria-label="Search headlines and read-throughs">
       </div>
-
-      <p class="tit-note">
-        The read-through is our interpretation. The headline and figures come
-        from the linked source. Confidence reflects what the source is, not how
-        sure we feel.
-      </p>
 
       <div class="tit-table-scroll">
         <table class="tit-table">

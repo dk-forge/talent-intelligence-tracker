@@ -311,7 +311,7 @@
      so its rule is exactly the one that has to lose. */
   /* max-width:100% resolves against the padded container, so it pinned the
      width back to 219px even with the negative margins applied. */
-  .entry-content .tit-wrap, .tit-wrap { box-sizing:border-box; width:100vw;
+  .entry-content .tit-wrap { box-sizing:border-box; width:100vw;
     max-width:100vw !important;
     margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
     padding-left:14px; padding-right:14px; }
@@ -322,3 +322,37 @@
   .tit-wrap .tit-n { font-size:26px; }
   .tit-stat { padding:14px 10px; }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Our own routed pages have no theme container.
+   The sources page and company profiles call get_header() and render straight
+   into the body, so nothing was constraining them: on a wide monitor the text
+   ran the full 1670px edge to edge with no gutter. The shortcode page is not
+   included here, because there the theme's entry-content is already the
+   container and a second one would double the padding.
+   --------------------------------------------------------------------------- */
+.tit-wrap.tit-sources, .tit-wrap.tit-company {
+  box-sizing:border-box; max-width:1160px; margin:0 auto;
+  padding:34px 24px 64px;
+}
+@media (max-width:700px){
+  .tit-wrap.tit-sources, .tit-wrap.tit-company { padding:20px 16px 44px; }
+}
+
+/* Measure. Prose set across 1100px is a chore to read whatever else is right. */
+.tit-wrap .tit-note, .tit-wrap .tit-cite, .tit-sources > p, .tit-company > p { max-width:74ch; }
+.tit-callout { max-width:82ch; }
+
+/* Section headers ---------------------------------------------------------
+   The page was one continuous column of components with nothing marking where
+   the summary ended and the list began. */
+.tit-sec { margin:30px 0 14px; padding-top:22px; border-top:2px solid var(--tit-line); }
+.tit-wrap .tit-sec h3 { margin:0 0 4px; font-size:19px; font-weight:700;
+  color:var(--tit-fg); letter-spacing:-.01em; }
+.tit-wrap .tit-sec p { margin:0; font-size:14.5px; color:var(--tit-mut); max-width:70ch; }
+
+/* Filters read as one control panel rather than eight loose boxes. */
+.tit-filters { background:var(--tit-surface); border:1px solid var(--tit-line);
+  border-radius:12px; padding:14px; }
+.tit-filters select, .tit-filters input { background:#fff; }
