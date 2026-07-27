@@ -41,6 +41,7 @@ function tit_require($relative) {
 tit_require('includes/db.php');
 tit_require('includes/api.php');
 tit_require('includes/shortcodes.php');
+tit_require('includes/page.php');
 
 // Stub fallbacks so a partial upload degrades instead of fatalling.
 if (!function_exists('tit_table_name')) {

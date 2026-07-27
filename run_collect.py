@@ -17,7 +17,7 @@ from datetime import date
 
 import source_registry as registry
 from collectors import google_news
-from pipeline import classify, prefilter, schema, store, validate
+from pipeline import classify, prefilter, publish, schema, store, validate
 
 RUNS_PER_DAY = 2
 SEGMENTS_PER_RUN = 4
@@ -239,13 +239,39 @@ def main() -> int:
     parser.add_argument("--offline", action="store_true", help="fixtures only, no network or LLM")
     parser.add_argument("--run-index", type=int, default=0, help="0 or 1, for segment rotation")
     parser.add_argument("--limit", type=int, help="cap candidates, for cheap testing")
+    parser.add_argument("--publish", action="store_true",
+                        help="after storing, push unpublished rows to WordPress")
     args = parser.parse_args()
 
     if args.offline and not args.dry_run:
         parser.error("--offline is only meaningful with --dry-run")
 
-    return run(dry_run=args.dry_run, offline=args.offline,
+    code = run(dry_run=args.dry_run, offline=args.offline,
                run_index=args.run_index, limit=args.limit)
+
+    if args.publish and not args.dry_run:
+        code = max(code, _publish())
+    return code
+
+
+def _publish() -> int:
+    """Publishing is separate from collecting on purpose: a failed push must
+    never lose collected rows, and rows stay unpublished until WordPress has
+    actually accepted them."""
+    conn = schema.connect()
+    try:
+        result = publish.publish(conn)
+    except publish.PublishError as exc:
+        print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"\n[publish] sent={result['sent']} stored={result['stored']} "
+          f"duplicate={result['duplicate']} errors={len(result['errors'])}")
+    for err in result["errors"][:10]:
+        print(f"  ERROR  row {err.get('index')}: {err.get('error')}")
+
+    # Partial failure is still failure: the workflow must go red.
+    return 1 if result["errors"] else 0
 
 
 if __name__ == "__main__":

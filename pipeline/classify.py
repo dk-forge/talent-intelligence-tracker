@@ -34,12 +34,21 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "confidence": "verified|reported|rumored",
  "headline": "the factual headline, unembellished",
  "summary": "1-2 sentences restating ONLY what the source says",
- "talent_readthrough": "1 sentence: what this means for hiring, displacement or comp in that place. This is your interpretation.",
+ "talent_readthrough": "1 sentence a recruiter can act on: WHO is affected, WHERE, and WHAT CHANGES for them. Name the function or level if the text supports it. No hedging words (potential, possibly, may, could, indicates, suggests). If the text does not support a concrete read, say what is not yet known instead of padding.",
  "predicted_outcome": "a checkable consequence, or empty",
  "check_after_date": "YYYY-MM-DD when that could be checked, or empty"}
 
 Set is_talent_signal false for anything that is not a hiring, leadership, comp
-or location-strategy development at a named employer."""
+or location-strategy development at a named employer.
+
+A weak read-through is worse than none. Compare:
+  BAD:  "This indicates a potential increase in hiring, possibly in tech roles."
+  GOOD: "Adds roughly 300 engineering roles to the Dublin market over 2026,
+         the largest single tech intake there this year."
+  BAD:  "This suggests a shift towards automation."
+  GOOD: "Slows NHS clinical-admin recruitment in England; candidates in those
+         roles should expect fewer openings from the largest UK employer."
+"""
 
 
 class CreditsExhausted(RuntimeError):

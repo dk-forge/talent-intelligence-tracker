@@ -63,10 +63,12 @@ jobs:
       - name: Collect
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
           python run_collect.py \
             --run-index "${{ steps.idx.outputs.value }}" \
-            ${{ inputs.dry_run && '--dry-run' || '' }} \
+            ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
             ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
 
       - name: Status

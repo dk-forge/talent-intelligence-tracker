@@ -73,7 +73,12 @@ CREATE TABLE IF NOT EXISTS signals (
     outcome_checked_at  TEXT,
 
     collector         TEXT    NOT NULL,
-    notes             TEXT
+    notes             TEXT,
+
+    -- Set once WordPress has accepted the row. SQLite is the system of record;
+    -- WordPress is a rendering surface, so publishing is resumable and a row
+    -- that failed stays unpublished and is retried rather than lost.
+    published_at      TEXT
 );
 
 
@@ -103,6 +108,7 @@ INDEXES = """
 CREATE INDEX IF NOT EXISTS idx_signals_current  ON signals(is_current);
 CREATE INDEX IF NOT EXISTS idx_signals_geo      ON signals(country, city);
 CREATE INDEX IF NOT EXISTS idx_signals_hq       ON signals(hq_country, hq_city);
+CREATE INDEX IF NOT EXISTS idx_signals_pub_at  ON signals(published_at);
 CREATE INDEX IF NOT EXISTS idx_signals_pillar   ON signals(pillar);
 CREATE INDEX IF NOT EXISTS idx_signals_pub      ON signals(published_date);
 CREATE INDEX IF NOT EXISTS idx_signals_company  ON signals(company_key);
@@ -120,6 +126,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, 
 MIGRATIONS = (
     ("signals", "hq_city", "TEXT"),
     ("signals", "hq_country", "TEXT"),
+    ("signals", "published_at", "TEXT"),
 )
 
 
