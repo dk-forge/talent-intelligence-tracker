@@ -8,6 +8,7 @@ company fact is the one mistake this product cannot survive.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -35,6 +36,11 @@ class Signal:
     country: str | None
     hq_city: str | None
     hq_country: str | None
+    state: str | None
+    functions: str | None
+    industry: str | None
+    headcount: int | None
+    funding_amount: str | None
     confidence: str
     source_url: str
     source_name: str
@@ -190,6 +196,20 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
             "no geography — neither a place in the source nor a known employer HQ"
         )
 
+    # US state, for the state filter. Only meaningful inside the US.
+    state = None
+    if country == "US":
+        state = vocab.normalize_state(classified.get("state", "")) or vocab.state_for_city(city or "")
+
+    functions = vocab.normalize_functions(classified.get("functions"))
+    industry = vocab.normalize_industry(classified.get("industry", ""))
+
+    # Figures get the same treatment as every other number on a record: if the
+    # source text does not contain it, it is not stored. A headcount a model
+    # inferred is exactly the plausible-but-wrong fact this product cannot carry.
+    headcount = _sourced_int(classified.get("headcount"), raw_text)
+    funding = _sourced_figure(classified.get("funding_amount"), raw_text)
+
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     ckey = vocab.company_key(company)
     published = _normalize_date(raw.get("published_date"))
@@ -209,6 +229,11 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
         country=country,
         hq_city=hq_city,
         hq_country=hq_country,
+        state=state,
+        functions=json.dumps(functions) if functions else None,
+        industry=industry,
+        headcount=headcount,
+        funding_amount=funding,
         confidence=infer_confidence(source_url, classified.get("confidence")),
         source_url=source_url,
         source_name=(raw.get("source_name") or host).strip(),
@@ -221,6 +246,29 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
         check_after_date=classified.get("check_after_date") or None,
         collector=collector,
     )
+
+
+def _sourced_int(value, raw_text: str) -> int | None:
+    """A headcount is stored only if that number appears in the source text."""
+    try:
+        n = int(str(value).strip().replace(",", ""))
+    except (TypeError, ValueError):
+        return None
+    if n <= 0:
+        return None
+    return n if _normalize_number(str(n)) in _numbers_in(raw_text) else None
+
+
+def _sourced_figure(value, raw_text: str) -> str | None:
+    """A funding figure is stored verbatim, and only if its digits appear in
+    the source text. '$10.5M' passes when the text says 10.5M."""
+    text = (str(value or "")).strip()
+    if not text:
+        return None
+    digits = _numbers_in(text)
+    if not digits or not digits <= _numbers_in(raw_text):
+        return None
+    return text[:32]
 
 
 def _region_for_country(iso2: str) -> str | None:

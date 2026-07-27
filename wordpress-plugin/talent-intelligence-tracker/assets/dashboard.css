@@ -7,7 +7,8 @@
 
 .tit-empty { border:1px solid var(--tit-line); border-radius:10px; padding:28px; text-align:center; }
 .tit-empty h2 { margin:0 0 8px; font-size:19px; }
-.tit-empty p { margin:0 auto; max-width:52ch; color:var(--tit-mut); }
+.tit-empty p { margin:0 auto; max-width:56ch; color:var(--tit-mut); }
+.tit-empty-note { margin-top:10px !important; font-size:13px; }
 
 .tit-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:0 0 22px; }
 @media (min-width:640px){ .tit-stats { grid-template-columns:repeat(4,1fr); } }

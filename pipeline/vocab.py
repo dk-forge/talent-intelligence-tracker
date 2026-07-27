@@ -236,6 +236,51 @@ def normalize_industry(value: str):
     return _INDUSTRY_ALIASES.get(k)
 
 
+# --- US states -------------------------------------------------------------
+#
+# Only meaningful when the country is US. Stored as the two-letter code so the
+# filter is a clean enumeration rather than free text.
+
+US_STATES = {
+    "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR",
+    "california": "CA", "colorado": "CO", "connecticut": "CT", "delaware": "DE",
+    "florida": "FL", "georgia": "GA", "hawaii": "HI", "idaho": "ID",
+    "illinois": "IL", "indiana": "IN", "iowa": "IA", "kansas": "KS",
+    "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
+    "massachusetts": "MA", "michigan": "MI", "minnesota": "MN",
+    "mississippi": "MS", "missouri": "MO", "montana": "MT", "nebraska": "NE",
+    "nevada": "NV", "new hampshire": "NH", "new jersey": "NJ",
+    "new mexico": "NM", "new york": "NY", "north carolina": "NC",
+    "north dakota": "ND", "ohio": "OH", "oklahoma": "OK", "oregon": "OR",
+    "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC",
+    "south dakota": "SD", "tennessee": "TN", "texas": "TX", "utah": "UT",
+    "vermont": "VT", "virginia": "VA", "washington": "WA",
+    "west virginia": "WV", "wisconsin": "WI", "wyoming": "WY",
+    "district of columbia": "DC", "washington dc": "DC", "washington d.c.": "DC",
+}
+
+# Cities we already curate that imply a state, so a US signal naming only the
+# city still lands in the state filter.
+_CITY_STATE = {
+    "San Francisco": "CA", "New York": "NY", "Seattle": "WA",
+    "Austin": "TX", "Boston": "MA",
+}
+
+
+def normalize_state(value: str):
+    """Two-letter US state code, or None. Accepts a name or a code."""
+    k = _key(value)
+    if not k:
+        return None
+    if len(k) == 2 and k.upper() in set(US_STATES.values()):
+        return k.upper()
+    return US_STATES.get(k)
+
+
+def state_for_city(city: str):
+    return _CITY_STATE.get(city or "")
+
+
 # --- Geography -------------------------------------------------------------
 #
 # Deliberately small and hand-curated. A city enters this list when we can

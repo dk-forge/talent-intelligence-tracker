@@ -42,7 +42,8 @@ def _config() -> tuple[str, str]:
 FIELDS = (
     "signal_id", "headline", "summary", "talent_readthrough", "company",
     "company_key", "pillar", "signal_direction", "city", "region", "country",
-    "hq_city", "hq_country", "confidence", "source_url", "source_name",
+    "hq_city", "hq_country", "state", "functions", "industry", "headcount",
+    "funding_amount", "confidence", "source_url", "source_name",
     "discovery_url", "published_date", "captured_at", "as_of", "content_hash",
     "predicted_outcome", "check_after_date", "collector",
 )

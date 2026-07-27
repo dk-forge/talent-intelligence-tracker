@@ -48,6 +48,18 @@ CREATE TABLE IF NOT EXISTS signals (
     -- union the sibling tracker exposes as country_basis=any.
     hq_city           TEXT,
     hq_country        TEXT,
+    -- US state, for the state filter. Only set when the country is US.
+    state             TEXT,
+
+    -- What the signal is ABOUT, for the filters a recruiter actually uses.
+    -- functions is a JSON array of closed-vocabulary values.
+    functions         TEXT,
+    industry          TEXT,
+
+    -- Figures. Both must appear verbatim in the source text or they are not
+    -- stored: same rule as every other number on a record.
+    headcount         INTEGER,
+    funding_amount    TEXT,
 
     confidence        TEXT    NOT NULL,
 
@@ -110,6 +122,8 @@ CREATE INDEX IF NOT EXISTS idx_signals_geo      ON signals(country, city);
 CREATE INDEX IF NOT EXISTS idx_signals_hq       ON signals(hq_country, hq_city);
 CREATE INDEX IF NOT EXISTS idx_signals_pub_at  ON signals(published_at);
 CREATE INDEX IF NOT EXISTS idx_signals_pillar   ON signals(pillar);
+CREATE INDEX IF NOT EXISTS idx_signals_industry ON signals(industry);
+CREATE INDEX IF NOT EXISTS idx_signals_state    ON signals(state);
 CREATE INDEX IF NOT EXISTS idx_signals_pub      ON signals(published_date);
 CREATE INDEX IF NOT EXISTS idx_signals_company  ON signals(company_key);
 CREATE INDEX IF NOT EXISTS idx_signals_sigid    ON signals(signal_id, revision);
@@ -127,6 +141,11 @@ MIGRATIONS = (
     ("signals", "hq_city", "TEXT"),
     ("signals", "hq_country", "TEXT"),
     ("signals", "published_at", "TEXT"),
+    ("signals", "state", "TEXT"),
+    ("signals", "functions", "TEXT"),
+    ("signals", "industry", "TEXT"),
+    ("signals", "headcount", "INTEGER"),
+    ("signals", "funding_amount", "TEXT"),
 )
 
 

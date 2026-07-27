@@ -21,9 +21,12 @@ function tit_dashboard_shortcode() {
         <div class="tit-wrap">
           <div class="tit-empty">
             <h2>No signals published yet</h2>
-            <p>The collectors are running but nothing has cleared the sourcing
-               rules yet. Every record here must link to a primary source, so an
-               empty table is the honest state rather than a broken one.</p>
+            <p>Collection has not been switched on. Every record here has to
+               link to the article that makes the claim, and that sourcing is
+               still being proven out, so an empty table is the honest state
+               rather than a broken one.</p>
+            <p class="tit-empty-note">This page will fill in once collection is
+               armed. It will not be backfilled with anything unsourced.</p>
           </div>
         </div>
         <?php

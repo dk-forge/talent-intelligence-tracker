@@ -49,6 +49,19 @@ function tit_allowed_directions() {
 function tit_allowed_confidence() {
     return array('verified', 'reported', 'rumored');
 }
+function tit_allowed_functions() {
+    return array('engineering','data_ai','it_infrastructure','product','design',
+                 'finance','hr_people','sales','marketing','customer_support',
+                 'operations','supply_chain','manufacturing','legal_compliance',
+                 'research','clinical_healthcare','executive');
+}
+function tit_allowed_industries() {
+    return array('technology','financial_services','healthcare','pharma_biotech',
+                 'retail_ecommerce','manufacturing','energy_utilities','telecom',
+                 'media_entertainment','transport_logistics','professional_services',
+                 'public_sector','hospitality_travel','education','food_beverage',
+                 'automotive','aerospace_defence','real_estate_construction');
+}
 
 /**
  * Build the WHERE clause shared by /query and /aggregate.
@@ -104,6 +117,44 @@ function tit_build_where(WP_REST_Request $req, array &$params) {
         $params[] = '%' . $wpdb->esc_like(strtolower($company)) . '%';
     }
 
+    $industry = sanitize_text_field($req->get_param('industry') ?? '');
+    if ($industry !== '' && in_array($industry, tit_allowed_industries(), true)) {
+        $where[] = 'industry = %s';
+        $params[] = $industry;
+    }
+
+    $state = strtoupper(sanitize_text_field($req->get_param('state') ?? ''));
+    if (preg_match('/^[A-Z]{2}$/', $state)) {
+        $where[] = 'state = %s';
+        $params[] = $state;
+    }
+
+    // functions is a JSON array; match the quoted token so 'finance' never
+    // matches a longer value that merely contains it.
+    $function = sanitize_text_field($req->get_param('function') ?? '');
+    if ($function !== '' && in_array($function, tit_allowed_functions(), true)) {
+        $where[] = 'functions LIKE %s';
+        $params[] = '%"' . $wpdb->esc_like($function) . '"%';
+    }
+
+    if ($req->get_param('funding') === '1') {
+        $where[] = 'funding_amount IS NOT NULL';
+    }
+
+    $min_headcount = (int) ($req->get_param('min_headcount') ?: 0);
+    if ($min_headcount > 0) {
+        $where[] = 'headcount >= %d';
+        $params[] = $min_headcount;
+    }
+
+    // Free-text search across what the source said and what we concluded.
+    $search = sanitize_text_field($req->get_param('q') ?? '');
+    if ($search !== '') {
+        $like = '%' . $wpdb->esc_like($search) . '%';
+        $where[] = '(headline LIKE %s OR summary LIKE %s OR talent_readthrough LIKE %s OR company LIKE %s)';
+        array_push($params, $like, $like, $like, $like);
+    }
+
     return implode(' AND ', $where);
 }
 
@@ -131,6 +182,8 @@ function tit_api_query(WP_REST_Request $req) {
 
     $rows_sql = "SELECT signal_id, headline, summary, talent_readthrough, company,
                         pillar, signal_direction, city, region, country, hq_city, hq_country,
+                        state, functions, industry, headcount, funding_amount,
+                        predicted_outcome, check_after_date, outcome_observed, archive_url,
                         confidence, source_url, source_name, published_date, captured_at
                    FROM {$table} WHERE {$where}
                   ORDER BY COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
@@ -172,6 +225,8 @@ function tit_api_aggregate(WP_REST_Request $req) {
         'by_country' => $group('country'),
         'by_city'    => $group('city'),
         'by_direction' => $group('signal_direction'),
+        'by_industry' => $group('industry'),
+        'by_state'   => $group('state'),
         'by_confidence' => $group('confidence'),
         'generated'  => gmdate('c'),
     );
@@ -196,6 +251,9 @@ function tit_api_facets() {
     $out = array(
         'countries' => $col('country'),
         'cities'    => $col('city'),
+        'states'    => $col('state'),
+        'industries' => tit_allowed_industries(),
+        'functions' => tit_allowed_functions(),
         'pillars'   => tit_allowed_pillars(),
         'directions' => tit_allowed_directions(),
         'confidence' => tit_allowed_confidence(),
