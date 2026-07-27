@@ -101,19 +101,10 @@
 .tit-wrap a { color:#1a5fb4; text-decoration:underline; }
 .tit-wrap a:hover { color:#12447f; }
 
-/* --- Dark mode: stepped for the dark surface, not an inverted flip ----- */
-@media (prefers-color-scheme: dark) {
-  .tit-wrap {
-    --tit-fg:#f2f5f8; --tit-mut:#b3bec9; --tit-line:#333b45; --tit-surface:#1b2026;
-    --tit-hiring:#3987e5; --tit-cutting:#d95926; --tit-pay:#9085e9;
-  }
-  .tit-stat, .tit-wrap .tit-table th { background:var(--tit-surface); }
-  .tit-filters select, .tit-filters input { background:#171b21; color:var(--tit-fg); }
-  .tit-bar { background:#2b333c; }
-  .tit-tag, .tit-hq { background:#252c34; color:var(--tit-fg); }
-  .tit-hiring       { background:#15304f; color:#cfe2fa; box-shadow:inset 0 0 0 1px #2c5a94; }
-  .tit-displacement { background:#4a2415; color:#fbd8c6; box-shadow:inset 0 0 0 1px #a8542c; }
-  .tit-comp_shift   { background:#2a2456; color:#dcd7fb; box-shadow:inset 0 0 0 1px #4a3aa7; }
-  .tit-c-verified   { background:#15304f; color:#cfe2fa; border-color:#2c5a94; }
-  .tit-wrap a { color:#8ab8f0; }
-}
+/* NO prefers-color-scheme block, deliberately.
+
+   The parent WordPress theme paints a white page background regardless of the
+   OS setting. Honouring prefers-color-scheme here produced light text on that
+   white background — the exact unreadability this rewrite set out to fix.
+   Our surface is not ours to control, so we style for the surface we are
+   actually given. Revisit only if the theme gains a real dark mode. */
