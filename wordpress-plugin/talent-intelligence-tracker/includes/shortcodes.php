@@ -216,11 +216,14 @@ function tit_dashboard_shortcode() {
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
 
 function tit_enqueue_assets() {
-    // Company profile pages carry no shortcode and are not singular posts, so
-    // a shortcode-only check left them completely unstyled.
-    $is_company = (bool) get_query_var('tit_company');
+    // Our own routed pages (company profiles, sources) carry no shortcode and
+    // are not singular posts, so a shortcode-only check leaves them completely
+    // unstyled. Ask each route, rather than naming them one at a time — that
+    // omission is exactly how the sources page shipped unstyled.
+    $is_plugin_route = (bool) get_query_var('tit_company')
+                    || (bool) get_query_var('tit_sources');
 
-    if (!$is_company) {
+    if (!$is_plugin_route) {
         if (!is_singular()) return;
         global $post;
         if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
