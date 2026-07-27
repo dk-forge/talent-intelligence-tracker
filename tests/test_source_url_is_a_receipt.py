@@ -62,3 +62,37 @@ def test_google_news_itself_is_still_blocked_first():
         validate.build_signal(
             classified(), raw("https://news.google.com/rss/articles/CBMi"), "google_news"
         )
+
+
+# --- job adverts are not market intelligence -------------------------------
+
+@pytest.mark.parametrize("url", [
+    # Verbatim from the first live GDELT run, which stored it.
+    "https://www.insurancejournal.com/jobs/878898-claims-strategy-manager",
+    "https://example.com/careers/senior-engineer",
+    "https://example.com/vacancies/12345",
+])
+def test_a_single_job_advert_is_not_a_signal(url):
+    """We track that an employer is hiring at scale, not each vacancy.
+    Storing adverts would make this a bad job board."""
+    with pytest.raises(validate.Rejected, match="job advert"):
+        validate.build_signal(classified(), raw(url), "gdelt")
+
+
+@pytest.mark.parametrize("url", [
+    "https://www.linkedin.com/jobs/view/123",
+    "https://www.indeed.com/viewjob?jk=abc",
+])
+def test_job_boards_are_rejected_by_host(url):
+    with pytest.raises(validate.Rejected, match="job board"):
+        validate.build_signal(classified(), raw(url), "gdelt")
+
+
+def test_a_newsroom_article_about_hiring_still_passes():
+    """The guard must not eat genuine coverage that merely mentions jobs."""
+    signal = validate.build_signal(
+        classified(),
+        raw("https://www.irishtimes.com/business/2026/07/20/acme-dublin-jobs/"),
+        "gdelt",
+    )
+    assert signal.source_url.endswith("acme-dublin-jobs/")

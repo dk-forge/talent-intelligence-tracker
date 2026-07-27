@@ -58,6 +58,23 @@ class Signal:
 # 1200 / 1.2bn / €5B / 5 billion.
 _NUMBER = re.compile(r"\d[\d,.]*\s*(?:bn|b|m|k|billion|million|thousand)?", re.I)
 
+# A single job advert is not market intelligence. GDELT surfaces job boards
+# freely, and one live run stored "Claims Strategy Manager - Remote at Allstate"
+# from an insurancejournal.com/jobs/ URL. Storing adverts would make this a bad
+# job board rather than a signal tracker: we track that an employer is hiring at
+# scale, not each vacancy.
+_JOB_POSTING_PATH = re.compile(
+    r"/(jobs?|careers?|vacanc(?:y|ies)|job-openings?|job-listings?|employment)"
+    r"(/|$|\?)", re.I
+)
+_JOB_BOARD_HOSTS = frozenset({
+    "indeed.com", "www.indeed.com", "linkedin.com", "www.linkedin.com",
+    "glassdoor.com", "www.glassdoor.com", "ziprecruiter.com",
+    "www.ziprecruiter.com", "monster.com", "www.monster.com",
+    "totaljobs.com", "www.totaljobs.com", "reed.co.uk", "www.reed.co.uk",
+    "seek.com.au", "www.seek.com.au", "naukri.com", "www.naukri.com",
+})
+
 # Aggregators are discovery pointers, never stored sources (spec 2 rule 5).
 _BLOCKED_SOURCE_HOSTS = frozenset({
     "news.google.com",
@@ -140,6 +157,11 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
     path = urlparse(source_url).path.strip("/")
     if not path:
         raise Rejected(f"source_url is a bare domain, not an article: {source_url}")
+
+    if host in _JOB_BOARD_HOSTS:
+        raise Rejected(f"job board, not market intelligence: {host}")
+    if _JOB_POSTING_PATH.search(urlparse(source_url).path):
+        raise Rejected(f"single job advert, not a market signal: {source_url}")
 
     raw_text = (raw.get("raw_text") or "").strip()
     if not raw_text:
