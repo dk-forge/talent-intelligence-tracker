@@ -77,6 +77,15 @@ function tit_sources_render($sources) {
       </div>
 
       <div class="tit-callout">
+        <strong>Country here means where a source is based, not where we have
+        coverage.</strong> Most of what we read is not tied to one country:
+        Google News is read in 25 national editions across 7 languages, and
+        GDELT is machine-translated from 65. Those are filed as Worldwide, so
+        filtering by country narrows to sources that are specific to it rather
+        than to everything that covers it.
+      </div>
+
+      <div class="tit-callout">
         <strong>What "running now" means.</strong> A source counts as running
         only when a collector reads it, reports its health, and has a passing
         test. Everything else is listed as researched so the roadmap is public,

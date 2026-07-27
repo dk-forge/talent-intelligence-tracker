@@ -26,11 +26,11 @@
    "Leadership change",
    "Layoffs"
   ],
-  "coverage": "Global",
+  "coverage": "25 country editions, 7 languages",
   "country": "",
   "rss": "",
   "free": true,
-  "notes": "Keyless, unthrottled and worldwide. Its links are encoded redirects, but Google's own resolution endpoint returns the publisher URL, so records cite the article rather than an outlet homepage."
+  "notes": "Keyless and unthrottled. Read in each edition's own language, because English phrases in a non-English edition return almost nothing. Its links are encoded redirects, but Google's own resolution endpoint returns the publisher URL, so records cite the article rather than an outlet homepage."
  },
  {
   "name": "SEC EDGAR 8-K (Item 5.02)",

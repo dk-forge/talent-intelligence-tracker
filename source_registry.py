@@ -250,11 +250,12 @@ SOURCES = (
                  "as coverage gaps."),
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
-           "Global",
-           notes="Keyless, unthrottled and worldwide. Its links are encoded "
-                 "redirects, but Google's own resolution endpoint returns the "
-                 "publisher URL, so records cite the article rather than an "
-                 "outlet homepage."),
+           "25 country editions, 7 languages",
+           notes="Keyless and unthrottled. Read in each edition's own language, "
+                 "because English phrases in a non-English edition return almost "
+                 "nothing. Its links are encoded redirects, but Google's own "
+                 "resolution endpoint returns the publisher URL, so records cite "
+                 "the article rather than an outlet homepage."),
 
     # --- candidate: researched, real, not yet connected --------------------
     Source("SEC EDGAR 8-K (Items 1.01 / 2.01)", "https://www.sec.gov/edgar.shtml",
