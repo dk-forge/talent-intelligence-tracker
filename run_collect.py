@@ -16,7 +16,7 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import gdelt, google_news, sec_edgar
+from collectors import gdelt, google_news, sec_edgar, sec_form_d
 from pipeline import classify, prefilter, publish, schema, store, validate
 
 RUNS_PER_DAY = 2
@@ -53,7 +53,8 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
-    module = {"gdelt": gdelt, "sec_edgar": sec_edgar}.get(source, google_news)
+    module = {"gdelt": gdelt, "sec_edgar": sec_edgar,
+              "sec_form_d": sec_form_d}.get(source, google_news)
     collector = module.COLLECTOR
 
     if offline:
@@ -78,7 +79,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # source is not noise: an SEC 8-K Item 5.02 filing IS an officer or
     # director change by definition, so gating it on news vocabulary drops
     # exactly the filings we went to SEC to get.
-    skip_prefilter = source == "sec_edgar"
+    skip_prefilter = source in ("sec_edgar", "sec_form_d")
 
     kept, filtered = [], 0
     for item in items:
@@ -257,7 +258,7 @@ def main() -> int:
     parser.add_argument("--offline", action="store_true", help="fixtures only, no network or LLM")
     parser.add_argument("--run-index", type=int, default=0, help="0 or 1, for segment rotation")
     parser.add_argument("--limit", type=int, help="cap candidates, for cheap testing")
-    parser.add_argument("--source", choices=["google_news", "gdelt", "sec_edgar"],
+    parser.add_argument("--source", choices=["google_news", "gdelt", "sec_edgar", "sec_form_d"],
                         default="google_news", help="which collector to run")
     parser.add_argument("--publish", action="store_true",
                         help="after storing, push unpublished rows to WordPress")
