@@ -4,7 +4,8 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: 2026-07-27, after company pages and the funding collector (v1.3.2).
+Last updated: 2026-07-27, after the visual overhaul, the source audit and the
+multilingual Google News work (plugin v1.13.0).
 
 ---
 
@@ -20,25 +21,67 @@ Last updated: 2026-07-27, after company pages and the funding collector (v1.3.2)
 
 Run `python3 ops_status.py` first, every session. No deps, no keys.
 
+### Verifying a deploy actually landed
+
+A green Actions run is not proof. The run listed right after a push is usually
+the *previous* commit's, so match the **commit SHA**:
+
+```bash
+SHA=$(git rev-parse HEAD)
+gh run list --repo dk-forge/talent-intelligence-tracker \
+  --workflow=deploy-plugin.yml -L 6 \
+  --json headSha,status,conclusion \
+  -q ".[] | select(.headSha==\"$SHA\")"
+```
+
+Then check the live page, with the UA the host will accept:
+
+```bash
+UA="TalentIntel/1.0 (+https://asktherecruiter.com)"
+curl -s -A "$UA" "https://asktherecruiter.com/blog/talent-intelligence-tracker/?cb=$RANDOM" \
+  | grep -o "css?ver=[0-9.]*"
+```
+
+That version must be the `TIT_VERSION` you just shipped, with an mtime suffix.
+Grepping for `dashboard.css` will find nothing even when everything is fine —
+see gotcha 0.
+
+There is no `php` binary on this machine. The deploy workflow lints every PHP
+file with `php -l` before it uploads, so a syntax error fails the deploy rather
+than the site. Do not skip the workflow to "save time".
+
 ---
 
-## Current state (2026-07-27, evening)
+## Current state (2026-07-27, late)
 
-**Live:** plugin **v1.9.0**, 13 records, 198 tests green.
-`https://asktherecruiter.com/blog/talent-intelligence-tracker/`
+**Live:** plugin **v1.13.0**, 13 records, **209 tests** green.
 
-**The page now:**
-- Hero with a live/last-updated pill and four at-a-glance lines: today, this
-  week, this month, this year. Empty periods still print and say so.
-- Four stat tiles, each with its own accent stripe.
-- Region strip: World / United States / Europe / India / Asia Pacific, with
-  counts. Regions with nothing in them are dropped; World always survives.
-- Three chart cards (kind of update, where the activity is, growing or
-  shrinking), plain HTML and CSS, no chart library.
-- Eight filters, then the table.
-- **On phones (<=860px) the table becomes cards**, each cell labelled from
-  `data-label`. Below 700px the wrap goes full bleed to cancel the theme's two
-  nested padded containers, which otherwise left it 219px wide on a 375px screen.
+Three page templates, all rendering:
+`/talent-intelligence-tracker/`, `.../sources/`, `.../company/{slug}/`.
+
+**The page:**
+- Hero on the off-white ground: title and live pill on one line, then four
+  at-a-glance cells (today / this week / this month / year), then one line of
+  fine print carrying the totals. A period with nothing in it still prints and
+  says so.
+- **No stat tiles on the dashboard.** They repeated the numbers already in the
+  hero's fine print. The sources page and company profiles keep theirs, where
+  nothing repeats them.
+- Region strip using the sibling's `.alt-tab` pill pattern, a hue per region.
+  Regions with nothing in them are dropped; World always survives.
+- Three chart cards in one row, plain HTML and CSS, no chart library.
+- Eight filters in one panel, then the table.
+- **Below 860px the table becomes cards**, each cell labelled from `data-label`.
+  Below 700px the wrap goes full bleed to cancel the theme's two nested padded
+  containers, which otherwise left it 219px wide on a 375px screen.
+- Whole page is capped at 1160px; the theme's container runs to ~1500px.
+
+**Design tokens are the sibling's**, read out of its live `layoffs.css` rather
+than approximated, so the two products are one family: blue `#2a78d6`,
+secondary `#D55E00`, ink `#16181d`, border `#e2e3e8`, surface `#f7f8fa`,
+ground `#fafaf8`, system-ui type. One divergence: the sibling's `--alt-muted`
+(`#868a93`) is ~3.4:1 on white and fails AA, so it is decorative-only here and
+readable text uses its `--alt-ink-2` (`#4a4d55`, 8.6:1).
 
 **Sources, after the audit:** 160 listed, **4 running**. The imported catalogue
 was cut from 383 rows to 111 by one rule — a row survives only if it carries an
@@ -57,45 +100,72 @@ nothing to connect to. Pinned by `tests/test_sources_page.py`.
 GDELT throttles erratically (~50% success even at 12s spacing) and has never
 produced a record. It is the next thing to either fix or retire.
 
-**Not done:**
-- Collection is still DORMANT (schedule commented out in `collect.yml`)
-- Filters change the table but **not** the stat tiles or charts. The stated goal
-  is "every number, chart and row below updates to match" — the charts are
-  server-rendered from the unfiltered set and do not yet re-fetch.
-- ~~Google News is `US:en` only~~ **Done (v1.12.0).** It reads 25 national
-  editions across 7 languages, three rotating per run plus a fixed US anchor.
+**Google News is multilingual (v1.12.0).** 25 national editions, 7 languages,
+three rotating per run plus a fixed US anchor.
 
-  **The trap, if you touch this:** rotating `hl`/`gl`/`ceid` alone does nothing.
-  Measured 2026-07-27, the same English phrases returned US:en 23 items,
-  DE:de 2, BR:pt 0 — and German phrasing returned 20 from that same German
-  edition. Each edition must ask in its own language
-  (`GOOGLE_NEWS_VOCAB` in `source_registry.py`), and `prefilter.py` needs the
-  matching non-English terms or every candidate is dropped for free before the
-  model sees it. A locale without a phrase set is a silent zero dressed up as
-  coverage; `tests/test_locale_rotation.py` refuses to let one exist.
+> **The trap, if you touch this:** rotating `hl`/`gl`/`ceid` alone does nothing.
+> Measured 2026-07-27, the same English phrases returned US:en 23 items, DE:de
+> **2**, BR:pt **0** — and German phrasing returned **20** from that same German
+> edition. Each edition must ask in its own language (`GOOGLE_NEWS_VOCAB` in
+> `source_registry.py`), and `prefilter.py` needs the matching non-English terms
+> or every candidate is dropped for free before the model ever sees it. A locale
+> without a phrase set is a silent zero dressed up as coverage;
+> `tests/test_locale_rotation.py` refuses to let one exist.
 
-  Going multilingual took a run from ~25 candidates to ~215, so
-  `DEFAULT_CANDIDATE_CAP = 40` now lives in `run_collect.py`. The cap is a fair
-  share (one item per query in turn), not a head slice.
+Going multilingual took a run from ~25 candidates to ~215, so
+`DEFAULT_CANDIDATE_CAP = 40` lives in `run_collect.py`. The cap is a **fair
+share** (one item per query in turn), not a head slice: the sibling's flat
+`MAX_ITEMS` meant a broad sweep filled the cap and the targeted queries never
+fired.
+
+**Still not done:**
+- **Collection is DORMANT.** Schedule commented out in `collect.yml` lines 15-16.
+  Arming it is a human decision after reading a live dry run, per CLAUDE.md.
+- **Filters change the table but not the charts or the hero figures.** The
+  stated goal is "every number, chart and row below updates to match"; the
+  charts are server-rendered from the unfiltered set and do not re-fetch. This
+  is the largest remaining gap in the UI.
 - No date-range control, no sort, no quick views
 - Model switch (Gemini Flash-Lite gate + Haiku read-through) designed, not applied
+- 13 records is thin enough that any layout looks sparse. "Europe 1" is a real
+  tab with one row behind it. The template holds up; it needs volume.
 
 ---
 
 ## The one thing that took six hours to learn
 
-**Google News RSS cannot give article URLs.** Its `<source url>` is the outlet
-homepage, its redirect no longer resolves, and the real URL is not recoverable
-from the encoded token (tested — it is not in there). Every record it produced
-linked to a homepage, which is not a receipt for any claim.
+**Every record needs a URL that is a receipt for the claim, and a homepage is
+not one.** That is the whole difficulty of this product. Two live records once
+linked to `crn.com` and `ft.com` front pages; both were retracted, and
+`validate.py` now rejects a URL whose path is empty.
+
+**Correction, and read this before you touch `google_news.py`.** An earlier
+version of this document said Google News article URLs were unrecoverable and
+that the encoded token had been tested and did not contain them. **That was
+wrong.** Google exposes its own resolution endpoint: the article page carries a
+signature (`data-n-a-sg`) and a timestamp (`data-n-a-ts`), and posting those to
+`news.google.com/_/DotsSplashUi/data/batchexecute` returns the publisher URL.
+`resolve_source_url()` does this and it works.
+
+Two ways that hunt goes wrong, both survived here:
+- Decoding the base64 token and finding no URL proves only that it is not *in*
+  the token. It does not prove Google will not resolve it for you.
+- The URL comes back inside an **escaped** JSON string, so the natural
+  `"(https?://[^"]+)"` stops at the backslash and matches nothing — which reads
+  exactly like "not in the response". The live regex allows for the escaping and
+  is pinned by `tests/test_google_news_resolution.py`.
+
+Resolution is best-effort. On failure the item keeps the outlet homepage from
+the RSS `<source>` element, and `validate.py` rejects it as a bare domain rather
+than crediting the aggregator.
 
 **GDELT** returns real article URLs but its throttling is erratic and its yield
-collapsed to zero on a live publishing run.
+collapsed to zero on a live publishing run. It has still produced no record.
 
 **SEC EDGAR is the source that works.** 8-K Item 5.02 filings are legally
 required within four business days, always have a real `sec.gov` document URL,
 are primary sources (so records earn `verified`), and SEC allows 10 req/s.
-`collectors/sec_edgar.py`. Build outward from here, not from news.
+`collectors/sec_edgar.py`.
 
 ---
 
@@ -112,6 +182,9 @@ Do not weaken these without understanding what they caught.
 | Confidence capped by source | News can never be promoted to `verified` |
 | Aggregators never stored as source | Google News redirect as a citation |
 | `"expansion"` removed from vocabulary | MLB, World of Warcraft, Medicaid, cattle herds |
+| Retraction survives re-collection (`dedupe.exact_duplicate` ignores `is_current`) | A retracted homepage-sourced record came back; checking only current rows also crashed the run with an IntegrityError, because the unique index spans all revisions |
+| Non-English prefilter terms | Without them the multilingual queries fetch correctly and every candidate is dropped for free — zero records, looking like it works |
+| Catalogue rows must be connectable | 272 spreadsheet names rendered as "researched" read as coverage we do not have |
 
 ---
 
@@ -149,12 +222,36 @@ reason (`tit_asset_version()`), which is also what the sibling does. Pinned by
    specificity to win, or stat tiles render near-invisible grey.
 8. **FTP account is chrooted to the WordPress root.** Path is
    `/wp-content/plugins/talent-intelligence-tracker`, no `public_html` prefix.
+9. **ModSecurity blocks curl's default UA and a browser UA alike.** Use
+   `-A "TalentIntel/1.0 (+https://asktherecruiter.com)"` or the host returns a
+   "Not Acceptable!" HTML page where you expected JSON.
+10. **Easy Table of Contents injects itself into the middle of the hero.** Any
+    post with headings gets one. Suppressed on our routes only, in `page.php`
+    plus a CSS fallback; ordinary blog posts keep theirs.
+11. **Our own routed pages have no theme container.** `sources.php` and
+    `company.php` call `get_header()` and render straight into the body, so
+    they ran edge to edge with no gutter until `.tit-sources` / `.tit-company`
+    got their own 1160px container. The shortcode page must be excluded from
+    that or it double-pads.
+12. **Block themes set `margin-inline:auto` on every direct child of
+    `.entry-content`,** which beats a single-class selector — the phone
+    full-bleed rule silently moved nothing until the selector out-specified it.
+    And `max-width:100%` resolves against the *padded* container, so it pinned
+    the width back even once the negative margins applied.
+13. **Tabular figures pad a narrow `1` to a full advance width.** Right in a
+    stacked column, wrong for a single inline number: `13` rendered as `1 3` on
+    every tile. Use proportional numerals for standalone figures.
 
 ---
 
 ## Secrets (all set, in GitHub repo secrets)
 
-`OPENROUTER_API_KEY` (has a **$5 lifetime cap** — collection stops dead when hit),
+`OPENROUTER_API_KEY` — the key carries its own hard cap set in the OpenRouter
+dashboard, which is the real guarantee. **This was recorded here as a $5
+lifetime cap while `spend.py` enforces a $10 monthly allowance; the two
+disagree and only the owner can say which is current.** If the key cap is
+genuinely $5 lifetime it binds first and `MONTHLY_ALLOWANCE_USD` never fires.
+Check the dashboard before sizing anything.
 `WP_API_KEY` (must match the key set in WP admin → Talent Intel),
 `WP_SITE_URL` (must end `/blog`), `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD`,
 `FTP_PORT`, `WP_PLUGIN_REMOTE_DIR`.
@@ -166,27 +263,50 @@ Actions because the SQLite DB must be committed back to the repo.
 
 ## Cost, measured not estimated
 
+**The ceiling is enforced in code, not hoped for.** `spend.py` runs as the first
+step of every collect job and exits 1 at `STOP_AT_FRACTION` (0.9) of
+`MONTHLY_ALLOWANCE_USD` (10.0). The OpenRouter key also has its own hard cap,
+which is what makes it a guarantee rather than a policy.
+
 - Gate call: 141 tokens in / 35 out (measured)
 - `deepseek/deepseek-chat` (current): ~$1.15/month at 660 items/day
 - `google/gemini-2.5-flash-lite`: 90% agreement with incumbent, ~$0.56/month
 - `anthropic/claude-haiku-4.5` matches Sonnet 5 on read-through quality at half price
-- Spent to date: ~$0.42 of the $5 cap, mostly on the model A/B
+- Spent to date: **~$1.86**, last measured 2026-07-27, mostly on the model A/B
 
-Model A/B is reproducible: `ab_models.py`, workflow `ab-models.yml`.
+`spend.py` needs `OPENROUTER_API_KEY` to report; without it, it says so and
+exits rather than guessing. Model A/B is reproducible: `ab_models.py`, workflow
+`ab-models.yml`.
+
+**Sizing anything new:** cost scales with candidates reaching the model, not
+with source count. Candidates are gated by `prefilter.passes()` (free), then
+already-seen URLs are skipped (free), then `DEFAULT_CANDIDATE_CAP` caps what is
+left. 40 per run, twice a day, is ~2,400 classifications a month.
 
 ---
 
 ## Next steps, in order
 
-1. **Page overhaul** — human language (no "signals"/"Any direction"), all
-   filters in the template, accessible palette (done in CSS, needs deploy)
-2. **Spend ceiling in code** — track OpenRouter `usage` per call, stop at a
-   daily allowance, log what was skipped
-3. **More SEC coverage** — Item 1.01/2.01 (M&A), Form D (funding)
-4. **Arm collection** — uncomment the schedule in `collect.yml`
-5. **Roo-style status banner** — last run, next run, live/resting
-6. **Company profile pages**, momentum score, the signal categories in the
-   owner's vision (Growth / Money / People moves / Hiring / Shrinking)
+Done since this list was first written: the page overhaul, the spend ceiling in
+code, Form D, and company profile pages. What is actually left:
+
+1. **Arm collection.** Uncomment the two schedule lines in `collect.yml`. Per
+   CLAUDE.md this is a human decision after reading a live dry run, so run
+   `run_collect.py --dry-run` and read it with the owner before pushing. Nothing
+   else fills the tracker; 13 records is the symptom of a dormant collector, not
+   of a missing source.
+2. **Make the filters drive the charts and the hero figures**, not just the
+   table. The `/aggregate` endpoint already accepts the same query parameters;
+   the work is client-side re-render.
+3. **Fix or retire GDELT.** Zero records, erratic throttling. Retiring it is a
+   legitimate outcome and the sources page should then say 3 running, not 4.
+4. **Date range, sort, quick views** on the table.
+5. **Model switch** (Gemini Flash-Lite gate + Haiku read-through), designed and
+   benchmarked, not applied.
+6. **More languages for Google News.** Adding a language is what adds countries:
+   a phrase set in `GOOGLE_NEWS_VOCAB` plus the matching terms in
+   `prefilter._EMPLOYMENT_TERMS_INTL`, then its locales in
+   `GOOGLE_NEWS_LOCALES`. Never add a locale without the phrase set.
 
 ---
 
