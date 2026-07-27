@@ -63,7 +63,7 @@ def test_every_item_carries_raw_text():
 
 def test_source_element_becomes_source_url_and_name():
     first = google_news.parse(FIXTURE.read_bytes())[0]
-    assert first["source_url"] == "https://www.irishtimes.com"
+    assert first["source_url"].startswith("https://www.irishtimes.com/business/")
     assert first["source_name"] == "The Irish Times"
     assert "news.google.com" in first["discovery_url"]
 

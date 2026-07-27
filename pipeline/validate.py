@@ -123,6 +123,18 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
     if host in _BLOCKED_SOURCE_HOSTS:
         raise Rejected(f"aggregator stored as source: {host}")
 
+    # A homepage is not a receipt. "Every record links to a primary source" is
+    # only true if the link goes to the article that makes the claim; an outlet
+    # front page proves nothing and is stale within hours.
+    #
+    # This shipped broken: Google News RSS gives the outlet homepage in its
+    # <source> element, its redirect no longer resolves, and the real URL is not
+    # recoverable from the encoded token. Two records went live linking to
+    # crn.com and ft.com front pages before this guard existed.
+    path = urlparse(source_url).path.strip("/")
+    if not path:
+        raise Rejected(f"source_url is a bare domain, not an article: {source_url}")
+
     raw_text = (raw.get("raw_text") or "").strip()
     if not raw_text:
         # The sibling shipped a source that set every field except this one and

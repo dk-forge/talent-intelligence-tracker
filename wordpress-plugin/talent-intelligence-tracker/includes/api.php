@@ -33,6 +33,9 @@ function tit_register_routes() {
     register_rest_route(TIT_NS, '/bulk', array(
         'methods' => 'POST', 'callback' => 'tit_api_bulk', 'permission_callback' => $keyed,
     ));
+    register_rest_route(TIT_NS, '/retract', array(
+        'methods' => 'POST', 'callback' => 'tit_api_retract', 'permission_callback' => $keyed,
+    ));
 }
 add_action('rest_api_init', 'tit_register_routes');
 
@@ -216,6 +219,39 @@ function tit_api_add(WP_REST_Request $req) {
     $result = tit_insert_signal($row);
     if (is_wp_error($result)) return $result;
     return rest_ensure_response(array('result' => $result));
+}
+
+/**
+ * Withdraw a record from public view without destroying it.
+ *
+ * Sets is_current = 0 and records why. The row survives, so "what did we
+ * publish, and when did we withdraw it" stays answerable — which is the whole
+ * point of an event-sourced table, and what a corrections log needs.
+ */
+function tit_api_retract(WP_REST_Request $req) {
+    global $wpdb;
+    $body = $req->get_json_params();
+    $signal_id = isset($body['signal_id']) ? sanitize_text_field($body['signal_id']) : '';
+    $reason    = isset($body['reason']) ? sanitize_text_field($body['reason']) : '';
+
+    if ($signal_id === '' || $reason === '') {
+        return new WP_Error('tit_bad_body', 'signal_id and reason are both required',
+                            array('status' => 400));
+    }
+
+    $table = tit_table_name();
+    $updated = $wpdb->query($wpdb->prepare(
+        "UPDATE {$table} SET is_current = 0, notes = %s WHERE signal_id = %s AND is_current = 1",
+        'retracted: ' . $reason,
+        $signal_id
+    ));
+
+    if ($updated === false) {
+        return new WP_Error('tit_retract_failed', $wpdb->last_error, array('status' => 500));
+    }
+
+    tit_flush_caches();
+    return rest_ensure_response(array('retracted' => (int) $updated, 'signal_id' => $signal_id));
 }
 
 function tit_api_bulk(WP_REST_Request $req) {
