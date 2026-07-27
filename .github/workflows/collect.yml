@@ -69,7 +69,8 @@ jobs:
           python run_collect.py \
             --run-index "${{ steps.idx.outputs.value }}" \
             ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
-            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
+            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }} \
+            --source "${{ inputs.source || 'google_news' }}"
 
       - name: Status
         if: ${{ !inputs.dry_run }}

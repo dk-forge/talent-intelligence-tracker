@@ -23,9 +23,12 @@ COLLECTOR = "gdelt"
 
 MAX_RECORDS = 75
 
-# GDELT allows roughly one request every 5 seconds and answers 429 with plain
-# text. Anything shorter than this loses whole runs.
-MIN_PAUSE = 6.0
+# GDELT's documented limit is one request per 5 seconds, but the real behaviour
+# is erratic and load-dependent: identical requests succeed and 429 minutes
+# apart. Measured roughly a 50% success rate at 6s spacing, so pace generously
+# and retry rather than treating a 429 as fatal.
+MIN_PAUSE = 12.0
+MAX_ATTEMPTS = 4
 
 
 def build_query_url(query: str, *, timespan: str = "3d", records: int = MAX_RECORDS) -> str:
@@ -45,16 +48,22 @@ class RateLimited(RuntimeError):
     limit into a silent zero. Raise instead."""
 
 
-def fetch(query: str, *, timespan: str = "3d", timeout: int = 45) -> list[dict]:
-    resp = requests.get(
-        build_query_url(query, timespan=timespan),
-        headers={"User-Agent": USER_AGENT},
-        timeout=timeout,
-    )
-    if resp.status_code == 429 or b"limit requests" in resp.content[:400]:
-        raise RateLimited("GDELT rate limit: one request per 5 seconds")
-    resp.raise_for_status()
-    return parse(resp.content, query)
+def fetch(query: str, *, timespan: str = "3d", timeout: int = 45,
+          attempts: int = MAX_ATTEMPTS) -> list[dict]:
+    """Fetch one query, retrying through GDELT's erratic throttling."""
+    for attempt in range(attempts):
+        resp = requests.get(
+            build_query_url(query, timespan=timespan),
+            headers={"User-Agent": USER_AGENT},
+            timeout=timeout,
+        )
+        throttled = resp.status_code == 429 or b"limit requests" in resp.content[:400]
+        if not throttled:
+            resp.raise_for_status()
+            return parse(resp.content, query)
+        if attempt < attempts - 1:
+            time.sleep(MIN_PAUSE * (attempt + 1))
+    raise RateLimited(f"GDELT throttled after {attempts} attempts")
 
 
 def parse(payload: bytes, query: str = "") -> list[dict]:
@@ -105,12 +114,9 @@ def collect(queries: list[str], *, timespan: str = "3d", pause: float = MIN_PAUS
         try:
             batch = fetch(query, timespan=timespan)
         except RateLimited:
-            # Back off hard and retry once; a lost query is a coverage hole.
-            time.sleep(pause * 3)
-            try:
-                batch = fetch(query, timespan=timespan)
-            except (RateLimited, requests.RequestException):
-                continue
+            # fetch() already retried with backoff. A lost query is a coverage
+            # hole, not a crash — the health ledger records the shortfall.
+            continue
         except requests.RequestException:
             # One bad query must not lose the queries that already succeeded.
             continue

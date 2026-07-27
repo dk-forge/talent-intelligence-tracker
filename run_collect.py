@@ -16,7 +16,7 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import google_news
+from collectors import gdelt, google_news
 from pipeline import classify, prefilter, publish, schema, store, validate
 
 RUNS_PER_DAY = 2
@@ -43,9 +43,11 @@ def build_queries(run_index: int) -> list[str]:
     return queries
 
 
-def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> int:
+def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
+        source: str = "google_news") -> int:
     conn = schema.connect()
-    collector = google_news.COLLECTOR
+    module = gdelt if source == "gdelt" else google_news
+    collector = module.COLLECTOR
 
     if offline:
         items = _fixture_items()
@@ -53,7 +55,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
         queries = build_queries(run_index)
         print(f"[{collector}] {len(queries)} queries")
         try:
-            items = google_news.collect(queries)
+            items = module.collect(queries)
         except Exception as exc:
             store.report_health(conn, collector, status="error", detail=str(exc)[:400])
             conn.commit()
@@ -77,7 +79,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None) -> i
     if limit:
         kept = kept[:limit]
 
-    if not offline:
+    # Google News hands back an aggregator redirect and needs resolving. GDELT
+    # already returns the publisher's own URL, which is the whole reason it
+    # leads: a homepage is not a receipt.
+    if not offline and source == "google_news":
         kept = [google_news.resolve_source_url(item) for item in kept]
 
     stored = duplicates = rejected = skipped = 0
@@ -239,6 +244,8 @@ def main() -> int:
     parser.add_argument("--offline", action="store_true", help="fixtures only, no network or LLM")
     parser.add_argument("--run-index", type=int, default=0, help="0 or 1, for segment rotation")
     parser.add_argument("--limit", type=int, help="cap candidates, for cheap testing")
+    parser.add_argument("--source", choices=["google_news", "gdelt"],
+                        default="google_news", help="which collector to run")
     parser.add_argument("--publish", action="store_true",
                         help="after storing, push unpublished rows to WordPress")
     args = parser.parse_args()
@@ -247,7 +254,7 @@ def main() -> int:
         parser.error("--offline is only meaningful with --dry-run")
 
     code = run(dry_run=args.dry_run, offline=args.offline,
-               run_index=args.run_index, limit=args.limit)
+               run_index=args.run_index, limit=args.limit, source=args.source)
 
     if args.publish and not args.dry_run:
         code = max(code, _publish())
