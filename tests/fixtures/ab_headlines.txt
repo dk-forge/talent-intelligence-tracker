@@ -1,0 +1,23 @@
+# Real headlines captured from live collection runs. Used for model A/B tests.
+# Mix is deliberate: genuine signals, near-misses, and noise that the free
+# filter lets through. A model that only agrees on the easy ones is not useful.
+WWT CEO On 'Supercharging' Cisco, VMware And Microsoft Relationships, Hiring Spree And Booming Softchoice Sales
+NHS plans to scale back recruitment drive and use AI to avoid 'financial ruin'
+US telecom giant T-Mobile sets up global tech centre in Hyderabad
+Heineken launches global capability centre in Hyderabad
+US Biotech Regeneron to launch Global Capability Centre in Hyderabad
+Nestle Business Solutions to open new GCC at Hyderabad
+Woolworths reshapes leadership structure to accelerate growth
+Ford India's new Coimbatore hub to drive data science, enhance engineering
+NTT DATA launches programme to support global companies setting up in India
+Hong Kong accounting firms plan hiring spree and embrace AI to attract talent
+RTX's Pratt & Whitney Announces New $200M Columbus Expansion, Cuts Ribbon
+Organic Traditions Secures $10.5M to Accelerate U.S. Expansion
+Big Rapids mayor targets economic development to create jobs and retain residents
+DeWine: Ohio approves 7 projects to create jobs and boost local economy
+Yellowstone Solar Project will create jobs and tax revenue through local hiring
+Yatu Lau Company unveils major business plans to create jobs and revive district
+Anglesey Freeport gets 25 million pound boost to create jobs and growth
+Uzbekistan bets on digitalization to create jobs and compete globally
+House Passes Ricks, Camacho Bill to Create Jobs and New Small Businesses
+Investing in Somalia's Climate Resilience Now to Create Jobs and Resilience
