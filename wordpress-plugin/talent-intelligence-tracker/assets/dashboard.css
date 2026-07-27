@@ -193,7 +193,7 @@
 .tit-chart h3 { margin:0 0 3px; font-size:15px; color:var(--tit-fg); font-weight:650; }
 .tit-chart .tit-sub { margin:0 0 14px; font-size:13px; color:var(--tit-mut); }
 .tit-rank { display:grid; gap:9px; }
-.tit-rank-row { display:grid; grid-template-columns:96px 1fr auto; gap:10px;
+.tit-rank-row { display:grid; grid-template-columns:104px 1fr auto; gap:10px;
   align-items:center; font-size:14px; }
 .tit-rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:var(--tit-fg); }
@@ -201,10 +201,13 @@
 .tit-rank-fill { display:block; height:100%; border-radius:99px; background:var(--tit-blue); }
 .tit-rank-n { font-variant-numeric:tabular-nums; color:var(--tit-mut);
   font-weight:600; min-width:22px; text-align:right; }
-.tit-rank-row:nth-child(2) .tit-rank-fill { background:var(--tit-orange); }
-.tit-rank-row:nth-child(3) .tit-rank-fill { background:var(--tit-violet); }
-.tit-rank-row:nth-child(4) .tit-rank-fill { background:var(--tit-teal); }
-.tit-rank-row:nth-child(n+5) .tit-rank-fill { background:#6b7684; }
+/* One hue for a magnitude chart. Colour by rank would repaint the survivors
+   every time a filter changed the order, so the country chart stays one blue
+   and the bar length carries the magnitude. */
+.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-orange); }
+.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-violet); }
+.tit-rank-row[data-dir="comp_shift"]   .tit-rank-fill { background:var(--tit-teal); }
+.tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:#6b7684; }
 
 /* --- Table: colour the direction column, keep the words ---------------- */
 .tit-table tbody tr:hover { background:#f9fbfd; }
@@ -251,3 +254,14 @@
 .tit-region-n { font-size:12.5px; font-variant-numeric:tabular-nums;
   color:var(--tit-mut); background:#f1f4f8; border-radius:99px; padding:1px 7px; }
 .tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.24); color:#fff; }
+
+/* The theme tracks its headings wide, which turns "11" into "1 1". Numerals in
+   our own figures opt out. */
+.tit-wrap .tit-glance-what strong, .tit-wrap .tit-n,
+.tit-rank-n, .tit-region-n { letter-spacing:0; }
+
+.tit-chart-wide { grid-column:1 / -1; }
+.tit-chart-wide .tit-pillars { margin:0; }
+
+@media (min-width:560px){ .tit-rank-row { grid-template-columns:150px 1fr auto; } }
+.tit-wrap .tit-chart-wide { margin:0 0 16px; }

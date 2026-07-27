@@ -147,6 +147,20 @@ function tit_dashboard_shortcode() {
         <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($verified)); ?></span><span class="tit-l">from official filings</span></div>
       </div>
 
+      <div class="tit-regions" role="group" aria-label="Filter by region">
+        <?php foreach (tit_regions($counts_by_country) as $r) : ?>
+          <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
+                  data-codes="<?php echo esc_attr($r['codes']); ?>">
+            <span class="tit-region-flag" aria-hidden="true"><?php echo $r['flag']; ?></span>
+            <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
+            <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
+          </button>
+        <?php endforeach; ?>
+      </div>
+
+      <div class="tit-chart tit-chart-wide">
+        <h3>What kind of update</h3>
+        <p class="tit-sub">Every update falls into one of four kinds.</p>
       <div class="tit-pillars">
         <?php foreach ($by_pillar as $p) :
             $key = $p['pillar'];
@@ -160,16 +174,6 @@ function tit_dashboard_shortcode() {
           </div>
         <?php endforeach; ?>
       </div>
-
-      <div class="tit-regions" role="group" aria-label="Filter by region">
-        <?php foreach (tit_regions($counts_by_country) as $r) : ?>
-          <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
-                  data-codes="<?php echo esc_attr($r['codes']); ?>">
-            <span class="tit-region-flag" aria-hidden="true"><?php echo $r['flag']; ?></span>
-            <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
-            <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
-          </button>
-        <?php endforeach; ?>
       </div>
 
       <div class="tit-charts">
@@ -181,7 +185,7 @@ function tit_dashboard_shortcode() {
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
             foreach ($by_country as $c) : ?>
               <div class="tit-rank-row">
-                <span class="tit-rank-name"><?php echo esc_html($c['k']); ?></span>
+                <span class="tit-rank-name"><?php echo esc_html(tit_country_name($c['k'])); ?></span>
                 <span class="tit-rank-track"><span class="tit-rank-fill"
                   style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
                 <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
@@ -197,7 +201,7 @@ function tit_dashboard_shortcode() {
             <?php
             $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
             foreach ($by_direction as $d) : ?>
-              <div class="tit-rank-row">
+              <div class="tit-rank-row" data-dir="<?php echo esc_attr($d['k']); ?>">
                 <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
                 <span class="tit-rank-track"><span class="tit-rank-fill"
                   style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
@@ -303,6 +307,37 @@ function tit_dashboard_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
+
+/**
+ * ISO codes are how the data is stored and a bad thing to read. "BE" is not a
+ * country to anyone who is not already thinking in codes.
+ *
+ * The list covers what we actually collect from; an unknown code falls through
+ * to the code itself rather than to a guess.
+ */
+function tit_country_name($code) {
+    static $names = array(
+        'US' => 'United States', 'CA' => 'Canada', 'GB' => 'United Kingdom',
+        'IE' => 'Ireland', 'DE' => 'Germany', 'FR' => 'France',
+        'NL' => 'Netherlands', 'BE' => 'Belgium', 'ES' => 'Spain',
+        'IT' => 'Italy', 'SE' => 'Sweden', 'NO' => 'Norway',
+        'DK' => 'Denmark', 'FI' => 'Finland', 'PL' => 'Poland',
+        'CH' => 'Switzerland', 'AT' => 'Austria', 'PT' => 'Portugal',
+        'CZ' => 'Czechia', 'GR' => 'Greece', 'RO' => 'Romania',
+        'HU' => 'Hungary', 'IN' => 'India', 'SG' => 'Singapore',
+        'JP' => 'Japan', 'CN' => 'China', 'HK' => 'Hong Kong',
+        'AU' => 'Australia', 'NZ' => 'New Zealand', 'KR' => 'South Korea',
+        'MY' => 'Malaysia', 'PH' => 'Philippines', 'ID' => 'Indonesia',
+        'TH' => 'Thailand', 'VN' => 'Vietnam', 'TW' => 'Taiwan',
+        'BR' => 'Brazil', 'MX' => 'Mexico', 'AR' => 'Argentina',
+        'CL' => 'Chile', 'CO' => 'Colombia', 'PE' => 'Peru',
+        'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia',
+        'IL' => 'Israel', 'QA' => 'Qatar', 'TR' => 'Turkey',
+        'ZA' => 'South Africa', 'NG' => 'Nigeria', 'KE' => 'Kenya',
+        'EG' => 'Egypt', 'MA' => 'Morocco',
+    );
+    return $names[$code] ?? $code;
+}
 
 /**
  * The four at-a-glance lines: today, this week, this month, this year.
