@@ -84,6 +84,32 @@ STANDALONE_QUERIES = (
     "global capability centre",
 )
 
+# --- Google News queries ---------------------------------------------------
+#
+# Now that publisher URLs resolve, these have to earn their keep. The broad
+# "to create jobs" sweep returned political and economic-development stories —
+# Ohio approving projects, a bill passing, Uzbekistan digitalising — none of
+# which name an employer.
+#
+# Two fixes: phrases that only a company announcement uses, and `when:` so we
+# see today's news rather than a stale week. Operators go inside the query
+# string, which is what makes Google News queryable rather than a firehose.
+
+GOOGLE_NEWS_QUERIES = (
+    '("appoints chief executive" OR "names chief executive" OR "appointed CEO") when:3d',
+    '("appoints chief financial officer" OR "appoints CFO" OR "new chief people officer") when:3d',
+    '("steps down as chief executive" OR "steps down as CEO" OR "to step down as CEO") when:3d',
+    '("hiring spree" OR "recruitment drive" OR "to ramp up hiring") when:3d',
+    '("plans to hire" OR "will hire" OR "to add jobs") ("engineers" OR "staff" OR "roles") when:3d',
+    '("opens new office" OR "opens its new" OR "new engineering hub") when:3d',
+    '("global capability centre" OR "global capability center") when:3d',
+    '("raises" OR "raised") ("Series A" OR "Series B" OR "Series C" OR "seed funding") when:3d',
+    '("acquires" OR "to acquire") ("startup" OR "company") when:2d',
+    '("pay rise" OR "raises minimum salary" OR "retention bonus") when:3d',
+    '("return to office" OR "remote work policy") ("employees" OR "staff") when:3d',
+)
+
+
 # --- GDELT queries ---------------------------------------------------------
 #
 # GDELT is not Google News and its query language is not the same: a space

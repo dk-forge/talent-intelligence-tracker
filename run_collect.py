@@ -33,6 +33,10 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     noise out of 219."""
     if source == "gdelt":
         return list(registry.GDELT_QUERIES)
+    if source == "google_news":
+        # Precise phrases plus `when:` recency. The old broad sweep returned
+        # political job-creation stories with no employer in them.
+        return list(registry.GOOGLE_NEWS_QUERIES)
 
     base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
 
