@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.0.1');
+define('TIT_VERSION', '1.0.2');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -136,9 +136,20 @@ function tit_render_admin_page() {
         }
     }
 
+    // Shown exactly once, here, immediately after generating. The stored value
+    // is never displayed again, so a key that is not copied now has to be
+    // regenerated. Telling someone to "copy it" without showing it, which is
+    // what the first version of this did, is a trap.
     if (isset($_POST['tit_generate_key']) && check_admin_referer('tit_set_key')) {
-        update_option('tit_api_key', bin2hex(random_bytes(32)), false);
-        $notice = '<div class="notice notice-success"><p>New key generated. Copy it into the WP_API_KEY secret in GitHub, or writes will be rejected.</p></div>';
+        $generated = bin2hex(random_bytes(32));
+        update_option('tit_api_key', $generated, false);
+        $notice = '<div class="notice notice-success"><p><strong>New key generated.</strong> '
+                . 'Copy it now, it is not shown again. Paste it into the '
+                . '<code>WP_API_KEY</code> secret in the GitHub repository, or every '
+                . 'write stays rejected.</p>'
+                . '<p><input type="text" readonly onclick="this.select()" '
+                . 'style="width:100%;max-width:640px;font-family:monospace;padding:6px;" '
+                . 'value="' . esc_attr($generated) . '"></p></div>';
     }
 
     global $wpdb;
