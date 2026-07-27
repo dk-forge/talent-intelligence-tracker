@@ -64,6 +64,20 @@
   "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred."
  },
  {
+  "name": "500 Global",
+  "url": "https://500.co",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Accel",
   "url": "https://www.accel.com",
   "status": "candidate",
@@ -147,6 +161,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Alchemist Accelerator",
+  "url": "https://www.alchemistaccelerator.com",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Alibaba Group Newsroom",
   "url": "https://www.alibabagroup.com/en-US/news-and-media",
   "status": "candidate",
@@ -163,6 +191,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "AlleyWatch",
+  "url": "https://www.alleywatch.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.alleywatch.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "AlphaSense",
@@ -429,6 +471,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "ArcticStartup",
+  "url": "https://arcticstartup.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "Finland",
+  "rss": "https://arcticstartup.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Arizona Commerce Authority",
   "url": "https://www.azcommerce.com",
   "status": "candidate",
@@ -515,6 +571,36 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Austin Business Journal",
+  "url": "https://www.bizjournals.com/austin",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "HQ Relocation",
+   "Facility Expansion"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/austin/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Australian Financial Review (Technology)",
+  "url": "https://www.afr.com/technology",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "M&A",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Australian Securities and Investments Commission",
   "url": "https://asic.gov.au",
   "status": "candidate",
@@ -530,6 +616,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Automotive News",
+  "url": "https://www.autonews.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Facility Expansion"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.autonews.com/rss",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Axios",
@@ -617,6 +717,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Becker's Hospital Review",
+  "url": "https://www.beckershospitalreview.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "M&A",
+   "Executive Hire"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.beckershospitalreview.com/?format=feed",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Berkeley SkyDeck",
@@ -772,6 +887,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "BostInno",
+  "url": "https://www.bizjournals.com/boston/inno",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Hiring"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/boston/inno/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Boston Business Journal",
@@ -1080,6 +1210,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Canary Media",
+  "url": "https://www.canarymedia.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.canarymedia.com/feed",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Capital Factory",
   "url": "https://capitalfactory.com",
   "status": "candidate",
@@ -1114,6 +1258,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Carnegie Mellon CTTEC",
+  "url": "https://www.cmu.edu/cttec/news/",
+  "status": "candidate",
+  "category": "University Innovation",
+  "signals": [
+   "Spinouts"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Carta",
@@ -1427,6 +1585,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "ClinicalTrials.gov",
+  "url": "https://clinicaltrials.gov",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Clinical Trial",
+   "FDA Approval"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://clinicaltrials.gov/ct2/results/rss.xml",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Cloud Native Computing Foundation",
   "url": "https://www.cncf.io",
   "status": "candidate",
@@ -1458,6 +1631,22 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "CoinDesk",
+  "url": "https://www.coindesk.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Regulation",
+   "Executive Hire"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Colorado Office of Economic Development and International Trade",
@@ -1650,6 +1839,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Construction Dive",
+  "url": "https://www.constructiondive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Facility Expansion"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.constructiondive.com/feeds/news/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Consumer Financial Protection Bureau",
   "url": "https://www.consumerfinance.gov",
   "status": "candidate",
@@ -1666,6 +1869,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Contxto",
+  "url": "https://contxto.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Argentina",
+  "rss": "https://contxto.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Cooley GO",
@@ -1757,6 +1975,36 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Crain's Chicago",
+  "url": "https://www.chicagobusiness.com",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Executive Hire",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.chicagobusiness.com/rss",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Crain's New York",
+  "url": "https://www.crainsnewyork.com",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Executive Hire",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.crainsnewyork.com/rss",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "CrowdStrike Newsroom",
   "url": "https://www.crowdstrike.com/newsroom/",
   "status": "candidate",
@@ -1838,6 +2086,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "DailySocial",
+  "url": "https://dailysocial.id",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://dailysocial.id/feed",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Dallas Business Journal",
@@ -1938,6 +2200,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Defense News",
+  "url": "https://www.defensenews.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Government Contract",
+   "M&A"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.defensenews.com/arc/outboundfeeds/rss/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Defense One",
@@ -2129,6 +2406,34 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Disrupt Africa",
+  "url": "https://disrupt-africa.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "South Africa",
+  "rss": "https://disrupt-africa.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "dot.LA",
+  "url": "https://dot.la",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://dot.la/feeds/feed.rss",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Dow Jones Newswires",
   "url": "https://www.dowjones.com/professional/",
   "status": "candidate",
@@ -2145,6 +2450,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "e27",
+  "url": "https://e27.co",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "Singapore",
+  "rss": "https://e27.co/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Economic Development Administration",
@@ -2268,6 +2587,22 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Endpoints News",
+  "url": "https://endpts.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Executive Hire",
+   "M&A",
+   "FDA Approval"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://endpts.com/feed/",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Energy Information Administration",
   "url": "https://www.eia.gov",
   "status": "candidate",
@@ -2300,6 +2635,34 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "ERE",
+  "url": "https://www.ere.net",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Recruiting Campaigns"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.ere.net/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "ETH Zurich Industry Relations",
+  "url": "https://ethz.ch/en/industry.html",
+  "status": "candidate",
+  "category": "University Innovation",
+  "signals": [
+   "Spinouts"
+  ],
+  "coverage": "Local",
+  "country": "Switzerland",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "EU-Startups",
@@ -2680,6 +3043,35 @@
   "notes": ""
  },
  {
+  "name": "Finextra",
+  "url": "https://www.finextra.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Partnership"
+  ],
+  "coverage": "Global",
+  "country": "United Kingdom",
+  "rss": "https://www.finextra.com/rss/headlines.aspx",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "FinLedger",
+  "url": "https://finledger.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://finledger.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "FINRA",
   "url": "https://www.finra.org",
   "status": "candidate",
@@ -2848,6 +3240,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "FreightWaves",
+  "url": "https://www.freightwaves.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Layoffs",
+   "Hiring"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.freightwaves.com/feed",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "G2",
@@ -3228,6 +3635,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Gruenderszene",
+  "url": "https://www.businessinsider.de/gruenderszene/",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "GV",
   "url": "https://www.gv.com",
   "status": "candidate",
@@ -3386,6 +3807,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Houston Chronicle Business",
+  "url": "https://www.houstonchronicle.com/business",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Hiring"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "HR Dive",
   "url": "https://www.hrdive.com",
   "status": "candidate",
@@ -3419,6 +3854,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Hypepotamus",
+  "url": "https://hypepotamus.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://hypepotamus.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "IDA Ireland",
@@ -3524,6 +3973,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Inc42",
+  "url": "https://inc42.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Layoffs"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://inc42.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Indeed Hiring Lab",
   "url": "https://www.hiringlab.org",
   "status": "candidate",
@@ -3574,6 +4038,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "IndieBio",
+  "url": "https://indiebio.co",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "InfoWorld",
@@ -3814,6 +4292,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "ITWeb",
+  "url": "https://www.itweb.co.za",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Hiring",
+   "Telecom"
+  ],
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://www.itweb.co.za/rss",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Japan External Trade Organization",
   "url": "https://www.jetro.go.jp/en/",
   "status": "candidate",
@@ -3987,6 +4480,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "LA Business Journal",
+  "url": "https://labusinessjournal.com",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Hiring",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://labusinessjournal.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "La French Tech",
   "url": "https://lafrenchtech.gouv.fr",
   "status": "candidate",
@@ -4020,6 +4528,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Layoffs.fyi",
+  "url": "https://layoffs.fyi",
+  "status": "candidate",
+  "category": "Labor Market Intelligence",
+  "signals": [
+   "Layoffs",
+   "Headcount Reductions"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Lightcast",
@@ -4160,6 +4683,34 @@
   "notes": "Microsoft venture fund."
  },
  {
+  "name": "Maddyness",
+  "url": "https://www.maddyness.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.maddyness.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Manufacturing Dive",
+  "url": "https://www.manufacturingdive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Manufacturing Expansion"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.manufacturingdive.com/feeds/news/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "MarketWatch",
   "url": "https://www.marketwatch.com",
   "status": "candidate",
@@ -4190,6 +4741,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "MassChallenge",
+  "url": "https://masschallenge.org",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "McKinsey Global Institute",
@@ -4278,6 +4843,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "MIT Technology Licensing Office",
+  "url": "https://tlo.mit.edu/news",
+  "status": "candidate",
+  "category": "University Innovation",
+  "signals": [
+   "Spinouts",
+   "Patent"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "MIT Technology Review",
@@ -4671,6 +5251,36 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Oxford University Innovation",
+  "url": "https://innovation.ox.ac.uk/news/",
+  "status": "candidate",
+  "category": "University Innovation",
+  "signals": [
+   "Spinouts",
+   "Funding"
+  ],
+  "coverage": "Local",
+  "country": "United Kingdom",
+  "rss": "https://innovation.ox.ac.uk/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "People Data Labs",
+  "url": "https://www.peopledatalabs.com",
+  "status": "candidate",
+  "category": "Workforce Intelligence",
+  "signals": [
+   "Headcount Growth",
+   "Employees Added"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Pew Research Center",
   "url": "https://www.pewresearch.org",
   "status": "candidate",
@@ -4721,6 +5331,21 @@
   "notes": ""
  },
  {
+  "name": "Pittsburgh Business Times",
+  "url": "https://www.bizjournals.com/pittsburgh",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Funding",
+   "Hiring"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/pittsburgh/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Pittsburgh Regional Alliance",
   "url": "https://pittsburghregion.org",
   "status": "candidate",
@@ -4738,6 +5363,35 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Plug and Play Tech Center",
+  "url": "https://www.plugandplaytechcenter.com",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Potomac Tech Wire",
+  "url": "https://potomactechwire.com",
+  "status": "candidate",
+  "category": "Newsletter",
+  "signals": [
+   "Government Contract",
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "United States",
+  "rss": "",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "PR Newswire",
   "url": "https://www.prnewswire.com/",
   "status": "candidate",
@@ -4752,6 +5406,21 @@
   "rss": "https://www.prnewswire.com/rss/",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "Puget Sound Business Journal",
+  "url": "https://www.bizjournals.com/seattle",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Hiring",
+   "Layoffs"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/seattle/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "PwC",
@@ -4772,6 +5441,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "PYMNTS",
+  "url": "https://www.pymnts.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "M&A",
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.pymnts.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Quartz",
   "url": "https://qz.com",
   "status": "candidate",
@@ -4787,6 +5471,65 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "RecruitingDaily",
+  "url": "https://recruitingdaily.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "HR Tech"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://recruitingdaily.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Refresh Miami",
+  "url": "https://refreshmiami.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://refreshmiami.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Rest of World",
+  "url": "https://restofworld.org",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Labor Market Trends"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://restofworld.org/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Retail Dive",
+  "url": "https://www.retaildive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Office Closure",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.retaildive.com/feeds/news/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Reuters",
@@ -4838,6 +5581,20 @@
   "notes": ""
  },
  {
+  "name": "SaaStr",
+  "url": "https://www.saastr.com",
+  "status": "candidate",
+  "category": "Community",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.saastr.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "SAM.gov",
   "url": "https://sam.gov",
   "status": "candidate",
@@ -4852,6 +5609,36 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "San Francisco Business Times",
+  "url": "https://www.bizjournals.com/sanfrancisco",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Office Opening",
+   "Executive Hire"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/sanfrancisco/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "SBIR/STTR Awards",
+  "url": "https://www.sbir.gov",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Grants",
+   "Spinouts"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.sbir.gov/rss",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "Science",
@@ -4954,6 +5741,37 @@
   "notes": "Best single source for European startups."
  },
  {
+  "name": "Silicon Hills News",
+  "url": "https://siliconhillsnews.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Relocation",
+   "Facility Expansion"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://siliconhillsnews.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Silicon Valley Business Journal",
+  "url": "https://www.bizjournals.com/sanjose",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Layoffs",
+   "HQ Relocation"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/sanjose/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "SiliconANGLE",
   "url": "https://siliconangle.com",
   "status": "candidate",
@@ -4986,6 +5804,92 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "SOSV",
+  "url": "https://sosv.com",
+  "status": "candidate",
+  "category": "Venture Capital",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "South Florida Business Journal",
+  "url": "https://www.bizjournals.com/southflorida",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/southflorida/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "SpaceNews",
+  "url": "https://spacenews.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Government Contract"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://spacenews.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Staffing Industry Analysts",
+  "url": "https://www2.staffingindustry.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "M&A",
+   "Labor Market Trends"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www2.staffingindustry.com/rss/feed/SIA_Daily_News",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Stanford Office of Technology Licensing",
+  "url": "https://otl.stanford.edu/news",
+  "status": "candidate",
+  "category": "University Innovation",
+  "signals": [
+   "Spinouts"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Startup Daily",
+  "url": "https://www.startupdaily.net",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.startupdaily.net/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Startup Genome",
   "url": "https://startupgenome.com",
   "status": "candidate",
@@ -5003,6 +5907,108 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Startups.com.br",
+  "url": "https://startups.com.br",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Layoffs"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://startups.com.br/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "StartX",
+  "url": "https://startx.com",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Spinouts"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "STAT News",
+  "url": "https://www.statnews.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "FDA Approval",
+   "Clinical Trial"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.statnews.com/feed/",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Station F",
+  "url": "https://stationf.co",
+  "status": "candidate",
+  "category": "Startup Incubator",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "France",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Statistics Canada",
+  "url": "https://www150.statcan.gc.ca",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Job Postings",
+   "Salary Trends"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www150.statcan.gc.ca/n1/dai-quo/rss/dq-eq-eng.htm",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "StrictlyVC",
+  "url": "https://www.strictlyvc.com",
+  "status": "candidate",
+  "category": "Newsletter",
+  "signals": [
+   "Seed Funding",
+   "Series A"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.strictlyvc.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Supply Chain Dive",
+  "url": "https://www.supplychaindive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Facility Expansion"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.supplychaindive.com/feeds/news/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Tech in Asia",
   "url": "https://www.techinasia.com/",
   "status": "candidate",
@@ -5016,6 +6022,35 @@
   "rss": "https://www.techinasia.com/feed",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "Tech.eu",
+  "url": "https://tech.eu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "M&A"
+  ],
+  "coverage": "Regional",
+  "country": "Belgium",
+  "rss": "https://tech.eu/feed/",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "TechCabal",
+  "url": "https://techcabal.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding"
+  ],
+  "coverage": "Regional",
+  "country": "Nigeria",
+  "rss": "https://techcabal.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "TechCrunch",
@@ -5034,6 +6069,80 @@
   "notes": ""
  },
  {
+  "name": "Technical.ly",
+  "url": "https://technical.ly",
+  "status": "candidate",
+  "category": "Technology Community",
+  "signals": [
+   "Hiring",
+   "Funding"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://technical.ly/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "TechNode",
+  "url": "https://technode.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire"
+  ],
+  "coverage": "Regional",
+  "country": "China",
+  "rss": "https://technode.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Techstars",
+  "url": "https://www.techstars.com/portfolio",
+  "status": "candidate",
+  "category": "Startup Accelerator",
+  "signals": [
+   "Funding",
+   "Accelerator"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Tenders Electronic Daily",
+  "url": "https://ted.europa.eu",
+  "status": "candidate",
+  "category": "Public Procurement",
+  "signals": [
+   "Government Contract"
+  ],
+  "coverage": "Regional",
+  "country": "European Union",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "The Block",
+  "url": "https://www.theblock.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Layoffs"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.theblock.co/rss.xml",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "The Carlyle Group",
   "url": "https://www.carlyle.com",
   "status": "candidate",
@@ -5049,6 +6158,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "The Economic Times",
+  "url": "https://economictimes.indiatimes.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Hiring",
+   "Funding",
+   "Layoffs"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://economictimes.indiatimes.com/rss.cms",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "The Economist",
@@ -5151,6 +6276,36 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Triangle Business Journal",
+  "url": "https://www.bizjournals.com/triangle",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Facility Expansion"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/triangle/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "TrueUp",
+  "url": "https://www.trueup.io",
+  "status": "candidate",
+  "category": "Labor Market Intelligence",
+  "signals": [
+   "Hiring Freeze",
+   "Layoffs",
+   "Job Postings"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "U.S. Chamber of Commerce",
   "url": "https://www.uschamber.com",
   "status": "candidate",
@@ -5219,6 +6374,64 @@
   "notes": ""
  },
  {
+  "name": "UK Contracts Finder",
+  "url": "https://www.contractsfinder.service.gov.uk",
+  "status": "candidate",
+  "category": "Public Procurement",
+  "signals": [
+   "Government Contract"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "UK Home Office (Licensed Sponsors)",
+  "url": "https://www.gov.uk/government/publications/register-of-licensed-sponsors-workers",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Visa Sponsorship"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "UKTN",
+  "url": "https://www.uktech.news",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.uktech.news/feed",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Unleash",
+  "url": "https://www.unleash.ai",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "M&A",
+   "HR Tech"
+  ],
+  "coverage": "Global",
+  "country": "United Kingdom",
+  "rss": "https://www.unleash.ai/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "US Bureau of Labor Statistics (JOLTS)",
   "url": "https://www.bls.gov/jlt/",
   "status": "candidate",
@@ -5231,6 +6444,50 @@
   "rss": "https://www.bls.gov/feed/",
   "free": true,
   "notes": "Context only, never mixed into counts."
+ },
+ {
+  "name": "US Census Bureau (Business)",
+  "url": "https://www.census.gov/econ/",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Business Formation"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "US Department of Labor (Foreign Labor)",
+  "url": "https://www.dol.gov/agencies/eta/foreign-labor/performance",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Visa Sponsorship",
+   "Hiring Plans"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "US State WARN Notices",
+  "url": "https://www.dol.gov/agencies/eta/layoffs/warn",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Layoffs",
+   "Office Closure"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "USAspending",
@@ -5283,6 +6540,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "USPTO",
+  "url": "https://www.uspto.gov",
+  "status": "candidate",
+  "category": "Government Open Data",
+  "signals": [
+   "Patent",
+   "Innovation"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.uspto.gov/rss.xml",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "VentureBeat",
   "url": "https://venturebeat.com",
   "status": "candidate",
@@ -5299,6 +6571,20 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Washington Business Journal",
+  "url": "https://www.bizjournals.com/washington",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Government Contract"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://www.bizjournals.com/washington/feed",
+  "free": false,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "WIPO",
@@ -5335,6 +6621,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "WRAL TechWire",
+  "url": "https://wraltechwire.com",
+  "status": "candidate",
+  "category": "Technology Community",
+  "signals": [
+   "Funding",
+   "Hiring Plans"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://wraltechwire.com/feed/",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
   "name": "Y Combinator",
   "url": "https://www.ycombinator.com",
   "status": "candidate",
@@ -5365,6 +6666,21 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "YourStory",
+  "url": "https://yourstory.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Layoffs"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://yourstory.com/feed",
+  "free": true,
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "ZipRecruiter Economic Research",
