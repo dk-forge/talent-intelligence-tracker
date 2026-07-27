@@ -23,10 +23,17 @@ RUNS_PER_DAY = 2
 SEGMENTS_PER_RUN = 4
 
 
-def build_queries(run_index: int) -> list[str]:
+def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     """Layer 1 broad sweep + a rotating slice of the segment matrix, plus the
     standalone euphemism queries that must never be AND-ed with the base
-    vocabulary (spec 14)."""
+    vocabulary (spec 14).
+
+    GDELT gets its own list: its query language differs (space is AND, OR needs
+    parentheses) and reusing the Google News strings returned 216 pieces of
+    noise out of 219."""
+    if source == "gdelt":
+        return list(registry.GDELT_QUERIES)
+
     base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
 
     segments = registry.rotate(
@@ -52,7 +59,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if offline:
         items = _fixture_items()
     else:
-        queries = build_queries(run_index)
+        queries = build_queries(run_index, source)
         print(f"[{collector}] {len(queries)} queries")
         try:
             items = module.collect(queries)

@@ -82,6 +82,28 @@ STANDALONE_QUERIES = (
     "global capability centre",
 )
 
+# --- GDELT queries ---------------------------------------------------------
+#
+# GDELT is not Google News and its query language is not the same: a space
+# means AND, OR requires parentheses, and sourcelang: filters by language.
+# Reusing the Google News query strings produced 219 candidates of which 216
+# were noise, much of it non-English coverage of unrelated topics.
+#
+# These are written for how GDELT searches: narrow phrases that only appear in
+# corporate hiring coverage, English-only.
+
+GDELT_QUERIES = (
+    '("hiring spree" OR "to create jobs" OR "will create jobs") sourcelang:english',
+    '("global capability centre" OR "global capability center") sourcelang:english',
+    '("opens new office" OR "opens new hub" OR "new engineering hub") sourcelang:english',
+    '("appoints" OR "names") ("chief executive" OR "chief people officer" OR "chief financial officer") sourcelang:english',
+    '("steps down as" OR "to step down") ("chief executive" OR "ceo") sourcelang:english',
+    '("expands its workforce" OR "recruitment drive" OR "ramp up hiring") sourcelang:english',
+    '("return to office" OR "remote work policy" OR "hybrid working") sourcelang:english',
+    '("pay rise" OR "raises minimum salary" OR "retention bonus") sourcelang:english',
+)
+
+
 # --- Markets ---------------------------------------------------------------
 #
 # Every market starts at discovery_only. Promote one ONLY when its official
