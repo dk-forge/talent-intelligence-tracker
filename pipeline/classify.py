@@ -43,8 +43,19 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "predicted_outcome": "a checkable consequence, or empty",
  "check_after_date": "YYYY-MM-DD when that could be checked, or empty"}
 
-Set is_talent_signal false for anything that is not a hiring, leadership, comp
-or location-strategy development at a named employer.
+Set is_talent_signal true for any of these at a NAMED EMPLOYER:
+ - hiring, headcount or workforce change
+ - a leadership or board appointment or departure
+ - a pay, equity or benefits action
+ - a location decision: new office, hub, capability centre, RTO policy
+ - FUNDING: a round raised, investment received, or capital raised. Funding is
+   a leading indicator of hiring, so it counts as company_development with
+   signal_direction "hiring". Say so plainly in the read-through: what the money
+   means for who they will hire, and where.
+
+Set is_talent_signal false for anything else, and for anything with no named
+employer (government programmes, economic-development announcements, single job
+adverts, civil-service exam notices).
 
 A weak read-through is worse than none. Compare:
   BAD:  "This indicates a potential increase in hiring, possibly in tech roles."

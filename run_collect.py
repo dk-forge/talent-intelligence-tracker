@@ -61,7 +61,12 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         items = _fixture_items()
     else:
         queries = build_queries(run_index, source)
-        print(f"[{collector}] {len(queries)} queries")
+        # The SEC collectors search filings by form and item, not by query
+        # string, so reporting a query count for them is just misleading.
+        if source.startswith("sec_"):
+            print(f"[{collector}] searching SEC filings")
+        else:
+            print(f"[{collector}] {len(queries)} queries")
         try:
             items = module.collect(queries)
         except Exception as exc:
@@ -136,6 +141,11 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
 
         if classified is None:
             rejected += 1
+            # Never reject silently. A run that stores nothing must say why for
+            # every candidate — this exact silence hid three funding filings
+            # being discarded because the prompt did not list funding.
+            print(f"  REJECT  {item.get('headline','')[:70]}\n"
+                  f"          model judged it not a talent signal")
             continue
 
         try:
