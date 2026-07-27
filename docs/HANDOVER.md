@@ -4,7 +4,7 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: 2026-07-27, after the first successful publish.
+Last updated: 2026-07-27, after the accessibility and language overhaul (v1.2.1).
 
 ---
 
@@ -32,8 +32,17 @@ Run `python3 ops_status.py` first, every session. No deps, no keys.
   industry, state, function, funding, min_headcount, free-text `q`
 - 170 tests, CI green
 
+**Done since first publish:**
+- Colourblind-safe palette (blue/orange/violet, CVD dE 24.7 validated). The old
+  green/red was the classic red-green failure case.
+- WCAG AA contrast. NOTE: a `prefers-color-scheme: dark` block was added and
+  then removed — the WP theme forces a white page, so dark styles rendered as
+  light text on white. Do not re-add it without a real theme dark mode.
+- Recruiter language: "updates" not "signals", "Hiring up"/"Cutting back"/"Pay
+  change" not "direction", columns read "What happened / What it means / How solid"
+- All eight filters on the page, responsive 1/2/3 columns
+
 **Not done:**
-- Page template still shows only 4 filter dropdowns; the rest are API-only
 - Collection is DORMANT (schedule commented out in `collect.yml`)
 - No spend ceiling in code
 - Model switch (Gemini Flash-Lite gate + Haiku read-through) designed, not applied
