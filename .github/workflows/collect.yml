@@ -23,7 +23,7 @@ on:
       source:
         description: 'Collector to run'
         type: choice
-        options: [google_news, gdelt]
+        options: [google_news, gdelt, sec_edgar]
         default: google_news
       limit:
         description: 'Cap candidates sent to the LLM (blank = no cap)'

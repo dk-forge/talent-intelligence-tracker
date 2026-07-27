@@ -48,6 +48,7 @@ CONFIDENCE_TIERS = ("verified", "reported", "rumored")
 
 PRIMARY_SOURCE_DOMAINS = frozenset({
     "sec.gov",
+    "efts.sec.gov",
     "www.sec.gov",
     "find-and-update.company-information.service.gov.uk",
     "idaireland.com",
