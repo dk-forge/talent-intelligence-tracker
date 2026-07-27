@@ -40,6 +40,11 @@ GATE_MODELS = [
 
 READTHROUGH_MODELS = [
     "deepseek/deepseek-chat",
+    "google/gemini-2.5-flash-lite",
+    "google/gemini-2.5-flash",
+    "meta-llama/llama-3.3-70b-instruct",
+    "openai/gpt-5-mini",
+    "anthropic/claude-haiku-4.5",
     "anthropic/claude-sonnet-5",
 ]
 
@@ -189,7 +194,7 @@ def run_gate(key: str, headlines: list[str]) -> int:
 
 def run_readthrough(key: str, headlines: list[str]) -> int:
     """Quality comparison on items that are genuinely talent signals."""
-    sample = headlines[:6]
+    sample = headlines[2:6]
     for headline in sample:
         print(f"\n--- {headline[:72]}")
         for model in READTHROUGH_MODELS:
