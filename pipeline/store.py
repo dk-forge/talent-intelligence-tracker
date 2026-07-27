@@ -25,9 +25,14 @@ def mark_seen(conn: sqlite3.Connection, url: str, collector: str, outcome: str) 
 
 
 def store(conn: sqlite3.Connection, signal) -> str:
-    """Insert a signal. Returns 'stored' or 'duplicate'."""
-    if dedupe.exact_duplicate(conn, signal.content_hash):
-        return "duplicate"
+    """Insert a signal. Returns 'stored', 'duplicate' or 'retracted'.
+
+    'retracted' is reported separately so a withdrawn record resurfacing is
+    visible in the run output rather than looking like ordinary dedup.
+    """
+    known = dedupe.exact_duplicate(conn, signal.content_hash)
+    if known:
+        return known
     if dedupe.fuzzy_duplicate(conn, signal):
         return "duplicate"
 

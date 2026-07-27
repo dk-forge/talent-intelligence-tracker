@@ -18,12 +18,24 @@ SAME_EVENT_DAYS = 14
 NEAR_IDENTICAL_DAYS = 400
 
 
-def exact_duplicate(conn: sqlite3.Connection, content_hash: str) -> bool:
+def exact_duplicate(conn: sqlite3.Connection, content_hash: str) -> str | None:
+    """Return why this hash is already known, or None.
+
+    Deliberately ignores is_current. A retracted record is still a record we
+    have judged and withdrawn, and re-storing it would silently undo the
+    retraction — which is how the WWT homepage-sourced row came back. The
+    unique index spans all revisions, so checking only current rows also
+    crashed the run with an IntegrityError instead of skipping.
+    """
     row = conn.execute(
-        "SELECT 1 FROM signals WHERE content_hash = ? AND is_current = 1 LIMIT 1",
+        "SELECT is_current, notes FROM signals WHERE content_hash = ? LIMIT 1",
         (content_hash,),
     ).fetchone()
-    return row is not None
+    if row is None:
+        return None
+    if row["is_current"]:
+        return "duplicate"
+    return "retracted"
 
 
 def fuzzy_duplicate(conn: sqlite3.Connection, signal) -> str | None:

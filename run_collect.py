@@ -167,6 +167,11 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             _print_signal(signal)
         else:
             duplicates += 1
+            if outcome == "retracted":
+                # Say so plainly: a withdrawn record resurfacing is a judgement
+                # holding, not routine dedup.
+                print(f"  SKIP    {signal.headline[:66]}\n"
+                      f"          previously retracted, not re-stored")
 
     print(
         f"\n[{collector}] found={found} "
