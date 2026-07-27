@@ -119,8 +119,10 @@ share** (one item per query in turn), not a head slice: the sibling's flat
 fired.
 
 **Still not done:**
-- **Collection is DORMANT.** Schedule commented out in `collect.yml` lines 15-16.
-  Arming it is a human decision after reading a live dry run, per CLAUDE.md.
+- ~~Collection is DORMANT~~ **ARMED 2026-07-27**, 06:00 and 18:00 UTC, after six
+  live dry runs. To disarm, comment the two schedule lines out again; nothing
+  else changes. Spend is capped independently (`spend.py` exits 1 at 90% of the
+  monthly allowance, `DEFAULT_CANDIDATE_CAP` bounds each run at 40 candidates).
 - **Filters change the table but not the charts or the hero figures.** The
   stated goal is "every number, chart and row below updates to match"; the
   charts are server-rendered from the unfiltered set and do not re-fetch. This
@@ -166,6 +168,27 @@ collapsed to zero on a live publishing run. It has still produced no record.
 required within four business days, always have a real `sec.gov` document URL,
 are primary sources (so records earn `verified`), and SEC allows 10 req/s.
 `collectors/sec_edgar.py`.
+
+---
+
+## What six dry runs found
+
+Each of these was invisible until a real run was read line by line. Every one
+looked like a quiet news day from the outside.
+
+| # | Bug | How it showed up |
+|---|---|---|
+| 1 | The free filter killed **every funding story** | 78 of 96 filtered candidates were raises. A funding headline has no employment word in it, so a pillar named in the page's own headline had never produced a news record |
+| 2 | "No geography" **discarded paid candidates** | 6 of 12 classified records thrown away after the model had been paid, all real leadership changes. Geography is how we segment; it is not what makes a record true |
+| 3 | The prompt was **too timid to record a country** | One read-through said "in Egypt" while the country field was empty. "Named IN THE TEXT" was read so literally that datelines and nationalities did not count |
+| 4 | **OpenRouter 429s counted as rejections** | 5 candidates lost in one run, OpenAI tripling its Dublin headcount among them. A busy provider read as the model declining the story |
+| 5 | The country vocabulary knew **23 countries** while we queried 25 editions | Philippines and Egypt both normalised to None. The model was right and the vocabulary threw the answer away |
+| 6 | The **publisher never reached the classifier** | "USTA SC names new CEO" places nowhere alone; from the Post and Courier it is South Carolina. `source_name` sat in the item, unused |
+
+Measured across the six runs: **4/12 stored → 11/14 stored, 2/11 placed → 6/11
+placed, 0 deferred.** The remaining unplaced records are funding wire stories
+where the outlet genuinely implies no country, and those now say "Location not
+stated" rather than being discarded.
 
 ---
 

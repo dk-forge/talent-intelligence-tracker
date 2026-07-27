@@ -4,16 +4,22 @@ name: collect
 # deliberate: the repo is the system's memory, so any future session (human or
 # agent) can diff what changed and reconstruct what we knew on any past date.
 
-# DORMANT. The schedule is deliberately commented out until two things are
-# true: OPENROUTER_API_KEY exists in this repo's secrets, and a human has read
-# the output of a live dry run and agreed it looks right. Arming a collector
-# before seeing what it actually stores is how bad data gets in.
+# ARMED 2026-07-27, after six live dry runs. Runs 06:00 and 18:00 UTC.
 #
-# To arm: uncomment the two schedule lines below and push. Nothing else needs
-# to change. To check it first, run the workflow manually with dry_run ticked.
+# The gate was: the key exists, and a human has read a live dry run and agreed
+# it looks right. Six were read. They found and fixed, in order: the free filter
+# killing every funding story, geography rejections discarding paid candidates,
+# a prompt too timid to record a country, OpenRouter 429s counted as the model
+# rejecting the story, a country vocabulary of 23 against 25 queried editions,
+# and the publisher never reaching the classifier. The sixth run stored 11 of 14
+# with 6 placed and nothing deferred.
+#
+# To disarm: comment the two schedule lines out again. Nothing else changes.
+# Spend is capped independently — spend.py runs first and exits 1 at 90% of the
+# monthly allowance, and DEFAULT_CANDIDATE_CAP bounds each run at 40 candidates.
 on:
-  # schedule:
-  #   - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC
+  schedule:
+    - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC
   workflow_dispatch:
     inputs:
       dry_run:
