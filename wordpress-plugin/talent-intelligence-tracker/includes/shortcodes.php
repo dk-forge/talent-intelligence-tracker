@@ -260,17 +260,13 @@ function tit_dashboard_shortcode() {
         <table class="tit-table">
           <thead>
             <tr>
-              <th>What happened</th><th>Employer</th><th>Where</th>
+              <th>Employer</th><th>What happened</th><th>Where</th>
               <th>What it means</th><th>How solid</th><th>Source</th>
             </tr>
           </thead>
           <tbody id="tit-rows">
             <?php foreach ($rows as $r) : ?>
               <tr>
-                <td class="tit-headline" data-label="What happened">
-                  <span class="tit-h"><?php echo esc_html($r['headline']); ?></span>
-                  <span class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></span>
-                </td>
                 <td data-label="Employer"><?php
                   $ck = $r['company_key'] ?? '';
                   if ($ck && function_exists('tit_company_url')) {
@@ -279,6 +275,10 @@ function tit_dashboard_shortcode() {
                       echo esc_html($r['company']);
                   }
                 ?></td>
+                <td class="tit-headline" data-label="What happened">
+                  <span class="tit-h"><?php echo esc_html($r['headline']); ?></span>
+                  <span class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></span>
+                </td>
                 <td data-label="Where">
                   <?php
                   $place = $r['city'] ?: $r['hq_city'];

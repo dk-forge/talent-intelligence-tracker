@@ -301,8 +301,9 @@
     padding:14px 16px; margin:0 0 12px; background:#fff; }
   .tit-table td { border:0; padding:0; }
   .tit-table td + td { margin-top:9px; }
-  /* The headline leads the card, so it is the one cell with no label. */
-  .tit-table td[data-label]:not(.tit-headline)::before {
+  /* Employer then headline lead the card, so neither wears a label: the name
+     is the thing you scan for and a "EMPLOYER:" prefix above it is noise. */
+  .tit-table td[data-label]:not(.tit-headline):not([data-label="Employer"])::before {
     content:attr(data-label) ": "; font-size:12px; text-transform:uppercase;
     letter-spacing:.04em; color:var(--tit-mut); margin-right:6px; }
   .tit-headline { max-width:none; }
@@ -531,3 +532,20 @@
    hues without inventing new ones: they are the same violet and teal already
    validated for CVD separation against blue and #D55E00. */
 .tit-bar span, .tit-rank-fill { border-radius:22px; }
+
+
+/* The employer is what you scan a talent tracker for, so it leads the row. It
+   is set in the ink colour at full weight; the headline beside it carries the
+   detail. */
+.tit-table td[data-label="Employer"] { font-weight:650; white-space:nowrap; }
+.tit-table td[data-label="Employer"] a { color:var(--tit-fg); text-decoration:none;
+  border-bottom:1px solid var(--tit-line); }
+.tit-table td[data-label="Employer"] a:hover { color:var(--tit-blue);
+  border-bottom-color:var(--tit-blue); }
+@media (max-width:860px){
+  /* On a card it becomes the eyebrow above the headline, and may wrap. */
+  .tit-table td[data-label="Employer"] { white-space:normal; font-size:13px;
+    text-transform:uppercase; letter-spacing:.04em; color:var(--tit-mut); }
+  .tit-table td[data-label="Employer"] a { border-bottom:0; color:var(--tit-mut); }
+  .tit-table td[data-label="Employer"] + .tit-headline { margin-top:2px; }
+}

@@ -80,9 +80,9 @@
     // data-label mirrors the header text. Below the table breakpoint each row
     // becomes a card and the labels are the only thing naming the fields.
     return '<tr>' +
+      '<td data-label="Employer">' + esc(r.company) + '</td>' +
       '<td class="tit-headline" data-label="What happened"><span class="tit-h">' + esc(r.headline) + '</span>' +
       '<span class="tit-rt">' + esc(r.talent_readthrough) + '</span></td>' +
-      '<td data-label="Employer">' + esc(r.company) + '</td>' +
       '<td data-label="Where">' + where + '</td>' +
       '<td data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
         esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
