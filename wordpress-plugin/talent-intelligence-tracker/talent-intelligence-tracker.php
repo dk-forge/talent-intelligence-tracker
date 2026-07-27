@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.0.0');
+define('TIT_VERSION', '1.0.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -90,7 +90,8 @@ function tit_api_permission($request) {
     if ($stored === '') {
         return new WP_Error(
             'tit_key_missing',
-            'API key is not configured. Set TALENT_API_KEY in wp-config.php.',
+            'API key is not configured. Set it under Talent Intel in wp-admin, '
+            . 'or define TALENT_API_KEY in wp-config.php.',
             array('status' => 503)
         );
     }
@@ -117,10 +118,35 @@ add_action('admin_menu', 'tit_register_admin_page');
 function tit_render_admin_page() {
     if (!current_user_can('manage_options')) return;
 
+    $notice = '';
+
+    // Setting the key here means wp-config.php is never touched. Editing a
+    // core file over FTP risks 500-ing the whole blog; a stored option cannot.
+    // This form is in wp-admin, which is never page-cached, so a nonce is safe
+    // here (it would not be on a cached front-end page).
+    if (isset($_POST['tit_set_key']) && check_admin_referer('tit_set_key')) {
+        $submitted = trim((string) wp_unslash($_POST['tit_api_key_value']));
+        if ($submitted === '') {
+            $notice = '<div class="notice notice-error"><p>Key was empty. Nothing changed.</p></div>';
+        } elseif (strlen($submitted) < 32) {
+            $notice = '<div class="notice notice-error"><p>That looks too short to be the full key. Nothing changed.</p></div>';
+        } else {
+            update_option('tit_api_key', $submitted, false);
+            $notice = '<div class="notice notice-success"><p>Key saved. It must match the WP_API_KEY secret in the GitHub repository.</p></div>';
+        }
+    }
+
+    if (isset($_POST['tit_generate_key']) && check_admin_referer('tit_set_key')) {
+        update_option('tit_api_key', bin2hex(random_bytes(32)), false);
+        $notice = '<div class="notice notice-success"><p>New key generated. Copy it into the WP_API_KEY secret in GitHub, or writes will be rejected.</p></div>';
+    }
+
     global $wpdb;
     $table = tit_table_name();
     $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1");
     $has_key = tit_get_api_key() !== '';
+    $from_config = defined('TALENT_API_KEY') && TALENT_API_KEY;
+    echo $notice;
     ?>
     <div class="wrap">
         <h1>Talent Intelligence Tracker</h1>
@@ -128,15 +154,39 @@ function tit_render_admin_page() {
         <p>Plugin version <?php echo esc_html(TIT_VERSION); ?>, table <code><?php echo esc_html($table); ?></code>.</p>
 
         <h2>Pipeline API key</h2>
-        <?php if ($has_key) : ?>
-            <p>A key is configured. Requests must send it in the
-               <code>X-Talent-API-Key</code> header.</p>
-        <?php else : ?>
-            <p><strong>No key configured.</strong> All writes are rejected with 503.
-               Add <code>define('TALENT_API_KEY', '...');</code> to
-               <code>wp-config.php</code>, using the same value as the
+        <?php if ($from_config) : ?>
+            <p>A key is set in <code>wp-config.php</code>, which takes precedence
+               over anything stored here.</p>
+        <?php elseif ($has_key) : ?>
+            <p>A key is stored. The pipeline must send the same value in the
+               <code>X-Talent-API-Key</code> header, so it has to match the
                <code>WP_API_KEY</code> secret in the GitHub repository.</p>
+        <?php else : ?>
+            <p><strong>No key configured, so every write is rejected with 503.</strong>
+               Paste the value of your <code>WP_API_KEY</code> GitHub secret below.
+               Editing <code>wp-config.php</code> is not required.</p>
         <?php endif; ?>
+
+        <form method="post" style="margin:14px 0 24px;">
+            <?php wp_nonce_field('tit_set_key'); ?>
+            <p>
+                <label for="tit_api_key_value"><strong>Set the key</strong></label><br>
+                <input type="password" id="tit_api_key_value" name="tit_api_key_value"
+                       class="regular-text" autocomplete="off"
+                       placeholder="paste the WP_API_KEY value">
+                <button type="submit" name="tit_set_key" class="button button-primary">Save key</button>
+            </p>
+            <p class="description">
+                Stored as an option, never written to a core file. The value is
+                write-only here: it is not displayed back.
+            </p>
+            <p>
+                <button type="submit" name="tit_generate_key" class="button"
+                        onclick="return confirm('Generate a new key? The pipeline will be locked out until you copy it into the WP_API_KEY GitHub secret.');">
+                    Generate a new key instead
+                </button>
+            </p>
+        </form>
 
         <h2>Page</h2>
         <p>Put <code>[talent_intelligence_dashboard]</code> on the page at
