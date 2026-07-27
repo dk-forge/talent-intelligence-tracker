@@ -207,3 +207,18 @@ def test_euphemisms_are_standalone_never_segments():
     arrival (spec 14)."""
     segments = set(registry.build_segments())
     assert not (segments & set(registry.STANDALONE_QUERIES))
+
+
+def test_the_publisher_reaches_the_classifier():
+    """The outlet is the best geography hint in the item and it was being
+    dropped. "USTA SC names new CEO" places nowhere on its own; the same story
+    from the Post and Courier is South Carolina. Five dry runs stored nine of
+    eleven records with no location while source_name sat in the item, unused.
+    """
+    import inspect
+
+    from pipeline import classify
+
+    src = inspect.getsource(classify.classify)
+    assert 'raw.get("source_name")' in src
+    assert "Published by:" in src

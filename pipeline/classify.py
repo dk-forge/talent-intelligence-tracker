@@ -30,7 +30,7 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "pillar": "company_development|leadership_change|rewards_comp|how_we_work",
  "signal_direction": "hiring|displacement|neutral|comp_shift",
  "city": "city named IN THE TEXT where the roles are, or empty. Do not guess.",
- "country": "country IN THE TEXT. The dateline, the outlet's own country, and a nationality in the story all count as in the text ('Egyptian startup' means Egypt). Empty only if the text really carries no country.",
+ "country": "country IN THE TEXT. The dateline, the publisher's own country, and a nationality in the story all count ('Egyptian startup' means Egypt; a story in the Post and Courier is the United States). Empty only if nothing in the text carries a country.",
  "headquarters_city": "the employer's headquarters city, from your own knowledge. Empty if you do not know the company.",
  "headquarters_country": "the employer's headquarters country, from your own knowledge. This is recorded separately from the sourced country and shown to readers as the employer's HQ, never as the story's location, so answer whenever you know the company. Empty only if you do not.",
  "confidence": "verified|reported|rumored",
@@ -124,6 +124,19 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
         )
 
     text = (raw.get("raw_text") or "").strip()
+
+    # The publisher is the single best geography hint we were throwing away.
+    # "USTA SC names new CEO" places nowhere on its own; the same story from
+    # the Post and Courier is South Carolina, and the Denver Gazette is
+    # Colorado. Five dry runs stored nine of eleven records with no location
+    # while this line sat in the item, unused.
+    #
+    # Passed as context, not as fact: it feeds the model's own knowledge the
+    # same way the company name feeds headquarters_country, and whatever it
+    # concludes still has to normalise through the country vocabulary.
+    outlet = (raw.get("source_name") or "").strip()
+    if outlet:
+        text = f"Published by: {outlet}\n\n{text}"
     if not text:
         raise ClassifyError("raw_text is empty")
 
