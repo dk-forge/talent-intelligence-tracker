@@ -58,20 +58,51 @@ function tit_dashboard_shortcode() {
         ARRAY_A
     ) ?: array();
 
+    // Recruiter language, not ours. "Pillar" and "signal direction" are
+    // internal vocabulary and never appear on the page.
     $labels = array(
-        'company_development' => 'Company developments',
-        'leadership_change'   => 'Leadership changes',
-        'rewards_comp'        => 'Rewards and compensation',
-        'how_we_work'         => 'How we work',
+        'company_development' => 'Growing and expanding',
+        'leadership_change'   => 'Leadership moves',
+        'rewards_comp'        => 'Pay and benefits',
+        'how_we_work'         => 'Ways of working',
+    );
+    $directions = array(
+        'hiring'       => 'Hiring up',
+        'displacement' => 'Cutting back',
+        'comp_shift'   => 'Pay change',
+        'neutral'      => 'Other change',
+    );
+    $functions = array(
+        'engineering' => 'Engineering', 'data_ai' => 'Data & AI',
+        'it_infrastructure' => 'IT & infrastructure', 'product' => 'Product',
+        'design' => 'Design', 'finance' => 'Finance', 'hr_people' => 'HR & people',
+        'sales' => 'Sales', 'marketing' => 'Marketing',
+        'customer_support' => 'Customer support', 'operations' => 'Operations',
+        'supply_chain' => 'Supply chain', 'manufacturing' => 'Manufacturing',
+        'legal_compliance' => 'Legal & compliance', 'research' => 'Research',
+        'clinical_healthcare' => 'Clinical & healthcare', 'executive' => 'Executive',
+    );
+    $industries = array(
+        'technology' => 'Technology', 'financial_services' => 'Financial services',
+        'healthcare' => 'Healthcare', 'pharma_biotech' => 'Pharma & biotech',
+        'retail_ecommerce' => 'Retail & e-commerce', 'manufacturing' => 'Manufacturing',
+        'energy_utilities' => 'Energy & utilities', 'telecom' => 'Telecom',
+        'media_entertainment' => 'Media & entertainment',
+        'transport_logistics' => 'Transport & logistics',
+        'professional_services' => 'Professional services',
+        'public_sector' => 'Public sector', 'hospitality_travel' => 'Hospitality & travel',
+        'education' => 'Education', 'food_beverage' => 'Food & beverage',
+        'automotive' => 'Automotive', 'aerospace_defence' => 'Aerospace & defence',
+        'real_estate_construction' => 'Real estate & construction',
     );
     ?>
     <div class="tit-wrap" id="tit-dashboard">
 
       <div class="tit-stats">
-        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($total)); ?></span><span class="tit-l">signals</span></div>
+        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($total)); ?></span><span class="tit-l">updates</span></div>
         <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($companies)); ?></span><span class="tit-l">employers</span></div>
         <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($countries)); ?></span><span class="tit-l">countries</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($verified)); ?></span><span class="tit-l">primary sourced</span></div>
+        <div class="tit-stat"><span class="tit-n"><?php echo esc_html(number_format_i18n($verified)); ?></span><span class="tit-l">from official filings</span></div>
       </div>
 
       <div class="tit-pillars">
@@ -89,23 +120,40 @@ function tit_dashboard_shortcode() {
       </div>
 
       <div class="tit-filters">
-        <select id="tit-f-pillar" aria-label="Filter by pillar">
-          <option value="">All pillars</option>
+        <select id="tit-f-pillar" aria-label="What kind of update">
+          <option value="">Anything happening</option>
           <?php foreach ($labels as $k => $v) : ?>
             <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
           <?php endforeach; ?>
         </select>
-        <select id="tit-f-direction" aria-label="Filter by direction">
-          <option value="">Any direction</option>
-          <option value="hiring">Hiring</option>
-          <option value="comp_shift">Compensation shift</option>
-          <option value="displacement">Displacement risk</option>
-          <option value="neutral">Neutral</option>
+        <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
+          <option value="">Growing or shrinking</option>
+          <?php foreach ($directions as $k => $v) : ?>
+            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+          <?php endforeach; ?>
         </select>
-        <select id="tit-f-country" aria-label="Filter by country">
-          <option value="">All countries</option>
+        <select id="tit-f-function" aria-label="Which roles are affected">
+          <option value="">Any roles</option>
+          <?php foreach ($functions as $k => $v) : ?>
+            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+          <?php endforeach; ?>
         </select>
-        <input type="search" id="tit-f-company" placeholder="Company" aria-label="Filter by company">
+        <select id="tit-f-industry" aria-label="Which industry">
+          <option value="">Any industry</option>
+          <?php foreach ($industries as $k => $v) : ?>
+            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+          <?php endforeach; ?>
+        </select>
+        <select id="tit-f-country" aria-label="Which country">
+          <option value="">Anywhere</option>
+        </select>
+        <select id="tit-f-state" aria-label="Which US state">
+          <option value="">Any US state</option>
+        </select>
+        <input type="search" id="tit-f-company" placeholder="Employer name"
+               aria-label="Search by employer">
+        <input type="search" id="tit-f-q" placeholder="Search anything"
+               aria-label="Search headlines and read-throughs">
       </div>
 
       <p class="tit-note">
@@ -118,8 +166,8 @@ function tit_dashboard_shortcode() {
         <table class="tit-table">
           <thead>
             <tr>
-              <th>Signal</th><th>Employer</th><th>Where</th>
-              <th>Type</th><th>Confidence</th><th>Source</th>
+              <th>What happened</th><th>Employer</th><th>Where</th>
+              <th>What it means</th><th>How solid</th><th>Source</th>
             </tr>
           </thead>
           <tbody id="tit-rows">
@@ -139,7 +187,7 @@ function tit_dashboard_shortcode() {
                   if ($is_hq) echo ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
                   ?>
                 </td>
-                <td><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html(str_replace('_', ' ', $r['signal_direction'])); ?></span></td>
+                <td><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
                 <td><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span></td>
                 <td><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
               </tr>

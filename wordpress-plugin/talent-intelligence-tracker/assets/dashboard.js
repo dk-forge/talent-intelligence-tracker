@@ -9,11 +9,17 @@
   if (!root || typeof TIT === 'undefined') return;
 
   var tbody = document.getElementById('tit-rows');
+  // Keys are the API's query parameter names, so refresh() can build the
+  // querystring straight from this map without a translation layer.
   var inputs = {
     pillar: document.getElementById('tit-f-pillar'),
     direction: document.getElementById('tit-f-direction'),
+    'function': document.getElementById('tit-f-function'),
+    industry: document.getElementById('tit-f-industry'),
     country: document.getElementById('tit-f-country'),
-    company: document.getElementById('tit-f-company')
+    state: document.getElementById('tit-f-state'),
+    company: document.getElementById('tit-f-company'),
+    q: document.getElementById('tit-f-q')
   };
 
   var DIRECTION_CLASS = {
@@ -22,25 +28,42 @@
     comp_shift: 'tit-comp_shift'
   };
 
+  // Recruiter language. Colour never carries the meaning on its own, so the
+  // words have to be right.
+  var DIRECTION_LABEL = {
+    hiring: 'Hiring up',
+    displacement: 'Cutting back',
+    comp_shift: 'Pay change',
+    neutral: 'Other change'
+  };
+
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
-  function populateCountries() {
+  function populateFacets() {
     fetch(TIT.api + 'facets')
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
-        if (!data || !data.countries) return;
-        data.countries.forEach(function (code) {
-          var opt = document.createElement('option');
-          opt.value = code;
-          opt.textContent = code;
-          inputs.country.appendChild(opt);
-        });
+        if (!data) return;
+        // Only geography is data-driven; roles and industries are closed
+        // vocabularies and are already rendered server-side.
+        fill(inputs.country, data.countries);
+        fill(inputs.state, data.states);
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
+  }
+
+  function fill(select, values) {
+    if (!select || !values) return;
+    values.forEach(function (v) {
+      var opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      select.appendChild(opt);
+    });
   }
 
   function renderRow(r) {
@@ -59,7 +82,7 @@
       '<td>' + esc(r.company) + '</td>' +
       '<td>' + where + '</td>' +
       '<td><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
-        esc(String(r.signal_direction).replace(/_/g, ' ')) + '</span></td>' +
+        esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
       '<td><span class="tit-conf tit-c-' + esc(r.confidence) + '">' + esc(r.confidence) + '</span></td>' +
       '<td><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
         esc(r.source_name) + '</a></td>' +
@@ -85,7 +108,7 @@
         if (!data) return;
         tbody.innerHTML = data.rows.length
           ? data.rows.map(renderRow).join('')
-          : '<tr><td colspan="6">No signals match those filters.</td></tr>';
+          : '<tr><td colspan="6">Nothing matches those filters yet.</td></tr>';
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
@@ -104,5 +127,5 @@
     inputs[key].addEventListener(inputs[key].tagName === 'SELECT' ? 'change' : 'input', debounced);
   });
 
-  populateCountries();
+  populateFacets();
 })();
