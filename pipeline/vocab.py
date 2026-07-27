@@ -60,6 +60,182 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     "www.gtai.de",
 })
 
+# --- Functions ("roles hiring for") ----------------------------------------
+#
+# The single most useful filter a recruiter has: not "which company", but
+# "which function". The model already names these in prose ("finance, IT, HR
+# and shared-service roles") — storing them as a closed list is what turns that
+# sentence into something filterable.
+#
+# Closed on purpose. A signal whose function will not normalise stores an empty
+# list rather than inventing a category.
+
+FUNCTIONS = (
+    "engineering",
+    "data_ai",
+    "it_infrastructure",
+    "product",
+    "design",
+    "finance",
+    "hr_people",
+    "sales",
+    "marketing",
+    "customer_support",
+    "operations",
+    "supply_chain",
+    "manufacturing",
+    "legal_compliance",
+    "research",
+    "clinical_healthcare",
+    "executive",
+)
+
+FUNCTION_LABELS = {
+    "engineering": "Engineering",
+    "data_ai": "Data & AI",
+    "it_infrastructure": "IT & infrastructure",
+    "product": "Product",
+    "design": "Design",
+    "finance": "Finance",
+    "hr_people": "HR & people",
+    "sales": "Sales",
+    "marketing": "Marketing",
+    "customer_support": "Customer support",
+    "operations": "Operations",
+    "supply_chain": "Supply chain",
+    "manufacturing": "Manufacturing",
+    "legal_compliance": "Legal & compliance",
+    "research": "Research",
+    "clinical_healthcare": "Clinical & healthcare",
+    "executive": "Executive",
+}
+
+_FUNCTION_ALIASES = {
+    "software": "engineering", "software engineering": "engineering",
+    "developers": "engineering", "development": "engineering", "tech": "engineering",
+    "technology": "engineering", "r&d engineering": "engineering",
+    "data": "data_ai", "data science": "data_ai", "analytics": "data_ai",
+    "machine learning": "data_ai", "ai": "data_ai", "artificial intelligence": "data_ai",
+    "it": "it_infrastructure", "infrastructure": "it_infrastructure",
+    "devops": "it_infrastructure", "cloud": "it_infrastructure",
+    "cybersecurity": "it_infrastructure", "security": "it_infrastructure",
+    "network": "it_infrastructure", "networking": "it_infrastructure",
+    "product management": "product", "ux": "design", "ui": "design",
+    "accounting": "finance", "accountancy": "finance", "audit": "finance",
+    "treasury": "finance", "fp&a": "finance",
+    "hr": "hr_people", "human resources": "hr_people", "people": "hr_people",
+    "talent acquisition": "hr_people", "recruiting": "hr_people",
+    "recruitment": "hr_people", "payroll": "hr_people",
+    "business development": "sales", "account management": "sales",
+    "commercial": "sales", "communications": "marketing", "brand": "marketing",
+    "customer service": "customer_support", "support": "customer_support",
+    "call centre": "customer_support", "call center": "customer_support",
+    "shared services": "operations", "back office": "operations",
+    "back-office": "operations", "business services": "operations",
+    "administration": "operations", "admin": "operations",
+    "logistics": "supply_chain", "procurement": "supply_chain",
+    "warehouse": "supply_chain", "production": "manufacturing",
+    "factory": "manufacturing", "plant": "manufacturing",
+    "legal": "legal_compliance", "compliance": "legal_compliance",
+    "regulatory": "legal_compliance", "risk": "legal_compliance",
+    "r&d": "research", "biotech": "research", "scientific": "research",
+    "clinical": "clinical_healthcare", "nursing": "clinical_healthcare",
+    "medical": "clinical_healthcare", "care": "clinical_healthcare",
+    "leadership": "executive", "management": "executive", "c-suite": "executive",
+    # Job titles, not departments. The model is asked for the closed list
+    # directly; these exist so a stray title still lands somewhere sensible.
+    "software engineer": "engineering", "developer": "engineering",
+    "data analyst": "data_ai", "data scientist": "data_ai",
+    "cloud architect": "it_infrastructure", "devops engineer": "it_infrastructure",
+    "network engineer": "it_infrastructure", "accountant": "finance",
+    "recruiter": "hr_people", "nurse": "clinical_healthcare",
+    "shared service": "operations", "business process": "operations",
+    "back office professional": "operations",
+}
+
+
+def normalize_function(value: str):
+    k = _key(value)
+    if not k:
+        return None
+    # Strip the noise words a model wraps around a function name, then try the
+    # singular too: "software engineers" and "data analysts" are titles, not
+    # departments, and would otherwise fall through.
+    k = re.sub(r"\s+(roles?|jobs?|staff|positions?|professionals?|teams?|talent|specialists?)$", "", k)
+    k = k.replace("-", " ").strip()
+    for candidate in (k, re.sub(r"s$", "", k)):
+        if candidate.replace(" ", "_") in FUNCTIONS:
+            return candidate.replace(" ", "_")
+        if candidate in _FUNCTION_ALIASES:
+            return _FUNCTION_ALIASES[candidate]
+    return None
+
+
+def normalize_functions(values) -> list:
+    """Normalise a list, dropping anything unrecognised. Order preserved,
+    duplicates removed."""
+    if isinstance(values, str):
+        values = re.split(r"[,;/]| and ", values)
+    out = []
+    for v in values or []:
+        hit = normalize_function(str(v))
+        if hit and hit not in out:
+            out.append(hit)
+    return out
+
+
+# --- Industries ------------------------------------------------------------
+
+INDUSTRIES = (
+    "technology", "financial_services", "healthcare", "pharma_biotech",
+    "retail_ecommerce", "manufacturing", "energy_utilities", "telecom",
+    "media_entertainment", "transport_logistics", "professional_services",
+    "public_sector", "hospitality_travel", "education", "food_beverage",
+    "automotive", "aerospace_defence", "real_estate_construction",
+)
+
+_INDUSTRY_ALIASES = {
+    "tech": "technology", "software": "technology", "saas": "technology",
+    "semiconductors": "technology", "it services": "technology",
+    "finance": "financial_services", "banking": "financial_services",
+    "insurance": "financial_services", "fintech": "financial_services",
+    "health": "healthcare", "health care": "healthcare",
+    "hospitals": "healthcare", "nhs": "healthcare",
+    "pharma": "pharma_biotech", "pharmaceutical": "pharma_biotech",
+    "pharmaceuticals": "pharma_biotech", "biotech": "pharma_biotech",
+    "life sciences": "pharma_biotech",
+    "retail": "retail_ecommerce", "ecommerce": "retail_ecommerce",
+    "e-commerce": "retail_ecommerce", "consumer goods": "retail_ecommerce",
+    "industrial": "manufacturing", "chemicals": "manufacturing",
+    "energy": "energy_utilities", "oil and gas": "energy_utilities",
+    "utilities": "energy_utilities", "renewables": "energy_utilities",
+    "telecoms": "telecom", "telecommunications": "telecom",
+    "media": "media_entertainment", "gaming": "media_entertainment",
+    "publishing": "media_entertainment",
+    "logistics": "transport_logistics", "shipping": "transport_logistics",
+    "airline": "transport_logistics", "aviation": "transport_logistics",
+    "consulting": "professional_services", "accounting": "professional_services",
+    "legal services": "professional_services", "law": "professional_services",
+    "government": "public_sector", "civil service": "public_sector",
+    "defence": "aerospace_defence", "defense": "aerospace_defence",
+    "aerospace": "aerospace_defence",
+    "hospitality": "hospitality_travel", "travel": "hospitality_travel",
+    "hotels": "hospitality_travel", "food": "food_beverage",
+    "beverage": "food_beverage", "brewing": "food_beverage",
+    "construction": "real_estate_construction",
+    "property": "real_estate_construction", "real estate": "real_estate_construction",
+}
+
+
+def normalize_industry(value: str):
+    k = _key(value)
+    if not k:
+        return None
+    if k.replace(" ", "_").replace("-", "_") in INDUSTRIES:
+        return k.replace(" ", "_").replace("-", "_")
+    return _INDUSTRY_ALIASES.get(k)
+
+
 # --- Geography -------------------------------------------------------------
 #
 # Deliberately small and hand-curated. A city enters this list when we can
