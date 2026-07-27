@@ -28,12 +28,10 @@ def test_live_sources_are_only_the_ones_with_collectors():
     """A source is live when a collector reads it, not when it looks easy.
     Adding a name here without a collector is the failure this guards."""
     live = {s.name for s in registry.SOURCES if s.status == "live"}
-    # GDELT was here and is not any more: it produced zero records in its whole
-    # life, so counting it made the page claim four running things when three
-    # run. See test_a_source_that_has_never_yielded_is_not_counted_as_running.
     assert live == {
         "SEC EDGAR 8-K (Item 5.02)",
         "SEC EDGAR Form D",
+        "GDELT DOC 2.0",
         "Google News RSS",
     }
 
@@ -83,12 +81,14 @@ def test_catalogue_only_lists_sources_we_could_actually_connect_to():
     assert not ((unreachable & listed) - hand)
 
 
-def test_a_source_that_has_never_yielded_is_not_counted_as_running():
-    """Coverage is earned. GDELT was listed as live for its whole life and
-    produced no stored record; on the day it was retired a fair last test
-    returned 429 on two of three requests at 8-second spacing."""
+def test_gdelt_is_live_because_it_finally_stored_something():
+    """It was retired for producing zero records in its whole life, and
+    un-retired hours later when its first run after six pipeline fixes stored
+    three. A source that yields nothing is either a dead source or a broken
+    pipeline, and the two look identical from outside."""
     from source_registry import SOURCES
 
     gdelt = next(s for s in SOURCES if s.name.startswith("GDELT"))
-    assert gdelt.status == "candidate", "GDELT is retired, not running"
-    assert "Retired" in gdelt.notes, "the page must say why, not just drop it"
+    assert gdelt.status == "live"
+    # Its weakness is published rather than glossed: a third of queries 429.
+    assert "429" in gdelt.notes

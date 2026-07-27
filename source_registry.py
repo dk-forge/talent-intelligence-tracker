@@ -242,23 +242,29 @@ SOURCES = (
            "National", "US",
            notes="Structured XML: issuer, industry, city, state and amount sold. "
                  "The money figure is read off the filing, never inferred."),
-    # RETIRED 2026-07-27. Not deleted: the collector and its tests still work,
-    # and re-testing it is one workflow_dispatch away. But it has produced zero
-    # stored records in its entire life, and a fair last test on the day it was
-    # retired returned 429 on two of three requests at 8-second spacing, each
-    # taking 10-16 seconds. The one that succeeded returned a local US
-    # leadership story that Google News already finds.
+    # Retired on 2026-07-27 and un-retired the same day, which is worth
+    # recording rather than tidying away. It was retired for having produced
+    # zero records in its whole life. That was true, and the reason was not
+    # GDELT: it was the six pipeline bugs fixed earlier that day, above all the
+    # free filter rejecting every funding story and 429s being counted as the
+    # model declining a candidate. Its first run with those fixed stored three.
     #
-    # "Coverage is earned." A source that has never yielded a record is not
-    # coverage, and counting it as one made the sources page say 4 running when
-    # 3 things run.
-    Source("GDELT DOC 2.0", "https://www.gdeltproject.org/", "candidate",
+    # The lesson is about attribution. A source that yields nothing is either a
+    # dead source or a broken pipeline, and the two look identical from the
+    # outside. Retire nothing until the pipeline has been proven on a source
+    # that does work.
+    #
+    # It earns its place on complementarity, not volume: 3 stored from 120
+    # fetched is a tenth of Google News' rate, but Rossing's recruitment drive
+    # in Namibia and a V&A strike ballot are not in any edition we query.
+    Source("GDELT DOC 2.0", "https://www.gdeltproject.org/", "live",
            "News aggregation", ("Hiring", "Office opening", "Leadership change"),
-           "Global",
-           notes="Retired 2026-07-27. Machine-translated from 65 languages and "
-                 "returns real article URLs, but throttled too hard to be usable: "
-                 "zero stored records, and 429s on two of three requests even at "
-                 "8-second spacing. Google News covers the same ground."),
+           "Global, machine-translated from 65 languages",
+           notes="Reaches markets no Google News edition we query covers, which "
+                 "is why it is here despite a tenth of the yield. Throttles hard: "
+                 "roughly a third of queries return 429 even at 12-second "
+                 "spacing, and those are logged as coverage gaps rather than "
+                 "retried into a rate-limit spiral."),
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
            "25 country editions, 7 languages",
