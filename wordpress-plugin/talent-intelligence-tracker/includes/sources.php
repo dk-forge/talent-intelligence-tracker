@@ -49,16 +49,13 @@ function tit_sources_render($sources) {
     $live = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') === 'live'));
     $cand = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') !== 'live'));
 
-    // Group by category so the page reads as a catalogue, not a dump.
-    $by_cat = array();
-    foreach ($sources as $s) {
-        $by_cat[$s['category'] ?? 'Other'][] = $s;
-    }
-    ksort($by_cat);
+    $countries  = array_values(array_unique(array_filter(array_column($sources, 'country'))));
+    $categories = array_values(array_unique(array_filter(array_column($sources, 'category'))));
+    sort($countries); sort($categories);
 
     get_header();
     ?>
-    <div class="tit-wrap tit-sources">
+    <div class="tit-wrap tit-sources" id="tit-sources">
       <nav class="tit-crumb">
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
         <span aria-hidden="true">›</span> Sources
@@ -67,60 +64,83 @@ function tit_sources_render($sources) {
       <h1>Where this data comes from</h1>
       <p class="tit-note">
         Every record on this tracker links to the document that makes the claim.
-        This page lists every source, and is generated from the collectors
-        themselves, so it cannot drift from what actually runs.
+        This page lists every source we read and every source we have researched,
+        and is generated from the collectors themselves so it cannot drift from
+        what actually runs.
       </p>
 
       <div class="tit-stats">
         <div class="tit-stat"><span class="tit-n"><?php echo count($live); ?></span><span class="tit-l">running now</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo count($cand); ?></span><span class="tit-l">researched, not yet built</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php echo count($by_cat); ?></span><span class="tit-l">categories</span></div>
-        <div class="tit-stat"><span class="tit-n"><?php
-            echo count(array_unique(array_filter(array_column($sources, 'country'))));
-        ?></span><span class="tit-l">countries named</span></div>
+        <div class="tit-stat"><span class="tit-n"><?php echo count($cand); ?></span><span class="tit-l">researched</span></div>
+        <div class="tit-stat"><span class="tit-n"><?php echo count($countries); ?></span><span class="tit-l">countries</span></div>
+        <div class="tit-stat"><span class="tit-n"><?php echo count($categories); ?></span><span class="tit-l">categories</span></div>
       </div>
 
       <div class="tit-callout">
         <strong>What "running now" means.</strong> A source counts as running
         only when a collector reads it, reports its health, and has a passing
         test. Everything else is listed as researched so the roadmap is public,
-        but it is never counted as coverage. A source appearing on this page is
-        not a claim that we cover it.
+        and is never counted as coverage. A source appearing on this page is not
+        a claim that we cover it.
       </div>
 
-      <?php foreach ($by_cat as $cat => $items) : ?>
-        <h2 class="tit-src-cat"><?php echo esc_html($cat); ?></h2>
-        <div class="tit-table-scroll">
-          <table class="tit-table">
-            <thead><tr>
-              <th>Source</th><th>Status</th><th>Covers</th><th>Signals</th><th>Where</th>
-            </tr></thead>
-            <tbody>
-            <?php foreach ($items as $s) : ?>
-              <tr>
-                <td class="tit-headline">
-                  <span class="tit-h"><a href="<?php echo esc_url($s['url']); ?>"
-                     rel="nofollow noopener" target="_blank"><?php echo esc_html($s['name']); ?></a></span>
-                  <?php if (!empty($s['notes'])) : ?>
-                    <span class="tit-rt"><?php echo esc_html($s['notes']); ?></span>
-                  <?php endif; ?>
-                </td>
-                <td>
-                  <?php if (($s['status'] ?? '') === 'live') : ?>
-                    <span class="tit-conf tit-c-verified">running now</span>
-                  <?php else : ?>
-                    <span class="tit-conf">researched</span>
-                  <?php endif; ?>
-                </td>
-                <td><?php echo esc_html($s['coverage'] ?? ''); ?></td>
-                <td><?php echo esc_html(implode(', ', $s['signals'] ?? array())); ?></td>
-                <td><?php echo esc_html($s['country'] ?: 'Worldwide'); ?></td>
-              </tr>
-            <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      <?php endforeach; ?>
+      <div class="tit-filters">
+        <select id="tit-s-status" aria-label="Filter by status">
+          <option value="">Running and researched</option>
+          <option value="live">Running now</option>
+          <option value="candidate">Researched only</option>
+        </select>
+        <select id="tit-s-country" aria-label="Filter by country">
+          <option value="">Any country</option>
+          <?php foreach ($countries as $c) : ?>
+            <option value="<?php echo esc_attr($c); ?>"><?php echo esc_html($c); ?></option>
+          <?php endforeach; ?>
+        </select>
+        <select id="tit-s-category" aria-label="Filter by category">
+          <option value="">Any category</option>
+          <?php foreach ($categories as $c) : ?>
+            <option value="<?php echo esc_attr($c); ?>"><?php echo esc_html($c); ?></option>
+          <?php endforeach; ?>
+        </select>
+        <input type="search" id="tit-s-q" placeholder="Search sources" aria-label="Search sources">
+      </div>
+
+      <p class="tit-note" id="tit-s-count"><?php echo count($sources); ?> sources</p>
+
+      <div class="tit-table-scroll">
+        <table class="tit-table">
+          <thead><tr>
+            <th>Source</th><th>Status</th><th>Covers</th><th>Signals</th><th>Where</th>
+          </tr></thead>
+          <tbody id="tit-s-rows">
+          <?php foreach ($sources as $s) :
+            $sig = implode(', ', array_slice($s['signals'] ?? array(), 0, 4)); ?>
+            <tr data-status="<?php echo esc_attr($s['status']); ?>"
+                data-country="<?php echo esc_attr($s['country']); ?>"
+                data-category="<?php echo esc_attr($s['category']); ?>"
+                data-search="<?php echo esc_attr(strtolower($s['name'] . ' ' . $s['category'] . ' ' . $sig)); ?>">
+              <td class="tit-headline">
+                <span class="tit-h"><a href="<?php echo esc_url($s['url']); ?>"
+                   rel="nofollow noopener" target="_blank"><?php echo esc_html($s['name']); ?></a></span>
+                <?php if (!empty($s['notes'])) : ?>
+                  <span class="tit-rt"><?php echo esc_html($s['notes']); ?></span>
+                <?php endif; ?>
+              </td>
+              <td>
+                <?php if ($s['status'] === 'live') : ?>
+                  <span class="tit-conf tit-c-verified">running now</span>
+                <?php else : ?>
+                  <span class="tit-conf">researched</span>
+                <?php endif; ?>
+              </td>
+              <td><?php echo esc_html($s['coverage'] ?? ''); ?></td>
+              <td><?php echo esc_html($sig); ?></td>
+              <td><?php echo esc_html($s['country'] ?: 'Worldwide'); ?></td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
 
       <p class="tit-cite">
         Layoff and redundancy data is deliberately not collected here. It is read
@@ -129,6 +149,39 @@ function tit_sources_render($sources) {
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
       </p>
     </div>
+
+    <script>
+    /* Filtering is client-side: the whole catalogue is already in the page, so
+       there is nothing to fetch and it works with JavaScript disabled too (all
+       rows simply stay visible). */
+    (function () {
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#tit-s-rows tr'));
+      var count = document.getElementById('tit-s-count');
+      var f = {
+        status: document.getElementById('tit-s-status'),
+        country: document.getElementById('tit-s-country'),
+        category: document.getElementById('tit-s-category')
+      };
+      var q = document.getElementById('tit-s-q');
+
+      function apply() {
+        var term = (q.value || '').trim().toLowerCase();
+        var shown = 0;
+        rows.forEach(function (tr) {
+          var ok = (!f.status.value   || tr.dataset.status   === f.status.value)
+                && (!f.country.value  || tr.dataset.country  === f.country.value)
+                && (!f.category.value || tr.dataset.category === f.category.value)
+                && (!term || tr.dataset.search.indexOf(term) !== -1);
+          tr.style.display = ok ? '' : 'none';
+          if (ok) shown++;
+        });
+        count.textContent = shown + (shown === 1 ? ' source' : ' sources');
+      }
+
+      Object.keys(f).forEach(function (k) { f[k].addEventListener('change', apply); });
+      q.addEventListener('input', apply);
+    })();
+    </script>
     <?php
     get_footer();
 }

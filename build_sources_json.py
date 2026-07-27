@@ -17,8 +17,9 @@ OUT = Path(__file__).parent / "wordpress-plugin" / "talent-intelligence-tracker"
 def main() -> int:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(registry.sources_manifest(), indent=1))
-    live = sum(1 for s in registry.SOURCES if s.status == "live")
-    print(f"{len(registry.SOURCES)} sources ({live} live) -> {OUT}")
+    manifest = registry.sources_manifest()
+    live = sum(1 for s in manifest if s["status"] == "live")
+    print(f"{len(manifest)} sources ({live} live) -> {OUT}")
     return 0
 
 

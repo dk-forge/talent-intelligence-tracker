@@ -12,7 +12,9 @@ Two honesty mechanisms live here:
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass, field
+from pathlib import Path
 
 # --- Status tiers ----------------------------------------------------------
 
@@ -264,9 +266,46 @@ SOURCES = (
 )
 
 
+CATALOGUE_CSV = Path(__file__).parent / "data" / "sources_catalogue.csv"
+
+
+def _catalogue() -> list[dict]:
+    """The owner's imported research catalogue.
+
+    Every row is a CANDIDATE. A spreadsheet is research, not coverage: a source
+    becomes live only in SOURCES above, where a collector actually reads it.
+    """
+    if not CATALOGUE_CSV.exists():
+        return []
+    out = []
+    with CATALOGUE_CSV.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            signals = tuple(
+                s.strip() for s in (row.get("signals") or "").split(";") if s.strip()
+            )
+            out.append({
+                "name": row["name"],
+                "url": row["url"],
+                "status": "candidate",
+                "category": row.get("category") or "Other",
+                "signals": list(signals),
+                "coverage": row.get("coverage") or "",
+                "country": row.get("country") or "",
+                "rss": row.get("rss") or "",
+                "free": (row.get("free") or "").lower() != "paid",
+                "notes": row.get("notes") or "",
+            })
+    return out
+
+
 def sources_manifest() -> list[dict]:
-    """Renders straight onto the public sources page."""
-    return [
+    """Renders straight onto the public sources page.
+
+    Hand-written entries win on a name clash: they are the ones that know
+    whether a collector exists, and that is the only field the page must never
+    get wrong.
+    """
+    hand = [
         {
             "name": s.name, "url": s.url, "status": s.status,
             "category": s.category, "signals": list(s.signals),
@@ -275,6 +314,10 @@ def sources_manifest() -> list[dict]:
         }
         for s in SOURCES
     ]
+    seen = {h["name"].lower() for h in hand}
+    merged = hand + [c for c in _catalogue() if c["name"].lower() not in seen]
+    merged.sort(key=lambda x: (x["status"] != "live", x["name"].lower()))
+    return merged
 
 
 # --- Markets ---------------------------------------------------------------
