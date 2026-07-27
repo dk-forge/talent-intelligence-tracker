@@ -62,9 +62,21 @@ produced a record. It is the next thing to either fix or retire.
 - Filters change the table but **not** the stat tiles or charts. The stated goal
   is "every number, chart and row below updates to match" — the charts are
   server-rendered from the unfiltered set and do not yet re-fetch.
-- Google News is not yet locale-parameterised (`hl`/`gl`/`ceid` per country,
-  rotated by day-of-year). Today it is `US:en` only, which is wrong for a
-  global product.
+- ~~Google News is `US:en` only~~ **Done (v1.12.0).** It reads 25 national
+  editions across 7 languages, three rotating per run plus a fixed US anchor.
+
+  **The trap, if you touch this:** rotating `hl`/`gl`/`ceid` alone does nothing.
+  Measured 2026-07-27, the same English phrases returned US:en 23 items,
+  DE:de 2, BR:pt 0 — and German phrasing returned 20 from that same German
+  edition. Each edition must ask in its own language
+  (`GOOGLE_NEWS_VOCAB` in `source_registry.py`), and `prefilter.py` needs the
+  matching non-English terms or every candidate is dropped for free before the
+  model sees it. A locale without a phrase set is a silent zero dressed up as
+  coverage; `tests/test_locale_rotation.py` refuses to let one exist.
+
+  Going multilingual took a run from ~25 candidates to ~215, so
+  `DEFAULT_CANDIDATE_CAP = 40` now lives in `run_collect.py`. The cap is a fair
+  share (one item per query in turn), not a head slice.
 - No date-range control, no sort, no quick views
 - Model switch (Gemini Flash-Lite gate + Haiku read-through) designed, not applied
 
