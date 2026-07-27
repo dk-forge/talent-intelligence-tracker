@@ -124,12 +124,19 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
           WP_ROOT="$(dirname "$(dirname "$(dirname "$REMOTE_DIR")")")"
           echo "Expecting wp-config.php in $WP_ROOT"
-          FOUND=$(lftp -c "
+          # No redirect inside the lftp script: lftp parses "2>/dev/null" as a
+          # second path to list, not as a shell redirect.
+          LISTING=$(lftp -c "
             set ftp:ssl-force true;
             set ssl:verify-certificate no;
             open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
-            cls -1 '$WP_ROOT' 2>/dev/null;
-          " | grep -c '^wp-config.php$' || true)
+            cls -1 '$WP_ROOT';
+          " 2>&1 || true)
+          FOUND=$(printf '%s\n' "$LISTING" | grep -c 'wp-config\.php' || true)
+          if [ "$FOUND" -eq 0 ]; then
+            echo "Listing of $WP_ROOT was:"
+            printf '%s\n' "$LISTING" | head -30
+          fi
           if [ "$FOUND" -eq 0 ]; then
             echo "::error::No wp-config.php at $WP_ROOT. The target is not inside a WordPress install. Refusing."
             exit 1
