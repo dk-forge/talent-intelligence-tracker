@@ -296,6 +296,28 @@ SOURCES = (
 CATALOGUE_CSV = Path(__file__).parent / "data" / "sources_catalogue.csv"
 
 
+# A source we cannot connect to is not a roadmap item, it is a name. The
+# catalogue held 383 rows and 272 of them had no feed, no API and no filing
+# system behind them: reading those would mean scraping a homepage, which is
+# the failure surface the collectors exist to avoid. They are dropped rather
+# than listed as researched, because a long list of names reads as coverage.
+#
+# Outlets without a feed are not lost. Google News discovery still surfaces
+# their articles; they are simply not sources we connect to by name.
+_WIREABLE_TYPES = frozenset({
+    "Government Agency", "Government Open Data", "Regulatory Body",
+    "Stock Exchange", "Statistical Agency",
+})
+
+
+def _wireable(row: dict) -> bool:
+    return (
+        (row.get("rss") or "").startswith("http")
+        or (row.get("api") or "").startswith("http")
+        or (row.get("source_type") or "") in _WIREABLE_TYPES
+    )
+
+
 def _catalogue() -> list[dict]:
     """The owner's imported research catalogue.
 
@@ -307,6 +329,8 @@ def _catalogue() -> list[dict]:
     out = []
     with CATALOGUE_CSV.open(newline="") as fh:
         for row in csv.DictReader(fh):
+            if not _wireable(row):
+                continue
             signals = tuple(
                 s.strip() for s in (row.get("signals") or "").split(";") if s.strip()
             )

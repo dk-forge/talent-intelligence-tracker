@@ -43,3 +43,39 @@ def test_google_news_is_live_because_urls_now_resolve():
     gn = next(s for s in registry.SOURCES if "Google News" in s.name)
     assert gn.status == "live"
     assert "resolution endpoint" in gn.notes
+
+
+def test_catalogue_only_lists_sources_we_could_actually_connect_to():
+    """A name is not a roadmap item.
+
+    The imported catalogue carried 383 rows, 272 of which had no feed, no API
+    and no filing system behind them. Listing those as "researched" made the
+    page read as coverage we do not have, and reading them would have meant
+    scraping homepages. The prune is a rule, not a one-off edit, so it is
+    pinned here.
+    """
+    import csv
+
+    from source_registry import CATALOGUE_CSV, sources_manifest
+
+    with CATALOGUE_CSV.open(newline="") as fh:
+        rows = list(csv.DictReader(fh))
+
+    unreachable = {
+        r["name"]
+        for r in rows
+        if not r["rss"].startswith("http")
+        and not r["api"].startswith("http")
+        and r["source_type"] not in {
+            "Government Agency", "Government Open Data", "Regulatory Body",
+            "Stock Exchange", "Statistical Agency",
+        }
+    }
+    assert unreachable, "fixture check: the catalogue should still contain some"
+
+    listed = {s["name"] for s in sources_manifest()}
+    # Hand-written registry entries win on a name clash and are exempt: they
+    # exist because a collector reads them.
+    from source_registry import SOURCES
+    hand = {s.name for s in SOURCES}
+    assert not ((unreachable & listed) - hand)
