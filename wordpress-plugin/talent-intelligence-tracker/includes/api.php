@@ -226,11 +226,32 @@ function tit_api_aggregate(WP_REST_Request $req) {
         return $wpdb->get_results($params ? $wpdb->prepare($sql, $params) : $sql, ARRAY_A) ?: array();
     };
 
+    // Same expression the page's own chart uses. Grouping on `country` alone
+    // here while the server-rendered chart coalesced with hq_country meant the
+    // bars jumped the moment a filter was applied, for no reason a reader
+    // could see.
+    $coalesced = function ($expr) use ($wpdb, $table, $where, $params) {
+        $sql = "SELECT {$expr} AS k, COUNT(*) AS n FROM {$table}
+                 WHERE {$where} AND {$expr} IS NOT NULL AND {$expr} != ''
+                 GROUP BY k ORDER BY n DESC LIMIT 40";
+        return $wpdb->get_results($params ? $wpdb->prepare($sql, $params) : $sql, ARRAY_A) ?: array();
+    };
+    $scalar = function ($expr) use ($wpdb, $table, $where, $params) {
+        $sql = "SELECT {$expr} FROM {$table} WHERE {$where}";
+        return (int) $wpdb->get_var($params ? $wpdb->prepare($sql, $params) : $sql);
+    };
+
     $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
     $out = array(
         'total'      => (int) $wpdb->get_var($params ? $wpdb->prepare($total_sql, $params) : $total_sql),
+        // The hero's own figures, so a filtered page can restate them instead
+        // of leaving four numbers describing a set the reader is no longer
+        // looking at.
+        'companies'  => $scalar('COUNT(DISTINCT company_key)'),
+        'countries'  => $scalar('COUNT(DISTINCT COALESCE(country, hq_country))'),
+        'verified'   => $scalar("SUM(confidence = 'verified')"),
         'by_pillar'  => $group('pillar'),
-        'by_country' => $group('country'),
+        'by_country' => $coalesced('COALESCE(country, hq_country)'),
         'by_city'    => $group('city'),
         'by_direction' => $group('signal_direction'),
         'by_industry' => $group('industry'),

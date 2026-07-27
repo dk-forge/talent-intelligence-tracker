@@ -133,11 +133,16 @@ function tit_dashboard_shortcode() {
         </div>
 
         <p class="tit-hero-fine">
-          <?php echo esc_html(number_format_i18n($total)); ?> updates ·
-          <?php echo esc_html(number_format_i18n($companies)); ?> employers ·
-          <?php echo esc_html(number_format_i18n($countries)); ?> countries ·
-          <?php echo esc_html(number_format_i18n($verified)); ?> from official filings.
-          Every update links to the document that makes the claim, and no figure
+          <span class="tit-fine-figures"><?php
+            printf(
+              /* translators: totals restated by JavaScript when a filter changes. */
+              '%s updates · %s employers · %s countries · %s from official filings. ',
+              esc_html(number_format_i18n($total)),
+              esc_html(number_format_i18n($companies)),
+              esc_html(number_format_i18n($countries)),
+              esc_html(number_format_i18n($verified))
+            );
+          ?></span>Every update links to the document that makes the claim, and no figure
           appears unless the source states it.
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>

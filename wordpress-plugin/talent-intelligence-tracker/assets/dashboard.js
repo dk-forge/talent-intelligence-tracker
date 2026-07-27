@@ -94,6 +94,92 @@
       '</tr>';
   }
 
+  // --- The rest of the page follows the filters -----------------------------
+  // Until now only the table re-rendered, so the hero said "13 updates · 3
+  // countries" and the charts drew the whole world while the rows underneath
+  // showed one region. The page implied the filter applied to everything, and
+  // that implication is exactly what a dashboard must not get wrong.
+
+  var PILLAR_LABEL = {
+    company_development: 'Growing and expanding',
+    leadership_change: 'Leadership moves',
+    rewards_comp: 'Pay and benefits',
+    how_we_work: 'Ways of working'
+  };
+
+  function nfmt(n) { return Number(n || 0).toLocaleString(); }
+
+  function paintRank(chart, rows, label, dirKey) {
+    var wrap = chart && chart.querySelector('.tit-rank');
+    if (!wrap) return;
+    if (!rows.length) {
+      wrap.innerHTML = '<p class="tit-rank-empty">Nothing in this view.</p>';
+      return;
+    }
+    var max = Math.max.apply(null, rows.map(function (r) { return +r.n; })) || 1;
+    wrap.innerHTML = rows.slice(0, 6).map(function (r) {
+      var pct = Math.max(4, Math.round(100 * r.n / max));
+      return '<div class="tit-rank-row"' + (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + '>' +
+        '<span class="tit-rank-name">' + esc(label(r.k)) + '</span>' +
+        '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="tit-rank-n">' + nfmt(r.n) + '</span></div>';
+    }).join('');
+  }
+
+  function paintAggregate(data) {
+    var total = +data.total || 0;
+
+    // Hero fine print: restate the view, do not describe a set the reader is
+    // no longer looking at.
+    var fine = root.querySelector('.tit-hero-fine');
+    if (fine) {
+      var lead = fine.querySelector('.tit-fine-figures');
+      if (!lead) {
+        lead = document.createElement('span');
+        lead.className = 'tit-fine-figures';
+        fine.insertBefore(lead, fine.firstChild);
+      }
+      lead.textContent = nfmt(total) + ' updates · ' + nfmt(data.companies) +
+        ' employers · ' + nfmt(data.countries) + ' countries · ' +
+        nfmt(data.verified) + ' from official filings. ';
+    }
+
+    var charts = root.querySelectorAll('.tit-charts .tit-chart');
+    // Pillars keep their own markup (a bar per pillar), so they are painted
+    // separately from the two rank charts.
+    var pillars = root.querySelector('.tit-pillars');
+    if (pillars) {
+      var rows = data.by_pillar || [];
+      pillars.innerHTML = rows.length ? rows.map(function (r) {
+        var pct = total ? Math.round(100 * r.n / total) : 0;
+        return '<div class="tit-pillar"><div class="tit-pillar-head">' +
+          '<span class="tit-pillar-name">' + esc(PILLAR_LABEL[r.k] || r.k) + '</span>' +
+          '<span class="tit-pillar-n">' + nfmt(r.n) + '</span></div>' +
+          '<div class="tit-bar"><span style="width:' + pct + '%"></span></div></div>';
+      }).join('') : '<p class="tit-rank-empty">Nothing in this view.</p>';
+    }
+    paintRank(charts[1], data.by_country || [], function (k) {
+      return (TIT.countries && TIT.countries[k]) || k;
+    });
+    paintRank(charts[2], data.by_direction || [], function (k) {
+      return DIRECTION_LABEL[k] || k;
+    }, true);
+  }
+
+  var pendingAgg = null;
+
+  function refreshAggregate(params) {
+    if (pendingAgg) pendingAgg.abort();
+    pendingAgg = new AbortController();
+    fetch(TIT.api + 'aggregate?' + params.toString(), { signal: pendingAgg.signal })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) { if (data) paintAggregate(data); })
+      .catch(function (err) {
+        // Leave the server-rendered numbers alone rather than blanking them.
+        if (err && err.name === 'AbortError') return;
+      });
+  }
+
   var pending = null;
 
   function refresh() {
@@ -107,6 +193,10 @@
     // silently ANDing "Europe" with "Japan" would return nothing and look broken.
     if (region) params.set('country', region);
     params.set('per_page', '50');
+
+    // Charts and figures move with the same querystring the table uses, so the
+    // two can never disagree about what is being shown.
+    refreshAggregate(params);
 
     if (pending) pending.abort();
     pending = new AbortController();

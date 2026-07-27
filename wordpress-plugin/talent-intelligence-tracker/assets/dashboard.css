@@ -554,3 +554,6 @@
    guessed: the Google News edition tells us where we asked, not where the
    story is. */
 .tit-nowhere { color:var(--tit-faint); font-style:italic; font-size:13.5px; }
+
+/* A chart with nothing in it says so. A blank card reads as broken. */
+.tit-rank-empty { margin:0; font-size:13.5px; color:var(--tit-mut); font-style:italic; }
