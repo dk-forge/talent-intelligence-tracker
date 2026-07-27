@@ -391,7 +391,12 @@ function tit_regions(array $counts) {
         array('United States', '🇺🇸', 'US'),
         array('Canada',        '🇨🇦', 'CA'),
         array('United Kingdom','🇬🇧', 'GB'),
-        array('Europe',        '🇪🇺', 'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,CZ,GR,RO,HU'),
+        // All of Europe, not a shortlist. A Latvian employer was landing
+        // outside 'Europe' because LV was not on the list, which is a filter
+        // that quietly lies about its own name.
+        array('Europe',        '🇪🇺', 'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,'
+                                     . 'CZ,GR,RO,HU,LV,LT,EE,SK,SI,HR,BG,RS,UA,IS,LU,'
+                                     . 'MT,CY,AL,BA,ME,MK,MD,BY,MC,LI,AD,SM'),
         array('India',         '🇮🇳', 'IN'),
         array('Asia Pacific',  '🌏', 'IN,SG,JP,CN,HK,AU,NZ,KR,MY,PH,ID,TH,VN,TW'),
         array('Latin America', '🌎', 'BR,MX,AR,CL,CO,PE,UY,CR'),

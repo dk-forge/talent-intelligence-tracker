@@ -58,3 +58,21 @@ def test_it_still_refuses_things_that_are_not_countries():
     is not a country, and neither is a company name."""
     for text in ("Colorado", "South Carolina", "Sidus Space", "", "   ", "XX"):
         assert vocab.normalize_country(text) is None, text
+
+
+def test_the_europe_tab_covers_europe():
+    """A Latvian employer was landing outside "Europe" because LV was not on
+    the tab's list. A filter that omits part of what its own name claims is
+    worse than no filter: nothing looks wrong, the row is just gone."""
+    import re
+    from pathlib import Path
+
+    php = (Path(__file__).parent.parent / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "includes" / "shortcodes.php").read_text()
+    block = php[php.index("array('Europe'"):php.index("array('India'")]
+    codes = set(re.findall(r"\b[A-Z]{2}\b", block))
+
+    must_cover = {"GB", "IE", "DE", "FR", "NL", "ES", "IT", "SE", "PL", "BE",
+                  "DK", "NO", "FI", "AT", "PT", "CZ", "GR", "RO", "HU", "CH",
+                  "LV", "LT", "EE", "SK", "SI", "HR", "BG"}
+    assert must_cover <= codes, f"Europe tab is missing {sorted(must_cover - codes)}"
