@@ -310,26 +310,35 @@ left. 40 per run, twice a day, is ~2,400 classifications a month.
 
 ## Next steps, in order
 
-Done since this list was first written: the page overhaul, the spend ceiling in
-code, Form D, and company profile pages. What is actually left:
+Done: the page overhaul, the spend ceiling in code, Form D, company profiles,
+multilingual Google News, the source audit, the six pipeline bugs, and arming
+collection. What is actually left:
 
-1. **Arm collection.** Uncomment the two schedule lines in `collect.yml`. Per
-   CLAUDE.md this is a human decision after reading a live dry run, so run
-   `run_collect.py --dry-run` and read it with the owner before pushing. Nothing
-   else fills the tracker; 13 records is the symptom of a dormant collector, not
-   of a missing source.
+1. **Watch the first three armed runs** (06:00 and 18:00 UTC from 2026-07-28).
+   Read them the way the dry runs were read. Check specifically: how many are
+   deferred rather than rejected, whether spend tracks the projection, and
+   whether `source_health` goes degraded on any of them. The dry runs never
+   exercised dedup or the commit-back, because nothing was written.
 2. **Make the filters drive the charts and the hero figures**, not just the
-   table. The `/aggregate` endpoint already accepts the same query parameters;
-   the work is client-side re-render.
-3. **Fix or retire GDELT.** Zero records, erratic throttling. Retiring it is a
-   legitimate outcome and the sources page should then say 3 running, not 4.
-4. **Date range, sort, quick views** on the table.
-5. **Model switch** (Gemini Flash-Lite gate + Haiku read-through), designed and
-   benchmarked, not applied.
-6. **More languages for Google News.** Adding a language is what adds countries:
-   a phrase set in `GOOGLE_NEWS_VOCAB` plus the matching terms in
+   table. The `/aggregate` endpoint already takes the same query parameters;
+   the work is a client-side re-render. This is the largest remaining UI gap
+   and the page currently implies it already happens.
+3. **Fix or retire GDELT.** Still zero records. Retiring it is a legitimate
+   outcome, and the sources page must then say 3 running, not 4.
+4. **A funding floor, or a decision not to have one.** The news path now admits
+   raises of any size, so a pre-seed of a few hundred thousand lands beside a
+   $130M Series B. `sec_form_d` uses MIN_RAISED = $1M. Watch a few real runs
+   before choosing a number; it is easier to judge with rows on the page.
+5. **Date range, sort, quick views** on the table.
+6. **Model switch** (Gemini Flash-Lite gate + Haiku read-through), designed and
+   benchmarked, never applied.
+7. **More languages for Google News.** Adding a language is what adds countries:
+   a phrase set in `GOOGLE_NEWS_VOCAB`, the matching terms in
    `prefilter._EMPLOYMENT_TERMS_INTL`, then its locales in
    `GOOGLE_NEWS_LOCALES`. Never add a locale without the phrase set.
+8. **Reconcile the spend cap contradiction** (see Secrets): $5 lifetime on the
+   key versus $10 monthly in `spend.py`. Now that collection actually runs,
+   this stops being theoretical.
 
 ---
 
