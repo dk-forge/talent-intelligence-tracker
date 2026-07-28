@@ -46,22 +46,29 @@ add_action('init', 'tit_company_maybe_flush', 99);
 /**
  * company_key holds spaces ("peace coffee"); a URL should not. Hyphens survive
  * the rewrite rule intact where %20 does not, so the slug is the hyphenated
- * form and the lookup converts back.
+ * form — and the lookup compares in SLUG space, never by converting back.
  */
 function tit_company_slug($company_key) {
     return rawurlencode(str_replace(' ', '-', $company_key));
-}
-
-function tit_company_key_from_slug($slug) {
-    return str_replace('-', ' ', rawurldecode($slug));
 }
 
 function tit_company_url($company_key) {
     return home_url('/' . TIT_COMPANY_BASE . '/' . tit_company_slug($company_key) . '/');
 }
 
-/** Rows for one employer, newest first. */
-function tit_company_rows($company_key) {
+/**
+ * Rows for one employer, newest first, looked up BY SLUG.
+ *
+ * REGRESSION NOTE (fixed 2026-07-28, confirmed live): the old lookup rebuilt
+ * the key from the slug with hyphens -> spaces. That mapping is not
+ * reversible: company_key legitimately contains hyphens (key "reme-d" renders
+ * the link /company/reme-d/, which un-slugged to "reme d" and 404ed). The
+ * space -> hyphen direction IS total, so the match is done in slug space:
+ * REPLACE(company_key, ' ', '-') = slug. Space-keyed companies keep working
+ * ("peace coffee" -> "peace-coffee") and hyphen-keyed ones match verbatim.
+ * Never reintroduce a slug -> key conversion here.
+ */
+function tit_company_rows($slug) {
     global $wpdb;
     $table = tit_table_name();
     return $wpdb->get_results($wpdb->prepare(
@@ -70,9 +77,9 @@ function tit_company_rows($company_key) {
                 headcount, funding_amount, confidence, source_url, source_name,
                 published_date, captured_at, collector
            FROM {$table}
-          WHERE is_current = 1 AND company_key = %s
+          WHERE is_current = 1 AND REPLACE(company_key, ' ', '-') = %s
           ORDER BY COALESCE(published_date, DATE(captured_at)) DESC",
-        $company_key
+        $slug
     ), ARRAY_A) ?: array();
 }
 
@@ -80,8 +87,9 @@ function tit_company_template() {
     $key = get_query_var('tit_company');
     if (!$key) return;
 
-    $company_key = tit_company_key_from_slug(sanitize_text_field($key));
-    $rows = tit_company_rows($company_key);
+    // The slug goes to the lookup as-is; see the regression note above.
+    $slug = rawurldecode(sanitize_text_field($key));
+    $rows = tit_company_rows($slug);
     if (!$rows) {
         status_header(404);
         nocache_headers();
@@ -91,7 +99,7 @@ function tit_company_template() {
         exit;
     }
 
-    tit_company_render($rows, $company_key);
+    tit_company_render($rows, $slug);
     exit;
 }
 add_action('template_redirect', 'tit_company_template');
@@ -228,7 +236,7 @@ function tit_company_render($rows, $key) {
 function tit_company_title($title) {
     $key = get_query_var('tit_company');
     if (!$key) return $title;
-    $rows = tit_company_rows(tit_company_key_from_slug(sanitize_text_field($key)));
+    $rows = tit_company_rows(rawurldecode(sanitize_text_field($key)));
     if (!$rows) return $title;
     return $rows[0]['company'] . ' — hiring, funding and leadership signals';
 }

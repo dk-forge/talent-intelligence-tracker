@@ -180,8 +180,38 @@ function tit_build_where(WP_REST_Request $req, array &$params) {
     return implode(' AND ', $where);
 }
 
+/**
+ * Transient key from the WHITELISTED filter params only, never from the whole
+ * querystring. Keying on md5 of all query params meant any request with a
+ * random extra param (?utm_source=..., cache busters, crawler junk) minted a
+ * fresh 30-minute transient row in wp_options, unbounded. Params the endpoint
+ * never reads cannot change the response, so they must not change the key.
+ */
 function tit_cache_key($prefix, WP_REST_Request $req) {
-    return 'tit_' . $prefix . '_' . md5(wp_json_encode($req->get_query_params()));
+    $whitelist = array(
+        'country', 'country_basis', 'city', 'pillar', 'direction', 'confidence',
+        'company', 'industry', 'state', 'function', 'funding', 'since', 'until',
+        'min_headcount', 'q', 'sort', 'per_page', 'page',
+    );
+    $parts = array();
+    foreach ($whitelist as $key) {
+        $value = $req->get_param($key);
+        if ($value !== null && $value !== '') {
+            $parts[$key] = (string) $value;
+        }
+    }
+    return 'tit_' . $prefix . '_' . md5(wp_json_encode($parts));
+}
+
+/**
+ * Public GET responses carry Cache-Control so the CDN edge can shield the
+ * origin; 5 minutes is enough to absorb a crawl or a traffic spike while the
+ * transient layer (30 min) stays the origin's own shield.
+ */
+function tit_public_response($data) {
+    $response = rest_ensure_response($data);
+    $response->header('Cache-Control', 'public, max-age=300');
+    return $response;
 }
 
 function tit_api_query(WP_REST_Request $req) {
@@ -189,7 +219,7 @@ function tit_api_query(WP_REST_Request $req) {
 
     $cache_key = tit_cache_key('q', $req);
     $cached = get_transient($cache_key);
-    if ($cached !== false) return rest_ensure_response($cached);
+    if ($cached !== false) return tit_public_response($cached);
 
     $params = array();
     $where  = tit_build_where($req, $params);
@@ -229,62 +259,22 @@ function tit_api_query(WP_REST_Request $req) {
         'rows'     => $rows ?: array(),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);
-    return rest_ensure_response($out);
+    return tit_public_response($out);
 }
 
 /**
- * Today / this week / this month / year to date, narrowed by the caller's own
- * filters.
+ * The at-a-glance matrix under the caller's own filters.
  *
- * Deliberately the same four periods, the same date expression and the same
- * "drop the narrower of two identical periods" rule as tit_glance() in
- * shortcodes.php, so the tiles the server draws and the tiles JavaScript
- * redraws cannot describe the world differently.
+ * Delegates to tit_glance_matrix() in shortcodes.php — one implementation,
+ * so the matrix the server renders and the one JavaScript repaints cannot
+ * describe the world differently. Guarded because an FTP deploy can load this
+ * file for a few seconds before shortcodes.php lands.
  */
 function tit_aggregate_glance($table, $where, array $params) {
-    global $wpdb;
-    $today = current_time('Y-m-d');
-    $periods = array(
-        array('Today',      $today),
-        array('This week',  date('Y-m-d', strtotime($today . ' -6 days'))),
-        array('This month', date('Y-m-01', strtotime($today))),
-        array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
-    );
-
-    $out = array();
-    foreach ($periods as [$when, $from]) {
-        $sql = "SELECT COUNT(*) n,
-                       SUM(signal_direction = 'hiring') hiring,
-                       SUM(funding_amount IS NOT NULL AND funding_amount <> '') funded,
-                       SUM(confidence = 'verified') verified
-                  FROM {$table}
-                 WHERE {$where}
-                   AND COALESCE(published_date, DATE(captured_at)) >= %s";
-        $row = $wpdb->get_row($wpdb->prepare($sql, array_merge($params, array($from))), ARRAY_A);
-
-        $n = (int) ($row['n'] ?? 0);
-        $bits = array();
-        if ($n) {
-            if ((int) $row['hiring'])   $bits[] = number_format_i18n((int) $row['hiring']) . ' hiring up';
-            if ((int) $row['funded'])   $bits[] = number_format_i18n((int) $row['funded']) . ' raised money';
-            if ((int) $row['verified']) $bits[] = number_format_i18n((int) $row['verified']) . ' from filings';
-        }
-        $out[] = array(
-            'when'   => $when,
-            'n'      => $n,
-            'detail' => $n === 0 ? 'nothing yet'
-                                 : ($bits ? implode(' · ', $bits) : ($n === 1 ? 'one update' : 'updates')),
-        );
+    if (!function_exists('tit_glance_matrix')) {
+        return null;
     }
-
-    $kept = array();
-    $last = count($out) - 1;
-    foreach ($out as $i => $tile) {
-        $wider = $out[$i + 1] ?? null;
-        if ($i !== 0 && $i !== $last && $wider !== null && $wider['n'] === $tile['n']) continue;
-        $kept[] = $tile;
-    }
-    return $kept;
+    return tit_glance_matrix($table, $where, $params);
 }
 
 function tit_api_aggregate(WP_REST_Request $req) {
@@ -292,7 +282,7 @@ function tit_api_aggregate(WP_REST_Request $req) {
 
     $cache_key = tit_cache_key('a', $req);
     $cached = get_transient($cache_key);
-    if ($cached !== false) return rest_ensure_response($cached);
+    if ($cached !== false) return tit_public_response($cached);
 
     $params = array();
     $where  = tit_build_where($req, $params);
@@ -336,23 +326,22 @@ function tit_api_aggregate(WP_REST_Request $req) {
         'by_industry' => $group('industry'),
         'by_state'   => $group('state'),
         'by_confidence' => $group('confidence'),
-        // The at-a-glance tiles, under the SAME where clause as everything else
-        // on this response. They were server-rendered once and never moved, so
-        // filtering to one region left the hero reading "19 updates, 1 country"
-        // directly above tiles still claiming 42 this week and 46 this month.
-        // A dashboard that disagrees with itself is worse than one that shows
-        // less.
+        // The at-a-glance matrix, under the SAME where clause as everything
+        // else on this response. The old tiles were server-rendered once and
+        // never moved, so filtering to one region left the hero contradicting
+        // its own summary. A dashboard that disagrees with itself is worse
+        // than one that shows less.
         'glance'     => tit_aggregate_glance($table, $where, $params),
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);
-    return rest_ensure_response($out);
+    return tit_public_response($out);
 }
 
 function tit_api_facets() {
     global $wpdb;
     $cached = get_transient('tit_facets');
-    if ($cached !== false) return rest_ensure_response($cached);
+    if ($cached !== false) return tit_public_response($cached);
 
     $table = tit_table_name();
     $col = function ($column) use ($wpdb, $table) {
@@ -374,7 +363,7 @@ function tit_api_facets() {
         'confidence' => tit_allowed_confidence(),
     );
     set_transient('tit_facets', $out, TIT_CACHE_TTL);
-    return rest_ensure_response($out);
+    return tit_public_response($out);
 }
 
 /**
@@ -465,21 +454,37 @@ function tit_api_bulk(WP_REST_Request $req) {
         return new WP_Error('tit_bad_body', 'Expected {"rows": [...]}', array('status' => 400));
     }
 
-    $stored = 0; $duplicate = 0; $errors = array();
+    $stored = 0; $duplicate = 0; $retracted = 0; $errors = array();
     foreach ($rows as $i => $row) {
-        $result = tit_insert_signal(is_array($row) ? $row : array());
+        // $flush = false: one flush after the loop, not one per inserted row.
+        $result = tit_insert_signal(is_array($row) ? $row : array(), false);
         if (is_wp_error($result)) {
             $errors[] = array('index' => $i, 'error' => $result->get_error_message());
         } elseif ($result === 'stored') {
             $stored++;
+        } elseif ($result === 'retracted') {
+            // Counted with duplicates for the caller's totals (additive key
+            // below says how many), because a retracted story re-arriving is
+            // expected every run, not a failure.
+            $duplicate++;
+            $retracted++;
         } else {
             $duplicate++;
         }
     }
 
+    // One flush for the whole batch, and only when something actually changed.
+    // Flushing inside the loop purged the page cache once per stored row.
+    if ($stored > 0) {
+        tit_flush_caches();
+    }
+
     // Fail loud: a batch with any failure returns 207 so the caller's
     // --fail-with-body sees it, rather than a cheerful 200 hiding losses.
-    $payload = array('stored' => $stored, 'duplicate' => $duplicate, 'errors' => $errors);
+    $payload = array(
+        'stored' => $stored, 'duplicate' => $duplicate,
+        'retracted' => $retracted, 'errors' => $errors,
+    );
     $response = rest_ensure_response($payload);
     if ($errors) $response->set_status(207);
     return $response;

@@ -103,13 +103,17 @@ function tit_flush_caches() {
 }
 
 /**
- * Insert one signal. Returns 'stored' | 'duplicate' | WP_Error.
+ * Insert one signal. Returns 'stored' | 'duplicate' | 'retracted' | WP_Error.
  *
  * Never an UPDATE of the facts: a correction appends a revision and the old row
  * survives with is_current = 0, so "what did we publish on date D" stays
  * answerable.
+ *
+ * $flush lets /bulk defer the cache flush: flushing per inserted row inside a
+ * batch loop purged the page cache dozens of times per run for one visible
+ * change. The bulk endpoint flushes ONCE after its loop instead.
  */
-function tit_insert_signal(array $row) {
+function tit_insert_signal(array $row, $flush = true) {
     global $wpdb;
     $table = tit_table_name();
 
@@ -124,11 +128,50 @@ function tit_insert_signal(array $row) {
         return new WP_Error('tit_no_source', 'source_url is required', array('status' => 400));
     }
 
-    $existing = $wpdb->get_var(
-        $wpdb->prepare("SELECT row_id FROM {$table} WHERE content_hash = %s AND is_current = 1", $hash)
+    // Dedup against ANY revision, not only is_current = 1 — mirroring the
+    // pipeline's exact_duplicate. Checking only current rows meant a hash whose
+    // row had been retracted WP-side (is_current = 0) passed this check, hit
+    // the uniq_hash_rev unique key on insert, and came back as a WP_Error 500.
+    // The pipeline re-collects the same story every run, so one retracted row
+    // failed the /bulk batch and exited 1 every 12 hours, forever. If the hash
+    // exists at any revision the insert must never be attempted: report
+    // 'retracted' when the newest revision was withdrawn, 'duplicate' otherwise.
+    $existing = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT is_current FROM {$table} WHERE content_hash = %s
+             ORDER BY revision DESC LIMIT 1",
+            $hash
+        ),
+        ARRAY_A
     );
     if ($existing) {
-        return 'duplicate';
+        // A superseded revision always has a newer current one above it, so a
+        // newest revision at is_current = 0 can only mean a retraction.
+        return ((int) $existing['is_current'] === 0) ? 'retracted' : 'duplicate';
+    }
+
+    // Second, cheap guard behind the exact-hash check. content_hash arrives
+    // from the pipeline and has proven nondeterministic across runs: the model
+    // echoes the headline slightly differently, so the SAME story lands twice
+    // with two hashes (observed live: same outlet, same story, two hashes).
+    // Same employer + same pillar + same direction within two weeks of the
+    // same published date is the same event for our purposes.
+    if (!empty($row['company_key']) && !empty($row['pillar'])
+        && !empty($row['signal_direction']) && !empty($row['published_date'])) {
+        $near = $wpdb->get_var($wpdb->prepare(
+            "SELECT row_id FROM {$table}
+              WHERE is_current = 1 AND company_key = %s AND pillar = %s
+                AND signal_direction = %s AND published_date IS NOT NULL
+                AND published_date BETWEEN DATE_SUB(%s, INTERVAL 14 DAY)
+                                       AND DATE_ADD(%s, INTERVAL 14 DAY)
+              LIMIT 1",
+            (string) $row['company_key'], (string) $row['pillar'],
+            (string) $row['signal_direction'],
+            (string) $row['published_date'], (string) $row['published_date']
+        ));
+        if ($near) {
+            return 'duplicate';
+        }
     }
 
     $data = array(
@@ -170,6 +213,8 @@ function tit_insert_signal(array $row) {
         return new WP_Error('tit_insert_failed', $wpdb->last_error, array('status' => 500));
     }
 
-    tit_flush_caches();
+    if ($flush) {
+        tit_flush_caches();
+    }
     return 'stored';
 }
