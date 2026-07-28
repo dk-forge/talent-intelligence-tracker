@@ -613,7 +613,10 @@ function tit_glance_matrix_html(array $m) {
 function tit_local_datetime($utc) {
     $ts = is_numeric($utc) ? (int) $utc : strtotime($utc . ' UTC');
     if (!$ts) return '';
-    return wp_date('M j, g:i A T', $ts);
+    // A site whose timezone is set to plain UTC renders 'T' as "GMT+0000",
+    // which reads like a machine header, not a time a person wrote. Same
+    // instant, human label. Named zones (EDT, CET) pass through untouched.
+    return str_replace('GMT+0000', 'UTC', wp_date('M j, g:i A T', $ts));
 }
 
 /**
