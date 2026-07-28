@@ -29,6 +29,9 @@ class Signal:
     talent_readthrough: str
     company: str
     company_key: str
+    ticker: str | None
+    cik: str | None
+    employer_type: str | None
     pillar: str
     signal_direction: str
     city: str | None
@@ -40,12 +43,17 @@ class Signal:
     functions: str | None
     industry: str | None
     headcount: int | None
+    headcount_scope: str | None
     funding_amount: str | None
+    funding_amount_usd: int | None
+    funding_stage: str | None
+    work_mode: str | None
     confidence: str
     source_url: str
     source_name: str
     discovery_url: str | None
     published_date: str | None
+    effective_date: str | None
     captured_at: str
     as_of: str
     content_hash: str
@@ -272,10 +280,37 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
     headcount = _sourced_int(classified.get("headcount"), raw_text)
     funding = _sourced_figure(classified.get("funding_amount"), raw_text)
 
+    # The same funding figure as an integer of US dollars, re-derived in Python
+    # from the string we just accepted. Deliberately not asked of the model:
+    # 'never state a number that is not in the text' would forbid it converting
+    # '$1.45 Million' to 1450000, so we do the conversion ourselves. NULL for
+    # non-USD currencies rather than a guessed exchange rate.
+    funding_usd = vocab.parse_funding_usd(funding) if funding else None
+    funding_stage = vocab.normalize_funding_stage(classified.get("funding_stage", "") or "")
+
+    # Only meaningful alongside a number. A scope with no headcount describes
+    # nothing, and storing it would put "Total workforce" on a row that never
+    # said how many people that is.
+    headcount_scope = (
+        vocab.normalize_headcount_scope(classified.get("headcount_scope", "") or "")
+        if headcount is not None else None
+    )
+
+    work_mode = vocab.normalize_work_mode(classified.get("work_mode", "") or "")
+
+    # Employer identity, and the join key to the sibling layoff tracker.
+    # company_key is a normalised name and collapses whenever two employers
+    # share one; cik and ticker do not.
+    ticker = _sourced_ticker(classified.get("ticker"), raw_text)
+    cik = _clean_cik(raw.get("cik"))
+    employer_type = vocab.normalize_employer_type(classified.get("employer_type", "") or "")
+
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     ckey = vocab.company_key(company)
     published = _normalize_date(raw.get("published_date"), raw.get("source_url"))
     chash = content_hash(ckey, pillar, published, headline, raw.get("source_name"))
+
+    effective = _sourced_effective_date(classified.get("effective_date"), raw_text, published)
 
     return Signal(
         signal_id=chash,
@@ -284,6 +319,9 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
         talent_readthrough=readthrough,
         company=company,
         company_key=ckey,
+        ticker=ticker,
+        cik=cik,
+        employer_type=employer_type,
         pillar=pillar,
         signal_direction=direction,
         city=city,
@@ -295,12 +333,17 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
         functions=json.dumps(functions) if functions else None,
         industry=industry,
         headcount=headcount,
+        headcount_scope=headcount_scope,
         funding_amount=funding,
+        funding_amount_usd=funding_usd,
+        funding_stage=funding_stage,
+        work_mode=work_mode,
         confidence=infer_confidence(source_url, classified.get("confidence")),
         source_url=source_url,
         source_name=(raw.get("source_name") or host).strip(),
         discovery_url=raw.get("discovery_url"),
         published_date=published,
+        effective_date=effective,
         captured_at=now,
         as_of=now,
         content_hash=chash,
@@ -331,6 +374,86 @@ def _sourced_figure(value, raw_text: str) -> str | None:
     if not digits or not digits <= _numbers_in(raw_text):
         return None
     return text[:32]
+
+
+# A ticker is written in capitals in the one place it ever appears, which is
+# how "(NASDAQ: AAPL)" is distinguishable from the word "aapl" occurring in
+# prose. Matching case-insensitively would let a ticker of "IT" or "ON" or "SO"
+# be confirmed by any ordinary sentence.
+_TICKER_SHAPE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,11}$")
+
+_MONTHS = (
+    "january", "february", "march", "april", "may", "june", "july",
+    "august", "september", "october", "november", "december",
+)
+
+
+def _sourced_ticker(value, raw_text: str) -> str | None:
+    """A ticker is stored only when the source text prints it.
+
+    Never looked up from the company name: a lookup is a claim we did not read
+    anywhere, and the wrong ticker on a real employer is exactly the
+    plausible-but-wrong fact this product cannot carry.
+    """
+    text = (str(value or "")).strip().upper()
+    # Models return "NASDAQ: AAPL" or "NYSE:IBM" as often as the bare symbol.
+    text = re.sub(r"^(?:NASDAQ|NYSE|AMEX|LSE|TSX|ASX|OTC|NSE|BSE)\s*[:.]?\s*", "", text)
+    if not _TICKER_SHAPE.match(text):
+        return None
+    return text if re.search(rf"\b{re.escape(text)}\b", raw_text or "") else None
+
+
+def _clean_cik(value) -> str | None:
+    """SEC central index key. Digits only, leading zeros dropped.
+
+    Unlike everything else here this needs no text check: the SEC collectors
+    read it straight out of the EFTS hit that produced the filing, so it is a
+    fact about which document we fetched, not a reading of its prose.
+    """
+    digits = re.sub(r"\D", "", str(value or ""))
+    digits = digits.lstrip("0")
+    return digits[:12] if digits else None
+
+
+def _sourced_effective_date(value, raw_text: str, published: str | None) -> str | None:
+    """When the change takes effect, and only when the source dates it.
+
+    "Tim Cook steps down as CEO in September" is a July article about a
+    September event; filing it under published_date is the wrong answer to
+    "who is leaving next quarter". So the column exists, and it is filled from
+    the text or not at all.
+
+    The guard is that the month must actually be named in the source, or the
+    ISO date printed there. A model that returns a date whose month appears
+    nowhere in the article has inferred it, and an inferred effective date is
+    the same class of mistake as an inferred headcount.
+
+    Equal to published_date means the model echoed the publication date rather
+    than reading an effective one, so it is dropped: this column is only worth
+    having when it says something published_date does not.
+    """
+    parsed = _normalize_date(value)
+    if not parsed:
+        return None
+
+    # An effective date decades away is a parse artefact, not a plan.
+    year = int(parsed[:4])
+    this_year = datetime.now(timezone.utc).year
+    if not (2015 <= year <= this_year + 5):
+        return None
+
+    if published and parsed == published:
+        return None
+
+    text = (raw_text or "").lower()
+    if parsed in text:
+        return parsed
+    month = _MONTHS[int(parsed[5:7]) - 1]
+    # Anchored on word boundaries. An unanchored "sep" is satisfied by the word
+    # "separate", and "dec" by "declined", which would confirm a month the
+    # article never named.
+    pattern = rf"\b(?:{month}|{month[:3]}t?)\b"
+    return parsed if re.search(pattern, text) else None
 
 
 def _region_for_country(iso2: str) -> str | None:

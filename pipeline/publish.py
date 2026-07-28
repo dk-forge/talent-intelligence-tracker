@@ -40,13 +40,19 @@ def _config() -> tuple[str, str]:
     return site, key
 
 
+# The allowlist of columns that travel to WordPress. A column missing here is
+# a column the site can never show, however well it is populated locally, so
+# adding a field to the schema means adding it here in the same change.
 FIELDS = (
     "signal_id", "headline", "summary", "talent_readthrough", "company",
-    "company_key", "pillar", "signal_direction", "city", "region", "country",
+    "company_key", "ticker", "cik", "employer_type", "pillar",
+    "signal_direction", "city", "region", "country",
     "hq_city", "hq_country", "state", "functions", "industry", "headcount",
-    "funding_amount", "confidence", "source_url", "source_name",
-    "discovery_url", "published_date", "captured_at", "as_of", "content_hash",
-    "predicted_outcome", "check_after_date", "collector",
+    "headcount_scope", "funding_amount", "funding_amount_usd", "funding_stage",
+    "work_mode", "confidence", "source_url", "source_name",
+    "discovery_url", "published_date", "effective_date", "captured_at",
+    "as_of", "content_hash", "predicted_outcome", "check_after_date",
+    "collector",
 )
 
 
