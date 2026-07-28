@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from . import vocab
+from . import identity, vocab
 
 
 class Rejected(Exception):
@@ -166,11 +166,17 @@ def content_hash(company_key: str, pillar: str, published_date: str | None,
     return hashlib.md5(payload.encode()).hexdigest()
 
 
-def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
+def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
     """Turn a classified candidate into a storable Signal, or raise Rejected.
 
     `raw` is the collector's dict and is the ONLY source of truth for what the
     article actually said. `classified` is the model's reading of it.
+
+    `conn` is optional and is used for one thing: the employer identity cache
+    (pipeline/identity.py), which fills ticker / cik / hq / employer_type when
+    nothing above supplied them. Pass it and blanks get filled from the cache;
+    leave it out and this stays a pure function of two dicts, which is what
+    every test of it relies on.
     """
     source_url = (raw.get("source_url") or "").strip()
     if not source_url:
@@ -312,7 +318,7 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
 
     effective = _sourced_effective_date(classified.get("effective_date"), raw_text, published)
 
-    return Signal(
+    signal = Signal(
         signal_id=chash,
         headline=headline,
         summary=summary,
@@ -351,6 +357,18 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
         check_after_date=classified.get("check_after_date") or None,
         collector=collector,
     )
+
+    # The identity spine fills what nobody stated: ticker, cik, headquarters,
+    # kind of employer. It fills BLANKS ONLY. Everything above it is sourced —
+    # the cik came out of the EFTS hit for the filing we fetched, the ticker
+    # out of "(NASDAQ: AAPL)" printed in the article itself, the hq out of the
+    # model's reading — and a value derived from a name string never displaces
+    # one of those. Cache-only on this path: no network call is made during
+    # ingestion, so a slow or blocked lookup cannot cost a record. The cache is
+    # filled by `python -m pipeline.identity --backfill`, and until a caller
+    # passes `conn` this line does nothing at all.
+    identity.enrich(signal, conn)
+    return signal
 
 
 def _sourced_int(value, raw_text: str) -> int | None:

@@ -298,7 +298,11 @@ _CITY_ALIASES = {
     "seattle": ("Seattle", "North America", "US"),
     "austin": ("Austin", "North America", "US"),
     "boston": ("Boston", "North America", "US"),
-    "toronto": ("Toronto", "North America", "US"),
+    # Canada, not the United States. Every Toronto signal has been filing
+    # itself under the US country filter and the US state facet since the list
+    # was written; caught while wiring the employer HQ resolver, which reads
+    # the country back out of this table.
+    "toronto": ("Toronto", "North America", "CA"),
     "london": ("London", "Europe", "GB"),
     "manchester": ("Manchester", "Europe", "GB"),
     "edinburgh": ("Edinburgh", "Europe", "GB"),
@@ -344,6 +348,30 @@ _CITY_ALIASES = {
     "sydney": ("Sydney", "Oceania", "AU"),
     "melbourne": ("Melbourne", "Oceania", "AU"),
 }
+
+# Administrative names, for `pipeline.identity`. A Wikidata headquarters points
+# at whatever entity the editors chose — Alphabet's is "Googleplex", a building
+# — so the resolver walks the containment chain and takes the first name this
+# table knows. That chain speaks in boroughs and counties, and without these
+# every London employer whose registered office sits in the City resolves to no
+# city at all. Aliases only: no new city is introduced here, so nothing new can
+# appear in a filter.
+_CITY_ALIASES.update({
+    "greater london": ("London", "Europe", "GB"),
+    "city of london": ("London", "Europe", "GB"),
+    "city of westminster": ("London", "Europe", "GB"),
+    "greater manchester": ("Manchester", "Europe", "GB"),
+    "city of manchester": ("Manchester", "Europe", "GB"),
+    "manhattan": ("New York", "North America", "US"),
+    "brooklyn": ("New York", "North America", "US"),
+    "new york county": ("New York", "North America", "US"),
+    "city and county of san francisco": ("San Francisco", "North America", "US"),
+    "praha": ("Prague", "Europe", "CZ"),
+    "milano": ("Milan", "Europe", "IT"),
+    "lisboa": ("Lisbon", "Europe", "PT"),
+    "bengaluru urban": ("Bangalore", "Asia", "IN"),
+    "city of toronto": ("Toronto", "North America", "CA"),
+})
 
 REGIONS = ("North America", "Europe", "Asia", "Oceania", "Latin America", "Africa", "Middle East")
 

@@ -155,6 +155,25 @@ CREATE TABLE IF NOT EXISTS source_health (
     detail       TEXT,
     PRIMARY KEY (collector, run_at)
 );
+
+-- Employer identity resolutions (pipeline/identity.py). Keyed per EMPLOYER,
+-- not per signal: 2,052 rows are 1,902 employers and the SEC filers among them
+-- recur every quarter, so this is the difference between one lookup and forty.
+-- `resolved = 0` rows are negative results and are kept on purpose — a name
+-- Wikidata does not know must be asked about once, not on every run.
+CREATE TABLE IF NOT EXISTS employer_identity (
+    company_key   TEXT PRIMARY KEY,
+    company       TEXT,
+    qid           TEXT,           -- Wikidata item, for auditing a bad match
+    ticker        TEXT,
+    cik           TEXT,
+    hq_city       TEXT,
+    hq_country    TEXT,
+    employer_type TEXT,
+    resolved      INTEGER NOT NULL DEFAULT 0,
+    detail        TEXT,
+    resolved_at   TEXT NOT NULL
+);
 """
 
 INDEXES = """
