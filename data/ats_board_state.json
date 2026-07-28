@@ -1,0 +1,3393 @@
+{
+ "boards": {
+  "ashby:abridge": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 3,
+     "design": 2,
+     "engineering": 7,
+     "it_infrastructure": 8,
+     "marketing": 1,
+     "operations": 7,
+     "product": 1,
+     "research": 1,
+     "sales": 8
+    },
+    "places": {
+     "city:New York": 4,
+     "city:San Francisco": 32,
+     "country:US": 6,
+     "remote:": 2
+    },
+    "salary": {
+     "listed": 44,
+     "median_max": 252000,
+     "median_min": 210800,
+     "place": "city:San Francisco"
+    },
+    "total": 44
+   },
+   "company": "Abridge",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 44
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 3,
+     "design": 2,
+     "engineering": 7,
+     "it_infrastructure": 8,
+     "marketing": 1,
+     "operations": 7,
+     "product": 1,
+     "research": 1,
+     "sales": 8
+    },
+    "places": {
+     "city:New York": 4,
+     "city:San Francisco": 32,
+     "country:US": 6,
+     "remote:": 2
+    },
+    "salary": {
+     "listed": 44,
+     "median_max": 252000,
+     "median_min": 210800,
+     "place": "city:San Francisco"
+    },
+    "total": 44
+   }
+  },
+  "ashby:cohere": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 9,
+     "engineering": 18,
+     "executive": 2,
+     "finance": 4,
+     "hr_people": 3,
+     "it_infrastructure": 9,
+     "legal_compliance": 3,
+     "marketing": 6,
+     "operations": 4,
+     "product": 24,
+     "research": 2,
+     "sales": 16
+    },
+    "places": {
+     "city:Berlin": 2,
+     "city:London": 16,
+     "city:New York": 13,
+     "city:Paris": 2,
+     "city:San Francisco": 28,
+     "city:Singapore": 3,
+     "city:Tokyo": 3,
+     "city:Toronto": 24,
+     "country:CA": 22,
+     "country:DE": 1,
+     "country:FR": 1,
+     "country:GB": 4,
+     "country:KR": 5,
+     "country:SA": 2,
+     "country:US": 7
+    },
+    "salary": {
+     "listed": 1,
+     "median_max": 225000,
+     "median_min": 150000,
+     "place": "city:San Francisco"
+    },
+    "total": 139
+   },
+   "company": "Cohere",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 139
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 9,
+     "engineering": 18,
+     "executive": 2,
+     "finance": 4,
+     "hr_people": 3,
+     "it_infrastructure": 9,
+     "legal_compliance": 3,
+     "marketing": 6,
+     "operations": 4,
+     "product": 24,
+     "research": 2,
+     "sales": 16
+    },
+    "places": {
+     "city:Berlin": 2,
+     "city:London": 16,
+     "city:New York": 13,
+     "city:Paris": 2,
+     "city:San Francisco": 28,
+     "city:Singapore": 3,
+     "city:Tokyo": 3,
+     "city:Toronto": 24,
+     "country:CA": 22,
+     "country:DE": 1,
+     "country:FR": 1,
+     "country:GB": 4,
+     "country:KR": 5,
+     "country:SA": 2,
+     "country:US": 7
+    },
+    "salary": {
+     "listed": 1,
+     "median_max": 225000,
+     "median_min": 150000,
+     "place": "city:San Francisco"
+    },
+    "total": 139
+   }
+  },
+  "ashby:cursor": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 2,
+     "design": 1,
+     "engineering": 47,
+     "finance": 3,
+     "hr_people": 8,
+     "legal_compliance": 1,
+     "marketing": 8,
+     "operations": 4,
+     "sales": 36
+    },
+    "places": {
+     "city:London": 7,
+     "city:New York": 13,
+     "city:San Francisco": 60,
+     "city:Singapore": 10,
+     "country:AU": 6,
+     "country:DE": 1,
+     "country:IN": 2,
+     "country:JP": 4,
+     "country:PH": 1,
+     "country:US": 19
+    },
+    "total": 123
+   },
+   "company": "Cursor",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 123
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 2,
+     "design": 1,
+     "engineering": 47,
+     "finance": 3,
+     "hr_people": 8,
+     "legal_compliance": 1,
+     "marketing": 8,
+     "operations": 4,
+     "sales": 36
+    },
+    "places": {
+     "city:London": 7,
+     "city:New York": 13,
+     "city:San Francisco": 60,
+     "city:Singapore": 10,
+     "country:AU": 6,
+     "country:DE": 1,
+     "country:IN": 2,
+     "country:JP": 4,
+     "country:PH": 1,
+     "country:US": 19
+    },
+    "total": 123
+   }
+  },
+  "ashby:decagon": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "design": 1,
+     "engineering": 44,
+     "finance": 2,
+     "hr_people": 7,
+     "legal_compliance": 2,
+     "marketing": 4,
+     "operations": 2,
+     "product": 9,
+     "sales": 28
+    },
+    "places": {
+     "city:London": 15,
+     "city:New York": 21,
+     "city:San Francisco": 63,
+     "city:Toronto": 4,
+     "country:AU": 3,
+     "country:GE": 1,
+     "country:US": 6
+    },
+    "salary": {
+     "listed": 90,
+     "median_max": 300000,
+     "median_min": 200000,
+     "place": "city:San Francisco"
+    },
+    "total": 113
+   },
+   "company": "Decagon",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 113
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "design": 1,
+     "engineering": 44,
+     "finance": 2,
+     "hr_people": 7,
+     "legal_compliance": 2,
+     "marketing": 4,
+     "operations": 2,
+     "product": 9,
+     "sales": 28
+    },
+    "places": {
+     "city:London": 15,
+     "city:New York": 21,
+     "city:San Francisco": 63,
+     "city:Toronto": 4,
+     "country:AU": 3,
+     "country:GE": 1,
+     "country:US": 6
+    },
+    "salary": {
+     "listed": 90,
+     "median_max": 300000,
+     "median_min": 200000,
+     "place": "city:San Francisco"
+    },
+    "total": 113
+   }
+  },
+  "ashby:elevenlabs": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 2,
+     "design": 1,
+     "engineering": 34,
+     "hr_people": 1,
+     "it_infrastructure": 3,
+     "manufacturing": 1,
+     "marketing": 14,
+     "operations": 23,
+     "sales": 75
+    },
+    "places": {
+     "city:London": 8,
+     "city:New York": 12,
+     "city:San Francisco": 8,
+     "city:Singapore": 8,
+     "city:Stockholm": 8,
+     "city:Tokyo": 1,
+     "country:AE": 8,
+     "country:AR": 1,
+     "country:AU": 6,
+     "country:BE": 4,
+     "country:BR": 7,
+     "country:CA": 2,
+     "country:CH": 1,
+     "country:CL": 1,
+     "country:CO": 1,
+     "country:DE": 11,
+     "country:DK": 5,
+     "country:ES": 10,
+     "country:FR": 4,
+     "country:GB": 29,
+     "country:IN": 9,
+     "country:IT": 6,
+     "country:JP": 2,
+     "country:MX": 12,
+     "country:NL": 6,
+     "country:PL": 4,
+     "country:SA": 2,
+     "country:US": 37,
+     "remote:": 1
+    },
+    "total": 215
+   },
+   "company": "ElevenLabs",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 215
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 2,
+     "design": 1,
+     "engineering": 34,
+     "hr_people": 1,
+     "it_infrastructure": 3,
+     "manufacturing": 1,
+     "marketing": 14,
+     "operations": 23,
+     "sales": 75
+    },
+    "places": {
+     "city:London": 8,
+     "city:New York": 12,
+     "city:San Francisco": 8,
+     "city:Singapore": 8,
+     "city:Stockholm": 8,
+     "city:Tokyo": 1,
+     "country:AE": 8,
+     "country:AR": 1,
+     "country:AU": 6,
+     "country:BE": 4,
+     "country:BR": 7,
+     "country:CA": 2,
+     "country:CH": 1,
+     "country:CL": 1,
+     "country:CO": 1,
+     "country:DE": 11,
+     "country:DK": 5,
+     "country:ES": 10,
+     "country:FR": 4,
+     "country:GB": 29,
+     "country:IN": 9,
+     "country:IT": 6,
+     "country:JP": 2,
+     "country:MX": 12,
+     "country:NL": 6,
+     "country:PL": 4,
+     "country:SA": 2,
+     "country:US": 37,
+     "remote:": 1
+    },
+    "total": 215
+   }
+  },
+  "ashby:harvey": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 22,
+     "data_ai": 3,
+     "design": 7,
+     "engineering": 122,
+     "executive": 2,
+     "finance": 9,
+     "hr_people": 16,
+     "it_infrastructure": 42,
+     "legal_compliance": 15,
+     "marketing": 31,
+     "operations": 4,
+     "product": 15,
+     "sales": 49
+    },
+    "places": {
+     "city:Bangalore": 12,
+     "city:Dublin": 7,
+     "city:London": 24,
+     "city:Madrid": 1,
+     "city:Milan": 2,
+     "city:Munich": 6,
+     "city:New York": 99,
+     "city:Paris": 5,
+     "city:San Francisco": 115,
+     "city:Stockholm": 1,
+     "city:Sydney": 6,
+     "city:Toronto": 11,
+     "country:MX": 3,
+     "country:US": 53
+    },
+    "salary": {
+     "listed": 267,
+     "median_max": 265000,
+     "median_min": 193400,
+     "place": ""
+    },
+    "total": 346
+   },
+   "company": "Harvey",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 346
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 22,
+     "data_ai": 3,
+     "design": 7,
+     "engineering": 122,
+     "executive": 2,
+     "finance": 9,
+     "hr_people": 16,
+     "it_infrastructure": 42,
+     "legal_compliance": 15,
+     "marketing": 31,
+     "operations": 4,
+     "product": 15,
+     "sales": 49
+    },
+    "places": {
+     "city:Bangalore": 12,
+     "city:Dublin": 7,
+     "city:London": 24,
+     "city:Madrid": 1,
+     "city:Milan": 2,
+     "city:Munich": 6,
+     "city:New York": 99,
+     "city:Paris": 5,
+     "city:San Francisco": 115,
+     "city:Stockholm": 1,
+     "city:Sydney": 6,
+     "city:Toronto": 11,
+     "country:MX": 3,
+     "country:US": 53
+    },
+    "salary": {
+     "listed": 267,
+     "median_max": 265000,
+     "median_min": 193400,
+     "place": ""
+    },
+    "total": 346
+   }
+  },
+  "ashby:linear": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 4,
+     "engineering": 3,
+     "operations": 2,
+     "product": 13,
+     "sales": 2
+    },
+    "places": {
+     "city:London": 1,
+     "country:US": 17
+    },
+    "total": 25
+   },
+   "company": "Linear",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 25
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 4,
+     "engineering": 3,
+     "operations": 2,
+     "product": 13,
+     "sales": 2
+    },
+    "places": {
+     "city:London": 1,
+     "country:US": 17
+    },
+    "total": 25
+   }
+  },
+  "ashby:multiverse": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "design": 2,
+     "engineering": 6,
+     "finance": 2,
+     "hr_people": 1,
+     "legal_compliance": 3,
+     "marketing": 1,
+     "operations": 1,
+     "product": 1,
+     "sales": 4
+    },
+    "places": {
+     "city:Edinburgh": 1,
+     "city:London": 23
+    },
+    "total": 24
+   },
+   "company": "Multiverse",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 24
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "design": 2,
+     "engineering": 6,
+     "finance": 2,
+     "hr_people": 1,
+     "legal_compliance": 3,
+     "marketing": 1,
+     "operations": 1,
+     "product": 1,
+     "sales": 4
+    },
+    "places": {
+     "city:Edinburgh": 1,
+     "city:London": 23
+    },
+    "total": 24
+   }
+  },
+  "ashby:notion": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 6,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 22,
+     "executive": 1,
+     "finance": 11,
+     "hr_people": 10,
+     "it_infrastructure": 3,
+     "legal_compliance": 1,
+     "marketing": 9,
+     "operations": 5,
+     "product": 2,
+     "sales": 35
+    },
+    "places": {
+     "city:Dublin": 6,
+     "city:Hyderabad": 5,
+     "city:London": 2,
+     "city:Munich": 1,
+     "city:New York": 13,
+     "city:Paris": 3,
+     "city:San Francisco": 66,
+     "city:Singapore": 1,
+     "city:Sydney": 3,
+     "city:Tokyo": 10,
+     "country:ES": 1,
+     "country:IT": 1,
+     "country:KR": 3,
+     "country:TW": 1
+    },
+    "total": 116
+   },
+   "company": "Notion",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 116
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 6,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 22,
+     "executive": 1,
+     "finance": 11,
+     "hr_people": 10,
+     "it_infrastructure": 3,
+     "legal_compliance": 1,
+     "marketing": 9,
+     "operations": 5,
+     "product": 2,
+     "sales": 35
+    },
+    "places": {
+     "city:Dublin": 6,
+     "city:Hyderabad": 5,
+     "city:London": 2,
+     "city:Munich": 1,
+     "city:New York": 13,
+     "city:Paris": 3,
+     "city:San Francisco": 66,
+     "city:Singapore": 1,
+     "city:Sydney": 3,
+     "city:Tokyo": 10,
+     "country:ES": 1,
+     "country:IT": 1,
+     "country:KR": 3,
+     "country:TW": 1
+    },
+    "total": 116
+   }
+  },
+  "ashby:openai": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 7,
+     "data_ai": 30,
+     "design": 2,
+     "engineering": 254,
+     "executive": 4,
+     "finance": 45,
+     "hr_people": 12,
+     "it_infrastructure": 104,
+     "legal_compliance": 14,
+     "manufacturing": 1,
+     "marketing": 41,
+     "operations": 30,
+     "product": 11,
+     "research": 64,
+     "sales": 14
+    },
+    "places": {
+     "city:Brussels": 1,
+     "city:Dublin": 20,
+     "city:London": 24,
+     "city:Madrid": 5,
+     "city:Munich": 8,
+     "city:New York": 24,
+     "city:Paris": 8,
+     "city:San Francisco": 514,
+     "city:Seattle": 13,
+     "city:Singapore": 31,
+     "city:Stockholm": 4,
+     "city:Sydney": 9,
+     "city:Tokyo": 19,
+     "city:Zurich": 2,
+     "country:AE": 2,
+     "country:BR": 3,
+     "country:IN": 8,
+     "country:KR": 11,
+     "country:US": 38
+    },
+    "salary": {
+     "listed": 589,
+     "median_max": 342000,
+     "median_min": 234000,
+     "place": "city:San Francisco"
+    },
+    "total": 744
+   },
+   "company": "OpenAI",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 744
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 7,
+     "data_ai": 30,
+     "design": 2,
+     "engineering": 254,
+     "executive": 4,
+     "finance": 45,
+     "hr_people": 12,
+     "it_infrastructure": 104,
+     "legal_compliance": 14,
+     "manufacturing": 1,
+     "marketing": 41,
+     "operations": 30,
+     "product": 11,
+     "research": 64,
+     "sales": 14
+    },
+    "places": {
+     "city:Brussels": 1,
+     "city:Dublin": 20,
+     "city:London": 24,
+     "city:Madrid": 5,
+     "city:Munich": 8,
+     "city:New York": 24,
+     "city:Paris": 8,
+     "city:San Francisco": 514,
+     "city:Seattle": 13,
+     "city:Singapore": 31,
+     "city:Stockholm": 4,
+     "city:Sydney": 9,
+     "city:Tokyo": 19,
+     "city:Zurich": 2,
+     "country:AE": 2,
+     "country:BR": 3,
+     "country:IN": 8,
+     "country:KR": 11,
+     "country:US": 38
+    },
+    "salary": {
+     "listed": 589,
+     "median_max": 342000,
+     "median_min": 234000,
+     "place": "city:San Francisco"
+    },
+    "total": 744
+   }
+  },
+  "ashby:perplexity": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 11,
+     "design": 3,
+     "engineering": 32,
+     "finance": 1,
+     "hr_people": 3,
+     "it_infrastructure": 8,
+     "legal_compliance": 1,
+     "marketing": 7,
+     "operations": 1,
+     "product": 1,
+     "sales": 7
+    },
+    "places": {
+     "city:London": 7,
+     "city:New York": 4,
+     "city:San Francisco": 65,
+     "city:Tokyo": 1,
+     "country:RS": 9,
+     "country:US": 1
+    },
+    "salary": {
+     "listed": 71,
+     "median_max": 320000,
+     "median_min": 210000,
+     "place": "city:San Francisco"
+    },
+    "total": 87
+   },
+   "company": "Perplexity",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 87
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 11,
+     "design": 3,
+     "engineering": 32,
+     "finance": 1,
+     "hr_people": 3,
+     "it_infrastructure": 8,
+     "legal_compliance": 1,
+     "marketing": 7,
+     "operations": 1,
+     "product": 1,
+     "sales": 7
+    },
+    "places": {
+     "city:London": 7,
+     "city:New York": 4,
+     "city:San Francisco": 65,
+     "city:Tokyo": 1,
+     "country:RS": 9,
+     "country:US": 1
+    },
+    "salary": {
+     "listed": 71,
+     "median_max": 320000,
+     "median_min": 210000,
+     "place": "city:San Francisco"
+    },
+    "total": 87
+   }
+  },
+  "ashby:ramp": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 2,
+     "design": 6,
+     "engineering": 33,
+     "executive": 1,
+     "finance": 6,
+     "hr_people": 3,
+     "it_infrastructure": 2,
+     "legal_compliance": 6,
+     "marketing": 11,
+     "product": 3,
+     "sales": 44
+    },
+    "places": {
+     "city:London": 9,
+     "city:New York": 92,
+     "city:San Francisco": 7,
+     "city:Stockholm": 1,
+     "country:AR": 1,
+     "country:CA": 1,
+     "country:US": 8
+    },
+    "salary": {
+     "listed": 106,
+     "median_max": 275000,
+     "median_min": 168000,
+     "place": "city:New York"
+    },
+    "total": 119
+   },
+   "company": "Ramp",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 119
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 2,
+     "design": 6,
+     "engineering": 33,
+     "executive": 1,
+     "finance": 6,
+     "hr_people": 3,
+     "it_infrastructure": 2,
+     "legal_compliance": 6,
+     "marketing": 11,
+     "product": 3,
+     "sales": 44
+    },
+    "places": {
+     "city:London": 9,
+     "city:New York": 92,
+     "city:San Francisco": 7,
+     "city:Stockholm": 1,
+     "country:AR": 1,
+     "country:CA": 1,
+     "country:US": 8
+    },
+    "salary": {
+     "listed": 106,
+     "median_max": 275000,
+     "median_min": 168000,
+     "place": "city:New York"
+    },
+    "total": 119
+   }
+  },
+  "ashby:replit": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "engineering": 43,
+     "hr_people": 1,
+     "it_infrastructure": 9,
+     "manufacturing": 1,
+     "marketing": 5,
+     "operations": 1,
+     "product": 1,
+     "sales": 15
+    },
+    "places": {
+     "city:London": 4,
+     "city:New York": 5,
+     "country:BR": 1,
+     "country:CA": 71,
+     "country:JP": 2,
+     "country:US": 2,
+     "remote:": 3
+    },
+    "salary": {
+     "listed": 77,
+     "median_max": 275000,
+     "median_min": 200000,
+     "place": "country:CA"
+    },
+    "total": 88
+   },
+   "company": "Replit",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 88
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "engineering": 43,
+     "hr_people": 1,
+     "it_infrastructure": 9,
+     "manufacturing": 1,
+     "marketing": 5,
+     "operations": 1,
+     "product": 1,
+     "sales": 15
+    },
+    "places": {
+     "city:London": 4,
+     "city:New York": 5,
+     "country:BR": 1,
+     "country:CA": 71,
+     "country:JP": 2,
+     "country:US": 2,
+     "remote:": 3
+    },
+    "salary": {
+     "listed": 77,
+     "median_max": 275000,
+     "median_min": 200000,
+     "place": "country:CA"
+    },
+    "total": 88
+   }
+  },
+  "ashby:sierra": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "design": 6,
+     "engineering": 51,
+     "it_infrastructure": 1,
+     "legal_compliance": 4,
+     "marketing": 3,
+     "operations": 31,
+     "product": 38,
+     "sales": 32
+    },
+    "places": {
+     "city:London": 41,
+     "city:Madrid": 4,
+     "city:Munich": 5,
+     "city:New York": 3,
+     "city:Paris": 3,
+     "city:San Francisco": 78,
+     "city:Singapore": 9,
+     "city:Sydney": 4,
+     "city:Tokyo": 10,
+     "city:Toronto": 1,
+     "country:CA": 4,
+     "country:US": 7
+    },
+    "salary": {
+     "listed": 84,
+     "median_max": 290000,
+     "median_min": 200000,
+     "place": "city:San Francisco"
+    },
+    "total": 169
+   },
+   "company": "Sierra",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 169
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "design": 6,
+     "engineering": 51,
+     "it_infrastructure": 1,
+     "legal_compliance": 4,
+     "marketing": 3,
+     "operations": 31,
+     "product": 38,
+     "sales": 32
+    },
+    "places": {
+     "city:London": 41,
+     "city:Madrid": 4,
+     "city:Munich": 5,
+     "city:New York": 3,
+     "city:Paris": 3,
+     "city:San Francisco": 78,
+     "city:Singapore": 9,
+     "city:Sydney": 4,
+     "city:Tokyo": 10,
+     "city:Toronto": 1,
+     "country:CA": 4,
+     "country:US": 7
+    },
+    "salary": {
+     "listed": 84,
+     "median_max": 290000,
+     "median_min": 200000,
+     "place": "city:San Francisco"
+    },
+    "total": 169
+   }
+  },
+  "ashby:synthesia": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 7,
+     "engineering": 7,
+     "it_infrastructure": 2,
+     "marketing": 13,
+     "operations": 2,
+     "product": 8,
+     "sales": 36
+    },
+    "places": {
+     "city:Austin": 8,
+     "city:London": 42,
+     "city:Munich": 1,
+     "city:New York": 10,
+     "city:Paris": 4,
+     "city:Seattle": 1,
+     "city:Singapore": 1,
+     "country:DE": 3,
+     "country:GB": 3,
+     "country:US": 2
+    },
+    "total": 75
+   },
+   "company": "Synthesia",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 75
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 7,
+     "engineering": 7,
+     "it_infrastructure": 2,
+     "marketing": 13,
+     "operations": 2,
+     "product": 8,
+     "sales": 36
+    },
+    "places": {
+     "city:Austin": 8,
+     "city:London": 42,
+     "city:Munich": 1,
+     "city:New York": 10,
+     "city:Paris": 4,
+     "city:Seattle": 1,
+     "city:Singapore": 1,
+     "country:DE": 3,
+     "country:GB": 3,
+     "country:US": 2
+    },
+    "total": 75
+   }
+  },
+  "ashby:vanta": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 8,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 33,
+     "executive": 1,
+     "finance": 2,
+     "hr_people": 6,
+     "it_infrastructure": 5,
+     "marketing": 8,
+     "operations": 3,
+     "product": 2,
+     "sales": 23
+    },
+    "places": {
+     "city:Dublin": 11,
+     "city:London": 16,
+     "city:New York": 3,
+     "city:San Francisco": 3,
+     "city:Sydney": 3,
+     "city:Tokyo": 2,
+     "city:Toronto": 6,
+     "country:US": 59
+    },
+    "salary": {
+     "listed": 64,
+     "median_max": 231500,
+     "median_min": 195000,
+     "place": "country:US"
+    },
+    "total": 103
+   },
+   "company": "Vanta",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 103
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 8,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 33,
+     "executive": 1,
+     "finance": 2,
+     "hr_people": 6,
+     "it_infrastructure": 5,
+     "marketing": 8,
+     "operations": 3,
+     "product": 2,
+     "sales": 23
+    },
+    "places": {
+     "city:Dublin": 11,
+     "city:London": 16,
+     "city:New York": 3,
+     "city:San Francisco": 3,
+     "city:Sydney": 3,
+     "city:Tokyo": 2,
+     "city:Toronto": 6,
+     "country:US": 59
+    },
+    "salary": {
+     "listed": 64,
+     "median_max": 231500,
+     "median_min": 195000,
+     "place": "country:US"
+    },
+    "total": 103
+   }
+  },
+  "ashby:wayve": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 17,
+     "engineering": 39,
+     "it_infrastructure": 7,
+     "legal_compliance": 1,
+     "marketing": 1,
+     "operations": 10,
+     "product": 3,
+     "research": 3,
+     "sales": 1,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:London": 31,
+     "city:Tokyo": 10,
+     "country:CA": 1,
+     "country:DE": 10,
+     "country:IL": 5,
+     "country:JP": 7
+    },
+    "total": 111
+   },
+   "company": "Wayve",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 111
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 17,
+     "engineering": 39,
+     "it_infrastructure": 7,
+     "legal_compliance": 1,
+     "marketing": 1,
+     "operations": 10,
+     "product": 3,
+     "research": 3,
+     "sales": 1,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:London": 31,
+     "city:Tokyo": 10,
+     "country:CA": 1,
+     "country:DE": 10,
+     "country:IL": 5,
+     "country:JP": 7
+    },
+    "total": 111
+   }
+  },
+  "greenhouse:airtable": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "design": 1,
+     "engineering": 9,
+     "it_infrastructure": 3,
+     "marketing": 2,
+     "operations": 3,
+     "product": 2,
+     "sales": 8,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:Austin": 4,
+     "city:London": 3,
+     "city:New York": 4,
+     "city:Paris": 1,
+     "city:San Francisco": 22,
+     "country:US": 6,
+     "remote:": 1
+    },
+    "total": 41
+   },
+   "company": "Airtable",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 41
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "design": 1,
+     "engineering": 9,
+     "it_infrastructure": 3,
+     "marketing": 2,
+     "operations": 3,
+     "product": 2,
+     "sales": 8,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:Austin": 4,
+     "city:London": 3,
+     "city:New York": 4,
+     "city:Paris": 1,
+     "city:San Francisco": 22,
+     "country:US": 6,
+     "remote:": 1
+    },
+    "total": 41
+   }
+  },
+  "greenhouse:anthropic": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 8,
+     "data_ai": 66,
+     "engineering": 91,
+     "executive": 4,
+     "finance": 13,
+     "hr_people": 3,
+     "it_infrastructure": 49,
+     "legal_compliance": 12,
+     "marketing": 10,
+     "operations": 22,
+     "product": 14,
+     "research": 9,
+     "sales": 49
+    },
+    "places": {
+     "city:Bangalore": 3,
+     "city:Boston": 4,
+     "city:Dublin": 8,
+     "city:London": 31,
+     "city:Munich": 2,
+     "city:New York": 23,
+     "city:Paris": 2,
+     "city:San Francisco": 291,
+     "city:Singapore": 6,
+     "city:Sydney": 10,
+     "city:Tokyo": 13,
+     "city:Zurich": 4,
+     "country:KR": 4,
+     "country:US": 4,
+     "remote:": 1
+    },
+    "total": 414
+   },
+   "company": "Anthropic",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 414
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 8,
+     "data_ai": 66,
+     "engineering": 91,
+     "executive": 4,
+     "finance": 13,
+     "hr_people": 3,
+     "it_infrastructure": 49,
+     "legal_compliance": 12,
+     "marketing": 10,
+     "operations": 22,
+     "product": 14,
+     "research": 9,
+     "sales": 49
+    },
+    "places": {
+     "city:Bangalore": 3,
+     "city:Boston": 4,
+     "city:Dublin": 8,
+     "city:London": 31,
+     "city:Munich": 2,
+     "city:New York": 23,
+     "city:Paris": 2,
+     "city:San Francisco": 291,
+     "city:Singapore": 6,
+     "city:Sydney": 10,
+     "city:Tokyo": 13,
+     "city:Zurich": 4,
+     "country:KR": 4,
+     "country:US": 4,
+     "remote:": 1
+    },
+    "total": 414
+   }
+  },
+  "greenhouse:brex": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 5,
+     "data_ai": 5,
+     "design": 7,
+     "engineering": 60,
+     "finance": 19,
+     "hr_people": 13,
+     "it_infrastructure": 11,
+     "legal_compliance": 8,
+     "marketing": 24,
+     "operations": 7,
+     "product": 15,
+     "sales": 38
+    },
+    "places": {
+     "city:New York": 65,
+     "city:San Francisco": 78,
+     "city:Seattle": 46,
+     "country:BR": 16,
+     "country:CA": 41,
+     "country:US": 24
+    },
+    "total": 270
+   },
+   "company": "Brex",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 270
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 5,
+     "data_ai": 5,
+     "design": 7,
+     "engineering": 60,
+     "finance": 19,
+     "hr_people": 13,
+     "it_infrastructure": 11,
+     "legal_compliance": 8,
+     "marketing": 24,
+     "operations": 7,
+     "product": 15,
+     "sales": 38
+    },
+    "places": {
+     "city:New York": 65,
+     "city:San Francisco": 78,
+     "city:Seattle": 46,
+     "country:BR": 16,
+     "country:CA": 41,
+     "country:US": 24
+    },
+    "total": 270
+   }
+  },
+  "greenhouse:cloudflare": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 12,
+     "design": 3,
+     "engineering": 98,
+     "executive": 3,
+     "finance": 3,
+     "hr_people": 3,
+     "it_infrastructure": 19,
+     "legal_compliance": 2,
+     "manufacturing": 1,
+     "marketing": 6,
+     "operations": 3,
+     "product": 4,
+     "sales": 91,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:Tokyo": 1,
+     "remote:": 6
+    },
+    "total": 276
+   },
+   "company": "Cloudflare",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 276
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 12,
+     "design": 3,
+     "engineering": 98,
+     "executive": 3,
+     "finance": 3,
+     "hr_people": 3,
+     "it_infrastructure": 19,
+     "legal_compliance": 2,
+     "manufacturing": 1,
+     "marketing": 6,
+     "operations": 3,
+     "product": 4,
+     "sales": 91,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:Tokyo": 1,
+     "remote:": 6
+    },
+    "total": 276
+   }
+  },
+  "greenhouse:coinbase": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 9,
+     "design": 1,
+     "engineering": 42,
+     "executive": 1,
+     "finance": 12,
+     "hr_people": 1,
+     "it_infrastructure": 11,
+     "legal_compliance": 17,
+     "marketing": 6,
+     "operations": 11,
+     "product": 7,
+     "sales": 5
+    },
+    "places": {
+     "city:Bangalore": 1,
+     "city:Dublin": 1,
+     "city:London": 3,
+     "city:Luxembourg": 4,
+     "city:New York": 1,
+     "city:Singapore": 6,
+     "country:AE": 1,
+     "country:AU": 1,
+     "country:BR": 3,
+     "country:CA": 11,
+     "country:CY": 3,
+     "country:GB": 3,
+     "country:IL": 1,
+     "country:IN": 8,
+     "country:US": 100,
+     "remote:": 4
+    },
+    "total": 155
+   },
+   "company": "Coinbase",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 155
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 9,
+     "design": 1,
+     "engineering": 42,
+     "executive": 1,
+     "finance": 12,
+     "hr_people": 1,
+     "it_infrastructure": 11,
+     "legal_compliance": 17,
+     "marketing": 6,
+     "operations": 11,
+     "product": 7,
+     "sales": 5
+    },
+    "places": {
+     "city:Bangalore": 1,
+     "city:Dublin": 1,
+     "city:London": 3,
+     "city:Luxembourg": 4,
+     "city:New York": 1,
+     "city:Singapore": 6,
+     "country:AE": 1,
+     "country:AU": 1,
+     "country:BR": 3,
+     "country:CA": 11,
+     "country:CY": 3,
+     "country:GB": 3,
+     "country:IL": 1,
+     "country:IN": 8,
+     "country:US": 100,
+     "remote:": 4
+    },
+    "total": 155
+   }
+  },
+  "greenhouse:databricks": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 16,
+     "design": 4,
+     "engineering": 348,
+     "executive": 1,
+     "finance": 13,
+     "hr_people": 6,
+     "it_infrastructure": 33,
+     "legal_compliance": 7,
+     "manufacturing": 4,
+     "marketing": 13,
+     "operations": 15,
+     "product": 23,
+     "research": 3,
+     "sales": 130,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:Amsterdam": 24,
+     "city:Austin": 5,
+     "city:Bangalore": 64,
+     "city:Berlin": 10,
+     "city:Boston": 13,
+     "city:London": 46,
+     "city:Madrid": 3,
+     "city:Melbourne": 10,
+     "city:Milan": 4,
+     "city:Munich": 12,
+     "city:New York": 39,
+     "city:Paris": 11,
+     "city:Pune": 1,
+     "city:San Francisco": 113,
+     "city:Seattle": 26,
+     "city:Singapore": 30,
+     "city:Stockholm": 10,
+     "city:Sydney": 15,
+     "city:Tokyo": 26,
+     "city:Toronto": 11,
+     "city:Zurich": 3,
+     "country:AU": 8,
+     "country:BR": 7,
+     "country:CA": 15,
+     "country:CN": 1,
+     "country:CR": 3,
+     "country:DE": 3,
+     "country:DK": 11,
+     "country:ES": 1,
+     "country:FI": 1,
+     "country:FR": 1,
+     "country:GB": 2,
+     "country:GE": 7,
+     "country:IL": 1,
+     "country:IN": 12,
+     "country:JP": 5,
+     "country:KR": 10,
+     "country:MX": 6,
+     "country:NZ": 2,
+     "country:RS": 11,
+     "country:US": 80,
+     "remote:": 29
+    },
+    "total": 809
+   },
+   "company": "Databricks",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 809
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 16,
+     "design": 4,
+     "engineering": 348,
+     "executive": 1,
+     "finance": 13,
+     "hr_people": 6,
+     "it_infrastructure": 33,
+     "legal_compliance": 7,
+     "manufacturing": 4,
+     "marketing": 13,
+     "operations": 15,
+     "product": 23,
+     "research": 3,
+     "sales": 130,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:Amsterdam": 24,
+     "city:Austin": 5,
+     "city:Bangalore": 64,
+     "city:Berlin": 10,
+     "city:Boston": 13,
+     "city:London": 46,
+     "city:Madrid": 3,
+     "city:Melbourne": 10,
+     "city:Milan": 4,
+     "city:Munich": 12,
+     "city:New York": 39,
+     "city:Paris": 11,
+     "city:Pune": 1,
+     "city:San Francisco": 113,
+     "city:Seattle": 26,
+     "city:Singapore": 30,
+     "city:Stockholm": 10,
+     "city:Sydney": 15,
+     "city:Tokyo": 26,
+     "city:Toronto": 11,
+     "city:Zurich": 3,
+     "country:AU": 8,
+     "country:BR": 7,
+     "country:CA": 15,
+     "country:CN": 1,
+     "country:CR": 3,
+     "country:DE": 3,
+     "country:DK": 11,
+     "country:ES": 1,
+     "country:FI": 1,
+     "country:FR": 1,
+     "country:GB": 2,
+     "country:GE": 7,
+     "country:IL": 1,
+     "country:IN": 12,
+     "country:JP": 5,
+     "country:KR": 10,
+     "country:MX": 6,
+     "country:NZ": 2,
+     "country:RS": 11,
+     "country:US": 80,
+     "remote:": 29
+    },
+    "total": 809
+   }
+  },
+  "greenhouse:datadog": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 22,
+     "data_ai": 6,
+     "design": 7,
+     "engineering": 103,
+     "executive": 1,
+     "finance": 4,
+     "hr_people": 7,
+     "it_infrastructure": 35,
+     "legal_compliance": 2,
+     "marketing": 12,
+     "operations": 13,
+     "product": 23,
+     "research": 2,
+     "sales": 118,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Amsterdam": 13,
+     "city:Bangalore": 10,
+     "city:Boston": 48,
+     "city:Copenhagen": 3,
+     "city:Dublin": 15,
+     "city:Lisbon": 3,
+     "city:London": 9,
+     "city:Madrid": 8,
+     "city:New York": 100,
+     "city:Paris": 31,
+     "city:San Francisco": 13,
+     "city:Singapore": 21,
+     "city:Stockholm": 1,
+     "city:Sydney": 8,
+     "city:Tokyo": 39,
+     "country:AE": 1,
+     "country:AU": 2,
+     "country:BR": 13,
+     "country:CA": 2,
+     "country:CL": 1,
+     "country:CO": 1,
+     "country:DK": 1,
+     "country:FR": 4,
+     "country:GB": 1,
+     "country:GE": 2,
+     "country:ID": 3,
+     "country:IL": 3,
+     "country:IT": 2,
+     "country:JP": 2,
+     "country:KR": 13,
+     "country:MX": 5,
+     "country:PT": 1,
+     "country:SA": 3,
+     "country:TH": 1,
+     "country:US": 39,
+     "country:ZA": 1
+    },
+    "total": 423
+   },
+   "company": "Datadog",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 423
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 22,
+     "data_ai": 6,
+     "design": 7,
+     "engineering": 103,
+     "executive": 1,
+     "finance": 4,
+     "hr_people": 7,
+     "it_infrastructure": 35,
+     "legal_compliance": 2,
+     "marketing": 12,
+     "operations": 13,
+     "product": 23,
+     "research": 2,
+     "sales": 118,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Amsterdam": 13,
+     "city:Bangalore": 10,
+     "city:Boston": 48,
+     "city:Copenhagen": 3,
+     "city:Dublin": 15,
+     "city:Lisbon": 3,
+     "city:London": 9,
+     "city:Madrid": 8,
+     "city:New York": 100,
+     "city:Paris": 31,
+     "city:San Francisco": 13,
+     "city:Singapore": 21,
+     "city:Stockholm": 1,
+     "city:Sydney": 8,
+     "city:Tokyo": 39,
+     "country:AE": 1,
+     "country:AU": 2,
+     "country:BR": 13,
+     "country:CA": 2,
+     "country:CL": 1,
+     "country:CO": 1,
+     "country:DK": 1,
+     "country:FR": 4,
+     "country:GB": 1,
+     "country:GE": 2,
+     "country:ID": 3,
+     "country:IL": 3,
+     "country:IT": 2,
+     "country:JP": 2,
+     "country:KR": 13,
+     "country:MX": 5,
+     "country:PT": 1,
+     "country:SA": 3,
+     "country:TH": 1,
+     "country:US": 39,
+     "country:ZA": 1
+    },
+    "total": 423
+   }
+  },
+  "greenhouse:figma": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 7,
+     "data_ai": 6,
+     "design": 10,
+     "engineering": 31,
+     "executive": 1,
+     "finance": 6,
+     "hr_people": 5,
+     "it_infrastructure": 6,
+     "legal_compliance": 5,
+     "marketing": 6,
+     "operations": 6,
+     "product": 7,
+     "sales": 52
+    },
+    "places": {
+     "city:Bangalore": 3,
+     "city:Berlin": 5,
+     "city:Dublin": 1,
+     "city:London": 17,
+     "city:New York": 9,
+     "city:Paris": 6,
+     "city:San Francisco": 103,
+     "city:Singapore": 8,
+     "city:Sydney": 4,
+     "city:Tokyo": 11,
+     "country:BR": 6,
+     "country:IL": 5
+    },
+    "total": 178
+   },
+   "company": "Figma",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 178
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 7,
+     "data_ai": 6,
+     "design": 10,
+     "engineering": 31,
+     "executive": 1,
+     "finance": 6,
+     "hr_people": 5,
+     "it_infrastructure": 6,
+     "legal_compliance": 5,
+     "marketing": 6,
+     "operations": 6,
+     "product": 7,
+     "sales": 52
+    },
+    "places": {
+     "city:Bangalore": 3,
+     "city:Berlin": 5,
+     "city:Dublin": 1,
+     "city:London": 17,
+     "city:New York": 9,
+     "city:Paris": 6,
+     "city:San Francisco": 103,
+     "city:Singapore": 8,
+     "city:Sydney": 4,
+     "city:Tokyo": 11,
+     "country:BR": 6,
+     "country:IL": 5
+    },
+    "total": 178
+   }
+  },
+  "greenhouse:flexport": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 3,
+     "engineering": 13,
+     "finance": 1,
+     "hr_people": 6,
+     "it_infrastructure": 2,
+     "marketing": 7,
+     "operations": 31,
+     "product": 4,
+     "sales": 44,
+     "supply_chain": 3
+    },
+    "places": {
+     "city:Amsterdam": 14,
+     "city:Frankfurt": 2,
+     "city:Hamburg": 1,
+     "city:London": 1,
+     "city:Melbourne": 1,
+     "city:Milan": 4,
+     "city:New York": 13,
+     "city:Paris": 2,
+     "city:San Francisco": 10,
+     "city:Singapore": 1,
+     "city:Sydney": 1,
+     "city:Tokyo": 5,
+     "city:Toronto": 2,
+     "city:Warsaw": 1,
+     "country:BE": 3,
+     "country:CN": 15,
+     "country:DK": 2,
+     "country:GE": 6,
+     "country:HK": 3,
+     "country:ID": 1,
+     "country:IN": 5,
+     "country:KH": 3,
+     "country:KR": 1,
+     "country:MX": 4,
+     "country:MY": 1,
+     "country:PH": 2,
+     "country:TH": 1,
+     "country:TW": 4,
+     "country:US": 26,
+     "country:VN": 3,
+     "remote:": 1
+    },
+    "total": 152
+   },
+   "company": "Flexport",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 152
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 3,
+     "engineering": 13,
+     "finance": 1,
+     "hr_people": 6,
+     "it_infrastructure": 2,
+     "marketing": 7,
+     "operations": 31,
+     "product": 4,
+     "sales": 44,
+     "supply_chain": 3
+    },
+    "places": {
+     "city:Amsterdam": 14,
+     "city:Frankfurt": 2,
+     "city:Hamburg": 1,
+     "city:London": 1,
+     "city:Melbourne": 1,
+     "city:Milan": 4,
+     "city:New York": 13,
+     "city:Paris": 2,
+     "city:San Francisco": 10,
+     "city:Singapore": 1,
+     "city:Sydney": 1,
+     "city:Tokyo": 5,
+     "city:Toronto": 2,
+     "city:Warsaw": 1,
+     "country:BE": 3,
+     "country:CN": 15,
+     "country:DK": 2,
+     "country:GE": 6,
+     "country:HK": 3,
+     "country:ID": 1,
+     "country:IN": 5,
+     "country:KH": 3,
+     "country:KR": 1,
+     "country:MX": 4,
+     "country:MY": 1,
+     "country:PH": 2,
+     "country:TH": 1,
+     "country:TW": 4,
+     "country:US": 26,
+     "country:VN": 3,
+     "remote:": 1
+    },
+    "total": 152
+   }
+  },
+  "greenhouse:gitlab": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 12,
+     "data_ai": 4,
+     "design": 3,
+     "engineering": 47,
+     "executive": 3,
+     "finance": 4,
+     "it_infrastructure": 12,
+     "legal_compliance": 5,
+     "marketing": 7,
+     "operations": 7,
+     "product": 7,
+     "sales": 30,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Bangalore": 26,
+     "city:Singapore": 4,
+     "country:AE": 5,
+     "country:AT": 3,
+     "country:AU": 6,
+     "country:BR": 2,
+     "country:CA": 36,
+     "country:DE": 9,
+     "country:DK": 1,
+     "country:FR": 6,
+     "country:GB": 13,
+     "country:IE": 1,
+     "country:IL": 3,
+     "country:IN": 3,
+     "country:IT": 1,
+     "country:JP": 1,
+     "country:NL": 2,
+     "country:PL": 2,
+     "country:SA": 3,
+     "country:TR": 2,
+     "country:US": 51,
+     "remote:": 8
+    },
+    "total": 188
+   },
+   "company": "GitLab",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 188
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 12,
+     "data_ai": 4,
+     "design": 3,
+     "engineering": 47,
+     "executive": 3,
+     "finance": 4,
+     "it_infrastructure": 12,
+     "legal_compliance": 5,
+     "marketing": 7,
+     "operations": 7,
+     "product": 7,
+     "sales": 30,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Bangalore": 26,
+     "city:Singapore": 4,
+     "country:AE": 5,
+     "country:AT": 3,
+     "country:AU": 6,
+     "country:BR": 2,
+     "country:CA": 36,
+     "country:DE": 9,
+     "country:DK": 1,
+     "country:FR": 6,
+     "country:GB": 13,
+     "country:IE": 1,
+     "country:IL": 3,
+     "country:IN": 3,
+     "country:IT": 1,
+     "country:JP": 1,
+     "country:NL": 2,
+     "country:PL": 2,
+     "country:SA": 3,
+     "country:TR": 2,
+     "country:US": 51,
+     "remote:": 8
+    },
+    "total": 188
+   }
+  },
+  "greenhouse:gocardless": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 5,
+     "engineering": 4,
+     "finance": 1,
+     "hr_people": 2,
+     "it_infrastructure": 3,
+     "legal_compliance": 2,
+     "marketing": 3,
+     "product": 1,
+     "sales": 1
+    },
+    "places": {
+     "city:Lisbon": 9,
+     "city:London": 8,
+     "country:GB": 4,
+     "country:LV": 8
+    },
+    "total": 29
+   },
+   "company": "GoCardless",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 29
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 5,
+     "engineering": 4,
+     "finance": 1,
+     "hr_people": 2,
+     "it_infrastructure": 3,
+     "legal_compliance": 2,
+     "marketing": 3,
+     "product": 1,
+     "sales": 1
+    },
+    "places": {
+     "city:Lisbon": 9,
+     "city:London": 8,
+     "country:GB": 4,
+     "country:LV": 8
+    },
+    "total": 29
+   }
+  },
+  "greenhouse:instacart": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 20,
+     "design": 4,
+     "engineering": 21,
+     "finance": 2,
+     "it_infrastructure": 4,
+     "legal_compliance": 2,
+     "marketing": 4,
+     "operations": 4,
+     "product": 13,
+     "sales": 22
+    },
+    "places": {
+     "city:Boston": 1,
+     "city:San Francisco": 1,
+     "country:CA": 53,
+     "country:IL": 1,
+     "country:PA": 1,
+     "country:US": 59,
+     "remote:": 1
+    },
+    "total": 120
+   },
+   "company": "Instacart",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 120
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 20,
+     "design": 4,
+     "engineering": 21,
+     "finance": 2,
+     "it_infrastructure": 4,
+     "legal_compliance": 2,
+     "marketing": 4,
+     "operations": 4,
+     "product": 13,
+     "sales": 22
+    },
+    "places": {
+     "city:Boston": 1,
+     "city:San Francisco": 1,
+     "country:CA": 53,
+     "country:IL": 1,
+     "country:PA": 1,
+     "country:US": 59,
+     "remote:": 1
+    },
+    "total": 120
+   }
+  },
+  "greenhouse:lyft": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 29,
+     "design": 4,
+     "engineering": 38,
+     "executive": 3,
+     "finance": 3,
+     "it_infrastructure": 2,
+     "legal_compliance": 4,
+     "marketing": 13,
+     "operations": 8,
+     "product": 13,
+     "sales": 9
+    },
+    "places": {
+     "city:New York": 31,
+     "city:San Francisco": 51,
+     "city:Seattle": 4,
+     "city:Toronto": 42,
+     "country:CA": 6,
+     "country:MX": 13,
+     "country:TN": 7
+    },
+    "total": 160
+   },
+   "company": "Lyft",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 160
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 29,
+     "design": 4,
+     "engineering": 38,
+     "executive": 3,
+     "finance": 3,
+     "it_infrastructure": 2,
+     "legal_compliance": 4,
+     "marketing": 13,
+     "operations": 8,
+     "product": 13,
+     "sales": 9
+    },
+    "places": {
+     "city:New York": 31,
+     "city:San Francisco": 51,
+     "city:Seattle": 4,
+     "city:Toronto": 42,
+     "country:CA": 6,
+     "country:MX": 13,
+     "country:TN": 7
+    },
+    "total": 160
+   }
+  },
+  "greenhouse:monzo": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 12,
+     "design": 2,
+     "engineering": 11,
+     "finance": 6,
+     "hr_people": 1,
+     "it_infrastructure": 3,
+     "legal_compliance": 7,
+     "marketing": 3,
+     "operations": 2,
+     "product": 2
+    },
+    "places": {
+     "city:Barcelona": 9,
+     "city:Dublin": 7,
+     "city:London": 50,
+     "city:Madrid": 1,
+     "country:GB": 4
+    },
+    "total": 71
+   },
+   "company": "Monzo",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 71
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 12,
+     "design": 2,
+     "engineering": 11,
+     "finance": 6,
+     "hr_people": 1,
+     "it_infrastructure": 3,
+     "legal_compliance": 7,
+     "marketing": 3,
+     "operations": 2,
+     "product": 2
+    },
+    "places": {
+     "city:Barcelona": 9,
+     "city:Dublin": 7,
+     "city:London": 50,
+     "city:Madrid": 1,
+     "country:GB": 4
+    },
+    "total": 71
+   }
+  },
+  "greenhouse:pinterest": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 32,
+     "design": 4,
+     "engineering": 52,
+     "finance": 3,
+     "hr_people": 1,
+     "it_infrastructure": 6,
+     "marketing": 7,
+     "operations": 6,
+     "product": 9,
+     "sales": 37
+    },
+    "places": {
+     "city:Amsterdam": 2,
+     "city:Berlin": 3,
+     "city:Dublin": 12,
+     "city:Hamburg": 3,
+     "city:London": 4,
+     "city:Madrid": 1,
+     "city:New York": 20,
+     "city:Paris": 2,
+     "city:San Francisco": 90,
+     "city:Seattle": 6,
+     "city:Singapore": 13,
+     "city:Stockholm": 2,
+     "city:Sydney": 1,
+     "city:Tokyo": 2,
+     "city:Toronto": 16,
+     "country:AR": 3,
+     "country:BR": 1,
+     "country:CA": 3,
+     "country:IL": 13,
+     "country:MX": 2,
+     "country:US": 1
+    },
+    "total": 200
+   },
+   "company": "Pinterest",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 200
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 32,
+     "design": 4,
+     "engineering": 52,
+     "finance": 3,
+     "hr_people": 1,
+     "it_infrastructure": 6,
+     "marketing": 7,
+     "operations": 6,
+     "product": 9,
+     "sales": 37
+    },
+    "places": {
+     "city:Amsterdam": 2,
+     "city:Berlin": 3,
+     "city:Dublin": 12,
+     "city:Hamburg": 3,
+     "city:London": 4,
+     "city:Madrid": 1,
+     "city:New York": 20,
+     "city:Paris": 2,
+     "city:San Francisco": 90,
+     "city:Seattle": 6,
+     "city:Singapore": 13,
+     "city:Stockholm": 2,
+     "city:Sydney": 1,
+     "city:Tokyo": 2,
+     "city:Toronto": 16,
+     "country:AR": 3,
+     "country:BR": 1,
+     "country:CA": 3,
+     "country:IL": 13,
+     "country:MX": 2,
+     "country:US": 1
+    },
+    "total": 200
+   }
+  },
+  "greenhouse:reddit": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 45,
+     "design": 1,
+     "engineering": 52,
+     "finance": 2,
+     "it_infrastructure": 4,
+     "legal_compliance": 3,
+     "operations": 3,
+     "product": 5,
+     "sales": 36
+    },
+    "places": {
+     "city:Amsterdam": 3,
+     "city:Berlin": 2,
+     "city:Dublin": 1,
+     "city:London": 9,
+     "city:New York": 16,
+     "city:San Francisco": 13,
+     "city:Sydney": 2,
+     "city:Toronto": 6,
+     "country:CA": 24,
+     "country:DE": 2,
+     "country:GB": 8,
+     "country:IE": 2,
+     "country:IL": 9,
+     "country:NL": 6,
+     "country:US": 88
+    },
+    "total": 192
+   },
+   "company": "Reddit",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 192
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 45,
+     "design": 1,
+     "engineering": 52,
+     "finance": 2,
+     "it_infrastructure": 4,
+     "legal_compliance": 3,
+     "operations": 3,
+     "product": 5,
+     "sales": 36
+    },
+    "places": {
+     "city:Amsterdam": 3,
+     "city:Berlin": 2,
+     "city:Dublin": 1,
+     "city:London": 9,
+     "city:New York": 16,
+     "city:San Francisco": 13,
+     "city:Sydney": 2,
+     "city:Toronto": 6,
+     "country:CA": 24,
+     "country:DE": 2,
+     "country:GB": 8,
+     "country:IE": 2,
+     "country:IL": 9,
+     "country:NL": 6,
+     "country:US": 88
+    },
+    "total": 192
+   }
+  },
+  "greenhouse:robinhood": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 3,
+     "design": 6,
+     "engineering": 47,
+     "executive": 1,
+     "finance": 3,
+     "hr_people": 3,
+     "it_infrastructure": 10,
+     "legal_compliance": 12,
+     "marketing": 4,
+     "operations": 5,
+     "product": 4,
+     "sales": 1
+    },
+    "places": {
+     "city:London": 5,
+     "city:Luxembourg": 3,
+     "city:New York": 48,
+     "city:Singapore": 1,
+     "city:Toronto": 7,
+     "country:CA": 29,
+     "country:CO": 3,
+     "country:IL": 7,
+     "country:LT": 1,
+     "country:SI": 4
+    },
+    "total": 125
+   },
+   "company": "Robinhood",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 125
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 3,
+     "design": 6,
+     "engineering": 47,
+     "executive": 1,
+     "finance": 3,
+     "hr_people": 3,
+     "it_infrastructure": 10,
+     "legal_compliance": 12,
+     "marketing": 4,
+     "operations": 5,
+     "product": 4,
+     "sales": 1
+    },
+    "places": {
+     "city:London": 5,
+     "city:Luxembourg": 3,
+     "city:New York": 48,
+     "city:Singapore": 1,
+     "city:Toronto": 7,
+     "country:CA": 29,
+     "country:CO": 3,
+     "country:IL": 7,
+     "country:LT": 1,
+     "country:SI": 4
+    },
+    "total": 125
+   }
+  },
+  "greenhouse:samsara": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 26,
+     "data_ai": 12,
+     "design": 3,
+     "engineering": 72,
+     "finance": 2,
+     "hr_people": 5,
+     "it_infrastructure": 6,
+     "legal_compliance": 2,
+     "marketing": 7,
+     "operations": 6,
+     "product": 11,
+     "sales": 91,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:Bangalore": 7,
+     "city:Boston": 1,
+     "city:London": 17,
+     "city:New York": 2,
+     "city:San Francisco": 8,
+     "city:Seattle": 4,
+     "city:Toronto": 9,
+     "country:CA": 40,
+     "country:CO": 1,
+     "country:DE": 2,
+     "country:FR": 1,
+     "country:GA": 2,
+     "country:GB": 10,
+     "country:GE": 3,
+     "country:IL": 2,
+     "country:IN": 2,
+     "country:LA": 2,
+     "country:MA": 2,
+     "country:MN": 2,
+     "country:MO": 1,
+     "country:MX": 26,
+     "country:NE": 1,
+     "country:NL": 1,
+     "country:PL": 1,
+     "country:TW": 2,
+     "country:US": 128,
+     "remote:": 42
+    },
+    "total": 327
+   },
+   "company": "Samsara",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 327
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 26,
+     "data_ai": 12,
+     "design": 3,
+     "engineering": 72,
+     "finance": 2,
+     "hr_people": 5,
+     "it_infrastructure": 6,
+     "legal_compliance": 2,
+     "marketing": 7,
+     "operations": 6,
+     "product": 11,
+     "sales": 91,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:Bangalore": 7,
+     "city:Boston": 1,
+     "city:London": 17,
+     "city:New York": 2,
+     "city:San Francisco": 8,
+     "city:Seattle": 4,
+     "city:Toronto": 9,
+     "country:CA": 40,
+     "country:CO": 1,
+     "country:DE": 2,
+     "country:FR": 1,
+     "country:GA": 2,
+     "country:GB": 10,
+     "country:GE": 3,
+     "country:IL": 2,
+     "country:IN": 2,
+     "country:LA": 2,
+     "country:MA": 2,
+     "country:MN": 2,
+     "country:MO": 1,
+     "country:MX": 26,
+     "country:NE": 1,
+     "country:NL": 1,
+     "country:PL": 1,
+     "country:TW": 2,
+     "country:US": 128,
+     "remote:": 42
+    },
+    "total": 327
+   }
+  },
+  "greenhouse:scaleai": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "clinical_healthcare": 2,
+     "customer_support": 1,
+     "data_ai": 17,
+     "engineering": 55,
+     "executive": 3,
+     "finance": 5,
+     "hr_people": 4,
+     "it_infrastructure": 19,
+     "legal_compliance": 9,
+     "marketing": 3,
+     "operations": 16,
+     "product": 14,
+     "research": 5,
+     "sales": 6
+    },
+    "places": {
+     "city:Austin": 2,
+     "city:London": 25,
+     "city:New York": 23,
+     "city:San Francisco": 94,
+     "country:AE": 2,
+     "country:AR": 2,
+     "country:CA": 4,
+     "country:GB": 7,
+     "country:HU": 1,
+     "country:IN": 2,
+     "country:MD": 2,
+     "country:MO": 2,
+     "country:MX": 8,
+     "country:QA": 8,
+     "country:SA": 2,
+     "country:US": 7
+    },
+    "total": 208
+   },
+   "company": "Scale AI",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 208
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "clinical_healthcare": 2,
+     "customer_support": 1,
+     "data_ai": 17,
+     "engineering": 55,
+     "executive": 3,
+     "finance": 5,
+     "hr_people": 4,
+     "it_infrastructure": 19,
+     "legal_compliance": 9,
+     "marketing": 3,
+     "operations": 16,
+     "product": 14,
+     "research": 5,
+     "sales": 6
+    },
+    "places": {
+     "city:Austin": 2,
+     "city:London": 25,
+     "city:New York": 23,
+     "city:San Francisco": 94,
+     "country:AE": 2,
+     "country:AR": 2,
+     "country:CA": 4,
+     "country:GB": 7,
+     "country:HU": 1,
+     "country:IN": 2,
+     "country:MD": 2,
+     "country:MO": 2,
+     "country:MX": 8,
+     "country:QA": 8,
+     "country:SA": 2,
+     "country:US": 7
+    },
+    "total": 208
+   }
+  },
+  "greenhouse:stripe": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 14,
+     "data_ai": 27,
+     "design": 15,
+     "engineering": 97,
+     "executive": 5,
+     "finance": 20,
+     "hr_people": 3,
+     "it_infrastructure": 24,
+     "legal_compliance": 36,
+     "marketing": 27,
+     "operations": 53,
+     "product": 28,
+     "sales": 83
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:Bangalore": 36,
+     "city:Barcelona": 1,
+     "city:Berlin": 3,
+     "city:Bucharest": 1,
+     "city:Dublin": 46,
+     "city:London": 25,
+     "city:Luxembourg": 2,
+     "city:Madrid": 1,
+     "city:Milan": 1,
+     "city:New York": 47,
+     "city:Paris": 5,
+     "city:San Francisco": 75,
+     "city:Seattle": 22,
+     "city:Singapore": 36,
+     "city:Stockholm": 1,
+     "city:Sydney": 10,
+     "city:Tokyo": 4,
+     "city:Toronto": 25,
+     "country:AE": 2,
+     "country:AU": 1,
+     "country:CA": 6,
+     "country:ES": 2,
+     "country:GB": 2,
+     "country:IE": 5,
+     "country:IL": 5,
+     "country:JP": 2,
+     "country:MX": 27,
+     "country:NA": 1,
+     "country:TW": 2,
+     "country:US": 29,
+     "remote:": 46
+    },
+    "total": 532
+   },
+   "company": "Stripe",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 532
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 14,
+     "data_ai": 27,
+     "design": 15,
+     "engineering": 97,
+     "executive": 5,
+     "finance": 20,
+     "hr_people": 3,
+     "it_infrastructure": 24,
+     "legal_compliance": 36,
+     "marketing": 27,
+     "operations": 53,
+     "product": 28,
+     "sales": 83
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:Bangalore": 36,
+     "city:Barcelona": 1,
+     "city:Berlin": 3,
+     "city:Bucharest": 1,
+     "city:Dublin": 46,
+     "city:London": 25,
+     "city:Luxembourg": 2,
+     "city:Madrid": 1,
+     "city:Milan": 1,
+     "city:New York": 47,
+     "city:Paris": 5,
+     "city:San Francisco": 75,
+     "city:Seattle": 22,
+     "city:Singapore": 36,
+     "city:Stockholm": 1,
+     "city:Sydney": 10,
+     "city:Tokyo": 4,
+     "city:Toronto": 25,
+     "country:AE": 2,
+     "country:AU": 1,
+     "country:CA": 6,
+     "country:ES": 2,
+     "country:GB": 2,
+     "country:IE": 5,
+     "country:IL": 5,
+     "country:JP": 2,
+     "country:MX": 27,
+     "country:NA": 1,
+     "country:TW": 2,
+     "country:US": 29,
+     "remote:": 46
+    },
+    "total": 532
+   }
+  },
+  "smartrecruiters:BoschGroup": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "clinical_healthcare": 1,
+     "customer_support": 108,
+     "data_ai": 33,
+     "design": 40,
+     "engineering": 2095,
+     "executive": 34,
+     "finance": 104,
+     "hr_people": 120,
+     "it_infrastructure": 52,
+     "legal_compliance": 28,
+     "manufacturing": 511,
+     "marketing": 105,
+     "operations": 37,
+     "product": 49,
+     "research": 114,
+     "sales": 329,
+     "supply_chain": 235
+    },
+    "places": {
+     "city:Bangalore": 329,
+     "city:Barcelona": 5,
+     "city:Berlin": 22,
+     "city:Brussels": 4,
+     "city:Eindhoven": 2,
+     "city:Hamburg": 11,
+     "city:Hyderabad": 2,
+     "city:Lisbon": 39,
+     "city:Madrid": 52,
+     "city:Milan": 3,
+     "city:Munich": 22,
+     "city:New York": 1,
+     "city:Paris": 1,
+     "city:Pune": 36,
+     "city:San Francisco": 3,
+     "city:Singapore": 11,
+     "country:AL": 1,
+     "country:AO": 3,
+     "country:AR": 2,
+     "country:AT": 24,
+     "country:AU": 18,
+     "country:BE": 21,
+     "country:BG": 5,
+     "country:BR": 106,
+     "country:CA": 5,
+     "country:CH": 29,
+     "country:CL": 11,
+     "country:CN": 1191,
+     "country:CO": 4,
+     "country:CZ": 14,
+     "country:DE": 850,
+     "country:DK": 3,
+     "country:EG": 3,
+     "country:ES": 15,
+     "country:FI": 1,
+     "country:FR": 48,
+     "country:GB": 38,
+     "country:GR": 2,
+     "country:HK": 5,
+     "country:HU": 213,
+     "country:ID": 10,
+     "country:IN": 183,
+     "country:IT": 26,
+     "country:JP": 96,
+     "country:KE": 1,
+     "country:KR": 7,
+     "country:KZ": 2,
+     "country:LI": 6,
+     "country:LK": 1,
+     "country:MA": 3,
+     "country:MX": 120,
+     "country:MY": 136,
+     "country:NL": 35,
+     "country:NO": 6,
+     "country:PE": 5,
+     "country:PH": 8,
+     "country:PL": 42,
+     "country:PT": 132,
+     "country:RO": 68,
+     "country:RS": 19,
+     "country:SA": 2,
+     "country:SE": 13,
+     "country:SI": 13,
+     "country:SK": 3,
+     "country:TH": 154,
+     "country:TN": 1,
+     "country:TR": 38,
+     "country:TW": 8,
+     "country:UA": 2,
+     "country:US": 281,
+     "country:VN": 170,
+     "country:ZA": 2
+    },
+    "total": 4748
+   },
+   "company": "Bosch",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 4748
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "clinical_healthcare": 1,
+     "customer_support": 108,
+     "data_ai": 33,
+     "design": 40,
+     "engineering": 2095,
+     "executive": 34,
+     "finance": 104,
+     "hr_people": 120,
+     "it_infrastructure": 52,
+     "legal_compliance": 28,
+     "manufacturing": 511,
+     "marketing": 105,
+     "operations": 37,
+     "product": 49,
+     "research": 114,
+     "sales": 329,
+     "supply_chain": 235
+    },
+    "places": {
+     "city:Bangalore": 329,
+     "city:Barcelona": 5,
+     "city:Berlin": 22,
+     "city:Brussels": 4,
+     "city:Eindhoven": 2,
+     "city:Hamburg": 11,
+     "city:Hyderabad": 2,
+     "city:Lisbon": 39,
+     "city:Madrid": 52,
+     "city:Milan": 3,
+     "city:Munich": 22,
+     "city:New York": 1,
+     "city:Paris": 1,
+     "city:Pune": 36,
+     "city:San Francisco": 3,
+     "city:Singapore": 11,
+     "country:AL": 1,
+     "country:AO": 3,
+     "country:AR": 2,
+     "country:AT": 24,
+     "country:AU": 18,
+     "country:BE": 21,
+     "country:BG": 5,
+     "country:BR": 106,
+     "country:CA": 5,
+     "country:CH": 29,
+     "country:CL": 11,
+     "country:CN": 1191,
+     "country:CO": 4,
+     "country:CZ": 14,
+     "country:DE": 850,
+     "country:DK": 3,
+     "country:EG": 3,
+     "country:ES": 15,
+     "country:FI": 1,
+     "country:FR": 48,
+     "country:GB": 38,
+     "country:GR": 2,
+     "country:HK": 5,
+     "country:HU": 213,
+     "country:ID": 10,
+     "country:IN": 183,
+     "country:IT": 26,
+     "country:JP": 96,
+     "country:KE": 1,
+     "country:KR": 7,
+     "country:KZ": 2,
+     "country:LI": 6,
+     "country:LK": 1,
+     "country:MA": 3,
+     "country:MX": 120,
+     "country:MY": 136,
+     "country:NL": 35,
+     "country:NO": 6,
+     "country:PE": 5,
+     "country:PH": 8,
+     "country:PL": 42,
+     "country:PT": 132,
+     "country:RO": 68,
+     "country:RS": 19,
+     "country:SA": 2,
+     "country:SE": 13,
+     "country:SI": 13,
+     "country:SK": 3,
+     "country:TH": 154,
+     "country:TN": 1,
+     "country:TR": 38,
+     "country:TW": 8,
+     "country:UA": 2,
+     "country:US": 281,
+     "country:VN": 170,
+     "country:ZA": 2
+    },
+    "total": 4748
+   }
+  },
+  "smartrecruiters:KIABI": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 3,
+     "design": 1,
+     "executive": 27,
+     "hr_people": 1,
+     "legal_compliance": 1,
+     "marketing": 2,
+     "product": 2,
+     "sales": 118,
+     "supply_chain": 8
+    },
+    "places": {
+     "city:Lisbon": 1,
+     "city:Madrid": 3,
+     "city:Milan": 1,
+     "country:BE": 1,
+     "country:CH": 1,
+     "country:CN": 1,
+     "country:ES": 27,
+     "country:FR": 175,
+     "country:HK": 1,
+     "country:IN": 1,
+     "country:IT": 41,
+     "country:KH": 2,
+     "country:LA": 1,
+     "country:PT": 5
+    },
+    "total": 261
+   },
+   "company": "Kiabi",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 261
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 3,
+     "design": 1,
+     "executive": 27,
+     "hr_people": 1,
+     "legal_compliance": 1,
+     "marketing": 2,
+     "product": 2,
+     "sales": 118,
+     "supply_chain": 8
+    },
+    "places": {
+     "city:Lisbon": 1,
+     "city:Madrid": 3,
+     "city:Milan": 1,
+     "country:BE": 1,
+     "country:CH": 1,
+     "country:CN": 1,
+     "country:ES": 27,
+     "country:FR": 175,
+     "country:HK": 1,
+     "country:IN": 1,
+     "country:IT": 41,
+     "country:KH": 2,
+     "country:LA": 1,
+     "country:PT": 5
+    },
+    "total": 261
+   }
+  },
+  "smartrecruiters:Sodexo": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 16,
+     "data_ai": 1,
+     "engineering": 1,
+     "executive": 6,
+     "hr_people": 10,
+     "operations": 1,
+     "sales": 3,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Sydney": 1,
+     "country:AU": 113
+    },
+    "total": 114
+   },
+   "company": "Sodexo",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 114
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 16,
+     "data_ai": 1,
+     "engineering": 1,
+     "executive": 6,
+     "hr_people": 10,
+     "operations": 1,
+     "sales": 3,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Sydney": 1,
+     "country:AU": 113
+    },
+    "total": 114
+   }
+  },
+  "smartrecruiters:Ubisoft2": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 3,
+     "design": 25,
+     "engineering": 57,
+     "finance": 10,
+     "hr_people": 10,
+     "it_infrastructure": 10,
+     "legal_compliance": 7,
+     "manufacturing": 15,
+     "marketing": 26,
+     "operations": 3,
+     "product": 1
+    },
+    "places": {
+     "city:Barcelona": 1,
+     "city:Bucharest": 2,
+     "city:Copenhagen": 1,
+     "city:Milan": 1,
+     "city:Paris": 35,
+     "city:Pune": 2,
+     "city:Singapore": 4,
+     "city:Toronto": 3,
+     "country:BG": 3,
+     "country:CA": 127,
+     "country:CN": 9,
+     "country:DE": 3,
+     "country:FR": 65,
+     "country:GB": 4,
+     "country:RO": 1,
+     "country:SE": 9,
+     "country:UA": 4,
+     "country:VN": 2
+    },
+    "total": 276
+   },
+   "company": "Ubisoft",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 276
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "data_ai": 3,
+     "design": 25,
+     "engineering": 57,
+     "finance": 10,
+     "hr_people": 10,
+     "it_infrastructure": 10,
+     "legal_compliance": 7,
+     "manufacturing": 15,
+     "marketing": 26,
+     "operations": 3,
+     "product": 1
+    },
+    "places": {
+     "city:Barcelona": 1,
+     "city:Bucharest": 2,
+     "city:Copenhagen": 1,
+     "city:Milan": 1,
+     "city:Paris": 35,
+     "city:Pune": 2,
+     "city:Singapore": 4,
+     "city:Toronto": 3,
+     "country:BG": 3,
+     "country:CA": 127,
+     "country:CN": 9,
+     "country:DE": 3,
+     "country:FR": 65,
+     "country:GB": 4,
+     "country:RO": 1,
+     "country:SE": 9,
+     "country:UA": 4,
+     "country:VN": 2
+    },
+    "total": 276
+   }
+  },
+  "smartrecruiters:Wise": {
+   "baseline": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 35,
+     "data_ai": 29,
+     "design": 10,
+     "engineering": 105,
+     "executive": 6,
+     "finance": 25,
+     "hr_people": 22,
+     "it_infrastructure": 1,
+     "legal_compliance": 26,
+     "manufacturing": 12,
+     "marketing": 11,
+     "operations": 35,
+     "product": 20,
+     "research": 1,
+     "sales": 11
+    },
+    "places": {
+     "city:Austin": 30,
+     "city:Berlin": 1,
+     "city:Brussels": 6,
+     "city:Bucharest": 1,
+     "city:Hyderabad": 39,
+     "city:London": 149,
+     "city:Milan": 1,
+     "city:New York": 4,
+     "city:Singapore": 30,
+     "city:Stockholm": 1,
+     "city:Sydney": 1,
+     "city:Tokyo": 8,
+     "city:Warsaw": 1,
+     "country:AE": 2,
+     "country:BR": 33,
+     "country:CA": 1,
+     "country:EE": 61,
+     "country:HU": 22,
+     "country:KR": 3,
+     "country:MX": 1,
+     "country:MY": 4,
+     "country:TH": 1
+    },
+    "total": 400
+   },
+   "company": "Wise",
+   "history": [
+    {
+     "date": "2026-07-28",
+     "total": 400
+    }
+   ],
+   "last": {
+    "date": "2026-07-28",
+    "functions": {
+     "customer_support": 35,
+     "data_ai": 29,
+     "design": 10,
+     "engineering": 105,
+     "executive": 6,
+     "finance": 25,
+     "hr_people": 22,
+     "it_infrastructure": 1,
+     "legal_compliance": 26,
+     "manufacturing": 12,
+     "marketing": 11,
+     "operations": 35,
+     "product": 20,
+     "research": 1,
+     "sales": 11
+    },
+    "places": {
+     "city:Austin": 30,
+     "city:Berlin": 1,
+     "city:Brussels": 6,
+     "city:Bucharest": 1,
+     "city:Hyderabad": 39,
+     "city:London": 149,
+     "city:Milan": 1,
+     "city:New York": 4,
+     "city:Singapore": 30,
+     "city:Stockholm": 1,
+     "city:Sydney": 1,
+     "city:Tokyo": 8,
+     "city:Warsaw": 1,
+     "country:AE": 2,
+     "country:BR": 33,
+     "country:CA": 1,
+     "country:EE": 61,
+     "country:HU": 22,
+     "country:KR": 3,
+     "country:MX": 1,
+     "country:MY": 4,
+     "country:TH": 1
+    },
+    "total": 400
+   }
+  }
+ },
+ "version": 1
+}
