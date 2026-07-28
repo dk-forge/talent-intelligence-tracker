@@ -47,15 +47,18 @@ from pipeline import identity, schema, validate, vocab  # noqa: E402
 
 NASA_SEARCH = ["Q309751", "Q23548"]          # plant genus first, agency second
 NASA_PROPS = {
-    "Q309751": {"roots": [], "places": [], "hq_country": "", "country": ""},
-    "Q23548": {"roots": ["Q327333", "Q43229"],
+    "Q309751": {"instances": ["Q16521"], "roots": ["Q16521"], "places": [],
+                "hq_country": "", "country": ""},
+    "Q23548": {"instances": ["Q1752939", "Q17505024"],
+               "roots": ["Q327333", "Q43229"],
                "places": ["Washington, D.C.", "United States"],
                "hq_country": "US", "country": "US"},
 }
 
 APPLE_SEARCH = ["Q312"]
 APPLE_PROPS = {
-    "Q312": {"roots": ["Q783794", "Q43229", "Q891723", "Q4830453"],
+    "Q312": {"instances": ["Q167037", "Q891723", "Q4830453", "Q18388277"],
+             "roots": ["Q783794", "Q43229", "Q891723", "Q4830453"],
              "places": ["Cupertino", "Santa Clara County", "California",
                         "United States"],
              "hq_country": "US", "country": "US"},
@@ -63,7 +66,8 @@ APPLE_PROPS = {
 
 MAYO_SEARCH = ["Q1130172"]
 MAYO_PROPS = {
-    "Q1130172": {"roots": ["Q163740", "Q43229", "Q2385804", "Q31855"],
+    "Q1130172": {"instances": ["Q31855", "Q163740", "Q1774898", "Q2385804"],
+                 "roots": ["Q163740", "Q43229", "Q2385804", "Q31855"],
                  "places": ["Minnesota", "United States", "Olmsted County",
                             "Rochester"],
                  "hq_country": "US", "country": "US"},
@@ -71,9 +75,30 @@ MAYO_PROPS = {
 
 TVA_SEARCH = ["Q1367577"]
 TVA_PROPS = {
-    "Q1367577": {"roots": ["Q783794", "Q4830453", "Q43229", "Q327333"],
+    "Q1367577": {"instances": ["Q1326624", "Q1752939", "Q4830453"],
+                 "roots": ["Q783794", "Q4830453", "Q43229", "Q327333"],
                  "places": ["United States", "Tennessee", "Knoxville"],
                  "hq_country": "US", "country": "US"},
+}
+
+# The false positives the first live backfill produced. Every one of these
+# passed the allow-list: Wikidata's P279 graph reaches "company" from a French
+# commune and "government agency" from a city in North Carolina.
+CURIS_SEARCH = ["Q1615325"]      # Curis-au-Mont-d'Or, a commune near Lyon
+CURIS_PROPS = {
+    "Q1615325": {"instances": ["Q484170"],
+                 "roots": ["Q783794", "Q43229", "Q56061"],
+                 "places": ["Curis-au-Mont-d'Or", "France"],
+                 "hq_country": "FR", "country": "FR"},
+}
+
+# HireQuest is a real staffing firm listed as HQI. Its class chain reaches
+# "government agency" through "employment agency", so the closure called it a
+# government body.
+HIREQUEST_PROPS = {
+    "Q127257936": {"instances": ["Q261362"], "roots": ["Q327333", "Q43229"],
+                   "places": ["United States"], "hq_country": "US",
+                   "country": "US"},
 }
 
 # Three rows of the real company_tickers.json, plus the two share classes that
@@ -174,19 +199,76 @@ class OrganisationAllowList(unittest.TestCase):
         self.assertTrue(ident.is_empty)
 
     def test_every_type_lands_inside_the_closed_vocabulary(self):
-        for _root, kind in identity._TYPE_BY_ROOT:
-            if kind is not None:
-                self.assertIn(kind, vocab.EMPLOYER_TYPES)
+        for _qid, kind in identity._TYPE_BY_INSTANCE:
+            self.assertIn(kind, vocab.EMPLOYER_TYPES)
 
     def test_a_hospital_that_teaches_is_a_nonprofit_not_a_school(self):
         """Mayo Clinic is an instance of both. 'Nonprofit' is the truer label;
         a university (the specific class) still wins as 'education'."""
+        entry = MAYO_PROPS["Q1130172"]
         self.assertEqual(
-            identity.employer_type_from_roots(MAYO_PROPS["Q1130172"]["roots"]),
+            identity.employer_type_from(entry["instances"], entry["roots"]),
             "nonprofit")
         self.assertEqual(
-            identity.employer_type_from_roots(["Q3918", "Q163740", "Q43229"]),
+            identity.employer_type_from(["Q3918", "Q163740"], ["Q43229"]),
             "education")
+
+    def test_a_place_is_never_an_employer_however_the_graph_is_wired(self):
+        """The deny-list. Wikidata's P279 closure reaches "company" from a
+        French commune, so "Curis, Inc." resolved to Curis-au-Mont-d'Or and
+        arrived with a headquarters in France."""
+        fx = Fixture({"curis": CURIS_SEARCH}, CURIS_PROPS)
+        with _Patched(self, fx):
+            ident = identity.wikidata_lookup("Curis, Inc.")
+        self.assertIsNone(ident.qid)
+        self.assertIsNone(ident.hq_country)
+        self.assertTrue(ident.is_empty)
+
+    def test_the_deny_list_outranks_the_allow_list(self):
+        self.assertFalse(identity.is_organization(["Q783794", "Q43229", "Q56061"]))
+        self.assertTrue(identity.is_organization(["Q783794", "Q43229"]))
+
+    def test_government_needs_wikidata_to_say_so_outright(self):
+        """"Government agency" is reachable from "employment agency" through
+        the closure, so HireQuest — a staffing firm listed as HQI — came back
+        as a government body. Precise types come from the direct P31 only."""
+        entry = HIREQUEST_PROPS["Q127257936"]
+        self.assertIsNone(
+            identity.employer_type_from(entry["instances"], entry["roots"]))
+        # ...and with a direct P31 that does say so, it says so.
+        self.assertEqual(identity.employer_type_from(["Q327333"], []), "government")
+
+    def test_a_hit_that_merely_starts_with_our_name_is_a_different_employer(self):
+        """wbsearchentities matches from the front. A search for "First
+        Foundation" brings back a Nigerian primary school and a Lagos
+        hospital, both of them real organisations."""
+        wanted = vocab.company_key("First Foundation Inc.")
+        self.assertTrue(identity._names_agree(wanted, "First Foundation"))
+        self.assertFalse(
+            identity._names_agree(wanted, "First Foundation Nursery and Primary School"))
+        self.assertFalse(identity._names_agree(
+            vocab.company_key("Graham Corporation"), "Graham"))
+
+    def test_the_legal_suffix_is_not_a_disagreement(self):
+        for name, label in (("Apple Inc.", "Apple"), ("Siemens", "Siemens AG"),
+                            ("Chart Industries, Inc.", "Chart Industries")):
+            with self.subTest(name=name):
+                self.assertTrue(
+                    identity._names_agree(vocab.company_key(name), label))
+
+    def test_an_alias_match_counts_as_agreement(self):
+        """NASA's label is "National Aeronautics and Space Administration"; the
+        search matched it on an alias, and the alias is what we asked for."""
+        self.assertFalse(identity._names_agree(
+            "nasa", "National Aeronautics and Space Administration"))
+        self.assertTrue(identity._names_agree("nasa", "NASA"))
+
+    def test_the_closure_may_only_ever_conclude_public_or_private(self):
+        for kind in ("government", "education", "nonprofit"):
+            roots = [q for q, k in identity._TYPE_BY_INSTANCE if k == kind]
+            self.assertIsNone(identity.employer_type_from([], roots), kind)
+        self.assertEqual(identity.employer_type_from([], ["Q891723"]), "public")
+        self.assertEqual(identity.employer_type_from([], ["Q4830453"]), "private")
 
 
 class SecIsTheTickerAuthority(unittest.TestCase):

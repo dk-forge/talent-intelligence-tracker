@@ -193,7 +193,6 @@ ORG_ROOTS = (
     "Q783794",   # company
     "Q6881511",  # enterprise
     "Q327333",   # government agency
-    "Q7188",     # government
     "Q163740",   # nonprofit organization
     "Q3918",     # university
     "Q2385804",  # educational institution
@@ -202,49 +201,103 @@ ORG_ROOTS = (
     "Q31855",    # research institute
 )
 
+# And the reason the allow-list alone is not enough. Wikidata's P279 graph is
+# edited by hand and is full of shortcuts, so the transitive closure leaks: a
+# French commune reaches "company", a city in North Carolina reaches
+# "government agency", and New Caledonia reaches "organization". Every one of
+# those was resolved as an employer by the first backfill — "Curis, Inc."
+# became Curis-au-Mont-d'Or, "Graham Corporation" became Graham NC, "Merlin,
+# Inc." became Merlines — and each arrived with a headquarters in France.
+#
+# A place is never an employer, whatever the ontology says, so the deny-list is
+# checked FIRST and wins outright. Q7188 (government) came out of the allow
+# list at the same time and for the same reason: every commune in France is
+# under it.
+DENY_ROOTS = (
+    "Q56061",    # administrative territorial entity (communes, counties, states)
+    "Q486972",   # human settlement (city, town, village)
+    "Q3624078",  # sovereign state
+    "Q82794",    # geographic region
+    "Q16521",    # taxon — the plant genus Nasa arrives here
+    "Q5",        # human
+    "Q4167410",  # Wikimedia disambiguation page
+    "Q13442814",  # scholarly article
+    "Q11424",    # film
+    "Q7725634",  # literary work
+    "Q2188189",  # musical work
+)
+
 # Which root wins when several match, mapped onto our closed vocabulary
 # (vocab.EMPLOYER_TYPES). Order is precedence, most specific first: Alphabet is
 # an instance of business AND of public company, and "public" is the useful one.
 # A root that maps to None is accepted as an organisation but says nothing
 # about kind — "organization" and "enterprise" are true of everything.
 #
-# The order was set by the answers it gives, not by taxonomy. Two cases fixed
-# it: Mayo Clinic is BOTH a nonprofit and an educational institution, and
-# "Nonprofit" is the truer label for a hospital system; a university is also
-# usually a nonprofit, and "Education" is the truer label for it. So the
-# specific class (university) outranks nonprofit and the generic one
-# (educational institution) sits below it.
-_TYPE_BY_ROOT = (
-    ("Q891723", "public"),
-    ("Q3918", "education"),       # university — specific, so it wins
-    ("Q327333", "government"),
-    ("Q7188", "government"),
-    ("Q163740", "nonprofit"),
-    ("Q2385804", "education"),    # educational institution — generic, so it loses
-    ("Q31855", "nonprofit"),
-    ("Q4830453", "private"),
-    ("Q783794", "private"),
-    ("Q6881511", "private"),
-    ("Q16917", None),
-    ("Q4287745", None),
-    ("Q43229", None),
+# Read from the DIRECT P31 values, not from the closure, and that is the whole
+# point of the table. Through the closure "government agency" is reachable from
+# "employment agency", so HireQuest — a staffing firm listed as HQI — came back
+# as a government body. Government, education and nonprofit are precise claims
+# about an employer and a reader will believe them, so they are only ever made
+# when Wikidata states the class outright.
+#
+# The order was set by the answers it gives, not by taxonomy. Mayo Clinic is an
+# instance of both nonprofit and educational institution, and "Nonprofit" is
+# the truer label for a hospital system; MIT is an instance of university, and
+# "Education" is the truer label for that. So the specific class (university)
+# outranks nonprofit and the generic one (educational institution) sits below.
+_TYPE_BY_INSTANCE = (
+    ("Q891723", "public"),      # public company
+    ("Q3918", "education"),     # university
+    ("Q875538", "education"),   # public university
+    ("Q902104", "education"),   # private university
+    ("Q327333", "government"),  # government agency
+    ("Q1752939", "government"),  # federal agency of the United States
+    ("Q1326624", "government"),  # state-owned enterprise
+    ("Q163740", "nonprofit"),   # nonprofit organization
+    ("Q79913", "nonprofit"),    # non-governmental organization
+    ("Q708676", "nonprofit"),   # charitable organization
+    ("Q31855", "nonprofit"),    # research institute
+    ("Q2385804", "education"),  # educational institution — generic, so it loses
+    ("Q18388277", "private"),   # technology company
+    ("Q1058914", "private"),    # software company
+    ("Q4830453", "private"),    # business
+    ("Q783794", "private"),     # company
+    ("Q6881511", "private"),    # enterprise
 )
+
+# The closure may only ever conclude "public" or "private". Both are safe to be
+# vague about — every employer is one or the other — and neither carries the
+# weight that calling a staffing agency a government body does.
+_CLOSURE_PUBLIC = "Q891723"
+_CLOSURE_PRIVATE = ("Q4830453", "Q783794", "Q6881511")
 
 _QID = re.compile(r"^Q\d+$")
 
 
 def is_organization(roots) -> bool:
-    """Rule: no organisation root, no resolution. This is the NASA guard."""
-    return bool(set(roots or ()) & set(ORG_ROOTS))
+    """No organisation root, or any deny root, means no resolution.
 
-
-def employer_type_from_roots(roots) -> str | None:
+    The deny check comes first and is absolute: a place, a person, a species or
+    a film is not an employer however the P279 graph happens to be wired.
+    """
     got = set(roots or ())
-    for root, kind in _TYPE_BY_ROOT:
-        if root in got:
+    if got & set(DENY_ROOTS):
+        return False
+    return bool(got & set(ORG_ROOTS))
+
+
+def employer_type_from(instances, roots) -> str | None:
+    got = set(instances or ())
+    for qid, kind in _TYPE_BY_INSTANCE:
+        if qid in got:
             # Normalised rather than returned raw, so this module cannot widen
             # the vocabulary by accident — same rule as every other column.
-            return vocab.normalize_employer_type(kind) if kind else None
+            return vocab.normalize_employer_type(kind)
+    closure = set(roots or ())
+    if _CLOSURE_PUBLIC in closure:
+        return "public"
+    if closure & set(_CLOSURE_PRIVATE):
+        return "private"
     return None
 
 
@@ -454,12 +507,14 @@ def sec_lookup(name: str, *, allow_network: bool = True) -> tuple[str | None, st
 
 SPARQL = """
 SELECT ?item
+       (GROUP_CONCAT(DISTINCT ?instance; separator=" ") AS ?instances)
        (GROUP_CONCAT(DISTINCT ?orgRoot; separator=" ") AS ?roots)
        (GROUP_CONCAT(DISTINCT ?placeLabel; separator="|") AS ?places)
        (SAMPLE(?hqCountryCode) AS ?hqCountry)
        (SAMPLE(?countryCode) AS ?country)
 WHERE {
   VALUES ?item { %(values)s }
+  OPTIONAL { ?item wdt:P31 ?instance }
   OPTIONAL {
     ?item wdt:P31/wdt:P279* ?orgRoot .
     FILTER(?orgRoot IN (%(roots)s))
@@ -492,12 +547,38 @@ def search_qids(name: str, *, limit: int = 5) -> list[str]:
     })
     if not isinstance(data, dict):
         return []
+    wanted = vocab.company_key(name)
     out = []
     for hit in data.get("search") or []:
         qid = str((hit or {}).get("id") or "")
-        if _QID.match(qid):
+        if not _QID.match(qid):
+            continue
+        # What the search actually matched on, which is not always the label:
+        # "NASA" matches the space agency through an alias while its label is
+        # "National Aeronautics and Space Administration". Both are checked.
+        matched = str(((hit or {}).get("match") or {}).get("text") or "")
+        if _names_agree(wanted, matched) or _names_agree(wanted, hit.get("label")):
             out.append(qid)
     return out
+
+
+def _names_agree(wanted_key: str, candidate: str | None) -> bool:
+    """Is this hit's own name the name we asked about?
+
+    `wbsearchentities` matches from the front, so a search for a company
+    returns anything whose name STARTS with it: "First Foundation" brings back
+    a Nigerian primary school and a Lagos hospital. A hit whose name merely
+    begins with ours is a different organisation, and accepting it puts a real
+    employer's rows in the wrong country.
+
+    The comparison is exact on `vocab.company_key`, which already strips the
+    legal suffix from both sides — "Apple Inc." and "Apple" are both "apple",
+    "Siemens AG" and "Siemens" are both "siemens" — so nothing is gained by
+    tolerating extra words, and tolerating them is what lets the city of Graham
+    answer for Graham Corporation.
+    """
+    other = vocab.company_key(candidate or "")
+    return bool(wanted_key) and other == wanted_key
 
 
 def _entity_id(uri: str) -> str:
@@ -516,7 +597,7 @@ def fetch_properties(qids) -> dict:
         return {}
     query = SPARQL % {
         "values": " ".join(f"wd:{q}" for q in qids),
-        "roots": ", ".join(f"wd:{q}" for q in ORG_ROOTS),
+        "roots": ", ".join(f"wd:{q}" for q in ORG_ROOTS + DENY_ROOTS),
     }
     data = _get_json(WDQS, {"query": query, "format": "json"},
                      accept="application/sparql-results+json")
@@ -532,9 +613,12 @@ def fetch_properties(qids) -> dict:
             continue
         roots = [_entity_id(u) for u in
                  ((binding.get("roots") or {}).get("value") or "").split()]
+        instances = [_entity_id(u) for u in
+                     ((binding.get("instances") or {}).get("value") or "").split()]
         places = [p.strip() for p in
                   ((binding.get("places") or {}).get("value") or "").split("|") if p.strip()]
         out[qid] = {
+            "instances": instances,
             "roots": roots,
             "places": places,
             "hq_country": ((binding.get("hqCountry") or {}).get("value") or "").strip(),
@@ -621,7 +705,8 @@ def _identity_from_props(name: str, candidates: list[str], props: dict) -> Ident
         ident.qid = qid
         ident.hq_city = city
         ident.hq_country = country
-        ident.employer_type = employer_type_from_roots(entry["roots"])
+        ident.employer_type = employer_type_from(
+            entry.get("instances"), entry["roots"])
         ident.resolved = bool(country or city or ident.employer_type)
         ident.detail = f"wikidata {qid}" + (f", skipped {rejected} non-org" if rejected else "")
         return ident
