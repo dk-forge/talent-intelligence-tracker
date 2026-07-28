@@ -194,7 +194,7 @@ function tit_insert_signal(array $row, $flush = true) {
         'talent_readthrough' => (string) ($row['talent_readthrough'] ?? ''),
         'company'            => (string) ($row['company'] ?? ''),
         'company_key'        => (string) ($row['company_key'] ?? ''),
-        // isset() rather than the ?: shorthand used above: these columns
+        // !empty() rather than the ?: shorthand used above: these columns
         // arrive only from a pipeline new enough to send them, and an older
         // caller (or a replayed payload) must not raise an undefined-index
         // notice on every row of a 25-row batch.
