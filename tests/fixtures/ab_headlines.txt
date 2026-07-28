@@ -1,23 +1,40 @@
-# Real headlines captured from live collection runs. Used for model A/B tests.
-# Mix is deliberate: genuine signals, near-misses, and noise that the free
-# filter lets through. A model that only agrees on the easy ones is not useful.
-WWT CEO On 'Supercharging' Cisco, VMware And Microsoft Relationships, Hiring Spree And Booming Softchoice Sales
-NHS plans to scale back recruitment drive and use AI to avoid 'financial ruin'
-US telecom giant T-Mobile sets up global tech centre in Hyderabad
-Heineken launches global capability centre in Hyderabad
-US Biotech Regeneron to launch Global Capability Centre in Hyderabad
-Nestle Business Solutions to open new GCC at Hyderabad
-Woolworths reshapes leadership structure to accelerate growth
-Ford India's new Coimbatore hub to drive data science, enhance engineering
-NTT DATA launches programme to support global companies setting up in India
-Hong Kong accounting firms plan hiring spree and embrace AI to attract talent
-RTX's Pratt & Whitney Announces New $200M Columbus Expansion, Cuts Ribbon
-Organic Traditions Secures $10.5M to Accelerate U.S. Expansion
-Big Rapids mayor targets economic development to create jobs and retain residents
-DeWine: Ohio approves 7 projects to create jobs and boost local economy
-Yellowstone Solar Project will create jobs and tax revenue through local hiring
-Yatu Lau Company unveils major business plans to create jobs and revive district
-Anglesey Freeport gets 25 million pound boost to create jobs and growth
-Uzbekistan bets on digitalization to create jobs and compete globally
-House Passes Ricks, Camacho Bill to Create Jobs and New Small Businesses
-Investing in Somalia's Climate Resilience Now to Create Jobs and Resilience
+Published by: aol.co.uk | V & A workers hold ballot to strike over pay and heatwave conditions
+Published by: namibtimes.net | Rössing Donation and Recruitment Drive Boost Desert Foxe Ambitions
+Published by: thailand-business-news.com | TriNetX Appoints August Calhoun Chief Executive Officer
+Published by: Stock Titan | Two leaders appointed to advance Livengood's 13.6M ounces in gold resources
+Published by: LSM | Latvian ammo maker Ammunity names new CEO
+Published by: CNBC TV18 | Tata Electronics emerges as Tata Group's biggest job creator in FY26
+Published by: Bdaily | CSSC appoints chief executive
+Published by: AI Insider | Voice AI Startup Rime Raises $24M Series A to Advance Speech-to-Speech Models
+Published by: Prittle Prattle News | Trustee and fiduciary services expand in GIFT City as Axis Trustee opens new office
+Published by: Bitcoin World | Gopax Names New CEO To Drive GoFi Repayment Resolution And Regulatory Talks
+Published by: FinSMEs | Pilot Protocol Raises $4.5M in Seed Funding
+Published by: The Straits Times | OpenAI expands AI workforce in Dublin
+Published by: Investing.com | International Tower Hill Mines names new CEO and president
+Published by: The News Mill | Eaton India plans to hire 700 employees by the end of 2021
+Published by: FinSMEs | Freight Hero Raises $5M in Seed Funding
+Published by: citybiz | Crystalys Therapeutics Raises $130 Million Series B, Strengthening Fortress Biotech's Dotinurad Stake
+Published by: Dallas Express | Klyde Warren Park Names New CEO Ahead Of $200M Expansion
+Published by: nextbillion.net | Egyptian E-Health Startup Reme-D Raises $1.45 Million Pre-Series a Funding
+Published by: The Edge Singapore | HSBC plans to hire 100 AI specialists and 100 more RMs for wealth management
+Published by: AI Insider | Axis Robotics Raises $12M in Seed Funding to Develop Physical AI Data Engine
+Published by: TalkOfTitusville.com | Sidus Space Names New CEO
+Published by: Business Wire | Dopl Technologies Raises $6.3M in Seed Funding to Advance Proprietary Telerobotic Ultrasound Toward FDA Clearance
+Published by: Philstar.com | Marcos says Pax Silica hub to create jobs, boost competitiveness
+Published by: Post and Courier | USTA SC names new CEO
+Published by: FinSMEs | Enigma Raises $71M in Seed Funding
+Published by: The Robot Report | Kraken Technology raises Series B funding for autonomous vessels
+Published by: Ocean News & Technology | Kraken Technology US Names New CEO To Drive Domestic Expansion
+Published by: Behavioral Health Business | Flourish Health Raises $26M Series A to Scale High-Acuity Youth Psychiatric Care
+Published by: The Courier Express | Growing with Purpose: JHA Companies opens new office at DuBois Airport
+Published by: News4JAX | Cracker Barrel names new CEO amid leadership transition 1 year after logo controversy
+Published by: AOL.com | Tim Cook Steps Down as CEO in September After 15 Years and Hands the Reins to John Ternus
+Published by: Indianmasterminds | Arunachal Pradesh Transfers 7 IAS Officers; Vishal Shah Appointed CEO of HAPDA
+Published by: The News Mill | Anurag Jain appointed CEO of NITI Aayog in India
+Published by: Airline Routes & Ground Services | Lorenza Maggio appointed CEO of Brussels Airlines
+Published by: SEC EDGAR (Form D) | Peace Coffee PBC raised $1.9M in a private placement
+Published by: SEC EDGAR (Form D) | Holobiome, Inc. raised $10M in a private placement
+Published by: SEC EDGAR (Form D) | LOOPTWORKS, INC raised $3.6M in a private placement
+Published by: SEC EDGAR | Chief Executive Officer Transition at USA Rare Earth, Inc.
+Published by: SEC EDGAR | Jonathan E. Benfield appointed as Chief Financial Officer of CrossAmerica Partners LP
+Published by: SEC EDGAR | Neuronetics Appoints Nir Naor Chief Financial Officer; Announces Additional Management Changes

@@ -58,9 +58,14 @@ GATE_SCHEMA = """Reply with JSON only:
  "pillar": "company_development|leadership_change|rewards_comp|how_we_work",
  "signal_direction": "hiring|displacement|neutral|comp_shift"}
 
-is_talent_signal is false unless this is a hiring, leadership, compensation or
-location-strategy development at a NAMED EMPLOYER. Government funding, political
-announcements and economic-development programmes are false."""
+is_talent_signal is false unless this is a hiring, leadership, compensation,
+FUNDING or location-strategy development at a NAMED EMPLOYER. A raise counts:
+it is company_development with signal_direction hiring. Government funding,
+political announcements and economic-development programmes are false."""
+
+# The omission above is the bug the production prompt shipped with: funding was
+# not listed, so the model silently discarded every raise. Benchmarking against
+# a schema that still has it would compare models on the wrong question.
 
 READTHROUGH_SYSTEM = "You write talent-market intelligence for recruiters. JSON only."
 READTHROUGH_SCHEMA = """Reply with JSON only:
