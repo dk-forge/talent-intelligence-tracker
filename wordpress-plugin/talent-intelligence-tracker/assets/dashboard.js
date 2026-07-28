@@ -280,6 +280,15 @@
       q.delete('country');
     }
 
+    // funding=1 is the one shareable param with no input of its own: it only
+    // exists as the "Raised money" quick view. Without this, a link to that
+    // view came back as the unfiltered page, which is a deep link quietly
+    // dropping the very thing it was sent to show.
+    if (q.get('funding') === '1' &&
+        quickFind(quickButtons, function (b) { return (b.dataset.qv || '') === 'funding=1'; })) {
+      setQuickView('funding=1');
+    }
+
     Object.keys(inputs).forEach(function (key) {
       var el = inputs[key];
       if (!el || !q.has(key)) return;
@@ -289,6 +298,22 @@
         if (!ok) return;
       }
       el.value = value;
+    });
+  }
+
+  // The CSV and JSON links under the table download exactly what is on screen:
+  // the current filters ride along as query params, and the scope word says
+  // which set the file will hold. Server-rendered hrefs point at the whole
+  // dataset, so a reader without JavaScript still gets a working download.
+  function updateExportLinks() {
+    ['tit-export-csv', 'tit-export-json'].forEach(function (id) {
+      var a = document.getElementById(id);
+      if (!a) return;
+      var base = a.getAttribute('data-base');
+      if (!base) return;
+      a.href = base + (lastQuery ? '&' + lastQuery : '');
+      var scope = document.getElementById(id + '-scope');
+      if (scope) scope.textContent = lastQuery ? ' · filtered' : ' · all';
     });
   }
 
@@ -330,6 +355,8 @@
       history.replaceState(null, '',
         location.pathname + (lastQuery ? '?' + lastQuery : '') + location.hash);
     } catch (e) { /* a URL we cannot write is not worth failing the render for */ }
+
+    updateExportLinks();
 
     // Charts and figures move with the same querystring the table uses, so the
     // two can never disagree about what is being shown.
