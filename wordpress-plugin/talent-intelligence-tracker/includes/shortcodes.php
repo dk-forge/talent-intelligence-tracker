@@ -579,12 +579,30 @@ function tit_glance_matrix_html(array $m) {
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($m['rows'] as $r) : ?>
-            <tr<?php echo $r['key'] === 'total' ? ' class="tit-matrix-total"' : ''; ?>>
+          <?php foreach ($m['rows'] as $r) :
+            // Each signal keeps one hue across the whole product, and the cell
+            // tint is scaled to the biggest number in ITS OWN row. Rows differ
+            // by orders of magnitude (leadership moves ran 1,726 against 235
+            // pay changes), so a table-wide scale would wash every row but one
+            // out to nothing. Colour is a second read here, never the only
+            // one: the number is always printed.
+            $row_max = 0;
+            foreach ($r['cells'] as $n) { $row_max = max($row_max, (int) $n); }
+            ?>
+            <tr class="tit-matrix-row<?php echo $r['key'] === 'total' ? ' tit-matrix-total' : ''; ?>"
+                data-signal="<?php echo esc_attr($r['key']); ?>">
               <th scope="row"><?php echo esc_html($r['label']); ?></th>
-              <?php foreach ($r['cells'] as $i => $n) : ?>
+              <?php foreach ($r['cells'] as $i => $n) :
+                $n = (int) $n;
+                // Square-rooted so a single dominant period does not flatten
+                // every smaller one to invisible, and floored at 0.14 so any
+                // real activity is still tinted.
+                $intensity = ($row_max > 0 && $n > 0)
+                    ? max(0.14, round(sqrt($n / $row_max), 3)) : 0;
+                ?>
                 <td><button type="button"
                     class="tit-cell<?php echo $n === 0 ? ' tit-cell-zero' : ''; ?>"
+                    style="--i:<?php echo esc_attr($intensity); ?>"
                     data-filter="<?php echo esc_attr($r['filter']); ?>"
                     data-since="<?php echo esc_attr($m['starts'][$i]); ?>"
                     aria-pressed="false"
@@ -597,8 +615,10 @@ function tit_glance_matrix_html(array $m) {
         </tbody>
       </table>
     </div>
-    <p class="tit-matrix-note">Rows overlap on purpose: a funded employer can
-       also be hiring up, so columns are not sums. Click a number to filter.</p>
+    <p class="tit-matrix-note">Stronger colour means more activity, measured
+       across each row. Rows overlap on purpose: a funded employer can also be
+       hiring up, so columns are not sums.
+       <strong>Click any number to filter the whole page.</strong></p>
     <?php
     return ob_get_clean();
 }
