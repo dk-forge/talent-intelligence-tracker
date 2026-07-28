@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.30.0
+ * Version: 1.30.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.30.0');
+define('TIT_VERSION', '1.30.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -148,6 +148,62 @@ function tit_maybe_upgrade() {
     delete_transient('tit_htaccess_ok');
     update_option('tit_installed_version', TIT_VERSION, false);
 }
+
+/**
+ * Columns the running code cannot work without.
+ *
+ * /query names these in its SELECT and its ORDER BY, so a missing one is not a
+ * degraded feature: it is an empty table on a page that reports thousands of
+ * rows, which is exactly what 1.30.0 shipped.
+ */
+function tit_required_columns() {
+    return array('cik', 'employer_type', 'funding_amount_usd', 'funding_stage',
+                 'deal_type', 'materiality');
+}
+
+/**
+ * Prove the schema is actually there, and repair it if it is not.
+ *
+ * The version gate above is necessary and not sufficient. An FTP deploy lands
+ * files ONE AT A TIME, so the first request after an upload can be served by a
+ * new plugin header and an old includes/db.php: tit_maybe_upgrade sees a new
+ * TIT_VERSION, runs dbDelta against the PREVIOUS schema, adds nothing, and then
+ * writes the new version into tit_installed_version. Every later request skips
+ * the migration because the version now matches, and the column never appears.
+ *
+ * Not hypothetical. On 1.30.0 the deploy was green, the plugin reported
+ * 1.30.0, /aggregate answered, and every row query returned an empty list
+ * because `materiality` did not exist. A one-shot migration triggered by a
+ * version bump cannot survive a racy transport; a check that verifies the
+ * RESULT can. Same retry-until-verified shape as the .htaccess block.
+ *
+ * Cheap: one transient read per request, and a SHOW COLUMNS only when that has
+ * lapsed. The success marker is written ONLY when the schema is genuinely
+ * complete, so a real failure retries in five minutes instead of being cached
+ * as healthy for six hours.
+ */
+function tit_verify_schema() {
+    if (get_transient('tit_schema_ok')) return;
+    if (!function_exists('tit_create_or_update_table')) return;
+
+    global $wpdb;
+    $table = tit_table_name();
+    $need  = tit_required_columns();
+
+    $cols = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
+    if (!is_array($cols) || array_diff($need, $cols)) {
+        tit_create_or_update_table();
+        $cols = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
+        // The repair changes what a query can see, so anything cached before it
+        // was computed against the old shape.
+        if (function_exists('tit_flush_caches')) tit_flush_caches();
+    }
+
+    $complete = is_array($cols) && !array_diff($need, $cols);
+    set_transient('tit_schema_ok', $complete ? 'ok' : 'retry',
+                  $complete ? 6 * HOUR_IN_SECONDS : 5 * MINUTE_IN_SECONDS);
+}
+
 /**
  * Cache-busting version for a bundled asset: the plugin version plus the
  * file's own modification time.
@@ -244,6 +300,9 @@ function tit_country_name($code) {
 }
 
 add_action('init', 'tit_maybe_upgrade', 1);
+// Priority 2, so it runs immediately after the version-gated migration and can
+// catch a deploy where that migration ran against a half-uploaded plugin.
+add_action('init', 'tit_verify_schema', 2);
 
 /**
  * The pipeline's write key. A wp-config.php constant wins over the stored
