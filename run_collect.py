@@ -386,6 +386,16 @@ def _publish() -> int:
     actually accepted them."""
     conn = schema.connect()
     try:
+        # Health first and never fatally: a stale timestamp is a much smaller
+        # problem than a lost signal, so a failure here must not stop the
+        # records being sent.
+        try:
+            sent_health = publish.publish_health(conn)
+            if sent_health:
+                print(f"[publish] health for {sent_health} collectors")
+        except Exception as exc:
+            print(f"[publish] health not sent: {exc}", file=sys.stderr)
+
         result = publish.publish(conn)
     except publish.PublishError as exc:
         print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)

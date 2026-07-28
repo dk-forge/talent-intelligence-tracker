@@ -33,6 +33,9 @@ function tit_register_routes() {
     register_rest_route(TIT_NS, '/bulk', array(
         'methods' => 'POST', 'callback' => 'tit_api_bulk', 'permission_callback' => $keyed,
     ));
+    register_rest_route(TIT_NS, '/health', array(
+        'methods' => 'POST', 'callback' => 'tit_api_report_health', 'permission_callback' => $keyed,
+    ));
     register_rest_route(TIT_NS, '/retract', array(
         'methods' => 'POST', 'callback' => 'tit_api_retract', 'permission_callback' => $keyed,
     ));
@@ -310,6 +313,37 @@ function tit_api_facets() {
     );
     set_transient('tit_facets', $out, TIT_CACHE_TTL);
     return rest_ensure_response($out);
+}
+
+/**
+ * Receive each collector's last run.
+ *
+ * The pipeline has always recorded this locally and never sent it, so
+ * /source-health returned an empty list and the sources page could not say when
+ * anything last ran. "Running now" was a status with no evidence behind it.
+ */
+function tit_api_report_health(WP_REST_Request $req) {
+    $body = $req->get_json_params();
+    $rows = is_array($body['collectors'] ?? null) ? $body['collectors'] : array();
+
+    $clean = array();
+    foreach ($rows as $row) {
+        $name = sanitize_text_field($row['collector'] ?? '');
+        if ($name === '') continue;
+        $clean[$name] = array(
+            'collector'   => $name,
+            'run_at'      => sanitize_text_field($row['run_at'] ?? ''),
+            'status'      => in_array(($row['status'] ?? ''), array('ok', 'degraded', 'error'), true)
+                             ? $row['status'] : 'degraded',
+            'items_found' => (int) ($row['items_found'] ?? 0),
+            'items_stored' => (int) ($row['items_stored'] ?? 0),
+            'detail'      => sanitize_text_field($row['detail'] ?? ''),
+        );
+    }
+
+    update_option('tit_source_health', $clean, false);
+    delete_transient('tit_facets');
+    return rest_ensure_response(array('received' => count($clean)));
 }
 
 function tit_api_source_health() {

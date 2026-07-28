@@ -574,3 +574,7 @@
   border:1px solid var(--tit-line); border-radius:8px; background:#fff;
   color:var(--tit-fg); font-family:inherit; }
 @media (max-width:700px){ .tit-wrap .tit-sort { margin-left:0; width:100%; } }
+
+.tit-lastrun { font-size:13px; color:var(--tit-mut); white-space:nowrap; }
+.tit-lastrun .tit-rt { white-space:normal; font-size:12px; margin-top:2px; }
+.tit-c-degraded { background:#fdf3e8; color:#8c3d00; border-color:#f0cfae; }

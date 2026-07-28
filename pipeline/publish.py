@@ -17,6 +17,7 @@ import requests
 # the WP host must look like a browser or every call returns an inexplicable
 # 403.
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
+TIMEOUT = 30
 
 BATCH_SIZE = 25
 RETRY_STATUSES = (500, 502, 503, 504)
@@ -101,6 +102,34 @@ def _post_batch(session: requests.Session, site: str, key: str, rows: list[dict]
         return resp.json()
 
     raise PublishError(f"gave up after retries: {last_error}")
+
+
+def publish_health(conn, *, dry_run: bool = False) -> int:
+    """Send every collector's last run to the site.
+
+    Health has always been recorded locally and never sent, so /source-health
+    returned nothing and the sources page could not say when a source last ran.
+    "Running now" was a status with no evidence behind it.
+
+    Sent separately from the records, and failure here never blocks them: a
+    stale timestamp is a much smaller problem than a lost signal.
+    """
+    rows = [dict(r) for r in conn.execute(
+        """SELECT collector, run_at, status, items_found, items_stored, detail
+             FROM source_health ORDER BY collector"""
+    ).fetchall()]
+    if not rows or dry_run:
+        return 0
+
+    site, key = _config()
+    resp = requests.post(
+        f"{site}/wp-json/talent/v1/health",
+        json={"collectors": rows},
+        headers={"X-Talent-API-Key": key, "User-Agent": USER_AGENT},
+        timeout=TIMEOUT,
+    )
+    resp.raise_for_status()
+    return len(rows)
 
 
 def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:

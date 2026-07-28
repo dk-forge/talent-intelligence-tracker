@@ -45,7 +45,48 @@ function tit_sources_template() {
 }
 add_action('template_redirect', 'tit_sources_template');
 
+/**
+ * Last run per collector, keyed by the name used in source_registry.
+ *
+ * Only running sources have one. A researched source has never run, and
+ * inventing a dash for it would imply it was tried and returned nothing.
+ */
+function tit_sources_health_map() {
+    $health = get_option('tit_source_health', array());
+    if (!is_array($health)) return array();
+
+    // The registry names a source for a reader; the pipeline names its
+    // collector for a machine. This is the join between them.
+    $by_collector = array(
+        'google_news' => 'Google News RSS',
+        'gdelt'       => 'GDELT DOC 2.0',
+        'sec_edgar'   => 'SEC EDGAR 8-K (Item 5.02)',
+        'sec_form_d'  => 'SEC EDGAR Form D',
+    );
+
+    $out = array();
+    foreach ($health as $key => $row) {
+        $name = $by_collector[$key] ?? '';
+        if ($name !== '') $out[$name] = $row;
+    }
+    return $out;
+}
+
+function tit_sources_last_run($row) {
+    if (empty($row['run_at'])) return '';
+    $ts = strtotime($row['run_at'] . (str_ends_with($row['run_at'], 'Z') ? '' : ' UTC'));
+    if (!$ts) return '';
+    $ago = human_time_diff($ts, time());
+    return sprintf(
+        '%s ago · found %s, stored %s',
+        $ago,
+        number_format_i18n((int) ($row['items_found'] ?? 0)),
+        number_format_i18n((int) ($row['items_stored'] ?? 0))
+    );
+}
+
 function tit_sources_render($sources) {
+    $health = tit_sources_health_map();
     $live = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') === 'live'));
     $cand = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') !== 'live'));
 
@@ -119,7 +160,7 @@ function tit_sources_render($sources) {
       <div class="tit-table-scroll">
         <table class="tit-table">
           <thead><tr>
-            <th>Source</th><th>Status</th><th>Covers</th><th>Signals</th><th>Where</th>
+            <th>Source</th><th>Status</th><th>Last run</th><th>Covers</th><th>Signals</th><th>Where</th>
           </tr></thead>
           <tbody id="tit-s-rows">
           <?php foreach ($sources as $s) :
@@ -136,11 +177,31 @@ function tit_sources_render($sources) {
                 <?php endif; ?>
               </td>
               <td>
-                <?php if ($s['status'] === 'live') : ?>
-                  <span class="tit-conf tit-c-verified">running now</span>
-                <?php else : ?>
+                <?php
+                $h = $health[$s['name']] ?? null;
+                $state = $h['status'] ?? '';
+                if ($s['status'] !== 'live') : ?>
                   <span class="tit-conf">researched</span>
+                <?php elseif ($state === 'degraded' || $state === 'error') : ?>
+                  <span class="tit-conf tit-c-degraded">running, degraded</span>
+                <?php else : ?>
+                  <span class="tit-conf tit-c-verified">running now</span>
                 <?php endif; ?>
+              </td>
+              <td class="tit-lastrun">
+                <?php
+                // Blank, not a dash, for a source that has never run: a dash
+                // reads as "tried and found nothing".
+                $when = $h ? tit_sources_last_run($h) : '';
+                if ($when) {
+                    echo esc_html($when);
+                    if (!empty($h['detail'])) {
+                        echo '<span class="tit-rt">' . esc_html($h['detail']) . '</span>';
+                    }
+                } elseif ($s['status'] === 'live') {
+                    echo '<span class="tit-nowhere">not yet reported</span>';
+                }
+                ?>
               </td>
               <td><?php echo esc_html($s['coverage'] ?? ''); ?></td>
               <td><?php echo esc_html($sig); ?></td>
