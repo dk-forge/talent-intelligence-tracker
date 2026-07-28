@@ -30,9 +30,12 @@ COLLECTOR = "sec_edgar"
 
 # SEC rejects anonymous requests outright; the policy asks for a contact
 # address. Overridable so the operator can put their own address on it.
-USER_AGENT = os.environ.get(
-    "EDGAR_USER_AGENT", "TalentIntel/1.0 (info@asktherecruiter.com)"
-)
+# `or`, not a get() default: a workflow that maps a MISSING repo secret into
+# env sets the variable to empty string, which get()'s default ignores - and
+# SEC 403s every request carrying an empty User-Agent. That exact combination
+# turned the first backfill dispatch into five silent 403 windows (2026-07-28).
+USER_AGENT = (os.environ.get("EDGAR_USER_AGENT") or "").strip() \
+    or "TalentIntel/1.0 (info@asktherecruiter.com)"
 
 REQUEST_DELAY = 0.15          # comfortably under SEC's 10 req/s
 PAGE_SIZE = 10

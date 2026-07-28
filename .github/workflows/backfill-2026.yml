@@ -52,7 +52,10 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
-          EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
+          # No EDGAR_USER_AGENT mapping: the secret does not exist in this
+          # repo, and mapping a missing secret sets the env var to empty
+          # string, which used to blank the User-Agent and drew SEC 403s on
+          # every window of the first dispatch. The code default is fine.
           # Backfill months hold thousands of filings; the daily ceiling would
           # defer almost all of them. Bounded by the month itself + gate rejects.
           TIT_READTHROUGH_CAP: '5000'

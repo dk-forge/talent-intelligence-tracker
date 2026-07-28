@@ -103,9 +103,13 @@ def main() -> int:
 
     conn = schema.connect()
     stored = duplicates = rejected = skipped = errors = 0
+    windows = fetch_failures = 0
 
     for lo, hi in iter_windows(start, end):
+        windows += 1
         items = collect_window(lo, hi)
+        if not items:
+            fetch_failures += 1
         print(f"\n[{lo}..{hi}] {len(items)} filings fetched")
         for item in items:
             url = item["source_url"]
@@ -160,9 +164,19 @@ def main() -> int:
 
     print(f"\nBACKFILL {args.start}..{args.end}: stored={stored} "
           f"duplicate={duplicates} rejected={rejected} already-seen={skipped} "
-          f"transient-errors={errors}")
+          f"transient-errors={errors} windows={windows} empty-windows={fetch_failures}")
     if not args.dry_run:
         publish.publish(conn)
+
+    # FAIL LOUD. A historical month always contains 8-K 5.02 filings, so every
+    # window coming back empty means the SEARCH is broken, not that the month
+    # was quiet. The first dispatch exited 0 after five silent SEC 403s and
+    # looked exactly like a successful run that found nothing (2026-07-28).
+    if windows and fetch_failures == windows:
+        print("\nSTOPPING: every window returned zero filings. A historical "
+              "month cannot be empty, so the SEC search itself is failing "
+              "(check the User-Agent and the 403s above).", file=sys.stderr)
+        return 1
     return 0
 
 
