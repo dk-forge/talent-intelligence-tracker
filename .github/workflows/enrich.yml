@@ -1,0 +1,59 @@
+# Push DERIVED values onto rows the site already holds.
+#
+# publish() only ever sends rows with published_at IS NULL, and the server
+# treats a re-sent content_hash as a duplicate, so a column added AFTER a row
+# went live could never reach the live table. Measured 2026-07-28: the local
+# database held $20.79bn of parsed funding across 53 rows while the money
+# charts showed one row and $3.2M.
+#
+# Safe to re-run: /enrich writes an allowlist of derived columns only, ignores
+# empty values so a blank cannot erase a known one, and reports rows it cannot
+# find rather than failing. Run this after any migration that adds or backfills
+# a derived column.
+name: enrich
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Set to true to count what would be sent, and send nothing'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: talent-collect      # shares the DB with the collectors; one writer at a time
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Push derived values
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          DRY: ${{ inputs.dry_run }}
+        run: |
+          python - <<'PY'
+          from pipeline import publish, schema
+          import os, sys
+          conn = schema.connect()
+          dry = os.environ.get("DRY") == "true"
+          result = publish.enrich_published(conn, dry_run=dry)
+          print("enrich:", result)
+          # Fail loud: this job exists to move values, so sending rows and
+          # updating none means the endpoint or the hashes are wrong, which
+          # would otherwise look exactly like "nothing needed updating".
+          if not dry and result.get("sent") and not result.get("updated"):
+              print("::error::sent rows but updated none - check /enrich and the hashes")
+              sys.exit(1)
+          if result.get("errors"):
+              print("::warning::%d row error(s)" % len(result["errors"]))
+          PY
