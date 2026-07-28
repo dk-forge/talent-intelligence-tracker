@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.27.0
+ * Version: 1.27.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.27.0');
+define('TIT_VERSION', '1.27.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -45,6 +45,7 @@ tit_require('includes/shortcodes.php');
 tit_require('includes/page.php');
 tit_require('includes/company.php');
 tit_require('includes/sources.php');
+tit_require('includes/htaccess.php');
 
 // Stub fallbacks so a partial upload degrades instead of fatalling.
 if (!function_exists('tit_table_name')) {
@@ -69,6 +70,13 @@ function tit_maybe_upgrade() {
     if (function_exists('tit_flush_caches')) {
         tit_flush_caches();
     }
+    // The .htaccess header block is guarded by a 12h "verified" transient. A
+    // deploy that CHANGES those rules (cache lifetimes, endpoint list) would
+    // otherwise sit unapplied for up to 12 hours while every other cache
+    // updated instantly — the sibling lost half a day to exactly this. A
+    // version bump means the desired block may differ, so drop the guard and
+    // let tit_htaccess_ensure() re-verify on this deploy.
+    delete_transient('tit_htaccess_ok');
     update_option('tit_installed_version', TIT_VERSION, false);
 }
 /**
@@ -296,6 +304,23 @@ function tit_render_admin_page() {
                 </button>
             </p>
         </form>
+
+        <?php
+        // The .htaccess cache-header block writes and probes itself on init.
+        // This host gives no shell, so the recorded probe result is the only
+        // way to find out whether it landed without curling from outside.
+        $ht = get_option('tit_htaccess_state', array());
+        if ($ht) : ?>
+            <h2>Cache headers</h2>
+            <p>.htaccess block: <strong><?php echo esc_html($ht['status'] ?? 'unknown'); ?></strong>
+               <?php if (!empty($ht['reason'])) : ?>(<?php echo esc_html($ht['reason']); ?>)<?php endif; ?>
+               for version <?php echo esc_html($ht['version'] ?? '?'); ?>.</p>
+            <?php if (!empty($ht['cache_control'])) : ?>
+                <p>Last probe saw <code><?php echo esc_html($ht['cache_control']); ?></code>.
+                   Two values separated by <code>||</code> means the host's
+                   duplicate <code>no-store</code> is still getting through.</p>
+            <?php endif; ?>
+        <?php endif; ?>
 
         <h2>Page</h2>
         <p>Put <code>[talent_intelligence_dashboard]</code> on the page at
