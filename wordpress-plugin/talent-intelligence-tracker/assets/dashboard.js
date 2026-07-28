@@ -67,7 +67,11 @@
     hiring: 'Hiring up',
     displacement: 'Cutting back',
     comp_shift: 'Pay change',
-    neutral: 'Other change'
+    // Matches the PHP label. This bucket is "the source says nothing about
+    // headcount" (a funding round with no hiring plan, a CEO succession), not
+    // a vague other-category, and naming it that way is truer to the rule that
+    // we never infer a direction the source did not state.
+    neutral: 'Headcount not stated'
   };
 
   function esc(value) {

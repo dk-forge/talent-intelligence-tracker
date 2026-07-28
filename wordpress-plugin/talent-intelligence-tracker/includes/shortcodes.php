@@ -106,7 +106,12 @@ function tit_dashboard_shortcode() {
         'hiring'       => 'Hiring up',
         'displacement' => 'Cutting back',
         'comp_shift'   => 'Pay change',
-        'neutral'      => 'Other change',
+        // "Other change" told the reader nothing: it is the bucket for updates
+        // whose source says nothing about headcount at all (a funding round
+        // with no hiring plan, a CEO succession). Naming that plainly is both
+        // clearer and truer to the rule that we never infer a direction the
+        // source did not state.
+        'neutral'      => 'Headcount not stated',
     );
     $functions = array(
         'engineering' => 'Engineering', 'data_ai' => 'Data & AI',
@@ -374,7 +379,7 @@ function tit_dashboard_shortcode() {
         </div>
 
         <div class="tit-chart" id="chart-direction">
-          <?php tit_chart_head('Which way headcount is going', 'Whether each update points to more hiring, fewer roles, or a pay change at that employer. Click a row to filter.', 'direction'); ?>
+          <?php tit_chart_head('Which way headcount is going', 'What the source itself says: roles being added, roles being cut, or a pay action. Most updates say nothing about headcount, and those are counted as such rather than guessed. Click a row to filter.', 'direction'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
             <?php
             $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
