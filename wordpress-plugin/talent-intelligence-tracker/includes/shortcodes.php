@@ -173,10 +173,10 @@ function tit_dashboard_shortcode() {
           <span class="tit-fine-figures"><?php
             printf(
               /* translators: totals restated by JavaScript when a filter changes. */
-              '%s updates · %s employers · %s countries · %s from official filings. ',
-              esc_html(number_format_i18n($total)),
-              esc_html(number_format_i18n($companies)),
-              esc_html(number_format_i18n($countries)),
+              '%s · %s · %s · %s from official filings. ',
+              esc_html(sprintf(_n('%s update', '%s updates', $total, 'tit'), number_format_i18n($total))),
+              esc_html(sprintf(_n('%s employer', '%s employers', $companies, 'tit'), number_format_i18n($companies))),
+              esc_html(sprintf(_n('%s country', '%s countries', $countries, 'tit'), number_format_i18n($countries))),
               esc_html(number_format_i18n($verified))
             );
           ?></span>Every update links to the document that makes the claim, and no figure

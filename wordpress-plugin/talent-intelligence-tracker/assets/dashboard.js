@@ -142,6 +142,13 @@
 
   function nfmt(n) { return Number(n || 0).toLocaleString(); }
 
+  // Filtering to a single country produced "1 countries" in the hero, which is
+  // a small thing that reads as carelessness on a page whose whole argument is
+  // that the details are checked.
+  function plural(n, one, many) {
+    return nfmt(n) + ' ' + (Number(n) === 1 ? one : (many || one + 's'));
+  }
+
   function paintRank(chart, rows, label, dirKey) {
     var wrap = chart && chart.querySelector('.tit-rank');
     if (!wrap) return;
@@ -176,8 +183,9 @@
         lead.className = 'tit-fine-figures';
         fine.insertBefore(lead, fine.firstChild);
       }
-      lead.textContent = nfmt(total) + ' updates · ' + nfmt(data.companies) +
-        ' employers · ' + nfmt(data.countries) + ' countries · ' +
+      lead.textContent = plural(total, 'update') + ' · ' +
+        plural(data.companies, 'employer') + ' · ' +
+        plural(data.countries, 'country', 'countries') + ' · ' +
         nfmt(data.verified) + ' from official filings. ';
     }
 
