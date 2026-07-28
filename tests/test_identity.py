@@ -595,6 +595,18 @@ class Backfill(unittest.TestCase):
         self.assertEqual(
             conn.execute("SELECT COUNT(*) FROM employer_identity").fetchone()[0], 6)
 
+    def test_the_backfill_makes_one_sparql_call_per_batch_not_per_employer(self):
+        """Unbatched, a 1,900-employer backfill is 1,900 queries pointed at a
+        free public endpoint. Batched it is 1 per twelve."""
+        conn = _db()
+        self._seed(conn, [(f"Co{i} Inc.", f"co{i}") for i in range(24)])
+        searches = {f"co{i}": APPLE_SEARCH for i in range(24)}
+        with _Patched(self, Fixture(searches, APPLE_PROPS)) as fx:
+            stats = identity.backfill(conn, verbose=False)
+        self.assertEqual(stats["resolved"], 24)
+        self.assertEqual(fx.search_calls, 24)   # no batch form exists for this
+        self.assertEqual(fx.sparql_calls, 2)    # 24 employers, batch of 12
+
     def test_a_second_run_is_a_no_op(self):
         conn = _db()
         self._seed(conn, [("Apple Inc.", "apple")])

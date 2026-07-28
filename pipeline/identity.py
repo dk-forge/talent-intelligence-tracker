@@ -75,9 +75,13 @@ WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 WDQS = "https://query.wikidata.org/sparql"
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 
-# Wikidata publishes no numeric limit, only "be reasonable"; one request per
-# second per endpoint is well inside what WDQS tolerates for a serial client.
-MIN_INTERVAL = {"wikidata.org": 1.0, "query.wikidata.org": 1.0, "sec.gov": 0.15}
+# Wikidata publishes no numeric read limit, only "be reasonable". Three
+# requests a second from ONE serial client, with Retry-After honoured below,
+# is inside that by any reading — and the backfill batches its SPARQL twelve
+# employers at a time, so the load on the expensive endpoint is a twelfth of
+# what the request count suggests. SEC publishes an actual number, 10/s, and
+# 0.15 is the interval collectors/sec_edgar.py already uses against it.
+MIN_INTERVAL = {"query.wikidata.org": 0.35, "wikidata.org": 0.35, "sec.gov": 0.15}
 TIMEOUT = 30
 
 # After this many consecutive network failures the module stops trying for the
@@ -564,29 +568,38 @@ def _first_vocabulary_city(places, expected_iso2: str | None = None) -> tuple[st
     return None, None
 
 
-def wikidata_lookup(name: str, *, max_candidates: int = 5) -> Identity:
-    """Resolve a name to headquarters + employer type, or return an empty one."""
-    ident = Identity(company_key=vocab.company_key(name), company=name)
+def search_with_fallback(name: str, *, limit: int = 4) -> list[str]:
+    """Candidate QIDs, retrying once on the name with its legal suffix removed.
 
-    candidates = search_qids(name, limit=max_candidates)
-    if not candidates:
-        # A legal suffix in the name is the usual reason for zero hits:
-        # "Cornerstone Building Brands, Inc." finds nothing, the bare name does.
-        stripped = vocab.company_key(name)
-        if stripped and stripped != name.lower():
-            candidates = search_qids(stripped, limit=max_candidates)
+    `wbsearchentities` matches labels and aliases from the front, so the
+    punctuation a filer's legal name carries is enough to return nothing at
+    all: "Broadcom Inc." and "Cornerstone Building Brands, Inc." both find
+    zero, and "broadcom" finds Broadcom.
+    """
+    candidates = search_qids(name, limit=limit)
+    if candidates:
+        return candidates
+    stripped = vocab.company_key(name)
+    if stripped and stripped != (name or "").strip().lower():
+        return search_qids(stripped, limit=limit)
+    return []
+
+
+def _identity_from_props(name: str, candidates: list[str], props: dict) -> Identity:
+    """Pick the first candidate that is an organisation, and read it.
+
+    Search order is relevance order, so walking it in order and stopping at the
+    first organisation is where the beetle loses to the payment company and the
+    plant genus loses to the space agency.
+    """
+    ident = Identity(company_key=vocab.company_key(name), company=name)
     if not candidates:
         ident.detail = "no wikidata search hit"
         return ident
-
-    props = fetch_properties(candidates)
     if not props:
         ident.detail = "sparql returned nothing"
         return ident
 
-    # Search order is relevance order, so walk it and take the FIRST candidate
-    # that is an organisation. This is where the beetle loses to the payment
-    # company and the plant genus loses to the space agency.
     rejected = 0
     for qid in candidates:
         entry = props.get(qid)
@@ -617,6 +630,12 @@ def wikidata_lookup(name: str, *, max_candidates: int = 5) -> Identity:
     return ident
 
 
+def wikidata_lookup(name: str, *, max_candidates: int = 4) -> Identity:
+    """Resolve one name to headquarters + employer type, or an empty Identity."""
+    candidates = search_with_fallback(name, limit=max_candidates)
+    return _identity_from_props(name, candidates, fetch_properties(candidates))
+
+
 # --- Resolution --------------------------------------------------------------
 
 def resolve(name: str, *, conn: sqlite3.Connection | None = None,
@@ -639,32 +658,74 @@ def resolve(name: str, *, conn: sqlite3.Connection | None = None,
         return cached or Identity(company_key=key, company=name, detail="cache miss")
 
     try:
-        ident = wikidata_lookup(name)
+        ident = _finish(name, wikidata_lookup(name))
     except Exception as exc:  # rule 3: identity never takes the caller down
         return Identity(company_key=key, company=name, detail=f"wikidata error: {exc!r}")
 
+    if conn is not None:
+        cache_put(conn, ident)
+    return ident
+
+
+def _finish(name: str, ident: Identity) -> Identity:
+    """Apply the SEC authority on top of a Wikidata reading. Shared by both
+    the single and the batched path so the rules cannot drift apart."""
     try:
         ticker, cik = sec_lookup(name)
     except Exception:
         ticker, cik = None, None
-
     if ticker and cik:
         ident.ticker, ident.cik = ticker, cik
         # Being in company_tickers.json means having registered securities, so
         # it settles "public" against Wikidata's class graph, which calls
         # plenty of listed companies plain "business". It does NOT settle it
         # against government, education or nonprofit: the Tennessee Valley
-        # Authority has SEC-registered bonds (TVC) and is a federal
-        # corporation, and calling it a public company would be wrong in the
-        # only way that matters to a reader filtering by employer type.
+        # Authority has SEC-registered bonds and is a federal corporation, and
+        # calling it a public company would be wrong in the only way that
+        # matters to a reader filtering by employer type.
         if ident.employer_type in (None, "", "private", "startup"):
             ident.employer_type = "public"
         ident.resolved = True
         ident.detail = (ident.detail + "; sec ticker").strip("; ")
-
-    if conn is not None:
-        cache_put(conn, ident)
     return ident
+
+
+def resolve_many(pairs, conn: sqlite3.Connection, *, batch_size: int = 12,
+                 retry_negative: bool = False):
+    """Resolve many employers, ONE SPARQL call per batch. Yields Identity.
+
+    `pairs` is (company_key, name). The batching is what makes a 1,900-employer
+    backfill reasonable to point at a free public endpoint: unbatched it is one
+    WDQS query per employer, batched it is one per twelve. The search API is
+    still per-name — there is no batch form of `wbsearchentities` — and it is
+    now the floor on how fast this can go.
+    """
+    batch: list[tuple[str, str, list[str]]] = []
+
+    def flush():
+        qids = [q for _k, _n, cs in batch for q in cs]
+        props = fetch_properties(qids) if qids else {}
+        for key, name, candidates in batch:
+            ident = _finish(name, _identity_from_props(name, candidates, props))
+            ident = replace(ident, company_key=key)
+            cache_put(conn, ident)
+            yield ident
+        batch.clear()
+
+    for key, name in pairs:
+        cached = cache_get(conn, key)
+        if cached is not None and (cached.resolved or not retry_negative):
+            yield cached
+            continue
+        try:
+            candidates = search_with_fallback(name)
+        except Exception:
+            candidates = []
+        batch.append((key, name, candidates))
+        if len(batch) >= batch_size:
+            yield from flush()
+    if batch:
+        yield from flush()
 
 
 # Which Signal fields this module is allowed to touch, and where each comes
@@ -788,13 +849,12 @@ def backfill(conn: sqlite3.Connection, *, limit: int | None = None,
     stats = {"employers": len(todo), "resolved": 0, "unresolved": 0,
              "rows": {f: 0 for f in ENRICHED_FIELDS}, "samples": []}
 
-    for index, (key, company) in enumerate(todo, 1):
-        ident = resolve(company, conn=conn, allow_network=allow_network,
-                        retry_negative=retry_negative)
-        # resolve() keys off the name it was given; the table's key is what the
-        # UPDATE must match, and they can differ if company_key ever changes.
-        ident = replace(ident, company_key=key)
+    stream = (resolve_many(todo, conn, retry_negative=retry_negative)
+              if allow_network else
+              (replace(resolve(name, conn=conn, allow_network=False),
+                       company_key=key) for key, name in todo))
 
+    for index, ident in enumerate(stream, 1):
         if ident.is_empty:
             stats["unresolved"] += 1
         else:
