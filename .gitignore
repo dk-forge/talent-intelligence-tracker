@@ -13,6 +13,10 @@ scratchpad/
 # Dry-run output is disposable
 out/
 
+# Somebody else's file, refetched weekly (pipeline/identity.py). ~800KB of SEC
+# company_tickers.json has no business in a repo whose database is committed.
+data/.cache/
+
 .DS_Store
 .pytest_cache/
 .ruff_cache/
