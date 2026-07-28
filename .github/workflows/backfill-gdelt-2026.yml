@@ -1,0 +1,121 @@
+# One-time 2026 catch-up for world NEWS, via GDELT DOC 2.0.
+#
+# Google News RSS has no archive, so this is the only route to January-June
+# 2026 press coverage. Mirrors backfill-2026.yml (the SEC sweep) deliberately:
+# same concurrency group, same commit-even-on-failure rule, spend reported
+# either side.
+#
+# UNLIKE the SEC sweep, this one costs money per candidate rather than being
+# bounded by a filing count, so it carries TWO ceilings: TIT_READTHROUGH_CAP
+# for the process and --max-readthroughs for the run. Dispatch ONE MONTH, read
+# the report, and only then decide about the next.
+#
+# It is slow by design. GDELT throttles erratically and the collector paces at
+# 12 seconds a query, so a month is roughly 9 queries x 31 days of paced
+# requests — hours, not minutes, and comfortably inside the job ceiling.
+name: backfill-gdelt-2026
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: 'Start date (YYYY-MM-DD)'
+        required: true
+      end:
+        description: 'End date inclusive (YYYY-MM-DD)'
+        required: true
+      dry_run:
+        description: 'Set to true to store nothing (still classifies, still costs)'
+        required: false
+        default: 'false'
+      fetch_only:
+        description: 'Set to true to fetch and free-filter only — calls no model, spends nothing'
+        required: false
+        default: 'false'
+      max_readthroughs:
+        description: 'Hard stop on FULL classifications for the whole run'
+        required: false
+        default: '1200'
+
+# One DB writer at a time, in the same group as the other backfills and enrich.
+#
+# NOTE, and it is not this workflow's to fix: the DAILY collector (collect.yml,
+# collect-structured.yml, retract.yml) sits in a DIFFERENT group, `collect`, so
+# a backfill and a daily run CAN overlap today. Both end with the same
+# reset-to-origin-and-replace push loop, which means whichever pushes second
+# overwrites the other's rows rather than merging them. Matching the existing
+# backfills here rather than inventing a third group; the two groups want
+# merging into one.
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Spend before
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      - name: Backfill
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # Raised for BACKFILL JOBS ONLY. The daily collector keeps its own
+          # 60/run ceiling; a month held behind that would defer almost
+          # everything. The run's own --max-readthroughs is the real bound, and
+          # the key's hard cap at OpenRouter is the backstop.
+          TIT_READTHROUGH_CAP: '5000'
+        run: |
+          python backfill_gdelt_2026.py \
+            --start "${{ inputs.start }}" \
+            --end "${{ inputs.end }}" \
+            --max-readthroughs "${{ inputs.max_readthroughs }}" \
+            ${{ inputs.dry_run == 'true' && '--dry-run' || '' }} \
+            ${{ inputs.fetch_only == 'true' && '--fetch-only' || '' }}
+
+      - name: Spend after
+        if: ${{ !cancelled() }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      # Same memory rule as the daily collector: a failed run that already
+      # stored and published rows still holds the only local record of them.
+      - name: Commit the database
+        if: ${{ inputs.dry_run != 'true' && inputs.fetch_only != 'true' && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          git add data/spend_month.json || true
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "data: gdelt backfill ${{ inputs.start }}..${{ inputs.end }}" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            git add data/talent_intel.db
+          done
+          echo "::error::could not push the database after 5 attempts"
+          exit 1

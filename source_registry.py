@@ -278,16 +278,34 @@ GOOGLE_NEWS_QUERIES = (
 #
 # These are written for how GDELT searches: narrow phrases that only appear in
 # corporate hiring coverage, English-only.
+#
+# Tuned 2026-07-28 against a measured day of the archive (2026-01-05, one query
+# at a time, counting how many survived the free prefilter as DISTINCT stories).
+# The rule the numbers taught: **GDELT matches the article BODY and hands back
+# only the TITLE**, so a query built from two AND-ed groups matches an article
+# whose two halves are paragraphs apart and whose headline carries neither.
+#
+#   ("appoints" OR "names") ("chief executive" OR ...)   75 fetched,  5 usable
+#   the full phrases below                                7 fetched,  3 usable
+#
+# Same recall, a tenth of the noise, and the noise is what costs money. So a
+# GDELT query should be a phrase a SUB-EDITOR would put in a headline, never a
+# conjunction of topics.
+#
+# The funding line is new. Money is one of the four pillars and GDELT had no
+# query for it at all, so that pillar was reachable only through Google News —
+# which has no archive, and therefore no 2026.
 
 GDELT_QUERIES = (
     '("hiring spree" OR "to create jobs" OR "will create jobs") sourcelang:english',
     '("global capability centre" OR "global capability center") sourcelang:english',
-    '("opens new office" OR "opens new hub" OR "new engineering hub") sourcelang:english',
-    '("appoints" OR "names") ("chief executive" OR "chief people officer" OR "chief financial officer") sourcelang:english',
-    '("steps down as" OR "to step down") ("chief executive" OR "ceo") sourcelang:english',
+    '("opens new office" OR "opens new hub" OR "new engineering hub" OR "opens its new office") sourcelang:english',
+    '("appoints new chief executive" OR "appoints chief executive" OR "names new chief executive" OR "appointed chief executive officer" OR "names new CEO") sourcelang:english',
+    '("steps down as chief executive" OR "steps down as CEO" OR "to step down as CEO" OR "stepping down as chief executive") sourcelang:english',
     '("expands its workforce" OR "recruitment drive" OR "ramp up hiring") sourcelang:english',
     '("return to office" OR "remote work policy" OR "hybrid working") sourcelang:english',
     '("pay rise" OR "raises minimum salary" OR "retention bonus") sourcelang:english',
+    '("Series A funding" OR "Series B funding" OR "seed funding round" OR "raises seed round") sourcelang:english',
 )
 
 
@@ -347,10 +365,12 @@ SOURCES = (
     Source("GDELT DOC 2.0", "https://www.gdeltproject.org/", "live",
            "News aggregation", ("Hiring", "Office opening", "Leadership change"),
            "Global, machine-translated from 65 languages",
-           notes="Reaches markets no Google News edition we query covers, which "
-                 "is why it is here despite a tenth of the yield. Throttles hard: "
-                 "roughly a third of queries return 429 even at 12-second "
-                 "spacing, and those are logged as coverage gaps rather than "
+           notes="Reaches markets no Google News edition we query covers, and "
+                 "it is the only news route with an archive: DOC 2.0 takes "
+                 "explicit start and end dates, so 2026 is recoverable through "
+                 "it and through nothing else. Throttles erratically; the "
+                 "collector paces at 12 seconds a query and retries, and a "
+                 "query it never lands is logged as a coverage gap rather than "
                  "retried into a rate-limit spiral."),
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),

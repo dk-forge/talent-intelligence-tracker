@@ -13,7 +13,7 @@
   "country": "",
   "rss": "",
   "free": true,
-  "notes": "Reaches markets no Google News edition we query covers, which is why it is here despite a tenth of the yield. Throttles hard: roughly a third of queries return 429 even at 12-second spacing, and those are logged as coverage gaps rather than retried into a rate-limit spiral."
+  "notes": "Reaches markets no Google News edition we query covers, and it is the only news route with an archive: DOC 2.0 takes explicit start and end dates, so 2026 is recoverable through it and through nothing else. Throttles erratically; the collector paces at 12 seconds a query and retries, and a query it never lands is logged as a coverage gap rather than retried into a rate-limit spiral."
  },
  {
   "name": "Google News RSS",

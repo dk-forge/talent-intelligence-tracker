@@ -90,5 +90,12 @@ def test_gdelt_is_live_because_it_finally_stored_something():
 
     gdelt = next(s for s in SOURCES if s.name.startswith("GDELT"))
     assert gdelt.status == "live"
-    # Its weakness is published rather than glossed: a third of queries 429.
-    assert "429" in gdelt.notes
+    # Its weakness is published rather than glossed. The note used to claim a
+    # third of queries 429; measuring it on 2026-07-28 found 8 of 8 landing
+    # once the retry ladder was allowed to do its job, so the note now says
+    # "erratic" instead of a fraction nobody had counted. Assert the honesty
+    # rather than the wording: the page must still say the throttling exists.
+    assert "throttl" in gdelt.notes.lower()
+    # And the reason it earns its place, which the note used not to mention:
+    # it is the only news source we read that has an archive at all.
+    assert "archive" in gdelt.notes.lower()
