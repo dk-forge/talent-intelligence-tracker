@@ -48,7 +48,7 @@ MINI_SYSTEM = (
 
 SCHEMA_HINT = """Return JSON with exactly these keys:
 {"is_talent_signal": true|false,
- "company": "the employer named, or empty",
+ "company": "the employer NAMED in the text, exactly as the text names it, or empty. A description is not a name: '$7B firm', 'a major bank', 'the company', 'an undisclosed buyer' all mean the employer was not named, so return empty. Numbers and symbols in a real name are fine (3M, 7-Eleven, 23andMe).",
  "pillar": "company_development|leadership_change|rewards_comp|how_we_work",
  "signal_direction": "hiring|displacement|neutral|comp_shift",
  "city": "city named IN THE TEXT where the roles are, or empty. Do not guess.",
@@ -66,6 +66,7 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "effective_date": "YYYY-MM-DD when the change TAKES EFFECT, ONLY if the text dates it. 'Steps down in September' in a July article is September, not July. Empty unless the text names the month. Never guess, and never repeat the publication date here.",
  "ticker": "the stock ticker ONLY if the text prints it (e.g. 'NASDAQ: AAPL' means AAPL). Empty otherwise. Never recall it from memory.",
  "work_mode": "where the work happens, ONLY if the text says: remote, hybrid, onsite, rto_mandate (staff ordered back to the office), flexible. Empty otherwise.",
+ "deal_type": "the corporate event, ONLY if the text describes one, and ALWAYS from the point of view of the company you named above: acquisition (that company is BUYING another), acquired (that company is BEING bought), merger (a merger of equals, or the text calls it a merger), divestiture (it is selling a unit, spinning one off, or carving one out), joint_venture, ipo (it is going public). Empty when the text describes no deal. The DIRECTION is the whole point, because the buyer and the bought company mean opposite things to a recruiter. Worked examples: 'Acme acquires Beta Systems' -> company Acme, deal_type acquisition; 'Beta Systems to be acquired by Acme' -> company Beta Systems, deal_type acquired. A funding round is NOT a deal_type. A deal on its own says NOTHING about headcount, so it never changes signal_direction.",
  "employer_type": "what kind of organisation the employer is, from your own knowledge of the company: public, private, startup, government, nonprofit, education. This is recorded as background about the employer, never as something the article claimed, so answer whenever you know the company. Empty only if you do not.",
  "headline": "the factual headline, unembellished",
  "summary": "1-2 sentences restating ONLY what the source says",
@@ -117,6 +118,12 @@ Set is_talent_signal false for anything else, and for anything with no named
 employer (government programmes, economic-development announcements, single job
 adverts, civil-service exam notices).
 
+Set is_talent_signal false for a WORKFORCE REDUCTION story — layoffs,
+redundancies, job cuts, dismissals, despidos, licenciements, Stellenabbau,
+licenziamenti, demissoes em massa. A sibling product collects those and this
+one promises it does not. A story whose subject is hiring, funding, an
+appointment, pay or a location stays true even when it mentions past cuts.
+
 A weak read-through is worse than none. Compare:
   BAD:  "This indicates a potential increase in hiring, possibly in tech roles."
   GOOD: "Adds roughly 300 engineering roles to the Dublin market over 2026,
@@ -166,8 +173,11 @@ GATE_SYSTEM = (
     "or departure, a pay, equity or benefits action, an office, hub, location "
     "or remote-work decision, or a funding round raised. Answer NO for items "
     "with no named employer, market roundups, opinion pieces, single job "
-    "adverts, and government programmes. Reply with exactly one word: YES or "
-    "NO."
+    "adverts, and government programmes. Answer NO when the STORY IS ABOUT "
+    "layoffs, redundancies, job cuts or dismissals in any language: a "
+    "sibling product collects those and this one must not. A story about "
+    "hiring, funding, an appointment or pay stays YES even if it mentions "
+    "past cuts. Reply with exactly one word: YES or NO."
 )
 
 

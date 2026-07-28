@@ -207,6 +207,141 @@ _OFF_TOPIC_TERMS = (
 _OFF_TOPIC = re.compile(r"\b(?:" + "|".join(_OFF_TOPIC_TERMS) + r")\b", re.I)
 
 
+# --- Scope boundary: displacement belongs to the sibling --------------------
+#
+# The page footer promises "Layoff and redundancy data is not collected here;
+# see the AI Layoff Tracker", and it was not true: a Spanish-language Verizon
+# story ("Verizon despedirá a 3,000 empleados") was live on the page. Two
+# products, one boundary — the sibling owns workforce REDUCTION, this one owns
+# everything else about the talent market.
+#
+# The vocabulary lives here rather than in validate.py because BOTH gates need
+# exactly the same words. This one runs free, before any model is paid; the one
+# in validate.py is the backstop for a story whose headline hid the cut.
+#
+# 49 Google News editions means the boundary has to hold in more than English.
+# A rule that only recognises "layoffs" lets every non-English cut through,
+# which is precisely how the Verizon row happened.
+_REDUCTION_TERMS = (
+    # English
+    r"lay[ -]?offs?", r"laid off", r"lays? off", r"laying off",
+    r"job cuts?", r"jobs? cut", r"job losses", r"role cuts?", r"staff cuts?",
+    r"cut(?:s|ting)?\s+(?:up to\s+)?(?:about\s+)?(?:some\s+)?(?:[\d,.]+\s+)?"
+    r"(?:more\s+)?(?:of its\s+)?(?:jobs|roles|positions|posts|staff|workers|"
+    r"employees|workforce|headcount)",
+    r"redundanc(?:y|ies)", r"made redundant",
+    r"reduction in force", r"workforce reduction", r"headcount reduction",
+    r"staff reductions?",
+    r"reduc\w+\s+(?:its\s+)?(?:workforce|headcount|staff|staffing)",
+    r"downsiz\w+", r"retrench\w+",
+    r"shed(?:s|ding)?\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff|workers|positions)",
+    r"ax(?:e[sd]?|ing)\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff|posts|positions)",
+    r"slash(?:es|ing|ed)?\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff|its workforce)",
+    r"eliminat\w+\s+(?:[\d,.]+\s+)?(?:jobs|roles|positions)",
+    r"mass firings?", r"pink slips?",
+    r"terminat\w+\s+(?:[\d,.]+\s+)?(?:employees|workers|staff)",
+    # Spanish
+    r"desped\w+", r"despido\w*",
+    r"recort(?:e|es|ar|a)\w*\s+(?:de\s+)?(?:empleos?|personal|plantilla|puestos)",
+    r"reducci\w*n de (?:plantilla|personal|empleo)",
+    r"suprim\w+\s+(?:[\d,.]+\s+)?(?:empleos|puestos)",
+    # French. Narrowed to the noun and the verb forms: bare "licenci\\w+"
+    # also matches the Spanish "licencia" (a permit) and the French
+    # "licencié" (a degree holder, or a registered club player).
+    r"licenciement\w*", r"licencie(?:r|nt|ra|ront|z)\b",
+    r"suppressions? d[e'’]\s*(?:[\d\s.,]+\s*)?(?:postes|emplois)",
+    r"supprime\w*\s+(?:[\d,.\s]+)?(?:postes|emplois)",
+    r"plan social", r"plan de sauvegarde de l[e'’]emploi",
+    r"r\w*duction d[e'’]effectifs",
+    # German
+    r"stellenabbau", r"arbeitsplatzabbau", r"personalabbau",
+    r"stellenstreichung\w*", r"massenentlassung\w*", r"entlassung\w*",
+    r"entl\w*sst", r"entlassen", r"streicht\s+[\d.]+\s+stellen",
+    r"baut\s+[\d.]+\s+stellen ab",
+    # Portuguese. Bare "demissão" is NOT here: in Portuguese business copy it is
+    # as often one executive resigning as it is a workforce cut, and this
+    # boundary must not swallow the leadership pillar.
+    r"demiss(?:\w+)? em massa", r"demit(?:e|iu|ir)\w*\s+[\d.,]+",
+    r"cort(?:a|am|ar|ou|es?)?\s+(?:de\s+)?(?:[\d.,]+\s+)?"
+    r"(?:vagas|empregos?|pessoal|postos|funcion\w+)",
+    r"redu\w+\s+(?:o\s+)?quadro de (?:pessoal|funcion\w+)",
+    r"dispensa de funcion\w+", r"enxugamento",
+    # Italian
+    r"licenziament\w+", r"licenzia(?:re|no|ti|ta|to)\b", r"esuberi",
+    r"tagli\w*\s+(?:ai posti|di posti|del personale|occupazionali|dipendenti)",
+    r"riduzione (?:del personale|dell[e'’]organico)",
+    # Dutch, Polish, Swedish, Turkish — cheap to add, same failure if absent.
+    r"ontslag\w*", r"banenverlies", r"schrapt\s+[\d.]+\s+banen",
+    r"zwolnieni\w+", r"redukcj\w+ etat\w+",
+    r"varsl\w+", r"neddragning\w*",
+    r"i̇?şten çıkar\w*", r"toplu i̇?şten",
+)
+_REDUCTION = re.compile(r"\b(?:" + "|".join(_REDUCTION_TERMS) + r")", re.I | re.UNICODE)
+
+# "RIF" is only a reduction in force when it is written in capitals. Lowercase
+# "rif" is a syllable in several of the languages above, and the sibling's own
+# filter went inert for a day because "RIF" matched inside "tariff".
+_RIF = re.compile(r"\bRIFs?\b")
+
+# The events this product DOES own. A story is not a layoff story merely
+# because it mentions a cut: "Klarna hires 1,000 after AI-driven job cuts" is a
+# hiring story, and rejecting it would hand the sibling a story about growth.
+_IN_SCOPE_SUBJECT_TERMS = (
+    # Hiring and site growth
+    r"hiring", r"hires?", r"to hire", r"hired", r"recruit\w*",
+    r"creat\w+\s+(?:[\d,.]+\s+)?(?:new\s+)?(?:jobs|roles|posts|positions)",
+    r"new jobs", r"add(?:s|ing)?\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff)",
+    r"opens? (?:a |its |new )", r"new (?:office|hub|campus|plant|facility|site)",
+    r"capability cent(?:re|er)",
+    # Leadership
+    r"appoint\w*", r"names? (?:a |its |new )?(?:ceo|chief|cfo|cto|coo|president)",
+    r"steps? down", r"resign\w*", r"succeeds?", r"promot\w+",
+    r"new (?:ceo|chief executive|cfo|cto)",
+    # Money
+    r"rais(?:e[sd]?|ing)", r"funding round", r"series [a-e]\b",
+    r"secures? (?:\$|€|£|₹)?[\d.,]+", r"invest(?:s|ment|ing)\b",
+    # Pay
+    r"pay ris\w+", r"pay increase", r"salar\w+ (?:increase|rise)",
+    r"wage (?:increase|rise)", r"bonus\w*", r"minimum wage",
+    # Non-English subjects, same three intents
+    r"contrata\w*", r"embauch\w+", r"einstell\w+", r"assunzion\w+",
+    r"nomm\w+", r"ernennt", r"nombra\w*", r"nomea\w*", r"nomina\w*",
+    r"lev\w*e de fonds", r"finanzierungsrunde", r"ronda de financiaci\w*n",
+    r"rodada de investimento", r"round di finanziamento",
+)
+_IN_SCOPE_SUBJECT = re.compile(
+    r"\b(?:" + "|".join(_IN_SCOPE_SUBJECT_TERMS) + r")", re.I | re.UNICODE
+)
+
+
+def workforce_reduction_term(text: str) -> str | None:
+    """The term that makes `text` a story the SIBLING owns, or None.
+
+    The honest heuristic: a headline leads with its subject. So a reduction
+    term counts only when no in-scope subject (hiring, funding, an
+    appointment, a pay action, a location decision) appears EARLIER in the
+    text. That keeps "Klarna hires 1,000 after AI job cuts" here and sends
+    "Verizon despedirá a 3,000 empleados" to the sibling, without needing to
+    parse a sentence.
+
+    It is a heuristic and it has a known blind spot: "Amid layoffs, Acme hires
+    500" reads as a reduction story. That is the direction to be wrong in — a
+    layoff row on a page promising it collects none is a broken promise, while
+    a missed hiring row is one row.
+    """
+    if not text:
+        return None
+
+    hit = _REDUCTION.search(text) or _RIF.search(text)
+    if not hit:
+        return None
+
+    subject = _IN_SCOPE_SUBJECT.search(text)
+    if subject and subject.start() < hit.start():
+        return None
+    return hit.group(0)
+
+
 # --- Geography gate --------------------------------------------------------
 #
 # We claim eight markets. A signal in a place we do not cover gets rejected by
@@ -276,6 +411,14 @@ def passes(text: str) -> tuple[bool, str]:
 
     if not (_EMPLOYMENT.search(text) or _SITE.search(text) or _CJK.search(text)):
         return False, "no employment or site-opening term"
+
+    # Checked AFTER the employment gate on purpose: a layoff story always
+    # passes that gate (it is full of "jobs" and "employees"), so this is the
+    # cheapest possible place to hand it to the sibling — before a model is
+    # paid to read a story we are not allowed to publish.
+    cut = workforce_reduction_term(text)
+    if cut:
+        return False, f"workforce reduction belongs to the layoff tracker ({cut})"
 
     # NOTE: geography is deliberately NOT a gate here, though the helper above
     # exists and is tested. Gating on it looked like an easy saving — several
