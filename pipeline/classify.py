@@ -16,7 +16,29 @@ import requests
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
+
+# Two-stage classification. The gate model answers ONE question (is this a
+# talent signal at a named employer?) in one word, at roughly 1/40th the cost
+# of a full read-through; only survivors reach MODEL for the full schema. The
+# A/B on file (docs) tested exactly this split: the cheap model matched or
+# corrected the incumbent on the KEEP/DROP decision (every disagreement was the
+# incumbent wrongly rejecting a real funding signal) while the read-through
+# stayed on the incumbent, whose prose quality is the product. Set
+# TIT_GATE_MODEL=off to run single-stage.
+GATE_MODEL = os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")
+
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
+
+# Per-run visibility for the spend ledger: how many one-word gate calls, how
+# many were rejected there (cost avoided), how many full read-throughs ran.
+STATS = {"gate_calls": 0, "gate_rejects": 0, "full_calls": 0}
+
+# Hard ceiling on FULL read-throughs per run. The gate makes it cheap to LOOK
+# at many candidates; this makes it impossible for a busy news day to turn
+# looking into a budget-sized bill. Overflow raises Throttled, so run_collect
+# defers the candidate un-seen and the next run picks it up: a capped day
+# spreads over runs instead of being silently dropped.
+READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "60") or "60")
 
 # Spec 4 rule 1: a narrow classification does not need a 1,400-token prompt.
 MINI_SYSTEM = (
@@ -111,6 +133,13 @@ class Throttled(RuntimeError):
     a later run, not recorded as rejected and not marked seen."""
 
 
+class BudgetDeferred(Throttled):
+    """The per-run read-through cap was reached. Same retry-next-run handling
+    as Throttled (it IS a Throttled), but distinguishable, because a run that
+    deferred work on purpose must not trip the mostly-throttled breakage alarm
+    the way a busy provider should."""
+
+
 class CreditsExhausted(RuntimeError):
     """Raised on a 402 so the caller stops cleanly (spec 4 rule 4)."""
 
@@ -125,8 +154,18 @@ class ClassifyError(RuntimeError):
     pass
 
 
-def classify(raw: dict, *, timeout: int = 45) -> dict | None:
-    """Classify one candidate. Returns None if it is not a talent signal."""
+GATE_SYSTEM = (
+    "You decide whether a news item is a talent-market signal about ONE NAMED "
+    "employer: hiring or headcount change, a leadership or board appointment "
+    "or departure, a pay, equity or benefits action, an office, hub, location "
+    "or remote-work decision, or a funding round raised. Answer NO for items "
+    "with no named employer, market roundups, opinion pieces, single job "
+    "adverts, and government programmes. Reply with exactly one word: YES or "
+    "NO."
+)
+
+
+def _api_key() -> str:
     # Strip: a key pasted into a secrets box often carries a trailing newline,
     # which makes the Authorization header malformed and the failure look like
     # a missing key rather than a whitespace problem.
@@ -138,7 +177,32 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
             "OPENROUTER_API_KEY looks truncated — it may be the abbreviated "
             "value shown in the dashboard rather than the full key"
         )
+    return api_key
 
+
+def gate(text: str, *, timeout: int = 30) -> bool:
+    """One-word KEEP/DROP from the cheap model. Fails OPEN: if the gate itself
+    errors or is throttled, the candidate goes through to the full model, so a
+    flaky gate can cost money but can never cost coverage. 401/402 still
+    propagate — those end the run whichever stage sees them."""
+    STATS["gate_calls"] += 1
+    try:
+        content = _call(
+            GATE_MODEL, GATE_SYSTEM, text[:1500],
+            timeout=timeout, max_tokens=4, json_mode=False,
+        )
+    except (AuthFailed, CreditsExhausted):
+        raise
+    except (Throttled, ClassifyError):
+        return True
+    keep = "YES" in content.upper()
+    if not keep:
+        STATS["gate_rejects"] += 1
+    return keep
+
+
+def classify(raw: dict, *, timeout: int = 45) -> dict | None:
+    """Classify one candidate. Returns None if it is not a talent signal."""
     text = (raw.get("raw_text") or "").strip()
 
     # The publisher is the single best geography hint we were throwing away.
@@ -156,21 +220,58 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
     if not text:
         raise ClassifyError("raw_text is empty")
 
+    # Stage 1: the one-word gate. A rejection here costs ~1/40th of a full
+    # read-through and is the whole reason the candidate cap can be generous.
+    if GATE_MODEL and GATE_MODEL.lower() not in ("off", "0", "none"):
+        if not gate(text, timeout=min(timeout, 30)):
+            return None
+
+    # Stage 2 is the expensive call, so it carries the per-run ceiling.
+    # Raised as Throttled because that is already the "not now, retry next
+    # run, do not mark seen" path in run_collect.
+    if STATS["full_calls"] >= READTHROUGH_CAP:
+        raise BudgetDeferred(
+            f"read-through cap ({READTHROUGH_CAP}/run) reached — deferring to the next run"
+        )
+    STATS["full_calls"] += 1
+
+    content = _call(
+        MODEL, MINI_SYSTEM, f"{SCHEMA_HINT}\n\n---\n{text[:4000]}",
+        timeout=timeout, json_mode=True,
+    )
+
+    try:
+        parsed = json.loads(_strip_fences(content))
+    except ValueError as exc:
+        raise ClassifyError(f"unparseable model response: {exc} — got {content[:200]!r}") from exc
+
+    if not parsed.get("is_talent_signal"):
+        return None
+    return parsed
+
+
+def _call(model: str, system: str, user: str, *, timeout: int,
+          max_tokens: int | None = None, json_mode: bool = True) -> str:
+    """One OpenRouter chat call with the retry/status discipline both stages
+    share. Returns the content string; raises the same typed errors as before."""
     body = {
-        "model": MODEL,
+        "model": model,
         "temperature": 0,
-        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    }
+    if max_tokens is not None:
+        body["max_tokens"] = max_tokens
+    if json_mode:
+        body["response_format"] = {"type": "json_object"}
         # OpenRouter routes a model across several providers, and not all of
         # them honour response_format. One that ignores it returns empty
         # content, which looks like a parse bug rather than a routing one —
         # 8 of the first 10 live classifications failed this way. This pins
         # routing to providers that actually support the parameters we send.
-        "provider": {"require_parameters": True},
-        "messages": [
-            {"role": "system", "content": MINI_SYSTEM},
-            {"role": "user", "content": f"{SCHEMA_HINT}\n\n---\n{text[:4000]}"},
-        ],
-    }
+        body["provider"] = {"require_parameters": True}
 
     # A 429 here is the upstream provider being busy, not a verdict on the
     # candidate. Treating it as one threw five real stories away in a single
@@ -182,7 +283,7 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
         resp = requests.post(
             OPENROUTER_URL,
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": f"Bearer {_api_key()}",
                 "Content-Type": "application/json",
                 "User-Agent": USER_AGENT,
             },
@@ -219,15 +320,7 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
             f"model returned empty content (finish_reason="
             f"{choice.get('finish_reason')!r}, provider={resp.json().get('provider')!r})"
         )
-
-    try:
-        parsed = json.loads(_strip_fences(content))
-    except ValueError as exc:
-        raise ClassifyError(f"unparseable model response: {exc} — got {content[:200]!r}") from exc
-
-    if not parsed.get("is_talent_signal"):
-        return None
-    return parsed
+    return content
 
 
 def _strip_fences(content: str) -> str:

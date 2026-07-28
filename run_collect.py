@@ -67,15 +67,22 @@ LOCALES_PER_RUN = 3
 #   122/run  (all the filter passes)    $9.35/month     7,320
 #   244/run  (that, with the 8d window) $18.70/month   14,640
 #
-# The last real run fetched 140, passed 122 through the free filter, and
-# classified 40. **The other 82 were discarded for cost, not for quality.** The
-# cap IS the binding constraint on coverage, and it is a budget decision rather
-# than an engineering one: raise it and coverage rises roughly linearly, at
-# about a tenth of a cent per record.
+# SUPERSEDED 2026-07-28 by the two-stage gate (classify.gate). The maths above
+# priced every candidate at a full read-through, which made the cap the
+# coverage constraint: the last single-stage run fetched 140, passed 122
+# through the free filter, and classified only 40 — the other 82 discarded for
+# cost, not quality.
 #
-# The OpenRouter key's own limit binds before any of this. Check it before
-# raising the cap, or the run will simply stop mid-collection on a 402.
-DEFAULT_CANDIDATE_CAP = 40
+# With the gate, looking at a candidate costs ~1/40th of classifying it, so
+# this cap is generous on purpose: it bounds gate spend (150 x ~$0.00003 =
+# half a cent per run), while the money is bounded separately by
+# classify.READTHROUGH_CAP, the ceiling on FULL classifications per run.
+# Worst case per month at the defaults:
+#   gate   150 x 2/day x 30            ~$0.30
+#   full    60 x 2/day x 30 x $0.00128 ~$4.60   (realistically far less:
+#           only gate survivors reach it, ~1/3 of candidates on measured runs)
+# The OpenRouter key's own limit still binds before any of this.
+DEFAULT_CANDIDATE_CAP = 150
 
 
 def build_locales(run_index: int) -> list[tuple[str, str]]:
@@ -196,7 +203,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if not offline and source == "google_news":
         kept = [google_news.resolve_source_url(item) for item in kept]
 
-    stored = duplicates = rejected = skipped = throttled = 0
+    stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
 
@@ -226,6 +233,13 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                                 detail="OpenRouter credits exhausted")
             conn.commit()
             return 1
+        except classify.BudgetDeferred as exc:
+            # The per-run spend ceiling, not a busy provider. Same retry-next-
+            # run handling, counted apart so a run that deferred work ON
+            # PURPOSE cannot trip the mostly-throttled breakage alarm below.
+            budget_deferred += 1
+            print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
+            continue
         except classify.Throttled as exc:
             # Not a verdict on the candidate. Counted separately, printed as
             # DEFER, and deliberately NOT marked seen, so the next run picks it
@@ -277,8 +291,17 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         f"\n[{collector}] found={found} "
         f"{'would store' if dry_run else 'stored'}={stored} "
         f"duplicate={duplicates} rejected={rejected} "
-        f"deferred={throttled} already-seen={skipped}"
+        f"deferred={throttled} budget-deferred={budget_deferred} already-seen={skipped}"
     )
+    # Spend visibility: the gate is the cost-avoidance stage, so say what it
+    # did. gate_rejects is money NOT spent on full read-throughs.
+    if classify.STATS["gate_calls"]:
+        print(
+            f"[{collector}] gate: {classify.STATS['gate_calls']} screened, "
+            f"{classify.STATS['gate_rejects']} dropped cheap, "
+            f"{classify.STATS['full_calls']} full read-throughs "
+            f"(cap {classify.READTHROUGH_CAP}/run)"
+        )
 
     if dry_run:
         print("\nDRY RUN — nothing was written.")
