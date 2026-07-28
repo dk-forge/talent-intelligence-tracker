@@ -132,7 +132,20 @@ function tit_dashboard_shortcode() {
         'real_estate_construction' => 'Real estate & construction',
     );
     ?>
-    <div class="tit-wrap" id="tit-dashboard">
+    <!--
+      The config also rides on the element, not only on wp_localize_script.
+      Autoptimize aggregates INLINE scripts into a bundle, and our
+      autoptimize_filter_js_exclude only protects assets matched by path, so
+      dashboard.js stays where it is while the inline `TIT` it depends on gets
+      swept into a bundle that loads after it. The script then saw
+      `typeof TIT === "undefined"`, returned on its first statement, and every
+      filter, the region strip and the quick views did nothing at all on the
+      live site while looking perfectly fine. Markup cannot be reordered away
+      from the element it describes.
+    -->
+    <div class="tit-wrap" id="tit-dashboard"
+         data-api="<?php echo esc_attr(rest_url('talent/v1/')); ?>"
+         data-countries="<?php echo esc_attr(wp_json_encode(tit_country_names())); ?>">
 
       <div class="tit-hero">
         <div class="tit-hero-top">
@@ -639,6 +652,10 @@ function tit_autoptimize_exclude_css($exclude) {
 add_filter('autoptimize_filter_css_exclude', 'tit_autoptimize_exclude_css');
 
 function tit_autoptimize_exclude_js($exclude) {
-    return $exclude . ', talent-intelligence-tracker/assets';
+    // Two entries, not one. The path keeps our file out of the bundle; the
+    // `var TIT` string keeps the inline object wp_localize_script prints out of
+    // it too. Excluding only the path split the pair apart and left the file
+    // running before the object it reads.
+    return $exclude . ', talent-intelligence-tracker/assets, var TIT';
 }
 add_filter('autoptimize_filter_js_exclude', 'tit_autoptimize_exclude_js');

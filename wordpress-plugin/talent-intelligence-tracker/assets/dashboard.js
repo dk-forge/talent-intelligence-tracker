@@ -6,7 +6,21 @@
   'use strict';
 
   var root = document.getElementById('tit-dashboard');
-  if (!root || typeof TIT === 'undefined') return;
+  if (!root) return;
+
+  // Prefer the global that wp_localize_script prints, but never depend on it.
+  // Autoptimize sweeps inline scripts into an aggregated bundle while leaving
+  // this file where it is (it is excluded by path), so the global can be
+  // undefined at the moment this runs and defined by the time anything checks.
+  // Bailing on that read is what made every control on the live page inert.
+  var TIT = window.TIT;
+  if (!TIT || !TIT.api) {
+    TIT = { api: root.getAttribute('data-api') || '', countries: {} };
+    try {
+      TIT.countries = JSON.parse(root.getAttribute('data-countries') || '{}');
+    } catch (e) { /* names degrade to the raw country codes */ }
+  }
+  if (!TIT.api) return;
 
   var tbody = document.getElementById('tit-rows');
   // Keys are the API's query parameter names, so refresh() can build the
