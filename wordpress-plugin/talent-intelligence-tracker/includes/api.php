@@ -39,6 +39,12 @@ function tit_register_routes() {
     register_rest_route(TIT_NS, '/retract', array(
         'methods' => 'POST', 'callback' => 'tit_api_retract', 'permission_callback' => $keyed,
     ));
+    // Operational alert. health_digest.py posts here when a collector has died
+    // or the pipeline has stopped, and this mails the owner. Keyed like every
+    // write route, so only the pipeline can send mail through the site.
+    register_rest_route(TIT_NS, '/alert', array(
+        'methods' => 'POST', 'callback' => 'tit_api_alert', 'permission_callback' => $keyed,
+    ));
 }
 add_action('rest_api_init', 'tit_register_routes');
 
@@ -402,6 +408,63 @@ function tit_api_source_health() {
         'plugin_version' => TIT_VERSION,
         'collectors'     => get_option('tit_source_health', array()),
     ));
+}
+
+/**
+ * Where an operational alert is mailed.
+ *
+ * Server-side on purpose: the recipient is not something the caller may set, so
+ * a leaked pipeline key cannot be used to mail arbitrary addresses. Override
+ * with a TIT_ALERT_TO constant in wp-config.php, or the tit_alert_to option.
+ */
+function tit_alert_recipient() {
+    if (defined('TIT_ALERT_TO') && TIT_ALERT_TO) {
+        return (string) TIT_ALERT_TO;
+    }
+    $stored = (string) get_option('tit_alert_to', '');
+    if ($stored !== '' && is_email($stored)) {
+        return $stored;
+    }
+    return 'info@asktherecruiter.com';
+}
+
+/**
+ * Mail the owner that something needs a human.
+ *
+ * Health has always been recorded and never announced: a dead collector was a
+ * red run and a badge on a page nobody opens, and a stopped workflow was
+ * nothing at all. This is the one route that reaches a person.
+ */
+function tit_api_alert(WP_REST_Request $req) {
+    $body    = $req->get_json_params();
+    $subject = sanitize_text_field(is_array($body) ? ($body['subject'] ?? '') : '');
+    $message = is_array($body) ? (string) ($body['body'] ?? '') : '';
+
+    if ($subject === '' || trim($message) === '') {
+        return new WP_Error('tit_bad_body', 'subject and body are both required',
+                            array('status' => 400));
+    }
+
+    // A breakage that persists would otherwise mail on every run until it is
+    // fixed, and an alert that arrives weekly forever gets filtered. Repeat the
+    // same subject at most once every three days.
+    $seen = 'tit_alert_' . md5($subject);
+    if (get_transient($seen)) {
+        return rest_ensure_response(array(
+            'ok' => true, 'sent' => false,
+            'reason' => 'suppressed, the same alert went out within three days',
+        ));
+    }
+
+    $sent = wp_mail(
+        tit_alert_recipient(),
+        '[Talent Intelligence Tracker] ' . $subject,
+        wp_strip_all_tags($message)
+    );
+    if ($sent) {
+        set_transient($seen, 1, 3 * DAY_IN_SECONDS);
+    }
+    return rest_ensure_response(array('ok' => (bool) $sent, 'sent' => (bool) $sent));
 }
 
 function tit_api_add(WP_REST_Request $req) {
