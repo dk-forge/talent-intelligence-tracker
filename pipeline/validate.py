@@ -123,8 +123,36 @@ def infer_confidence(source_url: str, model_confidence: str | None) -> str:
     return stated if order[stated] <= order[ceiling] else ceiling
 
 
-def content_hash(company_key: str, pillar: str, published_date: str | None, headline: str) -> str:
-    norm_headline = re.sub(r"[^a-z0-9 ]", "", headline.lower())
+def strip_outlet_suffix(headline: str, source_name: str | None = None) -> str:
+    """Drop a trailing ' - Outlet' / ' – Outlet' from a headline.
+
+    Google News RSS appends the publisher to every title. The model echoes the
+    headline it was given, and whether it keeps that suffix is nondeterministic
+    - the SAME OpenAI Dublin story hashed two different ways ten minutes apart
+    ("...Dublin" vs "...Dublin - The Straits Times"), so exact-hash dedup let
+    both through and the live page carried the duplicate (audit 2026-07-28).
+    Hashing the stripped form makes the fingerprint stable across runs.
+    """
+    text = (headline or "").strip()
+    # Only the last segment, and only when it is short enough to be a masthead
+    # rather than part of the story ("Acme raises $5M - and hires 40" stays).
+    m = re.search(r"\s+[-–—]\s+([^-–—]{2,40})$", text)
+    if not m:
+        return text
+    tail = m.group(1).strip()
+    if source_name and tail.casefold() == source_name.strip().casefold():
+        return text[:m.start()].strip()
+    # No source_name to match against: a trailing segment with no sentence
+    # punctuation and few words is a masthead in practice.
+    if len(tail.split()) <= 5 and not re.search(r"[.!?,;:]", tail):
+        return text[:m.start()].strip()
+    return text
+
+
+def content_hash(company_key: str, pillar: str, published_date: str | None,
+                 headline: str, source_name: str | None = None) -> str:
+    norm_headline = strip_outlet_suffix(headline, source_name)
+    norm_headline = re.sub(r"[^a-z0-9 ]", "", norm_headline.lower())
     norm_headline = re.sub(r"\s+", " ", norm_headline).strip()
     payload = f"{company_key}|{pillar}|{published_date or ''}|{norm_headline}"
     return hashlib.md5(payload.encode()).hexdigest()
@@ -246,8 +274,8 @@ def build_signal(classified: dict, raw: dict, collector: str) -> Signal:
 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     ckey = vocab.company_key(company)
-    published = _normalize_date(raw.get("published_date"))
-    chash = content_hash(ckey, pillar, published, headline)
+    published = _normalize_date(raw.get("published_date"), raw.get("source_url"))
+    chash = content_hash(ckey, pillar, published, headline, raw.get("source_name"))
 
     return Signal(
         signal_id=chash,
@@ -312,15 +340,45 @@ def _region_for_country(iso2: str) -> str | None:
     return None
 
 
-def _normalize_date(value) -> str | None:
-    """Return YYYY-MM-DD, or None. Never guesses."""
+def _normalize_date(value, source_url: str | None = None) -> str | None:
+    """Return YYYY-MM-DD, or None. Never guesses.
+
+    `source_url` is a CORRECTION channel, not a source. Google News re-surfaces
+    old stories with a fresh RSS pubDate, and trusting it put a 2021 article on
+    the page as this week's news, dated 2026-07-26, while its own URL said
+    /2021/07/ (audit 2026-07-28). When the article path carries a plausible
+    year/month that is OLDER than the pubDate by more than a couple of months,
+    the path wins: a publisher's own permalink is better evidence of when it
+    was written than an aggregator's feed timestamp.
+    """
     if not value:
         return None
     text = str(value).strip()
+    parsed = None
     for fmt in ("%Y-%m-%d", "%a, %d %b %Y %H:%M:%S %Z", "%a, %d %b %Y %H:%M:%S %z"):
         try:
-            return datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+            parsed = datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+            break
         except ValueError:
             continue
-    m = re.search(r"(\d{4})-(\d{2})-(\d{2})", text)
-    return m.group(0) if m else None
+    if parsed is None:
+        # Anchored: an unanchored search matched any YYYY-MM-DD anywhere in
+        # arbitrary text, including one sitting inside a URL or a body quote.
+        m = re.match(r"\s*(\d{4}-\d{2}-\d{2})\b", text)
+        parsed = m.group(1) if m else None
+    if parsed is None:
+        return None
+
+    if source_url:
+        m = re.search(r"/((?:19|20)\d{2})/(0[1-9]|1[0-2])(?:/|\b)", str(source_url))
+        if m:
+            url_ym = f"{m.group(1)}-{m.group(2)}"
+            feed_ym = parsed[:7]
+            if url_ym < feed_ym:
+                # More than ~2 months apart is a re-surfaced old story, not a
+                # slow publisher. Date it to the first of the URL's month: the
+                # day is unknown, and claiming one would be a guess.
+                if (int(feed_ym[:4]) * 12 + int(feed_ym[5:7])) - \
+                   (int(url_ym[:4]) * 12 + int(url_ym[5:7])) > 2:
+                    return f"{url_ym}-01"
+    return parsed
