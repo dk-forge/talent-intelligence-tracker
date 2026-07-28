@@ -15,6 +15,7 @@ is research, not coverage, and the sources page says so.
 from __future__ import annotations
 
 import csv
+import re
 import sys
 from pathlib import Path
 
@@ -54,6 +55,68 @@ COLUMN_MAP = {
 }
 
 
+# ---------------------------------------------------------------------------
+# COMPETITOR DENYLIST (hashed).
+#
+# Standing rule: competitor names never appear in this repo, in CI logs, or on
+# public pages. This repo is PUBLIC, so a vendor row committed to
+# data/sources_catalogue.csv publishes it to anyone -- and so would a denylist
+# written in plain text. The entries below are therefore SHA-256 prefixes of the
+# normalised name and of the URL host, so the guard works without the repo ever
+# containing what it blocks.
+#
+# Two vendor rows arrived via an .xlsx batch and were committed before anyone
+# noticed (removed 2026-07-28). Matching covers the name and the host, so a
+# re-export under a slightly different label or a subdomain is still caught.
+#
+# FAIL LOUD, never silently drop: a silent filter hides that the INPUT still
+# contains them, so the next person re-adds them by hand. The import aborts and
+# prints the row index, not the name.
+#
+# To add an entry:  python3 -c "import hashlib;print(hashlib.sha256(b'name').hexdigest()[:16])"
+COMPETITOR_DENY_NAME_HASHES = frozenset({
+    "0616a267820d2c78",
+    "567877b2e3d7aac3",
+})
+COMPETITOR_DENY_HOST_HASHES = frozenset({
+    "67b0747067cdad0f",
+    "8bb09747e66dc6c7",
+})
+
+
+def _hash_key(value: str) -> str:
+    import hashlib as _hl
+    return _hl.sha256(str(value or "").strip().lower().encode()).hexdigest()[:16]
+
+
+def assert_no_competitors(rows: list[dict]) -> None:
+    """Abort the import if a denylisted vendor is present. Never writes.
+
+    Reports the row INDEX rather than the name so the offending vendor is not
+    echoed into a public CI log."""
+    offenders = []
+    for i, row in enumerate(rows, 1):
+        name = re.sub(r"[^a-z0-9 ]+", "", str(row.get("name", "")).lower()).strip()
+        # A vendor re-exported as "<Name> Inc." / "<Name> Ltd" must still match,
+        # so test the full name, the name minus legal suffixes, and the leading
+        # token. Hashing means we cannot substring-match, hence explicit variants.
+        bare = re.sub(r"\b(inc|incorporated|corp|corporation|co|company|ltd|limited"
+                      r"|llc|plc|group|holdings|technologies|labs|io)\b", " ", name)
+        bare = re.sub(r"\s+", " ", bare).strip()
+        candidates = {name, bare, name.split(" ")[0] if name else "", bare.split(" ")[0] if bare else ""}
+        host = str(row.get("url", "") or "").lower().split("//")[-1].split("/")[0]
+        host = host[4:] if host.startswith("www.") else host
+        if any(_hash_key(c) in COMPETITOR_DENY_NAME_HASHES for c in candidates if c) \
+           or _hash_key(host) in COMPETITOR_DENY_HOST_HASHES:
+            offenders.append(str(i))
+    if offenders:
+        raise SystemExit(
+            "REFUSING TO WRITE: denylisted competitor row(s) present in the input at "
+            f"row(s) {', '.join(offenders)}.\nThis repo is public and competitor names "
+            "must never be committed. Remove them from the source spreadsheet and re-run."
+        )
+
+
 def read(path: Path) -> list[dict]:
     wb = openpyxl.load_workbook(path, read_only=True)
     try:
@@ -89,6 +152,10 @@ def main(argv: list[str]) -> int:
         for r in rows:
             merged[r["name"].lower()] = r
         print(f"{p.name}: {len(rows)} usable rows")
+
+    # Standing rule check BEFORE any write: a competitor row must never reach
+    # the committed CSV in this public repo.
+    assert_no_competitors(list(merged.values()))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", newline="") as fh:
