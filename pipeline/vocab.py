@@ -654,3 +654,298 @@ def company_key(name: str) -> str:
         k,
     )
     return re.sub(r"\s+", " ", k).strip()
+
+
+# --- Funding stage ---------------------------------------------------------
+
+# The round's name, not its size. Stage is what makes a funding row comparable:
+# a $30M seed and a $30M Series D are different talent events (the first is
+# about to build a team, the second is buying growth), and without this column
+# the only thing a reader can sort by is the number.
+FUNDING_STAGES = (
+    "pre_seed", "seed", "series_a", "series_b", "series_c", "series_d_plus",
+    "growth", "debt", "grant", "ipo", "other",
+)
+
+FUNDING_STAGE_LABELS = {
+    "pre_seed": "Pre-seed",
+    "seed": "Seed",
+    "series_a": "Series A",
+    "series_b": "Series B",
+    "series_c": "Series C",
+    "series_d_plus": "Series D+",
+    "growth": "Growth",
+    "debt": "Debt",
+    "grant": "Grant",
+    "ipo": "IPO",
+    "other": "Other",
+}
+
+_FUNDING_STAGE_ALIASES = {
+    "preseed": "pre_seed", "pre seed": "pre_seed", "pre seed round": "pre_seed",
+    "angel": "pre_seed", "friends and family": "pre_seed",
+    "seed round": "seed", "seed funding": "seed", "seed extension": "seed",
+    "a round": "series_a", "b round": "series_b", "c round": "series_c",
+    "late stage": "series_d_plus", "growth equity": "growth",
+    "growth round": "growth", "growth capital": "growth",
+    "private equity": "growth", "pe": "growth", "mezzanine": "growth",
+    "pre ipo": "growth", "crossover": "growth",
+    "debt financing": "debt", "venture debt": "debt", "credit facility": "debt",
+    "term loan": "debt", "loan": "debt", "convertible note": "debt",
+    "government grant": "grant", "grant funding": "grant", "award": "grant",
+    "initial public offering": "ipo", "public offering": "ipo",
+    "direct listing": "ipo", "listing": "ipo", "flotation": "ipo",
+    "strategic investment": "other", "corporate round": "other",
+    "bridge": "other", "extension": "other", "undisclosed": "other",
+}
+
+# Series D through Z all collapse to one bucket. Splitting them would make a
+# filter with one row per option, and by Series D the talent story is the same:
+# an established company scaling, not a team being founded.
+_SERIES_LETTER = re.compile(r"^series\s*[-_ ]?([a-z])\b")
+
+
+def normalize_funding_stage(value: str):
+    k = _key(value).replace("_", " ").replace("-", " ")
+    k = re.sub(r"\s+", " ", k).strip()
+    if not k:
+        return None
+    flat = k.replace(" ", "_")
+    if flat in FUNDING_STAGES:
+        return flat
+    m = _SERIES_LETTER.match(k)
+    if m:
+        letter = m.group(1)
+        return f"series_{letter}" if letter in ("a", "b", "c") else "series_d_plus"
+    if k in _FUNDING_STAGE_ALIASES:
+        return _FUNDING_STAGE_ALIASES[k]
+    # Trailing noise a model adds ("seed round of funding", "IPO listing").
+    stripped = re.sub(r"\s+(round|funding|financing|raise|deal|stage)$", "", k)
+    if stripped != k:
+        return normalize_funding_stage(stripped)
+    return None
+
+
+# --- Work mode -------------------------------------------------------------
+
+# Where the work happens, when the source says so. rto_mandate is deliberately
+# separate from onsite: "we are an office company" and "everyone is ordered
+# back four days a week" are the same location and completely different news
+# for anyone deciding whether to take the job.
+WORK_MODES = ("remote", "hybrid", "onsite", "rto_mandate", "flexible")
+
+WORK_MODE_LABELS = {
+    "remote": "Remote",
+    "hybrid": "Hybrid",
+    "onsite": "Onsite",
+    "rto_mandate": "Return-to-office mandate",
+    "flexible": "Flexible",
+}
+
+_WORK_MODE_ALIASES = {
+    "work from home": "remote", "wfh": "remote", "fully remote": "remote",
+    "remote first": "remote", "remote only": "remote", "distributed": "remote",
+    "work from anywhere": "remote",
+    "hybrid working": "hybrid", "hybrid work": "hybrid",
+    "hybrid model": "hybrid", "part remote": "hybrid",
+    "on site": "onsite", "in office": "onsite", "in person": "onsite",
+    "office based": "onsite", "on premises": "onsite", "onsite only": "onsite",
+    "rto": "rto_mandate", "return to office": "rto_mandate",
+    "return to office mandate": "rto_mandate", "office mandate": "rto_mandate",
+    "rto policy": "rto_mandate", "back to office": "rto_mandate",
+    "flexible working": "flexible", "flex": "flexible",
+    "flexible hours": "flexible", "employee choice": "flexible",
+}
+
+
+def normalize_work_mode(value: str):
+    k = _key(value).replace("_", " ").replace("-", " ")
+    k = re.sub(r"\s+", " ", k).strip()
+    if not k:
+        return None
+    flat = k.replace(" ", "_")
+    if flat in WORK_MODES:
+        return flat
+    return _WORK_MODE_ALIASES.get(k)
+
+
+# --- Employer type ---------------------------------------------------------
+
+# What kind of organisation the employer is. Same standing as hq_country: the
+# model may answer from its own knowledge of the company, because "is this a
+# listed company or a startup" is stable background fact, not a claim about
+# this week's event. Empty when it does not know.
+EMPLOYER_TYPES = ("public", "private", "startup", "government", "nonprofit", "education")
+
+EMPLOYER_TYPE_LABELS = {
+    "public": "Public company",
+    "private": "Private company",
+    "startup": "Startup",
+    "government": "Government",
+    "nonprofit": "Nonprofit",
+    "education": "Education",
+}
+
+_EMPLOYER_TYPE_ALIASES = {
+    "publicly traded": "public", "publicly listed": "public",
+    "public company": "public", "listed": "public", "listed company": "public",
+    "plc": "public", "quoted": "public",
+    "privately held": "private", "private company": "private",
+    "privately owned": "private", "family owned": "private",
+    "start up": "startup", "scaleup": "startup", "scale up": "startup",
+    "venture backed": "startup", "vc backed": "startup",
+    "early stage": "startup", "private startup": "startup",
+    "public sector": "government", "state": "government",
+    "state owned": "government", "federal": "government",
+    "municipal": "government", "agency": "government",
+    "civil service": "government", "government agency": "government",
+    "non profit": "nonprofit", "not for profit": "nonprofit",
+    "charity": "nonprofit", "ngo": "nonprofit", "foundation": "nonprofit",
+    "university": "education", "college": "education", "school": "education",
+    "academic": "education", "higher education": "education",
+    "school district": "education",
+}
+
+
+def normalize_employer_type(value: str):
+    k = _key(value).replace("_", " ").replace("-", " ")
+    k = re.sub(r"\s+", " ", k).strip()
+    if not k:
+        return None
+    flat = k.replace(" ", "_")
+    if flat in EMPLOYER_TYPES:
+        return flat
+    return _EMPLOYER_TYPE_ALIASES.get(k)
+
+
+# --- Headcount scope -------------------------------------------------------
+
+# What the headcount number COUNTS. Without it, 4,000 could be four thousand
+# jobs created, four thousand people at one plant, or the whole company, and a
+# reader sorting by headcount is comparing three different quantities. Only
+# meaningful when headcount is non-null.
+HEADCOUNT_SCOPES = ("new_roles", "total_workforce", "single_site", "affected")
+
+HEADCOUNT_SCOPE_LABELS = {
+    "new_roles": "New roles",
+    "total_workforce": "Total workforce",
+    "single_site": "Single site",
+    "affected": "Roles affected",
+}
+
+_HEADCOUNT_SCOPE_ALIASES = {
+    "new roles": "new_roles", "new jobs": "new_roles", "new hires": "new_roles",
+    "roles added": "new_roles", "jobs created": "new_roles",
+    "roles created": "new_roles", "openings": "new_roles",
+    "total workforce": "total_workforce", "total headcount": "total_workforce",
+    "total employees": "total_workforce", "workforce": "total_workforce",
+    "company wide": "total_workforce", "companywide": "total_workforce",
+    "global workforce": "total_workforce", "headcount": "total_workforce",
+    "single site": "single_site", "one site": "single_site",
+    "site": "single_site", "facility": "single_site", "plant": "single_site",
+    "one location": "single_site", "location": "single_site",
+    "roles affected": "affected", "employees affected": "affected",
+    "impacted": "affected", "roles cut": "affected", "jobs cut": "affected",
+    "redundancies": "affected", "layoffs": "affected",
+}
+
+
+def normalize_headcount_scope(value: str):
+    k = _key(value).replace("_", " ").replace("-", " ")
+    k = re.sub(r"\s+", " ", k).strip()
+    if not k:
+        return None
+    flat = k.replace(" ", "_")
+    if flat in HEADCOUNT_SCOPES:
+        return flat
+    return _HEADCOUNT_SCOPE_ALIASES.get(k)
+
+
+# --- Funding amount as a number --------------------------------------------
+
+# funding_amount is stored verbatim because that is the quotable form the
+# source used. That makes it useless for arithmetic: the live table holds
+# '$3.6M', '$1.45 Million', '$130 Million' and '$1,000.0 million' side by side,
+# so nothing can sum, sort or chart funding at all. This parses the string we
+# already hold into plain US dollars.
+#
+# Deterministic and in Python on purpose. The model is never asked for the
+# number: "never state a figure that is not in the text" is the rule the whole
+# product rests on, and a model converting '$1.45 Million' to 1450000 is
+# stating a figure the text does not contain.
+
+# US$ and USD are noise once we know the currency, and stripping them first
+# stops 'US$' from tripping the S$ (Singapore dollar) marker below.
+_USD_PREFIX = re.compile(r"(?i)\bUS\s*\$")
+_USD_CODE = re.compile(r"(?i)\bUSD\b")
+
+# Anything that is NOT a US dollar. A non-USD figure leaves funding_amount_usd
+# NULL rather than being converted: we would have to pick an exchange rate, and
+# a made-up rate on a historical round is a made-up number. The verbatim string
+# is still there for anyone who wants to read it.
+_NON_USD = re.compile(
+    r"[€£¥₹₽₩₪฿]"          # currency symbols
+    r"|(?<![A-Za-z])(?:HK|NZ|NT|RM|Mex|MX|C|A|S|R|Z)\s?\$"         # C$, A$, S$, HK$, R$
+    r"|\b(?:EUR|GBP|JPY|CHF|CAD|AUD|NZD|SGD|HKD|INR|CNY|RMB|SEK"
+    r"|NOK|DKK|BRL|MXN|ZAR|KRW|PLN|ILS|AED|SAR|TRY|RUB|THB|IDR"
+    r"|MYR|PHP|VND|EGP|NGN|TWD|CZK|HUF|RON|CLP|COP|ARS|PKR|BDT)\b"
+    r"|\b(?:euros?|pounds?\s+sterling|sterling|yen|yuan|rupees?|won"
+    r"|rand|reais|reals?|shekels?|dirhams?|kron[ao]r?|zloty|ruble[s]?"
+    r"|lakh|crore)\b",
+    re.I,
+)
+
+_AMOUNT = re.compile(
+    r"(\d[\d,]*(?:\.\d+)?)\s*"
+    r"(k|m|mm|mn|bn|b|t|thousand|million|millions|billion|billions|trillion)?\b",
+    re.I,
+)
+
+_MULTIPLIERS = {
+    None: 1,
+    "k": 1_000, "thousand": 1_000,
+    "m": 1_000_000, "mm": 1_000_000, "mn": 1_000_000,
+    "million": 1_000_000, "millions": 1_000_000,
+    "b": 1_000_000_000, "bn": 1_000_000_000,
+    "billion": 1_000_000_000, "billions": 1_000_000_000,
+    "t": 1_000_000_000_000, "trillion": 1_000_000_000_000,
+}
+
+# A round larger than this is a parse failure, not news. Ten trillion dollars
+# is more than any company has ever raised, so a value above it means the
+# string was something other than a funding figure.
+_MAX_PLAUSIBLE_USD = 10_000_000_000_000
+
+
+def parse_funding_usd(value: str):
+    """Return the figure as whole US dollars, or None.
+
+    None means "we will not guess", and covers: no digits at all, a currency
+    that is not the US dollar, and anything that parses to an implausible
+    number. Only the FIRST number is read, so a range ('$5M to $10M') stores
+    its low end, matching how headcounts are parsed on the sibling tracker.
+    """
+    text = (str(value or "")).strip()
+    if not text:
+        return None
+
+    text = _USD_PREFIX.sub("$", text)
+    text = _USD_CODE.sub(" ", text)
+
+    if _NON_USD.search(text):
+        return None
+
+    m = _AMOUNT.search(text)
+    if not m:
+        return None
+
+    try:
+        number = float(m.group(1).replace(",", ""))
+    except ValueError:
+        return None
+
+    suffix = (m.group(2) or "").lower() or None
+    amount = number * _MULTIPLIERS.get(suffix, 1)
+    if amount <= 0 or amount > _MAX_PLAUSIBLE_USD:
+        return None
+    return int(round(amount))
