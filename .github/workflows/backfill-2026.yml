@@ -1,0 +1,97 @@
+# One-time 2026 catch-up for SEC 8-K Item 5.02 leadership changes.
+#
+# Owner-approved spend, 2026-07-28 (est. $7-12 total across all months), so
+# this workflow reports spend but does NOT run `spend.py --enforce`: the
+# monthly guard would stop a sweep the owner explicitly bought. The key's own
+# hard cap at OpenRouter is still the backstop, and TIT_READTHROUGH_CAP is
+# raised for these jobs only - the daily collector keeps its own ceiling.
+#
+# Dispatch one month at a time (concurrency group serialises them anyway:
+# every job commits the SQLite database, and parallel writers would race the
+# push). A month runs well inside the 6-hour job ceiling.
+name: backfill-2026
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: 'Start date (YYYY-MM-DD)'
+        required: true
+      end:
+        description: 'End date inclusive (YYYY-MM-DD)'
+        required: true
+      dry_run:
+        description: 'Set to true to classify nothing and write nothing'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: talent-collect        # same group as the daily collector: one DB writer at a time
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Spend before
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      - name: Backfill
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
+          # Backfill months hold thousands of filings; the daily ceiling would
+          # defer almost all of them. Bounded by the month itself + gate rejects.
+          TIT_READTHROUGH_CAP: '5000'
+        run: |
+          python backfill_sec_2026.py \
+            --start "${{ inputs.start }}" \
+            --end "${{ inputs.end }}" \
+            ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
+
+      - name: Spend after
+        if: ${{ !cancelled() }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      # Same memory rule as the daily collector: a failed run that already
+      # stored and published rows still holds the only local record of them.
+      - name: Commit the database
+        if: ${{ inputs.dry_run != 'true' && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          git add data/spend_month.json || true
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "data: backfill ${{ inputs.start }}..${{ inputs.end }}" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            git add data/talent_intel.db
+          done
+          echo "::error::could not push the database after 5 attempts"
+          exit 1

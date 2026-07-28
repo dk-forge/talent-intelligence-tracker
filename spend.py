@@ -43,6 +43,47 @@ def fetch() -> dict:
     return resp.json().get("data") or {}
 
 
+SNAPSHOT_PATH = os.path.join(os.path.dirname(__file__), "data", "spend_month.json")
+
+
+def month_delta(lifetime_used: float) -> tuple[float, str]:
+    """This calendar month's spend, measured as a delta from a committed
+    month-start snapshot of the key's LIFETIME usage.
+
+    The /auth/key `usage` figure never resets: it is cumulative for the key's
+    lifetime. Enforcing the monthly allowance directly against it meant the
+    guard tripped permanently once lifetime spend crossed 90% of one month's
+    budget — at ~$3/month, autonomous collection would have died forever in
+    month three, surfacing only as red runs (audit 2026-07-28, finding 5).
+
+    The snapshot file rides the same commit-the-database step the workflow
+    already has, so it persists across runners. First run of a new month
+    rewrites it; a missing or corrupt file is treated as "month starts now",
+    which under-counts one partial month rather than halting collection.
+    """
+    import datetime
+    import json as _json
+
+    month = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m")
+    snap = {}
+    try:
+        with open(SNAPSHOT_PATH) as fh:
+            snap = _json.load(fh) or {}
+    except (OSError, ValueError):
+        snap = {}
+
+    if snap.get("month") != month or not isinstance(snap.get("usage_at_start"), (int, float)):
+        snap = {"month": month, "usage_at_start": lifetime_used}
+        try:
+            os.makedirs(os.path.dirname(SNAPSHOT_PATH), exist_ok=True)
+            with open(SNAPSHOT_PATH, "w") as fh:
+                _json.dump(snap, fh)
+        except OSError:
+            pass  # read-only checkout: enforce on the in-memory value anyway
+
+    return max(0.0, lifetime_used - float(snap["usage_at_start"])), month
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Report and enforce LLM spend.")
     parser.add_argument("--enforce", action="store_true",
@@ -53,11 +94,13 @@ def main() -> int:
     used = float(d.get("usage") or 0)
     limit = d.get("limit")
     remaining = (float(limit) - used) if limit is not None else None
+    spent_this_month, month = month_delta(used)
 
     print("=" * 56)
     print("LLM SPEND")
     print("=" * 56)
-    print(f"  spent on this key   ${used:,.4f}")
+    print(f"  spent on this key   ${used:,.4f} (lifetime)")
+    print(f"  spent in {month}    ${spent_this_month:,.4f}")
     if limit is None:
         print("  key limit           none set  <- a runaway run has no backstop")
     else:
@@ -76,11 +119,11 @@ def main() -> int:
     elif remaining is not None and remaining < 1:
         problems.append(f"under $1 left on the key (${remaining:.2f})")
 
-    over = used >= MONTHLY_ALLOWANCE_USD * STOP_AT_FRACTION
+    over = spent_this_month >= MONTHLY_ALLOWANCE_USD * STOP_AT_FRACTION
     if over:
         problems.append(
-            f"spend ${used:.2f} is at or past {int(STOP_AT_FRACTION*100)}% of the "
-            f"${MONTHLY_ALLOWANCE_USD:.0f} allowance"
+            f"this month's spend ${spent_this_month:.2f} is at or past "
+            f"{int(STOP_AT_FRACTION*100)}% of the ${MONTHLY_ALLOWANCE_USD:.0f} allowance"
         )
 
     print()

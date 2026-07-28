@@ -105,12 +105,22 @@ jobs:
       # only writer (the concurrency group keeps two collects from overlapping),
       # so resetting to the remote and putting our file back is always correct
       # and can never conflict.
+      # `!cancelled()` and not plain success: a run that FAILED after storing
+      # and publishing rows still holds the only local record of them (new
+      # signals + seen_urls). Skipping this step on failure threw that memory
+      # away while WordPress kept the rows, so the next run re-fetched,
+      # re-paid the LLM for, and re-published the same stories, and the live
+      # site carried the duplicate (audit 2026-07-28, finding 1 — proven on
+      # run 30310330200).
       - name: Commit the database
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && !cancelled() }}
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db
+          # spend_month.json is the month-start usage snapshot the spend guard
+          # measures this month's delta against; it must persist the same way
+          # the database does or the guard re-baselines every run.
+          git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
           if git diff --staged --quiet; then
             echo "No data change."
             exit 0

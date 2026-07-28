@@ -53,15 +53,24 @@ def _headers() -> dict:
     return {"User-Agent": USER_AGENT, "Accept": "application/json"}
 
 
-def search(phrase: str, *, days_back: int = 7, page: int = 0) -> list[dict]:
-    """One EFTS page for one phrase. Returns raw hits."""
-    end = datetime.now(timezone.utc)
-    start = end - timedelta(days=days_back)
+def search(phrase: str, *, days_back: int = 7, page: int = 0,
+           startdt: str | None = None, enddt: str | None = None) -> list[dict]:
+    """One EFTS page for one phrase. Returns raw hits.
+
+    Explicit startdt/enddt (YYYY-MM-DD) override days_back; the backfill
+    walks historical windows this way while the daily run keeps its rolling
+    week.
+    """
+    if not (startdt and enddt):
+        end = datetime.now(timezone.utc)
+        start = end - timedelta(days=days_back)
+        startdt = start.strftime("%Y-%m-%d")
+        enddt = end.strftime("%Y-%m-%d")
     params = {
         "q": f'"{phrase}"',
         "dateRange": "custom",
-        "startdt": start.strftime("%Y-%m-%d"),
-        "enddt": end.strftime("%Y-%m-%d"),
+        "startdt": startdt,
+        "enddt": enddt,
         "forms": "8-K",
         "from": page * PAGE_SIZE,
     }

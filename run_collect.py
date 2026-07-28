@@ -264,6 +264,16 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # being discarded because the prompt did not list funding.
             print(f"  REJECT  {item.get('headline','')[:70]}\n"
                   f"          model judged it not a talent signal")
+            # A model NO is a terminal verdict on this URL, so remember it.
+            # Unmarked rejects were re-fetched, re-resolved and re-classified
+            # on every run for the length of the recency window - the same
+            # story billed at 2 runs/day for up to a week, while occupying a
+            # candidate slot a fresh story needed (audit 2026-07-28, finding
+            # 4: seen_urls held zero 'rejected' rows against a documented
+            # outcome vocabulary that includes it). Throttled stays unmarked
+            # above: busy is not a verdict.
+            if url and not dry_run:
+                store.mark_seen(conn, url, collector, "rejected")
             continue
 
         try:
@@ -271,6 +281,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         except validate.Rejected as exc:
             rejected += 1
             print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")
+            if url and not dry_run:
+                store.mark_seen(conn, url, collector, "rejected")
             continue
 
         if dry_run:
