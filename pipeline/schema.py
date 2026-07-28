@@ -15,6 +15,8 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from . import vocab
+
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "talent_intel.db"
 
 TABLES = """
@@ -36,6 +38,19 @@ CREATE TABLE IF NOT EXISTS signals (
     company_key       TEXT    NOT NULL,
     pillar            TEXT    NOT NULL,
     signal_direction  TEXT    NOT NULL,
+
+    -- Employer identity keys, and the join to the sibling layoff tracker.
+    -- company_key is a normalised NAME, so it collapses the moment two
+    -- employers share one. cik is free and exact: the SEC collectors already
+    -- parse it out of every EFTS hit. ticker is stored only when the text
+    -- states it, never looked up.
+    ticker            TEXT,
+    cik               TEXT,
+
+    -- What kind of organisation the employer is (public/private/startup/...).
+    -- Same provenance as hq_country: the model's own knowledge of the company,
+    -- not a claim the article made.
+    employer_type     TEXT,
 
     -- Where the ROLES are, taken from the source text only.
     city              TEXT,
@@ -61,6 +76,25 @@ CREATE TABLE IF NOT EXISTS signals (
     headcount         INTEGER,
     funding_amount    TEXT,
 
+    -- What the headcount COUNTS: new roles, the whole workforce, one site, or
+    -- roles affected. 4,000 means three different things without this, and a
+    -- reader sorting by headcount would be comparing unlike quantities.
+    headcount_scope   TEXT,
+
+    -- The same funding figure as a plain integer of US dollars, parsed
+    -- deterministically in Python from funding_amount. The string column stays
+    -- exactly as the source wrote it: it is the quotable form, this is the
+    -- arithmetic one. NULL for non-USD currencies (we will not invent an
+    -- exchange rate) and for anything that will not parse.
+    funding_amount_usd INTEGER,
+
+    -- The round's name. A $30M seed and a $30M Series D are different talent
+    -- events; without the stage the only sortable thing about funding is size.
+    funding_stage     TEXT,
+
+    -- Where the work happens, when the source says so.
+    work_mode         TEXT,
+
     confidence        TEXT    NOT NULL,
 
     -- Provenance. No source URL, no row (spec 2 rule 1).
@@ -69,6 +103,13 @@ CREATE TABLE IF NOT EXISTS signals (
     discovery_url     TEXT,
     archive_url       TEXT,
     published_date    TEXT,
+
+    -- When the change TAKES EFFECT, when the source states it. Distinct from
+    -- published_date: "Tim Cook steps down as CEO in September" is a July
+    -- article about a September event, and filing it under July is the wrong
+    -- answer to "who is leaving next quarter". Stored only when the source
+    -- states it, never derived from published_date.
+    effective_date    TEXT,
 
     -- Time. as_of is when WE believed this; published_date is the source's.
     captured_at       TEXT    NOT NULL,
@@ -127,6 +168,9 @@ CREATE INDEX IF NOT EXISTS idx_signals_state    ON signals(state);
 CREATE INDEX IF NOT EXISTS idx_signals_pub      ON signals(published_date);
 CREATE INDEX IF NOT EXISTS idx_signals_company  ON signals(company_key);
 CREATE INDEX IF NOT EXISTS idx_signals_sigid    ON signals(signal_id, revision);
+CREATE INDEX IF NOT EXISTS idx_signals_fund_usd ON signals(funding_amount_usd);
+CREATE INDEX IF NOT EXISTS idx_signals_effective ON signals(effective_date);
+CREATE INDEX IF NOT EXISTS idx_signals_cik      ON signals(cik);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
 """
 
@@ -146,6 +190,19 @@ MIGRATIONS = (
     ("signals", "industry", "TEXT"),
     ("signals", "headcount", "INTEGER"),
     ("signals", "funding_amount", "TEXT"),
+    # Added while the 2026 backfill was mid-flight. These could not wait: a
+    # column added after tens of thousands of rows have landed is NULL on all
+    # of them forever, because nothing re-reads an article we already paid to
+    # classify. funding_amount_usd is the exception and is re-derived below
+    # from the string we already hold.
+    ("signals", "funding_amount_usd", "INTEGER"),
+    ("signals", "funding_stage", "TEXT"),
+    ("signals", "effective_date", "TEXT"),
+    ("signals", "ticker", "TEXT"),
+    ("signals", "cik", "TEXT"),
+    ("signals", "work_mode", "TEXT"),
+    ("signals", "employer_type", "TEXT"),
+    ("signals", "headcount_scope", "TEXT"),
 )
 
 
@@ -162,6 +219,36 @@ def _migrate(conn: sqlite3.Connection) -> list[str]:
     return applied
 
 
+def backfill_funding_usd(conn: sqlite3.Connection) -> int:
+    """Fill funding_amount_usd from the funding_amount string already stored.
+
+    The only new column that gets backfilled, and only because it invents
+    nothing: it re-parses text we collected, with the same deterministic parser
+    new rows use. No model call, no refetch, no network.
+
+    Idempotent: it touches only rows where the number is missing and the string
+    is present, so a second run is a no-op. Rows whose string will not parse
+    (non-USD currencies, 'undisclosed') stay NULL and are re-examined each run,
+    which is cheap and means a parser improvement picks them up automatically.
+    """
+    rows = conn.execute(
+        """SELECT row_id, funding_amount FROM signals
+            WHERE funding_amount IS NOT NULL AND funding_amount != ''
+              AND funding_amount_usd IS NULL"""
+    ).fetchall()
+
+    updates = []
+    for row in rows:
+        usd = vocab.parse_funding_usd(row["funding_amount"])
+        if usd is not None:
+            updates.append((usd, row["row_id"]))
+    if updates:
+        conn.executemany(
+            "UPDATE signals SET funding_amount_usd = ? WHERE row_id = ?", updates
+        )
+    return len(updates)
+
+
 def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     path = Path(db_path) if db_path else DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -173,5 +260,20 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     conn.executescript(TABLES)
     _migrate(conn)
     conn.executescript(INDEXES)
+
+    # Run here rather than from a script someone has to remember. A one-off
+    # migration script is a migration that stops running: the collectors, the
+    # backfill and every ops tool open the database through connect(), so
+    # wiring it in is the only version that cannot be skipped. After the first
+    # pass it is one indexless read of a handful of rows.
+    #
+    # Never fatal: ops_status.py and other read-only tools also call connect(),
+    # and a locked or read-only database must not take them down over a column
+    # that is allowed to be NULL.
+    try:
+        backfill_funding_usd(conn)
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     return conn
