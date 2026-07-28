@@ -32,6 +32,7 @@
     industry: document.getElementById('tit-f-industry'),
     country: document.getElementById('tit-f-country'),
     state: document.getElementById('tit-f-state'),
+    city: document.getElementById('tit-f-city'),
     confidence: document.getElementById('tit-f-confidence'),
     country_basis: document.getElementById('tit-f-country_basis'),
     company: document.getElementById('tit-f-company'),
@@ -50,10 +51,14 @@
   // How each filter names itself in the active-filter bar.
   var FILTER_LABEL = {
     pillar: 'Kind', direction: 'Direction', 'function': 'Roles',
-    industry: 'Industry', country: 'Country', state: 'US state',
+    industry: 'Industry', country: 'Country', state: 'US state', city: 'City',
     confidence: 'How solid', country_basis: 'Place basis', company: 'Employer',
     q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
   };
+
+  // Saved views that no longer have a button of their own but can still be
+  // switched on (by a matrix cell, or by a shared link).
+  var QV_LABEL = { 'funding=1': 'Funding updates' };
 
   var DIRECTION_CLASS = {
     hiring: 'tit-hiring',
@@ -92,6 +97,7 @@
         // the codebook before they can pick a country.
         fill(inputs.country, data.countries, true);
         fill(inputs.state, data.states);
+        fill(inputs.city, data.cities);
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
@@ -155,7 +161,68 @@
     how_we_work: 'Ways of working'
   };
 
+  var INDUSTRY_LABEL = {
+    technology: 'Technology', financial_services: 'Financial services',
+    healthcare: 'Healthcare', pharma_biotech: 'Pharma & biotech',
+    retail_ecommerce: 'Retail & e-commerce', manufacturing: 'Manufacturing',
+    energy_utilities: 'Energy & utilities', telecom: 'Telecom',
+    media_entertainment: 'Media & entertainment',
+    transport_logistics: 'Transport & logistics',
+    professional_services: 'Professional services',
+    public_sector: 'Public sector', hospitality_travel: 'Hospitality & travel',
+    education: 'Education', food_beverage: 'Food & beverage',
+    automotive: 'Automotive', aerospace_defence: 'Aerospace & defence',
+    real_estate_construction: 'Real estate & construction'
+  };
+
   function nfmt(n) { return Number(n || 0).toLocaleString(); }
+
+  // --- Money ----------------------------------------------------------------
+  // These mirror tit_money_short() and tit_money_full() in shortcodes.php
+  // exactly. Two formatters would drift, and a filtered page would abbreviate
+  // the same figure differently from the one the server rendered.
+  var MONEY_UNITS = ['K', 'M', 'B', 'T'];
+
+  function moneyShort(n) {
+    n = Number(n) || 0;
+    if (n <= 0) return '$0';
+    if (n < 1000) return '$' + nfmt(Math.round(n));
+    var i = 0, v = n / 1000;
+    while (v >= 1000 && i < MONEY_UNITS.length - 1) { v /= 1000; i++; }
+    // One decimal below 100, none above, and a figure is never rounded into a
+    // different order of magnitude: $999M stays $999M.
+    v = (v < 100) ? Math.round(v * 10) / 10 : Math.round(v);
+    if (v >= 1000 && i < MONEY_UNITS.length - 1) { v = Math.round(v / 100) / 10; i++; }
+    return '$' + String(v) + MONEY_UNITS[i];
+  }
+
+  function moneyFull(n) { return '$' + nfmt(Math.round(Number(n) || 0)); }
+
+  // The coverage sentence, mirroring tit_money_coverage_note(). Never a
+  // hardcoded pair of numbers: a dollar total that does not say what share of
+  // the data it covers is the one number this product must not print.
+  function coverageNote(money, dim) {
+    if (!money || !money.coverage) return '';
+    var withUsd = Number(money.coverage.with) || 0;
+    var all = Number(money.coverage.all) || 0;
+    if (!all) return 'No funding updates in this view yet, so there is nothing to add up.';
+
+    var note = 'Totals cover the ' + nfmt(withUsd) + ' of ' + nfmt(all) +
+      (all === 1 ? ' funding update that states' : ' funding updates that state') +
+      ' an amount in US dollars.' +
+      ' Amounts stated in another currency are left out rather than converted' +
+      ' at a rate nobody published.';
+
+    var placed = (money.placed && dim && money.placed[dim] != null)
+      ? Number(money.placed[dim]) : withUsd;
+    var missing = withUsd - placed;
+    if (!dim || missing <= 0) return note;
+    var names = { country: 'no country', city: 'no city', industry: 'no industry' };
+    return note + ' ' + nfmt(missing) +
+      (missing === 1 ? ' of those names ' : ' of those name ') +
+      (names[dim] || 'no category') +
+      (missing === 1 ? ', so it is not on this chart.' : ', so they are not on this chart.');
+  }
 
   // Filtering to a single country produced "1 countries" in the hero, which is
   // a small thing that reads as carelessness on a page whose whole argument is
@@ -217,7 +284,9 @@
       glance.innerHTML = matrixHtml(data.glance);
     }
 
-    var charts = root.querySelectorAll('.tit-charts .tit-chart');
+    // Cards are found by id, never by position. They used to be indexed out of
+    // a querySelectorAll over every .tit-chart on the page, so adding a card
+    // anywhere above would have silently repainted the wrong three.
     // Pillars keep their own markup (a bar per pillar), so they are painted
     // separately from the two rank charts.
     var pillars = root.querySelector('.tit-pillars');
@@ -234,14 +303,54 @@
           '<span class="tit-bar"><span style="width:' + pct + '%"></span></span></button>';
       }).join('') : '<p class="tit-rank-empty">Nothing in this view.</p>';
     }
-    paintRank(charts[1], data.by_country || [], function (k) {
-      return (TIT.countries && TIT.countries[k]) || k;
-    });
-    paintRank(charts[2], data.by_direction || [], function (k) {
+    paintRank(document.getElementById('chart-place'), data.by_country || [], countryLabel);
+    paintRank(document.getElementById('chart-direction'), data.by_direction || [], function (k) {
       return DIRECTION_LABEL[k] || k;
     }, true);
+
+    // The money cards move with the filters like everything else, coverage
+    // sentence included: the sentence describes the filtered set, so it has to
+    // be recomputed whenever the set changes.
+    var money = data.money || null;
+    paintMoney(document.getElementById('chart-money-country'),
+      money && money.by_country, countryLabel, money, 'country');
+    paintMoney(document.getElementById('chart-money-city'),
+      money && money.by_city, function (k) { return k; }, money, 'city');
+    paintMoney(document.getElementById('chart-money-industry'),
+      money && money.by_industry, function (k) { return INDUSTRY_LABEL[k] || k; },
+      money, 'industry');
+
     // Re-rendering wiped the pressed state off every row; put it back.
     syncChartStates();
+  }
+
+  function countryLabel(k) { return (TIT.countries && TIT.countries[k]) || k; }
+
+  // Mirrors tit_money_chart() in shortcodes.php: same classes, same
+  // data attributes, same title-attribute exact figure. The CSV download and
+  // the click-to-filter wiring both read this markup, so it cannot drift.
+  function paintMoney(chart, rows, label, money, dim) {
+    if (!chart) return;
+    rows = rows || [];
+    var wrap = chart.querySelector('.tit-rank');
+    if (wrap) {
+      if (!rows.length) {
+        wrap.innerHTML = '<p class="tit-rank-empty">No US dollar amounts in this view yet.</p>';
+      } else {
+        var max = Math.max.apply(null, rows.map(function (r) { return +r.v; })) || 1;
+        wrap.innerHTML = rows.map(function (r) {
+          var pct = Math.max(4, Math.round(100 * r.v / max));
+          return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
+            ' data-v="' + esc(Math.round(Number(r.v) || 0)) + '" aria-pressed="false">' +
+            '<span class="tit-rank-name">' + esc(label(r.k)) + '</span>' +
+            '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
+            '<span class="tit-rank-n" title="' + esc(moneyFull(r.v)) + '">' +
+            esc(moneyShort(r.v)) + '</span></button>';
+        }).join('');
+      }
+    }
+    var note = chart.querySelector('.tit-money-note');
+    if (note) note.textContent = coverageNote(money, dim);
   }
 
   function matrixHtml(m) {
@@ -250,19 +359,42 @@
     m.periods.forEach(function (p) { h += '<th scope="col">' + esc(p) + '</th>'; });
     h += '</tr></thead><tbody>';
     m.rows.forEach(function (r) {
-      h += '<tr' + (r.key === 'total' ? ' class="tit-matrix-total"' : '') + '>' +
-        '<th scope="row">' + esc(r.label) + '</th>';
+      var money = r.kind === 'money';
+      // Row max, so the heat tint is scaled inside the row, matching the PHP.
+      var rowMax = 0;
+      r.cells.forEach(function (n) { rowMax = Math.max(rowMax, +n || 0); });
+      var cls = 'tit-matrix-row' + (r.key === 'total' ? ' tit-matrix-total' : '') +
+        (money ? ' tit-matrix-money' : '');
+      h += '<tr class="' + cls + '" data-signal="' + esc(r.key) + '">' +
+        '<th scope="row">' + esc(r.label) +
+        (money ? '<span class="tit-matrix-unit">sum of dollars</span>' : '') + '</th>';
       r.cells.forEach(function (n, i) {
-        h += '<td><button type="button" class="tit-cell' + (+n === 0 ? ' tit-cell-zero' : '') +
-          '" data-filter="' + esc(r.filter) + '" data-since="' + esc(m.starts[i]) +
-          '" aria-pressed="false" aria-label="' + esc(r.label + ', ' + m.periods[i]) + '">' +
-          nfmt(n) + '</button></td>';
+        n = +n || 0;
+        var intensity = (rowMax > 0 && n > 0)
+          ? Math.max(0.14, Math.round(Math.sqrt(n / rowMax) * 1000) / 1000) : 0;
+        var text = money ? moneyShort(n) : nfmt(n);
+        var full = money ? moneyFull(n) : nfmt(n);
+        var spoken = money
+          ? r.label + ', ' + m.periods[i] + ', ' + full + ' in US dollars'
+          : r.label + ', ' + m.periods[i];
+        h += '<td><button type="button" class="tit-cell' + (n === 0 ? ' tit-cell-zero' : '') +
+          (money ? ' tit-cell-money' : '') +
+          '" style="--i:' + intensity + '" data-filter="' + esc(r.filter) +
+          '" data-since="' + esc(m.starts[i]) + '"' +
+          (money ? ' title="' + esc(full) + '"' : '') +
+          ' aria-pressed="false" aria-label="' + esc(spoken) + '">' +
+          esc(text) + '</button></td>';
       });
       h += '</tr>';
     });
     h += '</tbody></table></div>' +
-      '<p class="tit-matrix-note">Rows overlap on purpose: a funded employer can ' +
-      'also be hiring up, so columns are not sums. Click a number to filter.</p>';
+      '<p class="tit-matrix-note">Stronger colour means more activity, measured ' +
+      'across each row. Rows overlap on purpose: a funded employer can also be ' +
+      'hiring up, so columns are not sums. ' +
+      '<strong>Click any number to filter the whole page.</strong> ' +
+      '<span class="tit-matrix-money-note">Money raised is the odd row out: it ' +
+      'adds up dollars, while every other row counts updates. ' +
+      esc(coverageNote({ coverage: m.coverage }, '')) + '</span></p>';
     return h;
   }
 
@@ -311,13 +443,31 @@
       q.delete('country');
     }
 
-    // funding=1 is the one shareable param with no input of its own: it only
-    // exists as the "Raised money" quick view. Without this, a link to that
-    // view came back as the unfiltered page, which is a deep link quietly
-    // dropping the very thing it was sent to show.
-    if (q.get('funding') === '1' &&
-        quickFind(quickButtons, function (b) { return (b.dataset.qv || '') === 'funding=1'; })) {
+    // Saved views are matched by their PARAMETERS, never by a token, because a
+    // shared link carries the expanded querystring: "Biggest Raises" arrives as
+    // funding=1&sort=raised. A view whose every parameter is present in the
+    // link is the view that was sent, and its parameters are then removed so
+    // the same narrowing does not also appear as a second chip.
+    var qv = quickFind(quickButtons, function (b) {
+      var spec = b.dataset.qv || '';
+      if (!spec) return false;
+      return spec.split('&').every(function (pair) {
+        var kv = pair.split('=');
+        return q.get(kv[0]) === decodeURIComponent(kv[1] || '');
+      });
+    });
+    if (qv) {
+      setQuickView(qv.dataset.qv);
+      qv.dataset.qv.split('&').forEach(function (pair) { q.delete(pair.split('=')[0]); });
+    } else if (q.get('funding') === '1') {
+      // funding=1 is the one shareable param with no input of its own, and no
+      // button of its own either since the quick views were cut back. It is
+      // still applied by the matrix's funding and money cells, so a link
+      // carrying it must come back as a funding view rather than as the
+      // unfiltered page. Without this a deep link quietly drops the very thing
+      // it was sent to show.
       setQuickView('funding=1');
+      q.delete('funding');
     }
 
     Object.keys(inputs).forEach(function (key) {
@@ -364,10 +514,11 @@
     if (quickView) {
       quickView.split('&').forEach(function (pair) {
         var kv = pair.split('=');
-        // since/until are already in the date inputs (setQuickView put them
-        // there), so re-applying them here would let a quick view move the
-        // window while the From box still showed the reader's own date.
-        if (kv[0] && kv[0] !== 'since' && kv[0] !== 'until') {
+        // Anything the view wrote into a visible control is already in the
+        // inputs loop above; re-applying it here would let a quick view move
+        // the window (or the sort) while the control still showed the reader's
+        // own choice.
+        if (kv[0] && !QV_VISIBLE[kv[0]]) {
           params.set(kv[0], decodeURIComponent(kv[1] || ''));
         }
       });
@@ -421,6 +572,16 @@
     if (!inputs[key]) return;
     inputs[key].addEventListener(inputs[key].tagName === 'SELECT' ? 'change' : 'input', function () {
       if (key === 'country') setRegion(null);
+      // Editing a control a saved view had taken over means leaving that view.
+      // "Biggest Raises" is a sort plus a filter; change the sort by hand and
+      // the chip would otherwise keep claiming a view the page no longer
+      // shows. What the reader just chose is kept, the view is dropped.
+      if (QV_VISIBLE[key] && quickView &&
+          quickView.split('&').some(function (p) { return p.split('=')[0] === key; })) {
+        var kept = inputs[key].value;
+        setQuickView(null);
+        inputs[key].value = kept;
+      }
       debounced();
     });
   });
@@ -449,21 +610,32 @@
   var quickView = null;
   var quickButtons = Array.prototype.slice.call(root.querySelectorAll('.tit-qv'));
 
+  // Parameters a quick view writes into a VISIBLE control rather than straight
+  // into the querystring. A view that sorts by size while the sort box still
+  // reads "Newest first" is a page ordering itself by a rule nothing on screen
+  // reports, which is the same failure as a date filter with an empty From box.
+  var QV_VISIBLE = { since: 1, until: 1, sort: 1 };
+
   function setQuickView(v) {
+    var prev = quickView;
     quickView = v || null;
     quickButtons.forEach(function (o) {
       var on = (o.dataset.qv || '') === (quickView || '');
       o.classList.toggle('is-on', on);
       o.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    // A quick view carrying a date writes it into the date inputs rather than
-    // straight into the querystring. "This week" has to move the box a reader
-    // can see, or the page would be filtering on a window nothing on screen
-    // reports.
+    // Leaving a view puts back whatever control it had taken over, or the sort
+    // it chose would outlive the view that chose it.
+    if (prev && prev !== quickView) {
+      prev.split('&').forEach(function (pair) {
+        var k = pair.split('=')[0];
+        if (QV_VISIBLE[k] && inputs[k]) inputs[k].value = NEUTRAL[k] || '';
+      });
+    }
     if (quickView) {
       quickView.split('&').forEach(function (pair) {
         var kv = pair.split('=');
-        if ((kv[0] === 'since' || kv[0] === 'until') && inputs[kv[0]]) {
+        if (QV_VISIBLE[kv[0]] && inputs[kv[0]]) {
           inputs[kv[0]].value = decodeURIComponent(kv[1] || '');
         }
       });
@@ -501,8 +673,13 @@
       chips.push(chip('region', name ? name.textContent : region));
     }
     if (quickView) {
+      // A view with no button of its own still has to appear here. funding=1
+      // is applied by the matrix's funding and money cells and no longer has a
+      // chip in the strip, and a filter narrowing the page while nothing on
+      // screen names it is exactly what this bar exists to prevent.
       var qb = quickFind(quickButtons, function (b) { return (b.dataset.qv || '') === quickView; });
-      if (qb) chips.push(chip('quickview', qb.textContent.trim()));
+      chips.push(chip('quickview', qb ? qb.textContent.trim()
+                                      : (QV_LABEL[quickView] || quickView)));
     }
     Object.keys(inputs).forEach(function (key) {
       var el = inputs[key];
@@ -586,11 +763,17 @@
   function chartCsv(chart) {
     var rows = Array.prototype.slice.call(
       chart.querySelectorAll('.tit-rank-row, .tit-pillar'));
-    var out = [['label', 'count']];
+    // A money card downloads the exact dollar figure from data-v, never the
+    // abbreviation on screen: "$1.2B" in a spreadsheet is a string nobody can
+    // add up, which is the problem these views exist to solve.
+    var money = chart.classList.contains('tit-chart-money');
+    var out = [['label', money ? 'usd' : 'count']];
     rows.forEach(function (r) {
       var name = r.querySelector('.tit-rank-name, .tit-pillar-name');
       var n = r.querySelector('.tit-rank-n, .tit-pillar-n');
-      if (name && n) out.push([name.textContent.trim(), n.textContent.trim()]);
+      if (!name || !n) return;
+      out.push([name.textContent.trim(),
+                money ? (r.getAttribute('data-v') || '') : n.textContent.trim()]);
     });
     return out.map(function (cells) {
       return cells.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
@@ -655,7 +838,14 @@
   var CHART_FILTER = [
     { el: document.getElementById('chart-kind'), key: 'pillar' },
     { el: document.getElementById('chart-place'), key: 'country' },
-    { el: document.getElementById('chart-direction'), key: 'direction' }
+    { el: document.getElementById('chart-direction'), key: 'direction' },
+    // The money cards are filters like any other chart: same wiring, so a
+    // click on "United States" in a dollar ranking narrows the table, the
+    // chips bar, the address bar and the export links in one pass.
+    { el: document.getElementById('chart-money-country'), key: 'country' },
+    { el: document.getElementById('chart-money-city'), key: 'city' },
+    { el: document.getElementById('chart-money-industry'), key: 'industry',
+      label: function (k) { return INDUSTRY_LABEL[k] || k; } }
   ];
 
   function syncChartStates() {
@@ -675,18 +865,17 @@
     syncGlance();
   }
 
-  function ensureCountryOption(code) {
-    var el = inputs.country;
-    if (!el) return;
-    var has = Array.prototype.some.call(el.options, function (o) { return o.value === code; });
+  // /facets lists values from the location columns only, so a place that only
+  // ever appears as an employer's head office can show up in a chart with no
+  // option to select. Add it rather than letting the click silently do nothing.
+  function ensureOption(select, value, text) {
+    if (!select || value === '' || value == null) return;
+    var has = Array.prototype.some.call(select.options, function (o) { return o.value === value; });
     if (has) return;
-    // /facets lists codes from the location column only, so an HQ-only country
-    // can appear in the chart with no option to select. Add it rather than
-    // letting the click silently do nothing.
     var opt = document.createElement('option');
-    opt.value = code;
-    opt.textContent = (TIT.countries && TIT.countries[code]) || code;
-    el.appendChild(opt);
+    opt.value = value;
+    opt.textContent = text || value;
+    select.appendChild(opt);
   }
 
   CHART_FILTER.forEach(function (cf) {
@@ -698,9 +887,10 @@
       if (cf.key === 'country') {
         var was = !region && inputs.country && inputs.country.value === k;
         setRegion(null); // the region strip overrides the country parameter
-        ensureCountryOption(k);
+        ensureOption(inputs.country, k, countryLabel(k));
         if (inputs.country) inputs.country.value = was ? '' : k;
       } else if (inputs[cf.key]) {
+        ensureOption(inputs[cf.key], k, cf.label ? cf.label(k) : k);
         inputs[cf.key].value = inputs[cf.key].value === k ? '' : k;
       }
       refresh();

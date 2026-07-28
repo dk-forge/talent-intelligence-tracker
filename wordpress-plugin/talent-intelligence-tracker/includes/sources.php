@@ -94,7 +94,10 @@ function tit_sources_render($sources) {
     $categories = array_values(array_unique(array_filter(array_column($sources, 'category'))));
     sort($countries); sort($categories);
 
-    get_header();
+    // Never get_header() directly: this site runs a BLOCK theme, which has no
+    // header.php, and the classic call silently degrades to a bare site-title
+    // link with no logo and no navigation. See tit_render_header().
+    if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-sources" id="tit-sources">
       <nav class="tit-crumb">
@@ -290,7 +293,7 @@ function tit_sources_render($sources) {
     })();
     </script>
     <?php
-    get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
 }
 
 function tit_sources_title($title) {

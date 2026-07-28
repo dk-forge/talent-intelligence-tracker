@@ -669,6 +669,10 @@
 .tit-wrap .tit-qv:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 .tit-wrap .tit-qv.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
   color:#fff; }
+/* The quick views now hold only what the matrix cannot express, so the strip
+   has to say where the periods went rather than leave them looking dropped. */
+.tit-quick-hint { font-size:12.5px; color:var(--tit-mut); }
+@media (max-width:700px){ .tit-quick-hint { flex:1 0 100%; } }
 .tit-wrap .tit-sort { margin-left:auto; padding:6px 10px; font-size:13.5px;
   border:1px solid var(--tit-line); border-radius:8px; background:#fff;
   color:var(--tit-fg); font-family:inherit; }
@@ -962,3 +966,47 @@ body.admin-bar .tit-active { top:32px; }
 .tit-matrix-note { margin:0; padding:7px 12px; font-size:12px;
   color:var(--tit-mut); border-top:1px solid var(--tit-grid);
   background:var(--tit-surface); }
+
+/* ===========================================================================
+   Money.
+   One row of the matrix and three cards below the charts sum US DOLLARS while
+   everything around them counts UPDATES. That difference has to be impossible
+   to miss, so it is carried four ways at once and never by colour alone:
+   the row is labelled "sum of dollars", every figure wears a $, the figures
+   are set in the funding hue (violet, the same one the matrix already gives
+   the funding row), and the note under each view says what the total is based
+   on. A reader who takes a dollar sum for a count of updates has been misled
+   by the table, not by their own carelessness.
+   =========================================================================== */
+
+/* --- The money row inside the at-a-glance matrix ------------------------- */
+.tit-matrix-row[data-signal="money"] { --row-rgb:74,58,167; }   /* violet */
+/* The unit, printed under the row label rather than implied by the $ alone.
+   Violet ink at 11.6:1 on white, so it is quiet without being decorative. */
+.tit-matrix-unit { display:block; margin-top:1px; font-size:10.5px;
+  font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--tit-ink-violet); }
+.tit-matrix-money th, .tit-matrix-money td { border-bottom:2px solid var(--tit-line); }
+.tit-wrap .tit-cell-money { color:var(--tit-ink-violet); font-weight:700; }
+.tit-wrap .tit-cell-money.tit-cell-zero { color:var(--tit-mut); font-weight:500; }
+/* The clause that names the odd row out, given its own emphasis in the note. */
+.tit-matrix-money-note { display:block; margin-top:3px; color:var(--tit-ink-violet); }
+
+/* --- The three money cards ---------------------------------------------- */
+/* Same grid as the activity charts, so the two rows of cards line up. */
+.tit-charts-money { margin:0 0 4px; }
+/* Bars in the funding hue, matching the matrix row they expand on. */
+.tit-chart-money .tit-rank-fill { background:var(--tit-violet); }
+/* Money figures are wider than counts and must not shunt the bar about as the
+   ranking changes, so the column is reserved rather than fitted. */
+.tit-chart-money .tit-rank-n { min-width:56px; color:var(--tit-ink-violet);
+  font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:0; }
+.tit-chart-money .tit-rank { margin-bottom:2px; }
+/* The coverage line. Not fine print to be styled away: a dollar total without
+   it would read as the whole market when it is a floor. */
+.tit-money-note { margin:9px 0 0; padding-top:8px; font-size:12px;
+  line-height:1.45; color:var(--tit-mut); border-top:1px solid var(--tit-grid); }
+
+/* Our own routed pages render the block theme's header and footer around this
+   wrapper; the main element itself carries no styling of its own. */
+.tit-main { display:block; }

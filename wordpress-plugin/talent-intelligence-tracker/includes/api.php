@@ -73,6 +73,24 @@ function tit_allowed_industries() {
 }
 
 /**
+ * What counts as a funding update, in one place.
+ *
+ * An employer that announced a round without saying how much still raised
+ * money, so a stated amount cannot be the test for whether the update is about
+ * funding. This used to read `funding_amount IS NOT NULL`, which quietly
+ * dropped every amount-free round from the "Raised money" view and would have
+ * made the money coverage figure flatter itself (it would have compared the
+ * rows with a dollar amount against a set defined as "rows with an amount").
+ *
+ * Used by the funding=1 filter, the at-a-glance matrix and the money views, so
+ * all three count the same population.
+ */
+function tit_funding_where() {
+    return "((funding_amount IS NOT NULL AND funding_amount <> '')"
+         . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
+}
+
+/**
  * Build the WHERE clause shared by /query and /aggregate.
  *
  * country_basis=any (the default) unions job location with employer HQ, so a
@@ -155,7 +173,7 @@ function tit_build_where(WP_REST_Request $req, array &$params) {
     }
 
     if ($req->get_param('funding') === '1') {
-        $where[] = "funding_amount IS NOT NULL AND funding_amount != ''";
+        $where[] = tit_funding_where();
     }
 
     // Date window on the source's own published_date, falling back to when we
@@ -238,6 +256,12 @@ function tit_api_query(WP_REST_Request $req) {
         'oldest'   => 'COALESCE(published_date, DATE(captured_at)) ASC, row_id ASC',
         'largest'  => 'headcount DESC, COALESCE(published_date, DATE(captured_at)) DESC',
         'employer' => 'company_key ASC, COALESCE(published_date, DATE(captured_at)) DESC',
+        // Only possible now that a numeric column exists: funding_amount was a
+        // display string ("$1.45 Million"), and sorting on it put $9M above
+        // $10B. MySQL sorts NULLs last on DESC, so the rows whose amount we
+        // could not read as US dollars fall to the bottom instead of claiming
+        // the top of a list about size.
+        'raised'   => 'funding_amount_usd DESC, COALESCE(published_date, DATE(captured_at)) DESC',
     );
     $order = $orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['newest'];
 
@@ -289,6 +313,16 @@ function tit_aggregate_glance($table, $where, array $params) {
     return tit_glance_matrix($table, $where, $params);
 }
 
+/**
+ * The money views under the caller's own filters. Same guard, same reason.
+ */
+function tit_aggregate_money($table, $where, array $params) {
+    if (!function_exists('tit_money_aggregate')) {
+        return null;
+    }
+    return tit_money_aggregate($table, $where, $params);
+}
+
 function tit_api_aggregate(WP_REST_Request $req) {
     global $wpdb;
 
@@ -322,6 +356,16 @@ function tit_api_aggregate(WP_REST_Request $req) {
         return (int) $wpdb->get_var($params ? $wpdb->prepare($sql, $params) : $sql);
     };
 
+    // Summed dollars, and the coverage figures that say what the sums are
+    // based on. Computed once and handed to BOTH the money cards and the
+    // at-a-glance matrix, so a dollar total can never appear next to a
+    // coverage sentence describing a different set of rows.
+    $money = tit_aggregate_money($table, $where, $params);
+    $glance = tit_aggregate_glance($table, $where, $params);
+    if (is_array($glance) && is_array($money)) {
+        $glance['coverage'] = $money['coverage'];
+    }
+
     $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
     $out = array(
         'total'      => (int) $wpdb->get_var($params ? $wpdb->prepare($total_sql, $params) : $total_sql),
@@ -343,7 +387,13 @@ function tit_api_aggregate(WP_REST_Request $req) {
         // never moved, so filtering to one region left the hero contradicting
         // its own summary. A dashboard that disagrees with itself is worse
         // than one that shows less.
-        'glance'     => tit_aggregate_glance($table, $where, $params),
+        'glance'     => $glance,
+        // Summed US dollars by place and by industry, plus the coverage the
+        // page must print beside them. Never a bare total: only some rows
+        // carry a dollar figure, and a total shown as if it covered
+        // everything would be the plausible-but-wrong number this product
+        // cannot carry.
+        'money'      => $money,
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);

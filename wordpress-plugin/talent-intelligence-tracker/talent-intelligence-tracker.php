@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.28.0
+ * Version: 1.29.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.28.0');
+define('TIT_VERSION', '1.29.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -53,6 +53,75 @@ if (!function_exists('tit_table_name')) {
         global $wpdb;
         return $wpdb->prefix . TIT_TABLE_SUFFIX;
     }
+}
+
+/**
+ * Chrome for our own routed pages (the sources page, company profiles).
+ *
+ * Those routes render straight into the response, so they have to produce the
+ * page shell themselves. They called get_header() / get_footer(), which is the
+ * CLASSIC theme API: it looks for the theme's header.php. The active theme is
+ * Twenty Twenty-Five, a BLOCK theme, which has no header.php at all, so
+ * get_header() fell through to WordPress's theme-compat fallback and printed
+ * little more than the site title as a bare underlined link. Every company
+ * profile and the sources page therefore shipped with no logo and no
+ * navigation, while the main tracker page (a normal post, rendered by the
+ * theme) looked right. Those routed pages are the SEO surface, so the broken
+ * chrome was on exactly the pages a stranger arrives at first.
+ *
+ * A block theme's chrome is a template part, not a PHP file, so it is rendered
+ * with block_template_part() inside the same wp-site-blocks wrapper the theme's
+ * own templates use. wp_head() and wp_footer() fire exactly once on either
+ * path: our own enqueues and the SEO plugin's meta tags hang off them, and
+ * firing twice would duplicate the entire head.
+ *
+ * The classic path is kept as the fallback so this keeps working if the site
+ * ever moves to a classic theme, or runs a WordPress without
+ * block_template_part() (added in 6.0).
+ */
+function tit_block_shell() {
+    static $block = null;
+    if ($block === null) {
+        $block = (function_exists('wp_is_block_theme') && wp_is_block_theme()
+                  && function_exists('block_template_part'));
+    }
+    return $block;
+}
+
+function tit_render_header() {
+    if (!tit_block_shell()) {
+        get_header();
+        return;
+    }
+    ?><!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+<meta charset="<?php bloginfo('charset'); ?>" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<?php wp_head(); ?>
+</head>
+<body <?php body_class(); ?>>
+<?php
+    wp_body_open();
+    // The theme's own canvas wrapper. Without it the header template part
+    // renders outside the layout its styles are written against, and the site
+    // header sits at a different width from every other page.
+    echo '<div class="wp-site-blocks">';
+    block_template_part('header');
+    // Named so the skip link has somewhere to land, matching the theme.
+    echo '<main id="wp--skip-link--target" class="tit-main">';
+}
+
+function tit_render_footer() {
+    if (!tit_block_shell()) {
+        get_footer();
+        return;
+    }
+    echo '</main>';
+    block_template_part('footer');
+    echo '</div>';
+    wp_footer();
+    echo '</body></html>';
 }
 
 /**

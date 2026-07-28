@@ -131,7 +131,10 @@ function tit_company_render($rows, $key) {
         if ($r['confidence'] === 'verified') $verified++;
     }
 
-    get_header();
+    // Block theme, so never get_header(): see tit_render_header(). Company
+    // profiles are the SEO surface, and they were the pages shipping with no
+    // logo and no navigation.
+    if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-company">
       <nav class="tit-crumb">
@@ -229,7 +232,7 @@ function tit_company_render($rows, $key) {
       ), JSON_UNESCAPED_SLASHES);
     ?></script>
     <?php
-    get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
 }
 
 /** Title and canonical, so the page is indexable on its own terms. */

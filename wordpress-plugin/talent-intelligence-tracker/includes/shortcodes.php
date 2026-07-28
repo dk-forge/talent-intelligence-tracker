@@ -69,6 +69,11 @@ function tit_dashboard_shortcode() {
 
     $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
     $glance = tit_glance_matrix($table);
+    // The money views and the matrix's money row share one coverage figure, so
+    // a dollar total can never sit next to a sentence describing a different
+    // set of rows.
+    $money = tit_money_aggregate($table);
+    $glance['coverage'] = $money['coverage'];
     $counts_by_country = array_column($wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
@@ -123,19 +128,7 @@ function tit_dashboard_shortcode() {
         'legal_compliance' => 'Legal & compliance', 'research' => 'Research',
         'clinical_healthcare' => 'Clinical & healthcare', 'executive' => 'Executive',
     );
-    $industries = array(
-        'technology' => 'Technology', 'financial_services' => 'Financial services',
-        'healthcare' => 'Healthcare', 'pharma_biotech' => 'Pharma & biotech',
-        'retail_ecommerce' => 'Retail & e-commerce', 'manufacturing' => 'Manufacturing',
-        'energy_utilities' => 'Energy & utilities', 'telecom' => 'Telecom',
-        'media_entertainment' => 'Media & entertainment',
-        'transport_logistics' => 'Transport & logistics',
-        'professional_services' => 'Professional services',
-        'public_sector' => 'Public sector', 'hospitality_travel' => 'Hospitality & travel',
-        'education' => 'Education', 'food_beverage' => 'Food & beverage',
-        'automotive' => 'Automotive', 'aerospace_defence' => 'Aerospace & defence',
-        'real_estate_construction' => 'Real estate & construction',
-    );
+    $industries = tit_industry_labels();
     ?>
     <!--
       The config also rides on the element, not only on wp_localize_script.
@@ -209,33 +202,44 @@ function tit_dashboard_shortcode() {
         <?php endforeach; ?>
       </div>
 
+      <?php
+      /*
+        Quick views, cut back to the ones the at-a-glance matrix cannot express.
+
+        This row used to hold nine chips mixing two different axes: four time
+        periods and four signal types, side by side, with nothing saying that
+        picking "This month" and picking "Hiring up" narrow the page in
+        completely different ways. Since the signal-by-period matrix shipped,
+        every one of those eight is a cell in that matrix, done better: the
+        matrix shows the count BEFORE you click it, and it crosses time with
+        signal instead of making you apply two chips and hope.
+
+        What survives is what the matrix has no axis for. "From Official
+        Filings" is a confidence filter, and the matrix has no confidence
+        dimension. "Biggest Raises" is a SORT, which a matrix cell cannot be at
+        all, and it only became possible when funding_amount_usd gave us a
+        number to sort on (the old display string put $9M above $10B).
+      */
+      $quick_views = array(
+          '' => 'Everything',
+          'confidence=verified' => 'From Official Filings',
+          'funding=1&sort=raised' => 'Biggest Raises',
+      );
+      ?>
       <div class="tit-quick" role="group" aria-label="Quick views">
         <span class="tit-quick-label">Quick views</span>
-        <button type="button" class="tit-qv" data-qv="">Everything</button>
-        <?php
-        // Periods are computed, never written down. "2026" in a hardcoded label
-        // is a bug with a date on it, and a quarter start typed by hand is
-        // three more. All four move with the clock.
-        $today = current_time('Y-m-d');
-        $qstart = date('Y-m-01', strtotime(date('Y', strtotime($today)) . '-'
-                  . sprintf('%02d', (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1) . '-01'));
-        $views = array(
-            'This week'  => date('Y-m-d', strtotime($today . ' -6 days')),
-            'This month' => date('Y-m-01', strtotime($today)),
-            'This quarter' => $qstart,
-            date('Y', strtotime($today)) . ' so far' => date('Y-01-01', strtotime($today)),
-        );
-        foreach ($views as $label => $from) : ?>
-          <button type="button" class="tit-qv" data-qv="since=<?php echo esc_attr($from); ?>"><?php echo esc_html($label); ?></button>
+        <?php foreach ($quick_views as $spec => $label) : ?>
+          <button type="button" class="tit-qv" data-qv="<?php echo esc_attr($spec); ?>"><?php
+            echo esc_html($label); ?></button>
         <?php endforeach; ?>
-        <button type="button" class="tit-qv" data-qv="direction=hiring">Hiring up</button>
-        <button type="button" class="tit-qv" data-qv="funding=1">Raised money</button>
-        <button type="button" class="tit-qv" data-qv="pillar=leadership_change">Leadership moves</button>
-        <button type="button" class="tit-qv" data-qv="confidence=verified">From official filings</button>
+        <span class="tit-quick-hint">For a period, click a number in the table above.</span>
         <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="employer">By employer</option>
+          <!-- Sorting on money only works because funding_amount_usd is a
+               number; the display string it sits beside cannot be ordered. -->
+          <option value="raised">Biggest raises first</option>
         </select>
       </div>
 
@@ -286,6 +290,15 @@ function tit_dashboard_shortcode() {
           <span class="tit-field-l">US state</span>
           <select id="tit-f-state" aria-label="Which US state">
             <option value="">Any US state</option>
+          </select>
+        </label>
+        <!-- The API has taken a city all along and the page had no way to send
+             one, so a row on the by-city money chart had nowhere to route its
+             click. Options are filled from /facets. -->
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">City</span>
+          <select id="tit-f-city" aria-label="Which city">
+            <option value="">Any city</option>
           </select>
         </label>
         <label class="tit-field tit-field--stack">
@@ -396,6 +409,41 @@ function tit_dashboard_shortcode() {
         </div>
       </div>
 
+      <!--
+        Money. Three rankings of summed US dollars, built from the same chart
+        card as everything above them, and each one printing what its totals
+        are based on. The coverage line is not decoration: only some rows carry
+        a dollar figure, so a total shown without it would read as the whole
+        market when it is a floor.
+      -->
+      <div class="tit-sec">
+        <h3>How much money is being raised</h3>
+        <p>Funding rounds added up, in US dollars. Click a row to narrow the
+           whole page to that place or industry.</p>
+      </div>
+
+      <div class="tit-charts tit-charts-money">
+        <?php
+        tit_money_chart(
+            'country', 'Money raised by country',
+            "Totalled where the work sits. When a source names no place, the employer's head office stands in. Click a row to filter.",
+            $money['by_country'], $money, 'country',
+            function ($k) { return tit_country_name($k); }
+        );
+        tit_money_chart(
+            'city', 'Money raised by city',
+            "The cities where funded employers are hiring. Head office stands in when a source names no city. Click a row to filter.",
+            $money['by_city'], $money, 'city',
+            function ($k) { return $k; }
+        );
+        tit_money_chart(
+            'industry', 'Money raised by industry',
+            'Which industries the money is going into. Click a row to filter.',
+            $money['by_industry'], $money, 'industry',
+            function ($k) use ($industries) { return $industries[$k] ?? $k; }
+        );
+        ?>
+      </div>
 
       <div class="tit-table-scroll">
         <table class="tit-table">
@@ -520,13 +568,25 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
     );
 
-    // key, reader-facing label, the filter a cell click applies, SQL condition.
+    // key, reader-facing label, the filter a cell click applies, SQL condition,
+    // and what the cells hold: a COUNT of updates, or a SUM of dollars.
+    //
+    // "Money raised" is the one row that is not a count, which is exactly why
+    // it is labelled, prefixed and coloured as money everywhere it appears. A
+    // reader who mistakes a dollar sum for a number of updates has been misled
+    // by the table, not by their own carelessness.
+    $funding = function_exists('tit_funding_where')
+        ? tit_funding_where()
+        : "((funding_amount IS NOT NULL AND funding_amount <> '')"
+          . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
+
     $defs = array(
-        array('hiring',     'Hiring up',        'direction=hiring',         "signal_direction = 'hiring'"),
-        array('funded',     'Funding raised',   'funding=1',                "(funding_amount IS NOT NULL AND funding_amount <> '')"),
-        array('leadership', 'Leadership moves', 'pillar=leadership_change', "pillar = 'leadership_change'"),
-        array('pay',        'Pay changes',      'direction=comp_shift',     "signal_direction = 'comp_shift'"),
-        array('total',      'All updates',      '',                         '1 = 1'),
+        array('hiring',     'Hiring up',        'direction=hiring',         "signal_direction = 'hiring'", 'count'),
+        array('funded',     'Funding raised',   'funding=1',                $funding,                      'count'),
+        array('money',      'Money raised',     'funding=1',                '',                            'money'),
+        array('leadership', 'Leadership moves', 'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
+        array('pay',        'Pay changes',      'direction=comp_shift',     "signal_direction = 'comp_shift'", 'count'),
+        array('total',      'All updates',      '',                         '1 = 1',                       'count'),
     );
 
     $date_expr = 'COALESCE(published_date, DATE(captured_at))';
@@ -534,7 +594,12 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
     $select_params = array();
     foreach ($periods as $pi => $p) {
         foreach ($defs as $di => $d) {
-            $select[] = "SUM(({$d[3]}) AND {$date_expr} >= %s) AS c_{$di}_{$pi}";
+            // A NULL funding_amount_usd is a figure we could not read as US
+            // dollars, not a round of nothing, so SUM skips it rather than
+            // treating it as zero. COALESCE only turns "no rows at all" into 0.
+            $select[] = ($d[4] === 'money')
+                ? "COALESCE(SUM(CASE WHEN {$date_expr} >= %s THEN funding_amount_usd END), 0) AS c_{$di}_{$pi}"
+                : "SUM(({$d[3]}) AND {$date_expr} >= %s) AS c_{$di}_{$pi}";
             $select_params[] = $p[1];
         }
     }
@@ -552,7 +617,8 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         foreach ($periods as $pi => $p) {
             $cells[] = (int) ($row["c_{$di}_{$pi}"] ?? 0);
         }
-        $rows[] = array('key' => $d[0], 'label' => $d[1], 'filter' => $d[2], 'cells' => $cells);
+        $rows[] = array('key' => $d[0], 'label' => $d[1], 'filter' => $d[2],
+                        'kind' => $d[4], 'cells' => $cells);
     }
 
     return array(
@@ -593,10 +659,14 @@ function tit_glance_matrix_html(array $m) {
             // one: the number is always printed.
             $row_max = 0;
             foreach ($r['cells'] as $n) { $row_max = max($row_max, (int) $n); }
+            $money = (($r['kind'] ?? 'count') === 'money');
             ?>
-            <tr class="tit-matrix-row<?php echo $r['key'] === 'total' ? ' tit-matrix-total' : ''; ?>"
+            <tr class="tit-matrix-row<?php echo $r['key'] === 'total' ? ' tit-matrix-total' : ''; ?><?php
+                echo $money ? ' tit-matrix-money' : ''; ?>"
                 data-signal="<?php echo esc_attr($r['key']); ?>">
-              <th scope="row"><?php echo esc_html($r['label']); ?></th>
+              <th scope="row"><?php echo esc_html($r['label']); ?><?php
+                if ($money) : ?><span class="tit-matrix-unit">sum of dollars</span><?php endif;
+              ?></th>
               <?php foreach ($r['cells'] as $i => $n) :
                 $n = (int) $n;
                 // Square-rooted so a single dominant period does not flatten
@@ -604,15 +674,26 @@ function tit_glance_matrix_html(array $m) {
                 // real activity is still tinted.
                 $intensity = ($row_max > 0 && $n > 0)
                     ? max(0.14, round(sqrt($n / $row_max), 3)) : 0;
+                // Money reads as money in every part of the cell: the visible
+                // figure is abbreviated with a $ in front, the title carries
+                // the exact number, and the screen-reader label spells out the
+                // unit rather than leaving "1.2" to be read as a count.
+                $text  = $money ? tit_money_short($n) : number_format_i18n($n);
+                $full  = $money ? tit_money_full($n)  : number_format_i18n($n);
+                $spoken = $money
+                    ? sprintf('%s, %s, %s in US dollars', $r['label'], $m['periods'][$i], $full)
+                    : sprintf('%s, %s', $r['label'], $m['periods'][$i]);
                 ?>
                 <td><button type="button"
-                    class="tit-cell<?php echo $n === 0 ? ' tit-cell-zero' : ''; ?>"
+                    class="tit-cell<?php echo $n === 0 ? ' tit-cell-zero' : ''; ?><?php
+                      echo $money ? ' tit-cell-money' : ''; ?>"
                     style="--i:<?php echo esc_attr($intensity); ?>"
                     data-filter="<?php echo esc_attr($r['filter']); ?>"
                     data-since="<?php echo esc_attr($m['starts'][$i]); ?>"
+                    <?php if ($money) : ?>title="<?php echo esc_attr($full); ?>"<?php endif; ?>
                     aria-pressed="false"
-                    aria-label="<?php echo esc_attr($r['label'] . ', ' . $m['periods'][$i]); ?>"><?php
-                    echo esc_html(number_format_i18n($n));
+                    aria-label="<?php echo esc_attr($spoken); ?>"><?php
+                    echo esc_html($text);
                 ?></button></td>
               <?php endforeach; ?>
             </tr>
@@ -623,9 +704,222 @@ function tit_glance_matrix_html(array $m) {
     <p class="tit-matrix-note">Stronger colour means more activity, measured
        across each row. Rows overlap on purpose: a funded employer can also be
        hiring up, so columns are not sums.
-       <strong>Click any number to filter the whole page.</strong></p>
+       <strong>Click any number to filter the whole page.</strong>
+       <span class="tit-matrix-money-note">Money raised is the odd row out: it
+       adds up dollars, while every other row counts updates.
+       <?php echo esc_html(tit_money_coverage_sentence($m['coverage'] ?? null)); ?></span></p>
     <?php
     return ob_get_clean();
+}
+
+/* =========================================================================
+   Money.
+
+   funding_amount has always been a display string ("$1.45 Million"), which
+   nothing could add up or sort. funding_amount_usd is the numeric companion:
+   plain US dollars, and NULL rather than a converted guess when the source
+   stated a figure in another currency. Everything below reads only the numeric
+   column, and everything below says how much of the data it is based on.
+   ========================================================================= */
+
+/**
+ * A dollar figure at a glance: $1.2B, $450M, $3.6M, $920K, $540.
+ *
+ * One decimal below 100 and none above, so $3.6M keeps the precision that
+ * matters at that size while $450M does not gain a false one. A figure is
+ * NEVER rounded into a different order of magnitude: $999M stays $999M, and
+ * the promotion step exists only so a figure that genuinely rounds to a
+ * thousand of its unit prints as $1B rather than $1,000M.
+ *
+ * The exact number always travels with it, in a title attribute (see
+ * tit_money_full), because an abbreviation is a reading aid and not the fact.
+ */
+function tit_money_short($n) {
+    $n = (float) $n;
+    if ($n <= 0) return '$0';
+    if ($n < 1000) return '$' . number_format_i18n(round($n));
+
+    $units = array('K', 'M', 'B', 'T');
+    $i = 0;
+    $v = $n / 1000;
+    while ($v >= 1000 && $i < count($units) - 1) { $v /= 1000; $i++; }
+    $v = ($v < 100) ? round($v, 1) : round($v);
+    if ($v >= 1000 && $i < count($units) - 1) { $v = round($v / 1000, 1); $i++; }
+
+    // Trailing ".0" is noise: $27M, never $27.0M.
+    $s = rtrim(rtrim(number_format((float) $v, 1, '.', ''), '0'), '.');
+    return '$' . $s . $units[$i];
+}
+
+/** The exact figure, for the title attribute and for screen readers. */
+function tit_money_full($n) {
+    return '$' . number_format_i18n(round((float) $n));
+}
+
+/**
+ * Summed US dollars under the caller's filters, plus the coverage figures the
+ * page is required to print beside them.
+ *
+ * Coverage is the whole point. Only some funding updates carry a US dollar
+ * figure: a round announced in euros is deliberately NULL rather than
+ * converted at a rate nobody stated, and plenty of funding news names no
+ * amount at all. A total presented as if it covered every round would be the
+ * plausible-but-wrong number this product cannot carry, so N and M are
+ * computed here, never hardcoded, and travel with every total.
+ *
+ * One query for the headline figures, three for the rankings. Place uses the
+ * same COALESCE(location, headquarters) rule as the rest of the dashboard, so
+ * the money charts and the activity charts put an employer in the same place.
+ */
+function tit_money_aggregate($table, $where = 'is_current = 1', array $params = array(), $limit = 40) {
+    global $wpdb;
+    $limit = max(1, min(200, (int) $limit));
+
+    $funding = function_exists('tit_funding_where')
+        ? tit_funding_where()
+        : "((funding_amount IS NOT NULL AND funding_amount <> '')"
+          . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
+
+    $country_expr  = 'COALESCE(country, hq_country)';
+    $city_expr     = 'COALESCE(city, hq_city)';
+
+    // "Placed" counts say how many of the summable rows each chart can
+    // actually show, so a card can admit what it is leaving out instead of
+    // quietly dropping rows off the bottom of a ranking.
+    $head_sql = "SELECT COALESCE(SUM(funding_amount_usd), 0) AS total,
+                        SUM(funding_amount_usd IS NOT NULL) AS with_usd,
+                        SUM({$funding}) AS funding_rows,
+                        SUM(funding_amount_usd IS NOT NULL
+                            AND {$country_expr} IS NOT NULL AND {$country_expr} <> '') AS placed_country,
+                        SUM(funding_amount_usd IS NOT NULL
+                            AND {$city_expr} IS NOT NULL AND {$city_expr} <> '') AS placed_city,
+                        SUM(funding_amount_usd IS NOT NULL
+                            AND industry IS NOT NULL AND industry <> '') AS placed_industry
+                   FROM {$table} WHERE {$where}";
+    $head = $wpdb->get_row($params ? $wpdb->prepare($head_sql, $params) : $head_sql, ARRAY_A) ?: array();
+
+    $with = (int) ($head['with_usd'] ?? 0);
+    // A row can carry a dollar figure without matching the funding test if the
+    // pipeline ever fills one column and not the other. The denominator must
+    // never be smaller than the numerator, or the sentence reads "53 of 40".
+    $all  = max($with, (int) ($head['funding_rows'] ?? 0));
+
+    $by = function ($expr) use ($wpdb, $table, $where, $params, $limit) {
+        $sql = "SELECT {$expr} AS k, SUM(funding_amount_usd) AS v, COUNT(*) AS n
+                  FROM {$table}
+                 WHERE {$where} AND funding_amount_usd IS NOT NULL
+                   AND {$expr} IS NOT NULL AND {$expr} <> ''
+                 GROUP BY k ORDER BY v DESC LIMIT {$limit}";
+        $rows = $wpdb->get_results($params ? $wpdb->prepare($sql, $params) : $sql, ARRAY_A) ?: array();
+        return array_map(function ($r) {
+            return array('k' => $r['k'], 'v' => (float) $r['v'], 'n' => (int) $r['n']);
+        }, $rows);
+    };
+
+    return array(
+        'total'    => (float) ($head['total'] ?? 0),
+        'coverage' => array('with' => $with, 'all' => $all),
+        'placed'   => array(
+            'country'  => (int) ($head['placed_country'] ?? 0),
+            'city'     => (int) ($head['placed_city'] ?? 0),
+            'industry' => (int) ($head['placed_industry'] ?? 0),
+        ),
+        'by_country'  => $by($country_expr),
+        'by_city'     => $by($city_expr),
+        'by_industry' => $by('industry'),
+    );
+}
+
+/**
+ * "Totals cover the 53 of 56 funding updates that state an amount in US
+ * dollars." Computed, never written down, and printed beside every money view.
+ */
+function tit_money_coverage_sentence($coverage) {
+    if (!is_array($coverage)) return '';
+    $with = (int) ($coverage['with'] ?? 0);
+    $all  = (int) ($coverage['all'] ?? 0);
+    if ($all === 0) {
+        return 'No funding updates in this view yet, so there is nothing to add up.';
+    }
+    return sprintf(
+        _n('Totals cover the %1$s of %2$s funding update that states an amount in US dollars.',
+           'Totals cover the %1$s of %2$s funding updates that state an amount in US dollars.',
+           $all, 'tit'),
+        number_format_i18n($with), number_format_i18n($all)
+    ) . ' Amounts stated in another currency are left out rather than converted at a rate nobody published.';
+}
+
+/** The same sentence, plus what this particular chart cannot place. */
+function tit_money_coverage_note(array $money, $dimension = '') {
+    $note = tit_money_coverage_sentence($money['coverage'] ?? null);
+    $with = (int) ($money['coverage']['with'] ?? 0);
+    $placed = (int) ($money['placed'][$dimension] ?? $with);
+    $missing = $with - $placed;
+    if ($dimension === '' || $missing <= 0) return $note;
+
+    $names = array('country' => 'no country', 'city' => 'no city', 'industry' => 'no industry');
+    return $note . ' ' . sprintf(
+        _n('%1$s of those names %2$s, so it is not on this chart.',
+           '%1$s of those name %2$s, so they are not on this chart.',
+           $missing, 'tit'),
+        number_format_i18n($missing), $names[$dimension] ?? 'no category'
+    );
+}
+
+/** Reader-facing industry names, in one place so the page and the money charts agree. */
+function tit_industry_labels() {
+    return array(
+        'technology' => 'Technology', 'financial_services' => 'Financial services',
+        'healthcare' => 'Healthcare', 'pharma_biotech' => 'Pharma & biotech',
+        'retail_ecommerce' => 'Retail & e-commerce', 'manufacturing' => 'Manufacturing',
+        'energy_utilities' => 'Energy & utilities', 'telecom' => 'Telecom',
+        'media_entertainment' => 'Media & entertainment',
+        'transport_logistics' => 'Transport & logistics',
+        'professional_services' => 'Professional services',
+        'public_sector' => 'Public sector', 'hospitality_travel' => 'Hospitality & travel',
+        'education' => 'Education', 'food_beverage' => 'Food & beverage',
+        'automotive' => 'Automotive', 'aerospace_defence' => 'Aerospace & defence',
+        'real_estate_construction' => 'Real estate & construction',
+    );
+}
+
+/**
+ * One money card, built on the same chart-card parts as every other card:
+ * tit_chart_head (heading, share, CSV download, expand), a .tit-rank list of
+ * bar rows, and rows that are real buttons so a click filters the whole page.
+ *
+ * The only differences are the ones that have to exist: the bar carries a
+ * summed dollar figure rather than a count, the figure is abbreviated with the
+ * exact number on the title attribute, and the card prints what its totals are
+ * based on. dashboard.js mirrors this markup when it repaints from /aggregate.
+ */
+function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimension, callable $labeller) {
+    $max = 0.0;
+    foreach ($rows as $r) { $max = max($max, (float) $r['v']); }
+    ?>
+    <div class="tit-chart tit-chart-money" id="chart-money-<?php echo esc_attr($id); ?>">
+      <?php tit_chart_head($title, $sub, 'money-' . $id); ?>
+      <div class="tit-rank" tabindex="0" role="group" aria-label="<?php echo esc_attr($title); ?>">
+        <?php if (!$rows) : ?>
+          <p class="tit-rank-empty">No US dollar amounts in this view yet.</p>
+        <?php else : foreach ($rows as $r) :
+          $v = (float) $r['v']; ?>
+          <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($r['k']); ?>"
+                  <?php /* number_format, not a float cast: PHP renders a large
+                           float in scientific notation, and "1.0E+9" in a CSV
+                           column is worse than no column. */ ?>
+                  data-v="<?php echo esc_attr(number_format($v, 0, '.', '')); ?>" aria-pressed="false">
+            <span class="tit-rank-name"><?php echo esc_html($labeller($r['k'])); ?></span>
+            <span class="tit-rank-track"><span class="tit-rank-fill"
+              style="width:<?php echo esc_attr($max > 0 ? max(4, round(100 * $v / $max)) : 4); ?>%"></span></span>
+            <span class="tit-rank-n" title="<?php echo esc_attr(tit_money_full($v)); ?>"><?php
+              echo esc_html(tit_money_short($v)); ?></span>
+          </button>
+        <?php endforeach; endif; ?>
+      </div>
+      <p class="tit-money-note"><?php echo esc_html(tit_money_coverage_note($money, $dimension)); ?></p>
+    </div>
+    <?php
 }
 
 /**
