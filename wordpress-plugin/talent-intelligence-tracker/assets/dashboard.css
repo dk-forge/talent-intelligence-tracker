@@ -1014,6 +1014,83 @@ body.admin-bar .tit-active { top:32px; }
 .tit-main { display:block; }
 
 /* ===========================================================================
+   Primary filters, and everything else folded away.
+   Twelve controls of equal weight meant no control was obvious, and every
+   label named a database column rather than a question anyone arrives with.
+   Four controls lead, phrased as what a person is looking for; the rest live
+   in a panel that stays shut until it is wanted and says how many of its
+   filters are on. The underlying selects still exist and still carry the
+   filtering: this is a change of presentation, not of meaning.
+   =========================================================================== */
+.tit-primary { display:grid; grid-template-columns:1fr; gap:8px; margin:0 0 8px;
+  padding:12px; background:var(--tit-ground); border:1px solid var(--tit-line);
+  border-radius:12px; box-shadow:var(--tit-shadow); }
+@media (min-width:640px){ .tit-primary { grid-template-columns:repeat(2,1fr); } }
+/* Four across only where four fit. Below that they stack, so the row can never
+   push the page sideways. */
+@media (min-width:1000px){
+  .tit-primary { grid-template-columns:1.2fr 1fr 1.15fr 1fr; align-items:end; }
+}
+.tit-wrap .tit-primary select, .tit-wrap .tit-primary input[type="search"] {
+  width:100%; min-width:0; padding:9px 11px; font-size:14.5px; font-weight:600;
+  border:1px solid var(--tit-line); border-radius:9px; background:#fff;
+  color:var(--tit-fg); font-family:inherit; }
+.tit-wrap .tit-primary select:hover,
+.tit-wrap .tit-primary input[type="search"]:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-primary select:focus-visible,
+.tit-wrap .tit-primary input[type="search"]:focus-visible {
+  outline:2px solid var(--tit-blue); outline-offset:1px; }
+/* The lead control reads as the lead control. */
+.tit-wrap .tit-primary-main select { font-weight:700; }
+
+/* The headcount toggle is a control, so it gets a control's box and a hit area
+   that clears 40px rather than being a bare checkbox floating in a row. */
+.tit-check { display:flex; align-items:center; gap:8px; min-height:38px;
+  padding:8px 11px; border:1px solid var(--tit-line); border-radius:9px;
+  background:#fff; cursor:pointer; }
+.tit-check:hover { border-color:var(--tit-blue); }
+.tit-check input { flex:none; width:16px; height:16px; margin:0;
+  accent-color:var(--tit-blue); cursor:pointer; }
+.tit-check input:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-check-t { font-size:13.5px; font-weight:600; color:var(--tit-fg);
+  line-height:1.25; min-width:0; }
+/* What the toggle would leave, printed before anyone uses it. */
+.tit-check-n { flex:none; margin-left:auto; font-size:12px; font-weight:700;
+  font-variant-numeric:tabular-nums; letter-spacing:0; color:var(--tit-ink-blue);
+  background:var(--tit-blue-tint); border-radius:99px; padding:2px 8px; }
+
+/* How places are decided. A sentence first, the control only when asked for. */
+.tit-basis { margin:0 0 10px !important; font-size:12.5px; color:var(--tit-mut);
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; }
+.tit-wrap .tit-basis-btn { padding:2px 9px; border:1px solid var(--tit-line);
+  border-radius:99px; background:#fff; color:var(--tit-ink-blue); font-size:12px;
+  font-weight:650; font-family:inherit; cursor:pointer; line-height:1.4; }
+.tit-wrap .tit-basis-btn:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-basis-btn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-wrap .tit-basis select { max-width:100%; padding:4px 8px; font-size:12.5px;
+  border:1px solid var(--tit-line); border-radius:7px; background:#fff;
+  color:var(--tit-fg); font-family:inherit; }
+
+/* More filters. Native details, so it collapses with no JavaScript at all. */
+.tit-more { margin:0 0 12px; }
+.tit-wrap .tit-more > summary { display:inline-flex; align-items:center; gap:7px;
+  width:auto; padding:7px 13px; border:1px solid var(--tit-line);
+  border-radius:9px; background:#fff; color:var(--tit-fg); font-size:13.5px;
+  font-weight:650; cursor:pointer; list-style:none; }
+.tit-wrap .tit-more > summary::-webkit-details-marker { display:none; }
+.tit-wrap .tit-more > summary::before { content:"+"; font-weight:700;
+  color:var(--tit-mut); line-height:1; }
+.tit-wrap .tit-more[open] > summary::before { content:"\2212"; }
+.tit-wrap .tit-more > summary:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-more > summary:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+.tit-more .tit-filters { margin-top:8px; }
+
+/* The hidden state the two front controls drive. Not focusable, not read: the
+   `hidden` attribute does both, and this only guards a theme that resets it. */
+.tit-state { display:none !important; }
+
+/* ===========================================================================
    The detail control.
    The default view sets routine filings aside, and a default that holds rows
    back has to be visible where the reader is about to look at rows. This is

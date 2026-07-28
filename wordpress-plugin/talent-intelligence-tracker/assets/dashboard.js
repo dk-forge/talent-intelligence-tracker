@@ -62,7 +62,8 @@
   // reading "Team or function" is two names for one thing.
   var FILTER_LABEL = {
     pillar: 'What happened', direction: 'Headcount', 'function': 'Team',
-    industry: 'Industry', country: 'Country', state: 'US state', city: 'City',
+    industry: 'Industry', country: 'Where', state: 'Where', city: 'Where',
+    stated_headcount: 'Headcount',
     confidence: 'Evidence', country_basis: 'Location shown', company: 'Employer',
     min_funding_usd: 'Amount raised', funding_stage: 'Stage',
     q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
@@ -130,6 +131,7 @@
         // Only the rounds we actually hold, so the control cannot offer a
         // stage that returns an empty page.
         fill(inputs.funding_stage, data.funding_stages, false, STAGE_LABEL);
+        fillPlaces(data);
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
@@ -155,6 +157,36 @@
       opt.textContent = item.label;
       select.appendChild(opt);
     });
+  }
+
+  // One "Where" control over three columns, grouped so a reader picks a place
+  // and never a column. Three separate geography dropdowns was the clearest
+  // symptom of the schema showing through the paint.
+  function fillPlaces(data) {
+    var sel = document.getElementById('tit-f-place');
+    if (!sel || !data) return;
+    var groups = [
+      ['Countries', 'country', (data.countries || []).map(function (v) {
+        return { v: v, l: (TIT.countries && TIT.countries[v]) || v };
+      }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
+      ['US states', 'state', (data.states || []).map(function (v) { return { v: v, l: v }; })],
+      ['Cities', 'city', (data.cities || []).map(function (v) { return { v: v, l: v }; })]
+    ];
+    groups.forEach(function (g) {
+      var box = document.createElement('optgroup');
+      box.label = g[0];
+      g[2].forEach(function (item) {
+        var value = g[1] + ':' + item.v;
+        var seen = Array.prototype.some.call(sel.options, function (o) { return o.value === value; });
+        if (seen) return;
+        var opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = item.l;
+        box.appendChild(opt);
+      });
+      if (box.children.length) sel.appendChild(box);
+    });
+    syncPlace();
   }
 
   function renderRow(r) {
@@ -371,6 +403,13 @@
         data.materiality.notable, data.materiality.routine);
     }
 
+    // What the stated-headcount toggle would leave, so the reader sees what it
+    // does before using it.
+    var statedN = document.getElementById('tit-stated-n');
+    if (statedN && data.stated_headcount != null) {
+      statedN.textContent = nfmt(data.stated_headcount);
+    }
+
     // Re-rendering wiped the pressed state off every row; put it back.
     syncChartStates();
   }
@@ -517,6 +556,8 @@
       q.delete('country');
     }
 
+    if (q.get('stated_headcount') === '1') setStated(true);
+
     // Saved views are matched by their PARAMETERS, never by a token, because a
     // shared link carries the expanded querystring: "Biggest Raises" arrives as
     // funding=1&sort=raised. A view whose every parameter is present in the
@@ -573,6 +614,168 @@
   // Selects whose options are fetched rather than rendered by the server.
   var FACET_SELECT = { country: 1, state: 1, city: 1, funding_stage: 1 };
 
+  // --- The two front controls ----------------------------------------------
+  // The filter bar used to be twelve controls of equal weight, each labelled
+  // with a database column. These two are the visible layer over five of the
+  // old ones: they READ and WRITE the same hidden selects, so the querystring,
+  // the chips bar, the exports and every click-to-filter chart keep working
+  // against exactly the state they always did. Nothing about what a filter
+  // means has changed; only what a person has to look at.
+
+  var lookingSel = document.getElementById('tit-f-looking');
+  var placeSel = document.getElementById('tit-f-place');
+
+  // "I'm looking for" writes the pillar select, the direction select, or the
+  // funding view, depending on which one its option names.
+  function applyLooking(spec) {
+    if (inputs.pillar) inputs.pillar.value = '';
+    if (inputs.direction) inputs.direction.value = '';
+    if (quickView === 'funding=1') setQuickView(null);
+    if (!spec) return;
+    var kv = spec.split('=');
+    if (kv[0] === 'funding') { setQuickView('funding=1'); return; }
+    if (inputs[kv[0]]) inputs[kv[0]].value = kv[1];
+  }
+
+  // And the reverse, so a chart click or a matrix cell leaves the control
+  // showing what is actually filtering the page. A control that says "All
+  // updates" while the page is filtered to leadership changes is worse than no
+  // control at all.
+  function syncLooking() {
+    if (!lookingSel) return;
+    var want = '';
+    if (inputs.pillar && inputs.pillar.value) want = 'pillar=' + inputs.pillar.value;
+    else if (inputs.direction && inputs.direction.value) want = 'direction=' + inputs.direction.value;
+    else if (quickView === 'funding=1') want = 'funding=1';
+    var has = Array.prototype.some.call(lookingSel.options, function (o) { return o.value === want; });
+    // A combination the control cannot express (two of them at once, or a
+    // direction it does not offer) shows as blank rather than as a lie.
+    lookingSel.value = has ? want : '';
+  }
+
+  // One "Where", three underlying columns. Option values carry which one:
+  // country:US, state:CA, city:London.
+  function applyPlace(value) {
+    if (inputs.country) inputs.country.value = '';
+    if (inputs.state) inputs.state.value = '';
+    if (inputs.city) inputs.city.value = '';
+    if (!value) return;
+    var at = value.indexOf(':');
+    var key = value.slice(0, at);
+    var val = value.slice(at + 1);
+    if (!inputs[key]) return;
+    ensureOption(inputs[key], val, val);
+    inputs[key].value = val;
+    // A region and a single country are two answers to one question, and
+    // sending both would return nothing while looking like a broken filter.
+    if (key === 'country') setRegion(null);
+  }
+
+  function syncPlace() {
+    if (!placeSel) return;
+    var want = '';
+    // A region strip selection overrides the country parameter in refresh(),
+    // so while a region is on, no single place is what is narrowing the page.
+    // Showing "United States" in this box while a Region chip was doing the
+    // work made the system's choice look like the reader's.
+    if (!region) {
+      if (inputs.country && inputs.country.value) want = 'country:' + inputs.country.value;
+      else if (inputs.state && inputs.state.value) want = 'state:' + inputs.state.value;
+      else if (inputs.city && inputs.city.value) want = 'city:' + inputs.city.value;
+    }
+    var has = Array.prototype.some.call(placeSel.options, function (o) { return o.value === want; });
+    if (!has && want) {
+      ensureOption(placeSel, want, placeLabel(want));
+      has = true;
+    }
+    placeSel.value = has ? want : '';
+  }
+
+  function placeLabel(value) {
+    var at = value.indexOf(':');
+    var key = value.slice(0, at), val = value.slice(at + 1);
+    return key === 'country' ? countryLabel(val) : val;
+  }
+
+  if (lookingSel) {
+    lookingSel.addEventListener('change', function () {
+      applyLooking(lookingSel.value);
+      refresh();
+    });
+  }
+  if (placeSel) {
+    placeSel.addEventListener('change', function () {
+      applyPlace(placeSel.value);
+      refresh();
+    });
+  }
+
+  // --- Only updates that state a headcount ----------------------------------
+  // Its own state rather than a member of `inputs`, because a checkbox has no
+  // meaningful .value and everything in that map is read as one.
+  var statedBox = document.getElementById('tit-f-stated_headcount');
+  var stated = false;
+
+  function setStated(on) {
+    stated = !!on;
+    if (statedBox) statedBox.checked = stated;
+  }
+
+  if (statedBox) {
+    statedBox.addEventListener('change', function () {
+      setStated(statedBox.checked);
+      refresh();
+    });
+  }
+
+  // --- How places are decided ----------------------------------------------
+  // A methodology choice, not a filter, so it lives behind a sentence about how
+  // places are decided and shows only when someone questions one. The select
+  // ships visible and is hidden here, so a reader without JavaScript keeps a
+  // working control rather than losing it to a button that does nothing.
+  var basisBtn = document.getElementById('tit-basis-btn');
+  var basisPick = document.getElementById('tit-basis-pick');
+  if (basisBtn && basisPick) {
+    basisPick.hidden = true;
+    basisBtn.hidden = false;
+    basisBtn.addEventListener('click', function () {
+      var open = basisPick.hidden;
+      basisPick.hidden = !open;
+      basisBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open && inputs.country_basis) inputs.country_basis.focus();
+    });
+  }
+
+  // --- More filters ---------------------------------------------------------
+  // Native <details>, so it collapses with no JavaScript at all. What JS adds
+  // is the count, and opening the panel when something inside it is already on:
+  // a shared link must never narrow the page with the control that did it
+  // folded out of sight.
+  var moreBox = document.getElementById('tit-more');
+  var moreLabel = document.getElementById('tit-more-label');
+  var MORE_KEYS = ['direction', 'function', 'industry', 'min_funding_usd',
+                   'funding_stage', 'confidence', 'q', 'since', 'until'];
+
+  function moreActive() {
+    var n = 0;
+    MORE_KEYS.forEach(function (k) {
+      var el = inputs[k];
+      if (!el) return;
+      var v = (el.value || '').trim();
+      if (v && v !== NEUTRAL[k]) n++;
+    });
+    return n;
+  }
+
+  // $open is passed only when restoring a shared link. Opening on every
+  // refresh would throw the panel open each time a matrix cell set a date,
+  // which is a panel fighting the reader rather than serving them.
+  function syncMore(open) {
+    var n = moreActive();
+    if (moreLabel) moreLabel.textContent = n ? 'More filters (' + n + ')' : 'More filters';
+    if (open && moreBox && n && !moreBox.open) moreBox.open = true;
+  }
+
   // The CSV and JSON links under the table download exactly what is on screen:
   // the current filters ride along as query params, and the scope word says
   // which set the file will hold. Server-rendered hrefs point at the whole
@@ -604,6 +807,7 @@
     // country select. Whichever the person touched last is the one that counts —
     // silently ANDing "Europe" with "Japan" would return nothing and look broken.
     if (region) params.set('country', region);
+    if (stated) params.set('stated_headcount', '1');
     // A quick view is a saved set of parameters, applied on top of whatever
     // else is selected rather than replacing it: someone who has picked Europe
     // and then clicks "Raised money" means both.
@@ -620,6 +824,13 @@
       });
     }
     params.set('per_page', '50');
+
+    // The visible controls follow the state, never the other way round: a
+    // chart click or a matrix cell writes the hidden selects, and these put the
+    // two front controls back in agreement with them.
+    syncLooking();
+    syncPlace();
+    syncMore();
 
     paintActive();
     syncChartStates();
@@ -768,6 +979,9 @@
       var name = tab && tab.querySelector('.tit-region-name');
       chips.push(chip('region', name ? name.textContent : region));
     }
+    if (stated) {
+      chips.push(chip('stated_headcount', 'Only with a stated headcount'));
+    }
     if (quickView) {
       // A view with no button of its own still has to appear here. funding=1
       // is applied by the matrix's funding and money cells and no longer has a
@@ -806,6 +1020,7 @@
   function clearOne(key) {
     if (key === 'region') setRegion(null);
     else if (key === 'quickview') setQuickView(null);
+    else if (key === 'stated_headcount') setStated(false);
     else if (inputs[key]) inputs[key].value = NEUTRAL[key] || '';
     refresh();
   }
@@ -825,6 +1040,7 @@
       });
       setRegion(null);
       setQuickView(null);
+      setStated(false);
       refresh();
     });
   }
@@ -1060,5 +1276,11 @@
   // Only fetches when the link actually carried a view; the plain page is
   // already rendered by the server.
   applyUrlState();
+  // A link that narrows the page with a control folded out of sight is a link
+  // whose recipient cannot see why they are looking at what they are looking
+  // at. Open the panel once, here, and never again on its own.
+  syncMore(true);
+  syncLooking();
+  syncPlace();
   if (location.search) refresh();
 })();

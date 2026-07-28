@@ -224,6 +224,16 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params[] = $stage;
     }
 
+    // "Only updates that state a headcount." About 87% of what we hold says
+    // nothing about headcount, so filtering TO that is asking for the least
+    // informative rows; the useful control is its inverse, and nothing could
+    // express it before. hiring and displacement are exactly the directions the
+    // SOURCE stated, so this narrows on a fact, never on an inference.
+    if (!isset($skip['stated_headcount'])
+        && $req->get_param('stated_headcount') === '1') {
+        $where[] = "signal_direction IN ('hiring', 'displacement')";
+    }
+
     // How much to show. The API's own default is EVERYTHING: an endpoint that
     // quietly withheld two thirds of its rows unless you knew to ask would be
     // a worse lie than a cluttered page. The dashboard asks for detail=notable
@@ -276,7 +286,7 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // A param the endpoint reads MUST be listed here. One that is read but
         // not keyed on means two different responses share a cache entry, and
         // whichever request arrives first decides what everyone else sees.
-        'min_funding_usd', 'funding_stage', 'detail',
+        'min_funding_usd', 'funding_stage', 'detail', 'stated_headcount',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -450,6 +460,15 @@ function tit_api_aggregate(WP_REST_Request $req) {
                  FROM {$table} WHERE {$md_where}";
     $md = $wpdb->get_row($md_params ? $wpdb->prepare($md_sql, $md_params) : $md_sql, ARRAY_A) ?: array();
 
+    // What the stated-headcount toggle would leave, counted WITHOUT the toggle
+    // applied, so the figure printed beside it says what it would DO rather
+    // than reporting itself back.
+    $sh_params = array();
+    $sh_where  = tit_build_where($req, $sh_params, array('stated_headcount'));
+    $sh_sql = "SELECT COUNT(*) FROM {$table} WHERE {$sh_where}
+                 AND signal_direction IN ('hiring', 'displacement')";
+    $stated = (int) $wpdb->get_var($sh_params ? $wpdb->prepare($sh_sql, $sh_params) : $sh_sql);
+
     $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
     $out = array(
         'total'      => (int) $wpdb->get_var($params ? $wpdb->prepare($total_sql, $params) : $total_sql),
@@ -484,6 +503,7 @@ function tit_api_aggregate(WP_REST_Request $req) {
             'notable' => (int) ($md['notable'] ?? 0),
             'routine' => (int) ($md['routine'] ?? 0),
         ),
+        'stated_headcount' => $stated,
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);

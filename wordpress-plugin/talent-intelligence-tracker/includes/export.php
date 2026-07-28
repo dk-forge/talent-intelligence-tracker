@@ -65,7 +65,8 @@ function tit_export_is_filtered() {
     }
     $keys = array('country', 'city', 'pillar', 'direction', 'confidence', 'company',
         'industry', 'state', 'function', 'funding', 'since', 'until',
-        'min_headcount', 'q', 'min_funding_usd', 'funding_stage');
+        'min_headcount', 'q', 'min_funding_usd', 'funding_stage',
+        'stated_headcount');
     foreach ($keys as $k) {
         if (!empty($_GET[$k])) return true;
     }
