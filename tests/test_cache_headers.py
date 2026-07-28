@@ -81,20 +81,36 @@ def test_the_block_is_scoped_to_anonymous_public_reads():
     )
 
 
-def test_it_strips_the_hosts_duplicate_before_setting_its_own():
+def test_every_block_strips_the_hosts_duplicate_before_setting_its_own():
     """Setting Cache-Control without unsetting first leaves TWO headers and
     no-store still wins. Pragma and Expires are injected too and carry the
-    same meaning to intermediaries."""
-    body = php()
-    for directive in (
+    same meaning to intermediaries, so EVERY block has to clear all three --
+    the first live deploy shipped an asset block that cleared only
+    Cache-Control and left Pragma/Expires on the response.
+    """
+    required = (
         "Header always unset Cache-Control",
         "Header always unset Pragma",
         "Header always unset Expires",
         "Header unset Pragma",
         "Header unset Expires",
-    ):
-        assert directive in body, directive
-    assert re.search(r'Header set Cache-Control "public, max-age=300', body)
+    )
+    # Split the emitted directives into one group per <If> block.
+    blocks, current = [], None
+    for line in directives():
+        if line.startswith("<If "):
+            current = []
+        elif line == "</If>":
+            blocks.append(current)
+            current = None
+        elif current is not None:
+            current.append(line)
+
+    assert len(blocks) == 2, f"expected an endpoint block and an asset block, got {len(blocks)}"
+    for block in blocks:
+        for directive in required:
+            assert directive in block, f"{directive} missing from {block}"
+        assert any(d.startswith("Header set Cache-Control ") for d in block), block
 
 
 def test_a_bad_write_is_probed_and_rolled_back():
@@ -132,6 +148,18 @@ def test_paths_are_validated_before_they_reach_the_regex():
     for meta in "#?*+()|{}[]^$":
         assert meta not in allowlist.group(1).replace("\\-", ""), meta
     assert "if (!$desired)" in body, "an unvalidatable path must write nothing"
+
+
+def test_the_endpoint_lifetime_matches_the_one_php_asks_for():
+    """The .htaccess block REPLACES tit_public_response()'s header rather than
+    repairing it. If the two drift, the value PHP sets becomes fiction and the
+    real lifetime is whatever this file happens to say."""
+    api = (PLUGIN / "includes" / "api.php").read_text()
+    php_max_age = re.search(
+        r"header\('Cache-Control',\s*'public, max-age=(\d+)'\)", api).group(1)
+    endpoint = next(d for d in directives()
+                    if d.startswith("Header set Cache-Control") and "immutable" not in d)
+    assert f"max-age={php_max_age}" in endpoint, f"{endpoint} vs PHP's {php_max_age}"
 
 
 def test_assets_get_an_immutable_lifetime():
