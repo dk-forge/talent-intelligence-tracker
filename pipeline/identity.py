@@ -357,15 +357,21 @@ _sec_index: dict[str, tuple[str, str]] | None = None
 def _build_sec_index(payload: dict) -> dict[str, tuple[str, str]]:
     """Normalised name -> (ticker, cik), for names that map to exactly one CIK.
 
-    Two share classes of one company (GOOG and GOOGL) are not ambiguity: they
-    are one employer with one CIK, so they collapse and the ticker is chosen
-    alphabetically for determinism. Two DIFFERENT companies under one
-    normalised name ARE ambiguity, and are dropped rather than guessed — on the
-    live table this rejected nothing, which is the result you want from a guard
-    like this.
+    Two share classes of one company are not ambiguity: they are one employer
+    with one CIK, so they collapse, and the FILE'S OWN ORDER picks the ticker.
+    That order is not arbitrary — the file is ranked, and the primary listing
+    comes first: GOOGL before GOOG, and Customers Bancorp's common stock CUBI
+    before its subordinated notes CUBB. Choosing alphabetically instead put
+    CUBB on the row, which is a real ticker for the wrong instrument.
+
+    Two DIFFERENT companies under one normalised name ARE ambiguity, and are
+    dropped rather than guessed. On the live table that rejected nothing, which
+    is the result you want from a guard like this.
     """
-    grouped: dict[str, set[tuple[str, str]]] = {}
-    for entry in (payload or {}).values():
+    grouped: dict[str, list[tuple[int, str, str]]] = {}
+    for rank, (raw_rank, entry) in enumerate(sorted(
+            (payload or {}).items(),
+            key=lambda kv: int(kv[0]) if str(kv[0]).isdigit() else 10 ** 9)):
         if not isinstance(entry, dict):
             continue
         title = str(entry.get("title") or "").strip()
@@ -375,14 +381,15 @@ def _build_sec_index(payload: dict) -> dict[str, tuple[str, str]]:
             continue
         key = vocab.company_key(title)
         if key:
-            grouped.setdefault(key, set()).add((ticker, cik))
+            grouped.setdefault(key, []).append((rank, ticker, cik))
 
     index: dict[str, tuple[str, str]] = {}
     for key, entries in grouped.items():
-        ciks = {cik for _t, cik in entries}
+        ciks = {cik for _r, _t, cik in entries}
         if len(ciks) != 1:
             continue
-        index[key] = (sorted(t for t, _c in entries)[0], ciks.pop())
+        best = min(entries)          # lowest rank = the file's own first entry
+        index[key] = (best[1], best[2])
     return index
 
 

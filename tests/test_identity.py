@@ -81,11 +81,13 @@ TVA_PROPS = {
 SEC_PAYLOAD = {
     "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."},
     "1": {"cik_str": 1652044, "ticker": "GOOGL", "title": "Alphabet Inc."},
-    "2": {"cik_str": 1652044, "ticker": "GOOG", "title": "Alphabet Inc."},
     "3": {"cik_str": 1376986, "ticker": "TVC", "title": "TENNESSEE VALLEY AUTHORITY"},
     # Two genuinely different employers sharing a normalised name.
     "4": {"cik_str": 111111, "ticker": "ACME", "title": "Acme Holdings Inc."},
     "5": {"cik_str": 222222, "ticker": "ACMX", "title": "Acme Holdings Corp"},
+    # The second share class, filed far down the ranked file, where the real
+    # one sits. Deliberately out of key order too: the index sorts by rank.
+    "7478": {"cik_str": 1652044, "ticker": "GOOG", "title": "Alphabet Inc."},
 }
 
 
@@ -200,14 +202,18 @@ class SecIsTheTickerAuthority(unittest.TestCase):
         self.assertEqual(ident.qid, "Q312")   # Wikidata still supplied the HQ
         self.assertEqual(ident.hq_country, "US")
 
-    def test_two_share_classes_are_one_employer_not_an_ambiguity(self):
-        ticker, cik = identity.sec_lookup("Alphabet Inc.", allow_network=False) \
-            if identity._sec_index else (None, None)
+    def test_two_share_classes_are_one_employer_and_the_file_picks_which(self):
+        """company_tickers.json is RANKED, and the primary listing comes first.
+        Choosing alphabetically instead put Customers Bancorp's subordinated
+        notes (CUBB) on the row in place of its common stock (CUBI) — a real
+        ticker for the wrong instrument."""
         identity._sec_index = identity._build_sec_index(SEC_PAYLOAD)
-        ticker, cik = identity.sec_lookup("Alphabet Inc.", allow_network=False)
+        try:
+            ticker, cik = identity.sec_lookup("Alphabet Inc.", allow_network=False)
+        finally:
+            identity._sec_index = None
         self.assertEqual(cik, "1652044")
-        self.assertEqual(ticker, "GOOG")   # deterministic: alphabetical
-        identity._sec_index = None
+        self.assertEqual(ticker, "GOOGL")   # not GOOG, which sorts first
 
     def test_two_different_companies_under_one_name_are_dropped_not_guessed(self):
         identity._sec_index = identity._build_sec_index(SEC_PAYLOAD)
