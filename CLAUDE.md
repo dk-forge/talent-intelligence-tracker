@@ -30,10 +30,17 @@ source_registry.py   markets, tiers, search vocabulary — all as data
 GitHub Actions cron collects 2x/day, commits the database back, and (once the
 plugin exists) POSTs to a keyed WordPress endpoint that renders the dashboard.
 
-**Collection is DORMANT right now.** The schedule in `collect.yml` is commented
-out until `OPENROUTER_API_KEY` is in this repo's secrets and a human has read a
-live dry run and agreed with it. Arm it by uncommenting the two schedule lines.
-Run it manually with `dry_run` ticked first.
+**Collection is ARMED.** `collect.yml` runs at 06:00 and 18:00 UTC. Disarm by
+commenting the two schedule lines out again; nothing else changes. `ops_status.py`
+is the authority on this, not this file.
+
+**The plugin deploy is NOT armed.** The push trigger in `deploy-plugin.yml` is
+still commented out, so a merged commit does not reach the site. After any
+change under `wordpress-plugin/`, run it by hand and then verify the page:
+
+```bash
+gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
+```
 
 **There is no Railway deployment.** Collection runs on Actions because the
 database must be committed back to the repo; an ephemeral container discards
@@ -119,3 +126,15 @@ Every one of these shipped as a bug on the sibling:
 9. Verify live before claiming a deploy landed, and match the **commit SHA**,
    not "the latest run" — the run listed right after a push is usually the
    previous commit's.
+10. **Autoptimize aggregates INLINE scripts, and `autoptimize_filter_js_exclude`
+    only matches assets by path.** So excluding `plugin/assets` protects the
+    file and *not* the `wp_localize_script` object it depends on: the file stays
+    put, the inline object is swept into a bundle that loads after it, and a
+    script opening with `if (typeof FOO === 'undefined') return;` returns on its
+    first statement. Nothing errors and the page looks normal. This shipped
+    here: every filter, region tab, quick view and sort on the live dashboard
+    was inert from day one. Pass config on a `data-` attribute of the root
+    element as well, and name the inline object in the exclude list.
+11. **A green deploy proves an upload, not a render.** Check the deployed page
+    for the markup and the behaviour, not just the version string. The run that
+    hid #10 was green and the CSS was entirely correct.
