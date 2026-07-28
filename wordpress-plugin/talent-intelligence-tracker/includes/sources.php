@@ -104,10 +104,20 @@ function tit_sources_render($sources) {
 
       <h1>Where this data comes from</h1>
       <p class="tit-note">
-        Every record on this tracker links to the document that makes the claim.
-        This page lists every source we read and every source we have researched,
-        and is generated from the collectors themselves so it cannot drift from
-        what actually runs.
+        <?php
+        // Lead with what is READ versus merely researched. "160 sources" was
+        // the skimmer's takeaway before, and it read as coverage we do not
+        // have. Both numbers are computed from the registry, never typed.
+        printf(
+            esc_html('We read %1$s %2$s today. The other %3$s listed here are researched and queued, not yet read.'),
+            esc_html(number_format_i18n(count($live))),
+            count($live) === 1 ? 'source' : 'sources',
+            esc_html(number_format_i18n(count($cand)))
+        );
+        ?>
+        Every record on this tracker links to the document that makes the
+        claim, and this page is generated from the collectors themselves so it
+        cannot drift from what actually runs.
       </p>
 
       <div class="tit-stats">
@@ -155,7 +165,18 @@ function tit_sources_render($sources) {
         <input type="search" id="tit-s-q" placeholder="Search sources" aria-label="Search sources">
       </div>
 
-      <p class="tit-note" id="tit-s-count"><?php echo count($sources); ?> sources</p>
+      <?php
+      // Never "160 sources": the honest skim line is the live/researched
+      // split, computed from the same registry the table renders.
+      ?>
+      <p class="tit-note" id="tit-s-count"><?php
+        printf(
+            '%s live %s, %s researched',
+            esc_html(number_format_i18n(count($live))),
+            count($live) === 1 ? 'collector' : 'collectors',
+            esc_html(number_format_i18n(count($cand)))
+        );
+      ?></p>
 
       <div class="tit-table-scroll">
         <table class="tit-table">
@@ -239,20 +260,33 @@ function tit_sources_render($sources) {
 
       function apply() {
         var term = (q.value || '').trim().toLowerCase();
-        var shown = 0;
+        var liveShown = 0, candShown = 0, shown = 0;
         rows.forEach(function (tr) {
           var ok = (!f.status.value   || tr.dataset.status   === f.status.value)
                 && (!f.country.value  || tr.dataset.country  === f.country.value)
                 && (!f.category.value || tr.dataset.category === f.category.value)
                 && (!term || tr.dataset.search.indexOf(term) !== -1);
           tr.style.display = ok ? '' : 'none';
-          if (ok) shown++;
+          if (ok) {
+            shown++;
+            if (tr.dataset.status === 'live') liveShown++; else candShown++;
+            /* Re-stripe by class: display:none rows still count for CSS
+               nth-child, so a filtered table would stripe unevenly. */
+            tr.classList.toggle('tit-even', shown % 2 === 0);
+          } else {
+            tr.classList.remove('tit-even');
+          }
         });
-        count.textContent = shown + (shown === 1 ? ' source' : ' sources');
+        /* Same shape as the server-rendered line: live vs researched, never a
+           bare "N sources" that reads as coverage. */
+        count.textContent = liveShown +
+          (liveShown === 1 ? ' live collector, ' : ' live collectors, ') +
+          candShown + ' researched';
       }
 
       Object.keys(f).forEach(function (k) { f[k].addEventListener('change', apply); });
       q.addEventListener('input', apply);
+      apply(); /* initial stripes */
     })();
     </script>
     <?php
