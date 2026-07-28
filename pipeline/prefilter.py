@@ -182,6 +182,21 @@ _OFF_TOPIC_TERMS = (
     r"bóng đá", r"câu lạc bộ", r"cầu thủ", r"chuyển nhượng",
     r"futbol", r"transfer sezonu", r"teknik direktör",
     r"fotboll", r"allsvenskan", r"piłkarz", r"transfer\w* piłkar\w*",
+    # Naming clubs is whack-a-mole and it lost: "Barca va recruter le crack
+    # ghaneen de 20 ans" and "Sparta Prague va recruter le cousin d'Erling
+    # Haaland" both reached the live page tagged "Hiring up" because neither
+    # club was on the list above (observed 2026-07-28). A signing IS a hire in
+    # the literal sense, which is exactly why the employment gate passes it, so
+    # the exclusion has to name the SPORT rather than the teams. Each term below
+    # is football-specific in its own language and does not collide with
+    # corporate hiring vocabulary.
+    r"mercato", r"transfer window", r"footballer", r"football club",
+    r"on loan from", r"free transfer", r"signs for",
+    r"attaquant", r"milieu de terrain", r"gardien de but",
+    r"delantero", r"centrocampista", r"portero", r"fichaje",
+    r"st[üu]rmer", r"torwart", r"mittelfeldspieler",
+    r"midfielder", r"goalkeeper", r"winger", r"centre-back",
+    r"sparta prague", r"bar[çc]a\b", r"atl[ée]tico",
     # Public-sector recruitment notices, same reasoning as the Indian ones.
     r"tuyển dụng viên chức", r"tuyển dụng công chức", r"thi tuyển",
     r"penerimaan cpns", r"\bcpns\b", r"seleksi calon pegawai",
