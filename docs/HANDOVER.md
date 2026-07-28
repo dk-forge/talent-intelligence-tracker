@@ -4,8 +4,8 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: 2026-07-27, after the visual overhaul, the source audit and the
-multilingual Google News work (plugin v1.13.0).
+Last updated: 2026-07-28, after the front-end session that found the live page
+had never actually worked (plugin v1.24.0).
 
 ---
 
@@ -49,6 +49,102 @@ see gotcha 0.
 There is no `php` binary on this machine. The deploy workflow lints every PHP
 file with `php -l` before it uploads, so a syntax error fails the deploy rather
 than the site. Do not skip the workflow to "save time".
+
+---
+
+## 2026-07-28 session: the page looked fine and was not
+
+Plugin **v1.24.0**, 44 records, 219 tests green. Read this section before the
+older one below it, which is still true about the pipeline and out of date about
+the page.
+
+### The two findings that matter
+
+**1. Every control on the dashboard had never worked in production.**
+`dashboard.js` opened with `if (!root || typeof TIT === 'undefined') return;`
+and that read was undefined on the live page, so the file returned on its first
+statement. No filter, no region tab, no quick view, no sort, no facet
+population, ever. Nothing errored and the page looked completely normal.
+
+Cause: **Autoptimize aggregates INLINE scripts, and
+`autoptimize_filter_js_exclude` only matches assets by path.** Excluding
+`plugin/assets` kept `dashboard.js` where it was and swept the inline object
+`wp_localize_script` prints into a bundle that loads *after* it. The file and
+the data it needs were separated by an optimiser told about only one of them.
+
+Fixed at both ends: config also rides on `#tit-dashboard` as `data-` attributes,
+and the exclude list now names `var TIT` too. **If you add a localized script,
+do both.**
+
+**2. Deploying the Autoptimize exclude silently shrank the page to 645px.**
+Twenty Twenty-Five caps children of `.is-layout-constrained` at the global
+content size. Our `.tit-wrap` max-width has the *same specificity*, so which one
+won came down to source order — and source order changed the moment our CSS
+stopped being inlined by Autoptimize and became a `<link>`. The dashboard went
+1160px to 645px with no CSS change of its own. Now pinned to
+`var(--wp--style--global--wide-size)` (1340px), which is what a full-width block
+gets and what makes the sibling as wide as it is.
+
+**The lesson behind both: a green deploy proves an upload, not a render.**
+Check the deployed page for behaviour, not just the version string.
+
+### What the page does now
+
+- Order is hero, regions, **filtering**, charts, table. The controls used to sit
+  below the charts they control.
+- **Charts**: all rows render (was a hard `slice(0,6)` against an API already
+  returning 40), each card scrolls in place, and each carries its own expand,
+  share and download-CSV. Share copies a link to the current filtered view.
+- **Filters live in the URL** (`replaceState`), so a view is shareable. A region
+  restores as its tab, not as a bare country filter.
+- **Everything follows the filters, including the glance tiles.** They used to
+  be server-rendered once, so a filtered page read "19 updates, 1 country" above
+  tiles still claiming 42 and 46. `/aggregate` now returns them.
+- Tiles collapse when two periods hold the same records, keeping year-to-date.
+  A span note states how much history exists, because 8 days of data reads like
+  a running total otherwise.
+- Every filter has a visible label; the table becomes 3-band cards below 860px.
+- **Roo** is ported, reporting collection (not page fetches) and naming the next
+  run time.
+
+### Traps found, now in CLAUDE.md
+
+- Autoptimize + inline scripts (above).
+- `.tit-sources .tit-table` set `min-width:720px`, which beat the mobile
+  `min-width:0` and kept the sources table 720px wide inside a phone. Card rules
+  keyed to one table's column names are a coincidence, not a component: default
+  every cell to full width and let cells opt in.
+- `tit_country_names()` held 52 of ~200 codes, so LV and NA printed as raw codes
+  inside a chart of country names. It carries the world now.
+- Region code lists were shortlists: Namibia was missing from Africa, so that
+  record counted under World only. Same bug as the earlier Latvia one.
+- **Do not cache-bust the live host in a loop.** Appending `?cb=<random>` to
+  every request bypasses Cloudflare and hits the origin directly; doing it
+  dozens of times in a session is what shared hosting throttles.
+
+### Open, in order
+
+1. **The OpenRouter key.** ~$1.90 on a **$5 lifetime** cap (not $5/month).
+   ~3 weeks to a clean 402 that stops collection silently. **Only the owner can
+   raise it.** Nothing downstream (model switch, cap lift) should be attempted
+   first, because both increase spend. ~$20/month is the honest number.
+2. **The cron has never fired.** All 30 collection runs to date were
+   `workflow_dispatch` or push. The schedule was armed 2026-07-27 22:29 UTC and
+   the first scheduled firing was due 06:00 UTC 2026-07-28. Confirm it happened;
+   an unfired cron is exactly the silent-zero failure this project treats as
+   unacceptable.
+3. **Top nav.** The tracker is not in the site header. It is a block-theme
+   `wp-block-navigation` block stored in the database, so it cannot be changed
+   from this repo: Appearance → Editor → Navigation, add
+   `/blog/talent-intelligence-tracker/` beside "AI Layoff Tracker".
+4. **Read-through quality.** On leadership records it currently restates the
+   headline ("TriNetX appoints a new CEO; executive leadership changes"). This
+   is the product's differentiator and it is degenerate on a whole category.
+   Gated behind the `--readthrough` run, which needs the key raised.
+5. Deliberately NOT built, because the data cannot support them yet: a
+   years/quarters/months cascade (8 days of data), a minimum-headcount filter
+   (`headcount` on 1 of 44 records), a sources dropdown (32 distinct sources
+   across 44 records), and chart embed (needs an embed route this plugin lacks).
 
 ---
 
@@ -349,10 +445,9 @@ collection. What is actually left:
    deferred rather than rejected, whether spend tracks the projection, and
    whether `source_health` goes degraded on any of them. The dry runs never
    exercised dedup or the commit-back, because nothing was written.
-2. **Make the filters drive the charts and the hero figures**, not just the
-   table. The `/aggregate` endpoint already takes the same query parameters;
-   the work is a client-side re-render. This is the largest remaining UI gap
-   and the page currently implies it already happens.
+2. ~~Make the filters drive the charts and the hero figures~~ **Done
+   2026-07-28**, including the at-a-glance tiles, which were the last part of
+   the hero still contradicting its own filters. See the 2026-07-28 section.
 3. **Fix or retire GDELT.** Still zero records. Retiring it is a legitimate
    outcome, and the sources page must then say 3 running, not 4.
 4. **A funding floor, or a decision not to have one.** The news path now admits
