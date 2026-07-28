@@ -18,9 +18,27 @@
     industry: document.getElementById('tit-f-industry'),
     country: document.getElementById('tit-f-country'),
     state: document.getElementById('tit-f-state'),
+    confidence: document.getElementById('tit-f-confidence'),
+    country_basis: document.getElementById('tit-f-country_basis'),
     company: document.getElementById('tit-f-company'),
     q: document.getElementById('tit-f-q'),
+    since: document.getElementById('tit-f-since'),
+    until: document.getElementById('tit-f-until'),
     sort: document.getElementById('tit-f-sort')
+  };
+
+  // Values that narrow nothing. They are never sent, never become a chip, and
+  // never make the page count as filtered. Without this, country_basis="any"
+  // and sort="newest" would each show as an active filter on a page nobody had
+  // touched, which is the fastest way to make a filter bar mean nothing.
+  var NEUTRAL = { sort: 'newest', country_basis: 'any' };
+
+  // How each filter names itself in the active-filter bar.
+  var FILTER_LABEL = {
+    pillar: 'Kind', direction: 'Direction', 'function': 'Roles',
+    industry: 'Industry', country: 'Country', state: 'US state',
+    confidence: 'How solid', country_basis: 'Place basis', company: 'Employer',
+    q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
   };
 
   var DIRECTION_CLASS = {
@@ -118,7 +136,11 @@
       return;
     }
     var max = Math.max.apply(null, rows.map(function (r) { return +r.n; })) || 1;
-    wrap.innerHTML = rows.slice(0, 6).map(function (r) {
+    // Every row the API sent, not the first six. /aggregate already returns up
+    // to 40 per group, so slicing here discarded rows that had been fetched,
+    // with no control anywhere on the page that could bring them back. The card
+    // stays small because the list scrolls, not because the data is cut.
+    wrap.innerHTML = rows.map(function (r) {
       var pct = Math.max(4, Math.round(100 * r.n / max));
       return '<div class="tit-rank-row"' + (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + '>' +
         '<span class="tit-rank-name">' + esc(label(r.k)) + '</span>' +
@@ -187,7 +209,7 @@
     var params = new URLSearchParams();
     Object.keys(inputs).forEach(function (key) {
       var value = inputs[key] && inputs[key].value.trim();
-      if (value) params.set(key, value);
+      if (value && value !== NEUTRAL[key]) params.set(key, value);
     });
     // A region is a list of country codes, so it takes the same parameter as the
     // country select. Whichever the person touched last is the one that counts —
@@ -199,10 +221,17 @@
     if (quickView) {
       quickView.split('&').forEach(function (pair) {
         var kv = pair.split('=');
-        if (kv[0]) params.set(kv[0], decodeURIComponent(kv[1] || ''));
+        // since/until are already in the date inputs (setQuickView put them
+        // there), so re-applying them here would let a quick view move the
+        // window while the From box still showed the reader's own date.
+        if (kv[0] && kv[0] !== 'since' && kv[0] !== 'until') {
+          params.set(kv[0], decodeURIComponent(kv[1] || ''));
+        }
       });
     }
     params.set('per_page', '50');
+
+    paintActive();
 
     // Charts and figures move with the same querystring the table uses, so the
     // two can never disagree about what is being shown.
@@ -263,18 +292,124 @@
   var quickView = null;
   var quickButtons = Array.prototype.slice.call(root.querySelectorAll('.tit-qv'));
 
+  function setQuickView(v) {
+    quickView = v || null;
+    quickButtons.forEach(function (o) {
+      var on = (o.dataset.qv || '') === (quickView || '');
+      o.classList.toggle('is-on', on);
+      o.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    // A quick view carrying a date writes it into the date inputs rather than
+    // straight into the querystring. "This week" has to move the box a reader
+    // can see, or the page would be filtering on a window nothing on screen
+    // reports.
+    if (quickView) {
+      quickView.split('&').forEach(function (pair) {
+        var kv = pair.split('=');
+        if ((kv[0] === 'since' || kv[0] === 'until') && inputs[kv[0]]) {
+          inputs[kv[0]].value = decodeURIComponent(kv[1] || '');
+        }
+      });
+    }
+  }
+
   quickButtons.forEach(function (b) {
     b.addEventListener('click', function () {
-      quickView = b.dataset.qv || null;
-      quickButtons.forEach(function (o) {
-        var on = (o.dataset.qv || '') === (quickView || '');
-        o.classList.toggle('is-on', on);
-        o.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
+      setQuickView(b.dataset.qv);
       refresh();
     });
   });
   if (quickButtons.length) quickButtons[0].classList.add('is-on');
+
+  // --- What is currently being filtered ------------------------------------
+  var activeBar = document.getElementById('tit-active');
+  var activeChips = document.getElementById('tit-active-chips');
+  var resetBtn = document.getElementById('tit-reset');
+
+  function chip(key, text) {
+    return '<button type="button" class="tit-chip" data-clear="' + esc(key) + '">' +
+      '<span class="tit-chip-k">' + esc(FILTER_LABEL[key] || key) + '</span>' +
+      '<span class="tit-chip-v">' + esc(text) + '</span>' +
+      '<span class="tit-chip-x" aria-hidden="true">&#215;</span>' +
+      '<span class="tit-sr">, remove this filter</span></button>';
+  }
+
+  function paintActive() {
+    if (!activeBar || !activeChips) return;
+    var chips = [];
+
+    if (region) {
+      var tab = quickFind(tabs, function (t) { return (t.dataset.codes || '') === region; });
+      var name = tab && tab.querySelector('.tit-region-name');
+      chips.push(chip('region', name ? name.textContent : region));
+    }
+    if (quickView) {
+      var qb = quickFind(quickButtons, function (b) { return (b.dataset.qv || '') === quickView; });
+      if (qb) chips.push(chip('quickview', qb.textContent.trim()));
+    }
+    Object.keys(inputs).forEach(function (key) {
+      var el = inputs[key];
+      if (!el || key === 'sort') return;
+      var value = (el.value || '').trim();
+      if (!value || value === NEUTRAL[key]) return;
+      // The country select is slaved to the region strip; showing both would
+      // be two chips for one narrowing.
+      if (key === 'country' && region) return;
+      var text = el.tagName === 'SELECT'
+        ? ((el.options[el.selectedIndex] || {}).text || value)
+        : value;
+      chips.push(chip(key, text));
+    });
+
+    activeChips.innerHTML = chips.join('');
+    activeBar.hidden = chips.length === 0;
+  }
+
+  function quickFind(list, test) {
+    for (var i = 0; i < list.length; i++) { if (test(list[i])) return list[i]; }
+    return null;
+  }
+
+  function clearOne(key) {
+    if (key === 'region') setRegion(null);
+    else if (key === 'quickview') setQuickView(null);
+    else if (inputs[key]) inputs[key].value = NEUTRAL[key] || '';
+    refresh();
+  }
+
+  if (activeChips) {
+    activeChips.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('[data-clear]') : null;
+      if (btn) clearOne(btn.getAttribute('data-clear'));
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      Object.keys(inputs).forEach(function (k) {
+        if (!inputs[k] || k === 'sort') return;
+        inputs[k].value = NEUTRAL[k] || '';
+      });
+      setRegion(null);
+      setQuickView(null);
+      refresh();
+    });
+  }
+
+  // --- Charts expand in place ----------------------------------------------
+  // The button is rendered hidden by the shortcode and revealed here, so a
+  // reader without JavaScript is never offered a control that does nothing.
+  Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
+    var btn = chart.querySelector('.tit-expand');
+    if (!btn) return;
+    btn.hidden = false;
+    var label = btn.querySelector('.tit-expand-t');
+    btn.addEventListener('click', function () {
+      var on = chart.classList.toggle('is-expanded');
+      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+      if (label) label.textContent = on ? 'Collapse' : 'Expand';
+    });
+  });
 
   populateFacets();
 })();

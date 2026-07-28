@@ -56,16 +56,30 @@ function tit_dashboard_shortcode() {
         "SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND confidence = 'verified'"
     );
 
+    // Bounds for the date inputs. The sibling can offer years, quarters and
+    // months because it holds years; we hold days. Letting the control ask for
+    // a period we have nothing in is a control that manufactures empty states
+    // and makes thin coverage look like a broken filter.
+    $span = $wpdb->get_row(
+        "SELECT MIN(COALESCE(published_date, DATE(captured_at))) lo,
+                MAX(COALESCE(published_date, DATE(captured_at))) hi
+           FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
+    $span_lo = $span['lo'] ?? '';
+    $span_hi = $span['hi'] ?? '';
+
     $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
     $glance = tit_glance($table);
     $counts_by_country = array_column($wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
           GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
+    // 40, matching /aggregate, not 6. The chart scrolls and expands, so a short
+    // list is no longer what keeps the card small -- and a hard six meant the
+    // World view could not show two of the eight countries we actually hold.
     $by_country = $wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
-          GROUP BY k ORDER BY n DESC LIMIT 6", ARRAY_A) ?: array();
+          GROUP BY k ORDER BY n DESC LIMIT 40", ARRAY_A) ?: array();
     $by_direction = $wpdb->get_results(
         "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE is_current = 1
           GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
@@ -130,6 +144,8 @@ function tit_dashboard_shortcode() {
           </div>
         </div>
 
+        <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
+
         <div class="tit-glance">
           <?php foreach ($glance as $g) : ?>
             <div class="tit-glance-cell">
@@ -175,8 +191,7 @@ function tit_dashboard_shortcode() {
 
       <div class="tit-charts">
       <div class="tit-chart">
-        <h3>What kind of update</h3>
-        <p class="tit-sub">Every update falls into one of four kinds.</p>
+        <?php tit_chart_head('What kind of update', 'Every update falls into one of four kinds.'); ?>
       <div class="tit-pillars">
         <?php foreach ($by_pillar as $p) :
             $key = $p['pillar'];
@@ -192,9 +207,8 @@ function tit_dashboard_shortcode() {
       </div>
       </div>
         <div class="tit-chart">
-          <h3>Where the activity is</h3>
-          <p class="tit-sub">Job location, falling back to the employer's headquarters.</p>
-          <div class="tit-rank">
+          <?php tit_chart_head('Where the activity is', "Job location, falling back to the employer's headquarters."); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
             <?php
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
             foreach ($by_country as $c) : ?>
@@ -209,9 +223,8 @@ function tit_dashboard_shortcode() {
         </div>
 
         <div class="tit-chart">
-          <h3>Growing or shrinking</h3>
-          <p class="tit-sub">What each update means for headcount at that employer.</p>
-          <div class="tit-rank">
+          <?php tit_chart_head('Growing or shrinking', 'What each update means for headcount at that employer.'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
             <?php
             $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
             foreach ($by_direction as $d) : ?>
@@ -279,10 +292,42 @@ function tit_dashboard_shortcode() {
         <select id="tit-f-state" aria-label="Which US state">
           <option value="">Any US state</option>
         </select>
+        <select id="tit-f-confidence" aria-label="How solid the record is">
+          <option value="">Any confidence</option>
+          <option value="verified">From official filings</option>
+          <option value="reported">Reported by a publisher</option>
+          <option value="rumored">Rumored</option>
+        </select>
+        <!-- The charts already admit they fall back to headquarters. Until now
+             the page surfaced that ambiguity without letting anyone resolve it,
+             even though the API has taken country_basis all along. -->
+        <select id="tit-f-country_basis" aria-label="How to decide where a record belongs">
+          <option value="any">Place, or the employer's HQ</option>
+          <option value="location">Only where the source named a place</option>
+        </select>
         <input type="search" id="tit-f-company" placeholder="Employer name"
                aria-label="Search by employer">
         <input type="search" id="tit-f-q" placeholder="Search anything"
                aria-label="Search headlines and read-throughs">
+        <label class="tit-field"><span>From</span>
+          <input type="date" id="tit-f-since" aria-label="Earliest date"
+                 min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+        <label class="tit-field"><span>To</span>
+          <input type="date" id="tit-f-until" aria-label="Latest date"
+                 min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+      </div>
+
+      <!--
+        What is currently being filtered, in words, with a way out of each one.
+        Nine controls spread over three rows means a reader can easily be looking
+        at a narrowed page without remembering why. This is the sibling's best
+        idea and the cheapest thing on the page: the dashboard states its own
+        scope instead of leaving the reader to reconstruct it.
+      -->
+      <div class="tit-active" id="tit-active" hidden>
+        <span class="tit-active-label">Filtering</span>
+        <span class="tit-active-chips" id="tit-active-chips"></span>
+        <button type="button" class="tit-reset" id="tit-reset">Reset all</button>
       </div>
 
       <div class="tit-table-scroll">
@@ -397,6 +442,93 @@ function tit_glance($table) {
         );
     }
     return $out;
+}
+
+/**
+ * Roo, the AskTheRecruiter robot, ported from the sibling tracker.
+ *
+ * He reports the state of COLLECTION, not the state of the page. Wiring him to
+ * the dashboard's own fetches would have been easier and would have made him
+ * animate far more often, but it would also have meant a mascot that looks busy
+ * because someone changed a dropdown. He works when a run has just landed and
+ * sleeps the rest of the time, which is the truth and is usually "asleep".
+ *
+ * State is decided server-side from the newest capture, so the first paint is
+ * already right; no request, and nothing to get wrong before JavaScript runs.
+ */
+function tit_roo($newest_run) {
+    $ts     = $newest_run ? strtotime($newest_run . ' UTC') : 0;
+    $ago    = $ts ? (time() - $ts) : null;
+    // A run writes over a few minutes, so anything inside the last quarter hour
+    // is treated as still in progress rather than finished.
+    $working = ($ago !== null && $ago >= 0 && $ago < 900);
+    $state   = $working ? 'tit-roo-working' : 'tit-roo-sleeping';
+
+    if ($working) {
+        $say = 'Roo is pulling in new filings and news';
+    } elseif ($ago !== null) {
+        $say = sprintf('Roo pulled the latest data %s ago, resting until the next run',
+                       human_time_diff($ts, time()));
+    } else {
+        $say = 'Roo is resting until the next run';
+    }
+    ?>
+    <span class="tit-roo-wrap<?php echo $working ? ' is-working' : ' is-sleeping'; ?>" aria-hidden="true">
+      <span class="tit-zzz"><i>z</i><i>z</i><i>z</i></span>
+      <svg class="tit-roo <?php echo esc_attr($state); ?>" width="52" height="56" viewBox="0 0 140 150">
+        <line x1="70" y1="14" x2="70" y2="26" stroke="var(--roo-deep)" stroke-width="3" stroke-linecap="round"/>
+        <circle class="roo-bulb" cx="70" cy="10" r="5" fill="var(--roo-accent)"/>
+        <rect x="26" y="24" width="88" height="40" rx="20" fill="var(--roo-surface)" stroke="var(--roo-deep)" stroke-width="3.5"/>
+        <g class="roo-eyes">
+          <circle cx="51" cy="44" r="12" fill="var(--roo-soft)" stroke="var(--roo-deep)" stroke-width="2.5"/>
+          <g class="roo-pupil"><circle cx="53.5" cy="44" r="5.5" fill="var(--roo-deep)"/><circle cx="55.5" cy="42" r="1.8" fill="var(--roo-surface)"/></g>
+          <circle cx="89" cy="44" r="12" fill="var(--roo-soft)" stroke="var(--roo-deep)" stroke-width="2.5"/>
+          <g class="roo-pupil"><circle cx="86.5" cy="44" r="5.5" fill="var(--roo-deep)"/><circle cx="88.5" cy="42" r="1.8" fill="var(--roo-surface)"/></g>
+        </g>
+        <path d="M 59 57 Q 70 61 81 57" fill="none" stroke="var(--roo-deep)" stroke-width="2.5" stroke-linecap="round"/>
+        <g class="roo-body-group">
+          <rect x="64" y="64" width="12" height="8" fill="var(--roo-deep)" rx="2"/>
+          <rect class="roo-arm-l" x="18" y="82" width="14" height="28" rx="7" fill="var(--roo-surface)" stroke="var(--roo-deep)" stroke-width="3"/>
+          <rect class="roo-arm-r" x="108" y="82" width="14" height="28" rx="7" fill="var(--roo-surface)" stroke="var(--roo-deep)" stroke-width="3"/>
+          <rect x="36" y="72" width="68" height="46" rx="10" fill="var(--roo-surface)" stroke="var(--roo-deep)" stroke-width="3.5"/>
+          <rect x="48" y="80" width="44" height="30" rx="5" fill="var(--roo-tint)" stroke="var(--roo-deep)" stroke-width="2"/>
+          <rect class="roo-line" x="54" y="86" height="3.5" width="26" rx="1.75" fill="var(--roo-deep)"/>
+          <rect class="roo-line" x="54" y="93" height="3.5" width="18" rx="1.75" fill="var(--roo-deep)"/>
+          <rect class="roo-line" x="54" y="100" height="3.5" width="22" rx="1.75" fill="var(--roo-deep)"/>
+        </g>
+        <rect x="30" y="122" width="80" height="14" rx="7" fill="var(--roo-soft)" stroke="var(--roo-deep)" stroke-width="2.5"/>
+        <circle class="roo-tread-dot" cx="42" cy="129" r="3" fill="var(--roo-deep)" opacity=".55"/>
+        <circle class="roo-tread-dot" cx="56" cy="129" r="3" fill="var(--roo-deep)" opacity=".55"/>
+        <circle class="roo-tread-dot" cx="70" cy="129" r="3" fill="var(--roo-deep)" opacity=".55"/>
+        <circle class="roo-tread-dot" cx="84" cy="129" r="3" fill="var(--roo-deep)" opacity=".55"/>
+        <circle class="roo-tread-dot" cx="98" cy="129" r="3" fill="var(--roo-deep)" opacity=".55"/>
+      </svg>
+    </span>
+    <span class="tit-roo-say"><?php echo esc_html($say); ?></span>
+    <?php
+}
+
+/**
+ * The heading block every chart card shares, plus its expand control.
+ *
+ * The button ships `hidden` and dashboard.js reveals it. A control that only
+ * works with JavaScript should not be visible without it, and rendering it
+ * server-side (rather than injecting it) keeps its label and markup in one
+ * place with the heading it belongs to.
+ */
+function tit_chart_head($title, $sub) {
+    ?>
+    <div class="tit-chart-head">
+      <div class="tit-chart-titles">
+        <h3><?php echo esc_html($title); ?></h3>
+        <p class="tit-sub"><?php echo esc_html($sub); ?></p>
+      </div>
+      <button type="button" class="tit-expand" aria-expanded="false" hidden>
+        <span class="tit-expand-i" aria-hidden="true">&#10530;</span>
+        <span class="tit-expand-t">Expand</span>
+      </button>
+    </div>
+    <?php
 }
 
 /**

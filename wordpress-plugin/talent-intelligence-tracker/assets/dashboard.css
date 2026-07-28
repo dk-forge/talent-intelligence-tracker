@@ -102,9 +102,18 @@
 .tit-hiring     { background:var(--tit-blue-tint); color:#1c5cab; box-shadow:inset 0 0 0 1px #b9d3f2; }
 .tit-displacement { background:var(--tit-red-tint); color:#8c3d00; box-shadow:inset 0 0 0 1px #f3c6ab; }
 .tit-comp_shift { background:#eae7f7; color:#332874; box-shadow:inset 0 0 0 1px #cbc4ec; }
+/* "Other change" really is neutral, but it should say so on purpose rather
+   than by falling through to the base tag with no rule of its own. */
+.tit-neutral    { background:#eef1f5; color:#41485a; box-shadow:inset 0 0 0 1px #d8dde5; }
 
-.tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg); }
+.tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg);
+  text-transform:capitalize; }
 .tit-c-verified { background:var(--tit-blue-tint); color:#1c5cab; border-color:#b9d3f2; }
+/* `reported` had no rule at all, so it fell through to the bare .tit-conf and
+   sat unstyled next to a coloured `verified`. It is also the commonest value we
+   hold by a distance, which made the default the thing most rows wore. Muted on
+   purpose: reported is the floor, not a distinction worth colouring. */
+.tit-c-reported { background:#f4f6f8; color:var(--tit-mut); border-color:var(--tit-line); }
 .tit-c-rumored  { background:#f4f6f8; color:var(--tit-mut); font-style:italic; }
 
 .tit-hq { font-size:12px; padding:2px 6px; border-radius:5px;
@@ -210,7 +219,36 @@
   background:#fff; }
 .tit-chart h3 { margin:0 0 3px; font-size:15px; color:var(--tit-fg); font-weight:650; }
 .tit-chart .tit-sub { margin:0 0 14px; font-size:13px; color:var(--tit-mut); }
+
+/* Head row: titles on the left, the expand control on the right. */
+.tit-chart-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.tit-chart-titles { min-width:0; }
+.tit-wrap .tit-expand { flex:none; display:inline-flex; align-items:center; gap:6px;
+  padding:5px 10px; border:1px solid var(--tit-line); border-radius:8px; background:#fff;
+  color:var(--tit-mut); font-family:inherit; font-size:12.5px; font-weight:600;
+  line-height:1.2; cursor:pointer; }
+.tit-wrap .tit-expand:hover { border-color:var(--tit-blue); color:var(--tit-blue); }
+.tit-wrap .tit-expand:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-wrap .tit-chart.is-expanded .tit-expand { background:var(--tit-blue);
+  border-color:var(--tit-blue); color:#fff; }
+
+/* ---------------------------------------------------------------------------
+   Scroll in place, never truncate.
+   The country list used to be cut to six rows with nothing saying so, which on
+   the World view put two of our eight countries somewhere no interaction could
+   reach. A capped box that scrolls keeps every row reachable in the small card,
+   which leaves expanding as a comfort rather than the only way to see the data.
+   --------------------------------------------------------------------------- */
 .tit-rank { display:grid; gap:9px; }
+.tit-rank, .tit-pillars { max-height:264px; overflow-y:auto; overscroll-behavior:contain;
+  padding-right:4px; }
+.tit-rank:focus-visible { outline:2px solid var(--tit-blue); outline-offset:3px; }
+.tit-chart.is-expanded { grid-column:1 / -1; }
+.tit-chart.is-expanded .tit-rank,
+.tit-chart.is-expanded .tit-pillars { max-height:55vh; }
+@media (min-width:560px){
+  .tit-chart.is-expanded .tit-rank-row { grid-template-columns:220px 1fr auto; font-size:15px; }
+}
 .tit-rank-row { display:grid; grid-template-columns:104px 1fr auto; gap:10px;
   align-items:center; font-size:14px; }
 .tit-rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -222,9 +260,15 @@
 /* One hue for a magnitude chart. Colour by rank would repaint the survivors
    every time a filter changed the order, so the country chart stays one blue
    and the bar length carries the magnitude. */
-.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-orange); }
-.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-violet); }
-.tit-rank-row[data-dir="comp_shift"]   .tit-rank-fill { background:var(--tit-teal); }
+/* These match the direction TAGS in the table, and they did not used to.
+   "Hiring up" was a blue pill in the rows and an orange bar in the chart, while
+   "Cutting back" was an orange pill and a violet bar, so the same fact wore a
+   different colour depending on where you read it. Blue for growth and orange
+   for contraction is also the Okabe-Ito pair, so the two series stay
+   distinguishable without relying on hue alone. */
+.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-blue); }
+.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-orange); }
+.tit-rank-row[data-dir="comp_shift"]   .tit-rank-fill { background:var(--tit-violet); }
 .tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:#6b7684; }
 
 /* --- Table: colour the direction column, keep the words ---------------- */
@@ -256,6 +300,10 @@
 .tit-wrap .tit-glance-what strong { color:var(--tit-fg); font-size:17px;
   font-variant-numeric:tabular-nums; }
 .tit-hero-fine { margin:14px 0 0 !important; font-size:13.5px; }
+/* The counts that lead the fine print, and the one part of it JavaScript
+   rewrites when a filter changes. They read as the summary, so they carry the
+   foreground colour while the sentence after them stays muted. */
+.tit-fine-figures { color:var(--tit-fg); font-weight:600; }
 
 /* Region strip ----------------------------------------------------------- */
 .tit-regions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px; }
@@ -296,20 +344,55 @@
   .tit-table { min-width:0; display:block; }
   .tit-table thead { position:absolute; width:1px; height:1px; overflow:hidden;
     clip:rect(0 0 0 0); white-space:nowrap; }
-  .tit-table tbody, .tit-table tr, .tit-table td { display:block; }
-  .tit-table tr { border:1px solid var(--tit-line); border-radius:12px;
-    padding:14px 16px; margin:0 0 12px; background:#fff; }
-  .tit-table td { border:0; padding:0; }
-  .tit-table td + td { margin-top:9px; }
-  /* Employer then headline lead the card, so neither wears a label: the name
-     is the thing you scan for and a "EMPLOYER:" prefix above it is noise. */
-  .tit-table td[data-label]:not(.tit-headline):not([data-label="Employer"])::before {
-    content:attr(data-label) ": "; font-size:12px; text-transform:uppercase;
-    letter-spacing:.04em; color:var(--tit-mut); margin-right:6px; }
-  .tit-headline { max-width:none; }
+  .tit-table tbody { display:block; }
+
+  /* Three bands, not six stacked rows.
+     Every cell used to be a full-width labelled line of equal weight, so
+     "WHERE: Location not stated" got exactly as much of the card as the
+     headline did, and a record with nothing much to say was as tall as one
+     with everything. Now: who it is, what happened and what we read into it,
+     then one quiet wrapping line for the rest. */
+  .tit-table tr { display:flex; flex-wrap:wrap; align-items:center; gap:9px 10px;
+    border:1px solid var(--tit-line); border-radius:12px;
+    padding:13px 15px; margin:0 0 10px; background:#fff; }
+  /* .tit-wrap here on purpose. A later rule in this file sets a 9px/12px cell
+     padding outside any media query, and at equal specificity the later rule
+     wins: every meta cell was carrying 18px of vertical padding it should not
+     have had, which is what made a 9px row gap look like forty. */
+  .tit-wrap .tit-table td { display:block; border:0; padding:0; }
+
+  /* Band 1. The employer leads as an eyebrow above the headline, which almost
+     always repeats it. Its typography lives with the other employer rules near
+     the end of this file; only the layout belongs here. */
+  .tit-table td[data-label="Employer"] { flex:1 0 100%; }
+
+  /* Band 2. */
+  .tit-table td.tit-headline { flex:1 0 100%; max-width:none; }
+
+  /* Band 3: place, meaning, confidence, source, on one wrapping line. These
+     four are self-describing, so the uppercase prefixes they used to carry were
+     four labels explaining four things that explain themselves.
+     No separator characters between them: at 390px the line wraps, and a
+     middot rendered as each item's ::before then landed at the START of the
+     wrapped line, which reads as a bullet list that lost its text. Spacing
+     separates them, and spacing cannot wrap onto the wrong line. */
+  /* line-height:1.3, not the 1.6 the wrapper sets for prose. At 1.6 each of
+     these one-line cells stood 39 to 47px tall, so the meta line looked like
+     two loosely spaced rows even though the gap between them was 9px. */
+  .tit-table td[data-label="Where"],
+  .tit-table td[data-label="What it means"],
+  .tit-table td[data-label="How solid"],
+  .tit-table td[data-label="Source"] { flex:0 1 auto; font-size:13px;
+    line-height:1.3; color:var(--tit-mut); }
+  .tit-table td[data-label="Where"] { margin-right:2px; }
+  /* Smaller pills here only. At the desktop size the four meta items came to
+     roughly 390px against the 360px a phone actually offers, so the line broke
+     in two for the sake of about thirty pixels. */
+  .tit-table td .tit-tag, .tit-table td .tit-conf { padding:2px 8px; font-size:12px; }
+
   .tit-wrap .tit-table .tit-h { font-size:16px; }
   .tit-wrap .tit-table .tit-rt { border-left:3px solid var(--tit-line);
-    padding-left:11px; margin-top:8px; }
+    padding-left:11px; margin-top:7px; }
 }
 
 /* A single inline figure wants proportional numerals. Tabular figures pad the
@@ -547,7 +630,6 @@
   .tit-table td[data-label="Employer"] { white-space:normal; font-size:13px;
     text-transform:uppercase; letter-spacing:.04em; color:var(--tit-mut); }
   .tit-table td[data-label="Employer"] a { border-bottom:0; color:var(--tit-mut); }
-  .tit-table td[data-label="Employer"] + .tit-headline { margin-top:2px; }
 }
 
 /* A record we could not place. Said out loud rather than left blank, and never
@@ -574,6 +656,118 @@
   border:1px solid var(--tit-line); border-radius:8px; background:#fff;
   color:var(--tit-fg); font-family:inherit; }
 @media (max-width:700px){ .tit-wrap .tit-sort { margin-left:0; width:100%; } }
+
+/* Date fields ------------------------------------------------------------- */
+/* A bare date input reads "mm/dd/yyyy" until it is filled, which does not say
+   whether it is the start or the end of the window, so these two carry a
+   visible word rather than an aria-label only a screen reader would reach. */
+.tit-wrap .tit-field { display:flex; align-items:center; gap:8px; min-width:0; }
+.tit-wrap .tit-field > span { flex:none; font-size:12px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--tit-mut); }
+.tit-wrap .tit-field input { flex:1 1 auto; min-width:0; }
+
+/* Active filters ---------------------------------------------------------- */
+/* Sticky, because the controls are far above the rows they change: scroll to
+   the table and the only thing telling you the page is narrowed would have
+   scrolled away with them. */
+.tit-active { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap;
+  align-items:center; gap:8px; margin:0 0 12px; padding:9px 12px;
+  border:1px solid #cfe0f4; border-radius:10px; background:var(--tit-blue-tint); }
+.tit-active-label { font-size:12px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:#1c5cab; }
+.tit-active-chips { display:flex; flex-wrap:wrap; gap:6px; min-width:0; }
+.tit-wrap .tit-chip { display:inline-flex; align-items:center; gap:6px;
+  padding:4px 9px; border:1px solid #b9d3f2; border-radius:99px; background:#fff;
+  color:var(--tit-fg); font-family:inherit; font-size:13px; line-height:1.3;
+  cursor:pointer; }
+.tit-wrap .tit-chip:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-chip:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-chip-k { font-size:11px; font-weight:700; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--tit-mut); }
+.tit-chip-v { font-weight:600; }
+.tit-chip-x { font-size:15px; line-height:1; color:var(--tit-mut); }
+.tit-wrap .tit-chip:hover .tit-chip-x { color:var(--tit-blue); }
+.tit-wrap .tit-reset { margin-left:auto; padding:5px 11px; border:1px solid #b9d3f2;
+  border-radius:8px; background:#fff; color:#1c5cab; font-family:inherit;
+  font-size:13px; font-weight:650; cursor:pointer; }
+.tit-wrap .tit-reset:hover { border-color:var(--tit-blue); background:#fff; }
+.tit-wrap .tit-reset:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+@media (max-width:700px){ .tit-wrap .tit-reset { margin-left:0; } }
+
+/* Visible to a screen reader, not to the eye. */
+.tit-sr { position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ---------------------------------------------------------------------------
+   Roo, ported from the sibling tracker.
+   The SVG is the sibling's geometry unchanged so the two stay recognisably the
+   same robot; only the palette is remapped, from the sibling's greens to this
+   dashboard's blue. He reports collection, so most of the time he is asleep,
+   and asleep has to look deliberate rather than broken: greyscale and dimmed,
+   but still breathing, with zzz's saying which of the two it is.
+   --------------------------------------------------------------------------- */
+.tit-roo-row { display:flex; align-items:center; gap:9px; margin:12px 0 0; }
+.tit-roo-wrap { position:relative; display:inline-flex; align-items:center; flex:none; }
+.tit-roo { --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#fff;
+  --roo-soft:#dbe9fb; --roo-tint:#eef4fd; flex:none; overflow:visible; }
+.tit-roo-say { font-size:13px; color:var(--tit-mut); }
+
+.tit-roo-sleeping { filter:grayscale(1); opacity:.6; }
+.tit-roo-sleeping .roo-eyes { animation:none; transform:scaleY(.12); transform-origin:center 44px; }
+.tit-roo-sleeping .roo-pupil, .tit-roo-sleeping .roo-line, .tit-roo-sleeping .roo-bulb,
+.tit-roo-sleeping .roo-arm-l, .tit-roo-sleeping .roo-arm-r,
+.tit-roo-sleeping .roo-tread-dot { animation:none; }
+.tit-roo-sleeping .roo-body-group { animation:roo-breathe 4s ease-in-out infinite; }
+
+.tit-zzz { position:absolute; top:-6px; right:-8px; display:none;
+  font:700 10px/1 system-ui, sans-serif; color:#8a93a0; }
+.tit-roo-wrap.is-sleeping .tit-zzz { display:inline-block; }
+.tit-zzz i { font-style:normal; display:inline-block; opacity:0;
+  animation:tit-zzz 3.2s ease-in-out infinite; }
+.tit-zzz i:nth-child(1) { font-size:8px; }
+.tit-zzz i:nth-child(2) { font-size:10px; animation-delay:.4s; }
+.tit-zzz i:nth-child(3) { font-size:12px; animation-delay:.8s; }
+
+.roo-eyes { animation:roo-blink 4.5s ease infinite; transform-origin:center 38px; }
+.tit-roo-working .roo-eyes { animation-duration:5.5s; }
+.roo-pupil { transform-box:fill-box; transform-origin:center; }
+.tit-roo-working .roo-pupil { animation:roo-read 4s ease-in-out infinite; }
+.tit-roo-working .roo-line { animation:roo-type 1.6s ease-in-out infinite; }
+.roo-line:nth-of-type(2) { animation-delay:.2s; }
+.roo-line:nth-of-type(3) { animation-delay:.4s; }
+.roo-bulb { transform-box:fill-box; transform-origin:center; }
+.tit-roo-working .roo-bulb { animation:roo-beacon 1.4s ease-in-out infinite; }
+.tit-roo-working .roo-body-group { animation:roo-bob 2.4s ease-in-out infinite; }
+.roo-arm-l, .roo-arm-r { transform-origin:center; }
+.tit-roo-working .roo-arm-l { animation:roo-wiggle 1.3s ease-in-out infinite; }
+.tit-roo-working .roo-arm-r { animation:roo-wiggle 1.3s ease-in-out infinite reverse; }
+.tit-roo-working .roo-tread-dot { animation:roo-roll 1.2s linear infinite; }
+.roo-tread-dot:nth-of-type(2) { animation-delay:.12s; }
+.roo-tread-dot:nth-of-type(3) { animation-delay:.24s; }
+.roo-tread-dot:nth-of-type(4) { animation-delay:.36s; }
+.roo-tread-dot:nth-of-type(5) { animation-delay:.48s; }
+
+@keyframes roo-blink { 0%,88%,100%{transform:scaleY(1)} 91%{transform:scaleY(.08)}
+  94%{transform:scaleY(1)} 96%{transform:scaleY(.08)} 98%{transform:scaleY(1)} }
+@keyframes roo-breathe { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-1.5px)} }
+@keyframes roo-read { 0%,8%{transform:translate(0,0)} 18%{transform:translate(-2px,-1px)}
+  30%,35%{transform:translate(2px,-1px)} 45%{transform:translate(-2px,1px)}
+  57%,62%{transform:translate(2px,1px)} 74%,100%{transform:translate(0,0)} }
+@keyframes roo-type { 0%,100%{width:8px} 55%{width:30px} }
+@keyframes roo-beacon { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.35)} }
+@keyframes roo-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2.5px)} }
+@keyframes roo-wiggle { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(5deg)} }
+@keyframes roo-roll { 0%{opacity:.25} 50%{opacity:.85} 100%{opacity:.25} }
+@keyframes tit-zzz { 0%{opacity:0;transform:translate(0,4px)} 30%{opacity:1}
+  70%{opacity:.7} 100%{opacity:0;transform:translate(4px,-8px)} }
+
+/* An animated mascot is decoration. Anyone who has asked for less motion gets
+   a still robot, not a slower one. */
+@media (prefers-reduced-motion: reduce) {
+  .tit-zzz i, .roo-eyes, .roo-pupil, .roo-line, .roo-bulb, .roo-body-group,
+  .roo-arm-l, .roo-arm-r, .roo-tread-dot { animation:none !important; }
+  .tit-zzz i { opacity:.8; }
+}
 
 .tit-lastrun { font-size:13px; color:var(--tit-mut); white-space:nowrap; }
 .tit-lastrun .tit-rt { white-space:normal; font-size:12px; margin-top:2px; }
