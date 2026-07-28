@@ -360,8 +360,34 @@ collection. What is actually left:
    $130M Series B. `sec_form_d` uses MIN_RAISED = $1M. Watch a few real runs
    before choosing a number; it is easier to judge with rows on the page.
 5. **Date range, sort, quick views** on the table.
-6. **Model switch** (Gemini Flash-Lite gate + Haiku read-through), designed and
-   benchmarked, never applied.
+6. **Model switch — measured 2026-07-28, NOT applied, and the reason matters.**
+
+   | model | agrees on signal | agrees on pillar | $/item | $/month @660/day |
+   |---|---|---|---|---|
+   | `deepseek/deepseek-chat` (incumbent) | 100% | 100% | 0.000064 | $1.27 |
+   | `google/gemini-2.5-flash-lite` | 72% | 100% | **0.000033** | **$0.65** |
+   | `openai/gpt-oss-120b` | 75% | 100% | 0.000048 | $0.96 |
+   | `meta-llama/llama-3.3-70b` | 79% | 100% | 0.000363 | $7.19 |
+   | `openai/gpt-5-nano` | n/a | n/a | — | 40 errors, unusable |
+
+   **Read the disagreements before reading the percentages.** Every one went the
+   same way: the incumbent said reject, the challengers said SIGNAL, and the
+   headlines were *"Enigma Raises $71M in Seed Funding"*, *"Peace Coffee PBC
+   raised $1.9M"*, *"Holobiome raised $10M"*. Gemini is not disagreeing with the
+   incumbent, it is **correcting** it. The sibling's "reject below 90%
+   agreement" rule would throw out the better model, because that rule assumes
+   the incumbent is the reference truth and here it is not.
+
+   So the case for gemini-2.5-flash-lite is strong: half the cost, and it reads
+   funding correctly on the short gate prompt where deepseek needs the long
+   production one with worked examples.
+
+   **Why it is still not applied.** The read-through is this product's
+   differentiator and this A/B only tested the gate. `ab_models.py
+   --readthrough` exists to test it and was not run, because the key had $1.90
+   left and burning it on benchmarking would stop collection. Run that first,
+   then switch. Switching halves ongoing spend, so it is worth doing early once
+   the key limit is raised.
 7. **More languages for Google News.** Adding a language is what adds countries:
    a phrase set in `GOOGLE_NEWS_VOCAB`, the matching terms in
    `prefilter._EMPLOYMENT_TERMS_INTL`, then its locales in
