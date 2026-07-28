@@ -57,12 +57,24 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
 # Three editions a run, twice a day, sweeps the whole list in about four days.
 LOCALES_PER_RUN = 3
 
-# Going multilingual took one run from ~25 candidates to ~215, because seven
-# editions each return their own local press. Candidates are what cost money,
-# so the run now carries its own cap instead of relying on --limit being passed.
-# 40 a run, twice a day, is about 2,400 classifications a month, which is what
-# the budget buys. Already-seen URLs are skipped before this, so in steady
-# state the cap is rarely the binding constraint.
+# Candidates are what cost money, so the run carries its own cap rather than
+# relying on --limit being passed.
+#
+# Measured 2026-07-27, from the spend step across consecutive real runs:
+#   $0.0511 per 40-candidate run  ->  $0.00128 per classification
+#
+#   40/run   (this cap)                 $3.07/month     2,400 classifications
+#   122/run  (all the filter passes)    $9.35/month     7,320
+#   244/run  (that, with the 8d window) $18.70/month   14,640
+#
+# The last real run fetched 140, passed 122 through the free filter, and
+# classified 40. **The other 82 were discarded for cost, not for quality.** The
+# cap IS the binding constraint on coverage, and it is a budget decision rather
+# than an engineering one: raise it and coverage rises roughly linearly, at
+# about a tenth of a cent per record.
+#
+# The OpenRouter key's own limit binds before any of this. Check it before
+# raising the cap, or the run will simply stop mid-collection on a 402.
 DEFAULT_CANDIDATE_CAP = 40
 
 
@@ -136,8 +148,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 locales = build_locales(run_index)
                 print(f"[{collector}] editions: "
                       + ", ".join(f"{c}:{l}" for l, c in locales))
-                items = module.collect(queries, locales=locales,
-                                       queries_for=registry.google_news_queries)
+                window = registry.recency_window_days(LOCALES_PER_RUN, RUNS_PER_DAY)
+                print(f"[{collector}] recency window: {window}d "
+                      f"(a locale comes round every "
+                      f"{len(registry.GOOGLE_NEWS_LOCALES) / LOCALES_PER_RUN / RUNS_PER_DAY:.1f}d)")
+                items = module.collect(
+                    queries, locales=locales,
+                    queries_for=lambda lang: registry.google_news_queries(
+                        lang, window_days=window))
             else:
                 items = module.collect(queries)
         except Exception as exc:

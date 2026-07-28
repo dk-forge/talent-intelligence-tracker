@@ -146,3 +146,37 @@ def test_public_sector_recruitment_notices_stay_out():
         "Kayseri'de KPSS fırsatı! Mülakatsız personel alımı başladı",
     ):
         assert not passes(headline)[0], headline
+
+
+def test_the_recency_window_covers_the_gap_between_visits():
+    """Adding eight languages made the sweep 6.2 days while the queries still
+    asked `when:3d`, so every non-anchor market lost half its news and nothing
+    errored: the markets simply returned less, which is indistinguishable from
+    a quiet week. The window is derived from the rotation for that reason.
+    """
+    import math
+
+    from run_collect import LOCALES_PER_RUN, RUNS_PER_DAY
+
+    sweep_days = len(registry.GOOGLE_NEWS_LOCALES) / LOCALES_PER_RUN / RUNS_PER_DAY
+    window = registry.recency_window_days(LOCALES_PER_RUN, RUNS_PER_DAY)
+    assert window > sweep_days, (
+        f"a locale comes round every {sweep_days:.1f} days but is only asked "
+        f"about the last {window}: the difference is never seen"
+    )
+
+
+def test_adding_a_language_widens_the_window_by_itself():
+    """The regression this prevents is adding locales and forgetting the
+    window, which is exactly what happened on 2026-07-27."""
+    narrow = registry.recency_window_days(3, 2)
+    assert registry.recency_window_days(1, 2) > narrow, (
+        "a slower rotation must widen the window without anyone remembering to"
+    )
+
+
+def test_no_phrase_carries_its_own_hardcoded_window():
+    """A `when:` baked into a phrase would silently override the derived one."""
+    for lang, phrases in registry.GOOGLE_NEWS_VOCAB.items():
+        for phrase in phrases:
+            assert "when:" not in phrase, f"{lang}: {phrase}"

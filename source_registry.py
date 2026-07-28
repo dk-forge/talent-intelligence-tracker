@@ -114,39 +114,39 @@ GOOGLE_NEWS_ANCHOR = ("en", "US")
 # silent zero, and three well-chosen ones beat eleven guesses.
 GOOGLE_NEWS_VOCAB = {
     "en": (
-        '("appoints chief executive" OR "names new CEO" OR "steps down as CEO") when:3d',
-        '("plans to hire" OR "hiring spree" OR "to create jobs" OR "opens new office") when:3d',
-        '("raises" OR "raised") ("Series A" OR "Series B" OR "seed funding") when:3d',
+        '("appoints chief executive" OR "names new CEO" OR "steps down as CEO")',
+        '("plans to hire" OR "hiring spree" OR "to create jobs" OR "opens new office")',
+        '("raises" OR "raised") ("Series A" OR "Series B" OR "seed funding")',
     ),
     "de": (
-        '("neuer Vorstandsvorsitzender" OR "wird CEO" OR "verlässt das Unternehmen" OR "tritt zurück") when:3d',
-        '("will einstellen" OR "schafft Arbeitsplätze" OR "neue Stellen" OR "eröffnet Standort") when:3d',
-        '("Finanzierungsrunde" OR "sammelt ein" OR "Millionen eingesammelt") when:3d',
+        '("neuer Vorstandsvorsitzender" OR "wird CEO" OR "verlässt das Unternehmen" OR "tritt zurück")',
+        '("will einstellen" OR "schafft Arbeitsplätze" OR "neue Stellen" OR "eröffnet Standort")',
+        '("Finanzierungsrunde" OR "sammelt ein" OR "Millionen eingesammelt")',
     ),
     "fr": (
-        '("nommé directeur général" OR "devient PDG" OR "quitte ses fonctions" OR "nouveau PDG") when:3d',
-        '("va recruter" OR "créer des emplois" OR "ouvre un site" OR "plan de recrutement") when:3d',
-        '("levée de fonds" OR "lève" "millions") when:3d',
+        '("nommé directeur général" OR "devient PDG" OR "quitte ses fonctions" OR "nouveau PDG")',
+        '("va recruter" OR "créer des emplois" OR "ouvre un site" OR "plan de recrutement")',
+        '("levée de fonds" OR "lève" "millions")',
     ),
     "es": (
-        '("nuevo consejero delegado" OR "nombrado director general" OR "deja el cargo" OR "nuevo CEO") when:3d',
-        '("creará empleo" OR "contratará" OR "nuevos puestos" OR "abre oficina") when:3d',
-        '("ronda de financiación" OR "capta" "millones") when:3d',
+        '("nuevo consejero delegado" OR "nombrado director general" OR "deja el cargo" OR "nuevo CEO")',
+        '("creará empleo" OR "contratará" OR "nuevos puestos" OR "abre oficina")',
+        '("ronda de financiación" OR "capta" "millones")',
     ),
     "pt": (
-        '("novo presidente-executivo" OR "assume como CEO" OR "deixa o cargo" OR "novo CEO") when:3d',
-        '("vai contratar" OR "cria empregos" OR "novas vagas" OR "abre escritório") when:3d',
-        '("rodada de investimento" OR "capta" "milhões") when:3d',
+        '("novo presidente-executivo" OR "assume como CEO" OR "deixa o cargo" OR "novo CEO")',
+        '("vai contratar" OR "cria empregos" OR "novas vagas" OR "abre escritório")',
+        '("rodada de investimento" OR "capta" "milhões")',
     ),
     "it": (
-        '("nuovo amministratore delegato" OR "nominato CEO" OR "lascia la guida") when:3d',
-        '("assumerà" OR "nuove assunzioni" OR "crea posti di lavoro" OR "apre una sede") when:3d',
-        '("round di finanziamento" OR "raccoglie" "milioni") when:3d',
+        '("nuovo amministratore delegato" OR "nominato CEO" OR "lascia la guida")',
+        '("assumerà" OR "nuove assunzioni" OR "crea posti di lavoro" OR "apre una sede")',
+        '("round di finanziamento" OR "raccoglie" "milioni")',
     ),
     "nl": (
-        '("nieuwe topman" OR "wordt CEO" OR "stapt op" OR "benoemd tot bestuursvoorzitter") when:3d',
-        '("gaat aannemen" OR "nieuwe banen" OR "opent vestiging" OR "breidt uit") when:3d',
-        '("financieringsronde" OR "haalt" "miljoen op") when:3d',
+        '("nieuwe topman" OR "wordt CEO" OR "stapt op" OR "benoemd tot bestuursvoorzitter")',
+        '("gaat aannemen" OR "nieuwe banen" OR "opent vestiging" OR "breidt uit")',
+        '("financieringsronde" OR "haalt" "miljoen op")',
     ),
     # Added 2026-07-27. Every one was fetched live before being committed, and
     # the matching prefilter terms were tested against the real headlines that
@@ -156,44 +156,44 @@ GOOGLE_NEWS_VOCAB = {
     # Indonesian returned football transfers because "merekrut" is the verb for
     # signing a player.
     "pl": (
-        '("nowym prezesem" OR "powołany na stanowisko prezesa" OR "rezygnuje") when:3d',
-        '("zatrudni" OR "nowe miejsca pracy" OR "otwiera biuro") when:3d',
-        '("runda finansowania" OR "pozyskał" "mln") when:3d',
+        '("nowym prezesem" OR "powołany na stanowisko prezesa" OR "rezygnuje")',
+        '("zatrudni" OR "nowe miejsca pracy" OR "otwiera biuro")',
+        '("runda finansowania" OR "pozyskał" "mln")',
     ),
     "sv": (
-        '("ny vd" OR "utses till vd" OR "lämnar sin post") when:3d',
-        '("ska anställa" OR "nya jobb" OR "öppnar kontor") when:3d',
-        '("finansieringsrunda" OR "tar in" "miljoner") when:3d',
+        '("ny vd" OR "utses till vd" OR "lämnar sin post")',
+        '("ska anställa" OR "nya jobb" OR "öppnar kontor")',
+        '("finansieringsrunda" OR "tar in" "miljoner")',
     ),
     "tr": (
-        '("genel müdür atandı" OR "yeni CEO" OR "görevinden ayrıldı") when:3d',
-        '("işe alacak" OR "istihdam" OR "yeni ofis açtı") when:3d',
-        '("yatırım turu" OR "yatırım aldı" OR "tohum yatırımı") when:3d',
+        '("genel müdür atandı" OR "yeni CEO" OR "görevinden ayrıldı")',
+        '("işe alacak" OR "istihdam" OR "yeni ofis açtı")',
+        '("yatırım turu" OR "yatırım aldı" OR "tohum yatırımı")',
     ),
     "id": (
-        '("direktur utama baru" OR "menunjuk CEO" OR "mengundurkan diri") when:3d',
-        '("membuka lowongan" OR "merekrut" OR "kantor baru") when:3d',
-        '("pendanaan" OR "putaran pendanaan" OR "seri A") when:3d',
+        '("direktur utama baru" OR "menunjuk CEO" OR "mengundurkan diri")',
+        '("membuka lowongan" OR "merekrut" OR "kantor baru")',
+        '("pendanaan" OR "putaran pendanaan" OR "seri A")',
     ),
     "vi": (
-        '("bổ nhiệm tổng giám đốc" OR "CEO mới" OR "từ chức") when:3d',
-        '("tuyển dụng" OR "việc làm mới" OR "mở văn phòng") when:3d',
-        '("vòng gọi vốn" OR "huy động" "triệu USD") when:3d',
+        '("bổ nhiệm tổng giám đốc" OR "CEO mới" OR "từ chức")',
+        '("tuyển dụng" OR "việc làm mới" OR "mở văn phòng")',
+        '("vòng gọi vốn" OR "huy động" "triệu USD")',
     ),
     "ja": (
-        '("社長に就任" OR "CEOに就任" OR "代表取締役に就任" OR "退任") when:3d',
-        '("採用を拡大" OR "人員を増やす" OR "新拠点" OR "新オフィス") when:3d',
-        '("資金調達" OR "シリーズA" OR "シードラウンド") when:3d',
+        '("社長に就任" OR "CEOに就任" OR "代表取締役に就任" OR "退任")',
+        '("採用を拡大" OR "人員を増やす" OR "新拠点" OR "新オフィス")',
+        '("資金調達" OR "シリーズA" OR "シードラウンド")',
     ),
     "ko": (
-        '("신임 대표이사" OR "대표이사 선임" OR "CEO 선임" OR "사임") when:3d',
-        '("채용 확대" OR "신규 채용" OR "인력 충원" OR "사무소 개소") when:3d',
-        '("투자 유치" OR "시리즈 A" OR "시드 투자") when:3d',
+        '("신임 대표이사" OR "대표이사 선임" OR "CEO 선임" OR "사임")',
+        '("채용 확대" OR "신규 채용" OR "인력 충원" OR "사무소 개소")',
+        '("투자 유치" OR "시리즈 A" OR "시드 투자")',
     ),
     "ar": (
-        '("تعيين رئيس تنفيذي" OR "الرئيس التنفيذي الجديد" OR "استقالة") when:3d',
-        '("توظيف" OR "فرص عمل" OR "مكتب جديد") when:3d',
-        '("جولة تمويل" OR "تمويل" "مليون") when:3d',
+        '("تعيين رئيس تنفيذي" OR "الرئيس التنفيذي الجديد" OR "استقالة")',
+        '("توظيف" OR "فرص عمل" OR "مكتب جديد")',
+        '("جولة تمويل" OR "تمويل" "مليون")',
     ),
 }
 
@@ -217,23 +217,44 @@ GOOGLE_NEWS_LOCALES = (
 )
 
 
-def google_news_queries(lang: str) -> list[str]:
+# The recency window is DERIVED from how long the rotation takes, never
+# hardcoded. It was `when:3d` while 25 locales rotated 3 per run twice a day,
+# which swept everything in about four days; adding eight languages made the
+# sweep 6.2 days and silently opened a 3.2-day hole in every non-anchor market.
+# Nothing errored. Those markets simply returned less, which is indistinguish-
+# able from a quiet week.
+#
+# Widening costs nothing to fetch and nothing to classify: already-seen URLs are
+# skipped before any spend, so an overlapping window re-reads headlines we have
+# already judged and pays for none of them.
+def recency_window_days(locales_per_run: int, runs_per_day: int) -> int:
+    """Cover the whole gap between visits, plus a day of margin."""
+    import math
+
+    if locales_per_run <= 0 or runs_per_day <= 0:
+        return 7
+    sweep = math.ceil(len(GOOGLE_NEWS_LOCALES) / locales_per_run / runs_per_day)
+    return max(3, min(30, sweep + 1))
+
+
+def google_news_queries(lang: str, *, window_days: int = 7) -> list[str]:
     """Phrases for one edition. English is the fallback and the anchor."""
-    return list(GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"]))
+    phrases = GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"])
+    return [f"{p} when:{window_days}d" for p in phrases]
 
 
 GOOGLE_NEWS_QUERIES = (
-    '("appoints chief executive" OR "names chief executive" OR "appointed CEO") when:3d',
-    '("appoints chief financial officer" OR "appoints CFO" OR "new chief people officer") when:3d',
-    '("steps down as chief executive" OR "steps down as CEO" OR "to step down as CEO") when:3d',
-    '("hiring spree" OR "recruitment drive" OR "to ramp up hiring") when:3d',
-    '("plans to hire" OR "will hire" OR "to add jobs") ("engineers" OR "staff" OR "roles") when:3d',
-    '("opens new office" OR "opens its new" OR "new engineering hub") when:3d',
-    '("global capability centre" OR "global capability center") when:3d',
-    '("raises" OR "raised") ("Series A" OR "Series B" OR "Series C" OR "seed funding") when:3d',
+    '("appoints chief executive" OR "names chief executive" OR "appointed CEO")',
+    '("appoints chief financial officer" OR "appoints CFO" OR "new chief people officer")',
+    '("steps down as chief executive" OR "steps down as CEO" OR "to step down as CEO")',
+    '("hiring spree" OR "recruitment drive" OR "to ramp up hiring")',
+    '("plans to hire" OR "will hire" OR "to add jobs") ("engineers" OR "staff" OR "roles")',
+    '("opens new office" OR "opens its new" OR "new engineering hub")',
+    '("global capability centre" OR "global capability center")',
+    '("raises" OR "raised") ("Series A" OR "Series B" OR "Series C" OR "seed funding")',
     '("acquires" OR "to acquire") ("startup" OR "company") when:2d',
-    '("pay rise" OR "raises minimum salary" OR "retention bonus") when:3d',
-    '("return to office" OR "remote work policy") ("employees" OR "staff") when:3d',
+    '("pay rise" OR "raises minimum salary" OR "retention bonus")',
+    '("return to office" OR "remote work policy") ("employees" OR "staff")',
 )
 
 
