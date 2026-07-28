@@ -119,5 +119,10 @@ def test_the_stylesheet_the_page_asks_for_actually_exists():
            / "talent-intelligence-tracker" / "assets" / "dashboard.css")
     assert css.is_file() and css.stat().st_size > 5000
     body = css.read_text()
-    for selector in (".tit-hero", ".tit-glance-cell", ".tit-region", ".tit-table"):
+    # Keep this list in step with what the page actually renders. The old
+    # period-tile strip (.tit-glance-cell) was replaced by the signal-by-period
+    # matrix on 2026-07-28, so this guard was failing on a class nothing emits
+    # any more. The point is that the stylesheet really covers the live markup,
+    # not that a particular historical class survives forever.
+    for selector in (".tit-hero", ".tit-matrix", ".tit-cell", ".tit-region", ".tit-table"):
         assert selector in body, selector

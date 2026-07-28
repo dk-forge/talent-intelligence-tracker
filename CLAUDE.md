@@ -78,7 +78,7 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Cost discipline
 
-Budget is ~$0.60/month, all LLM. It holds because: candidates are keyword-gated
+Budget is ~$3-5/month (measured; see spend.py), all LLM. It holds because: candidates are keyword-gated
 before the model sees them; already-seen URLs are skipped *before* any spend;
 the classification prompt is deliberately tiny; and a `402` raises
 `CreditsExhausted` and stops the run instead of burning a batch. There is a
