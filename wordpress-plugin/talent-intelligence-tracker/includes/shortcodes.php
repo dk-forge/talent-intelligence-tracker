@@ -9,6 +9,14 @@
 if (!defined('ABSPATH')) exit;
 
 function tit_dashboard_shortcode() {
+    // Enqueue from INSIDE the shortcode as well as from wp_enqueue_scripts.
+    // The hook's guard asks has_shortcode($post->post_content, ...), which is
+    // FALSE whenever the shortcode reaches the page through a block, pattern,
+    // template part or reusable block rather than sitting raw in post_content.
+    // The dashboard then rendered with no stylesheet at all -- every tit- class
+    // inert, the page raw HTML (observed live 2026-07-28). Enqueuing where the
+    // markup is actually produced cannot drift from where it is used.
+    if (function_exists('tit_enqueue_dashboard_assets')) tit_enqueue_dashboard_assets();
     global $wpdb;
     $table = tit_table_name();
 
@@ -438,20 +446,12 @@ function tit_regions(array $counts) {
     return $out;
 }
 
-function tit_enqueue_assets() {
-    // Our own routed pages (company profiles, sources) carry no shortcode and
-    // are not singular posts, so a shortcode-only check leaves them completely
-    // unstyled. Ask each route, rather than naming them one at a time — that
-    // omission is exactly how the sources page shipped unstyled.
-    $is_plugin_route = (bool) get_query_var('tit_company')
-                    || (bool) get_query_var('tit_sources');
-
-    if (!$is_plugin_route) {
-        if (!is_singular()) return;
-        global $post;
-        if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
-    }
-
+/**
+ * Enqueue the dashboard assets. Idempotent: WordPress ignores a second
+ * enqueue of the same handle, so both the wp_enqueue_scripts hook and the
+ * shortcode itself can call this safely.
+ */
+function tit_enqueue_dashboard_assets() {
     // Version is TIT_VERSION plus the file's own mtime, the same shape the
     // sibling plugin uses. TIT_VERSION alone is not enough: an FTP deploy can
     // change the stylesheet without the constant moving (a CSS-only fix), and
@@ -468,5 +468,22 @@ function tit_enqueue_assets() {
         // country names the server used. Two copies of this list would drift.
         'countries' => tit_country_names(),
     ));
+}
+
+function tit_enqueue_assets() {
+    // Our own routed pages (company profiles, sources) carry no shortcode and
+    // are not singular posts, so a shortcode-only check leaves them completely
+    // unstyled. Ask each route, rather than naming them one at a time — that
+    // omission is exactly how the sources page shipped unstyled.
+    $is_plugin_route = (bool) get_query_var('tit_company')
+                    || (bool) get_query_var('tit_sources');
+
+    if (!$is_plugin_route) {
+        if (!is_singular()) return;
+        global $post;
+        if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
+    }
+
+    tit_enqueue_dashboard_assets();
 }
 add_action('wp_enqueue_scripts', 'tit_enqueue_assets');
