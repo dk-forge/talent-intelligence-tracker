@@ -83,18 +83,27 @@
         if (!data) return;
         // Only geography is data-driven; roles and industries are closed
         // vocabularies and are already rendered server-side.
-        fill(inputs.country, data.countries);
+        // Countries are listed by name and sorted by name. /facets returns ISO
+        // codes, and a dropdown reading "AE, AR, AT" asks the reader to know
+        // the codebook before they can pick a country.
+        fill(inputs.country, data.countries, true);
         fill(inputs.state, data.states);
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
 
-  function fill(select, values) {
+  function fill(select, values, asCountries) {
     if (!select || !values) return;
-    values.forEach(function (v) {
+    var items = values.map(function (v) {
+      return { value: v, label: (asCountries && TIT.countries[v]) || v };
+    });
+    if (asCountries) {
+      items.sort(function (a, b) { return a.label.localeCompare(b.label); });
+    }
+    items.forEach(function (item) {
       var opt = document.createElement('option');
-      opt.value = v;
-      opt.textContent = v;
+      opt.value = item.value;
+      opt.textContent = item.label;
       select.appendChild(opt);
     });
   }
@@ -189,6 +198,19 @@
         plural(data.companies, 'employer') + ' · ' +
         plural(data.countries, 'country', 'countries') + ' · ' +
         nfmt(data.verified) + ' from official filings. ';
+    }
+
+    // The at-a-glance tiles move with the filters like everything else. They
+    // used to be the one part of the hero that did not, so a filtered page had
+    // its own summary contradicting its own tiles.
+    var glance = root.querySelector('.tit-glance');
+    if (glance && data.glance) {
+      glance.innerHTML = data.glance.map(function (g) {
+        return '<div class="tit-glance-cell">' +
+          '<span class="tit-glance-when">' + esc(g.when) + '</span>' +
+          '<span class="tit-glance-n">' + nfmt(g.n) + '</span>' +
+          '<span class="tit-glance-detail">' + esc(g.detail) + '</span></div>';
+      }).join('');
     }
 
     var charts = root.querySelectorAll('.tit-charts .tit-chart');

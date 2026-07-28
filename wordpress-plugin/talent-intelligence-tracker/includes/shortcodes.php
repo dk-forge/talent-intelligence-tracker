@@ -209,7 +209,22 @@ function tit_dashboard_shortcode() {
       <div class="tit-quick" role="group" aria-label="Quick views">
         <span class="tit-quick-label">Quick views</span>
         <button type="button" class="tit-qv" data-qv="">Everything</button>
-        <button type="button" class="tit-qv" data-qv="since=<?php echo esc_attr(date('Y-m-d', strtotime('-7 days'))); ?>">This week</button>
+        <?php
+        // Periods are computed, never written down. "2026" in a hardcoded label
+        // is a bug with a date on it, and a quarter start typed by hand is
+        // three more. All four move with the clock.
+        $today = current_time('Y-m-d');
+        $qstart = date('Y-m-01', strtotime(date('Y', strtotime($today)) . '-'
+                  . sprintf('%02d', (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1) . '-01'));
+        $views = array(
+            'This week'  => date('Y-m-d', strtotime($today . ' -6 days')),
+            'This month' => date('Y-m-01', strtotime($today)),
+            'This quarter' => $qstart,
+            date('Y', strtotime($today)) . ' so far' => date('Y-01-01', strtotime($today)),
+        );
+        foreach ($views as $label => $from) : ?>
+          <button type="button" class="tit-qv" data-qv="since=<?php echo esc_attr($from); ?>"><?php echo esc_html($label); ?></button>
+        <?php endforeach; ?>
         <button type="button" class="tit-qv" data-qv="direction=hiring">Hiring up</button>
         <button type="button" class="tit-qv" data-qv="funding=1">Raised money</button>
         <button type="button" class="tit-qv" data-qv="pillar=leadership_change">Leadership moves</button>
@@ -217,59 +232,88 @@ function tit_dashboard_shortcode() {
         <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
-          <option value="largest">Most roles first</option>
           <option value="employer">By employer</option>
         </select>
       </div>
 
       <div class="tit-filters">
-        <select id="tit-f-pillar" aria-label="What kind of update">
-          <option value="">Anything happening</option>
-          <?php foreach ($labels as $k => $v) : ?>
-            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-          <?php endforeach; ?>
-        </select>
-        <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
-          <option value="">Growing or shrinking</option>
-          <?php foreach ($directions as $k => $v) : ?>
-            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-          <?php endforeach; ?>
-        </select>
-        <select id="tit-f-function" aria-label="Which roles are affected">
-          <option value="">Any roles</option>
-          <?php foreach ($functions as $k => $v) : ?>
-            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-          <?php endforeach; ?>
-        </select>
-        <select id="tit-f-industry" aria-label="Which industry">
-          <option value="">Any industry</option>
-          <?php foreach ($industries as $k => $v) : ?>
-            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-          <?php endforeach; ?>
-        </select>
-        <select id="tit-f-country" aria-label="Which country">
-          <option value="">Anywhere</option>
-        </select>
-        <select id="tit-f-state" aria-label="Which US state">
-          <option value="">Any US state</option>
-        </select>
-        <select id="tit-f-confidence" aria-label="How solid the record is">
-          <option value="">Any confidence</option>
-          <option value="verified">From official filings</option>
-          <option value="reported">Reported by a publisher</option>
-          <option value="rumored">Rumored</option>
-        </select>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Kind of update</span>
+          <select id="tit-f-pillar" aria-label="What kind of update">
+            <option value="">Anything happening</option>
+            <?php foreach ($labels as $k => $v) : ?>
+              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Headcount direction</span>
+          <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
+            <option value="">Growing or shrinking</option>
+            <?php foreach ($directions as $k => $v) : ?>
+              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Roles affected</span>
+          <select id="tit-f-function" aria-label="Which roles are affected">
+            <option value="">Any roles</option>
+            <?php foreach ($functions as $k => $v) : ?>
+              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Industry</span>
+          <select id="tit-f-industry" aria-label="Which industry">
+            <option value="">Any industry</option>
+            <?php foreach ($industries as $k => $v) : ?>
+              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Country</span>
+          <select id="tit-f-country" aria-label="Which country">
+            <option value="">Anywhere</option>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">US state</span>
+          <select id="tit-f-state" aria-label="Which US state">
+            <option value="">Any US state</option>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">How solid</span>
+          <select id="tit-f-confidence" aria-label="How solid the record is">
+            <option value="">Any confidence</option>
+            <option value="verified">From official filings</option>
+            <option value="reported">Reported by a publisher</option>
+            <option value="rumored">Rumored</option>
+          </select>
+        </label>
         <!-- The charts already admit they fall back to headquarters. Until now
              the page surfaced that ambiguity without letting anyone resolve it,
              even though the API has taken country_basis all along. -->
-        <select id="tit-f-country_basis" aria-label="How to decide where a record belongs">
-          <option value="any">Place, or the employer's HQ</option>
-          <option value="location">Only where the source named a place</option>
-        </select>
-        <input type="search" id="tit-f-company" placeholder="Employer name"
-               aria-label="Search by employer">
-        <input type="search" id="tit-f-q" placeholder="Search anything"
-               aria-label="Search headlines and read-throughs">
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Place basis</span>
+          <select id="tit-f-country_basis" aria-label="How to decide where a record belongs">
+            <option value="any">Place, or the employer's HQ</option>
+            <option value="location">Only where the source named a place</option>
+          </select>
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Employer</span>
+          <input type="search" id="tit-f-company" placeholder="e.g. Apple"
+                 aria-label="Search by employer">
+        </label>
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Search</span>
+          <input type="search" id="tit-f-q" placeholder="Company, industry, keyword…"
+                 aria-label="Search headlines and read-throughs">
+        </label>
         <label class="tit-field"><span>From</span>
           <input type="date" id="tit-f-since" aria-label="Earliest date"
                  min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
@@ -341,11 +385,6 @@ function tit_dashboard_shortcode() {
         </div>
       </div>
 
-      <div class="tit-sec">
-        <h3>Every update</h3>
-        <p>Newest first. The read-through is ours; the headline, the figures and
-           the confidence all come from the linked source.</p>
-      </div>
 
       <div class="tit-table-scroll">
         <table class="tit-table">
@@ -467,15 +506,41 @@ function tit_glance($table) {
     // depth this tracker has not earned yet. A period earns a tile by
     // disagreeing with the one before it; the tiles reappear on their own as
     // soon as there is enough history to tell them apart.
+    // Drop the NARROWER of any two periods holding the same records, so the
+    // year-to-date tile is the one that survives. It is the "how much is there
+    // altogether" number and should never be the one that disappears; what is
+    // redundant when nothing is older than a month is "this month", not the
+    // year. Both ends are always kept: today, and the running total.
     $kept = array();
-    foreach ($out as $tile) {
-        $prev = end($kept);
-        if ($prev !== false && $prev['n'] === $tile['n']) {
+    $last = count($out) - 1;
+    foreach ($out as $i => $tile) {
+        $wider = $out[$i + 1] ?? null;
+        if ($i !== 0 && $i !== $last && $wider !== null && $wider['n'] === $tile['n']) {
             continue;
         }
         $kept[] = $tile;
     }
     return $kept;
+}
+
+/**
+ * When the next collection run is due.
+ *
+ * "Resting until the next run" invites the obvious question and then does not
+ * answer it. The schedule is a cron in collect.yml, so the times are fixed and
+ * known: 06:00 and 18:00 UTC. Printed in the site's own timezone, because a
+ * reader should not have to convert.
+ */
+function tit_next_run() {
+    $now = time();
+    foreach (array(0, 1) as $day) {
+        foreach (array(6, 18) as $hour) {
+            $t = strtotime(gmdate('Y-m-d', $now + $day * DAY_IN_SECONDS)
+                           . sprintf(' %02d:00:00 UTC', $hour));
+            if ($t > $now) return $t;
+        }
+    }
+    return 0;
 }
 
 /**
@@ -517,11 +582,19 @@ function tit_roo($newest_run) {
     $working = ($ago !== null && $ago >= 0 && $ago < 900);
     $state   = $working ? 'tit-roo-working' : 'tit-roo-sleeping';
 
+    $next  = tit_next_run();
+    $when  = $next ? date_i18n('g:i A', $next) : '';
+    $in    = $next ? human_time_diff(time(), $next) : '';
+
     if ($working) {
         $say = 'Roo is pulling in new filings and news';
+    } elseif ($ago !== null && $next) {
+        $say = sprintf('Roo pulled the latest data %s ago. Next run at %s, in %s.',
+                       human_time_diff($ts, time()), $when, $in);
     } elseif ($ago !== null) {
-        $say = sprintf('Roo pulled the latest data %s ago, resting until the next run',
-                       human_time_diff($ts, time()));
+        $say = sprintf('Roo pulled the latest data %s ago.', human_time_diff($ts, time()));
+    } elseif ($next) {
+        $say = sprintf('Roo is resting. Next run at %s, in %s.', $when, $in);
     } else {
         $say = 'Roo is resting until the next run';
     }

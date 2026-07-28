@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.23.0
+ * Version: 1.24.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.23.0');
+define('TIT_VERSION', '1.24.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -115,6 +115,48 @@ function tit_country_names() {
         'IL' => 'Israel', 'QA' => 'Qatar', 'TR' => 'Turkey',
         'ZA' => 'South Africa', 'NG' => 'Nigeria', 'KE' => 'Kenya',
         'EG' => 'Egypt', 'MA' => 'Morocco',
+        // Everything below was missing, and a missing code is not a blank, it
+        // is the raw code printed in the middle of a chart of country names:
+        // "LV" and "NA" sat next to "United States" and "Ireland". We read 38
+        // countries and this list held 52 of roughly 200, so the gap was always
+        // going to show. Cheaper to carry the world than to keep patching it
+        // one embarrassment at a time.
+        'LV' => 'Latvia', 'LT' => 'Lithuania', 'EE' => 'Estonia',
+        'SK' => 'Slovakia', 'SI' => 'Slovenia', 'HR' => 'Croatia',
+        'BG' => 'Bulgaria', 'RS' => 'Serbia', 'UA' => 'Ukraine',
+        'IS' => 'Iceland', 'LU' => 'Luxembourg', 'MT' => 'Malta',
+        'CY' => 'Cyprus', 'AL' => 'Albania', 'BA' => 'Bosnia and Herzegovina',
+        'ME' => 'Montenegro', 'MK' => 'North Macedonia', 'MD' => 'Moldova',
+        'BY' => 'Belarus', 'MC' => 'Monaco', 'LI' => 'Liechtenstein',
+        'AD' => 'Andorra', 'SM' => 'San Marino', 'VA' => 'Vatican City',
+        'XK' => 'Kosovo', 'RU' => 'Russia', 'GE' => 'Georgia',
+        'AM' => 'Armenia', 'AZ' => 'Azerbaijan', 'KZ' => 'Kazakhstan',
+        'UZ' => 'Uzbekistan',
+        'NA' => 'Namibia', 'TZ' => 'Tanzania', 'UG' => 'Uganda',
+        'ZM' => 'Zambia', 'ZW' => 'Zimbabwe', 'BW' => 'Botswana',
+        'MZ' => 'Mozambique', 'AO' => 'Angola', 'SN' => 'Senegal',
+        'CI' => "Cote d'Ivoire", 'CM' => 'Cameroon', 'DZ' => 'Algeria',
+        'TN' => 'Tunisia', 'LY' => 'Libya', 'SD' => 'Sudan',
+        'SS' => 'South Sudan', 'RW' => 'Rwanda', 'MW' => 'Malawi',
+        'MU' => 'Mauritius', 'MG' => 'Madagascar', 'CD' => 'DR Congo',
+        'CG' => 'Congo', 'GA' => 'Gabon', 'BJ' => 'Benin',
+        'BF' => 'Burkina Faso', 'ML' => 'Mali', 'NE' => 'Niger',
+        'TD' => 'Chad', 'SO' => 'Somalia', 'SL' => 'Sierra Leone',
+        'LR' => 'Liberia', 'GM' => 'Gambia', 'GH' => 'Ghana', 'ET' => 'Ethiopia',
+        'PK' => 'Pakistan', 'BD' => 'Bangladesh', 'LK' => 'Sri Lanka',
+        'NP' => 'Nepal', 'MM' => 'Myanmar', 'KH' => 'Cambodia',
+        'LA' => 'Laos', 'MN' => 'Mongolia', 'MO' => 'Macau',
+        'BN' => 'Brunei', 'MV' => 'Maldives',
+        'KW' => 'Kuwait', 'BH' => 'Bahrain', 'OM' => 'Oman',
+        'JO' => 'Jordan', 'LB' => 'Lebanon', 'IQ' => 'Iraq',
+        'IR' => 'Iran', 'SY' => 'Syria', 'YE' => 'Yemen', 'PS' => 'Palestine',
+        'UY' => 'Uruguay', 'CR' => 'Costa Rica', 'EC' => 'Ecuador',
+        'BO' => 'Bolivia', 'PY' => 'Paraguay', 'VE' => 'Venezuela',
+        'GT' => 'Guatemala', 'HN' => 'Honduras', 'SV' => 'El Salvador',
+        'NI' => 'Nicaragua', 'PA' => 'Panama', 'DO' => 'Dominican Republic',
+        'CU' => 'Cuba', 'JM' => 'Jamaica', 'TT' => 'Trinidad and Tobago',
+        'HT' => 'Haiti', 'BZ' => 'Belize', 'GY' => 'Guyana', 'SR' => 'Suriname',
+        'FJ' => 'Fiji', 'PG' => 'Papua New Guinea',
     );
 }
 

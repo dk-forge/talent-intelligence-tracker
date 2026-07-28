@@ -232,6 +232,61 @@ function tit_api_query(WP_REST_Request $req) {
     return rest_ensure_response($out);
 }
 
+/**
+ * Today / this week / this month / year to date, narrowed by the caller's own
+ * filters.
+ *
+ * Deliberately the same four periods, the same date expression and the same
+ * "drop the narrower of two identical periods" rule as tit_glance() in
+ * shortcodes.php, so the tiles the server draws and the tiles JavaScript
+ * redraws cannot describe the world differently.
+ */
+function tit_aggregate_glance($table, $where, array $params) {
+    global $wpdb;
+    $today = current_time('Y-m-d');
+    $periods = array(
+        array('Today',      $today),
+        array('This week',  date('Y-m-d', strtotime($today . ' -6 days'))),
+        array('This month', date('Y-m-01', strtotime($today))),
+        array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
+    );
+
+    $out = array();
+    foreach ($periods as [$when, $from]) {
+        $sql = "SELECT COUNT(*) n,
+                       SUM(signal_direction = 'hiring') hiring,
+                       SUM(funding_amount IS NOT NULL AND funding_amount <> '') funded,
+                       SUM(confidence = 'verified') verified
+                  FROM {$table}
+                 WHERE {$where}
+                   AND COALESCE(published_date, DATE(captured_at)) >= %s";
+        $row = $wpdb->get_row($wpdb->prepare($sql, array_merge($params, array($from))), ARRAY_A);
+
+        $n = (int) ($row['n'] ?? 0);
+        $bits = array();
+        if ($n) {
+            if ((int) $row['hiring'])   $bits[] = number_format_i18n((int) $row['hiring']) . ' hiring up';
+            if ((int) $row['funded'])   $bits[] = number_format_i18n((int) $row['funded']) . ' raised money';
+            if ((int) $row['verified']) $bits[] = number_format_i18n((int) $row['verified']) . ' from filings';
+        }
+        $out[] = array(
+            'when'   => $when,
+            'n'      => $n,
+            'detail' => $n === 0 ? 'nothing yet'
+                                 : ($bits ? implode(' · ', $bits) : ($n === 1 ? 'one update' : 'updates')),
+        );
+    }
+
+    $kept = array();
+    $last = count($out) - 1;
+    foreach ($out as $i => $tile) {
+        $wider = $out[$i + 1] ?? null;
+        if ($i !== 0 && $i !== $last && $wider !== null && $wider['n'] === $tile['n']) continue;
+        $kept[] = $tile;
+    }
+    return $kept;
+}
+
 function tit_api_aggregate(WP_REST_Request $req) {
     global $wpdb;
 
@@ -281,6 +336,13 @@ function tit_api_aggregate(WP_REST_Request $req) {
         'by_industry' => $group('industry'),
         'by_state'   => $group('state'),
         'by_confidence' => $group('confidence'),
+        // The at-a-glance tiles, under the SAME where clause as everything else
+        // on this response. They were server-rendered once and never moved, so
+        // filtering to one region left the hero reading "19 updates, 1 country"
+        // directly above tiles still claiming 42 this week and 46 this month.
+        // A dashboard that disagrees with itself is worse than one that shows
+        // less.
+        'glance'     => tit_aggregate_glance($table, $where, $params),
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);

@@ -535,7 +535,12 @@
 .tit-glance { display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
   background:var(--tit-line); border:1px solid var(--tit-line);
   border-radius:10px; overflow:hidden; margin:0; }
-@media (min-width:820px){ .tit-glance { grid-template-columns:repeat(4,1fr); } }
+/* auto-fit, not a hard four. Periods that hold the same records collapse into
+   one tile, so the count varies between three and four, and a fixed grid left a
+   grey hole where the dropped tile used to be. */
+@media (min-width:820px){
+  .tit-glance { grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); }
+}
 .tit-glance-cell { background:#fff; padding:11px 13px; display:grid; gap:1px; }
 .tit-wrap .tit-glance-when { font-size:11.5px; font-weight:700; letter-spacing:.06em;
   text-transform:uppercase; color:var(--tit-mut); }
@@ -696,6 +701,17 @@
 .tit-wrap .tit-field > span { flex:none; font-size:12px; font-weight:700;
   letter-spacing:.04em; text-transform:uppercase; color:var(--tit-mut); }
 .tit-wrap .tit-field input { flex:1 1 auto; min-width:0; }
+
+/* Every control says what it controls.
+   A row of bare selects reading "Anything happening", "Any roles", "Anywhere"
+   tells you what each will show you and never what it is for, so the filter
+   block could only be understood by opening all nine. The label names the
+   field; the option text stays as the do-nothing default. */
+.tit-wrap .tit-field--stack { display:grid; gap:3px; align-items:stretch; }
+.tit-wrap .tit-field--stack > .tit-field-l { font-size:11px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--tit-faint); }
+.tit-wrap .tit-field--stack > select,
+.tit-wrap .tit-field--stack > input { width:100%; min-width:0; }
 
 /* Active filters ---------------------------------------------------------- */
 /* Sticky, because the controls are far above the rows they change: scroll to
