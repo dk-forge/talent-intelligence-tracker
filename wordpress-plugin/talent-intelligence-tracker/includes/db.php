@@ -83,6 +83,23 @@ function tit_flush_caches() {
         "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_tit_%'
          OR option_name LIKE '_transient_timeout_tit_%'"
     );
+
+    // Clearing our transients refreshes the DATA while leaving the previously
+    // generated HTML sitting in front of it. This host runs a page cache, and
+    // crawlers and first-time visitors request the bare URL, so unlike our own
+    // checks they never carry a cache-busting query string and keep receiving
+    // the old page. That is why deploys here have repeatedly looked like they
+    // did not land: on 2026-07-28 the assets were verified present on the
+    // server while the rendered page still ran the previous version's PHP. The
+    // sibling plugin hit exactly this and purges the page cache too.
+    if (function_exists('wp_cache_clear_cache')) wp_cache_clear_cache(); // WP Super Cache
+    if (function_exists('w3tc_flush_all'))       w3tc_flush_all();
+    if (has_action('litespeed_purge_all'))       do_action('litespeed_purge_all');
+    do_action('nfd_purge_all');                                          // Bluehost/Newfold
+    if (function_exists('wp_cache_flush'))       wp_cache_flush();       // object cache
+    // Autoptimize is deliberately NOT cleared: its filenames are content
+    // hashes, so a changed asset already gets a new aggregate, and deleting the
+    // old files only opens a window where in-flight HTML points at a 410.
 }
 
 /**
