@@ -95,6 +95,17 @@ CREATE TABLE IF NOT EXISTS signals (
     -- Where the work happens, when the source says so.
     work_mode         TEXT,
 
+    -- The corporate event, when the source names one, from the perspective of
+    -- `company`: 'acquisition' is this employer buying, 'acquired' is this
+    -- employer being bought. Same event, opposite meaning to a recruiter.
+    deal_type         TEXT,
+
+    -- How much this row is worth a recruiter's attention: high | medium |
+    -- routine. Computed deterministically in Python (validate.compute_
+    -- materiality) from values already on the row, so it costs nothing and can
+    -- be recomputed over the whole table without refetching anything.
+    materiality       TEXT,
+
     confidence        TEXT    NOT NULL,
 
     -- Provenance. No source URL, no row (spec 2 rule 1).
@@ -190,6 +201,7 @@ CREATE INDEX IF NOT EXISTS idx_signals_sigid    ON signals(signal_id, revision);
 CREATE INDEX IF NOT EXISTS idx_signals_fund_usd ON signals(funding_amount_usd);
 CREATE INDEX IF NOT EXISTS idx_signals_effective ON signals(effective_date);
 CREATE INDEX IF NOT EXISTS idx_signals_cik      ON signals(cik);
+CREATE INDEX IF NOT EXISTS idx_signals_material ON signals(materiality);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
 """
 
@@ -222,6 +234,8 @@ MIGRATIONS = (
     ("signals", "work_mode", "TEXT"),
     ("signals", "employer_type", "TEXT"),
     ("signals", "headcount_scope", "TEXT"),
+    ("signals", "materiality", "TEXT"),
+    ("signals", "deal_type", "TEXT"),
 )
 
 
@@ -268,6 +282,46 @@ def backfill_funding_usd(conn: sqlite3.Connection) -> int:
     return len(updates)
 
 
+def backfill_materiality(conn: sqlite3.Connection) -> int:
+    """Fill materiality on rows that predate the column.
+
+    Same contract as backfill_funding_usd, and the same reason it is safe: the
+    rule is a pure function of columns already on the row, so this recomputes
+    rather than invents. No model call, no refetch, no network — which is the
+    only reason a column added after a 2,000-row backfill is not NULL forever.
+
+    Idempotent: only rows where it is missing are touched.
+    """
+    from . import validate  # imported here: validate imports vocab, not schema
+
+    rows = conn.execute(
+        """SELECT row_id, headcount, funding_amount_usd, ticker, cik, pillar,
+                  headline, city
+             FROM signals WHERE materiality IS NULL OR materiality = ''"""
+    ).fetchall()
+
+    updates = [
+        (
+            validate.compute_materiality(
+                headcount=row["headcount"],
+                funding_usd=row["funding_amount_usd"],
+                ticker=row["ticker"],
+                cik=row["cik"],
+                pillar=row["pillar"] or "",
+                headline=row["headline"] or "",
+                city=row["city"],
+            ),
+            row["row_id"],
+        )
+        for row in rows
+    ]
+    if updates:
+        conn.executemany(
+            "UPDATE signals SET materiality = ? WHERE row_id = ?", updates
+        )
+    return len(updates)
+
+
 def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     path = Path(db_path) if db_path else DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -291,6 +345,7 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     # that is allowed to be NULL.
     try:
         backfill_funding_usd(conn)
+        backfill_materiality(conn)
     except sqlite3.OperationalError:
         pass
 

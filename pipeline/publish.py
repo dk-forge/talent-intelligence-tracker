@@ -49,7 +49,7 @@ FIELDS = (
     "signal_direction", "city", "region", "country",
     "hq_city", "hq_country", "state", "functions", "industry", "headcount",
     "headcount_scope", "funding_amount", "funding_amount_usd", "funding_stage",
-    "work_mode", "confidence", "source_url", "source_name",
+    "work_mode", "deal_type", "materiality", "confidence", "source_url", "source_name",
     "discovery_url", "published_date", "effective_date", "captured_at",
     "as_of", "content_hash", "predicted_outcome", "check_after_date",
     "collector",

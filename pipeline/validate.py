@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from . import identity, vocab
+from . import identity, prefilter, vocab
 
 
 class Rejected(Exception):
@@ -48,6 +48,8 @@ class Signal:
     funding_amount_usd: int | None
     funding_stage: str | None
     work_mode: str | None
+    deal_type: str | None
+    materiality: str
     confidence: str
     source_url: str
     source_name: str
@@ -166,6 +168,187 @@ def content_hash(company_key: str, pillar: str, published_date: str | None,
     return hashlib.md5(payload.encode()).hexdigest()
 
 
+# --- Placeholder employers -------------------------------------------------
+#
+# "No named employer, no record" was already the rule, and it still let
+# "$7B firm expands Cary office space, plans to hire" onto the live page under
+# the company name "$7B firm". A description is not a name: nobody can filter
+# by it, join it to the sibling tracker, or act on it.
+#
+# The whole risk here is over-reach, because numbers and symbols are perfectly
+# ordinary in real names — 3M, 7-Eleven, 8x8, 23andMe, 374Water and "$1 Dollar
+# Stores" are all real employers, and three of those are already in the table.
+# So the test is not "does it look odd", it is "is EVERY word of it generic":
+# a name is rejected only when nothing in it is a proper noun.
+
+# The organisational noun a placeholder ends with. A real name can end with one
+# of these too ("Deere & Company", "The Kroger Co."), which is why the tokens
+# BEFORE it decide the outcome.
+_GENERIC_ORG_NOUNS = frozenset("""
+    firm firms company co corp business businesses employer employers
+    bank banks lender lenders insurer insurers retailer retailers
+    manufacturer manufacturers maker makers giant giants startup startups
+    chain chains operator operators provider providers agency agencies
+    conglomerate multinational group outfit
+""".split())
+
+# Words that describe an employer without naming one.
+#
+# Deliberately WITHOUT nationality, geography and scale — "national", "global",
+# "international", "first", "US", "American". Those are the distinctive word in
+# plenty of real names: the first draft of this list rejected "National Bank
+# Holdings Corp", which is a real employer sitting in the table, and it would
+# have taken American Airlines and Global Payments with it. Anything ambiguous
+# belongs OUT of this list: a false reject loses a real employer silently and
+# forever, while a false accept is one visible bad row.
+_GENERIC_QUALIFIERS = frozenset("""
+    a an the this that another one certain
+    major large big small mid-sized midsize leading top prominent
+    well-known unnamed undisclosed unidentified unspecified anonymous
+    confidential mystery
+    tech technology ai software fintech biotech pharma healthcare
+    media pr marketing advertising retail insurance investment consulting
+    law legal accounting telecom staffing recruitment
+""".split())
+
+# Words that say outright that the employer was not named.
+_ANONYMITY_MARKERS = frozenset({
+    "unnamed", "undisclosed", "unidentified", "unspecified", "anonymous",
+    "confidential", "mystery",
+})
+
+# A currency amount standing in for a name: "$7B firm", "€500M retailer".
+# The currency symbol is required. Without it "3M" is a money token and 3M is a
+# real company.
+_MONEY_TOKEN = re.compile(r"^[$€£¥₹](?:\d[\d,.]*)(?:bn|b|m|mm|k|tn)?$", re.I)
+
+_LEGAL_SUFFIXES = frozenset("""
+    inc inc. incorporated llc l.l.c ltd ltd. limited plc gmbh ag sa s.a n.v
+    bv b.v ab as oy oyj kk pte pty srl spa s.p.a aps kft sas sarl co. corp.
+    corporation holdings holding
+""".split())
+
+
+def assert_employer_is_named(company: str) -> None:
+    """Reject a company field that describes an employer instead of naming one.
+
+    Raises Rejected. Passes silently for anything with a single non-generic
+    token in it, which is every real name we have ever stored.
+    """
+    name = (company or "").strip()
+    if not re.search(r"[^\W_]", name, re.UNICODE):
+        raise Rejected(f"company name has no letters or digits: {company!r}")
+
+    core = []
+    for token in re.split(r"[\s,]+", name.lower()):
+        token = token.strip(".,")
+        if not token or token in {"&", "-"} or token in _LEGAL_SUFFIXES:
+            continue
+        core.append(token)
+    if not core:
+        raise Rejected(f"company name is only a legal suffix: {company!r}")
+
+    # Said outright: the source did not name the employer.
+    if _ANONYMITY_MARKERS & set(core):
+        raise Rejected(f"employer was not named in the source: {company!r}")
+
+    def is_generic(token: str) -> bool:
+        return (
+            token in _GENERIC_ORG_NOUNS
+            or token in _GENERIC_QUALIFIERS
+            or bool(_MONEY_TOKEN.match(token))
+        )
+
+    # One proper noun anywhere is enough to make it a name. "National Bank
+    # Holdings", "US Bank", "The Kroger Co." and "Legal & General" all clear
+    # here, because "national", "us", "kroger" and "general" are not on any of
+    # the generic lists.
+    if not any(t in _GENERIC_ORG_NOUNS for t in core):
+        return
+    if not all(is_generic(t) for t in core):
+        return
+
+    # Everything left is generic from end to end. Even so, only three shapes
+    # are rejected, because a long all-generic string is more likely to be a
+    # real name we have not thought of ("Investment Technology Group") than a
+    # placeholder — placeholders are short, or they announce themselves with an
+    # article or a price tag.
+    if core[0] in {"a", "an", "the"}:
+        raise Rejected(f"a description, not a company name: {company!r}")
+    if _MONEY_TOKEN.match(core[0]):
+        raise Rejected(f"a size, not a company name: {company!r}")
+    if len(core) <= 2:
+        raise Rejected(f"placeholder, not a company name: {company!r}")
+
+
+# --- Materiality -----------------------------------------------------------
+#
+# Computed here, in Python, from values we already hold. No model call, no cost,
+# and the same input always gives the same answer, so it can be recomputed over
+# the existing table without refetching anything.
+#
+# It is a heuristic and it is written down as one. The problem it solves is not
+# correctness — every routine row is individually true — it is that 2,015 of
+# 2,362 rows are a bare officer change, most at companies nobody is recruiting
+# against, and they bury the rows that state a headcount or a nine-figure raise.
+#
+#   high     the source states a headcount, OR states funding of $10M or more,
+#            OR the employer is identifiable enough to carry a ticker or CIK
+#            and the story is more than a bare officer change.
+#   routine  a bare officer or director change: no headcount, no money, no
+#            location detail. Correct, and almost never why anyone came here.
+#   medium   everything else.
+#
+# The $10M line is arbitrary and chosen, not derived: it is roughly where a
+# round starts funding a hiring plan rather than a founding team.
+_MATERIAL_FUNDING_USD = 10_000_000
+
+# The SEC's own wording for the filing item that produces the routine bulk.
+_OFFICER_CHANGE = re.compile(
+    r"item\s*5\.0?2|officer or director change|"
+    r"(?:leadership|management)\s+(?:change|transition)|"
+    r"(?:chief executive officer|ceo|cfo|cto|coo)\s+transition",
+    re.I,
+)
+
+
+def compute_materiality(
+    *,
+    headcount: int | None,
+    funding_usd: int | None,
+    ticker: str | None,
+    cik: str | None,
+    pillar: str,
+    headline: str,
+    city: str | None,
+) -> str:
+    """Return 'high', 'medium' or 'routine'. Deterministic, never a model call."""
+    if headcount is not None:
+        return "high"
+    if funding_usd is not None and funding_usd >= _MATERIAL_FUNDING_USD:
+        return "high"
+
+    # A bare officer change: it names a person and nothing else. A CITY makes
+    # it actionable for a recruiter working that market, so a city lifts it out
+    # of routine. `state` deliberately does not: on an 8-K it is the filer's
+    # registered state, present on 1,576 of the 1,727 leadership rows in the
+    # table, so treating it as location detail would leave nothing routine at
+    # all and the column would do no work.
+    bare_officer_change = (
+        pillar == "leadership_change"
+        and bool(_OFFICER_CHANGE.search(headline or ""))
+        and not city
+    )
+    if bare_officer_change:
+        return "routine"
+
+    # A ticker or CIK means the employer is a filer someone can look up, which
+    # is the closest deterministic stand-in we have for "large or well known".
+    if ticker or cik:
+        return "high"
+    return "medium"
+
+
 def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
     """Turn a classified candidate into a storable Signal, or raise Rejected.
 
@@ -214,6 +397,7 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     company = (classified.get("company") or "").strip()
     if not company:
         raise Rejected("no company identified")
+    assert_employer_is_named(company)
 
     pillar = vocab.normalize_pillar(classified.get("pillar", ""))
     if not pillar:
@@ -232,6 +416,30 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # The read-through is our interpretation, so it may reason beyond the text.
     # The summary restates the source and may not.
     assert_figures_are_sourced(summary, raw_text)
+
+    # The scope boundary. This page's own footer says "Layoff and redundancy
+    # data is not collected here; see the AI Layoff Tracker", and a Spanish
+    # Verizon story about 3,000 cuts was live on it anyway. The sibling owns
+    # workforce reduction; we own everything else about the talent market.
+    #
+    # Two arms, because a cut can arrive two ways. The headline is the subject
+    # of the story, so a reduction headline is a reduction story. And a
+    # headline that hides it ("Verizon announces restructuring") is caught by
+    # the model's own reading: direction 'displacement' means the source said
+    # roles are going, which is the sibling's definition of a record.
+    #
+    # Both arms use the same free vocabulary the prefilter uses, so most such
+    # stories never reach here and never cost a classification.
+    cut = prefilter.workforce_reduction_term(headline)
+    if cut:
+        raise Rejected(
+            f"workforce reduction is the sibling tracker's scope, not ours ({cut!r})")
+    if direction == "displacement":
+        cut = prefilter.workforce_reduction_term(f"{summary} {readthrough}")
+        if cut:
+            raise Rejected(
+                "workforce reduction is the sibling tracker's scope, not ours "
+                f"(displacement: {cut!r})")
 
     # Job location: from the source text only.
     city = region = None
@@ -304,6 +512,14 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
 
     work_mode = vocab.normalize_work_mode(classified.get("work_mode", "") or "")
 
+    # What kind of corporate event this is, when the source says. Recorded from
+    # the perspective of `company`: 'acquisition' is this employer buying,
+    # 'acquired' is this employer being bought. It never touches
+    # signal_direction — a deal implies nothing about headcount until the
+    # source states a number, and inferring otherwise is the same mistake as
+    # inferring a headcount.
+    deal_type = vocab.normalize_deal_type(classified.get("deal_type", "") or "")
+
     # Employer identity, and the join key to the sibling layoff tracker.
     # company_key is a normalised name and collapses whenever two employers
     # share one; cik and ticker do not.
@@ -344,6 +560,16 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         funding_amount_usd=funding_usd,
         funding_stage=funding_stage,
         work_mode=work_mode,
+        deal_type=deal_type,
+        materiality=compute_materiality(
+            headcount=headcount,
+            funding_usd=funding_usd,
+            ticker=ticker,
+            cik=cik,
+            pillar=pillar,
+            headline=headline,
+            city=city,
+        ),
         confidence=infer_confidence(source_url, classified.get("confidence")),
         source_url=source_url,
         source_name=(raw.get("source_name") or host).strip(),
@@ -368,6 +594,19 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # filled by `python -m pipeline.identity --backfill`, and until a caller
     # passes `conn` this line does nothing at all.
     identity.enrich(signal, conn)
+
+    # Recomputed after enrichment, because a ticker or CIK the identity spine
+    # filled is exactly the "large or well-known employer" input the rule reads.
+    # Computing it once before this line would grade a row on less than we know.
+    signal.materiality = compute_materiality(
+        headcount=signal.headcount,
+        funding_usd=signal.funding_amount_usd,
+        ticker=signal.ticker,
+        cik=signal.cik,
+        pillar=signal.pillar,
+        headline=signal.headline,
+        city=signal.city,
+    )
     return signal
 
 

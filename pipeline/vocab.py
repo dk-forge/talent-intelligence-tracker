@@ -977,3 +977,95 @@ def parse_funding_usd(value: str):
     if amount <= 0 or amount > _MAX_PLAUSIBLE_USD:
         return None
     return int(round(amount))
+
+
+# --- Materiality ------------------------------------------------------------
+
+# How much a row is worth a recruiter's attention. Computed in Python at
+# validate time (see validate.compute_materiality), never asked of a model, so
+# it costs nothing and cannot drift between runs.
+#
+# It exists because correctness and usefulness came apart: the SEC backfill
+# made thousands of individually-correct rows, most of them a bare officer
+# change at a company nobody is recruiting against, and collectively they bury
+# the handful of rows that state a headcount or a nine-figure raise.
+MATERIALITY_LEVELS = ("high", "medium", "routine")
+
+MATERIALITY_LABELS = {
+    "high": "High",
+    "medium": "Medium",
+    "routine": "Routine",
+}
+
+
+def normalize_materiality(value: str):
+    k = _key(value)
+    return k if k in MATERIALITY_LEVELS else None
+
+
+# --- Corporate deal type ----------------------------------------------------
+
+# What KIND of corporate event this is, when the source says. An acquisition is
+# one of the highest-value recruiter triggers — integration churn and duplicate
+# roles follow it reliably — and until this column existed every deal sat
+# inside company_development with nothing to distinguish it.
+#
+# Direction is the whole point. "Acme acquires Beta" and "Beta acquired by
+# Acme" are the same event with opposite meaning for anyone recruiting: the
+# buyer is usually hiring integration staff, the bought company is where the
+# duplicate roles are. The value is always recorded from the perspective of the
+# `company` on the row.
+DEAL_TYPES = (
+    "acquisition",    # this employer is BUYING
+    "acquired",       # this employer is BEING bought
+    "merger",
+    "divestiture",    # selling a unit, spin-off, carve-out
+    "joint_venture",
+    "ipo",
+)
+
+DEAL_TYPE_LABELS = {
+    "acquisition": "Acquiring",
+    "acquired": "Being acquired",
+    "merger": "Merger",
+    "divestiture": "Divestiture",
+    "joint_venture": "Joint venture",
+    "ipo": "IPO",
+}
+
+_DEAL_TYPE_ALIASES = {
+    "acquires": "acquisition", "acquiring": "acquisition",
+    "acquirer": "acquisition", "buyer": "acquisition",
+    "buys": "acquisition", "takeover": "acquisition",
+    "acquisition of": "acquisition",
+    "acquired by": "acquired", "being acquired": "acquired",
+    "target": "acquired", "sold": "acquired", "bought": "acquired",
+    "merge": "merger", "merges": "merger", "merger of equals": "merger",
+    "combination": "merger",
+    "divest": "divestiture", "divests": "divestiture",
+    "divestment": "divestiture", "spin off": "divestiture",
+    "spinoff": "divestiture", "spin-off": "divestiture",
+    "carve out": "divestiture", "carveout": "divestiture",
+    "sale of unit": "divestiture", "asset sale": "divestiture",
+    "jv": "joint_venture", "joint venture": "joint_venture",
+    "initial public offering": "ipo", "listing": "ipo",
+    "going public": "ipo", "direct listing": "ipo",
+}
+
+
+def normalize_deal_type(value: str):
+    """Closed vocabulary, or None. Same shape as every other enum here.
+
+    Deliberately NOT inferred from the headline in Python: 'Acme in talks to
+    acquire Beta' and 'Acme acquired Beta' read almost identically to a regex
+    and mean different things, and which side of the deal the row's employer is
+    on is exactly the judgement a keyword cannot make.
+    """
+    k = _key(value).replace("_", " ").replace("-", " ")
+    k = re.sub(r"\s+", " ", k).strip()
+    if not k:
+        return None
+    flat = k.replace(" ", "_")
+    if flat in DEAL_TYPES:
+        return flat
+    return _DEAL_TYPE_ALIASES.get(k)
