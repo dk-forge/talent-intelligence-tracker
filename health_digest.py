@@ -453,11 +453,13 @@ def main(argv=None) -> int:
 
     sent, note = send_alert(subject, body, site=site, key=key)
     print("alert delivery: %s" % note)
-    if not sent:
+    if not sent and needs_human:
         # A digest that cannot deliver is still a digest that ran, and the
         # findings above are in the log. Say so loudly and stay green: the
         # workflow failing here would be a second alarm for the same problem.
         print("::warning:: the digest found problems but could not email them")
+    elif not sent:
+        print("::warning:: the test alert could not be delivered")
     return 0
 
 
