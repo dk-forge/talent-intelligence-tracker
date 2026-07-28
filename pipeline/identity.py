@@ -507,6 +507,7 @@ def sec_lookup(name: str, *, allow_network: bool = True) -> tuple[str | None, st
 
 SPARQL = """
 SELECT ?item
+       (SAMPLE(?linkCount) AS ?sitelinks)
        (GROUP_CONCAT(DISTINCT ?instance; separator=" ") AS ?instances)
        (GROUP_CONCAT(DISTINCT ?orgRoot; separator=" ") AS ?roots)
        (GROUP_CONCAT(DISTINCT ?placeLabel; separator="|") AS ?places)
@@ -514,6 +515,7 @@ SELECT ?item
        (SAMPLE(?countryCode) AS ?country)
 WHERE {
   VALUES ?item { %(values)s }
+  OPTIONAL { ?item wikibase:sitelinks ?linkCount }
   OPTIONAL { ?item wdt:P31 ?instance }
   OPTIONAL {
     ?item wdt:P31/wdt:P279* ?orgRoot .
@@ -617,7 +619,12 @@ def fetch_properties(qids) -> dict:
                      ((binding.get("instances") or {}).get("value") or "").split()]
         places = [p.strip() for p in
                   ((binding.get("places") or {}).get("value") or "").split("|") if p.strip()]
+        try:
+            sitelinks = int(float((binding.get("sitelinks") or {}).get("value") or 0))
+        except (TypeError, ValueError):
+            sitelinks = 0
         out[qid] = {
+            "sitelinks": sitelinks,
             "instances": instances,
             "roots": roots,
             "places": places,
@@ -653,29 +660,57 @@ def _first_vocabulary_city(places, expected_iso2: str | None = None) -> tuple[st
 
 
 def search_with_fallback(name: str, *, limit: int = 4) -> list[str]:
-    """Candidate QIDs, retrying once on the name with its legal suffix removed.
+    """Candidate QIDs from the filer's name AND from its normalised form.
 
-    `wbsearchentities` matches labels and aliases from the front, so the
-    punctuation a filer's legal name carries is enough to return nothing at
-    all: "Broadcom Inc." and "Cornerstone Building Brands, Inc." both find
-    zero, and "broadcom" finds Broadcom.
+    Both, not one or the other, because neither wins consistently.
+    `wbsearchentities` matches from the front, so a legal suffix is enough to
+    lose the company entirely — "Broadcom Inc." and "Cornerstone Building
+    Brands, Inc." both return zero, and "broadcom" returns Broadcom. But the
+    suffix also carries signal: "COSTA LIMITED" finds Costa Coffee and "costa"
+    finds Costa Rica first.
+
+    So both pools are searched and merged. Which of them is right is not
+    settled by the order they arrive in — see `_best_candidate`.
     """
-    candidates = search_qids(name, limit=limit)
-    if candidates:
-        return candidates
-    stripped = vocab.company_key(name)
-    if stripped and stripped != (name or "").strip().lower():
-        return search_qids(stripped, limit=limit)
-    return []
+    queries, found = [], {}
+    for query in (name, vocab.company_key(name)):
+        if query and query not in queries:
+            queries.append(query)
+    for query in queries:
+        for qid in search_qids(query, limit=limit):
+            found.setdefault(qid, None)
+    return list(found)
+
+
+def _best_candidate(candidates: list[str], props: dict) -> tuple[str | None, int]:
+    """Of the candidates that are organisations, the most written-about one.
+
+    Sitelinks — how many Wikipedias carry an article — stand in for notability,
+    and notability is the only cheap signal that separates two organisations
+    with the same name. "BURBERRY LIMITED" returns a French entity with no
+    articles ahead of Burberry, which has fifty; taking the first hit put the
+    British fashion house in France. Search rank breaks ties, so where
+    notability says nothing this behaves exactly as before.
+
+    Returns (qid or None, how many candidates were rejected as non-organisations).
+    """
+    rejected = 0
+    best, best_rank = None, None
+    for index, qid in enumerate(candidates):
+        entry = props.get(qid)
+        if not entry:
+            continue
+        if not is_organization(entry["roots"]):
+            rejected += 1
+            continue
+        rank = (entry.get("sitelinks") or 0, -index)
+        if best_rank is None or rank > best_rank:
+            best, best_rank = qid, rank
+    return best, rejected
 
 
 def _identity_from_props(name: str, candidates: list[str], props: dict) -> Identity:
-    """Pick the first candidate that is an organisation, and read it.
-
-    Search order is relevance order, so walking it in order and stopping at the
-    first organisation is where the beetle loses to the payment company and the
-    plant genus loses to the space agency.
-    """
+    """Read the best organisation candidate into an Identity."""
     ident = Identity(company_key=vocab.company_key(name), company=name)
     if not candidates:
         ident.detail = "no wikidata search hit"
@@ -684,34 +719,26 @@ def _identity_from_props(name: str, candidates: list[str], props: dict) -> Ident
         ident.detail = "sparql returned nothing"
         return ident
 
-    rejected = 0
-    for qid in candidates:
-        entry = props.get(qid)
-        if not entry:
-            continue
-        if not is_organization(entry["roots"]):
-            rejected += 1
-            continue
-
-        # Country first, so it can vet the city rather than the other way
-        # round. P17 of the headquarters beats P17 of the company: a German
-        # multinational's US subsidiary files from Germany, and the column is
-        # about where the employer sits.
-        country = vocab.normalize_country(entry["hq_country"]) \
-            or vocab.normalize_country(entry["country"])
-        city, city_iso2 = _first_vocabulary_city(entry["places"], country)
-        country = country or city_iso2
-
-        ident.qid = qid
-        ident.hq_city = city
-        ident.hq_country = country
-        ident.employer_type = employer_type_from(
-            entry.get("instances"), entry["roots"])
-        ident.resolved = bool(country or city or ident.employer_type)
-        ident.detail = f"wikidata {qid}" + (f", skipped {rejected} non-org" if rejected else "")
+    qid, rejected = _best_candidate(candidates, props)
+    if qid is None:
+        ident.detail = f"no organisation among {len(candidates)} candidates"
         return ident
 
-    ident.detail = f"no organisation among {len(candidates)} candidates"
+    entry = props[qid]
+    # Country first, so it can vet the city rather than the other way round.
+    # P17 of the headquarters beats P17 of the company: a German
+    # multinational's US subsidiary files from Germany, and the column is about
+    # where the employer sits.
+    country = vocab.normalize_country(entry["hq_country"]) \
+        or vocab.normalize_country(entry["country"])
+    city, city_iso2 = _first_vocabulary_city(entry["places"], country)
+
+    ident.qid = qid
+    ident.hq_city = city
+    ident.hq_country = country or city_iso2
+    ident.employer_type = employer_type_from(entry.get("instances"), entry["roots"])
+    ident.resolved = bool(ident.hq_country or city or ident.employer_type)
+    ident.detail = f"wikidata {qid}" + (f", skipped {rejected} non-org" if rejected else "")
     return ident
 
 

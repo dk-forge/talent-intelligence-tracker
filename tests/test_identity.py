@@ -213,6 +213,37 @@ class OrganisationAllowList(unittest.TestCase):
             identity.employer_type_from(["Q3918", "Q163740"], ["Q43229"]),
             "education")
 
+    def test_the_better_known_organisation_wins_a_shared_name(self):
+        """Both are real organisations called Burberry and both pass every
+        other guard. Search rank put the French entity with no Wikipedia
+        articles ahead of the fashion house with fifty."""
+        props = {
+            "Q132095506": {"sitelinks": 0, "instances": ["Q4830453"],
+                           "roots": ["Q4830453", "Q43229"], "places": ["France"],
+                           "hq_country": "FR", "country": "FR"},
+            "Q390107": {"sitelinks": 52, "instances": ["Q891723"],
+                        "roots": ["Q891723", "Q43229"], "places": ["London"],
+                        "hq_country": "GB", "country": "GB"},
+        }
+        fx = Fixture({"burberry": ["Q132095506", "Q390107"]}, props)
+        with _Patched(self, fx):
+            ident = identity.wikidata_lookup("BURBERRY LIMITED")
+        self.assertEqual(ident.qid, "Q390107")
+        self.assertEqual(ident.hq_country, "GB")
+        self.assertEqual(ident.hq_city, "London")
+
+    def test_search_rank_still_decides_when_notability_says_nothing(self):
+        props = {
+            "Q1": {"sitelinks": 3, "instances": ["Q4830453"],
+                   "roots": ["Q4830453"], "places": [], "hq_country": "US",
+                   "country": "US"},
+            "Q2": {"sitelinks": 3, "instances": ["Q4830453"],
+                   "roots": ["Q4830453"], "places": [], "hq_country": "FR",
+                   "country": "FR"},
+        }
+        self.assertEqual(identity._best_candidate(["Q1", "Q2"], props)[0], "Q1")
+        self.assertEqual(identity._best_candidate(["Q2", "Q1"], props)[0], "Q2")
+
     def test_a_place_is_never_an_employer_however_the_graph_is_wired(self):
         """The deny-list. Wikidata's P279 closure reaches "company" from a
         French commune, so "Curis, Inc." resolved to Curis-au-Mont-d'Or and
@@ -247,6 +278,11 @@ class OrganisationAllowList(unittest.TestCase):
         self.assertFalse(
             identity._names_agree(wanted, "First Foundation Nursery and Primary School"))
         self.assertFalse(identity._names_agree(
+            vocab.company_key("Chart Industries, Inc."), "Chart"))
+        # "Graham Corporation" and the city of Graham DO agree by name — the
+        # legal suffix is stripped from both. The deny-list is what stops that
+        # one, which is why both guards have to exist.
+        self.assertTrue(identity._names_agree(
             vocab.company_key("Graham Corporation"), "Graham"))
 
     def test_the_legal_suffix_is_not_a_disagreement(self):
@@ -686,7 +722,10 @@ class Backfill(unittest.TestCase):
         with _Patched(self, Fixture(searches, APPLE_PROPS)) as fx:
             stats = identity.backfill(conn, verbose=False)
         self.assertEqual(stats["resolved"], 24)
-        self.assertEqual(fx.search_calls, 24)   # no batch form exists for this
+        # Two searches an employer (the filer's name and its normalised form)
+        # because wbsearchentities has no batch form and neither query wins
+        # consistently. The expensive endpoint is the one that batches.
+        self.assertEqual(fx.search_calls, 48)
         self.assertEqual(fx.sparql_calls, 2)    # 24 employers, batch of 12
 
     def test_a_second_run_is_a_no_op(self):
