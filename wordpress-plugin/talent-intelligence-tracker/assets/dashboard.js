@@ -228,6 +228,47 @@
   }
 
   var pending = null;
+  var lastQuery = '';
+
+  // The querystring people see and share, which is not the one the API gets:
+  // per_page is paging, and sort/country_basis at their defaults say nothing.
+  // A link should carry the choices someone actually made.
+  function shareQuery(params) {
+    var out = new URLSearchParams();
+    params.forEach(function (value, key) {
+      if (key === 'per_page') return;
+      if (NEUTRAL[key] === value) return;
+      out.set(key, value);
+    });
+    return out.toString();
+  }
+
+  // Restore a shared link. Anything the page does not recognise is left alone
+  // rather than guessed at, and the region strip is matched by its code list so
+  // a link to "Europe" comes back as the Europe tab and not a bare country
+  // filter that looks nothing like what was sent.
+  function applyUrlState() {
+    var q = new URLSearchParams(location.search);
+    if (!q.toString()) return;
+
+    var country = q.get('country') || '';
+    var tab = quickFind(tabs, function (t) { return (t.dataset.codes || '') === country; });
+    if (country && tab) {
+      setRegion(country);
+      q.delete('country');
+    }
+
+    Object.keys(inputs).forEach(function (key) {
+      var el = inputs[key];
+      if (!el || !q.has(key)) return;
+      var value = q.get(key);
+      if (el.tagName === 'SELECT') {
+        var ok = Array.prototype.some.call(el.options, function (o) { return o.value === value; });
+        if (!ok) return;
+      }
+      el.value = value;
+    });
+  }
 
   function refresh() {
     var params = new URLSearchParams();
@@ -256,6 +297,17 @@
     params.set('per_page', '50');
 
     paintActive();
+
+    // Put the view in the address bar. A dashboard whose URL never changes
+    // cannot be sent to anyone: the recipient gets the unfiltered page and no
+    // idea what they were meant to be looking at. replaceState, not pushState,
+    // so typing in the search box does not bury the back button under a history
+    // entry per keystroke.
+    lastQuery = shareQuery(params);
+    try {
+      history.replaceState(null, '',
+        location.pathname + (lastQuery ? '?' + lastQuery : '') + location.hash);
+    } catch (e) { /* a URL we cannot write is not worth failing the render for */ }
 
     // Charts and figures move with the same querystring the table uses, so the
     // two can never disagree about what is being shown.
@@ -420,20 +472,103 @@
     });
   }
 
-  // --- Charts expand in place ----------------------------------------------
-  // The button is rendered hidden by the shortcode and revealed here, so a
-  // reader without JavaScript is never offered a control that does nothing.
-  Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
-    var btn = chart.querySelector('.tit-expand');
-    if (!btn) return;
-    btn.hidden = false;
-    var label = btn.querySelector('.tit-expand-t');
-    btn.addEventListener('click', function () {
-      var on = chart.classList.toggle('is-expanded');
-      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-      if (label) label.textContent = on ? 'Collapse' : 'Expand';
+  // --- Per-chart controls ---------------------------------------------------
+  // Every card gets its own expand, share and download, and each one acts on
+  // that card alone. The buttons ship hidden from the shortcode and are
+  // revealed here, so a reader without JavaScript is never offered a control
+  // that does nothing.
+  function flash(btn) {
+    btn.classList.add('is-done');
+    setTimeout(function () { btn.classList.remove('is-done'); }, 1200);
+  }
+
+  function copyText(text, done) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { done(); });
+      return;
+    }
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* nothing else to try */ }
+    document.body.removeChild(ta);
+    done();
+  }
+
+  // The chart is a list of labelled bars, not a canvas, so the useful download
+  // is the numbers rather than a picture of them. Read from the rendered rows
+  // so an export can never disagree with what is on screen.
+  function chartCsv(chart) {
+    var rows = Array.prototype.slice.call(
+      chart.querySelectorAll('.tit-rank-row, .tit-pillar'));
+    var out = [['label', 'count']];
+    rows.forEach(function (r) {
+      var name = r.querySelector('.tit-rank-name, .tit-pillar-name');
+      var n = r.querySelector('.tit-rank-n, .tit-pillar-n');
+      if (name && n) out.push([name.textContent.trim(), n.textContent.trim()]);
     });
+    return out.map(function (cells) {
+      return cells.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
+    }).join('\n');
+  }
+
+  function download(name, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
+    var expand = chart.querySelector('.tit-expand');
+    var share = chart.querySelector('.tit-chart-share');
+    var dl = chart.querySelector('.tit-chart-dl');
+
+    if (expand) {
+      expand.hidden = false;
+      var label = expand.querySelector('.tit-expand-t');
+      expand.addEventListener('click', function () {
+        var on = chart.classList.toggle('is-expanded');
+        expand.setAttribute('aria-expanded', on ? 'true' : 'false');
+        expand.title = on ? 'Collapse this chart' : 'Expand this chart';
+        if (label) label.textContent = on ? 'Collapse' : 'Expand';
+      });
+    }
+
+    if (share) {
+      share.hidden = false;
+      share.addEventListener('click', function () {
+        // The filters live in the querystring, so the link reproduces the view
+        // rather than just the page, and the hash lands on this card.
+        var url = location.origin + location.pathname +
+          (lastQuery ? '?' + lastQuery : '') + (chart.id ? '#' + chart.id : '');
+        copyText(url, function () { flash(share); });
+      });
+    }
+
+    if (dl) {
+      dl.hidden = false;
+      dl.addEventListener('click', function () {
+        download('talent-' + (dl.dataset.chart || 'chart') + '.csv', chartCsv(chart));
+        flash(dl);
+      });
+    }
   });
 
   populateFacets();
+
+  // Last, because it needs the inputs, the region tabs and refresh() to exist.
+  // Only fetches when the link actually carried a view; the plain page is
+  // already rendered by the server.
+  applyUrlState();
+  if (location.search) refresh();
 })();

@@ -223,14 +223,22 @@
 /* Head row: titles on the left, the expand control on the right. */
 .tit-chart-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .tit-chart-titles { min-width:0; }
-.tit-wrap .tit-expand { flex:none; display:inline-flex; align-items:center; gap:6px;
-  padding:5px 10px; border:1px solid var(--tit-line); border-radius:8px; background:#fff;
-  color:var(--tit-mut); font-family:inherit; font-size:12.5px; font-weight:600;
-  line-height:1.2; cursor:pointer; }
-.tit-wrap .tit-expand:hover { border-color:var(--tit-blue); color:var(--tit-blue); }
-.tit-wrap .tit-expand:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+/* Each card carries its own controls and each one acts on that card alone. */
+.tit-chart-tools { flex:none; display:flex; align-items:center; gap:6px; }
+.tit-wrap .tit-ctl { flex:none; display:inline-flex; align-items:center;
+  justify-content:center; width:32px; height:32px; padding:0;
+  border:1px solid var(--tit-line); border-radius:9px; background:var(--tit-surface);
+  color:var(--tit-mut); font-family:inherit; line-height:0; cursor:pointer; }
+.tit-wrap .tit-ctl svg { width:16px; height:16px; fill:none; stroke:currentColor;
+  stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+.tit-wrap .tit-ctl:hover { border-color:var(--tit-blue); color:var(--tit-blue);
+  background:#fff; }
+.tit-wrap .tit-ctl:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 .tit-wrap .tit-chart.is-expanded .tit-expand { background:var(--tit-blue);
   border-color:var(--tit-blue); color:#fff; }
+/* Copy and download give no visible result of their own, so the button says so. */
+.tit-wrap .tit-ctl.is-done { background:var(--tit-blue); border-color:var(--tit-blue);
+  color:#fff; }
 
 /* ---------------------------------------------------------------------------
    Scroll in place, never truncate.

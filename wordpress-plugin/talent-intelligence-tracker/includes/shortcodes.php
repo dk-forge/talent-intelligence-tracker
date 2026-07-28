@@ -206,62 +206,6 @@ function tit_dashboard_shortcode() {
         <?php endforeach; ?>
       </div>
 
-      <div class="tit-charts">
-      <div class="tit-chart">
-        <?php tit_chart_head('What kind of update', 'Every update falls into one of four kinds.'); ?>
-      <div class="tit-pillars">
-        <?php foreach ($by_pillar as $p) :
-            $key = $p['pillar'];
-            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
-          <div class="tit-pillar">
-            <div class="tit-pillar-head">
-              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
-              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
-            </div>
-            <div class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></div>
-          </div>
-        <?php endforeach; ?>
-      </div>
-      </div>
-        <div class="tit-chart">
-          <?php tit_chart_head('Where the activity is', "Job location, falling back to the employer's headquarters."); ?>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
-            <?php
-            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
-            foreach ($by_country as $c) : ?>
-              <div class="tit-rank-row">
-                <span class="tit-rank-name"><?php echo esc_html(tit_country_name($c['k'])); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        </div>
-
-        <div class="tit-chart">
-          <?php tit_chart_head('Growing or shrinking', 'What each update means for headcount at that employer.'); ?>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
-            <?php
-            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
-            foreach ($by_direction as $d) : ?>
-              <div class="tit-rank-row" data-dir="<?php echo esc_attr($d['k']); ?>">
-                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
-
-      <div class="tit-sec">
-        <h3>Every update</h3>
-        <p>Newest first. The read-through is ours; the headline, the figures and
-           the confidence all come from the linked source.</p>
-      </div>
-
       <div class="tit-quick" role="group" aria-label="Quick views">
         <span class="tit-quick-label">Quick views</span>
         <button type="button" class="tit-qv" data-qv="">Everything</button>
@@ -345,6 +289,62 @@ function tit_dashboard_shortcode() {
         <span class="tit-active-label">Filtering</span>
         <span class="tit-active-chips" id="tit-active-chips"></span>
         <button type="button" class="tit-reset" id="tit-reset">Reset all</button>
+      </div>
+
+      <div class="tit-charts">
+      <div class="tit-chart" id="chart-kind">
+        <?php tit_chart_head('What kind of update', 'Every update falls into one of four kinds.', 'kind'); ?>
+      <div class="tit-pillars">
+        <?php foreach ($by_pillar as $p) :
+            $key = $p['pillar'];
+            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
+          <div class="tit-pillar">
+            <div class="tit-pillar-head">
+              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
+              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
+            </div>
+            <div class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      </div>
+        <div class="tit-chart" id="chart-place">
+          <?php tit_chart_head('Where the activity is', "Job location, falling back to the employer's headquarters.", 'place'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
+            <?php
+            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
+            foreach ($by_country as $c) : ?>
+              <div class="tit-rank-row">
+                <span class="tit-rank-name"><?php echo esc_html(tit_country_name($c['k'])); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <div class="tit-chart" id="chart-direction">
+          <?php tit_chart_head('Growing or shrinking', 'What each update means for headcount at that employer.', 'direction'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
+            <?php
+            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
+            foreach ($by_direction as $d) : ?>
+              <div class="tit-rank-row" data-dir="<?php echo esc_attr($d['k']); ?>">
+                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+
+      <div class="tit-sec">
+        <h3>Every update</h3>
+        <p>Newest first. The read-through is ours; the headline, the figures and
+           the confidence all come from the linked source.</p>
       </div>
 
       <div class="tit-table-scroll">
@@ -569,17 +569,28 @@ function tit_roo($newest_run) {
  * server-side (rather than injecting it) keeps its label and markup in one
  * place with the heading it belongs to.
  */
-function tit_chart_head($title, $sub) {
+function tit_chart_head($title, $sub, $id = '') {
     ?>
     <div class="tit-chart-head">
       <div class="tit-chart-titles">
         <h3><?php echo esc_html($title); ?></h3>
         <p class="tit-sub"><?php echo esc_html($sub); ?></p>
       </div>
-      <button type="button" class="tit-expand" aria-expanded="false" hidden>
-        <span class="tit-expand-i" aria-hidden="true">&#10530;</span>
-        <span class="tit-expand-t">Expand</span>
-      </button>
+      <div class="tit-chart-tools">
+        <button type="button" class="tit-ctl tit-chart-share" data-chart="<?php echo esc_attr($id); ?>"
+                title="Copy a link to this view" aria-label="Copy a link to this view" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4"/></svg>
+        </button>
+        <button type="button" class="tit-ctl tit-chart-dl" data-chart="<?php echo esc_attr($id); ?>"
+                title="Download this chart as CSV" aria-label="Download this chart as CSV" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+        </button>
+        <button type="button" class="tit-ctl tit-expand" aria-expanded="false"
+                title="Expand this chart" aria-label="Expand this chart" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>
+          <span class="tit-sr tit-expand-t">Expand</span>
+        </button>
+      </div>
     </div>
     <?php
 }
