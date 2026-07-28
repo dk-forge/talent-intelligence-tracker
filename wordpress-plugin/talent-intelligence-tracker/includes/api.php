@@ -33,6 +33,11 @@ function tit_register_routes() {
     register_rest_route(TIT_NS, '/bulk', array(
         'methods' => 'POST', 'callback' => 'tit_api_bulk', 'permission_callback' => $keyed,
     ));
+    // Derived-field updates for rows already published. Keyed like every other
+    // write, and restricted to the allowlist in tit_enrichable_columns().
+    register_rest_route(TIT_NS, '/enrich', array(
+        'methods' => 'POST', 'callback' => 'tit_api_enrich', 'permission_callback' => $keyed,
+    ));
     register_rest_route(TIT_NS, '/health', array(
         'methods' => 'POST', 'callback' => 'tit_api_report_health', 'permission_callback' => $keyed,
     ));
@@ -654,6 +659,87 @@ function tit_api_retract(WP_REST_Request $req) {
 
     tit_flush_caches();
     return rest_ensure_response(array('retracted' => (int) $updated, 'signal_id' => $signal_id));
+}
+
+/**
+ * Columns /enrich may write. DERIVED values only.
+ *
+ * Nothing here is a fact a source stated: these are figures we computed
+ * (funding_amount_usd is a deterministic re-parse of the funding string we
+ * already hold) or identity we looked up (ticker, cik). The headline, company,
+ * counts, source URL and dates can NEVER be written through this path, so a bug
+ * in enrichment can add a wrong label but can never rewrite what a filing said.
+ * That is why this is a separate endpoint with its own allowlist rather than an
+ * update flag on /bulk.
+ */
+function tit_enrichable_columns() {
+    return array(
+        'funding_amount_usd', 'funding_stage', 'effective_date',
+        'ticker', 'cik', 'work_mode', 'employer_type', 'headcount_scope',
+        'materiality',
+    );
+}
+
+/**
+ * Update derived fields on rows that are ALREADY published.
+ *
+ * publish() only sends rows with published_at IS NULL, and the server treats a
+ * re-sent content_hash as a duplicate, so a newly added derived column had no
+ * way to reach the live table. Measured 2026-07-28: the local database held
+ * $20.79bn of parsed funding across 53 rows while the site's money charts
+ * showed one row and $3.2M, because every one of those rows had been published
+ * before the column existed.
+ */
+function tit_api_enrich(WP_REST_Request $req) {
+    global $wpdb;
+    $body = $req->get_json_params();
+    $rows = isset($body['rows']) && is_array($body['rows']) ? $body['rows'] : null;
+    if ($rows === null) {
+        return new WP_Error('tit_bad_body', 'Expected {"rows": [...]}', array('status' => 400));
+    }
+
+    $table = tit_table_name();
+    $allowed = tit_enrichable_columns();
+    $updated = 0; $missing = 0; $skipped = 0; $errors = array();
+
+    foreach ($rows as $i => $row) {
+        if (!is_array($row) || empty($row['content_hash'])) {
+            $errors[] = array('index' => $i, 'error' => 'content_hash is required');
+            continue;
+        }
+        $data = array();
+        foreach ($allowed as $col) {
+            // Only keys actually present, and never an empty one: absent means
+            // "we still do not know", which must not erase a value already
+            // there.
+            if (array_key_exists($col, $row) && $row[$col] !== null && $row[$col] !== '') {
+                $data[$col] = $row[$col];
+            }
+        }
+        if (!$data) { $skipped++; continue; }
+
+        $ok = $wpdb->update(
+            $table, $data,
+            array('content_hash' => (string) $row['content_hash'], 'is_current' => 1)
+        );
+        if ($ok === false) {
+            $errors[] = array('index' => $i, 'error' => 'update failed');
+        } elseif ($ok === 0) {
+            // No row with that hash, or the values already matched. Neither is
+            // an error: the pipeline re-sends the same enrichment happily.
+            $missing++;
+        } else {
+            $updated += (int) $ok;
+        }
+    }
+
+    if ($updated > 0) {
+        tit_flush_caches();
+    }
+    return rest_ensure_response(array(
+        'updated' => $updated, 'unchanged_or_missing' => $missing,
+        'skipped_no_fields' => $skipped, 'errors' => $errors,
+    ));
 }
 
 function tit_api_bulk(WP_REST_Request $req) {

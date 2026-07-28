@@ -68,6 +68,13 @@ function tit_dashboard_shortcode() {
     $n_notable = (int) ($md['notable'] ?? $total_all);
     $total = $n_notable;
 
+    // How many updates in the default view actually state a headcount. Printed
+    // beside the toggle, so a reader sees what it would do before using it.
+    $n_stated = (int) $wpdb->get_var(
+        "SELECT COUNT(*) FROM {$table} WHERE {$base}
+          AND signal_direction IN ('hiring', 'displacement')"
+    );
+
     $by_pillar = $wpdb->get_results(
         "SELECT pillar, COUNT(*) n FROM {$table} WHERE {$base} GROUP BY pillar ORDER BY n DESC",
         ARRAY_A
@@ -283,134 +290,196 @@ function tit_dashboard_shortcode() {
 
       <?php
       /*
-        Filter labels follow one rule, and it is not a style preference.
-        The label is a plain noun for what you are narrowing by; the neutral
-        option reads "All X" or "Any X"; and neither may use a word that only
-        makes sense to someone who has read this repository.
+        The filter bar, restructured.
 
-        Several here failed that badly enough to mislead. "Roles affected" sat
-        above a list of engineering, sales and finance: those are TEAMS, not
-        roles, and "affected" implied they were being cut when most of what
-        this tracker holds is hiring. "Place basis" is not English. "How solid"
-        above "Any confidence" was a casual label over a jargon default, which
-        is its own kind of confusing.
+        It used to be twelve controls of equal weight, and every label named a
+        database column: What happened, Headcount, Team or function, Industry,
+        Country, US state, City, Amount raised, Funding stage, Evidence,
+        Location shown, Employer. Renaming them was not enough, because the
+        problem was structural. Twelve equal choices means no choice is obvious,
+        nothing suggests what to do first, and three separate geography
+        dropdowns is the schema showing through the paint: a person has one
+        question, "where", not three columns.
+
+        So there is a small primary row phrased as what someone is looking for,
+        and everything else folds into a panel that stays shut until it is
+        wanted and says how many of its filters are on.
+
+        The two front controls do NOT replace the underlying filters. The
+        pillar, direction, country, state and city selects are still here, still
+        carry the same values, and are still what the querystring, the chips
+        bar, the exports and the click-to-filter charts read and write. They are
+        simply hidden, and the two visible controls drive them. That keeps this
+        a presentation change: nothing about what any filter MEANS has moved.
       */
       ?>
-      <div class="tit-filters">
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">What happened</span>
-          <select id="tit-f-pillar" aria-label="What kind of update">
-            <option value="">All updates</option>
-            <?php foreach ($labels as $k => $v) : ?>
-              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+      <div class="tit-primary">
+        <label class="tit-field tit-field--stack tit-primary-main">
+          <span class="tit-field-l">I'm looking for</span>
+          <select id="tit-f-looking" aria-label="What are you looking for">
+            <?php foreach (tit_looking_options() as $spec => $label) : ?>
+              <option value="<?php echo esc_attr($spec); ?>"><?php echo esc_html($label); ?></option>
             <?php endforeach; ?>
           </select>
         </label>
+
+        <?php /* One place control, not three. Options are grouped Countries,
+                 then US states, then Cities, and each one knows which parameter
+                 it sets, so the reader picks a place and never a column. */ ?>
         <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Where</span>
+          <select id="tit-f-place" aria-label="Where">
+            <option value="">Anywhere</option>
+          </select>
+        </label>
+
+        <?php /* The single most useful narrowing on the page. 87% of what we
+                 hold states no headcount, so filtering TO that is asking for
+                 the least informative rows; the valuable control is its
+                 inverse, and until now there was no way to say it. */ ?>
+        <label class="tit-field tit-field--stack tit-primary-toggle">
           <span class="tit-field-l">Headcount</span>
-          <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
-            <option value="">Any direction</option>
-            <?php foreach ($directions as $k => $v) : ?>
-              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-            <?php endforeach; ?>
-          </select>
+          <span class="tit-check">
+            <input type="checkbox" id="tit-f-stated_headcount" value="1">
+            <span class="tit-check-t">Only updates that state a headcount</span>
+            <span class="tit-check-n" id="tit-stated-n" aria-live="polite"><?php
+              echo esc_html(number_format_i18n($n_stated)); ?></span>
+          </span>
         </label>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Team or function</span>
-          <select id="tit-f-function" aria-label="Which team or function">
-            <option value="">All teams</option>
-            <?php foreach ($functions as $k => $v) : ?>
-              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Industry</span>
-          <select id="tit-f-industry" aria-label="Which industry">
-            <option value="">All industries</option>
-            <?php foreach ($industries as $k => $v) : ?>
-              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Country</span>
-          <select id="tit-f-country" aria-label="Which country">
-            <option value="">All countries</option>
-          </select>
-        </label>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">US state</span>
-          <select id="tit-f-state" aria-label="Which US state">
-            <option value="">All states</option>
-          </select>
-        </label>
-        <!-- The API has taken a city all along and the page had no way to send
-             one, so a row on the by-city money chart had nowhere to route its
-             click. Options are filled from /facets. -->
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">City</span>
-          <select id="tit-f-city" aria-label="Which city">
-            <option value="">All cities</option>
-          </select>
-        </label>
-        <!-- Bands, not a box to type a number in. A recruiter thinks in orders
-             of magnitude, and an exact figure produces an empty-looking page
-             for anyone who guesses a threshold nothing sits above. -->
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Amount raised</span>
-          <select id="tit-f-min_funding_usd" aria-label="Smallest amount raised">
-            <option value="">Any amount</option>
-            <?php foreach (tit_funding_bands() as $value => $label) : ?>
-              <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-        <!-- Options come from /facets, so this only ever offers the stages we
-             actually hold. A fixed list of eleven would put ten dead options in
-             front of a reader while the Form D backfill is still filling the
-             column, and a filter that returns nothing reads as broken. -->
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Funding stage</span>
-          <select id="tit-f-funding_stage" aria-label="Which funding stage">
-            <option value="">Any stage</option>
-          </select>
-        </label>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Evidence</span>
-          <select id="tit-f-confidence" aria-label="What the record is based on">
-            <option value="">Any evidence</option>
-            <?php foreach (tit_confidence_labels() as $k => $v) : ?>
-              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-        <!-- The charts already admit they fall back to headquarters. Until now
-             the page surfaced that ambiguity without letting anyone resolve it,
-             even though the API has taken country_basis all along. -->
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Location shown</span>
-          <select id="tit-f-country_basis" aria-label="Which location a record is filed under">
-            <option value="any">Where the work is, or head office</option>
-            <option value="location">Only where the source named a place</option>
-          </select>
-        </label>
+
         <label class="tit-field tit-field--stack">
           <span class="tit-field-l">Employer</span>
           <input type="search" id="tit-f-company" placeholder="e.g. Apple"
                  aria-label="Search by employer">
         </label>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Search</span>
-          <input type="search" id="tit-f-q" placeholder="Company, industry or keyword"
-                 aria-label="Search headlines and read-throughs">
-        </label>
-        <label class="tit-field"><span>From</span>
-          <input type="date" id="tit-f-since" aria-label="Earliest date"
-                 min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
-        <label class="tit-field"><span>To</span>
-          <input type="date" id="tit-f-until" aria-label="Latest date"
-                 min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+      </div>
+
+      <?php /* A methodology choice, not a filter. It belongs where someone
+               questions a location and nowhere else, so it reads as a sentence
+               about how places are decided, with the control folded behind it.
+               dashboard.js hides the select and reveals the Change button; with
+               no JavaScript the select simply shows, which is the harmless
+               way round. */ ?>
+      <p class="tit-basis">
+        <span class="tit-basis-say">Places are where the work is, and the
+          employer's head office when a source names none.</span>
+        <button type="button" class="tit-basis-btn" id="tit-basis-btn" hidden
+                aria-expanded="false">Change</button>
+        <span class="tit-basis-pick" id="tit-basis-pick">
+          <label><span class="tit-sr">Which location a record is filed under</span>
+            <select id="tit-f-country_basis">
+              <option value="any">Where the work is, or head office</option>
+              <option value="location">Only where the source named a place</option>
+            </select>
+          </label>
+        </span>
+      </p>
+
+      <details class="tit-more" id="tit-more">
+        <summary><span id="tit-more-label">More filters</span></summary>
+        <div class="tit-filters">
+          <?php
+          /*
+            One control, one axis. "Pay change" used to sit in the Headcount
+            dropdown, and it is not a headcount direction at all: measured on
+            the live data, all 235 comp_shift rows are also the rewards_comp
+            pillar, so the option was a second, narrower copy of "Pay news"
+            wearing the wrong axis. It is dropped from the OPTIONS only. Stored
+            values are untouched, /query still accepts direction=comp_shift so
+            an old link keeps working, and a row whose direction is comp_shift
+            still wears its "Pay change" badge.
+          */
+          ?>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Headcount</span>
+            <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
+              <option value="">Any direction</option>
+              <?php foreach (tit_direction_filter_options() as $k => $v) : ?>
+                <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Team or function</span>
+            <select id="tit-f-function" aria-label="Which team or function">
+              <option value="">All teams</option>
+              <?php foreach ($functions as $k => $v) : ?>
+                <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Industry</span>
+            <select id="tit-f-industry" aria-label="Which industry">
+              <option value="">All industries</option>
+              <?php foreach ($industries as $k => $v) : ?>
+                <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <?php /* Bands, not a box to type a number in. A recruiter thinks in
+                   orders of magnitude, and an exact figure produces an
+                   empty-looking page for anyone who guesses a threshold nothing
+                   sits above. */ ?>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Amount raised</span>
+            <select id="tit-f-min_funding_usd" aria-label="Smallest amount raised">
+              <option value="">Any amount</option>
+              <?php foreach (tit_funding_bands() as $value => $label) : ?>
+                <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <?php /* Options come from /facets, so this only ever offers the
+                   stages we actually hold. A fixed list of eleven would put ten
+                   dead options in front of a reader while the Form D backfill
+                   is still filling the column, and a filter that returns
+                   nothing reads as broken. */ ?>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Funding stage</span>
+            <select id="tit-f-funding_stage" aria-label="Which funding stage">
+              <option value="">Any stage</option>
+            </select>
+          </label>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Evidence</span>
+            <select id="tit-f-confidence" aria-label="What the record is based on">
+              <option value="">Any evidence</option>
+              <?php foreach (tit_confidence_labels() as $k => $v) : ?>
+                <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <label class="tit-field tit-field--stack">
+            <span class="tit-field-l">Search</span>
+            <input type="search" id="tit-f-q" placeholder="Company, industry or keyword"
+                   aria-label="Search headlines and read-throughs">
+          </label>
+          <label class="tit-field"><span>From</span>
+            <input type="date" id="tit-f-since" aria-label="Earliest date"
+                   min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+          <label class="tit-field"><span>To</span>
+            <input type="date" id="tit-f-until" aria-label="Latest date"
+                   min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+        </div>
+      </details>
+
+      <?php /* The state the two front controls drive. Hidden, never focusable,
+               and deliberately still real <select> elements: every existing
+               mechanism (the querystring, the chips bar, the exports, the
+               click-to-filter charts, the matrix cells) reads and writes these,
+               and re-pointing all of it at new state would have turned a
+               presentation change into a semantics change. */ ?>
+      <div class="tit-state" hidden aria-hidden="true">
+        <select id="tit-f-pillar" tabindex="-1">
+          <option value=""></option>
+          <?php foreach ($labels as $k => $v) : ?>
+            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+          <?php endforeach; ?>
+        </select>
+        <select id="tit-f-country" tabindex="-1"><option value=""></option></select>
+        <select id="tit-f-state" tabindex="-1"><option value=""></option></select>
+        <select id="tit-f-city" tabindex="-1"><option value=""></option></select>
       </div>
 
       <!--
@@ -1047,6 +1116,48 @@ function tit_funding_stage_labels() {
         'series_c' => 'Series C', 'series_d_plus' => 'Series D or later',
         'growth' => 'Growth', 'debt' => 'Debt', 'grant' => 'Grant',
         'ipo' => 'IPO', 'other' => 'Other',
+    );
+}
+
+/**
+ * The primary control, phrased as what someone came here to find.
+ *
+ * Keys are parameter specs, not column values, because the things people
+ * actually look for do not all live in one column: "Hiring" is a direction,
+ * "Funding" is a funding update, and the rest are pillars. Making the reader
+ * work out which is which was the whole problem with the old twelve-control bar.
+ *
+ * Every pillar and both headcount directions appear, so nothing reachable
+ * through the old What happened and Headcount dropdowns is shut off by folding
+ * them into one control.
+ */
+function tit_looking_options() {
+    return array(
+        ''                           => 'All updates',
+        'direction=hiring'           => 'Hiring',
+        'funding=1'                  => 'Funding',
+        'pillar=leadership_change'   => 'Leadership changes',
+        'pillar=rewards_comp'        => 'Pay news',
+        'pillar=company_development' => 'Growing and expanding',
+        'pillar=how_we_work'         => 'Ways of working',
+        'direction=displacement'     => 'Cutting back',
+    );
+}
+
+/**
+ * What the Headcount filter OFFERS, which is not the same list as what a row
+ * can BE.
+ *
+ * comp_shift is a real stored value and rows wearing it still say "Pay change",
+ * but it is not a headcount direction and it duplicates a filter that already
+ * exists on the right axis. "Not stated" is shortened from the badge's
+ * "Headcount not stated" because the control above it already says Headcount.
+ */
+function tit_direction_filter_options() {
+    return array(
+        'hiring'       => 'Hiring up',
+        'displacement' => 'Cutting back',
+        'neutral'      => 'Not stated',
     );
 }
 

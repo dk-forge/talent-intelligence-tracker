@@ -98,7 +98,23 @@ function tit_render_header() {
 <head>
 <meta charset="<?php bloginfo('charset'); ?>" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<?php wp_head(); ?>
+<?php
+    // WordPress's classic theme-compat header prints a <title> tag of its own,
+    // which is what used to give these routes a title. wp_head() alone does not
+    // always: _wp_render_title_tag is removed by the SEO plugin, and its
+    // replacement only fires for queries it recognises, which ours are not. The
+    // sources page shipped with no <title> at all on 1.30.1 as a result.
+    //
+    // Buffer the head, and supply the title only when nothing else did. That
+    // cannot double-print, and it cannot fight a plugin that is doing its job.
+    ob_start();
+    wp_head();
+    $tit_head = ob_get_clean();
+    if (stripos($tit_head, '<title') === false) {
+        echo '<title>' . esc_html(wp_get_document_title()) . "</title>\n";
+    }
+    echo $tit_head;
+?>
 </head>
 <body <?php body_class(); ?>>
 <?php

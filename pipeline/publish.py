@@ -56,6 +56,72 @@ FIELDS = (
 )
 
 
+# Derived columns /enrich accepts. Must match tit_enrichable_columns() in
+# includes/api.php: nothing a source STATED, only what we computed or looked up.
+ENRICHABLE = (
+    "funding_amount_usd", "funding_stage", "effective_date",
+    "ticker", "cik", "work_mode", "employer_type", "headcount_scope",
+    "materiality",
+)
+
+
+def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
+    """Push derived fields onto rows the site already holds.
+
+    publish() only ever sends rows with published_at IS NULL, and the server
+    treats a re-sent content_hash as a duplicate, so a column added AFTER a row
+    was published could never reach the live table. Measured 2026-07-28: the
+    local database held $20.79bn of parsed funding across 53 rows while the
+    site's money charts showed one row and $3.2M.
+
+    Safe to run repeatedly: only keys that are present are sent, the server
+    ignores empty values so a blank can never erase a known one, and rows it
+    cannot find are reported rather than treated as failures.
+    """
+    import sqlite3 as _sqlite3
+
+    cols = ", ".join(ENRICHABLE)
+    sql = (
+        f"SELECT content_hash, {cols} FROM signals "
+        "WHERE is_current = 1 AND published_at IS NOT NULL AND ("
+        + " OR ".join(f"{c} IS NOT NULL" for c in ENRICHABLE) + ") "
+        "ORDER BY row_id ASC"
+    )
+    if limit:
+        sql += f" LIMIT {int(limit)}"
+    previous_factory = conn.row_factory
+    conn.row_factory = _sqlite3.Row
+    try:
+        raw = [dict(r) for r in conn.execute(sql).fetchall()]
+    finally:
+        conn.row_factory = previous_factory
+    rows = [{k: v for k, v in r.items() if v is not None} for r in raw]
+    if not rows:
+        return {"sent": 0, "updated": 0, "errors": []}
+    if dry_run:
+        return {"sent": 0, "updated": 0, "errors": [], "would_send": len(rows)}
+
+    site, key = _config()
+    session = requests.Session()
+    updated = sent = 0
+    errors: list[dict] = []
+    for start in range(0, len(rows), BATCH_SIZE):
+        batch = rows[start:start + BATCH_SIZE]
+        resp = session.post(
+            f"{site}/wp-json/talent/v1/enrich",
+            json={"rows": batch},
+            headers={"X-Talent-API-Key": key, "User-Agent": USER_AGENT,
+                     "Content-Type": "application/json"},
+            timeout=TIMEOUT,
+        )
+        resp.raise_for_status()
+        result = resp.json() or {}
+        updated += int(result.get("updated", 0))
+        errors.extend(result.get("errors") or [])
+        sent += len(batch)
+    return {"sent": sent, "updated": updated, "errors": errors}
+
+
 def unpublished(conn, limit: int | None = None) -> list[dict]:
     sql = (
         f"SELECT row_id, {', '.join(FIELDS)} FROM signals "
