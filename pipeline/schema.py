@@ -168,8 +168,8 @@ CREATE TABLE IF NOT EXISTS source_health (
 );
 
 -- Employer identity resolutions (pipeline/identity.py). Keyed per EMPLOYER,
--- not per signal: 2,052 rows are 1,902 employers and the SEC filers among them
--- recur every quarter, so this is the difference between one lookup and forty.
+-- not per signal: employers repeat and the SEC filers among them recur every
+-- quarter, so this is the difference between one lookup and forty.
 -- `resolved = 0` rows are negative results and are kept on purpose — a name
 -- Wikidata does not know must be asked about once, not on every run.
 CREATE TABLE IF NOT EXISTS employer_identity (

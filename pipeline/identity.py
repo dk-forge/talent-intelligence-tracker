@@ -29,10 +29,10 @@ Three rules govern every write, and each is enforced in exactly one place:
    about a document. Everything this module produces is an inference from a
    name. So enrichment fills BLANKS and never overwrites — see `enrich()` and
    the WHERE clauses in `backfill()`.
-2. **Resolution is cached per employer, forever.** Employers repeat: 2,052 rows
-   in the live table are 1,902 employers, and the SEC filers among them recur
-   every quarter. Negative results are cached too, so a name Wikidata does not
-   know is asked about once, not on every run.
+2. **Resolution is cached per employer, forever.** Employers repeat, and the
+   SEC filers among them recur every quarter. Negative results are cached too:
+   807 of the 3,604 employers resolved so far are names Wikidata does not
+   know, and each of them is asked about once rather than on every run.
 3. **It fails open, always.** A timeout, a 429, a malformed response or an
    ambiguous match leaves every field exactly as it was. Nothing in this module
    may raise into the pipeline; identity is a nice-to-have and ingestion is not.
