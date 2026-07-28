@@ -145,7 +145,7 @@ def collect(queries=None, *, days_back: int = 7, max_per_phrase: int = 4) -> lis
                 continue
             seen.add(url)
 
-            company, _cik = _company_and_cik(hit)
+            company, cik = _company_and_cik(hit)
             src = hit.get("_source") or {}
             try:
                 body = fetch_text(url)
@@ -166,6 +166,10 @@ def collect(queries=None, *, days_back: int = 7, max_per_phrase: int = 4) -> lis
                 "discovery_url": url,
                 "published_date": src.get("file_date"),
                 "country": "United States",
+                # The filer's CIK, straight from the search hit. It is the
+                # join key to the sibling layoff tracker, and it was being
+                # extracted and thrown away on every filing.
+                "cik": cik,
                 "query": phrase,
                 "collector": COLLECTOR,
                 "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

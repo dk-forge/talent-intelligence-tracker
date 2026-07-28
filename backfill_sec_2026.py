@@ -68,7 +68,7 @@ def collect_window(startdt: str, enddt: str) -> list[dict]:
             if not url or url in seen:
                 continue
             seen.add(url)
-            company, _cik = sec_edgar._company_and_cik(hit)
+            company, cik = sec_edgar._company_and_cik(hit)
             src = hit.get("_source") or {}
             try:
                 body = sec_edgar.fetch_text(url)
@@ -85,6 +85,7 @@ def collect_window(startdt: str, enddt: str) -> list[dict]:
                 "discovery_url": url,
                 "published_date": src.get("file_date"),
                 "country": "United States",
+                "cik": cik,      # join key to the sibling tracker
                 "query": f"{PHRASE} backfill {startdt}",
                 "collector": sec_edgar.COLLECTOR,
                 "fetched_at": datetime.utcnow().isoformat(timespec="seconds"),
