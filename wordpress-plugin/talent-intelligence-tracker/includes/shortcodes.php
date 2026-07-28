@@ -337,7 +337,13 @@ function tit_dashboard_shortcode() {
 
       <div class="tit-charts">
       <div class="tit-chart" id="chart-kind">
-        <?php tit_chart_head('What kind of update', 'Every update falls into one of four kinds.', 'kind'); ?>
+        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
+                 not what the chart is made of. "What kind of update" described
+                 the axis; "What is moving" answers the question they opened the
+                 page with. No copy here promises click-to-filter: the bar rows
+                 are still plain markup, and advertising an interaction that does
+                 not exist is worse than not having it. */ ?>
+        <?php tit_chart_head('What is moving', 'Hiring, funding, leadership changes and pay news, ranked by how much of it we are seeing.', 'kind'); ?>
       <div class="tit-pillars">
         <?php foreach ($by_pillar as $p) :
             $key = $p['pillar'];
@@ -353,7 +359,7 @@ function tit_dashboard_shortcode() {
       </div>
       </div>
         <div class="tit-chart" id="chart-place">
-          <?php tit_chart_head('Where the activity is', "Job location, falling back to the employer's headquarters.", 'place'); ?>
+          <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in.", 'place'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
             <?php
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
@@ -369,7 +375,7 @@ function tit_dashboard_shortcode() {
         </div>
 
         <div class="tit-chart" id="chart-direction">
-          <?php tit_chart_head('Growing or shrinking', 'What each update means for headcount at that employer.', 'direction'); ?>
+          <?php tit_chart_head('Which way headcount is going', 'Whether each update points to more hiring, fewer roles, or a pay change at that employer.', 'direction'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
             <?php
             $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
