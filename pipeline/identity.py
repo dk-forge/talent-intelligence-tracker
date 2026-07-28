@@ -253,6 +253,11 @@ _TYPE_BY_INSTANCE = (
     ("Q327333", "government"),  # government agency
     ("Q1752939", "government"),  # federal agency of the United States
     ("Q1326624", "government"),  # state-owned enterprise
+    # NHS trusts are public bodies, and there are ninety of them among the
+    # employers here. Their P279 chain reaches "company" and nothing else this
+    # table knows, so without these two they all came back "Private company".
+    ("Q6954187", "government"),  # NHS foundation trust
+    ("Q6954197", "government"),  # NHS trust
     ("Q163740", "nonprofit"),   # nonprofit organization
     ("Q79913", "nonprofit"),    # non-governmental organization
     ("Q708676", "nonprofit"),   # charitable organization
