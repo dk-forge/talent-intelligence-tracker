@@ -1,0 +1,95 @@
+{
+  "sources": {
+    "api_rows": 2559,
+    "db_rows": 2050,
+    "union_rows": 2561,
+    "layoff_rows": 63617
+  },
+  "join": {
+    "talent_employers": 2281,
+    "layoff_employers": 31308,
+    "joined": 409,
+    "by_ticker": 15,
+    "by_name": 394,
+    "talent_rows_with_cik": 402,
+    "talent_rows_with_ticker": 402,
+    "layoff_rows_with_ticker": 582,
+    "layoff_has_cik_field": false
+  },
+  "analysis_1": {
+    "windows": [
+      {
+        "window_months": 3,
+        "computable": true,
+        "signals": 394,
+        "employers": 367,
+        "conditional_hits": 36,
+        "conditional_n": 394,
+        "conditional_rate": 0.09137055837563451,
+        "conditional_ci": [
+          0.0667289523242777,
+          0.12390370147562657
+        ],
+        "base_rate": 0.10559644670050762,
+        "base_hits": 8321,
+        "base_n": 78800,
+        "placebo_hits": 42,
+        "placebo_n": 394,
+        "employer_hits": 32,
+        "employer_n": 367,
+        "all_denom_hits": 36,
+        "all_denom_n": 2023,
+        "perm_p": 0.9502487562189055,
+        "fisher_p": 0.3491950221151595
+      },
+      {
+        "window_months": 6,
+        "computable": true,
+        "signals": 112,
+        "employers": 111,
+        "conditional_hits": 20,
+        "conditional_n": 112,
+        "conditional_rate": 0.17857142857142858,
+        "conditional_ci": [
+          0.11867570210914295,
+          0.25978592134909656
+        ],
+        "base_rate": 0.18683035714285715,
+        "base_hits": 4185,
+        "base_n": 22400,
+        "placebo_hits": 20,
+        "placebo_n": 112,
+        "employer_hits": 20,
+        "employer_n": 111,
+        "all_denom_hits": 20,
+        "all_denom_n": 561,
+        "perm_p": 1.0,
+        "fisher_p": 0.635002031184508
+      },
+      {
+        "window_months": 12,
+        "computable": false
+      }
+    ]
+  },
+  "analysis_2": {
+    "funding": 54,
+    "hiring": 37,
+    "employers_both": 12,
+    "pairs": 0,
+    "pair_lags_days": []
+  },
+  "shape": {
+    "rows": 2561,
+    "months": {
+      "2026-07": 116,
+      "2026-04": 481,
+      "2026-03": 654,
+      "2026-02": 582,
+      "2026-01": 728
+    },
+    "leadership": 2144,
+    "us": 2353,
+    "identified": 402
+  }
+}

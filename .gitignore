@@ -17,6 +17,10 @@ out/
 # company_tickers.json has no business in a repo whose database is committed.
 data/.cache/
 
+# Cross-tracker analysis pulls ~70MB of the sibling tracker's public rows.
+# Refetchable in one command; no business in the repo either.
+analysis/.cache/
+
 .DS_Store
 .pytest_cache/
 .ruff_cache/
