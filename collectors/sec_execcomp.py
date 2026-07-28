@@ -83,6 +83,20 @@ MAX_PLAUSIBLE = 1_000_000_000
 
 _US_STATE_LOC = re.compile(r"^US-([A-Z]{2})$")
 
+# One proxy statement makes several dated claims.
+#
+# The pay-versus-performance table covers up to five fiscal years, and SEC's
+# frames answer every one of those years from the SAME filing — so the CY2022
+# and CY2025 rows for a company share an accession and therefore a source_url.
+# Marking that URL seen made the first year collected the only year collected:
+# the first live backfill found 3,932 datapoints across CY2022-CY2025 and
+# stored 1,170, skipping 2,762 as "already seen" that were four different
+# fiscal years of pay at the same employers.
+#
+# Dedup for this source is content_hash instead, which spans the period end and
+# the exact figure, so the same year cannot land twice.
+REVISITS_ITS_SOURCE_URL = True
+
 
 class FrameError(RuntimeError):
     """A year's frame could not be read, or came back implausibly empty."""

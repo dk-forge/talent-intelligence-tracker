@@ -836,6 +836,34 @@ def apply_identity(conn: sqlite3.Connection, ident: Identity) -> dict:
     return counts
 
 
+def apply_cache(conn: sqlite3.Connection, *, dry_run: bool = False) -> dict:
+    """Push every cached identity onto the rows, resolving nothing.
+
+    The cheap half of the backfill, separated out because the two halves fail
+    differently: resolution is a long network walk that can be interrupted, and
+    applying is a handful of indexed UPDATEs that cannot. Splitting them also
+    means the resolving half can run against a COPY of the database — which is
+    what you want when something else on the machine is touching the live file.
+    """
+    ensure_cache(conn)
+    rows = conn.execute(
+        f"SELECT company_key, {', '.join(ENRICHED_FIELDS)} "
+        "FROM employer_identity WHERE resolved = 1").fetchall()
+
+    stats = {"employers": len(rows), "resolved": len(rows), "unresolved": 0,
+             "rows": {f: 0 for f in ENRICHED_FIELDS}, "samples": []}
+    for row in rows:
+        ident = Identity(company_key=row[0],
+                         **dict(zip(ENRICHED_FIELDS, row[1:])))
+        if ident.is_empty or dry_run:
+            continue
+        for field, n in apply_identity(conn, ident).items():
+            stats["rows"][field] += n
+    if not dry_run:
+        conn.commit()
+    return stats
+
+
 def backfill(conn: sqlite3.Connection, *, limit: int | None = None,
              allow_network: bool = True, retry_negative: bool = False,
              dry_run: bool = False, verbose: bool = True) -> dict:
@@ -885,6 +913,8 @@ def main(argv=None) -> int:
         description="Fill ticker / cik / hq / employer_type from SEC + Wikidata. No LLM.")
     parser.add_argument("--backfill", action="store_true",
                         help="resolve employers in the database and fill their blanks")
+    parser.add_argument("--apply-cache", action="store_true",
+                        help="fill blanks from already-cached resolutions; no network")
     parser.add_argument("--limit", type=int, default=None,
                         help="stop after N employers (they are ordered by row count)")
     parser.add_argument("--dry-run", action="store_true",
@@ -911,13 +941,17 @@ def main(argv=None) -> int:
         }, indent=2))
         return 0
 
-    if not args.backfill:
-        parser.error("nothing to do: pass --backfill or --name")
+    if not (args.backfill or args.apply_cache):
+        parser.error("nothing to do: pass --backfill, --apply-cache or --name")
 
     conn = schema.connect(args.db)
-    print(f"identity backfill{' (dry run)' if args.dry_run else ''}")
-    stats = backfill(conn, limit=args.limit, dry_run=args.dry_run,
-                     retry_negative=args.retry_negative)
+    label = "apply cached identities" if args.apply_cache else "identity backfill"
+    print(f"{label}{' (dry run)' if args.dry_run else ''}")
+    if args.apply_cache:
+        stats = apply_cache(conn, dry_run=args.dry_run)
+    else:
+        stats = backfill(conn, limit=args.limit, dry_run=args.dry_run,
+                         retry_negative=args.retry_negative)
     conn.commit()
 
     print(f"\nemployers examined : {stats['employers']}")

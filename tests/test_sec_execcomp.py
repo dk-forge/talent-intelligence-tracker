@@ -119,6 +119,27 @@ class Years(unittest.TestCase):
                          [datetime.now(timezone.utc).year - 1])
 
 
+class OneFilingManyYears(unittest.TestCase):
+    def test_the_collector_declares_that_it_revisits_a_source_url(self):
+        """A proxy statement's pay-versus-performance table covers five fiscal
+        years and the frames answer all of them from that one accession. The
+        first live backfill stored 1,170 of 3,932 datapoints because the URL
+        was marked seen on the first year and the other four were skipped."""
+        self.assertTrue(sec_execcomp.REVISITS_ITS_SOURCE_URL)
+
+    def test_two_years_of_one_filing_are_two_different_records(self):
+        entry = _entries()[0]
+        first = sec_execcomp._row(dict(entry, start="2022-01-01",
+                                       end="2022-12-31", val=1_000_000), 2022)
+        second = sec_execcomp._row(entry, 2025)
+        self.assertEqual(first["source_url"], second["source_url"])
+        a = validate.build_signal(sec_execcomp.as_classified(first), first,
+                                  sec_execcomp.COLLECTOR)
+        b = validate.build_signal(sec_execcomp.as_classified(second), second,
+                                  sec_execcomp.COLLECTOR)
+        self.assertNotEqual(a.content_hash, b.content_hash)
+
+
 class UserAgent(unittest.TestCase):
     def test_the_agent_carries_a_contact_address(self):
         """SEC 403s a request with no contact address, and a workflow mapping a
