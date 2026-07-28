@@ -487,3 +487,26 @@ function tit_enqueue_assets() {
     tit_enqueue_dashboard_assets();
 }
 add_action('wp_enqueue_scripts', 'tit_enqueue_assets');
+
+/**
+ * Keep Autoptimize's hands off this plugin's assets.
+ *
+ * The live site runs Autoptimize with CSS aggregation on: it strips every
+ * <link rel="stylesheet"> and inlines the combined result. Our dashboard.css
+ * was enqueued correctly and still never reached the page - the aggregated
+ * bundle simply did not contain a single .tit- rule, so the dashboard rendered
+ * as raw HTML with every class inert (observed live 2026-07-28).
+ *
+ * The sibling plugin carries the same two filters for the same reason. Ours
+ * were missing, which is why "the CSS exists and is enqueued" and "the page has
+ * no styles" were both true at once.
+ */
+function tit_autoptimize_exclude_css($exclude) {
+    return $exclude . ', talent-intelligence-tracker/assets';
+}
+add_filter('autoptimize_filter_css_exclude', 'tit_autoptimize_exclude_css');
+
+function tit_autoptimize_exclude_js($exclude) {
+    return $exclude . ', talent-intelligence-tracker/assets';
+}
+add_filter('autoptimize_filter_js_exclude', 'tit_autoptimize_exclude_js');
