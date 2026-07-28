@@ -139,7 +139,27 @@ def test_sort_is_a_closed_list_not_request_text():
     for key in ("newest", "oldest", "largest", "employer"):
         assert f"'{key}'" in block, key
     # Lookup with a fallback, never interpolation of the parameter itself.
-    assert "$orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['newest']" in php
+    #
+    # Assert the SAFETY PROPERTY, not the specific default. This used to pin
+    # the exact string ending "?? $orders['newest']", so CI went red the day
+    # the default view changed to lead with material updates: a deliberate
+    # product decision, not a security regression. What must stay true is that
+    # the sort key is looked up in a closed map and falls back to another key
+    # IN THAT MAP. Which key is the default is a UX call this test should not
+    # own.
+    import re
+
+    match = re.search(
+        r"\$orders\[sanitize_text_field\(\$req->get_param\('sort'\) \?\? ''\)\]"
+        r"\s*\?\?\s*\$orders\['(\w+)'\]",
+        php,
+    )
+    assert match, "sort must be a closed-map lookup with a fallback, not request text"
+    fallback = match.group(1)
+    assert f"'{fallback}'" in block, (
+        f"the fallback sort '{fallback}' is not a key in $orders, so an unknown "
+        f"sort would produce an empty ORDER BY"
+    )
     assert "ORDER BY {$order}" in php
 
 
