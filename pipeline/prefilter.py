@@ -86,7 +86,49 @@ _EMPLOYMENT_TERMS_INTL = (
     r"banen", r"medewerkers?", r"personeel", r"aannem\w+", r"vacatures?",
     r"topman", r"bestuursvoorzitter", r"stapt op", r"salaris\w*",
     r"financieringsronde",
+    # Polish
+    r"prezes\w*", r"zatrudni\w*", r"miejsc pracy", r"pracownik\w+",
+    r"rezygnuje", r"wynagrodzeni\w+", r"runda finansowania",
+    # Swedish
+    r"\bvd\b", r"anställ\w+", r"jobb", r"medarbetare", r"personal",
+    r"lämnar sin post", r"finansieringsrunda",
+    # Turkish. The first pass had only eight terms and let 22% of real Turkish
+    # hiring headlines through; the misses were all ordinary newsroom wording
+    # ("personel alımı", "kadro", "atandı") rather than anything exotic.
+    r"genel müdür\w*", r"istihdam", r"işe al\w+", r"çalışan\w*",
+    r"görevinden ayrıl\w+", r"maaş\w*", r"yatırım turu", r"yatırım aldı",
+    r"personel alım\w*", r"personel", r"kadro\w*", r"atand[ıi]", r"atama\w*",
+    r"iş ilan\w*", r"eleman alım\w*", r"memur alım\w*", r"başkan\w* seçildi",
+    r"yönetim kurulu", r"ceo['’]?su", r"görevine getirildi", r"istifa\w*", r"ceo['’]s[uü]",
+    r"yeni ceo", r"ceo oldu", r"ceo olarak", r"ceo atand[ıi]",
+    r"ücret\w*", r"zam", r"yeni ofis", r"fabrika açt\w+", r"tesis açt\w+",
+    # Indonesian / Malay
+    r"direktur utama", r"merekrut", r"lowongan", r"karyawan", r"pegawai",
+    r"mengundurkan diri", r"pendanaan", r"putaran pendanaan",
+    # Vietnamese
+    r"tổng giám đốc", r"tuyển dụng", r"nhân viên", r"việc làm",
+    r"từ chức", r"gọi vốn", r"huy động vốn",
 )
+
+# CJK and Arabic have no spaces between words the way \b expects, so these are
+# matched as substrings. That is safe here because each string is long enough to
+# be unambiguous — the risk \b guards against ("RIF" inside "tariff") does not
+# arise for 社長に就任 or تعيين رئيس تنفيذي.
+_EMPLOYMENT_TERMS_CJK = (
+    # Japanese
+    "社長", "就任", "退任", "採用", "求人", "従業員", "人員", "新拠点",
+    "資金調達", "シリーズA", "シードラウンド", "賃上げ", "給与",
+    # Korean
+    "대표이사", "선임", "사임", "채용", "인력", "직원", "사무소",
+    "투자 유치", "시리즈 A", "시드 투자", "임금",
+    # Chinese
+    "首席执行官", "总裁", "任命", "辞职", "招聘", "员工", "融资", "轮融资",
+    # Arabic
+    "الرئيس التنفيذي", "تعيين", "استقالة", "توظيف", "وظائف", "موظف",
+    "جولة تمويل", "تمويل", "رواتب",
+)
+
+_CJK = re.compile("|".join(re.escape(t) for t in _EMPLOYMENT_TERMS_CJK))
 
 _EMPLOYMENT = re.compile(
     r"\b(?:" + "|".join(_EMPLOYMENT_TERMS + _EMPLOYMENT_TERMS_INTL + _FUNDING_TERMS) + r")\b",
@@ -131,6 +173,21 @@ _OFF_TOPIC_TERMS = (
     r"\d+\s+posts?\b", r"uppsc", r"upsc", r"ssc\s+(?:cgl|chsl|gd|mts|officer)",
     r"bharti", r"sarkari", r"vacanc(?:y|ies) notification",
     r"police constable", r"assistant teacher recruitment",
+    # Football uses the hiring verb in several of these languages: a live test
+    # of the Indonesian edition returned "Barcelona mencapai kesepakatan untuk
+    # merekrut bintang Man City" as a hiring signal.
+    r"barcelona", r"real madrid", r"man city", r"manchester united",
+    r"liverpool", r"chelsea", r"arsenal", r"juventus", r"bayern",
+    r"sepak bola", r"liga inggris", r"transfer pemain", r"bintang",
+    r"bóng đá", r"câu lạc bộ", r"cầu thủ", r"chuyển nhượng",
+    r"futbol", r"transfer sezonu", r"teknik direktör",
+    r"fotboll", r"allsvenskan", r"piłkarz", r"transfer\w* piłkar\w*",
+    # Public-sector recruitment notices, same reasoning as the Indian ones.
+    r"tuyển dụng viên chức", r"tuyển dụng công chức", r"thi tuyển",
+    r"penerimaan cpns", r"\bcpns\b", r"seleksi calon pegawai",
+    r"memur alımı ilanı", r"kpss", r"bakanlığı personel alım\w*",
+    r"bakanlık\w* personel", r"belediyesi personel", r"kamu personel alım\w*",
+    r"i̇şkur", r"başvuru ekranı", r"başvuru şartları",
 )
 _OFF_TOPIC = re.compile(r"\b(?:" + "|".join(_OFF_TOPIC_TERMS) + r")\b", re.I)
 
@@ -202,7 +259,7 @@ def passes(text: str) -> tuple[bool, str]:
         hit = _OFF_TOPIC.search(text).group(0)
         return False, f"off-topic domain ({hit})"
 
-    if not (_EMPLOYMENT.search(text) or _SITE.search(text)):
+    if not (_EMPLOYMENT.search(text) or _SITE.search(text) or _CJK.search(text)):
         return False, "no employment or site-opening term"
 
     # NOTE: geography is deliberately NOT a gate here, though the helper above

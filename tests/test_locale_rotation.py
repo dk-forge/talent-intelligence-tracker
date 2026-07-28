@@ -98,3 +98,51 @@ def test_the_run_caps_itself_without_being_told_to():
     from run_collect import DEFAULT_CANDIDATE_CAP
 
     assert 10 <= DEFAULT_CANDIDATE_CAP <= 100
+
+
+def test_non_latin_scripts_survive_the_free_filter():
+    """CJK and Arabic have no word boundaries the way \\b expects, so those
+    terms are matched as substrings. Without that, adding Japanese, Korean and
+    Arabic editions would have fetched correctly and dropped every candidate
+    for free — the exact silent-zero shape the multilingual work exists to
+    avoid. Headlines below are real, from the live editions on 2026-07-27.
+    """
+    from pipeline.prefilter import passes
+
+    real = (
+        "ニッケンかみそり 熊田征純氏、新社長に就任、地場産業発展へ",
+        "한국유니온제약, 성광현 대표이사 선임",
+        "الرئيس التنفيذي الجديد يناقش استراتيجية التوظيف",
+        "Gizem Moral, Moka United’ın yeni CEO’su oldu",
+        "NFZ zatrudni setki kontrolerów",
+        "Han blir ny vd för ÖSK",
+        "Hà Tĩnh: Hơn 23.000 việc làm tuyển dụng trong quý III",
+    )
+    for headline in real:
+        keep, why = passes(headline)
+        assert keep, f"{headline}: {why}"
+
+
+def test_the_hiring_verb_that_is_also_a_football_transfer():
+    """A live test of the Indonesian edition returned "Barcelona mencapai
+    kesepakatan untuk merekrut bintang Man City" as a hiring signal. Several
+    languages use the hiring verb for signing a player."""
+    from pipeline.prefilter import passes
+
+    for headline in (
+        "Barcelona mencapai kesepakatan untuk merekrut bintang Man City",
+        "Manchester City Siap Tolak Upaya Real Madrid Merekrut Rodri",
+    ):
+        assert not passes(headline)[0], headline
+
+
+def test_public_sector_recruitment_notices_stay_out():
+    """Instructions to applicants, not intelligence about an employer, in the
+    same category as the Indian exam notices that were being stored."""
+    from pipeline.prefilter import passes
+
+    for headline in (
+        "Thông báo tuyển dụng viên chức Trung tâm Công báo",
+        "Kayseri'de KPSS fırsatı! Mülakatsız personel alımı başladı",
+    ):
+        assert not passes(headline)[0], headline

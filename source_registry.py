@@ -148,6 +148,53 @@ GOOGLE_NEWS_VOCAB = {
         '("gaat aannemen" OR "nieuwe banen" OR "opent vestiging" OR "breidt uit") when:3d',
         '("financieringsronde" OR "haalt" "miljoen op") when:3d',
     ),
+    # Added 2026-07-27. Every one was fetched live before being committed, and
+    # the matching prefilter terms were tested against the real headlines that
+    # came back, not against invented ones. Two only shipped after a fix: the
+    # Turkish set missed 78% of real Turkish hiring headlines on the first pass
+    # (its misses were ordinary newsroom wording, not exotic vocabulary), and
+    # Indonesian returned football transfers because "merekrut" is the verb for
+    # signing a player.
+    "pl": (
+        '("nowym prezesem" OR "powołany na stanowisko prezesa" OR "rezygnuje") when:3d',
+        '("zatrudni" OR "nowe miejsca pracy" OR "otwiera biuro") when:3d',
+        '("runda finansowania" OR "pozyskał" "mln") when:3d',
+    ),
+    "sv": (
+        '("ny vd" OR "utses till vd" OR "lämnar sin post") when:3d',
+        '("ska anställa" OR "nya jobb" OR "öppnar kontor") when:3d',
+        '("finansieringsrunda" OR "tar in" "miljoner") when:3d',
+    ),
+    "tr": (
+        '("genel müdür atandı" OR "yeni CEO" OR "görevinden ayrıldı") when:3d',
+        '("işe alacak" OR "istihdam" OR "yeni ofis açtı") when:3d',
+        '("yatırım turu" OR "yatırım aldı" OR "tohum yatırımı") when:3d',
+    ),
+    "id": (
+        '("direktur utama baru" OR "menunjuk CEO" OR "mengundurkan diri") when:3d',
+        '("membuka lowongan" OR "merekrut" OR "kantor baru") when:3d',
+        '("pendanaan" OR "putaran pendanaan" OR "seri A") when:3d',
+    ),
+    "vi": (
+        '("bổ nhiệm tổng giám đốc" OR "CEO mới" OR "từ chức") when:3d',
+        '("tuyển dụng" OR "việc làm mới" OR "mở văn phòng") when:3d',
+        '("vòng gọi vốn" OR "huy động" "triệu USD") when:3d',
+    ),
+    "ja": (
+        '("社長に就任" OR "CEOに就任" OR "代表取締役に就任" OR "退任") when:3d',
+        '("採用を拡大" OR "人員を増やす" OR "新拠点" OR "新オフィス") when:3d',
+        '("資金調達" OR "シリーズA" OR "シードラウンド") when:3d',
+    ),
+    "ko": (
+        '("신임 대표이사" OR "대표이사 선임" OR "CEO 선임" OR "사임") when:3d',
+        '("채용 확대" OR "신규 채용" OR "인력 충원" OR "사무소 개소") when:3d',
+        '("투자 유치" OR "시리즈 A" OR "시드 투자") when:3d',
+    ),
+    "ar": (
+        '("تعيين رئيس تنفيذي" OR "الرئيس التنفيذي الجديد" OR "استقالة") when:3d',
+        '("توظيف" OR "فرص عمل" OR "مكتب جديد") when:3d',
+        '("جولة تمويل" OR "تمويل" "مليون") when:3d',
+    ),
 }
 
 GOOGLE_NEWS_LOCALES = (
@@ -159,6 +206,14 @@ GOOGLE_NEWS_LOCALES = (
     ("pt", "BR"), ("pt", "PT"),
     ("it", "IT"),
     ("nl", "NL"),
+    ("pl", "PL"),
+    ("sv", "SE"),
+    ("tr", "TR"),
+    ("id", "ID"), ("id", "MY"),
+    ("vi", "VN"),
+    ("ja", "JP"),
+    ("ko", "KR"),
+    ("ar", "AE"), ("ar", "SA"), ("ar", "EG"), ("ar", "QA"), ("ar", "MA"),
 )
 
 
@@ -267,7 +322,7 @@ SOURCES = (
                  "retried into a rate-limit spiral."),
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
-           "25 country editions, 7 languages",
+           "38 country editions, 15 languages",
            notes="Keyless and unthrottled. Read in each edition's own language, "
                  "because English phrases in a non-English edition return almost "
                  "nothing. Its links are encoded redirects, but Google's own "
