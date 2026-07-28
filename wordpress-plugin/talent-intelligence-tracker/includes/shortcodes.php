@@ -440,6 +440,27 @@ function tit_dashboard_shortcode() {
         </table>
       </div>
 
+      <!--
+        Download exactly what the filters show. The hrefs are server-rendered
+        pointing at the whole dataset; dashboard.js rewrites them with the
+        current querystring on every refresh, and the scope word flips between
+        "all" and "filtered" so the link says which set it hands over.
+      -->
+      <div class="tit-export">
+        <span class="tit-export-label">Download this view</span>
+        <a class="tit-export-link" id="tit-export-csv"
+           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>"
+           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          CSV<span class="tit-export-scope" id="tit-export-csv-scope"> · all</span></a>
+        <a class="tit-export-link" id="tit-export-json"
+           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>"
+           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          JSON<span class="tit-export-scope" id="tit-export-json-scope"> · all</span></a>
+        <span class="tit-export-note">Every matching update, not just this page. Free to reuse, CC BY 4.0.</span>
+      </div>
+
       <p class="tit-cite">
         Data licensed CC BY 4.0. Cite as: Talent Intelligence Tracker,
         asktherecruiter.com. Layoff and redundancy data is not collected here;

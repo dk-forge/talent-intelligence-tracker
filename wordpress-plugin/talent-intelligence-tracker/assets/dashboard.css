@@ -121,6 +121,26 @@
 .tit-when { font-size:12.5px; color:var(--tit-mut); }
 .tit-cite { margin:16px 0 0; font-size:13.5px; color:var(--tit-mut); }
 
+/* Download-this-view row under the table. Links, not buttons: they navigate
+   to admin-post.php and the browser saves the response as a file. */
+.tit-export { display:flex; align-items:center; flex-wrap:wrap; gap:10px;
+  margin:14px 0 0; }
+.tit-export-label { font-size:13px; font-weight:650; color:var(--tit-mut); }
+.tit-wrap a.tit-export-link { display:inline-flex; align-items:center; gap:6px;
+  padding:6px 12px; border:1px solid var(--tit-line); border-radius:9px;
+  background:var(--tit-surface); color:var(--tit-fg); font-size:13px;
+  font-weight:650; text-decoration:none; line-height:1.2; }
+.tit-wrap a.tit-export-link svg { width:14px; height:14px; fill:none;
+  stroke:currentColor; stroke-width:1.9; stroke-linecap:round;
+  stroke-linejoin:round; flex:none; }
+.tit-wrap a.tit-export-link:hover { border-color:var(--tit-blue);
+  color:var(--tit-blue); background:#fff; }
+.tit-wrap a.tit-export-link:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+.tit-export-scope { font-weight:500; color:var(--tit-mut); }
+.tit-wrap a.tit-export-link:hover .tit-export-scope { color:var(--tit-blue); }
+.tit-export-note { font-size:12.5px; color:var(--tit-mut); }
+
 .tit-wrap a { color:#1a5fb4; text-decoration:underline; }
 .tit-wrap a:hover { color:#12447f; }
 
