@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+"""One-time 2026 catch-up: SEC Form D private placements, Jan 1 to now.
+
+The funding pillar is the thinnest thing on the page: 1,979 records, 17 of
+them carrying a money figure, because `collectors/sec_form_d.py` only ever
+looked back five days and the first 2026 sweep was 8-K leadership only. Form D
+is the filing every US private placement must make, and the amount sold is a
+structured XML field — a fact read off a legal filing, not a number a model
+produced. That makes a historical sweep the cheapest large win available.
+
+Everything goes through the SAME pipeline as the daily collector — gate,
+read-through, validate, store, publish — so every guard applies. Nothing is
+written directly. The issuer filters (pooled-investment industries, the
+investment-vehicle name patterns, MIN_RAISED) are the collector's own
+constants, imported rather than restated, so the backfill and the daily run
+cannot drift apart on what counts as an employer raising money.
+
+Usage:
+    python backfill_form_d_2026.py --start 2026-01-01 --end 2026-01-31
+    python backfill_form_d_2026.py --start 2026-01-01 --end 2026-01-31 --dry-run
+
+Chunk by month from the workflow: a whole-year sweep in one job would brush
+the 6-hour Actions ceiling; a month is comfortably under it.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from datetime import date, datetime, timedelta, timezone
+
+import requests
+
+from collectors import sec_edgar, sec_form_d
+from pipeline import publish, schema, store, validate
+from pipeline import classify
+
+# Weekly windows keep each query far below the EFTS result-window ceiling: a
+# 2026 month is ~850 Form D filings matching the collector's query, so a week
+# is ~200.
+WINDOW_DAYS = 7
+
+# `sec_form_d.search(page=N)` asks EFTS for offset N*10, but EFTS answers with
+# up to 100 hits per request. Advancing one page at a time would therefore
+# re-request the same records ten times over. The stride is derived from what
+# came back rather than assumed, so a change in EFTS's page size costs a
+# little overlap (which the per-window `seen` set absorbs) instead of silently
+# skipping filings.
+MAX_REQUESTS_PER_WINDOW = 60
+
+
+def iter_windows(start: date, end: date):
+    lo = start
+    while lo <= end:
+        hi = min(lo + timedelta(days=WINDOW_DAYS - 1), end)
+        yield lo.isoformat(), hi.isoformat()
+        lo = hi + timedelta(days=1)
+
+
+def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int]:
+    """All qualifying Form D filings in one window, paginated.
+
+    Returns (items, raw_hits, already_seen). `raw_hits` is what the SEC search
+    itself returned, BEFORE any issuer filtering — the fail-loud check reads
+    that, because "no filings matched" and "no issuers survived the fund
+    filter" are different failures and only the first one means the search is
+    broken.
+
+    A fetch failure skips the single filing, never the window.
+    """
+    out: list[dict] = []
+    seen: set[str] = set()
+    raw_hits = skipped = 0
+
+    page = 0
+    for _request in range(MAX_REQUESTS_PER_WINDOW):
+        try:
+            hits = sec_form_d.search(startdt=startdt, enddt=enddt, page=page)
+        except Exception as exc:  # noqa: BLE001 - one window must not kill the run
+            print(f"  window {startdt}..{enddt} page {page}: search failed: {exc}",
+                  file=sys.stderr)
+            break
+        if not hits:
+            break
+        raw_hits += len(hits)
+        page += max(1, len(hits) // 10)
+
+        for hit in hits:
+            url = sec_edgar.document_url(hit)
+            if not url or url in seen:
+                continue
+            seen.add(url)
+
+            # Cheapest check first: a re-dispatched month must not re-fetch
+            # thousands of XML documents it already classified.
+            if store.already_seen(conn, url):
+                skipped += 1
+                continue
+
+            try:
+                xml = requests.get(
+                    url, headers={"User-Agent": sec_form_d.USER_AGENT}, timeout=30).text
+            except requests.RequestException:
+                continue
+
+            industry = sec_form_d._tag(xml, "industryGroupType")
+            if industry.lower() in sec_form_d.EXCLUDED_INDUSTRIES:
+                continue
+
+            raised = sec_form_d._money(sec_form_d._tag(xml, "totalAmountSold"))
+            if not raised or raised < sec_form_d.MIN_RAISED:
+                continue
+
+            company = sec_form_d._tag(xml, "entityName")
+            if not company:
+                continue
+            if sec_form_d.EXCLUDED_NAME_PATTERNS.search(company):
+                # An investment vehicle raising capital employs nobody; only an
+                # operating company's raise implies hiring.
+                continue
+
+            city = sec_form_d._tag(xml, "city").title()
+            state = sec_form_d._tag(xml, "stateOrCountry")
+            money = sec_form_d._humanise(raised)
+
+            # Identical wording to the daily collector's: the classifier reads
+            # only raw_text, and validate.assert_figures_are_sourced compares
+            # any figure it returns against exactly this string.
+            headline = f"{company} raised {money} in a private placement"
+            body = (
+                f"{company} filed a Form D with the SEC reporting {money} "
+                f"({raised:,} dollars) sold in a private securities offering. "
+                f"Industry: {industry}. Location: {city}, {state}. "
+                f"Form D filings are required for exempt offerings and are the "
+                f"public record of private fundraising."
+            )
+
+            out.append({
+                "raw_text": f"{headline}\n\n{body}",
+                "headline": headline,
+                "source_url": url,
+                "source_name": "SEC EDGAR (Form D)",
+                "discovery_url": url,
+                "published_date": (hit.get("_source") or {}).get("file_date"),
+                "country": "United States",
+                "state": state,
+                "city": city,
+                "funding_amount": money,
+                "query": f"form D backfill {startdt}",
+                "collector": sec_form_d.COLLECTOR,
+                "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            })
+
+    return out, raw_hits, skipped
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--start", required=True)
+    ap.add_argument("--end", required=True)
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+    start = date.fromisoformat(args.start)
+    end = min(date.fromisoformat(args.end), date.today())
+
+    conn = schema.connect()
+    stored = duplicates = rejected = skipped = errors = 0
+    windows = empty_search_windows = total_hits = 0
+
+    for lo, hi in iter_windows(start, end):
+        windows += 1
+        items, raw_hits, window_skipped = collect_window(conn, lo, hi)
+        total_hits += raw_hits
+        skipped += window_skipped
+        if raw_hits == 0:
+            empty_search_windows += 1
+        print(f"\n[{lo}..{hi}] {raw_hits} Form D search results, "
+              f"{window_skipped} already seen, {len(items)} qualifying issuers")
+
+        for item in items:
+            url = item["source_url"]
+            try:
+                classified = classify.classify(item)
+            except classify.CreditsExhausted:
+                # Publish what this run already earned, then stop cleanly.
+                print("\nSTOPPING: OpenRouter credits exhausted", file=sys.stderr)
+                conn.commit()
+                if not args.dry_run:
+                    publish.publish(conn)
+                return 1
+            except classify.AuthFailed as exc:
+                print(f"\nSTOPPING: {exc}", file=sys.stderr)
+                return 1
+            except classify.Throttled:
+                # Historical filings are not going anywhere: leave unseen and
+                # a re-dispatch of the same window picks them up.
+                errors += 1
+                continue
+            except classify.ClassifyError:
+                errors += 1
+                continue
+
+            if classified is None:
+                rejected += 1
+                if not args.dry_run:
+                    store.mark_seen(conn, url, sec_form_d.COLLECTOR, "rejected")
+                continue
+            try:
+                signal = validate.build_signal(classified, item, sec_form_d.COLLECTOR)
+            except validate.Rejected:
+                rejected += 1
+                if not args.dry_run:
+                    store.mark_seen(conn, url, sec_form_d.COLLECTOR, "rejected")
+                continue
+            if args.dry_run:
+                stored += 1
+                print(f"  WOULD STORE  {signal.headline[:70]}")
+                continue
+            outcome = store.store(conn, signal)
+            store.mark_seen(conn, url, sec_form_d.COLLECTOR, outcome)
+            if outcome == "stored":
+                stored += 1
+                print(f"  STORED  {signal.headline[:70]}")
+            else:
+                duplicates += 1
+        conn.commit()
+
+    print(f"\nFORM D BACKFILL {args.start}..{args.end}: stored={stored} "
+          f"duplicate={duplicates} rejected={rejected} already-seen={skipped} "
+          f"transient-errors={errors} windows={windows} "
+          f"filings-found={total_hits} empty-search-windows={empty_search_windows}")
+    if not args.dry_run:
+        publish.publish(conn)
+
+    # FAIL LOUD. A historical month ALWAYS contains Form D filings — thousands
+    # of them — so every window's SEARCH coming back empty means the search is
+    # broken, not that the month was quiet. The leadership backfill's first
+    # dispatch exited 0 after five silent SEC 403s and looked exactly like a
+    # successful run that found nothing (2026-07-28). Note this tests raw
+    # hits, not stored rows: a month where the fund filters happened to drop
+    # everything is implausible but not evidence of breakage, whereas zero
+    # filings from the SEC is only ever breakage.
+    if windows and empty_search_windows == windows:
+        print("\nSTOPPING: every window returned zero Form D filings. A "
+              "historical month cannot be empty, so the SEC search itself is "
+              "failing (check the User-Agent and the errors above).",
+              file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

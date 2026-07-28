@@ -1,0 +1,105 @@
+# One-time 2026 catch-up for SEC Form D private placements (the funding pillar).
+#
+# Owner-approved spend, 2026-07-28: the leadership sweep measured ~$0.76 per
+# month, so this workflow reports spend but does NOT run `spend.py --enforce`
+# - the monthly guard would stop a sweep the owner explicitly bought. The
+# key's own hard cap at OpenRouter is still the backstop, and
+# TIT_READTHROUGH_CAP is raised for these jobs only: the daily collector keeps
+# its own ceiling.
+#
+# Dispatch one month at a time. The concurrency group serialises every DB
+# writer (the leadership backfill sits in the same group), and GitHub keeps
+# only ONE pending run per group - dispatching several months at once silently
+# discards all but the last.
+name: backfill-funding-2026
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: 'Start date (YYYY-MM-DD)'
+        required: true
+      end:
+        description: 'End date inclusive (YYYY-MM-DD)'
+        required: true
+      dry_run:
+        description: 'Set to true to classify nothing and write nothing'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: talent-collect        # one DB writer at a time
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Spend before
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      - name: Backfill Form D
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # No EDGAR_USER_AGENT mapping: the secret does not exist in this
+          # repo, and mapping a missing secret sets the env var to empty
+          # string, which blanks the User-Agent and draws SEC 403s on every
+          # window. That is exactly how the leadership backfill's first
+          # dispatch went green having stored nothing. The code default is fine.
+          # A backfill month holds thousands of filings; the daily ceiling
+          # would defer almost all of them. Bounded by the month itself plus
+          # the issuer filters, which drop most Form D volume before any
+          # classification is paid for.
+          TIT_READTHROUGH_CAP: '5000'
+        run: |
+          python backfill_form_d_2026.py \
+            --start "${{ inputs.start }}" \
+            --end "${{ inputs.end }}" \
+            ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
+
+      - name: Spend after
+        if: ${{ !cancelled() }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      # Same memory rule as the daily collector: a failed run that already
+      # stored and published rows still holds the only local record of them.
+      - name: Commit the database
+        if: ${{ inputs.dry_run != 'true' && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          git add data/spend_month.json || true
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "data: form D backfill ${{ inputs.start }}..${{ inputs.end }}" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            git add data/talent_intel.db
+          done
+          echo "::error::could not push the database after 5 attempts"
+          exit 1

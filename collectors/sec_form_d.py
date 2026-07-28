@@ -80,15 +80,25 @@ def _humanise(amount: int) -> str:
     return f"${amount:,}"
 
 
-def search(days_back: int = 5, page: int = 0) -> list[dict]:
-    end = datetime.now(timezone.utc)
-    start = end - timedelta(days=days_back)
+def search(days_back: int = 5, page: int = 0, *,
+           startdt: str | None = None, enddt: str | None = None) -> list[dict]:
+    """One EFTS page of Form D filings. Returns raw hits.
+
+    Explicit startdt/enddt (YYYY-MM-DD) override days_back, the same shape
+    sec_edgar.search already has: the backfill walks historical windows this
+    way while the daily run keeps its rolling few days.
+    """
+    if not (startdt and enddt):
+        end = datetime.now(timezone.utc)
+        start = end - timedelta(days=days_back)
+        startdt = start.strftime("%Y-%m-%d")
+        enddt = end.strftime("%Y-%m-%d")
     params = {
         "q": '"equity"',           # EFTS requires a term; every Form D carries it
         "forms": "D",
         "dateRange": "custom",
-        "startdt": start.strftime("%Y-%m-%d"),
-        "enddt": end.strftime("%Y-%m-%d"),
+        "startdt": startdt,
+        "enddt": enddt,
         "from": page * 10,
     }
     time.sleep(REQUEST_DELAY)
