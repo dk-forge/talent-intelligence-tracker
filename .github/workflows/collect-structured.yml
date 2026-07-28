@@ -1,0 +1,149 @@
+# The structured sources: SEC executive compensation, UK gender pay gap, and
+# ATS job boards.
+#
+# These cost NOTHING to run. Every field they store is a column in a frame, a
+# CSV or an API response, so the record is derived and no model is called. That
+# is why there is no OPENROUTER_API_KEY, no spend guard and no spend report in
+# this file: there is no spend to guard.
+#
+# There is deliberately NO EDGAR_USER_AGENT mapping. That secret does not exist
+# in this repo, and mapping a missing secret sets the environment variable to
+# empty string, which SEC 403s — that is exactly how the first leadership
+# dispatch went green having stored nothing. The code default carries the
+# contact address.
+#
+# The daily schedule is for ats_boards and for nothing else. Those APIs have no
+# history anywhere (the Wayback Machine holds zero snapshots of them) and no
+# closed-on date, so a day that is not collected is gone permanently. The other
+# two are annual disclosures and only need a monthly look for late filers.
+name: collect-structured
+
+on:
+  schedule:
+    - cron: '0 9 * * *'      # every day: ATS boards, the perishable one
+    - cron: '30 9 5 * *'     # 5th of the month: SEC exec comp, for late proxies
+    - cron: '30 10 6 * *'    # 6th of the month: UK gender pay gap
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Collector to run'
+        type: choice
+        options: [ats_boards, sec_execcomp, uk_paygap]
+        default: ats_boards
+      years:
+        description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
+        required: false
+        default: ''
+      min_size:
+        description: 'Pay gap only. Employer size floor: 250, 500, 1000, 5000 or 20000.'
+        required: false
+        default: '5000'
+      dry_run:
+        description: 'Show what would be stored, write nothing'
+        type: boolean
+        default: false
+
+# The same group the daily news collector uses. Two jobs writing the SQLite
+# file at once would race on the commit, and the reset-and-replace below is
+# only safe while this is the sole writer.
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # A dispatch says which collector to run. A cron cannot, so the schedule
+      # expression itself picks one.
+      - name: Pick the source
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            '30 9 5 * *')  scheduled=sec_execcomp ;;
+            '30 10 6 * *') scheduled=uk_paygap ;;
+            *)             scheduled=ats_boards ;;
+          esac
+          if [ -z "${{ inputs.source }}" ]; then
+            echo "value=$scheduled" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ inputs.source }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          TIT_EXECCOMP_YEARS: ${{ inputs.years }}
+          TIT_PAYGAP_YEARS: ${{ inputs.years }}
+          TIT_PAYGAP_MIN_SIZE: ${{ inputs.min_size || '5000' }}
+        run: |
+          python run_collect.py \
+            --source "${{ steps.pick.outputs.value }}" \
+            ${{ inputs.dry_run && '--dry-run' || '--publish' }}
+
+      - name: Status
+        if: ${{ !inputs.dry_run }}
+        run: python ops_status.py || true
+
+      # Same memory rule as the news collector, and it matters more here: the
+      # ATS state file IS the archive. These boards publish no history, so a
+      # run whose state file never lands has permanently lost that day.
+      #
+      # `!cancelled()` and not plain success: a run that failed after storing
+      # and publishing rows still holds the only local record of them.
+      - name: Commit the database
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db data/ats_board_state.json 2>/dev/null \
+            || git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+
+          mkdir -p "$RUNNER_TEMP/keep"
+          cp data/talent_intel.db "$RUNNER_TEMP/keep/talent_intel.db"
+          if [ -f data/ats_board_state.json ]; then
+            cp data/ats_board_state.json "$RUNNER_TEMP/keep/ats_board_state.json"
+          fi
+
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "data: ${{ steps.pick.outputs.value }} $(date -u +%Y-%m-%dT%H:%MZ)" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — replaying onto the current main."
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/keep/talent_intel.db" data/talent_intel.db
+            if [ -f "$RUNNER_TEMP/keep/ats_board_state.json" ]; then
+              cp "$RUNNER_TEMP/keep/ats_board_state.json" data/ats_board_state.json
+            fi
+            git add data/talent_intel.db data/ats_board_state.json 2>/dev/null \
+              || git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this data."
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push after 5 attempts. This run's records \
+          exist only on the runner and are lost."
+          exit 1

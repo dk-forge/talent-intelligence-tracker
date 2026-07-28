@@ -1,0 +1,65 @@
+{
+ "taxonomy": "ecd",
+ "tag": "PeoTotalCompAmt",
+ "ccp": "CY2025",
+ "uom": "USD",
+ "label": "",
+ "description": "",
+ "pts": 6,
+ "data": [
+  {
+   "accn": "0001193125-26-144572",
+   "cik": 3570,
+   "entityName": "Cheniere Energy, Inc.",
+   "loc": "-",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "val": 25647769
+  },
+  {
+   "accn": "0000005513-26-000026",
+   "cik": 5513,
+   "entityName": "UNUM GROUP",
+   "loc": "-",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "val": 19417476
+  },
+  {
+   "accn": "0001193125-26-292785",
+   "cik": 4457,
+   "entityName": "U-HAUL HOLDING COMPANY",
+   "loc": "-",
+   "start": "2025-04-01",
+   "end": "2026-03-31",
+   "val": 1015838000
+  },
+  {
+   "accn": "0001193125-26-153877",
+   "cik": 1158895,
+   "entityName": "LeMaitre Vascular, Inc.",
+   "loc": "-",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "val": 3780990000
+  },
+  {
+   "accn": "0001437749-26-016125",
+   "cik": 793306,
+   "entityName": "BLUE DOLPHIN ENERGY COMPANY",
+   "loc": "-",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "val": 0
+  },
+  {
+   "accn": "0000766704-26-000014",
+   "cik": 766704,
+   "entityName": "Welltower Inc",
+   "loc": "-",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "val": 821090355
+  }
+ ]
+}

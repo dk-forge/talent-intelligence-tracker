@@ -1,0 +1,911 @@
+{
+ "apiVersion": "1",
+ "jobs": [
+  {
+   "title": " Security Engineer, Cloud",
+   "location": "New York, NY (HQ)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/34413f8d-26bf-4bbc-8ade-eb309a0e2245",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "Remote (Canada)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "Canada"
+      }
+     }
+    },
+    {
+     "location": "Remote (US)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    },
+    {
+     "location": "Miami, FL",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "Florida",
+       "addressCountry": "USA",
+       "addressLocality": "Miami"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$211.4K \u2013 $290.6K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$211.4K - $290.6K",
+    "compensationTiers": [
+     {
+      "id": "5f7a903e-36e4-492c-ac09-f2745d717daa",
+      "tierSummary": "$211.4K \u2013 $290.6K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "3481c194-45fd-4b89-8592-e8f4d4b51f20",
+        "summary": "$211.4K \u2013 $290.6K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 211400,
+        "maxValue": 290600
+       },
+       {
+        "id": "feaef96f-559f-4df8-a38c-3eee072a8d74",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 211400,
+      "maxValue": 290600
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   },
+   "publishedAt": "2026-04-07T17:12:35.753+00:00"
+  },
+  {
+   "title": "Mobile Engineer, Android",
+   "location": "New York, NY (HQ)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/f564dcf9-9390-4a3f-896f-8047a5086040",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "Remote (Canada)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "Canada"
+      }
+     }
+    },
+    {
+     "location": "San Francisco, CA",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "California ",
+       "addressCountry": "USA",
+       "addressLocality": "San Fransisco"
+      }
+     }
+    },
+    {
+     "location": "Remote (US)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$189K - $330K",
+    "compensationTiers": [
+     {
+      "id": "0283497e-f83b-42ef-9a0a-6215891aa062",
+      "tierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "8d3064c5-4a45-4c4a-b26c-157ec697171c",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "104095ff-c915-4e77-b3fa-5472d81297ef",
+        "summary": "$189K \u2013 $330K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 189000,
+        "maxValue": 330000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 189000,
+      "maxValue": 330000
+     }
+    ]
+   },
+   "publishedAt": "2025-07-31T21:58:34.674+00:00"
+  },
+  {
+   "title": "Software Engineer, Frontend",
+   "location": "New York, NY (HQ)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/4e64ab86-4e30-403b-b1b9-41dc052570ce",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "Remote (Canada)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "Canada"
+      }
+     }
+    },
+    {
+     "location": "San Francisco, CA",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "California ",
+       "addressCountry": "USA",
+       "addressLocality": "San Fransisco"
+      }
+     }
+    },
+    {
+     "location": "Remote (US)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    },
+    {
+     "location": "Miami, FL",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "Florida",
+       "addressCountry": "USA",
+       "addressLocality": "Miami"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$143.2K \u2013 $284K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$143.2K - $284K",
+    "compensationTiers": [
+     {
+      "id": "d9eaeb56-51d9-4be4-86c9-b26349916689",
+      "tierSummary": "$143.2K \u2013 $284K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "cbaab0c0-63eb-44e2-8d08-8a164c6d2547",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "80691622-cb25-464e-bdc0-24de33568581",
+        "summary": "$143.2K \u2013 $284K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 143200,
+        "maxValue": 284000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 143200,
+      "maxValue": 284000
+     }
+    ]
+   },
+   "publishedAt": "2023-03-09T17:44:00.817+00:00"
+  },
+  {
+   "title": "Technical Program Manager",
+   "location": "New York, NY (HQ)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/1db75064-e38c-4b21-8310-21471943d0be",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [],
+   "compensation": {
+    "compensationTierSummary": "$144.6K \u2013 $269K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$144.6K - $269K",
+    "compensationTiers": [
+     {
+      "id": "97bad625-8f51-4571-8594-3cdfecdc1162",
+      "tierSummary": "$144.6K \u2013 $269K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "e52db553-48d7-4349-b593-faf587498de8",
+        "summary": "$144.6K \u2013 $269K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 144600,
+        "maxValue": 269000
+       },
+       {
+        "id": "c4fd42ab-27d4-4fe8-8abf-05ecb90143e1",
+        "summary": "Offers Equity",
+        "compensationType": "EquityCashValue",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 144600,
+      "maxValue": 269000
+     },
+     {
+      "compensationType": "EquityCashValue",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   },
+   "publishedAt": "2026-05-22T16:15:13.252+00:00"
+  },
+  {
+   "title": "Mobile Engineer, iOS",
+   "location": "New York, NY (HQ)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/4859cd5e-f2a9-44d7-81f7-8bfc0e62369f",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "Remote (Canada)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "Canada"
+      }
+     }
+    },
+    {
+     "location": "San Francisco, CA",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "California ",
+       "addressCountry": "USA",
+       "addressLocality": "San Fransisco"
+      }
+     }
+    },
+    {
+     "location": "Remote (US)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$189K - $330K",
+    "compensationTiers": [
+     {
+      "id": "65be7456-6f35-43c6-aa22-aa7cfaf63a95",
+      "tierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "bc631399-4938-442b-8edb-f517a4719090",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "075f33a8-5bc7-4d9a-8ec8-ed8f95a79c67",
+        "summary": "$189K \u2013 $330K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 189000,
+        "maxValue": 330000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 189000,
+      "maxValue": 330000
+     }
+    ]
+   },
+   "publishedAt": "2025-07-31T21:50:51.242+00:00"
+  },
+  {
+   "title": "GTM Systems Engineer, Salesforce",
+   "location": "New York, NY (HQ)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/ffc09fc0-7785-48db-a203-a148f62534be",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "San Francisco, CA",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "California ",
+       "addressCountry": "USA",
+       "addressLocality": "San Fransisco"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$122.2K \u2013 $183.4K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$122.2K - $183.4K",
+    "compensationTiers": [
+     {
+      "id": "432ca5aa-ba7b-468a-85d1-0f2beb6dd4f3",
+      "tierSummary": "$122.2K \u2013 $183.4K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "dcab0f58-0551-47fe-80bb-f4b29035d4cd",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "0bded62d-0904-497f-b996-16865f4215f2",
+        "summary": "$122.2K \u2013 $183.4K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 122200,
+        "maxValue": 183400
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 122200,
+      "maxValue": 183400
+     }
+    ]
+   },
+   "publishedAt": "2026-07-11T20:22:52.649+00:00"
+  },
+  {
+   "title": "Partner Development Representative | Accounting ",
+   "location": "New York, NY (HQ)",
+   "department": "Sales",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/b55447c0-4adc-42eb-9ca2-f88fd44e0e5b",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "Remote (US)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$110K \u2013 $120K \u2022 Offers Equity \u2022 Offers Commission \u2022 Total OTE with 70/30 split",
+    "scrapeableCompensationSalarySummary": "$110K - $120K",
+    "compensationTiers": [
+     {
+      "id": "bffa61b5-4dd5-4a37-98f5-fc6a56bdbb1e",
+      "tierSummary": "$110K \u2013 $120K \u2022 Offers Equity \u2022 Offers Commission \u2022 Total OTE with 70/30 split",
+      "title": null,
+      "additionalInformation": "Total OTE with 70/30 split",
+      "components": [
+       {
+        "id": "b536990e-72a3-49b5-8b00-e1ce42417d3a",
+        "summary": "Offers Equity",
+        "compensationType": "EquityCashValue",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "91b97903-f009-496d-9649-8e26e9b31d8d",
+        "summary": "$110K \u2013 $120K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 110000,
+        "maxValue": 120000
+       },
+       {
+        "id": "ec356f5e-5dea-42be-baf8-cfc037429e07",
+        "summary": "Offers Commission",
+        "compensationType": "Commission",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityCashValue",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 110000,
+      "maxValue": 120000
+     },
+     {
+      "compensationType": "Commission",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   },
+   "publishedAt": "2025-07-25T17:14:33.373+00:00"
+  },
+  {
+   "title": "Manager, Account Executive | Mid-Market",
+   "location": "New York, NY (HQ)",
+   "department": "Sales",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/60ed4fac-3833-4495-9b0f-75e6dfe4b36c",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "NY",
+     "addressCountry": "USA",
+     "addressLocality": "New York City"
+    }
+   },
+   "secondaryLocations": [
+    {
+     "location": "San Francisco, CA",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "California ",
+       "addressCountry": "USA",
+       "addressLocality": "San Fransisco"
+      }
+     }
+    }
+   ],
+   "compensation": {
+    "compensationTierSummary": "$284K \u2013 $390K \u2022 Offers Equity \u2022 Offers Commission \u2022 Offers Bonus \u2022 45/55 split",
+    "scrapeableCompensationSalarySummary": "$284K - $390K",
+    "compensationTiers": [
+     {
+      "id": "847cf3ba-41c2-4331-9f6c-7889019f8981",
+      "tierSummary": "Target Base Salary $284K \u2013 $390K \u2022 Offers Equity \u2022 Offers Commission \u2022 Offers Bonus \u2022 45/55 split",
+      "title": "SF/NY",
+      "additionalInformation": "45/55 split",
+      "components": [
+       {
+        "id": "edfbbb4c-4dbf-4359-b4fd-83a91d707833",
+        "summary": "Offers Equity",
+        "compensationType": "EquityCashValue",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "e3f7a8d9-8ef1-4fb0-a1d7-e889c578fefb",
+        "summary": "Offers Commission",
+        "compensationType": "Commission",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "6f5bc5b2-4d66-450e-9b47-8065bb21a3c9",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "f924711e-093a-48fd-9a4d-368ede8eb029",
+        "summary": "Target Base Salary $284K \u2013 $390K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 284000,
+        "maxValue": 390000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityCashValue",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Commission",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 284000,
+      "maxValue": 390000
+     }
+    ]
+   },
+   "publishedAt": "2026-06-23T15:09:33.356+00:00"
+  },
+  {
+   "title": "Account Executive, SMB | Canada",
+   "location": "Remote (Canada)",
+   "department": "Sales",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/3f94674f-6af8-4e10-9631-77b1b0a410bf",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "Canada"
+    }
+   },
+   "secondaryLocations": [],
+   "compensation": {
+    "compensationTierSummary": "CA$121.5K \u2013 CA$166.6K \u2022 Offers Equity \u2022 Offers Commission \u2022 60/40 split",
+    "scrapeableCompensationSalarySummary": "CA$121.5K - CA$166.6K",
+    "compensationTiers": [
+     {
+      "id": "f3275686-ffb5-46c5-a2c5-d80fcc671376",
+      "tierSummary": "OTE CA$121.5K \u2013 CA$166.6K \u2022 Offers Equity \u2022 Offers Commission \u2022 60/40 split",
+      "title": "Canada",
+      "additionalInformation": "60/40 split",
+      "components": [
+       {
+        "id": "797e706c-7dd6-4e8f-8937-c667bf1b4960",
+        "summary": "Offers Equity",
+        "compensationType": "EquityCashValue",
+        "interval": "1 YEAR",
+        "currencyCode": "CAD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "2f8fac52-2445-4375-975e-bdcb0bdebe68",
+        "summary": "Offers Commission",
+        "compensationType": "Commission",
+        "interval": "1 YEAR",
+        "currencyCode": "CAD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "446e7f63-06c7-4699-b606-71191a2f71b9",
+        "summary": "OTE CA$121.5K \u2013 CA$166.6K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "CAD",
+        "minValue": 121500,
+        "maxValue": 166600
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityCashValue",
+      "interval": "1 YEAR",
+      "currencyCode": "CAD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Commission",
+      "interval": "1 YEAR",
+      "currencyCode": "CAD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "CAD",
+      "minValue": 121500,
+      "maxValue": 166600
+     }
+    ]
+   },
+   "publishedAt": "2026-04-27T18:27:05.517+00:00"
+  },
+  {
+   "title": "Software Engineer, Argentina",
+   "location": "Remote (Buenos Aires, Argentina)",
+   "department": "Engineering",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/9320454f-f2ca-4c19-82d2-b51b8d75fd3a",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Buenos Aires",
+     "addressCountry": "Argentina",
+     "addressLocality": "Buenos Aires"
+    }
+   },
+   "secondaryLocations": [],
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   },
+   "publishedAt": "2025-11-19T13:56:24.470+00:00"
+  },
+  {
+   "title": "Account Executive",
+   "location": "London",
+   "department": "Sales",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/1515fe6d-1d8e-475b-a5ee-cefe43e78cb7",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United Kingdom",
+     "addressLocality": "London"
+    }
+   },
+   "secondaryLocations": [],
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   },
+   "publishedAt": "2026-06-08T19:17:53.481+00:00"
+  },
+  {
+   "title": "Money Laundering Reporting Officer, AML",
+   "location": "Remote (Sweden)",
+   "department": "Compliance",
+   "jobUrl": "https://jobs.ashbyhq.com/ramp/1b6a5a22-d6ed-4591-987d-6cc5b7bca8e1",
+   "isListed": true,
+   "employmentType": "FullTime",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Sweden",
+     "addressCountry": "Sweden",
+     "addressLocality": "Stockholm"
+    }
+   },
+   "secondaryLocations": [],
+   "compensation": {
+    "compensationTierSummary": "SEK\u00a0836,400 \u2013 SEK\u00a01,131,600 \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "SEK\u00a0836,400 - SEK\u00a01,131,600",
+    "compensationTiers": [
+     {
+      "id": "c4efc452-f97f-4b49-807d-ef7b730f3d4f",
+      "tierSummary": "Target Base Salary SEK\u00a0836,400 \u2013 SEK\u00a01,131,600 \u2022 Offers Equity",
+      "title": "Sweden",
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "9cf31bec-0602-40dc-97a2-c43ec9409e76",
+        "summary": "Target Base Salary SEK\u00a0836,400 \u2013 SEK\u00a01,131,600",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "SEK",
+        "minValue": 836400,
+        "maxValue": 1131600
+       },
+       {
+        "id": "1061bb4b-1512-4a9e-b366-1b79714c589c",
+        "summary": "Offers Equity",
+        "compensationType": "EquityCashValue",
+        "interval": "1 YEAR",
+        "currencyCode": "SEK",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "SEK",
+      "minValue": 836400,
+      "maxValue": 1131600
+     },
+     {
+      "compensationType": "EquityCashValue",
+      "interval": "1 YEAR",
+      "currencyCode": "SEK",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   },
+   "publishedAt": "2026-07-21T19:20:17.701+00:00"
+  }
+ ]
+}

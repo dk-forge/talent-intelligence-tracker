@@ -1,0 +1,168 @@
+{
+ "offset": 0,
+ "limit": 100,
+ "totalFound": 8,
+ "content": [
+  {
+   "id": "744000140334841",
+   "name": "Workplace Operations Coordinator",
+   "location": {
+    "city": "S\u00e3o Paulo",
+    "country": "br",
+    "address": "Rua Girassol, 555, 1st Floor, Vila Madalena",
+    "postalCode": "05433-001",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "S\u00e3o Paulo, , Brazil"
+   },
+   "department": {},
+   "function": {
+    "id": "human_resources",
+    "label": "Human Resources"
+   },
+   "releasedDate": "2026-07-28T20:45:53.689Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140334841"
+  },
+  {
+   "id": "744000140320864",
+   "name": "Senior Solutions Engineer",
+   "location": {
+    "city": "Austin",
+    "country": "us",
+    "address": "Domain Tower 2, 10025 Alterra Parkway, Floor 23",
+    "postalCode": "78758",
+    "remote": false,
+    "hybrid": true,
+    "hybridDescription": "2 Days WFM and 3 Days in the Austin Office",
+    "fullLocation": "Austin, , United States"
+   },
+   "department": {},
+   "function": {
+    "id": "engineering",
+    "label": "Engineering"
+   },
+   "releasedDate": "2026-07-28T18:43:41.597Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140320864"
+  },
+  {
+   "id": "744000140284059",
+   "name": "Staff Content Designer, FinCrime",
+   "location": {
+    "city": "London",
+    "country": "gb",
+    "address": "Worship Square, 65 Clifton Street",
+    "postalCode": "EC2A 4JE",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "London, , United Kingdom"
+   },
+   "department": {},
+   "function": {
+    "id": "design",
+    "label": "Design"
+   },
+   "releasedDate": "2026-07-28T16:07:43.181Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140284059"
+  },
+  {
+   "id": "744000140251028",
+   "name": "Banking Operations Manager",
+   "location": {
+    "city": "Tallinn",
+    "country": "ee",
+    "address": "Kopli tn 68a",
+    "postalCode": "10412",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "Tallinn, , Estonia"
+   },
+   "department": {},
+   "function": {
+    "id": "other",
+    "label": "Other"
+   },
+   "releasedDate": "2026-07-28T13:56:39.051Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140251028"
+  },
+  {
+   "id": "744000140205510",
+   "name": "People Operations Intern (12 month fixed term)",
+   "location": {
+    "city": "Hyderabad",
+    "country": "in",
+    "address": "Table Space Suites, Raheja Mindspace, Building 4, HITEC City",
+    "postalCode": "500081",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Hyderabad, , India"
+   },
+   "department": {},
+   "function": {
+    "id": "human_resources",
+    "label": "Human Resources"
+   },
+   "releasedDate": "2026-07-28T10:42:29.691Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140205510"
+  },
+  {
+   "id": "744000140166135",
+   "name": "High Volume (Total Service) Support Specialist",
+   "location": {
+    "city": "Singapore",
+    "country": "sg",
+    "address": "#07-01, 2 Tanjong Katong Road, Paya Lebar Quarter, Tower 3",
+    "postalCode": "437161",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "Singapore, , Singapore"
+   },
+   "department": {},
+   "function": {
+    "id": "customer_service",
+    "label": "Customer Service"
+   },
+   "releasedDate": "2026-07-28T07:30:39.839Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140166135"
+  },
+  {
+   "id": "744000140145109",
+   "name": "Workplace Specialist - Tokyo",
+   "location": {
+    "city": "Tokyo",
+    "country": "jp",
+    "address": "2-13-12 Nihonbashi, Chuo-ku",
+    "postalCode": "103-0027",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "Tokyo, , Japan"
+   },
+   "department": {},
+   "function": {
+    "id": "human_resources",
+    "label": "Human Resources"
+   },
+   "releasedDate": "2026-07-28T03:46:15.079Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000140145109"
+  },
+  {
+   "id": "744000139943538",
+   "name": "FinCrime Operations Team Lead - AML Investigations",
+   "location": {
+    "city": "Kuala Lumpur",
+    "country": "my",
+    "address": "Level 12, Tower B, Menara UOA Bangsar, 5, Jalan Bangsar Utama 1, Bangsar",
+    "postalCode": "59000",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "Kuala Lumpur, , Malaysia"
+   },
+   "department": {},
+   "function": {
+    "id": "other",
+    "label": "Other"
+   },
+   "releasedDate": "2026-07-27T08:11:43.397Z",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Wise/postings/744000139943538"
+  }
+ ]
+}

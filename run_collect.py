@@ -16,8 +16,22 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import gdelt, google_news, sec_edgar, sec_form_d
+from collectors import (ats_boards, gdelt, google_news, sec_edgar, sec_execcomp,
+                        sec_form_d, uk_paygap)
 from pipeline import classify, prefilter, publish, schema, store, validate
+
+# Registration. A collector that exposes `as_classified` derives its own
+# record from structured fields and never calls the model, so it skips the
+# keyword gate, the LLM and the spend cap alike — there is no spend to cap.
+SOURCES = {
+    "google_news": google_news,
+    "gdelt": gdelt,
+    "sec_edgar": sec_edgar,
+    "sec_form_d": sec_form_d,
+    "sec_execcomp": sec_execcomp,
+    "uk_paygap": uk_paygap,
+    "ats_boards": ats_boards,
+}
 
 RUNS_PER_DAY = 2
 SEGMENTS_PER_RUN = 4
@@ -140,17 +154,23 @@ def fair_share(items: list[dict], limit: int) -> list[dict]:
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
-    module = {"gdelt": gdelt, "sec_edgar": sec_edgar,
-              "sec_form_d": sec_form_d}.get(source, google_news)
+    module = SOURCES.get(source, google_news)
     collector = module.COLLECTOR
+    # Structured source: the fields are columns, so the `classified` half is
+    # derived instead of generated. No model is called anywhere on this path.
+    derive = getattr(module, "as_classified", None)
 
     if offline:
         items = _fixture_items()
     else:
         queries = build_queries(run_index, source)
         # The SEC collectors search filings by form and item, not by query
-        # string, so reporting a query count for them is just misleading.
-        if source.startswith("sec_"):
+        # string, so reporting a query count for them is just misleading. A
+        # derived source has no query vocabulary at all: the frame, the CSV or
+        # the watchlist IS the population.
+        if derive is not None:
+            print(f"[{collector}] structured source, no search vocabulary")
+        elif source.startswith("sec_"):
             print(f"[{collector}] searching SEC filings")
         else:
             print(f"[{collector}] {len(queries)} queries")
@@ -167,6 +187,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                     queries, locales=locales,
                     queries_for=lambda lang: registry.google_news_queries(
                         lang, window_days=window))
+            elif getattr(module, "ACCEPTS_DRY_RUN", False):
+                # A collector that keeps state between runs must be told, or a
+                # rehearsal consumes the very movement it is rehearsing.
+                items = module.collect(queries, dry_run=dry_run)
             else:
                 items = module.collect(queries)
         except Exception as exc:
@@ -184,7 +208,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # source is not noise: an SEC 8-K Item 5.02 filing IS an officer or
     # director change by definition, so gating it on news vocabulary drops
     # exactly the filings we went to SEC to get.
-    skip_prefilter = source in ("sec_edgar", "sec_form_d")
+    # A derived source is gated the same way and for the same reason: the
+    # keyword filter exists to avoid PAYING to classify noise, and an XBRL
+    # frame, a statutory pay return and a job-board diff are not news prose.
+    skip_prefilter = source in ("sec_edgar", "sec_form_d") or derive is not None
 
     kept, filtered = [], 0
     for item in items:
@@ -195,8 +222,11 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             filtered += 1
             print(f"  filtered  {item.get('headline','')[:60]}  ({reason})")
 
-    cap = limit or DEFAULT_CANDIDATE_CAP
-    if len(kept) > cap:
+    # The cap is a MONEY cap. A derived source spends nothing, and applying it
+    # would have thrown away five sixths of a year of exec-comp filings for a
+    # cost that does not exist. An explicit --limit still applies.
+    cap = limit or (None if derive else DEFAULT_CANDIDATE_CAP)
+    if cap and len(kept) > cap:
         print(f"[{collector}] capping {len(kept)} candidates to {cap}, "
               f"one per query in turn")
         kept = fair_share(kept, cap)
@@ -215,12 +245,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         url = item.get("source_url") or item.get("discovery_url") or ""
 
         # Deduplicate BEFORE the LLM, never after (spec 4 rule 2).
-        if url and store.already_seen(conn, url):
+        #
+        # Except where the source URL is a standing page the collector revisits
+        # on purpose. An ATS board lives at one URL forever and its signal is
+        # the movement between two readings, so marking that URL seen would
+        # make the first movement the last one this collector ever reported.
+        # Those rows are deduped by content_hash and the fuzzy window instead.
+        revisits = getattr(module, "REVISITS_ITS_SOURCE_URL", False)
+        if url and not revisits and store.already_seen(conn, url):
             skipped += 1
             continue
 
         try:
-            classified = _stub_classify(item) if offline else classify.classify(item)
+            if derive:
+                classified = derive(item)
+            else:
+                classified = _stub_classify(item) if offline else classify.classify(item)
         except classify.AuthFailed as exc:
             # A bad key is permanent for this run. The first live run printed
             # the same 401 twenty-five times before anyone learned anything.
@@ -286,15 +326,17 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             continue
 
         if dry_run:
-            _print_signal(signal)
             stored += 1
+            if _should_print(stored):
+                _print_signal(signal)
             continue
 
         outcome = store.store(conn, signal)
         store.mark_seen(conn, url, collector, outcome)
         if outcome == "stored":
             stored += 1
-            _print_signal(signal)
+            if _should_print(stored):
+                _print_signal(signal)
         else:
             duplicates += 1
             if outcome == "retracted":
@@ -352,6 +394,18 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         print(f"\n[{collector}] DEGRADED: {found} candidates, none stored, none duplicate.",
               file=sys.stderr)
     return 1 if broken else 0
+
+
+# A news run stores a dozen rows and every one of them is worth reading. A
+# structured backfill stores thousands, and printing five lines each pushes the
+# step log past what GitHub keeps, which costs the run its diagnostics at
+# exactly the moment they matter. Full detail for the first hundred, a heartbeat
+# after that.
+PRINT_IN_FULL = 100
+
+
+def _should_print(stored: int) -> bool:
+    return stored <= PRINT_IN_FULL or stored % 250 == 0
 
 
 def _print_signal(s) -> None:
@@ -420,7 +474,7 @@ def main() -> int:
     parser.add_argument("--offline", action="store_true", help="fixtures only, no network or LLM")
     parser.add_argument("--run-index", type=int, default=0, help="0 or 1, for segment rotation")
     parser.add_argument("--limit", type=int, help="cap candidates, for cheap testing")
-    parser.add_argument("--source", choices=["google_news", "gdelt", "sec_edgar", "sec_form_d"],
+    parser.add_argument("--source", choices=sorted(SOURCES),
                         default="google_news", help="which collector to run")
     parser.add_argument("--publish", action="store_true",
                         help="after storing, push unpublished rows to WordPress")
