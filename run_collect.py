@@ -54,8 +54,12 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     return queries
 
 
-# Three editions a run, twice a day, sweeps the whole list in about four days.
-LOCALES_PER_RUN = 3
+# Five editions a run, twice a day, sweeps the 49-edition list in about five
+# days (was 3/run over 36 editions = six days). The recency window derives from
+# this, so widening the list without raising the rate would just have stretched
+# the window rather than covering more ground per day. Fetching is free; the
+# gate makes looking cheap; the read-through cap bounds the money.
+LOCALES_PER_RUN = 5
 
 # Candidates are what cost money, so the run carries its own cap rather than
 # relying on --limit being passed.

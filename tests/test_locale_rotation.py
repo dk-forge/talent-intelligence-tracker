@@ -93,11 +93,22 @@ def test_the_free_filter_understands_those_languages_too():
 
 
 def test_the_run_caps_itself_without_being_told_to():
-    """Seven editions raised one run from about 25 candidates to about 215, and
-    candidates are what cost money."""
+    """Seven editions raised one run from about 25 candidates to about 215.
+    Since the two-stage gate (2026-07-28) the candidate cap bounds the CHEAP
+    look (one-word gate calls, ~1/40th of a read-through each) and the money
+    is bounded separately by the full-classification ceiling. Both caps must
+    exist and stay sane: an uncapped candidate list would still let a runaway
+    feed rack up gate calls, and an uncapped read-through count is exactly the
+    unbounded bill the old <=100 assertion existed to prevent."""
     from run_collect import DEFAULT_CANDIDATE_CAP
+    from pipeline.classify import READTHROUGH_CAP
 
-    assert 10 <= DEFAULT_CANDIDATE_CAP <= 100
+    assert 10 <= DEFAULT_CANDIDATE_CAP <= 400
+    assert 10 <= READTHROUGH_CAP <= 100
+    # The gate exists precisely so the run can look at more than it classifies;
+    # if the read-through ceiling ever exceeds the candidate cap, the gate is
+    # dead code and every candidate is billed at the full rate again.
+    assert READTHROUGH_CAP <= DEFAULT_CANDIDATE_CAP
 
 
 def test_non_latin_scripts_survive_the_free_filter():

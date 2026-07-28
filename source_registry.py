@@ -214,6 +214,17 @@ GOOGLE_NEWS_LOCALES = (
     ("ja", "JP"),
     ("ko", "KR"),
     ("ar", "AE"), ("ar", "SA"), ("ar", "EG"), ("ar", "QA"), ("ar", "MA"),
+    # 2026-07-28 widening (coverage audit): English editions need no new query
+    # pack, so each of these is one tuple and nothing else. The non-English
+    # ones ride the existing es/fr packs. Kept to markets with real hiring/
+    # funding news flow; the derived recency window below absorbs the longer
+    # sweep automatically.
+    # No ("en","US") here: build_locales() pins the US edition as a fixed
+    # anchor on every run, so listing it again would sweep it twice.
+    ("en", "KE"), ("en", "GH"), ("en", "PK"), ("en", "BD"), ("en", "MY"),
+    ("en", "HK"), ("en", "IL"),
+    ("es", "PE"), ("es", "EC"), ("es", "UY"),
+    ("fr", "CA"), ("fr", "MA"), ("fr", "SN"),
 )
 
 
