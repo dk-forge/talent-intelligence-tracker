@@ -713,21 +713,33 @@ def enrich(signal, conn: sqlite3.Connection | None = None, *,
 
 # --- Backfill ----------------------------------------------------------------
 
-def _employers_needing_identity(conn: sqlite3.Connection, limit: int | None) -> list[tuple[str, str]]:
-    """(company_key, company) for current rows missing any identity column.
+def _employers_needing_identity(conn: sqlite3.Connection, limit: int | None,
+                                *, retry_negative: bool = False) -> list[tuple[str, str]]:
+    """(company_key, company) for employers this module has not yet looked at.
+
+    Keyed on the CACHE, not on which columns are NULL, and that distinction is
+    the whole difference between chunking working and not working. Most
+    employers keep a NULL hq_city forever — the curated city list has 45
+    entries and Cupertino is not one of them — so "any identity column is NULL"
+    matches the same employers on every run, and `--limit 240` walks the same
+    240 names each time while the rest are never reached. Asking who has no
+    cache row is a question whose answer shrinks.
 
     Ordered by how many rows the employer has, so an interrupted run has
     already fixed the employers that appear most.
     """
-    sql = """
-        SELECT company_key, MIN(company) AS company, COUNT(*) AS n
-          FROM signals
-         WHERE is_current = 1
-           AND company_key IS NOT NULL AND company_key != ''
-           AND (ticker IS NULL OR cik IS NULL OR hq_country IS NULL
-                OR hq_city IS NULL OR employer_type IS NULL)
-      GROUP BY company_key
-      ORDER BY n DESC, company_key
+    unresolved_clause = "" if retry_negative else " AND i.company_key IS NULL"
+    sql = f"""
+        SELECT s.company_key, MIN(s.company) AS company, COUNT(*) AS n
+          FROM signals s
+     LEFT JOIN employer_identity i ON i.company_key = s.company_key
+         WHERE s.is_current = 1
+           AND s.company_key IS NOT NULL AND s.company_key != ''
+           AND (s.ticker IS NULL OR s.cik IS NULL OR s.hq_country IS NULL
+                OR s.hq_city IS NULL OR s.employer_type IS NULL)
+               {unresolved_clause}
+      GROUP BY s.company_key
+      ORDER BY n DESC, s.company_key
     """
     rows = conn.execute(sql).fetchall()
     out = [(r[0], r[1] or r[0]) for r in rows]
@@ -772,7 +784,7 @@ def backfill(conn: sqlite3.Connection, *, limit: int | None = None,
     NULL) and safe to interrupt (each employer commits on its own).
     """
     ensure_cache(conn)
-    todo = _employers_needing_identity(conn, limit)
+    todo = _employers_needing_identity(conn, limit, retry_negative=retry_negative)
     stats = {"employers": len(todo), "resolved": 0, "unresolved": 0,
              "rows": {f: 0 for f in ENRICHED_FIELDS}, "samples": []}
 

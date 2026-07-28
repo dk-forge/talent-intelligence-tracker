@@ -576,6 +576,25 @@ class Backfill(unittest.TestCase):
             "SELECT ticker FROM signals WHERE company_key = 'apple'")}
         self.assertEqual(tickers, {"AAPL"})
 
+    def test_chunking_moves_forward_instead_of_re_walking_the_same_names(self):
+        """`--limit 240` twice must cover 480 employers, not 240 twice.
+
+        Selecting on "any identity column is NULL" did the latter: hq_city
+        stays NULL for most employers forever (45 cities in the vocabulary),
+        so the same names matched every run and the tail was never reached.
+        """
+        conn = _db()
+        self._seed(conn, [(f"Co{i} Inc.", f"co{i}") for i in range(6)])
+        searches = {f"co{i}": APPLE_SEARCH for i in range(6)}
+        with _Patched(self, Fixture(searches, APPLE_PROPS)):
+            first = identity.backfill(conn, limit=3, verbose=False)
+            second = identity.backfill(conn, limit=3, verbose=False)
+            third = identity.backfill(conn, limit=3, verbose=False)
+        self.assertEqual((first["employers"], second["employers"]), (3, 3))
+        self.assertEqual(third["employers"], 0)      # all six are done
+        self.assertEqual(
+            conn.execute("SELECT COUNT(*) FROM employer_identity").fetchone()[0], 6)
+
     def test_a_second_run_is_a_no_op(self):
         conn = _db()
         self._seed(conn, [("Apple Inc.", "apple")])
