@@ -33,6 +33,9 @@ function tit_create_or_update_table() {
         talent_readthrough TEXT NOT NULL,
         company VARCHAR(255) NOT NULL,
         company_key VARCHAR(255) NOT NULL,
+        ticker VARCHAR(12) NULL,
+        cik VARCHAR(12) NULL,
+        employer_type VARCHAR(20) NULL,
         pillar VARCHAR(40) NOT NULL,
         signal_direction VARCHAR(20) NOT NULL,
         city VARCHAR(120) NULL,
@@ -44,13 +47,18 @@ function tit_create_or_update_table() {
         functions TEXT NULL,
         industry VARCHAR(40) NULL,
         headcount INT NULL,
+        headcount_scope VARCHAR(16) NULL,
         funding_amount VARCHAR(32) NULL,
+        funding_amount_usd BIGINT NULL,
+        funding_stage VARCHAR(24) NULL,
+        work_mode VARCHAR(16) NULL,
         confidence VARCHAR(12) NOT NULL,
         source_url TEXT NOT NULL,
         source_name VARCHAR(255) NOT NULL,
         discovery_url TEXT NULL,
         archive_url TEXT NULL,
         published_date DATE NULL,
+        effective_date DATE NULL,
         captured_at DATETIME NOT NULL,
         as_of DATETIME NOT NULL,
         content_hash VARCHAR(64) NOT NULL,
@@ -71,6 +79,9 @@ function tit_create_or_update_table() {
         KEY idx_pillar (pillar),
         KEY idx_published (published_date),
         KEY idx_company (company_key),
+        KEY idx_cik (cik),
+        KEY idx_funding_usd (funding_amount_usd),
+        KEY idx_effective (effective_date),
         KEY idx_signal (signal_id, revision)
     ) {$charset};";
 
@@ -183,6 +194,13 @@ function tit_insert_signal(array $row, $flush = true) {
         'talent_readthrough' => (string) ($row['talent_readthrough'] ?? ''),
         'company'            => (string) ($row['company'] ?? ''),
         'company_key'        => (string) ($row['company_key'] ?? ''),
+        // isset() rather than the ?: shorthand used above: these columns
+        // arrive only from a pipeline new enough to send them, and an older
+        // caller (or a replayed payload) must not raise an undefined-index
+        // notice on every row of a 25-row batch.
+        'ticker'             => !empty($row['ticker']) ? substr((string) $row['ticker'], 0, 12) : null,
+        'cik'                => !empty($row['cik']) ? substr((string) $row['cik'], 0, 12) : null,
+        'employer_type'      => !empty($row['employer_type']) ? (string) $row['employer_type'] : null,
         'pillar'             => (string) ($row['pillar'] ?? ''),
         'signal_direction'   => (string) ($row['signal_direction'] ?? ''),
         'city'               => $row['city'] ?: null,
@@ -194,12 +212,20 @@ function tit_insert_signal(array $row, $flush = true) {
         'functions'          => $row['functions'] ?: null,
         'industry'           => $row['industry'] ?: null,
         'headcount'          => isset($row['headcount']) && $row['headcount'] ? (int) $row['headcount'] : null,
+        'headcount_scope'    => !empty($row['headcount_scope']) ? (string) $row['headcount_scope'] : null,
         'funding_amount'     => $row['funding_amount'] ?: null,
+        // Parsed in Python from funding_amount, never re-derived here: one
+        // parser, one answer. NULL means the string was not a US dollar figure
+        // we could read, which is different from a round of zero.
+        'funding_amount_usd' => !empty($row['funding_amount_usd']) ? (int) $row['funding_amount_usd'] : null,
+        'funding_stage'      => !empty($row['funding_stage']) ? (string) $row['funding_stage'] : null,
+        'work_mode'          => !empty($row['work_mode']) ? (string) $row['work_mode'] : null,
         'confidence'         => (string) ($row['confidence'] ?? 'reported'),
         'source_url'         => (string) $row['source_url'],
         'source_name'        => (string) ($row['source_name'] ?? ''),
         'discovery_url'      => $row['discovery_url'] ?: null,
         'published_date'     => $row['published_date'] ?: null,
+        'effective_date'     => !empty($row['effective_date']) ? (string) $row['effective_date'] : null,
         'captured_at'        => (string) ($row['captured_at'] ?? current_time('mysql', true)),
         'as_of'              => (string) ($row['as_of'] ?? current_time('mysql', true)),
         'content_hash'       => $hash,

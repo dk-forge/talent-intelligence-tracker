@@ -248,11 +248,17 @@ function tit_api_query(WP_REST_Request $req) {
     $count_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
     $total = (int) $wpdb->get_var($params ? $wpdb->prepare($count_sql, $params) : $count_sql);
 
+    // The accepted-column list for /query. A column missing here is invisible
+    // to every consumer of the API however well it is populated, so a new
+    // field lands in this list in the same change that creates it.
     $rows_sql = "SELECT signal_id, headline, summary, talent_readthrough, company,
+                        ticker, cik, employer_type,
                         pillar, signal_direction, city, region, country, hq_city, hq_country,
-                        state, functions, industry, headcount, funding_amount,
+                        state, functions, industry, headcount, headcount_scope,
+                        funding_amount, funding_amount_usd, funding_stage, work_mode,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
-                        confidence, source_url, source_name, published_date, captured_at
+                        confidence, source_url, source_name, published_date, effective_date,
+                        captured_at
                    FROM {$table} WHERE {$where}
                   ORDER BY {$order}
                   LIMIT %d OFFSET %d";
