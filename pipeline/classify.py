@@ -41,7 +41,7 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "funding_amount": "funding or investment figure exactly as written in the text (e.g. '$10.5M'), or empty. Never estimate.",
  "headline": "the factual headline, unembellished",
  "summary": "1-2 sentences restating ONLY what the source says",
- "talent_readthrough": "1 sentence a recruiter can act on: WHO is affected, WHERE, and WHAT CHANGES for them. Name the function or level if the text supports it. No hedging words (potential, possibly, may, could, indicates, suggests). If the text does not support a concrete read, say what is not yet known instead of padding.",
+ "talent_readthrough": "1 sentence a recruiter can act on: WHO is affected, WHERE, and WHAT CHANGES for them. Name the function or level if the text supports it. No hedging words (potential, possibly, may, could, indicates, suggests). If the text does not support a concrete read, say what is not yet known instead of padding. NEVER write a code from the functions or industry lists into this sentence: those are storage values, not English. Write 'pharma and biotech', not 'pharma_biotech'; 'data and AI', not 'data_ai'; 'customer support', not 'customer_support'. A sentence containing an underscore is wrong.",
  "predicted_outcome": "a checkable consequence, or empty",
  "check_after_date": "YYYY-MM-DD when that could be checked, or empty"}
 
@@ -51,8 +51,24 @@ Set is_talent_signal true for any of these at a NAMED EMPLOYER:
  - a pay, equity or benefits action
  - a location decision: new office, hub, capability centre, RTO policy
  - FUNDING: a round raised, investment received, or capital raised. Funding is
-   a leading indicator of hiring, so it counts as company_development with
-   signal_direction "hiring".
+   company_development.
+
+signal_direction is what the SOURCE STATES about headcount, never what the
+event usually implies. This rule exists because the previous instruction told
+you funding was "hiring", which put "Hiring up" on the page beside a
+read-through that said the announcement discloses no hiring plans. Readers are
+recruiters and job seekers; a badge that contradicts the sentence under it is
+worse than no badge.
+ - "hiring" ONLY when the source says the employer is adding, recruiting or
+   opening roles. A funding round is NOT hiring. A new office with no stated
+   roles is NOT hiring.
+ - "displacement" ONLY when the source says roles are being cut. One executive
+   leaving, retiring or being replaced is NOT displacement: it is one person in
+   a planned succession, so it is "neutral".
+ - "comp_shift" for a pay, equity or benefits action.
+ - "neutral" for everything else, including funding with no stated hiring, and
+   leadership appointments and departures. Most rows are legitimately neutral;
+   that is the honest shape of this data, not a failure to decide.
    For a funding read-through, state what IS known and say plainly what is not.
    Money is reported, hiring plans usually are not, so do not hedge about what
    might happen — name the fact and the gap.
