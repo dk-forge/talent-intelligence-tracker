@@ -139,7 +139,7 @@
   function fill(select, values, asCountries, labels) {
     if (!select || !values) return;
     var items = values.map(function (v) {
-      return { value: v, label: (asCountries && TIT.countries[v]) || (labels && labels[v]) || v };
+      return { value: v, label: asCountries ? countryLabel(v) : ((labels && labels[v]) || v) };
     });
     if (asCountries) {
       items.sort(function (a, b) { return a.label.localeCompare(b.label); });
@@ -167,7 +167,7 @@
     if (!sel || !data) return;
     var groups = [
       ['Countries', 'country', (data.countries || []).map(function (v) {
-        return { v: v, l: (TIT.countries && TIT.countries[v]) || v };
+        return { v: v, l: countryLabel(v) };
       }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
       ['US states', 'state', (data.states || []).map(function (v) { return { v: v, l: v }; })],
       ['Cities', 'city', (data.cities || []).map(function (v) { return { v: v, l: v }; })]
@@ -189,12 +189,24 @@
     syncPlace();
   }
 
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // The date the SOURCE carries, never the date we happened to capture it, and
+  // said out loud when there is not one. Parsed by hand from YYYY-MM-DD rather
+  // than through Date(), which reads a bare date as UTC midnight and can show
+  // the previous day to anyone west of Greenwich.
+  function whenCell(r) {
+    var d = (r.published_date || '').slice(0, 10).split('-');
+    if (d.length !== 3) return '<span class="tit-nowhere">Date not stated</span>';
+    return esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]);
+  }
+
   function renderRow(r) {
     // Fall back to headquarters when the source named no place, and say so.
     var isHq = !r.city && !r.country;
     var place = r.city || r.hq_city || '';
     var code = r.country || r.hq_country || '';
-    var country = (TIT.countries && TIT.countries[code]) || code;
+    var country = countryLabel(code);
     var where = esc([place, country].filter(Boolean).join(', '));
     if (!where) {
       where = '<span class="tit-nowhere">Location not stated</span>';
@@ -215,6 +227,7 @@
         esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
       '<td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
         esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
+      '<td class="tit-meta tit-when" data-label="When">' + whenCell(r) + '</td>' +
       '<td class="tit-meta" data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
         esc(r.source_name) + '</a></td>' +
       '</tr>';
@@ -340,10 +353,21 @@
         lead.className = 'tit-fine-figures';
         fine.insertBefore(lead, fine.firstChild);
       }
-      lead.textContent = plural(total, 'update') + ' · ' +
-        plural(data.companies, 'employer') + ' · ' +
-        plural(data.countries, 'country', 'countries') + ' · ' +
-        nfmt(data.verified) + ' from official filings. ';
+      var line = esc(plural(total, 'update')) + ' · ' +
+        esc(plural(data.companies, 'employer')) + ' · ' +
+        esc(plural(data.countries, 'country', 'countries')) + ' · ' +
+        esc(nfmt(data.verified)) + ' from official filings';
+      // A sum of dollars beside three counts, so it is a link rather than a
+      // bare total: it lands on the money section, which prints what share of
+      // the funding updates it covers. Both read the same aggregate, so the
+      // figure and its caveat cannot drift apart.
+      var mt = data.money && data.money.total;
+      if (mt > 0) {
+        line += ' · <a class="tit-fine-money" href="#chart-money-country" title="' +
+          esc(moneyFull(mt) + '. ' + coverageNote(data.money, '')) + '">' +
+          esc(moneyShort(mt)) + ' raised</a>';
+      }
+      lead.innerHTML = line + '. ';
     }
 
     // The at-a-glance matrix moves with the filters like everything else. It
@@ -414,7 +438,20 @@
     syncChartStates();
   }
 
-  function countryLabel(k) { return (TIT.countries && TIT.countries[k]) || k; }
+  // Mirrors tit_country_name(): a code must never reach the page as a code.
+  // The map comes from the server and now covers the whole of ISO 3166-1, so
+  // the fallback should be unreachable; if it is reached it says so in words
+  // and leaves a console trace for us, rather than printing two bare letters
+  // into a list of country names and waiting for a reader to find it.
+  function countryLabel(k) {
+    if (!k) return '';
+    var name = TIT.countries && TIT.countries[k];
+    if (name) return name;
+    if (window.console && console.warn) {
+      console.warn('[talent-intelligence-tracker] unmapped country code:', k);
+    }
+    return k + ' (unmapped)';
+  }
 
   // Mirrors tit_detail_note(). Both counts, always, plus what routine means:
   // that sentence is the reason the default is allowed to hold rows back at
@@ -601,10 +638,18 @@
           // band) are all server-rendered, so a value missing from one of
           // those really is a value we do not have, and is still ignored
           // rather than guessed at.
-          if (!FACET_SELECT[key]) return;
-          ensureOption(el, value,
-            key === 'country' ? countryLabel(value)
-              : (key === 'funding_stage' ? (STAGE_LABEL[value] || value) : value));
+          // A sort a column header chose has no server-rendered option
+          // either, so a link carrying one would come back sorted the default
+          // way while the select claimed otherwise.
+          if (key === 'sort' && SORT_OPTION_LABEL[value]) {
+            ensureOption(el, value, SORT_OPTION_LABEL[value]);
+          } else if (FACET_SELECT[key]) {
+            ensureOption(el, value,
+              key === 'country' ? countryLabel(value)
+                : (key === 'funding_stage' ? (STAGE_LABEL[value] || value) : value));
+          } else {
+            return;
+          }
         }
       }
       el.value = value;
@@ -831,6 +876,7 @@
     syncLooking();
     syncPlace();
     syncMore();
+    syncSortHeads();
 
     paintActive();
     syncChartStates();
@@ -861,7 +907,7 @@
         if (!data) return;
         tbody.innerHTML = data.rows.length
           ? data.rows.map(renderRow).join('')
-          : '<tr><td colspan="6">Nothing matches those filters yet.</td></tr>';
+          : '<tr><td colspan="7">Nothing matches those filters yet.</td></tr>';
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
@@ -1269,6 +1315,63 @@
       refresh();
     });
   }
+
+  // --- Sortable table headers ----------------------------------------------
+  // A header click sets the SAME `sort` parameter the select above uses, so it
+  // orders the whole filtered set on the server, round-trips through the URL,
+  // and rides along with the exports. Two keys per column so a second click
+  // reverses it, and the select gains an option for whatever the headers chose
+  // so the two controls can never contradict each other.
+  var COL_SORT = {
+    employer: ['employer', 'employer_desc'],
+    place: ['place', 'place_desc'],
+    evidence: ['evidence', 'evidence_desc'],
+    when: ['newest', 'oldest']
+  };
+  // 'when' is the odd one: newest first IS descending by date.
+  var COL_DIR = {
+    employer: ['ascending', 'descending'],
+    place: ['ascending', 'descending'],
+    evidence: ['ascending', 'descending'],
+    when: ['descending', 'ascending']
+  };
+  var SORT_OPTION_LABEL = {
+    employer_desc: 'Employer Z to A',
+    place: 'By place', place_desc: 'By place, reversed',
+    evidence: 'Strongest evidence first', evidence_desc: 'Weakest evidence first'
+  };
+
+  var sortHeads = Array.prototype.slice.call(root.querySelectorAll('th.tit-th-sort'));
+
+  function syncSortHeads() {
+    var current = inputs.sort ? inputs.sort.value : '';
+    sortHeads.forEach(function (th) {
+      var pair = COL_SORT[th.getAttribute('data-col')] || [];
+      var at = pair.indexOf(current);
+      var dir = at < 0 ? 'none' : (COL_DIR[th.getAttribute('data-col')] || [])[at];
+      th.setAttribute('aria-sort', dir || 'none');
+      var arrow = th.querySelector('.tit-th-arrow');
+      if (arrow) {
+        arrow.textContent = dir === 'ascending' ? '\u25B2'
+                          : (dir === 'descending' ? '\u25BC' : '\u21C5');
+      }
+    });
+  }
+
+  sortHeads.forEach(function (th) {
+    var btn = th.querySelector('button');
+    if (!btn || !inputs.sort) return;
+    btn.addEventListener('click', function () {
+      var pair = COL_SORT[th.getAttribute('data-col')] || [];
+      if (!pair.length) return;
+      var next = inputs.sort.value === pair[0] ? pair[1] : pair[0];
+      // The select must be able to SAY what the headers chose, or it would sit
+      // there reading "Most useful first" over a table sorted by employer.
+      ensureOption(inputs.sort, next, SORT_OPTION_LABEL[next] || next);
+      inputs.sort.value = next;
+      refresh();
+    });
+  });
 
   populateFacets();
 

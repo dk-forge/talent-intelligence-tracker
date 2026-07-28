@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.32.0
+ * Version: 1.33.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.32.0');
+define('TIT_VERSION', '1.33.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -307,12 +307,72 @@ function tit_country_names() {
         'CU' => 'Cuba', 'JM' => 'Jamaica', 'TT' => 'Trinidad and Tobago',
         'HT' => 'Haiti', 'BZ' => 'Belize', 'GY' => 'Guyana', 'SR' => 'Suriname',
         'FJ' => 'Fiji', 'PG' => 'Papua New Guinea',
+        // The REST of ISO 3166-1 alpha-2, territories included. "PR" reached a
+        // live chart as a bare code sitting between "Ireland" and "United
+        // States", which is the same failure as "LV" and "NA" before it and
+        // was fixed the same wrong way twice: by adding the codes that had
+        // embarrassed us. A tracker that reads SEC filings will see Puerto
+        // Rico, Guam and the Virgin Islands, and an employer can be anywhere,
+        // so the list is now the whole standard and there is nothing left to
+        // patch. tit_country_name() also refuses to print a bare code.
+        'AF' => 'Afghanistan', 'AG' => 'Antigua and Barbuda', 'AI' => 'Anguilla',
+        'AQ' => 'Antarctica', 'AS' => 'American Samoa', 'AW' => 'Aruba',
+        'AX' => 'Aland Islands', 'BB' => 'Barbados', 'BI' => 'Burundi',
+        'BL' => 'Saint Barthelemy', 'BM' => 'Bermuda',
+        'BQ' => 'Caribbean Netherlands', 'BS' => 'Bahamas', 'BT' => 'Bhutan',
+        'BV' => 'Bouvet Island', 'CC' => 'Cocos Islands',
+        'CF' => 'Central African Republic', 'CK' => 'Cook Islands',
+        'CV' => 'Cabo Verde', 'CW' => 'Curacao', 'CX' => 'Christmas Island',
+        'DJ' => 'Djibouti', 'DM' => 'Dominica', 'EH' => 'Western Sahara',
+        'ER' => 'Eritrea', 'FK' => 'Falkland Islands', 'FM' => 'Micronesia',
+        'FO' => 'Faroe Islands', 'GD' => 'Grenada', 'GF' => 'French Guiana',
+        'GG' => 'Guernsey', 'GI' => 'Gibraltar', 'GL' => 'Greenland',
+        'GN' => 'Guinea', 'GP' => 'Guadeloupe', 'GQ' => 'Equatorial Guinea',
+        'GS' => 'South Georgia', 'GU' => 'Guam', 'GW' => 'Guinea-Bissau',
+        'HM' => 'Heard and McDonald Islands', 'IM' => 'Isle of Man',
+        'IO' => 'British Indian Ocean Territory', 'JE' => 'Jersey',
+        'KG' => 'Kyrgyzstan', 'KI' => 'Kiribati', 'KM' => 'Comoros',
+        'KN' => 'Saint Kitts and Nevis', 'KP' => 'North Korea',
+        'KY' => 'Cayman Islands', 'LC' => 'Saint Lucia', 'LS' => 'Lesotho',
+        'MF' => 'Saint Martin', 'MH' => 'Marshall Islands',
+        'MP' => 'Northern Mariana Islands', 'MQ' => 'Martinique',
+        'MR' => 'Mauritania', 'MS' => 'Montserrat', 'NC' => 'New Caledonia',
+        'NF' => 'Norfolk Island', 'NR' => 'Nauru', 'NU' => 'Niue',
+        'PF' => 'French Polynesia', 'PM' => 'Saint Pierre and Miquelon',
+        'PN' => 'Pitcairn', 'PR' => 'Puerto Rico', 'PW' => 'Palau',
+        'RE' => 'Reunion', 'SB' => 'Solomon Islands', 'SC' => 'Seychelles',
+        'SH' => 'Saint Helena', 'SJ' => 'Svalbard and Jan Mayen',
+        'ST' => 'Sao Tome and Principe', 'SX' => 'Sint Maarten', 'SZ' => 'Eswatini',
+        'TC' => 'Turks and Caicos Islands', 'TF' => 'French Southern Territories',
+        'TG' => 'Togo', 'TJ' => 'Tajikistan', 'TK' => 'Tokelau',
+        'TL' => 'Timor-Leste', 'TM' => 'Turkmenistan', 'TO' => 'Tonga',
+        'TV' => 'Tuvalu', 'UM' => 'United States Minor Outlying Islands',
+        'VC' => 'Saint Vincent and the Grenadines', 'VG' => 'British Virgin Islands',
+        'VI' => 'United States Virgin Islands', 'VU' => 'Vanuatu',
+        'WF' => 'Wallis and Futuna', 'WS' => 'Samoa', 'YT' => 'Mayotte',
     );
 }
 
+/**
+ * A code must never reach the page as a code.
+ *
+ * "PR" appeared as a bar label between "Ireland" and "United States", which is
+ * the third time an unmapped code has been found by a reader rather than by us.
+ * The map is now the whole of ISO 3166-1 alpha-2, so this should be
+ * unreachable; if it ever is reached it says so in words, and leaves a trace in
+ * the log for us to act on, rather than printing two letters and hoping nobody
+ * notices.
+ */
 function tit_country_name($code) {
+    $code = strtoupper(trim((string) $code));
+    if ($code === '') return '';
     $names = tit_country_names();
-    return $names[$code] ?? $code;
+    if (isset($names[$code])) return $names[$code];
+
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('[talent-intelligence-tracker] unmapped country code: ' . $code);
+    }
+    return $code . ' (unmapped)';
 }
 
 add_action('init', 'tit_maybe_upgrade', 1);

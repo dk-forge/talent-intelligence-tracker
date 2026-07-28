@@ -214,12 +214,26 @@ function tit_dashboard_shortcode() {
           <span class="tit-fine-figures"><?php
             printf(
               /* translators: totals restated by JavaScript when a filter changes. */
-              '%s · %s · %s · %s from official filings. ',
+              '%s · %s · %s · %s from official filings',
               esc_html(sprintf(_n('%s update', '%s updates', $total, 'tit'), number_format_i18n($total))),
               esc_html(sprintf(_n('%s employer', '%s employers', $companies, 'tit'), number_format_i18n($companies))),
               esc_html(sprintf(_n('%s country', '%s countries', $countries, 'tit'), number_format_i18n($countries))),
               esc_html(number_format_i18n($verified))
             );
+            /* The fourth figure is a SUM OF DOLLARS beside three counts, and it
+               covers only the funding updates that state a US dollar amount, so
+               it is a link rather than a bare number: the money section it lands
+               on prints the coverage sentence, and the two can never disagree
+               because both read the same aggregate. */
+            if ($money['total'] > 0) {
+                printf(
+                    ' · <a class="tit-fine-money" href="#chart-money-country" title="%s">%s raised</a>',
+                    esc_attr(tit_money_full($money['total']) . '. '
+                             . tit_money_coverage_sentence($money['coverage'])),
+                    esc_html(tit_money_short($money['total']))
+                );
+            }
+            echo '. ';
           ?></span>Every update links to the document that makes the claim, and no figure
           appears unless the source states it.
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
@@ -274,18 +288,6 @@ function tit_dashboard_shortcode() {
             echo esc_html($label); ?></button>
         <?php endforeach; ?>
         <span class="tit-quick-hint">For a period, click a number in the table above.</span>
-        <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
-          <!-- The default, and its own option rather than a silent tweak to
-               "Newest first": a control labelled newest that does not put the
-               newest row first is a control that lies. -->
-          <option value="notable">Most useful first</option>
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="employer">By employer</option>
-          <!-- Sorting on money only works because funding_amount_usd is a
-               number; the display string it sits beside cannot be ordered. -->
-          <option value="raised">Biggest raises first</option>
-        </select>
       </div>
 
       <?php
@@ -461,6 +463,13 @@ function tit_dashboard_shortcode() {
           <label class="tit-field"><span>To</span>
             <input type="date" id="tit-f-until" aria-label="Latest date"
                    min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+          <?php /* Reset sits with the controls it resets, not alone in a bar
+                   where it read as a faint link. Styled as what it is: a real
+                   button, in the contraction hue, and never the loudest thing
+                   on the page. */ ?>
+          <div class="tit-field tit-reset-field">
+            <button type="button" class="tit-reset-btn" id="tit-reset">Reset all filters</button>
+          </div>
         </div>
       </details>
 
@@ -492,7 +501,6 @@ function tit_dashboard_shortcode() {
       <div class="tit-active" id="tit-active" hidden>
         <span class="tit-active-label">Filtering</span>
         <span class="tit-active-chips" id="tit-active-chips"></span>
-        <button type="button" class="tit-reset" id="tit-reset">Reset all</button>
       </div>
 
       <div class="tit-charts">
@@ -609,14 +617,63 @@ function tit_dashboard_shortcode() {
         </label>
         <p class="tit-detail-note" id="tit-detail-note"><?php
           echo esc_html(tit_detail_note('notable', $n_notable, $n_routine)); ?></p>
+        <?php /* The sort belongs with the rows it orders. It used to sit up in
+                 the quick-views strip, three screens above the table, which is
+                 where a reader chooses a VIEW and not where they reorder one
+                 they are already reading. Column headers below do the same job
+                 for the columns they name; this covers the orderings that are
+                 not a column, like "most useful" and "biggest raises". */ ?>
+        <label class="tit-detail-sort">
+          <span class="tit-detail-l">Sort</span>
+          <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
+            <?php /* Its own option, never a silent tweak to "Newest first": a
+                     control labelled newest that does not put the newest row
+                     first is a control that lies. */ ?>
+            <option value="notable">Most useful first</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="employer">Employer A to Z</option>
+            <?php /* Sorting on money only works because funding_amount_usd is
+                     a number; the display string beside it cannot be ordered. */ ?>
+            <option value="raised">Biggest raises first</option>
+          </select>
+        </label>
       </div>
 
       <div class="tit-table-scroll">
         <table class="tit-table">
+          <?php
+          /*
+            Sortable columns. Each one drives the SERVER sort through /query, so
+            it orders the whole filtered set and not the fifty rows that happen
+            to be on screen; a header that reordered only the visible page would
+            be a sort that lies about its own scope. The state rides on the same
+            `sort` parameter as the select above, so it round-trips through the
+            URL and the exports like everything else, and aria-sort carries it
+            for anyone not looking at the arrow.
+          */
+          $sortable = array(
+              'Employer' => 'employer',
+              'Where'    => 'place',
+              'Evidence' => 'evidence',
+              'When'     => 'when',
+          );
+          $columns = array('Employer', 'What happened', 'Where',
+                           'What it means', 'Evidence', 'When', 'Source');
+          ?>
           <thead>
             <tr>
-              <th>Employer</th><th>What happened</th><th>Where</th>
-              <th>What it means</th><th>Evidence</th><th>Source</th>
+              <?php foreach ($columns as $col) :
+                if (!isset($sortable[$col])) : ?>
+                  <th scope="col"><?php echo esc_html($col); ?></th>
+                <?php else : ?>
+                  <th scope="col" class="tit-th-sort" aria-sort="none"
+                      data-col="<?php echo esc_attr($sortable[$col]); ?>">
+                    <button type="button"><?php echo esc_html($col); ?><span
+                      class="tit-th-arrow" aria-hidden="true"></span></button>
+                  </th>
+                <?php endif;
+              endforeach; ?>
             </tr>
           </thead>
           <tbody id="tit-rows">
@@ -653,6 +710,11 @@ function tit_dashboard_shortcode() {
                 <td class="tit-meta" data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
                 <td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
                   echo esc_html($confidences[$r['confidence']] ?? $r['confidence']); ?></span></td>
+                <td class="tit-meta tit-when" data-label="When"><?php
+                  $when = $r['published_date'] ?: '';
+                  echo $when ? esc_html(date_i18n('j M Y', strtotime($when)))
+                             : '<span class="tit-nowhere">Date not stated</span>';
+                ?></td>
                 <td class="tit-meta" data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
               </tr>
             <?php endforeach; ?>

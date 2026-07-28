@@ -277,9 +277,9 @@
 .tit-chart.is-expanded .tit-rank,
 .tit-chart.is-expanded .tit-pillars { max-height:55vh; }
 @media (min-width:560px){
-  .tit-chart.is-expanded .tit-rank-row { grid-template-columns:220px 1fr auto; font-size:15px; }
+  .tit-chart.is-expanded .tit-rank-row { grid-template-columns:248px 1fr auto; font-size:15px; }
 }
-.tit-rank-row { display:grid; grid-template-columns:104px 1fr auto; gap:10px;
+.tit-rank-row { display:grid; grid-template-columns:118px 1fr auto; gap:10px;
   align-items:center; font-size:14px; }
 .tit-rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:var(--tit-fg); }
@@ -348,7 +348,7 @@
 .tit-chart-wide { grid-column:1 / -1; }
 .tit-chart-wide .tit-pillars { margin:0; }
 
-@media (min-width:560px){ .tit-rank-row { grid-template-columns:150px 1fr auto; } }
+@media (min-width:560px){ .tit-rank-row { grid-template-columns:170px 1fr auto; } }
 .tit-wrap .tit-chart-wide { margin:0 0 16px; }
 
 /* ---------------------------------------------------------------------------
@@ -560,8 +560,17 @@
 .tit-wrap .tit-chart h3 { font-size:14px; }
 .tit-chart .tit-sub { margin:0 0 10px; font-size:12.5px; }
 .tit-rank { gap:7px; }
-.tit-rank-row { grid-template-columns:96px 1fr auto; gap:8px; font-size:13.5px; }
-@media (min-width:560px){ .tit-rank-row { grid-template-columns:110px 1fr auto; } }
+/* The label column, widened.
+   It was 96px, then 110px, and the bar lists were rendering "Headcount n..."
+   and "United Kingd...": ellipsis is right for a genuinely long name and wrong
+   when almost every name hits it. The value column is right-aligned and needs
+   very little, and the bar is a comparison rather than a measurement, so the
+   room comes from there. "Headcount not stated" and "United Kingdom" both fit
+   in full from the tablet breakpoint up; below it the card still scrolls
+   nothing sideways, because the bar absorbs the difference. */
+.tit-rank-row { grid-template-columns:124px 1fr auto; gap:8px; font-size:13.5px; }
+@media (min-width:560px){ .tit-rank-row { grid-template-columns:158px 1fr auto; } }
+@media (min-width:1100px){ .tit-rank-row { grid-template-columns:172px 1fr auto; } }
 .tit-rank-track { height:8px; }
 .tit-pillars { gap:9px; }
 @media (min-width:760px){ .tit-pillars { grid-template-columns:1fr; gap:9px; } }
@@ -1116,3 +1125,68 @@ body.admin-bar .tit-active { top:32px; }
    the control off the strip. Never --tit-faint: this sentence has to be read. */
 .tit-wrap .tit-detail-note { margin:0; flex:1 1 24ch; min-width:0;
   font-size:12.5px; line-height:1.45; color:var(--tit-mut); }
+
+/* ---------------------------------------------------------------------------
+   Keep position:sticky alive.
+   A sticky element is cancelled outright by ANY scrollable ancestor, and
+   `overflow-x:hidden` on the body or a theme wrapper is the commonest way that
+   happens: it is set to stop something else bleeding, and it silently turns
+   every sticky descendant into a static one. That is why the active-filter bar
+   stopped pinning once the page grew long enough to scroll past it.
+   `overflow-x:clip` clips exactly the same way WITHOUT creating a scroll
+   container, so nothing bleeds and sticky survives. :has() scopes all of this
+   to pages that actually contain the dashboard, so a normal post is untouched.
+   --------------------------------------------------------------------------- */
+html:has(#tit-dashboard), body:has(#tit-dashboard) { overflow-x:clip; }
+.entry-content:has(#tit-dashboard),
+.wp-block-post-content:has(#tit-dashboard),
+.wp-site-blocks:has(#tit-dashboard) { overflow:visible; }
+
+/* ---------------------------------------------------------------------------
+   The results header: what orders the rows, sitting with the rows.
+   The sort control used to live up in the quick-views strip, three screens
+   above the table it orders, which is where a reader looks to CHOOSE a view and
+   not where they look to reorder one they are already reading.
+   --------------------------------------------------------------------------- */
+.tit-detail-sort { display:inline-flex; align-items:center; gap:8px; flex:none;
+  margin-left:auto; }
+@media (max-width:700px){ .tit-detail-sort { margin-left:0; } }
+.tit-wrap .tit-detail-sort select { padding:7px 10px; font-size:13.5px;
+  font-weight:600; }
+
+/* Sortable table headers. The indicator is a character, not a colour, and the
+   state is also on aria-sort, so nothing here depends on seeing the arrow. */
+.tit-wrap th.tit-th-sort { padding:0; }
+.tit-wrap th.tit-th-sort > button { display:flex; align-items:center; gap:5px;
+  width:100%; padding:9px 12px; border:0; background:none; font:inherit;
+  font-size:12.5px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--tit-mut); text-align:left; cursor:pointer; }
+.tit-wrap th.tit-th-sort > button:hover { color:var(--tit-blue); }
+.tit-wrap th.tit-th-sort > button:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:-2px; }
+.tit-th-arrow { font-size:10px; line-height:1; color:var(--tit-faint); }
+.tit-wrap th[aria-sort="ascending"] > button,
+.tit-wrap th[aria-sort="descending"] > button { color:var(--tit-ink-blue); }
+.tit-wrap th[aria-sort="ascending"] .tit-th-arrow,
+.tit-wrap th[aria-sort="descending"] .tit-th-arrow { color:var(--tit-blue); }
+
+.tit-when { font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; }
+
+/* Reset, with the affordance the action deserves: clearly a button, clearly
+   not the loudest thing on the page. It sits at the end of the filter block
+   with the date range rather than alone in a bar of its own. */
+.tit-reset-field { display:flex; align-items:flex-end; }
+.tit-wrap .tit-reset-btn { width:100%; padding:9px 12px; border:1px solid #d7c0b4;
+  border-radius:9px; background:#fff; color:var(--tit-ink-orange);
+  font-family:inherit; font-size:13.5px; font-weight:650; cursor:pointer;
+  line-height:1.25; }
+.tit-wrap .tit-reset-btn:hover { border-color:var(--tit-orange);
+  background:var(--tit-red-tint); }
+.tit-wrap .tit-reset-btn:focus-visible { outline:2px solid var(--tit-orange);
+  outline-offset:2px; }
+
+/* The money figure in the summary line. A link, because the total is only
+   honest next to the coverage sentence the money section prints. */
+.tit-wrap .tit-fine-money { color:var(--tit-ink-violet); font-weight:700;
+  text-decoration-color:#cbc4ec; }
+.tit-wrap .tit-fine-money:hover { color:var(--tit-violet); }

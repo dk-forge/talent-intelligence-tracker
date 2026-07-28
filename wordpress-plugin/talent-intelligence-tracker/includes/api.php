@@ -344,6 +344,26 @@ function tit_api_query(WP_REST_Request $req) {
         // could not read as US dollars fall to the bottom instead of claiming
         // the top of a list about size.
         'raised'   => 'funding_amount_usd DESC, COALESCE(published_date, DATE(captured_at)) DESC',
+        // Column sorts, paired so a header click can toggle direction. A
+        // clicked header orders the WHOLE filtered set through this endpoint,
+        // never the fifty rows already on screen, which would be a sort quietly
+        // lying about its own scope.
+        //
+        // Rows we cannot place or date sort to the BOTTOM in both directions:
+        // reversing a list should not promote the unknowns to the top, because
+        // "we do not know" is not an extreme value of anything.
+        'employer_desc' => 'company_key DESC, COALESCE(published_date, DATE(captured_at)) DESC',
+        'place'      => 'COALESCE(country, hq_country) IS NULL, COALESCE(country, hq_country) ASC,'
+                      . ' COALESCE(city, hq_city) IS NULL, COALESCE(city, hq_city) ASC,'
+                      . ' COALESCE(published_date, DATE(captured_at)) DESC',
+        'place_desc' => 'COALESCE(country, hq_country) IS NULL, COALESCE(country, hq_country) DESC,'
+                      . ' COALESCE(city, hq_city) IS NULL, COALESCE(city, hq_city) DESC,'
+                      . ' COALESCE(published_date, DATE(captured_at)) DESC',
+        // Strongest evidence first, in the order the vocabulary itself ranks.
+        'evidence'      => "FIELD(confidence, 'verified', 'reported', 'rumored') ASC,"
+                         . ' COALESCE(published_date, DATE(captured_at)) DESC',
+        'evidence_desc' => "FIELD(confidence, 'verified', 'reported', 'rumored') DESC,"
+                         . ' COALESCE(published_date, DATE(captured_at)) DESC',
     );
     $order = $orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['notable'];
 
