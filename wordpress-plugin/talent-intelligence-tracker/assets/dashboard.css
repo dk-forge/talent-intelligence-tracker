@@ -299,6 +299,8 @@
 .tit-wrap .tit-glance-what { font-size:15px; color:var(--tit-mut); }
 .tit-wrap .tit-glance-what strong { color:var(--tit-fg); font-size:17px;
   font-variant-numeric:tabular-nums; }
+/* The honest footnote to the glance tiles: how much history is behind them. */
+.tit-wrap .tit-span { margin:9px 0 0; font-size:12.5px; color:var(--tit-faint); }
 .tit-hero-fine { margin:14px 0 0 !important; font-size:13.5px; }
 /* The counts that lead the fine print, and the one part of it JavaScript
    rewrites when a filter changes. They read as the summary, so they carry the
@@ -341,53 +343,52 @@
    --------------------------------------------------------------------------- */
 @media (max-width:860px){
   .tit-table-scroll { overflow-x:visible; border:0; border-radius:0; }
-  .tit-table { min-width:0; display:block; }
+  /* .tit-wrap on purpose: `.tit-sources .tit-table` sets min-width:720px and
+     at equal specificity would keep the sources table 720px wide inside a
+     375px phone, side-scrolling with its header row hidden. */
+  .tit-wrap .tit-table { min-width:0; display:block; }
   .tit-table thead { position:absolute; width:1px; height:1px; overflow:hidden;
     clip:rect(0 0 0 0); white-space:nowrap; }
   .tit-table tbody { display:block; }
-
-  /* Three bands, not six stacked rows.
-     Every cell used to be a full-width labelled line of equal weight, so
-     "WHERE: Location not stated" got exactly as much of the card as the
-     headline did, and a record with nothing much to say was as tall as one
-     with everything. Now: who it is, what happened and what we read into it,
-     then one quiet wrapping line for the rest. */
   .tit-table tr { display:flex; flex-wrap:wrap; align-items:center; gap:9px 10px;
     border:1px solid var(--tit-line); border-radius:12px;
     padding:13px 15px; margin:0 0 10px; background:#fff; }
-  /* .tit-wrap here on purpose. A later rule in this file sets a 9px/12px cell
-     padding outside any media query, and at equal specificity the later rule
-     wins: every meta cell was carrying 18px of vertical padding it should not
-     have had, which is what made a 9px row gap look like forty. */
-  .tit-wrap .tit-table td { display:block; border:0; padding:0; }
 
-  /* Band 1. The employer leads as an eyebrow above the headline, which almost
-     always repeats it. Its typography lives with the other employer rules near
-     the end of this file; only the layout belongs here. */
-  .tit-table td[data-label="Employer"] { flex:1 0 100%; }
+  /* Full width is the DEFAULT, and that matters more than it looks.
+     These rules used to name the dashboard's own columns
+     (td[data-label="Where"] and friends), so any other table using .tit-table
+     got `display:flex` on its rows and not one sizing rule that matched: the
+     sources table collapsed into unsized cells side by side with its header
+     hidden. A card layout keyed to one table's column names is not a
+     component, it is a coincidence. Cells opt IN to anything other than a
+     plain stacked row.
+     `.tit-wrap` also beats the 9px/12px cell padding set later in this file,
+     which is what made a 9px row gap measure forty. */
+  .tit-wrap .tit-table td { display:block; border:0; padding:0; flex:1 0 100%; }
 
-  /* Band 2. */
-  .tit-table td.tit-headline { flex:1 0 100%; max-width:none; }
+  /* A stacked cell wears its column name, because with thead hidden nothing
+     else says what it is. Opted-out cells are the ones that speak for
+     themselves. */
+  .tit-table td[data-label]:not(.tit-headline):not(.tit-eyebrow):not(.tit-meta)::before {
+    content:attr(data-label); display:block; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--tit-faint);
+    margin-bottom:1px; }
+  .tit-table td[data-label]:empty { display:none; }
 
-  /* Band 3: place, meaning, confidence, source, on one wrapping line. These
-     four are self-describing, so the uppercase prefixes they used to carry were
-     four labels explaining four things that explain themselves.
-     No separator characters between them: at 390px the line wraps, and a
-     middot rendered as each item's ::before then landed at the START of the
-     wrapped line, which reads as a bullet list that lost its text. Spacing
-     separates them, and spacing cannot wrap onto the wrong line. */
-  /* line-height:1.3, not the 1.6 the wrapper sets for prose. At 1.6 each of
-     these one-line cells stood 39 to 47px tall, so the meta line looked like
-     two loosely spaced rows even though the gap between them was 9px. */
-  .tit-table td[data-label="Where"],
-  .tit-table td[data-label="What it means"],
-  .tit-table td[data-label="How solid"],
-  .tit-table td[data-label="Source"] { flex:0 1 auto; font-size:13px;
+  .tit-table td.tit-headline { max-width:none; }
+
+  /* The meta line: short, self-describing values sharing one wrapping row.
+     No separator characters between them. At 390px the line wraps, and a
+     middot rendered as each item's ::before landed at the START of the wrapped
+     line, reading as a bullet list that had lost its text. Spacing separates
+     them, and spacing cannot wrap onto the wrong line.
+     line-height:1.3 rather than the 1.6 the wrapper sets for prose: at 1.6
+     each one-line cell stood 39 to 47px tall and the row looked like two. */
+  .tit-wrap .tit-table td.tit-meta { flex:0 1 auto; font-size:13px;
     line-height:1.3; color:var(--tit-mut); }
-  .tit-table td[data-label="Where"] { margin-right:2px; }
-  /* Smaller pills here only. At the desktop size the four meta items came to
-     roughly 390px against the 360px a phone actually offers, so the line broke
-     in two for the sake of about thirty pixels. */
+  /* Smaller pills here only. At the desktop size the meta items came to roughly
+     390px against the 360px a phone actually offers, so the line broke in two
+     for the sake of about thirty pixels. */
   .tit-table td .tit-tag, .tit-table td .tit-conf { padding:2px 8px; font-size:12px; }
 
   .tit-wrap .tit-table .tit-h { font-size:16px; }
@@ -467,7 +468,28 @@
    apart that the employer and the source stop reading as one row. 1160px is
    about as wide as this content stays coherent.
    --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   Beat the theme's content constraint.
+   Twenty Twenty-Five wraps post content in `.is-layout-constrained`, whose
+   layout rule caps every direct child at the global content size, 645px here.
+   That selector and a bare `.tit-wrap` have the same specificity, so which one
+   applies came down to source order -- and source order silently changed when
+   this plugin's CSS was excluded from Autoptimize. Aggregated, our rules were
+   INLINED after the theme's and won; excluded, they load as a <link> and lose.
+   The dashboard went from 1160px to 645px, a third of the window, with no CSS
+   change of its own. Two classes deep beats the theme's one, in any order.
+   --------------------------------------------------------------------------- */
 .tit-wrap { max-width:1160px; margin-left:auto; margin-right:auto; }
+.entry-content .tit-wrap,
+.wp-block-post-content .tit-wrap,
+.is-layout-constrained > .tit-wrap {
+  /* The theme's own wide measure, not a number of ours. Twenty Twenty-Five
+     sets content-size 645px and wide-size 1340px; a block set to Full width
+     gets the wide one, which is how the sibling tracker ends up as wide as it
+     is. Taking the variable means the dashboard tracks the theme if that
+     setting is ever changed, instead of drifting away from it. */
+  max-width:var(--wp--style--global--wide-size, 1160px);
+}
 
 /* Two columns of at-a-glance once there is room for them. */
 @media (min-width:1000px){
@@ -627,9 +649,10 @@
   border-bottom-color:var(--tit-blue); }
 @media (max-width:860px){
   /* On a card it becomes the eyebrow above the headline, and may wrap. */
-  .tit-table td[data-label="Employer"] { white-space:normal; font-size:13px;
-    text-transform:uppercase; letter-spacing:.04em; color:var(--tit-mut); }
-  .tit-table td[data-label="Employer"] a { border-bottom:0; color:var(--tit-mut); }
+  .tit-table td.tit-eyebrow { white-space:normal; font-size:12.5px;
+    font-weight:650; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--tit-mut); }
+  .tit-table td.tit-eyebrow a { border-bottom:0; color:var(--tit-mut); }
 }
 
 /* A record we could not place. Said out loud rather than left blank, and never

@@ -169,14 +169,14 @@ function tit_sources_render($sources) {
                 data-country="<?php echo esc_attr($s['country']); ?>"
                 data-category="<?php echo esc_attr($s['category']); ?>"
                 data-search="<?php echo esc_attr(strtolower($s['name'] . ' ' . $s['category'] . ' ' . $sig)); ?>">
-              <td class="tit-headline">
+              <td class="tit-headline" data-label="Source">
                 <span class="tit-h"><a href="<?php echo esc_url($s['url']); ?>"
                    rel="nofollow noopener" target="_blank"><?php echo esc_html($s['name']); ?></a></span>
                 <?php if (!empty($s['notes'])) : ?>
                   <span class="tit-rt"><?php echo esc_html($s['notes']); ?></span>
                 <?php endif; ?>
               </td>
-              <td>
+              <td class="tit-meta" data-label="Status">
                 <?php
                 $h = $health[$s['name']] ?? null;
                 $state = $h['status'] ?? '';
@@ -188,7 +188,7 @@ function tit_sources_render($sources) {
                   <span class="tit-conf tit-c-verified">running now</span>
                 <?php endif; ?>
               </td>
-              <td class="tit-lastrun">
+              <td class="tit-lastrun tit-meta" data-label="Last run">
                 <?php
                 // Blank, not a dash, for a source that has never run: a dash
                 // reads as "tried and found nothing".
@@ -203,9 +203,12 @@ function tit_sources_render($sources) {
                 }
                 ?>
               </td>
-              <td><?php echo esc_html($s['coverage'] ?? ''); ?></td>
-              <td><?php echo esc_html($sig); ?></td>
-              <td><?php echo esc_html($s['country'] ?: 'Worldwide'); ?></td>
+              <!-- Covers and Signals stay full-width labelled rows: they are
+                   descriptive text, not the short self-describing values that
+                   belong on the meta line. -->
+              <td data-label="Covers"><?php echo esc_html($s['coverage'] ?? ''); ?></td>
+              <td data-label="Signals"><?php echo esc_html($sig); ?></td>
+              <td class="tit-meta" data-label="Where"><?php echo esc_html($s['country'] ?: 'Worldwide'); ?></td>
             </tr>
           <?php endforeach; ?>
           </tbody>

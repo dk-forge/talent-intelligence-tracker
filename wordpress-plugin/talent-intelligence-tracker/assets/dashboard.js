@@ -114,15 +114,17 @@
 
     // data-label mirrors the header text. Below the table breakpoint each row
     // becomes a card and the labels are the only thing naming the fields.
+    // The classes here must match what shortcodes.php renders, or a filtered
+    // row would lay out differently from the row it replaced.
     return '<tr>' +
-      '<td data-label="Employer">' + esc(r.company) + '</td>' +
+      '<td class="tit-eyebrow" data-label="Employer">' + esc(r.company) + '</td>' +
       '<td class="tit-headline" data-label="What happened"><span class="tit-h">' + esc(r.headline) + '</span>' +
       '<span class="tit-rt">' + esc(r.talent_readthrough) + '</span></td>' +
-      '<td data-label="Where">' + where + '</td>' +
-      '<td data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
+      '<td class="tit-meta" data-label="Where">' + where + '</td>' +
+      '<td class="tit-meta" data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
         esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
-      '<td data-label="How solid"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' + esc(r.confidence) + '</span></td>' +
-      '<td data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
+      '<td class="tit-meta" data-label="How solid"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' + esc(r.confidence) + '</span></td>' +
+      '<td class="tit-meta" data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
         esc(r.source_name) + '</a></td>' +
       '</tr>';
   }

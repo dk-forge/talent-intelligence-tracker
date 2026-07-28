@@ -168,6 +168,10 @@ function tit_dashboard_shortcode() {
             </div>
           <?php endforeach; ?>
         </div>
+        <?php $span_note = tit_span_note($span_lo, $span_hi); ?>
+        <?php if ($span_note) : ?>
+          <p class="tit-span"><?php echo esc_html($span_note); ?></p>
+        <?php endif; ?>
 
         <p class="tit-hero-fine">
           <span class="tit-fine-figures"><?php
@@ -354,7 +358,7 @@ function tit_dashboard_shortcode() {
           <tbody id="tit-rows">
             <?php foreach ($rows as $r) : ?>
               <tr>
-                <td data-label="Employer"><?php
+                <td class="tit-eyebrow" data-label="Employer"><?php
                   $ck = $r['company_key'] ?? '';
                   if ($ck && function_exists('tit_company_url')) {
                       printf('<a href="%s">%s</a>', esc_url(tit_company_url($ck)), esc_html($r['company']));
@@ -366,7 +370,7 @@ function tit_dashboard_shortcode() {
                   <span class="tit-h"><?php echo esc_html($r['headline']); ?></span>
                   <span class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></span>
                 </td>
-                <td data-label="Where">
+                <td class="tit-meta" data-label="Where">
                   <?php
                   $place = $r['city'] ?: $r['hq_city'];
                   $cc    = $r['country'] ?: $r['hq_country'];
@@ -382,9 +386,9 @@ function tit_dashboard_shortcode() {
                   }
                   ?>
                 </td>
-                <td data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
-                <td data-label="How solid"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span></td>
-                <td data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
+                <td class="tit-meta" data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
+                <td class="tit-meta" data-label="How solid"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span></td>
+                <td class="tit-meta" data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -454,7 +458,43 @@ function tit_glance($table) {
             'detail' => $bits ? implode(' · ', $bits) : ($n === 1 ? 'one update' : 'updates'),
         );
     }
-    return $out;
+
+    // Drop a period that contains nothing the narrower one did not.
+    //
+    // We hold days, not years, so "This month" and "2026 so far" were the same
+    // 46 records with the same breakdown printed twice, side by side. Four time
+    // buckets also imply four periods' worth of history, which is a claim about
+    // depth this tracker has not earned yet. A period earns a tile by
+    // disagreeing with the one before it; the tiles reappear on their own as
+    // soon as there is enough history to tell them apart.
+    $kept = array();
+    foreach ($out as $tile) {
+        $prev = end($kept);
+        if ($prev !== false && $prev['n'] === $tile['n']) {
+            continue;
+        }
+        $kept[] = $tile;
+    }
+    return $kept;
+}
+
+/**
+ * How much history actually sits behind those tiles, in words.
+ *
+ * Printed under the glance block because the tiles alone cannot say it: "46
+ * updates" reads like a running total from a tracker that has been going a
+ * while, and right now it is eight days of collection.
+ */
+function tit_span_note($lo, $hi) {
+    if (!$lo || !$hi) return '';
+    $days = (int) floor((strtotime($hi) - strtotime($lo)) / DAY_IN_SECONDS) + 1;
+    return sprintf(
+        /* translators: 1: number of days, 2: first date, 3: last date */
+        _n('Everything here spans %1$s day, %2$s.', 'Everything here spans %1$s days, %2$s to %3$s.', $days, 'tit'),
+        number_format_i18n($days),
+        date_i18n('j M', strtotime($lo)),
+        date_i18n('j M Y', strtotime($hi))
+    );
 }
 
 /**
@@ -555,22 +595,31 @@ function tit_chart_head($title, $sub) {
  * do not have. Worldwide always survives so there is always a way back.
  */
 function tit_regions(array $counts) {
+    // Same regions and the same names as the sibling tracker, so one brand does
+    // not describe the world two different ways. India keeps its own tab, which
+    // the sibling has no need of: it is one of the largest hiring markets we
+    // read, and burying it inside Asia would hide the thing people came for.
+    //
+    // Every list is the WHOLE region, never a shortlist of the big names. A
+    // Latvian employer once fell outside 'Europe' because LV was missing, and a
+    // Namibian one outside 'Africa' because NA was, which is a filter quietly
+    // lying about its own name. A code costs nothing to carry and a missing one
+    // costs a record.
     $defs = array(
         array('World',         '🌐', ''),
-        array('United States', '🇺🇸', 'US'),
+        array('USA',           '🇺🇸', 'US'),
         array('Canada',        '🇨🇦', 'CA'),
-        array('United Kingdom','🇬🇧', 'GB'),
-        // All of Europe, not a shortlist. A Latvian employer was landing
-        // outside 'Europe' because LV was not on the list, which is a filter
-        // that quietly lies about its own name.
+        array('Latin America', '🌎', 'BR,MX,AR,CL,CO,PE,UY,CR,EC,BO,PY,VE,GT,HN,SV,NI,PA,DO,CU,JM,TT,HT,BZ,GY,SR'),
         array('Europe',        '🇪🇺', 'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,'
                                      . 'CZ,GR,RO,HU,LV,LT,EE,SK,SI,HR,BG,RS,UA,IS,LU,'
-                                     . 'MT,CY,AL,BA,ME,MK,MD,BY,MC,LI,AD,SM'),
+                                     . 'MT,CY,AL,BA,ME,MK,MD,BY,MC,LI,AD,SM,VA,XK,RU,GE,AM,AZ'),
+        array('UK',            '🇬🇧', 'GB'),
+        array('Middle East',   '🕌', 'AE,SA,IL,QA,KW,BH,OM,TR,JO,LB,IQ,IR,SY,YE,PS'),
+        array('Africa',        '🌍', 'ZA,NG,KE,EG,MA,GH,ET,NA,TZ,UG,ZM,ZW,BW,MZ,AO,SN,CI,CM,'
+                                     . 'DZ,TN,LY,SD,RW,MW,MU,MG,CD,CG,GA,BJ,BF,ML,NE,TD,SO,SL,LR,GM,SS'),
         array('India',         '🇮🇳', 'IN'),
-        array('Asia Pacific',  '🌏', 'IN,SG,JP,CN,HK,AU,NZ,KR,MY,PH,ID,TH,VN,TW'),
-        array('Latin America', '🌎', 'BR,MX,AR,CL,CO,PE,UY,CR'),
-        array('Middle East',   '🕌', 'AE,SA,IL,QA,KW,BH,OM,TR'),
-        array('Africa',        '🌍', 'ZA,NG,KE,EG,MA,GH,ET'),
+        array('Asia',          '🌏', 'IN,SG,JP,CN,HK,KR,MY,PH,ID,TH,VN,TW,PK,BD,LK,NP,MM,KH,LA,MN,MO,BN,MV,KZ,UZ'),
+        array('Australia',     '🇦🇺', 'AU,NZ,FJ,PG'),
     );
     $total = array_sum(array_map('intval', $counts));
 
