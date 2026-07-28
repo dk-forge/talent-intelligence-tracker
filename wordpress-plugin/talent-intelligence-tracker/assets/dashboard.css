@@ -106,8 +106,10 @@
    than by falling through to the base tag with no rule of its own. */
 .tit-neutral    { background:#eef1f5; color:#41485a; box-shadow:inset 0 0 0 1px #d8dde5; }
 
-.tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg);
-  text-transform:capitalize; }
+/* No text-transform. These carry real labels now ("Official filing", "News
+   report"), and capitalize would title-case them into a third style the page
+   uses nowhere else. */
+.tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg); }
 .tit-c-verified { background:var(--tit-blue-tint); color:#1c5cab; border-color:#b9d3f2; }
 /* `reported` had no rule at all, so it fell through to the bare .tit-conf and
    sat unstyled next to a coloured `verified`. It is also the commonest value we
@@ -1010,3 +1012,30 @@ body.admin-bar .tit-active { top:32px; }
 /* Our own routed pages render the block theme's header and footer around this
    wrapper; the main element itself carries no styling of its own. */
 .tit-main { display:block; }
+
+/* ===========================================================================
+   The detail control.
+   The default view sets routine filings aside, and a default that holds rows
+   back has to be visible where the reader is about to look at rows. This is
+   not fine print: the control, both counts and our definition of routine sit
+   together in one bordered strip directly above the table, so "nothing is
+   being withheld" is something a reader can verify rather than take on trust.
+   =========================================================================== */
+.tit-detail { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
+  margin:0 0 10px; padding:10px 12px; border:1px solid var(--tit-line);
+  border-left:4px solid var(--tit-blue); border-radius:10px;
+  background:var(--tit-surface); box-shadow:var(--tit-shadow); }
+.tit-detail-pick { display:inline-flex; align-items:center; gap:8px; flex:none;
+  max-width:100%; min-width:0; }
+.tit-detail-l { font-size:11px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--tit-mut); flex:none; }
+.tit-wrap .tit-detail select { max-width:100%; min-width:0; padding:7px 10px;
+  font-size:14px; font-weight:600; border:1px solid var(--tit-line);
+  border-radius:8px; background:#fff; color:var(--tit-fg); font-family:inherit; }
+.tit-wrap .tit-detail select:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-detail select:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* AA at 8.6:1, and it wraps to its own line on a phone rather than squeezing
+   the control off the strip. Never --tit-faint: this sentence has to be read. */
+.tit-wrap .tit-detail-note { margin:0; flex:1 1 24ch; min-width:0;
+  font-size:12.5px; line-height:1.45; color:var(--tit-mut); }

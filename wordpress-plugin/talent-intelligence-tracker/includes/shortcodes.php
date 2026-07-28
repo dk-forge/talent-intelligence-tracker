@@ -20,11 +20,11 @@ function tit_dashboard_shortcode() {
     global $wpdb;
     $table = tit_table_name();
 
-    $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1");
+    $total_all = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1");
 
     ob_start();
 
-    if ($total === 0) {
+    if ($total_all === 0) {
         ?>
         <div class="tit-wrap">
           <div class="tit-empty">
@@ -41,19 +41,46 @@ function tit_dashboard_shortcode() {
         return ob_get_clean();
     }
 
+    /*
+      The page LEADS with what is worth a reader's time, and says so.
+
+      An SEC backfill that worked landed thousands of routine officer changes:
+      each one accurate, each one verified, and together they buried the hiring
+      and funding news anyone actually opened this page for. The first screen
+      was micro-cap CFO appointments as far as you could scroll.
+
+      So the default view sets routine filings aside. Nothing is deleted and
+      nothing is hidden: the control is right above the table, it states both
+      counts, and it says in one sentence what we mean by routine, so a reader
+      can judge our judgement instead of trusting it. Every server-rendered
+      figure below sits under the SAME clause the table does, or the hero would
+      describe a set the rows do not belong to.
+    */
+    $notable_sql = function_exists('tit_notable_where') ? tit_notable_where() : '1 = 1';
+    $base = "is_current = 1 AND {$notable_sql}";
+
+    // Both sides of the control, counted, never written down.
+    $md = $wpdb->get_row(
+        "SELECT SUM(materiality = 'routine') routine,
+                SUM(materiality IS NULL OR materiality <> 'routine') notable
+           FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
+    $n_routine = (int) ($md['routine'] ?? 0);
+    $n_notable = (int) ($md['notable'] ?? $total_all);
+    $total = $n_notable;
+
     $by_pillar = $wpdb->get_results(
-        "SELECT pillar, COUNT(*) n FROM {$table} WHERE is_current = 1 GROUP BY pillar ORDER BY n DESC",
+        "SELECT pillar, COUNT(*) n FROM {$table} WHERE {$base} GROUP BY pillar ORDER BY n DESC",
         ARRAY_A
     ) ?: array();
 
     $countries = (int) $wpdb->get_var(
-        "SELECT COUNT(DISTINCT COALESCE(country, hq_country)) FROM {$table} WHERE is_current = 1"
+        "SELECT COUNT(DISTINCT COALESCE(country, hq_country)) FROM {$table} WHERE {$base}"
     );
     $companies = (int) $wpdb->get_var(
-        "SELECT COUNT(DISTINCT company_key) FROM {$table} WHERE is_current = 1"
+        "SELECT COUNT(DISTINCT company_key) FROM {$table} WHERE {$base}"
     );
     $verified = (int) $wpdb->get_var(
-        "SELECT COUNT(*) FROM {$table} WHERE is_current = 1 AND confidence = 'verified'"
+        "SELECT COUNT(*) FROM {$table} WHERE {$base} AND confidence = 'verified'"
     );
 
     // Bounds for the date inputs. The sibling can offer years, quarters and
@@ -68,33 +95,39 @@ function tit_dashboard_shortcode() {
     $span_hi = $span['hi'] ?? '';
 
     $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
-    $glance = tit_glance_matrix($table);
+    $glance = tit_glance_matrix($table, $base);
     // The money views and the matrix's money row share one coverage figure, so
     // a dollar total can never sit next to a sentence describing a different
     // set of rows.
-    $money = tit_money_aggregate($table);
+    $money = tit_money_aggregate($table, $base);
     $glance['coverage'] = $money['coverage'];
     $counts_by_country = array_column($wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
-          WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
+          WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
           GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
     // 40, matching /aggregate, not 6. The chart scrolls and expands, so a short
     // list is no longer what keeps the card small -- and a hard six meant the
     // World view could not show two of the eight countries we actually hold.
     $by_country = $wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
-          WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
+          WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
           GROUP BY k ORDER BY n DESC LIMIT 40", ARRAY_A) ?: array();
     $by_direction = $wpdb->get_results(
-        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE is_current = 1
+        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE {$base}
           GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
 
+    // Materiality first, recency inside it, matching /query's default sort so
+    // the first paint and the first repaint cannot put the rows in a different
+    // order. A stated headcount or a real funding amount outranks a bare
+    // officer change; an unjudged row outranks a judged-routine one.
     $rows = $wpdb->get_results(
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
                 published_date
-           FROM {$table} WHERE is_current = 1
-          ORDER BY COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
+           FROM {$table} WHERE {$base}
+          ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
+                                    WHEN 'routine' THEN 3 ELSE 2 END ASC,
+                   COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
           LIMIT 50",
         ARRAY_A
     ) ?: array();
@@ -129,6 +162,7 @@ function tit_dashboard_shortcode() {
         'clinical_healthcare' => 'Clinical & healthcare', 'executive' => 'Executive',
     );
     $industries = tit_industry_labels();
+    $confidences = tit_confidence_labels();
     ?>
     <!--
       The config also rides on the element, not only on wp_localize_script.
@@ -234,6 +268,10 @@ function tit_dashboard_shortcode() {
         <?php endforeach; ?>
         <span class="tit-quick-hint">For a period, click a number in the table above.</span>
         <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
+          <!-- The default, and its own option rather than a silent tweak to
+               "Newest first": a control labelled newest that does not put the
+               newest row first is a control that lies. -->
+          <option value="notable">Most useful first</option>
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="employer">By employer</option>
@@ -243,29 +281,44 @@ function tit_dashboard_shortcode() {
         </select>
       </div>
 
+      <?php
+      /*
+        Filter labels follow one rule, and it is not a style preference.
+        The label is a plain noun for what you are narrowing by; the neutral
+        option reads "All X" or "Any X"; and neither may use a word that only
+        makes sense to someone who has read this repository.
+
+        Several here failed that badly enough to mislead. "Roles affected" sat
+        above a list of engineering, sales and finance: those are TEAMS, not
+        roles, and "affected" implied they were being cut when most of what
+        this tracker holds is hiring. "Place basis" is not English. "How solid"
+        above "Any confidence" was a casual label over a jargon default, which
+        is its own kind of confusing.
+      */
+      ?>
       <div class="tit-filters">
         <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Kind of update</span>
+          <span class="tit-field-l">What happened</span>
           <select id="tit-f-pillar" aria-label="What kind of update">
-            <option value="">Anything happening</option>
+            <option value="">All updates</option>
             <?php foreach ($labels as $k => $v) : ?>
               <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
             <?php endforeach; ?>
           </select>
         </label>
         <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Headcount direction</span>
+          <span class="tit-field-l">Headcount</span>
           <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
-            <option value="">Growing or shrinking</option>
+            <option value="">Any direction</option>
             <?php foreach ($directions as $k => $v) : ?>
               <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
             <?php endforeach; ?>
           </select>
         </label>
         <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Roles affected</span>
-          <select id="tit-f-function" aria-label="Which roles are affected">
-            <option value="">Any roles</option>
+          <span class="tit-field-l">Team or function</span>
+          <select id="tit-f-function" aria-label="Which team or function">
+            <option value="">All teams</option>
             <?php foreach ($functions as $k => $v) : ?>
               <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
             <?php endforeach; ?>
@@ -274,7 +327,7 @@ function tit_dashboard_shortcode() {
         <label class="tit-field tit-field--stack">
           <span class="tit-field-l">Industry</span>
           <select id="tit-f-industry" aria-label="Which industry">
-            <option value="">Any industry</option>
+            <option value="">All industries</option>
             <?php foreach ($industries as $k => $v) : ?>
               <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
             <?php endforeach; ?>
@@ -283,13 +336,13 @@ function tit_dashboard_shortcode() {
         <label class="tit-field tit-field--stack">
           <span class="tit-field-l">Country</span>
           <select id="tit-f-country" aria-label="Which country">
-            <option value="">Anywhere</option>
+            <option value="">All countries</option>
           </select>
         </label>
         <label class="tit-field tit-field--stack">
           <span class="tit-field-l">US state</span>
           <select id="tit-f-state" aria-label="Which US state">
-            <option value="">Any US state</option>
+            <option value="">All states</option>
           </select>
         </label>
         <!-- The API has taken a city all along and the page had no way to send
@@ -298,25 +351,47 @@ function tit_dashboard_shortcode() {
         <label class="tit-field tit-field--stack">
           <span class="tit-field-l">City</span>
           <select id="tit-f-city" aria-label="Which city">
-            <option value="">Any city</option>
+            <option value="">All cities</option>
+          </select>
+        </label>
+        <!-- Bands, not a box to type a number in. A recruiter thinks in orders
+             of magnitude, and an exact figure produces an empty-looking page
+             for anyone who guesses a threshold nothing sits above. -->
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Amount raised</span>
+          <select id="tit-f-min_funding_usd" aria-label="Smallest amount raised">
+            <option value="">Any amount</option>
+            <?php foreach (tit_funding_bands() as $value => $label) : ?>
+              <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <!-- Options come from /facets, so this only ever offers the stages we
+             actually hold. A fixed list of eleven would put ten dead options in
+             front of a reader while the Form D backfill is still filling the
+             column, and a filter that returns nothing reads as broken. -->
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Funding stage</span>
+          <select id="tit-f-funding_stage" aria-label="Which funding stage">
+            <option value="">Any stage</option>
           </select>
         </label>
         <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">How solid</span>
-          <select id="tit-f-confidence" aria-label="How solid the record is">
-            <option value="">Any confidence</option>
-            <option value="verified">From official filings</option>
-            <option value="reported">Reported by a publisher</option>
-            <option value="rumored">Rumored</option>
+          <span class="tit-field-l">Evidence</span>
+          <select id="tit-f-confidence" aria-label="What the record is based on">
+            <option value="">Any evidence</option>
+            <?php foreach (tit_confidence_labels() as $k => $v) : ?>
+              <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+            <?php endforeach; ?>
           </select>
         </label>
         <!-- The charts already admit they fall back to headquarters. Until now
              the page surfaced that ambiguity without letting anyone resolve it,
              even though the API has taken country_basis all along. -->
         <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Place basis</span>
-          <select id="tit-f-country_basis" aria-label="How to decide where a record belongs">
-            <option value="any">Place, or the employer's HQ</option>
+          <span class="tit-field-l">Location shown</span>
+          <select id="tit-f-country_basis" aria-label="Which location a record is filed under">
+            <option value="any">Where the work is, or head office</option>
             <option value="location">Only where the source named a place</option>
           </select>
         </label>
@@ -327,7 +402,7 @@ function tit_dashboard_shortcode() {
         </label>
         <label class="tit-field tit-field--stack">
           <span class="tit-field-l">Search</span>
-          <input type="search" id="tit-f-q" placeholder="Company, industry, keyword…"
+          <input type="search" id="tit-f-q" placeholder="Company, industry or keyword"
                  aria-label="Search headlines and read-throughs">
         </label>
         <label class="tit-field"><span>From</span>
@@ -445,12 +520,34 @@ function tit_dashboard_shortcode() {
         ?>
       </div>
 
+      <!--
+        The detail control, and the promise that goes with it.
+
+        A default that sets thousands of rows aside has to be visible, has to
+        state both counts, and has to say what it means by routine, all in the
+        place the reader is about to look at rows. A quiet default with no
+        explanation would be withholding data; a page that leads with two
+        thousand CFO appointments would be burying it. This is the only way to
+        do both.
+      -->
+      <div class="tit-detail">
+        <label class="tit-detail-pick">
+          <span class="tit-detail-l">Show</span>
+          <select id="tit-f-detail" aria-label="How much detail to show">
+            <option value="notable">Notable updates</option>
+            <option value="all">Everything, including routine filings</option>
+          </select>
+        </label>
+        <p class="tit-detail-note" id="tit-detail-note"><?php
+          echo esc_html(tit_detail_note('notable', $n_notable, $n_routine)); ?></p>
+      </div>
+
       <div class="tit-table-scroll">
         <table class="tit-table">
           <thead>
             <tr>
               <th>Employer</th><th>What happened</th><th>Where</th>
-              <th>What it means</th><th>How solid</th><th>Source</th>
+              <th>What it means</th><th>Evidence</th><th>Source</th>
             </tr>
           </thead>
           <tbody id="tit-rows">
@@ -485,7 +582,8 @@ function tit_dashboard_shortcode() {
                   ?>
                 </td>
                 <td class="tit-meta" data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
-                <td class="tit-meta" data-label="How solid"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span></td>
+                <td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
+                  echo esc_html($confidences[$r['confidence']] ?? $r['confidence']); ?></span></td>
                 <td class="tit-meta" data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
               </tr>
             <?php endforeach; ?>
@@ -511,7 +609,10 @@ function tit_dashboard_shortcode() {
            href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
           JSON<span class="tit-export-scope" id="tit-export-json-scope"> · all</span></a>
-        <span class="tit-export-note">Every matching update, not just this page. Free to reuse, CC BY 4.0.</span>
+        <span class="tit-export-note">Every matching update, not just this page,
+          and routine filings are included whichever way Show is set. Each row
+          carries its own materiality, so you can set them aside yourself.
+          Free to reuse, CC BY 4.0.</span>
       </div>
 
       <p class="tit-cite">
@@ -863,6 +964,89 @@ function tit_money_coverage_note(array $money, $dimension = '') {
            '%1$s of those name %2$s, so they are not on this chart.',
            $missing, 'tit'),
         number_format_i18n($missing), $names[$dimension] ?? 'no category'
+    );
+}
+
+/**
+ * What the detail control is showing and what it is setting aside, in numbers.
+ *
+ * Both counts, always, and what "routine" means, always. The sentence is
+ * computed from the current view, so it stays true under every filter, and it
+ * is the reason the default is allowed to hold rows back at all: a reader can
+ * see exactly how many and decide for themselves in one click.
+ *
+ * dashboard.js mirrors this wording when a filter changes.
+ */
+function tit_detail_note($mode, $notable, $routine) {
+    $notable = (int) $notable;
+    $routine = (int) $routine;
+    $meaning = ' Routine means a bare officer or director change with no'
+             . ' headcount, no money and no location named.';
+
+    if ($routine === 0) {
+        // Also the state before the pipeline has judged anything, so it must
+        // not imply a filter is doing work it is not.
+        return sprintf(
+            _n('Showing all %s update. Nothing in this view is a routine filing.',
+               'Showing all %s updates. Nothing in this view is a routine filing.',
+               $notable, 'tit'),
+            number_format_i18n($notable)
+        ) . $meaning;
+    }
+
+    if ($mode === 'all') {
+        return sprintf(
+            'Showing all %s updates, routine filings included. %s of them are routine.',
+            number_format_i18n($notable + $routine), number_format_i18n($routine)
+        ) . $meaning;
+    }
+
+    return sprintf(
+        'Showing %s notable updates. %s routine filings join them when you switch to Everything.',
+        number_format_i18n($notable), number_format_i18n($routine)
+    ) . $meaning;
+}
+
+/**
+ * Amount-raised bands, keyed by the dollar floor they send to /query.
+ *
+ * Bands rather than a number box. Someone looking for funded employers thinks
+ * "bigger than about ten million", not "at least 12,400,000", and a typed
+ * threshold is the fastest way to produce a page that looks empty because of
+ * one digit. Four orders of magnitude cover the whole range we hold.
+ */
+function tit_funding_bands() {
+    return array(
+        '1000000'    => 'Over $1M',
+        '10000000'   => 'Over $10M',
+        '100000000'  => 'Over $100M',
+        '1000000000' => 'Over $1B',
+    );
+}
+
+/**
+ * What a record is based on, in words a reader already owns.
+ *
+ * "verified", "reported" and "rumored" are the stored values and they are our
+ * vocabulary, not anyone else's: "verified" sounds like a badge rather than a
+ * statement about the SOURCE. These say what the source actually is.
+ */
+function tit_confidence_labels() {
+    return array(
+        'verified' => 'Official filing',
+        'reported' => 'News report',
+        'rumored'  => 'Unconfirmed',
+    );
+}
+
+/** Round names as a reader would say them, matching the pipeline's vocabulary. */
+function tit_funding_stage_labels() {
+    return array(
+        'pre_seed' => 'Pre-seed', 'seed' => 'Seed',
+        'series_a' => 'Series A', 'series_b' => 'Series B',
+        'series_c' => 'Series C', 'series_d_plus' => 'Series D or later',
+        'growth' => 'Growth', 'debt' => 'Debt', 'grant' => 'Grant',
+        'ipo' => 'IPO', 'other' => 'Other',
     );
 }
 

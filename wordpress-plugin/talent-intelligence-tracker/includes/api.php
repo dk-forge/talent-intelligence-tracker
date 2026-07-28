@@ -73,6 +73,15 @@ function tit_allowed_industries() {
 }
 
 /**
+ * Round names, mirrored from the pipeline's normalize_funding_stage. Series D
+ * through Z collapse into one bucket there, so they do here too.
+ */
+function tit_allowed_funding_stages() {
+    return array('pre_seed','seed','series_a','series_b','series_c',
+                 'series_d_plus','growth','debt','grant','ipo','other');
+}
+
+/**
  * What counts as a funding update, in one place.
  *
  * An employer that announced a round without saying how much still raised
@@ -91,15 +100,34 @@ function tit_funding_where() {
 }
 
 /**
+ * Rows that are not a bare routine filing.
+ *
+ * NULL counts as notable on purpose. materiality is filled by the pipeline, so
+ * every row predating it is NULL, and a predicate written as
+ * `materiality IN ('high','medium')` would empty the entire dashboard the
+ * moment this shipped. Only a row we have positively judged routine is held
+ * back, which is also the honest reading: "not judged" is not "unimportant".
+ */
+function tit_notable_where() {
+    return "(materiality IS NULL OR materiality <> 'routine')";
+}
+
+/**
  * Build the WHERE clause shared by /query and /aggregate.
  *
  * country_basis=any (the default) unions job location with employer HQ, so a
  * London-headquartered company's leadership change shows under a UK filter even
  * when the article named no city. country_basis=location is strict.
+ *
+ * $ignore lets a caller build the SAME clause minus one filter. /aggregate
+ * needs the routine count across the set the reader would see if they switched
+ * the detail control, and computing it under a clause that already excludes
+ * routine rows would report zero every time.
  */
-function tit_build_where(WP_REST_Request $req, array &$params) {
+function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = array()) {
     global $wpdb;
     $where = array('is_current = 1');
+    $skip = array_flip($ignore);
 
     // A comma-separated list is accepted so one request can cover a region
     // ("Europe" is a set of countries, not a country). Codes are filtered to
@@ -176,6 +204,30 @@ function tit_build_where(WP_REST_Request $req, array &$params) {
         $where[] = tit_funding_where();
     }
 
+    // Amount raised, as a floor in plain US dollars. Only rows we could read as
+    // US dollars can answer this at all, which is why the page offers bands
+    // rather than a number box, and why the money views print their coverage.
+    $min_funding = (int) ($req->get_param('min_funding_usd') ?: 0);
+    if ($min_funding > 0) {
+        $where[] = 'funding_amount_usd >= %d';
+        $params[] = $min_funding;
+    }
+
+    $stage = sanitize_text_field($req->get_param('funding_stage') ?? '');
+    if ($stage !== '' && in_array($stage, tit_allowed_funding_stages(), true)) {
+        $where[] = 'funding_stage = %s';
+        $params[] = $stage;
+    }
+
+    // How much to show. The API's own default is EVERYTHING: an endpoint that
+    // quietly withheld two thirds of its rows unless you knew to ask would be
+    // a worse lie than a cluttered page. The dashboard asks for detail=notable
+    // explicitly, and says so on screen with the counts.
+    if (!isset($skip['detail'])
+        && sanitize_text_field($req->get_param('detail') ?? '') === 'notable') {
+        $where[] = tit_notable_where();
+    }
+
     // Date window on the source's own published_date, falling back to when we
     // captured it. Filtering on capture date would move a story between
     // periods depending on when a collector happened to run.
@@ -216,6 +268,10 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         'country', 'country_basis', 'city', 'pillar', 'direction', 'confidence',
         'company', 'industry', 'state', 'function', 'funding', 'since', 'until',
         'min_headcount', 'q', 'sort', 'per_page', 'page',
+        // A param the endpoint reads MUST be listed here. One that is read but
+        // not keyed on means two different responses share a cache entry, and
+        // whichever request arrives first decides what everyone else sees.
+        'min_funding_usd', 'funding_stage', 'detail',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -251,7 +307,18 @@ function tit_api_query(WP_REST_Request $req) {
 
     // A closed list, never interpolated from the request: this string goes
     // straight into the SQL, where $wpdb->prepare cannot help.
+    // Materiality first, recency inside it. This is its own sort rather than a
+    // silent tweak to "newest", because a control labelled "Newest first" that
+    // does not put the newest row first is a control that lies. A reader who
+    // wants pure recency can still ask for it.
+    //
+    // Unjudged rows (NULL) rank between medium and routine: we have not called
+    // them routine, so they are not treated as routine.
+    $material_rank = "CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1"
+                   . " WHEN 'routine' THEN 3 ELSE 2 END ASC";
+
     $orders = array(
+        'notable'  => "{$material_rank}, COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC",
         'newest'   => 'COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC',
         'oldest'   => 'COALESCE(published_date, DATE(captured_at)) ASC, row_id ASC',
         'largest'  => 'headcount DESC, COALESCE(published_date, DATE(captured_at)) DESC',
@@ -263,7 +330,7 @@ function tit_api_query(WP_REST_Request $req) {
         // the top of a list about size.
         'raised'   => 'funding_amount_usd DESC, COALESCE(published_date, DATE(captured_at)) DESC',
     );
-    $order = $orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['newest'];
+    $order = $orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['notable'];
 
     $per_page = min(200, max(1, (int) ($req->get_param('per_page') ?: 50)));
     $page     = max(1, (int) ($req->get_param('page') ?: 1));
@@ -281,8 +348,8 @@ function tit_api_query(WP_REST_Request $req) {
                         state, functions, industry, headcount, headcount_scope,
                         funding_amount, funding_amount_usd, funding_stage, work_mode,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
-                        confidence, source_url, source_name, published_date, effective_date,
-                        captured_at
+                        materiality, confidence, source_url, source_name,
+                        published_date, effective_date, captured_at
                    FROM {$table} WHERE {$where}
                   ORDER BY {$order}
                   LIMIT %d OFFSET %d";
@@ -366,6 +433,18 @@ function tit_api_aggregate(WP_REST_Request $req) {
         $glance['coverage'] = $money['coverage'];
     }
 
+    // How many updates the detail control is setting aside, counted under
+    // every OTHER filter but not under the detail filter itself. Counting them
+    // under the same clause the rows use would report zero routine filings
+    // whenever routine filings were being held back, which is precisely the
+    // moment the reader needs the number.
+    $md_params = array();
+    $md_where  = tit_build_where($req, $md_params, array('detail'));
+    $md_sql = "SELECT SUM(materiality = 'routine') AS routine,
+                      SUM(materiality IS NULL OR materiality <> 'routine') AS notable
+                 FROM {$table} WHERE {$md_where}";
+    $md = $wpdb->get_row($md_params ? $wpdb->prepare($md_sql, $md_params) : $md_sql, ARRAY_A) ?: array();
+
     $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
     $out = array(
         'total'      => (int) $wpdb->get_var($params ? $wpdb->prepare($total_sql, $params) : $total_sql),
@@ -394,6 +473,12 @@ function tit_api_aggregate(WP_REST_Request $req) {
         // everything would be the plausible-but-wrong number this product
         // cannot carry.
         'money'      => $money,
+        // What the detail control is holding back, so the page can state it in
+        // numbers instead of asking to be trusted.
+        'materiality' => array(
+            'notable' => (int) ($md['notable'] ?? 0),
+            'routine' => (int) ($md['routine'] ?? 0),
+        ),
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);
@@ -418,6 +503,11 @@ function tit_api_facets() {
         'countries' => $col('country'),
         'cities'    => $col('city'),
         'states'    => $col('state'),
+        // Data-driven on purpose. The vocabulary has eleven rounds and the
+        // Form D backfill has filled a handful of them so far; offering all
+        // eleven would put ten dead options in front of a reader, and a filter
+        // that returns nothing reads as broken rather than as thin coverage.
+        'funding_stages' => $col('funding_stage'),
         'industries' => tit_allowed_industries(),
         'functions' => tit_allowed_functions(),
         'pillars'   => tit_allowed_pillars(),

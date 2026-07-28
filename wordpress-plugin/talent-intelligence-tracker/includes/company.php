@@ -200,7 +200,13 @@ function tit_company_render($rows, $key) {
                 <?php if ($where) : ?><?php echo esc_html($where); ?> · <?php endif; ?>
                 <?php if ($r['headcount']) : ?><strong><?php echo (int) $r['headcount']; ?></strong> roles · <?php endif; ?>
                 <?php if ($r['funding_amount']) : ?><strong><?php echo esc_html($r['funding_amount']); ?></strong> raised · <?php endif; ?>
-                <span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php echo esc_html($r['confidence']); ?></span>
+                <?php /* The same reader-facing labels as the dashboard table.
+                         A profile page reading "rumored" while the tracker it
+                         links from reads "Unconfirmed" is one product speaking
+                         two languages. */ ?>
+                <span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
+                  $conf_labels = function_exists('tit_confidence_labels') ? tit_confidence_labels() : array();
+                  echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
                 · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a>
               </p>
             </div>

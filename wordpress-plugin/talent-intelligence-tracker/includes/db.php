@@ -22,6 +22,18 @@ function tit_create_or_update_table() {
 
     // dbDelta is additive: it adds new columns to an existing table rather than
     // rebuilding it, so history survives a schema change.
+    //
+    // No SQL comments inside this string, ever. dbDelta parses it line by line
+    // with regular expressions and reads a `-- note` line as a malformed field.
+    //
+    // materiality: how much an update is worth someone's attention (high /
+    // medium / routine), computed deterministically in the pipeline and never
+    // by a model. It is a RANKING, never a reason to drop a row: a routine
+    // officer change is accurate, sits in our best-evidenced tier, and is the
+    // basis of a leadership-churn dataset. It simply must not be the first
+    // thing a recruiter sees. NULL means "not judged yet", and the whole
+    // product treats NULL as notable rather than routine, so a row we have not
+    // classified is never hidden.
     $sql = "CREATE TABLE {$table} (
         row_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         signal_id VARCHAR(64) NOT NULL,
@@ -52,6 +64,8 @@ function tit_create_or_update_table() {
         funding_amount_usd BIGINT NULL,
         funding_stage VARCHAR(24) NULL,
         work_mode VARCHAR(16) NULL,
+        deal_type VARCHAR(16) NULL,
+        materiality VARCHAR(12) NULL,
         confidence VARCHAR(12) NOT NULL,
         source_url TEXT NOT NULL,
         source_name VARCHAR(255) NOT NULL,
@@ -81,6 +95,7 @@ function tit_create_or_update_table() {
         KEY idx_company (company_key),
         KEY idx_cik (cik),
         KEY idx_funding_usd (funding_amount_usd),
+        KEY idx_materiality (materiality),
         KEY idx_effective (effective_date),
         KEY idx_signal (signal_id, revision)
     ) {$charset};";
@@ -220,6 +235,12 @@ function tit_insert_signal(array $row, $flush = true) {
         'funding_amount_usd' => !empty($row['funding_amount_usd']) ? (int) $row['funding_amount_usd'] : null,
         'funding_stage'      => !empty($row['funding_stage']) ? (string) $row['funding_stage'] : null,
         'work_mode'          => !empty($row['work_mode']) ? (string) $row['work_mode'] : null,
+        // The corporate event, from the row employer's side of it: 'acquisition'
+        // is buying, 'acquired' is being bought.
+        'deal_type'          => !empty($row['deal_type']) ? (string) $row['deal_type'] : null,
+        // Absent from an older pipeline's payload, and NULL is the right answer
+        // when it is: "we have not judged this" is not "this is routine".
+        'materiality'        => !empty($row['materiality']) ? (string) $row['materiality'] : null,
         'confidence'         => (string) ($row['confidence'] ?? 'reported'),
         'source_url'         => (string) $row['source_url'],
         'source_name'        => (string) ($row['source_name'] ?? ''),

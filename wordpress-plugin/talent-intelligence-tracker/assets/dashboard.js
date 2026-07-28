@@ -34,11 +34,14 @@
     state: document.getElementById('tit-f-state'),
     city: document.getElementById('tit-f-city'),
     confidence: document.getElementById('tit-f-confidence'),
+    min_funding_usd: document.getElementById('tit-f-min_funding_usd'),
+    funding_stage: document.getElementById('tit-f-funding_stage'),
     country_basis: document.getElementById('tit-f-country_basis'),
     company: document.getElementById('tit-f-company'),
     q: document.getElementById('tit-f-q'),
     since: document.getElementById('tit-f-since'),
     until: document.getElementById('tit-f-until'),
+    detail: document.getElementById('tit-f-detail'),
     sort: document.getElementById('tit-f-sort')
   };
 
@@ -46,19 +49,45 @@
   // never make the page count as filtered. Without this, country_basis="any"
   // and sort="newest" would each show as an active filter on a page nobody had
   // touched, which is the fastest way to make a filter bar mean nothing.
-  var NEUTRAL = { sort: 'newest', country_basis: 'any' };
+  // `detail` is here even though it is not neutral in the API's sense: it does
+  // narrow the page. It gets no chip because the detail bar above the table
+  // states it far more loudly than a chip could, with both counts and our
+  // definition of routine printed in full. A chip would be a quieter version of
+  // something already impossible to miss.
+  var NEUTRAL = { sort: 'notable', country_basis: 'any', detail: 'notable' };
 
   // How each filter names itself in the active-filter bar.
+  // These name the filter in the active-filter bar, and they mirror the labels
+  // above the controls themselves. A chip reading "Roles" over a control
+  // reading "Team or function" is two names for one thing.
   var FILTER_LABEL = {
-    pillar: 'Kind', direction: 'Direction', 'function': 'Roles',
+    pillar: 'What happened', direction: 'Headcount', 'function': 'Team',
     industry: 'Industry', country: 'Country', state: 'US state', city: 'City',
-    confidence: 'How solid', country_basis: 'Place basis', company: 'Employer',
+    confidence: 'Evidence', country_basis: 'Location shown', company: 'Employer',
+    min_funding_usd: 'Amount raised', funding_stage: 'Stage',
     q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
   };
 
   // Saved views that no longer have a button of their own but can still be
   // switched on (by a matrix cell, or by a shared link).
   var QV_LABEL = { 'funding=1': 'Funding updates' };
+
+  // Round names as a reader says them. Mirrors tit_funding_stage_labels().
+  var STAGE_LABEL = {
+    pre_seed: 'Pre-seed', seed: 'Seed', series_a: 'Series A',
+    series_b: 'Series B', series_c: 'Series C',
+    series_d_plus: 'Series D or later', growth: 'Growth', debt: 'Debt',
+    grant: 'Grant', ipo: 'IPO', other: 'Other'
+  };
+
+  // What a record is BASED ON, said plainly. The stored values (verified,
+  // reported, rumored) are our vocabulary: "verified" reads as a badge we
+  // awarded rather than a statement about the source.
+  var CONFIDENCE_LABEL = {
+    verified: 'Official filing',
+    reported: 'News report',
+    rumored: 'Unconfirmed'
+  };
 
   var DIRECTION_CLASS = {
     hiring: 'tit-hiring',
@@ -98,19 +127,29 @@
         fill(inputs.country, data.countries, true);
         fill(inputs.state, data.states);
         fill(inputs.city, data.cities);
+        // Only the rounds we actually hold, so the control cannot offer a
+        // stage that returns an empty page.
+        fill(inputs.funding_stage, data.funding_stages, false, STAGE_LABEL);
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
 
-  function fill(select, values, asCountries) {
+  function fill(select, values, asCountries, labels) {
     if (!select || !values) return;
     var items = values.map(function (v) {
-      return { value: v, label: (asCountries && TIT.countries[v]) || v };
+      return { value: v, label: (asCountries && TIT.countries[v]) || (labels && labels[v]) || v };
     });
     if (asCountries) {
       items.sort(function (a, b) { return a.label.localeCompare(b.label); });
     }
     items.forEach(function (item) {
+      // Never a second copy of a value the select already holds: a shared link
+      // is restored before /facets answers, so the value it carried has
+      // already been added by hand (see applyUrlState).
+      var seen = Array.prototype.some.call(select.options, function (o) {
+        return o.value === item.value;
+      });
+      if (seen) return;
       var opt = document.createElement('option');
       opt.value = item.value;
       opt.textContent = item.label;
@@ -142,7 +181,8 @@
       '<td class="tit-meta" data-label="Where">' + where + '</td>' +
       '<td class="tit-meta" data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
         esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
-      '<td class="tit-meta" data-label="How solid"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' + esc(r.confidence) + '</span></td>' +
+      '<td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
+        esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
       '<td class="tit-meta" data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
         esc(r.source_name) + '</a></td>' +
       '</tr>';
@@ -320,11 +360,45 @@
       money && money.by_industry, function (k) { return INDUSTRY_LABEL[k] || k; },
       money, 'industry');
 
+    // What the detail control is setting aside, restated for the filtered set.
+    // The counts are computed WITHOUT the detail filter applied (see
+    // /aggregate), so switching to notable does not report zero routine
+    // filings at exactly the moment the number matters.
+    var note = document.getElementById('tit-detail-note');
+    if (note && data.materiality) {
+      note.textContent = detailNote(
+        inputs.detail ? inputs.detail.value : 'notable',
+        data.materiality.notable, data.materiality.routine);
+    }
+
     // Re-rendering wiped the pressed state off every row; put it back.
     syncChartStates();
   }
 
   function countryLabel(k) { return (TIT.countries && TIT.countries[k]) || k; }
+
+  // Mirrors tit_detail_note(). Both counts, always, plus what routine means:
+  // that sentence is the reason the default is allowed to hold rows back at
+  // all. A reader can see exactly how many and change it in one click.
+  var ROUTINE_MEANS = ' Routine means a bare officer or director change with' +
+    ' no headcount, no money and no location named.';
+
+  function detailNote(mode, notable, routine) {
+    notable = Number(notable) || 0;
+    routine = Number(routine) || 0;
+    if (!routine) {
+      return 'Showing all ' + nfmt(notable) +
+        (notable === 1 ? ' update.' : ' updates.') +
+        ' Nothing in this view is a routine filing.' + ROUTINE_MEANS;
+    }
+    if (mode === 'all') {
+      return 'Showing all ' + nfmt(notable + routine) +
+        ' updates, routine filings included. ' + nfmt(routine) +
+        ' of them are routine.' + ROUTINE_MEANS;
+    }
+    return 'Showing ' + nfmt(notable) + ' notable updates. ' + nfmt(routine) +
+      ' routine filings join them when you switch to Everything.' + ROUTINE_MEANS;
+  }
 
   // Mirrors tit_money_chart() in shortcodes.php: same classes, same
   // data attributes, same title-attribute exact figure. The CSV download and
@@ -476,11 +550,28 @@
       var value = q.get(key);
       if (el.tagName === 'SELECT') {
         var ok = Array.prototype.some.call(el.options, function (o) { return o.value === value; });
-        if (!ok) return;
+        if (!ok) {
+          // Countries, states, cities and funding stages come from /facets,
+          // which is still in flight at this point: this runs on the first
+          // paint, and that fetch has not answered yet. Dropping the value
+          // because its option does not exist YET made every shared link to a
+          // single country come back as the whole world. The closed
+          // vocabularies (kind, direction, team, industry, evidence, amount
+          // band) are all server-rendered, so a value missing from one of
+          // those really is a value we do not have, and is still ignored
+          // rather than guessed at.
+          if (!FACET_SELECT[key]) return;
+          ensureOption(el, value,
+            key === 'country' ? countryLabel(value)
+              : (key === 'funding_stage' ? (STAGE_LABEL[value] || value) : value));
+        }
       }
       el.value = value;
     });
   }
+
+  // Selects whose options are fetched rather than rendered by the server.
+  var FACET_SELECT = { country: 1, state: 1, city: 1, funding_stage: 1 };
 
   // The CSV and JSON links under the table download exactly what is on screen:
   // the current filters ride along as query params, and the scope word says
@@ -502,7 +593,12 @@
     var params = new URLSearchParams();
     Object.keys(inputs).forEach(function (key) {
       var value = inputs[key] && inputs[key].value.trim();
-      if (value && value !== NEUTRAL[key]) params.set(key, value);
+      // `detail` is the one control whose page default differs from the API's
+      // own. The endpoint returns everything unless asked, deliberately: an
+      // endpoint that quietly withheld two thirds of its rows would be a worse
+      // lie than a cluttered page. So the page asks, every time, even at its
+      // default value.
+      if (value && (key === 'detail' || value !== NEUTRAL[key])) params.set(key, value);
     });
     // A region is a list of country codes, so it takes the same parameter as the
     // country select. Whichever the person touched last is the one that counts —
@@ -683,7 +779,10 @@
     }
     Object.keys(inputs).forEach(function (key) {
       var el = inputs[key];
-      if (!el || key === 'sort') return;
+      // `detail` gets no chip: the bar above the table states it in full, with
+      // both counts and what routine means. A chip would be a quieter copy of
+      // something already impossible to miss.
+      if (!el || key === 'sort' || key === 'detail') return;
       var value = (el.value || '').trim();
       if (!value || value === NEUTRAL[key]) return;
       // The country select is slaved to the region strip; showing both would

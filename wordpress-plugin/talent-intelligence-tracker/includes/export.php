@@ -50,7 +50,12 @@ function tit_export_filters() {
     unset($params['action']);
     $req->set_query_params($params);
     $out = array();
-    $where = tit_build_where($req, $out);
+    // Every filter EXCEPT the detail control. A download is the complete
+    // matching set: the page sets routine filings aside so a reader is not
+    // buried, but a file someone is going to analyse should not arrive with
+    // rows quietly missing. The materiality column ships in the export, so
+    // anyone who wants the page's own view can reproduce it in one filter.
+    $where = tit_build_where($req, $out, array('detail'));
     return array($where, $out);
 }
 
@@ -60,7 +65,7 @@ function tit_export_is_filtered() {
     }
     $keys = array('country', 'city', 'pillar', 'direction', 'confidence', 'company',
         'industry', 'state', 'function', 'funding', 'since', 'until',
-        'min_headcount', 'q');
+        'min_headcount', 'q', 'min_funding_usd', 'funding_stage');
     foreach ($keys as $k) {
         if (!empty($_GET[$k])) return true;
     }
@@ -132,7 +137,11 @@ function tit_export_csv() {
         'signal_id', 'company', 'headline', 'summary', 'talent_readthrough',
         'pillar', 'signal_direction', 'roles_affected', 'industry',
         'city', 'region', 'country', 'hq_city', 'hq_country', 'us_state',
-        'headcount', 'funding_amount', 'confidence',
+        // funding_amount is the source's own wording; funding_amount_usd is the
+        // number. A download that only carried the string would leave the
+        // person who took it doing the parsing we already did.
+        'headcount', 'funding_amount', 'funding_amount_usd', 'funding_stage',
+        'materiality', 'confidence',
         'source_name', 'source_url', 'archive_url',
         'published_date', 'captured_at',
         'predicted_outcome', 'check_after_date', 'outcome_observed',
@@ -158,6 +167,10 @@ function tit_export_csv() {
             tit_csv_guard((string) $row->state),
             $row->headcount === null ? '' : (int) $row->headcount,
             tit_csv_guard((string) $row->funding_amount),
+            ($row->funding_amount_usd === null || $row->funding_amount_usd === '')
+                ? '' : (int) $row->funding_amount_usd,
+            tit_csv_guard((string) $row->funding_stage),
+            tit_csv_guard((string) $row->materiality),
             tit_csv_guard($row->confidence),
             tit_csv_guard($row->source_name),
             tit_csv_guard((string) $row->source_url),
@@ -213,10 +226,16 @@ function tit_export_json() {
             'industry'           => $row->industry,
             'headcount'          => $row->headcount === null ? null : (int) $row->headcount,
             'funding_amount'     => $row->funding_amount,
+            // The numeric companion, and null (never 0) when the stated figure
+            // was not in US dollars. A zero would read as a round of nothing.
+            'funding_amount_usd' => ($row->funding_amount_usd === null || $row->funding_amount_usd === '')
+                                    ? null : (int) $row->funding_amount_usd,
+            'funding_stage'      => $row->funding_stage,
             'predicted_outcome'  => $row->predicted_outcome,
             'check_after_date'   => $row->check_after_date,
             'outcome_observed'   => $row->outcome_observed,
             'archive_url'        => $row->archive_url,
+            'materiality'        => $row->materiality,
             'confidence'         => $row->confidence,
             'source_url'         => $row->source_url,
             'source_name'        => $row->source_name,
