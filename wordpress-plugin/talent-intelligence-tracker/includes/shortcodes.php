@@ -460,10 +460,16 @@ add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
 function tit_glance($table) {
     global $wpdb;
     $today = current_time('Y-m-d');
+    // Quarter start is derived, never hardcoded: months 1-3 -> Jan, 4-6 -> Apr,
+    // and so on, so this stays right without an edit every three months. The
+    // date-range control above already offered a quarter; this strip did not,
+    // so the two disagreed about which periods the product reports on.
+    $q_month = (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1;
     $periods = array(
-        array('Today',      $today),
-        array('This week',  date('Y-m-d', strtotime($today . ' -6 days'))),
-        array('This month', date('Y-m-01', strtotime($today))),
+        array('Today',        $today),
+        array('This week',    date('Y-m-d', strtotime($today . ' -6 days'))),
+        array('This month',   date('Y-m-01', strtotime($today))),
+        array('This quarter', sprintf('%s-%02d-01', date('Y', strtotime($today)), $q_month)),
         array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
     );
 

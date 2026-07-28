@@ -552,6 +552,9 @@
 .tit-glance-cell:nth-child(2) { box-shadow:inset 3px 0 0 var(--tit-orange); }
 .tit-glance-cell:nth-child(3) { box-shadow:inset 3px 0 0 var(--tit-violet); }
 .tit-glance-cell:nth-child(4) { box-shadow:inset 3px 0 0 var(--tit-teal); }
+/* Year to date is the widest window, so it closes the run with the strongest
+   accent rather than falling through to no accent at all. */
+.tit-glance-cell:nth-child(5) { box-shadow:inset 3px 0 0 var(--tit-fg); }
 
 .tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
   max-width:none; line-height:1.5; }
