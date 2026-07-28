@@ -1,0 +1,327 @@
+"""SEC Form D BULK data sets — the same filings, already structured, free.
+
+`sec_form_d.py` finds one filing at a time through full-text search and then
+fetches and regexes its XML. SEC also publishes every Form D as a quarterly
+tab-separated data set, with the fields already parsed: issuer name, CIK,
+city, state, industry, and the amount actually sold. Coverage runs 2008Q1 to
+the current quarter.
+
+Three things follow, and they are the whole reason this module exists:
+
+- **No model is involved.** The fields are columns, so a record can be built
+  deterministically. The search path pays a gate call plus a read-through per
+  filing to extract what the TSV hands over for nothing.
+- **The figure is a real number**, not a phrase a model copied out of prose.
+- **Recall is an order of magnitude better.** EFTS matched ~850 filings a
+  month for the collector's query; a quarter of the data set holds ~15,700
+  submissions, ~2,000 of which are operating companies raising over $1M.
+
+The rows still go through `validate.build_signal` -> `store` -> `publish`
+exactly like every other source, so the credibility guards (source URL is a
+receipt, figures appear in the source text, confidence capped by the source)
+all still apply. Nothing is written directly.
+
+Two SEC facts this module is built around, both learned the hard way:
+
+1. **The dataset path is not stable.** SEC moved it from
+   `/files/structureddata/data/form-d-data-sets/` to
+   `/files/datastandardsinnovation/data/form-d-data-sets/` partway through
+   2026, so 2026Q2 lives at a different prefix than 2026Q1. URLs are therefore
+   SCRAPED from the index page, never constructed by pattern.
+2. **The User-Agent must carry a contact address.** A browser-shaped UA gets
+   "Request Rate Threshold Exceeded"; SEC wants to know who is calling. The
+   repo default in `sec_edgar.USER_AGENT` is the right shape, and is reused
+   here rather than restated.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import re
+import zipfile
+from datetime import datetime, timezone
+
+import requests
+
+from . import sec_edgar, sec_form_d
+
+INDEX_URL = "https://www.sec.gov/data-research/sec-markets-data/form-d-data-sets"
+BASE = "https://www.sec.gov"
+USER_AGENT = sec_edgar.USER_AGENT
+COLLECTOR = "sec_form_d_bulk"
+
+# The issuer filters are the search collector's own constants, imported rather
+# than restated, so the two routes to the same filings cannot drift on what
+# counts as an employer raising money.
+EXCLUDED_INDUSTRIES = sec_form_d.EXCLUDED_INDUSTRIES
+EXCLUDED_NAME_PATTERNS = sec_form_d.EXCLUDED_NAME_PATTERNS
+MIN_RAISED = sec_form_d.MIN_RAISED
+
+_QUARTER = re.compile(r"(\d{4})q([1-4])", re.I)
+
+# Form D's own industry list, mapped onto the site's vocabulary. The Form D
+# taxonomy groups by parent: "Commercial" and "Residential" are REAL ESTATE
+# categories, not generic ones, which is why they are not left to a fuzzy
+# match. Anything unmapped stores NULL rather than a guess — "Other" is 22% of
+# qualifying filings and means exactly nothing.
+INDUSTRY_MAP = {
+    "other technology": "technology",
+    "computers": "technology",
+    "telecommunications": "telecom",
+    "biotechnology": "pharma_biotech",
+    "pharmaceuticals": "pharma_biotech",
+    "other health care": "healthcare",
+    "hospitals and physicians": "healthcare",
+    "health insurance": "healthcare",
+    "commercial": "real_estate_construction",
+    "residential": "real_estate_construction",
+    "construction": "real_estate_construction",
+    "reits and finance": "real_estate_construction",
+    "other real estate": "real_estate_construction",
+    "manufacturing": "manufacturing",
+    "retailing": "retail_ecommerce",
+    "restaurants": "hospitality_travel",
+    "lodging and conventions": "hospitality_travel",
+    "tourism and travel services": "hospitality_travel",
+    "other travel": "hospitality_travel",
+    "airlines and airports": "transport_logistics",
+    "insurance": "financial_services",
+    "commercial banking": "financial_services",
+    "investment banking": "financial_services",
+    "investing": "financial_services",
+    "other banking and financial services": "financial_services",
+    "oil and gas": "energy_utilities",
+    "coal mining": "energy_utilities",
+    "electric utilities": "energy_utilities",
+    "energy conservation": "energy_utilities",
+    "environmental services": "energy_utilities",
+    "other energy": "energy_utilities",
+    "business services": "professional_services",
+}
+
+US_STATE_CODES = frozenset("""
+AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO
+MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY
+""".split())
+
+
+class DatasetError(RuntimeError):
+    """The index page or a quarter's archive could not be read."""
+
+
+def _headers() -> dict:
+    return {"User-Agent": USER_AGENT}
+
+
+def dataset_urls(*, timeout: int = 60) -> dict[str, list[str]]:
+    """Scrape the index page: {'2026q1': [url, ...], ...}, newest first.
+
+    Scraped, never constructed: SEC silently moved the directory between
+    2026Q1 and 2026Q2, and a pattern-built URL would have 404'd on exactly the
+    quarter we most wanted. Some early quarters are split into numbered parts,
+    so a quarter maps to a LIST of archives.
+    """
+    resp = requests.get(INDEX_URL, headers=_headers(), timeout=timeout)
+    resp.raise_for_status()
+    found: dict[str, list[str]] = {}
+    for href in re.findall(r'href="([^"]+\.zip)"', resp.text, re.I):
+        name = href.rsplit("/", 1)[-1]
+        m = _QUARTER.search(name)
+        if not m:
+            continue
+        label = f"{m.group(1)}q{m.group(2)}"
+        url = href if href.startswith("http") else BASE + href
+        found.setdefault(label, []).append(url)
+    if not found:
+        raise DatasetError(
+            f"no Form D archives found on {INDEX_URL} — the page layout "
+            f"changed, or the request was blocked (User-Agent: {USER_AGENT})")
+    return found
+
+
+def _rows(archive: zipfile.ZipFile, filename: str):
+    """One TSV inside the archive, as dicts. The directory inside the zip is
+    named for the quarter ('2026Q1_d/'), so members are matched by suffix."""
+    name = next((n for n in archive.namelist()
+                 if n.upper().endswith("/" + filename)
+                 or n.upper() == filename), None)
+    if not name:
+        raise DatasetError(f"{filename} missing from the archive: {archive.namelist()}")
+    with archive.open(name) as handle:
+        text = io.TextIOWrapper(handle, "utf-8", errors="replace")
+        yield from csv.DictReader(text, delimiter="\t")
+
+
+def _filing_date(value: str) -> str | None:
+    """'31-MAR-2026' -> '2026-03-31'. The data set uses Oracle's default
+    format, which nothing downstream understands."""
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%d-%b-%Y").date().isoformat()
+    except ValueError:
+        return None
+
+
+def _amount(value: str) -> int | None:
+    try:
+        amount = int(float((value or "0").strip() or 0))
+    except (TypeError, ValueError):
+        return None
+    return amount if amount > 0 else None
+
+
+def _source_url(cik: str, accession: str) -> str | None:
+    """The filing's own EDGAR page, never the data set archive.
+
+    Byte-identical to the URL `sec_form_d` stores for the same filing, so a
+    row this collector has already seen through the search path is skipped by
+    `already_seen` instead of stored twice.
+    """
+    cik = (cik or "").strip().lstrip("0")
+    accession = (accession or "").strip().replace("-", "")
+    if not cik or not accession:
+        return None
+    return f"{sec_edgar.ARCHIVES}/{cik}/{accession}/primary_doc.xml"
+
+
+def parse_archive(blob: bytes) -> list[dict]:
+    """Every qualifying operating-company raise in one quarter's archive."""
+    archive = zipfile.ZipFile(io.BytesIO(blob))
+
+    submissions = {r["ACCESSIONNUMBER"]: r for r in _rows(archive, "FORMDSUBMISSION.TSV")}
+    offerings = {r["ACCESSIONNUMBER"]: r for r in _rows(archive, "OFFERING.TSV")}
+    issuers: dict[str, dict] = {}
+    for row in _rows(archive, "ISSUERS.TSV"):
+        # A filing can name several issuers; the primary one is the employer.
+        if row.get("IS_PRIMARYISSUER_FLAG") == "YES" or row["ACCESSIONNUMBER"] not in issuers:
+            issuers[row["ACCESSIONNUMBER"]] = row
+
+    out: list[dict] = []
+    for accession, submission in submissions.items():
+        offering = offerings.get(accession)
+        issuer = issuers.get(accession)
+        if not offering or not issuer:
+            continue
+        if (submission.get("TESTORLIVE") or "").upper() != "LIVE":
+            continue
+
+        # A fund raising a fund is not a talent signal, and it is two thirds of
+        # Form D volume. The data set states this three different ways and all
+        # three are checked, because each one catches vehicles the others miss.
+        if (offering.get("ISPOOLEDINVESTMENTFUNDTYPE") or "").lower() == "true":
+            continue
+        industry_raw = (offering.get("INDUSTRYGROUPTYPE") or "").strip()
+        if industry_raw.lower() in EXCLUDED_INDUSTRIES:
+            continue
+        if (offering.get("INVESTMENTFUNDTYPE") or "").strip():
+            continue
+
+        raised = _amount(offering.get("TOTALAMOUNTSOLD"))
+        if not raised or raised < MIN_RAISED:
+            continue
+
+        company = (issuer.get("ENTITYNAME") or "").strip()
+        if not company or EXCLUDED_NAME_PATTERNS.search(company):
+            continue
+
+        url = _source_url(issuer.get("CIK", ""), accession)
+        if not url:
+            continue
+
+        state_code = (issuer.get("STATEORCOUNTRY") or "").strip().upper()
+        place = (issuer.get("STATEORCOUNTRYDESCRIPTION") or "").strip().title()
+        in_us = state_code in US_STATE_CODES
+        city = (issuer.get("CITY") or "").strip().title()
+        money = sec_form_d._humanise(raised)
+        # The exact figure, kept as its own string so the integer column is the
+        # real number off the filing rather than a rounding of "$8.6M".
+        exact = f"${raised:,}"
+        filed = _filing_date(submission.get("FILING_DATE", ""))
+
+        # Wording deliberately identical to sec_form_d's: the dedup hash is
+        # built from the headline, so the two routes to one filing collapse to
+        # a single record instead of publishing it twice.
+        headline = f"{company} raised {money} in a private placement"
+        body = (
+            f"{company} filed a Form D with the SEC reporting {money} "
+            f"({raised:,} dollars) sold in a private securities offering. "
+            f"Industry: {industry_raw or 'not stated'}. "
+            f"Location: {city}, {place}. "
+            f"Form D filings are required for exempt offerings and are the "
+            f"public record of private fundraising."
+        )
+
+        out.append({
+            "raw_text": f"{headline}\n\n{body}",
+            "headline": headline,
+            "source_url": url,
+            "source_name": "SEC EDGAR (Form D)",
+            "discovery_url": url,
+            "published_date": filed,
+            "cik": (issuer.get("CIK") or "").strip(),
+            "country": "United States" if in_us else place,
+            "state": state_code if in_us else "",
+            "city": city,
+            "funding_amount": exact,
+            "industry_raw": industry_raw,
+            "amount_usd": raised,
+            "money": money,
+            "accession": accession,
+            "submission_type": (submission.get("SUBMISSIONTYPE") or "").strip(),
+            "collector": COLLECTOR,
+            "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        })
+    return out
+
+
+def as_classified(item: dict) -> dict:
+    """The `classified` half of build_signal, derived rather than generated.
+
+    Every field here is read off the filing or is a fixed editorial line. No
+    model is called, so nothing in a record can be something a model believed:
+    the money is the column, the company is the column, and the read-through
+    is the same sentence on every row of this source, which is honest about
+    being a generic inference rather than a specific insight.
+    """
+    company = item["headline"].split(" raised ")[0]
+    money = item["money"]
+    return {
+        "company": company,
+        "pillar": "company_development",
+        "signal_direction": "hiring",
+        "headline": item["headline"],
+        "summary": (
+            f"{company} reported {money} sold in a private placement in a "
+            f"Form D filing with the SEC."
+        ),
+        "talent_readthrough": (
+            "A closed private placement is the standard precursor to hiring: "
+            "capital raised is spent on headcount within the following two to "
+            "six quarters. The filing states the money, not the plan, so treat "
+            "it as a lead indicator of demand rather than an announced role."
+        ),
+        "country": item.get("country") or "",
+        "state": item.get("state") or "",
+        "city": item.get("city") or "",
+        "industry": INDUSTRY_MAP.get((item.get("industry_raw") or "").lower(), ""),
+        "funding_amount": item.get("funding_amount") or "",
+        # Earned by the source, not asserted by us: infer_confidence caps this
+        # at what sec.gov is worth, which for a filing is 'verified'.
+        "confidence": "verified",
+    }
+
+
+def collect(quarter: str, *, timeout: int = 300) -> list[dict]:
+    """Every qualifying raise in one quarter, e.g. '2026q1'."""
+    urls = dataset_urls().get(quarter.lower())
+    if not urls:
+        raise DatasetError(f"{quarter} is not published on {INDEX_URL}")
+    out: list[dict] = []
+    for url in sorted(urls):
+        resp = requests.get(url, headers=_headers(), timeout=timeout)
+        resp.raise_for_status()
+        out.extend(parse_archive(resp.content))
+    return out
