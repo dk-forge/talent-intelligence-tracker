@@ -172,12 +172,15 @@
     // to 40 per group, so slicing here discarded rows that had been fetched,
     // with no control anywhere on the page that could bring them back. The card
     // stays small because the list scrolls, not because the data is cut.
+    // Rows are real buttons: each one is a filter (see the chart-row wiring
+    // below), and a button is what makes that reachable by keyboard.
     wrap.innerHTML = rows.map(function (r) {
       var pct = Math.max(4, Math.round(100 * r.n / max));
-      return '<div class="tit-rank-row"' + (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + '>' +
+      return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
+        (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + ' aria-pressed="false">' +
         '<span class="tit-rank-name">' + esc(label(r.k)) + '</span>' +
         '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
-        '<span class="tit-rank-n">' + nfmt(r.n) + '</span></div>';
+        '<span class="tit-rank-n">' + nfmt(r.n) + '</span></button>';
     }).join('');
   }
 
@@ -200,17 +203,14 @@
         nfmt(data.verified) + ' from official filings. ';
     }
 
-    // The at-a-glance tiles move with the filters like everything else. They
-    // used to be the one part of the hero that did not, so a filtered page had
-    // its own summary contradicting its own tiles.
+    // The at-a-glance matrix moves with the filters like everything else. It
+    // used to be the one part of the hero that did not, so a filtered page
+    // had its own summary contradicting its own strip. Markup mirrors
+    // tit_glance_matrix_html() in shortcodes.php, the same contract renderRow
+    // has with the table.
     var glance = root.querySelector('.tit-glance');
-    if (glance && data.glance) {
-      glance.innerHTML = data.glance.map(function (g) {
-        return '<div class="tit-glance-cell">' +
-          '<span class="tit-glance-when">' + esc(g.when) + '</span>' +
-          '<span class="tit-glance-n">' + nfmt(g.n) + '</span>' +
-          '<span class="tit-glance-detail">' + esc(g.detail) + '</span></div>';
-      }).join('');
+    if (glance && data.glance && data.glance.rows) {
+      glance.innerHTML = matrixHtml(data.glance);
     }
 
     var charts = root.querySelectorAll('.tit-charts .tit-chart');
@@ -219,12 +219,15 @@
     var pillars = root.querySelector('.tit-pillars');
     if (pillars) {
       var rows = data.by_pillar || [];
+      // Buttons with span children, never divs inside a button: a button may
+      // only contain phrasing content, and the spans carry the layout in CSS.
       pillars.innerHTML = rows.length ? rows.map(function (r) {
         var pct = total ? Math.round(100 * r.n / total) : 0;
-        return '<div class="tit-pillar"><div class="tit-pillar-head">' +
+        return '<button type="button" class="tit-pillar" data-k="' + esc(r.k) + '" aria-pressed="false">' +
+          '<span class="tit-pillar-head">' +
           '<span class="tit-pillar-name">' + esc(PILLAR_LABEL[r.k] || r.k) + '</span>' +
-          '<span class="tit-pillar-n">' + nfmt(r.n) + '</span></div>' +
-          '<div class="tit-bar"><span style="width:' + pct + '%"></span></div></div>';
+          '<span class="tit-pillar-n">' + nfmt(r.n) + '</span></span>' +
+          '<span class="tit-bar"><span style="width:' + pct + '%"></span></span></button>';
       }).join('') : '<p class="tit-rank-empty">Nothing in this view.</p>';
     }
     paintRank(charts[1], data.by_country || [], function (k) {
@@ -233,6 +236,30 @@
     paintRank(charts[2], data.by_direction || [], function (k) {
       return DIRECTION_LABEL[k] || k;
     }, true);
+    // Re-rendering wiped the pressed state off every row; put it back.
+    syncChartStates();
+  }
+
+  function matrixHtml(m) {
+    var h = '<div class="tit-matrix-scroll"><table class="tit-matrix"><thead><tr>' +
+      '<th scope="col"><span class="tit-sr">Signal</span></th>';
+    m.periods.forEach(function (p) { h += '<th scope="col">' + esc(p) + '</th>'; });
+    h += '</tr></thead><tbody>';
+    m.rows.forEach(function (r) {
+      h += '<tr' + (r.key === 'total' ? ' class="tit-matrix-total"' : '') + '>' +
+        '<th scope="row">' + esc(r.label) + '</th>';
+      r.cells.forEach(function (n, i) {
+        h += '<td><button type="button" class="tit-cell' + (+n === 0 ? ' tit-cell-zero' : '') +
+          '" data-filter="' + esc(r.filter) + '" data-since="' + esc(m.starts[i]) +
+          '" aria-pressed="false" aria-label="' + esc(r.label + ', ' + m.periods[i]) + '">' +
+          nfmt(n) + '</button></td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>' +
+      '<p class="tit-matrix-note">Rows overlap on purpose: a funded employer can ' +
+      'also be hiring up, so columns are not sums. Click a number to filter.</p>';
+    return h;
   }
 
   var pendingAgg = null;
@@ -344,6 +371,7 @@
     params.set('per_page', '50');
 
     paintActive();
+    syncChartStates();
 
     // Put the view in the address bar. A dashboard whose URL never changes
     // cannot be sent to anyone: the recipient gets the unfiltered page and no
@@ -612,6 +640,126 @@
       });
     }
   });
+
+  // --- Clickable chart rows -------------------------------------------------
+  // Each bar row is a filter. A click routes through the SAME state the
+  // dropdowns and quick views use (the pillar/country/direction inputs), so
+  // refresh() carries it into the chips bar, the table, the other charts, the
+  // address bar and the export links in one pass. Clicking the row again
+  // clears it. Delegated to the card, so the server-rendered rows and every
+  // JS re-render are wired identically.
+  var CHART_FILTER = [
+    { el: document.getElementById('chart-kind'), key: 'pillar' },
+    { el: document.getElementById('chart-place'), key: 'country' },
+    { el: document.getElementById('chart-direction'), key: 'direction' }
+  ];
+
+  function syncChartStates() {
+    CHART_FILTER.forEach(function (cf) {
+      if (!cf.el) return;
+      // A selected region overrides the country select in refresh(), so while
+      // a region is on, no single country row is what is filtering the page.
+      var current = cf.key === 'country'
+        ? (region ? '' : (inputs.country ? inputs.country.value : ''))
+        : (inputs[cf.key] ? inputs[cf.key].value : '');
+      Array.prototype.forEach.call(cf.el.querySelectorAll('[data-k]'), function (b) {
+        var on = current !== '' && b.getAttribute('data-k') === current;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+    syncGlance();
+  }
+
+  function ensureCountryOption(code) {
+    var el = inputs.country;
+    if (!el) return;
+    var has = Array.prototype.some.call(el.options, function (o) { return o.value === code; });
+    if (has) return;
+    // /facets lists codes from the location column only, so an HQ-only country
+    // can appear in the chart with no option to select. Add it rather than
+    // letting the click silently do nothing.
+    var opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = (TIT.countries && TIT.countries[code]) || code;
+    el.appendChild(opt);
+  }
+
+  CHART_FILTER.forEach(function (cf) {
+    if (!cf.el) return;
+    cf.el.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('[data-k]') : null;
+      if (!btn || !cf.el.contains(btn)) return;
+      var k = btn.getAttribute('data-k');
+      if (cf.key === 'country') {
+        var was = !region && inputs.country && inputs.country.value === k;
+        setRegion(null); // the region strip overrides the country parameter
+        ensureCountryOption(k);
+        if (inputs.country) inputs.country.value = was ? '' : k;
+      } else if (inputs[cf.key]) {
+        inputs[cf.key].value = inputs[cf.key].value === k ? '' : k;
+      }
+      refresh();
+    });
+  });
+
+  // --- Clickable at-a-glance matrix cells -----------------------------------
+  // A cell is that row's filter PLUS that column's period, routed through the
+  // same inputs and quick-view state everything else uses; clicking the lit
+  // cell clears both. The "All updates" row carries no row filter, so its
+  // click means "everything in this period" and clears the other row filters.
+  var glanceBox = root.querySelector('.tit-glance');
+
+  function glanceFilterOn(f) {
+    if (f === 'funding=1') return quickView === 'funding=1';
+    if (f) {
+      var kv = f.split('=');
+      return !!(inputs[kv[0]] && inputs[kv[0]].value === kv[1]);
+    }
+    // Total row: on only when no matrix row filter is narrowing the page.
+    return !(inputs.direction && inputs.direction.value) &&
+           !(inputs.pillar && inputs.pillar.value) &&
+           quickView !== 'funding=1';
+  }
+
+  function setGlanceFilter(f, on) {
+    if (f === 'funding=1') { setQuickView(on ? 'funding=1' : null); return; }
+    if (f) {
+      var kv = f.split('=');
+      if (inputs[kv[0]]) inputs[kv[0]].value = on ? kv[1] : '';
+      return;
+    }
+    if (on) {
+      // "All updates": the period is the whole filter.
+      if (inputs.direction) inputs.direction.value = '';
+      if (inputs.pillar) inputs.pillar.value = '';
+      if (quickView === 'funding=1') setQuickView(null);
+    }
+  }
+
+  function syncGlance() {
+    if (!glanceBox) return;
+    var since = inputs.since ? inputs.since.value : '';
+    Array.prototype.forEach.call(glanceBox.querySelectorAll('.tit-cell'), function (b) {
+      var on = since !== '' && b.getAttribute('data-since') === since &&
+               glanceFilterOn(b.getAttribute('data-filter') || '');
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  if (glanceBox) {
+    glanceBox.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.tit-cell') : null;
+      if (!btn) return;
+      var f = btn.getAttribute('data-filter') || '';
+      var wasOn = btn.classList.contains('is-on');
+      setGlanceFilter(f, !wasOn);
+      if (inputs.since) inputs.since.value = wasOn ? '' : (btn.getAttribute('data-since') || '');
+      if (!wasOn && inputs.until) inputs.until.value = '';
+      refresh();
+    });
+  }
 
   populateFacets();
 

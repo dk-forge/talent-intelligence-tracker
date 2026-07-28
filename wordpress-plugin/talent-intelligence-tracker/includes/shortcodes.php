@@ -68,7 +68,7 @@ function tit_dashboard_shortcode() {
     $span_hi = $span['hi'] ?? '';
 
     $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
-    $glance = tit_glance($table);
+    $glance = tit_glance_matrix($table);
     $counts_by_country = array_column($wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
@@ -150,23 +150,21 @@ function tit_dashboard_shortcode() {
       <div class="tit-hero">
         <div class="tit-hero-top">
           <h2>Who is hiring, who is raising money, and who is changing leadership</h2>
+          <?php /* The sibling's freshness shape: the absolute timestamp WITH
+                   its timezone is the primary fact ("Live · updated Jul 28,
+                   1:51 AM EDT"); the relative time and the next-run note live
+                   on Roo's quieter line below. */ ?>
           <div class="tit-live"><span class="tit-live-dot"></span>
-            Live<?php if ($newest_run) : ?> ·
-            <?php echo esc_html(date_i18n('M j, g:i A', strtotime($newest_run . ' UTC'))); ?>
+            Live<?php if ($newest_run) : ?> · updated
+            <?php echo esc_html(tit_local_datetime($newest_run)); ?>
             <?php endif; ?>
           </div>
         </div>
 
         <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
 
-        <div class="tit-glance">
-          <?php foreach ($glance as $g) : ?>
-            <div class="tit-glance-cell">
-              <span class="tit-glance-when"><?php echo esc_html($g['when']); ?></span>
-              <span class="tit-glance-n"><?php echo esc_html(number_format_i18n($g['n'])); ?></span>
-              <span class="tit-glance-detail"><?php echo esc_html($g['detail']); ?></span>
-            </div>
-          <?php endforeach; ?>
+        <div class="tit-glance" id="tit-glance">
+          <?php echo tit_glance_matrix_html($glance); ?>
         </div>
         <?php $span_note = tit_span_note($span_lo, $span_hi); ?>
         <?php if ($span_note) : ?>
@@ -340,52 +338,54 @@ function tit_dashboard_shortcode() {
         <?php /* Headings name what a recruiter or job seeker GETS from the chart,
                  not what the chart is made of. "What kind of update" described
                  the axis; "What is moving" answers the question they opened the
-                 page with. No copy here promises click-to-filter: the bar rows
-                 are still plain markup, and advertising an interaction that does
-                 not exist is worse than not having it. */ ?>
-        <?php tit_chart_head('What is moving', 'Hiring, funding, leadership changes and pay news, ranked by how much of it we are seeing.', 'kind'); ?>
+                 page with. The rows are buttons because they ARE filters:
+                 dashboard.js routes a click through the same state as the
+                 dropdowns, so the subtitle may promise it. Buttons hold span
+                 children only (phrasing content), never divs. */ ?>
+        <?php tit_chart_head('What is moving', 'Hiring, funding, leadership changes and pay news, ranked by how much of it we are seeing. Click a row to filter.', 'kind'); ?>
       <div class="tit-pillars">
         <?php foreach ($by_pillar as $p) :
             $key = $p['pillar'];
             $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
-          <div class="tit-pillar">
-            <div class="tit-pillar-head">
+          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
+            <span class="tit-pillar-head">
               <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
               <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
-            </div>
-            <div class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></div>
-          </div>
+            </span>
+            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
+          </button>
         <?php endforeach; ?>
       </div>
       </div>
         <div class="tit-chart" id="chart-place">
-          <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in.", 'place'); ?>
+          <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in. Click a row to filter.", 'place'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
             <?php
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
             foreach ($by_country as $c) : ?>
-              <div class="tit-rank-row">
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($c['k']); ?>" aria-pressed="false">
                 <span class="tit-rank-name"><?php echo esc_html(tit_country_name($c['k'])); ?></span>
                 <span class="tit-rank-track"><span class="tit-rank-fill"
                   style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
                 <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
-              </div>
+              </button>
             <?php endforeach; ?>
           </div>
         </div>
 
         <div class="tit-chart" id="chart-direction">
-          <?php tit_chart_head('Which way headcount is going', 'Whether each update points to more hiring, fewer roles, or a pay change at that employer.', 'direction'); ?>
+          <?php tit_chart_head('Which way headcount is going', 'Whether each update points to more hiring, fewer roles, or a pay change at that employer. Click a row to filter.', 'direction'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
             <?php
             $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
             foreach ($by_direction as $d) : ?>
-              <div class="tit-rank-row" data-dir="<?php echo esc_attr($d['k']); ?>">
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($d['k']); ?>"
+                      data-dir="<?php echo esc_attr($d['k']); ?>" aria-pressed="false">
                 <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
                 <span class="tit-rank-track"><span class="tit-rank-fill"
                   style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
                 <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
-              </div>
+              </button>
             <?php endforeach; ?>
           </div>
         </div>
@@ -474,86 +474,146 @@ function tit_dashboard_shortcode() {
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
 
 /**
- * The four at-a-glance lines: today, this week, this month, this year.
+ * The at-a-glance matrix: signals down the side, periods across the top.
  *
- * A period with nothing in it still prints, saying so in words. Hiding the
- * empty ones would make a quiet Sunday look like a busy one, and the whole
- * point of the block is to be readable in about ten seconds.
+ * This replaced five period tiles that each printed the same sentence shape.
+ * On a young dataset several periods hold the same records, so the strip said
+ * almost the same thing five times and never answered "what kind, and is it
+ * accelerating". Rows are what a recruiter or job seeker actually asks for.
  *
- * Dates come from published_date, the date the source carries, not the date we
- * happened to read it. A filing published on Friday and collected on Monday
- * belongs to Friday.
+ * Row definitions use existing columns only, and they OVERLAP by design (a
+ * funded employer can also be hiring), which the note under the matrix says
+ * out loud so the columns are not read as sums:
+ *   Hiring up          signal_direction = 'hiring'
+ *   Funding raised     funding_amount present
+ *   Leadership moves   pillar = 'leadership_change'
+ *   Pay changes        signal_direction = 'comp_shift' — the direction column,
+ *                      NOT pillar = 'rewards_comp': direction is a closed
+ *                      vocabulary the pipeline always sets, and it also
+ *                      catches a pay change filed under another pillar.
+ *   All updates        every row in the period (the emphasised total row)
+ *
+ * One query, not twenty-five: conditional aggregation over the widest window,
+ * one SUM per cell. Dates come from published_date, the date the source
+ * carries, falling back to capture date — same rule as everywhere else.
+ * Quarter start stays derived, never hardcoded.
+ *
+ * $where/$params let /aggregate reuse this under the caller's own filters, so
+ * the matrix the server renders and the one JavaScript repaints on a filtered
+ * page cannot describe the world differently.
  */
-function tit_glance($table) {
+function tit_glance_matrix($table, $where = 'is_current = 1', array $params = array()) {
     global $wpdb;
     $today = current_time('Y-m-d');
-    // Quarter start is derived, never hardcoded: months 1-3 -> Jan, 4-6 -> Apr,
-    // and so on, so this stays right without an edit every three months. The
-    // date-range control above already offered a quarter; this strip did not,
-    // so the two disagreed about which periods the product reports on.
     $q_month = (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1;
     $periods = array(
         array('Today',        $today),
         array('This week',    date('Y-m-d', strtotime($today . ' -6 days'))),
         array('This month',   date('Y-m-01', strtotime($today))),
         array('This quarter', sprintf('%s-%02d-01', date('Y', strtotime($today)), $q_month)),
+        // Spelled out, never "YTD".
         array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
     );
 
-    $out = array();
-    foreach ($periods as [$when, $from]) {
-        $row = $wpdb->get_row($wpdb->prepare(
-            "SELECT COUNT(*) n,
-                    SUM(signal_direction = 'hiring') hiring,
-                    SUM(funding_amount IS NOT NULL AND funding_amount <> '') funded,
-                    SUM(confidence = 'verified') verified
-               FROM {$table}
-              WHERE is_current = 1
-                AND COALESCE(published_date, DATE(captured_at)) >= %s",
-            $from
-        ), ARRAY_A);
+    // key, reader-facing label, the filter a cell click applies, SQL condition.
+    $defs = array(
+        array('hiring',     'Hiring up',        'direction=hiring',         "signal_direction = 'hiring'"),
+        array('funded',     'Funding raised',   'funding=1',                "(funding_amount IS NOT NULL AND funding_amount <> '')"),
+        array('leadership', 'Leadership moves', 'pillar=leadership_change', "pillar = 'leadership_change'"),
+        array('pay',        'Pay changes',      'direction=comp_shift',     "signal_direction = 'comp_shift'"),
+        array('total',      'All updates',      '',                         '1 = 1'),
+    );
 
-        $n = (int) ($row['n'] ?? 0);
-        if ($n === 0) {
-            $out[] = array('when' => $when, 'n' => 0, 'detail' => 'nothing yet');
-            continue;
+    $date_expr = 'COALESCE(published_date, DATE(captured_at))';
+    $select = array();
+    $select_params = array();
+    foreach ($periods as $pi => $p) {
+        foreach ($defs as $di => $d) {
+            $select[] = "SUM(({$d[3]}) AND {$date_expr} >= %s) AS c_{$di}_{$pi}";
+            $select_params[] = $p[1];
         }
+    }
+    // SELECT placeholders precede WHERE placeholders in statement order, so
+    // the select params go first.
+    $sql = 'SELECT ' . implode(', ', $select) . " FROM {$table} WHERE {$where}";
+    $row = $wpdb->get_row(
+        $wpdb->prepare($sql, array_merge($select_params, $params)),
+        ARRAY_A
+    ) ?: array();
 
-        $bits = array();
-        if ((int) $row['hiring'])   $bits[] = number_format_i18n((int) $row['hiring']) . ' hiring up';
-        if ((int) $row['funded'])   $bits[] = number_format_i18n((int) $row['funded']) . ' raised money';
-        if ((int) $row['verified']) $bits[] = number_format_i18n((int) $row['verified']) . ' from filings';
-
-        $out[] = array(
-            'when'   => $when,
-            'n'      => $n,
-            'detail' => $bits ? implode(' · ', $bits) : ($n === 1 ? 'one update' : 'updates'),
-        );
+    $rows = array();
+    foreach ($defs as $di => $d) {
+        $cells = array();
+        foreach ($periods as $pi => $p) {
+            $cells[] = (int) ($row["c_{$di}_{$pi}"] ?? 0);
+        }
+        $rows[] = array('key' => $d[0], 'label' => $d[1], 'filter' => $d[2], 'cells' => $cells);
     }
 
-    // Drop a period that contains nothing the narrower one did not.
-    //
-    // We hold days, not years, so "This month" and "2026 so far" were the same
-    // 46 records with the same breakdown printed twice, side by side. Four time
-    // buckets also imply four periods' worth of history, which is a claim about
-    // depth this tracker has not earned yet. A period earns a tile by
-    // disagreeing with the one before it; the tiles reappear on their own as
-    // soon as there is enough history to tell them apart.
-    // Drop the NARROWER of any two periods holding the same records, so the
-    // year-to-date tile is the one that survives. It is the "how much is there
-    // altogether" number and should never be the one that disappears; what is
-    // redundant when nothing is older than a month is "this month", not the
-    // year. Both ends are always kept: today, and the running total.
-    $kept = array();
-    $last = count($out) - 1;
-    foreach ($out as $i => $tile) {
-        $wider = $out[$i + 1] ?? null;
-        if ($i !== 0 && $i !== $last && $wider !== null && $wider['n'] === $tile['n']) {
-            continue;
-        }
-        $kept[] = $tile;
-    }
-    return $kept;
+    return array(
+        'periods' => array_column($periods, 0),
+        'starts'  => array_column($periods, 1),
+        'rows'    => $rows,
+    );
+}
+
+/**
+ * Render the matrix. dashboard.js mirrors this markup when it repaints from
+ * /aggregate, the same contract renderRow() has with the table: the classes
+ * and attributes here must match what the JS emits.
+ *
+ * Cells are buttons: a click applies the row's filter plus the column's
+ * period, a second click clears them (wired in dashboard.js). Zero renders as
+ * a muted 0, never blank — a real zero is information.
+ */
+function tit_glance_matrix_html(array $m) {
+    ob_start(); ?>
+    <div class="tit-matrix-scroll">
+      <table class="tit-matrix">
+        <thead>
+          <tr>
+            <th scope="col"><span class="tit-sr">Signal</span></th>
+            <?php foreach ($m['periods'] as $p) : ?>
+              <th scope="col"><?php echo esc_html($p); ?></th>
+            <?php endforeach; ?>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($m['rows'] as $r) : ?>
+            <tr<?php echo $r['key'] === 'total' ? ' class="tit-matrix-total"' : ''; ?>>
+              <th scope="row"><?php echo esc_html($r['label']); ?></th>
+              <?php foreach ($r['cells'] as $i => $n) : ?>
+                <td><button type="button"
+                    class="tit-cell<?php echo $n === 0 ? ' tit-cell-zero' : ''; ?>"
+                    data-filter="<?php echo esc_attr($r['filter']); ?>"
+                    data-since="<?php echo esc_attr($m['starts'][$i]); ?>"
+                    aria-pressed="false"
+                    aria-label="<?php echo esc_attr($r['label'] . ', ' . $m['periods'][$i]); ?>"><?php
+                    echo esc_html(number_format_i18n($n));
+                ?></button></td>
+              <?php endforeach; ?>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <p class="tit-matrix-note">Rows overlap on purpose: a funded employer can
+       also be hiring up, so columns are not sums. Click a number to filter.</p>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * Absolute time in the SITE's configured timezone with its abbreviation:
+ * "Jul 28, 1:51 PM EDT". The sibling tracker leads with exactly this shape.
+ * wp_date() renders in wp_timezone(), so a change under Settings > General
+ * moves every timestamp with it; never a hardcoded offset. Accepts a UTC
+ * MySQL datetime or a Unix timestamp.
+ */
+function tit_local_datetime($utc) {
+    $ts = is_numeric($utc) ? (int) $utc : strtotime($utc . ' UTC');
+    if (!$ts) return '';
+    return wp_date('M j, g:i A T', $ts);
 }
 
 /**
@@ -615,22 +675,23 @@ function tit_roo($newest_run) {
     $working = ($ago !== null && $ago >= 0 && $ago < 900);
     $state   = $working ? 'tit-roo-working' : 'tit-roo-sleeping';
 
-    $next  = tit_next_run();
-    $when  = $next ? date_i18n('g:i A', $next) : '';
-    $in    = $next ? human_time_diff(time(), $next) : '';
+    $next = tit_next_run();
 
+    // The absolute timestamp with timezone leads up in the Live pill; down
+    // here the relative time is the secondary fact and the next-run note is
+    // the quietest part of the line (its own span, styled smaller). Next-run
+    // times go through tit_local_datetime() too: the site's timezone, never a
+    // hand-converted hour.
     if ($working) {
         $say = 'Roo is pulling in new filings and news';
-    } elseif ($ago !== null && $next) {
-        $say = sprintf('Roo pulled the latest data %s ago. Next run at %s, in %s.',
-                       human_time_diff($ts, time()), $when, $in);
     } elseif ($ago !== null) {
         $say = sprintf('Roo pulled the latest data %s ago.', human_time_diff($ts, time()));
-    } elseif ($next) {
-        $say = sprintf('Roo is resting. Next run at %s, in %s.', $when, $in);
     } else {
-        $say = 'Roo is resting until the next run';
+        $say = 'Roo is resting until the next run.';
     }
+    $next_note = $next
+        ? sprintf('Next run %s, in %s.', tit_local_datetime($next), human_time_diff(time(), $next))
+        : '';
     ?>
     <span class="tit-roo-wrap<?php echo $working ? ' is-working' : ' is-sleeping'; ?>" aria-hidden="true">
       <span class="tit-zzz"><i>z</i><i>z</i><i>z</i></span>
@@ -663,7 +724,9 @@ function tit_roo($newest_run) {
         <circle class="roo-tread-dot" cx="98" cy="129" r="3" fill="var(--roo-deep)" opacity=".55"/>
       </svg>
     </span>
-    <span class="tit-roo-say"><?php echo esc_html($say); ?></span>
+    <span class="tit-roo-say"><?php echo esc_html($say); ?><?php
+      if ($next_note) : ?> <span class="tit-roo-next"><?php echo esc_html($next_note); ?></span><?php endif;
+    ?></span>
     <?php
 }
 

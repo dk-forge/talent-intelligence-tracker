@@ -315,18 +315,6 @@
 .tit-wrap .ez-toc-title-container,
 #tit-dashboard #ez-toc-container { display:none !important; }
 
-/* At a glance ------------------------------------------------------------ */
-.tit-glance { margin:16px 0 0; border-top:1px solid var(--tit-line); }
-.tit-glance-row { display:grid; grid-template-columns:1fr; gap:2px;
-  padding:11px 0; border-bottom:1px solid var(--tit-line); }
-@media (min-width:640px){
-  .tit-glance-row { grid-template-columns:120px 1fr; gap:16px; align-items:baseline; }
-}
-.tit-wrap .tit-glance-when { font-size:13px; font-weight:650; color:var(--tit-fg);
-  text-transform:uppercase; letter-spacing:.04em; }
-.tit-wrap .tit-glance-what { font-size:15px; color:var(--tit-mut); }
-.tit-wrap .tit-glance-what strong { color:var(--tit-fg); font-size:17px;
-  font-variant-numeric:tabular-nums; }
 /* The honest footnote to the glance tiles: how much history is behind them. */
 .tit-wrap .tit-span { margin:9px 0 0; font-size:12.5px; color:var(--tit-faint); }
 .tit-hero-fine { margin:14px 0 0 !important; font-size:13.5px; }
@@ -353,8 +341,7 @@
 
 /* The theme tracks its headings wide, which turns "11" into "1 1". Numerals in
    our own figures opt out. */
-.tit-wrap .tit-glance-what strong, .tit-wrap .tit-n,
-.tit-rank-n, .tit-region-n { letter-spacing:0; }
+.tit-wrap .tit-n, .tit-rank-n, .tit-region-n { letter-spacing:0; }
 
 .tit-chart-wide { grid-column:1 / -1; }
 .tit-chart-wide .tit-pillars { margin:0; }
@@ -424,9 +411,6 @@
     padding-left:11px; margin-top:7px; }
 }
 
-/* A single inline figure wants proportional numerals. Tabular figures pad the
-   narrow "1" to a full advance width, which made "11" read as "1 1". */
-.tit-wrap .tit-glance-what strong { font-variant-numeric:normal; }
 
 /* ---------------------------------------------------------------------------
    Full bleed on phones.
@@ -449,7 +433,6 @@
   .tit-hero { padding:16px 15px 15px; border-radius:12px; }
   .tit-wrap .tit-hero h2 { font-size:20px; line-height:1.25; }
   .tit-wrap .tit-hero p { font-size:14.5px; }
-  .tit-glance-row { padding:10px 0; }
   .tit-wrap .tit-n { font-size:26px; }
   .tit-stat { padding:14px 10px; }
 }
@@ -519,13 +502,6 @@
   max-width:var(--wp--style--global--wide-size, 1160px);
 }
 
-/* Two columns of at-a-glance once there is room for them. */
-@media (min-width:1000px){
-  .tit-glance { display:grid; grid-template-columns:1fr 1fr; column-gap:34px; }
-  .tit-glance-row { grid-template-columns:112px 1fr; }
-  /* Keep the top border on the first row of each column, not just the first. */
-  .tit-glance-row:nth-child(2) { border-top:0; }
-}
 .tit-hero p { max-width:78ch; }
 
 /* Same reason as the at-a-glance figures: these sit side by side, not stacked
@@ -552,29 +528,11 @@
 .tit-wrap .tit-hero-top h2 { margin:0; font-size:20px; line-height:1.25; }
 .tit-live { margin:0; flex:none; }
 
-.tit-glance { display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
-  background:var(--tit-line); border:1px solid var(--tit-line);
-  border-radius:10px; overflow:hidden; margin:0; }
-/* auto-fit, not a hard four. Periods that hold the same records collapse into
-   one tile, so the count varies between three and four, and a fixed grid left a
-   grey hole where the dropped tile used to be. */
-@media (min-width:820px){
-  .tit-glance { grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); }
-}
-.tit-glance-cell { background:#fff; padding:11px 13px; display:grid; gap:1px; }
-.tit-wrap .tit-glance-when { font-size:11.5px; font-weight:700; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--tit-mut); }
-.tit-wrap .tit-glance-n { font-size:27px; font-weight:750; line-height:1.05;
-  color:var(--tit-fg); font-variant-numeric:normal; letter-spacing:0; }
-.tit-wrap .tit-glance-detail { font-size:12.5px; color:var(--tit-mut); line-height:1.4; }
-/* One accent per period, so the eye can come back to the same column twice. */
-.tit-glance-cell:nth-child(1) { box-shadow:inset 3px 0 0 var(--tit-blue); }
-.tit-glance-cell:nth-child(2) { box-shadow:inset 3px 0 0 var(--tit-orange); }
-.tit-glance-cell:nth-child(3) { box-shadow:inset 3px 0 0 var(--tit-violet); }
-.tit-glance-cell:nth-child(4) { box-shadow:inset 3px 0 0 var(--tit-teal); }
-/* Year to date is the widest window, so it closes the run with the strongest
-   accent rather than falling through to no accent at all. */
-.tit-glance-cell:nth-child(5) { box-shadow:inset 3px 0 0 var(--tit-fg); }
+/* The at-a-glance strip is now the signal-by-period matrix; its styles live
+   at the end of this file with the other interactive-filter styling. The
+   container keeps the card treatment (border, radius, family shadow). */
+.tit-glance { display:block; margin:0; border:1px solid var(--tit-line);
+  border-radius:10px; background:#fff; overflow:hidden; }
 
 .tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
   max-width:none; line-height:1.5; }
@@ -781,6 +739,14 @@
 .tit-roo { --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#fff;
   --roo-soft:#dbe9fb; --roo-tint:#eef4fd; flex:none; overflow:visible; }
 .tit-roo-say { font-size:13px; color:var(--tit-mut); }
+/* The next-run note is the quietest part of the freshness line: smaller, same
+   AA-passing colour. On a phone it wraps to its own line as a unit rather
+   than mid-phrase. */
+.tit-roo-next { font-size:12px; display:inline-block; }
+/* The Live pill leads with an absolute timestamp; never let it break inside
+   itself ("Jul 28," on one line, the time on the next reads like two pills).
+   The hero top row wraps around it instead. */
+.tit-live { white-space:nowrap; }
 
 .tit-roo-sleeping { filter:grayscale(1); opacity:.6; }
 .tit-roo-sleeping .roo-eyes { animation:none; transform:scaleY(.12); transform-origin:center 44px; }
@@ -842,3 +808,140 @@
 .tit-lastrun { font-size:13px; color:var(--tit-mut); white-space:nowrap; }
 .tit-lastrun .tit-rt { white-space:normal; font-size:12px; margin-top:2px; }
 .tit-c-degraded { background:#fdf3e8; color:#8c3d00; border-color:#f0cfae; }
+
+/* ===========================================================================
+   Zebra striping + row hover, the sibling tracker's table pattern.
+   Both tables render plain <tr> children of their tbody (the JS re-render in
+   dashboard.js emits bare rows too), so nth-child stripes the dashboard table
+   with no help. The sources table filters rows with display:none, which
+   nth-child cannot see, so its stripes are class-driven from the same filter
+   loop that hides the rows (see sources.php).
+   All text keeps AA contrast: ink #16181d and muted #4a4d55 both clear 7:1 on
+   the stripe (--tit-surface) and on the hover tint (--tit-blue-tint).
+   =========================================================================== */
+#tit-rows tr:nth-child(even) { background:var(--tit-surface); }
+#tit-s-rows tr.tit-even { background:var(--tit-surface); }
+.tit-table tbody tr { transition:background .12s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .tit-table tbody tr { transition:none; }
+}
+.tit-table tbody tr:hover,
+#tit-rows tr:hover, #tit-s-rows tr:hover { background:var(--tit-blue-tint); }
+@media (max-width:860px) {
+  /* Below the card breakpoint each row is its own bordered card; stripes
+     there would read as two different components alternating. */
+  #tit-rows tr:nth-child(even), #tit-s-rows tr.tit-even { background:#fff; }
+  .tit-table tbody tr:hover,
+  #tit-rows tr:hover, #tit-s-rows tr:hover { background:var(--tit-surface); }
+}
+
+/* ===========================================================================
+   Sticky active-filter bar, the sibling's pattern in full: the bar docks
+   under the filter controls and pins to the top of the viewport while the
+   table scrolls, so what is narrowing the page is always visible and
+   clearable. Native position:sticky (set where .tit-active is declared), no
+   scroll listeners, and nothing here animates, so there is no motion for
+   prefers-reduced-motion to reduce. The near-opaque tint plus blur keeps the
+   chips readable over whatever scrolls beneath them.
+   =========================================================================== */
+.tit-active { top:0; z-index:40;
+  background:rgba(238, 244, 252, 0.94);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  box-shadow:0 2px 10px rgba(16, 18, 24, 0.06); }
+body.admin-bar .tit-active { top:32px; }
+@media (max-width:782px) { body.admin-bar .tit-active { top:46px; } }
+@media (max-width:600px) {
+  /* WP's admin bar is absolute (scrolls away) below 600px. */
+  body.admin-bar .tit-active { top:0; }
+  /* Chips scroll sideways inside the bar instead of stacking it several rows
+     tall; the bar scrolls in its own box, never the page body, so nothing
+     bleeds horizontally. */
+  .tit-active { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tit-active-chips { flex-wrap:nowrap; }
+  .tit-wrap .tit-chip { white-space:nowrap; }
+  .tit-wrap .tit-reset { margin-left:auto; flex:none; }
+}
+
+/* ===========================================================================
+   Polish pass: the details the two products should agree on.
+   =========================================================================== */
+/* Callout cards sit flat while every other card carries the family's two-stop
+   shadow; give them the same one. */
+.tit-callout, .tit-thin { box-shadow:var(--tit-shadow); }
+/* Keyboard focus is visible on every link, not only on the buttons. */
+.tit-wrap a:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; border-radius:3px; }
+/* The sort select is a control like its neighbours: same hover, same focus. */
+.tit-wrap .tit-sort:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-sort:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+
+/* ===========================================================================
+   Chart rows are filters.
+   Every bar row is a real <button>: clicking applies that row's filter through
+   the same state the dropdowns use, clicking again clears it (dashboard.js).
+   The selected state is the tint-plus-ring treatment rather than the quick
+   views' solid fill, because a solid fill would bury the bar the row exists
+   to show; it is still never colour alone (aria-pressed plus the bolder name).
+   =========================================================================== */
+.tit-wrap .tit-rank-row, .tit-wrap .tit-pillar {
+  border:0; background:none; font:inherit; color:inherit; text-align:left;
+  width:100%; margin:0; padding:4px 6px; border-radius:8px; cursor:pointer;
+}
+/* Buttons may only hold phrasing content, so the old div children are spans;
+   give the spans back their layout. */
+.tit-wrap .tit-pillar { display:block; }
+.tit-wrap .tit-pillar-head { display:flex; }
+.tit-wrap .tit-bar { display:block; }
+.tit-wrap .tit-rank-track { display:block; }
+.tit-wrap .tit-rank-row:hover, .tit-wrap .tit-pillar:hover {
+  background:var(--tit-surface); }
+.tit-wrap .tit-rank-row:focus-visible, .tit-wrap .tit-pillar:focus-visible {
+  outline:2px solid var(--tit-blue); outline-offset:1px; }
+.tit-wrap .tit-rank-row.is-on, .tit-wrap .tit-pillar.is-on {
+  background:var(--tit-blue-tint); box-shadow:inset 0 0 0 1px #b9d3f2; }
+.tit-wrap .tit-rank-row.is-on .tit-rank-name,
+.tit-wrap .tit-pillar.is-on .tit-pillar-name {
+  font-weight:700; color:var(--tit-ink-blue); }
+
+
+/* ===========================================================================
+   The at-a-glance matrix: signals down the side, periods across the top.
+   Five period tiles used to repeat the same sentence five times on a young
+   dataset; the matrix answers "what kind, and is it accelerating" instead.
+   Numbers are the content: tabular-nums, right-aligned, and a real zero
+   renders as a muted 0 because a zero is information, never a blank.
+   Every cell is a button that applies its row's filter plus its column's
+   period through the same state as everything else (dashboard.js).
+   The table scrolls inside its own container on phones; the page body never
+   scrolls sideways.
+   =========================================================================== */
+.tit-matrix-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.tit-matrix { width:100%; border-collapse:collapse; min-width:560px; font-size:13.5px; }
+.tit-matrix th, .tit-matrix td { border-bottom:1px solid var(--tit-grid); }
+.tit-matrix thead th { font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--tit-mut); background:var(--tit-surface);
+  text-align:right; white-space:nowrap; padding:7px 10px; }
+.tit-matrix thead th:first-child { text-align:left; }
+.tit-matrix tbody th { font-weight:600; color:var(--tit-fg); text-align:left;
+  white-space:nowrap; font-size:13px; padding:4px 10px; }
+.tit-matrix td { text-align:right; padding:2px 4px; }
+.tit-matrix tbody tr:last-child th, .tit-matrix tbody tr:last-child td { border-bottom:0; }
+/* The total row is the anchor: heavier, and set off from the signal rows. */
+.tit-matrix-total th { font-weight:750; }
+.tit-matrix-total th, .tit-matrix-total td { border-top:2px solid var(--tit-line);
+  background:var(--tit-ground); }
+.tit-matrix-total .tit-cell { font-weight:750; }
+.tit-wrap .tit-cell { display:block; width:100%; border:0; background:none;
+  font:inherit; color:var(--tit-fg); font-weight:600;
+  font-variant-numeric:tabular-nums; letter-spacing:0; text-align:right;
+  padding:4px 8px; border-radius:7px; cursor:pointer; line-height:1.3; }
+.tit-wrap .tit-cell:hover { background:var(--tit-surface); }
+.tit-wrap .tit-cell:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
+.tit-wrap .tit-cell.is-on { background:var(--tit-blue-tint);
+  box-shadow:inset 0 0 0 1px #b9d3f2; color:var(--tit-ink-blue); }
+/* Muted, still AA: --tit-mut at lighter weight, never --tit-faint (3.4:1). */
+.tit-wrap .tit-cell-zero { color:var(--tit-mut); font-weight:500; }
+.tit-matrix-note { margin:0; padding:7px 12px; font-size:12px;
+  color:var(--tit-mut); border-top:1px solid var(--tit-grid);
+  background:var(--tit-surface); }
