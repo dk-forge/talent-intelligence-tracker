@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:54:30Z",
+  "last_tick": "2026-07-29T18:56:32Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,40 +158,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:54:30Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:51:39Z",
-          "detail": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:54:30Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T185139Z-retract",
-      "inputs": {
-        "reason": "Not a dated capital raise. The filing is a D/A, the fourteenth annual amendment to a continuous offering whose first sale was 2012-07-22, with the offering amount stated as Indefinite and the securities as debt. The 1.77 billion USD is the cumulative amount sold since 2012 through the issuer's own affiliated broker-dealer, not money raised on 2026-06-23. It is only visible now because withdrawing the seven larger errors lowered the derived ceiling onto it.",
-        "signal_id": "44d73d172ec88543cce90532bc583abe"
-      },
-      "priority": -1,
-      "reason": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
-      "requested_at": "2026-07-29T18:51:39Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T18:56:32Z",
       "history": [
         {
           "at": "2026-07-29T18:54:20Z",
           "detail": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:56:32Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T185420Z-retract",
@@ -204,7 +181,7 @@
       "requested_at": "2026-07-29T18:54:20Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "retract.yml"
     },
     {
@@ -740,6 +717,45 @@
       "requested_at": "2026-07-29T18:50:46Z",
       "requested_by": "dakotta-labs",
       "run_id": "30481847750",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:54:30Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:51:39Z",
+          "detail": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:54:30Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:56:32Z",
+          "detail": "run 30482041924",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:56:32Z",
+          "detail": "run 30482041924",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T185139Z-retract",
+      "inputs": {
+        "reason": "Not a dated capital raise. The filing is a D/A, the fourteenth annual amendment to a continuous offering whose first sale was 2012-07-22, with the offering amount stated as Indefinite and the securities as debt. The 1.77 billion USD is the cumulative amount sold since 2012 through the issuer's own affiliated broker-dealer, not money raised on 2026-06-23. It is only visible now because withdrawing the seven larger errors lowered the derived ceiling onto it.",
+        "signal_id": "44d73d172ec88543cce90532bc583abe"
+      },
+      "landed_at": "2026-07-29T18:56:32Z",
+      "priority": -1,
+      "reason": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
+      "requested_at": "2026-07-29T18:51:39Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30482041924",
       "state": "landed",
       "workflow": "retract.yml"
     }
