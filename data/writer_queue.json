@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T11:17:41Z",
+  "last_tick": "2026-07-29T12:13:01Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,44 +158,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T10:54:29Z",
-      "history": [
-        {
-          "at": "2026-07-29T07:48:38Z",
-          "detail": "998 retractions, 3005 corrections",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T10:54:29Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T10:55:15Z",
-          "detail": "run 30445486869",
-          "event": "bound"
-        }
-      ],
-      "id": "20260729T074838Z-correct-form-d",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "998 retractions, 3005 corrections",
-      "requested_at": "2026-07-29T07:48:38Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30445486869",
-      "state": "dispatched",
-      "workflow": "correct-form-d.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T12:13:01Z",
       "history": [
         {
           "at": "2026-07-29T07:49:29Z",
           "detail": "548 8-K Item 5.02 rows filed as pay events, invisible under leadership moves",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T12:13:01Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T074929Z-correct-sec-pillar",
@@ -207,7 +180,7 @@
       "requested_at": "2026-07-29T07:49:29Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-sec-pillar.yml"
     },
     {
@@ -267,6 +240,44 @@
       "run_id": "30445277730",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T10:54:29Z",
+      "history": [
+        {
+          "at": "2026-07-29T07:48:38Z",
+          "detail": "998 retractions, 3005 corrections",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T10:54:29Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T10:55:15Z",
+          "detail": "run 30445486869",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T12:13:01Z",
+          "detail": "run 30445486869",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T074838Z-correct-form-d",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-29T12:13:01Z",
+      "priority": 0,
+      "reason": "998 retractions, 3005 corrections",
+      "requested_at": "2026-07-29T07:48:38Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30445486869",
+      "state": "landed",
+      "workflow": "correct-form-d.yml"
     }
   ],
   "version": 1
