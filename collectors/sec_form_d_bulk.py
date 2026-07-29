@@ -17,14 +17,24 @@ Three things follow, and they are the whole reason this module exists:
   submissions.
 
 **Expected yield, so a low count is not misread as a broken parse:** about
-**1,500-1,700 records per quarter**, not the 2,000-3,000 an earlier note
+**1,100-1,300 records per quarter**, not the 2,000-3,000 an earlier note
 estimated. The difference is the exclusions below doing their job — funds,
 single-purpose property vehicles, insurance product offerings and employee
-benefit plans are all filtered out, and together they are roughly a quarter of
-the filings that clear the $1M floor. Measured on 2025Q4: 14,885 issuer rows in
-the archive, 1,717 surviving before the offering-type filter, 1,657 after.
-A quarter that yields ~1,600 is healthy. A quarter that yields ~50 is an
-archive or layout failure.
+benefit plans are all filtered out, and then so is every filing whose "amount
+sold" is not money raised on the day it was filed (merger consideration, an
+amendment's cumulative total, a continuous offering's running total; see
+`sec_form_d.money_raised_exclusion`). Measured across the three cached
+quarters on 2026-07-29:
+
+    2025Q4   1,649 -> 1,257   ($44.42bn -> $33.15bn)
+    2026Q1   1,545 -> 1,129   ($56.53bn -> $35.49bn)
+    2026Q2   1,690 -> 1,277   ($55.41bn -> $40.39bn)
+
+the left column being the yield before the offering-shape rules and the right
+the yield now. A quarter that yields ~1,200 is healthy. A quarter that yields
+~50 is an archive or layout failure. **If you are comparing against an older
+run, ~1,600 was the healthy number until 2026-07-29** — the drop is these
+rules, not a broken parse.
 
 The rows still go through `validate.build_signal` -> `store` -> `publish`
 exactly like every other source, so the credibility guards (source URL is a
@@ -255,8 +265,9 @@ def _source_url(cik: str, accession: str) -> str | None:
     return f"{sec_edgar.ARCHIVES}/{cik}/{accession}/primary_doc.xml"
 
 
-def parse_archive(blob: bytes) -> list[dict]:
-    """Every qualifying operating-company raise in one quarter's archive."""
+def _tables(blob: bytes) -> tuple[dict, dict, dict]:
+    """(submissions, offerings, issuers) out of one quarter's archive, each
+    keyed on accession number."""
     archive = zipfile.ZipFile(io.BytesIO(blob))
 
     submissions = {r["ACCESSIONNUMBER"]: r for r in _rows(archive, "FORMDSUBMISSION.TSV")}
@@ -266,6 +277,56 @@ def parse_archive(blob: bytes) -> list[dict]:
         # A filing can name several issuers; the primary one is the employer.
         if row.get("IS_PRIMARYISSUER_FLAG") == "YES" or row["ACCESSIONNUMBER"] not in issuers:
             issuers[row["ACCESSIONNUMBER"]] = row
+    return submissions, offerings, issuers
+
+
+def _money_raised_exclusion(submission: dict, offering: dict) -> str | None:
+    """The offering-shape rules, read off this quarter's columns.
+
+    The rule itself lives in `sec_form_d.money_raised_exclusion`, which the
+    search path calls with the same four answers read out of the XML. Only the
+    column names are local — the two routes reach the same filings and must not
+    disagree about whether one of them is a raise.
+
+    SUBMISSIONTYPE and ISAMENDMENT are both read. They agreed on all 2,998
+    published rows, and a rule this consequential should not rest on one column
+    of a data set whose layout SEC has already moved once.
+    """
+    return sec_form_d.money_raised_exclusion(
+        business_combination=sec_form_d.is_true(offering.get("ISBUSINESSCOMBINATIONTRANS")),
+        amendment=((submission.get("SUBMISSIONTYPE") or "").strip().upper() == "D/A"
+                   or sec_form_d.is_true(offering.get("ISAMENDMENT"))),
+        offering_amount=offering.get("TOTALOFFERINGAMOUNT") or "",
+        more_than_one_year=sec_form_d.is_true(offering.get("MORETHANONEYEAR")),
+    )
+
+
+def money_raised_exclusions(blob: bytes) -> dict[str, str]:
+    """{filing URL: why its amount is not money raised} for one quarter.
+
+    For the correction path, which has to tell a reader why a published row is
+    being withdrawn. "The current rules no longer produce this URL" is true and
+    says nothing; these three reasons name the box on the form.
+
+    Only the offering-shape rules are reported. A row dropped as a vehicle or as
+    an insurance product is not in here, and the caller falls back to its own
+    wording for those — which is the wording those retractions already carry.
+    """
+    submissions, offerings, issuers = _tables(blob)
+    out: dict[str, str] = {}
+    for accession, offering in offerings.items():
+        reason = _money_raised_exclusion(submissions.get(accession, {}), offering)
+        if not reason:
+            continue
+        url = _source_url((issuers.get(accession) or {}).get("CIK", ""), accession)
+        if url:
+            out[url] = reason
+    return out
+
+
+def parse_archive(blob: bytes) -> list[dict]:
+    """Every qualifying operating-company raise in one quarter's archive."""
+    submissions, offerings, issuers = _tables(blob)
 
     out: list[dict] = []
     for accession, submission in submissions.items():
@@ -300,6 +361,15 @@ def parse_archive(blob: bytes) -> list[dict]:
         # and it is the only one that can separate an insurer's annuity product
         # from the same insurer's actual corporate raise.
         if NOT_A_CAPITAL_RAISE.search(offering.get("DESCRIPTIONOFOTHERTYPE") or ""):
+            continue
+
+        # And is the figure money raised ON THE DATE WE DATE IT TO? Three more
+        # columns, none of them about the issuer: merger consideration, an
+        # amendment's cumulative total, and a continuous offering's running
+        # total are all real numbers off a real filing that are not a raise
+        # that happened on the filing date. See sec_form_d for each rule and
+        # what it deliberately does not catch.
+        if _money_raised_exclusion(submission, offering):
             continue
 
         raised = _amount(offering.get("TOTALAMOUNTSOLD"))

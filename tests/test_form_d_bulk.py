@@ -22,7 +22,11 @@ ISSUER_COLS = ("ACCESSIONNUMBER\tIS_PRIMARYISSUER_FLAG\tISSUER_SEQ_KEY\tCIK\tENT
                "STREET1\tCITY\tSTATEORCOUNTRY\tSTATEORCOUNTRYDESCRIPTION")
 OFFERING_COLS = ("ACCESSIONNUMBER\tINDUSTRYGROUPTYPE\tINVESTMENTFUNDTYPE\t"
                  "ISPOOLEDINVESTMENTFUNDTYPE\tISTENANTINCOMMONTYPE\tISOTHERTYPE\t"
-                 "DESCRIPTIONOFOTHERTYPE\tTOTALAMOUNTSOLD")
+                 "DESCRIPTIONOFOTHERTYPE\tTOTALAMOUNTSOLD\t"
+                 # The columns that decide whether the amount is money raised
+                 # at all. Read past for as long as this collector existed.
+                 "ISBUSINESSCOMBINATIONTRANS\tBUSCOMBCLARIFICATIONOFRESP\t"
+                 "ISAMENDMENT\tTOTALOFFERINGAMOUNT\tMORETHANONEYEAR")
 
 
 def _archive(rows: list[tuple[str, str, str]]) -> bytes:
@@ -39,12 +43,15 @@ def _archive(rows: list[tuple[str, str, str]]) -> bytes:
 
 
 def _row(acc, name, amount, *, industry="Other Technology", fund_flag="false",
-         fund_type="", live="LIVE", cik="1234567", tic="false", other_desc=""):
+         fund_type="", live="LIVE", cik="1234567", tic="false", other_desc="",
+         submission_type="D", biz_comb="false", biz_comb_text="",
+         amendment="false", offering_amount="", more_than_one_year="false"):
     return (
-        f"{acc}\t021-1\t31-MAR-2026\t\tX0708\tD\t{live}",
+        f"{acc}\t021-1\t31-MAR-2026\t\tX0708\t{submission_type}\t{live}",
         f"{acc}\tYES\t101\t{cik}\t{name}\t1 Main St\tSan Francisco\tCA\tCALIFORNIA",
         f"{acc}\t{industry}\t{fund_type}\t{fund_flag}\t{tic}\t"
-        f"{'true' if other_desc else 'false'}\t{other_desc}\t{amount}",
+        f"{'true' if other_desc else 'false'}\t{other_desc}\t{amount}\t"
+        f"{biz_comb}\t{biz_comb_text}\t{amendment}\t{offering_amount}\t{more_than_one_year}",
     )
 
 
@@ -272,6 +279,211 @@ def test_that_rule_does_not_eat_an_operating_company_ending_in_co_llc():
         assert len(items) == 1, name
 
 
+# --- Not every real number off a real filing is money raised ----------------
+#
+# Every filter above asks WHO filed. These three ask WHAT THE FIGURE IS, and an
+# ordinary operating company clears every issuer check and still reports a
+# number that is not a dated capital raise. Measured on 2026-07-29 they were
+# 744 published rows and $23.55bn — 176 business combinations, 539 amendments,
+# 29 continuous offerings, in that order of precedence.
+
+BUSINESS_COMBINATIONS = [
+    # Live rows. Every one of these is a real employer, correctly identified,
+    # publishing the value of stock handed to somebody else's shareholders.
+    ("Snowflake Inc.", 376_100_000,
+     "In connection with the closing of the acquisition of Observe, Inc., "
+     "Snowflake Inc. issued a total of 1,539,804 shares as partial consideration."),
+    ("Marvell Technology, Inc.", 200_000_000,
+     "Issuance of shares of common stock in connection with the acquisition of "
+     "XConn Technologies Holdings, Ltd."),
+    ("Roblox Corp", 44_600_000,
+     "Issuance of shares of Class A Common Stock in connection with the "
+     "acquisition of Morpheus AI, Inc"),
+    ("AeroVironment Inc", 157_400_000,
+     "Issuances of common stock as a portion of merger consideration payable to "
+     "the stockholders of Empirical Systems Aerospace, Inc."),
+    ("RADIAN GROUP INC", 21_300_000,
+     "Radian Group Inc. acquired Inigo Limited on February 2, 2026"),
+    ("Tencent Music Entertainment Group", 20_200_000,
+     "On May 18, 2026, the Issuer completed its acquisition of Ximalaya Inc."),
+    # DILLARD'S, INC. — $2.39bn, withdrawn by hand on 2026-07-29. It was the
+    # largest row on the tracker and it was a merger with W.D. Company, Inc.
+    ("DILLARD'S, INC.", 2_386_710_625,
+     "Merger of W.D. Company, Inc., an Arkansas corporation, with and into "
+     "Dillard's, Inc., with Dillard's, Inc. surviving the merger."),
+]
+
+
+@pytest.mark.parametrize("name,amount,clarification", BUSINESS_COMBINATIONS)
+def test_merger_consideration_is_not_money_raised(name, amount, clarification):
+    """The issuer ticked the box itself. No cash reached the company, so the
+    figure is the value of the shares it issued, not a raise."""
+    assert bulk.parse_archive(_archive([
+        _row("0005-26-000001", name, str(amount), biz_comb="true",
+             biz_comb_text=clarification)])) == []
+
+
+def test_a_business_combination_is_dropped_with_the_box_empty():
+    """115 of the 176 published business-combination rows leave the
+    clarification blank, so a rule that read the text would decide a third of
+    the class and let the rest through on silence."""
+    assert bulk.parse_archive(_archive([
+        _row("0005-26-000002", "Baldwin Insurance Group, Inc.", "552000000",
+             biz_comb="true")])) == []
+
+
+def test_a_cash_raise_that_funds_an_acquisition_is_dropped_too_on_purpose():
+    """The known, paid cost of not text-gating rule 1: roughly fifteen rows and
+    $0.6bn where the offering really was cash and the acquisition was what the
+    cash bought. Asserted so the loss stays deliberate — if someone later adds
+    a carve-out for these, this test is where they have to argue for it, and
+    the mixed rows below are why it is hard."""
+    assert bulk.parse_archive(_archive([
+        _row("0005-26-000003", "INFINITY NATURAL RESOURCES, INC.", "350000000",
+             biz_comb="true",
+             biz_comb_text="This offering was made to partially fund the acquisition "
+                           "whereby the Issuer purchased certain rights, title and "
+                           "interests in oil and gas properties.")])) == []
+
+
+MIXED = [
+    # One figure covering both halves, and no column that splits it. Publishing
+    # these keeps a raise that is overstated by an amount nothing states.
+    ("Onebrief, Inc.", "A portion of the proceeds of the sale of securities to "
+     "investors was used to acquire a target company shortly after the offering "
+     "closed, and a portion of the securities was issued to the target company's "
+     "stockholders in connection with the acquisition."),
+    ("HawkEye 360, Inc.", "$25M of the shares covered by the Form D were issued to "
+     "eligible holders as partial consideration for an acquisition"),
+    ("ChartSpan Medical Technologies, Inc.", "Total includes shares issued pursuant "
+     "to a merger as well as shares sold to investors."),
+]
+
+
+@pytest.mark.parametrize("name,clarification", MIXED)
+def test_a_part_cash_part_consideration_figure_is_dropped(name, clarification):
+    assert bulk.parse_archive(_archive([
+        _row("0005-26-000004", name, "359300000", biz_comb="true",
+             biz_comb_text=clarification)])) == []
+
+
+def test_an_ordinary_raise_is_not_touched_by_the_business_combination_rule():
+    """The box is answered "false" on nearly every filing. It has to stay a
+    filter on the answer and not become a filter on the word "acquisition"."""
+    items = bulk.parse_archive(_archive([
+        _row("0005-26-000005", "Acquisition Robotics, Inc.", "9000000",
+             biz_comb="false", other_desc="Shares issued in a merger of equals")]))
+    assert len(items) == 1
+
+
+def test_an_amendment_is_not_new_money_on_its_filing_date():
+    """A D/A restates the CUMULATIVE amount sold since the offering's first
+    sale. Fluidstack is the shape it took live: the original D reported $450M,
+    and the D/A four months later reported $842M against the SAME first sale —
+    the $450M inside it, published a second time under its own headline."""
+    original = _row("0006-26-000001", "Fluidstack Ltd", "450000000")
+    amendment = _row("0006-26-000002", "Fluidstack Ltd", "842478689",
+                     submission_type="D/A", amendment="true")
+    kept = bulk.parse_archive(_archive([original, amendment]))
+    assert [i["accession"] for i in kept] == ["0006-26-000001"]
+
+
+def test_a_later_separate_offering_by_the_same_issuer_survives():
+    """The rule is about amendments, not about issuers. Fluidstack's June
+    filing was a NEW $1.5bn offering with its own first sale, and it is as real
+    a raise as January's."""
+    kept = bulk.parse_archive(_archive([
+        _row("0006-26-000003", "Fluidstack Ltd", "450000000"),
+        _row("0006-26-000004", "Fluidstack Ltd", "729999546"),
+    ]))
+    assert len(kept) == 2
+
+
+@pytest.mark.parametrize("submission_type,amendment", [
+    ("D/A", "true"),        # how every one of the 553 published rows read
+    ("D/A", "false"),       # the header says amendment, the flag disagrees
+    ("D", "true"),          # and the other way round
+])
+def test_either_amendment_signal_alone_is_enough(submission_type, amendment):
+    """They agreed on all 2,998 published rows. A rule this consequential
+    should not rest on one column of a data set SEC has already moved once."""
+    assert bulk.parse_archive(_archive([
+        _row("0006-26-000005", "OPTCAPITAL LLC", "1769219217",
+             submission_type=submission_type, amendment=amendment)])) == []
+
+
+def test_a_continuous_offering_reports_a_running_total_not_a_raise():
+    """No stated size AND intended to run more than a year: the amount sold has
+    been accumulating over a window with no beginning in view, and it is
+    re-reported larger at every annual amendment. OPTCAPITAL's $1.77bn had been
+    accruing since 2012-07-22; it was withdrawn by hand on 2026-07-29."""
+    assert bulk.parse_archive(_archive([
+        _row("0007-26-000001", "OPTCAPITAL LLC", "1769219217",
+             offering_amount="Indefinite", more_than_one_year="true")])) == []
+
+
+def test_indefinite_alone_is_still_a_raise():
+    """Both halves are required. On its own "Indefinite" usually means only
+    that the filer declined to state a ceiling — 88 published rows and $1.21bn
+    are Indefinite on a one-year offering with a recent first sale, and they
+    are ordinary raises. Harvey AI's $200M first sold twelve days before the
+    filing; a rule on the word alone would have taken it."""
+    items = bulk.parse_archive(_archive([
+        _row("0007-26-000002", "Harvey AI Corp", "200000000",
+             offering_amount="Indefinite", more_than_one_year="false")]))
+    assert len(items) == 1
+    assert items[0]["amount_usd"] == 200_000_000
+
+
+def test_a_long_offering_with_a_stated_size_is_still_a_raise():
+    """The other half, on its own. A company can state a $50M offering and
+    expect it to take eighteen months; the total sold is still bounded by a
+    number the filing gives."""
+    items = bulk.parse_archive(_archive([
+        _row("0007-26-000003", "Tolerance Bio Inc.", "15000000",
+             offering_amount="50000000", more_than_one_year="true")]))
+    assert len(items) == 1
+
+
+def test_the_two_form_d_paths_share_one_definition_of_money_raised():
+    """Same reason as the vehicle and address definitions: the search path and
+    the bulk path reach the same filings, and one route must not publish what
+    the other drops. The bulk path reads TSV columns and the search path reads
+    XML tags, so only the READING is local — the rule has one home."""
+    assert bulk.sec_form_d.money_raised_exclusion is sec_form_d.money_raised_exclusion
+    assert sec_form_d.money_raised_exclusion(
+        business_combination=False, amendment=False,
+        offering_amount="5000000", more_than_one_year=False) is None
+    for kwargs in ({"business_combination": True}, {"amendment": True},
+                   {"offering_amount": "Indefinite", "more_than_one_year": True}):
+        args = {"business_combination": False, "amendment": False,
+                "offering_amount": "5000000", "more_than_one_year": False, **kwargs}
+        assert sec_form_d.money_raised_exclusion(**args)
+
+
+def test_the_correction_path_can_say_which_rule_withdrew_a_row():
+    """A withdrawal is published. "The current rules no longer produce this
+    URL" is true and tells a reader nothing, so the archive names the box."""
+    blob = _archive([
+        _row("0008-26-000001", "Snowflake Inc.", "376100000", biz_comb="true"),
+        _row("0008-26-000002", "Fluidstack Ltd", "842478689",
+             submission_type="D/A", amendment="true"),
+        _row("0008-26-000003", "OPTCAPITAL LLC", "1769219217",
+             offering_amount="Indefinite", more_than_one_year="true"),
+        _row("0008-26-000004", "Baseten Labs, Inc.", "75000000"),
+    ])
+    reasons = bulk.money_raised_exclusions(blob)
+    kept = bulk.parse_archive(blob)[0]
+
+    assert kept["source_url"] not in reasons          # a raise has no reason
+    assert len(reasons) == 3
+    assert sorted(reasons.values()) == sorted([
+        sec_form_d.BUSINESS_COMBINATION, sec_form_d.AMENDMENT,
+        sec_form_d.CONTINUOUS_OFFERING])
+    # Keyed on the filing URL, which is what a published row stores.
+    assert all(u.endswith("/primary_doc.xml") for u in reasons)
+
+
 def test_a_tenant_in_common_offering_is_a_property_syndication():
     """The dataset says so itself, so this does not rely on the name."""
     assert bulk.parse_archive(_archive([
@@ -297,7 +509,7 @@ def _foreign_row(acc, name, amount, code, description, city="Vancouver"):
     return (
         f"{acc}\t021-1\t31-MAR-2026\t\tX0708\tD\tLIVE",
         f"{acc}\tYES\t101\t1234567\t{name}\t1 Main St\t{city}\t{code}\t{description}",
-        f"{acc}\tOther Technology\t\tfalse\tfalse\tfalse\t\t{amount}",
+        f"{acc}\tOther Technology\t\tfalse\tfalse\tfalse\t\t{amount}\tfalse\t\tfalse\t\tfalse",
     )
 
 
@@ -380,14 +592,19 @@ def test_the_two_form_d_paths_share_one_definition_of_where_an_issuer_is():
 # and reads the XML itself. These drive it end to end with the network stubbed.
 
 def _primary_doc(name, *, code, description, amount="1500000",
-                 city="Vancouver", industry="Other Technology") -> str:
+                 city="Vancouver", industry="Other Technology",
+                 submission_type="D", biz_comb="false", amendment="false",
+                 offering_amount="1500000", more_than_one_year="false") -> str:
     """A Form D primary_doc.xml, cut down to the tags the collector reads.
 
     The address block is the real shape: `stateOrCountry` is the two-character
-    code and `stateOrCountryDescription` is the readable place beside it.
+    code and `stateOrCountryDescription` is the readable place beside it. The
+    offering block likewise: `isBusinessCombinationTransaction` is nested under
+    `businessCombinationTransaction`, `isAmendment` under `typeOfFiling`.
     """
     return (
-        "<?xml version='1.0'?><edgarSubmission><primaryIssuer>"
+        f"<?xml version='1.0'?><edgarSubmission><submissionType>{submission_type}"
+        "</submissionType><primaryIssuer>"
         f"<entityName>{name}</entityName>"
         "<issuerAddress>"
         "<street1>1 Main St</street1>"
@@ -397,7 +614,17 @@ def _primary_doc(name, *, code, description, amount="1500000",
         "</issuerAddress>"
         "</primaryIssuer><offeringData>"
         f"<industryGroupType>{industry}</industryGroupType>"
-        f"<totalAmountSold>{amount}</totalAmountSold>"
+        f"<typeOfFiling><newOrAmendment><isAmendment>{amendment}</isAmendment>"
+        "</newOrAmendment></typeOfFiling>"
+        "<businessCombinationTransaction>"
+        f"<isBusinessCombinationTransaction>{biz_comb}"
+        "</isBusinessCombinationTransaction>"
+        "<clarificationOfResponse></clarificationOfResponse>"
+        "</businessCombinationTransaction>"
+        f"<durationOfOffering><moreThanOneYear>{more_than_one_year}</moreThanOneYear>"
+        "</durationOfOffering>"
+        f"<offeringSalesAmounts><totalOfferingAmount>{offering_amount}</totalOfferingAmount>"
+        f"<totalAmountSold>{amount}</totalAmountSold></offeringSalesAmounts>"
         "</offeringData></edgarSubmission>"
     )
 
@@ -487,6 +714,32 @@ def test_an_unrecognised_place_through_the_search_path_stores_nothing(monkeypatc
         amount="2000000"))
     signal = validate.build_signal(_classified(items[0]), items[0], sec_form_d.COLLECTOR)
     assert signal.country is None
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"biz_comb": "true"},                                       # merger consideration
+    {"submission_type": "D/A", "amendment": "true"},            # cumulative total
+    {"amendment": "true"},                                      # flag alone
+    {"submission_type": "D/A"},                                 # header alone
+    {"offering_amount": "Indefinite", "more_than_one_year": "true"},
+])
+def test_the_search_path_drops_what_is_not_money_raised(monkeypatch, kwargs):
+    """The same three questions, on the route that fetches the XML itself. The
+    answers were in the document the whole time and this path read past them —
+    which is how the two routes would have drifted the moment the bulk path was
+    fixed alone: one publishing what the other withdrew, from one filing."""
+    assert _search_path(monkeypatch, _primary_doc(
+        "Snowflake Inc.", code="CA", description="CALIFORNIA",
+        city="San Francisco", amount="376100000", **kwargs)) == []
+
+
+def test_the_search_path_still_collects_an_ordinary_raise(monkeypatch):
+    """The guard against the above being right for the wrong reason."""
+    items = _search_path(monkeypatch, _primary_doc(
+        "Baseten Labs, Inc.", code="CA", description="CALIFORNIA",
+        city="San Francisco", amount="75000000", offering_amount="100000000"))
+    assert len(items) == 1
+    assert items[0]["funding_amount"] == "$75M"
 
 
 def test_a_user_agent_with_a_contact_address():

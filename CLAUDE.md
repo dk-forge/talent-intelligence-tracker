@@ -125,6 +125,18 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   called. **Do not replace either with a WordPress broken-link-checker plugin** —
   those crawl post content, our source links live in `wp_tit_signals`, and it
   would paint a green badge over an entirely unchecked corpus.
+- **A real number off a real filing is not automatically the fact you want.**
+  Every issuer filter asks WHO filed; you must also ask WHAT THE FIGURE IS. A
+  Form D's "amount sold" is not money raised when the securities were merger
+  consideration, when the filing is an amendment (the figure is cumulative
+  since the offering's first sale, and the original D already carries the raise
+  at its own date), or when the offering states no size and runs past a year
+  (a running total over an open window). `sec_form_d.money_raised_exclusion` is
+  the one home for those three, called by BOTH Form D routes. They were 24.8%
+  of the published Form D rows and $23.55bn. **Do not gate any of them on the
+  filer's free-text clarification** — two thirds leave it blank, and the
+  largest that fill it in describe one figure that is part cash and part
+  consideration, which no column can split.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how
