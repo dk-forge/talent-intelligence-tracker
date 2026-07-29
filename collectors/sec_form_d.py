@@ -89,6 +89,20 @@ EXCLUDED_NAME_PATTERNS = re.compile(
     # NOT here: "estates" matches "Real Estate Business Analytics, Inc.", a
     # software company, and "development" matches "Strobe Development, Inc.".
     r"|properties\b|realty\b|land\s?co\b|(?:golf|country)\s+club\b"
+    # Insurance product wrappers: "DELAWARE LIFE VARIABLE ACCOUNT H",
+    # "NATIONWIDE PPVUL SEPARATE ACCOUNT 6". A separate account is a ring-fenced
+    # pool backing policies; it has no staff. The bulk path also catches these on
+    # the filing itself (sec_form_d_bulk.NOT_A_CAPITAL_RAISE), which is the
+    # stronger check — this is the fallback for a blank description.
+    r"|(?:variable|separate)\s+account\b|ppvu?l\b|vul\b"
+    # Non-traded credit and infrastructure vehicles: "Apollo Asset Backed Credit
+    # Co LLC", "Apollo Infrastructure Co LLC" — the same class as the
+    # "Conglomerate" entities above, wearing a different name. The strategy words
+    # are listed rather than generalised, because a bare "Credit Co" or "Equity
+    # Co" would eventually match a real lender.
+    r"|(?:asset[- ]?backed|infrastructure|private\s+markets?|diversified\s+credit"
+    r"|opportunistic\s+credit|multi[- ]?strateg(?:y|ies))"
+    r"\s+(?:credit\s+|income\s+)?co\.?\s*(?:llc|lp|l\.p\.)?\.?$"
     # "MIMG CCLXV Rapid City 6 Master, LLC" — the master entity of a syndication.
     r"|master,?\s*(?:llc|lp)\.?$"
     # A roman numeral immediately before the entity suffix is a series vehicle:

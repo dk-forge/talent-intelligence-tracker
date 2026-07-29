@@ -21,7 +21,8 @@ SUBMISSION_COLS = "ACCESSIONNUMBER\tFILE_NUM\tFILING_DATE\tSIC_CODE\tSCHEMAVERSI
 ISSUER_COLS = ("ACCESSIONNUMBER\tIS_PRIMARYISSUER_FLAG\tISSUER_SEQ_KEY\tCIK\tENTITYNAME\t"
                "STREET1\tCITY\tSTATEORCOUNTRY\tSTATEORCOUNTRYDESCRIPTION")
 OFFERING_COLS = ("ACCESSIONNUMBER\tINDUSTRYGROUPTYPE\tINVESTMENTFUNDTYPE\t"
-                 "ISPOOLEDINVESTMENTFUNDTYPE\tTOTALAMOUNTSOLD")
+                 "ISPOOLEDINVESTMENTFUNDTYPE\tISTENANTINCOMMONTYPE\tISOTHERTYPE\t"
+                 "DESCRIPTIONOFOTHERTYPE\tTOTALAMOUNTSOLD")
 
 
 def _archive(rows: list[tuple[str, str, str]]) -> bytes:
@@ -38,11 +39,12 @@ def _archive(rows: list[tuple[str, str, str]]) -> bytes:
 
 
 def _row(acc, name, amount, *, industry="Other Technology", fund_flag="false",
-         fund_type="", live="LIVE", cik="1234567"):
+         fund_type="", live="LIVE", cik="1234567", tic="false", other_desc=""):
     return (
         f"{acc}\t021-1\t31-MAR-2026\t\tX0708\tD\t{live}",
         f"{acc}\tYES\t101\t{cik}\t{name}\t1 Main St\tSan Francisco\tCA\tCALIFORNIA",
-        f"{acc}\t{industry}\t{fund_type}\t{fund_flag}\t{amount}",
+        f"{acc}\t{industry}\t{fund_type}\t{fund_flag}\t{tic}\t"
+        f"{'true' if other_desc else 'false'}\t{other_desc}\t{amount}",
     )
 
 
@@ -179,6 +181,103 @@ def test_operating_companies_survive_the_vehicle_filter(name):
     items = bulk.parse_archive(
         _archive([_row("0002-26-000002", name, "16325000")]))
     assert [i["headline"].split(" raised ")[0] for i in items] == [name]
+
+
+# --- Not every Form D is a capital raise -----------------------------------
+#
+# The largest single distortion in the money views, and the one no name filter
+# could reach: on 2025Q4 these were 3.5% of surviving rows and 41.6% of the
+# dollars. The discriminator is on the FILING, not the issuer.
+
+NOT_RAISES = [
+    "Private Placement Variable Life Insurance Policies (PPVUL)",
+    "Flexible Premium Variable Universal Life Insurance",
+    "MetLife Separate Account Life Insurance Funding Account",
+    "Group PPVL with Fixed Account",
+    "Variable Insurance Policies",
+    "IRC SECTION 529 PROGRAM ACCUMULATION SEGREGATED PORTFOLIO FUNDING AGREEMENT",
+    "Health Savings Account Program Book Value Separate Account Funding Agreement",
+    "Funding agreement issued by Empower Annuity Insurance Company",
+    "Interests in a Share Incentive Plan and a Stock incentive Plan",
+    "Participant interests in Issuers Deferred Compensation Program",
+    "Non-Equity Golf Memberships",
+]
+
+
+@pytest.mark.parametrize("description", NOT_RAISES)
+def test_an_offering_that_is_not_a_capital_raise_is_dropped(description):
+    """Premium collected from policyholders is not money the company raised,
+    and an employee share plan is not money it raised either."""
+    assert bulk.parse_archive(_archive([
+        _row("0003-26-000001", "METROPOLITAN LIFE INSURANCE CO", "4926890826",
+             industry="Insurance", other_desc=description)])) == []
+
+
+def test_the_discriminator_is_the_filing_not_the_issuer():
+    """This is the whole point. Metropolitan Life is a REAL employer that files
+    both annuity products and genuine corporate raises under one name and one
+    CIK, so an entity-level filter cannot separate them and would have to drop
+    the company outright. Same issuer, two filings, two outcomes."""
+    product = _row("0003-26-000002", "METROPOLITAN LIFE INSURANCE CO", "3362355473",
+                   industry="Insurance", other_desc="MetLife Separate Account Life Insurance")
+    raise_ = _row("0003-26-000003", "METROPOLITAN LIFE INSURANCE CO", "3362355473",
+                  industry="Insurance")
+    kept = bulk.parse_archive(_archive([product, raise_]))
+    assert [i["accession"] for i in kept] == ["0003-26-000003"]
+
+
+def test_ordinary_llc_equity_is_still_a_raise():
+    """"Membership Interests" is how an LLC describes its own equity. A rule
+    that matched bare "membership" would delete real raises, which is why it
+    matches "golf memberships" instead."""
+    for description in ("Membership Interests", "LLC Membership units",
+                        "Limited Liability Company Membership Interests",
+                        "Series A-1 Common Units", "Preferred units and Common units"):
+        items = bulk.parse_archive(_archive([
+            _row("0003-26-000004", "Vurvey Labs, Inc.", "5000000", other_desc=description)]))
+        assert len(items) == 1, description
+
+
+def test_insurance_product_wrappers_are_dropped_by_name_too():
+    """A separate account is a ring-fenced pool backing policies, with no staff.
+    The filing-level check is the strong one; this is the fallback for a filing
+    that leaves the description blank."""
+    for name in ("DELAWARE LIFE VARIABLE ACCOUNT H", "NATIONWIDE PPVUL SEPARATE ACCOUNT 6",
+                 "Keyport Life Ins Co Separate Account P", "DL Private Variable Account A"):
+        assert bulk.parse_archive(
+            _archive([_row("0003-26-000005", name, "7355355524", industry="Other")])) == [], name
+
+
+def test_non_traded_credit_and_infrastructure_vehicles_are_dropped():
+    for name in ("Apollo Asset Backed Credit Co LLC", "Apollo Infrastructure Co LLC"):
+        assert bulk.parse_archive(
+            _archive([_row("0003-26-000006", name, "1589086605", industry="Other")])) == [], name
+
+
+def test_that_rule_does_not_eat_an_operating_company_ending_in_co_llc():
+    """Which is why the strategy words are listed instead of matching "Co LLC"."""
+    for name in ("Quarry Glue Holding Co LLC", "Municipal Apparel Co LLC",
+                 "Fervo Energy Co", "NATIONAL FUEL GAS CO"):
+        items = bulk.parse_archive(_archive([_row("0003-26-000007", name, "9000000")]))
+        assert len(items) == 1, name
+
+
+def test_a_tenant_in_common_offering_is_a_property_syndication():
+    """The dataset says so itself, so this does not rely on the name."""
+    assert bulk.parse_archive(_archive([
+        _row("0003-26-000008", "Cedar Point Holdings, Inc.", "9000000", tic="true")])) == []
+
+
+def test_edgar_name_bookkeeping_does_not_reach_the_company_column():
+    """"Maverick Bancshares, Inc.\\TX" and "BAE SYSTEMS PLC /FI/" were rendering
+    with EDGAR's own suffix attached."""
+    items = bulk.parse_archive(_archive([
+        _row("0003-26-000009", "Maverick Bancshares, Inc.\\TX", "9000000"),
+        _row("0003-26-000010", "DataBahn, Inc. \\DE", "9000000"),
+        _row("0003-26-000011", "BAE SYSTEMS PLC /FI/", "9000000"),
+    ]))
+    assert sorted(i["headline"].split(" raised ")[0] for i in items) == [
+        "BAE SYSTEMS PLC", "DataBahn, Inc.", "Maverick Bancshares, Inc."]
 
 
 def test_the_two_form_d_paths_share_one_definition_of_a_vehicle():

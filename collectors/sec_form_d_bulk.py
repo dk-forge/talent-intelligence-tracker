@@ -14,7 +14,17 @@ Three things follow, and they are the whole reason this module exists:
 - **The figure is a real number**, not a phrase a model copied out of prose.
 - **Recall is an order of magnitude better.** EFTS matched ~850 filings a
   month for the collector's query; a quarter of the data set holds ~15,700
-  submissions, ~2,000 of which are operating companies raising over $1M.
+  submissions.
+
+**Expected yield, so a low count is not misread as a broken parse:** about
+**1,500-1,700 records per quarter**, not the 2,000-3,000 an earlier note
+estimated. The difference is the exclusions below doing their job — funds,
+single-purpose property vehicles, insurance product offerings and employee
+benefit plans are all filtered out, and together they are roughly a quarter of
+the filings that clear the $1M floor. Measured on 2025Q4: 14,885 issuer rows in
+the archive, 1,717 surviving before the offering-type filter, 1,657 after.
+A quarter that yields ~1,600 is healthy. A quarter that yields ~50 is an
+archive or layout failure.
 
 The rows still go through `validate.build_signal` -> `store` -> `publish`
 exactly like every other source, so the credibility guards (source URL is a
@@ -109,6 +119,45 @@ US_STATE_CODES = frozenset("""
 AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO
 MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY
 """.split())
+
+# EDGAR's own bookkeeping, glued onto the company name: a backslash and a state
+# ("Maverick Bancshares, Inc.\TX"), or a slash-wrapped marker ("BAE SYSTEMS PLC
+# /FI/" for a foreign issuer). Both were rendering in the company column.
+_EDGAR_NAME_SUFFIX = re.compile(r"\s*(?:\\[A-Za-z]{2,3}|/[A-Za-z]{2,3}/)\s*$")
+
+# A Form D reports a SECURITIES OFFERING, and not every offering is a company
+# raising capital. When the security is "Other", the filer describes it, and
+# that description is the only place the dataset says what the filing is
+# actually for. Three kinds are not capital raises at all:
+#
+#   1. Insurance and annuity products. A life insurer files a Form D for each
+#      variable-life or annuity product it sells, and the "amount sold" is
+#      premium collected from policyholders. This is the case a name filter
+#      CANNOT fix: Metropolitan Life Insurance Co is a real employer, and its
+#      product filings sit beside real corporate raises under the same name and
+#      the same CIK. The discriminator has to be on the FILING, and this is it.
+#      Measured on 2025Q4: 60 rows, $30.6bn — 41.6% of the quarter's dollars
+#      after every other filter, from 3.5% of its rows.
+#   2. Employee benefit plans. "Interests in a Share Incentive Plan",
+#      "Participant interests in Issuers Deferred Compensation Program". The
+#      money is employees', and the company raised none of it.
+#   3. Club memberships. "Non-Equity Golf Memberships" is a green fee.
+#
+# What is deliberately NOT here: "Membership Interests", "LLC Membership units".
+# Those are how an LLC describes its ordinary equity, so they ARE the raise —
+# which is why this matches "golf memberships" and never "memberships" alone.
+NOT_A_CAPITAL_RAISE = re.compile(
+    # Insurance and annuity products.
+    r"variable\s+(?:life|annuit|univ|insur)|annuit|\bvul\b|\bppvu?l\b"
+    r"|insurance\s+(?:polic|contract|product)|life\s+insurance|separate\s+account"
+    r"|funding\s+agreement|529\s+(?:program|plan)|health\s+savings"
+    r"|guaranteed\s+(?:investment|interest)"
+    # Employee benefit plans.
+    r"|(?:share|stock|equity|unit)\s+incentive\s+plan|deferred\s+compensation"
+    # Club memberships, never bare "membership".
+    r"|(?:golf|club|resort|social)\s+memberships?|non-?equity\s+membership",
+    re.I,
+)
 
 
 class DatasetError(RuntimeError):
@@ -227,12 +276,23 @@ def parse_archive(blob: bytes) -> list[dict]:
             continue
         if (offering.get("INVESTMENTFUNDTYPE") or "").strip():
             continue
+        # The dataset's own word for a property syndication: the security being
+        # sold is an undivided interest in one building.
+        if (offering.get("ISTENANTINCOMMONTYPE") or "").lower() == "true":
+            continue
+
+        # Is this filing a capital raise at all? See NOT_A_CAPITAL_RAISE. This
+        # is the only check here that reads the filing rather than the issuer,
+        # and it is the only one that can separate an insurer's annuity product
+        # from the same insurer's actual corporate raise.
+        if NOT_A_CAPITAL_RAISE.search(offering.get("DESCRIPTIONOFOTHERTYPE") or ""):
+            continue
 
         raised = _amount(offering.get("TOTALAMOUNTSOLD"))
         if not raised or raised < MIN_RAISED:
             continue
 
-        company = (issuer.get("ENTITYNAME") or "").strip()
+        company = _EDGAR_NAME_SUFFIX.sub("", (issuer.get("ENTITYNAME") or "").strip())
         if not company or EXCLUDED_NAME_PATTERNS.search(company):
             continue
 
