@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T12:58:33Z",
+  "last_tick": "2026-07-29T17:05:34Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -156,6 +156,33 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T17:05:34Z",
+      "history": [
+        {
+          "at": "2026-07-29T17:05:19Z",
+          "detail": "First real link check; dry runs cleared 291 URLs at 0% rot",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T17:05:34Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260729T170519Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "First real link check; dry runs cleared 291 URLs at 0% rot",
+      "requested_at": "2026-07-29T17:05:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "link-check.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
