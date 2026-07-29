@@ -116,6 +116,23 @@ MAX_ITEMS_PER_FEED = 25
 PER_HOST_PAUSE = 2.0
 TIMEOUT = 25
 
+# A feed can answer 200, parse cleanly, hand over 25 items, and still be dead:
+# NoCamels does exactly that, and its newest entry is from October 2024. Every
+# status check that only asks "did it respond" calls that healthy, so Israel
+# would carry a source that has published nothing in 21 months and nothing would
+# ever say so. Staleness is the quieter half of a dead feed.
+#
+# Two thresholds, because the sibling's health digest learned this the hard way:
+# a QUARTERLY source is not a stale one. A national daily silent for six weeks
+# is broken; a government agency announcing a programme twice a year is not.
+STALE_AFTER_DAYS = 45
+STALE_AFTER_DAYS_AGENCY = 150
+_AGENCY_TYPES = frozenset({
+    "Government Agency", "Government Programme", "Government Open Data",
+    "Government Portal", "Government Program", "Innovation Hub",
+    "Government-Supported Organization", "Regulator", "Central Bank",
+})
+
 # Rule: aggregators are discovery pointers, never stored sources. validate.py
 # blocks these at the point of storage; blocking them at the point of LOADING
 # means a well-meaning CSV edit cannot even queue one up. Anything added to the
@@ -325,6 +342,26 @@ def fetch(feed: Feed, *, timeout: int = TIMEOUT, session=None) -> list[dict]:
     return parse(resp.content, feed)
 
 
+def newest_item_age_days(items: list[dict], now=None) -> int | None:
+    """Age in days of the most recent DATED item, or None if none is dated.
+
+    Reuses validate._normalize_date so a feed's date is read exactly the way the
+    stored record's would be — a second date parser would eventually disagree
+    with the first, and the disagreement would show up as phantom staleness.
+    """
+    from pipeline.validate import _normalize_date
+
+    today = (now or datetime.now(timezone.utc)).date()
+    dates = []
+    for item in items:
+        parsed = _normalize_date(item.get("published_date"))
+        if parsed:
+            dates.append(datetime.strptime(parsed, "%Y-%m-%d").date())
+    if not dates:
+        return None
+    return (today - max(dates)).days
+
+
 _PUNCT = re.compile(r"[^\w]+", re.UNICODE)
 
 
@@ -385,6 +422,16 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
             # A feed that answers 200 with nothing we can parse is broken in the
             # way that hides best: the request succeeded. Say so explicitly.
             record.update(status="empty", detail="200 but no parseable items")
+        elif record["status"] == "ok":
+            age = newest_item_age_days(items)
+            limit = (STALE_AFTER_DAYS_AGENCY if feed.source_type in _AGENCY_TYPES
+                     else STALE_AFTER_DAYS)
+            record["newest_days"] = age
+            if age is not None and age > limit:
+                record.update(
+                    status="stale",
+                    detail=f"newest item is {age}d old (limit {limit}d) — "
+                           f"the feed answers but the publisher has stopped")
 
         for item in items:
             url = item["source_url"]

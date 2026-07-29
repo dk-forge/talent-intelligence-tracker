@@ -2157,7 +2157,7 @@
   "country": "Israel",
   "rss": "https://nocamels.com/feed/",
   "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29. English-language Israeli innovation news."
+  "notes": "Feed fetched and parsed 2026-07-29. English-language Israeli innovation news. Feed answers 200 with 25 parseable items whose newest is 2024-10-31; the publisher appears to have stopped. Kept so the collector reports it as stale rather than losing the row, and it recovers by itself if publishing resumes."
  },
  {
   "name": "Novobrief",

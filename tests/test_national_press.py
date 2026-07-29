@@ -223,6 +223,50 @@ def test_a_feed_answering_200_with_nothing_is_empty_not_ok():
     assert press.FEED_HEALTH[0]["status"] == "empty"
 
 
+def test_a_feed_that_answers_but_stopped_publishing_is_stale_not_ok():
+    """The quieter half of a dead feed, and a real one: NoCamels answers 200,
+    parses cleanly, hands over 25 items — and its newest entry is from October
+    2024. Any check that only asks "did it respond" calls that healthy, and
+    Israel keeps a source that has published nothing in 21 months."""
+    old = RSS.replace(b"Mon, 14 Jul 2026 08:30:00 GMT", b"Mon, 14 Oct 2024 08:30:00 GMT") \
+             .replace(b"Tue, 15 Jul 2026 09:00:00 GMT", b"Tue, 15 Oct 2024 09:00:00 GMT")
+    session = FakeSession({GLOBES.rss: FakeResponse(old)})
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    record = press.FEED_HEALTH[0]
+    assert record["status"] == "stale"
+    assert "stopped" in record["detail"]
+
+
+def test_a_quarterly_agency_feed_is_not_called_stale():
+    """The sibling's health digest learned this one: a source that publishes
+    twice a year is not a broken source. A national daily silent for six weeks
+    is; an innovation agency announcing a programme is not."""
+    agency = press.Feed(name="Innovate UK", rss="https://www.gov.uk/x.atom",
+                        country="United Kingdom", city="Swindon", coverage="National",
+                        language="English", source_type="Government Agency")
+    aged = ATOM.replace(b"2026-07-20T09:30:00+01:00", b"2026-04-20T09:30:00+01:00")
+    session = FakeSession({agency.rss: FakeResponse(aged)})
+    press.collect(feeds=[agency], session=session, pause=0, dry_run=True)
+    assert press.FEED_HEALTH[0]["status"] == "ok"
+
+    # The same gap on a daily newspaper is not fine.
+    press.collect(feeds=[GLOBES], pause=0, dry_run=True, session=FakeSession({
+        GLOBES.rss: FakeResponse(RSS.replace(b"Mon, 14 Jul 2026", b"Mon, 14 Jan 2026")
+                                    .replace(b"Tue, 15 Jul 2026", b"Tue, 15 Jan 2026"))}))
+    assert press.FEED_HEALTH[0]["status"] == "stale"
+
+
+def test_an_undated_feed_is_not_guessed_at():
+    """No date is not the same as an old date, and treating it as one would
+    retire a working feed on no evidence."""
+    undated = RSS.replace(b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>", b"") \
+                 .replace(b"<pubDate>Tue, 15 Jul 2026 09:00:00 GMT</pubDate>", b"")
+    session = FakeSession({GLOBES.rss: FakeResponse(undated)})
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    assert press.FEED_HEALTH[0]["status"] == "ok"
+    assert press.newest_item_age_days(press.parse(undated, GLOBES)) is None
+
+
 def test_a_thin_teaser_feed_is_not_recorded_as_a_broken_one():
     """Paywalled publishers serve headline-and-teaser feeds, so fewer of their
     items survive the gate. The ledger counts items separately from new ones so
