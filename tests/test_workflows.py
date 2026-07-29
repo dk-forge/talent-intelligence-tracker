@@ -67,13 +67,38 @@ def test_the_collect_commit_survives_a_racing_push():
     assert "::error::" in run and run.rstrip().endswith("exit 1")
 
 
-def test_two_collect_runs_cannot_overlap():
-    """The reset-and-replace is only safe because this job is the sole writer."""
+def test_every_database_writer_shares_one_lock():
+    """The reset-and-replace each writer performs is only safe while exactly
+    one of them can run at a time.
+
+    This used to assert that collect.yml's group was the literal string
+    "collect", which passed happily while the four backfill workflows sat in a
+    DIFFERENT group. Two groups guarding one file is not a lock: a backfill and
+    a collector could run together, and since both end with `reset --hard
+    origin/main` and then copy their own database back over it, whichever
+    pushed second silently destroyed the other's rows (found 2026-07-28).
+
+    So this asserts the PROPERTY rather than a name: every workflow that writes
+    the database sits in the same group, whatever it is called, and none of
+    them cancels a run already in progress.
+    """
     from pathlib import Path
 
     import yaml
 
-    wf = yaml.safe_load(
-        (Path(__file__).parent.parent / ".github/workflows/collect.yml").read_text())
-    assert wf["concurrency"]["group"] == "collect"
-    assert wf["concurrency"]["cancel-in-progress"] is False
+    workflows = Path(__file__).parent.parent / ".github/workflows"
+    groups = {}
+    for path in sorted(workflows.glob("*.yml")):
+        text = path.read_text()
+        if "talent_intel.db" not in text:
+            continue
+        concurrency = (yaml.safe_load(text) or {}).get("concurrency") or {}
+        groups[path.name] = concurrency.get("group")
+        assert concurrency.get("cancel-in-progress") is False, path.name
+
+    assert len(groups) >= 5, f"expected several database writers, found {groups}"
+    assert None not in groups.values(), f"a database writer has no lock: {groups}"
+    assert len(set(groups.values())) == 1, (
+        "database writers are split across concurrency groups, so they do not "
+        f"exclude each other: {groups}"
+    )
