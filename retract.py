@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import time
 from urllib.parse import urlparse
 
 import requests
@@ -35,21 +36,47 @@ def find_bare_domain_rows(conn) -> list[dict]:
     return rows
 
 
+#: Retries for a TRANSIENT host failure, and the pauses between them.
+#:
+#: Shared hosting 500s and 504s under load — it is gotcha 8 in CLAUDE.md and it
+#: was walked into anyway: on 2026-07-29 a scope correction withdrew three rows
+#: and lost four to `504` from the gateway, one request at a time, with nothing
+#: wrong with the requests. A withdrawal that fails leaves a record live on a
+#: page that promises it is not there, so this is the one place where "the host
+#: was busy" must not be a final answer.
+#:
+#: Only 5xx and a dropped connection are retried. A 4xx is our fault — a bad
+#: key, a signal_id that does not exist — and repeating it just asks the same
+#: wrong question five times.
+RETRY_PAUSES = (2, 5, 12, 30)
+
+
 def retract_remote(signal_id: str, reason: str) -> dict:
     site, key = publish._config()
-    resp = requests.post(
-        f"{site}/wp-json/talent/v1/retract",
-        json={"signal_id": signal_id, "reason": reason},
-        headers={
-            "X-Talent-API-Key": key,
-            "User-Agent": publish.USER_AGENT,
-            "Content-Type": "application/json",
-        },
-        timeout=45,
-    )
-    if resp.status_code >= 400:
-        raise publish.PublishError(f"{resp.status_code}: {resp.text[:200]}")
-    return resp.json()
+    last = ""
+    for attempt in range(len(RETRY_PAUSES) + 1):
+        try:
+            resp = requests.post(
+                f"{site}/wp-json/talent/v1/retract",
+                json={"signal_id": signal_id, "reason": reason},
+                headers={
+                    "X-Talent-API-Key": key,
+                    "User-Agent": publish.USER_AGENT,
+                    "Content-Type": "application/json",
+                },
+                timeout=45,
+            )
+        except requests.RequestException as exc:
+            last = f"{type(exc).__name__}: {exc}"[:200]
+        else:
+            if resp.status_code < 400:
+                return resp.json()
+            last = f"{resp.status_code}: {resp.text[:200]}"
+            if resp.status_code < 500:
+                raise publish.PublishError(last)
+        if attempt < len(RETRY_PAUSES):
+            time.sleep(RETRY_PAUSES[attempt])
+    raise publish.PublishError(f"{last} (after {len(RETRY_PAUSES) + 1} attempts)")
 
 
 def retract_local(conn, signal_id: str, reason: str) -> int:
