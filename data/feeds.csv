@@ -1,0 +1,113 @@
+country,publisher,feed_url,feed_kind,language,coverage,site_url
+Australia,Business News Australia,https://www.businessnewsaustralia.com/rss.xml,rss,English,National,https://www.businessnewsaustralia.com
+Australia,SmartCompany,https://www.smartcompany.com.au/feed/,rss,English,National,https://www.smartcompany.com.au
+Australia,Startup Daily,https://www.startupdaily.net/feed/,rss,English,National,https://www.startupdaily.net
+Belgium,Tech.eu,https://tech.eu/feed/,rss,English,Regional,https://tech.eu
+Brazil,Brazil Journal,https://braziljournal.com/feed/,rss,Portuguese,National,https://braziljournal.com
+Brazil,Exame,https://exame.com/feed/,rss,Portuguese,National,https://exame.com
+Brazil,MIT Technology Review Brasil,https://mittechreview.com.br/feed/,rss,Portuguese,National,https://mittechreview.com.br
+Brazil,NeoFeed,https://neofeed.com.br/feed/,rss,Portuguese,National,https://neofeed.com.br
+Brazil,Startups.com.br,https://startups.com.br/feed/,rss,English,National,https://startups.com.br
+Bulgaria,The Recursive,https://www.therecursive.com/rss/,rss,English,Regional,https://therecursive.com
+Canada,BetaKit,https://betakit.com/feed/,rss,English,National,https://betakit.com
+Canada,Financial Post,https://financialpost.com/feed/,rss,English,National,https://financialpost.com
+Canada,MaRS Discovery District,https://www.marsdd.com/feed/,rss,English,National,https://www.marsdd.com
+Canada,Techcouver,https://techcouver.com/feed/,rss,English,Regional,https://techcouver.com
+China,36Kr,https://36kr.com/feed,rss,Chinese,National,https://36kr.com
+China,TechNode,https://technode.com/feed/,rss,English,Regional,https://technode.com
+Czechia,CzechCrunch,https://cc.cz/feed/,rss,Czech,National,https://cc.cz
+Denmark,Bootstrapping.dk,https://bootstrapping.dk/feed/,rss,Danish,National,https://bootstrapping.dk
+Estonia,Startup Estonia,https://startupestonia.ee/feed/,rss,English,National,https://startupestonia.ee
+European Union,European Commission press corner,https://ec.europa.eu/commission/presscorner/api/rss?language=en,rss,English,Regional,https://ec.europa.eu/commission/presscorner
+France,BFM Business,https://www.bfmtv.com/rss/economie/,rss,French,National,https://www.bfmtv.com/economie/
+France,FrenchWeb,https://www.frenchweb.fr/feed,rss,French,National,https://www.frenchweb.fr
+France,Journal du Net,https://www.journaldunet.com/rss/,rss,French,National,https://www.journaldunet.com
+France,L'Usine Digitale,https://www.usine-digitale.fr/rss/,rss,French,National,https://www.usine-digitale.fr
+France,La French Tech,https://lafrenchtech.gouv.fr/en/feed/,rss,English,National,https://lafrenchtech.gouv.fr
+France,Maddyness,https://www.maddyness.com/feed/,rss,English,National,https://www.maddyness.com
+Germany,EU-Startups,https://www.eu-startups.com/feed/,rss,English,Europe,https://www.eu-startups.com
+Germany,Gruenderszene (feed),https://www.businessinsider.de/gruenderszene/feed/,rss,German,National,https://www.businessinsider.de/gruenderszene/
+Germany,Handelsblatt,https://www.handelsblatt.com/contentexport/feed/unternehmen,rss,German,National,https://www.handelsblatt.com
+Germany,Startbase,https://www.startbase.com/topics/feed/feed/,rss,German,National,https://www.startbase.com
+Germany,t3n,https://t3n.de/rss.xml,rss,German,National,https://t3n.de
+India,Entrackr,https://entrackr.com/rss,rss,English,National,https://entrackr.com
+India,Inc42,https://inc42.com/feed/,rss,English,National,https://inc42.com
+India,Mint,https://www.livemint.com/rss/companies,rss,English,National,https://www.livemint.com
+India,Moneycontrol,https://www.moneycontrol.com/rss/business.xml,unreachable,English,National,https://www.moneycontrol.com
+India,The Economic Times,https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms,rss,English,National,https://economictimes.indiatimes.com
+India,The Hindu BusinessLine,https://www.thehindubusinessline.com/companies/feeder/default.rss,rss,English,National,https://www.thehindubusinessline.com
+India,YourStory,https://yourstory.com/feed,rss,English,National,https://yourstory.com
+Indonesia,DailySocial,https://dailysocial.id/feed,rss,English,National,https://dailysocial.id
+Indonesia,Katadata,https://katadata.co.id/rss,rss,Indonesian,National,https://katadata.co.id
+Indonesia,Tech in Asia Indonesia,https://id.techinasia.com/feed,rss,Indonesian,National,https://id.techinasia.com
+Ireland,Silicon Republic,https://www.siliconrepublic.com/feed,rss,English,National,https://www.siliconrepublic.com
+Israel,Geektime,https://www.geektime.co.il/feed/,rss,Hebrew,National,https://www.geektime.co.il
+Israel,Globes,https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=1725,rss,English,National,https://en.globes.co.il
+Israel,Israel Innovation Authority,https://innovationisrael.org.il/en/feed/,unreachable,English,National,https://innovationisrael.org.il/en/
+Israel,NoCamels,https://nocamels.com/feed/,rss,English,National,https://nocamels.com
+Israel,The Jerusalem Post,https://www.jpost.com/rss/rssfeedsfrontpage.aspx,rss,English,National,https://www.jpost.com
+Israel,The Times of Israel,https://www.timesofisrael.com/feed/,rss,English,National,https://www.timesofisrael.com
+Japan,THE BRIDGE,https://thebridge.jp/feed/,rss,Japanese,National,https://thebridge.jp
+Kenya,TechMoran,https://techmoran.com/feed/,rss,English,Regional,https://techmoran.com
+Mexico,El Economista Mexico,https://www.eleconomista.com.mx/rss/ultimas-noticias,rss,Spanish,National,https://www.eleconomista.com.mx
+Mexico,El Financiero,https://www.elfinanciero.com.mx/rss,rss,Spanish,National,https://www.elfinanciero.com.mx
+Mexico,Expansion,https://expansion.mx/rss,rss,Spanish,National,https://expansion.mx
+Netherlands,Silicon Canals,https://siliconcanals.com/feed/,rss,English,Regional,https://siliconcanals.com
+Nigeria,BusinessDay Nigeria,https://businessday.ng/feed/,rss,English,National,https://businessday.ng
+Nigeria,Nairametrics,https://nairametrics.com/feed/,rss,English,National,https://nairametrics.com
+Nigeria,TechCabal,https://techcabal.com/feed/,rss,English,Regional,https://techcabal.com
+Poland,Bankier.pl,https://www.bankier.pl/rss/wiadomosci.xml,rss,Polish,National,https://www.bankier.pl
+Poland,ITwiz,https://itwiz.pl/feed/,rss,Polish,National,https://itwiz.pl
+Poland,MamStartup,https://mamstartup.pl/feed/,rss,Polish,National,https://mamstartup.pl
+Poland,Puls Biznesu,https://www.pb.pl/rss/najnowsze.xml,rss,Polish,National,https://www.pb.pl
+Singapore,e27,https://e27.co/feed/,rss,English,Regional,https://e27.co
+Singapore,Tech Collective SEA,https://techcollectivesea.com/feed/,rss,English,Regional,https://techcollectivesea.com
+Singapore,Tech in Asia,https://www.techinasia.com/feed,rss,English,Regional,https://www.techinasia.com
+Singapore,The Business Times Singapore,https://www.businesstimes.com.sg/rss/companies-markets,rss,English,National,https://www.businesstimes.com.sg
+Singapore,The Straits Times Business,https://www.straitstimes.com/news/business/rss.xml,rss,English,National,https://www.straitstimes.com
+Singapore,Vulcan Post,https://vulcanpost.com/feed/,rss,English,Regional,https://vulcanpost.com
+South Africa,Disrupt Africa,https://disrupt-africa.com/feed/,rss,English,Regional,https://disrupt-africa.com
+South Africa,ITWeb,https://www.itweb.co.za/rss,rss,English,National,https://www.itweb.co.za
+South Africa,Moneyweb,https://www.moneyweb.co.za/feed/,rss,English,National,https://www.moneyweb.co.za
+South Africa,TechCentral,https://techcentral.co.za/feed/,rss,English,National,https://techcentral.co.za
+South Africa,Ventureburn,https://ventureburn.com/feed/,rss,English,National,https://ventureburn.com
+South Korea,KED Global,https://www.kedglobal.com/rss/news.xml,rss,English,National,https://www.kedglobal.com
+Spain,El Referente,https://www.elreferente.es/feed/,rss,Spanish,National,https://www.elreferente.es
+Spain,Novobrief,https://novobrief.com/feed/,rss,English,National,https://novobrief.com
+Sweden,Breakit,https://www.breakit.se/feed/artiklar,rss,Swedish,National,https://www.breakit.se
+Sweden,Dagens industri,https://www.di.se/rss,rss,Swedish,National,https://www.di.se
+Taiwan,Meet Global,https://meet.bnext.com.tw/rss,rss,Chinese,National,https://meet.bnext.com.tw
+Turkey,ShiftDelete,https://shiftdelete.net/feed/,rss,Turkish,National,https://shiftdelete.net
+Turkey,Webrazzi,https://webrazzi.com/feed/,rss,Turkish,National,https://webrazzi.com
+United Arab Emirates,MENAbytes,https://www.menabytes.com/feed/,rss,English,Regional,https://www.menabytes.com
+United Arab Emirates,Wamda,https://www.wamda.com/feed/,rss,English,Regional,https://www.wamda.com
+United Kingdom,Finextra,https://www.finextra.com/rss/headlines.aspx,rss,English,Global,https://www.finextra.com
+United Kingdom,Innovate UK,https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=innovate-uk,atom,English,National,https://www.gov.uk/government/organisations/innovate-uk
+United Kingdom,Sifted,https://sifted.eu/feed/,rss,English,Europe,https://sifted.eu
+United Kingdom,UK Research and Innovation,https://www.ukri.org/feed/,rss,English,National,https://www.ukri.org
+United Kingdom,UKTN,https://www.uktech.news/feed,rss,English,National,https://www.uktech.news
+United States,AlleyWatch,https://www.alleywatch.com/feed/,rss,English,Local,https://www.alleywatch.com
+United States,Canary Media,https://www.canarymedia.com/feed,rss,English,Global,https://www.canarymedia.com
+United States,ClinicalTrials.gov,https://clinicaltrials.gov/ct2/results/rss.xml,rss,English,Global,https://clinicaltrials.gov
+United States,CoinDesk,https://www.coindesk.com/arc/outboundfeeds/rss/,rss,English,Global,https://www.coindesk.com
+United States,Construction Dive,https://www.constructiondive.com/feeds/news/,rss,English,National,https://www.constructiondive.com
+United States,Defense News,https://www.defensenews.com/arc/outboundfeeds/rss/,rss,English,Global,https://www.defensenews.com
+United States,dot.LA,https://dot.la/feeds/feed.rss,rss,English,Local,https://dot.la
+United States,Endpoints News,https://endpts.com/feed/,rss,English,Global,https://endpts.com
+United States,FinLedger,https://finledger.com/feed/,rss,English,Global,https://finledger.com
+United States,FreightWaves,https://www.freightwaves.com/feed,rss,English,Global,https://www.freightwaves.com
+United States,LA Business Journal,https://labusinessjournal.com/feed/,rss,English,Local,https://labusinessjournal.com
+United States,Manufacturing Dive,https://www.manufacturingdive.com/feeds/news/,rss,English,National,https://www.manufacturingdive.com
+United States,PYMNTS,https://www.pymnts.com/feed/,rss,English,Global,https://www.pymnts.com
+United States,RecruitingDaily,https://recruitingdaily.com/feed/,rss,English,Global,https://recruitingdaily.com
+United States,Refresh Miami,https://refreshmiami.com/feed/,rss,English,Local,https://refreshmiami.com
+United States,Rest of World,https://restofworld.org/feed/,rss,English,Global,https://restofworld.org
+United States,Retail Dive,https://www.retaildive.com/feeds/news/,rss,English,National,https://www.retaildive.com
+United States,SaaStr,https://www.saastr.com/feed/,rss,English,Global,https://www.saastr.com
+United States,Silicon Hills News,https://siliconhillsnews.com/feed/,rss,English,Local,https://siliconhillsnews.com
+United States,SpaceNews,https://spacenews.com/feed/,rss,English,Global,https://spacenews.com
+United States,STAT News,https://www.statnews.com/feed/,rss,English,Global,https://www.statnews.com
+United States,StrictlyVC,https://www.strictlyvc.com/feed/,rss,English,Global,https://www.strictlyvc.com
+United States,Supply Chain Dive,https://www.supplychaindive.com/feeds/news/,rss,English,National,https://www.supplychaindive.com
+United States,The Block,https://www.theblock.co/rss.xml,rss,English,Global,https://www.theblock.co
+United States,USPTO,https://www.uspto.gov/rss.xml,rss,English,National,https://www.uspto.gov

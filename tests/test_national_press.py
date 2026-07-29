@@ -399,3 +399,26 @@ def _write_catalogue(path: Path, rows: list[dict]) -> None:
         writer.writeheader()
         for row in rows:
             writer.writerow({f: row.get(f, "") for f in fields})
+
+
+def test_the_portable_feed_export_is_in_sync_with_the_catalogue():
+    """data/feeds.csv is a generated artifact for OTHER products to consume —
+    the sibling layoff tracker most of all, since the outlets that report a
+    funding round also report a redundancy programme. Run
+    build_feeds_export.py if this fails; never hand-edit the CSV."""
+    import build_feeds_export
+
+    with (Path(__file__).parent.parent / "data" / "feeds.csv").open(newline="") as fh:
+        assert list(csv.DictReader(fh)) == build_feeds_export.rows()
+
+
+def test_the_export_carries_no_aggregator_and_no_bare_domain():
+    """It leaves this repo, so the product rule has to hold in the artifact and
+    not merely in the collector that produced it."""
+    import build_feeds_export
+
+    for row in build_feeds_export.rows():
+        host = (urlparse(row["feed_url"]).hostname or "").lower()
+        assert host not in press._AGGREGATOR_HOSTS, row["publisher"]
+        assert row["feed_url"].startswith("https://"), row["publisher"]
+        assert row["publisher"] and row["country"], row
