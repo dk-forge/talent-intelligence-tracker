@@ -578,3 +578,95 @@ def test_the_gate_payload_stays_small_because_it_is_charged_per_token():
     assert len(item["raw_text"]) < 700, "the gate payload has grown"
     # And the figure still survives the trim, which is the whole point.
     assert "$71m" in item["raw_text"]
+
+
+# --- Domain drift ----------------------------------------------------------
+
+class FakeRedirected(FakeResponse):
+    def __init__(self, body, final_url, status=200):
+        super().__init__(body, status)
+        self.url = final_url
+
+
+def test_a_feed_that_now_answers_from_another_domain_is_refused():
+    """botswanaguardian.co.bw redirects to a BETTING SITE whose /feed/ verifies
+    perfectly green — 200, well-formed RSS, recent items. Every automated check
+    passes and we would be citing a gambling operator as a Botswana news
+    source, under our own name.
+
+    Status codes cannot catch this and neither can freshness. The only signal
+    is that the bytes came from somewhere other than the publisher we listed.
+    """
+    press._ROBOTS_CACHE.clear()
+    feed = press.Feed(name="Botswana Guardian",
+                      rss="https://www.botswanaguardian.co.bw/feed/",
+                      country="Botswana", city="Gaborone", coverage="National",
+                      language="English", source_type="News Organization",
+                      site="https://www.botswanaguardian.co.bw")
+    session = FakeSession({feed.rss: FakeRedirected(RSS, "https://bettingbotswana.com/feed/")})
+    items = press.collect(feeds=[feed], session=session, pause=0, dry_run=True)
+
+    assert items == [], "not one row may be stored from a hijacked domain"
+    assert press.FEED_HEALTH[0]["status"] == "hijacked"
+    assert "bettingbotswana.com" in press.FEED_HEALTH[0]["detail"]
+
+
+def test_an_ordinary_redirect_inside_the_same_domain_is_fine():
+    """http->https and www->bare are redirects too, and refusing those would
+    retire most of the catalogue."""
+    press._ROBOTS_CACHE.clear()
+    feed = press.Feed(name="Globes", rss="https://en.globes.co.il/feed",
+                      country="Israel", city="Tel Aviv", coverage="National",
+                      language="English", source_type="News Organization",
+                      site="https://en.globes.co.il")
+    session = FakeSession({feed.rss: FakeRedirected(RSS, "https://www.globes.co.il/feed/")})
+    assert len(press.collect(feeds=[feed], session=session, pause=0, dry_run=True)) == 2
+
+
+def test_the_registrable_domain_is_not_fooled_by_a_two_part_suffix():
+    """Without this, every .co.bw site compares equal to every other and the
+    guard silently protects nothing at all."""
+    assert press.registrable_domain("https://www.botswanaguardian.co.bw/feed/") == "botswanaguardian.co.bw"
+    assert press.registrable_domain("https://bettingbotswana.com/x") == "bettingbotswana.com"
+    assert press.registrable_domain("https://en.globes.co.il") == "globes.co.il"
+    assert press.registrable_domain("https://sub.example.com") == "example.com"
+
+
+def test_the_shipped_catalogue_no_longer_wires_the_hijacked_domain():
+    with press.CATALOGUE_CSV.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            assert "botswanaguardian" not in (row.get("rss") or ""), (
+                "the hijacked Botswana domain is wired again")
+
+
+# --- Last-resort parsing ---------------------------------------------------
+
+def test_a_feed_too_malformed_to_parse_is_read_with_a_regex():
+    """Six live feeds are malformed past repair (Times of Oman, Daily News
+    Egypt, African Manager, Sika Finance, Condia, New Era). Strict parsing
+    reports every one as dead, so Oman would look sourceless while having a
+    perfectly good publisher."""
+    hopeless = (b"<rss><channel><item><title>Acme raises $5m</title>"
+                b"<link>https://ex.example/acme</link>"
+                b"<description>Acme raised $5m and will hire.</description>"
+                b"</item><item><title>Unclosed" + b"\x00\x01" + b"</channel></rss>")
+    items = press.parse(hopeless, GLOBES)
+    assert len(items) == 1
+    assert items[0]["source_url"] == "https://ex.example/acme"
+    assert items[0]["parsed_by"] == "regex-fallback"
+    # It still goes through the same funnel, so raw_text and the dateline hold.
+    assert "$5m" in items[0]["raw_text"] and "Israel" in items[0]["raw_text"]
+
+
+def test_the_regex_reader_is_never_used_on_a_feed_that_parses():
+    """A regex is a worse reader than a parser in every way except tolerating
+    invalid input, so it must stay the last resort."""
+    assert "parsed_by" not in press.parse(RSS, GLOBES)[0]
+
+
+def test_only_an_encoding_we_can_decode_is_advertised():
+    """Advertising brotli without a decoder makes a healthy feed read as
+    corrupt."""
+    accept_encoding = press._headers(press._ACCEPT_RSS)["Accept-Encoding"]
+    if "br" in accept_encoding.split(", "):
+        assert press._HAVE_BROTLI

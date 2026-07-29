@@ -96,6 +96,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Broadcaster news portal."
  },
  {
+  "name": "263Chat",
+  "url": "https://www.263chat.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Zimbabwe",
+  "rss": "https://www.263chat.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Independent digital title."
+ },
+ {
   "name": "360 Stepeni",
   "url": "https://360stepeni.mk",
   "status": "candidate",
@@ -192,6 +208,54 @@
   "notes": "Verified by the apac region audit, 2026-07-29. Public broadcaster business desk"
  },
  {
+  "name": "Actu Cameroun",
+  "url": "https://actucameroun.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cameroon",
+  "rss": "https://actucameroun.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. General national news; 20 items."
+ },
+ {
+  "name": "Addis Fortune",
+  "url": "https://addisfortune.news",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ethiopia",
+  "rss": "https://addisfortune.news/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Business weekly."
+ },
+ {
+  "name": "African Manager",
+  "url": "https://africanmanager.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tunisia",
+  "rss": "https://africanmanager.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. 100 items. MALFORMED XML - needs a tolerant parse. [tolerant parse required]"
+ },
+ {
   "name": "Aftenposten",
   "url": "https://www.aftenposten.no",
   "status": "candidate",
@@ -206,6 +270,38 @@
   "rss": "https://www.aftenposten.no/rss",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "AGBI (Arabian Gulf Business Insight)",
+  "url": "https://www.agbi.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Arab Emirates",
+  "rss": "https://www.agbi.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Gulf-wide business desk, UAE-based. Good for SA/QA/KW/BH/OM stories that local papers do not feed."
+ },
+ {
+  "name": "Agence de Presse Senegalaise (APS)",
+  "url": "https://aps.sn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Senegal",
+  "rss": "https://aps.sn/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. State news agency. Low cadence."
  },
  {
   "name": "Agenda Digitale",
@@ -269,6 +365,22 @@
   "rss": "https://rss.aktuelno.me",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Same rss.<domain> pattern."
+ },
+ {
+  "name": "Algerie Eco",
+  "url": "https://algerie-eco.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Algeria",
+  "rss": "https://algerie-eco.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Economy/business desk. Note the canonical host drops the www."
  },
  {
   "name": "AlleyWatch",
@@ -364,6 +476,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Annahar",
+  "url": "https://www.annahar.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lebanon",
+  "rss": "https://www.annahar.com/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Note /rss works while /rss.xml and /feed do not."
+ },
+ {
   "name": "ANSA Economia",
   "url": "https://www.ansa.it",
   "status": "candidate",
@@ -412,6 +540,38 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Arab News",
+  "url": "https://www.arabnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Saudi Arabia",
+  "rss": "https://www.arabnews.com/rss.xml",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Feed only returns 200 with browser-shaped headers (a bare Accept: application/rss+xml gets 403). SLOW-MOVING: newest item lags the site by weeks, so pair with AGBI/Leaders MENA for Saudi coverage."
+ },
+ {
+  "name": "Arabian Business",
+  "url": "https://www.arabianbusiness.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Arab Emirates",
+  "rss": "https://www.arabianbusiness.com/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. NOTE the missing trailing slash: /feed/ returns 403, /feed returns 200 with ~200 items. Homepage itself 403s automated requests, so discovery must skip straight to the feed."
  },
  {
   "name": "Aripaev",
@@ -529,7 +689,7 @@
  },
  {
   "name": "B2B Cambodia",
-  "url": "https://www.b2b-cambodia.com",
+  "url": "https://www.b2b-asianews.com",
   "status": "candidate",
   "category": "Technology News",
   "signals": [
@@ -541,7 +701,7 @@
   "country": "Cambodia",
   "rss": "https://www.b2b-cambodia.com/feed/",
   "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. Business publisher; feed <link> values are RELATIVE slugs, not absolute URLs; the collector must prefix https://www.b2b-cambodia.com/ or every source_url will be broken"
+  "notes": "Verified by the apac region audit, 2026-07-29. Business publisher; feed <link> values are RELATIVE slugs, not absolute URLs; the collector must prefix https://www.b2b-cambodia.com/ or every source_url will be broken Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://www.b2b-asianews.com and the catalogue url updated to match."
  },
  {
   "name": "Baguete",
@@ -558,6 +718,22 @@
   "rss": "https://www.baguete.com.br/rss/noticias/feed",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Bahrain This Week",
+  "url": "https://www.bahrainthisweek.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bahrain",
+  "rss": "https://www.bahrainthisweek.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Local English title; lighter business coverage but live."
  },
  {
   "name": "Bangkok Post (Business)",
@@ -639,6 +815,22 @@
   "rss": "https://barbadostoday.bb/feed/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Berytech",
+  "url": "https://berytech.org",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lebanon",
+  "rss": "https://berytech.org/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Innovation hub publishing its own programme/portfolio announcements - primary source for the claims it makes."
  },
  {
   "name": "BetaKit",
@@ -1012,6 +1204,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. business weekly"
  },
  {
+  "name": "Business Daily Africa",
+  "url": "https://www.businessdailyafrica.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kenya",
+  "rss": "https://www.businessdailyafrica.com/bd/rss.xml",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Nation Media Group shape is /<site-prefix>/rss.xml - here the prefix is 'bd'. The same shape does NOT work for Monitor (UG) or The Citizen (TZ)."
+ },
+ {
   "name": "Business France",
   "url": "https://www.businessfrance.fr/",
   "status": "candidate",
@@ -1025,6 +1233,22 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "Business in Cameroon",
+  "url": "https://www.businessincameroon.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cameroon",
+  "rss": "https://www.businessincameroon.com/index.php/component/obrss/fullrss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Joomla obRSS component path. English edition of the Investir au Cameroun publisher."
  },
  {
   "name": "Business Insider",
@@ -1253,6 +1477,38 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Leading business weekly."
  },
  {
+  "name": "Capital Ethiopia",
+  "url": "https://capitalethiopia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ethiopia",
+  "rss": "https://capitalethiopia.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Business weekly; thin feed (4 items)."
+ },
+ {
+  "name": "Capital FM (business)",
+  "url": "https://capitalfm.africa",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kenya",
+  "rss": "https://capitalfm.africa/business/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. capitalfm.co.ke redirects to capitalfm.africa; only the /business/ section feed works, the root /feed/ 404s."
+ },
+ {
   "name": "Capital.ba",
   "url": "https://capital.ba",
   "status": "candidate",
@@ -1267,6 +1523,38 @@
   "rss": "https://capital.ba/feed/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business/economy; high signal."
+ },
+ {
+  "name": "Carta de Mocambique",
+  "url": "https://cartamz.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mozambique",
+  "rss": "https://cartamz.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Independent Portuguese-language title."
+ },
+ {
+  "name": "Cayman Compass",
+  "url": "https://www.caymancompass.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cayman Islands",
+  "rss": "https://www.caymancompass.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live Feed not wired: robots.txt disallows this path (https://www.caymancompass.com/feed/)."
  },
  {
   "name": "CB Insights",
@@ -1315,6 +1603,38 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "CIO Mag",
+  "url": "https://cio-mag.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ivory Coast",
+  "rss": "https://cio-mag.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Francophone-Africa IT/digital magazine with a strong Abidjan desk. Regional coverage - treat country as a dateline hint."
+ },
+ {
+  "name": "Citinewsroom",
+  "url": "https://www.citinewsroom.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ghana",
+  "rss": "https://www.citinewsroom.com/wp-json/wp/v2/posts?per_page=20",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. NO RSS - /feed/ returns HTML on both apex and www. The WordPress REST endpoint IS open and current (numbers here are from it); bare JSON array, needs a JSON reader."
  },
  {
   "name": "City of Austin Economic Development",
@@ -1381,6 +1701,22 @@
   "rss": "https://clinicaltrials.gov/ct2/results/rss.xml",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Club of Mozambique",
+  "url": "https://clubofmozambique.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mozambique",
+  "rss": "https://clubofmozambique.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. English-language business/news desk on Mozambique."
  },
  {
   "name": "CNBC",
@@ -1478,6 +1814,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Condia (formerly BenjaminDada)",
+  "url": "https://thecondia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://thecondia.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. benjamindada.com now redirects to thecondia.com - store the new domain. 100 items; MALFORMED XML, needs a tolerant parse. [tolerant parse required]"
  },
  {
   "name": "Confidencial",
@@ -1739,6 +2091,38 @@
   "notes": "Feed fetched and parsed 2026-07-29. Includes Di Digital, its technology desk."
  },
  {
+  "name": "Daily Maverick",
+  "url": "https://www.dailymaverick.co.za",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://www.dailymaverick.co.za/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. 53 items; strong business desk."
+ },
+ {
+  "name": "Daily News Egypt",
+  "url": "https://www.dailynewsegypt.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Egypt",
+  "rss": "https://www.dailynewsegypt.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. MALFORMED XML (stray invalid token mid-document) - parses only with a tolerant reader, same caveat as Times of Oman. [tolerant parse required]"
+ },
+ {
   "name": "DailySocial",
   "url": "https://dailysocial.id",
   "status": "candidate",
@@ -1878,6 +2262,22 @@
   "rss": "https://www.defensenews.com/arc/outboundfeeds/rss/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Defi Media",
+  "url": "https://defimedia.info",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mauritius",
+  "rss": "https://defimedia.info/rss.xml",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Use /rss.xml - /feed and /rss 404. 127 items, the deepest Mauritian feed."
  },
  {
   "name": "Delfi",
@@ -2140,6 +2540,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. General news."
  },
  {
+  "name": "Diggers News",
+  "url": "https://diggers.news",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Zambia",
+  "rss": "https://diggers.news/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Independent daily; also serves /rss/ and /feed/rss/."
+ },
+ {
   "name": "digi.no",
   "url": "https://www.digi.no",
   "status": "candidate",
@@ -2154,6 +2570,22 @@
   "rss": "https://www.digi.no/rss",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. IT trade press."
+ },
+ {
+  "name": "Digital Business Africa",
+  "url": "https://www.digitalbusiness.africa",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cameroon",
+  "rss": "https://www.digitalbusiness.africa/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Cameroon-based ICT/digital-economy title covering Central Africa."
  },
  {
   "name": "Digital Business KZ",
@@ -2205,7 +2637,7 @@
  },
  {
   "name": "Disrupt Africa",
-  "url": "https://disrupt-africa.com",
+  "url": "https://disruptafrica.com",
   "status": "candidate",
   "category": "Startup Ecosystem",
   "signals": [
@@ -2215,7 +2647,7 @@
   "country": "South Africa",
   "rss": "https://disrupt-africa.com/feed/",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector. Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://disruptafrica.com and the catalogue url updated to match."
  },
  {
   "name": "Dnevni avaz",
@@ -2248,6 +2680,22 @@
   "rss": "https://www.dnevnik.bg/rss/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business/news daily."
+ },
+ {
+  "name": "Doha News",
+  "url": "https://dohanews.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Qatar",
+  "rss": "https://dohanews.co/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Only Qatari publisher found serving a working feed."
  },
  {
   "name": "Dominica News Online",
@@ -2422,6 +2870,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Economy Middle East",
+  "url": "https://economymiddleeast.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Arab Emirates",
+  "rss": "https://economymiddleeast.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Use /feed/ - the discoverable /web-stories/feed/ is a near-empty 2024 stub."
  },
  {
   "name": "EconomyNext",
@@ -2796,7 +3260,7 @@
  },
  {
   "name": "Endpoints News",
-  "url": "https://endpts.com",
+  "url": "https://endpoints.news",
   "status": "candidate",
   "category": "Trade Publication",
   "signals": [
@@ -2808,7 +3272,7 @@
   "country": "United States",
   "rss": "https://endpts.com/feed/",
   "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector. Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://endpoints.news and the catalogue url updated to match."
  },
  {
   "name": "Energy Information Administration",
@@ -2826,6 +3290,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Enterprise",
+  "url": "https://enterprise.press",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Egypt",
+  "rss": "https://enterpriseam.com/egypt/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. enterprise.press now redirects to enterpriseam.com/egypt/ - store the redirected feed URL. Egypt's main business-news briefing."
  },
  {
   "name": "Entrackr",
@@ -2936,6 +3416,22 @@
   "rss": "https://exame.com/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Executive Magazine",
+  "url": "https://www.executive-magazine.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lebanon",
+  "rss": "https://www.executive-magazine.com/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Lebanese business monthly. Low cadence by nature (monthly), not stale. Atom twin at /feed/atom."
  },
  {
   "name": "Expansion",
@@ -3104,6 +3600,22 @@
   "rss": "https://www.fiercebiotech.com/rss/xml",
   "free": true,
   "notes": "Biotech hiring follows FDA milestones."
+ },
+ {
+  "name": "Financial Afrik",
+  "url": "https://financialafrik.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://financialafrik.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. REGIONAL, not South African - Dakar/Casablanca-based pan-African finance desk. Coverage=Regional; country is a dateline hint only. Filed here only so the row has a home; the merging agent should set coverage=Regional."
  },
  {
   "name": "Financial Mirror",
@@ -3491,6 +4003,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Ghana Business News",
+  "url": "https://www.ghanabusinessnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ghana",
+  "rss": "https://www.ghanabusinessnews.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Business desk."
+ },
+ {
   "name": "Global News Money",
   "url": "https://globalnews.ca",
   "status": "candidate",
@@ -3522,6 +4050,38 @@
   "rss": "https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=1725",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. English edition of Israel's business daily. Carries the funding and M&A beat that CTech covers without a feed."
+ },
+ {
+  "name": "Globes (Hebrew edition)",
+  "url": "https://www.globes.co.il",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=2",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Hebrew main news node. Same publisher as the English feed; keep both, the Hebrew desk files some rounds first."
+ },
+ {
+  "name": "Globes (Hebrew, capital markets)",
+  "url": "https://www.globes.co.il",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=594",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Markets/tech-finance node. Optional depth on top of iID=2."
  },
  {
   "name": "GMA News (Money)",
@@ -3588,6 +4148,70 @@
   "notes": "Feed fetched and parsed 2026-07-29. The catalogue's Gruenderszene row has no feed of its own; this is the working one."
  },
  {
+  "name": "Gulf Insider",
+  "url": "https://www.gulf-insider.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bahrain",
+  "rss": "https://www.gulf-insider.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Bahrain-based Gulf business/news title; current."
+ },
+ {
+  "name": "Gulf News",
+  "url": "https://gulfnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Arab Emirates",
+  "rss": "https://gulfnews.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Site-wide feed."
+ },
+ {
+  "name": "Haaretz (Hebrew)",
+  "url": "https://www.haaretz.co.il",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.haaretz.co.il/srv/htz---all-articles",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Haaretz group all-articles feed. Subscription publisher: feed is headline plus teaser, which is all we store. TheMarker (same group) has no equivalent working feed - see its own row."
+ },
+ {
+  "name": "HabariLeo",
+  "url": "https://habarileo.co.tz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tanzania",
+  "rss": "https://habarileo.co.tz/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Swahili daily from the same state publisher as Daily News (TSN), on a separate host that is NOT throwing the 500s."
+ },
+ {
   "name": "Handelsblatt",
   "url": "https://www.handelsblatt.com",
   "status": "candidate",
@@ -3652,6 +4276,38 @@
   "rss": "https://www.hs.fi/rss/tuoreimmat.xml",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Largest national daily."
+ },
+ {
+  "name": "Hespress (Arabic)",
+  "url": "https://www.hespress.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Morocco",
+  "rss": "https://www.hespress.com/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Arabic edition of the same publisher."
+ },
+ {
+  "name": "Hespress (French)",
+  "url": "https://fr.hespress.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Morocco",
+  "rss": "https://fr.hespress.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Largest Moroccan news site, French edition."
  },
  {
   "name": "Het Laatste Nieuws - Economie",
@@ -4135,6 +4791,22 @@
   "notes": ""
  },
  {
+  "name": "Investir au Cameroun",
+  "url": "https://www.investiraucameroun.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cameroon",
+  "rss": "https://www.investiraucameroun.com/index.php/component/obrss/fullrss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. French sister title, same publisher and feed shape."
+ },
+ {
   "name": "IO+ (Innovation Origins)",
   "url": "https://ioplus.nl",
   "status": "candidate",
@@ -4201,6 +4873,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Iraq Business News",
+  "url": "https://www.iraq-businessnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iraq",
+  "rss": "https://www.iraq-businessnews.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Dedicated Iraqi business/investment desk; 40 items, current."
+ },
+ {
   "name": "Irish Examiner Business",
   "url": "https://www.irishexaminer.com/business/",
   "status": "candidate",
@@ -4231,6 +4919,38 @@
   "rss": "https://www.independent.ie/business/rss/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. National daily, business section."
+ },
+ {
+  "name": "Islamic Republic News Agency (IRNA)",
+  "url": "https://en.irna.ir",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iran",
+  "rss": "https://en.irna.ir/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. State agency, English edition."
+ },
+ {
+  "name": "ISNA",
+  "url": "https://en.isna.ir",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iran",
+  "rss": "https://en.isna.ir/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Student news agency, English edition."
  },
  {
   "name": "Israel Innovation Authority",
@@ -4441,6 +5161,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. Chinese business publisher"
  },
  {
+  "name": "Jo24",
+  "url": "https://jo24.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Jordan",
+  "rss": "https://jo24.net/feed/rss.php",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Unusual feed path (/feed/rss.php); live and current."
+ },
+ {
   "name": "Jornal de Negocios",
   "url": "https://www.jornaldenegocios.pt",
   "status": "candidate",
@@ -4522,6 +5258,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Business weekly; highest-signal MK source."
  },
  {
+  "name": "Kapitalis",
+  "url": "https://kapitalis.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tunisia",
+  "rss": "https://kapitalis.com/tunisie/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Category feed only: the root /feed/ 404s, /tunisie/feed/ works."
+ },
+ {
   "name": "Katadata",
   "url": "https://katadata.co.id",
   "status": "candidate",
@@ -4573,6 +5325,22 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Khaleej Times (business)",
+  "url": "https://www.khaleejtimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Arab Emirates",
+  "rss": "https://www.khaleejtimes.com/api/v1/collections/business.rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Collection feeds under /api/v1/collections/<section>.rss. /rss and /feed 404 - only this shape works."
+ },
+ {
   "name": "Klix.ba",
   "url": "https://www.klix.ba",
   "status": "candidate",
@@ -4605,6 +5373,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29."
  },
  {
+  "name": "KT Press",
+  "url": "https://www.ktpress.rw",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Rwanda",
+  "rss": "https://www.ktpress.rw/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Atom twin at /feed/atom/."
+ },
+ {
   "name": "Kursiv Media",
   "url": "https://kz.kursiv.media",
   "status": "candidate",
@@ -4619,6 +5403,22 @@
   "rss": "https://kz.kursiv.media/feed/",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Business publisher"
+ },
+ {
+  "name": "L'Economiste Maghrebin",
+  "url": "https://www.leconomistemaghrebin.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tunisia",
+  "rss": "https://www.leconomistemaghrebin.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. STALE - parses but newest item is 2025-12-23. Include only if a tolerant staleness policy is acceptable."
  },
  {
   "name": "L'Usine Digitale",
@@ -4752,7 +5552,7 @@
  },
  {
   "name": "La Razon",
-  "url": "https://www.la-razon.com",
+  "url": "https://www.larazon.bo",
   "status": "candidate",
   "category": "Technology News",
   "signals": [
@@ -4764,7 +5564,7 @@
   "country": "Bolivia",
   "rss": "https://www.la-razon.com/feed/",
   "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://www.larazon.bo and the catalogue url updated to match."
  },
  {
   "name": "la Repubblica Economia",
@@ -4847,6 +5647,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. English publisher"
  },
  {
+  "name": "Le Mauricien",
+  "url": "https://www.lemauricien.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mauritius",
+  "rss": "https://www.lemauricien.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. National daily."
+ },
+ {
   "name": "Le Nouvelliste",
   "url": "https://lenouvelliste.com",
   "status": "candidate",
@@ -4863,6 +5679,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Le Soleil",
+  "url": "https://lesoleil.sn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Senegal",
+  "rss": "https://lesoleil.sn/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. National daily; 24 items."
+ },
+ {
   "name": "Leiphone",
   "url": "https://www.leiphone.com",
   "status": "candidate",
@@ -4877,6 +5709,22 @@
   "rss": "https://www.leiphone.com/feed",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Chinese AI/tech publisher"
+ },
+ {
+  "name": "Libya Herald",
+  "url": "https://libyaherald.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Libya",
+  "rss": "https://libyaherald.com/rss.xml",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Use /rss.xml - /rss returns HTML. 50 items, current. The only live Libyan feed found."
  },
  {
   "name": "Listin Diario",
@@ -4991,6 +5839,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Internet/tech business."
  },
  {
+  "name": "Lusaka Times",
+  "url": "https://www.lusakatimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Zambia",
+  "rss": "https://www.lusakatimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. General national news."
+ },
+ {
   "name": "Luxembourg Times",
   "url": "https://www.luxtimes.lu",
   "status": "candidate",
@@ -5023,6 +5887,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. National daily of record."
  },
  {
+  "name": "Mada Masr",
+  "url": "https://www.madamasr.com/en/",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Egypt",
+  "rss": "https://www.madamasr.com/en/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Independent English edition; Arabic twin at /ar/feed/."
+ },
+ {
   "name": "Maddyness",
   "url": "https://www.maddyness.com",
   "status": "candidate",
@@ -5051,6 +5931,22 @@
   "rss": "https://www.mk.co.kr/rss/30800011/",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. business daily"
+ },
+ {
+  "name": "Maghreb Emergent",
+  "url": "https://maghrebemergent.news/fr/",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Algeria",
+  "rss": "https://maghrebemergent.news/fr/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Publisher moved from maghrebemergent.net to maghrebemergent.news/fr/ - store the new URL."
  },
  {
   "name": "Malay Mail (Money)",
@@ -5226,8 +6122,24 @@
   "notes": ""
  },
  {
+  "name": "Medias24",
+  "url": "https://medias24.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Morocco",
+  "rss": "https://medias24.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Business/economy desk; the best Moroccan deal-flow source found."
+ },
+ {
   "name": "Meet Global",
-  "url": "https://meet.bnext.com.tw",
+  "url": "https://meet.bnextmedia.com.tw",
   "status": "candidate",
   "category": "Startup Ecosystem",
   "signals": [
@@ -5239,7 +6151,23 @@
   "country": "Taiwan",
   "rss": "https://meet.bnext.com.tw/rss",
   "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29."
+  "notes": "Feed fetched and parsed 2026-07-29. Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://meet.bnextmedia.com.tw and the catalogue url updated to match."
+ },
+ {
+  "name": "Mehr News Agency",
+  "url": "https://en.mehrnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iran",
+  "rss": "https://en.mehrnews.com/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. English edition."
  },
  {
   "name": "MENAbytes",
@@ -5515,6 +6443,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. Independent publisher"
  },
  {
+  "name": "MyJoyOnline",
+  "url": "https://www.myjoyonline.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ghana",
+  "rss": "https://www.myjoyonline.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Major broadcaster's news site; 50 items."
+ },
+ {
   "name": "N1 BiH",
   "url": "https://n1info.ba",
   "status": "candidate",
@@ -5578,6 +6522,22 @@
   "rss": "https://nairametrics.com/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Nation",
+  "url": "https://nation.africa",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kenya",
+  "rss": "https://nation.africa/kenya/rss.xml",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Nation Media Group flagship; 25 items."
  },
  {
   "name": "National Institute for Health and Care Excellence",
@@ -5660,6 +6620,22 @@
   "rss": "https://www.netzwoche.ch/rss.xml",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Swiss ICT business."
+ },
+ {
+  "name": "New Era",
+  "url": "https://neweralive.na",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Namibia",
+  "rss": "https://neweralive.na/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. State-owned daily; feed mixes English and vernacular items. MALFORMED XML (declaration not at start of entity), needs a tolerant parse. [tolerant parse required]"
  },
  {
   "name": "New Jersey Economic Development Authority",
@@ -5854,6 +6830,22 @@
   "rss": "https://xtech.nikkei.com/rss/index.rdf",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. tech trade press"
+ },
+ {
+  "name": "Nile Post",
+  "url": "https://nilepost.co.ug",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uganda",
+  "rss": "https://nilepost.co.ug/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. 300 items per pull - cap the read."
  },
  {
   "name": "NIST",
@@ -6147,6 +7139,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Oldest daily. ONLY /rss.xml works; /feed, /rss, /feed/ all 404."
  },
  {
+  "name": "PC Tech Magazine",
+  "url": "https://pctechmag.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uganda",
+  "rss": "https://pctechmag.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Ugandan tech title."
+ },
+ {
   "name": "Perfil Economia",
   "url": "https://www.perfil.com",
   "status": "candidate",
@@ -6416,6 +7424,22 @@
   "rss": "https://www.prachachat.net/feed",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Business daily"
+ },
+ {
+  "name": "Premium Times",
+  "url": "https://www.premiumtimesng.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://www.premiumtimesng.com/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Investigative national daily."
  },
  {
   "name": "Prensa Libre",
@@ -6721,7 +7745,7 @@
  },
  {
   "name": "Republica GT",
-  "url": "https://republica.gt",
+  "url": "https://republica.com",
   "status": "candidate",
   "category": "Technology News",
   "signals": [
@@ -6733,7 +7757,7 @@
   "country": "Guatemala",
   "rss": "https://republica.gt/feed",
   "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://republica.com and the catalogue url updated to match."
  },
  {
   "name": "Republika",
@@ -6843,6 +7867,22 @@
   "rss": "https://www.rnz.co.nz/rss/business.xml",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Public broadcaster business desk"
+ },
+ {
+  "name": "Roya News",
+  "url": "https://royanews.tv",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Jordan",
+  "rss": "https://royanews.tv/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Arabic edition serves a live feed; the English subdomain en.royanews.tv does NOT (all paths 404)."
  },
  {
   "name": "RTCG",
@@ -7032,6 +8072,38 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Seneweb",
+  "url": "https://www.seneweb.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Senegal",
+  "rss": "https://www.seneweb.com/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Largest Senegalese portal with its own newsroom; 50 items."
+ },
+ {
+  "name": "Shafaq News",
+  "url": "https://shafaq.com/en",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iraq",
+  "rss": "https://shafaq.com/rss/en",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Feed lives at /rss/<lang>; /feed and /rss 404. Arabic twin at /rss/ar."
+ },
+ {
   "name": "ShiftDelete",
   "url": "https://shiftdelete.net",
   "status": "candidate",
@@ -7062,6 +8134,22 @@
   "rss": "https://sifted.eu/feed/",
   "free": true,
   "notes": "Best single source for European startups."
+ },
+ {
+  "name": "Sika Finance",
+  "url": "https://www.sikafinance.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ivory Coast",
+  "rss": "https://www.sikafinance.com/rss/actualites_bourse_brvm",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Abidjan-based markets desk covering the BRVM regional exchange - the best Ivorian corporate-finance feed. MALFORMED XML, needs a tolerant parse. [tolerant parse required]"
  },
  {
   "name": "Silicon Canals",
@@ -7207,6 +8295,22 @@
   "rss": "https://www.smartcompany.com.au/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "SocialNetLink",
+  "url": "https://www.socialnetlink.org",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Senegal",
+  "rss": "https://www.socialnetlink.org/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Senegal's dedicated tech/digital-economy desk - the closest thing to a national tech press feed here."
  },
  {
   "name": "South China Morning Post (Business)",
@@ -7537,6 +8641,38 @@
   "notes": "Verified by the apac region audit, 2026-07-29."
  },
  {
+  "name": "Stuff South Africa",
+  "url": "https://stuff.co.za",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://stuff.co.za/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Consumer-tech title."
+ },
+ {
+  "name": "Sunday Standard",
+  "url": "https://www.sundaystandard.info",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Botswana",
+  "rss": "https://www.sundaystandard.info/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Independent weekly."
+ },
+ {
   "name": "Supply Chain Dive",
   "url": "https://www.supplychaindive.com",
   "status": "candidate",
@@ -7614,6 +8750,22 @@
   "rss": "https://www.tagesschau.de/wirtschaft/index~rss2.xml",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster economy desk."
+ },
+ {
+  "name": "TahawulTech",
+  "url": "https://www.tahawultech.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Arab Emirates",
+  "rss": "https://www.tahawultech.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Regional enterprise-IT trade press, UAE-based."
  },
  {
   "name": "Taipei Times",
@@ -7774,6 +8926,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. Pakistani tech press"
  },
  {
+  "name": "Techlabari",
+  "url": "https://techlabari.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ghana",
+  "rss": "https://techlabari.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Ghanaian tech title; small but live."
+ },
+ {
   "name": "TechMoran",
   "url": "https://techmoran.com",
   "status": "candidate",
@@ -7806,6 +8974,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. Taiwan tech trade press"
  },
  {
+  "name": "Technext",
+  "url": "https://technext24.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://technext24.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Nigerian tech/startup desk."
+ },
+ {
   "name": "TechNode",
   "url": "https://technode.com",
   "status": "candidate",
@@ -7835,6 +9019,22 @@
   "rss": "https://www.techpana.com/feed/",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Nepali tech publisher"
+ },
+ {
+  "name": "Techpoint Africa",
+  "url": "https://techpoint.africa",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://techpoint.africa/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. ONLY returns 200 with browser-shaped headers; a bare Accept: application/rss+xml gets 403 and looks dead. Also: do NOT advertise brotli unless the client can decode it - a br body reads as a malformed feed."
  },
  {
   "name": "Techsauce",
@@ -7869,6 +9069,54 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Tech business."
  },
  {
+  "name": "Techtime",
+  "url": "https://techtime.co.il",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://techtime.co.il/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Hebrew electronics/hi-tech trade press. Independently carried Enigma. Small feed (10 items) so poll at least daily."
+ },
+ {
+  "name": "Techweez",
+  "url": "https://techweez.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kenya",
+  "rss": "https://techweez.com/wp-json/wp/v2/posts?per_page=20",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. NO RSS - every WordPress feed path returns HTML (feeds disabled). BUT the publisher's own WordPress REST endpoint is open and current, shown here with its measured numbers. It returns a bare JSON array, so it needs a JSON reader, not the XML feed parser."
+ },
+ {
+  "name": "Techzim",
+  "url": "https://www.techzim.co.zw",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Zimbabwe",
+  "rss": "https://www.techzim.co.zw/wp-json/wp/v2/posts?per_page=20",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Zimbabwe's main tech publisher. Every HTML and feed path returns HTTP 426 Upgrade Required with an EMPTY body - but the WordPress REST endpoint answers 200 and is current (numbers here are from it). Bare JSON array, needs a JSON reader. Without this the country loses its only tech desk."
+ },
+ {
   "name": "Tecmundo",
   "url": "https://www.tecmundo.com.br",
   "status": "candidate",
@@ -7883,6 +9131,38 @@
   "rss": "https://rss.tecmundo.com.br/feed",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Tehran Times",
+  "url": "https://www.tehrantimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iran",
+  "rss": "https://www.tehrantimes.com/rss",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Live and current, but item <title> elements carry numeric ids rather than headlines - the collector must read the description/link, not the title."
+ },
+ {
+  "name": "Tekiano",
+  "url": "https://www.tekiano.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tunisia",
+  "rss": "https://www.tekiano.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Tunisian tech/culture title; live."
  },
  {
   "name": "Teknisk Ukeblad",
@@ -7933,6 +9213,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Broadcaster."
  },
  {
+  "name": "TelQuel",
+  "url": "https://telquel.ma",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Morocco",
+  "rss": "https://telquel.ma/feed",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. 100 items per pull."
+ },
+ {
   "name": "The Astana Times",
   "url": "https://astanatimes.com",
   "status": "candidate",
@@ -7978,6 +9274,22 @@
   "rss": "https://www.theblock.co/rss.xml",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "The Botswana Gazette",
+  "url": "https://www.thegazette.news",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Botswana",
+  "rss": "https://www.thegazette.news/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Weekly; live and current."
  },
  {
   "name": "THE BRIDGE",
@@ -8027,6 +9339,22 @@
   "rss": "https://www.businesstimes.com.sg/rss/companies-markets",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "The Chanzo",
+  "url": "https://www.thechanzo.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tanzania",
+  "rss": "https://www.thechanzo.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Independent Tanzanian title; stable feed. Use this as Tanzania's primary - Daily News is flaky (see its row)."
  },
  {
   "name": "The Daily Star (Business)",
@@ -8175,6 +9503,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. English daily"
  },
  {
+  "name": "The Namibian",
+  "url": "https://www.namibian.com.na",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Namibia",
+  "rss": "https://www.namibian.com.na/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Largest daily."
+ },
+ {
   "name": "The Nassau Guardian",
   "url": "https://thenassauguardian.com",
   "status": "candidate",
@@ -8189,6 +9533,22 @@
   "rss": "https://thenassauguardian.com/search/?f=rss&t=article&l=50&s=start_time&sd=desc",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. TownNews-style search feed (site-wide, newest first) IMPORTANT: this host content-negotiates - send Accept: application/rss+xml or it returns HTML."
+ },
+ {
+  "name": "The National",
+  "url": "https://www.thenational.com.pg",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Papua New Guinea",
+  "rss": "https://www.thenationalnews.com/arc/outboundfeeds/rss/category/business/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. national daily; bot-blocked (Cloudflare/Akamai interstitial) to both urllib and curl; needs HTML parsing via a real browser, or skip Feed not wired: not live (403, 0 items) (https://www.thenational.com.pg/feed/)."
  },
  {
   "name": "The News International (Business)",
@@ -8207,6 +9567,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. national daily business"
  },
  {
+  "name": "The Punch",
+  "url": "https://punchng.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://punchng.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Largest Nigerian daily; 30 items."
+ },
+ {
   "name": "The Recursive",
   "url": "https://therecursive.com",
   "status": "candidate",
@@ -8221,6 +9597,22 @@
   "rss": "https://www.therecursive.com/rss/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. South-East Europe: Bulgaria, Romania, Greece, Serbia, Croatia, Slovenia, North Macedonia, Albania."
+ },
+ {
+  "name": "The Reporter Ethiopia",
+  "url": "https://www.thereporterethiopia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ethiopia",
+  "rss": "https://www.thereporterethiopia.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Largest private English weekly."
  },
  {
   "name": "The Scoop",
@@ -8253,6 +9645,22 @@
   "rss": "https://theshiftnews.com/feed/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Investigative outlet."
+ },
+ {
+  "name": "The Standard (business)",
+  "url": "https://www.standardmedia.co.ke",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kenya",
+  "rss": "https://www.standardmedia.co.ke/rss/business.php",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Legacy /rss/<section>.php shape; /feed and /rss.xml 404. Headlines twin at /rss/headlines.php."
  },
  {
   "name": "The Straits Times Business",
@@ -8349,6 +9757,22 @@
   "rss": "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. National daily business"
+ },
+ {
+  "name": "Times of Oman",
+  "url": "https://timesofoman.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Oman",
+  "rss": "https://timesofoman.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. WORKS BUT MALFORMED: the XML declares an undeclared namespace prefix, so a strict ElementTree parse raises 'unbound prefix' and reports the feed dead. Needs a tolerant parse (regex/recover) - otherwise Oman looks sourceless when it is not. [tolerant parse required]"
  },
  {
   "name": "Tirana Times",
@@ -8493,6 +9917,22 @@
   "rss": "https://trinidadexpress.com/search/?f=rss&t=article&c=business&l=50",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. TownNews-style search feed scoped to business IMPORTANT: this host content-negotiates - send Accept: application/rss+xml or it returns HTML."
+ },
+ {
+  "name": "TSA (Tout Sur l'Algerie)",
+  "url": "https://www.tsa-algerie.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Algeria",
+  "rss": "https://www.tsa-algerie.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Leading independent Algerian title."
  },
  {
   "name": "TV8",
@@ -9143,6 +10583,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
  },
  {
+  "name": "Ynet",
+  "url": "https://www.ynet.co.il",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.ynet.co.il/Integration/StoryRss2.xml",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Largest Hebrew news site; broad, low signal density."
+ },
+ {
   "name": "YourStory",
   "url": "https://yourstory.com",
   "status": "candidate",
@@ -9156,6 +10612,22 @@
   "rss": "https://yourstory.com/feed",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Zambian Business Times",
+  "url": "https://zambianbusinesstimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Zambia",
+  "rss": "https://zambianbusinesstimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Business desk."
  },
  {
   "name": "Ziarul de Garda",
@@ -9204,6 +10676,38 @@
   "rss": "https://www.zf.ro/rss",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "Zimbabwe Independent",
+  "url": "https://www.theindependent.co.zw",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Zimbabwe",
+  "rss": "https://www.theindependent.co.zw/feed/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Alpha Media Holdings business weekly. Sister titles NewsDay and The Standard share the platform but their /feed/ returns HTML."
+ },
+ {
+  "name": "Zitamar News",
+  "url": "https://www.zitamar.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mozambique",
+  "rss": "https://www.zitamar.com/rss/",
+  "free": true,
+  "notes": "Verified by the mea region audit, 2026-07-29. Specialist Mozambique business/politics desk; 15 items. Subscription publisher - feed is headline plus teaser, which is all we store."
  },
  {
   "name": "Zurnal24",

@@ -161,6 +161,43 @@ STATS = {"feeds": 0, "ok": 0, "dead": 0, "blocked": 0,
 FEED_HEALTH: list[dict] = []
 
 
+# --- Domain drift ----------------------------------------------------------
+#
+# The hazard a worldwide catalogue cannot avoid: domains expire and get taken
+# over. `botswanaguardian.co.bw` now redirects to a BETTING SITE whose /feed/
+# verifies perfectly green — 200, well-formed RSS, recent items. Every
+# automated check passes and we would be citing a gambling operator as a
+# Botswana news source, with our own name on the citation.
+#
+# Status codes cannot catch this and neither can freshness. The only signal is
+# that the bytes came from somewhere other than the publisher we listed, so the
+# feed's FINAL url after redirects is compared to the registrable domain we
+# recorded, and a mismatch is refused rather than stored.
+#
+# Two-label suffixes that would otherwise make "co.bw" look like the registrable
+# domain, so that any two Botswana sites would compare equal.
+_MULTI_SUFFIXES = frozenset("""
+    co.uk co.za co.bw co.ke co.tz co.zw co.il co.jp co.kr co.in co.id co.th
+    co.nz com.au com.br com.mx com.ar com.co com.pe com.tr com.sg com.my
+    com.ph com.hk com.tw com.cn com.pk com.bd com.ng com.gh com.eg com.sa
+    com.qa com.kw com.bh com.om com.jo com.lb com.uy com.ec com.bo com.py
+    com.do com.pa com.gt com.sv com.ni com.cy com.mt com.ua org.uk org.za
+    net.au gov.uk ac.uk or.ke go.ke
+""".split())
+
+
+def registrable_domain(url_or_host: str) -> str:
+    """The part of a host that someone owns. Best effort, and only ever used to
+    compare two hosts we already hold, never to construct one."""
+    host = (urlparse(url_or_host).hostname or url_or_host or "").lower().strip(".")
+    if not host:
+        return ""
+    labels = host.split(".")
+    if len(labels) >= 3 and ".".join(labels[-2:]) in _MULTI_SUFFIXES:
+        return ".".join(labels[-3:])
+    return ".".join(labels[-2:])
+
+
 @dataclass(frozen=True)
 class Feed:
     name: str
@@ -170,10 +207,18 @@ class Feed:
     coverage: str
     language: str
     source_type: str
+    site: str = ""
 
     @property
     def host(self) -> str:
         return (urlparse(self.rss).hostname or "").lower()
+
+    @property
+    def expected_domains(self) -> set[str]:
+        """Where bytes for this feed may legitimately come from: the feed's own
+        host and the site we catalogued it under."""
+        return {d for d in (registrable_domain(self.rss),
+                            registrable_domain(self.site)) if d}
 
     @property
     def is_regional(self) -> bool:
@@ -248,6 +293,7 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
                 coverage=(row.get("coverage") or "").strip(),
                 language=(row.get("language") or "").strip(),
                 source_type=(row.get("source_type") or "").strip(),
+                site=(row.get("url") or "").strip(),
             ))
     return feeds
 
@@ -346,6 +392,61 @@ def _plain(html: str, limit: int = TEASER_CHARS) -> str:
     return _WS.sub(" ", text).strip()[:limit]
 
 
+# The XML-free reader. Only ever reached when both parses have failed, because
+# a regex is a worse reader than a parser in every way except one: it does not
+# care that the document is invalid.
+_ITEM_BLOCK = re.compile(rb"<item[\s>].*?</item>", re.S | re.I)
+_FIELD = {
+    "title": re.compile(rb"<title[^>]*>(.*?)</title>", re.S | re.I),
+    "link": re.compile(rb"<link[^>]*>(.*?)</link>", re.S | re.I),
+    "description": re.compile(rb"<description[^>]*>(.*?)</description>", re.S | re.I),
+    "pubDate": re.compile(rb"<pubDate[^>]*>(.*?)</pubDate>", re.S | re.I),
+}
+_CDATA = re.compile(rb"^\s*<!\[CDATA\[(.*?)\]\]>\s*$", re.S)
+
+
+def _field(block: bytes, name: str) -> str:
+    hit = _FIELD[name].search(block)
+    if not hit:
+        return ""
+    raw = hit.group(1)
+    cdata = _CDATA.match(raw)
+    if cdata:
+        raw = cdata.group(1)
+    return raw.decode("utf8", "replace").strip()
+
+
+def _scrape_items(body: bytes, feed: Feed) -> list[dict]:
+    line = dateline(feed)
+    items: list[dict] = []
+    for block in _ITEM_BLOCK.finditer(body):
+        if len(items) >= MAX_ITEMS_PER_FEED:
+            break
+        chunk = block.group(0)
+        title = _plain(_field(chunk, "title"), 300)
+        link = _field(chunk, "link")
+        if link and not link.startswith("http"):
+            link = urljoin(feed.rss, link)
+        if not (title and link.startswith("http")):
+            continue
+        body_text = _plain(_field(chunk, "description"))
+        items.append({
+            "raw_text": f"{title}\n\n{body_text}\n\n{line}".strip(),
+            "headline": title,
+            "source_url": link,
+            "discovery_url": link,
+            "source_name": feed.name,
+            "published_date": _field(chunk, "pubDate"),
+            "language": feed.language,
+            "source_country": feed.country,
+            "query": feed.name,
+            "collector": COLLECTOR,
+            "parsed_by": "regex-fallback",
+            "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        })
+    return items
+
+
 def dateline(feed: Feed) -> str:
     """The publisher's own country, as CONTEXT.
 
@@ -376,7 +477,11 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
         try:
             root = ET.fromstring(_repair(body))
         except ET.ParseError:
-            return []
+            # Last resort: read the items with a regex. Six live feeds are
+            # malformed past repair (Times of Oman, Daily News Egypt, African
+            # Manager, Sika Finance, Condia, New Era), and Oman would otherwise
+            # look sourceless while having a perfectly good publisher.
+            return _scrape_items(body, feed)
 
     nodes = root.findall(".//item") or root.findall(f".//{ATOM}entry")
     line = dateline(feed)
@@ -449,17 +554,79 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
 
 # --- Fetching --------------------------------------------------------------
 
-def fetch(feed: Feed, *, timeout: int = TIMEOUT, session=None) -> list[dict]:
-    """Fetch one feed. Raises requests.RequestException upward so collect() can
-    record WHY a feed produced nothing."""
-    http = session or requests
-    resp = http.get(feed.rss, headers={
+class DomainDrift(requests.RequestException):
+    """The feed answered from a host we did not catalogue. Almost always an
+    expired domain that somebody else now owns."""
+
+
+# Neither header set works everywhere, and the two failures are opposites:
+#
+#   Techpoint Africa and Arab News   403 to a bare `Accept: application/rss+xml`
+#                                    200 to a browser-shaped header set
+#   Four TownNews hosts (Toronto     HTML to a browser-shaped `Accept: */*`
+#   Star, Nassau Guardian, El        valid RSS only to `application/rss+xml`
+#   Vocero, Trinidad Express)
+#
+# So the RSS type is offered FIRST (which satisfies TownNews) inside an
+# otherwise browser-shaped set (which satisfies the WAFs), and a 403 retries
+# with the plain browser set. Whichever worked is recorded per feed.
+_ACCEPT_RSS = ("application/rss+xml, application/atom+xml, application/xml;q=0.9, "
+               "text/xml;q=0.9, text/html;q=0.5, */*;q=0.3")
+_ACCEPT_BROWSER = ("text/html,application/xhtml+xml,application/xml;q=0.9,"
+                   "image/avif,image/webp,*/*;q=0.8")
+
+
+def _headers(accept: str) -> dict:
+    return {
         "User-Agent": USER_AGENT,
-        "Accept": ("application/rss+xml, application/atom+xml, "
-                   "application/xml;q=0.9, text/xml;q=0.9, */*;q=0.5"),
-    }, timeout=timeout)
+        "Accept": accept,
+        "Accept-Language": "en-US,en;q=0.9",
+        # Advertising brotli without a decoder makes a healthy feed read as
+        # corrupt, so only offer what this install can actually decode.
+        "Accept-Encoding": "gzip, deflate" + (", br" if _HAVE_BROTLI else ""),
+    }
+
+
+def _brotli_available() -> bool:
+    try:
+        import brotli  # noqa: F401
+        return True
+    except ImportError:
+        try:
+            import brotlicffi  # noqa: F401
+            return True
+        except ImportError:
+            return False
+
+
+_HAVE_BROTLI = _brotli_available()
+
+
+def fetch(feed: Feed, *, timeout: int = TIMEOUT, session=None) -> tuple[list[dict], str]:
+    """Fetch one feed. Returns (items, which_accept_worked).
+
+    Raises requests.RequestException upward so collect() can record WHY a feed
+    produced nothing.
+    """
+    http = session or requests
+    resp = http.get(feed.rss, headers=_headers(_ACCEPT_RSS), timeout=timeout)
+    used = "rss"
+    if resp.status_code in (403, 406):
+        # A WAF refusing the RSS type, not the publisher refusing us.
+        resp = http.get(feed.rss, headers=_headers(_ACCEPT_BROWSER), timeout=timeout)
+        used = "browser"
     resp.raise_for_status()
-    return parse(resp.content, feed)
+
+    # Where did the bytes actually come from?
+    final = getattr(resp, "url", "") or feed.rss
+    landed = registrable_domain(final)
+    expected = feed.expected_domains
+    if landed and expected and landed not in expected:
+        raise DomainDrift(
+            f"redirects to {landed}, not {' or '.join(sorted(expected))} — "
+            f"the domain may have been taken over")
+
+    return parse(resp.content, feed), used
 
 
 def newest_item_age_days(items: list[dict], now=None) -> int | None:
@@ -595,7 +762,13 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
             continue
 
         try:
-            items = fetch(feed, session=session)
+            items, accept_used = fetch(feed, session=session)
+            record["accept"] = accept_used
+        except DomainDrift as exc:
+            # Loud, and its own status: this is not an outage, it is a source
+            # we would have cited being served by somebody else.
+            record.update(status="hijacked", detail=str(exc))
+            items = []
         except requests.HTTPError as exc:
             code = getattr(exc.response, "status_code", "?")
             record.update(status="dead", detail=f"HTTP {code}")
