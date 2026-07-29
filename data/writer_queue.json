@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T10:50:13Z",
+  "last_tick": "2026-07-29T10:51:16Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -154,12 +154,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
           "at": "2026-07-29T07:25:00Z",
           "detail": "canary: prove the queue dispatch path end to end, writing nothing",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T10:51:16Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T072500Z-enrich",
@@ -171,7 +176,7 @@
       "requested_at": "2026-07-29T07:25:00Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
     },
     {
