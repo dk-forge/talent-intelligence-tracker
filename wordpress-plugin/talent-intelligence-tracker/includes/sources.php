@@ -87,6 +87,20 @@ function tit_sources_last_run($row) {
 }
 
 function tit_sources_render($sources) {
+    // Registry-derived sources carry ISO codes while catalogue rows carry full
+    // names, so the country filter read "CA, DE, ES, FR, GB" next to "France"
+    // and "Slovenia", and the same country appeared twice under two spellings.
+    // Normalise to names once, here, so the facet list, the filter values and
+    // the Where column can never disagree. An unknown code falls through to
+    // itself rather than to a guess.
+    foreach ($sources as &$s) {
+        $c = trim((string) ($s['country'] ?? ''));
+        if (preg_match('/^[A-Z]{2}$/', $c) && function_exists('tit_country_name')) {
+            $s['country'] = tit_country_name($c);
+        }
+    }
+    unset($s);
+
     $health = tit_sources_health_map();
     $live = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') === 'live'));
     // Counted apart from "researched" on purpose. A backstop country IS
