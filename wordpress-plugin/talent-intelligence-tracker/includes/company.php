@@ -204,20 +204,36 @@ function tit_company_legacy_slug($company_key) {
  * map at all, which is what keeps this from becoming a 7,301-entry array read
  * on every request.
  *
- * COLLISIONS ARE REFUSED, NOT RESOLVED. Three canonical slugs are claimed by
- * two keys each, and in all three cases the two keys are the same employer
- * recorded twice ("perma-fix" and "perma fix", "daré bioscience" and "dare
- * bioscience", one NHS trust filed once with "&" and once with "and"). Serving
- * either one under a shared URL would silently show half an employer's history,
- * so neither is served and neither is published. The right fix is upstream, in
- * employer identity, and it is a merge rather than a routing rule.
+ * COLLISIONS ARE REFUSED, NOT RESOLVED. A canonical slug claimed by two keys is
+ * one employer recorded twice, and serving either one under a shared URL would
+ * silently show half of a history. So neither is served and neither is
+ * published. The fix is upstream, in employer identity, and it is a merge
+ * rather than a routing rule: pipeline/vocab.py EMPLOYER_KEY_ALIASES states the
+ * merge, correct_company_key.py moves the stored rows onto the surviving key,
+ * and ops_status.py [1c] names any new pair that has not been merged yet. The
+ * refusal stays because it is what makes an unmerged pair harmless.
+ *
+ * 'moved' IS THE THIRD MAP, AND IT IS WHAT KEEPS A CORRECTED KEY'S OLD URL
+ * ALIVE. company_key is a normalised name, so a fix to the normaliser changes
+ * it, and the slug is derived from the key: correcting '-operative group' to
+ * 'co-operative group' moves /company/operative-group/ to
+ * /company/co-operative-group/, and the old URL was in the sitemap. A
+ * correction never overwrites — it appends a revision and the old row survives
+ * at is_current = 0, still carrying the old key — so the old URL is not lost
+ * information, it is stored. This maps it back to the key the same signal now
+ * carries, and tit_company_template() then issues its ordinary canonical 301.
+ *
+ * That is a property of revisions and not a list of redirects, so it covers
+ * every key correction there will ever be, including ones nobody has thought of
+ * yet. A live key always wins: nothing here can redirect away from an employer
+ * that currently holds the slug.
  */
 function tit_company_slug_index() {
     static $memo = null;
     if ($memo !== null) return $memo;
 
     $cached = get_transient('tit_company_slug_index');
-    if (is_array($cached) && isset($cached['map'])) {
+    if (is_array($cached) && isset($cached['map']) && isset($cached['moved'])) {
         $memo = $cached;
         return $memo;
     }
@@ -251,11 +267,80 @@ function tit_company_slug_index() {
         }
     }
 
-    $memo = array('map' => $map, 'collisions' => $collisions);
+    $memo = array(
+        'map'        => $map,
+        'collisions' => $collisions,
+        'moved'      => tit_company_moved_slugs($claims),
+    );
     // Dropped by tit_flush_caches() on every write, so a new employer appears
     // as soon as its row lands rather than up to two hours later.
     set_transient('tit_company_slug_index', $memo, 2 * HOUR_IN_SECONDS);
     return $memo;
+}
+
+/**
+ * slug -> the company_key that a superseded revision's slug now belongs to.
+ *
+ * One query, joining each withdrawn revision to the current revision of the
+ * same signal. Only rows where the key actually MOVED come back, so this is
+ * empty until a key correction runs and small forever after — a correction
+ * moves employers, and there have been eleven.
+ *
+ * BOTH slug forms of the old key are indexed, canonical and pre-1.46, because
+ * both were live URLs for it. The old key '-operative group' canonicalises to
+ * "operative-group" (the leading hyphen is trimmed) and legacy-slugs to
+ * "-operative-group", and the sitemap published the first.
+ *
+ * Two refusals, and they are the same refusal the collision map makes:
+ *
+ *  - a slug a CURRENT key claims is never redirected. A live employer owning
+ *    the URL outranks any history of it, and this is not hypothetical: a merge
+ *    like "perma-fix" -> "perma fix" leaves both keys on one slug, which the
+ *    surviving employer still serves.
+ *  - a slug two moved keys claim, pointing at different employers, is dropped
+ *    rather than resolved to whichever the query returned first.
+ *
+ * @param array $claims canonical slug -> the current keys claiming it.
+ */
+function tit_company_moved_slugs($claims) {
+    global $wpdb;
+    $table = tit_table_name();
+
+    // The aliases are `prev` and `live`, not the obvious `old` and `new`.
+    // MySQL has reserved both of those at one version or another for row
+    // aliases, and an unquoted reserved word here is a parse error that takes
+    // out every company page at once. The harness runs on SQLite and would not
+    // catch it, so the safe names are the ones written.
+    $pairs = $wpdb->get_results(
+        "SELECT DISTINCT prev.company_key AS old_key, live.company_key AS new_key
+           FROM {$table} prev
+           INNER JOIN {$table} live
+                   ON live.signal_id = prev.signal_id AND live.is_current = 1
+          WHERE prev.is_current = 0
+            AND prev.company_key <> live.company_key
+            AND prev.company_key <> ''",
+        ARRAY_A
+    );
+    if (!is_array($pairs) || !$pairs) return array();
+
+    $moved = array();
+    $ambiguous = array();
+    foreach ($pairs as $pair) {
+        $forms = array(
+            tit_company_slug($pair['old_key']),
+            tit_company_legacy_slug($pair['old_key']),
+        );
+        foreach (array_unique($forms) as $slug) {
+            if ($slug === '' || isset($claims[$slug]) || isset($ambiguous[$slug])) continue;
+            if (isset($moved[$slug]) && $moved[$slug] !== $pair['new_key']) {
+                unset($moved[$slug]);
+                $ambiguous[$slug] = true;
+                continue;
+            }
+            $moved[$slug] = $pair['new_key'];
+        }
+    }
+    return $moved;
 }
 
 /**
@@ -308,8 +393,16 @@ function tit_company_sitemap_url() {
  * This is still not a slug -> key conversion: the index is built by applying the
  * forward mapping to every key and remembering the result.
  *
- * The two steps are ordered this way so the common path is one indexed query
- * and touches no map at all.
+ * STEP 3 is the slug of a key that has since been CORRECTED. Nothing current
+ * claims it, but a superseded revision does, and the signal that revision
+ * belongs to is still here under its new key. Returning that employer's current
+ * rows makes tit_company_template() redirect to the canonical URL by the same
+ * comparison it already runs for a pre-1.46 slug, so the caller needs no new
+ * branch and there is no second redirect rule to keep in step with the first.
+ *
+ * The three steps are ordered this way so the common path is one indexed query
+ * and touches no map at all, and so a live employer can never be redirected
+ * away from a URL it holds.
  */
 function tit_company_rows($slug) {
     global $wpdb;
@@ -329,12 +422,15 @@ function tit_company_rows($slug) {
     if ($rows) return $rows;
 
     $index = tit_company_slug_index();
-    if (empty($index['map'][$slug])) return array();
+    $key = '';
+    if (!empty($index['map'][$slug]))        $key = $index['map'][$slug];
+    elseif (!empty($index['moved'][$slug]))  $key = $index['moved'][$slug];
+    if ($key === '') return array();
 
     return $wpdb->get_results($wpdb->prepare(
         "SELECT {$columns} FROM {$table}
           WHERE is_current = 1 AND company_key = %s {$order}",
-        $index['map'][$slug]
+        $key
     ), ARRAY_A) ?: array();
 }
 

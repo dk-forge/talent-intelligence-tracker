@@ -227,6 +227,57 @@ def test_the_old_slug_redirects_to_the_canonical_one():
     )
 
 
+def test_a_corrected_key_leaves_its_old_url_resolving():
+    """company_key is a normalised name, so fixing the normaliser moves it, and
+    the profile URL is derived from the key. Three of the URLs that moved on
+    2026-07-29 were in the sitemap.
+
+    The old URL is not lost information: a correction appends a revision and the
+    old row survives at is_current = 0 still carrying the old key. Step 3 maps
+    that back to the key the same signal now holds, and the existing canonical
+    comparison does the 301. This asserts the property is wired; whether it
+    actually redirects is proved by running it, in tests/php/route_company_slugs.php.
+    """
+    rows = COMPANY[COMPANY.index("function tit_company_rows"):]
+    rows = rows[:rows.index("\n}\n")]
+    assert "$index['moved'][$slug]" in rows, "step 3 resolves a corrected key's old slug"
+    assert rows.index("$index['map'][$slug]") < rows.index("$index['moved'][$slug]"), (
+        "a slug the current index can answer must never reach the moved map"
+    )
+
+    moved = COMPANY[COMPANY.index("function tit_company_moved_slugs"):]
+    moved = moved[:moved.index("\n}\n")]
+    assert "live.signal_id = prev.signal_id AND live.is_current = 1" in moved, (
+        "the mapping is a property of revisions, not a list of redirects"
+    )
+    assert "prev.company_key <> live.company_key" in moved, (
+        "only a key that actually MOVED is a redirect; every other superseded "
+        "revision is an ordinary correction and its slug is unchanged"
+    )
+    assert "tit_company_legacy_slug($pair['old_key'])" in moved, (
+        "both forms of the old key were live URLs for it"
+    )
+    assert "isset($claims[$slug])" in moved, (
+        "a slug a CURRENT key holds must never be redirected away from it"
+    )
+    assert "$ambiguous[$slug] = true" in moved, (
+        "two corrections claiming one old slug is refused, like any other "
+        "collision, rather than resolved to whichever the query returned first"
+    )
+
+
+def test_the_routing_is_proved_by_running_it_and_not_only_by_reading_it():
+    """Whether an old URL 301s or 404s is a behaviour across a state change, and
+    no amount of reading the source settles it. A 20-URL hand sample said the
+    sitemap was fine while 22 of 712 URLs were broken."""
+    harness = Path(__file__).parent / "php" / "route_company_slugs.php"
+    assert harness.exists()
+    tests_yml = (Path(__file__).parent.parent / ".github" / "workflows" / "tests.yml").read_text()
+    assert "php tests/php/route_company_slugs.php" in tests_yml, (
+        "the harness exists but nothing runs it, which is worse than not having it"
+    )
+
+
 def test_the_lookup_is_still_never_a_slug_to_key_conversion():
     """The 2026-07-28 regression: rebuilding the key from the slug is not a
     reversible mapping, because company_key legitimately contains hyphens.

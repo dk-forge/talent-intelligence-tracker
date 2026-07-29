@@ -40,6 +40,13 @@ jobs:
       - name: Render the recall page's chart
         run: php tests/php/render_recall.php
 
+      # Correcting an employer's company_key moves its /company/ URL, and three
+      # of the URLs that moved were in the sitemap. Whether the old one 301s or
+      # 404s is a behaviour across a state change, which no amount of reading
+      # the source proves, so the routing runs here against real SQL.
+      - name: Route company slugs through a key correction
+        run: php tests/php/route_company_slugs.php
+
       - name: Run tests
         run: python -m pytest -q
 
