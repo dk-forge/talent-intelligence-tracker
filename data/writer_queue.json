@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T17:12:44Z",
+  "last_tick": "2026-07-29T18:40:21Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -156,6 +156,29 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T18:40:06Z",
+          "detail": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T184006Z-backfill-funding-bulk",
+      "inputs": {
+        "dry_run": "false",
+        "quarters": "2026q1..2026q2"
+      },
+      "priority": 10,
+      "reason": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
+      "requested_at": "2026-07-29T18:40:06Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-funding-bulk.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
