@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T12:58:33Z",
+  "last_tick": "2026-07-29T17:12:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,6 +158,33 @@
   "tickets": [
     {
       "attempts": 0,
+      "dispatched_at": "2026-07-29T17:12:44Z",
+      "history": [
+        {
+          "at": "2026-07-29T17:05:58Z",
+          "detail": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T17:12:44Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260729T170558Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
+      "requested_at": "2026-07-29T17:05:58Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
@@ -305,6 +332,44 @@
       "run_id": "30453912404",
       "state": "landed",
       "workflow": "collect-press.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T17:05:34Z",
+      "history": [
+        {
+          "at": "2026-07-29T17:05:19Z",
+          "detail": "First real link check; dry runs cleared 291 URLs at 0% rot",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T17:05:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T17:06:10Z",
+          "detail": "run 30473757174",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T17:12:44Z",
+          "detail": "run 30473757174",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T170519Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-29T17:12:44Z",
+      "priority": 0,
+      "reason": "First real link check; dry runs cleared 291 URLs at 0% rot",
+      "requested_at": "2026-07-29T17:05:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30473757174",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
