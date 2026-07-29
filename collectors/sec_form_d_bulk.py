@@ -65,6 +65,11 @@ _QUARTER = re.compile(r"(\d{4})q([1-4])", re.I)
 # categories, not generic ones, which is why they are not left to a fuzzy
 # match. Anything unmapped stores NULL rather than a guess — "Other" is 22% of
 # qualifying filings and means exactly nothing.
+#
+# The real-estate rows are kept here but no longer reachable: that whole group
+# is now dropped upstream as single-purpose property vehicles
+# (sec_form_d.REAL_ESTATE_INDUSTRIES). They stay so the mapping is still
+# correct if that filter is ever narrowed.
 INDUSTRY_MAP = {
     "other technology": "technology",
     "computers": "technology",
@@ -208,9 +213,13 @@ def parse_archive(blob: bytes) -> list[dict]:
         if (submission.get("TESTORLIVE") or "").upper() != "LIVE":
             continue
 
-        # A fund raising a fund is not a talent signal, and it is two thirds of
-        # Form D volume. The data set states this three different ways and all
-        # three are checked, because each one catches vehicles the others miss.
+        # Vehicles, not employers. A fund raising a fund is two thirds of Form D
+        # volume; a single-purpose property LLC is most of the rest of the noise.
+        # The data set states the fund case three different ways and all three
+        # are checked, because each one catches vehicles the others miss. The
+        # industry group carries both classes (see sec_form_d.EXCLUDED_INDUSTRIES),
+        # and the name patterns are the second pass for whatever files under a
+        # generic group.
         if (offering.get("ISPOOLEDINVESTMENTFUNDTYPE") or "").lower() == "true":
             continue
         industry_raw = (offering.get("INDUSTRYGROUPTYPE") or "").strip()
@@ -280,28 +289,45 @@ def parse_archive(blob: bytes) -> list[dict]:
 def as_classified(item: dict) -> dict:
     """The `classified` half of build_signal, derived rather than generated.
 
-    Every field here is read off the filing or is a fixed editorial line. No
-    model is called, so nothing in a record can be something a model believed:
-    the money is the column, the company is the column, and the read-through
-    is the same sentence on every row of this source, which is honest about
-    being a generic inference rather than a specific insight.
+    Every field here is read off the filing. No model is called, so nothing in
+    a record can be something a model believed — and nothing here may be
+    something WE believed either. Two rules follow, both of them fixes for
+    things this source shipped:
+
+    - `signal_direction` is "neutral", not "hiring". The rule in
+      `pipeline/classify.py` is that the direction is what the SOURCE STATES
+      about headcount, never what the event usually implies. A Form D states
+      money. It says nothing about roles, so "Hiring up" on these rows was a
+      claim the filing does not make. The pillar is still company_development
+      and the figure still carries the value; only the false claim is gone.
+    - The read-through states the filing and names the gap. It used to assert
+      that "capital raised is spent on headcount within the following two to
+      six quarters" — a generalisation that appears in no filing, printed
+      identically on thousands of rows as if it had been sourced.
     """
     company = item["headline"].split(" raised ")[0]
     money = item["money"]
+    where = ", ".join(p for p in (item.get("city") or "",
+                                  item.get("state") or item.get("country") or "") if p)
+    filed = item.get("published_date") or ""
+    reported = f"{company} reported a {money} private placement to the SEC"
+    if filed:
+        reported += f" on {filed}"
+    if where:
+        reported += f", listing an address in {where}"
     return {
         "company": company,
         "pillar": "company_development",
-        "signal_direction": "hiring",
+        # Not "hiring". See the docstring: the filing states money, not roles.
+        "signal_direction": "neutral",
         "headline": item["headline"],
         "summary": (
             f"{company} reported {money} sold in a private placement in a "
             f"Form D filing with the SEC."
         ),
         "talent_readthrough": (
-            "A closed private placement is the standard precursor to hiring: "
-            "capital raised is spent on headcount within the following two to "
-            "six quarters. The filing states the money, not the plan, so treat "
-            "it as a lead indicator of demand rather than an announced role."
+            f"{reported}. The filing records the money only; it names no roles "
+            f"and no hiring plan."
         ),
         "country": item.get("country") or "",
         "state": item.get("state") or "",

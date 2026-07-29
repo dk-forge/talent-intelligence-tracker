@@ -5,12 +5,17 @@ rather than prose: issuer name, industry, city, state, and the amount actually
 sold. That means the money figure is a fact read off a legal filing, not a
 number a model produced — which is the only kind of figure this product stores.
 
-Funding is a leading indicator for hiring: a company that closed a round is
-staffing up two to six months later. That is the whole reason it belongs here.
+A Form D states money and nothing else. It does not say the issuer is hiring,
+and this collector never claims it does: the row carries the raise as a fact
+and leaves the headcount question open. That is why `signal_direction` on these
+rows is "neutral" — the rule in `pipeline/classify.py` is that the direction is
+what the SOURCE STATES about headcount, never what the event usually implies.
 
-**The noise problem**: most Form D filers are investment funds, not companies
-raising money. `industryGroupType` says which, so pooled investment funds are
-dropped before anything else happens.
+**The noise problem**: most Form D filers are not employers at all. Two thirds
+are investment funds, and much of the rest are single-purpose vehicles that
+raise money for one building and employ nobody. `industryGroupType` names both
+classes, so it is checked first; the name patterns are the second pass, for the
+vehicles that file under a generic group.
 """
 
 from __future__ import annotations
@@ -30,7 +35,7 @@ COLLECTOR = "sec_form_d"
 REQUEST_DELAY = 0.15
 
 # A fund raising a fund is not a talent signal. This is ~70% of Form D volume.
-EXCLUDED_INDUSTRIES = {
+POOLED_FUND_INDUSTRIES = {
     "pooled investment fund",
     "other investment fund",
     "hedge fund",
@@ -38,9 +43,35 @@ EXCLUDED_INDUSTRIES = {
     "venture capital fund",
 }
 
-# industryGroupType alone is not enough: real-estate syndications and Delaware
-# statutory trusts file under "Other Real Estate" and are still investment
-# vehicles, not employers. The name gives them away.
+# Neither is a building. Form D's REAL ESTATE group ("Commercial",
+# "Residential", "Construction", "REITS and Finance", "Other Real Estate") is
+# filed almost entirely by single-purpose vehicles: one LLC per property, which
+# raises the money, buys the asset and employs nobody. A recruiter or a job
+# seeker can do nothing with them, and because each raise is large they
+# dominated the money views — 874 of the first 4,003 published rows, and every
+# dollar of the "Real estate & construction $12.2B" total.
+#
+# The cost of this rule is stated rather than hidden: a genuine operating
+# employer that files under the same group (a brokerage, a general contractor)
+# is dropped with them. On a sample of the live rows that was ~2%, and the
+# dataset gives no column that separates the two.
+REAL_ESTATE_INDUSTRIES = {
+    "commercial",
+    "residential",
+    "construction",
+    "reits and finance",
+    "other real estate",
+}
+
+EXCLUDED_INDUSTRIES = POOLED_FUND_INDUSTRIES | REAL_ESTATE_INDUSTRIES
+
+# industryGroupType alone is not enough: plenty of vehicles file under a
+# generic group ("Other", "Investing", "Business Services") and are still
+# vehicles, not employers. The name gives them away — a tenant-in-common
+# interest, a qualified opportunity fund, an SPV, a numbered series in a
+# ladder, a conglomerate holding private equity or private credit. These
+# patterns are deliberately narrow: an operating company must never be dropped,
+# so each one is a phrase no real employer puts in its name.
 EXCLUDED_NAME_PATTERNS = re.compile(
     r"\b("
     r"fund\s*(?:i{1,3}|iv|v|vi{0,3}|\d+)?(?:-[a-z])?\b"
@@ -49,6 +80,20 @@ EXCLUDED_NAME_PATTERNS = re.compile(
     r"|\bl\.?p\.?$|\bllp$"
     r"|series\s+[a-z0-9]+\s+(?:dst|lp|llc)$"
     r"|holdings?\s+(?:i{1,3}|\d+)$"
+    # Single-purpose property and investment vehicles.
+    r"|tic\b|qof\b|spv\b|investco\b|conglomerate\b"
+    r"|private\s+equity\b|private\s+credit\b"
+    r"|co-?invest(?:ors?|ment)?\b"
+    r"|apartments?\b|condominiums?\b|villas?\b|townhomes?\b"
+    # Property vehicles that file under a generic industry group. Note what is
+    # NOT here: "estates" matches "Real Estate Business Analytics, Inc.", a
+    # software company, and "development" matches "Strobe Development, Inc.".
+    r"|properties\b|realty\b|land\s?co\b|(?:golf|country)\s+club\b"
+    # "MIMG CCLXV Rapid City 6 Master, LLC" — the master entity of a syndication.
+    r"|master,?\s*(?:llc|lp)\.?$"
+    # A roman numeral immediately before the entity suffix is a series vehicle:
+    # "Northfield V74 I, LLC", "CRA Funding VIII, LLC", "HMA III, Inc.".
+    r"|(?:i{1,3}|iv|vi{0,3}|ix|xi{0,3})[\s,]*(?:llc|lp|inc)\.?$"
     r")", re.I,
 )
 
