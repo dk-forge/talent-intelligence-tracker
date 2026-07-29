@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:41:22Z",
+  "last_tick": "2026-07-29T18:46:46Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,31 +158,31 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:41:22Z",
+      "dispatched_at": "2026-07-29T18:46:46Z",
       "history": [
         {
-          "at": "2026-07-29T18:40:06Z",
-          "detail": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
+          "at": "2026-07-29T18:46:33Z",
+          "detail": "guardrail finding rejected on the filing: e008269d6b2d",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:41:22Z",
+          "at": "2026-07-29T18:46:46Z",
           "detail": "",
           "event": "dispatched"
         }
       ],
-      "id": "20260729T184006Z-backfill-funding-bulk",
+      "id": "20260729T184633Z-retract",
       "inputs": {
-        "dry_run": "false",
-        "quarters": "2026q1..2026q2"
+        "reason": "Not a capital raise. The Form D reports the value of shares issued in Madison Air's pre-IPO reorganization, not money raised: the 424B4 of 2026-04-17 describes the Organizational Transactions as a reorganization of entities under common control, and 402,614,670 unregistered shares at the 27.00 USD IPO price is exactly the 10,870,596,090 USD on the form. The only cash private placement disclosed is 100.0 million USD from Holdings.",
+        "signal_id": "e008269d6b2d4981d74d30cd203c730b"
       },
-      "priority": 10,
-      "reason": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
-      "requested_at": "2026-07-29T18:40:06Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: e008269d6b2d",
+      "requested_at": "2026-07-29T18:46:33Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "dispatched",
-      "workflow": "backfill-funding-bulk.yml"
+      "workflow": "retract.yml"
     },
     {
       "attempts": 0,
@@ -409,6 +409,44 @@
       "run_id": "30474293718",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:41:22Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:40:06Z",
+          "detail": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:41:22Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:46:46Z",
+          "detail": "run 30481065108",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:46:46Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260729T184006Z-backfill-funding-bulk",
+      "inputs": {
+        "dry_run": "false",
+        "quarters": "2026q1..2026q2"
+      },
+      "priority": 10,
+      "reason": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
+      "requested_at": "2026-07-29T18:40:06Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481065108",
+      "state": "failed",
+      "workflow": "backfill-funding-bulk.yml"
     }
   ],
   "version": 1
