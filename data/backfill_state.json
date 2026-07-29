@@ -1,7 +1,7 @@
 {
   "jobs": {
     "backfill-funding-bulk:2026q1..2026q2": {
-      "cursor": "2026q2",
+      "cursor": null,
       "end": "2026q2",
       "history": [
         {
@@ -16,6 +16,19 @@
             "skipped": 1545,
             "stored": 0
           }
+        },
+        {
+          "at": "2026-07-29T19:45:51Z",
+          "run": "",
+          "slice": "2026q2..2026q2",
+          "stopped_early": "",
+          "totals": {
+            "duplicate": 0,
+            "found": 1690,
+            "rejected": 0,
+            "skipped": 1690,
+            "stored": 0
+          }
         }
       ],
       "inputs": {
@@ -23,18 +36,18 @@
       },
       "opened_at": "2026-07-29T19:42:12Z",
       "slice_size": 1,
-      "slices": 1,
+      "slices": 2,
       "start": "2026q1",
-      "state": "running",
+      "state": "done",
       "totals": {
         "duplicate": 0,
-        "found": 1545,
+        "found": 3235,
         "rejected": 0,
-        "skipped": 1545,
+        "skipped": 3235,
         "stored": 0
       },
       "unit": "quarters",
-      "updated_at": "2026-07-29T19:42:12Z",
+      "updated_at": "2026-07-29T19:45:51Z",
       "workflow": "backfill-funding-bulk.yml"
     }
   },
