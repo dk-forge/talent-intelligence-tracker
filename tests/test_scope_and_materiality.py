@@ -109,7 +109,13 @@ class ScopeBoundary(unittest.TestCase):
 
     def test_a_headline_that_hides_the_cut_is_caught_by_the_direction(self):
         """"Restructuring" names no cut, but the model's own reading does, and
-        displacement means the source said roles are going."""
+        displacement means the source said roles are going.
+
+        The document here must HIDE the cut from the body rule too: a raw_text
+        that announces the reduction outright is now caught by
+        validate.precheck before any model runs, which is the right outcome
+        but would leave this arm untested. So the body stays vague and only
+        the model's reading carries the cut — the case arm two exists for."""
         with self.assertRaises(validate.Rejected) as caught:
             build(
                 company="IO Biotech",
@@ -119,11 +125,22 @@ class ScopeBoundary(unittest.TestCase):
                         "reduction plan to reduce operating expenses.",
                 talent_readthrough="IO Biotech is reducing its workforce globally.",
                 city="",
-                raw={"raw_text": "IO Biotech announces a restructuring and workforce "
-                                 "reduction plan.",
+                raw={"raw_text": "IO Biotech announces a strategic restructuring "
+                                 "to reduce operating expenses.",
                      "headline": "IO Biotech announces restructuring plan"},
             )
         self.assertIn("displacement", str(caught.exception))
+
+    def test_a_document_that_announces_the_cut_never_costs_a_read(self):
+        """The same story with the reduction stated in the DOCUMENT is now a
+        precheck rejection: run_collect fires it before the model is paid,
+        because nothing about the verdict needed the model."""
+        with self.assertRaises(validate.Rejected) as caught:
+            validate.precheck(
+                {"source_url": "https://www.sec.gov/Archives/edgar/data/9/y.htm",
+                 "raw_text": "IO Biotech announces a restructuring and workforce "
+                             "reduction plan."})
+        self.assertIn("source document announces it", str(caught.exception))
 
     def test_the_boundary_holds_in_six_languages(self):
         cases = {

@@ -13,6 +13,60 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — cost levers, second pass: every qualified candidate gets read
+
+The first pass (below, "the cost levers") made looking cheap; this one makes
+reading complete. The owner authorized raising the read cap on 2026-07-30, and
+the levers around it exist so that raise buys coverage rather than a bill.
+Measured facts these changes stand on: gate ≈ $0.00003/item, read-through
+≈ $0.00128/item (3,100 in / 400 out), and the last real run bought all 60 of
+its reads, stored 34 rows, and budget-deferred 95 gate survivors.
+
+**Read only what can store (`validate.precheck`).** Every rejection
+build_signal can reach from the raw item alone — no source URL, an aggregator
+or job-board link, a bare domain, an empty body, a filing that ANNOUNCES a
+workforce reduction — now fires in run_collect before the gate, with the same
+messages. build_signal still calls it first, so backfills and corrections
+cannot route around it, and a test table pins the two ends to identical
+verdicts. Same rows stored; only WHEN the money is spent moved. The waste
+that remains is now printed every run: `reads bought vs rows stored` beside
+the token accounting, fed by `classify.STATS["read_stored"]` at store time —
+the 60-bought/34-stored gap was invisible until it had a number.
+
+**Leadership joins the deterministic extractor.** "<Employer> Appoints
+<Person> as <C-title>" closes for $0 under the funding design: precision over
+recall, DECLINE on any ambiguity, `reported` confidence, EVIDENCE_NOTE on the
+row, zero exemptions from validate -> store. The funding sweep's four
+tightenings translate one for one: a country/city employer span declines
+(government stories), a role word in the person span declines ("Former Google
+Executive Jane Doe" — where the description ends is a model's job), Title
+Case trusts only a one-token employer and a two-token person, and the
+stolen-detail lesson becomes stated start dates and interim arrangements —
+facts the record cannot carry, so they decline the item. Any mention of a cut
+declines outright: the subject-race heuristic keeps such stories FOR THE
+MODEL, and a $0 close gets no benefit of the doubt.
+
+**The gate default is `google/gemini-2.5-flash-lite`** (env
+`TIT_GATE_MODEL`), citing the repo's own A/B: about half the incumbent's gate
+price, and every disagreement was the challenger correcting the incumbent's
+false rejection of a real funding round. The read-through model is explicitly
+untouched — prompt changes and model switches there stay gated behind
+`ab_models.py --readthrough`, which has not been run.
+
+**READTHROUGH_CAP default 60 -> 200** (env `TIT_READTHROUGH_CAP`), the
+owner's 2026-07-30 call recorded in the comment. 200 bounds one run at ~$0.26
+of reads; it was never the monthly guarantee and still is not — spend.py runs
+first on every collect job and hard-stops at 90% of the allowance, and the
+OpenRouter key's own cap sits behind it. Projected month at the new defaults,
+from the measured per-item figures: gates ~1,050 screened x 2/day x 30 x
+$0.00003 ≈ $1.9; reads at the measured steady demand (~60-155 gate survivors
+a run, less the deterministic closes) ≈ $2.3-4.6 at 30-60 reads/run bought,
+with the theoretical at-cap ceiling $15.4 that spend.py exists to make
+unreachable. Budget-deferred logging is unchanged, so the day the cap binds
+again is a printed number, not a guess.
+
+---
+
 ## 2026-07-29 — the stale employer keys, and the merge that could not be a rule
 
 Plugin 1.47.0 and `correct_company_key.py`. Closes the correction the sitemap

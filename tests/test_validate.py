@@ -279,3 +279,63 @@ def test_same_event_from_two_outlets_hashes_identically():
         "google_news",
     )
     assert a.content_hash == b.content_hash
+
+
+# --- precheck: the free rejections, moved ahead of the money -----------------
+#
+# Every case in this table is a candidate build_signal would reject WITHOUT
+# reading the model's output. Until precheck existed, each one still cost a
+# full read-through first: the pipeline paid to classify an item whose
+# rejection was already sitting in the collector's dict. The invariant under
+# test is agreement — precheck must raise exactly where build_signal raises
+# for raw-only reasons, with the same messages, so hoisting the check moved
+# WHEN the money is spent and nothing else.
+
+PRECHECK_REJECTS = (
+    ("no source url", raw(source_url=""), "no source_url"),
+    ("bare domain", raw(source_url="https://www.ft.com/"), "bare domain"),
+    ("aggregator", raw(source_url="https://news.google.com/rss/articles/x"), "aggregator"),
+    ("job board", raw(source_url="https://www.indeed.com/viewjob?jk=1"), "job board"),
+    ("single advert", raw(source_url="https://insurancejournal.com/jobs/12345/"), "job advert"),
+    ("empty body", raw(raw_text=""), "raw_text is empty"),
+    # A filing that ANNOUNCES a reduction is the sibling's record whatever the
+    # model would say about it — the Atlassian shape, caught before the most
+    # expensive read the pipeline makes instead of after it.
+    ("reduction filing",
+     raw(source_url="https://www.sec.gov/Archives/edgar/data/1/x-8k.htm",
+         raw_text="Acme 8-K filing. The Board approved a restructuring plan "
+                  "that includes a reduction of approximately 10% of the "
+                  "Company's workforce."),
+     "the source document announces it"),
+)
+
+
+@pytest.mark.parametrize("label,item,message",
+                         PRECHECK_REJECTS, ids=[c[0] for c in PRECHECK_REJECTS])
+def test_precheck_rejects_before_any_model_is_paid(label, item, message):
+    with pytest.raises(validate.Rejected, match=message):
+        validate.precheck(item)
+
+
+@pytest.mark.parametrize("label,item,message",
+                         PRECHECK_REJECTS, ids=[c[0] for c in PRECHECK_REJECTS])
+def test_build_signal_agrees_with_precheck(label, item, message):
+    """The two ends of the hoist can never drift: what precheck rejects,
+    build_signal rejects, for the same stated reason."""
+    with pytest.raises(validate.Rejected, match=message):
+        validate.build_signal(classified(), item, "google_news")
+
+
+def test_precheck_passes_a_storable_candidate():
+    """precheck must never reject on anything the model could still change:
+    the happy-path item sails through untouched."""
+    validate.precheck(raw())
+
+
+def test_precheck_needs_nothing_from_the_model():
+    """The whole point: it reads the raw dict alone, so run_collect can call
+    it before a cent is spent. A signature that grew a `classified` parameter
+    would quietly turn a pre-spend check into a post-spend one."""
+    import inspect
+    params = list(inspect.signature(validate.precheck).parameters)
+    assert params == ["raw"]

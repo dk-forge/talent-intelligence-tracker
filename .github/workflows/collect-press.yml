@@ -12,7 +12,8 @@ name: collect national press
 # 18:00 so the two never queue behind each other for the same database lock.
 #
 # COST. Fetching feeds is free. What costs money is the read-through, and that
-# is bounded by classify.READTHROUGH_CAP (60/run) regardless of how many feeds
+# is bounded by classify.READTHROUGH_CAP (200/run since 2026-07-30, owner's
+# call) regardless of how many feeds
 # the catalogue lists, with the two-stage gate throwing most candidates away for
 # about 1/40th of a full call first. Adding a country to the catalogue therefore
 # costs bandwidth, not budget. spend.py still runs first and is the hard stop.

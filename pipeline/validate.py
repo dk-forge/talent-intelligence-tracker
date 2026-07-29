@@ -390,17 +390,21 @@ def forced_pillar(collector: str, headline: str) -> str | None:
     return None
 
 
-def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
-    """Turn a classified candidate into a storable Signal, or raise Rejected.
+def precheck(raw: dict) -> None:
+    """Every rejection reachable from the RAW item alone, before any model.
 
-    `raw` is the collector's dict and is the ONLY source of truth for what the
-    article actually said. `classified` is the model's reading of it.
+    Each check below used to live inside build_signal, which runs AFTER the
+    read-through — so a candidate with no source URL, or a job-board link, or
+    a filing that announces a workforce reduction, was read at full price and
+    then rejected on facts that were sitting in the collector's dict the whole
+    time. The last real run bought 60 reads and stored 34 rows; this is one of
+    the places the other 26 went. run_collect calls this before any money is
+    spent; build_signal calls it again as its first step, so no path into the
+    store exists that skips it, and the two ends can never disagree.
 
-    `conn` is optional and is used for one thing: the employer identity cache
-    (pipeline/identity.py), which fills ticker / cik / hq / employer_type when
-    nothing above supplied them. Pass it and blanks get filled from the cache;
-    leave it out and this stays a pure function of two dicts, which is what
-    every test of it relies on.
+    Raises Rejected with the same messages build_signal always raised. Nothing
+    here reads `classified` — a check that needs the model's output cannot be
+    prechecked and stays in build_signal.
     """
     source_url = (raw.get("source_url") or "").strip()
     if not source_url:
@@ -434,6 +438,43 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         # The sibling shipped a source that set every field except this one and
         # silently posted zero records for weeks (spec 6 rule 2).
         raise Rejected("raw_text is empty — the classifier had nothing to read")
+
+    # The scope boundary's third arm, reading the DOCUMENT. Arms one and two
+    # read headlines — one the source wrote, one the model wrote — and stay in
+    # build_signal because the model's reading is part of what they judge. This
+    # arm reads only raw_text, so it belongs here: an 8-K announcing a
+    # reduction is the sibling's record whatever the model would have said
+    # about it, and the reads this saves are precisely the sec_edgar bodies
+    # that are the most expensive texts the pipeline sends. (Measured 0.16% of
+    # filings, but each one was a full read bought and then thrown away.)
+    # prefilter.filing_reduction_plan documents why this cannot be the
+    # headline rule pointed at a body.
+    cut = prefilter.filing_reduction_plan(raw_text)
+    if cut:
+        raise Rejected(
+            "workforce reduction is the sibling tracker's scope, not ours "
+            f"(the source document announces it: {cut!r})")
+
+
+def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
+    """Turn a classified candidate into a storable Signal, or raise Rejected.
+
+    `raw` is the collector's dict and is the ONLY source of truth for what the
+    article actually said. `classified` is the model's reading of it.
+
+    `conn` is optional and is used for one thing: the employer identity cache
+    (pipeline/identity.py), which fills ticker / cik / hq / employer_type when
+    nothing above supplied them. Pass it and blanks get filled from the cache;
+    leave it out and this stays a pure function of two dicts, which is what
+    every test of it relies on.
+    """
+    # Everything checkable without the model, re-checked here even though
+    # run_collect already prechecked: build_signal is also fed by backfills
+    # and corrections that never went through run_collect's loop.
+    precheck(raw)
+    source_url = (raw.get("source_url") or "").strip()
+    host = (urlparse(source_url).hostname or "").lower()
+    raw_text = (raw.get("raw_text") or "").strip()
 
     company = (classified.get("company") or "").strip()
     if not company:
@@ -489,29 +530,15 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
                 "workforce reduction is the sibling tracker's scope, not ours "
                 f"(displacement: {cut!r})")
 
-    # The third arm reads the DOCUMENT. Both arms above read a headline — one
-    # the source wrote, one the model wrote — and `sec_edgar` writes NEITHER:
-    # it stamps the identical string "<Company> 8-K filing (Item 5.02): officer
-    # or director change" onto every document it fetches. So arm one has been
-    # matching the collector's own boilerplate against a layoff vocabulary
-    # forever, arm two only fires when the model happened to choose
-    # 'displacement', and the reduction language sat untouched in raw_text.
-    # Atlassian (~10% of its workforce), Groupon (up to 400 positions), IO
-    # Biotech and Lyra Therapeutics all reached the live page through that hole
-    # while every guard reported healthy.
-    #
-    # Running arm one over the body instead would not have closed it: every
-    # Item 5.02 filing opens with "appointed" or "resigned", and that rule lets
-    # an in-scope subject appearing EARLIER win, so a reduction announced three
-    # paragraphs later is suppressed every time. A body needs a body-shaped
-    # rule, and it has to distinguish a document that ANNOUNCES a reduction
-    # from one that merely mentions a cut, or it will reject the leadership
-    # pillar wholesale. prefilter.filing_reduction_plan is where that lives.
-    cut = prefilter.filing_reduction_plan(raw_text)
-    if cut:
-        raise Rejected(
-            "workforce reduction is the sibling tracker's scope, not ours "
-            f"(the source document announces it: {cut!r})")
+    # The third arm reads the DOCUMENT, and it moved to precheck() above:
+    # `sec_edgar` stamps one synthetic headline onto every filing, so arm one
+    # was matching the collector's own boilerplate forever, arm two only fires
+    # when the model happened to choose 'displacement', and the reduction
+    # language sat untouched in raw_text. Atlassian (~10% of its workforce),
+    # Groupon, IO Biotech and Lyra Therapeutics all reached the live page
+    # through that hole. The rule itself — announce, not mention — lives in
+    # prefilter.filing_reduction_plan; it needs nothing the model said, which
+    # is exactly why it now runs before the model is paid.
 
     # Job location: from the source text only.
     city = region = None
