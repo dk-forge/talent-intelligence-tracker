@@ -596,11 +596,30 @@ function tit_company_head() {
 
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['slug'])) . '" />' . "\n";
-    if (!$p['indexable']) {
+
+    // Yoast prints a robots tag of its own on these routes: measured on 1.45.0,
+    // a below-threshold profile served BOTH "noindex, follow" from us and
+    // "follow, index" from Yoast. Google resolves that by taking the most
+    // restrictive, so the page was in fact noindex, but two head tags
+    // contradicting each other is a defect a reader of the source cannot
+    // resolve and an audit will report. Yoast is told instead, through
+    // tit_company_yoast_robots() below, and we stay quiet so there is exactly
+    // one tag. The X-Robots-Tag header is sent either way, so a Yoast that
+    // ever stops printing on our routes cannot leave the page indexable.
+    if (!$p['indexable'] && !defined('WPSEO_VERSION')) {
         echo '<meta name="robots" content="noindex, follow" />' . "\n";
     }
 }
 add_action('wp_head', 'tit_company_head', 1);
+
+/** The same directive, expressed in Yoast's own vocabulary. */
+function tit_company_yoast_robots($robots) {
+    $current = tit_company_current();
+    if (!$current || $current['profile']['indexable']) return $robots;
+    if (is_array($robots)) $robots['index'] = 'noindex';
+    return $robots;
+}
+add_filter('wpseo_robots_array', 'tit_company_yoast_robots');
 
 /*
  * ---------------------------------------------------------------------------
@@ -636,6 +655,18 @@ function tit_company_sitemap_entries() {
     set_transient('tit_company_sitemap', $rows, 2 * HOUR_IN_SECONDS);
     return $rows;
 }
+
+/**
+ * WordPress adds a trailing slash to anything it does not recognise as a file,
+ * so the sitemap answered 301 to .../company-sitemap.xml/ before serving. A
+ * sitemap URL that redirects is a redirect reported in Search Console for every
+ * fetch, and the slashed form is not a name anyone would submit. Measured on
+ * 1.45.0, fixed here rather than by publishing the slashed URL.
+ */
+function tit_company_sitemap_no_canonical_redirect($redirect) {
+    return get_query_var('tit_company_sitemap') ? false : $redirect;
+}
+add_filter('redirect_canonical', 'tit_company_sitemap_no_canonical_redirect');
 
 function tit_company_sitemap_template() {
     if (!get_query_var('tit_company_sitemap')) return;

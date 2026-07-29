@@ -125,6 +125,29 @@ def test_below_the_threshold_is_noindex_rather_than_a_404():
     assert "!$p['indexable']" in COMPANY or "!$profile['indexable']" in COMPANY
 
 
+def test_only_one_robots_tag_reaches_the_head():
+    """Measured live on 1.45.0: Yoast prints its own robots tag on these routes,
+    so a below-threshold profile served "noindex, follow" from us AND
+    "follow, index" from Yoast. The most restrictive wins, so the page really
+    was noindex, but two head tags contradicting each other is a defect an audit
+    reports. Yoast is told; we stay quiet when it is there. The header goes out
+    either way, so a silent Yoast cannot leave the page indexable."""
+    assert "add_filter('wpseo_robots_array', 'tit_company_yoast_robots');" in COMPANY
+    assert "!defined('WPSEO_VERSION')" in COMPANY
+    assert "$robots['index'] = 'noindex'" in COMPANY
+    header = COMPANY[COMPANY.index("function tit_company_template"):]
+    header = header[:header.index("\n}\n")]
+    assert "X-Robots-Tag: noindex, follow" in header
+    assert "WPSEO" not in header, "the header must not be conditional on a plugin"
+
+
+def test_the_sitemap_url_does_not_redirect():
+    """WordPress trailing-slashes anything it does not recognise as a file, so
+    the sitemap answered 301 before serving. A sitemap that redirects is a
+    redirect reported in Search Console on every fetch."""
+    assert "add_filter('redirect_canonical', 'tit_company_sitemap_no_canonical_redirect');" in COMPANY
+
+
 def test_an_employer_we_hold_nothing_for_is_still_a_404():
     """An empty page for every possible slug is a doorway-page pattern."""
     assert "status_header(404)" in COMPANY
