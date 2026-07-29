@@ -158,31 +158,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T12:58:33Z",
-      "history": [
-        {
-          "at": "2026-07-29T10:55:02Z",
-          "detail": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T12:58:33Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T105502Z-collect-press",
-      "inputs": {},
-      "priority": 0,
-      "reason": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
-      "requested_at": "2026-07-29T10:55:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "collect-press.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
@@ -294,6 +269,42 @@
       "run_id": "30450671959",
       "state": "landed",
       "workflow": "correct-sec-pillar.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T12:58:33Z",
+      "history": [
+        {
+          "at": "2026-07-29T10:55:02Z",
+          "detail": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T12:58:33Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T13:40:02Z",
+          "detail": "run 30453912404",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T13:40:02Z",
+          "detail": "run 30453912404",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T105502Z-collect-press",
+      "inputs": {},
+      "landed_at": "2026-07-29T13:40:02Z",
+      "priority": 0,
+      "reason": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
+      "requested_at": "2026-07-29T10:55:02Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30453912404",
+      "state": "landed",
+      "workflow": "collect-press.yml"
     }
   ],
   "version": 1
