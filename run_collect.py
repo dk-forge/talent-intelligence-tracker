@@ -102,15 +102,39 @@ LOCALES_PER_RUN = 5
 # cost, not quality.
 #
 # With the gate, looking at a candidate costs ~1/40th of classifying it, so
-# this cap is generous on purpose: it bounds gate spend (150 x ~$0.00003 =
-# half a cent per run), while the money is bounded separately by
-# classify.READTHROUGH_CAP, the ceiling on FULL classifications per run.
-# Worst case per month at the defaults:
-#   gate   150 x 2/day x 30            ~$0.30
-#   full    60 x 2/day x 30 x $0.00128 ~$4.60   (realistically far less:
-#           only gate survivors reach it, ~1/3 of candidates on measured runs)
+# this cap is generous on purpose: it bounds gate spend, while the money is
+# bounded separately by classify.READTHROUGH_CAP, the ceiling on FULL
+# classifications per run.
+#
+# RAISED 150 -> 1500 on 2026-07-29, and the reason is measured, not guessed.
+# The first real national_press run:
+#
+#   575 feeds -> 530 live -> 10,741 items -> 9,308 after dedup
+#   9,308 fetched, 8,290 filtered out by the FREE prefilter,
+#   150 going to the classifier          <-- this cap
+#   countries reached: 141
+#
+# So 1,018 items survived the free relevance filter and only 150 were ever
+# looked at. 868 items we had ALREADY JUDGED RELEVANT were discarded for cost,
+# not quality - which is verbatim the failure the two-stage gate was built to
+# end (see the superseded note above; the same sentence appears there about the
+# single-stage era). The symptom was visible on the live page: 97% of all rows
+# were US or GB, both driven by bulk FILING sources, while the entire rest of
+# the world had 467 rows and Israel had 15 - not because its feeds were broken
+# but because its 9 items that run were competing with 1,018 others for 150
+# slots.
+#
+# Worst case per month at the new defaults:
+#   gate  1500 x 2/day x 30 x $0.00003  ~$2.70  (was ~$0.30)
+#   full    60 x 2/day x 30 x $0.00128  ~$4.60  UNCHANGED - the readthrough cap
+#           is what actually bounds the money, and it is untouched here.
+#
+# So this buys SELECTION, not throughput: the gate now screens everything the
+# prefilter passed and the same 60 best get read, instead of 60 out of an
+# arbitrary first-150. Raising READTHROUGH_CAP is the separate, genuinely
+# expensive decision and is the owner's to make.
 # The OpenRouter key's own limit still binds before any of this.
-DEFAULT_CANDIDATE_CAP = 150
+DEFAULT_CANDIDATE_CAP = 1500
 
 
 def build_locales(run_index: int) -> list[tuple[str, str]]:

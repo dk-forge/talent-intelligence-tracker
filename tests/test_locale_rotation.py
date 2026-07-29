@@ -103,7 +103,19 @@ def test_the_run_caps_itself_without_being_told_to():
     from run_collect import DEFAULT_CANDIDATE_CAP
     from pipeline.classify import READTHROUGH_CAP
 
-    assert 10 <= DEFAULT_CANDIDATE_CAP <= 400
+    # Upper bound raised 400 -> 2000 on 2026-07-29. It is a COST bound, so it
+    # is derived from money rather than picked: at ~$0.00003 a gate call and
+    # two runs a day, 2000 candidates is ~$3.60/month of cheap looks, which
+    # sits inside the owner's ~$5 ceiling alongside the read-through spend the
+    # separate cap below actually governs.
+    #
+    # 400 had itself become the coverage constraint the gate was built to
+    # remove. The first real national_press run passed 1,018 items through the
+    # FREE prefilter and sent 150 to the classifier: 868 already-judged-relevant
+    # items discarded for cost, not quality - the exact sentence in
+    # run_collect.py describing the superseded single-stage era. On the live
+    # page it showed as 97% of rows being US or GB, with Israel on 15.
+    assert 10 <= DEFAULT_CANDIDATE_CAP <= 2000
     assert 10 <= READTHROUGH_CAP <= 100
     # The gate exists precisely so the run can look at more than it classifies;
     # if the read-through ceiling ever exceeds the candidate cap, the gate is
