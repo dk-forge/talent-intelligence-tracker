@@ -1496,3 +1496,28 @@ main:has(#tit-dashboard) {
   line-height:1.45; color:var(--tit-mut); background:var(--tit-surface);
   border-left:3px solid var(--tit-orange); border-radius:6px; }
 .tit-chart-caveat[hidden] { display:none; }
+
+/* The recall trend chart. Inline SVG, no library: the direction is the point of
+   automating the measurement, and a direction that depends on a chart library
+   loading is not a direction anyone can rely on seeing. */
+.tit-recall-chart { display:block; width:100%; min-width:520px; height:auto; }
+.tit-rc-grid { stroke:var(--tit-line); stroke-width:1; }
+.tit-rc-axis { fill:var(--tit-mut); font-size:12px; font-variant-numeric:tabular-nums; }
+.tit-rc-held { stroke:#1c5cab; stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+.tit-rc-clean { stroke:#1f7a4d; stroke-width:2.5; stroke-dasharray:6 4;
+  stroke-linejoin:round; stroke-linecap:round; }
+.tit-rc-dot-held { fill:#1c5cab; }
+.tit-rc-dot-clean { fill:#1f7a4d; }
+
+.tit-recall-legend { font-size:13px; color:var(--tit-mut); margin:6px 0 18px; }
+.tit-rc-key { display:inline-block; width:14px; height:3px; margin:0 6px 0 14px;
+  vertical-align:middle; border-radius:2px; }
+.tit-recall-legend .tit-rc-key:first-child { margin-left:0; }
+.tit-rc-k-held { background:#1c5cab; }
+.tit-rc-k-clean { background:#1f7a4d; }
+
+/* The history tables grow a column per measurement, so they are the one thing
+   here that genuinely will not fit. They scroll inside their own container like
+   every other table on the site; the page itself never scrolls sideways. */
+.tit-recall-history th, .tit-recall-history td { white-space:nowrap; }
+.tit-recall-history td:first-child, .tit-recall-history th:first-child { white-space:normal; }

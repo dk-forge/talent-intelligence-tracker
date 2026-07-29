@@ -11,13 +11,14 @@ import json
 import os
 import subprocess
 import sys
+from datetime import date, datetime, timezone
 
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from analysis.recall import goldset, match  # noqa: E402
+from analysis.recall import goldset, match, series  # noqa: E402
 
 
 # --- the gold set itself ---------------------------------------------------
@@ -252,6 +253,187 @@ def test_offline_replay_produces_a_dated_measurement(tmp_path, gold):
     assert result["summary"]["overall"]["total"] == len(gold["items"])
 
 
+# --- the shape guard on future sets ----------------------------------------
+
+def _shaped(**over):
+    """A minimally valid set, deliberately spread, as any future set must be."""
+    plan = [("US", "funding", "large", "filing"), ("US", "leadership", "small", "press_release"),
+            ("GB", "funding", "small", "trade_press"), ("DE", "leadership", "small", "national_news"),
+            ("IN", "funding", "small", "trade_press"), ("BR", "funding", "large", "press_release"),
+            ("JP", "leadership", "small", "trade_press"), ("CA", "funding", "small", "filing"),
+            ("FR", "funding", "large", "national_news"), ("AU", "leadership", "large", "press_release")]
+    items = []
+    for i in range(50):
+        country, signal, band, source = plan[i % len(plan)]
+        items.append({
+            "id": f"g{i}", "company": f"Company {i}", "signal_type": signal,
+            "event_date": "2026-08-10", "country": country, "size_band": band,
+            "detail": "Series A", "source_url": f"https://example.com/{i}",
+            "source_type": source, "source_name": "Example", "amount_usd": 1000000,
+        })
+    data = {"version": "test", "assembled_on": "2026-09-01", "sealed": True,
+            "window": {"start": "2026-08-01", "end": "2026-08-31"}, "items": items}
+    data.update(over)
+    return data
+
+
+def test_a_well_shaped_future_set_validates():
+    assert goldset.validate(_shaped()) == []
+
+
+def test_an_unsealed_set_is_refused():
+    assert any("not sealed" in p for p in goldset.validate(_shaped(sealed=False)))
+
+
+def test_a_set_rebuilt_out_of_easy_us_filings_is_refused():
+    """The failure this guard exists for. Nobody has to intend it: "use what was
+    easy to find" produces an all-US, all-filing set on its own, and then the
+    number climbs for the worst possible reason."""
+    easy = _shaped()
+    for item in easy["items"]:
+        item["country"] = "US"
+        item["size_band"] = "large"
+        item["source_type"] = "filing"
+    problems = goldset.validate(easy)
+    assert any("non-US" in p for p in problems)
+    assert any("small" in p for p in problems)
+    assert any("kinds of document" in p for p in problems)
+
+
+def test_every_gold_set_on_disk_is_valid():
+    """Historical sets are kept so any past figure can be re-derived. A kept set
+    that no longer validates would make its figure unreproducible."""
+    paths = goldset.all_paths()
+    assert paths, "no gold set on disk"
+    for path in paths:
+        assert goldset.validate(goldset.load(path)) == [], path
+
+
+def test_the_newest_set_is_the_one_measured():
+    assert goldset.DEFAULT_PATH == goldset.latest_path()
+
+
+# --- the series and the work list ------------------------------------------
+
+def _result(measured_on, held, total=10, version="v1", country_cells=None):
+    return {
+        "measured_on": measured_on,
+        "goldset": {"version": version, "digest": "abc", "assembled_on": "2026-07-28",
+                    "window": {"start": "2026-07-01", "end": "2026-07-28"}},
+        "summary": {
+            "overall": {"total": total, "found": held, "found_partial": 0,
+                        "missed": total - held, "held": held,
+                        "held_pct": round(100 * held / total, 1),
+                        "clean_pct": round(100 * held / total, 1)},
+            "by_country": country_cells or {},
+            "by_source_type": {}, "by_segment": {}, "by_signal_type": {},
+            "by_geography": {}, "defects": {},
+        },
+        "items": [],
+    }
+
+
+def test_the_series_is_ordered_and_keeps_each_points_set(tmp_path):
+    for name, res in (("recall-2026-08-03.json", _result("2026-08-03", 3)),
+                      ("recall-2026-07-28.json", _result("2026-07-28", 1))):
+        (tmp_path / name).write_text(json.dumps(res))
+    points = series.load_series(str(tmp_path))
+    assert [p["measured_on"] for p in points] == ["2026-07-28", "2026-08-03"]
+    assert all(p["goldset_version"] == "v1" for p in points)
+
+
+def test_a_corrupt_historical_file_does_not_take_the_run_down(tmp_path):
+    (tmp_path / "recall-2026-07-28.json").write_text(json.dumps(_result("2026-07-28", 1)))
+    (tmp_path / "recall-2026-08-03.json").write_text("{ this is not json")
+    assert len(series.load_series(str(tmp_path))) == 1
+
+
+def test_a_converged_set_is_declared_due():
+    """Re-running one set forever measures memorisation, not recall. Three
+    identical measurements mean it has converged, whatever the calendar says."""
+    points = [{"goldset_version": "v1", "overall": {"held": 8}} for _ in range(3)]
+    current = {"version": "v1", "window": {"start": "2026-07-01", "end": "2026-07-28"}}
+    verdict = series.goldset_is_due(points, current, today=date(2026, 8, 1))
+    assert verdict["due"] and "converged" in verdict["reason"]
+
+
+def test_an_aged_window_is_declared_due():
+    current = {"version": "v1", "window": {"start": "2026-07-01", "end": "2026-07-28"}}
+    verdict = series.goldset_is_due([], current, today=date(2026, 10, 1))
+    assert verdict["due"] and "closed" in verdict["reason"]
+
+
+def test_a_moving_current_set_is_not_due():
+    points = [{"goldset_version": "v1", "overall": {"held": h}} for h in (6, 7, 8)]
+    current = {"version": "v1", "window": {"start": "2026-07-01", "end": "2026-07-28"}}
+    assert series.goldset_is_due(points, current, today=date(2026, 8, 1))["due"] is False
+
+
+def test_the_work_list_names_the_countries_that_held_nothing():
+    """The point of automating this: a zero is not a fact to display, it is an
+    instruction to go and find a route into that country's press."""
+    cells = {
+        "NG": {"total": 3, "found": 0, "found_partial": 0, "missed": 3, "held": 0,
+               "held_pct": 0.0, "clean_pct": 0.0},
+        "US": {"total": 7, "found": 7, "found_partial": 0, "missed": 0, "held": 7,
+               "held_pct": 100.0, "clean_pct": 100.0},
+    }
+    work = series.build_worklist(
+        _result("2026-07-28", 7, country_cells=cells), [],
+        {"version": "v1", "window": {"start": "2026-07-01", "end": "2026-07-28"}},
+        today=date(2026, 7, 28))
+    assert [c["key"] for c in work["zero_countries"]] == ["NG"]
+    assert work["zero_countries"][0]["total"] == 3
+    assert work["next_goldset"]["suggested_window"]["start"] == "2026-06-01"
+    assert "independent research" in work["next_goldset"]["instruction"]
+
+
+def test_the_committed_work_list_matches_the_committed_measurement():
+    """Other tooling reads the work list, so it must not drift from the result
+    it claims to describe."""
+    work_path = os.path.join(ROOT, "data", "recall_worklist.json")
+    if not os.path.exists(work_path):
+        pytest.skip("no measurement run yet")
+    with open(work_path, encoding="utf-8") as handle:
+        work = json.load(handle)
+    result_path = os.path.join(
+        ROOT, "analysis", "recall", "results", f"recall-{work['measured_on']}.json")
+    assert os.path.exists(result_path), "the work list names a measurement not on disk"
+    with open(result_path, encoding="utf-8") as handle:
+        result = json.load(handle)
+    assert work["overall"] == result["summary"]["overall"]
+
+
+# --- the schedule ----------------------------------------------------------
+
+def test_the_measurement_is_scheduled_and_shares_the_writers_lock():
+    """It files a source_health row, which makes it a database writer, and a
+    writer outside the group is a writer with no lock."""
+    import yaml
+    with open(os.path.join(ROOT, ".github", "workflows", "recall.yml"),
+              encoding="utf-8") as handle:
+        workflow = yaml.safe_load(handle)
+    # PyYAML reads a bare `on:` key as the boolean True.
+    triggers = workflow.get("on") or workflow.get(True)
+    assert "schedule" in triggers, "an unscheduled measurement is a manual one"
+    assert workflow["concurrency"]["group"] == "talent-collect"
+    assert workflow["concurrency"]["cancel-in-progress"] is False
+
+
+def test_a_measurement_never_counts_as_the_pipeline_being_alive():
+    """`recall` reports into the same ledger as the collectors so it shows on
+    the health page. If it also counted towards "is anything still running", a
+    weekly measurement would mask every collector being dead for a day a week."""
+    import health_digest
+    assert "recall" in health_digest.MEASUREMENT_ONLY
+    now = datetime(2026, 8, 1, tzinfo=timezone.utc)
+    collectors = {
+        "recall": {"status": "ok", "run_at": "2026-08-01T08:00:00+00:00"},
+        "google_news": {"status": "ok", "run_at": "2026-07-01T06:00:00+00:00"},
+    }
+    assert health_digest.pipeline_stopped(collectors, now) is True
+
+
 def test_published_page_data_matches_a_recorded_measurement():
     """What the page renders must be a measurement this repo can produce, not a
     hand-written figure."""
@@ -262,6 +444,10 @@ def test_published_page_data_matches_a_recorded_measurement():
     with open(published, encoding="utf-8") as handle:
         data = json.load(handle)
     assert data["measured_on"], "a published recall figure must carry its date"
+    assert isinstance(data.get("series"), list) and data["series"], (
+        "the page must render the trend, not one measurement")
+    assert data["series"][-1]["measured_on"] == data["measured_on"], (
+        "the series must end at the measurement the page is showing")
     assert data["goldset"]["digest"], "and the digest of the gold set it was measured against"
     summary = data["summary"]["overall"]
     assert summary["total"] == len(data["items"])

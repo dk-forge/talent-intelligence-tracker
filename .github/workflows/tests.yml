@@ -21,6 +21,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt 'pytest>=7.0' pyyaml
 
+      # A PHP parse error is the one plugin mistake the host cannot absorb.
+      # tit_require() guards a MISSING file, but a file that is present and
+      # unparseable fatals the whole plugin on every request, taking the
+      # dashboard, the sources page and every company profile with it. Nothing
+      # in the Python suite can see that, and the deploy is an FTP upload with
+      # no syntax check of its own. So it is checked here, where it blocks a
+      # deploy instead of following one.
+      - name: Lint the plugin's PHP
+        run: |
+          php -v
+          find wordpress-plugin -name '*.php' -print0 | xargs -0 -n1 php -l
+
       - name: Run tests
         run: python -m pytest -q
 

@@ -15,7 +15,59 @@ import os
 from datetime import datetime
 
 DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_PATH = os.path.join(DIR, "goldset-2026-07.json")
+
+
+def all_paths(directory: str = DIR) -> list:
+    """Every gold set ever used, oldest first.
+
+    Nothing here is ever deleted. A published figure that cannot be re-derived
+    from the exact list it was measured against is not a measurement, and sets
+    get retired precisely because reusing one forever measures memory.
+    """
+    return sorted(
+        os.path.join(directory, name)
+        for name in os.listdir(directory)
+        if name.startswith("goldset-") and name.endswith(".json")
+        and ".draft" not in name
+    )
+
+
+def latest_path(directory: str = DIR) -> str:
+    """The set a fresh measurement runs against: the newest one on disk.
+
+    Sets are named goldset-YYYY-MM.json, so newest is last alphabetically. A
+    draft is skipped by name until somebody seals it, which is the one step in
+    this loop that is deliberately not automated.
+    """
+    paths = all_paths(directory)
+    if not paths:
+        raise FileNotFoundError(f"no gold set in {directory}")
+    return paths[-1]
+
+
+DEFAULT_PATH = latest_path()
+
+# The shape any reference set must have, fixed in code so that it constrains
+# sets which do not exist yet.
+#
+# This is the anti-flattery guard and it matters more than any per-item rule.
+# The cheapest way to make this number look good would be to quietly rebuild the
+# next set out of large US filings, which we read well, and leave out the small
+# non-US press events, which we do not. Nobody would have to intend it: "use
+# what was easy to find" produces exactly that set on its own. So a thin spread
+# is a validation failure, not a review note.
+REQUIRED_SHAPE = {
+    "min_items": 40,
+    "min_countries": 8,
+    "min_share": {
+        ("geography", "non-US"): 0.30,
+        ("signal_type", "funding"): 0.25,
+        ("signal_type", "leadership"): 0.20,
+        ("size_band", "small"): 0.30,
+    },
+    "min_source_types": 3,
+    "min_per_source_type": 4,
+}
 
 REQUIRED_ITEM_FIELDS = (
     "id", "company", "signal_type", "event_date", "country", "size_band",
@@ -53,6 +105,15 @@ def validate(data: dict) -> list:
 
     if not items:
         return ["gold set is empty"]
+
+    if data.get("sealed") is not True:
+        problems.append(
+            "the set is not sealed: measuring against a set that is still being "
+            "edited is how a benchmark ends up shaped by its own result")
+    if not data.get("assembled_on"):
+        problems.append("no assembled_on date, so independence cannot be dated")
+
+    problems.extend(_shape_problems(items))
 
     window_start = datetime.strptime(data["window"]["start"], "%Y-%m-%d").date()
     window_end = datetime.strptime(data["window"]["end"], "%Y-%m-%d").date()
@@ -103,6 +164,40 @@ def validate(data: dict) -> list:
             problems.append(f"{label}: duplicate event")
         seen_events.add(event)
 
+    return problems
+
+
+def _shape_problems(items: list) -> list:
+    """Enforce REQUIRED_SHAPE. See the comment on it for why this is a failure
+    and not a warning."""
+    shape = counts({"items": items})
+    total = shape["total"]
+    problems = []
+
+    if total < REQUIRED_SHAPE["min_items"]:
+        problems.append(
+            f"only {total} events: below {REQUIRED_SHAPE['min_items']}, too few to "
+            "break down by cell")
+    if len(shape["country"]) < REQUIRED_SHAPE["min_countries"]:
+        problems.append(
+            f"only {len(shape['country'])} countries: below "
+            f"{REQUIRED_SHAPE['min_countries']}, so geography cannot be measured")
+
+    for (group, key), share in REQUIRED_SHAPE["min_share"].items():
+        got = shape[group].get(key, 0)
+        if total and got / total < share:
+            problems.append(
+                f"{key} is {got}/{total} ({got / total:.0%}) of the set: below the "
+                f"required {share:.0%}, which would flatter the result")
+
+    kinds = {k: n for k, n in shape["source_type"].items()
+             if n >= REQUIRED_SHAPE["min_per_source_type"]}
+    if len(kinds) < REQUIRED_SHAPE["min_source_types"]:
+        problems.append(
+            f"only {len(kinds)} kinds of document carry at least "
+            f"{REQUIRED_SHAPE['min_per_source_type']} events "
+            f"({shape['source_type']}): a set of one document type measures one "
+            "collector, not the tracker")
     return problems
 
 

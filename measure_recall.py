@@ -6,6 +6,12 @@
     python3 measure_recall.py --offline FILE  # replay stored API rows, no network
     python3 measure_recall.py --check         # validate the gold set only
 
+Each run appends a dated result to analysis/recall/results/, which is the
+published trend. It also writes data/recall_worklist.json: the countries that
+held nothing, the source types under-delivering, and whether a fresh gold set is
+due. That file is the point of automating this. A measurement that only produces
+a number is a report; one that produces a work list is a loop.
+
 Why this exists: a coverage claim nobody has tested is a marketing line. The
 only honest version of "how complete is this?" is a number produced against a
 reference set that was assembled from public sources before any matching ran,
@@ -27,6 +33,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -35,7 +42,7 @@ from datetime import date, datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from analysis.recall import goldset, match  # noqa: E402
+from analysis.recall import goldset, match, series  # noqa: E402
 
 API = os.environ.get(
     "TIT_API_BASE", "https://asktherecruiter.com/blog/wp-json/talent/v1"
@@ -50,6 +57,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RESULTS_DIR = os.path.join(HERE, "analysis", "recall", "results")
 PLUGIN_DATA = os.path.join(
     HERE, "wordpress-plugin", "talent-intelligence-tracker", "data", "recall.json")
+# Stable path, committed, so the health machinery and any future session can
+# read the measurement's own to-do list without knowing this script exists.
+WORKLIST_PATH = os.path.join(HERE, "data", "recall_worklist.json")
 
 
 def api_query(params: dict, attempts: int = 3):
@@ -193,14 +203,68 @@ def report(out: dict) -> None:
                   f"{item['source_type']}) {item['event_date']}")
 
 
-def publish(out: dict) -> str:
-    """Write the page's data file. The page renders this and nothing else, so
-    what is published is exactly what was measured."""
+def publish(out: dict, points: list) -> str:
+    """Write the page's data file: the latest measurement plus the whole trend.
+
+    The page renders this and nothing else, so what a reader sees is exactly
+    what was measured. The series travels with it because a lone percentage is
+    a verdict and a percentage with a history is a system.
+    """
+    payload = dict(out)
+    payload["series"] = points
     os.makedirs(os.path.dirname(PLUGIN_DATA), exist_ok=True)
     with open(PLUGIN_DATA, "w", encoding="utf-8") as handle:
-        json.dump(out, handle, indent=1, sort_keys=False)
+        json.dump(payload, handle, indent=1, sort_keys=False)
         handle.write("\n")
     return PLUGIN_DATA
+
+
+def write_worklist(worklist: dict) -> str:
+    """The measurement's own to-do list, at a path other tooling can rely on.
+
+    This is what makes the loop a loop. A country scoring zero is not a fact to
+    display, it is an instruction to go and find a route into that country's
+    press, and it belongs somewhere the health machinery can read rather than
+    only in a report somebody has to remember to open.
+    """
+    os.makedirs(os.path.dirname(WORKLIST_PATH), exist_ok=True)
+    with open(WORKLIST_PATH, "w", encoding="utf-8") as handle:
+        json.dump(worklist, handle, indent=1)
+        handle.write("\n")
+    return WORKLIST_PATH
+
+
+def report_health(out: dict, worklist: dict) -> str:
+    """File the run in the same ledger every collector reports to.
+
+    `degraded` when a fresh gold set is due, because a measurement running
+    happily against a converged set is the failure mode this whole design is
+    guarding against, and it should look wrong in the health page rather than
+    green.
+    """
+    try:
+        from pipeline import schema, store
+    except Exception as exc:                      # pragma: no cover - import guard
+        return f"skipped ({type(exc).__name__}: {exc})"
+
+    overall = out["summary"]["overall"]
+    due = worklist["next_goldset"]
+    detail = (f"held {overall['held']}/{overall['total']} ({overall['held_pct']}%), "
+              f"clean {overall['found']}/{overall['total']} ({overall['clean_pct']}%) "
+              f"against {out['goldset']['version']}")
+    if due["due"]:
+        detail += f" | new gold set due: {due['reason']}"
+
+    conn = schema.connect()
+    store.report_health(
+        conn, "recall",
+        status="degraded" if due["due"] else "ok",
+        items_found=overall["total"],
+        items_stored=overall["held"],
+        detail=detail,
+    )
+    conn.commit()
+    return "recorded"
 
 
 def main() -> int:
@@ -212,6 +276,10 @@ def main() -> int:
     parser.add_argument("--check", action="store_true",
                         help="validate the gold set and stop")
     parser.add_argument("--quiet", action="store_true")
+    parser.add_argument("--no-health", action="store_true",
+                        help="skip the source_health entry (keeps the database untouched)")
+    parser.add_argument("--results-dir", default=None,
+                        help="where dated results are written (default analysis/recall/results)")
     args = parser.parse_args()
 
     data = goldset.load(args.goldset)
@@ -234,26 +302,66 @@ def main() -> int:
         return 0
 
     offline_rows = None
+    results_dir = args.results_dir or RESULTS_DIR
     if args.offline:
         with open(args.offline, encoding="utf-8") as handle:
             offline_rows = json.load(handle)
         print(f"offline replay from {args.offline}")
+        if not args.results_dir:
+            # A replay is a plumbing check, not a measurement. Letting it land
+            # in the real results directory would put a fabricated point in the
+            # published trend, under today's date, silently.
+            results_dir = tempfile.mkdtemp(prefix="recall-replay-")
+            print(f"replay results go to {results_dir}, not the published series")
     else:
         print(f"measuring against {API}")
 
     out = measure(data, offline_rows=offline_rows, verbose=not args.quiet)
     report(out)
 
-    os.makedirs(RESULTS_DIR, exist_ok=True)
+    os.makedirs(results_dir, exist_ok=True)
     stamp = out["measured_on"]
-    path = os.path.join(RESULTS_DIR, f"recall-{stamp}.json")
+    path = os.path.join(results_dir, f"recall-{stamp}.json")
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(out, handle, indent=1)
         handle.write("\n")
     print(f"\nwrote {os.path.relpath(path, HERE)}")
 
+    # The series is loaded AFTER this run's file lands, so the trend always
+    # includes the measurement that just produced it.
+    points = series.load_series(results_dir)
+    worklist = series.build_worklist(out, points, data)
+    # A replay's work list would name the whole world as a gap. Only a real
+    # measurement gets to overwrite the file other tooling reads.
+    if results_dir == RESULTS_DIR:
+        print(f"wrote {os.path.relpath(write_worklist(worklist), HERE)}")
+    else:
+        print("work list not written: this was a replay, not a measurement")
+
+    if len(points) > 1:
+        print("\ntrend, oldest first:")
+        for point in points:
+            cell = point["overall"] or {}
+            print(f"  {point['measured_on']}  held {cell.get('held')}/{cell.get('total')} "
+                  f"({cell.get('held_pct')}%)  set {point['goldset_version']}")
+
+    due = worklist["next_goldset"]
+    if due["due"]:
+        print(f"\nA NEW GOLD SET IS DUE: {due['reason']}")
+        print(f"  suggested window: {due['suggested_window']['start']} to "
+              f"{due['suggested_window']['end']}")
+
+    zeros = worklist["zero_countries"]
+    if zeros:
+        print(f"\nwork list: {len(zeros)} countries held nothing "
+              f"({', '.join(c['key'] for c in zeros[:15])}"
+              f"{'...' if len(zeros) > 15 else ''})")
+
+    if not args.no_health:
+        print(f"health: {report_health(out, worklist)}")
+
     if args.publish:
-        print(f"wrote {os.path.relpath(publish(out), HERE)}")
+        print(f"wrote {os.path.relpath(publish(out, points), HERE)}")
     return 0
 
 

@@ -1,5 +1,5 @@
 {
- "measured_at": "2026-07-29T05:55:43Z",
+ "measured_at": "2026-07-29T06:17:43Z",
  "measured_on": "2026-07-28",
  "api_base": "https://asktherecruiter.com/blog/wp-json/talent/v1",
  "goldset": {
@@ -1901,6 +1901,410 @@
    "verdict": "MISSED",
    "defects": [],
    "matched": null
+  }
+ ],
+ "series": [
+  {
+   "measured_on": "2026-07-28",
+   "goldset_version": "2026-07-v1",
+   "goldset_digest": "8f7e313e833f2c62",
+   "window": {
+    "start": "2026-07-01",
+    "end": "2026-07-28"
+   },
+   "overall": {
+    "total": 89,
+    "found": 5,
+    "found_partial": 3,
+    "missed": 81,
+    "held": 8,
+    "held_pct": 9.0,
+    "clean_pct": 5.6
+   },
+   "by_segment": {
+    "US funding": {
+     "total": 22,
+     "found": 1,
+     "found_partial": 1,
+     "missed": 20,
+     "held": 2,
+     "held_pct": 9.1,
+     "clean_pct": 4.5
+    },
+    "US leadership": {
+     "total": 12,
+     "found": 4,
+     "found_partial": 1,
+     "missed": 7,
+     "held": 5,
+     "held_pct": 41.7,
+     "clean_pct": 33.3
+    },
+    "non-US funding": {
+     "total": 44,
+     "found": 0,
+     "found_partial": 1,
+     "missed": 43,
+     "held": 1,
+     "held_pct": 2.3,
+     "clean_pct": 0.0
+    },
+    "non-US leadership": {
+     "total": 11,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 11,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    }
+   },
+   "by_signal_type": {
+    "funding": {
+     "total": 66,
+     "found": 1,
+     "found_partial": 2,
+     "missed": 63,
+     "held": 3,
+     "held_pct": 4.5,
+     "clean_pct": 1.5
+    },
+    "leadership": {
+     "total": 23,
+     "found": 4,
+     "found_partial": 1,
+     "missed": 18,
+     "held": 5,
+     "held_pct": 21.7,
+     "clean_pct": 17.4
+    }
+   },
+   "by_geography": {
+    "US": {
+     "total": 34,
+     "found": 5,
+     "found_partial": 2,
+     "missed": 27,
+     "held": 7,
+     "held_pct": 20.6,
+     "clean_pct": 14.7
+    },
+    "non-US": {
+     "total": 55,
+     "found": 0,
+     "found_partial": 1,
+     "missed": 54,
+     "held": 1,
+     "held_pct": 1.8,
+     "clean_pct": 0.0
+    }
+   },
+   "by_source_type": {
+    "filing": {
+     "total": 5,
+     "found": 2,
+     "found_partial": 0,
+     "missed": 3,
+     "held": 2,
+     "held_pct": 40.0,
+     "clean_pct": 40.0
+    },
+    "national_news": {
+     "total": 9,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 9,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "press_release": {
+     "total": 25,
+     "found": 3,
+     "found_partial": 1,
+     "missed": 21,
+     "held": 4,
+     "held_pct": 16.0,
+     "clean_pct": 12.0
+    },
+    "trade_press": {
+     "total": 50,
+     "found": 0,
+     "found_partial": 2,
+     "missed": 48,
+     "held": 2,
+     "held_pct": 4.0,
+     "clean_pct": 0.0
+    }
+   },
+   "by_country": {
+    "AE": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "AR": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "AU": {
+     "total": 4,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 4,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "BR": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "CA": {
+     "total": 4,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 4,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "CH": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "CN": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "CO": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "DE": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "ES": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "FI": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "FR": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "GB": {
+     "total": 3,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 3,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "IE": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "IL": {
+     "total": 10,
+     "found": 0,
+     "found_partial": 1,
+     "missed": 9,
+     "held": 1,
+     "held_pct": 10.0,
+     "clean_pct": 0.0
+    },
+    "IN": {
+     "total": 3,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 3,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "IT": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "JP": {
+     "total": 4,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 4,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "KR": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "MX": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "NL": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "NO": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "NZ": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "PT": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "SA": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "SE": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "SG": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    },
+    "US": {
+     "total": 34,
+     "found": 5,
+     "found_partial": 2,
+     "missed": 27,
+     "held": 7,
+     "held_pct": 20.6,
+     "clean_pct": 14.7
+    },
+    "ZA": {
+     "total": 1,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 1,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0
+    }
+   },
+   "defects": {
+    "country_missing": 2,
+    "wrong_category": 1,
+    "amount_missing": 1
+   }
   }
  ]
 }

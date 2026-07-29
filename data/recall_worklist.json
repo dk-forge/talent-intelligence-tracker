@@ -1,0 +1,581 @@
+{
+ "generated_at": "2026-07-28T23:17:43-07:00",
+ "measured_on": "2026-07-28",
+ "goldset_version": "2026-07-v1",
+ "overall": {
+  "total": 89,
+  "found": 5,
+  "found_partial": 3,
+  "missed": 81,
+  "held": 8,
+  "held_pct": 9.0,
+  "clean_pct": 5.6
+ },
+ "zero_countries": [
+  {
+   "key": "AU",
+   "total": 4,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CA",
+   "total": 4,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "JP",
+   "total": 4,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "GB",
+   "total": 3,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "IN",
+   "total": 3,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "BR",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CN",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "DE",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "SA",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "SG",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "AE",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "AR",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CH",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CO",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "ES",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "FI",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "FR",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "IE",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "IT",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "KR",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "MX",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "NL",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "NO",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "NZ",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "PT",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "SE",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "ZA",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  }
+ ],
+ "weak_countries": [
+  {
+   "key": "US",
+   "total": 34,
+   "held": 7,
+   "held_pct": 20.6
+  },
+  {
+   "key": "IL",
+   "total": 10,
+   "held": 1,
+   "held_pct": 10.0
+  }
+ ],
+ "weak_source_types": [
+  {
+   "key": "trade_press",
+   "total": 50,
+   "held": 2,
+   "held_pct": 4.0
+  },
+  {
+   "key": "press_release",
+   "total": 25,
+   "held": 4,
+   "held_pct": 16.0
+  },
+  {
+   "key": "national_news",
+   "total": 9,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "filing",
+   "total": 5,
+   "held": 2,
+   "held_pct": 40.0
+  }
+ ],
+ "weak_segments": [
+  {
+   "key": "non-US funding",
+   "total": 44,
+   "held": 1,
+   "held_pct": 2.3
+  },
+  {
+   "key": "US funding",
+   "total": 22,
+   "held": 2,
+   "held_pct": 9.1
+  },
+  {
+   "key": "US leadership",
+   "total": 12,
+   "held": 5,
+   "held_pct": 41.7
+  },
+  {
+   "key": "non-US leadership",
+   "total": 11,
+   "held": 0,
+   "held_pct": 0.0
+  }
+ ],
+ "field_defects": {
+  "country_missing": 2,
+  "wrong_category": 1,
+  "amount_missing": 1
+ },
+ "missed_examples": [
+  {
+   "company": "Aligned",
+   "country": "IL",
+   "signal_type": "funding",
+   "source_name": "Globes",
+   "source_url": "https://en.globes.co.il/en/article-israeli-b2b-sales-ai-agent-co-aligned-raises-60m-1001547552",
+   "event_date": "2026-07-01"
+  },
+  {
+   "company": "Tsuruya Yoshinobu Co., Ltd.",
+   "country": "JP",
+   "signal_type": "leadership",
+   "source_name": "PR TIMES",
+   "source_url": "https://prtimes.jp/main/html/rd/p/000000169.000045479.html",
+   "event_date": "2026-07-01"
+  },
+  {
+   "company": "Queue",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "FinSMEs",
+   "source_url": "https://www.finsmes.com/2026/07/queue-raises-12-6m-in-seed-funding.html",
+   "event_date": "2026-07-01"
+  },
+  {
+   "company": "Together AI",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Business Wire",
+   "source_url": "https://www.businesswire.com/news/home/20260701243402/en/Together-AI-Raises-$800-Million-at-$8.3-Billion-Valuation-to-Make-Frontier-AI-Accessible-to-All",
+   "event_date": "2026-07-01"
+  },
+  {
+   "company": "Northern Star Resources Limited",
+   "country": "AU",
+   "signal_type": "leadership",
+   "source_name": "Northern Star Resources ASX announcement",
+   "source_url": "https://www.nsrltd.com/media/tcthuz2b/appointment-of-managing-director-and-ceo-02-07-2026.pdf",
+   "event_date": "2026-07-02"
+  },
+  {
+   "company": "Kling AI (Kuaishou)",
+   "country": "CN",
+   "signal_type": "funding",
+   "source_name": "Bloomberg",
+   "source_url": "https://www.bloomberg.com/news/articles/2026-07-02/china-s-kling-ai-raises-2-billion-to-expand-ai-video-operations",
+   "event_date": "2026-07-02"
+  },
+  {
+   "company": "Alva Industries",
+   "country": "NO",
+   "signal_type": "funding",
+   "source_name": "Tech.eu",
+   "source_url": "https://tech.eu/2026/07/02/alva-industries-lands-eur16m-to-scale-next-generation-electric-motors/",
+   "event_date": "2026-07-02"
+  },
+  {
+   "company": "Librari",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "FinSMEs",
+   "source_url": "https://www.finsmes.com/2026/07/librari-raises-1-75m-in-pre-seed-funding.html",
+   "event_date": "2026-07-02"
+  },
+  {
+   "company": "dConstruct Technologies",
+   "country": "SG",
+   "signal_type": "funding",
+   "source_name": "TNGlobal (TechNode Global)",
+   "source_url": "https://technode.global/2026/07/03/singapores-dconstruct-raises-125m-series-a-as-robonexus-accelerator-concludes-inaugural-cohort/",
+   "event_date": "2026-07-03"
+  },
+  {
+   "company": "Sempra",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "SEC 8-K (Sempra, via StockTitan)",
+   "source_url": "https://www.stocktitan.net/sec-filings/SRE/8-k-sempra-reports-material-event-9372c3787e87.html",
+   "event_date": "2026-07-06"
+  },
+  {
+   "company": "Tangos AI",
+   "country": "IL",
+   "signal_type": "funding",
+   "source_name": "Calcalist CTech",
+   "source_url": "https://www.calcalistech.com/ctechnews/article/rk8uoy9mze",
+   "event_date": "2026-07-07"
+  },
+  {
+   "company": "BIZAY",
+   "country": "PT",
+   "signal_type": "funding",
+   "source_name": "Tech.eu",
+   "source_url": "https://tech.eu/2026/07/07/bizay-secures-55m-to-fuel-us-growth-and-industry-consolidation/",
+   "event_date": "2026-07-07"
+  },
+  {
+   "company": "Adherex Group",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "Adhesives & Sealants Industry",
+   "source_url": "https://www.adhesivesmag.com/articles/102516-adherex-group-names-new-chief-executive-officer",
+   "event_date": "2026-07-07"
+  },
+  {
+   "company": "FORE Biotherapeutics",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Business Wire",
+   "source_url": "https://www.businesswire.com/news/home/20260707991286/en/FORE-Biotherapeutics-Announces-Closing-of-Upsized-$67.4-Million-Series-D-2-Extension-Financing-and-Highlights-Recent-Plixorafenib-Achievements",
+   "event_date": "2026-07-07"
+  },
+  {
+   "company": "Bridgement",
+   "country": "ZA",
+   "signal_type": "funding",
+   "source_name": "Launch Base Africa",
+   "source_url": "https://launchbaseafrica.com/2026/07/07/bridgement-lands-20-3m-as-south-africas-banks-double-down-on-ai-lending/",
+   "event_date": "2026-07-07"
+  },
+  {
+   "company": "Royal Bank of Canada",
+   "country": "CA",
+   "signal_type": "leadership",
+   "source_name": "Cision Newswire Canada",
+   "source_url": "https://www.newswire.ca/news-releases/tarek-a-robbiati-to-be-appointed-to-royal-bank-of-canada-s-board-of-directors-895481189.html",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "Velocity",
+   "country": "IL",
+   "signal_type": "funding",
+   "source_name": "Calcalist CTech",
+   "source_url": "https://www.calcalistech.com/ctechnews/article/rjbsaioxfl",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "Young Group",
+   "country": "IT",
+   "signal_type": "funding",
+   "source_name": "I3P (Politecnico di Torino incubator)",
+   "source_url": "https://www.i3p.it/en/news/young-group-closes-22-5-million-euro-capital-increase-led-azimut",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "Nexu",
+   "country": "MX",
+   "signal_type": "funding",
+   "source_name": "LatamList",
+   "source_url": "https://latamlist.com/nexu-secures-143m-credit-line-from-hsbc/",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "BellRing Brands, Inc.",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "GlobeNewswire",
+   "source_url": "https://www.globenewswire.com/news-release/2026/07/08/3324474/0/en/bellring-brands-appoints-michael-axelrod-as-chief-executive-officer.html",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "M1X Global",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "FinSMEs",
+   "source_url": "https://www.finsmes.com/2026/07/m1x-global-raises-5-5m-in-seed-funding.html",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "Keyper",
+   "country": "AE",
+   "signal_type": "funding",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/07/keyper-raises-11-million-series-digitise-uae-rental-market",
+   "event_date": "2026-07-09"
+  },
+  {
+   "company": "Mercado Bitcoin",
+   "country": "BR",
+   "signal_type": "funding",
+   "source_name": "LatamList",
+   "source_url": "https://latamlist.com/mercado-bitcoin-raises-20m-series-c-from-tether/",
+   "event_date": "2026-07-09"
+  },
+  {
+   "company": "Terry Town",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "ASI Central",
+   "source_url": "https://members.asicentral.com/news/industry-news/july-2026/terry-town-appoints-matt-bitran-to-chief-executive-officer/",
+   "event_date": "2026-07-09"
+  },
+  {
+   "company": "Helsing",
+   "country": "DE",
+   "signal_type": "funding",
+   "source_name": "Tech.eu",
+   "source_url": "https://tech.eu/2026/07/13/european-defence-ai-leader-helsing-secures-18b-series-e-at-18b-valuation/",
+   "event_date": "2026-07-13"
+  },
+  {
+   "company": "Holiday Robotics",
+   "country": "KR",
+   "signal_type": "funding",
+   "source_name": "Seoul Economic Daily",
+   "source_url": "https://en.sedaily.com/technology/2026/07/13/humanoid-developer-holiday-robotics-raises-155-billion-won",
+   "event_date": "2026-07-13"
+  },
+  {
+   "company": "Chai Discovery",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Business Wire",
+   "source_url": "https://www.businesswire.com/news/home/20260713849009/en/Chai-Discovery-Announces-$400M-Series-C-to-Advance-AI-Driven-Molecular-Design",
+   "event_date": "2026-07-13"
+  },
+  {
+   "company": "MBX Biosciences, Inc.",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "GlobeNewswire",
+   "source_url": "https://www.globenewswire.com/news-release/2026/07/13/3326463/0/en/MBX-Biosciences-Announces-Executive-Leadership-Transition-to-Support-the-Company-s-Next-Phase-of-Growth.html",
+   "event_date": "2026-07-13"
+  },
+  {
+   "company": "Ravee Optics",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "FinSMEs",
+   "source_url": "https://www.finsmes.com/2026/07/ravee-optics-raises-6m-in-seed-funding.html",
+   "event_date": "2026-07-13"
+  },
+  {
+   "company": "LimX Dynamics",
+   "country": "CN",
+   "signal_type": "funding",
+   "source_name": "Caixin Global",
+   "source_url": "https://www.caixinglobal.com/2026-07-14/chinese-robotics-startup-raises-200-million-102464155.html",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "IKEA Japan K.K.",
+   "country": "JP",
+   "signal_type": "leadership",
+   "source_name": "PR TIMES",
+   "source_url": "https://prtimes.jp/main/html/rd/p/000000412.000065734.html",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "BRINC",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/brinc-raises-125m-to-put-a-911-response-drone-on-every-police-and-fire-station-roof-302824451.html",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "Pact Labs",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "FinSMEs",
+   "source_url": "https://www.finsmes.com/2026/07/pact-labs-raises-7m-in-series-a-funding.html",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "Singularity",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Business Wire",
+   "source_url": "https://www.businesswire.com/news/home/20260714185502/en/Singularity-Emerges-from-Stealth-with-$80M-Series-A-at-$400M-Valuation-to-Deploy-Air-Defense-at-Scale",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "Aegis Brands Inc.",
+   "country": "CA",
+   "signal_type": "leadership",
+   "source_name": "Aegis Brands press release via Yahoo Finance",
+   "source_url": "https://finance.yahoo.com/small-business/articles/aegis-brands-announces-president-ceo-115000647.html",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "InsideDesk",
+   "country": "CA",
+   "signal_type": "funding",
+   "source_name": "BetaKit",
+   "source_url": "https://betakit.com/insidedesk-closes-12-6-million-usd-to-grow-its-dental-payments-platform/",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "Convatec Group plc",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "Investegate (London Stock Exchange RNS)",
+   "source_url": "https://www.investegate.co.uk/announcement/rns/convatec-group--ctec/cfo-succession-and-ned-appointment/9668996",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "Hemispheric",
+   "country": "IL",
+   "signal_type": "funding",
+   "source_name": "Calcalist CTech",
+   "source_url": "https://www.calcalistech.com/ctechnews/article/rjentgbege",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "Oak",
+   "country": "IL",
+   "signal_type": "funding",
+   "source_name": "Globes",
+   "source_url": "https://en.globes.co.il/en/article-israeli-ai-cybersecurity-co-oak-raises-60m-1001549415",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "Starlight Engine",
+   "country": "JP",
+   "signal_type": "funding",
+   "source_name": "BRIDGE (thebridge.jp)",
+   "source_url": "https://thebridge.jp/en/2026/07/starlight-engine-raises-%C2%A560-6-billion-led-by-global-brain-to-promote-fusion-power-demonstration-fast",
+   "event_date": "2026-07-15"
+  }
+ ],
+ "missed_total": 81,
+ "next_goldset": {
+  "due": false,
+  "reason": "the current set is still current and still moving",
+  "suggested_window": {
+   "start": "2026-06-01",
+   "end": "2026-06-30"
+  },
+  "instruction": "Assemble a NEW gold set for 2026-06-01 to 2026-06-30 the same way as analysis/recall/goldset-2026-07.json: independent research passes forbidden from consulting our own database, a source URL for every item, quotas filled per segment rather than taking what is easy to find, nothing dropped after assembly, then seal it. See analysis/recall/goldset.py for the rules the file must satisfy."
+ }
+}

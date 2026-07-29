@@ -48,6 +48,14 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # whether the DIGEST ran, not what it found.
 DIGEST_NAME = "health_digest"
 
+# Reporters that are not collectors. They file into the same ledger so their
+# state is visible on the health page, but they must never count towards "is
+# the pipeline alive", because a weekly measurement running happily would make
+# `newest_run_hours` look fresh while every real collector was dead - which is
+# precisely the blind spot pipeline_stopped() exists to close. They are still
+# classified for staleness and degradation like anything else.
+MEASUREMENT_ONLY = {"recall"}
+
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.
 BENIGN_STATUSES = {"ok", "retired", "disabled"}
@@ -178,6 +186,7 @@ def newest_run_hours(collectors: dict, now: datetime):
         for name, info in collectors.items()
         if isinstance(info, dict)
         and name != DIGEST_NAME
+        and name not in MEASUREMENT_ONLY
         and str(info.get("status") or "").lower() not in DELIBERATELY_STOPPED
     ]
     ages = [a for a in ages if a is not None]

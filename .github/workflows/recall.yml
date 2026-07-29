@@ -1,0 +1,155 @@
+# Measure what we miss, on a schedule, and commit the dated result.
+#
+# WEEKLY, Mondays 08:00 UTC. The cadence is a judgement, so here is the
+# reasoning rather than a bare number:
+#
+#   - The run is read-only against the live API but it is ~180 requests to
+#     shared hosting, which is not something to do daily for a number that
+#     cannot move that fast.
+#   - Recall against a CLOSED window genuinely does keep moving for a few weeks
+#     as late write-ups and backfills land, so weekly shows real convergence
+#     rather than noise. Once it stops moving, that plateau is itself the signal
+#     that a fresh gold set is due, and the run says so.
+#   - It matches the health digest's weekly rhythm, so the owner reads one
+#     cadence rather than two.
+#
+# The result is committed, never only printed: a recall figure that exists in a
+# job log and nowhere else cannot be plotted, cannot be re-derived, and cannot
+# be contradicted.
+name: recall
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'      # Mondays 08:00 UTC
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Also write the public page data file'
+        type: boolean
+        default: true
+
+# ONE lock for every workflow that writes data/talent_intel.db. This job files
+# its run in the source_health table, which makes it a database writer, and a
+# writer outside the group is a writer with no lock: every writer here ends with
+# reset-to-origin then copy-our-file-back, so two of them running at once means
+# whichever pushes second silently destroys the other's rows.
+# Enforced by tests/test_workflows.py::test_every_database_writer_shares_one_lock.
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  recall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # The gold set is checked before the API is touched. An invalid reference
+      # set produces a wrong denominator, and a wrong recall number is worse
+      # than no recall number.
+      - name: Check the gold set
+        run: python measure_recall.py --check
+
+      - name: Measure
+        run: |
+          python measure_recall.py --quiet \
+            ${{ inputs.publish == false && ' ' || '--publish' }}
+
+      # Push the run into the site's health ledger so the health page shows the
+      # measurement's own state. Never fatal: a stale health timestamp is a much
+      # smaller problem than a lost measurement, which is already on disk by now.
+      - name: Publish health
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python - <<'PY'
+          from pipeline import publish, schema
+          print("health rows sent:", publish.publish_health(schema.connect()))
+          PY
+
+      # Same shape as collect.yml, and for the same reason: this job checks out
+      # main, works for several minutes, then pushes, and any push to main in
+      # that window rejects it. Rebasing a SQLite file is not sensible, so this
+      # does not try; the concurrency group makes this the only writer, so
+      # resetting to the remote and putting our files back is always correct.
+      - name: Commit the measurement
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          paths="analysis/recall/results data/recall_worklist.json data/talent_intel.db wordpress-plugin/talent-intelligence-tracker/data/recall.json"
+          git add $paths 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No change to commit."
+            exit 0
+          fi
+
+          mkdir -p "$RUNNER_TEMP/keep"
+          for p in $paths; do
+            if [ -e "$p" ]; then
+              mkdir -p "$RUNNER_TEMP/keep/$(dirname "$p")"
+              cp -R "$p" "$RUNNER_TEMP/keep/$(dirname "$p")/"
+            fi
+          done
+
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "recall: measured $(date -u +%Y-%m-%d)" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), replaying onto the current main."
+            git fetch origin main
+            git reset --hard origin/main
+            for p in $paths; do
+              if [ -e "$RUNNER_TEMP/keep/$p" ]; then
+                mkdir -p "$(dirname "$p")"
+                cp -R "$RUNNER_TEMP/keep/$p" "$(dirname "$p")/"
+              fi
+            done
+            git add $paths 2>/dev/null || true
+            if git diff --staged --quiet; then
+              echo "Remote already has this measurement."
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the measurement after 5 attempts. \
+          This run's result exists only on the runner and is lost."
+          exit 1
+
+      # A fresh gold set cannot be produced by this workflow, and pretending
+      # otherwise is how a benchmark drifts into self-congratulation. When one
+      # is due the run says so loudly in the log and in the work list, and the
+      # health entry goes degraded so the weekly digest carries it to the owner.
+      - name: Say whether a fresh gold set is due
+        if: ${{ !cancelled() }}
+        run: |
+          python - <<'PY'
+          import json, sys
+          with open("data/recall_worklist.json") as fh:
+              work = json.load(fh)
+          due = work["next_goldset"]
+          if due["due"]:
+              window = due["suggested_window"]
+              print(f"::warning::A fresh gold set is due. {due['reason']}")
+              print(f"::warning::Window to cover: {window['start']} to {window['end']}")
+              print(due["instruction"])
+          else:
+              print("Gold set still current:", due["reason"])
+          PY

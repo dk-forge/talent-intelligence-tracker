@@ -121,6 +121,177 @@ function tit_recall_table($title, $cells, $note = '') {
 }
 
 /**
+ * The trend chart.
+ *
+ * Drawn as inline SVG from the series, with no library and no script: the whole
+ * point of automating the measurement is that the direction is visible, and a
+ * direction that depends on a chart library loading is not visible.
+ *
+ * Deliberately plots BOTH lines. "In the tracker at all" rising while "every
+ * field right" stays flat means we are collecting more and extracting no
+ * better, which is a different problem from not collecting at all, and one line
+ * would hide it.
+ */
+function tit_recall_sparkline($points) {
+    $n = count($points);
+    if ($n < 2) return '';
+
+    $w = 720; $h = 220; $pad_l = 46; $pad_r = 16; $pad_t = 16; $pad_b = 34;
+    $plot_w = $w - $pad_l - $pad_r;
+    $plot_h = $h - $pad_t - $pad_b;
+
+    // The y axis always starts at zero. A truncated axis turns a two point move
+    // into a cliff, which is exactly the flattery this page exists to avoid.
+    $max = 10;
+    foreach ($points as $p) {
+        $max = max($max, (float) $p['held_pct'], (float) $p['clean_pct']);
+    }
+    $max = ceil($max / 10) * 10;
+
+    $x = function ($i) use ($pad_l, $plot_w, $n) {
+        return $pad_l + ($plot_w * $i / ($n - 1));
+    };
+    $y = function ($v) use ($pad_t, $plot_h, $max) {
+        return $pad_t + $plot_h - ($plot_h * min($v, $max) / $max);
+    };
+    $line = function ($key) use ($points, $x, $y) {
+        $parts = array();
+        foreach ($points as $i => $p) {
+            $parts[] = ($i ? 'L' : 'M') . round($x($i), 1) . ' ' . round($y((float) $p[$key]), 1);
+        }
+        return implode(' ', $parts);
+    };
+
+    $described = '';
+    foreach ($points as $p) {
+        $described .= sprintf('%s: %s%% held, %s%% with every field right. ',
+            $p['measured_on'], $p['held_pct'], $p['clean_pct']);
+    }
+
+    ob_start(); ?>
+    <div class="tit-table-scroll">
+    <svg class="tit-recall-chart" viewBox="0 0 <?php echo $w; ?> <?php echo $h; ?>"
+         role="img" preserveAspectRatio="xMidYMid meet"
+         aria-label="Recall over time. <?php echo esc_attr($described); ?>">
+      <?php for ($g = 0; $g <= 4; $g++) :
+        $value = $max * $g / 4; $gy = round($y($value), 1); ?>
+        <line x1="<?php echo $pad_l; ?>" x2="<?php echo $w - $pad_r; ?>"
+              y1="<?php echo $gy; ?>" y2="<?php echo $gy; ?>" class="tit-rc-grid"/>
+        <text x="<?php echo $pad_l - 8; ?>" y="<?php echo $gy + 4; ?>"
+              class="tit-rc-axis" text-anchor="end"><?php echo round($value); ?>%</text>
+      <?php endfor; ?>
+
+      <path d="<?php echo esc_attr($line('held_pct')); ?>" class="tit-rc-held" fill="none"/>
+      <path d="<?php echo esc_attr($line('clean_pct')); ?>" class="tit-rc-clean" fill="none"/>
+
+      <?php foreach ($points as $i => $p) : ?>
+        <circle cx="<?php echo round($x($i), 1); ?>" cy="<?php echo round($y((float) $p['held_pct']), 1); ?>"
+                r="4" class="tit-rc-dot-held"/>
+        <circle cx="<?php echo round($x($i), 1); ?>" cy="<?php echo round($y((float) $p['clean_pct']), 1); ?>"
+                r="4" class="tit-rc-dot-clean"/>
+        <?php // Only the ends are labelled: a dated label per point becomes a
+              // smear the moment there are more than about six of them. ?>
+        <?php if ($i === 0 || $i === $n - 1) : ?>
+          <text x="<?php echo round($x($i), 1); ?>" y="<?php echo $h - 10; ?>"
+                class="tit-rc-axis"
+                text-anchor="<?php echo $i === 0 ? 'start' : 'end'; ?>"><?php
+            echo esc_html($p['measured_on']); ?></text>
+        <?php endif; ?>
+      <?php endforeach; ?>
+    </svg>
+    </div>
+    <p class="tit-recall-legend">
+      <span class="tit-rc-key tit-rc-k-held"></span> in the tracker at all
+      <span class="tit-rc-key tit-rc-k-clean"></span> with every field right
+    </p>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * One group's history, as counts across measurements.
+ *
+ * Counts and not percentages, because these cells are small: "2 of 22" moving
+ * to "5 of 22" is a fact, while "9.1% to 22.7%" invites a reader to treat three
+ * events as a trend.
+ */
+function tit_recall_history_table($title, $group, $series, $note = '') {
+    if (count($series) < 2) return;
+
+    $keys = array();
+    foreach ($series as $point) {
+        foreach (($point[$group] ?? array()) as $key => $ignored) $keys[$key] = true;
+    }
+    if (!$keys) return;
+    $keys = array_keys($keys);
+    sort($keys);
+    ?>
+    <h3><?php echo esc_html($title); ?></h3>
+    <?php if ($note) : ?><p class="tit-note"><?php echo esc_html($note); ?></p><?php endif; ?>
+    <div class="tit-table-scroll">
+      <table class="tit-table tit-recall-history">
+        <thead><tr>
+          <th>Category</th>
+          <?php foreach ($series as $point) : ?>
+            <th class="tit-num"><?php echo esc_html($point['measured_on']); ?></th>
+          <?php endforeach; ?>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($keys as $key) : ?>
+          <tr>
+            <td data-label="Category"><?php echo esc_html(tit_recall_label($key)); ?></td>
+            <?php foreach ($series as $point) :
+              $cell = $point[$group][$key] ?? null; ?>
+              <td class="tit-num" data-label="<?php echo esc_attr($point['measured_on']); ?>">
+                <?php
+                // Blank, never a zero, when a category was not in that
+                // measurement's test set at all. A zero would read as "we
+                // looked there and found nothing".
+                if ($cell === null) {
+                    echo '<span class="tit-nowhere">not tested</span>';
+                } else {
+                    echo esc_html($cell['held'] . ' of ' . $cell['total']);
+                }
+                ?>
+              </td>
+            <?php endforeach; ?>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <?php
+}
+
+/**
+ * Flatten the stored series into what the chart and history tables need.
+ *
+ * Each point keeps the identity of the gold set it was measured against,
+ * because two points measured against DIFFERENT sets are not strictly
+ * comparable and the page has to be able to say which is which.
+ */
+function tit_recall_points($series) {
+    $points = array();
+    foreach ($series as $entry) {
+        $overall = $entry['overall'] ?? null;
+        if (!$overall || $overall['held_pct'] === null) continue;
+        $points[] = array(
+            'measured_on'     => $entry['measured_on'],
+            'goldset_version' => $entry['goldset_version'],
+            'held_pct'        => $overall['held_pct'],
+            'clean_pct'       => $overall['clean_pct'],
+            'held'            => $overall['held'],
+            'found'           => $overall['found'],
+            'total'           => $overall['total'],
+            'by_segment'      => $entry['by_segment'] ?? array(),
+            'by_source_type'  => $entry['by_source_type'] ?? array(),
+            'by_country'      => $entry['by_country'] ?? array(),
+        );
+    }
+    return $points;
+}
+
+/**
  * The weakest cells, named out loud.
  *
  * Computed rather than written, so the page cannot keep describing an old
@@ -162,6 +333,9 @@ function tit_recall_render($data) {
     $missed  = array_values(array_filter($items, fn($i) => $i['verdict'] === 'MISSED'));
     $partial = array_values(array_filter($items, fn($i) => $i['verdict'] === 'FOUND_PARTIAL'));
     $weakest = tit_recall_weakest($summary['by_segment'] ?? array());
+    $points  = tit_recall_points($data['series'] ?? array());
+    $first   = $points ? $points[0] : null;
+    $sets    = array_unique(array_column($points, 'goldset_version'));
     ?>
     <div class="tit-wrap tit-recall" id="tit-recall">
       <nav class="tit-crumb">
@@ -208,6 +382,47 @@ function tit_recall_render($data) {
         anywhere. That is why every number below is broken out by category and
         carries its own counts.
       </div>
+
+      <h2>The direction</h2>
+      <?php if (count($points) < 2) : ?>
+        <p class="tit-note">
+          One measurement so far, taken on
+          <?php echo esc_html($data['measured_on']); ?>. The measurement runs
+          weekly from here and every result is kept, so this becomes a line
+          rather than a verdict. A single figure says where we are; only the
+          series says whether we are getting better, and that is the number
+          worth judging us on.
+        </p>
+      <?php else : ?>
+        <p class="tit-note">
+          <?php
+          $delta = $points[count($points) - 1]['held_pct'] - $first['held_pct'];
+          printf(
+              esc_html('%1$s measurements between %2$s and %3$s. Held has gone from %4$s%% to %5$s%%, a change of %6$s points.'),
+              esc_html(count($points)),
+              esc_html($first['measured_on']),
+              esc_html($points[count($points) - 1]['measured_on']),
+              esc_html($first['held_pct']),
+              esc_html($points[count($points) - 1]['held_pct']),
+              esc_html(($delta > 0 ? '+' : '') . round($delta, 1))
+          );
+          ?>
+        </p>
+        <?php echo tit_recall_sparkline($points); // phpcs:ignore ?>
+        <?php if (count($sets) > 1) : ?>
+          <div class="tit-callout">
+            <strong>These points are not all the same test.</strong>
+            <?php printf(esc_html('%s different test sets appear in this series.'),
+                esc_html(count($sets))); ?>
+            A set is replaced once its window has aged out or the number against
+            it has stopped moving, because re-running one fixed list of events
+            forever would measure memory rather than reach and would walk to
+            100% while meaning nothing. So a step between two points is a change
+            in coverage plus a change in the test, and the per category tables
+            below are the safer read.
+          </div>
+        <?php endif; ?>
+      <?php endif; ?>
 
       <?php if ($weakest) : ?>
       <h2>Where we fall short</h2>
@@ -262,6 +477,23 @@ function tit_recall_render($data) {
       tit_recall_table('By country', $summary['by_country'] ?? array(),
           'Most countries carry only a handful of events, so treat a single country cell as an indication and not a rate.');
       ?>
+
+      <?php if (count($points) > 1) : ?>
+      <h2>Every category, over time</h2>
+      <p class="tit-note">
+        The same breakdowns across every measurement, as raw counts. This is
+        where an improvement shows up as an improvement: a new set of feeds in a
+        region moves that region's row and leaves the others alone, and a
+        movement that appears everywhere at once is usually the test changing
+        rather than the tracker.
+      </p>
+      <?php
+      tit_recall_history_table('By category, over time', 'by_segment', $points);
+      tit_recall_history_table('By kind of document, over time', 'by_source_type', $points);
+      tit_recall_history_table('By country, over time', 'by_country', $points,
+          'Countries appear here only in the measurements whose test set contained them, so a blank is "not tested" and never "found nothing".');
+      ?>
+      <?php endif; ?>
 
       <?php if (!empty($summary['defects'])) : ?>
       <h2>What is wrong with the ones we do hold</h2>
@@ -318,6 +550,35 @@ function tit_recall_render($data) {
         could go either way it was written to favour counting an event as held,
         so the misses reported here are conservative.
       </p>
+      <h3>How this stays honest as it repeats</h3>
+      <p>
+        The measurement runs on a schedule and commits its result, so the series
+        above is produced without anybody deciding to produce it. That solves
+        one problem and creates another: re-running the same fixed list of
+        events forever would stop measuring reach and start measuring memory.
+        Once those particular events are collected the figure walks towards 100%
+        and means nothing at all, which is the most flattering way a benchmark
+        can fail.
+      </p>
+      <p>
+        So a test set is retired rather than reused indefinitely. It is replaced
+        when the window it covers has aged out, or earlier when the number
+        against it stops moving, and the run itself says which. Every past set
+        stays on disk with its digest so any figure ever published here can be
+        re-derived from the exact list it was measured against.
+      </p>
+      <p>
+        <strong>Assembling a replacement is not automated, and we are not going
+        to pretend otherwise.</strong> Building a set means open ended research
+        across national press in many languages, and judgement about what counts
+        as an event. A generator that took the easy path would drift towards
+        finding exactly the things we already collect, and the number would
+        climb for the worst possible reason. So the schedule does the
+        measuring, the arithmetic and the alerting, and a person still assembles
+        and seals each new set. That is the honest sliver, it is a few times a
+        year, and naming it is cheaper than a benchmark nobody should believe.
+      </p>
+
       <?php if (!empty($gold['caveats'])) : ?>
       <h3>What is wrong with this test itself</h3>
       <p class="tit-note">
