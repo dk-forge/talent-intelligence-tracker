@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:50:13Z",
+  "last_tick": "2026-07-29T18:51:00Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,40 +158,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:50:13Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:49:13Z",
-          "detail": "guardrail finding rejected on the filing: e0931724fe15",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:50:13Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T184913Z-retract",
-      "inputs": {
-        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Defined Contribution Plan Custody Account, the offering amount is Indefinite, with Investment Company Act exclusions 3C.3 and 3C.7, sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
-        "signal_id": "e0931724fe156dccf3d23e0899495714"
-      },
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: e0931724fe15",
-      "requested_at": "2026-07-29T18:49:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T18:51:00Z",
       "history": [
         {
           "at": "2026-07-29T18:49:59Z",
           "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:51:00Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T184959Z-retract",
@@ -202,6 +179,29 @@
       "priority": -1,
       "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
       "requested_at": "2026-07-29T18:49:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T18:50:46Z",
+          "detail": "guardrail finding rejected on the filing: 5a104e9ca79f",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T185046Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the same class as 101 East Court Street LLC and missed by the same pattern. An Illinois LLC formed in 2025 named after the property at 3101-3121 N. Sheridan, filed under industry group Other, 21.4 million USD from 60 investors, sponsor address 2815 West Roscoe, Chicago. It employs nobody.",
+        "signal_id": "5a104e9ca79f027e85912dfc02bbd442"
+      },
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: 5a104e9ca79f",
+      "requested_at": "2026-07-29T18:50:46Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
@@ -624,6 +624,45 @@
       "requested_at": "2026-07-29T18:48:33Z",
       "requested_by": "dakotta-labs",
       "run_id": "30481620991",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:50:13Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:49:13Z",
+          "detail": "guardrail finding rejected on the filing: e0931724fe15",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:50:13Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:51:00Z",
+          "detail": "run 30481725300",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:51:00Z",
+          "detail": "run 30481725300",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T184913Z-retract",
+      "inputs": {
+        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Defined Contribution Plan Custody Account, the offering amount is Indefinite, with Investment Company Act exclusions 3C.3 and 3C.7, sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
+        "signal_id": "e0931724fe156dccf3d23e0899495714"
+      },
+      "landed_at": "2026-07-29T18:51:00Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: e0931724fe15",
+      "requested_at": "2026-07-29T18:49:13Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481725300",
       "state": "landed",
       "workflow": "retract.yml"
     }
