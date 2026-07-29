@@ -127,6 +127,18 @@ function tit_dashboard_shortcode() {
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
           GROUP BY k ORDER BY n DESC LIMIT 40", ARRAY_A) ?: array();
+    /*
+      When ONE collector accounts for most of a country, say so.
+
+      The United Kingdom shows 4,804 rows, of which 4,761 come from the gender
+      pay gap filing. That is not a parser bug and not UK business activity: it
+      is one mandatory annual return that every large employer files, and a
+      reader scanning the country chart would take that bar as a measure of how
+      much is happening there. Computed, never written down, so it names
+      whichever country is currently dominated and disappears when none is.
+    */
+    $place_caveat = tit_place_caveat($table, $base);
+
     $by_direction = $wpdb->get_results(
         "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE {$base}
           GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
@@ -289,11 +301,11 @@ function tit_dashboard_shortcode() {
         </p>
       </div>
 
-      <div class="tit-sec">
-        <h3><span class="tit-sec-eyebrow">Activity</span>The market right now</h3>
-        <p>Pick a region to narrow the updates below.</p>
-      </div>
-
+      <?php /* No heading here. "The market right now" over "Pick a region to
+               narrow the updates below" said nothing the strip beneath it did
+               not already say with its own labels and counts, and a heading
+               that only restates its contents is a row of dead pixels between
+               the reader and the control. */ ?>
       <?php
       /*
         Two tiers, visually distinct, because they are two granularities and
@@ -458,7 +470,14 @@ function tit_dashboard_shortcode() {
         </div>
       </div>
 
-      <details class="tit-more" id="tit-more">
+      <?php /* Open, always. It shipped as a disclosure with a count badge and
+               the owner has asked twice for neither. A panel that hides the
+               controls and then advertises how many are hidden is two
+               interactions where none was wanted, and the count was standing in
+               for the thing it was hiding. `open` is on the element rather than
+               removing <details> entirely so the markup keeps working if this
+               is ever reversed. */ ?>
+      <details class="tit-more tit-more--open" id="tit-more" open>
         <summary><span id="tit-more-label">More filters</span></summary>
         <div class="tit-filters">
           <?php
@@ -646,6 +665,9 @@ function tit_dashboard_shortcode() {
       </div>
         <div class="tit-chart" id="chart-place">
           <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in. Click a row to filter.", 'place'); ?>
+          <p class="tit-chart-caveat" id="tit-place-caveat"<?php
+            echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
+            echo esc_html($place_caveat); ?></p>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
             <?php
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
@@ -725,11 +747,15 @@ function tit_dashboard_shortcode() {
         do both.
       -->
       <div class="tit-detail">
+        <?php /* The control is named by WHAT IT FILTERS, not by the abstract
+                 job it does. "Show: Notable updates" told a reader neither what
+                 was being hidden nor why, and made them hold three numbers in
+                 their head to work out what they were looking at. */ ?>
         <label class="tit-detail-pick">
-          <span class="tit-detail-l">Show</span>
-          <select id="tit-f-detail" aria-label="How much detail to show">
-            <option value="notable">Notable updates</option>
-            <option value="all">Everything, including routine filings</option>
+          <span class="tit-detail-l">Officer and director filings</span>
+          <select id="tit-f-detail" aria-label="Officer and director filings">
+            <option value="notable">Hide the routine ones</option>
+            <option value="all">Include them</option>
           </select>
         </label>
         <p class="tit-detail-note" id="tit-detail-note"><?php
@@ -913,13 +939,24 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
     global $wpdb;
     $today = current_time('Y-m-d');
     $q_month = (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1;
+    /*
+      No "Today" column.
+
+      Collection runs at 06:00 and 18:00 UTC and every row carries the SOURCE's
+      own reporting date, not the moment we captured it, so "Today" is
+      structurally near-empty for most of the day: it read 0 across every single
+      row. A column that is always zero does not report quiet news, it teaches
+      the reader the tracker is dead. The shortest real window we can fill is a
+      week.
+
+      "YTD" rather than "so far", which the owner asked for; the year itself is
+      still computed, never typed.
+    */
     $periods = array(
-        array('Today',        $today),
         array('This week',    date('Y-m-d', strtotime($today . ' -6 days'))),
         array('This month',   date('Y-m-01', strtotime($today))),
         array('This quarter', sprintf('%s-%02d-01', date('Y', strtotime($today)), $q_month)),
-        // Spelled out, never "YTD".
-        array(date('Y', strtotime($today)) . ' so far', date('Y-01-01', strtotime($today))),
+        array(date('Y', strtotime($today)) . ' YTD', date('Y-01-01', strtotime($today))),
     );
 
     // key, reader-facing label, the filter a cell click applies, SQL condition,
@@ -939,7 +976,7 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         array('funded',     'Funding raised',   'funding=1',                $funding,                      'count'),
         array('money',      'Money raised',     'funding=1',                '',                            'money'),
         array('leadership', 'Leadership moves', 'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
-        array('pay',        'Pay changes',      'direction=comp_shift',     "signal_direction = 'comp_shift'", 'count'),
+        array('pay',        'Pay news',         'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
         array('total',      'All updates',      '',                         '1 = 1',                       'count'),
     );
 
@@ -1056,6 +1093,16 @@ function tit_glance_matrix_html(array $m) {
       </table>
     </div>
     <div class="tit-matrix-note">
+      <?php /* The page carries three different totals for three different
+               questions, and every one of them was correct while none of them
+               said what it counted. The figures above this table count
+               EVERYTHING in the current view, over the whole period we hold;
+               these columns count only what a source dated inside that window.
+               Saying so is cheaper than reconciling three numbers in your head,
+               and stops a reader concluding one of them must be wrong. */ ?>
+      <p>Each column counts updates whose source dated them inside that window.
+         The figures above the table count everything in this view, over the
+         whole period we hold, which is why they are larger.</p>
       <p>Colour shows how much activity, scaled within each row. Rows can
          overlap: a funded employer may also be hiring, so the columns do not
          add up. <strong>Click any number to filter the page.</strong></p>
@@ -1244,31 +1291,40 @@ function tit_money_coverage_note(array $money, $dimension = '') {
 function tit_detail_note($mode, $notable, $routine) {
     $notable = (int) $notable;
     $routine = (int) $routine;
-    $meaning = ' Routine means a bare officer or director change with no'
-             . ' headcount, no money and no location named.';
+    $total   = $notable + $routine;
+
+    /*
+      Definition FIRST, then the numbers, and all three of them.
+
+      The old sentence used the word "routine" twice before defining it, and
+      quoted two figures out of three, so a reader had to do arithmetic to find
+      out what they were looking at. Now the filter explains itself in one
+      sentence and prints hidden, shown and total together, which means the
+      reader can check that they add up instead of taking our word for it.
+    */
+    $what = 'Some SEC filings record only an officer or director change, with'
+          . ' no headcount, no money and no location.';
 
     if ($routine === 0) {
-        // Also the state before the pipeline has judged anything, so it must
-        // not imply a filter is doing work it is not.
-        return sprintf(
-            _n('Showing all %s update. Nothing in this view is a routine filing.',
-               'Showing all %s updates. Nothing in this view is a routine filing.',
-               $notable, 'tit'),
-            number_format_i18n($notable)
-        ) . $meaning;
+        return $what . sprintf(
+            _n(' None of the %s update here is one of those.',
+               ' None of the %s updates here are one of those.', $total, 'tit'),
+            number_format_i18n($total)
+        );
     }
 
     if ($mode === 'all') {
-        return sprintf(
-            'Showing all %s updates, routine filings included. %s of them are routine.',
-            number_format_i18n($notable + $routine), number_format_i18n($routine)
-        ) . $meaning;
+        return $what . sprintf(
+            ' All %1$s of those are included, so you are seeing all %2$s updates.',
+            number_format_i18n($routine), number_format_i18n($total)
+        );
     }
 
-    return sprintf(
-        'Showing %s notable updates. %s routine filings join them when you switch to Everything.',
-        number_format_i18n($notable), number_format_i18n($routine)
-    ) . $meaning;
+    return $what . sprintf(
+        ' %1$s of those are hidden, so you are seeing %2$s of %3$s updates.',
+        number_format_i18n($routine), number_format_i18n($notable),
+        number_format_i18n($total)
+    );
 }
 
 /**
@@ -1688,6 +1744,66 @@ function tit_regions(array $counts) {
         }
     }
     return $out;
+}
+
+/**
+ * A one-line caveat when a single collector dominates a single country.
+ *
+ * Returns '' when nothing is lopsided enough to be worth saying, so the note
+ * appears exactly when it is true and vanishes when it stops being true.
+ *
+ * The bar is deliberately high: two thirds of a country's rows from one source,
+ * and at least 200 rows, so a country with nine records cannot produce a
+ * warning about nothing. Only the single worst case is named, because a list of
+ * caveats reads as an excuse rather than as a fact.
+ */
+function tit_place_caveat($table, $where = 'is_current = 1', array $params = array()) {
+    global $wpdb;
+    $expr = 'COALESCE(country, hq_country)';
+    // Two plain queries rather than one with a correlated subquery: that shape
+    // re-counts the whole table once per group, and this runs on every page
+    // render.
+    $top_sql = "SELECT {$expr} AS cc, collector, COUNT(*) AS n
+                  FROM {$table}
+                 WHERE {$where} AND {$expr} IS NOT NULL AND {$expr} <> ''
+                 GROUP BY cc, collector
+                 ORDER BY n DESC LIMIT 1";
+    $row = $wpdb->get_row($params ? $wpdb->prepare($top_sql, $params) : $top_sql, ARRAY_A);
+    if (!$row || (int) $row['n'] < 200) return '';
+
+    // The country's own total goes through prepare with the filter params
+    // FIRST, because they appear first in statement order.
+    $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where} AND {$expr} = %s";
+    $total = (int) $wpdb->get_var(
+        $wpdb->prepare($total_sql, array_merge($params, array($row['cc']))));
+    if ($total <= 0 || (int) $row['n'] < $total * 0.66) return '';
+
+    $row['total'] = $total;
+    $share = (int) round(100 * (int) $row['n'] / max(1, $total));
+    return sprintf(
+        '%1$s of the %2$s rows for %3$s (%4$s%%) come from one source, %5$s, so read'
+        . ' that bar as filing volume rather than as how much is happening there.',
+        number_format_i18n((int) $row['n']),
+        number_format_i18n((int) $row['total']),
+        tit_country_name($row['cc']),
+        number_format_i18n($share),
+        tit_collector_label($row['collector'])
+    );
+}
+
+/** Collector names as a reader would say them, not as the pipeline keys them. */
+function tit_collector_label($key) {
+    $map = array(
+        'uk_paygap'    => 'the UK gender pay gap filing',
+        'sec_edgar'    => 'SEC 8-K filings',
+        'sec_form_d'   => 'SEC Form D filings',
+        'sec_execcomp' => 'SEC executive pay filings',
+        'google_news'  => 'Google News',
+        'gdelt'        => 'GDELT news monitoring',
+        'ats_boards'   => 'company job boards',
+        'national_press' => 'national press feeds',
+    );
+    return $map[$key] ?? str_replace('_', ' ', (string) $key);
 }
 
 /**

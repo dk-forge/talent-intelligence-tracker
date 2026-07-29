@@ -1156,10 +1156,29 @@ body.admin-bar .tit-active { top:32px; }
    container, so nothing bleeds and sticky survives. :has() scopes all of this
    to pages that actually contain the dashboard, so a normal post is untouched.
    --------------------------------------------------------------------------- */
-html:has(#tit-dashboard), body:has(#tit-dashboard) { overflow-x:clip; }
-.entry-content:has(#tit-dashboard),
-.wp-block-post-content:has(#tit-dashboard),
-.wp-site-blocks:has(#tit-dashboard) { overflow:visible; }
+/* THE FIX THAT WAS NOT ENOUGH, and why.
+
+   First attempt set `overflow-x: clip` on html and body and `overflow: visible`
+   on three named theme wrappers. It did not work, and measurement in a real
+   browser said why on both counts.
+
+   One: the ancestor actually doing the damage was the theme's own
+   `.wp-singular.page` element, which was not in that list. Naming wrappers one
+   at a time is guesswork; `:has()` lets us say what we mean, which is EVERY
+   ancestor of the dashboard.
+
+   Two, and the subtler half: that ancestor computed `overflow-x: hidden` with
+   `overflow-y: auto`. Setting only overflow-x to `clip` leaves overflow-y as a
+   scrolling value, and an element that scrolls on EITHER axis is a scroll
+   container, which becomes the containing block for every sticky descendant.
+   The bar was pinning perfectly, to a box that was not the viewport.
+
+   `clip` on x with `visible` on y is the one combination that clips sideways
+   bleed without creating a scroll container: per spec `visible` only computes
+   to `auto` when the other axis is neither `visible` nor `clip`, and `clip` is
+   in that set. So the page still cannot bleed horizontally, and the sticky bar
+   now finds the viewport. */
+:has(#tit-dashboard) { overflow-x:clip; overflow-y:visible; }
 
 /* ---------------------------------------------------------------------------
    The results header: what orders the rows, sitting with the rows.
@@ -1437,3 +1456,20 @@ html:has(#tit-dashboard), body:has(#tit-dashboard) { overflow-x:clip; }
   .tit-countries-label { position:absolute; width:1px; height:1px;
     overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 }
+
+/* The filter panel no longer discloses, so its summary is a plain caption
+   rather than a control: no chevron, no hover affordance, nothing suggesting
+   there is a second state to find. */
+.tit-wrap .tit-more--open > summary { cursor:default; border:0; padding:0 0 6px;
+  background:none; font-size:11px; font-weight:800; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--tit-faint); }
+.tit-wrap .tit-more--open > summary::before { content:none; }
+.tit-wrap .tit-more--open > summary:hover { border-color:transparent; }
+.tit-more--open .tit-filters { margin-top:0; }
+
+/* A caveat printed where the chart is read, not in a footnote. Muted but AA at
+   8.6:1, because a caveat nobody reads is the same as no caveat. */
+.tit-chart-caveat { margin:0 0 9px; padding:7px 9px; font-size:11.5px;
+  line-height:1.45; color:var(--tit-mut); background:var(--tit-surface);
+  border-left:3px solid var(--tit-orange); border-radius:6px; }
+.tit-chart-caveat[hidden] { display:none; }

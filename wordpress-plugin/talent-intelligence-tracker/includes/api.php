@@ -615,6 +615,11 @@ function tit_api_aggregate(WP_REST_Request $req) {
         ),
         'stated_headcount' => $stated,
         'span' => array('lo' => $span['lo'] ?? '', 'hi' => $span['hi'] ?? ''),
+        // The one-collector caveat under the place chart, computed under the
+        // caller's own filters so it names whichever country is dominated in
+        // THIS view and vanishes when none is.
+        'place_caveat' => function_exists('tit_place_caveat')
+            ? tit_place_caveat($table, $where, $params) : '',
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);

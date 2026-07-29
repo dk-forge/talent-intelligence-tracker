@@ -482,6 +482,15 @@
         ? '' : '(' + nfmt(data.stated_headcount) + ')';
     }
 
+    // The one-collector caveat follows the filters: it names whichever country
+    // is currently dominated, and hides itself when none is.
+    var caveat = document.getElementById('tit-place-caveat');
+    if (caveat) {
+      var text = data.place_caveat || '';
+      caveat.textContent = text;
+      caveat.hidden = (text === '');
+    }
+
     // The date range the page actually covers, restated for the filtered set.
     // Both bounds come from one query on the server, so the range and its own
     // label cannot contradict each other the way they did.
@@ -552,24 +561,25 @@
   // Mirrors tit_detail_note(). Both counts, always, plus what routine means:
   // that sentence is the reason the default is allowed to hold rows back at
   // all. A reader can see exactly how many and change it in one click.
-  var ROUTINE_MEANS = ' Routine means a bare officer or director change with' +
-    ' no headcount, no money and no location named.';
+  // Definition FIRST, then the numbers, and all three of them, so a reader can
+  // check that hidden plus shown equals total instead of taking our word.
+  var ROUTINE_MEANS = 'Some SEC filings record only an officer or director' +
+    ' change, with no headcount, no money and no location.';
 
   function detailNote(mode, notable, routine) {
     notable = Number(notable) || 0;
     routine = Number(routine) || 0;
+    var total = notable + routine;
     if (!routine) {
-      return 'Showing all ' + nfmt(notable) +
-        (notable === 1 ? ' update.' : ' updates.') +
-        ' Nothing in this view is a routine filing.' + ROUTINE_MEANS;
+      return ROUTINE_MEANS + ' None of the ' + nfmt(total) +
+        (total === 1 ? ' update here is one of those.' : ' updates here are one of those.');
     }
     if (mode === 'all') {
-      return 'Showing all ' + nfmt(notable + routine) +
-        ' updates, routine filings included. ' + nfmt(routine) +
-        ' of them are routine.' + ROUTINE_MEANS;
+      return ROUTINE_MEANS + ' All ' + nfmt(routine) +
+        ' of those are included, so you are seeing all ' + nfmt(total) + ' updates.';
     }
-    return 'Showing ' + nfmt(notable) + ' notable updates. ' + nfmt(routine) +
-      ' routine filings join them when you switch to Everything.' + ROUTINE_MEANS;
+    return ROUTINE_MEANS + ' ' + nfmt(routine) + ' of those are hidden, so you are' +
+      ' seeing ' + nfmt(notable) + ' of ' + nfmt(total) + ' updates.';
   }
 
   // Mirrors tit_money_chart() in shortcodes.php: same classes, same
@@ -1005,17 +1015,12 @@
   // $open is passed only when restoring a shared link. Opening on every
   // refresh would throw the panel open each time a matrix cell set a date,
   // which is a panel fighting the reader rather than serving them.
-  function syncMore(open) {
-    var on = moreActive();
-    if (moreLabel) {
-      // Name them while naming them still fits. Past three, the list stops
-      // being readable at a glance and "4 active" is the honest summary; a bare
-      // parenthesised digit never is.
-      moreLabel.textContent = !on.length ? 'More filters'
-        : (on.length <= 3 ? 'More filters: ' + on.join(', ')
-                          : 'More filters: ' + on.length + ' active');
-    }
-    if (open && moreBox && on.length && !moreBox.open) moreBox.open = true;
+  // The panel is always open now, so there is nothing to disclose and nothing
+  // to count. Naming the active filters here was standing in for showing them;
+  // the controls themselves are the better answer, and the chips bar already
+  // says what is applied. Kept as a function so every call site stays valid.
+  function syncMore() {
+    if (moreBox && !moreBox.open) moreBox.open = true;
   }
 
   // The CSV and JSON links under the table download exactly what is on screen:
