@@ -170,6 +170,134 @@ class ScopeBoundary(unittest.TestCase):
         self.assertEqual(signal.pillar, "leadership_change")
 
 
+# The four filings that were live on the dashboard, in the words the filings
+# themselves use. `sec_edgar` stamps ONE synthetic headline onto every document
+# it fetches, so all four carried the same string and the headline arm of the
+# guard could never fire on any of them.
+SEC_HEADLINE = "{} 8-K filing (Item 5.02): officer or director change"
+
+ATLASSIAN_BODY = (
+    "FORM 8-K CURRENT REPORT Item 2.05 Costs Associated with Exit or Disposal "
+    "Activities. On March 11, 2026, Atlassian Corporation announced a "
+    "restructuring that results in the elimination of certain roles, impacting "
+    "approximately 10% of the Company's workforce."
+)
+GROUPON_BODY = (
+    "FORM 8-K Item 5.02 Departure of Directors. Item 2.05 Costs Associated with "
+    "Exit or Disposal Activities. On May 21, 2026, Groupon, Inc. approved a "
+    "restructuring plan including a reduction of up to 400 positions globally."
+)
+
+
+class FilingBodyScope(unittest.TestCase):
+    """The scope guard has to read the DOCUMENT, not the collector's boilerplate.
+
+    Atlassian, Groupon, IO Biotech and Lyra Therapeutics were live on a page
+    whose footer says it collects no layoffs. Every guard reported healthy the
+    whole time, because arm one read a headline `sec_edgar` wrote itself and
+    arm two only fires when the model chose 'displacement'.
+    """
+
+    def sec(self, company, body, **over):
+        headline = SEC_HEADLINE.format(company)
+        over.setdefault("summary", "A filing was made.")
+        over.setdefault("talent_readthrough", "A filing was made.")
+        return validate.build_signal(
+            classified(company=company, headline=headline, city="",
+                       country="United States", **over),
+            raw(raw_text=f"{headline}\n\n{body}", headline=headline,
+                source_url="https://www.sec.gov/Archives/edgar/data/1/x-8k.htm",
+                source_name="SEC EDGAR"),
+            "sec_edgar")
+
+    def test_the_atlassian_filing_is_rejected(self):
+        with self.assertRaises(validate.Rejected) as caught:
+            self.sec("Atlassian Corp", ATLASSIAN_BODY)
+        self.assertIn("source document announces it", str(caught.exception))
+
+    def test_the_groupon_filing_is_rejected(self):
+        with self.assertRaises(validate.Rejected):
+            self.sec("Groupon, Inc.", GROUPON_BODY)
+
+    def test_the_synthetic_headline_alone_would_never_have_caught_it(self):
+        """The proof that the old guard could not have worked, not an opinion."""
+        headline = SEC_HEADLINE.format("Atlassian Corp")
+        self.assertIsNone(prefilter.workforce_reduction_term(headline))
+
+    def test_the_headline_rule_read_over_the_body_would_not_have_caught_it_either(self):
+        """"appointed"/"5.02" lead, and the headline rule lets the earlier
+        in-scope subject win. Running the existing predicate over raw_text was
+        the obvious fix and it is the wrong one."""
+        body = ("Item 5.02 Departure of Directors or Certain Officers. The Board "
+                "appointed a new Chief Financial Officer. " + GROUPON_BODY)
+        self.assertIsNone(prefilter.workforce_reduction_term(body))
+        self.assertIsNotNone(prefilter.filing_reduction_plan(body))
+
+    def test_item_2_05_needs_no_second_opinion(self):
+        """It is the SEC's own item code for an exit or disposal plan. A
+        registrant does not file one for a cut it is merely mentioning."""
+        self.assertEqual(
+            prefilter.filing_reduction_plan(
+                "Item 2.05 Costs Associated with Exit or Disposal Activities."),
+            "Item 2.05")
+
+    def test_a_scale_without_the_item_code_is_still_an_announcement(self):
+        for body in (
+            "The Company approved a restructuring plan under which it will cut "
+            "approximately 400 positions worldwide.",
+            "Acme will reduce its workforce by 10% of the Company's workforce.",
+            "The plan includes a workforce reduction affecting substantially all "
+            "of its remaining employees.",
+        ):
+            with self.subTest(body=body[:40]):
+                self.assertIsNotNone(prefilter.filing_reduction_plan(body))
+
+    # --- the other half of the job: not over-rejecting ---------------------
+
+    def test_a_filing_that_only_mentions_a_cut_in_passing_is_kept(self):
+        """Over-rejecting hands the sibling the pillar this product is largest
+        in. 3,777 live rows are sec_edgar leadership changes."""
+        for body in (
+            "The Company appointed Jane Doe as Chief Financial Officer. She "
+            "previously led the finance function through the 2024 layoffs at "
+            "her former employer.",
+            "Following last year's redundancies the Board has appointed a new "
+            "Chief Operating Officer.",
+        ):
+            with self.subTest(body=body[:40]):
+                self.assertIsNone(prefilter.filing_reduction_plan(body))
+
+    def test_an_officer_severance_package_does_not_read_as_a_reduction(self):
+        """Severance, termination benefits and one-time charges are the
+        standard furniture of an Item 5.02 departure. Treating them as
+        corroboration would reject nearly every CEO exit ever filed."""
+        body = ("Item 5.02. The Company and Mr. Smith entered into a separation "
+                "agreement providing severance and termination benefits, and the "
+                "Company expects to record a one-time charge in the quarter.")
+        self.assertIsNone(prefilter.filing_reduction_plan(body))
+        signal = self.sec("Acme Corp", body, pillar="leadership_change",
+                          signal_direction="neutral")
+        self.assertEqual(signal.pillar, "leadership_change")
+
+    def test_the_usa_rare_earth_retirement_is_kept(self):
+        """A live row that a rule keyed on `signal_direction = displacement`
+        would have withdrawn. A CEO retiring is a leadership change."""
+        body = ("Item 5.02 Departure of Directors or Certain Officers. Barbara "
+                "Humpton will retire as Chief Executive Officer and as a director "
+                "effective October 1, 2026, and has entered into a retirement "
+                "agreement with the Company.")
+        self.assertIsNone(prefilter.filing_reduction_plan(body))
+
+    def test_a_hiring_story_that_mentions_cuts_still_builds_through_the_body_arm(self):
+        """The existing boundary decision is not quietly reversed: a story
+        whose subject is growth stays here even when its text carries a cut."""
+        text = ("Klarna to hire 1,000 customer service staff after AI-driven "
+                "job cuts")
+        signal = build(text=text, company="Klarna", signal_direction="hiring",
+                       city="")
+        self.assertEqual(signal.company, "Klarna")
+
+
 class NamedEmployer(unittest.TestCase):
     """A description is not a name. Numbers and symbols in a name are."""
 

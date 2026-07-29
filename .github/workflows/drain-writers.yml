@@ -49,6 +49,7 @@ on:
       - collect national press
       - collect-structured
       - correct-form-d
+      - correct-layoff-scope
       - correct-sec-pillar
       - enrich
       - link-check

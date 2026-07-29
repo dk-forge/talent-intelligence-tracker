@@ -689,6 +689,157 @@ def workforce_reduction_term(text: str) -> str | None:
     return hit.group(0)
 
 
+# --- The same boundary, read off a DOCUMENT instead of a headline ----------
+#
+# `workforce_reduction_term` above is shaped for a headline: it assumes the
+# text leads with its subject, and lets an in-scope subject appearing earlier
+# win the race. That assumption is exactly right for a headline and exactly
+# wrong for a filing.
+#
+# It is wrong twice over on `sec_edgar`, which is where it failed in
+# production. That collector stamps ONE synthetic headline —
+# "<Company> 8-K filing (Item 5.02): officer or director change" — onto every
+# document it fetches, so the headline arm of the guard is reading a string
+# the collector wrote rather than anything the company said, and it can never
+# contain a reduction term. The reduction language lives in `raw_text`, which
+# no arm of the guard read. Four filings reached the live page that way:
+# Atlassian (~10% of its workforce), Groupon (up to 400 positions), IO Biotech
+# and Lyra Therapeutics. And running the headline rule over the BODY instead
+# would not have saved it: every Item 5.02 filing opens with "appointed" or
+# "resigned", so the subject-leads race would suppress a reduction announced
+# three paragraphs later, every single time.
+#
+# So a body needs its own rule, and the question it has to answer is not
+# "does this document mention a cut" but "does this document ANNOUNCE one".
+# Getting that distinction right is the whole job: over-reject and we hand the
+# sibling every 8-K that mentions last year's restructuring, or every officer
+# departure whose separation terms use the word "termination".
+#
+# A filing that announces a reduction says so the way the SEC makes it say so:
+#
+#   * **Item 2.05** — "Costs Associated with Exit or Disposal Activities" —
+#     is the item code that exists for precisely this event. On its own it is
+#     decisive, because a registrant does not file one for a cut it is only
+#     mentioning.
+#   * It names a **plan**: approved a restructuring plan, a reduction in
+#     force, a workforce reduction plan.
+#   * It states a **scale**: a percentage of the workforce, or a count of
+#     positions, roles or employees.
+#
+# A filing that merely mentions a cut carries the term and none of that
+# corroboration NEAR the term, which is what the window below tests.
+#
+# Note what is deliberately NOT a corroborator: "severance", "termination
+# benefits" and "one-time charge". Those are the standard furniture of an
+# Item 5.02 officer departure — nearly every CEO exit filing contains all
+# three — so admitting them would turn this guard into a rule that rejects
+# leadership changes, which is the pillar this product is largest in.
+
+#: Item 2.05 is the SEC's own item code for an exit or disposal plan, which is
+#: how a workforce reduction is reported. A filing that declares it has
+#: announced a reduction by definition, so this needs no second opinion.
+_FILING_EXIT_ITEM = re.compile(
+    r"item\s*2\.05\b"
+    r"|costs?\s+associated\s+with\s+exit\s+or\s+disposal",
+    re.I,
+)
+
+#: The PLAN half of "announces". Filing prose is formal and hedged, so this is
+#: the language a registrant uses when it has decided rather than mused.
+_FILING_PLAN_TERMS = (
+    r"restructuring plan", r"restructuring and workforce reduction",
+    r"reduction[- ]in[- ]force", r"workforce reduction plan",
+    r"reduction plan", r"cost reduction plan", r"plan to reduce",
+    # "approved a" and not "approved the": the definite article is what an
+    # equity incentive plan gets ("approved the 2026 Equity Incentive Plan"),
+    # and the whole point is not to reject the pillar this product is
+    # largest in.
+    r"approved a (?:\w+\s+){0,3}?plan",
+    r"reduc\w+\s+(?:of\s+)?(?:its|our|the company'?s?|the)\s+"
+    r"(?:global\s+|total\s+|worldwide\s+)?(?:workforce|headcount)",
+)
+_FILING_PLAN = re.compile(r"(?:" + "|".join(_FILING_PLAN_TERMS) + r")", re.I)
+
+#: The SCALE half. A registrant announcing a reduction says how big it is;
+#: one mentioning somebody else's does not. "approximately 10% of the
+#: Company's workforce" (Atlassian), "up to 400 positions" (Groupon),
+#: "substantially all remaining employees" (Lyra Therapeutics).
+_FILING_SCALE_TERMS = (
+    r"[\d.]{1,5}\s?%\s+of\s+(?:the\s+|its\s+|our\s+)?(?:company'?s?\s+)?"
+    r"(?:global\s+|total\s+|worldwide\s+)?(?:workforce|employees|headcount|"
+    r"work\s?force)",
+    r"(?:approximately|about|up to|around|roughly)\s+[\d,]+\s+"
+    r"(?:positions|roles|employees|jobs|people)",
+    r"reduction of (?:up to\s+)?(?:approximately\s+)?[\d,]+\s+"
+    r"(?:positions|roles|employees|jobs)",
+    r"substantially all (?:of )?(?:its |the |our )?(?:remaining )?employees",
+)
+_FILING_SCALE = re.compile(r"(?:" + "|".join(_FILING_SCALE_TERMS) + r")", re.I)
+
+#: How far apart two of those signals may sit and still be describing the SAME
+#: event. Roughly a paragraph of filing prose. Wider, and a departing officer's
+#: severance paragraph starts corroborating a sentence about something else;
+#: narrower, and "the Company approved a restructuring plan. ... The plan
+#: includes a reduction of approximately 400 positions" splits in two.
+PLAN_WINDOW_CHARS = 400
+
+
+def filing_reduction_plan(text: str) -> str | None:
+    """The phrase that makes a DOCUMENT a workforce-reduction announcement.
+
+    Returns None for a document that merely mentions a cut. See the long note
+    above for why this cannot be `workforce_reduction_term` with a different
+    argument.
+
+    The rule is **Item 2.05, or any two of {a reduction term, a plan, a
+    scale} within a paragraph of each other.** Two, because filing prose says
+    the same thing several ways and any one of them alone is ambiguous:
+
+      * a reduction term alone is the passing mention this must not reject
+        ("she led finance through the 2024 layoffs at her former employer");
+      * a plan alone is most often a compensation plan;
+      * a scale alone is a share count or a shareholder percentage.
+
+    Together they are a registrant saying it has decided to cut, and how many.
+    That symmetry also covers the phrasings the reduction vocabulary does not
+    reach — "elimination of certain roles", "cut approximately 400 positions" —
+    which matters because that vocabulary was written for headlines.
+
+    The reduction half deliberately reuses `_REDUCTION`. Fourteen languages of
+    it are hard-won (`פיטר` is excluded because it is also how "Peter" is
+    spelled; lowercase "rif" matched inside "tariff"), and a second copy would
+    drift away from the first.
+    """
+    if not text:
+        return None
+
+    item = _FILING_EXIT_ITEM.search(text)
+    if item:
+        return item.group(0)
+
+    hits: list[tuple[int, str, str]] = []
+    for kind, pattern in (("cut", _REDUCTION), ("cut", _RIF),
+                          ("plan", _FILING_PLAN), ("scale", _FILING_SCALE)):
+        for match in pattern.finditer(text):
+            hits.append((match.start(), kind, match.group(0)))
+    if len(hits) < 2:
+        return None
+    hits.sort()
+
+    for start, kind, phrase in hits:
+        near = [h for h in hits
+                if h[1] != kind and abs(h[0] - start) <= PLAN_WINDOW_CHARS]
+        if not near:
+            continue
+        # Report the reduction term when one is involved: it is the phrase a
+        # reader needs to see to agree with the verdict.
+        if kind == "cut":
+            return phrase
+        cuts = [h[2] for h in near if h[1] == "cut"]
+        return cuts[0] if cuts else phrase
+    return None
+
+
 # --- Geography gate --------------------------------------------------------
 #
 # We claim eight markets. A signal in a place we do not cover gets rejected by

@@ -463,13 +463,14 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # Verizon story about 3,000 cuts was live on it anyway. The sibling owns
     # workforce reduction; we own everything else about the talent market.
     #
-    # Two arms, because a cut can arrive two ways. The headline is the subject
-    # of the story, so a reduction headline is a reduction story. And a
+    # THREE arms, because a cut can arrive three ways. The headline is the
+    # subject of the story, so a reduction headline is a reduction story. A
     # headline that hides it ("Verizon announces restructuring") is caught by
     # the model's own reading: direction 'displacement' means the source said
-    # roles are going, which is the sibling's definition of a record.
+    # roles are going, which is the sibling's definition of a record. And a
+    # headline that is not a headline at all is caught by reading the document.
     #
-    # Both arms use the same free vocabulary the prefilter uses, so most such
+    # All three use the same free vocabulary the prefilter uses, so most such
     # stories never reach here and never cost a classification.
     cut = prefilter.workforce_reduction_term(headline)
     if cut:
@@ -481,6 +482,30 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
             raise Rejected(
                 "workforce reduction is the sibling tracker's scope, not ours "
                 f"(displacement: {cut!r})")
+
+    # The third arm reads the DOCUMENT. Both arms above read a headline — one
+    # the source wrote, one the model wrote — and `sec_edgar` writes NEITHER:
+    # it stamps the identical string "<Company> 8-K filing (Item 5.02): officer
+    # or director change" onto every document it fetches. So arm one has been
+    # matching the collector's own boilerplate against a layoff vocabulary
+    # forever, arm two only fires when the model happened to choose
+    # 'displacement', and the reduction language sat untouched in raw_text.
+    # Atlassian (~10% of its workforce), Groupon (up to 400 positions), IO
+    # Biotech and Lyra Therapeutics all reached the live page through that hole
+    # while every guard reported healthy.
+    #
+    # Running arm one over the body instead would not have closed it: every
+    # Item 5.02 filing opens with "appointed" or "resigned", and that rule lets
+    # an in-scope subject appearing EARLIER win, so a reduction announced three
+    # paragraphs later is suppressed every time. A body needs a body-shaped
+    # rule, and it has to distinguish a document that ANNOUNCES a reduction
+    # from one that merely mentions a cut, or it will reject the leadership
+    # pillar wholesale. prefilter.filing_reduction_plan is where that lives.
+    cut = prefilter.filing_reduction_plan(raw_text)
+    if cut:
+        raise Rejected(
+            "workforce reduction is the sibling tracker's scope, not ours "
+            f"(the source document announces it: {cut!r})")
 
     # Job location: from the source text only.
     city = region = None

@@ -1,0 +1,115 @@
+name: correct-layoff-scope
+
+# Withdraw records that are workforce reductions. Layoffs are READ from the
+# sibling AI Layoff Tracker's public API at render time and are not collected
+# here — one source of truth per fact — and four 8-K filings were live on the
+# dashboard in breach of that: Atlassian (~10% of its workforce), Groupon (up
+# to 400 positions), IO Biotech and Lyra Therapeutics.
+#
+# The scope guard read the HEADLINE, and `sec_edgar` stamps one synthetic
+# headline ("<Company> 8-K filing (Item 5.02): officer or director change")
+# onto every document it fetches, so the guard was matching a layoff vocabulary
+# against the collector's own boilerplate. The reduction language was in the
+# filing body, which nothing read. The forward fix is
+# prefilter.filing_reduction_plan, called from validate.build_signal; this is
+# the backward half. See correct_layoff_scope.py.
+#
+# It RE-FETCHES the filings, because raw_text is never stored: the evidence
+# that convicts these rows is not in the database, and judging them on their
+# stored summary would reproduce the original defect one level up.
+#
+# Nothing is deleted and nothing is edited in place — a withdrawal goes through
+# retract_remote + retract_local, so the row survives with is_current = 0 and
+# its reason. Runs here rather than from a laptop because this is where
+# WP_API_KEY lives.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would be withdrawn and write nothing'
+        type: boolean
+        default: true
+      stored_only:
+        description: 'Skip the document pass — no re-fetch, so it cannot see a synthetic headline hiding a reduction'
+        type: boolean
+        default: false
+      limit:
+        description: 'Only re-read the first N documents (blank for all)'
+        type: string
+        default: ''
+      force:
+        description: 'Proceed even if an implausible share of rows match'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # correct-sec-pillar.yml, correct-form-d.yml, retract.yml and the backfills.
+  # Two writers both end with a reset-to-origin push, so whichever pushes
+  # second would silently destroy the other's rows.
+  group: talent-collect
+  # This WITHDRAWS published rows. A run killed halfway leaves some rows off
+  # the site and some still on it; the script resumes cleanly because it
+  # re-derives its worklist, but only if it is allowed to finish rather than
+  # being cancelled by the next dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # The document pass re-reads every live sec_edgar filing at SEC's request
+    # delay — roughly 3,800 documents at 0.15s plus network, so tens of minutes.
+    # Kept at the same slice ceiling as the backfills so this cannot become the
+    # thing that starves the writer queue.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Withdraw the reductions
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # No EDGAR_USER_AGENT mapping: the secret does not exist in this
+          # repo, and mapping a missing secret sets the env var to empty
+          # string. SEC rejects a request with no contact address in the UA,
+          # and every fetch would fail — which this script reports as
+          # "unreadable" rather than as clean, but a sweep that read nothing
+          # proves nothing. The code default carries the address.
+        run: |
+          set -o pipefail
+          ARGS=""
+          [ "${{ inputs.dry_run }}"     = "true" ] && ARGS="$ARGS --dry-run"
+          [ "${{ inputs.stored_only }}" = "true" ] && ARGS="$ARGS --stored-only"
+          [ "${{ inputs.force }}"       = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
+          # No `|| true`: a failed withdrawal leaves a layoff live on a page
+          # that says it publishes none, and must fail the run.
+          python correct_layoff_scope.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: withdraw the workforce reductions that breached scope $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Another writer may have landed while this ran. Rebase rather than
+          # force: the other run's rows are as real as ours. A merge is wrong
+          # HERE specifically, the same way it is wrong for correct-form-d:
+          # retraction flips is_current on an EXISTING row rather than adding a
+          # new (content_hash, revision), so merge_db has nothing to carry and
+          # would turn a loud rerun into a silent no-op.
+          git pull --rebase --autostash origin main
+          git push
