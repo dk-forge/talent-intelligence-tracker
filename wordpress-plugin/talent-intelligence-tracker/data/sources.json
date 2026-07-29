@@ -64,6 +64,54 @@
   "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred."
  },
  {
+  "name": "20 Minutes Economie",
+  "url": "https://www.20minutes.fr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.20minutes.fr/feeds/rss-economie.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General daily, economy section."
+ },
+ {
+  "name": "24ur",
+  "url": "https://www.24ur.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://www.24ur.com/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Broadcaster news portal."
+ },
+ {
+  "name": "360 Stepeni",
+  "url": "https://360stepeni.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://360stepeni.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
+ },
+ {
   "name": "36Kr",
   "url": "https://36kr.com",
   "status": "candidate",
@@ -78,6 +126,102 @@
   "rss": "https://36kr.com/feed",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "A1on",
+  "url": "https://a1on.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://a1on.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
+ },
+ {
+  "name": "ABC Color",
+  "url": "https://www.abc.com.py",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Paraguay",
+  "rss": "https://www.abc.com.py/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "ABC Economia",
+  "url": "https://www.abc.es",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Spain",
+  "rss": "https://www.abc.es/rss/feeds/abc_Economia.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, economy."
+ },
+ {
+  "name": "ABC News (Business)",
+  "url": "https://www.abc.net.au",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.abc.net.au/news/feed/51892/rss.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Public broadcaster business desk"
+ },
+ {
+  "name": "Aftenposten",
+  "url": "https://www.aftenposten.no",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Norway",
+  "rss": "https://www.aftenposten.no/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "Agenda Digitale",
+  "url": "https://www.agendadigitale.eu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.agendadigitale.eu/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Digital policy/industry."
  },
  {
   "name": "AI Layoff Tracker (sibling)",
@@ -95,6 +239,38 @@
   "notes": "READ ONLY, never re-collected. One source of truth per fact."
  },
  {
+  "name": "AIDA",
+  "url": "https://aida.gov.al",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Albania",
+  "rss": "https://aida.gov.al/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Albanian Investment Development Agency; primary-source investment announcements."
+ },
+ {
+  "name": "Aktuelno.me",
+  "url": "https://www.aktuelno.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://rss.aktuelno.me",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Same rss.<domain> pattern."
+ },
+ {
   "name": "AlleyWatch",
   "url": "https://www.alleywatch.com",
   "status": "candidate",
@@ -107,6 +283,22 @@
   "rss": "https://www.alleywatch.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Almakos",
+  "url": "https://almakos.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Albania",
+  "rss": "https://almakos.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
  },
  {
   "name": "AlphaSense",
@@ -122,6 +314,86 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "Amandala",
+  "url": "https://amandala.com.bz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belize",
+  "rss": "https://amandala.com.bz/news/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Ambito Financiero",
+  "url": "https://www.ambito.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://www.ambito.com/rss/pages/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Andina",
+  "url": "https://andina.pe",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Peru",
+  "rss": "https://andina.pe/agencia/rss.aspx",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "ANSA Economia",
+  "url": "https://www.ansa.it",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.ansa.it/sito/notizie/economia/economia_rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National wire service, economy desk."
+ },
+ {
+  "name": "Antigua Observer",
+  "url": "https://antiguaobserver.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Antigua and Barbuda",
+  "rss": "https://antiguaobserver.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Antitrust Division, DOJ",
@@ -140,6 +412,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Aripaev",
+  "url": "https://www.aripaev.ee",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Estonia",
+  "rss": "https://www.aripaev.ee/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
  },
  {
   "name": "Arizona Commerce Authority",
@@ -178,6 +466,22 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "ASCII.jp",
+  "url": "https://ascii.jp",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://ascii.jp/rss.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Japanese tech press"
+ },
+ {
   "name": "Associated Press",
   "url": "https://apnews.com",
   "status": "candidate",
@@ -191,6 +495,22 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "Australian Financial Review",
+  "url": "https://www.afr.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.afr.com/rss/technology.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
  },
  {
   "name": "Axios",
@@ -208,6 +528,86 @@
   "notes": "Pro Rata is the most-read daily deal-flow newsletter in venture."
  },
  {
+  "name": "B2B Cambodia",
+  "url": "https://www.b2b-cambodia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cambodia",
+  "rss": "https://www.b2b-cambodia.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business publisher; feed <link> values are RELATIVE slugs, not absolute URLs; the collector must prefix https://www.b2b-cambodia.com/ or every source_url will be broken"
+ },
+ {
+  "name": "Baguete",
+  "url": "https://www.baguete.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://www.baguete.com.br/rss/noticias/feed",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Bangkok Post (Business)",
+  "url": "https://www.bangkokpost.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Thailand",
+  "rss": "https://www.bangkokpost.com/rss/data/business.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. English daily business desk"
+ },
+ {
+  "name": "Bani.md",
+  "url": "https://bani.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://bani.md/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/economy; highest-signal MD source."
+ },
+ {
+  "name": "Bankar.me",
+  "url": "https://bankar.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://www.bankar.me/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/finance. Low cadence (4 items)."
+ },
+ {
   "name": "Bankier.pl",
   "url": "https://www.bankier.pl",
   "status": "candidate",
@@ -223,6 +623,22 @@
   "rss": "https://www.bankier.pl/rss/wiadomosci.xml",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Barbados Today",
+  "url": "https://barbadostoday.bb",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Barbados",
+  "rss": "https://barbadostoday.bb/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "BetaKit",
@@ -257,6 +673,86 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "BioBioChile",
+  "url": "https://www.biobiochile.cl",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Chile",
+  "rss": "https://www.biobiochile.cl/static/feed-rss",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Biznis.rs",
+  "url": "https://biznis.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://biznis.rs/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business; high signal."
+ },
+ {
+  "name": "BiznisInfo",
+  "url": "https://www.biznisinfo.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://www.biznisinfo.ba/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business news."
+ },
+ {
+  "name": "Blic",
+  "url": "https://www.blic.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://www.blic.rs/rss/danasnje-vesti",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Largest national daily."
+ },
+ {
+  "name": "Blognone",
+  "url": "https://www.blognone.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Thailand",
+  "rss": "https://www.blognone.com/atom.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Thai tech community publisher"
+ },
+ {
   "name": "Bloomberg",
   "url": "https://www.bloomberg.com",
   "status": "candidate",
@@ -273,6 +769,54 @@
   "notes": ""
  },
  {
+  "name": "Bloomberg Linea",
+  "url": "https://www.bloomberglinea.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Latin America (regional)",
+  "rss": "https://www.bloomberglinea.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Bloovi",
+  "url": "https://www.bloovi.be",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belgium",
+  "rss": "https://www.bloovi.be/nieuws/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/tech. NOTE: items carry NO dates, so recency cannot be judged per item."
+ },
+ {
+  "name": "Bluescreen.kz",
+  "url": "https://bluescreen.kz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kazakhstan",
+  "rss": "https://bluescreen.kz/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Kazakh tech publisher"
+ },
+ {
   "name": "Bootstrapping.dk",
   "url": "https://bootstrapping.dk",
   "status": "candidate",
@@ -287,6 +831,22 @@
   "rss": "https://bootstrapping.dk/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Borsen",
+  "url": "https://borsen.dk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Denmark",
+  "rss": "https://borsen.dk/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
  },
  {
   "name": "Brazil Journal",
@@ -306,6 +866,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Breaking Belize News",
+  "url": "https://www.breakingbelizenews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belize",
+  "rss": "https://www.breakingbelizenews.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "Breakit",
   "url": "https://www.breakit.se",
   "status": "candidate",
@@ -320,6 +896,54 @@
   "rss": "https://www.breakit.se/feed/artiklar",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "brutkasten",
+  "url": "https://brutkasten.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Austria",
+  "rss": "https://brutkasten.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Leading Austrian startup outlet. www.derbrutkasten.com redirects here; store this canonical form."
+ },
+ {
+  "name": "Bug",
+  "url": "https://www.bug.hr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Croatia",
+  "rss": "https://www.bug.hr/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech trade press."
+ },
+ {
+  "name": "Buka (6yka)",
+  "url": "https://6yka.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://6yka.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news/analysis."
  },
  {
   "name": "Bureau of Economic Analysis",
@@ -354,6 +978,38 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27. Feed retired 2026-07-29: https://www.bls.gov/feed/bls_latest.rss returned HTTP 403 bot block."
+ },
+ {
+  "name": "Business Advantage PNG",
+  "url": "https://www.businessadvantagepng.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Papua New Guinea",
+  "rss": "https://www.businessadvantagepng.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. business publisher"
+ },
+ {
+  "name": "Business Bhutan",
+  "url": "https://businessbhutan.bt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bhutan",
+  "rss": "https://businessbhutan.bt/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. business weekly"
  },
  {
   "name": "Business France",
@@ -403,6 +1059,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Business Recorder",
+  "url": "https://www.brecorder.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Pakistan",
+  "rss": "https://www.brecorder.com/feeds/latest-news",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Financial daily"
+ },
+ {
   "name": "Business Wire",
   "url": "https://www.businesswire.com/",
   "status": "candidate",
@@ -436,6 +1108,70 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "BusinessNow.mt",
+  "url": "https://businessnow.mt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://businessnow.mt/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business news; high signal for hiring/funding."
+ },
+ {
+  "name": "BusinessWorld",
+  "url": "https://www.bworldonline.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://www.bworldonline.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business daily"
+ },
+ {
+  "name": "Byline Network",
+  "url": "https://byline.network",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://byline.network/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Korean tech publisher"
+ },
+ {
+  "name": "CafeF",
+  "url": "https://cafef.vn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Vietnam",
+  "rss": "https://cafef.vn/doanh-nghiep.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business/finance publisher"
+ },
+ {
   "name": "California Employment Development Department",
   "url": "https://edd.ca.gov",
   "status": "candidate",
@@ -451,6 +1187,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Camboja News",
+  "url": "https://cambojanews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cambodia",
+  "rss": "https://cambojanews.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. independent publisher"
  },
  {
   "name": "Canadian Intellectual Property Office",
@@ -485,6 +1237,38 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "Capital",
+  "url": "https://www.capital.bg",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bulgaria",
+  "rss": "https://www.capital.bg/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Leading business weekly."
+ },
+ {
+  "name": "Capital.ba",
+  "url": "https://capital.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://capital.ba/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/economy; high signal."
+ },
+ {
   "name": "CB Insights",
   "url": "https://www.cbinsights.com",
   "status": "candidate",
@@ -498,6 +1282,22 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "CBC News Business",
+  "url": "https://www.cbc.ca/news/business",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.cbc.ca/webfeed/rss/rss-business",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Centers for Disease Control and Prevention",
@@ -552,6 +1352,22 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Clarin Economia",
+  "url": "https://www.clarin.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://www.clarin.com/rss/economia/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "ClinicalTrials.gov",
   "url": "https://clinicaltrials.gov",
   "status": "candidate",
@@ -581,6 +1397,54 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "CNBC Indonesia (Tech)",
+  "url": "https://www.cnbcindonesia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://www.cnbcindonesia.com/tech/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business broadcaster tech desk"
+ },
+ {
+  "name": "cnBeta",
+  "url": "https://www.cnbeta.com.tw",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "China",
+  "rss": "https://www.cnbeta.com.tw/backend.php",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Chinese tech news"
+ },
+ {
+  "name": "CNET Japan",
+  "url": "https://japan.cnet.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://japan.cnet.com/rss/index.rdf",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Japanese tech press"
  },
  {
   "name": "CoinDesk",
@@ -614,6 +1478,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Confidencial",
+  "url": "https://confidencial.digital",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nicaragua",
+  "rss": "https://confidencial.digital/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Congressional Budget Office",
@@ -683,6 +1563,70 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Convergencia Digital",
+  "url": "https://www.convergenciadigital.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://www.convergenciadigital.com.br/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Coral Capital",
+  "url": "https://coralcap.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://coralcap.co/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Tokyo VC blog; primary source on its own rounds"
+ },
+ {
+  "name": "CorCom (Corriere Comunicazioni)",
+  "url": "https://www.corrierecomunicazioni.it",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.corrierecomunicazioni.it/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Digital economy/telecom."
+ },
+ {
+  "name": "Corporate Maldives",
+  "url": "https://corporatemaldives.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Maldives",
+  "rss": "https://corporatemaldives.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. business publisher"
+ },
+ {
   "name": "Crunchbase",
   "url": "https://www.crunchbase.com",
   "status": "candidate",
@@ -730,6 +1674,22 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Cyprus Mail",
+  "url": "https://cyprus-mail.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cyprus",
+  "rss": "https://cyprus-mail.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. English-language daily of record."
+ },
+ {
   "name": "CzechCrunch",
   "url": "https://cc.cz",
   "status": "candidate",
@@ -744,6 +1704,22 @@
   "rss": "https://cc.cz/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Dagblad Suriname",
+  "url": "https://dbsuriname.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Suriname",
+  "rss": "https://dbsuriname.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Dagens industri",
@@ -775,6 +1751,70 @@
   "rss": "https://dailysocial.id/feed",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Danas",
+  "url": "https://www.danas.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://www.danas.rs/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "Data News (Knack)",
+  "url": "https://datanews.knack.be",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belgium",
+  "rss": "https://datanews.knack.be/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Redirects to trends.knack.be/feed/?host=datanews.knack.be. Belgian ICT business."
+ },
+ {
+  "name": "Dawn (Business)",
+  "url": "https://www.dawn.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Pakistan",
+  "rss": "https://www.dawn.com/feeds/business",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
+ },
+ {
+  "name": "De Tijd - Ondernemen",
+  "url": "https://www.tijd.be",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belgium",
+  "rss": "https://www.tijd.be/rss/ondernemen.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily. Use this path: /rss/top_stories.xml is STALE (last item 2022-11-20) though it still returns 200."
  },
  {
   "name": "Dealroom",
@@ -840,6 +1880,86 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "Delfi",
+  "url": "https://www.delfi.lt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lithuania",
+  "rss": "https://www.delfi.lt/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Redirects to feed.delfi.lt/v2?format=rss. NOTE: items carry NO dates."
+ },
+ {
+  "name": "Delfino.cr",
+  "url": "https://delfino.cr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Costa Rica",
+  "rss": "https://delfino.cr/feed",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Delo",
+  "url": "https://www.delo.si",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://www.delo.si/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Leading national daily."
+ },
+ {
+  "name": "Demerara Waves",
+  "url": "https://demerarawaves.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Guyana",
+  "rss": "https://demerarawaves.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Dennik N",
+  "url": "https://dennikn.sk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovakia",
+  "rss": "https://dennikn.sk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily. Paywalled; feed is headline+teaser."
+ },
+ {
   "name": "Department of Energy",
   "url": "https://www.energy.gov",
   "status": "candidate",
@@ -892,6 +2012,198 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Der Standard Wirtschaft",
+  "url": "https://www.derstandard.at",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Austria",
+  "rss": "https://www.derstandard.at/rss/wirtschaft",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, business."
+ },
+ {
+  "name": "Descifrado",
+  "url": "https://www.descifrado.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Venezuela",
+  "rss": "https://www.descifrado.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Detik Finance",
+  "url": "https://finance.detik.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://finance.detik.com/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. largest online daily, finance desk"
+ },
+ {
+  "name": "dev.ua",
+  "url": "https://dev.ua",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ukraine",
+  "rss": "https://dev.ua/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. IT industry incl. hiring and headcount."
+ },
+ {
+  "name": "Diario Libre economia",
+  "url": "https://www.diariolibre.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Dominican Republic",
+  "rss": "https://www.diariolibre.com/rss/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Die Presse Wirtschaft",
+  "url": "https://www.diepresse.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Austria",
+  "rss": "https://www.diepresse.com/rss/Wirtschaft",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, business."
+ },
+ {
+  "name": "Dienas Bizness",
+  "url": "https://db.lv",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Latvia",
+  "rss": "https://www.db.lv/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "Diez.md",
+  "url": "https://diez.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://diez.md/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
+ },
+ {
+  "name": "digi.no",
+  "url": "https://www.digi.no",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Norway",
+  "rss": "https://www.digi.no/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. IT trade press."
+ },
+ {
+  "name": "Digital Business KZ",
+  "url": "https://digitalbusiness.kz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kazakhstan",
+  "rss": "https://digitalbusiness.kz/feed-google/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. canonical target of /feed/ redirect; digitalbusiness.kz/feed/ 302-redirects here; dates are in news:publication_date, not pubDate"
+ },
+ {
+  "name": "Digital News Asia",
+  "url": "https://www.digitalnewsasia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malaysia",
+  "rss": "https://www.digitalnewsasia.com/rss.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Malaysian tech publisher"
+ },
+ {
+  "name": "DIGITIMES Asia",
+  "url": "https://www.digitimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Taiwan",
+  "rss": "https://www.digitimes.com/rss/daily.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Semiconductor/supply-chain trade press, paywalled"
+ },
+ {
   "name": "Disrupt Africa",
   "url": "https://disrupt-africa.com",
   "status": "candidate",
@@ -904,6 +2216,54 @@
   "rss": "https://disrupt-africa.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Dnevni avaz",
+  "url": "https://avaz.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://avaz.ba/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily. /feed and /feed/ 404; use bare /rss."
+ },
+ {
+  "name": "Dnevnik",
+  "url": "https://www.dnevnik.bg",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bulgaria",
+  "rss": "https://www.dnevnik.bg/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/news daily."
+ },
+ {
+  "name": "Dominica News Online",
+  "url": "https://dominicanewsonline.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Dominica",
+  "rss": "https://dominicanewsonline.com/news/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "dot.LA",
@@ -920,6 +2280,86 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "DR Nyheder Penge",
+  "url": "https://www.dr.dk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Denmark",
+  "rss": "https://www.dr.dk/nyheder/service/feeds/penge",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster, money desk."
+ },
+ {
+  "name": "Draft",
+  "url": "https://www.projetodraft.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://www.projetodraft.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Dunya",
+  "url": "https://www.dunya.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Turkey",
+  "rss": "https://www.dunya.com/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "E15",
+  "url": "https://www.e15.cz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Czechia",
+  "rss": "https://www.e15.cz/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "E24",
+  "url": "https://e24.no",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Norway",
+  "rss": "https://e24.no/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business news."
+ },
+ {
   "name": "e27",
   "url": "https://e27.co",
   "status": "candidate",
@@ -932,6 +2372,38 @@
   "rss": "https://e27.co/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "ECO",
+  "url": "https://eco.sapo.pt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Portugal",
+  "rss": "https://eco.sapo.pt/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/economy daily."
+ },
+ {
+  "name": "Economedia",
+  "url": "https://economedia.ro",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Romania",
+  "rss": "https://economedia.ro/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Economy/business."
  },
  {
   "name": "Economic Development Administration",
@@ -950,6 +2422,150 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "EconomyNext",
+  "url": "https://economynext.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sri Lanka",
+  "rss": "https://economynext.com/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Economy/business publisher"
+ },
+ {
+  "name": "EconomyUp",
+  "url": "https://www.economyup.it",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.economyup.it/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Startup/innovation."
+ },
+ {
+  "name": "Efecto Cocuyo",
+  "url": "https://efectococuyo.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Venezuela",
+  "rss": "https://efectococuyo.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Ekonomichna Pravda",
+  "url": "https://epravda.com.ua",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ukraine",
+  "rss": "https://www.epravda.com.ua/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/economy daily."
+ },
+ {
+  "name": "El CEO",
+  "url": "https://elceo.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mexico",
+  "rss": "https://elceo.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Comercio",
+  "url": "https://elcomercio.pe",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Peru",
+  "rss": "https://elcomercio.pe/arcio/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Comercio Ecuador",
+  "url": "https://www.elcomercio.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ecuador",
+  "rss": "https://www.elcomercio.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Deber",
+  "url": "https://eldeber.com.bo",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bolivia",
+  "rss": "https://eldeber.com.bo/rss/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Dinero",
+  "url": "https://eldinero.com.do",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Dominican Republic",
+  "rss": "https://eldinero.com.do/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "El Economista Mexico",
@@ -986,6 +2602,70 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "El Financiero CR",
+  "url": "https://www.elfinancierocr.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Costa Rica",
+  "rss": "https://www.elfinancierocr.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Nacional",
+  "url": "https://www.elnacional.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Venezuela",
+  "rss": "https://www.elnacional.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Nuevo Dia",
+  "url": "https://www.elnuevodia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Puerto Rico",
+  "rss": "https://www.elnuevodia.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. arc feed live; note the site itself is paywalled - store headline + link only"
+ },
+ {
+  "name": "El Observador",
+  "url": "https://www.elobservador.com.uy",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uruguay",
+  "rss": "https://www.elobservador.com.uy/rss/pages/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "El Referente",
   "url": "https://www.elreferente.es",
   "status": "candidate",
@@ -1000,6 +2680,102 @@
   "rss": "https://www.elreferente.es/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "El Tiempo",
+  "url": "https://www.eltiempo.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Colombia",
+  "rss": "https://www.eltiempo.com/rss/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Universal",
+  "url": "https://www.eluniversal.com.mx",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mexico",
+  "rss": "https://www.eluniversal.com.mx/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "El Vocero",
+  "url": "https://www.elvocero.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Puerto Rico",
+  "rss": "https://www.elvocero.com/search/?f=rss&t=article&c=economia&l=50",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. TownNews-style search feed scoped to economia IMPORTANT: this host content-negotiates - send Accept: application/rss+xml or it returns HTML."
+ },
+ {
+  "name": "elsalvador.com",
+  "url": "https://www.elsalvador.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "El Salvador",
+  "rss": "https://www.elsalvador.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. STALE. feed is alive but stale - newest item 2026-03-12; the /category/noticias/ feed is worse (2025-04-03)"
+ },
+ {
+  "name": "elsalvador.com negocios",
+  "url": "https://www.elsalvador.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "El Salvador",
+  "rss": "https://www.elsalvador.com/category/noticias/negocios/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. STALE. feed parses but is stale"
+ },
+ {
+  "name": "Emerce",
+  "url": "https://www.emerce.nl",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Netherlands",
+  "rss": "https://www.emerce.nl/nieuws/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Digital business. Root /rss/nieuws 302s to an old article; this is the working path."
  },
  {
   "name": "Empire State Development",
@@ -1068,6 +2844,38 @@
   "notes": "Feed fetched and parsed 2026-07-29. Dedicated Indian funding beat; publishes weekly funding round-ups."
  },
  {
+  "name": "ERR",
+  "url": "https://www.err.ee",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Estonia",
+  "rss": "https://www.err.ee/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
+ },
+ {
+  "name": "ETNews",
+  "url": "https://www.etnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://rss.etnews.com/Section901.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
   "name": "EU-Startups",
   "url": "https://www.eu-startups.com/",
   "status": "candidate",
@@ -1095,6 +2903,22 @@
   "rss": "https://ec.europa.eu/commission/presscorner/api/rss?language=en",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. EU-level announcements reaching member states with no national outlet. Grants, not venture rounds."
+ },
+ {
+  "name": "European Space Agency",
+  "url": "https://www.esa.int",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Europe (regional)",
+  "rss": "https://www.esa.int/rssfeed/Our_Activities/Space_News",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Primary-source contract and programme announcements."
  },
  {
   "name": "Exame",
@@ -1147,6 +2971,70 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Expreso",
+  "url": "https://www.expreso.ec",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ecuador",
+  "rss": "https://www.expreso.ec/rss",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Eyewitness News",
+  "url": "https://ewnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bahamas",
+  "rss": "https://ewnews.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Faktor.mk",
+  "url": "https://faktor.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://faktor.mk/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/economy."
+ },
+ {
+  "name": "FBC News",
+  "url": "https://www.fbcnews.com.fj",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Fiji",
+  "rss": "https://www.fbcnews.com.fj/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. public broadcaster"
  },
  {
   "name": "Federal Aviation Administration",
@@ -1218,6 +3106,22 @@
   "notes": "Biotech hiring follows FDA milestones."
  },
  {
+  "name": "Financial Mirror",
+  "url": "https://www.financialmirror.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cyprus",
+  "rss": "https://www.financialmirror.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/finance. Intermittent 522 on first hit, 200 on retry; needs a retry policy."
+ },
+ {
   "name": "Financial Post",
   "url": "https://financialpost.com",
   "status": "candidate",
@@ -1249,6 +3153,22 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "finews.ch",
+  "url": "https://www.finews.ch",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Switzerland",
+  "rss": "https://www.finews.ch/news?format=feed&type=rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Finance sector incl. senior hires and headcount."
  },
  {
   "name": "FinLedger",
@@ -1283,6 +3203,54 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Focos",
+  "url": "https://focostv.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "El Salvador",
+  "rss": "https://focostv.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Fokus",
+  "url": "https://fokus.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://fokus.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
+ },
+ {
+  "name": "Fondation IDEA",
+  "url": "https://www.fondation-idea.lu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Luxembourg",
+  "rss": "https://www.fondation-idea.lu/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Economics think tank; labour-market analysis. Large archive feed (120 items)."
+ },
+ {
   "name": "Food and Drug Administration",
   "url": "https://www.fda.gov",
   "status": "candidate",
@@ -1314,6 +3282,38 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "Forbes Hungary",
+  "url": "https://www.forbes.hu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hungary",
+  "rss": "https://forbes.hu/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business; licensed national edition."
+ },
+ {
+  "name": "Forbes Serbia",
+  "url": "https://forbes.n1info.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://forbes.n1info.rs/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business, licensed national edition."
  },
  {
   "name": "Fortune",
@@ -1360,6 +3360,54 @@
   "rss": "https://www.frenchweb.fr/feed",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Future Startup",
+  "url": "https://futurestartup.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bangladesh",
+  "rss": "https://futurestartup.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Bangladesh startup publisher"
+ },
+ {
+  "name": "Gato Encerrado",
+  "url": "https://gatoencerrado.news",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "El Salvador",
+  "rss": "https://gatoencerrado.news/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Gazeta.uz",
+  "url": "https://www.gazeta.uz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uzbekistan",
+  "rss": "https://www.gazeta.uz/rss/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Leading online daily"
  },
  {
   "name": "Geektime",
@@ -1427,6 +3475,38 @@
   "notes": ""
  },
  {
+  "name": "Gestion",
+  "url": "https://gestion.pe",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Peru",
+  "rss": "https://gestion.pe/arcio/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Global News Money",
+  "url": "https://globalnews.ca",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://globalnews.ca/money/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "Globes",
   "url": "https://en.globes.co.il",
   "status": "candidate",
@@ -1442,6 +3522,54 @@
   "rss": "https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=1725",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. English edition of Israel's business daily. Carries the funding and M&A beat that CTech covers without a feed."
+ },
+ {
+  "name": "GMA News (Money)",
+  "url": "https://www.gmanetwork.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://data.gmanetwork.com/gno/rss/money/feed.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. broadcaster money desk"
+ },
+ {
+  "name": "Government of Canada newsroom (all depts)",
+  "url": "https://www.canada.ca/en/news.html",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=&type=newsreleases&sort=publishedDate&orderBy=desc&publishedDate%3E=2026-01-01&pick=50&format=atom&atomtitle=Canada%20News",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. Atom API over all departments; the dept=innovationsciencesandeconomicdevelopmentcanada variant returns an EMPTY Atom document, so use this one and filter downstream"
+ },
+ {
+  "name": "Government of Montenegro",
+  "url": "https://www.gov.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://rss.gov.me",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Official government announcements; primary source. Same rss.<domain> pattern."
  },
  {
   "name": "Gruenderszene (feed)",
@@ -1494,6 +3622,166 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "heise online",
+  "url": "https://www.heise.de",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.heise.de/rss/heise-atom.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Atom. High volume tech news."
+ },
+ {
+  "name": "Helsingin Sanomat",
+  "url": "https://www.hs.fi",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Finland",
+  "rss": "https://www.hs.fi/rss/tuoreimmat.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Largest national daily."
+ },
+ {
+  "name": "Het Laatste Nieuws - Economie",
+  "url": "https://www.hln.be",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belgium",
+  "rss": "https://www.hln.be/economie/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, economy."
+ },
+ {
+  "name": "Hong Kong Free Press",
+  "url": "https://hongkongfp.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hong Kong",
+  "rss": "https://hongkongfp.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Independent HK publisher"
+ },
+ {
+  "name": "Hong Kong Government News",
+  "url": "https://www.news.gov.hk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hong Kong",
+  "rss": "https://www.news.gov.hk/en/common/html/topstories.rss.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Government news service"
+ },
+ {
+  "name": "Hurriyet Ekonomi",
+  "url": "https://www.hurriyet.com.tr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Turkey",
+  "rss": "https://www.hurriyet.com.tr/rss/ekonomi",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, economy desk."
+ },
+ {
+  "name": "HVG",
+  "url": "https://hvg.hu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hungary",
+  "rss": "https://hvg.hu/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business weekly, high volume."
+ },
+ {
+  "name": "HWSW",
+  "url": "https://www.hwsw.hu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hungary",
+  "rss": "https://www.hwsw.hu/xml/latest_news_rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. IT trade press."
+ },
+ {
+  "name": "Iceland Monitor (Morgunbladid)",
+  "url": "https://icelandmonitor.mbl.is",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iceland",
+  "rss": "https://icelandmonitor.mbl.is/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. English-language desk of Morgunbladid."
+ },
+ {
+  "name": "ICT Frame",
+  "url": "https://ictframe.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nepal",
+  "rss": "https://ictframe.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Nepali ICT publisher"
+ },
+ {
   "name": "IDA Ireland",
   "url": "https://www.idaireland.com/",
   "status": "candidate",
@@ -1508,6 +3796,54 @@
   "rss": "",
   "free": true,
   "notes": "Announces 'X company, Y jobs, Z city' as official releases. Pre-structured headcount and location, free."
+ },
+ {
+  "name": "Idealog",
+  "url": "https://idealog.co.nz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "New Zealand",
+  "rss": "https://idealog.co.nz/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Innovation/startup magazine"
+ },
+ {
+  "name": "ifanr",
+  "url": "https://www.ifanr.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "China",
+  "rss": "https://www.ifanr.com/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Chinese tech publisher"
+ },
+ {
+  "name": "Il Sole 24 Ore",
+  "url": "https://www.ilsole24ore.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.ilsole24ore.com/rss/economia.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
  },
  {
   "name": "Illinois Department of Commerce and Economic Opportunity",
@@ -1527,6 +3863,54 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Impacto TIC",
+  "url": "https://impactotic.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Colombia",
+  "rss": "https://impactotic.co/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Impress Watch (Internet Watch)",
+  "url": "https://internet.watch.impress.co.jp",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://internet.watch.impress.co.jp/data/rss/1.0/iw/feed.rdf",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Japanese tech trade press"
+ },
+ {
+  "name": "Inbusiness.kz",
+  "url": "https://inbusiness.kz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kazakhstan",
+  "rss": "https://inbusiness.kz/ru/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business publisher"
+ },
+ {
   "name": "Inc42",
   "url": "https://inc42.com",
   "status": "candidate",
@@ -1540,6 +3924,22 @@
   "rss": "https://inc42.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Index.hr",
+  "url": "https://www.index.hr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Croatia",
+  "rss": "https://www.index.hr/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. High-volume national news."
  },
  {
   "name": "Indiana Economic Development Corporation",
@@ -1557,6 +3957,54 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Indirekt.si",
+  "url": "https://indirekt.si",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://indirekt.si/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/tech. BORDERLINE: latest item ~7 weeks old."
+ },
+ {
+  "name": "Infobae",
+  "url": "https://www.infobae.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://www.infobae.com/arc/outboundfeeds/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "InfoMoney",
+  "url": "https://www.infomoney.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://www.infomoney.com.br/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Innovate UK",
@@ -1590,6 +4038,54 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Inquirer Business",
+  "url": "https://business.inquirer.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://business.inquirer.net/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
+ },
+ {
+  "name": "INSIDE",
+  "url": "https://www.inside.com.tw",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Taiwan",
+  "rss": "https://www.inside.com.tw/feed/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Taiwan startup publisher"
+ },
+ {
+  "name": "Insider.gr",
+  "url": "https://www.insider.gr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Greece",
+  "rss": "https://www.insider.gr/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/finance. /feed 404s; /rss is the working path."
  },
  {
   "name": "International Trade Administration",
@@ -1639,6 +4135,22 @@
   "notes": ""
  },
  {
+  "name": "IO+ (Innovation Origins)",
+  "url": "https://ioplus.nl",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Netherlands",
+  "rss": "https://ioplus.nl/en/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. RECOVERABLE PARSE BUG: serves TWO XML declarations back to back ('<?xml ...?><?xml version=\"1.0\"?>'), so a strict parse fails at byte 38. Stripping the duplicate declaration yields 20 current items incl. funding rounds. Tail-trim alone does not fix it; a LEADING-junk trim is needed."
+ },
+ {
   "name": "Iowa Economic Development Authority",
   "url": "https://ieda.iowa.gov",
   "status": "candidate",
@@ -1657,6 +4169,70 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "IPN (Info-Prim Neo)",
+  "url": "https://ipn.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://ipn.md/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. News agency. /rss/ro serves an article page; use /feed/."
+ },
+ {
+  "name": "iProUP",
+  "url": "https://www.iproup.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://www.iproup.com/rss/home",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Irish Examiner Business",
+  "url": "https://www.irishexaminer.com/business/",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://www.irishexaminer.com/feed/17-business.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Atom feed; discovered via declared <link rel=alternate>, not a guessable path."
+ },
+ {
+  "name": "Irish Independent Business",
+  "url": "https://www.independent.ie/business/",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://www.independent.ie/business/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, business section."
+ },
+ {
   "name": "Israel Innovation Authority",
   "url": "https://innovationisrael.org.il/en/",
   "status": "candidate",
@@ -1670,6 +4246,54 @@
   "rss": "https://innovationisrael.org.il/en/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. Primary source: the agency announcing its own grants and programmes. Grants, not venture rounds. Slow host."
+ },
+ {
+  "name": "IT.mk",
+  "url": "https://it.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://it.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech/IT sector; high signal for hiring."
+ },
+ {
+  "name": "ITmedia NEWS",
+  "url": "https://www.itmedia.co.jp",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Japanese IT trade press"
+ },
+ {
+  "name": "iTnews",
+  "url": "https://www.itnews.com.au",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.itnews.com.au/RSS/rss.ashx",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Enterprise IT trade press"
  },
  {
   "name": "ITWeb",
@@ -1704,6 +4328,86 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "iupana",
+  "url": "https://iupana.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Latin America (regional)",
+  "rss": "https://iupana.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "iWitness News",
+  "url": "https://www.iwnsvg.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Saint Vincent and the Grenadines",
+  "rss": "https://www.iwnsvg.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Jamaica Gleaner",
+  "url": "https://jamaica-gleaner.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Jamaica",
+  "rss": "https://jamaica-gleaner.com/feed/rss.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Jamaica Information Service",
+  "url": "https://jis.gov.jm",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Jamaica",
+  "rss": "https://jis.gov.jm/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Jamaica Observer",
+  "url": "https://www.jamaicaobserver.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Jamaica",
+  "rss": "https://www.jamaicaobserver.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "Japan External Trade Organization",
   "url": "https://www.jetro.go.jp/en/",
   "status": "candidate",
@@ -1721,6 +4425,38 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Jiemian",
+  "url": "https://www.jiemian.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "China",
+  "rss": "https://a.jiemian.com/index.php?m=article&a=rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Chinese business publisher"
+ },
+ {
+  "name": "Jornal de Negocios",
+  "url": "https://www.jornaldenegocios.pt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Portugal",
+  "rss": "https://www.jornaldenegocios.pt/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
   "name": "Journal du Net",
   "url": "https://www.journaldunet.com",
   "status": "candidate",
@@ -1736,6 +4472,54 @@
   "rss": "https://www.journaldunet.com/rss/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Jumpstart Media",
+  "url": "https://www.jumpstartmag.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hong Kong",
+  "rss": "https://www.jumpstartmag.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. HK startup magazine"
+ },
+ {
+  "name": "Kaieteur News",
+  "url": "https://www.kaieteurnewsonline.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Guyana",
+  "rss": "https://www.kaieteurnewsonline.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Kapital",
+  "url": "https://kapital.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://kapital.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business weekly; highest-signal MK source."
  },
  {
   "name": "Katadata",
@@ -1789,6 +4573,54 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Klix.ba",
+  "url": "https://www.klix.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://www.klix.ba/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Largest BiH news portal."
+ },
+ {
+  "name": "Kontan (Investasi)",
+  "url": "https://investasi.kontan.co.id",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://investasi.kontan.co.id/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
+  "name": "Kursiv Media",
+  "url": "https://kz.kursiv.media",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kazakhstan",
+  "rss": "https://kz.kursiv.media/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business publisher"
+ },
+ {
   "name": "L'Usine Digitale",
   "url": "https://www.usine-digitale.fr",
   "status": "candidate",
@@ -1806,6 +4638,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "L'Usine Nouvelle",
+  "url": "https://www.usinenouvelle.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.usinenouvelle.com/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Industry news; plant openings/closures and headcount."
+ },
+ {
   "name": "LA Business Journal",
   "url": "https://labusinessjournal.com",
   "status": "candidate",
@@ -1819,6 +4667,22 @@
   "rss": "https://labusinessjournal.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "La Estrella de Panama",
+  "url": "https://www.laestrella.com.pa",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Panama",
+  "rss": "https://www.laestrella.com.pa/rss/economia",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "La French Tech",
@@ -1839,6 +4703,326 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "La Nacion",
+  "url": "https://www.lanacion.com.ar",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "La Nacion PY",
+  "url": "https://www.lanacion.com.py",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Paraguay",
+  "rss": "https://www.lanacion.com.py/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "La Prensa",
+  "url": "https://www.prensa.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Panama",
+  "rss": "https://www.prensa.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "La Razon",
+  "url": "https://www.la-razon.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bolivia",
+  "rss": "https://www.la-razon.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "la Repubblica Economia",
+  "url": "https://www.repubblica.it",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.repubblica.it/rss/economia/rss2.0.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, economy."
+ },
+ {
+  "name": "La Republica",
+  "url": "https://www.larepublica.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Colombia",
+  "rss": "https://www.larepublica.co/rss/economia",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "La Tercera / Pulso",
+  "url": "https://www.latercera.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Chile",
+  "rss": "https://www.latercera.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "La Tribune",
+  "url": "https://www.latribune.fr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.latribune.fr/feed.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Redirects to /rss/homepage. National business daily."
+ },
+ {
+  "name": "Laotian Times",
+  "url": "https://laotiantimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Laos",
+  "rss": "https://laotiantimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. English publisher"
+ },
+ {
+  "name": "Le Nouvelliste",
+  "url": "https://lenouvelliste.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Haiti",
+  "rss": "https://lenouvelliste.com/rss",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Leiphone",
+  "url": "https://www.leiphone.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "China",
+  "rss": "https://www.leiphone.com/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Chinese AI/tech publisher"
+ },
+ {
+  "name": "Listin Diario",
+  "url": "https://listindiario.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Dominican Republic",
+  "rss": "https://listindiario.com/rss/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Ljubljanske novice",
+  "url": "https://ljnovice.si",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://ljnovice.si/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Ljubljana city/business news."
+ },
+ {
+  "name": "Los Tiempos",
+  "url": "https://www.lostiempos.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bolivia",
+  "rss": "https://www.lostiempos.com/rss/portada",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Lovin Malta",
+  "url": "https://lovinmalta.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://lovinmalta.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General national news."
+ },
+ {
+  "name": "LRT",
+  "url": "https://www.lrt.lt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lithuania",
+  "rss": "https://www.lrt.lt/?rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster. Note the query-string form: /rss and /en/rss both 404."
+ },
+ {
+  "name": "LSM (Latvian Public Media)",
+  "url": "https://www.lsm.lv",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Latvia",
+  "rss": "https://www.lsm.lv/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
+ },
+ {
+  "name": "Lupa.cz",
+  "url": "https://www.lupa.cz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Czechia",
+  "rss": "https://www.lupa.cz/rss/clanky/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Internet/tech business."
+ },
+ {
+  "name": "Luxembourg Times",
+  "url": "https://www.luxtimes.lu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Luxembourg",
+  "rss": "https://www.luxtimes.lu/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Paywalled; feed is headline+teaser, which is all we store."
+ },
+ {
+  "name": "Luxemburger Wort",
+  "url": "https://www.wort.lu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Luxembourg",
+  "rss": "https://www.wort.lu/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily of record."
+ },
+ {
   "name": "Maddyness",
   "url": "https://www.maddyness.com",
   "status": "candidate",
@@ -1851,6 +5035,102 @@
   "rss": "https://www.maddyness.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Maeil Business (MK)",
+  "url": "https://www.mk.co.kr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://www.mk.co.kr/rss/30800011/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. business daily"
+ },
+ {
+  "name": "Malay Mail (Money)",
+  "url": "https://www.malaymail.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malaysia",
+  "rss": "https://www.malaymail.com/feed/rss/money",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily"
+ },
+ {
+  "name": "Maldives Financial Review",
+  "url": "https://mfr.mv",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Maldives",
+  "rss": "https://mfr.mv/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. business/finance publisher; feed carries no item-level date element; dedupe/recency must come from the article page, not the feed; items present, no parseable date"
+ },
+ {
+  "name": "Malta Business Weekly",
+  "url": "https://maltabusinessweekly.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://maltabusinessweekly.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Weekly cadence, so a several-day lag is normal, not staleness."
+ },
+ {
+  "name": "Malta Chamber of Commerce",
+  "url": "https://maltachamber.org.mt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://maltachamber.org.mt/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Employer-body announcements; primary source."
+ },
+ {
+  "name": "MaltaCEOs",
+  "url": "https://maltaceos.mt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://maltaceos.mt/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Executive appointments and company news; highest-signal MT source for leadership moves."
  },
  {
   "name": "MamStartup",
@@ -1869,6 +5149,38 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Manila Bulletin",
+  "url": "https://mb.com.ph",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://mb.com.ph/rss/business",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
+  "name": "Manila Times (Business)",
+  "url": "https://www.manilatimes.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://www.manilatimes.net/business/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily"
+ },
+ {
   "name": "Manufacturing Dive",
   "url": "https://www.manufacturingdive.com",
   "status": "candidate",
@@ -1881,6 +5193,22 @@
   "rss": "https://www.manufacturingdive.com/feeds/news/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "MarketData",
+  "url": "https://marketdata.com.py",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Paraguay",
+  "rss": "https://marketdata.com.py/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "MarketWatch",
@@ -1930,6 +5258,70 @@
   "notes": "Feed fetched and parsed 2026-07-29. MENA plus Pakistan."
  },
  {
+  "name": "Meta.mk",
+  "url": "https://meta.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://meta.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. News agency."
+ },
+ {
+  "name": "Metro Puerto Rico",
+  "url": "https://www.metro.pr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Puerto Rico",
+  "rss": "https://www.metro.pr/arc/outboundfeeds/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Mezha",
+  "url": "https://mezha.ua",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ukraine",
+  "rss": "https://mezha.media/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech news; redirects to mezha.ua."
+ },
+ {
+  "name": "MIA",
+  "url": "https://mia.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://mia.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. State news agency; broad national coverage."
+ },
+ {
   "name": "Mint",
   "url": "https://www.livemint.com",
   "status": "candidate",
@@ -1961,6 +5353,70 @@
   "rss": "https://mittechreview.com.br/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Mizzima",
+  "url": "https://eng.mizzima.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Myanmar",
+  "rss": "https://eng.mizzima.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. independent publisher"
+ },
+ {
+  "name": "MKD.mk",
+  "url": "https://mkd.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://mkd.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
+ },
+ {
+  "name": "MobileSyrup",
+  "url": "https://mobilesyrup.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://mobilesyrup.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Moneycab",
+  "url": "https://www.moneycab.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Switzerland",
+  "rss": "https://www.moneycab.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Swiss business/finance; carries company announcements."
  },
  {
   "name": "Moneycontrol",
@@ -1997,6 +5453,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Montevideo Portal",
+  "url": "https://www.montevideo.com.uy",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uruguay",
+  "rss": "https://www.montevideo.com.uy/anxml.aspx?59",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "Morningstar",
   "url": "https://www.morningstar.com",
   "status": "candidate",
@@ -2009,6 +5481,86 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "MRT",
+  "url": "https://mrt.com.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://mrt.com.mk/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster. ONLY /rss.xml works; /feed/ and /rss are 403."
+ },
+ {
+  "name": "Myanmar Now",
+  "url": "https://myanmar-now.org",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Myanmar",
+  "rss": "https://myanmar-now.org/en/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Independent publisher"
+ },
+ {
+  "name": "N1 BiH",
+  "url": "https://n1info.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://ba.n1info.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Regional broadcaster's BiH desk; redirects to n1info.ba."
+ },
+ {
+  "name": "N1 Serbia",
+  "url": "https://n1info.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://n1info.rs/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Broadcaster."
+ },
+ {
+  "name": "Naftemporiki",
+  "url": "https://www.naftemporiki.gr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Greece",
+  "rss": "https://www.naftemporiki.gr/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
  },
  {
   "name": "Nairametrics",
@@ -2062,6 +5614,54 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Netokracija",
+  "url": "https://www.netokracija.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Croatia",
+  "rss": "https://www.netokracija.com/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. REGIONAL: Zagreb-based startup/tech title covering HR/RS/SI and the wider region."
+ },
+ {
+  "name": "Netokracija Serbia",
+  "url": "https://www.netokracija.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://www.netokracija.rs/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech/startup; Serbian edition, distinct from the .com regional feed."
+ },
+ {
+  "name": "Netzwoche",
+  "url": "https://www.netzwoche.ch",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Switzerland",
+  "rss": "https://www.netzwoche.ch/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Swiss ICT business."
+ },
+ {
   "name": "New Jersey Economic Development Authority",
   "url": "https://www.njeda.gov",
   "status": "candidate",
@@ -2094,6 +5694,166 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "News is My Business",
+  "url": "https://newsismybusiness.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Puerto Rico",
+  "rss": "https://newsismybusiness.com/?feed=rss2",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "News.MN",
+  "url": "https://news.mn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mongolia",
+  "rss": "https://news.mn/en/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. news portal"
+ },
+ {
+  "name": "Newsbook",
+  "url": "https://newsbook.com.mt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://newsbook.com.mt/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General national news."
+ },
+ {
+  "name": "Newsday",
+  "url": "https://newsday.co.tt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Trinidad and Tobago",
+  "rss": "https://newsday.co.tt/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE but lagging. main /feed/ newest item 2026-05-30; the business category feed is staler (2026-01-27). Trinidad Express is the dependable TT feed."
+ },
+ {
+  "name": "Newsday business",
+  "url": "https://newsday.co.tt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Trinidad and Tobago",
+  "rss": "https://newsday.co.tt/category/business/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. STALE. feed parses but is stale"
+ },
+ {
+  "name": "NewsMaker",
+  "url": "https://newsmaker.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://newsmaker.md/ru/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Found via <link rel=alternate>. /rus/feed/ redirects to a JPG."
+ },
+ {
+  "name": "Nezavisne novine",
+  "url": "https://www.nezavisne.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://www.nezavisne.com/rss/najnovije",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily. Found via <link rel=alternate>."
+ },
+ {
+  "name": "Nezavisne novine (Economy)",
+  "url": "https://www.nezavisne.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://www.nezavisne.com/rss/ekonomija",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Economy-only section feed; higher signal density than the main feed."
+ },
+ {
+  "name": "Nikkei Asia",
+  "url": "https://asia.nikkei.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://asia.nikkei.com/rss/feed/nar",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Regional business daily, paywalled; feed carries no item-level date element; dedupe/recency must come from the article page, not the feed; items present, no parseable date"
+ },
+ {
+  "name": "Nikkei xTECH",
+  "url": "https://xtech.nikkei.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://xtech.nikkei.com/rss/index.rdf",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. tech trade press"
  },
  {
   "name": "NIST",
@@ -2130,6 +5890,54 @@
   "notes": "Feed fetched and parsed 2026-07-29. English-language Israeli innovation news. Feed answers 200 with 25 parseable items whose newest is 2024-10-31; the publisher appears to have stopped. Kept so the collector reports it as stale rather than losing the row, and it recovers by itself if publishing resumes."
  },
  {
+  "name": "NOS Nieuws Economie",
+  "url": "https://nos.nl",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Netherlands",
+  "rss": "https://feeds.nos.nl/nosnieuwseconomie",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster economy desk."
+ },
+ {
+  "name": "Nova Makedonija",
+  "url": "https://novamakedonija.com.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://novamakedonija.com.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "Nova.rs",
+  "url": "https://nova.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://nova.rs/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
+ },
+ {
   "name": "Novobrief",
   "url": "https://novobrief.com",
   "status": "candidate",
@@ -2144,6 +5952,118 @@
   "rss": "https://novobrief.com/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "NOW Grenada",
+  "url": "https://www.nowgrenada.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Grenada",
+  "rss": "https://www.nowgrenada.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "NRC",
+  "url": "https://www.nrc.nl",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Netherlands",
+  "rss": "https://www.nrc.nl/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "NRK",
+  "url": "https://www.nrk.no",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Norway",
+  "rss": "https://www.nrk.no/toppsaker.rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
+ },
+ {
+  "name": "NU.nl Economie",
+  "url": "https://www.nu.nl",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Netherlands",
+  "rss": "https://www.nu.nl/rss/Economie",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news, economy section."
+ },
+ {
+  "name": "NZ Herald (Business)",
+  "url": "https://www.nzherald.co.nz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "New Zealand",
+  "rss": "https://www.nzherald.co.nz/arc/outboundfeeds/rss/section/business/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
+  "name": "NZZ Wirtschaft",
+  "url": "https://www.nzz.ch",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Switzerland",
+  "rss": "https://www.nzz.ch/wirtschaft.rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily, business."
+ },
+ {
+  "name": "Observador",
+  "url": "https://observador.pt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Portugal",
+  "rss": "https://observador.pt/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
  },
  {
   "name": "Ohio Department of Development",
@@ -2163,6 +6083,134 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Olhar Digital",
+  "url": "https://olhardigital.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://olhardigital.com.br/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "OnCuba News",
+  "url": "https://oncubanews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cuba",
+  "rss": "https://oncubanews.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Opinion",
+  "url": "https://www.opinion.com.bo",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bolivia",
+  "rss": "https://www.opinion.com.bo/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Oslobodjenje",
+  "url": "https://www.oslobodjenje.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://www.oslobodjenje.ba/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Oldest daily. ONLY /rss.xml works; /feed, /rss, /feed/ all 404."
+ },
+ {
+  "name": "Perfil Economia",
+  "url": "https://www.perfil.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://www.perfil.com/feed/economia",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Philenews (English)",
+  "url": "https://en.philenews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cyprus",
+  "rss": "https://en.philenews.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. English desk; in-cyprus.philenews.com now redirects here."
+ },
+ {
+  "name": "Philstar (Business)",
+  "url": "https://www.philstar.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://www.philstar.com/rss/business",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily"
+ },
+ {
+  "name": "Pisapapeles",
+  "url": "https://www.pisapapeles.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Chile",
+  "rss": "https://www.pisapapeles.net/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "PitchBook",
   "url": "https://pitchbook.com",
   "status": "candidate",
@@ -2176,6 +6224,150 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "Platum",
+  "url": "https://platum.kr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://platum.kr/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Korean startup publisher"
+ },
+ {
+  "name": "Pobjeda",
+  "url": "https://www.pobjeda.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://rss.pobjeda.me",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Oldest national daily. Feed lives on an rss.<domain> SUBDOMAIN; /feed/ serves HTML. Only the homepage <link rel=alternate> reveals it."
+ },
+ {
+  "name": "Politis",
+  "url": "https://www.politis.com.cy",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cyprus",
+  "rss": "https://www.politis.com.cy/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "Portal Analitika",
+  "url": "https://www.portalanalitika.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://rss.portalanalitika.me",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Same rss.<domain> subdomain convention."
+ },
+ {
+  "name": "Portalb.mk",
+  "url": "https://portalb.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://portalb.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Albanian-language outlet inside North Macedonia; covers a population the Macedonian-language feeds under-report."
+ },
+ {
+  "name": "Portfolio.hu",
+  "url": "https://www.portfolio.hu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hungary",
+  "rss": "https://www.portfolio.hu/rss/all.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Leading business/finance title."
+ },
+ {
+  "name": "Poslovni dnevnik",
+  "url": "https://www.poslovni.hr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Croatia",
+  "rss": "https://www.poslovni.hr/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "Poslovni Svijet",
+  "url": "https://poslovnisvijet.ba",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://poslovnisvijet.ba/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business. Slow cadence (latest item ~2.5 weeks old)."
+ },
+ {
+  "name": "Post-Courier",
+  "url": "https://www.postcourier.com.pg",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Papua New Guinea",
+  "rss": "https://www.postcourier.com.pg/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. national daily"
  },
  {
   "name": "PR Newswire",
@@ -2192,6 +6384,214 @@
   "rss": "https://www.prnewswire.com/rss/",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "PR TIMES",
+  "url": "https://prtimes.jp",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://prtimes.jp/index.rdf",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Japanese press-release wire; primary-source announcements; press-release wire: items are company announcements, i.e. primary sources, but volume is high and most items are irrelevant"
+ },
+ {
+  "name": "Prachachat",
+  "url": "https://www.prachachat.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Thailand",
+  "rss": "https://www.prachachat.net/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business daily"
+ },
+ {
+  "name": "Prensa Libre",
+  "url": "https://www.prensalibre.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Guatemala",
+  "rss": "https://www.prensalibre.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Primera Hora",
+  "url": "https://www.primerahora.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Puerto Rico",
+  "rss": "https://www.primerahora.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Primicias",
+  "url": "https://www.primicias.ec",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ecuador",
+  "rss": "https://www.primicias.ec/rss/home.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Primicias economia",
+  "url": "https://www.primicias.ec",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ecuador",
+  "rss": "https://www.primicias.ec/rss/economia.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Proceso Digital",
+  "url": "https://proceso.hn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Honduras",
+  "rss": "https://proceso.hn/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Profit.kz",
+  "url": "https://profit.kz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kazakhstan",
+  "rss": "https://profit.kz/rss/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Kazakh IT trade press"
+ },
+ {
+  "name": "Profit.ro",
+  "url": "https://www.profit.ro",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Romania",
+  "rss": "https://www.profit.ro/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business news."
+ },
+ {
+  "name": "ProPakistani",
+  "url": "https://propakistani.pk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Pakistan",
+  "rss": "https://propakistani.pk/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Tech/business news"
+ },
+ {
+  "name": "Prothom Alo English",
+  "url": "https://en.prothomalo.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bangladesh",
+  "rss": "https://en.prothomalo.com/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. largest daily, English edition"
+ },
+ {
+  "name": "Protothema",
+  "url": "https://www.protothema.gr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Greece",
+  "rss": "https://www.protothema.gr/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. High-volume national news."
+ },
+ {
+  "name": "Publinews Guatemala",
+  "url": "https://www.publinews.gt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Guatemala",
+  "rss": "https://www.publinews.gt/arc/outboundfeeds/rss/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Puls Biznesu",
@@ -2226,6 +6626,54 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "Q Costa Rica",
+  "url": "https://qcostarica.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Costa Rica",
+  "rss": "https://qcostarica.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Rappler",
+  "url": "https://www.rappler.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Philippines",
+  "rss": "https://www.rappler.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Digital publisher"
+ },
+ {
+  "name": "ReadMe.lk",
+  "url": "https://www.readme.lk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sri Lanka",
+  "rss": "https://www.readme.lk/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Sri Lankan tech publisher; STALE: newest item is 285 days old, do not wire without a recheck"
+ },
+ {
   "name": "RecruitingDaily",
   "url": "https://recruitingdaily.com",
   "status": "candidate",
@@ -2254,6 +6702,54 @@
   "rss": "https://refreshmiami.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Reporter.al (BIRN)",
+  "url": "https://www.reporter.al",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Albania",
+  "rss": "https://www.reporter.al/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Investigative outlet."
+ },
+ {
+  "name": "Republica GT",
+  "url": "https://republica.gt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Guatemala",
+  "rss": "https://republica.gt/feed",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Republika",
+  "url": "https://republika.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://republika.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news."
  },
  {
   "name": "Rest of World",
@@ -2301,6 +6797,134 @@
   "notes": ""
  },
  {
+  "name": "Revista Summa",
+  "url": "https://revistasumma.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "El Salvador",
+  "rss": "https://revistasumma.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "RFI Economie",
+  "url": "https://www.rfi.fr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.rfi.fr/fr/economie/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public international broadcaster; economy."
+ },
+ {
+  "name": "RNZ (Business)",
+  "url": "https://www.rnz.co.nz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "New Zealand",
+  "rss": "https://www.rnz.co.nz/rss/business.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Public broadcaster business desk"
+ },
+ {
+  "name": "RTCG",
+  "url": "https://rtcg.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://rtcg.me/rss/1.html",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster. 20 parseable items but the feed emits NO DATES at all; usable only with our own first-seen timestamp."
+ },
+ {
+  "name": "RTE Business",
+  "url": "https://www.rte.ie/news/business/",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://www.rte.ie/feeds/rss/?index=/news/business/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National public broadcaster, business desk."
+ },
+ {
+  "name": "RTL Today",
+  "url": "https://today.rtl.lu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Luxembourg",
+  "rss": "https://today.rtl.lu/rss/news",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National broadcaster, English service. /rss/business and /rss/economy 404."
+ },
+ {
+  "name": "RTV Slovenija",
+  "url": "https://www.rtvslo.si",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://img.rtvslo.si/feeds/00.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster. The www URL 301s to this img. host; store the final form."
+ },
+ {
+  "name": "RUV",
+  "url": "https://www.ruv.is",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iceland",
+  "rss": "https://www.ruv.is/rss/frettir",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
+ },
+ {
   "name": "S&P Global Market Intelligence",
   "url": "https://www.spglobal.com/marketintelligence",
   "status": "candidate",
@@ -2328,6 +6952,38 @@
   "rss": "https://www.saastr.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "SAPO TEK",
+  "url": "https://tek.sapo.pt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Portugal",
+  "rss": "https://tek.sapo.pt/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech news; redirects to /feed/."
+ },
+ {
+  "name": "Sarajevo Times",
+  "url": "https://sarajevotimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bosnia and Herzegovina",
+  "rss": "https://sarajevotimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. English-language outlet. Small feed window."
  },
  {
   "name": "SBIR/STTR Awards",
@@ -2358,6 +7014,22 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "Semana",
+  "url": "https://www.semana.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Colombia",
+  "rss": "https://www.semana.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "ShiftDelete",
@@ -2424,6 +7096,22 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "Silicon Luxembourg",
+  "url": "https://www.siliconluxembourg.lu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Luxembourg",
+  "rss": "https://www.siliconluxembourg.lu/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Startup/tech ecosystem publisher; highest-signal LU source for funding."
+ },
+ {
   "name": "Silicon Republic",
   "url": "https://www.siliconrepublic.com",
   "status": "candidate",
@@ -2456,6 +7144,54 @@
   "notes": ""
  },
  {
+  "name": "Siol.net",
+  "url": "https://siol.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://siol.net/feeds/latest",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news portal."
+ },
+ {
+  "name": "Sixth Tone",
+  "url": "https://www.sixthtone.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "China",
+  "rss": "https://www.sixthtone.com/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Feature publisher; feed carries no item-level date element; dedupe/recency must come from the article page, not the feed; items present, no parseable date"
+ },
+ {
+  "name": "Sloboden Pecat",
+  "url": "https://www.slobodenpecat.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://www.slobodenpecat.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
   "name": "SmartCompany",
   "url": "https://www.smartcompany.com.au",
   "status": "candidate",
@@ -2473,6 +7209,54 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "South China Morning Post (Business)",
+  "url": "https://www.scmp.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hong Kong",
+  "rss": "https://www.scmp.com/rss/92/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business desk"
+ },
+ {
+  "name": "South China Morning Post (Tech)",
+  "url": "https://www.scmp.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hong Kong",
+  "rss": "https://www.scmp.com/rss/36/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Tech desk"
+ },
+ {
+  "name": "SoyaCincau",
+  "url": "https://soyacincau.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malaysia",
+  "rss": "https://soyacincau.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Malaysian tech publisher"
+ },
+ {
   "name": "SpaceNews",
   "url": "https://spacenews.com",
   "status": "candidate",
@@ -2485,6 +7269,86 @@
   "rss": "https://spacenews.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Spot.uz",
+  "url": "https://www.spot.uz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uzbekistan",
+  "rss": "https://www.spot.uz/rss/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business/tech publisher"
+ },
+ {
+  "name": "St Lucia Times",
+  "url": "https://stluciatimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Saint Lucia",
+  "rss": "https://stluciatimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Starnieuws",
+  "url": "https://www.starnieuws.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Suriname",
+  "rss": "https://www.starnieuws.com/rss/starnieuws.rss",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "start-up.ro",
+  "url": "https://start-up.ro",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Romania",
+  "rss": "https://start-up.ro/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Startup/funding."
+ },
+ {
+  "name": "Startaj.si",
+  "url": "https://www.startaj.si",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://www.startaj.si/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Startup/entrepreneurship. BORDERLINE: latest item ~8 weeks old."
  },
  {
   "name": "Startbase",
@@ -2501,6 +7365,38 @@
   "rss": "https://www.startbase.com/topics/feed/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Startit",
+  "url": "https://startit.rs",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Serbia",
+  "rss": "https://startit.rs/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Startup/tech community publisher."
+ },
+ {
+  "name": "Startitup",
+  "url": "https://www.startitup.sk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovakia",
+  "rss": "https://www.startitup.sk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business/tech news."
  },
  {
   "name": "Startup Daily",
@@ -2531,6 +7427,38 @@
   "rss": "https://startupestonia.ee/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. State-backed ecosystem body publishing its own announcements. Its dashboard blends commercial aggregator data; only the announcements are used."
+ },
+ {
+  "name": "Startup Portugal",
+  "url": "https://startupportugal.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Portugal",
+  "rss": "https://startupportugal.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National startup agency; low volume but primary-source announcements."
+ },
+ {
+  "name": "Startupi",
+  "url": "https://startupi.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://startupi.com.br/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
   "name": "Startups.com.br",
@@ -2593,6 +7521,22 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "Stuff (Business)",
+  "url": "https://www.stuff.co.nz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "New Zealand",
+  "rss": "https://www.stuff.co.nz/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
   "name": "Supply Chain Dive",
   "url": "https://www.supplychaindive.com",
   "status": "candidate",
@@ -2605,6 +7549,38 @@
   "rss": "https://www.supplychaindive.com/feeds/news/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Svenska Dagbladet",
+  "url": "https://www.svd.se",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sweden",
+  "rss": "https://www.svd.se/feed/articles.rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily incl. Naringsliv."
+ },
+ {
+  "name": "SVT Nyheter Ekonomi",
+  "url": "https://www.svt.se",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sweden",
+  "rss": "https://www.svt.se/nyheter/ekonomi/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster economy desk."
  },
  {
   "name": "t3n",
@@ -2622,6 +7598,54 @@
   "rss": "https://t3n.de/rss.xml",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "tagesschau Wirtschaft",
+  "url": "https://www.tagesschau.de",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.tagesschau.de/wirtschaft/index~rss2.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster economy desk."
+ },
+ {
+  "name": "Taipei Times",
+  "url": "https://www.taipeitimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Taiwan",
+  "rss": "https://www.taipeitimes.com/xml/index.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
+  "name": "Talouselama",
+  "url": "https://www.talouselama.fi",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Finland",
+  "rss": "https://www.talouselama.fi/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business weekly."
  },
  {
   "name": "Tech Collective SEA",
@@ -2718,6 +7742,38 @@
   "notes": ""
  },
  {
+  "name": "Techday NZ (IT Brief)",
+  "url": "https://itbrief.co.nz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "New Zealand",
+  "rss": "https://itbrief.co.nz/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. IT trade press"
+ },
+ {
+  "name": "TechJuice",
+  "url": "https://www.techjuice.pk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Pakistan",
+  "rss": "https://www.techjuice.pk/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Pakistani tech press"
+ },
+ {
   "name": "TechMoran",
   "url": "https://techmoran.com",
   "status": "candidate",
@@ -2734,6 +7790,22 @@
   "notes": "Feed fetched and parsed 2026-07-29. East Africa: Kenya, Uganda, Tanzania, Rwanda."
  },
  {
+  "name": "TechNews",
+  "url": "https://technews.tw",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Taiwan",
+  "rss": "https://technews.tw/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Taiwan tech trade press"
+ },
+ {
   "name": "TechNode",
   "url": "https://technode.com",
   "status": "candidate",
@@ -2747,6 +7819,150 @@
   "rss": "https://technode.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Techpana",
+  "url": "https://www.techpana.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nepal",
+  "rss": "https://www.techpana.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Nepali tech publisher"
+ },
+ {
+  "name": "Techsauce",
+  "url": "https://techsauce.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Thailand",
+  "rss": "https://techsauce.co/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Thai startup publisher"
+ },
+ {
+  "name": "TechSavvy",
+  "url": "https://techsavvy.media",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Denmark",
+  "rss": "https://techsavvy.media/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech business."
+ },
+ {
+  "name": "Tecmundo",
+  "url": "https://www.tecmundo.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://rss.tecmundo.com.br/feed",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Teknisk Ukeblad",
+  "url": "https://www.tu.no",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Norway",
+  "rss": "https://www.tu.no/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Engineering/industry."
+ },
+ {
+  "name": "Telex",
+  "url": "https://telex.hu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Hungary",
+  "rss": "https://telex.hu/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National news."
+ },
+ {
+  "name": "Telma",
+  "url": "https://telma.com.mk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "North Macedonia",
+  "rss": "https://telma.com.mk/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Broadcaster."
+ },
+ {
+  "name": "The Astana Times",
+  "url": "https://astanatimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kazakhstan",
+  "rss": "https://astanatimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. English publisher"
+ },
+ {
+  "name": "The Bhutanese",
+  "url": "https://thebhutanese.bt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bhutan",
+  "rss": "https://thebhutanese.bt/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. weekly"
  },
  {
   "name": "The Block",
@@ -2780,6 +7996,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "The Business Standard (Economy)",
+  "url": "https://www.tbsnews.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bangladesh",
+  "rss": "https://www.tbsnews.net/economy/rss.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. root rss.xml was stale 2021"
+ },
+ {
   "name": "The Business Times Singapore",
   "url": "https://www.businesstimes.com.sg",
   "status": "candidate",
@@ -2797,6 +8029,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "The Daily Star (Business)",
+  "url": "https://www.thedailystar.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bangladesh",
+  "rss": "https://www.thedailystar.net/business/rss.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
+ },
+ {
   "name": "The Economic Times",
   "url": "https://economictimes.indiatimes.com",
   "status": "candidate",
@@ -2811,6 +8059,38 @@
   "rss": "https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "The Express Tribune (Business)",
+  "url": "https://tribune.com.pk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Pakistan",
+  "rss": "https://tribune.com.pk/feed/business",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
+ },
+ {
+  "name": "The Hindu (Business)",
+  "url": "https://www.thehindu.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://www.thehindu.com/business/feeder/default.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
  },
  {
   "name": "The Hindu BusinessLine",
@@ -2830,6 +8110,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "The Japan Times",
+  "url": "https://www.japantimes.co.jp",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://www.japantimes.co.jp/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29."
+ },
+ {
   "name": "The Jerusalem Post",
   "url": "https://www.jpost.com",
   "status": "candidate",
@@ -2847,6 +8143,70 @@
   "notes": "Feed fetched and parsed 2026-07-29. Front-page feed; JPost publishes no separate business or tech feed (business path 404s). Low signal density, but the free prefilter drops the rest at no cost."
  },
  {
+  "name": "The Kathmandu Post",
+  "url": "https://kathmandupost.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Nepal",
+  "rss": "https://kathmandupost.com/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily; feed carries no item-level date element; dedupe/recency must come from the article page, not the feed; items present, no parseable date"
+ },
+ {
+  "name": "The Korea Times (Business)",
+  "url": "https://www.koreatimes.co.kr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://www.koreatimes.co.kr/www/rss/biz.xml",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. English daily"
+ },
+ {
+  "name": "The Nassau Guardian",
+  "url": "https://thenassauguardian.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bahamas",
+  "rss": "https://thenassauguardian.com/search/?f=rss&t=article&l=50&s=start_time&sd=desc",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. TownNews-style search feed (site-wide, newest first) IMPORTANT: this host content-negotiates - send Accept: application/rss+xml or it returns HTML."
+ },
+ {
+  "name": "The News International (Business)",
+  "url": "https://www.thenews.com.pk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Pakistan",
+  "rss": "https://www.thenews.com.pk/rss/1/8",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. national daily business"
+ },
+ {
   "name": "The Recursive",
   "url": "https://therecursive.com",
   "status": "candidate",
@@ -2861,6 +8221,38 @@
   "rss": "https://www.therecursive.com/rss/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. South-East Europe: Bulgaria, Romania, Greece, Serbia, Croatia, Slovenia, North Macedonia, Albania."
+ },
+ {
+  "name": "The Scoop",
+  "url": "https://thescoop.co",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brunei",
+  "rss": "https://thescoop.co/feed/",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. independent digital publisher"
+ },
+ {
+  "name": "The Shift News",
+  "url": "https://theshiftnews.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malta",
+  "rss": "https://theshiftnews.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Investigative outlet."
  },
  {
   "name": "The Straits Times Business",
@@ -2880,6 +8272,38 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "The Tico Times",
+  "url": "https://ticotimes.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Costa Rica",
+  "rss": "https://ticotimes.net/feed",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "The Tribune",
+  "url": "https://www.tribune242.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bahamas",
+  "rss": "https://www.tribune242.com/rss/headlines/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. Bahamas: /rss/headlines/ works; the business sub-path 404s"
+ },
+ {
   "name": "The Wall Street Journal",
   "url": "https://www.wsj.com",
   "status": "candidate",
@@ -2893,6 +8317,118 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "TI Inside",
+  "url": "https://tiinside.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://tiinside.com.br/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Times of India (Business)",
+  "url": "https://timesofindia.indiatimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business"
+ },
+ {
+  "name": "Tirana Times",
+  "url": "https://www.tiranatimes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Albania",
+  "rss": "https://www.tiranatimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. English-language outlet."
+ },
+ {
+  "name": "Tivi",
+  "url": "https://www.tivi.fi",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Finland",
+  "rss": "https://www.tivi.fi/rss.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. IT trade press; redirects to an api/feed path."
+ },
+ {
+  "name": "TN Tecno",
+  "url": "https://tn.com.ar",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Argentina",
+  "rss": "https://tn.com.ar/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "To Vima",
+  "url": "https://www.tovima.gr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Greece",
+  "rss": "https://www.tovima.gr/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "TOUCHIT",
+  "url": "https://touchit.sk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovakia",
+  "rss": "https://touchit.sk/feed",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech trade press."
  },
  {
   "name": "Tracxn",
@@ -2925,6 +8461,86 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Trending Topics",
+  "url": "https://www.trendingtopics.eu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Austria",
+  "rss": "https://www.trendingtopics.eu/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Vienna-based; covers AT and CEE."
+ },
+ {
+  "name": "Trinidad Express",
+  "url": "https://trinidadexpress.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Trinidad and Tobago",
+  "rss": "https://trinidadexpress.com/search/?f=rss&t=article&c=business&l=50",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. TownNews-style search feed scoped to business IMPORTANT: this host content-negotiates - send Accept: application/rss+xml or it returns HTML."
+ },
+ {
+  "name": "TV8",
+  "url": "https://tv8.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://tv8.md/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Broadcaster."
+ },
+ {
+  "name": "TVNET",
+  "url": "https://www.tvnet.lv",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Latvia",
+  "rss": "https://www.tvnet.lv/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General national news portal."
+ },
+ {
+  "name": "Tweakers",
+  "url": "https://tweakers.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Netherlands",
+  "rss": "https://tweakers.net/feeds/mixed.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech news, high volume."
  },
  {
   "name": "U.S. Department of Commerce",
@@ -3004,6 +8620,38 @@
   "rss": "https://www.ukri.org/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. Open Government Licence. Grants, not venture rounds."
+ },
+ {
+  "name": "Ukrainska Pravda",
+  "url": "https://www.pravda.com.ua",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ukraine",
+  "rss": "https://www.pravda.com.ua/rss/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. National news daily."
+ },
+ {
+  "name": "Unimedia",
+  "url": "https://unimedia.info",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://unimedia.info/ro/rss/all/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Major news portal. Found only via <link rel=alternate>; /rss 404s."
  },
  {
   "name": "US Bureau of Labor Statistics (JOLTS)",
@@ -3112,6 +8760,70 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "Uzbekistan Newsline (UzA)",
+  "url": "https://uza.uz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uzbekistan",
+  "rss": "https://uza.uz/en/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. state news agency"
+ },
+ {
+  "name": "UzDaily (English)",
+  "url": "https://www.uzdaily.uz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Uzbekistan",
+  "rss": "https://www.uzdaily.uz/en/rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business news agency"
+ },
+ {
+  "name": "Valora Analitik",
+  "url": "https://www.valoraanalitik.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Colombia",
+  "rss": "https://www.valoraanalitik.com/feed/",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Venture Square",
+  "url": "https://www.venturesquare.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://www.venturesquare.net/feed",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Korean startup publisher"
+ },
+ {
   "name": "Ventureburn",
   "url": "https://ventureburn.com",
   "status": "candidate",
@@ -3126,6 +8838,182 @@
   "rss": "https://ventureburn.com/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Version2",
+  "url": "https://www.version2.dk",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Denmark",
+  "rss": "https://www.version2.dk/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. IT/tech trade press."
+ },
+ {
+  "name": "Verslo zinios",
+  "url": "https://www.vz.lt",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lithuania",
+  "rss": "https://www.vz.lt/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "Vietnam News (VNS)",
+  "url": "https://vietnamnews.vn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Vietnam",
+  "rss": "https://vietnamnews.vn/rss/economy.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. state English daily"
+ },
+ {
+  "name": "VietnamNet (Kinh doanh)",
+  "url": "https://vietnamnet.vn",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Vietnam",
+  "rss": "https://vietnamnet.vn/rss/kinh-doanh.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. National online daily"
+ },
+ {
+  "name": "Vijesti",
+  "url": "https://www.vijesti.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://www.vijesti.me/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Leading national daily."
+ },
+ {
+  "name": "Virgule",
+  "url": "https://www.virgule.lu",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Luxembourg",
+  "rss": "https://www.virgule.lu/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. French-language sister title of Luxemburger Wort."
+ },
+ {
+  "name": "Visir",
+  "url": "https://www.visir.is",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Iceland",
+  "rss": "https://www.visir.is/rss/allt",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. High-volume national news."
+ },
+ {
+  "name": "VnExpress (Kinh doanh)",
+  "url": "https://vnexpress.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Vietnam",
+  "rss": "https://vnexpress.net/rss/kinh-doanh.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Business desk"
+ },
+ {
+  "name": "VnExpress International (Business)",
+  "url": "https://e.vnexpress.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Vietnam",
+  "rss": "https://e.vnexpress.net/rss/business.rss",
+  "free": true,
+  "notes": "Verified by the apac region audit, 2026-07-29. Largest online daily, English edition"
+ },
+ {
+  "name": "Volim Podgoricu",
+  "url": "https://volimpodgoricu.me",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Montenegro",
+  "rss": "https://volimpodgoricu.me/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Podgorica city/business news."
+ },
+ {
+  "name": "VRT NWS",
+  "url": "https://www.vrt.be/vrtnws/nl/",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Belgium",
+  "rss": "https://www.vrt.be/vrtnws/nl.rss.articles.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Atom. Flemish public broadcaster."
  },
  {
   "name": "Vulcan Post",
@@ -3160,6 +9048,70 @@
   "notes": "Feed fetched and parsed 2026-07-29. MENA including Oman, Jordan, Egypt, Saudi Arabia."
  },
  {
+  "name": "Wired Italia",
+  "url": "https://www.wired.it",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Italy",
+  "rss": "https://www.wired.it/feed/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech. Slower cadence than the others."
+ },
+ {
+  "name": "WirtschaftsWoche Unternehmen",
+  "url": "https://www.wiwo.de",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.wiwo.de/contentexport/feed/rss/unternehmen",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business weekly, companies desk."
+ },
+ {
+  "name": "Xataka",
+  "url": "https://www.xataka.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Spain",
+  "rss": "https://www.xataka.com/index.xml",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Tech. Note it 302s to /feedburner.xml but the content is served from xataka.com, not Feedburner."
+ },
+ {
+  "name": "Xataka Mexico",
+  "url": "https://www.xataka.com.mx",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mexico",
+  "rss": "https://www.xataka.com.mx/feedburner.xml",
+  "free": true,
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
   "name": "Yahoo Finance",
   "url": "https://finance.yahoo.com",
   "status": "candidate",
@@ -3175,6 +9127,22 @@
   "notes": ""
  },
  {
+  "name": "Yle Uutiset",
+  "url": "https://yle.fi",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Finland",
+  "rss": "https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
+ },
+ {
   "name": "YourStory",
   "url": "https://yourstory.com",
   "status": "candidate",
@@ -3188,5 +9156,69 @@
   "rss": "https://yourstory.com/feed",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Ziarul de Garda",
+  "url": "https://www.zdg.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://www.zdg.md/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Investigative daily."
+ },
+ {
+  "name": "Ziarul de Garda (English)",
+  "url": "https://www.zdg.md",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Moldova",
+  "rss": "https://www.zdg.md/en/feed/",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. English edition."
+ },
+ {
+  "name": "Ziarul Financiar",
+  "url": "https://www.zf.ro",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Romania",
+  "rss": "https://www.zf.ro/rss",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "Zurnal24",
+  "url": "https://www.zurnal24.si",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Slovenia",
+  "rss": "https://www.zurnal24.si/feeds/latest",
+  "free": true,
+  "notes": "Verified by the europe region audit, 2026-07-29. General news. /feed 404s; only /feeds/latest works."
  }
 ]

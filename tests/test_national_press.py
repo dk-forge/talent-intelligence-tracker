@@ -493,3 +493,23 @@ def test_the_shipped_catalogue_carries_no_feed_its_publisher_disallows():
             if row["name"] in withdrawn:
                 assert not row["rss"].strip(), (
                     f"{row['name']} was withdrawn for robots.txt and is back")
+
+
+def test_a_feed_with_two_xml_declarations_still_parses():
+    """IO+ / Innovation Origins serves `<?xml ...?><?xml version="1.0"?>` back
+    to back and a strict parse dies at byte 38, so a healthy Dutch publisher
+    with 20 current items reads as dead. Same class as the Maddyness trailing
+    junk, at the LEADING edge, which the tail trim does not touch."""
+    doubled = b'<?xml version="1.0" encoding="UTF-8"?>' + RSS
+    assert len(press.parse(doubled, GLOBES)) == 2
+
+
+def test_leading_junk_before_the_first_tag_is_trimmed():
+    """A stray blank line or PHP notice before the document is not XML and
+    never was."""
+    assert len(press.parse(b"\n\n  Notice: something\n" + RSS, GLOBES)) == 2
+
+
+def test_a_single_declaration_is_left_alone():
+    """The trim must not eat the ordinary case it is standing next to."""
+    assert press._tidy(RSS).startswith(b"<?xml")

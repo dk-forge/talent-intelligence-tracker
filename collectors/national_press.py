@@ -238,9 +238,29 @@ _BARE_AMP = re.compile(
     rb"&(?!(?:[a-zA-Z][a-zA-Z0-9]{1,10}|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});)")
 
 
+# The same failure at the LEADING edge. IO+ / Innovation Origins serves two XML
+# declarations back to back — `<?xml ...?><?xml version="1.0"?>` — and a strict
+# parse dies at byte 38, so a healthy Dutch publisher with 20 current items
+# including funding rounds reads as a dead feed. Trimming only the tail (which
+# is what Maddyness needed) does not touch it.
+_LEADING_DECL = re.compile(rb"^\s*(?:<\?xml[^>]*\?>\s*)+")
+
+
 def _tidy(raw: bytes) -> bytes:
-    """Trim a BOM and anything after the closing root tag."""
+    """Trim a BOM, any leading junk or duplicated XML declaration, and anything
+    after the closing root tag."""
     body = raw.lstrip(b"\xef\xbb\xbf").lstrip()
+
+    # Keep at most ONE declaration, and only if the document opens with them.
+    match = _LEADING_DECL.match(body)
+    if match and body[match.start():match.end()].count(b"<?xml") > 1:
+        body = body[match.end():].lstrip()
+
+    # Anything before the first tag is not XML and never was.
+    first = body.find(b"<")
+    if first > 0:
+        body = body[first:]
+
     match = None
     for match in _ROOT_CLOSE.finditer(body):
         pass
