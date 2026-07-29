@@ -206,6 +206,29 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T19:42:12Z",
+          "detail": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T194212Z-backfill-funding-bulk",
+      "inputs": {
+        "dry_run": "false",
+        "quarters": "2026q1..2026q2"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
+      "requested_at": "2026-07-29T19:42:12Z",
+      "requested_by": "backfill-slices",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-funding-bulk.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
