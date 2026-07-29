@@ -960,46 +960,33 @@
   }
 
   // --- How places are decided ----------------------------------------------
-  // A methodology choice, not a filter, so it is attached to the Where control
-  // as a sentence rather than left floating as a twelfth dropdown.
+  // A methodology choice, not a filter, so it stays attached to the Where
+  // control rather than floating off as a twelfth dropdown.
   //
-  // The button says what it DOES, in both directions. A bare "Change" makes the
-  // reader guess what changes, and the two options here are genuinely not
-  // obvious: one falls back to the employer's head office when a source names
-  // no place, the other shows only places a source actually named and drops the
-  // rest. Naming the destination is the whole point of the control.
-  var basisBtn = document.getElementById('tit-basis-btn');
-  var basisSay = document.getElementById('tit-basis-say');
-
-  var BASIS_SAY = {
-    any: 'Showing where the work is. When a source names no place we use the' +
-         " employer's head office.",
-    location: 'Showing only places a source actually named. Updates with no' +
-              ' stated place are left out.'
-  };
-  var BASIS_BTN = {
-    any: 'Only use places a source named',
-    location: 'Use head office when no place is named'
-  };
+  // It is a CHECKBOX now, not a button that rewrote its own label. The button
+  // named its destination ("Only use places a source named" when off, "Use head
+  // office when no place is named" when on), which meant the words on screen
+  // described the state you were NOT in, and the only thing saying which state
+  // you were actually in was a three-line paragraph beside it. A checkbox says
+  // one thing and shows whether it is on. The explanation moved to the (i) at
+  // the top of the panel and reaches this control through aria-describedby.
+  //
+  // The state itself has not moved: the hidden country_basis select is still
+  // what the querystring, the exports and every chart click read and write.
+  var basisChk = document.getElementById('tit-basis-chk');
 
   function basisValue() {
     return (inputs.country_basis && inputs.country_basis.value) || 'any';
   }
 
   function syncBasis() {
-    var v = basisValue();
-    if (basisSay) basisSay.textContent = BASIS_SAY[v] || BASIS_SAY.any;
-    if (basisBtn) {
-      basisBtn.textContent = BASIS_BTN[v] || BASIS_BTN.any;
-      basisBtn.setAttribute('aria-pressed', v === 'location' ? 'true' : 'false');
-    }
+    if (basisChk) basisChk.checked = basisValue() === 'location';
   }
 
-  if (basisBtn) {
-    basisBtn.addEventListener('click', function () {
+  if (basisChk) {
+    basisChk.addEventListener('change', function () {
       if (!inputs.country_basis) return;
-      inputs.country_basis.value = basisValue() === 'any' ? 'location' : 'any';
-      syncBasis();
+      inputs.country_basis.value = basisChk.checked ? 'location' : 'any';
       refresh();
     });
   }

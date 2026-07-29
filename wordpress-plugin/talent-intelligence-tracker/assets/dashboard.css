@@ -41,6 +41,18 @@
   -webkit-text-size-adjust:100%;
 }
 
+/* `hidden` has to actually hide, and here it did not.
+   `[hidden] { display:none }` is a USER AGENT rule, and a user agent rule loses
+   to any author rule that sets `display` - which is most of this stylesheet.
+   `.tit-field` is `display:flex`, so a facet control the page had correctly
+   marked hidden still painted: Site Change, a column the pipeline has not
+   filled yet, rendered as an empty box with a helper line under it, which is
+   exactly the "control that always returns nothing" the markup set out to
+   avoid. The filtering bar had the same problem before it holds a chip.
+   One author-level rule, once, rather than a [hidden] variant per component
+   written each time somebody notices. */
+.tit-wrap [hidden] { display:none !important; }
+
 .tit-empty { border:1px solid var(--tit-line); border-radius:12px; padding:28px; text-align:center; }
 .tit-empty h2 { margin:0 0 8px; font-size:20px; color:var(--tit-fg); }
 .tit-empty p { margin:0 auto; max-width:56ch; color:var(--tit-mut); }
@@ -67,7 +79,13 @@
 .tit-bar span { display:block; height:100%; background:var(--tit-hiring); border-radius:99px; }
 
 /* --- Filters ---------------------------------------------------------- */
-.tit-filters { display:grid; grid-template-columns:1fr; gap:8px; margin:0 0 16px; }
+/* `align-items:start` so a SHORT control is not stretched to the height of the
+   tall list boxes beside it. A single select in a row sized for a five-row
+   multi-select was being handed a control's worth of spare height, and it did
+   not line up with its neighbours. Each field is now its own height, and every
+   label in the row still starts on the same line. */
+.tit-filters { display:grid; grid-template-columns:1fr; gap:8px; margin:0 0 16px;
+  align-items:start; }
 @media (min-width:560px){ .tit-filters { grid-template-columns:repeat(2,1fr); } }
 @media (min-width:900px){ .tit-filters { grid-template-columns:repeat(3,1fr); } }
 .tit-filters select, .tit-filters input {
@@ -777,7 +795,7 @@
    visible word rather than an aria-label only a screen reader would reach. */
 .tit-wrap .tit-field { display:flex; align-items:center; gap:8px; min-width:0; }
 .tit-wrap .tit-field > span { flex:none; font-size:12px; font-weight:700;
-  letter-spacing:.04em; text-transform:uppercase; color:var(--tit-mut); }
+  color:var(--tit-mut); }
 .tit-wrap .tit-field input { flex:1 1 auto; min-width:0; }
 
 /* Every control says what it controls.
@@ -785,9 +803,22 @@
    tells you what each will show you and never what it is for, so the filter
    block could only be understood by opening all nine. The label names the
    field; the option text stays as the do-nothing default. */
-.tit-wrap .tit-field--stack { display:grid; gap:3px; align-items:stretch; }
-.tit-wrap .tit-field--stack > .tit-field-l { font-size:11px; font-weight:700;
-  letter-spacing:.05em; text-transform:uppercase; color:var(--tit-faint); }
+/* `align-content:start` so the rows inside a field are the height of what is in
+   them. Auto rows in a grid STRETCH to fill spare height by default, and inside
+   a filter cell sized by its tall neighbours that spare height landed in the
+   LABEL row: "Amount raised" sat with a control's worth of blank space under
+   its label and lined up with nothing beside it. */
+.tit-wrap .tit-field--stack { display:grid; gap:3px; align-items:start;
+  align-content:start; }
+/* ONE label rule for every field, matched on the class rather than on being a
+   direct child. The old selector was `.tit-field--stack > .tit-field-l`, and
+   the Where label sits one level deeper inside its own <label>, so it alone
+   escaped the styling: the primary row read "WHAT ARE YOU LOOKING FOR?",
+   "Where?", "WHICH EMPLOYER?" and looked like three unrelated controls. No
+   uppercase transform anywhere now; the labels are written in sentence case
+   and rendered as written. */
+.tit-wrap .tit-field-l { font-size:12px; font-weight:700; color:var(--tit-mut);
+  line-height:1.35; letter-spacing:0; text-transform:none; }
 .tit-wrap .tit-field--stack > select,
 .tit-wrap .tit-field--stack > input { width:100%; min-width:0; }
 
@@ -1150,17 +1181,6 @@ body.admin-bar .tit-active { top:32px; }
   font-variant-numeric:tabular-nums; letter-spacing:0; color:var(--tit-ink-blue);
   background:var(--tit-blue-tint); border-radius:99px; padding:2px 8px; }
 
-/* How places are decided. A sentence first, the control only when asked for. */
-.tit-basis { margin:0 0 10px !important; font-size:12.5px; color:var(--tit-mut);
-  display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; }
-.tit-wrap .tit-basis-btn { padding:2px 9px; border:1px solid var(--tit-line);
-  border-radius:99px; background:#fff; color:var(--tit-ink-blue); font-size:12px;
-  font-weight:650; font-family:inherit; cursor:pointer; line-height:1.4; }
-.tit-wrap .tit-basis-btn:hover { border-color:var(--tit-blue); }
-.tit-wrap .tit-basis-btn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
-.tit-wrap .tit-basis select { max-width:100%; padding:4px 8px; font-size:12.5px;
-  border:1px solid var(--tit-line); border-radius:7px; background:#fff;
-  color:var(--tit-fg); font-family:inherit; }
 
 /* More filters. Native details, so it collapses with no JavaScript at all. */
 .tit-more { margin:0 0 12px; }
@@ -1380,21 +1400,18 @@ main:has(#tit-dashboard) {
 }
 .tit-primary-where { min-width:0; }
 .tit-where-label { display:grid; gap:3px; }
-/* The places note belongs TO the Where control, so it sits inside it and the
-   button says what it does. "Change" on its own made a reader guess. */
-.tit-wrap .tit-basis { display:block; margin:5px 0 0 !important; font-size:11.5px;
-  line-height:1.4; color:var(--tit-mut); }
-.tit-wrap .tit-basis-btn { display:inline; margin-top:2px; padding:0; border:0;
-  background:none; color:var(--tit-ink-blue); font-family:inherit;
-  font-size:11.5px; font-weight:700; cursor:pointer;
-  text-decoration:underline; text-underline-offset:2px; }
-.tit-wrap .tit-basis-btn:hover { color:var(--tit-blue); }
-.tit-wrap .tit-basis-btn:focus-visible { outline:2px solid var(--tit-blue);
-  outline-offset:2px; border-radius:3px; }
 
 /* The headcount control: one box, one label, the number inside the label so
-   the relationship is stated rather than left to be inferred. */
-.tit-primary-toggle { display:flex; align-items:flex-end; }
+   the relationship is stated rather than left to be inferred.
+   It is the one cell in the row with no label above it, so once the row stopped
+   stretching its cells the box sat a label's height higher than every select
+   beside it. The offset is written as the label's own metrics rather than as a
+   number, so it stays right if the label size changes, and it only applies
+   where the row actually has more than one column. */
+.tit-primary-toggle { display:flex; align-items:flex-start; }
+@media (min-width:640px){
+  .tit-primary-toggle { padding-top:calc((12px * 1.35) + 3px); }
+}
 .tit-check { display:flex; align-items:flex-start; gap:9px; width:100%;
   min-height:42px; padding:10px 12px; border:1px solid var(--tit-line);
   border-radius:9px; background:#fff; cursor:pointer; }
@@ -1409,6 +1426,16 @@ main:has(#tit-dashboard) {
 .tit-check-n { font-variant-numeric:tabular-nums; letter-spacing:0;
   color:var(--tit-ink-blue); font-weight:700; white-space:nowrap; }
 
+/* How places are decided: the same control, one size down, sitting under the
+   Where select it qualifies. It was a paragraph of prose with an underlined
+   word inside it doing the toggling, which is not how a control announces
+   itself. The prose is in the (i) now; this is a checkbox with a label that
+   stays the same whether it is ticked or not. */
+.tit-check--slim { align-items:center; min-height:34px; padding:6px 9px; gap:7px; }
+.tit-check--slim .tit-check-t { font-size:12.5px; line-height:1.25; }
+.tit-check--slim input { width:15px; height:15px; margin:0; }
+.tit-basis-check { margin-top:5px; }
+
 /* --- More filters ------------------------------------------------------- */
 /* Multi-selects scroll in place. A native list box is keyboard reachable with
    no code of ours, and each choice becomes its own chip in the filtering bar,
@@ -1419,36 +1446,72 @@ main:has(#tit-dashboard) {
   border-radius:5px; }
 .tit-wrap .tit-filters select[multiple] option:checked {
   background:var(--tit-blue-tint); color:var(--tit-ink-blue); font-weight:700; }
-.tit-field-h { font-size:11px; color:var(--tit-faint); margin-top:2px; }
 .tit-field--wide { grid-column:1 / -1; }
 @media (min-width:900px){ .tit-field--wide { grid-column:span 2; } }
 
 /* From and To on ONE row, always. As two grid cells they landed in different
    rows whenever the column count was even, so a range read as two unrelated
-   dates. One field, two inputs, a word between them. */
-.tit-daterange { display:flex; align-items:center; gap:8px; min-width:0; }
-.tit-daterange > label { flex:1 1 0; min-width:0; display:block; }
+   dates. One field, two inputs, each with its OWN visible label.
+   The lowercase "to" that used to sit wedged between the boxes is gone: it was
+   the only thing saying which box was the start, it was decoration to a screen
+   reader, and at 375px it was competing for width with the two controls it was
+   separating. */
+.tit-daterange { display:flex; align-items:flex-end; gap:10px; min-width:0; }
+.tit-daterange-part { flex:1 1 0; min-width:0; display:grid; gap:3px; }
+.tit-wrap .tit-daterange-l { font-size:11.5px; font-weight:650;
+  color:var(--tit-mut); line-height:1.3; }
 .tit-wrap .tit-daterange input { width:100%; min-width:0; }
-.tit-daterange-to { flex:none; font-size:12px; font-weight:600;
-  color:var(--tit-mut); }
 
 .tit-reset-field { grid-column:1 / -1; justify-content:flex-start; }
 .tit-wrap .tit-reset-btn { width:auto; min-width:180px; }
 
-/* At 375px the two date inputs plus the word between them are the tightest
-   thing in the panel. Trimming their padding keeps them on ONE row, which is
-   the whole point of the control: a range split over two rows reads as two
-   unrelated dates. */
+/* At 375px the two date inputs are the tightest thing in the panel. Trimming
+   their padding keeps them on ONE row, which is the whole point of the control:
+   a range split over two rows reads as two unrelated dates. Dropping the "to"
+   between them bought back the width the separator was taking. */
 @media (max-width:420px){
-  .tit-daterange { gap:6px; }
+  .tit-daterange { gap:7px; }
   .tit-wrap .tit-daterange input { padding:7px 6px; font-size:13px; }
-  .tit-daterange-to { font-size:11px; }
+  .tit-wrap .tit-daterange-l { font-size:11px; }
 }
-/* Six stacked list boxes is a lot of height on a phone; they are inside a panel
-   that ships collapsed, and each one still shows five rows before scrolling. */
+/* Seven stacked list boxes is a lot of height on a phone, and each one still
+   shows five rows before it scrolls in place. */
 @media (max-width:560px){
   .tit-wrap .tit-filters select[multiple] { min-height:84px; }
 }
+
+/* ---------------------------------------------------------------------------
+   The (i).
+   One affordance in place of seven repeated helper lines and a three-line
+   paragraph about how places are decided. A native <details>, so it opens from
+   the keyboard, announces its state, and works with JavaScript off. Quiet when
+   shut: it should read as available, never as another thing to get past.
+   --------------------------------------------------------------------------- */
+.tit-help { margin:0 0 8px; }
+.tit-wrap .tit-help-s { display:inline-flex; align-items:center; gap:7px;
+  width:auto; padding:5px 11px 5px 6px; border:1px solid var(--tit-line);
+  border-radius:99px; background:#fff; color:var(--tit-mut); font-size:12.5px;
+  font-weight:600; cursor:pointer; list-style:none; }
+.tit-wrap .tit-help-s::-webkit-details-marker { display:none; }
+.tit-wrap .tit-help-s:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
+.tit-wrap .tit-help-s:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* The icon is drawn, not an image and not an emoji: it has to hold its shape at
+   12px on any platform, and a glyph that falls back to a box is worse than no
+   icon at all. */
+.tit-help-i { flex:none; display:inline-flex; align-items:center;
+  justify-content:center; width:19px; height:19px; border-radius:50%;
+  background:var(--tit-blue-tint); color:var(--tit-ink-blue);
+  font:700 12px/1 Georgia, "Times New Roman", serif; font-style:italic; }
+.tit-wrap .tit-help[open] .tit-help-s { border-color:var(--tit-blue);
+  color:var(--tit-ink-blue); }
+.tit-help-b { margin-top:7px; padding:11px 13px; border:1px solid var(--tit-line);
+  border-left:3px solid var(--tit-blue); border-radius:9px;
+  background:var(--tit-surface); max-width:72ch; }
+.tit-wrap .tit-help-b p { margin:0; font-size:13px; line-height:1.55;
+  color:var(--tit-mut); }
+.tit-wrap .tit-help-b p + p { margin-top:7px; }
+.tit-wrap .tit-help-b strong { color:var(--tit-fg); font-weight:700; }
 
 /* ===========================================================================
    The recall page (/talent-intelligence-tracker/recall/).

@@ -390,10 +390,16 @@ function tit_dashboard_shortcode() {
         The filter block, in two deliberately different registers.
 
         The PRIMARY ROW asks questions, because it is where a recruiter or job
-        seeker begins and should feel spoken to. MORE FILTERS uses short Title
-        Case nouns, because it is a reference list to scan rather than a
-        conversation. The two styles never mix inside a group; mixing them is
-        what made an earlier version read as a wall of unrelated fragments.
+        seeker begins and should feel spoken to. MORE FILTERS uses short nouns,
+        because it is a reference list to scan rather than a conversation.
+
+        Every label in both groups is SENTENCE CASE, and none of them is
+        uppercased by the stylesheet. It used to be that a stack label was
+        transformed to uppercase and the Where label was not, because the
+        uppercase rule matched on being a direct child of the field and the
+        Where label sits one level deeper. So one row read "WHAT ARE YOU
+        LOOKING FOR?", "Where?", "WHICH EMPLOYER?" and looked like three
+        unrelated controls. One convention, one rule, no transform.
 
         The front controls do NOT replace the underlying filters. The pillar,
         direction, country, state and city selects still exist, still carry the
@@ -407,6 +413,44 @@ function tit_dashboard_shortcode() {
         the page.
       */
       ?>
+      <?php
+      /*
+        ONE affordance where there were eight blocks of instruction.
+
+        The panel shouted "CHOOSE MORE THAN ONE IF YOU LIKE" under every one of
+        seven multi-selects, in uppercase, saying the same thing each time, and
+        it carried a three-line paragraph about how places are decided wedged
+        between two controls. Both were instructions. Repeating an instruction
+        seven times adds nothing to the seventh reader and makes it the loudest
+        thing on a block whose job is to be quiet. A native multiple select
+        already looks like a list you can pick several from.
+
+        So instructions live here, once, behind an (i) that opens when someone
+        wants them. Native <details>: keyboard reachable and screen reader
+        reachable without a line of our own code, and it works with JavaScript
+        off. Each paragraph carries an id and every control it explains points
+        at it with aria-describedby, so the explanation is announced WITH the
+        control whether or not the panel is open. A title attribute would have
+        reached neither a keyboard nor a screen reader reliably.
+      */
+      ?>
+      <details class="tit-help" id="tit-help">
+        <summary class="tit-help-s">
+          <span class="tit-help-i" aria-hidden="true">i</span>
+          <span class="tit-help-w">How these filters work</span>
+        </summary>
+        <div class="tit-help-b">
+          <p id="tit-help-multi"><strong>Lists that take more than one.</strong>
+            Hold Command on a Mac, or Control on Windows, and click each one you
+            want. Hold Shift to take a run of them. Every choice becomes its own
+            chip above the table, so you can drop one without clearing the rest.</p>
+          <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
+            source named. When a source names no place we use the employer's head
+            office instead, so a company known only by its headquarters still
+            appears. Tick "Only places a source named" to leave those out.</p>
+        </div>
+      </details>
+
       <div class="tit-primary">
         <label class="tit-field tit-field--stack tit-primary-main">
           <span class="tit-field-l">What are you looking for?</span>
@@ -419,10 +463,23 @@ function tit_dashboard_shortcode() {
 
         <?php /* One place control, not three. Options are grouped Countries,
                  then US States, then Cities, and each one knows which parameter
-                 it sets, so the reader picks a place and never a column. The
-                 note below is part of THIS control, not a floating sentence:
-                 it explains the one thing a reader is most likely to question
-                 about a location, and offers the alternative by name. */ ?>
+                 it sets, so the reader picks a place and never a column.
+
+                 How places are decided is a real choice and it stays here, as
+                 a control. What left is the three-line paragraph that used to
+                 explain it in place: it wrapped over three lines between two
+                 controls and shoved the row around, and the toggle itself was
+                 a word inside that sentence, underlined, which is not how a
+                 control announces itself.
+
+                 It is a checkbox now, with a label that does NOT change when
+                 you tick it. The old button rewrote its own text to name the
+                 destination, so it read one way when off and the opposite way
+                 when on, and a reader glancing at it could not tell which
+                 state they were in without reading the sentence beside it.
+                 A checkbox states one thing and shows whether it is on. The
+                 explanation lives in the (i) above, and aria-describedby
+                 carries it to a screen reader with the control. */ ?>
         <div class="tit-field tit-field--stack tit-primary-where">
           <label class="tit-where-label">
             <span class="tit-field-l">Where?</span>
@@ -430,18 +487,11 @@ function tit_dashboard_shortcode() {
               <option value="">Anywhere</option>
             </select>
           </label>
-          <p class="tit-basis">
-            <span class="tit-basis-say" id="tit-basis-say">Showing where the work
-              is. When a source names no place we use the employer's head
-              office.</span>
-            <?php /* The button names its DESTINATION, and the server renders
-                     the same words JavaScript would, so a reader without it (or
-                     anyone looking at the first paint) is never shown a label
-                     that describes the wrong direction. The default basis is
-                     "any", so the offer is the strict alternative. */ ?>
-            <button type="button" class="tit-basis-btn" id="tit-basis-btn"
-                    aria-pressed="false">Only use places a source named</button>
-          </p>
+          <label class="tit-check tit-check--slim tit-basis-check">
+            <input type="checkbox" id="tit-basis-chk" value="1"
+                   aria-describedby="tit-help-basis">
+            <span class="tit-check-t">Only places a source named</span>
+          </label>
         </div>
 
         <label class="tit-field tit-field--stack">
@@ -486,113 +536,141 @@ function tit_dashboard_shortcode() {
         <div class="tit-filters">
           <?php
           /*
-            Five of these take SEVERAL values at once, because a recruiter wants
+            Seven of these take SEVERAL values at once, because a recruiter wants
             "Technology or Healthcare" and not one at a time. They are native
             multiple selects: keyboard reachable without a line of our own code,
             scrollable in place, and every choice becomes its own removable chip
             in the filtering bar. /query takes them comma separated and each
             value is checked against its closed vocabulary before it reaches SQL.
 
-            Employer Type, Work Setup and Deal Type are filled from /facets and
-            HIDE THEMSELVES when their column is empty. Shipping a control that
-            always returns nothing is worse than shipping no control, and a
-            hardcoded judgement about which columns are populated goes stale the
-            week after it is written. These appear by themselves the day the
-            pipeline fills them.
+            None of them carries a helper line any more. All seven said "Choose
+            more than one if you like", in uppercase, one under each control:
+            the same instruction, seven times, in the loudest type on the panel.
+            It is in the (i) at the top now, once, and each select points at it
+            with aria-describedby so a screen reader still gets it.
+
+            No aria-label either. The visible label beside each one IS its name,
+            and an aria-label OVERRIDES a visible label rather than adding to it,
+            so the old ones were quietly renaming every control to a string
+            nobody could see ("Team or function, choose more than one if you
+            like"). Wrapping the label around the select is enough.
+
+            Employer type, Work setup, Deal type, Funding stage and Site change
+            are filled from /facets and HIDE THEMSELVES when their column is
+            empty. Shipping a control that always returns nothing is worse than
+            shipping no control. That has been the intent since they shipped and
+            it was NOT what happened: the `hidden` attribute is a user agent
+            rule, `.tit-field` sets `display:flex`, and any author rule beats the
+            user agent, so Site Change - a new column with nothing in it yet -
+            rendered as an empty box. The fix is one line in the stylesheet, not
+            here. These now genuinely appear by themselves the day the pipeline
+            fills them.
+
+            ORDER: the multi-selects first, then the single selects, then the two
+            full-width fields. Amount raised is one short select and it used to
+            sit in the middle of the tall ones, in a grid row sized for a list
+            box, so it hung under a control's worth of blank space and lined up
+            with nothing beside it. The row no longer stretches a short control
+            (`align-items:start`), and grouping by height means it does not have
+            to.
           */
-          $multi_note = 'Choose more than one if you like';
           ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Team or Function</span>
+            <span class="tit-field-l">Team or function</span>
             <select id="tit-f-function" multiple size="5"
-                    aria-label="Team or function, choose more than one if you like">
+                    aria-describedby="tit-help-multi">
               <?php foreach ($functions as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
           </label>
           <label class="tit-field tit-field--stack">
             <span class="tit-field-l">Industry</span>
             <select id="tit-f-industry" multiple size="5"
-                    aria-label="Industry, choose more than one if you like">
+                    aria-describedby="tit-help-multi">
               <?php foreach ($industries as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-employer_type" hidden>
-            <span class="tit-field-l">Employer Type</span>
+            <span class="tit-field-l">Employer type</span>
             <select id="tit-f-employer_type" multiple size="5"
-                    aria-label="Employer type, choose more than one if you like"></select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
+                    aria-describedby="tit-help-multi"></select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-work_mode" hidden>
-            <span class="tit-field-l">Work Setup</span>
+            <span class="tit-field-l">Work setup</span>
             <select id="tit-f-work_mode" multiple size="5"
-                    aria-label="Work setup, choose more than one if you like"></select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
+                    aria-describedby="tit-help-multi"></select>
+          </label>
+          <label class="tit-field tit-field--stack" id="tit-field-funding_stage" hidden>
+            <span class="tit-field-l">Funding stage</span>
+            <select id="tit-f-funding_stage" multiple size="5"
+                    aria-describedby="tit-help-multi"></select>
+          </label>
+          <label class="tit-field tit-field--stack" id="tit-field-deal_type" hidden>
+            <span class="tit-field-l">Deal type</span>
+            <select id="tit-f-deal_type" multiple size="5"
+                    aria-describedby="tit-help-multi"></select>
+          </label>
+          <label class="tit-field tit-field--stack" id="tit-field-site_event" hidden>
+            <span class="tit-field-l">Site change</span>
+            <select id="tit-f-site_event" multiple size="5"
+                    aria-describedby="tit-help-multi"></select>
           </label>
           <?php /* Bands, not a box to type a number in. A recruiter thinks in
                    orders of magnitude, and an exact figure produces an
                    empty-looking page for anyone who guesses a threshold nothing
                    sits above. Single choice: bands already nest. */ ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Amount Raised</span>
+            <span class="tit-field-l">Amount raised</span>
             <select id="tit-f-min_funding_usd" aria-label="Smallest amount raised">
-              <option value="">Any Amount</option>
+              <option value="">Any amount</option>
               <?php foreach (tit_funding_bands() as $value => $label) : ?>
                 <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
               <?php endforeach; ?>
             </select>
           </label>
-          <label class="tit-field tit-field--stack" id="tit-field-funding_stage" hidden>
-            <span class="tit-field-l">Funding Stage</span>
-            <select id="tit-f-funding_stage" multiple size="5"
-                    aria-label="Funding stage, choose more than one if you like"></select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
-          </label>
-          <label class="tit-field tit-field--stack" id="tit-field-deal_type" hidden>
-            <span class="tit-field-l">Deal Type</span>
-            <select id="tit-f-deal_type" multiple size="5"
-                    aria-label="Deal type, choose more than one if you like"></select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
-          </label>
-          <label class="tit-field tit-field--stack" id="tit-field-site_event" hidden>
-            <span class="tit-field-l">Site Change</span>
-            <select id="tit-f-site_event" multiple size="5"
-                    aria-label="Site change, choose more than one if you like"></select>
-            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
-          </label>
           <label class="tit-field tit-field--stack">
             <span class="tit-field-l">Evidence</span>
             <select id="tit-f-confidence" aria-label="What the record is based on">
-              <option value="">Any Evidence</option>
+              <option value="">Any evidence</option>
               <?php foreach (tit_confidence_labels() as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
           </label>
           <label class="tit-field tit-field--stack tit-field--wide">
-            <span class="tit-field-l">Keyword Search</span>
+            <span class="tit-field-l">Keyword search</span>
             <input type="search" id="tit-f-q" placeholder="Company, industry or keyword"
                    aria-label="Search headlines and read-throughs">
           </label>
           <?php /* One row, always. As two separate grid cells these landed in
                    different rows whenever the column count was even, so a range
-                   read as two unrelated dates. The sibling tracker keeps its own
-                   From and To together in one box for exactly this reason. */ ?>
-          <div class="tit-field tit-field--stack tit-field--wide">
-            <span class="tit-field-l">Date From / Date To</span>
+                   read as two unrelated dates.
+
+                   Each input has its OWN visible label now. It was one label,
+                   "Date From / Date To", over two boxes with a cramped lowercase
+                   "to" jammed between them, so the only thing telling you which
+                   box was the start was the order they happened to be in, and a
+                   screen reader got a name the eye could not see. From and To
+                   are printed, the separator is gone, and the group keeps its
+                   own name for anyone arriving by keyboard. This is the sibling
+                   tracker's pattern: a labelled From and a labelled To. */ ?>
+          <div class="tit-field tit-field--stack tit-field--wide"
+               role="group" aria-labelledby="tit-daterange-l">
+            <span class="tit-field-l" id="tit-daterange-l">Date range</span>
             <div class="tit-daterange">
-              <label><span class="tit-sr">Earliest date</span>
-                <input type="date" id="tit-f-since" aria-label="Earliest date"
-                       min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
-              <span class="tit-daterange-to" aria-hidden="true">to</span>
-              <label><span class="tit-sr">Latest date</span>
-                <input type="date" id="tit-f-until" aria-label="Latest date"
-                       min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+              <label class="tit-daterange-part">
+                <span class="tit-daterange-l">From</span>
+                <input type="date" id="tit-f-since"
+                       min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>">
+              </label>
+              <label class="tit-daterange-part">
+                <span class="tit-daterange-l">To</span>
+                <input type="date" id="tit-f-until"
+                       min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>">
+              </label>
             </div>
           </div>
           <?php /* Reset sits with the controls it resets, not alone in a bar
