@@ -644,7 +644,7 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:51:00Z",
+      "dispatched_at": null,
       "history": [
         {
           "at": "2026-07-29T18:49:59Z",
@@ -665,6 +665,11 @@
           "at": "2026-07-29T18:51:54Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-07-29T18:59:08Z",
+          "detail": "its retraction was already re-queued and landed; this replay is a no-op that clears the failed state",
+          "event": "requeued"
         }
       ],
       "id": "20260729T184959Z-retract",
@@ -676,8 +681,8 @@
       "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
       "requested_at": "2026-07-29T18:49:59Z",
       "requested_by": "dakotta-labs",
-      "run_id": "30481782149",
-      "state": "failed",
+      "run_id": null,
+      "state": "queued",
       "workflow": "retract.yml"
     },
     {
