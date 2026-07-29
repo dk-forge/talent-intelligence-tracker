@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T20:59:35Z",
+  "last_tick": "2026-07-29T21:00:57Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,26 +158,26 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T20:59:35Z",
+      "dispatched_at": "2026-07-29T21:00:57Z",
       "history": [
         {
-          "at": "2026-07-29T20:59:25Z",
-          "detail": "dry run: prove the 11 employers and 38 rows in CI before writing",
+          "at": "2026-07-29T21:00:43Z",
+          "detail": "apply: re-key 38 rows across 11 employers; plugin 1.47.0 is live so the three moved sitemap URLs 301",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T20:59:35Z",
+          "at": "2026-07-29T21:00:57Z",
           "detail": "",
           "event": "dispatched"
         }
       ],
-      "id": "20260729T205925Z-correct-company-key",
+      "id": "20260729T210043Z-correct-company-key",
       "inputs": {
-        "dry_run": "true"
+        "dry_run": "false"
       },
       "priority": 0,
-      "reason": "dry run: prove the 11 employers and 38 rows in CI before writing",
-      "requested_at": "2026-07-29T20:59:25Z",
+      "reason": "apply: re-key 38 rows across 11 employers; plugin 1.47.0 is live so the three moved sitemap URLs 301",
+      "requested_at": "2026-07-29T21:00:43Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "dispatched",
@@ -958,6 +958,44 @@
       "run_id": "30485821825",
       "state": "landed",
       "workflow": "backfill-funding-bulk.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T20:59:35Z",
+      "history": [
+        {
+          "at": "2026-07-29T20:59:25Z",
+          "detail": "dry run: prove the 11 employers and 38 rows in CI before writing",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T20:59:35Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T21:00:57Z",
+          "detail": "run 30490608515",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T21:00:57Z",
+          "detail": "run 30490608515",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T205925Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "landed_at": "2026-07-29T21:00:57Z",
+      "priority": 0,
+      "reason": "dry run: prove the 11 employers and 38 rows in CI before writing",
+      "requested_at": "2026-07-29T20:59:25Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30490608515",
+      "state": "landed",
+      "workflow": "correct-company-key.yml"
     }
   ],
   "version": 1
