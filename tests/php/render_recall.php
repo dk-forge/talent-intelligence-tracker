@@ -98,7 +98,9 @@ check(strpos($table, '2 of 22') !== false && strpos($table, '4 of 22') !== false
       'history should show raw counts per measurement');
 check(strpos($table, 'not tested') !== false,
       'a category absent from an earlier set must read as not tested, never as zero');
-check(substr_count($table, '<th') === 3, 'a column per measurement, plus the label column');
+// Counted with a pattern, not substr_count('<th'): `<thead` contains `<th`.
+check(preg_match_all('/<th[\s>]/', $table) === 3,
+      'a column per measurement, plus the label column');
 
 // --- labels --------------------------------------------------------------
 
