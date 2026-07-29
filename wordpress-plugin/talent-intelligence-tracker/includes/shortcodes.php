@@ -305,6 +305,7 @@ function tit_dashboard_shortcode() {
         </p>
         <p class="tit-hero-links">
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
+          · Every employer name below links to that employer's own page
           <?php /* The misses belong next to the sources, not buried in a
                    methodology footnote. A tracker that publishes what it fails
                    to catch is making a checkable claim; one that only lists its
@@ -334,12 +335,19 @@ function tit_dashboard_shortcode() {
       */
       $tit_regions = tit_regions($counts_by_country);
       $tit_top = tit_top_countries($counts_by_country);
+      // Top Cities, only where a source actually named one, each carrying its
+      // country so the pill can wear the right flag.
+      $tit_cities = $wpdb->get_results(
+          "SELECT city k, COALESCE(country, hq_country) cc, COUNT(*) n FROM {$table}
+            WHERE is_current = 1 AND city IS NOT NULL AND city != ''
+            GROUP BY city ORDER BY n DESC LIMIT 10", ARRAY_A) ?: array();
       ?>
       <div class="tit-places">
         <div class="tit-regions" role="group" aria-label="Filter by region">
           <?php foreach ($tit_regions as $r) : ?>
             <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
                     data-codes="<?php echo esc_attr($r['codes']); ?>">
+              <span class="tit-region-flag" aria-hidden="true"><?php echo tit_region_emoji($r['name']); ?></span>
               <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
               <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
             </button>
@@ -355,6 +363,19 @@ function tit_dashboard_shortcode() {
                          printed, because a platform with no font for a flag
                          draws two letters or a blank box. */ ?>
                 <?php echo tit_country_label_html($c['code']); ?>
+                <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+        <?php if ($tit_cities) : ?>
+          <div class="tit-countries" role="group" aria-label="Filter by city">
+            <span class="tit-countries-label">Top cities</span>
+            <?php foreach ($tit_cities as $c) : ?>
+              <button type="button" class="tit-cbtn tit-citybtn" data-city="<?php echo esc_attr($c['k']); ?>"
+                      aria-pressed="false">
+                <span aria-hidden="true"><?php echo tit_flag($c['cc'] ?? ''); ?></span>
+                <span><?php echo esc_html($c['k']); ?></span>
                 <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
               </button>
             <?php endforeach; ?>
@@ -1783,6 +1804,30 @@ function tit_chart_head($title, $sub, $id = '') {
  * tab reads as a filter that broke, and a strip of them reads as coverage we
  * do not have. Worldwide always survives so there is always a way back.
  */
+/**
+ * The emoji a region pill wears. Decoration only, always aria-hidden, and the
+ * name is always printed beside it, so a platform with no emoji font loses
+ * nothing but colour.
+ */
+function tit_region_emoji($name) {
+    $map = array(
+        'World' => "\u{1F310}", 'Americas' => "\u{1F30E}",
+        'Europe' => "\u{1F1EA}\u{1F1FA}", 'Middle East' => "\u{1F54C}",
+        'Africa' => "\u{1F30D}", 'Asia' => "\u{1F30F}",
+        'Oceania' => "\u{1F3DD}\u{FE0F}",
+    );
+    return $map[$name] ?? "\u{1F310}";
+}
+
+/**
+ * A country code as its flag emoji: regional indicator symbols are the code
+ * points 127462..127487, one per letter. Unknown shapes get the globe.
+ */
+function tit_flag($cc) {
+    if (!preg_match('/^[A-Z]{2}$/', (string) $cc)) return "\u{1F310}";
+    return mb_chr(127397 + ord($cc[0]), 'UTF-8') . mb_chr(127397 + ord($cc[1]), 'UTF-8');
+}
+
 function tit_regions(array $counts) {
     /*
       ONE taxonomy, exhaustive and non-overlapping.

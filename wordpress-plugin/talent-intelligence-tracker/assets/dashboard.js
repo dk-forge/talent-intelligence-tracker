@@ -1148,6 +1148,7 @@
     syncLooking();
     syncPlace();
     syncCountryButtons();
+    syncCityButtons();
     syncBasis();
     syncMore();
     syncSortHeads();
@@ -1264,6 +1265,34 @@
       if (inputs.country) {
         ensureOption(inputs.country, code, countryLabel(code));
         inputs.country.value = was ? '' : code;
+      }
+      refresh();
+    });
+  });
+
+  // The city row, wired like the country row through the same city input the
+  // Where picker uses. Picking a city clears country and region: a city inside
+  // a conflicting country filter is the guaranteed-empty page.
+  var citybtns = Array.prototype.slice.call(root.querySelectorAll('.tit-citybtn'));
+
+  function syncCityButtons() {
+    var current = inputs.city ? inputs.city.value : '';
+    citybtns.forEach(function (b) {
+      var on = current !== '' && b.getAttribute('data-city') === current;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  citybtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var name = b.getAttribute('data-city');
+      var was = inputs.city && inputs.city.value === name;
+      setRegion(null);
+      if (inputs.country) inputs.country.value = '';
+      if (inputs.city) {
+        ensureOption(inputs.city, name, name);
+        inputs.city.value = was ? '' : name;
       }
       refresh();
     });
@@ -1712,6 +1741,7 @@
   syncLooking();
   syncPlace();
   syncCountryButtons();
+    syncCityButtons();
   syncBasis();
   if (location.search) refresh();
 })();
