@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T19:18:15Z",
+  "last_tick": "2026-07-29T19:22:20Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,54 +158,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T19:18:15Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:49:59Z",
-          "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:51:54Z",
-          "detail": "run 30481782149",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:51:54Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-07-29T18:59:08Z",
-          "detail": "its retraction was already re-queued and landed; this replay is a no-op that clears the failed state",
-          "event": "requeued"
-        },
-        {
-          "at": "2026-07-29T19:18:15Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T184959Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody.",
-        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
-      },
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
-      "requested_at": "2026-07-29T18:49:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -249,12 +201,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T19:22:20Z",
       "history": [
         {
           "at": "2026-07-29T19:18:02Z",
           "detail": "retry the 4 withdrawals lost to host 504s; retract_remote now retries transient 5xx",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T19:22:20Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T191802Z-correct-layoff-scope",
@@ -266,7 +223,7 @@
       "requested_at": "2026-07-29T19:18:02Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-layoff-scope.yml"
     },
     {
@@ -692,6 +649,65 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": "2026-07-29T19:18:15Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:49:59Z",
+          "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:51:00Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:51:54Z",
+          "detail": "run 30481782149",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:51:54Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        },
+        {
+          "at": "2026-07-29T18:59:08Z",
+          "detail": "its retraction was already re-queued and landed; this replay is a no-op that clears the failed state",
+          "event": "requeued"
+        },
+        {
+          "at": "2026-07-29T19:18:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T19:22:20Z",
+          "detail": "run 30483810232",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T19:22:20Z",
+          "detail": "run 30483810232",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T184959Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody.",
+        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
+      },
+      "landed_at": "2026-07-29T19:22:20Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
+      "requested_at": "2026-07-29T18:49:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30483810232",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-29T18:51:54Z",
       "history": [
         {
@@ -808,6 +824,7 @@
       "workflow": "retract.yml"
     },
     {
+      "acknowledged": "2026-07-29T19:22:08Z",
       "attempts": 0,
       "dispatched_at": "2026-07-29T18:58:30Z",
       "history": [
@@ -830,6 +847,11 @@
           "at": "2026-07-29T19:18:15Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-07-29T19:22:08Z",
+          "detail": "lost 4 withdrawals to host 504s; retract_remote now retries transient 5xx and the correction was re-queued as 20260729T191802Z (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260729T185816Z-correct-layoff-scope",
