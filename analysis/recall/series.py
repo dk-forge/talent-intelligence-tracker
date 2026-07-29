@@ -189,17 +189,30 @@ def build_worklist(result: dict, series: list, goldset: dict,
             "due": due["due"],
             "reason": due["reason"],
             "suggested_window": window,
-            # The instruction, written out, because the loop this project runs
-            # is "get the alert, paste one line, do the one thing".
+            # Paste-ready, because the loop this project actually runs is "get
+            # the alert, paste one line, do the one thing". An instruction that
+            # needs to be reconstructed from memory is a step that gets skipped,
+            # and a skipped step here means the number quietly stops meaning
+            # anything while continuing to be published.
             "instruction": (
-                "Assemble a NEW gold set for "
-                f"{window['start']} to {window['end']} the same way as "
-                "analysis/recall/goldset-2026-07.json: independent research "
-                "passes forbidden from consulting our own database, a source "
-                "URL for every item, quotas filled per segment rather than "
-                "taking what is easy to find, nothing dropped after assembly, "
-                "then seal it. See analysis/recall/goldset.py for the rules "
-                "the file must satisfy."
+                "Build a new recall gold set for "
+                f"{window['start']} to {window['end']} and seal it. Run several "
+                "INDEPENDENT research passes, one per segment (US large funding, "
+                "US small funding, Europe, Asia-Pacific, Israel, rest of world, "
+                "US leadership, non-US leadership), each forbidden from "
+                "consulting asktherecruiter.com or any of our own data: a set "
+                "drawn from what we already hold measures nothing. Every item "
+                "needs a source URL that a stranger can open, and quotas must be "
+                "filled per segment rather than taking whatever was easy to "
+                "find. Check every URL resolves, drop only the unreachable ones, "
+                "and drop nothing at all once matching has begun. Write it to "
+                f"analysis/recall/goldset-{window['start'][:7]}.json with "
+                "sealed=true and an assembled_on date, matching the shape of the "
+                "previous set. `python3 measure_recall.py --check` must pass "
+                "before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is "
+                "the guard that stops a set being quietly rebuilt out of easy US "
+                "filings. The newest set on disk is the one measured, so nothing "
+                "else needs changing."
             ),
         },
     }

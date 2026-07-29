@@ -385,7 +385,15 @@ def test_the_work_list_names_the_countries_that_held_nothing():
     assert [c["key"] for c in work["zero_countries"]] == ["NG"]
     assert work["zero_countries"][0]["total"] == 3
     assert work["next_goldset"]["suggested_window"]["start"] == "2026-06-01"
-    assert "independent research" in work["next_goldset"]["instruction"]
+    # The instruction has to be paste-ready and carry the one rule that makes
+    # the whole exercise mean anything, because it is read by whoever picks the
+    # alert up months from now with no memory of this.
+    instruction = work["next_goldset"]["instruction"].lower()
+    assert "independent research passes" in instruction
+    assert "asktherecruiter.com" in instruction, "must forbid consulting our own data"
+    assert "source url" in instruction
+    assert "sealed=true" in instruction
+    assert "2026-06" in instruction, "must name the file to write"
 
 
 def test_the_committed_work_list_matches_the_committed_measurement():

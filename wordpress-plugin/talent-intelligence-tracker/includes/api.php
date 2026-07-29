@@ -942,6 +942,20 @@ function tit_enrichable_columns() {
         'funding_amount_usd', 'funding_stage', 'effective_date',
         'ticker', 'cik', 'work_mode', 'employer_type', 'headcount_scope',
         'materiality',
+        // The employer's headquarters: looked up, never claimed by a source,
+        // so it belongs in exactly the same class as ticker and cik. It was
+        // missing here by oversight, and the cost was specific. The identity
+        // backfill fills these locally and they had no route to the live
+        // table, so published rows stayed invisible to every geographic filter
+        // while we already held the answer. The recall measurement found it.
+        //
+        // `country` is deliberately NOT enrichable. That column is the JOB
+        // location and comes only from the source text; writing a looked-up
+        // value into it would turn "where the source says this happened" into
+        // "where the company is from", and there would be no way back. The
+        // country filter already unions the two at query time, which is where
+        // that belongs.
+        'hq_city', 'hq_country',
     );
 }
 

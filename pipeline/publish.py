@@ -62,6 +62,20 @@ ENRICHABLE = (
     "funding_amount_usd", "funding_stage", "effective_date",
     "ticker", "cik", "work_mode", "employer_type", "headcount_scope",
     "materiality",
+    # The employer's headquarters, looked up rather than claimed by a source.
+    # Exactly the same class as ticker and cik, and left out of this list by
+    # oversight rather than by decision: the identity backfill fills them
+    # locally and they had no route to the site, so published rows stayed
+    # invisible to every geographic filter while we already held the answer.
+    # The recall measurement is what surfaced it.
+    #
+    # `country` is NOT here and must not be. That is the JOB location, taken
+    # only from the source text, and pushing a looked-up value into it would
+    # turn "where the source says this happened" into "where the company is
+    # from". The site already unions the two at query time (country_basis=any),
+    # which is the right place for that to happen and the only place it is
+    # reversible.
+    "hq_city", "hq_country",
 )
 
 

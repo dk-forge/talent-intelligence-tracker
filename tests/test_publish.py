@@ -8,6 +8,8 @@ Note: nothing here stubs a real module into sys.modules. Only the module's own
 _post_batch is monkeypatched, which pytest undoes per test.
 """
 
+import re
+
 import pytest
 
 from pipeline import publish, schema
@@ -104,3 +106,48 @@ def test_the_request_looks_like_a_browser():
     """ModSecurity on this host blocks python-requests outright."""
     assert "python-requests" not in publish.USER_AGENT
     assert publish.USER_AGENT.startswith("TalentIntel/")
+
+
+# --- the enrich allowlist, which exists in two places -----------------------
+
+from pathlib import Path  # noqa: E402
+
+_API_PHP = (Path(__file__).parent.parent / "wordpress-plugin"
+            / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
+_PHP_ALLOWLIST = _API_PHP[_API_PHP.index("function tit_enrichable_columns"):]
+_PHP_ALLOWLIST = _PHP_ALLOWLIST[:_PHP_ALLOWLIST.index("\n}")]
+_PHP_COLUMNS = set(re.findall(r"'([a-z_]+)'", _PHP_ALLOWLIST))
+
+
+def test_both_ends_of_enrich_allow_the_same_columns():
+    """The allowlist is written twice, once per language, and a column present
+    on one side only is silently dropped rather than rejected.
+
+    That is not hypothetical: hq_city and hq_country were filled locally by the
+    identity backfill and missing from both lists, so published rows stayed
+    invisible to every geographic filter while we already held the answer. It
+    took a recall measurement to notice. This is the check that would have.
+    """
+    assert set(publish.ENRICHABLE) == _PHP_COLUMNS, (
+        "pipeline/publish.py ENRICHABLE and tit_enrichable_columns() disagree: "
+        f"only in Python {set(publish.ENRICHABLE) - _PHP_COLUMNS}, "
+        f"only in PHP {_PHP_COLUMNS - set(publish.ENRICHABLE)}"
+    )
+
+
+def test_enrich_can_never_write_what_a_source_stated():
+    """/enrich carries values we COMPUTED or LOOKED UP. `country` is the job
+    location and comes only from the source text, so a looked-up headquarters
+    must never be written into it: that would turn "where the source says this
+    happened" into "where the company is from", with no way back. The site
+    unions the two at query time instead, which is reversible."""
+    for stated in ("country", "city", "region", "headline", "summary", "company",
+                   "source_url", "published_date", "confidence", "signal_direction"):
+        assert stated not in publish.ENRICHABLE, stated
+        assert f"'{stated}'" not in _PHP_ALLOWLIST, stated
+
+
+def test_the_headquarters_columns_can_reach_the_site():
+    for column in ("hq_city", "hq_country"):
+        assert column in publish.ENRICHABLE
+        assert column in _PHP_COLUMNS
