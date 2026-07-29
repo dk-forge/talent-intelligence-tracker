@@ -5,9 +5,11 @@ build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
 Last updated: **2026-07-29**. Plugin **1.47.0** live, **15,650** current signals
-stored and **15,649** published, company profiles shipped, cron firing on
-schedule but not reliably green, **1,168 of 1,174** offline tests passing. Also
-this day: the $86bn Form D overstatement corrected, 575 national press feeds
+stored and **15,650** published, company profiles shipped, cron firing on
+schedule but not reliably green, **1,265 offline tests passing** (measured after
+the key correction below; the earlier "1,168 of 1,174" predates it). Also this
+day: every stale `company_key` corrected and the three double-spelled employers
+merged, the $86bn Form D overstatement corrected, 575 national press feeds
 across 139 countries wired, a 9% recall measurement published, fifteen silently
 destroyed data-writing runs found, and the 2026-07-28 render section below
 re-checked against live.
@@ -25,16 +27,16 @@ TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 2026-07-29 ~21:00Z, over 1.46.0); dashboard, `/recall/`, `/corrections/`,
 `/sources/` all 200; **money raised $99B** (was $124B, then $200.3bn, both
 before the stale-`company_key` correction); sources page lists all 8 live
-collectors; writer queue empty, zero orphans.
+collectors; writer queue empty, zero orphans; **714 of 714** sitemap URLs clean.
 
 **Nine registered collectors:** `google_news`, `gdelt`, `national_press`,
 `sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
 `tripwire_chase` (dormant, correctly absent from the sources page).
 
-### Company profiles (built 2026-07-29, live on 1.46.0)
+### Company profiles (built 2026-07-29, live on 1.47.0)
 
-`/talent-intelligence-tracker/company/{slug}/`, computed on render. **713
-indexable pages of 7,301 employers**, gated on **3 source documents and either
+`/talent-intelligence-tracker/company/{slug}/`, computed on render. **714
+indexable pages of 7,318 employers**, gated on **3 source documents and either
 2 kinds of evidence or 5 documents**. The reasoning is in `includes/company.php`
 and the measurement in TECHLOG; the short version is that rows are the wrong
 unit (one pay-versus-performance table becomes four rows) and three documents
@@ -51,9 +53,10 @@ sample.** It fetches EVERY URL with redirects disabled and asserts 200, no hop,
 no noindex, and no decoder-dependent character in the raw `<loc>`. It exists
 because a twenty-URL hand sample passed while 22 of 712 URLs were broken: the
 sample resolved the XML entity and the bug only appears when you do not, so the
-sample and the bug were the same shape. Last run: **713 fetched, 713 clean.**
+sample and the bug were the same shape. Last run: **714 fetched, 714 clean**,
+after the key correction below moved three of the URLs in it.
 
-**Four things a future session will otherwise rediscover:**
+**Five things a future session will otherwise rediscover:**
 
 1. **The slug transliterates and must keep doing so.** No encoding of "&" is
    safe: `%26` 404s, the entity `&#038;` 301s into a 404 for a consumer that
@@ -62,33 +65,68 @@ sample and the bug were the same shape. Last run: **713 fetched, 713 clean.**
    **The pre-1.46 slug still resolves and 301s to the canonical one; keep step 1
    of `tit_company_rows()` exactly as it is** or every URL ever published here
    breaks at once.
-2. **Three canonical slugs collide, and are refused rather than resolved.** All
-   three pairs are one employer stored twice ("perma-fix"/"perma fix",
-   "daré"/"dare" bioscience, an NHS trust filed with "&" and with "and").
-   Neither side is served or published. **The fix is a merge in employer
-   identity, not a routing rule.**
-3. **The site's SEO plugin is SEOPress, not Yoast.** It prints its own robots
+2. **A collision is refused, not resolved, and the refusal stays.** Two keys
+   claiming one slug is one employer stored twice, and serving either would
+   show half a history. The three that existed are merged (below), but the
+   branch in `tit_company_servable_slug()` is what makes the NEXT unmerged pair
+   harmless rather than wrong. **The fix for a collision is always a merge in
+   employer identity, never a routing rule.** `ops_status.py [1c]` names any
+   pair that appears.
+3. **A corrected `company_key` keeps its old URL, and that is a property of
+   revisions.** The slug is derived from the key, so a fix to
+   `vocab.company_key` moves it. `tit_company_moved_slugs()` joins each
+   superseded revision to the current revision of the same signal, and step 3
+   of `tit_company_rows()` resolves the old slug to the key that signal holds
+   now, so the ordinary canonical comparison 301s it. **Do not add a redirect
+   list beside it** — this already covers every correction there will ever be.
+   Both slug forms of the old key are indexed, a live key always wins, and an
+   ambiguous move is dropped rather than guessed. Proved by running it:
+   `php tests/php/route_company_slugs.php`.
+4. **The site's SEO plugin is SEOPress, not Yoast.** It prints its own robots
    tag on our routes. The head is buffered and every robots tag replaced with
    one of ours, so nothing here names a plugin. Do not "fix" this by calling a
    plugin filter.
-4. **The `robots_txt` filter is inert.** `/blog/robots.txt` is a physical file
+5. **The `robots_txt` filter is inert.** `/blog/robots.txt` is a physical file
    Apache serves from disk, and the robots.txt a crawler reads for this host is
    the root app's. **Manual step, not done:** submit
    `https://asktherecruiter.com/blog/talent-intelligence-tracker/company-sitemap.xml`
    in Search Console, or add it to the root robots.txt. Until then, discovery is
    the internal links from the dashboard table.
 
-**Owed: a queued correction for six mangled `company_key` values.** The legal-
-suffix strip used `\b`, and a hyphen is a word boundary, so `\bco\b` ate the
-"co" in "co-operative" and CO-OPERATIVE GROUP LIMITED is stored as
-`-operative group`. `pipeline/vocab.py` is fixed and tested, so no NEW row is
-mangled, but the stored rows still carry the old key and `company_key` feeds
-`content_hash`. Until a `store.revise()` pass rewrites them, a new signal for
-any of those six will not dedupe against its own history. Affected:
-ASSOCIATED BANC-CORP, CO-DIAGNOSTICS, CO-OPERATIVE GROUP, THE MIDCOUNTIES
-CO-OPERATIVE, CENTRAL ENGLAND CO-OPERATIVE, Overlay Alpha Co-GP.
+### Employer keys (corrected 2026-07-29, run 30490704433)
 
-**Not verified:** how any of it looks. That session had no browser.
+**DONE, and it was eleven employers rather than the six that were written
+down.** `correct_company_key.py` re-issued **38 rows across 11 employers**, 0
+duplicates, 0 failures. Six were the `\b` suffix-strip mangling
+(`-operative group`), three were the collision merges, and two —
+`crossamerica partners lp`, `peace coffee pbc` — were nobody's list at all:
+`lp` and `pbc` joined the suffix vocabulary after those rows were stored.
+
+**That is why the worklist is derived and not typed.** The script's targets are
+every live row where `vocab.company_key(row.company)` differs from the stored
+key, so it covers whatever the last edit to that function moved, and the next
+edit needs no new script. `ops_status.py [1c]` reports the same question
+continuously, so a stale key is a line in the status output rather than a fact
+somebody has to remember.
+
+**The merge is a curated list, on purpose.** `vocab.EMPLOYER_KEY_ALIASES` holds
+three entries: one employer spelled two ways by the filer (EDGAR's index vs an
+8-K cover page; two GOV.UK pay-gap employer ids for one NHS trust). The
+rule-shaped alternative — fold whatever the slug folds — was measured at **274
+keys and 624 rows to merge three employers**, and it re-breaks CO-OPERATIVE
+GROUP by feeding "co" back to the suffix strip. **An alias may only ever
+collapse punctuation**, asserted in `tests/test_identity.py`; anything else is
+a rename hiding in a lookup table.
+
+Verified live: the three moved sitemap URLs 301 to their new form (both the
+canonical and the pre-1.46 shape of each), the merged employers show their
+whole history (Perma-Fix 4 updates, Daré Bioscience 4, the NHS trust 6), and
+`check_sitemap_urls.py` fetched **714 of 714 clean**. It is 714 rather than 713
+because merging the trust's two GOV.UK ids puts 6 documents behind one
+employer, which crosses the gate.
+
+**Not verified:** how any of it looks. Checked by status code and markup, not
+by eye.
 
 ### Publish guardrails (built 2026-07-29) — quarantine, not halt
 
@@ -174,7 +212,7 @@ TECHLOG "the cost levers".
 | 2 | ~~Scope breach: layoff 8-Ks stored here~~ **FIXED 2026-07-29** | It was **seven** rows, not four: + Elastic (7% of its workforce), Commerce.com, and Verizon — the row the guard was originally written for. Forward fix is a third arm, `prefilter.filing_reduction_plan`, reading the filing BODY. Backward fix is `correct_layoff_scope.py`. Measured: 3,784 filings re-read, 0 unreadable, 6 announcing a reduction (0.16%). |
 | 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, both DORMANT** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Measured on real stored URLs below. Next step is to arm them, not to build them. |
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
-| 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.46.0** | `/company/{slug}`, measured threshold gate, **713 indexable pages** of 7,301 employers, every URL verified. See the section below and TECHLOG. Next step is Search Console, not code. |
+| 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.47.0** | `/company/{slug}`, measured threshold gate, **714 indexable pages**, every URL verified. Employer keys corrected and the three collisions merged the same day; a moved key's old URL 301s. See the sections below and TECHLOG. Next step is Search Console, not code. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
 | 7 | ~~Publish guardrails~~ **BUILT 2026-07-29** | `pipeline/guardrails.py`, on the write path, quarantining rather than halting. Next step is to ANSWER what it holds, not to build anything. See below. |
 | 8 | **First live tripwire run + second recall measurement** | The tripwire has never issued a live query (cost is an estimate). The trend chart cannot draw until a second measurement exists. |

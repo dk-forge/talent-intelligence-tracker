@@ -13,6 +13,138 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — the stale employer keys, and the merge that could not be a rule
+
+Plugin 1.47.0 and `correct_company_key.py`. Closes the correction the sitemap
+entry below left owed, and the three slug collisions `includes/company.php`
+refuses to serve.
+
+### Deriving the worklist found two employers nobody had named
+
+The paragraph left in HANDOVER named six employers, mangled by the `\b`
+suffix strip. The three collision pairs made nine. The script takes its
+worklist by asking a different question — **every live row whose stored
+`company_key` differs from `vocab.company_key(row.company)`** — and that
+returns **eleven employers and 38 rows**:
+
+| stored key | corrected to | rows | why |
+|---|---|---|---|
+| `-operative group` | `co-operative group` | 9 | `\bco\b` ate the "co" |
+| `the midcounties -operative` | `the midcounties co-operative` | 9 | same |
+| `central england -operative` | `central england co-operative` | 8 | same |
+| `-diagnostics` | `co-diagnostics` | 2 | same |
+| `associated banc-` | `associated banc-corp` | 1 | same |
+| `overlay alpha -gp` | `overlay alpha co-gp` | 1 | same |
+| `barking havering & redbridge…` | `barking havering and redbridge…` | 4 | merge |
+| `perma-fix environmental services` | `perma fix environmental services` | 1 | merge |
+| `daré bioscience` | `dare bioscience` | 1 | merge |
+| `crossamerica partners lp` | `crossamerica partners` | 1 | **`lp` joined the suffix list later** |
+| `peace coffee pbc` | `peace coffee` | 1 | **`pbc` joined the suffix list later** |
+
+The last two were not in anyone's list. They are the same defect from a
+different direction: `company_key` is computed once and stored, so *every*
+change to it leaves the rows behind it spelled the old way, and the ones nobody
+wrote down are exactly the ones a hand-written script misses. Deriving the
+worklist also means the next change to that function needs no new script.
+
+### Why the merge is a list of three and not a rule
+
+Three employers were recorded twice under keys differing only in punctuation,
+because the filer spells them two ways: EDGAR's company index writes
+`PERMA FIX` where the 8-K cover page writes `Perma-Fix`, and the GOV.UK pay-gap
+service holds one NHS trust under two employer ids (15028 to 2022, 22115 from
+2023), once with `&` and once with `and`. Both spellings claim one profile URL,
+so neither was published.
+
+The rule-shaped fix is obvious and was measured before it was rejected: make
+`company_key` fold exactly what the slug folds — accents, `&` to `and`,
+punctuation to a separator — so two names that produce one URL cannot produce
+two keys. Over the 7,788 distinct stored names:
+
+| folding | keys changed | employers merged |
+|---|---|---|
+| accents | 10 | 1 |
+| `&` to `and` | 141 | 1 |
+| hyphen to space | 124 | 1 |
+| **all three** | **274 (624 rows)** | **3** |
+
+274 keys re-spelled and 624 rows withdrawn and republished, to merge three
+employers. And it contradicts the fix directly above it: folding hyphens to
+spaces feeds "co" back to the suffix strip and mangles CO-OPERATIVE GROUP a
+second way. So `vocab.EMPLOYER_KEY_ALIASES` states the three merges, one line
+each, with the filer id that justifies it. The surviving spelling in each pair
+is the one whose space-for-hyphen form is already the canonical slug, so the
+fast path in `tit_company_rows()` finds it in SQL without touching the index.
+
+**A list has to be added to, and that is what `ops_status.py [1c]` is for.** It
+names any stored key that is no longer current with `vocab.py`, and any two keys
+claiming one URL that are not merged, distinguishing "waiting on a human to
+choose" from "merged, waiting on the correction to run". Before it, an unmerged
+pair was a page that silently never appeared.
+
+### The three URLs that moved, and why they still resolve
+
+Correcting a key moves the profile slug, and three of these employers are over
+the publishing threshold, so three URLs in the live sitemap changed:
+
+    /company/operative-group/            -> /company/co-operative-group/
+    /company/the-midcounties-operative/  -> /company/the-midcounties-co-operative/
+    /company/central-england-operative/  -> /company/central-england-co-operative/
+
+The old three had to 301 rather than 404. **The old URL is not lost
+information: it is stored.** A correction appends a revision and the old row
+survives at `is_current = 0` still carrying the old key, so
+`tit_company_moved_slugs()` joins each superseded revision to the current
+revision of the same signal, and step 3 of `tit_company_rows()` resolves the old
+slug to the key that signal holds now. The canonical comparison already in
+`tit_company_template()` then issues the 301, so there is no second redirect
+rule to keep in step with the first — and it is a property of revisions rather
+than a redirect list, so it covers every key correction there will ever be.
+
+Both slug forms of the old key are indexed, because both were live URLs: the key
+`-operative group` canonicalises to `operative-group` (the leading hyphen is
+trimmed) and legacy-slugs to `-operative-group`, and the sitemap published the
+first. Two refusals, matching the collision map beside it: a slug a **current**
+key holds is never redirected away from (a merge leaves both spellings on one
+slug and the survivor still serves it), and a slug two corrections both claim is
+dropped rather than guessed.
+
+### Proved by running it, because reading it would not have settled it
+
+`tests/php/route_company_slugs.php` stubs WordPress, backs `$wpdb` with SQLite
+so the JOIN executes instead of being matched as text, and asserts the routing
+in three phases in three processes (the index memoises in a static): before the
+correction, after it, and under an ambiguous move. Deleting the step-3 lookup
+fails six assertions. This is the same lesson as the sitemap entry below — a
+twenty-URL hand sample passed while 22 of 712 URLs were broken — one level up:
+whether a URL 301s or 404s is a behaviour across a state change, and no reading
+of the source settles it.
+
+One thing the harness cannot catch, so it is written into the code: the SQL
+aliases are `prev` and `live`, not `old` and `new`. SQLite accepts either;
+MySQL has reserved both at one version or another for row aliases, and an
+unquoted reserved word there is a parse error that takes out every company page
+at once.
+
+### What the correction does and does not touch
+
+Shape follows `correct_sec_pillar.py`: dry run by default, `store.revise()` so
+the original survives, retract before republish, one row at a time and committed
+per row, both of the site's duplicate guards mirrored so a row it would refuse
+is withdrawn with a reason instead of vanishing. **Two values move and no
+others** — `company_key` and the `content_hash` it feeds. `materiality` is
+deliberately *not* recomputed the way the pillar pass recomputes it, because
+`compute_materiality` does not read the key, so recomputing could only introduce
+a difference. Nothing is deleted, including the orphaned `employer_identity`
+entry, which is copied onto the new key rather than moved.
+
+The `--force` guard refuses a worklist above 5% of live rows. Measured here:
+38 of 15,650, 0.24%. The one legitimate way to exceed it is a real edit to the
+suffix vocabulary, and that deserves a human saying so out loud before hundreds
+of rows are withdrawn from the site.
+
+---
+
 ## 2026-07-29 — the sitemap was a list of promises and 22 of them were false
 
 Plugin 1.45.5 and 1.46.0, both a consequence of the same review note.
