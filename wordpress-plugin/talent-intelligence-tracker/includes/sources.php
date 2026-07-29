@@ -148,6 +148,15 @@ function tit_sources_render($sources) {
       </div>
 
       <div class="tit-callout">
+        <strong>A list of sources is not evidence of coverage.</strong> So we
+        also measure what these collectors miss, against a fixed set of real
+        events assembled from public sources without ever looking at our own
+        database, and publish the result including the categories where we come
+        off badly.
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">See the measured recall</a>.
+      </div>
+
+      <div class="tit-callout">
         <strong>What we exclude, and what that costs.</strong> A Form D reports
         money raised, and most Form D filers are not employers: pooled
         investment funds, single-asset property vehicles, and insurance or
