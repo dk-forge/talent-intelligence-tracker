@@ -1,0 +1,87 @@
+name: correct-sec-pillar
+
+# Re-issue the published 8-K Item 5.02 filings that were filed under another
+# pillar. The item IS "Departure of Directors or Certain Officers", so the
+# pillar is a fact about the document; the model was asked anyway and sent 573
+# of them elsewhere, mostly to rewards_comp, because a 5.02(e) filing spends
+# most of its words on the incoming officer's pay package. See
+# correct_sec_pillar.py.
+#
+# pillar is an input to content_hash, so this is not a /correct in place: each
+# row is withdrawn from the site and its new revision published. Runs here
+# rather than from a laptop because this is where WP_API_KEY lives.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+      limit:
+        description: 'Stop after N rows (blank for all)'
+        type: string
+        default: ''
+      force:
+        description: 'Proceed even if an implausible share of rows would move'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # correct-form-d.yml, retract.yml and the backfills. Two writers both end
+  # with reset-to-origin-then-copy-our-file-back, so whichever pushes second
+  # silently destroys the other's rows.
+  group: talent-collect
+  # This WITHDRAWS and RE-ISSUES published rows. A run killed halfway leaves
+  # rows revised locally and still live on the site, which the script resumes
+  # from cleanly — but only if it is allowed to finish rather than being
+  # cancelled by the next dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # 573 retractions are one request each, and the republication goes in
+    # batches of 25. Generous, but a timeout mid-run is the failure mode to
+    # avoid.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          ARGS=""
+          [ "${{ inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
+          [ "${{ inputs.force }}"   = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
+          # No `|| true`: a failed retraction or batch must fail the run, not
+          # pass quietly.
+          python correct_sec_pillar.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: re-issue the item 5.02 filings under the leadership pillar $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Another writer may have landed while this ran. Rebase rather than
+          # force: the other run's rows are as real as ours.
+          git pull --rebase --autostash origin main
+          git push

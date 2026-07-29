@@ -349,6 +349,40 @@ def compute_materiality(
     return "medium"
 
 
+# --- Pillars the document decides, not the model ---------------------------
+#
+# collectors/sec_edgar.py searches 8-K filings for Item 5.02 — "Departure of
+# Directors or Certain Officers; Election of Directors; Appointment of Certain
+# Officers" — and writes its own headline saying exactly that, because a filing
+# is dense legal prose with no headline in it. What pillar such a document
+# belongs to is settled before the model reads a word of it.
+#
+# The model was asked anyway, and it sent 573 of 3,496 of them somewhere else,
+# 568 to rewards_comp: a 5.02(e) filing spends most of its words on the
+# incoming officer's pay package, so the model graded the volume rather than
+# the event. Those records were true, published, and unreachable to anyone
+# browsing leadership changes — 18% of that pillar's primary source, held and
+# unfindable (measured 2026-07-28, in the recall pass).
+#
+# Deliberately narrow. It fires only while the record still carries the
+# collector's own officer-change headline, which is the same phrase test
+# compute_materiality already uses. Where the model REPLACED that headline it
+# found something specific in the document ("Masimo to be Acquired by Danaher",
+# "Littelfuse Announces Equity Grants") and that reading is the judgement we
+# still want: a blanket rule on the collector name would file both of those
+# under leadership changes. Nothing else the model said is touched.
+_PILLAR_BY_DOCUMENT = {"sec_edgar": "leadership_change"}
+
+
+def forced_pillar(collector: str, headline: str) -> str | None:
+    """The pillar this document has by construction, or None to let the model
+    decide. See _PILLAR_BY_DOCUMENT."""
+    pillar = _PILLAR_BY_DOCUMENT.get(collector)
+    if pillar and _OFFICER_CHANGE.search(headline or ""):
+        return pillar
+    return None
+
+
 def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
     """Turn a classified candidate into a storable Signal, or raise Rejected.
 
@@ -412,6 +446,12 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     readthrough = (classified.get("talent_readthrough") or "").strip()
     if not (headline and summary and readthrough):
         raise Rejected("headline, summary and talent_readthrough are all required")
+
+    # Applied here rather than beside the normalisation above, because it reads
+    # the headline the record will actually carry: on this source the model
+    # rewriting the headline is the signal that it read past the item and found
+    # something else in the document.
+    pillar = forced_pillar(collector, headline) or pillar
 
     # The read-through is our interpretation, so it may reason beyond the text.
     # The summary restates the source and may not.
