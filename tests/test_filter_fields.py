@@ -9,6 +9,7 @@ import json
 
 import pytest
 
+from phpsource import balanced_block
 from pipeline import validate, vocab
 
 
@@ -135,7 +136,13 @@ def test_sort_is_a_closed_list_not_request_text():
 
     php = (Path(__file__).parent.parent / "wordpress-plugin"
            / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
-    block = php[php.index("$orders = array("):php.index("$per_page =")]
+    # Read to the end of the $orders array itself, by matching its parens. This
+    # used to slice from "$orders = array(" to the unrelated literal
+    # "$per_page =", which quietly made an assertion about the sort map depend
+    # on a pagination statement continuing to exist, and to sit after it. The
+    # same mistake in the region-tab test took CI down when a neighbouring
+    # literal was legitimately removed. See tests/phpsource.py.
+    block = balanced_block(php, "$orders = array(", what="the $orders sort map")
     for key in ("newest", "oldest", "largest", "employer"):
         assert f"'{key}'" in block, key
     # Lookup with a fallback, never interpolation of the parameter itself.
