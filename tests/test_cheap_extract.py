@@ -137,6 +137,136 @@ def test_ambiguity_declines(headline):
     assert cheap_extract.extract(item(headline), count=False) is None, headline
 
 
+# --- Leadership: the second formulaic pillar ----------------------------------
+
+def test_clean_appointment_headline_closes_completely():
+    out = cheap_extract.extract(item(
+        "Acme Appoints Jane Doe as Chief Executive Officer",
+        "The board announced the appointment on Tuesday."))
+    assert out is not None
+    assert out["company"] == "Acme"
+    assert out["pillar"] == "leadership_change"
+    # An appointment is one person in a planned succession: neutral, the same
+    # rule the model prompt carries.
+    assert out["signal_direction"] == "neutral"
+    assert out["confidence"] == "reported"
+    assert out["functions"] == ["executive"]
+    assert "Jane Doe" in out["summary"]
+
+
+def test_no_connector_and_acronym_titles_close():
+    out = cheap_extract.extract(item("Acme Names Jane Doe CEO"))
+    assert out is not None and "Jane Doe" in out["summary"]
+
+
+def test_promotion_closes_and_reads_grammatically():
+    out = cheap_extract.extract(item(
+        "Acme Promotes Rahul Sharma to Chief Financial Officer"))
+    assert out is not None
+    assert "promoted Rahul Sharma to" in out["summary"]
+
+
+def test_stated_place_prefix_is_captured_like_funding():
+    out = cheap_extract.extract(item("Boston-based Acme Taps Jane Doe as CFO"))
+    assert out is not None and out["city"] == "Boston"
+
+
+def test_chair_of_the_board_is_the_one_allowed_tail():
+    out = cheap_extract.extract(item("Acme Names Jane Doe Chairman of the Board"))
+    assert out is not None and out["pillar"] == "leadership_change"
+
+
+def test_three_token_person_is_trusted_outside_title_case():
+    # lowercase verb keeps the headline out of Title Case, where only a
+    # two-token person is trusted.
+    out = cheap_extract.extract(item(
+        "Acme names Mary Jane Watson chief executive officer"))
+    assert out is not None and "Mary Jane Watson" in out["summary"]
+
+
+def test_closed_appointment_survives_the_same_validate_path(conn):
+    """No exemptions: build_signal, figure checks, confidence ceiling and
+    store() all apply to a leadership close exactly as to a funding close."""
+    raw = item("Acme Appoints Jane Doe as Chief Executive Officer",
+               "The board announced the appointment.")
+    classified = cheap_extract.extract(raw)
+    signal = validate.build_signal(classified, raw, "national_press", conn=conn)
+    assert signal.pillar == "leadership_change"
+    assert signal.signal_direction == "neutral"
+    assert signal.confidence == "reported"
+    signal.notes = cheap_extract.EVIDENCE_NOTE
+    assert store.store(conn, signal) == "stored"
+    row = conn.execute("SELECT notes FROM signals").fetchone()
+    assert row["notes"] == cheap_extract.EVIDENCE_NOTE
+
+
+# Every entry names the failure mode it guards; each is the leadership
+# translation of a tightening the funding extractor learned from a live sweep.
+LEADERSHIP_DECLINES = (
+    # the employer span is a geography, not an employer
+    "India Names New Central Bank Chief",
+    "Kuwait Appoints Jane Doe as CEO",
+    # descriptor-led and hyphen-embedded employer spans
+    "Fintech startup Alma appoints Jane Doe as CEO",
+    "Dutch-US MedTech Xeltis Appoints Jane Doe as CEO",
+    # the person span carries a role word: where the description ends and the
+    # name begins is a model's job
+    "Acme Appoints Former Google Executive Jane Doe as CEO",
+    "Acme Taps Stripe Veteran Jane Doe as CFO",
+    "Acme Appoints New CEO",
+    # multiple people or multiple roles
+    "Acme Names Jane Doe as President and CEO",
+    "Acme Appoints Jane Doe and John Smith as Co-Chiefs",
+    "Acme Names Jane Doe CEO as John Smith Steps Down",
+    "Tesla Board Names Committee to Find Next CEO",
+    # title-casing makes the spans ambiguous: multi-token employer, or a
+    # person span longer than first-name surname
+    "Building Materials Startup Fixxly Names Jane Doe CEO",
+    "Acme Names Mary Jane Watson CEO",
+    # not an appointment yet, or second-hand
+    "Acme to Appoint Jane Doe as CEO",
+    "Acme Reportedly Names Jane Doe CEO",
+    "Acme Set to Name Jane Doe CEO",
+    # facts the record cannot carry: a start date, an interim arrangement
+    "Acme Appoints Jane Doe as CEO, Effective September 1",
+    # divisional and sub-C titles stay with the model
+    "Acme Appoints Jane Doe as CEO of Its Gaming Division",
+    "Acme Names Jane Doe as Head of Marketing",
+)
+
+
+@pytest.mark.parametrize("headline", LEADERSHIP_DECLINES)
+def test_leadership_ambiguity_declines(headline):
+    assert cheap_extract.extract(item(headline), count=False) is None, headline
+
+
+LEADERSHIP_TEASER_DECLINES = (
+    # a stated start date lives in the teaser as often as the headline
+    ("Acme Appoints Jane Doe as CEO",
+     "She takes the role effective September 1."),
+    ("Acme Appoints Jane Doe as CEO", "Doe will join in October."),
+    # an interim arrangement is a nuance the record would silently drop
+    ("Acme Names Jane Doe CEO", "Doe has served as interim chief since May."),
+    # money beside an appointment is a bigger story than one person
+    ("Acme Appoints Jane Doe as CEO",
+     "The move follows Acme's $50M Series B."),
+    # so is hiring language, and so is a deal
+    ("Acme Appoints Jane Doe as CEO",
+     "Doe plans to recruit aggressively in Austin."),
+    ("Acme Appoints Jane Doe as CEO",
+     "The appointment follows the acquisition of Beta Systems."),
+    # the sibling's scope
+    ("Acme Appoints Jane Doe as CEO",
+     "She arrives weeks after layoffs cut 200 jobs."),
+)
+
+
+@pytest.mark.parametrize("headline,teaser", LEADERSHIP_TEASER_DECLINES)
+def test_leadership_teaser_facts_decline(headline, teaser):
+    assert cheap_extract.extract(item(headline, teaser), count=False) is None, \
+        (headline, teaser)
+
+
 # --- Clustering (lever 2) ----------------------------------------------------
 
 def test_rewrites_of_one_round_cluster_to_one_read():

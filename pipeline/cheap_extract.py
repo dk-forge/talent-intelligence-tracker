@@ -1,9 +1,10 @@
 """Deterministic teaser extraction — lever 1 of the cost work.
 
-A large share of funding and hiring headlines state every field a record
-needs: "Enigma Raises $71M in Seed Funding" IS the record. Paying a model
-$0.0013 to restate it is the single biggest avoidable cost in the pipeline,
-because those headlines are also the most numerous kind of gate-survivor.
+A large share of funding, hiring and leadership headlines state every field a
+record needs: "Enigma Raises $71M in Seed Funding" IS the record, and so is
+"Acme Appoints Jane Doe as Chief Executive Officer". Paying a model $0.0013 to
+restate either is the single biggest avoidable cost in the pipeline, because
+those headlines are also the most numerous kinds of gate-survivor.
 
 This module parses headline + teaser (`raw_text`) with regexes and either
 returns a COMPLETE classified-shaped dict — the same shape `classify.classify`
@@ -612,6 +613,248 @@ def _parse_hiring(item: dict) -> dict | None:
     }
 
 
+# --- Leadership ---------------------------------------------------------------
+#
+# "<Employer> Appoints <Person> as <C-title>" is the leadership pillar's
+# formulaic headline, and the wire services write it by the dozen. The same
+# design as funding, with the funding extractor's four hard-won tightenings
+# translated into their leadership equivalents:
+#
+#   country-name employers      -> _valid_name already declines a span that IS
+#                                  a country or a city ("India Names New RBI
+#                                  Chief" is a government story);
+#   hyphen-embedded descriptors -> the same _valid_name hyphen-part check, and
+#                                  a PERSON span is poisoned by any role word
+#                                  ("Former Google Executive Jane Doe" is a
+#                                  description wrapped around a name — where
+#                                  the description ends is a model's job);
+#   title-case blindness        -> in a title-cased headline only a
+#                                  single-token employer and an exactly
+#                                  two-token person are trusted, because Title
+#                                  Case erases the boundary between descriptor
+#                                  and name on both sides of the verb;
+#   stage-from-previous-round   -> the leadership version of a stolen detail
+#                                  is a stated START DATE or an interim
+#                                  arrangement: "effective September 1" and
+#                                  "as interim CEO" are facts this parser
+#                                  cannot carry, so their presence declines
+#                                  the whole item rather than shipping a
+#                                  record that silently drops them.
+#
+# One person, one role, stated outright, nothing else in the headline. Two
+# people ("...as John Smith Steps Down"), two roles ("President and CEO"), a
+# division ("CEO of Its Gaming Division") or any trailing clause all decline:
+# the rest-of-headline must be empty, with "of the board" the one allowed
+# tail because a Chairman of the Board is exactly a Chair.
+
+# Finite verb forms only, on purpose: "Acme to appoint Jane Doe" is a plan,
+# not an appointment, and leaving the bare form out means it can never match.
+_APPOINT_PAST = {
+    "appoints": "appointed", "appointed": "appointed",
+    "names": "named", "named": "named",
+    "taps": "tapped", "tapped": "tapped",
+    "promotes": "promoted", "promoted": "promoted",
+    "elevates": "elevated", "elevated": "elevated",
+    "hires": "hired", "hired": "hired",
+}
+_APPOINT_VERB = r"(?:%s)" % "|".join(sorted(_APPOINT_PAST))
+
+# The closed title list: C-suite, president, chair. "Head of", "VP", "director"
+# and every divisional variant stay out — those spans shade into descriptions
+# ("director of the new Austin hub") and the model reads shading better than a
+# regex declines it.
+_C_TITLE = (
+    r"chief\s+[a-z]+\s+(?:[a-z]+\s+)?officer|chief\s+executive"
+    r"|ceo|cfo|coo|cto|cio|cmo|chro|cpo|cro|cdo|cso|cco|ciso"
+    r"|executive\s+chair(?:man|woman|person)?|chair(?:man|woman|person)?"
+    r"|president"
+)
+
+_LEADERSHIP_SHAPE = re.compile(
+    rf"^(?:(?P<base>[A-Z][\w .'’-]{{1,30}})-based\s+|"
+    rf"(?P<poss>[A-Z][\w .-]{{1,28}})[''’]s\s+)?"
+    rf"(?P<name>\S[^,;:]{{0,60}}?)\s+(?P<verb>{_APPOINT_VERB})\s+"
+    rf"(?P<person>[A-Z][^,;:()]{{0,40}}?)\s+"
+    rf"(?:(?:as|to)\s+(?:its\s+|the\s+|their\s+)?(?:new\s+|next\s+|first\s+)?)?"
+    rf"(?P<title>{_C_TITLE})"
+    rf"(?P<rest>.*)$",
+    re.I,
+)
+
+# The one tail a closed appointment may carry. Anything else after the title —
+# "and President", ", effective September 1", "of Its Gaming Division", "As
+# John Smith Retires" — is a second role, a second person or a detail this
+# parser cannot carry, and declines.
+_TITLE_TAIL_OK = re.compile(r"(?:\s+of\s+(?:the\s+|its\s+)?board)?[\s.!'\"’”]*$",
+                            re.I)
+
+# Words that mark a PERSON span as a description rather than a bare name.
+# Honorifics are here too: rare in headlines, and "Dr Jane Doe" stored as the
+# person's name would be wrong by one word — the model path keeps the nuance.
+_PERSON_ROLE_WORDS = frozenset("""
+    former ex exec executive veteran vet alum alumnus alumna insider founder
+    cofounder co-founder chief officer president chairman chairwoman chair
+    director head leader boss chairperson vp svp evp gm md ceo cfo coo cto
+    cio cmo chro cpo cro cdo cso cco ciso interim acting incoming outgoing
+    longtime industry board member managing partner new next
+    dr mr ms mrs prof professor sir dame
+""".split())
+
+# A stated start, an interim arrangement, or an appointment not yet made:
+# every one is a fact the record has no way to carry, so it declines (the
+# leadership reading of funding's stage-from-previous-round lesson).
+_LEADERSHIP_UNCARRIED = re.compile(
+    r"\beffective\b|\bwith effect from\b|\binterim\b|\bacting\b|"
+    r"\bwill (?:join|assume|take|start|begin|become|succeed)\b|"
+    r"\b(?:joins?|starts?|begins?)\s+(?:on|in|from)\b|"
+    r"\btakes? (?:over|charge|the helm)\b",
+    re.I,
+)
+
+
+def _valid_person(span: str, title_cased: bool) -> str | None:
+    """The span between the verb and the title, accepted as ONE person's bare
+    name or None. Precision over recall, exactly as _valid_name above."""
+    name = (span or "").strip().strip("‘’'\"")
+    if not name:
+        return None
+    # A comma or connective means a list of people, an attribution or a
+    # clause. Two people are two records, and which is which is a read.
+    if re.search(r"[,:;&—–\|]|\band\b", name, re.I):
+        return None
+    tokens = name.split()
+    if not 2 <= len(tokens) <= 3:
+        return None
+    # Title Case erases the descriptor/name boundary, so only the shortest
+    # possible span — first name, surname — is trusted there.
+    if title_cased and len(tokens) != 2:
+        return None
+    for token in tokens:
+        low = token.lower().strip(".")
+        if (low in _PERSON_ROLE_WORDS or low in _NATIONALITIES
+                or low in _LEAD_JUNK or low in _ANONYMITY_MARKERS
+                or low in _GENERIC_ORG_NOUNS or low in _GENERIC_QUALIFIERS
+                or low in _SECTOR_DESCRIPTORS):
+            return None
+        if "-" in low and any(part in _PERSON_ROLE_WORDS or part in _NATIONALITIES
+                              for part in low.split("-")):
+            return None
+        if any(ch.isdigit() for ch in token):
+            return None
+        # Every token capitalised, letters only after that. "van der Berg"
+        # declines; the model path handles nobiliary particles.
+        if not re.match(r"^[A-Z][A-Za-z'’.-]*$", token):
+            return None
+    return name
+
+
+def _parse_leadership(item: dict) -> dict | None:
+    headline = (item.get("headline") or "").strip()
+    raw_text = (item.get("raw_text") or "").strip()
+    if not headline or not raw_text:
+        return None
+    # The knock-outs funding uses, plus the leadership-specific ones. A stated
+    # money amount means the story is bigger than one appointment (a comp
+    # package, a raise the new hire will deploy); hiring language beside an
+    # appointment is two signals; a deal means the org chart is in motion.
+    if _UNCERTAIN.search(headline) or ";" in headline:
+        return None
+    if _DEAL_WORDS.search(raw_text) or _AMOUNT.search(raw_text):
+        return None
+    if _HIRE_WORDS.search(raw_text.replace(headline, "", 1)):
+        # The headline's own verb may be "hires"; hiring language anywhere
+        # ELSE in the text is the second signal that declines.
+        return None
+    if _LEADERSHIP_UNCARRIED.search(raw_text):
+        return None
+    # ANY mention of a cut declines, not just a cut-led story. The subject-
+    # race in workforce_reduction_term exists to KEEP appointment-led stories
+    # for the model, which reads the whole context; a $0 close gets no such
+    # benefit of the doubt, because "new CEO weeks after layoffs" is a
+    # turnaround story whose nuance this parser cannot carry.
+    if prefilter._REDUCTION.search(raw_text) or prefilter._RIF.search(raw_text):
+        return None
+
+    m = _LEADERSHIP_SHAPE.match(headline)
+    if not m:
+        return None
+    if not _TITLE_TAIL_OK.fullmatch(m.group("rest") or ""):
+        return None
+
+    title_cased = _title_cased(headline)
+    name = _valid_name(m.group("name"))
+    if not name:
+        return None
+    if title_cased and len(name.split()) > 1:
+        return None
+    person = _valid_person(m.group("person"), title_cased)
+    if not person:
+        return None
+
+    # A second title anywhere else in the headline is a second role — "names
+    # Jane Doe CEO, President" survives the tail check when punctuation is
+    # unusual, so count matches rather than trusting one anchor.
+    title = m.group("title").strip()
+    if len(re.findall(rf"\b(?:{_C_TITLE})\b", headline, re.I)) > 1:
+        return None
+
+    city = country = None
+    place = m.group("base") or m.group("poss")
+    if place:
+        hit = vocab.normalize_city(place)
+        if hit:
+            city, _region, country = hit
+        else:
+            country = vocab.normalize_country(place)
+            if not country:
+                return None
+
+    verb = m.group("verb").lower()
+    past = _APPOINT_PAST[verb]
+    joiner = "to" if past in ("promoted", "elevated") else "as"
+    summary = f"{name} has {past} {person} {joiner} {title}."
+    where = city or (vocab.COUNTRY_NAMES.get(country, "") if country else "")
+    readthrough = (
+        f"{name} has a new {title}: {person}"
+        + (f", in {where}" if where else "")
+        + ". One appointment, not a headcount change; the report names no"
+          " wider hiring plans."
+    )
+
+    return {
+        "is_talent_signal": True,
+        "company": name,
+        "pillar": "leadership_change",
+        # An appointment is one person in a planned succession, never
+        # displacement and never hiring — the same rule the model prompt
+        # spells out, applied deterministically.
+        "signal_direction": "neutral",
+        "city": city or "",
+        "country": vocab.COUNTRY_NAMES.get(country, "") if country else "",
+        "headquarters_city": "",
+        "headquarters_country": "",
+        "confidence": "reported",
+        "functions": ["executive"],
+        "industry": "",
+        "state": "",
+        "headcount": 0,
+        "headcount_scope": "",
+        "funding_amount": "",
+        "funding_stage": "",
+        "effective_date": "",
+        "ticker": "",
+        "work_mode": "",
+        "deal_type": "",
+        "site_event": "",
+        "employer_type": "",
+        "headline": headline,
+        "summary": summary,
+        "talent_readthrough": readthrough,
+        "predicted_outcome": "",
+        "check_after_date": "",
+    }
+
+
 # --- The public entry point --------------------------------------------------
 
 def extract(item: dict, *, count: bool = True) -> dict | None:
@@ -692,6 +935,11 @@ def extract(item: dict, *, count: bool = True) -> dict | None:
     if hiring is not None:
         _tally("closed")
         return hiring
+
+    leadership = _parse_leadership(item)
+    if leadership is not None:
+        _tally("closed")
+        return leadership
 
     _tally("declined")
     return None
