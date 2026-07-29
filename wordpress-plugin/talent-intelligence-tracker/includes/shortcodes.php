@@ -9,6 +9,19 @@
 if (!defined('ABSPATH')) exit;
 
 function tit_dashboard_shortcode() {
+    // Render ONCE per request, whatever the theme does. This block theme runs
+    // the content through the shortcode pass more than once, so the whole
+    // dashboard appeared twice on the live page: two filter panels, two sets
+    // of charts, two of every element id. Every getElementById bound to the
+    // first copy, which left the second a dead mirror: visible controls that
+    // did nothing, multi selects that never became pills, counts that never
+    // moved. Nearly every "the page is broken" report traced back to the
+    // reader looking at the twin. Duplicate ids are also invalid HTML, and
+    // the second render doubled every query this shortcode runs.
+    static $rendered = false;
+    if ($rendered) return '';
+    $rendered = true;
+
     // Enqueue from INSIDE the shortcode as well as from wp_enqueue_scripts.
     // The hook's guard asks has_shortcode($post->post_content, ...), which is
     // FALSE whenever the shortcode reaches the page through a block, pattern,
