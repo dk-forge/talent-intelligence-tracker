@@ -66,17 +66,30 @@ jobs:
             echo "No data change."
             exit 0
           fi
+          # MERGE our rows into the remote's database, never copy our file over
+          # the top of it. This workflow proved the concurrency group alone
+          # cannot make that safe: run 30413051586 was dispatched at 01:05,
+          # waited for the lock until 03:21, and actions/checkout had pinned the
+          # 01:05 SHA — so it copied a two-hour-old file back and destroyed the
+          # 311 rows the run ahead of it had just pushed (d46fb10 -> 4d604f3).
+          # See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "data: form D bulk backfill ${{ inputs.quarters }}" || true
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this data."
+              exit 0
+            fi
+            git commit -q -m "data: form D bulk backfill ${{ inputs.quarters }}"
             if git push; then
               echo "Pushed on attempt $attempt."
               exit 0
             fi
-            git fetch origin main
-            git reset --hard origin/main
-            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
-            git add data/talent_intel.db
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
           done
           echo "::error::could not push the database after 5 attempts"
           exit 1

@@ -105,11 +105,25 @@ jobs:
       # deploy that landed mid-collection. Six dry runs could never find this,
       # because a dry run writes nothing.
       #
-      # Rebasing a SQLite file is not sensible, so this does not try. Our copy
-      # is the checked-out database plus this run's rows, and this job is the
-      # only writer (the concurrency group keeps two collects from overlapping),
-      # so resetting to the remote and putting our file back is always correct
-      # and can never conflict.
+      # Rebasing a SQLite file is not sensible, so this does not try. It resets
+      # to the remote and MERGES this run's rows into whatever is there, with
+      # merge_db.py.
+      #
+      # It used to copy our whole file back over the reset instead, on the
+      # argument that the concurrency group made this the only writer. That
+      # argument was wrong twice over, and it cost 9,572 signal rows and the
+      # whole 3,604-row identity cache on 2026-07-28/29:
+      #   * the lock only excludes other workflow RUNS, not a human or an agent
+      #     committing the database from a laptop (9991861 -> e1bfb03);
+      #   * and a run the lock serialises CORRECTLY is stale by construction —
+      #     actions/checkout gives it the SHA pinned when it was dispatched, so
+      #     the longer it waits in the queue the more it is about to overwrite
+      #     (dispatched 01:05, ran 03:21, discarded 311 rows: d46fb10 -> 4d604f3).
+      # The lock still matters, but only a merge is actually safe.
+      #
+      # The merge happens on EVERY attempt, not just after a rejected push, for
+      # the second reason above: attempt 1 is already working from a possibly
+      # stale checkout.
       # `!cancelled()` and not plain success: a run that FAILED after storing
       # and publishing rows still holds the only local record of them (new
       # signals + seen_urls). Skipping this step on failure threw that memory
@@ -132,22 +146,24 @@ jobs:
           fi
 
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
 
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "data: collect $(date -u +%Y-%m-%dT%H:%MZ)" || true
-            if git push; then
-              echo "Pushed on attempt $attempt."
-              exit 0
-            fi
-            echo "Push rejected (attempt $attempt) — replaying onto the current main."
             git fetch origin main
             git reset --hard origin/main
-            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
-            git add data/talent_intel.db
+            python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
             if git diff --staged --quiet; then
               echo "Remote already has this data."
               exit 0
             fi
+            git commit -q -m "data: collect $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
             sleep $((attempt * 5))
           done
 

@@ -69,6 +69,18 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 - **Never overwrite a record.** Corrections append a revision via
   `store.revise()`; the original survives with `is_current = 0`. This is what
   makes "what did we know on date D" answerable, and it cannot be retrofitted.
+- **Never restore the database by copying a file over it.** A job that loses its
+  push resets to `origin/main` and MERGES its rows back with `merge_db.py`. A
+  `cp` there replaces the whole file and destroys every row anyone else pushed
+  while the job was collecting — it took 9,572 signal rows and the entire
+  employer_identity cache on 2026-07-28/29, across five commits, without a
+  single red run. The concurrency group does not make a copy safe and never
+  could: it cannot see a human or an agent committing from a laptop, and a run
+  it correctly queues is stale by exactly as long as it waited, because
+  `actions/checkout` pinned the SHA at dispatch. Asserted by
+  `tests/test_workflows.py`. The one exception is `correct-form-d.yml`, which
+  edits rows in place rather than appending a revision, so a merge would
+  silently skip its corrections; it rebases and goes red instead, and says so.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how

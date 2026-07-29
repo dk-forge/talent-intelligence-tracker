@@ -1,0 +1,211 @@
+# The queue that stops a database writer disappearing without anyone knowing.
+#
+# THE DEFECT (measured 2026-07-29)
+# --------------------------------
+# Every writer shares the `talent-collect` concurrency group with
+# cancel-in-progress: false. That lock is correct and stays. But GitHub keeps
+# exactly ONE pending run per group: while one run executes and a second waits,
+# dispatching a THIRD silently evicts the waiting one. It ends `cancelled`
+# having created no jobs — no steps, no logs, no annotation, nothing that says
+# work was lost. Seven writer runs went that way in two hours behind a GDELT
+# backfill, and every one was reported to the owner as "queued".
+#
+# THE FIX
+# -------
+# Eviction is only possible when something is already waiting. This workflow
+# dispatches the next ticket ONLY into an empty group, so there is never a
+# second pending run and queued work cannot be evicted. Work waits in
+# data/writer_queue.json — committed, durable, and readable — instead of in
+# GitHub's single lossy slot.
+#
+# It also reads the run list every tick and shouts about any writer run that
+# ended cancelled without creating a job, including ones dispatched directly
+# rather than queued. Those cannot be replayed (the API does not expose a
+# dispatched run's inputs), so they go red and name themselves.
+#
+# THIS WORKFLOW IS DELIBERATELY NOT IN THE `talent-collect` GROUP. It writes no
+# data of its own, and it must be able to run while the lock is held — a drainer
+# that waits for the lock could never drain it.
+name: drain-writers
+
+on:
+  # The safety net. Every tick is a few seconds; the fast path below is what
+  # normally moves the queue.
+  schedule:
+    - cron: '*/15 * * * *'
+
+  # The fast path: the moment any lock holder finishes, look for the next
+  # ticket. Also fires when a run is evicted, which is how displacement gets
+  # noticed in seconds rather than at the next cron.
+  workflow_run:
+    types: [completed]
+    workflows:
+      - backfill-2026
+      - backfill-funding-2026
+      - backfill-funding-bulk
+      - backfill-gdelt-2026
+      - collect
+      - collect national press
+      - collect-structured
+      - correct-form-d
+      - correct-sec-pillar
+      - enrich
+      - recall
+      - retract
+      - tripwire
+
+  workflow_dispatch:
+    inputs:
+      enqueue:
+        description: 'Workflow file to queue, e.g. correct-form-d.yml (blank = just drain)'
+        required: false
+        default: ''
+      inputs_json:
+        description: 'Its inputs as JSON, e.g. {"dry_run":"false"}'
+        required: false
+        default: ''
+      reason:
+        description: 'Why, for the record'
+        required: false
+        default: ''
+      priority:
+        description: 'Lower leaves first. Blank uses the default (backfills go last).'
+        required: false
+        default: ''
+
+permissions:
+  contents: write   # commit the queue file
+  actions: write    # dispatch the next writer
+
+concurrency:
+  # Its own group, NOT the writers' one. cancel-in-progress stays false so a
+  # tick is never killed between committing a ticket as dispatched and actually
+  # dispatching it; a tick that loses its own pending slot costs one cycle and
+  # no data, because every tick reconciles from scratch.
+  group: drain-writers
+  cancel-in-progress: false
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # A fine-grained PAT with actions:write is preferred; GITHUB_TOKEN is the
+      # fallback. Either way the dispatch is VERIFIED below rather than assumed,
+      # because a dispatch that quietly creates no run would be the same class
+      # of bug this workflow exists to kill.
+      - name: Queue the request, if this run carried one
+        if: ${{ inputs.enqueue != '' }}
+        run: |
+          python writer_queue.py enqueue "${{ inputs.enqueue }}" \
+            --inputs '${{ inputs.inputs_json }}' \
+            --reason "${{ inputs.reason }}" \
+            --by "${{ github.actor }}" \
+            ${{ inputs.priority != '' && format('--priority {0}', inputs.priority) || '' }}
+
+      - name: Read what is actually running
+        env:
+          GH_TOKEN: ${{ secrets.WRITER_QUEUE_TOKEN || secrets.GITHUB_TOKEN }}
+        # Deep enough to still see a run that was evicted several hours ago;
+        # this repo can turn over sixty runs in two hours.
+        run: python writer_queue_runs.py --limit 200 --out "$RUNNER_TEMP/runs.json"
+
+      - name: Reconcile, and pick at most one thing to dispatch
+        id: tick
+        run: |
+          set +e
+          python writer_queue.py tick \
+            --runs "$RUNNER_TEMP/runs.json" \
+            --emit "$RUNNER_TEMP/plan.json" \
+            --ref main
+          echo "rc=$?" >> "$GITHUB_OUTPUT"
+          if [ -f "$RUNNER_TEMP/plan.json" ]; then
+            echo "planned=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Committed BEFORE the dispatch on purpose. If this run dies in between,
+      # the ticket is already recorded as dispatched, so the next tick binds it
+      # to its run instead of dispatching it a second time. The opposite order
+      # can double-apply a correction.
+      - name: Commit the queue
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/writer_queue.json
+          if git diff --staged --quiet; then
+            echo "Queue unchanged."
+            exit 0
+          fi
+          git commit -q -m "queue: drain tick $(date -u +%Y-%m-%dT%H:%MZ)"
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — rebasing onto current main."
+            git pull --rebase --autostash origin main || true
+            sleep $((attempt * 3))
+          done
+          echo "::error::could not commit the writer queue after 5 attempts"
+          exit 1
+
+      - name: Dispatch it
+        if: ${{ steps.tick.outputs.planned == '1' }}
+        env:
+          GH_TOKEN: ${{ secrets.WRITER_QUEUE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          WF=$(python -c "import json;print(json.load(open('$RUNNER_TEMP/plan.json'))['workflow'])")
+          TICKET=$(python -c "import json;print(json.load(open('$RUNNER_TEMP/plan.json'))['ticket'])")
+          python -c "import json;d=json.load(open('$RUNNER_TEMP/plan.json'));print(json.dumps(d['body']))" \
+            > "$RUNNER_TEMP/body.json"
+
+          echo "Dispatching $WF for ticket $TICKET"
+          # --input keeps the recorded inputs as JSON end to end; nothing from a
+          # ticket is ever interpolated into a shell command.
+          gh api "repos/${{ github.repository }}/actions/workflows/$WF/dispatches" \
+            --input "$RUNNER_TEMP/body.json"
+
+          # VERIFY. `gh api` answering 204 is not proof a run exists, and a
+          # dispatch that creates nothing would be silent in exactly the way
+          # this workflow exists to prevent.
+          for attempt in 1 2 3 4 5 6; do
+            sleep 10
+            FOUND=$(gh run list --workflow "$WF" -L 5 \
+                      --json databaseId,createdAt --jq 'length')
+            RECENT=$(gh run list --workflow "$WF" -L 5 --json createdAt,status \
+                      --jq "[.[] | select(.createdAt > \"$(date -u -d '3 minutes ago' +%Y-%m-%dT%H:%M:%SZ)\")] | length")
+            if [ "${RECENT:-0}" -gt 0 ]; then
+              echo "Run created for $WF."
+              exit 0
+            fi
+            echo "No run yet for $WF (attempt $attempt, $FOUND recent runs listed)."
+          done
+
+          echo "::error::dispatched $WF but no run appeared. If GH_TOKEN is the"
+          echo "::error::default GITHUB_TOKEN and the repository forbids it from"
+          echo "::error::creating runs, add a fine-grained PAT with actions:write"
+          echo "::error::as the WRITER_QUEUE_TOKEN secret. Ticket $TICKET is going"
+          echo "::error::back in the queue, not being dropped."
+          python writer_queue.py requeue "$TICKET" --note "dispatch created no run"
+          git add data/writer_queue.json
+          git commit -q -m "queue: requeue $TICKET (dispatch created no run)" || true
+          git pull --rebase --autostash origin main || true
+          git push || true
+          exit 1
+
+      # Last, so the queue is always committed and the dispatch always
+      # attempted before the run is allowed to go red.
+      - name: Fail loudly if anything needs a human
+        if: ${{ always() && steps.tick.outputs.rc != '0' }}
+        run: |
+          echo "::error::the writer queue has items that need a human — see the"
+          echo "::error::reconcile step above, or run: python writer_queue.py status"
+          exit 1

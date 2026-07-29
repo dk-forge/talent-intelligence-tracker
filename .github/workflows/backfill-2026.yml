@@ -84,17 +84,30 @@ jobs:
             echo "No data change."
             exit 0
           fi
+          # MERGE our rows into the remote's database, never copy our file over
+          # the top of it: this workflow destroyed 8,751 signal rows that way on
+          # 2026-07-28 (182c2da -> 42222a0), and 3,604 identity rows a human had
+          # just pushed from a laptop (9991861 -> e1bfb03). See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "data: backfill ${{ inputs.start }}..${{ inputs.end }}" || true
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            git add data/talent_intel.db
+            git add data/spend_month.json || true
+            if git diff --staged --quiet; then
+              echo "Remote already has this data."
+              exit 0
+            fi
+            git commit -q -m "data: backfill ${{ inputs.start }}..${{ inputs.end }}"
             if git push; then
               echo "Pushed on attempt $attempt."
               exit 0
             fi
-            git fetch origin main
-            git reset --hard origin/main
-            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
-            git add data/talent_intel.db
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
           done
           echo "::error::could not push the database after 5 attempts"
           exit 1

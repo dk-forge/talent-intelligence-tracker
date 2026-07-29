@@ -121,6 +121,11 @@ jobs:
             exit 0
           fi
 
+          # The database MERGES; the ATS state file is a whole-file snapshot with
+          # no row identity, so it stays last-writer-wins. Copying the database
+          # the same way is exactly how the four runs on 2026-07-28 21:29-21:45
+          # (ats_boards, sec_execcomp x2, uk_paygap) had all 8,751 of their rows
+          # destroyed by the backfill that pushed at 21:53. See merge_db.py.
           mkdir -p "$RUNNER_TEMP/keep"
           cp data/talent_intel.db "$RUNNER_TEMP/keep/talent_intel.db"
           if [ -f data/ats_board_state.json ]; then
@@ -128,15 +133,9 @@ jobs:
           fi
 
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "data: ${{ steps.pick.outputs.value }} $(date -u +%Y-%m-%dT%H:%MZ)" || true
-            if git push; then
-              echo "Pushed on attempt $attempt."
-              exit 0
-            fi
-            echo "Push rejected (attempt $attempt) — replaying onto the current main."
             git fetch origin main
             git reset --hard origin/main
-            cp "$RUNNER_TEMP/keep/talent_intel.db" data/talent_intel.db
+            python merge_db.py "$RUNNER_TEMP/keep/talent_intel.db" data/talent_intel.db
             if [ -f "$RUNNER_TEMP/keep/ats_board_state.json" ]; then
               cp "$RUNNER_TEMP/keep/ats_board_state.json" data/ats_board_state.json
             fi
@@ -146,6 +145,12 @@ jobs:
               echo "Remote already has this data."
               exit 0
             fi
+            git commit -q -m "data: ${{ steps.pick.outputs.value }} $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
             sleep $((attempt * 5))
           done
 

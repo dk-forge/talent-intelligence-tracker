@@ -101,28 +101,34 @@ jobs:
             exit 0
           fi
 
+          # The work list and the results are snapshots, so they are copied back
+          # whole. The database is not a snapshot, and copying it over the
+          # remote's destroys every row anyone else pushed while this ran — 9,572
+          # signal rows and the whole identity cache went that way on
+          # 2026-07-28/29. It merges instead; see merge_db.py.
           mkdir -p "$RUNNER_TEMP/tripwire"
           cp data/talent_intel.db "$RUNNER_TEMP/tripwire/talent_intel.db"
           cp data/tripwire_worklist.json "$RUNNER_TEMP/tripwire/worklist.json"
           cp -r analysis/tripwire/results "$RUNNER_TEMP/tripwire/results"
 
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "tripwire: $(date -u +%Y-%m-%dT%H:%MZ)" || true
-            if git push; then
-              echo "Pushed on attempt $attempt."
-              exit 0
-            fi
-            echo "Push rejected (attempt $attempt) — replaying onto the current main."
             git fetch origin main
             git reset --hard origin/main
-            cp "$RUNNER_TEMP/tripwire/talent_intel.db" data/talent_intel.db
+            python merge_db.py "$RUNNER_TEMP/tripwire/talent_intel.db" data/talent_intel.db
             cp "$RUNNER_TEMP/tripwire/worklist.json" data/tripwire_worklist.json
             cp -r "$RUNNER_TEMP/tripwire/results/." analysis/tripwire/results/
-            git add data/tripwire_worklist.json analysis/tripwire/results data/talent_intel.db
+            git add data/tripwire_worklist.json analysis/tripwire/results \
+                    data/talent_intel.db data/spend_month.json 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this run."
               exit 0
             fi
+            git commit -q -m "tripwire: $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
             sleep $((attempt * 5))
           done
 

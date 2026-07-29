@@ -43,6 +43,7 @@ def main() -> int:
     problems += _report_collection_armed()
     problems += _report_data(conn)
     problems += _report_health(conn)
+    problems += _report_writer_queue()
     _report_coverage()
     _report_discovery()
     _report_surfaces()
@@ -155,6 +156,65 @@ def _report_health(conn) -> list[str]:
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
     return problems
+
+
+def _report_writer_queue() -> list[str]:
+    """What is waiting for the one writer slot, and what fell out of it.
+
+    Every workflow that writes the database shares the `talent-collect` lock,
+    and GitHub keeps only ONE pending run per lock. Dispatching past a waiting
+    run evicts it: it ends `cancelled` having created no jobs, with no error and
+    no annotation anywhere. Seven writer runs were lost that way on 2026-07-29
+    while a GDELT backfill held the lock, and every one of them was reported as
+    "queued".
+
+    So work is queued HERE, in a committed file, and drain-writers.yml
+    dispatches one ticket at a time into an empty group — which is the one
+    condition under which nothing can be evicted. This section is where that
+    queue becomes visible to a session, because an invisible queue would be the
+    same bug wearing a different hat.
+    """
+    import writer_queue
+
+    print("\n[2b] WRITER QUEUE  (the single database-writer slot)")
+
+    queue_file = ROOT / "data" / "writer_queue.json"
+    if not queue_file.exists():
+        print("    Nothing queued, nothing lost.")
+        print("    Queue a writer:  gh workflow run drain-writers.yml \\")
+        print("                       -f enqueue=<workflow>.yml -f inputs_json='{...}'")
+        return []
+
+    state = writer_queue.summary(writer_queue.load(queue_file))
+    counts = state["counts"]
+    if counts:
+        print("    " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+
+    for ticket in state["waiting"]:
+        print(f"    {ticket['state']:<11} {ticket['workflow']:<26} "
+              f"since {ticket['requested_at']}  attempts={ticket['attempts']}")
+        if ticket.get("inputs"):
+            print(f"                inputs {ticket['inputs']}")
+
+    for orphan in state["orphans"]:
+        print(f"    ORPHAN      {orphan['workflow']} run {orphan['run_id']} "
+              f"(created {orphan.get('created_at')})")
+
+    if state["last_tick"]:
+        print(f"    last drain tick: {state['last_tick']}")
+        last = None
+        try:
+            last = datetime.fromisoformat(state["last_tick"].replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            pass
+        if last and state["waiting"]:
+            idle = (datetime.now(timezone.utc) - last).total_seconds() / 3600
+            if idle > 2:
+                return state["problems"] + [
+                    f"work is queued but drain-writers.yml has not ticked in "
+                    f"{idle:.0f}h — the drainer itself is down"]
+
+    return state["problems"]
 
 
 def _report_coverage() -> None:

@@ -91,23 +91,33 @@ jobs:
       # Same shape as collect.yml, and for the same reason: this job checks out
       # main, works for several minutes, then pushes, and any push to main in
       # that window rejects it. Rebasing a SQLite file is not sensible, so this
-      # does not try; the concurrency group makes this the only writer, so
-      # resetting to the remote and putting our files back is always correct.
+      # does not try — it resets to the remote and MERGES the database in with
+      # merge_db.py.
+      #
+      # The measurement files around it stay whole-file copies, which is right:
+      # they are snapshots with no row identity to merge on. The database is not
+      # one of those, and treating it as one destroyed 9,572 rows and the whole
+      # identity cache on 2026-07-28/29. The concurrency group does not make a
+      # copy safe: it cannot see a human pushing from a laptop, and a run it
+      # queues is stale by exactly as long as it waited (see merge_db.py).
       - name: Commit the measurement
         if: ${{ !cancelled() }}
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
 
-          paths="analysis/recall/results data/recall_worklist.json data/talent_intel.db wordpress-plugin/talent-intelligence-tracker/data/recall.json"
-          git add $paths 2>/dev/null || true
+          db=data/talent_intel.db
+          # Snapshot files, copied back whole. The database is handled separately
+          # below because it is the one thing here that merges.
+          paths="analysis/recall/results data/recall_worklist.json wordpress-plugin/talent-intelligence-tracker/data/recall.json"
+          git add $paths $db 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change to commit."
             exit 0
           fi
 
           mkdir -p "$RUNNER_TEMP/keep"
-          for p in $paths; do
+          for p in $paths $db; do
             if [ -e "$p" ]; then
               mkdir -p "$RUNNER_TEMP/keep/$(dirname "$p")"
               cp -R "$p" "$RUNNER_TEMP/keep/$(dirname "$p")/"
@@ -115,25 +125,26 @@ jobs:
           done
 
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "recall: measured $(date -u +%Y-%m-%d)" || true
-            if git push; then
-              echo "Pushed on attempt $attempt."
-              exit 0
-            fi
-            echo "Push rejected (attempt $attempt), replaying onto the current main."
             git fetch origin main
             git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/keep/$db" "$db"
             for p in $paths; do
               if [ -e "$RUNNER_TEMP/keep/$p" ]; then
                 mkdir -p "$(dirname "$p")"
                 cp -R "$RUNNER_TEMP/keep/$p" "$(dirname "$p")/"
               fi
             done
-            git add $paths 2>/dev/null || true
+            git add $paths $db 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this measurement."
               exit 0
             fi
+            git commit -q -m "recall: measured $(date -u +%Y-%m-%d)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), merging onto the current main."
             sleep $((attempt * 5))
           done
 

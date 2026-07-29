@@ -38,6 +38,32 @@ def test_every_step_has_a_run_or_uses(path):
             )
 
 
+def _code(run):
+    """The step's script with comments stripped.
+
+    Every assertion about ORDER has to run against this. The comments in these
+    steps talk about `merge_db.py` and `git reset --hard` by name, so matching
+    against the raw text finds the explanation rather than the command.
+    """
+    return "\n".join(line for line in run.splitlines()
+                     if not line.lstrip().startswith("#"))
+
+
+def _database_writers():
+    """Every workflow that writes data/talent_intel.db, as (name, commit steps)."""
+    import yaml
+
+    for path in WORKFLOWS:
+        text = path.read_text()
+        if "talent_intel.db" not in text:
+            continue
+        parsed = yaml.safe_load(text)
+        steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])
+                 if "talent_intel.db" in _code(s.get("run") or "")]
+        if steps:
+            yield path.name, steps
+
+
 def test_the_collect_commit_survives_a_racing_push():
     """The first armed run collected 28 records and lost all of them.
 
@@ -54,17 +80,102 @@ def test_the_collect_commit_survives_a_racing_push():
         (Path(__file__).parent.parent / ".github/workflows/collect.yml").read_text())
     step = next(s for s in wf["jobs"]["collect"]["steps"]
                 if s.get("name") == "Commit the database")
-    run = step["run"]
+    run = _code(step["run"])
 
     assert "for attempt in" in run, "a single push attempt loses the data on any race"
     assert "git fetch origin main" in run and "git reset --hard origin/main" in run
-    # Our file is the checked-out database plus this run's rows, so it has to be
-    # put back after the reset or the reset throws the collection away.
-    assert run.index("git reset --hard") < run.index('cp "$RUNNER_TEMP/collected.db"',
+    # Our rows have to survive the reset. They used to be restored by copying our
+    # whole file back, which is the bug below; now they are merged back in.
+    assert run.index("git reset --hard") < run.index("merge_db.py",
                                                      run.index("git reset --hard"))
     # Failure must be loud. Silently exiting 0 here is how a month of runs
     # quietly stores nothing.
     assert "::error::" in run and run.rstrip().endswith("exit 1")
+
+
+def test_no_writer_copies_its_database_over_the_reset():
+    """The reset-and-copy that cost 9,572 signal rows and the identity cache.
+
+    Every writer used to end the same way: on a rejected push, `git reset --hard
+    origin/main` and then `cp our.db data/talent_intel.db`. That replaces the
+    WHOLE file, so every row anyone else committed while this run was collecting
+    is destroyed, and nothing reports an error.
+
+    The comment defending it argued the concurrency group made the run the only
+    writer. That was wrong in two directions, and both were paid for on
+    2026-07-28/29:
+
+      * the group only excludes other workflow RUNS. A human or an agent
+        committing the database from a laptop is invisible to it, which is how
+        the 3,604-row employer_identity cache went to zero (9991861 -> e1bfb03).
+      * a run the group serialises CORRECTLY is stale by construction.
+        actions/checkout gives it the SHA pinned when it was dispatched, so the
+        longer it waits for the lock the more it is about to overwrite. Run
+        30413051586 was dispatched at 01:05, started at 03:21, and discarded the
+        311 rows pushed at 03:21:28 (d46fb10 -> 4d604f3).
+
+    So the lock is necessary and nowhere near sufficient, and this asserts the
+    thing that actually is: nobody restores the database by copying a file onto
+    it. Merging is the only safe way back, and merge_db.py is where it lives.
+    """
+    offenders = {}
+    for name, steps in _database_writers():
+        for step in steps:
+            for line in _code(step["run"]).splitlines():
+                stripped = line.strip()
+                if not stripped.startswith(("cp ", "mv ", "install ")):
+                    continue
+                # The destination is the last word. Saving the database TO
+                # $RUNNER_TEMP is fine and necessary; restoring FROM it is the bug.
+                destination = stripped.rstrip("\\").split()[-1].strip("'\"")
+                if destination.endswith("data/talent_intel.db"):
+                    offenders.setdefault(name, []).append(stripped)
+
+    assert not offenders, (
+        "these steps restore the database by copying a file over it, which "
+        f"destroys every row another writer pushed in the meantime: {offenders}"
+    )
+
+
+def test_every_writer_that_resets_merges_its_rows_back():
+    """`git reset --hard origin/main` throws this run's rows away.
+
+    Whatever puts them back has to be a merge. The one place this must NOT be
+    applied is correct-form-d.yml, which edits rows in place rather than
+    appending a revision — a merge has no new (content_hash, revision) to carry,
+    so it would turn a loud rerun into a silent no-op. It rebases instead, and
+    so never reaches this assertion.
+    """
+    for name, steps in _database_writers():
+        for step in steps:
+            run = _code(step["run"])
+            if "git reset --hard" not in run:
+                continue
+            assert "merge_db.py" in run, (
+                f"{name} resets to origin/main without merging its rows back, "
+                "so everything this run collected is discarded"
+            )
+            assert run.index("git reset --hard") < run.index("merge_db.py"), (
+                f"{name} merges before the reset, which then discards the merge"
+            )
+            # The merge has to be what gets committed, not an afterthought.
+            assert run.index("merge_db.py") < run.index("git commit"), (
+                f"{name} commits before merging, so it commits the unmerged file"
+            )
+
+
+def test_a_failed_push_is_loud():
+    """A writer that gives up quietly leaves rows on a runner that gets deleted,
+    while WordPress keeps the published copy — so the next run re-fetches and
+    re-pays the LLM for the same stories."""
+    for name, steps in _database_writers():
+        for step in steps:
+            run = _code(step["run"])
+            if "for attempt in" not in run:
+                continue
+            assert "::error::" in run and run.rstrip().endswith("exit 1"), (
+                f"{name} exhausts its push attempts without failing the run"
+            )
 
 
 def test_every_database_writer_shares_one_lock():

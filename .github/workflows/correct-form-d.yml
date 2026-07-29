@@ -78,6 +78,17 @@ jobs:
           fi
           git commit -m "data: correct published form D rows $(date -u +%Y-%m-%dT%H:%MZ)"
           # Another writer may have landed while this ran. Rebase rather than
-          # force: the other run's rows are as real as ours.
+          # force: the other run's rows are as real as ours. On a binary
+          # conflict this stops and the run goes red, which is the honest
+          # outcome — rerun it. It has never silently dropped anyone's rows the
+          # way reset-and-copy did.
+          #
+          # Do NOT "fix" this into the merge_db.py loop the collectors use.
+          # correct_form_d.py edits rows IN PLACE (UPDATE ... WHERE content_hash
+          # = ? AND is_current = 1) rather than appending a revision, so its
+          # corrections carry no new (content_hash, revision) for a merge to
+          # find, and merge_db.py would skip every one of them. That would turn
+          # a loud rerun into a silent no-op. correct-sec-pillar.yml is safe to
+          # merge because it goes through store.revise(); this is not.
           git pull --rebase --autostash origin main
           git push

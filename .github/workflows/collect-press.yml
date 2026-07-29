@@ -109,19 +109,16 @@ jobs:
             exit 0
           fi
 
+          # The database MERGES; the health JSON is a whole-file snapshot with no
+          # row identity, so it stays last-writer-wins. Copying the database the
+          # same way is what cost 9,572 rows on 2026-07-28/29 (see merge_db.py).
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
           cp data/national_press_health.json "$RUNNER_TEMP/press_health.json" 2>/dev/null || true
 
           for attempt in 1 2 3 4 5; do
-            git commit -q -m "data: national press $(date -u +%Y-%m-%dT%H:%MZ)" || true
-            if git push; then
-              echo "Pushed on attempt $attempt."
-              exit 0
-            fi
-            echo "Push rejected (attempt $attempt) — replaying onto the current main."
             git fetch origin main
             git reset --hard origin/main
-            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
             cp "$RUNNER_TEMP/press_health.json" data/national_press_health.json 2>/dev/null || true
             git add data/talent_intel.db data/national_press_health.json 2>/dev/null \
               || git add data/talent_intel.db
@@ -129,6 +126,12 @@ jobs:
               echo "Remote already has this data."
               exit 0
             fi
+            git commit -q -m "data: national press $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
             sleep $((attempt * 5))
           done
 
