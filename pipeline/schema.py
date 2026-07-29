@@ -175,6 +175,53 @@ CREATE TABLE IF NOT EXISTS source_health (
     PRIMARY KEY (collector, run_at)
 );
 
+-- Link rot, per SOURCE URL rather than per row (link_check.py, archive_sources.py).
+--
+-- WHY A SEPARATE TABLE. The promise is that every figure links to the document
+-- that states it, so a source link that dies converts a sourced claim into an
+-- unsourced one WITHOUT anything looking broken. That has to be recorded
+-- somewhere, and it must not be recorded on the signal: a dead link is not a
+-- correction, nothing about what we knew has changed, and appending a revision
+-- for it would put HTTP weather into the record of what a source said.
+--
+-- Keyed on the URL because 15,631 current rows share 13,893 distinct source
+-- URLs (and thousands of SEC rows share a handful of filing index pages), so
+-- one check and one snapshot serve every row that cites the same document.
+--
+-- Nothing here ever deletes or edits a signal. A dead link is recorded and
+-- surfaced; deciding what to do about it is a human step, on purpose.
+CREATE TABLE IF NOT EXISTS source_links (
+    source_url    TEXT PRIMARY KEY,
+
+    -- Reachability, from link_check.py.
+    http_status   INTEGER,        -- 0 means the request never completed
+    final_url     TEXT,           -- where it landed after redirects
+    final_domain  TEXT,           -- registrable domain of final_url
+    state         TEXT,           -- live | walled | dead | drifted | unreachable | error | robots
+    checked_at    TEXT,
+    check_detail  TEXT,
+    checks        INTEGER NOT NULL DEFAULT 0,
+
+    -- Permanence, from archive_sources.py. archive_url is a Wayback permalink:
+    -- a neutral third-party copy, so a reader can still reach the evidence when
+    -- the publisher's own copy is gone.
+    archive_url      TEXT,
+    archive_state    TEXT,        -- archived | pending | unavailable
+    archive_attempts INTEGER NOT NULL DEFAULT 0,
+    archived_at      TEXT,
+
+    -- Reporting only. A rot rate that rises for ONE publisher means that
+    -- publisher changed its URL scheme, which is actionable in a way that an
+    -- overall percentage is not.
+    source_name   TEXT,
+    host          TEXT,
+
+    -- Merge key. Both jobs write this row, so merge_db.py resolves a collision
+    -- by keeping the later write wholesale. Both jobs are resumable and
+    -- idempotent, so the worst a lost update costs is one cycle.
+    updated_at    TEXT NOT NULL
+);
+
 -- Employer identity resolutions (pipeline/identity.py). Keyed per EMPLOYER,
 -- not per signal: employers repeat and the SEC filers among them recur every
 -- quarter, so this is the difference between one lookup and forty.
@@ -212,6 +259,14 @@ CREATE INDEX IF NOT EXISTS idx_signals_cik      ON signals(cik);
 CREATE INDEX IF NOT EXISTS idx_signals_material ON signals(materiality);
 CREATE INDEX IF NOT EXISTS idx_signals_site_evt ON signals(site_event);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
+CREATE INDEX IF NOT EXISTS idx_links_state    ON source_links(state);
+CREATE INDEX IF NOT EXISTS idx_links_checked  ON source_links(checked_at);
+CREATE INDEX IF NOT EXISTS idx_links_archive  ON source_links(archive_state);
+CREATE INDEX IF NOT EXISTS idx_links_host     ON source_links(host);
+-- Deliberately NO index on signals(source_url). It would help the GROUP BY in
+-- source_links.distinct_source_urls by a millisecond or two on 15k rows, and it
+-- added 1.7 MB to a database that is committed to the repo on every collect run
+-- and therefore stored again in full by git each time. The wrong trade.
 """
 
 

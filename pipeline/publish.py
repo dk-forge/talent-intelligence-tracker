@@ -51,6 +51,11 @@ FIELDS = (
     "headcount_scope", "funding_amount", "funding_amount_usd", "funding_stage",
     "work_mode", "deal_type", "site_event",
     "materiality", "confidence", "source_url", "source_name",
+    # `archive_url` is deliberately NOT here. It is not a field of Signal and
+    # never could be: a row is built at classification time and its Wayback
+    # snapshot is captured afterwards, so at publish time it is always empty.
+    # It travels through ENRICHABLE below instead, which is the path that exists
+    # precisely for values learned after a row was published.
     "discovery_url", "published_date", "effective_date", "captured_at",
     "as_of", "content_hash", "predicted_outcome", "check_after_date",
     "collector",
@@ -77,6 +82,11 @@ ENRICHABLE = (
     # which is the right place for that to happen and the only place it is
     # reversible.
     "hq_city", "hq_country",
+    # A neutral third-party snapshot of the document this row already cites.
+    # Looked up, never claimed by a source, and it can only ADD a fallback: it
+    # is not source_url and can never become it, so a bug in archiving leaves a
+    # row exactly as sourced as it already was.
+    "archive_url",
 )
 
 

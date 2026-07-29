@@ -150,7 +150,7 @@ function tit_dashboard_shortcode() {
     $rows = $wpdb->get_results(
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
-                published_date
+                archive_url, published_date
            FROM {$table} WHERE {$base}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
@@ -868,7 +868,14 @@ function tit_dashboard_shortcode() {
                   echo $when ? esc_html(date_i18n('j M Y', strtotime($when)))
                              : '<span class="tit-nowhere">Date not stated</span>';
                 ?></td>
-                <td class="tit-meta" data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a></td>
+                <td class="tit-meta" data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a><?php
+                  // The fallback, and only ever a SECOND link. Publishers
+                  // unpublish, rewrite their URL schemes and let domains lapse,
+                  // and when that happens a sourced claim silently becomes an
+                  // unsourced one. A neutral third-party snapshot keeps the
+                  // evidence reachable. The publisher's own copy is the
+                  // citation and stays the citation; this never replaces it.
+                  if (!empty($r['archive_url'])): ?><span class="tit-archived"> · <a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank" title="A copy saved by the Internet Archive, for when the publisher's own page has moved or gone">archived</a></span><?php endif; ?></td>
               </tr>
             <?php endforeach; ?>
           </tbody>

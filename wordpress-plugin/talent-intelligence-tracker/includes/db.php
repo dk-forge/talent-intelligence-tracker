@@ -249,6 +249,9 @@ function tit_insert_signal(array $row, $flush = true) {
         'source_url'         => (string) $row['source_url'],
         'source_name'        => (string) ($row['source_name'] ?? ''),
         'discovery_url'      => $row['discovery_url'] ?: null,
+        // archive_url is deliberately absent: a row's Wayback snapshot is
+        // captured after ingest, so it is always empty at insert time and
+        // arrives later through /enrich instead.
         'published_date'     => $row['published_date'] ?: null,
         'effective_date'     => !empty($row['effective_date']) ? (string) $row['effective_date'] : null,
         'captured_at'        => (string) ($row['captured_at'] ?? current_time('mysql', true)),

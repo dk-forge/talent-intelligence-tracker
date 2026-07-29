@@ -975,6 +975,14 @@ function tit_enrichable_columns() {
         // country filter already unions the two at query time, which is where
         // that belongs.
         'hq_city', 'hq_country',
+        // A Wayback permalink for the source_url this row already carries,
+        // recorded by archive_sources.py. Looked up, never claimed by a
+        // source, so it sits in the same class as ticker and cik. It can only
+        // ADD a fallback: it is not source_url, it can never overwrite
+        // source_url, and a row whose archiving failed is exactly as sourced as
+        // it was. That is why the snapshot lives in its own column rather than
+        // being written over a link that died.
+        'archive_url',
     );
 }
 

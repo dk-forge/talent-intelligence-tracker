@@ -40,6 +40,7 @@ on:
   workflow_run:
     types: [completed]
     workflows:
+      - archive-sources
       - backfill-2026
       - backfill-funding-2026
       - backfill-funding-bulk
@@ -50,6 +51,7 @@ on:
       - correct-form-d
       - correct-sec-pillar
       - enrich
+      - link-check
       - recall
       - retract
       - tripwire

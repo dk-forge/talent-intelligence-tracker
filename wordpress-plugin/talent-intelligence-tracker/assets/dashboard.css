@@ -741,6 +741,12 @@
    story is. */
 .tit-nowhere { color:var(--tit-faint); font-style:italic; font-size:13.5px; }
 
+/* The archived copy sits quietly beside the publisher's own link. It is a
+   fallback for a reader whose click landed on a moved or removed page, not a
+   competing citation, so it is deliberately the smaller of the two. */
+.tit-archived { color:var(--tit-mut); font-size:12.5px; white-space:nowrap; }
+.tit-archived a { color:var(--tit-mut); }
+
 /* A chart with nothing in it says so. A blank card reads as broken. */
 .tit-rank-empty { margin:0; font-size:13.5px; color:var(--tit-mut); font-style:italic; }
 

@@ -1,0 +1,145 @@
+name: link-check
+
+# Are the documents we cite still there, and still themselves?
+#
+# The promise is that every update links to the filing or report behind it. A
+# source link that dies converts a sourced claim into an unsourced one and
+# nothing on the page looks different, so the only way anyone finds out is by
+# checking. With 575 publisher feeds across 139 countries in the catalogue, rot
+# is a certainty rather than a risk.
+#
+# DORMANT. There is no `schedule:` below, deliberately: this ships dispatch-only
+# and gets armed once a few real runs have shown what its rot rate looks like.
+# Arm it by uncommenting the weekly cron, and tighten link_check's leash in
+# health_digest.py MAX_AGE_HOURS to 200 in the same change, or a checker that
+# stops running will look exactly like a checker with nothing to report.
+#
+# NEVER DISPATCH THIS DIRECTLY. It writes data/talent_intel.db, so it shares the
+# single `talent-collect` lock, and GitHub keeps exactly ONE pending run per
+# lock: a direct dispatch past a waiting run evicts that run silently, with no
+# steps, no logs and no annotation. Queue it instead:
+#
+#   gh workflow run drain-writers.yml \
+#     -f enqueue=link-check.yml -f inputs_json='{"dry_run":"false"}' \
+#     -f reason='weekly link rot sweep'
+#
+# COST: zero. No model is called. This is HTTP and a SQLite write.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Check and report, record nothing (default: yes)'
+        type: boolean
+        default: true
+      limit:
+        description: 'URLs to check this run'
+        type: string
+        default: '150'
+      random:
+        description: 'Sample the corpus at random, for a representative rot rate'
+        type: boolean
+        default: false
+      collector:
+        description: 'Only URLs stored by this collector (blank = all)'
+        type: string
+        default: ''
+
+  # schedule:
+  #   - cron: '30 5 * * 1'   # Mondays, before the weekly health digest reads the ledger
+
+concurrency:
+  # The same lock every database writer uses. See tests/test_workflows.py.
+  group: talent-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # Said loudly, because a green run that recorded nothing is the exact trap
+      # deploy-plugin.yml sets with its own dry_run default. The mode is derived
+      # ONCE and both the message and the command read the same value: deriving
+      # it twice is how a run announces one mode and performs the other, which
+      # on a scheduled trigger (where `inputs` is empty) it otherwise would.
+      - name: Say which mode this is
+        env:
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          if [ -z "$DRY" ]; then
+            echo "RECORDING. Results will be written to source_links and committed."
+          else
+            echo "::warning::DRY RUN. This run checks links and records NOTHING."
+            echo "Dispatch with dry_run=false through drain-writers.yml to record."
+          fi
+
+      # Inputs arrive through the environment and are never interpolated into
+      # the script: a `${{ }}` inside a run block is pasted in as text before the
+      # shell sees it, so a quote in an input would end the command.
+      - name: Check the links
+        env:
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+          RANDOM_SAMPLE: ${{ inputs.random && '--random' || '' }}
+          LIMIT: ${{ inputs.limit }}
+          COLLECTOR: ${{ inputs.collector }}
+        run: |
+          set -euo pipefail
+          ARGS=(--limit "${LIMIT:-150}")
+          [ -n "$DRY" ] && ARGS+=("$DRY")
+          [ -n "$RANDOM_SAMPLE" ] && ARGS+=("$RANDOM_SAMPLE")
+          [ -n "$COLLECTOR" ] && ARGS+=(--collector "$COLLECTOR")
+          python link_check.py "${ARGS[@]}"
+
+      - name: Status
+        if: ${{ !inputs.dry_run }}
+        run: python ops_status.py || true
+
+      # Identical in shape to collect.yml, and for the same reason: a run that
+      # worked for several minutes and then lost its push holds the only copy of
+      # what it observed. The database MERGES rather than being copied back;
+      # copying is what cost 9,572 rows on 2026-07-28/29 (see merge_db.py).
+      - name: Commit the ledger
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No ledger change."
+            exit 0
+          fi
+
+          cp data/talent_intel.db "$RUNNER_TEMP/checked.db"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/checked.db" data/talent_intel.db
+            git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this ledger."
+              exit 0
+            fi
+            git commit -q -m "links: rot check $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the link ledger after 5 attempts. \
+          This run's observations exist only on the runner and are lost."
+          exit 1

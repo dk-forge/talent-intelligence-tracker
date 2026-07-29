@@ -243,6 +243,20 @@
     return esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]);
   }
 
+  // The archived copy, and only ever as a SECOND link beside the publisher's
+  // own. Source links rot: outlets unpublish, URL schemes change, domains
+  // lapse. When that happens a sourced claim silently becomes an unsourced one,
+  // which is the one failure this product cannot absorb. A neutral third-party
+  // snapshot keeps the evidence reachable without ever replacing the citation.
+  // Must render identically to shortcodes.php, or a filtered row would differ
+  // from the row it replaced.
+  function archivedLink(r) {
+    if (!r.archive_url) return '';
+    return '<span class="tit-archived"> · <a href="' + esc(r.archive_url) +
+      '" rel="nofollow noopener" target="_blank" title="A copy saved by the ' +
+      'Internet Archive, for when the publisher\'s own page has moved or gone">archived</a></span>';
+  }
+
   function renderRow(r) {
     // Fall back to headquarters when the source named no place, and say so.
     var isHq = !r.city && !r.country;
@@ -271,7 +285,7 @@
         esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
       '<td class="tit-meta tit-when" data-label="When">' + whenCell(r) + '</td>' +
       '<td class="tit-meta" data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
-        esc(r.source_name) + '</a></td>' +
+        esc(r.source_name) + '</a>' + archivedLink(r) + '</td>' +
       '</tr>';
   }
 

@@ -1,0 +1,153 @@
+name: archive-sources
+
+# Give every cited document a permanent third-party copy, so a reader can still
+# reach the evidence when the publisher's own copy is gone.
+#
+# Two passes: ask the Wayback availability API whether a snapshot already exists
+# (free), and spend a small, bounded Save Page Now budget only on the misses.
+# Save Page Now is heavily rate-limited for anonymous callers, its first-attempt
+# hit rate is roughly 48%, and a full backfill takes about a week. RAISING
+# spn_max DOES NOT SPEED THIS UP — it gets us throttled and the run captures
+# less. A slow coverage climb is the design working.
+#
+# DORMANT. No `schedule:` below on purpose. Arming the daily cron is what turns
+# this into an ingest-time job: candidates are ordered newest-capture first, so
+# a run after a collect archives what that collect just stored while everything
+# older backfills from behind it, with no change to the ingest write path. When
+# you arm it, tighten archive_sources in health_digest.py MAX_AGE_HOURS to 200
+# in the same change.
+#
+# NEVER DISPATCH THIS DIRECTLY. It writes data/talent_intel.db and shares the
+# single `talent-collect` lock; a direct dispatch past a waiting run evicts that
+# run silently. Queue it:
+#
+#   gh workflow run drain-writers.yml \
+#     -f enqueue=archive-sources.yml -f inputs_json='{"dry_run":"false"}' \
+#     -f reason='nightly archive backfill'
+#
+# COST: zero. No model is called.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Free availability pass only, capture and record nothing (default: yes)'
+        type: boolean
+        default: true
+      limit:
+        description: 'Candidate URLs to examine this run'
+        type: string
+        default: '600'
+      spn_max:
+        description: 'Save Page Now captures this run. Leave it alone; higher is slower.'
+        type: string
+        default: '40'
+      collector:
+        description: 'Comma-separated collectors to archive (blank = all)'
+        type: string
+        # The publisher long tail, on purpose. Measured 2026-07-29: 29% of
+        # publisher URLs were already in Wayback against 3% of the SEC and
+        # GOV.UK ones, and it is the publisher tail that rots while EDGAR keeps
+        # its filings indefinitely. Spending a 40-capture nightly budget on
+        # 12,700 SEC index pages would take the better part of a year and
+        # preserve documents a government already preserves. Blank this when
+        # the tail is fully covered and the budget has somewhere better to go.
+        default: 'national_press,google_news,gdelt,ats_boards'
+
+  # schedule:
+  #   - cron: '40 3 * * *'   # nightly, well clear of the collect windows
+
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  archive-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # Derived ONCE and read by both the message and the command. Deriving it
+      # twice is how a run announces one mode and performs the other, which on a
+      # scheduled trigger (where `inputs` is empty) it otherwise would.
+      - name: Say which mode this is
+        env:
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          if [ -z "$DRY" ]; then
+            echo "RECORDING. Snapshots will be captured and committed."
+          else
+            echo "::warning::DRY RUN. This run asks Wayback what it already has,"
+            echo "captures NOTHING and records NOTHING."
+          fi
+
+      # Inputs travel through the environment, never interpolated into the shell.
+      - name: Archive the sources
+        env:
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+          LIMIT: ${{ inputs.limit }}
+          SPN_MAX: ${{ inputs.spn_max }}
+          COLLECTOR: ${{ inputs.collector }}
+        run: |
+          set -euo pipefail
+          ARGS=(--limit "${LIMIT:-600}" --spn-max "${SPN_MAX:-40}")
+          [ -n "$DRY" ] && ARGS+=("$DRY")
+          # On a scheduled run `inputs` is empty, so state the publisher tail
+          # here as well rather than letting a cron quietly archive everything.
+          ARGS+=(--collector "${COLLECTOR:-national_press,google_news,gdelt,ats_boards}")
+          python archive_sources.py "${ARGS[@]}"
+
+      - name: Status
+        if: ${{ !inputs.dry_run }}
+        run: python ops_status.py || true
+
+      # Same shape as every other writer: merge back after a reset, never copy.
+      - name: Commit the ledger
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No new snapshots."
+            exit 0
+          fi
+
+          cp data/talent_intel.db "$RUNNER_TEMP/archived.db"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/archived.db" data/talent_intel.db
+            # The projection onto signals.archive_url is re-derived rather than
+            # merged: merge_db keys signals on (content_hash, revision) and
+            # skips rows it already holds, so an UPDATE to an existing row does
+            # not travel. Re-deriving it here from the merged ledger is cheap
+            # and idempotent, and it is why the projection lives in a function.
+            python -c "from pipeline import schema, source_links; c = schema.connect('data/talent_intel.db'); print('re-projected', source_links.project_archive_urls(c), 'row(s)'); c.commit()"
+            git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has these snapshots."
+              exit 0
+            fi
+            git commit -q -m "links: wayback snapshots $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the archive ledger after 5 attempts. \
+          This run's snapshots exist only on the runner and are lost."
+          exit 1

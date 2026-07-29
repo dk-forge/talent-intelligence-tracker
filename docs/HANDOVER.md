@@ -46,7 +46,7 @@ orphans.
 |---|---|---|
 | 1 | **Bounded backfill slices** | A 350-min GDELT backfill held the writer lock, hit its timeout, lost ~6h of work AND starved every correction. Priority cannot preempt a running job; only self-requeuing slices fix it. |
 | 2 | **Scope breach: layoff 8-Ks stored here** | Atlassian (~10%), Groupon (400), IO Biotech, Lyra. Layoffs must be READ from the sibling's API. The guard reads the headline and `sec_edgar` writes the same generic headline onto everything, so it never sees the reduction language. |
-| 3 | **Link checker + Wayback** | Neither exists here; the sibling has both. A dead link silently converts a sourced claim into an unsourced one. **Do not use a WordPress broken-link plugin** — those crawl post content, and our links live in `wp_tit_signals`. |
+| 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, both DORMANT** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Measured on real stored URLs below. Next step is to arm them, not to build them. |
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
 | 5 | **Company profile pages** | `/company/{slug}` — best view for a recruiter vetting an account, and the only SEO shape that beats an incumbent's domain authority. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
@@ -167,6 +167,95 @@ closed-on date, and no archive holds snapshots of them. Every series starts the
 day we began counting, so a day the daily run misses is gone permanently. That
 is why `collect-structured.yml` commits `data/ats_board_state.json` on
 `!cancelled()` rather than on success.
+
+---
+
+## Link rot and archiving (built 2026-07-29, both DORMANT)
+
+`link_check.py`, `archive_sources.py`, and the `source_links` table they share.
+Zero cost: no model is called by either, ever.
+
+**Why it is load-bearing here and not merely nice.** The promise is that every
+update links to the filing or report behind it. A source link that dies does not
+inconvenience a reader, it silently converts a sourced claim into an unsourced
+one, and the page looks identical afterwards. With 575 publisher feeds across
+139 countries, many of them small national outlets, that is a certainty.
+
+**The ledger is keyed on the URL, never on the row.** 15,631 current signals
+share 12,890 distinct source URLs and the SEC collectors put thousands of rows
+behind a handful of index pages, so one check and one snapshot serve all of them.
+Nothing here deletes, retracts or revises a signal: the single write to `signals`
+is `archive_url`, a provenance column that can reach no claim, figure, date or
+source URL. Deciding what to do about a dead link is a human step, on purpose.
+An automatic reaction to an HTTP code would let a publisher's bad afternoon
+delete evidence.
+
+**Do not replace this with a WordPress broken-link-checker plugin.** They crawl
+POST CONTENT. Our source links live in `wp_tit_signals`, so such a plugin would
+check a handful of prose links, find them healthy, and paint a green badge over
+an entirely unchecked corpus, which is worse than no checker because it arrives
+with a reassuring number attached. Said again in a comment at the top of both
+`link_check.py` and `pipeline/source_links.py`.
+
+### Measured on real stored URLs, 2026-07-29 (dry runs, nothing recorded)
+
+| Population | Checked | Rotted | Notes |
+|---|---|---|---|
+| `national_press` | 27 | 0 | one consent-gate bounce, one HTTP 454 |
+| `google_news` | 101 | 0 | 89 live, 10 bot-walled, 2 robots-disallowed |
+| `gdelt` | 3 | 0 | |
+| `ats_boards` | 10 | 0 | |
+| **publisher total** | **141** | **0 (0.0%)** | |
+
+**Read that number with its age.** These rows are days to weeks old and rot is a
+function of time, so 0% today is a baseline rather than a result. The value of
+the ledger is the SECOND measurement, and the per-publisher breakdown after it:
+a publisher going from 0% to 60% has changed its URL scheme, which is a fix.
+
+**Wayback coverage already held, before we capture anything:**
+publisher URLs **38/131 (29%)**, SEC and GOV.UK URLs **4/150 (3%)**.
+
+That gap decided the nightly default. EDGAR and the GOV.UK pay-gap service keep
+their own documents indefinitely; the small-outlet tail does not. Spending a
+40-capture nightly budget on 12,700 SEC index pages would take most of a year to
+preserve documents a government already preserves, so `archive-sources.yml`
+defaults to `--collector national_press,google_news,gdelt,ats_boards`. Blank it
+once the tail is covered.
+
+### The finding that justifies the drift guard
+
+The sweep's one loud hit was `hln.be`, which answers 200 and lands on
+`myprivacy.dpgmedia.be` — a different registrable domain. That is a consent
+gate, not a takeover, and the checker now says so, because the gate carries the
+article URL back with it in its callback and a squatter has no reason to name the
+document it replaced. The distinction is the whole point: `drifted` has to keep
+meaning "somebody else is serving this now" rather than degrading into a list of
+European cookie banners. The case it is really for is
+`botswanaguardian.co.bw`, which became a betting site whose feed verified
+perfectly green. A cited article that quietly becomes a casino is worse than a
+404, because a 404 announces itself.
+
+### Arming them
+
+Both are dispatch-only with `dry_run` defaulting to true, and both write the
+database, so **queue them, never dispatch them**:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=link-check.yml \
+     -f inputs_json='{"dry_run":"false","random":"true","limit":"200"}' \
+     -f reason='first recorded rot measurement'
+```
+
+Arming means uncommenting the cron in the workflow AND tightening
+`link_check` / `archive_sources` in `health_digest.py` `MAX_AGE_HOURS` from 2400
+to 200 in the same commit. A checker that stops running otherwise looks exactly
+like a checker with nothing to report.
+
+**Not yet verified:** the reader-facing fallback link. `archive_url` is now
+enrichable end to end (`pipeline/publish.py` -> `tit_enrichable_columns()`) and
+rendered beside the publisher's link in both `shortcodes.php` and
+`dashboard.js`, but plugin **1.43.0 has not been deployed**, and no row carries
+an `archive_url` yet because every archiving run so far was a dry run.
 
 ---
 

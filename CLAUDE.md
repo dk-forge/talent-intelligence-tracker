@@ -110,6 +110,21 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   **Never guess the inputs of a lost run**: `correct-form-d` and
   `correct-sec-pillar` both default to `dry_run=true`, so a re-dispatch with
   defaults is a green run that changes nothing.
+- **A dead source link is never fixed by editing the row.** The whole promise is
+  that every update links to the document behind it, so a link that dies turns a
+  sourced claim into an unsourced one while the page looks unchanged.
+  `link_check.py` records the state (status, final URL, date) in `source_links`,
+  keyed on the URL and never on the row; `archive_sources.py` gives each cited
+  document a Wayback fallback so the evidence outlives the publisher's copy;
+  `ops_status.py [2c]` and the weekly digest surface both. Nothing deletes or
+  retracts automatically. The dangerous case is not a 404 but a **drifted
+  domain**: a cited URL that now answers 200 from somebody else's site
+  (`botswanaguardian.co.bw` became a betting site), which is why the checker
+  reuses the collector's domain-drift guard rather than trusting status codes.
+  Both jobs ship **DORMANT** (dispatch only) and cost nothing: no model is
+  called. **Do not replace either with a WordPress broken-link-checker plugin** —
+  those crawl post content, our source links live in `wp_tit_signals`, and it
+  would paint a green badge over an entirely unchecked corpus.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how

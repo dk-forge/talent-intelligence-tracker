@@ -32,6 +32,14 @@ What merges, and on what key:
   employer_identity  pure cache, PK company_key. The later resolved_at wins,
                      which is what identity.py's INSERT OR REPLACE means.
   source_health      append-only ledger, PK (collector, run_at). Union.
+  source_links       link-rot ledger, PK source_url. The later updated_at wins
+                     wholesale. Two jobs write it (link_check and
+                     archive_sources) and a true collision can drop one of
+                     them's fields for one URL; both are resumable and
+                     idempotent, so the next run re-derives it. Losing a
+                     reachability observation for a cycle is a very different
+                     cost from losing a signal, which is why this one is allowed
+                     to be simple.
 
 Usage:
     python merge_db.py OURS INTO
@@ -196,6 +204,8 @@ def merge(ours_path: Path, into_path: Path) -> dict[str, int]:
                 "employer_identity_added": _merge_cache(
                     ours, into, "employer_identity", newer_column="resolved_at"),
                 "source_health_added": _merge_cache(ours, into, "source_health"),
+                "source_links_added": _merge_cache(
+                    ours, into, "source_links", newer_column="updated_at"),
             }
         # A merge that loses rows is the bug this file exists to end, so it is
         # checked rather than assumed.

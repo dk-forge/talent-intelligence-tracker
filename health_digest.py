@@ -54,7 +54,7 @@ DIGEST_NAME = "health_digest"
 # `newest_run_hours` look fresh while every real collector was dead - which is
 # precisely the blind spot pipeline_stopped() exists to close. They are still
 # classified for staleness and degradation like anything else.
-MEASUREMENT_ONLY = {"recall", "tripwire"}
+MEASUREMENT_ONLY = {"recall", "tripwire", "link_check", "archive_sources"}
 
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.
@@ -89,6 +89,13 @@ MAX_AGE_HOURS = {
     # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
     # schedule in .github/workflows/tripwire.yml is uncommented.
     "tripwire": 2400,
+    # Link rot and archiving. Both ship DORMANT (no cron in their workflows), so
+    # a manual run followed by weeks of silence is the expected state rather
+    # than an incident. Tighten both to 200 the day their schedules are
+    # uncommented: link-check is weekly and archive-sources is daily, so two
+    # missed runs is what should start a conversation.
+    "link_check": 2400,
+    "archive_sources": 2400,
 }
 DEFAULT_MAX_AGE_HOURS = 336  # 14 days
 
@@ -326,6 +333,18 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'me what actually broke."'
             % ("any recorded run" if newest_hours is None
                else "%.0f hours" % newest_hours))
+    elif "link_check" in names:
+        # A drifted link is the one finding here that is neither a parser bug
+        # nor decay, so the generic "fix the collector" instruction below would
+        # send the owner to the wrong file entirely. It is a URL we cite being
+        # served by somebody else, and it needs a person to look at the page.
+        lines.append(
+            '  "The health digest flagged link_check. Run python3 ops_status.py '
+            'and read section [2c], then open each DRIFTED url and tell me what '
+            'is actually being served there now. Do not delete any row: propose '
+            'a retraction or a re-source for each one and let me decide. Then '
+            'check whether one publisher accounts for most of the rot, which '
+            'would mean it changed its URL scheme."')
     elif names:
         lines.append(
             '  "The health digest flagged these collectors: %s. For each, open '

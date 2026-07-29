@@ -44,6 +44,7 @@ def main() -> int:
     problems += _report_data(conn)
     problems += _report_health(conn)
     problems += _report_writer_queue()
+    problems += _report_link_rot(conn)
     _report_coverage()
     _report_discovery()
     _report_surfaces()
@@ -254,6 +255,67 @@ def _report_writer_queue() -> list[str]:
                     f"{idle:.0f}h — the drainer itself is down"]
 
     return state["problems"]
+
+
+def _report_link_rot(conn) -> list[str]:
+    """Are the documents we cite still there, and still themselves?
+
+    The promise is that every update links to the filing or report behind it. A
+    source link that dies converts a sourced claim into an unsourced one and
+    nothing on the page changes, so the only way anyone finds out is by looking.
+    This is where a session looks.
+
+    A DRIFTED link is escalated on its own, separately from the rot rate. It is
+    not decay: it is a URL we cite now resolving to somebody else's domain, and
+    it answers 200 while doing it.
+    """
+    from pipeline import source_links
+
+    print("\n[2c] SOURCE LINKS  (every figure has to still link to its document)")
+
+    try:
+        summary = source_links.rot_summary(conn)
+    except sqlite3.OperationalError:
+        print("    No link ledger yet. Prove the checker with:")
+        print("      python3 link_check.py --dry-run --limit 40")
+        return []
+
+    total = summary["distinct_source_urls"]
+    if not summary["checked"]:
+        print(f"    {total} distinct source URLs, NONE checked yet.")
+        print("    The checker ships DORMANT. Measure a sample with:")
+        print("      python3 link_check.py --random --limit 200")
+        print("      python3 archive_sources.py --dry-run --limit 200")
+        return []
+
+    print(f"    checked   {summary['checked']}/{total} distinct source URLs, "
+          f"{summary['rot']} rotted ({summary['rot_pct']}%)")
+    print("              " + ", ".join(f"{s}={n}" for s, n in
+                                       sorted(summary["states"].items())))
+    print(f"    archived  {summary['archived']}/{total} "
+          f"({summary['archive_pct']}%) have a Wayback fallback, "
+          f"{summary['archive_pending']} pending, "
+          f"{summary['archive_unavailable']} unavailable")
+
+    problems = []
+    drifted = summary["states"].get("drifted", 0)
+    if drifted:
+        rows = conn.execute(
+            "SELECT source_url, final_domain FROM source_links "
+            " WHERE state = 'drifted' ORDER BY checked_at DESC LIMIT 5").fetchall()
+        for row in rows:
+            print(f"    DRIFTED   {row['source_url'][:60]} -> {row['final_domain']}")
+        problems.append(
+            f"{drifted} cited URL(s) now resolve to a different domain. A 200 "
+            f"from a domain that changed hands is worse than a 404: check each "
+            f"one and retract or re-source it by hand.")
+
+    worst = source_links.rot_by_publisher(conn)
+    if worst:
+        print("    worst publishers (a rising rate here means a changed URL scheme):")
+        for row in worst[:5]:
+            print(f"      {row['rot_pct']:>5}%  {row['rot']}/{row['checked']}  {row['host']}")
+    return problems
 
 
 def _report_coverage() -> None:
