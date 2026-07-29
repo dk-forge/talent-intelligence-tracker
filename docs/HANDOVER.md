@@ -33,6 +33,53 @@ collectors; writer queue empty, zero orphans; **714 of 714** sitemap URLs clean.
 `sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
 `tripwire_chase` (dormant, correctly absent from the sources page).
 
+### Discovery widened (2026-07-29, late) — schedule, staleness, markets, feeds
+
+Four changes shipped together, aimed at the 9% recall measurement:
+
+1. **collect.yml's cron now SWEEPS google_news, gdelt, sec_edgar and
+   sec_form_d** (one `run_collect.py` invocation each; the loop is in the
+   Collect step). Before this the schedule only ever passed `google_news`, so
+   the other three ran twice each in their whole lives, always by hand, while
+   their last manual run sat in the ledger saying "ok". Each invocation
+   carries its own `TIT_READTHROUGH_CAP` (gdelt 100, the SEC pair 40,
+   google_news the default 60); the caps are ceilings, not spend — the SEC
+   pair found 6 and 3 items on their last real runs. Dispatch keeps its
+   single-source input. Pinned by
+   `test_the_schedule_sweeps_every_collector_this_workflow_owns`.
+2. **Staleness has one authority: `staleness.py`** (stdlib-only, because
+   ops_status must run before any venv exists). ops_status used to apply a
+   global 36h while health_digest carried a per-collector map, and the two
+   disagreed about every source off the 2x/day cron. Leashes are derived from
+   each schedule: 14h for the 2x/day sweeps, 48h for the perishable daily
+   boards, ~35 days for the monthly structured pair (the old 14-day default
+   flagged them mid-cycle, monthly), a quarter-plus for bulk and dormant.
+3. **Six markets joined MARKETS, Israel first**: IL (Hebrew and English
+   terms), IN, CA, AU, SG, JP, all discovery_only. The part that adds actual
+   discovery: a Hebrew `GOOGLE_NEWS_VOCAB` pack, live-verified (leadership 21
+   items, funding 26; the מנכ"ל gershayim must be U+05F4 — an ASCII quote
+   inside a quoted phrase silently matches nothing), and `("he","IL")` in the
+   rotation. 51 editions now sweep in 5.1 days; the derived window widened
+   6d -> 7d by itself. A third daily cron slot would cut the sweep to 3.4d at
+   +50% spend — the owner's call, documented at `LOCALES_PER_RUN`.
+4. **Eighteen publisher feeds joined the catalogue (575 -> 593), every one
+   fetched through the collector's own path first.** Notables: HR Dive,
+   TechCrunch, GeekWire, The San Francisco Standard, NYT Business, and the
+   Apple/Google/NVIDIA newsrooms. Refused with reasons in `feed_checked`:
+   Axios/CNBC/Business Wire (robots.txt), Microsoft News (newest item 448d
+   old behind a 200), and CTech — the outlet that broke the four missed
+   Israeli rounds publishes NO feed, so Israel's English coverage is Globes,
+   Geektime, the Innovation Authority and the he:IL edition.
+
+**The tripwire stays dormant, deliberately.** Arming is mechanically two
+commented lines in `tripwire.yml`, but its own header states the gate: armed
+only after a human has read a REAL run and agreed. No live query has ever
+been issued (cost per query is still an estimate). The first live run is
+`python run_tripwire.py --dry-run --countries IL --no-industries` — one
+query, about two cents — and arming afterwards means uncommenting the two
+schedule lines AND tightening `tripwire` to 336 in `staleness.py` in the same
+commit.
+
 ### Company profiles (built 2026-07-29, live on 1.47.0)
 
 `/talent-intelligence-tracker/company/{slug}/`, computed on render. **714
