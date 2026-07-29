@@ -3,6 +3,7 @@
 
     python3 measure_recall.py                 # measure against the live API
     python3 measure_recall.py --publish       # ...and write the public page's data
+    python3 measure_recall.py --push          # ...and update the live page (needs the key)
     python3 measure_recall.py --offline FILE  # replay stored API rows, no network
     python3 measure_recall.py --check         # validate the gold set only
 
@@ -219,6 +220,37 @@ def publish(out: dict, points: list) -> str:
     return PLUGIN_DATA
 
 
+def push(out: dict, points: list) -> str:
+    """Send the measurement to the live page.
+
+    The page prefers a stored measurement over the file that ships with the
+    plugin, so this is what makes the weekly run actually visible. A committed
+    file alone would not have been: the plugin deploy is deliberately not armed
+    on push, so the page would have gone on showing the figure it shipped with
+    while newer ones piled up in the repository. A page about honesty being the
+    stalest thing in the system is not a joke anybody needs.
+
+    Needs WP_API_KEY. Without it this says so rather than passing quietly: a run
+    that silently failed to publish looks exactly like one that published.
+    """
+    site = (os.environ.get("WP_SITE_URL") or "").rstrip("/")
+    key = os.environ.get("WP_API_KEY") or ""
+    if not (site and key):
+        return "not pushed: WP_SITE_URL or WP_API_KEY is not set"
+
+    payload = dict(out)
+    payload["series"] = points
+    request = urllib.request.Request(
+        f"{site}/wp-json/talent/v1/recall",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "X-Talent-API-Key": key,
+                 "User-Agent": UA},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=60) as resp:
+        return f"pushed: {resp.read().decode('utf-8')[:200]}"
+
+
 def write_worklist(worklist: dict) -> str:
     """The measurement's own to-do list, at a path other tooling can rely on.
 
@@ -273,6 +305,8 @@ def main() -> int:
     parser.add_argument("--offline", help="JSON file of {gold_id: [rows]}, no network")
     parser.add_argument("--publish", action="store_true",
                         help="write the public page's data file too")
+    parser.add_argument("--push", action="store_true",
+                        help="send the measurement to the live page (needs WP_API_KEY)")
     parser.add_argument("--check", action="store_true",
                         help="validate the gold set and stop")
     parser.add_argument("--quiet", action="store_true")
@@ -362,6 +396,8 @@ def main() -> int:
 
     if args.publish:
         print(f"wrote {os.path.relpath(publish(out, points), HERE)}")
+    if args.push:
+        print(push(out, points))
     return 0
 
 

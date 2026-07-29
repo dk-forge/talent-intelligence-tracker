@@ -30,7 +30,25 @@ function esc_url($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8')
 function number_format_i18n($n) { return number_format((float) $n); }
 function human_time_diff($a, $b) { return '1 hour'; }
 function get_query_var($v) { return ''; }
-function get_option($k, $d = false) { return $d; }
+
+$GLOBALS['tit_options'] = array();
+function get_option($k, $d = false) { return $GLOBALS['tit_options'][$k] ?? $d; }
+function update_option($k, $v, $a = null) { $GLOBALS['tit_options'][$k] = $v; return true; }
+function rest_ensure_response($r) { return $r; }
+function register_rest_route($ns, $route, $args) {}
+function sanitize_text_field($s) { return trim((string) $s); }
+
+class WP_Error {
+    public $code; public $message; public $data;
+    public function __construct($code = '', $message = '', $data = array()) {
+        $this->code = $code; $this->message = $message; $this->data = $data;
+    }
+}
+class WP_REST_Request {
+    private $body;
+    public function __construct($body) { $this->body = $body; }
+    public function get_json_params() { return $this->body; }
+}
 
 require TIT_PATH . 'includes/recall.php';
 
@@ -108,6 +126,44 @@ check(tit_recall_label('non-US funding') === 'Funding rounds outside the US',
       'cell keys should render as English');
 check(tit_recall_label('country_missing') === 'No country recorded',
       'defect keys should render as English');
+
+// --- the keyed endpoint that keeps the page fresh ------------------------
+//
+// This is the difference between automated and nearly automated: the plugin
+// deploy is not armed on push, so without this route the page would show its
+// shipping-day figure forever while the repository filled with newer ones.
+
+$measurement = array(
+    'measured_on' => '2026-08-03',
+    'goldset' => array('digest' => 'abc123', 'version' => '2026-07-v1'),
+    'summary' => array('overall' => array('total' => 2, 'held' => 1, 'missed' => 1,
+                                          'found' => 1, 'found_partial' => 0,
+                                          'held_pct' => 50.0, 'clean_pct' => 50.0)),
+    'items' => array(array('verdict' => 'FOUND'), array('verdict' => 'MISSED')),
+    'series' => $series,
+);
+
+$ok = tit_api_recall(new WP_REST_Request($measurement));
+check(!($ok instanceof WP_Error), 'a well formed measurement should be accepted');
+check(isset($ok['stored']) && $ok['stored'] === true, 'and should report that it stored');
+
+$stored = tit_recall_data();
+check(($stored['measured_on'] ?? '') === '2026-08-03',
+      'the page must prefer the pushed measurement over the file it shipped with');
+
+// A figure with no events behind it is the one thing this route must refuse.
+$typed = $measurement;
+$typed['items'] = array();
+check(tit_api_recall(new WP_REST_Request($typed)) instanceof WP_Error,
+      'a summary with no items must be refused');
+
+$inflated = $measurement;
+$inflated['summary']['overall']['held'] = 2;
+check(tit_api_recall(new WP_REST_Request($inflated)) instanceof WP_Error,
+      'held plus missed must equal total, or the counts were typed not measured');
+
+check(tit_api_recall(new WP_REST_Request(array('measured_on' => '2026-08-03'))) instanceof WP_Error,
+      'a body with no summary must be refused');
 
 if ($failures) {
     fwrite(STDERR, "recall page render FAILED:\n  - " . implode("\n  - ", $failures) . "\n");

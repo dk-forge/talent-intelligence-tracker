@@ -31,11 +31,84 @@ function tit_recall_url() {
     return home_url('/' . TIT_RECALL_PATH . '/');
 }
 
+/**
+ * The measurement this page renders.
+ *
+ * Two sources, option first. The file that ships with the plugin is the seed,
+ * so a fresh install has something true to show; the option is how a scheduled
+ * measurement updates the page WITHOUT a deploy.
+ *
+ * That distinction is the difference between automated and nearly automated.
+ * The measurement runs weekly and commits its result, but the plugin deploy is
+ * deliberately not armed on push, so a file-only page would have gone on
+ * showing the shipping-day figure forever while the repository quietly
+ * accumulated newer ones. The number on a page about honesty being the stalest
+ * thing in the system is not a joke anybody needs.
+ */
 function tit_recall_data() {
+    $stored = get_option('tit_recall');
+    if (is_array($stored) && !empty($stored['summary'])) return $stored;
+
     $file = TIT_PATH . 'data/recall.json';
     if (!is_readable($file)) return array();
     $data = json_decode(file_get_contents($file), true);
     return is_array($data) ? $data : array();
+}
+
+/**
+ * POST /talent/v1/recall - keyed. How a scheduled run updates this page.
+ *
+ * Registered here rather than in api.php so the whole feature is one file and
+ * a mistake in it cannot reach any other route.
+ *
+ * It stores a measurement, never a claim: the body must carry the summary, the
+ * items and the gold set identity, and the counts must add up. A payload that
+ * says 90% with no items behind it is rejected, because the one thing this
+ * endpoint must never allow is a recall figure that was typed rather than
+ * measured.
+ */
+function tit_recall_register_route() {
+    register_rest_route('talent/v1', '/recall', array(
+        'methods'  => 'POST',
+        'callback' => 'tit_api_recall',
+        'permission_callback' => function_exists('tit_api_permission')
+            ? 'tit_api_permission' : '__return_false',
+    ));
+}
+add_action('rest_api_init', 'tit_recall_register_route');
+
+function tit_api_recall(WP_REST_Request $req) {
+    $body = $req->get_json_params();
+
+    if (!is_array($body) || empty($body['summary']['overall']) || empty($body['items'])
+        || empty($body['measured_on']) || empty($body['goldset']['digest'])) {
+        return new WP_Error('tit_recall_bad_body',
+            'A measurement needs measured_on, a gold set digest, a summary and its items.',
+            array('status' => 400));
+    }
+
+    $overall = $body['summary']['overall'];
+    $items = $body['items'];
+    if ((int) $overall['total'] !== count($items)) {
+        return new WP_Error('tit_recall_mismatch',
+            'summary.overall.total does not match the number of items: a figure with '
+            . 'no events behind it is not a measurement.', array('status' => 400));
+    }
+    if ((int) $overall['held'] + (int) $overall['missed'] !== (int) $overall['total']) {
+        return new WP_Error('tit_recall_mismatch',
+            'held plus missed does not equal total.', array('status' => 400));
+    }
+
+    update_option('tit_recall', $body, false);
+    if (function_exists('tit_flush_caches')) tit_flush_caches();
+
+    return rest_ensure_response(array(
+        'stored'      => true,
+        'measured_on' => $body['measured_on'],
+        'held'        => (int) $overall['held'],
+        'total'       => (int) $overall['total'],
+        'series'      => count($body['series'] ?? array()),
+    ));
 }
 
 function tit_recall_template() {

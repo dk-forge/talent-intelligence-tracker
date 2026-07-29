@@ -60,9 +60,17 @@ jobs:
       - name: Check the gold set
         run: python measure_recall.py --check
 
+      # --push is what makes this visible. The committed file is only the seed
+      # the plugin ships with, and the plugin deploy is deliberately NOT armed
+      # on push, so a file-only run would leave the page showing its
+      # shipping-day figure while newer ones accumulated in the repository. The
+      # page prefers a pushed measurement over the file for exactly this reason.
       - name: Measure
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
-          python measure_recall.py --quiet \
+          python measure_recall.py --quiet --push \
             ${{ inputs.publish == false && ' ' || '--publish' }}
 
       # Push the run into the site's health ledger so the health page shows the
