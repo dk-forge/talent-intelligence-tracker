@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:51:54Z",
+  "last_tick": "2026-07-29T18:54:30Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,40 +158,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:51:54Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:50:46Z",
-          "detail": "guardrail finding rejected on the filing: 5a104e9ca79f",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:51:54Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T185046Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the same class as 101 East Court Street LLC and missed by the same pattern. An Illinois LLC formed in 2025 named after the property at 3101-3121 N. Sheridan, filed under industry group Other, 21.4 million USD from 60 investors, sponsor address 2815 West Roscoe, Chicago. It employs nobody.",
-        "signal_id": "5a104e9ca79f027e85912dfc02bbd442"
-      },
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: 5a104e9ca79f",
-      "requested_at": "2026-07-29T18:50:46Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T18:54:30Z",
       "history": [
         {
           "at": "2026-07-29T18:51:39Z",
           "detail": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:54:30Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T185139Z-retract",
@@ -202,6 +179,29 @@
       "priority": -1,
       "reason": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
       "requested_at": "2026-07-29T18:51:39Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T18:54:20Z",
+          "detail": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T185420Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody. Re-queued: the first run withdrew it on WordPress and locally but lost its push to a concurrent commit, so the withdrawal never reached the committed database.",
+        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
+      },
+      "priority": -1,
+      "reason": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
+      "requested_at": "2026-07-29T18:54:20Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
@@ -702,6 +702,45 @@
       "requested_by": "dakotta-labs",
       "run_id": "30481782149",
       "state": "failed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:51:54Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:50:46Z",
+          "detail": "guardrail finding rejected on the filing: 5a104e9ca79f",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:51:54Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:54:30Z",
+          "detail": "run 30481847750",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:54:30Z",
+          "detail": "run 30481847750",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T185046Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the same class as 101 East Court Street LLC and missed by the same pattern. An Illinois LLC formed in 2025 named after the property at 3101-3121 N. Sheridan, filed under industry group Other, 21.4 million USD from 60 investors, sponsor address 2815 West Roscoe, Chicago. It employs nobody.",
+        "signal_id": "5a104e9ca79f027e85912dfc02bbd442"
+      },
+      "landed_at": "2026-07-29T18:54:30Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: 5a104e9ca79f",
+      "requested_at": "2026-07-29T18:50:46Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481847750",
+      "state": "landed",
       "workflow": "retract.yml"
     }
   ],
