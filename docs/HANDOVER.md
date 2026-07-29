@@ -4,10 +4,13 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-07-29**, after the session that corrected the $86bn Form D
-overstatement, wired 575 national press feeds across 139 countries, published a
-9% recall measurement, and found fifteen data-writing runs had been silently
-destroyed. Plugin **v1.42.3**.
+Last updated: **2026-07-29**. Plugin **1.47.0** live, **15,650** current signals
+stored and **15,649** published, company profiles shipped, cron firing on
+schedule but not reliably green, **1,168 of 1,174** offline tests passing. Also
+this day: the $86bn Form D overstatement corrected, 575 national press feeds
+across 139 countries wired, a 9% recall measurement published, fifteen silently
+destroyed data-writing runs found, and the 2026-07-28 render section below
+re-checked against live.
 
 **Chronological detail lives in [TECHLOG.md](TECHLOG.md)** — that file is what
 happened and why; this one is current state and next actions. Both are for the
@@ -18,10 +21,11 @@ TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 
 ## Where things stand (2026-07-29)
 
-**Verified by curl, not by a green tick:** plugin **1.46.0**; dashboard,
-`/recall/`, `/corrections/`, `/sources/` all 200; **money raised $124B** (was
-$200.3bn); sources page lists all 8 live collectors; writer queue empty, zero
-orphans.
+**Verified by curl, not by a green tick:** plugin **1.47.0** (deployed
+2026-07-29 ~21:00Z, over 1.46.0); dashboard, `/recall/`, `/corrections/`,
+`/sources/` all 200; **money raised $99B** (was $124B, then $200.3bn, both
+before the stale-`company_key` correction); sources page lists all 8 live
+collectors; writer queue empty, zero orphans.
 
 **Nine registered collectors:** `google_news`, `gdelt`, `national_press`,
 `sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
@@ -420,99 +424,133 @@ about two cents, against the country we know we are weak in and can check by eye
 
 ---
 
-## 2026-07-28 session: the page looked fine and was not
+## The 2026-07-28 render lessons (numbers re-checked 2026-07-29)
 
-Plugin **v1.24.0**, 44 records, 219 tests green. Read this section before the
-older one below it, which is still true about the pipeline and out of date about
-the page.
+Written the day every control on the dashboard was found inert in production.
+The findings below are permanent properties of this host and this theme, so they
+are worth reading before you touch the page. **The figures the section shipped
+with are gone, because they were wrong within a day:** it said plugin v1.24.0,
+44 records and 219 tests; live is **1.47.0**, the database holds **15,650**
+current signals with **15,649** published, and **1,168 of 1,174** offline tests
+pass. Do not treat anything here as a description of today's page. The current
+page is described at the top of this file.
 
-### The two findings that matter
+### Autoptimize aggregates inline scripts, and the exclude filter only matches paths
 
-**1. Every control on the dashboard had never worked in production.**
 `dashboard.js` opened with `if (!root || typeof TIT === 'undefined') return;`
-and that read was undefined on the live page, so the file returned on its first
+and `TIT` was undefined on the live page, so the file returned on its first
 statement. No filter, no region tab, no quick view, no sort, no facet
 population, ever. Nothing errored and the page looked completely normal.
 
-Cause: **Autoptimize aggregates INLINE scripts, and
+Cause: **Autoptimize aggregates INLINE scripts, while
 `autoptimize_filter_js_exclude` only matches assets by path.** Excluding
 `plugin/assets` kept `dashboard.js` where it was and swept the inline object
-`wp_localize_script` prints into a bundle that loads *after* it. The file and
-the data it needs were separated by an optimiser told about only one of them.
+`wp_localize_script` prints into a bundle that loaded *after* it. A path-based
+exclude cannot name an inline object, so it separates a script from the data it
+depends on while looking like it protected both.
 
 Fixed at both ends: config also rides on `#tit-dashboard` as `data-` attributes,
-and the exclude list now names `var TIT` too. **If you add a localized script,
-do both.**
+and the exclude list names `var TIT` too. **If you add a localized script, do
+both.** This is how the optimiser works, not a bug that was fixed once.
 
-**2. Deploying the Autoptimize exclude silently shrank the page to 645px.**
+### The same exclude changed CSS source order, and the theme capped the page
+
 Twenty Twenty-Five caps children of `.is-layout-constrained` at the global
 content size. Our `.tit-wrap` max-width has the *same specificity*, so which one
-won came down to source order — and source order changed the moment our CSS
+wins comes down to source order, and source order changed the moment our CSS
 stopped being inlined by Autoptimize and became a `<link>`. The dashboard went
 1160px to 645px with no CSS change of its own. Now pinned to
 `var(--wp--style--global--wide-size)` (1340px), which is what a full-width block
-gets and what makes the sibling as wide as it is.
+gets and what makes the sibling as wide as it is. **Changing what the optimiser
+touches can move layout without touching a stylesheet.**
 
-**The lesson behind both: a green deploy proves an upload, not a render.**
-Check the deployed page for behaviour, not just the version string.
+### A green deploy proves an upload, not a render
 
-### What the page does now
+Both findings above shipped green. Check the deployed page for behaviour, not
+just for the version string.
 
-- Order is hero, regions, **filtering**, charts, table. The controls used to sit
-  below the charts they control.
-- **Charts**: all rows render (was a hard `slice(0,6)` against an API already
-  returning 40), each card scrolls in place, and each carries its own expand,
-  share and download-CSV. Share copies a link to the current filtered view.
-- **Filters live in the URL** (`replaceState`), so a view is shareable. A region
-  restores as its tab, not as a bare country filter.
-- **Everything follows the filters, including the glance tiles.** They used to
-  be server-rendered once, so a filtered page read "19 updates, 1 country" above
-  tiles still claiming 42 and 46. `/aggregate` now returns them.
-- Tiles collapse when two periods hold the same records, keeping year-to-date.
-  A span note states how much history exists, because 8 days of data reads like
-  a running total otherwise.
-- Every filter has a visible label; the table becomes 3-band cards below 860px.
-- **Roo** is ported, reporting collection (not page fetches) and naming the next
-  run time.
+### Card rules keyed to one table's columns are a coincidence, not a component
 
-### Traps found, now in CLAUDE.md
+`.tit-sources .tit-table` set `min-width:720px`, which beat the mobile
+`min-width:0` and kept the sources table 720px wide inside a phone. Default
+every cell to full width and let cells opt in.
 
-- Autoptimize + inline scripts (above).
-- `.tit-sources .tit-table` set `min-width:720px`, which beat the mobile
-  `min-width:0` and kept the sources table 720px wide inside a phone. Card rules
-  keyed to one table's column names are a coincidence, not a component: default
-  every cell to full width and let cells opt in.
-- `tit_country_names()` held 52 of ~200 codes, so LV and NA printed as raw codes
-  inside a chart of country names. It carries the world now.
-- Region code lists were shortlists: Namibia was missing from Africa, so that
-  record counted under World only. Same bug as the earlier Latvia one.
-- **Do not cache-bust the live host in a loop.** Appending `?cb=<random>` to
-  every request bypasses Cloudflare and hits the origin directly; doing it
-  dozens of times in a session is what shared hosting throttles.
+### Do not cache-bust the live host in a loop
 
-### Open, in order
+Appending `?cb=<random>` to every request bypasses Cloudflare and hits the
+origin directly, and doing that dozens of times in a session is what shared
+hosting throttles. Use it once to read the origin's truth, never to poll.
 
-1. **The OpenRouter key.** ~$1.90 on a **$5 lifetime** cap (not $5/month).
-   ~3 weeks to a clean 402 that stops collection silently. **Only the owner can
-   raise it.** Nothing downstream (model switch, cap lift) should be attempted
-   first, because both increase spend. ~$20/month is the honest number.
-2. **The cron has never fired.** All 30 collection runs to date were
-   `workflow_dispatch` or push. The schedule was armed 2026-07-27 22:29 UTC and
-   the first scheduled firing was due 06:00 UTC 2026-07-28. Confirm it happened;
-   an unfired cron is exactly the silent-zero failure this project treats as
-   unacceptable.
-3. **Top nav.** The tracker is not in the site header. It is a block-theme
-   `wp-block-navigation` block stored in the database, so it cannot be changed
-   from this repo: Appearance → Editor → Navigation, add
-   `/blog/talent-intelligence-tracker/` beside "AI Layoff Tracker".
-4. **Read-through quality.** On leadership records it currently restates the
-   headline ("TriNetX appoints a new CEO; executive leadership changes"). This
-   is the product's differentiator and it is degenerate on a whole category.
-   Gated behind the `--readthrough` run, which needs the key raised.
-5. Deliberately NOT built, because the data cannot support them yet: a
-   years/quarters/months cascade (8 days of data), a minimum-headcount filter
-   (`headcount` on 1 of 44 records), a sources dropdown (32 distinct sources
-   across 44 records), and chart embed (needs an embed route this plugin lacks).
+### A partial vocabulary fails silently and looks like sparse data
+
+`tit_country_names()` held 52 of ~200 codes, so LV and NA printed as raw codes
+inside a chart of country names. Region code lists were shortlists in the same
+way: Namibia was missing from Africa, so that record counted under World only.
+Both carry the world now. Any new fixed vocabulary needs the whole set on day
+one, because the failure mode is a plausible-looking number, not an error.
+
+### Where that section's four open items landed
+
+1. **The OpenRouter key was raised.** It was ~$1.90 into a $5 lifetime cap and
+   only the owner could lift it. Read-throughs now run in production and hit
+   their own 60-per-run cap, which is spend the old ceiling could not have
+   covered, so the raise is real. The exact headroom is not readable from here:
+   `spend.py` needs the key. The $5-lifetime versus $10-monthly contradiction in
+   Secrets is still unresolved.
+2. **The cron fires. It is not reliably green.** Of the last 30 `collect.yml`
+   runs, 4 are `schedule`: 2026-07-28 07:02Z and 18:36Z both succeeded,
+   2026-07-29 07:05Z was cancelled, and 2026-07-29 18:27Z failed at the publish
+   step with `PUBLISH FAILED: 8 open guardrail finding(s) across amount,
+   vehicle_name` after collecting normally. So the thing to watch is now the
+   conclusion of each run, not whether the schedule exists. The first firing
+   landed ~1h after its 06:00Z slot, which is GitHub's queue rather than a bug.
+3. **Top nav is done.** The site header carries "Talent Intelligence Tracker"
+   beside "AI Layoff Tracker". It is still a `wp-block-navigation` block in the
+   database, so it still cannot be changed from this repo: Appearance → Editor →
+   Navigation.
+4. **Read-through quality** was gated on the key and no longer is. Whether it
+   still restates the headline on leadership records is an unmeasured question
+   now, not a known-bad one.
+
+### The page has moved on from this section
+
+The at-a-glance tiles described above are gone: `.tit-glance` survives as a
+period matrix table (`tit-matrix`, periods as columns) and there is no
+`tit-tile` anywhere in the live markup. The `.tit-span` note the session added
+does survive, now reading "Covering 28 Jun 2017 to 29 Jul 2026." Region tabs are
+World / Americas / Europe / Middle East / Africa / Asia / Oceania, not the
+USA / Canada / UK / India set the section describes.
+
+### Deliberately NOT built, each justification re-checked 2026-07-29
+
+Four things were left unbuilt because the data could not support them. None has
+since been built, but **two of the four justifications have expired**, so those
+two are now unbuilt for no stated reason. They are listed rather than deleted so
+nobody rebuilds them blind or leaves them out forever by inheritance.
+
+- **Years/quarters/months cascade.** Justified by "8 days of data".
+  **EXPIRED.** `published_date` on current rows runs 2017-06-28 to 2026-07-29,
+  and the page says so itself in the span note. Nine years of history is a
+  cascade's use case, not the argument against it. Decide this one on merit.
+- **Sources dropdown.** Justified by "32 distinct sources across 44 records",
+  which was close to one source per record, so the control would have listed
+  near-unique values. **EXPIRED.** There are now 146 distinct `source_name`
+  values across 15,650 current rows, roughly 107 rows per source. Note the cost
+  is more than a `<select>`: there is no `source_name` filter in
+  `tit_build_where` and `/facets` returns no source list, so this is API work.
+- **Minimum-headcount filter.** Justified by "`headcount` on 1 of 44 records".
+  **STILL HOLDS, and more strongly than before.** `headcount` is non-null on 8
+  of 15,650 current rows, 0.05% against the original 2.3%. `min_headcount`
+  already exists in the API as `headcount >= %d`; exposing it in the UI would
+  cut the page to 8 rows. What shipped instead is the inverse control, an "Only
+  show updates that state a headcount" checkbox, and **that checkbox is keyed on
+  `signal_direction IN ('hiring', 'displacement')`, not on the `headcount`
+  column at all.** Its count (52 at the API, 50 on the cached page) is a count
+  of hiring and displacement rows. Do not read it as headcount coverage.
+- **Chart embed.** Justified by "needs an embed route this plugin lacks".
+  **STILL HOLDS.** The registered routes are `/add`, `/aggregate`, `/alert`,
+  `/bulk`, `/correct`, `/enrich`, `/facets`, `/health`, `/query`, `/retract` and
+  `/source-health`. There is still no embed route.
 
 ---
 
