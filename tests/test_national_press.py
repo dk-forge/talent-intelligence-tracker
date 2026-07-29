@@ -422,3 +422,74 @@ def test_the_export_carries_no_aggregator_and_no_bare_domain():
         assert host not in press._AGGREGATOR_HOSTS, row["publisher"]
         assert row["feed_url"].startswith("https://"), row["publisher"]
         assert row["publisher"] and row["country"], row
+
+
+# --- robots.txt ------------------------------------------------------------
+
+def _robots(body: str):
+    """A session that serves one robots.txt and nothing else."""
+    return FakeSession({"https://en.globes.co.il/robots.txt":
+                        FakeResponseText(body), GLOBES.rss: FakeResponse(RSS)})
+
+
+class FakeResponseText(FakeResponse):
+    def __init__(self, text, status=200):
+        super().__init__(text.encode(), status)
+        self.text = text
+
+
+def test_a_feed_its_publisher_disallows_is_not_fetched():
+    """robots.txt is the publisher stating their terms. Routing around it is
+    how a product whose only asset is credibility loses it.
+
+    The first audit over 112 feeds found eight disallowed, three of which had
+    been in the catalogue since before this collector existed.
+    """
+    press._ROBOTS_CACHE.clear()
+    session = _robots("User-agent: *\nDisallow: /feed\n")
+    items = press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+
+    assert items == []
+    assert press.FEED_HEALTH[0]["status"] == "robots"
+    assert GLOBES.rss not in session.calls, "the feed must not be fetched at all"
+
+
+def test_an_allowed_feed_is_fetched_normally():
+    press._ROBOTS_CACHE.clear()
+    session = _robots("User-agent: *\nDisallow: /wp-admin/\n")
+    assert len(press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)) == 2
+
+
+def test_a_missing_robots_txt_means_no_restriction_not_a_block():
+    """No robots.txt is the standard 'no restriction'. Failing closed here
+    would silently retire every publisher that does not publish one."""
+    press._ROBOTS_CACHE.clear()
+    session = FakeSession({GLOBES.rss: FakeResponse(RSS)})  # robots 404s
+    assert len(press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)) == 2
+
+
+def test_robots_is_fetched_once_per_host_not_once_per_feed():
+    """A hundred feeds on a hundred hosts is a hundred robots fetches; several
+    feeds on one host must still be one."""
+    press._ROBOTS_CACHE.clear()
+    second = press.Feed(name="Globes Tech", rss="https://en.globes.co.il/tech-feed",
+                        country="Israel", city="Tel Aviv", coverage="National",
+                        language="English", source_type="News Organization")
+    session = FakeSession({
+        "https://en.globes.co.il/robots.txt": FakeResponseText("User-agent: *\nAllow: /\n"),
+        GLOBES.rss: FakeResponse(RSS), second.rss: FakeResponse(RSS)})
+    press.collect(feeds=[GLOBES, second], session=session, pause=0, dry_run=True)
+    assert session.calls.count("https://en.globes.co.il/robots.txt") == 1
+
+
+def test_the_shipped_catalogue_carries_no_feed_its_publisher_disallows():
+    """Asserted against the file that ships, so a re-added feed fails here
+    rather than in production."""
+    withdrawn = {"Tech in Asia", "Tech in Asia Indonesia", "Tech.eu", "UKTN",
+                 "Finextra", "Webrazzi", "The Times of Israel",
+                 "MaRS Discovery District"}
+    with press.CATALOGUE_CSV.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            if row["name"] in withdrawn:
+                assert not row["rss"].strip(), (
+                    f"{row['name']} was withdrawn for robots.txt and is back")

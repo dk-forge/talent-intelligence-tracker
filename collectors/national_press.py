@@ -416,6 +416,51 @@ def newest_item_age_days(items: list[dict], now=None) -> int | None:
     return (today - max(dates)).days
 
 
+# --- robots.txt ------------------------------------------------------------
+#
+# A publisher's robots.txt is that publisher telling us their terms, and routing
+# around it is exactly how a product whose only asset is credibility loses it.
+# So this is checked in code rather than trusted to a one-time audit: a feed
+# added to the catalogue next month is covered without anybody remembering to
+# re-run anything.
+#
+# The first audit over 112 feeds found EIGHT disallowed, three of which had been
+# sitting in the catalogue since before this collector existed (Finextra,
+# Tech.eu, UKTN) and two of which are the paywalled publishers whose licensing
+# was under discussion anyway (Tech in Asia and its Indonesian edition, both
+# `Disallow: */feed$`).
+#
+# Fails OPEN on a network error or a missing robots.txt, which is the standard
+# reading: no robots.txt means no restriction. It fails CLOSED only on an
+# explicit Disallow, because that is the publisher having actually spoken.
+_ROBOTS_CACHE: dict[str, object] = {}
+
+
+def robots_allows(url: str, *, session=None) -> bool:
+    """Whether the publisher's robots.txt permits fetching this feed."""
+    from urllib.robotparser import RobotFileParser
+
+    parts = urlparse(url)
+    origin = f"{parts.scheme}://{parts.netloc}"
+    if origin not in _ROBOTS_CACHE:
+        parser = None
+        try:
+            resp = (session or requests).get(
+                f"{origin}/robots.txt",
+                headers={"User-Agent": USER_AGENT}, timeout=15)
+            if resp.status_code == 200:
+                parser = RobotFileParser()
+                parser.parse(resp.text.splitlines())
+        except requests.RequestException:
+            parser = None
+        _ROBOTS_CACHE[origin] = parser
+
+    parser = _ROBOTS_CACHE[origin]
+    if parser is None:
+        return True
+    return parser.can_fetch("*", url) and parser.can_fetch("TalentIntel", url)
+
+
 _PUNCT = re.compile(r"[^\w]+", re.UNICODE)
 
 
@@ -459,6 +504,16 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
 
         record = {"name": feed.name, "country": feed.country, "url": feed.rss,
                   "status": "ok", "items": 0, "new": 0, "detail": ""}
+
+        if not robots_allows(feed.rss, session=session):
+            record.update(status="robots",
+                          detail="robots.txt disallows this path — the publisher's "
+                                 "own terms, so we do not fetch it")
+            STATS["dead"] += 1
+            FEED_HEALTH.append(record)
+            last_hit[host] = time.monotonic()
+            continue
+
         try:
             items = fetch(feed, session=session)
         except requests.HTTPError as exc:

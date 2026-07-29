@@ -1251,21 +1251,6 @@
   "notes": ""
  },
  {
-  "name": "Finextra",
-  "url": "https://www.finextra.com",
-  "status": "candidate",
-  "category": "Trade Publication",
-  "signals": [
-   "Funding",
-   "Partnership"
-  ],
-  "coverage": "Global",
-  "country": "United Kingdom",
-  "rss": "https://www.finextra.com/rss/headlines.aspx",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "FinLedger",
   "url": "https://finledger.com",
   "status": "candidate",
@@ -1911,21 +1896,6 @@
   "rss": "",
   "free": true,
   "notes": ""
- },
- {
-  "name": "MaRS Discovery District",
-  "url": "https://www.marsdd.com",
-  "status": "candidate",
-  "category": "Innovation Hub",
-  "signals": [
-   "Funding",
-   "Programme Launch"
-  ],
-  "coverage": "National",
-  "country": "Canada",
-  "rss": "https://www.marsdd.com/feed/",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29. Non-profit innovation hub publishing its own programme and portfolio announcements."
  },
  {
   "name": "Meet Global",
@@ -2685,37 +2655,6 @@
   "notes": ""
  },
  {
-  "name": "Tech in Asia Indonesia",
-  "url": "https://id.techinasia.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Indonesia",
-  "rss": "https://id.techinasia.com/feed",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29."
- },
- {
-  "name": "Tech.eu",
-  "url": "https://tech.eu",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "M&A"
-  ],
-  "coverage": "Regional",
-  "country": "Belgium",
-  "rss": "https://tech.eu/feed/",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "TechCabal",
   "url": "https://techcabal.com",
   "status": "candidate",
@@ -2941,23 +2880,6 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
-  "name": "The Times of Israel",
-  "url": "https://www.timesofisrael.com",
-  "status": "candidate",
-  "category": "Business News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion",
-   "Hiring"
-  ],
-  "coverage": "National",
-  "country": "Israel",
-  "rss": "https://www.timesofisrael.com/feed/",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29."
- },
- {
   "name": "The Wall Street Journal",
   "url": "https://www.wsj.com",
   "status": "candidate",
@@ -3082,21 +3004,6 @@
   "rss": "https://www.ukri.org/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. Open Government Licence. Grants, not venture rounds."
- },
- {
-  "name": "UKTN",
-  "url": "https://www.uktech.news",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Hiring"
-  ],
-  "coverage": "National",
-  "country": "United Kingdom",
-  "rss": "https://www.uktech.news/feed",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "US Bureau of Labor Statistics (JOLTS)",
@@ -3251,22 +3158,6 @@
   "rss": "https://www.wamda.com/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. MENA including Oman, Jordan, Egypt, Saudi Arabia."
- },
- {
-  "name": "Webrazzi",
-  "url": "https://webrazzi.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Turkey",
-  "rss": "https://webrazzi.com/feed/",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Yahoo Finance",
