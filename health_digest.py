@@ -144,29 +144,33 @@ def read_local(db_path: Path = DB) -> dict:
 
 
 def read_guardrails(db_path: Path = DB) -> list[dict]:
-    """Guardrail findings still waiting on a human.
+    """Quarantined rows still waiting on a human, worst money first.
 
     Always read LOCALLY, even when the collector ledger comes from the live
-    site: the guardrails run before publishing, so a finding that is blocking a
-    publish is by definition one the site has never been told about. Reading it
-    from the site would be asking the patient to diagnose itself.
+    site: the guardrails run before publishing, so a held-back row is by
+    definition one the site has never been told about. Reading it from the site
+    would be asking the patient to diagnose itself.
+
+    Each row carries `already_live` and its age against its grace window,
+    because the email has to separate two very different asks. A held row is the
+    guardrail WORKING and nothing is wrong in public. A live one is a wrong
+    figure on the page that only a human retraction can remove.
 
     Never fatal. A digest that cannot read this still has collectors to report.
     """
     if not db_path.exists():
         return []
     try:
+        from pipeline import guardrails
         conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         conn.row_factory = sqlite3.Row
         try:
-            rows = conn.execute(
-                "SELECT check_name, subject, label, detail, value "
-                "  FROM publish_guardrails WHERE state = 'open' "
-                " ORDER BY COALESCE(value, 0) DESC").fetchall()
+            report = guardrails.quarantine(conn, write=False)
         finally:
             conn.close()
-        return [dict(r) for r in rows]
-    except sqlite3.Error:
+        rows = report["held"] + report["live"] + report["aggregate"]
+        return sorted(rows, key=lambda r: -(r.get("value") or 0))
+    except Exception:
         return []
 
 
@@ -307,10 +311,21 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             "any recorded run" if newest_hours is None
             else "%.0f hours" % newest_hours)
     elif guardrails:
-        # Ahead of a degraded collector on purpose. A stale scraper costs
-        # coverage; an unanswered guardrail means publishing is stopped AND a
-        # figure nobody has checked is one decision away from going out.
-        subject = "%d publish guardrail finding(s) waiting on you" % len(guardrails)
+        # Ranked by what the finding actually costs, not by count. A row that is
+        # already LIVE is a wrong figure on the page right now, which is the
+        # $86bn failure in miniature; an OVERDUE one is already turning every
+        # run red. A merely held row is the guardrail working, and says so.
+        live = [r for r in guardrails if r.get("already_live")]
+        overdue = [r for r in guardrails
+                   if (r.get("age_hours") or 0) > (r.get("grace_hours") or 1e9)]
+        if live:
+            subject = ("%d quarantined row(s) are already live on the site"
+                       % len(live))
+        elif overdue:
+            subject = ("%d quarantined row(s) unanswered past the grace window"
+                       % len(overdue))
+        else:
+            subject = "%d row(s) quarantined, waiting on you" % len(guardrails)
     elif names:
         subject = "%d collector(s) need attention: %s" % (
             len(names), ", ".join(names[:4]))
@@ -335,17 +350,50 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         ]
 
     if guardrails:
+        live = [r for r in guardrails if r.get("already_live")]
+        held = [r for r in guardrails
+                if "already_live" in r and not r.get("already_live")]
+        aggregate = [r for r in guardrails if "already_live" not in r]
+        overdue = [r for r in guardrails
+                   if (r.get("age_hours") or 0) > (r.get("grace_hours") or 1e9)]
+
         lines += [
-            "PUBLISH GUARDRAILS: %d finding(s) open, and publishing is blocked "
-            "until each one is answered." % len(guardrails),
-            "  Nothing was dropped. Each row is still there, flagged, waiting "
-            "for a yes or a no.",
+            "PUBLISH GUARDRAILS: %d row(s) quarantined." % len(guardrails),
+            "  Collection is NOT stopped. Every other row publishes normally.",
+            "  Nothing was dropped either: each flagged row is still there, held "
+            "out of",
+            "  every figure, waiting for a yes or a no.",
         ]
+        if held:
+            lines.append("  %d never reached the site, so nothing is wrong in "
+                         "public. That is the guard working." % len(held))
+        if live:
+            lines.append("  %d are ALREADY LIVE. Quarantine cannot pull a "
+                         "published row back, so these need a retraction "
+                         "decision from you." % len(live))
+        if aggregate:
+            lines.append("  %d are aggregate findings: the published set does "
+                         "not add up, so NOTHING is publishing until they are "
+                         "answered." % len(aggregate))
+        if overdue:
+            lines.append("  %d are past the grace window, so every run is now "
+                         "exiting non-zero after it publishes its clean rows."
+                         % len(overdue))
+        else:
+            lines.append("  None are overdue yet, so the runs are still green.")
+
         for row in guardrails[:6]:
             value = row.get("value") or 0
-            lines.append("  %-14s %s%s" % (
-                row.get("check_name", ""), (row.get("label") or "")[:60],
-                "  ($%.2fbn)" % (value / 1e9) if value >= 1e9 else ""))
+            age, grace = row.get("age_hours"), row.get("grace_hours")
+            when = ("" if age is None
+                    else "  [red in %.0fh]" % max(0.0, grace - age)
+                    if age <= grace else "  [OVERDUE by %.0fh]" % (age - grace))
+            lines.append("  %-14s %-8s %s%s%s" % (
+                row.get("check_name", ""),
+                "live" if row.get("already_live") else
+                ("held" if "already_live" in row else "halt"),
+                (row.get("label") or "")[:52],
+                "  ($%.2fbn)" % (value / 1e9) if value >= 1e9 else "", when))
         if len(guardrails) > 6:
             lines.append("  ... and %d more" % (len(guardrails) - 6))
         lines.append("")
@@ -384,10 +432,12 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
                else "%.0f hours" % newest_hours))
     elif guardrails:
         lines.append(
-            '  "The health digest says the publish guardrails have open '
-            'findings. Run python3 guardrails.py, read every one, and for each '
-            'tell me whether the row is a real employer raising real money or a '
-            'vehicle that employs nobody. Do not accept anything to clear the '
+            '  "The health digest says rows are quarantined by the publish '
+            'guardrails. Run python3 guardrails.py, read every one, and for '
+            'each tell me whether the row is a real employer raising real money '
+            'or a vehicle that employs nobody. Start with any marked ALREADY '
+            'LIVE: those are wrong figures on the page right now and only a '
+            'retraction removes them. Do not accept anything to clear the '
             'queue: an accepted finding never blocks again. Retract the bad '
             'ones with retract.py so the correction stays visible on the site."')
     elif "link_check" in names:

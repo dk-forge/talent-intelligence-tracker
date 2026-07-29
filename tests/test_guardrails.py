@@ -5,7 +5,7 @@ names in the vehicle tests are real issuer names off the 998 rows the
 correction retracted. Nothing stubs a real module into sys.modules.
 """
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 import pytest
 
@@ -151,24 +151,25 @@ def test_a_flagged_row_is_still_in_the_table(conn):
     ).fetchone()[0] == 1
 
 
-def test_a_genuine_mega_raise_survives_review_and_stops_blocking(conn):
+def test_a_genuine_mega_raise_survives_review_and_is_released(conn):
     """ChangXin Memory raised $8.6bn and the row is right.
 
-    It must be reviewable rather than auto-binned, and the answer must stick:
-    re-accepting the same row every night is a review process nobody runs.
+    It must be reviewable rather than auto-binned, the answer must stick, and
+    accepting it must RELEASE the row: it was never marked published, so the
+    next run simply sends it. Re-accepting the same row every night is a review
+    process nobody runs.
     """
     _fill_lognormal(conn)
     _row(conn, content_hash="changxin", company="ChangXin Memory Technologies",
          collector="national_press", funding_amount_usd=8_600_000_000)
     conn.commit()
 
-    with pytest.raises(guardrails.GuardrailTripped):
-        guardrails.enforce(conn, today=TODAY)
+    assert "changxin" in guardrails.quarantine(conn, today=TODAY)["quarantined"]
 
     guardrails.review(conn, "amount/changxin", "accepted", "IPO, figure is real")
-    guardrails.enforce(conn, today=TODAY)  # no longer blocks
+    assert "changxin" not in guardrails.quarantine(conn, today=TODAY)["quarantined"]
 
-    guardrails.enforce(conn, today=TODAY)  # and stays accepted on the next run
+    guardrails.quarantine(conn, today=TODAY)  # and stays accepted on the next run
     states = [r["state"] for r in conn.execute(
         "SELECT state FROM publish_guardrails WHERE subject = 'changxin'")]
     assert states == ["accepted"]
@@ -433,57 +434,261 @@ def test_a_vehicle_name_without_money_is_not_a_funding_row(conn):
 
 
 # --------------------------------------------------------------------------
-# The ledger, and the refusal to publish
+# Quarantine: the flagged row is held, the batch is not
 # --------------------------------------------------------------------------
 
-def test_publishing_is_blocked_and_nothing_is_sent(conn, monkeypatch):
-    _fill_lognormal(conn)
-    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
-    conn.commit()
-
-    sent = []
-    monkeypatch.setattr(publish, "_post_batch", lambda *a, **k: sent.append(1) or
-                        {"stored": 1, "duplicate": 0, "errors": []})
+def _wp(monkeypatch):
     monkeypatch.setenv("WP_SITE_URL", "https://asktherecruiter.com/blog")
     monkeypatch.setenv("WP_API_KEY", "k" * 40)
 
-    with pytest.raises(publish.PublishError):
+
+def _age_finding(conn, subject, *, hours):
+    from datetime import timedelta
+    stamp = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(
+        timespec="seconds")
+    conn.execute("UPDATE publish_guardrails SET first_seen = ? WHERE subject = ?",
+                 (stamp, subject))
+    conn.commit()
+
+
+def test_the_clean_rows_publish_and_only_the_flagged_one_is_held(conn, monkeypatch):
+    """The change the first two production runs forced.
+
+    Both failed on eight findings while carrying dozens of good records, and one
+    of the eight (X.AI, $16.6bn) is a real raise. A guard that halts the product
+    every time a genuine mega-round lands is a guard that gets removed.
+    """
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    _row(conn, content_hash="spv", company="100 Villas Drive LLC",
+         funding_amount_usd=40_000_000)
+    conn.commit()
+
+    seen: list[str] = []
+
+    def capture(session, site, key, rows):
+        seen.extend(r["content_hash"] for r in rows)
+        return {"stored": len(rows), "duplicate": 0, "errors": []}
+
+    monkeypatch.setattr(publish, "_post_batch", capture)
+    _wp(monkeypatch)
+
+    result = publish.publish(conn)
+
+    assert result["quarantined"] == 2
+    assert "huge" not in seen and "spv" not in seen
+    assert len(seen) == 400, "every clean row must still go out"
+    assert result["stored"] == 400
+
+
+def test_a_quarantined_row_stays_unpublished_so_it_reaches_no_figure(conn, monkeypatch):
+    """The half that must never weaken. It is also why no requeue is needed: the
+    row is simply never marked published, so it is re-offered every run."""
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+    monkeypatch.setattr(publish, "_post_batch", lambda *a, **k: {
+        "stored": 400, "duplicate": 0, "errors": []})
+    _wp(monkeypatch)
+
+    publish.publish(conn)
+
+    assert conn.execute(
+        "SELECT published_at FROM signals WHERE content_hash = 'huge'"
+    ).fetchone()[0] is None
+    assert "huge" in [r["content_hash"] for r in publish.unpublished(conn)]
+
+
+def test_accepting_a_finding_releases_the_row_on_the_next_run(conn, monkeypatch):
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+    seen: list[str] = []
+
+    def capture(session, site, key, rows):
+        seen.extend(r["content_hash"] for r in rows)
+        return {"stored": len(rows), "duplicate": 0, "errors": []}
+
+    monkeypatch.setattr(publish, "_post_batch", capture)
+    _wp(monkeypatch)
+
+    publish.publish(conn)
+    assert "huge" not in seen
+
+    guardrails.review(conn, "amount/huge", "accepted", "read the filing, real")
+    publish.publish(conn)
+    assert "huge" in seen, "an accepted row publishes itself, with no replay path"
+
+
+def test_a_quarantine_alone_does_not_fail_the_run(conn, monkeypatch):
+    """Exit 0 is the success case: the guard worked, the suspect row is out of
+    every figure, and red at that moment would only mean the machine noticed."""
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+    monkeypatch.setattr(publish, "_post_batch", lambda *a, **k: {
+        "stored": 400, "duplicate": 0, "errors": []})
+    _wp(monkeypatch)
+
+    result = publish.publish(conn)  # must not raise
+    assert result["quarantined"] == 1
+
+
+def test_a_neglected_finding_goes_red_but_only_after_the_clean_rows_are_sent(
+        conn, monkeypatch):
+    """The escalation must not cost a clean row. "One suspect row does not take
+    the batch down with it" has to hold on the day the run goes red too."""
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+    seen: list[str] = []
+
+    def capture(session, site, key, rows):
+        seen.extend(r["content_hash"] for r in rows)
+        return {"stored": len(rows), "duplicate": 0, "errors": []}
+
+    monkeypatch.setattr(publish, "_post_batch", capture)
+    _wp(monkeypatch)
+
+    guardrails.quarantine(conn, today=TODAY)
+    _age_finding(conn, "huge", hours=guardrails.HELD_FINDING_GRACE_HOURS + 1)
+
+    with pytest.raises(publish.PublishError, match="grace window"):
         publish.publish(conn)
-    assert sent == [], "a tripped guardrail must stop the send, not annotate it"
+
+    assert len(seen) == 400, "the clean rows must be sent before the run goes red"
+    assert conn.execute(
+        "SELECT COUNT(*) FROM signals WHERE published_at IS NOT NULL"
+    ).fetchone()[0] == 400
 
 
-def test_the_enrich_path_is_guarded_too(conn, monkeypatch):
-    """enrich pushes funding_amount_usd onto rows the site already holds, so it
-    can move the money total on its own. It once took the charts from $3.2M to
-    $20.79bn."""
+def test_an_already_live_row_gets_the_shorter_window(conn):
+    """A held row is the guard working and nothing is wrong in public. A row
+    already on the site is a wrong figure on the page that quarantine cannot
+    pull back, so it runs on a much shorter clock."""
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.execute("UPDATE signals SET published_at = '2026-07-01' "
+                 " WHERE content_hash = 'huge'")
+    conn.commit()
+
+    report = guardrails.quarantine(conn, today=TODAY)
+    assert [r["subject"] for r in report["live"]] == ["huge"]
+    assert report["held"] == []
+    assert report["live"][0]["grace_hours"] == guardrails.LIVE_FINDING_GRACE_HOURS
+
+    _age_finding(conn, "huge", hours=guardrails.LIVE_FINDING_GRACE_HOURS + 1)
+    assert guardrails.quarantine(conn, today=TODAY)["overdue"]
+
+
+def test_a_held_row_does_not_inherit_the_live_window(conn):
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+
+    report = guardrails.quarantine(conn, today=TODAY)
+    assert [r["subject"] for r in report["held"]] == ["huge"]
+    assert report["overdue"] == []
+
+    _age_finding(conn, "huge", hours=guardrails.LIVE_FINDING_GRACE_HOURS + 1)
+    assert guardrails.quarantine(conn, today=TODAY)["overdue"] == [], (
+        "a row that never reached the site must not inherit the live window")
+
+    _age_finding(conn, "huge", hours=guardrails.HELD_FINDING_GRACE_HOURS + 1)
+    assert guardrails.quarantine(conn, today=TODAY)["overdue"]
+
+
+def test_an_aggregate_finding_still_halts_because_it_has_no_clean_subset(
+        conn, monkeypatch):
+    """A row finding names a row to hold back. An aggregate finding says the
+    arithmetic of the whole set is wrong, and no subset of a wrong total is
+    right, so this one keeps the halting behaviour on purpose."""
+    _fill_lognormal(conn, n=400)
+    conn.commit()
+
+    real = guardrails.glance_matrix
+
+    def broken(c, today=None):
+        matrix = real(c, today)
+        matrix["cells"]["total"] = [1, 1, 1, 6018]
+        matrix["all_time"]["total"] = 5000
+        return matrix
+
+    monkeypatch.setattr(guardrails, "glance_matrix", broken)
+    sent = []
+    monkeypatch.setattr(publish, "_post_batch", lambda *a, **k: sent.append(1) or {
+        "stored": 1, "duplicate": 0, "errors": []})
+    _wp(monkeypatch)
+
+    with pytest.raises(publish.PublishError, match="does not add up"):
+        publish.publish(conn)
+    assert sent == []
+
+
+def test_the_enrich_path_quarantines_too(conn, monkeypatch):
+    """enrich pushes funding_amount_usd onto rows the site already holds, so a
+    flagged amount could reach the money total by the back door while publish()
+    was carefully not sending it by the front."""
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.execute("UPDATE signals SET published_at = '2026-07-01'")
+    conn.commit()
+
+    captured: dict = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"updated": 1}
+
+    class FakeSession:
+        def post(self, url, json=None, **kw):
+            captured.setdefault("hashes", []).extend(
+                r["content_hash"] for r in json["rows"])
+            return FakeResponse()
+
+    monkeypatch.setattr(publish.requests, "Session", lambda: FakeSession())
+    _wp(monkeypatch)
+
+    result = publish.enrich_published(conn)
+    assert result["quarantined"] == 1
+    assert "huge" not in captured["hashes"]
+
+
+def test_a_dry_run_records_nothing_and_still_reports(conn, capsys):
     _fill_lognormal(conn)
     _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
     conn.commit()
-    monkeypatch.setenv("WP_SITE_URL", "https://asktherecruiter.com/blog")
-    monkeypatch.setenv("WP_API_KEY", "k" * 40)
-    with pytest.raises(publish.PublishError):
-        publish.enrich_published(conn)
-
-
-def test_a_dry_run_records_nothing(conn):
-    _fill_lognormal(conn)
-    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
-    conn.commit()
-    with pytest.raises(publish.PublishError):
-        publish.publish(conn, dry_run=True)
+    result = publish.publish(conn, dry_run=True)
+    assert result["quarantined"] == 1
     assert conn.execute("SELECT COUNT(*) FROM publish_guardrails").fetchone()[0] == 0
+    assert "would quarantine" in capsys.readouterr().out
+
+
+def test_a_quarantine_is_announced_where_it_cannot_be_missed(conn, capsys):
+    _fill_lognormal(conn)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+    publish.publish(conn, dry_run=True)
+    out = capsys.readouterr().out
+    assert "::warning::" in out, (
+        "a quarantine must annotate the Actions run, not just sit in a log")
+    assert "guardrails.py" in out
 
 
 def test_a_finding_that_stops_firing_is_resolved_not_deleted(conn):
     _fill_lognormal(conn)
     _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
     conn.commit()
-    with pytest.raises(guardrails.GuardrailTripped):
-        guardrails.enforce(conn, today=TODAY)
+    guardrails.quarantine(conn, today=TODAY)
 
     conn.execute("UPDATE signals SET is_current = 0 WHERE content_hash = 'huge'")
     conn.commit()
-    guardrails.enforce(conn, today=TODAY)
+    guardrails.quarantine(conn, today=TODAY)
 
     row = conn.execute("SELECT state FROM publish_guardrails "
                        " WHERE subject = 'huge'").fetchone()
@@ -494,30 +699,44 @@ def test_a_resolved_finding_that_returns_is_open_again(conn):
     _fill_lognormal(conn)
     _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
     conn.commit()
-    with pytest.raises(guardrails.GuardrailTripped):
-        guardrails.enforce(conn, today=TODAY)
+    guardrails.quarantine(conn, today=TODAY)
     conn.execute("UPDATE signals SET is_current = 0 WHERE content_hash = 'huge'")
     conn.commit()
-    guardrails.enforce(conn, today=TODAY)
+    guardrails.quarantine(conn, today=TODAY)
     conn.execute("UPDATE signals SET is_current = 1 WHERE content_hash = 'huge'")
     conn.commit()
-    with pytest.raises(guardrails.GuardrailTripped):
-        guardrails.enforce(conn, today=TODAY)
+    assert "huge" in guardrails.quarantine(conn, today=TODAY)["quarantined"]
     assert conn.execute("SELECT state FROM publish_guardrails "
                         " WHERE subject = 'huge'").fetchone()["state"] == "open"
 
 
-def test_a_rejected_finding_also_stops_blocking(conn):
+def test_a_rejected_finding_also_releases_the_row(conn):
     """Rejecting records the judgement; retract.py is what removes the row, so
     the correction stays visible on the site instead of happening silently."""
     _fill_lognormal(conn)
     _row(conn, content_hash="spv", company="100 Villas Drive LLC",
          funding_amount_usd=40_000_000)
     conn.commit()
-    with pytest.raises(guardrails.GuardrailTripped):
-        guardrails.enforce(conn, today=TODAY)
+    assert "spv" in guardrails.quarantine(conn, today=TODAY)["quarantined"]
     guardrails.review(conn, "vehicle_name/spv", "rejected", "SPV, retracting")
-    guardrails.enforce(conn, today=TODAY)
+    assert "spv" not in guardrails.quarantine(conn, today=TODAY)["quarantined"]
+
+
+def test_a_read_only_pass_agrees_with_a_recorded_one(conn):
+    """ops_status and the digest both read without writing, and both must show a
+    finding as overdue when it is. Computing the age from "now" would make every
+    read-only caller report zero, which is exactly where an overdue finding most
+    needs to be visible."""
+    _fill_lognormal(conn)
+    _row(conn, content_hash="huge", funding_amount_usd=50_000_000_000)
+    conn.commit()
+    guardrails.quarantine(conn, today=TODAY)
+    _age_finding(conn, "huge", hours=guardrails.HELD_FINDING_GRACE_HOURS + 1)
+
+    written = guardrails.quarantine(conn, today=TODAY, write=True)
+    read_only = guardrails.quarantine(conn, today=TODAY, write=False)
+    assert [r["subject"] for r in written["overdue"]] == ["huge"]
+    assert [r["subject"] for r in read_only["overdue"]] == ["huge"]
 
 
 def test_review_refuses_a_state_it_does_not_understand(conn):

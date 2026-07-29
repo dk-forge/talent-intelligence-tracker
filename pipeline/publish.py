@@ -30,26 +30,99 @@ class PublishError(RuntimeError):
 
 
 def _guard(conn, *, dry_run: bool) -> dict:
-    """Run the pre-publish guardrails, or refuse to publish.
+    """Run the pre-publish guardrails and decide what may be sent.
 
     HERE and not in a separate audit script, because the $86bn Form D
     overstatement was not a thing nobody could have checked - it was a thing
     nobody was going to remember to check. Every route that can move a headline
     figure goes through this module: run_collect, every backfill, the
     corrections, and the enrich path that once took the money charts from $3.2M
-    to $20.79bn on its own. So the check lives on the write path, and a job that
-    trips it goes red.
+    to $20.79bn on its own.
 
-    Raised as a PublishError so every existing caller already handles it and
-    already exits non-zero; the findings ride along on the exception for anyone
-    who wants to print them.
+    It QUARANTINES rather than halting. The flagged rows are dropped from the
+    batch and everything else goes out. The first build halted the whole run,
+    and the first two production runs showed what that costs: eight findings
+    stopped a collect and a backfill that were carrying dozens of good records,
+    and one of the eight (X.AI, $16.6bn) is a real raise. A guard that stops the
+    product every time a genuine mega-round lands does not survive contact with
+    a product that has to run unattended for days.
+
+    What does not soften: a quarantined row is not sent, so it cannot reach a
+    headline figure. That was the whole point and it is unchanged.
     """
-    try:
-        return guardrails.enforce(conn, write=not dry_run)
-    except guardrails.GuardrailTripped as exc:
-        error = PublishError(str(exc))
-        error.findings = exc.findings
-        raise error from exc
+    report = guardrails.quarantine(conn, write=not dry_run)
+    _announce(report, dry_run=dry_run)
+    if report["aggregate"]:
+        findings = guardrails.as_findings(report["aggregate"])
+        error = PublishError(str(guardrails.AggregateBroken(findings)))
+        error.findings = findings
+        raise error
+    return report
+
+
+def _announce(report: dict, *, dry_run: bool = False) -> None:
+    """Say what was held back, in a way that cannot be scrolled past.
+
+    Printed from HERE rather than from run_collect so every route gets it for
+    free: six backfill scripts, both corrections and the enrich job all publish
+    through this module and not one of them would have grown its own version.
+
+    `::warning::` and `::error::` are GitHub Actions annotations, so a
+    quarantine lands on the run summary page and not only in a log nobody opens.
+    Same mechanism health_digest.py already uses.
+    """
+    held, live, overdue = report["held"], report["live"], report["overdue"]
+    if not (held or live or report["aggregate"]):
+        return
+
+    prefix = "would quarantine" if dry_run else "QUARANTINED"
+    print(f"\n[guardrails] {prefix} {len(held) + len(live)} row(s). "
+          f"Everything else in this batch publishes normally.")
+
+    for row in sorted(held + live, key=lambda r: -(r.get("value") or 0)):
+        age, grace = row.get("age_hours"), row.get("grace_hours")
+        left = "" if age is None else f", red in {max(0.0, grace - age):.0f}h"
+        where = ("ALREADY LIVE on the site, needs a retraction decision"
+                 if row["already_live"] else "held back, never published")
+        print(f"::warning::[guardrail] {row['check_name']}/{row['subject']} "
+              f"{row.get('label') or ''} - {where}{left}")
+
+    if live:
+        print(f"::warning::[guardrail] {len(live)} of these are ALREADY on the "
+              f"live site. Quarantine cannot pull a published row back; only "
+              f"`python3 retract.py <signal_id> '<why>'` can.")
+
+    for row in report["aggregate"]:
+        print(f"::error::[guardrail] {row['check_name']}/{row['subject']} "
+              f"{row.get('label') or ''} - the published set does not add up, "
+              f"so nothing was sent.")
+
+    if overdue:
+        print(f"::error::[guardrail] {len(overdue)} finding(s) are past their "
+              f"grace window. This run exits non-zero AFTER publishing the "
+              f"clean rows.")
+
+    print("[guardrails] Answer them:  python3 guardrails.py\n")
+
+
+def _escalate(report: dict, published: int) -> None:
+    """Go red once a human has neglected a finding, never before.
+
+    Called AFTER the send, on purpose. The escalation must not cost a clean row:
+    "one suspect row does not take the batch down with it" has to hold on the
+    day the run goes red as well as on the days it does not. The clean rows are
+    already sent, marked published and committed by the time this raises, so red
+    here means "nobody answered", never "work was lost".
+    """
+    overdue = report["overdue"]
+    if not overdue:
+        return
+    oldest = max((row.get("age_hours") or 0) for row in overdue)
+    findings = guardrails.as_findings(overdue)
+    error = PublishError(str(guardrails.QuarantineOverdue(
+        findings, published=published, oldest_hours=oldest)))
+    error.findings = findings
+    raise error
 
 
 def _config() -> tuple[str, str]:
@@ -150,11 +223,22 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
     finally:
         conn.row_factory = previous_factory
     rows = [{k: v for k, v in r.items() if v is not None} for r in raw]
+
+    # A quarantined row must not have its derived columns pushed either. This is
+    # the path that carries funding_amount_usd, so leaving it unfiltered would
+    # mean a flagged amount reaching the money total by the back door while
+    # publish() was carefully not sending it by the front.
+    quarantined = guard["quarantined"]
+    held = [r for r in rows if r["content_hash"] in quarantined]
+    rows = [r for r in rows if r["content_hash"] not in quarantined]
+
     if not rows:
-        return {"sent": 0, "updated": 0, "errors": [], "guardrails": guard}
+        _escalate(guard, 0)
+        return {"sent": 0, "updated": 0, "errors": [],
+                "quarantined": len(held), "guardrails": guard}
     if dry_run:
         return {"sent": 0, "updated": 0, "errors": [], "would_send": len(rows),
-                "guardrails": guard}
+                "quarantined": len(held), "guardrails": guard}
 
     site, key = _config()
     session = requests.Session()
@@ -174,7 +258,9 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
         updated += int(result.get("updated", 0))
         errors.extend(result.get("errors") or [])
         sent += len(batch)
-    return {"sent": sent, "updated": updated, "errors": errors, "guardrails": guard}
+    _escalate(guard, sent)
+    return {"sent": sent, "updated": updated, "errors": errors,
+            "quarantined": len(held), "guardrails": guard}
 
 
 def unpublished(conn, limit: int | None = None) -> list[dict]:
@@ -270,13 +356,25 @@ def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
     guard = _guard(conn, dry_run=dry_run)
 
     rows = unpublished(conn, limit)
+
+    # The quarantine. A flagged row is dropped from the batch and stays
+    # unpublished, so it reaches no headline figure; every other row in the same
+    # batch goes out. It is NOT marked published, so it is re-offered every run
+    # and publishes itself the moment somebody accepts the finding - no requeue,
+    # no separate replay path to remember.
+    quarantined = guard["quarantined"]
+    held = [r for r in rows if r["content_hash"] in quarantined]
+    rows = [r for r in rows if r["content_hash"] not in quarantined]
+
     if not rows:
+        _escalate(guard, 0)
         return {"sent": 0, "stored": 0, "duplicate": 0, "errors": [],
-                "guardrails": guard}
+                "quarantined": len(held), "guardrails": guard}
 
     if dry_run:
         return {"sent": 0, "stored": 0, "duplicate": 0, "errors": [],
-                "would_send": len(rows), "guardrails": guard}
+                "would_send": len(rows), "quarantined": len(held),
+                "guardrails": guard}
 
     site, key = _config()
     session = requests.Session()
@@ -305,5 +403,8 @@ def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
             conn.commit()
         sent += len(batch)
 
+    # After the send, never before: the escalation must not cost a clean row.
+    _escalate(guard, sent)
+
     return {"sent": sent, "stored": stored, "duplicate": duplicate,
-            "errors": errors, "guardrails": guard}
+            "errors": errors, "quarantined": len(held), "guardrails": guard}

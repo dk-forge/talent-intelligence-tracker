@@ -20,7 +20,7 @@ Four checks, all of them arithmetic and pattern matching:
                 nobody: a street address, a numbered series, an insurance
                 separate account, a synthetic GIC
 
-THE TWO RULES THAT SHAPE ALL OF IT.
+THE THREE RULES THAT SHAPE ALL OF IT.
 
 1. **Flag, never silently drop.** Every finding lands in the `publish_guardrails`
    ledger and is surfaced by `ops_status.py [2d]`, `guardrails.py` and the weekly
@@ -29,9 +29,20 @@ THE TWO RULES THAT SHAPE ALL OF IT.
    it and the decision is remembered. Silent auto-correction is how you get a
    different invisible defect.
 
-2. **Fail loud.** An open finding makes `publish()` raise, which makes the job
-   exit non-zero. A guardrail that warns and continues is a guardrail that gets
-   read for the first time after the next incident.
+2. **Quarantine, not halt.** A flagged row does not publish. Everything else in
+   the same batch does. The first build halted the run instead, and the first
+   two production runs showed exactly what that costs: eight findings stopped a
+   collect and a backfill that were carrying dozens of good records, and one of
+   the eight (X.AI, $16.6bn) is a real raise. A guard that stops the product
+   every time a genuine mega-round lands is a guard that gets removed. What must
+   NEVER weaken is the other half: an unreviewed row stays out of the batch and
+   out of every figure computed from it.
+
+3. **Red means a human neglected it, not that the machine noticed.** Publishing
+   the clean rows and exiting 0 is the success case; the guardrail worked. The
+   run escalates to non-zero only once a finding has been open past its grace
+   window. See `LIVE_FINDING_GRACE_HOURS` for the full reasoning, including why
+   there are two windows and where the numbers come from.
 
 No model is called here, ever. This is arithmetic and regex; it costs nothing.
 """
@@ -52,6 +63,48 @@ DATE_SPAN = "date_span"
 VEHICLE_NAME = "vehicle_name"
 CHECKS = (AMOUNT, PERIOD_TOTALS, DATE_SPAN, VEHICLE_NAME)
 
+# The division that decides the failure mode, and it is not cosmetic.
+#
+# A ROW check names one row, so the answer is to hold that row back and publish
+# everything else.
+#
+# An AGGREGATE check names no row. It says the arithmetic of the whole published
+# set does not add up, and there is no clean subset of a total that is wrong.
+# Those still halt, immediately and with no grace period, because publishing more
+# rows into a broken total cannot improve it. They stay reviewable through the
+# same ledger, so a human can still unblock one deliberately.
+ROW_CHECKS = (AMOUNT, VEHICLE_NAME)
+AGGREGATE_CHECKS = (PERIOD_TOTALS, DATE_SPAN)
+
+# WHEN A QUARANTINE BECOMES A FAILURE. Two windows, and both are derived from
+# the cadence rather than picked.
+#
+# The question a red run should answer is "has a person neglected this?", which
+# means the person has to have been TOLD first. `health-digest.yml` runs Mondays
+# 13:00 UTC, so the weekly email is the moment of telling.
+#
+#   held back, never reached the site: 192h = one full digest cycle plus a day.
+#     Until the first digest fires, red would be blaming somebody who has not
+#     been asked yet. And nothing is wrong in public: the guardrail did its job,
+#     the suspect row is out of every figure. After a whole cycle of silence,
+#     that is a choice.
+#
+#   already on the site: 72h. This one is different in kind. The row is in the
+#     live aggregate NOW and quarantine cannot pull it back - only a human
+#     retraction can. It is the $86bn failure in miniature, and the whole build
+#     exists because that stood in public until somebody looked. The owner's own
+#     requirement is that this run for "days" unattended, so three days is the
+#     longest ordinary absence; past that an unchecked live figure has outlived
+#     it and the run should be red when he gets back.
+#
+# The countdown is printed on every run, so the day it turns red is never a
+# surprise. The alternative shapes were both rejected on this project's own
+# evidence: exiting 0 forever makes the finding decorative, and exiting non-zero
+# from the moment of creation makes red the normal state, which is how the
+# permanently-red drain-writers taught everyone to skim past it.
+LIVE_FINDING_GRACE_HOURS = 72
+HELD_FINDING_GRACE_HOURS = 192
+
 # The date a row is reported under, everywhere. Byte-identical to the plugin's
 # own expression (includes/api.php, includes/shortcodes.php) so a guardrail
 # cannot pass on a set the page never counted.
@@ -66,14 +119,46 @@ PUBLISHED_SQL = "is_current = 1"
 
 
 class GuardrailTripped(RuntimeError):
-    """One or more guardrails hold an open finding. Nothing was published."""
+    """Base. Carries the findings so a caller can print them."""
+
+    def __init__(self, message: str, findings: list["Finding"]):
+        self.findings = findings
+        super().__init__(message)
+
+
+class AggregateBroken(GuardrailTripped):
+    """The published set does not add up. Nothing can be published.
+
+    Raised BEFORE any send. Unlike a row finding there is nothing to quarantine:
+    a total that is wrong is not made less wrong by adding rows to it.
+    """
 
     def __init__(self, findings: list["Finding"]):
-        self.findings = findings
         names = sorted({f.check for f in findings})
         super().__init__(
-            f"{len(findings)} open guardrail finding(s) across {', '.join(names)}. "
-            f"Nothing was published. Review them with:  python3 guardrails.py")
+            f"{len(findings)} aggregate guardrail finding(s) across "
+            f"{', '.join(names)}. The published set does not add up, so there is "
+            f"no clean subset to send and NOTHING was published. Review with:  "
+            f"python3 guardrails.py", findings)
+
+
+class QuarantineOverdue(GuardrailTripped):
+    """A quarantined row has been waiting too long for a human.
+
+    Raised AFTER the send, deliberately. The escalation must not cost a single
+    clean row: the point of the whole change is that a suspect row does not take
+    the batch down with it, and that has to stay true on the day the run goes
+    red as well as on the days it does not.
+    """
+
+    def __init__(self, findings: list["Finding"], *, published: int, oldest_hours: float):
+        super().__init__(
+            f"{len(findings)} guardrail finding(s) have been open longer than "
+            f"their grace window (oldest {oldest_hours:.0f}h). {published} clean "
+            f"row(s) WERE published; the flagged ones were held back and are "
+            f"still held back. This run is red because nobody has answered them, "
+            f"not because anything failed. Answer them:  python3 guardrails.py",
+            findings)
 
 
 @dataclass(frozen=True)
@@ -752,25 +837,116 @@ def review(conn, key: str, state: str, note: str, who: str = "") -> int:
     return cur.rowcount
 
 
-def enforce(conn, *, today: date | None = None, live_span: dict | None = None,
-            write: bool = True) -> dict:
-    """Evaluate, record, and refuse to continue while anything is open.
+def _already_published(conn, subjects: set[str]) -> set[str]:
+    """Of these content hashes, the ones the site already holds.
 
-    This is what `pipeline.publish` calls. It raises rather than returning a
-    status, because a caller who has to remember to check a return value is the
-    same shape of hazard as an audit somebody has to remember to run.
+    The distinction the whole escalation turns on. A finding on a row we have
+    never sent is a guardrail that WORKED: the number is not in public and
+    quarantine keeps it that way. A finding on a row already on the site is a
+    figure that is wrong in public right now, and no amount of holding rows back
+    can pull it home - only a human retraction can.
+    """
+    if not subjects:
+        return set()
+    out: set[str] = set()
+    subjects = sorted(subjects)
+    for start in range(0, len(subjects), 400):
+        chunk = subjects[start:start + 400]
+        placeholders = ", ".join("?" for _ in chunk)
+        out.update(r[0] for r in conn.execute(
+            f"SELECT content_hash FROM signals "
+            f" WHERE content_hash IN ({placeholders}) AND is_current = 1 "
+            f"   AND published_at IS NOT NULL", chunk))
+    return out
+
+
+def _hours_since(stamp: str | None) -> float | None:
+    if not stamp:
+        return None
+    try:
+        seen = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if seen.tzinfo is None:
+        seen = seen.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - seen).total_seconds() / 3600
+
+
+def quarantine(conn, *, today: date | None = None, live_span: dict | None = None,
+               write: bool = True) -> dict:
+    """Evaluate, record, and say what must be held back.
+
+    Returns a report and raises nothing. The decision about the run's exit
+    status belongs to the caller, and `pipeline.publish` makes it in one place
+    for every route: halt on an aggregate finding, quarantine the rows and carry
+    on otherwise, escalate after the send when a finding has gone unanswered.
+
+    The report:
+      quarantined   content hashes that must not be sent this run
+      held          open row findings whose row has never reached the site
+      live          open row findings whose row is already on the site
+      aggregate     open findings that name no row (these halt)
+      overdue       open row findings past their grace window (these escalate)
     """
     result = evaluate(conn, today=today, live_span=live_span)
     if write:
         result.update(record(conn, result["findings"]))
-    still_open = open_findings(conn) if write else [
-        {"check_name": f.check, "subject": f.subject, "label": f.label,
-         "detail": f.detail, "value": f.value} for f in result["findings"]]
-    result["open"] = still_open
-    if still_open:
-        raise GuardrailTripped([
-            Finding(check=r["check_name"], subject=r["subject"],
-                    label=r["label"] or "", detail=r["detail"] or "",
-                    value=r["value"])
-            for r in still_open])
+
+    if write:
+        still_open = open_findings(conn)
+    else:
+        # Read-only: nothing was recorded, so this pass's findings ARE the open
+        # set, minus anything a human has already answered. `first_seen` is read
+        # from the ledger wherever the finding is already known, because
+        # otherwise every read-only caller would compute an age of zero and no
+        # ops tool could ever show a finding as overdue - which is exactly where
+        # an overdue finding most needs to be visible.
+        answered: set[tuple[str, str]] = set()
+        known: dict[tuple[str, str], str] = {}
+        try:
+            for row in conn.execute("SELECT check_name, subject, state, "
+                                    "first_seen FROM publish_guardrails"):
+                key = (row["check_name"], row["subject"])
+                known[key] = row["first_seen"]
+                if row["state"] in ("accepted", "rejected"):
+                    answered.add(key)
+        except Exception:
+            pass
+        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        still_open = [
+            {"check_name": f.check, "subject": f.subject, "label": f.label,
+             "detail": f.detail, "value": f.value,
+             "first_seen": known.get((f.check, f.subject), now)}
+            for f in result["findings"] if (f.check, f.subject) not in answered]
+
+    rows = [r for r in still_open if r["check_name"] in ROW_CHECKS]
+    aggregate = [r for r in still_open if r["check_name"] in AGGREGATE_CHECKS]
+
+    live_subjects = _already_published(conn, {r["subject"] for r in rows})
+    held, live, overdue = [], [], []
+    for row in rows:
+        is_live = row["subject"] in live_subjects
+        row["already_live"] = is_live
+        row["age_hours"] = _hours_since(row.get("first_seen"))
+        row["grace_hours"] = (LIVE_FINDING_GRACE_HOURS if is_live
+                              else HELD_FINDING_GRACE_HOURS)
+        (live if is_live else held).append(row)
+        if row["age_hours"] is not None and row["age_hours"] > row["grace_hours"]:
+            overdue.append(row)
+
+    result.update({
+        "open": still_open,
+        "quarantined": {r["subject"] for r in rows},
+        "held": held,
+        "live": live,
+        "aggregate": aggregate,
+        "overdue": overdue,
+    })
     return result
+
+
+def as_findings(rows: list[dict]) -> list[Finding]:
+    """Ledger rows back into Findings, for an exception to carry."""
+    return [Finding(check=r["check_name"], subject=r["subject"],
+                    label=r.get("label") or "", detail=r.get("detail") or "",
+                    value=r.get("value")) for r in rows]

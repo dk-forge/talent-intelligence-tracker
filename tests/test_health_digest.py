@@ -190,20 +190,59 @@ class TestEmail(unittest.TestCase):
         self.assertIn("9.40", body)
         self.assertIn("AT THE CEILING", body)
 
-    def test_open_guardrails_lead_the_subject_and_carry_their_own_instruction(self):
-        """An unanswered guardrail stops publishing outright, so it outranks a
-        stale scraper: one costs coverage, the other means a figure nobody has
-        checked is one decision away from going out."""
+    def test_a_quarantined_row_leads_the_subject_and_carries_its_instruction(self):
+        """A quarantine outranks a stale scraper: one costs coverage, the other
+        means a figure nobody has checked is one decision away from going out."""
         buckets = health_digest.classify({"google_news": entry(24 * 5)}, NOW)
         rows = [{"check_name": "amount", "subject": "abc",
                  "label": "X.AI Holdings Corp. $16,599,961,030",
-                 "value": 16_599_961_030.0}]
+                 "value": 16_599_961_030.0, "already_live": False,
+                 "age_hours": 4.0, "grace_hours": 192}]
         subject, body = health_digest.build_email(
             buckets, False, 24 * 5, None, "local", rows)
-        self.assertIn("guardrail", subject.lower())
+        self.assertIn("quarantined", subject.lower())
         self.assertIn("X.AI Holdings Corp.", body)
         self.assertIn("guardrails.py", body)
         self.assertIn("Nothing was dropped", body)
+        self.assertIn("Collection is NOT stopped", body)
+
+    def test_an_already_live_row_outranks_a_merely_held_one(self):
+        """A held row is the guard working. A live one is a wrong figure on the
+        page that only a retraction removes, so it leads."""
+        buckets = health_digest.classify({"google_news": entry(2)}, NOW)
+        rows = [
+            {"check_name": "amount", "subject": "held", "label": "Held Co",
+             "value": 1.0, "already_live": False, "age_hours": 1.0,
+             "grace_hours": 192},
+            {"check_name": "vehicle_name", "subject": "live", "label": "Live Co",
+             "value": 2.0, "already_live": True, "age_hours": 1.0,
+             "grace_hours": 72},
+        ]
+        subject, body = health_digest.build_email(
+            buckets, False, 2, None, "local", rows)
+        self.assertIn("already live", subject.lower())
+        self.assertIn("ALREADY LIVE", body)
+        self.assertIn("retraction", body)
+
+    def test_an_overdue_row_says_the_runs_are_now_red(self):
+        buckets = health_digest.classify({"google_news": entry(2)}, NOW)
+        rows = [{"check_name": "amount", "subject": "old", "label": "Old Co",
+                 "value": 1.0, "already_live": False, "age_hours": 400.0,
+                 "grace_hours": 192}]
+        subject, body = health_digest.build_email(
+            buckets, False, 2, None, "local", rows)
+        self.assertIn("grace window", subject.lower())
+        self.assertIn("exiting non-zero", body)
+        self.assertIn("OVERDUE", body)
+
+    def test_a_quarantine_inside_its_window_says_the_runs_are_still_green(self):
+        buckets = health_digest.classify({"google_news": entry(2)}, NOW)
+        rows = [{"check_name": "amount", "subject": "new", "label": "New Co",
+                 "value": 1.0, "already_live": False, "age_hours": 1.0,
+                 "grace_hours": 192}]
+        _, body = health_digest.build_email(
+            buckets, False, 2, None, "local", rows)
+        self.assertIn("still green", body)
 
     def test_a_digest_with_no_guardrail_findings_says_nothing_about_them(self):
         buckets = health_digest.classify({"google_news": entry(24 * 5)}, NOW)

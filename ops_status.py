@@ -357,7 +357,7 @@ def _report_link_rot(conn) -> list[str]:
 
 
 def _report_guardrails(conn) -> list[str]:
-    """What the pre-publish guardrails caught, and what is blocking a publish.
+    """What the pre-publish guardrails are holding back, and how urgent it is.
 
     The $86bn Form D overstatement stood in public for weeks because nothing in
     the pipeline asked whether a single row was implausible, whether the period
@@ -365,10 +365,15 @@ def _report_guardrails(conn) -> list[str]:
     checks now run on the write path (pipeline/guardrails.py). This is where a
     session SEES them, which is the half that makes flag-not-drop work: a
     finding nobody looks at is a silent drop with extra steps.
+
+    Reports the two categories separately because they are different problems.
+    A HELD row never reached the site, so the guardrail worked and nothing is
+    wrong in public. A LIVE one is a figure that is wrong on the page right now,
+    which quarantine cannot fix - only a human retraction can.
     """
     from pipeline import guardrails
 
-    print("\n[2d] PUBLISH GUARDRAILS  (no figure goes out over an unanswered flag)")
+    print("\n[2d] PUBLISH GUARDRAILS  (a flagged row is held back; the rest publish)")
 
     try:
         stats = guardrails.derive_amount_threshold(guardrails.stored_amounts(conn))
@@ -386,43 +391,62 @@ def _report_guardrails(conn) -> list[str]:
     except sqlite3.OperationalError:
         counts = {}
 
+    # Evaluate read-only whether or not a run has recorded. An empty ledger
+    # means nobody has looked, and the tool every session is told to trust must
+    # not confuse that with "nothing flagged".
+    report = guardrails.quarantine(conn, write=False)
+
     if counts:
         print("    ledger: " + ", ".join(f"{s}={n}" for s, n in sorted(counts.items())))
-        rows = guardrails.open_findings(conn)
-        pending = ("open guardrail finding(s) are blocking every publish")
     else:
-        # No run has written the ledger yet. Evaluating here rather than saying
-        # "nothing flagged" is the difference between an ops tool and a
-        # reassuring one: an empty ledger means nobody has looked, and the tool
-        # that tells every session to trust it must not confuse the two. Still
-        # read-only, which is this file's whole contract.
-        findings = guardrails.evaluate(conn)["findings"]
-        rows = [{"check_name": f.check, "subject": f.subject, "label": f.label,
-                 "detail": f.detail, "value": f.value} for f in findings]
-        print(f"    ledger empty (no run has recorded yet). Evaluated live: "
-              f"{len(rows)} finding(s).")
-        if not guardrails.collector_patterns_available():
-            print("    NOTE: this interpreter cannot import the Form D "
-                  "collector's own name")
-            print("    patterns, so the vehicle check here is NARROWER than the "
-                  "pipeline's.")
-            print("    For the full set:  .venv/bin/python guardrails.py --check")
-        pending = ("finding(s) will block the next publish the moment a run "
-                   "records them")
+        print("    ledger empty (no run has recorded yet); evaluated live.")
+    if not guardrails.collector_patterns_available():
+        print("    NOTE: this interpreter cannot import the Form D collector's "
+              "own name")
+        print("    patterns, so the vehicle check here is NARROWER than the "
+              "pipeline's.")
+        print("    For the full set:  .venv/bin/python guardrails.py --check")
 
-    if not rows:
+    held, live = report["held"], report["live"]
+    overdue, aggregate = report["overdue"], report["aggregate"]
+    if not (held or live or aggregate):
+        print("    Nothing quarantined. Every row publishes.")
         return []
 
-    for row in rows[:6]:
-        value = row.get("value")
-        amount = f"${float(value):,.0f}" if value else ""
-        print(f"    OPEN  {row['check_name']:<14} {(row.get('label') or '')[:46]:<46} {amount}")
-    if len(rows) > 6:
-        print(f"          ... and {len(rows) - 6} more")
+    print(f"    quarantined {len(held) + len(live)} row(s): {len(held)} held "
+          f"back, {len(live)} already live")
 
-    return [f"{len(rows)} {pending}. Read them with `python3 guardrails.py`, "
-            f"then accept the real ones and retract the rest. Nothing is dropped "
-            f"automatically, on purpose."]
+    for row in sorted(held + live, key=lambda r: -(r.get("value") or 0))[:6]:
+        age, grace = row.get("age_hours"), row.get("grace_hours")
+        left = "" if age is None else f"  red in {max(0.0, grace - age):.0f}h"
+        tag = "LIVE" if row["already_live"] else "HELD"
+        print(f"    {tag}  {row['check_name']:<13} "
+              f"{(row.get('label') or '')[:44]:<44}{left}")
+    if len(held) + len(live) > 6:
+        print(f"          ... and {len(held) + len(live) - 6} more")
+
+    problems = []
+    if aggregate:
+        for row in aggregate:
+            print(f"    HALT  {row['check_name']:<13} {(row.get('label') or '')[:44]}")
+        problems.append(
+            f"{len(aggregate)} aggregate guardrail finding(s): the published set "
+            f"does not add up, so NOTHING publishes until this is answered. "
+            f"There is no clean subset of a wrong total.")
+    if live:
+        problems.append(
+            f"{len(live)} flagged row(s) are ALREADY on the live site. Quarantine "
+            f"cannot pull a published row back: read the filing, then "
+            f"`python3 guardrails.py --accept/--reject` and retract the bad ones.")
+    if overdue:
+        problems.append(
+            f"{len(overdue)} finding(s) are past their grace window, so every "
+            f"publish run is now exiting non-zero AFTER sending its clean rows. "
+            f"Answer them with `python3 guardrails.py`.")
+    if held and not problems:
+        print(f"    {len(held)} held row(s) are inside their grace window; runs "
+              f"stay green until then.")
+    return problems
 
 
 def _report_coverage() -> None:

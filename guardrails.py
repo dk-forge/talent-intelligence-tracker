@@ -14,7 +14,14 @@ the whole design is flag-and-review rather than silent correction, because the
 one thing worse than a wrong number in public is a wrong number that something
 quietly fixed in a way nobody can see.
 
-Accepting a finding is a decision that is REMEMBERED. ChangXin Memory's genuine
+An open finding does NOT stop the pipeline. The flagged row is quarantined - held
+out of the batch and out of every figure - and everything else publishes. Runs
+stay green until a finding has been open past its grace window, at which point
+they publish the clean rows and THEN exit non-zero. So this queue is not
+urgent-by-default; it becomes urgent on a clock you can see below.
+
+Accepting a finding is a decision that is REMEMBERED, and it releases the row:
+it is still unpublished, so the next run sends it. ChangXin Memory's genuine
 $8.6bn raise is accepted once and never blocks a run again. Rejecting one does
 not delete anything: retract the row with `python3 retract.py <signal_id>
 "why"`, which is the path that keeps the correction visible on the site.
@@ -61,12 +68,28 @@ def _live_span(timeout: int = 40) -> dict | None:
         return None
 
 
+def _where(row: dict) -> str:
+    """The one distinction that decides how urgent a finding is."""
+    if "already_live" not in row:
+        return ""
+    age, grace = row.get("age_hours"), row.get("grace_hours")
+    clock = "" if age is None else (
+        f", RED NOW ({age:.0f}h open, window {grace}h)" if age > grace
+        else f", red in {max(0.0, grace - age):.0f}h")
+    if row["already_live"]:
+        return f"    ALREADY LIVE on the site: quarantine cannot pull it back{clock}"
+    return f"    held back, never published{clock}"
+
+
 def _print_findings(rows: list[dict]) -> None:
     for row in rows:
         key = f"{row['check_name']}/{row['subject']}"
         state = row.get("state", "open")
         print(f"\n  [{state}] {key}")
         print(f"    {row.get('label') or ''}   {_money(row.get('value'))}")
+        placing = _where(row)
+        if placing:
+            print(placing)
         detail = row.get("detail") or ""
         for line in (detail[i:i + 88] for i in range(0, len(detail), 88)):
             print(f"    {line}")
@@ -126,16 +149,19 @@ def main(argv=None) -> int:
         print("        vehicle check is running narrower than the pipeline's. "
               "Use the venv.")
 
+    live = _live_span() if args.live else None
+    report = guardrails.quarantine(conn, live_span=live, write=False)
+
     if args.check:
-        live = _live_span() if args.live else None
-        result = guardrails.evaluate(conn, live_span=live)
-        findings = result["findings"]
-        print(f"\n  evaluated now: {len(findings)} finding(s), nothing written")
-        _print_findings([{"check_name": f.check, "subject": f.subject,
-                          "label": f.label, "detail": f.detail,
-                          "value": f.value, "state": "would open"}
-                         for f in findings])
-        return 1 if findings else 0
+        rows = report["open"]
+        print(f"\n  evaluated now: {len(rows)} finding(s), nothing written")
+        print(f"  would quarantine {len(report['quarantined'])} row(s), "
+              f"{len(report['live'])} of them already on the site")
+        if report["aggregate"]:
+            print(f"  {len(report['aggregate'])} aggregate finding(s) would HALT "
+                  f"publishing outright: a wrong total has no clean subset")
+        _print_findings([dict(r, state="would open") for r in rows])
+        return 1 if rows else 0
 
     if args.all:
         rows = [dict(r) for r in conn.execute(
@@ -145,18 +171,30 @@ def main(argv=None) -> int:
         _print_findings(rows)
         return 0
 
-    rows = guardrails.open_findings(conn)
+    rows = report["held"] + report["live"] + report["aggregate"]
     if not rows:
-        print("\n  Nothing open. Publishing is not blocked.")
+        print("\n  Nothing open. Every row publishes.")
         return 0
 
     by_check: dict[str, int] = {}
     for row in rows:
         by_check[row["check_name"]] = by_check.get(row["check_name"], 0) + 1
     print("\n  OPEN: " + ", ".join(f"{k}={v}" for k, v in sorted(by_check.items())))
-    print("  Publishing is BLOCKED until each is accepted or rejected.")
+    print(f"  QUARANTINED {len(report['held']) + len(report['live'])} row(s) "
+          f"({len(report['held'])} held back, {len(report['live'])} already live). "
+          f"Every other row publishes normally.")
+    if report["aggregate"]:
+        print(f"  {len(report['aggregate'])} aggregate finding(s) are HALTING "
+              f"every publish: the set does not add up, so there is no clean "
+              f"subset to send.")
+    if report["overdue"]:
+        print(f"  {len(report['overdue'])} finding(s) are PAST their grace "
+              f"window, so runs now exit non-zero after publishing clean rows.")
+    else:
+        print("  Nothing is overdue yet, so runs are still green.")
     _print_findings(rows)
     print("\n  Accept one:  python3 guardrails.py --accept <key> --note 'why'")
+    print("               (accepting releases the row: it publishes next run)")
     print("  Reject one:  python3 guardrails.py --reject <key> --note 'why'")
     print("               then  python3 retract.py <signal_id> 'why'")
     return 1
