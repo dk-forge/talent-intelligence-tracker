@@ -83,12 +83,49 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python spend.py --enforce
 
+      # A scheduled run sweeps EVERY collector this workflow owns, because a
+      # schedule that only ever names google_news is how gdelt, sec_edgar and
+      # sec_form_d spent weeks reporting "ok" while nothing ran them: their two
+      # manual runs each were the whole history, and the health page read a
+      # dispatch somebody remembered as a source that was alive. A dispatch
+      # keeps its single-source input, for reading one collector's run alone.
+      #
+      # run_collect takes exactly one --source per invocation, so the sweep is
+      # a loop, and each invocation is a fresh process with its own read-
+      # through cap. The per-source TIT_READTHROUGH_CAP is the cost control
+      # that makes the sweep affordable: caps are ceilings, not spends — the
+      # SEC collectors found 6 and 3 items on their last real runs, so their
+      # 40 is headroom, while google_news keeps the production default (60).
+      # The spend guard above and the OpenRouter key's own hard cap still
+      # bind before any of this.
+      #
+      # One source failing must not silence the ones behind it in the loop —
+      # a dead GDELT costing us the SEC filings would be a new bug wearing a
+      # sweep as a hat — so each failure is recorded and the step goes red
+      # only after every source has had its run.
       - name: Collect
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            overall=0
+            for source in google_news gdelt sec_edgar sec_form_d; do
+              case "$source" in
+                gdelt)                export TIT_READTHROUGH_CAP=100 ;;
+                sec_edgar|sec_form_d) export TIT_READTHROUGH_CAP=40 ;;
+                *)                    unset TIT_READTHROUGH_CAP ;;
+              esac
+              echo "::group::collect $source"
+              python run_collect.py \
+                --run-index "${{ steps.idx.outputs.value }}" \
+                --publish \
+                --source "$source" || overall=1
+              echo "::endgroup::"
+            done
+            exit $overall
+          fi
           python run_collect.py \
             --run-index "${{ steps.idx.outputs.value }}" \
             ${{ inputs.dry_run && '--dry-run' || '--publish' }} \

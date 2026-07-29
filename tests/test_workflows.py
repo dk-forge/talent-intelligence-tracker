@@ -93,6 +93,51 @@ def test_the_collect_commit_survives_a_racing_push():
     assert "::error::" in run and run.rstrip().endswith("exit 1")
 
 
+def test_the_schedule_sweeps_every_collector_this_workflow_owns():
+    """A schedule that only names google_news is a health blind spot.
+
+    collect.yml's cron passed `--source google_news` unconditionally, so gdelt,
+    sec_edgar and sec_form_d only ever ran when a human remembered to dispatch
+    them — twice each, in their whole lives — while their last manual run sat
+    in the ledger saying "ok". This pins the scheduled branch to the full
+    sweep, one invocation per source because run_collect takes exactly one.
+    """
+    from pathlib import Path
+
+    import yaml
+
+    wf = yaml.safe_load(
+        (Path(__file__).parent.parent / ".github/workflows/collect.yml").read_text())
+    step = next(s for s in wf["jobs"]["collect"]["steps"]
+                if s.get("name") == "Collect")
+    run = _code(step["run"])
+
+    assert "github.event_name" in step["run"] and "schedule" in run, (
+        "the collect step no longer branches on the schedule, so either the "
+        "sweep or the single-source dispatch is gone")
+    assert "for source in google_news gdelt sec_edgar sec_form_d" in run, (
+        "the scheduled sweep must run every built collector this workflow "
+        "owns, or the ones it skips go back to running only when a human "
+        "remembers them")
+    # Each invocation is a fresh process, so each carries its own read-through
+    # ceiling. Without these the sweep quadruples the worst-case bill instead
+    # of adding a rounding error to it.
+    assert "TIT_READTHROUGH_CAP" in run, (
+        "the sweep sets no per-source read cap, so every source gets the "
+        "google_news production ceiling")
+    # One failed source must not silence the sources after it in the loop, and
+    # must still turn the step red at the end.
+    assert "|| overall=1" in run and "exit $overall" in run
+    # The dispatch path keeps its single-source input.
+    assert "inputs.source || 'google_news'" in step["run"]
+
+    # Still exactly ONE merge-and-push per job: the sweep stores through one
+    # database connection and a second commit step would race the first.
+    commits = [s for s in wf["jobs"]["collect"]["steps"]
+               if "Commit" in (s.get("name") or "")]
+    assert len(commits) == 1
+
+
 def test_no_writer_copies_its_database_over_the_reset():
     """The reset-and-copy that cost 9,572 signal rows and the identity cache.
 
