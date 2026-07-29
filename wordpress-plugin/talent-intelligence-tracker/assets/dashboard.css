@@ -1156,29 +1156,52 @@ body.admin-bar .tit-active { top:32px; }
    container, so nothing bleeds and sticky survives. :has() scopes all of this
    to pages that actually contain the dashboard, so a normal post is untouched.
    --------------------------------------------------------------------------- */
-/* THE FIX THAT WAS NOT ENOUGH, and why.
+/* ---------------------------------------------------------------------------
+   Two separate problems here, and conflating them broke the page.
 
-   First attempt set `overflow-x: clip` on html and body and `overflow: visible`
-   on three named theme wrappers. It did not work, and measurement in a real
-   browser said why on both counts.
+   PROBLEM ONE: the dashboard must not be clipped.
+   The theme constrains .entry-content to 279px and the dashboard deliberately
+   breaks out of it with negative margins to reach the full 375px viewport. A
+   full-bleed breakout inside a CLIPPING ancestor is guillotined at that
+   ancestor's edges, and `clip` does not scroll, so the cut content is gone.
+   Version 1.37.0 applied overflow-x:clip to EVERY ancestor via a blanket
+   :has() selector and did exactly that: about 48px was sliced off each side,
+   and the hero headline rendered as "now who's hiring before the / b ad
+   appears". Measured, in a browser, at 375x812.
 
-   One: the ancestor actually doing the damage was the theme's own
-   `.wp-singular.page` element, which was not in that list. Naming wrappers one
-   at a time is guesswork; `:has()` lets us say what we mean, which is EVERY
-   ancestor of the dashboard.
+   That is why these wrappers are forced back to visible rather than merely
+   left alone: whatever sets a clip on them, the breakout has to survive it.
 
-   Two, and the subtler half: that ancestor computed `overflow-x: hidden` with
-   `overflow-y: auto`. Setting only overflow-x to `clip` leaves overflow-y as a
-   scrolling value, and an element that scrolls on EITHER axis is a scroll
-   container, which becomes the containing block for every sticky descendant.
-   The bar was pinning perfectly, to a box that was not the viewport.
+   Beware the check that missed it. scrollWidth === innerWidth reports "no
+   sideways bleed" for a clipped page, because clipping achieves that by
+   destroying the overflow rather than containing it. A page can pass that test
+   with its headline cut in half.
 
-   `clip` on x with `visible` on y is the one combination that clips sideways
-   bleed without creating a scroll container: per spec `visible` only computes
-   to `auto` when the other axis is neither `visible` nor `clip`, and `clip` is
-   in that set. So the page still cannot bleed horizontally, and the sticky bar
-   now finds the viewport. */
-:has(#tit-dashboard) { overflow-x:clip; overflow-y:visible; }
+   PROBLEM TWO: position:sticky needs a non-scrolling ancestor chain.
+   html and body both compute overflow-x:hidden with overflow-y:auto, which
+   makes each a scroll container and steals the containing block from every
+   sticky descendant. Only those two are touched, and only on the axis that
+   matters: `clip` on x still contains any real horizontal bleed, while
+   `visible` on y survives (it degrades to `auto` only when the other axis is
+   neither visible nor clip, and clip is in that set), so neither element
+   becomes a scroll container.
+
+   !important because the previous rule demonstrably lost to whatever sets
+   these globally, and specificity guessing is how this took two attempts.
+   :has() keeps all of it on pages that actually contain the dashboard.
+   --------------------------------------------------------------------------- */
+html:has(#tit-dashboard),
+body:has(#tit-dashboard) {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+/* NEVER these. They are the narrow containers the dashboard breaks out of. */
+.entry-content:has(#tit-dashboard),
+.wp-block-post-content:has(#tit-dashboard),
+.wp-site-blocks:has(#tit-dashboard),
+main:has(#tit-dashboard) {
+  overflow: visible !important;
+}
 
 /* ---------------------------------------------------------------------------
    The results header: what orders the rows, sitting with the rows.
