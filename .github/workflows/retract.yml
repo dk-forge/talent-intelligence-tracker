@@ -57,7 +57,23 @@ jobs:
             python retract.py "${{ inputs.signal_id }}" "${{ inputs.reason }}"
           fi
 
+      # A single push attempt LOSES THE RECORD OF A WITHDRAWAL that has already
+      # been applied to WordPress. That happened on 2026-07-29 (run
+      # 30481782149): retract.py withdrew the rows live, then this step's plain
+      # `git push` was rejected because another job had moved main in the
+      # meantime, and the run went red with the site and the repo disagreeing.
+      #
+      # collect.yml has solved exactly this since the first armed run, with a
+      # replay loop; the fix was never carried across to the other writers. It
+      # matters MORE here than there: a lost collect commit re-collects next
+      # run, but a lost retract commit leaves a row withdrawn on the site and
+      # still present in the database, so the next run reads it as live.
+      #
+      # `!cancelled()` and not plain success, for the same reason collect.yml
+      # uses it: a run that FAILED after withdrawing rows still holds the only
+      # local record that the withdrawal happened.
       - name: Commit the database
+        if: ${{ !cancelled() }}
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
@@ -66,5 +82,23 @@ jobs:
             echo "No data change."
             exit 0
           fi
-          git commit -m "data: retract $(date -u +%Y-%m-%dT%H:%MZ)"
+
+          git commit -q -m "data: retract $(date -u +%Y-%m-%dT%H:%MZ)"
+
+          # Rebase, NOT the reset-and-copy loop the collectors use, and NOT
+          # merge_db.py. Retraction flips `is_current` on an EXISTING row
+          # rather than appending a new (content_hash, revision), so:
+          #   - merge_db.py has no new revision to carry and would skip every
+          #     withdrawal, turning a loud rerun into a silent no-op;
+          #   - reset-hard-then-copy-our-file-back would overwrite any rows
+          #     another writer landed while this ran, which is the exact
+          #     silent data loss the correction workflows' comments record.
+          # correct-form-d.yml and correct-layoff-scope.yml carry the same
+          # reasoning; this is now consistent with them.
+          #
+          # On a binary conflict the rebase stops and the run goes red. That is
+          # the honest outcome: re-queue it. Losing a withdrawal silently is
+          # far worse, because the row stays live on the site while the
+          # database believes it is gone.
+          git pull --rebase --autostash origin main
           git push
