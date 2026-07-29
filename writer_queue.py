@@ -463,6 +463,11 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
 
     problems: list[str] = []
     for ticket in tickets:
+        if ticket.get("acknowledged"):
+            # A human read it and said so. It stays in the file as history; it
+            # stops being a reason to go red, because a job that is red forever
+            # is a job nobody reads.
+            continue
         if ticket["state"] == "failed":
             problems.append(
                 f"{ticket['workflow']} FAILED ({ticket['id']}) — it will not be "
@@ -621,31 +626,52 @@ def _cmd_status(args) -> int:
 
 
 def _cmd_resolve(args) -> int:
-    """Mark an orphan handled, once a human has decided what to do about it.
+    """Mark an orphan — or a failed ticket — handled, once a human has decided.
 
     Deciding NOT to re-run something is a legitimate outcome — several of the
     runs lost on 2026-07-29 were duplicate dispatches of the same backfill. What
-    is not legitimate is the decision never being made, so an orphan stays loud
-    until someone says otherwise here, and the note records who said what.
+    is not legitimate is the decision never being made, so it stays loud until
+    someone says otherwise here, and the note records who said what.
+
+    A FAILED ticket needs the same escape and did not have one. `summary()`
+    reports every failed ticket as a problem, `prune` keeps terminal tickets,
+    and the drainer exits non-zero on any problem — so one correction that went
+    red left drain-writers red on every tick from then on, including after the
+    correction had been read, fixed and re-queued. A permanently red job is the
+    thing this repo can least afford: it is how a real failure becomes
+    invisible, which is the whole theme of the day it was built.
     """
     path = Path(args.file) if args.file else None
     queue = load(path)
-    orphans = queue.get("orphans", [])
+    target = str(args.run_id)
 
-    if args.run_id == "all":
+    orphans = queue.get("orphans", [])
+    if target == "all":
         hits = [o for o in orphans if not o.get("resolved")]
     else:
-        hits = [o for o in orphans if o["run_id"] == str(args.run_id)]
-
-    if not hits:
-        print(f"::error::no unresolved orphan matching {args.run_id!r}")
-        return 2
+        hits = [o for o in orphans if o["run_id"] == target]
     for orphan in hits:
         orphan["resolved"] = _iso(_now())
         orphan["resolved_note"] = args.note
+
+    tickets = [t for t in queue.get("tickets", [])
+               if t["id"] == target and t["state"] in ("failed", "abandoned")
+               and not t.get("acknowledged")]
+    for ticket in tickets:
+        ticket["acknowledged"] = _iso(_now())
+        _log(ticket, "acknowledged", args.note)
+
+    if not (hits or tickets):
+        print(f"::error::nothing unresolved matching {target!r} — expected an "
+              "orphan run id, a failed ticket id, or 'all'")
+        return 2
     save(queue, path)
-    print(f"resolved {len(hits)} orphan(s): "
-          + ", ".join(o["run_id"] for o in hits))
+    if hits:
+        print(f"resolved {len(hits)} orphan(s): "
+              + ", ".join(o["run_id"] for o in hits))
+    if tickets:
+        print(f"acknowledged {len(tickets)} failed ticket(s): "
+              + ", ".join(t["id"] for t in tickets))
     return 0
 
 
@@ -676,8 +702,10 @@ def main(argv: list[str] | None = None) -> int:
     show = sub.add_parser("status", help="queue state as JSON")
     show.set_defaults(func=_cmd_status)
 
-    fixed = sub.add_parser("resolve", help="mark an orphan re-dispatched by hand")
-    fixed.add_argument("run_id")
+    fixed = sub.add_parser(
+        "resolve",
+        help="mark an orphan run, or a failed ticket, handled by a human")
+    fixed.add_argument("run_id", metavar="RUN_ID_OR_TICKET_ID")
     fixed.add_argument("--note", default="")
     fixed.set_defaults(func=_cmd_resolve)
 

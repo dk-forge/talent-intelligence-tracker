@@ -408,3 +408,39 @@ def test_an_idle_tick_does_not_rewrite_the_file(tmp_path, members, monkeypatch):
     wq.main(["--file", str(path), "tick", "--runs", str(runs)])
 
     assert path.read_text() == before
+
+
+# --- a job that is red forever is a job nobody reads ------------------------
+
+def test_acknowledging_a_failed_ticket_silences_only_that_one(tmp_path):
+    path = tmp_path / "q.json"
+    queue = wq.empty_queue()
+    first = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"})
+    second = wq.enqueue(queue, "correct-sec-pillar.yml", {"dry_run": "false"})
+    first["state"] = second["state"] = "failed"
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "resolve", first["id"],
+                              "--note", "read, fixed and re-queued"]) == 0
+
+    state = wq.summary(wq.load(path))
+    assert len(state["problems"]) == 1
+    assert second["id"] in state["problems"][0]
+    assert wq.load(path)["tickets"][0]["acknowledged"], (
+        "the ticket stays in the file as history, it just stops going red")
+
+
+def test_acknowledging_something_that_does_not_exist_is_an_error(tmp_path):
+    path = tmp_path / "q.json"
+    wq.save(wq.empty_queue(), path)
+    assert wq.main(["--file", str(path), "resolve", "nope"]) == 2
+
+
+def test_a_queued_ticket_cannot_be_silenced_by_acknowledging_it(tmp_path):
+    """Only a TERMINAL ticket is a decision to record. Silencing live work
+    would hide the thing the queue exists to show."""
+    path = tmp_path / "q.json"
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"})
+    wq.save(queue, path)
+    assert wq.main(["--file", str(path), "resolve", ticket["id"]]) == 2
