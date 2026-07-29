@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.34.1
+ * Version: 1.36.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.34.1');
+define('TIT_VERSION', '1.36.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -45,6 +45,8 @@ tit_require('includes/shortcodes.php');
 tit_require('includes/page.php');
 tit_require('includes/company.php');
 tit_require('includes/sources.php');
+tit_require('includes/corrections.php');
+tit_require('includes/recall.php');
 tit_require('includes/htaccess.php');
 
 // Stub fallbacks so a partial upload degrades instead of fatalling.
@@ -351,6 +353,64 @@ function tit_country_names() {
         'VI' => 'United States Virgin Islands', 'VU' => 'Vanuatu',
         'WF' => 'Wallis and Futuna', 'WS' => 'Samoa', 'YT' => 'Mayotte',
     );
+}
+
+/**
+ * The flag for an ISO 3166-1 alpha-2 code, derived rather than looked up.
+ *
+ * Regional indicator symbols: 'A' maps to U+1F1E6, so a two-letter code becomes
+ * two code points at a fixed offset. There is no map to maintain and therefore
+ * no map to fall behind. A hardcoded table is exactly how "PR" ended up
+ * rendering as a bare code, and the country list grows every week.
+ *
+ * The flag is DECORATION and never the label. Every caller prints the country
+ * name beside it and marks the glyph aria-hidden, because a platform with no
+ * font for a given flag renders the two regional-indicator letters instead, or
+ * a blank box, and a reader must never be left with only that.
+ *
+ * Two refusals, both deliberate:
+ *  - a code we do not recognise gets no flag, so this can never disagree with
+ *    tit_country_name(), which prints "XX (unmapped)" for the same input;
+ *  - codes with no flag in Unicode's recommended set get none either, rather
+ *    than a tofu square.
+ *
+ * Encoded by hand rather than through mb_chr(): every code point in this range
+ * is four UTF-8 bytes, and mbstring is not guaranteed on shared hosting.
+ */
+function tit_country_flag($code) {
+    $code = strtoupper(trim((string) $code));
+    if (!preg_match('/^[A-Z]{2}$/', $code)) return '';
+
+    // Not a real ISO 3166-1 assignment (XK is user-assigned for Kosovo), so no
+    // flag sequence exists and every platform would draw a placeholder.
+    static $no_flag = array('XK' => true);
+    if (isset($no_flag[$code])) return '';
+
+    // Unknown to our own name map means we do not trust the code enough to
+    // decorate it. The name guard and this must agree.
+    $names = tit_country_names();
+    if (!isset($names[$code])) return '';
+
+    $out = '';
+    for ($i = 0; $i < 2; $i++) {
+        $cp = 0x1F1E6 + (ord($code[$i]) - 65);
+        $out .= chr(0xF0 | ($cp >> 18))
+              . chr(0x80 | (($cp >> 12) & 0x3F))
+              . chr(0x80 | (($cp >> 6) & 0x3F))
+              . chr(0x80 | ($cp & 0x3F));
+    }
+    return $out;
+}
+
+/**
+ * Flag plus name, as markup, with the flag hidden from assistive technology.
+ * One helper so no caller can forget the aria-hidden or drop the name.
+ */
+function tit_country_label_html($code) {
+    $flag = tit_country_flag($code);
+    $name = tit_country_name($code);
+    return ($flag ? '<span class="tit-flag" aria-hidden="true">' . $flag . '</span>' : '')
+         . '<span class="tit-cname">' . esc_html($name) . '</span>';
 }
 
 /**

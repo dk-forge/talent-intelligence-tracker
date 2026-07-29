@@ -10,7 +10,20 @@
 if (!defined('ABSPATH')) exit;
 
 const TIT_NS = 'talent/v1';
-const TIT_CACHE_TTL = 1800; // 30 min
+/*
+  Five minutes, not thirty.
+
+  These endpoints already send Cache-Control max-age=300, so the CDN edge holds
+  a copy for five minutes whatever we do here. A thirty-minute transient behind
+  that meant a figure could be up to half an hour out of date, and coverage is
+  about to move hard in both directions at once: international feeds landing,
+  and roughly a thousand Form D rows being retracted, which takes total money
+  raised down by tens of billions. Every write route calls tit_flush_caches(),
+  so the normal path is already immediate; this bounds the damage when a route
+  we do not own forgets to. A number that stopped being true this morning is
+  the one thing this product cannot print.
+*/
+const TIT_CACHE_TTL = 300; // 5 min
 
 function tit_register_routes() {
     $keyed = function_exists('tit_api_permission') ? 'tit_api_permission' : '__return_false';
@@ -622,9 +635,36 @@ function tit_api_facets() {
         ) ?: array();
     };
 
+    /*
+      Geography needs BOTH columns, not just the job location.
+
+      The charts place a record with COALESCE(country, hq_country), so a company
+      known only by its head office appears as a bar, and /query accepts it as a
+      filter. The dropdown was built from the location column alone, so that
+      country was visible in a chart and unselectable in the control beside it.
+      Clicking the bar patched an option in on the fly, which hid the gap
+      without closing it: anyone who went to the dropdown first simply could not
+      find the country.
+
+      Whole table, every row, no page sample. Union in SQL rather than two
+      round trips, and DISTINCT over both so a country present in each is
+      listed once.
+    */
+    $geo = function ($column, $hq_column) use ($wpdb, $table) {
+        return $wpdb->get_col(
+            "SELECT DISTINCT v FROM (
+                 SELECT {$column} AS v FROM {$table}
+                  WHERE is_current = 1 AND {$column} IS NOT NULL AND {$column} != ''
+                 UNION
+                 SELECT {$hq_column} AS v FROM {$table}
+                  WHERE is_current = 1 AND {$hq_column} IS NOT NULL AND {$hq_column} != ''
+             ) u ORDER BY v ASC LIMIT 500"
+        ) ?: array();
+    };
+
     $out = array(
-        'countries' => $col('country'),
-        'cities'    => $col('city'),
+        'countries' => $geo('country', 'hq_country'),
+        'cities'    => $geo('city', 'hq_city'),
         'states'    => $col('state'),
         // Data-driven on purpose. The vocabulary has eleven rounds and the
         // Form D backfill has filled a handful of them so far; offering all

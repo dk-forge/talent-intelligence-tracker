@@ -191,8 +191,15 @@
     var sel = document.getElementById('tit-f-place');
     if (!sel || !data) return;
     var groups = [
+      // Sorted by NAME, never by ISO code: a list reading "AE, AR, AT" asks the
+      // reader to know the codebook before they can pick a country. The flag
+      // prefixes the label but the sort key is the name, so Germany still files
+      // under G. An <option> cannot carry aria-hidden on part of its text, so a
+      // screen reader hears the flag and then the name; the name is what
+      // carries the meaning either way.
       ['Countries', 'country', (data.countries || []).map(function (v) {
-        return { v: v, l: countryLabel(v) };
+        var flag = countryFlag(v);
+        return { v: v, l: countryLabel(v), t: (flag ? flag + ' ' : '') + countryLabel(v) };
       }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
       ['US states', 'state', (data.states || []).map(function (v) { return { v: v, l: v }; })],
       ['Cities', 'city', (data.cities || []).map(function (v) { return { v: v, l: v }; })]
@@ -206,7 +213,7 @@
         if (seen) return;
         var opt = document.createElement('option');
         opt.value = value;
-        opt.textContent = item.l;
+        opt.textContent = item.t || item.l;
         box.appendChild(opt);
       });
       if (box.children.length) sel.appendChild(box);
@@ -346,7 +353,9 @@
     return nfmt(n) + ' ' + (Number(n) === 1 ? one : (many || one + 's'));
   }
 
-  function paintRank(chart, rows, label, dirKey) {
+  // $html says the labeller already returns escaped markup (the flag helper is
+  // the only one that does), so the name inside it is not double-escaped.
+  function paintRank(chart, rows, label, dirKey, html) {
     var wrap = chart && chart.querySelector('.tit-rank');
     if (!wrap) return;
     if (!rows.length) {
@@ -364,7 +373,7 @@
       var pct = Math.max(4, Math.round(100 * r.n / max));
       return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
         (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + ' aria-pressed="false">' +
-        '<span class="tit-rank-name">' + esc(label(r.k)) + '</span>' +
+        '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span>' +
         '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
         '<span class="tit-rank-n">' + nfmt(r.n) + '</span></button>';
     }).join('');
@@ -432,7 +441,8 @@
           '<span class="tit-bar"><span style="width:' + pct + '%"></span></span></button>';
       }).join('') : '<p class="tit-rank-empty">Nothing in this view.</p>';
     }
-    paintRank(document.getElementById('chart-place'), data.by_country || [], countryLabel);
+    paintRank(document.getElementById('chart-place'), data.by_country || [],
+      countryLabelHtml, false, true);
     paintRank(document.getElementById('chart-direction'), data.by_direction || [], function (k) {
       return DIRECTION_LABEL[k] || k;
     }, true);
@@ -442,7 +452,7 @@
     // be recomputed whenever the set changes.
     var money = data.money || null;
     paintMoney(document.getElementById('chart-money-country'),
-      money && money.by_country, countryLabel, money, 'country');
+      money && money.by_country, countryLabelHtml, money, 'country', true);
     paintMoney(document.getElementById('chart-money-city'),
       money && money.by_city, function (k) { return k; }, money, 'city');
     paintMoney(document.getElementById('chart-money-industry'),
@@ -480,6 +490,33 @@
 
     // Re-rendering wiped the pressed state off every row; put it back.
     syncChartStates();
+  }
+
+  // Mirrors tit_country_flag(). Derived from the ISO code, never a map: 'A' is
+  // U+1F1E6, so a two-letter code is two code points at a fixed offset. A
+  // hardcoded table is how "PR" once rendered as a bare code, and the list of
+  // countries we hold grows every week.
+  //
+  // Refuses on exactly the same inputs the PHP does. If the two disagreed, a
+  // country could show a flag beside "XX (unmapped)", which is worse than
+  // either alone.
+  var NO_FLAG = { XK: 1 };
+
+  function countryFlag(code) {
+    if (!/^[A-Z]{2}$/.test(code || '')) return '';
+    if (NO_FLAG[code]) return '';
+    if (!(TIT.countries && TIT.countries[code])) return '';
+    return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - 65,
+                                0x1F1E6 + code.charCodeAt(1) - 65);
+  }
+
+  // Flag plus name, with the flag hidden from assistive technology and the name
+  // ALWAYS present: a platform with no font for a flag draws two letters or a
+  // blank box, and a reader must never be left with only that.
+  function countryLabelHtml(code) {
+    var flag = countryFlag(code);
+    return (flag ? '<span class="tit-flag" aria-hidden="true">' + esc(flag) + '</span>' : '') +
+      '<span class="tit-cname">' + esc(countryLabel(code)) + '</span>';
   }
 
   // Mirrors tit_country_name(): a code must never reach the page as a code.
@@ -538,7 +575,7 @@
   // Mirrors tit_money_chart() in shortcodes.php: same classes, same
   // data attributes, same title-attribute exact figure. The CSV download and
   // the click-to-filter wiring both read this markup, so it cannot drift.
-  function paintMoney(chart, rows, label, money, dim) {
+  function paintMoney(chart, rows, label, money, dim, html) {
     if (!chart) return;
     rows = rows || [];
     var wrap = chart.querySelector('.tit-rank');
@@ -551,7 +588,7 @@
           var pct = Math.max(4, Math.round(100 * r.v / max));
           return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
             ' data-v="' + esc(Math.round(Number(r.v) || 0)) + '" aria-pressed="false">' +
-            '<span class="tit-rank-name">' + esc(label(r.k)) + '</span>' +
+            '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span>' +
             '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
             '<span class="tit-rank-n" title="' + esc(moneyFull(r.v)) + '">' +
             esc(moneyShort(r.v)) + '</span></button>';
@@ -1043,6 +1080,7 @@
     // two front controls back in agreement with them.
     syncLooking();
     syncPlace();
+    syncCountryButtons();
     syncBasis();
     syncMore();
     syncSortHeads();
@@ -1123,11 +1161,46 @@
   tabs.forEach(function (t) {
     t.addEventListener('click', function () {
       setRegion(t.dataset.codes);
+      // A region and a single country answer the same question. Keeping both
+      // would send a country list AND a country, which returns nothing whenever
+      // they disagree and reads as a broken filter rather than an empty set.
       if (inputs.country) inputs.country.value = '';
       refresh();
     });
   });
   setRegion(null);
+
+  // --- The country row -----------------------------------------------------
+  // Derived from live counts on the server, subordinate to the regions above
+  // it, and wired through the SAME country input every other control uses, so
+  // one click updates the chips bar, the Where picker, the charts, the address
+  // bar and the exports in one pass.
+  var cbtns = Array.prototype.slice.call(root.querySelectorAll('.tit-cbtn'));
+
+  function syncCountryButtons() {
+    var current = region ? '' : (inputs.country ? inputs.country.value : '');
+    cbtns.forEach(function (b) {
+      var on = current !== '' && b.getAttribute('data-code') === current;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  cbtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var code = b.getAttribute('data-code');
+      var was = !region && inputs.country && inputs.country.value === code;
+      // Picking a country REPLACES the region rather than stacking with it.
+      // Regions contain their countries, so this always narrows and can never
+      // produce the empty page that Europe-plus-United-States would.
+      setRegion(null);
+      if (inputs.country) {
+        ensureOption(inputs.country, code, countryLabel(code));
+        inputs.country.value = was ? '' : code;
+      }
+      refresh();
+    });
+  });
 
   var quickView = null;
   var quickButtons = Array.prototype.slice.call(root.querySelectorAll('.tit-qv'));
@@ -1569,6 +1642,7 @@
   syncMore(true);
   syncLooking();
   syncPlace();
+  syncCountryButtons();
   syncBasis();
   if (location.search) refresh();
 })();

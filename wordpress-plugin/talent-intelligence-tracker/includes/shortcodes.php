@@ -280,6 +280,11 @@ function tit_dashboard_shortcode() {
         </p>
         <p class="tit-hero-links">
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
+          <?php /* The misses belong next to the sources, not buried in a
+                   methodology footnote. A tracker that publishes what it fails
+                   to catch is making a checkable claim; one that only lists its
+                   sources is not. */ ?>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>
       </div>
@@ -289,15 +294,50 @@ function tit_dashboard_shortcode() {
         <p>Pick a region to narrow the updates below.</p>
       </div>
 
-      <div class="tit-regions" role="group" aria-label="Filter by region">
-        <?php foreach (tit_regions($counts_by_country) as $r) : ?>
-          <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
-                  data-codes="<?php echo esc_attr($r['codes']); ?>">
-            <span class="tit-region-flag" aria-hidden="true"><?php echo $r['flag']; ?></span>
-            <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
-            <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
-          </button>
-        <?php endforeach; ?>
+      <?php
+      /*
+        Two tiers, visually distinct, because they are two granularities and
+        showing them at one weight was the bug. Regions cover the world once
+        each and CONTAIN their countries; the country row is derived from live
+        counts and is clearly subordinate.
+
+        Picking a country replaces a region rather than stacking with it. They
+        answer the same question, "where", so ANDing them would let a reader
+        select Europe and then the United States and get an empty page that
+        looks broken. Replacing always narrows, never contradicts, and the
+        chips bar names whichever one is applied.
+      */
+      $tit_regions = tit_regions($counts_by_country);
+      $tit_top = tit_top_countries($counts_by_country);
+      ?>
+      <div class="tit-places">
+        <div class="tit-regions" role="group" aria-label="Filter by region">
+          <?php foreach ($tit_regions as $r) : ?>
+            <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
+                    data-codes="<?php echo esc_attr($r['codes']); ?>">
+              <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
+              <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
+            </button>
+          <?php endforeach; ?>
+        </div>
+        <?php if ($tit_top) : ?>
+          <div class="tit-countries" role="group" aria-label="Filter by country">
+            <span class="tit-countries-label">Top countries</span>
+            <?php foreach ($tit_top as $c) : ?>
+              <button type="button" class="tit-cbtn" data-code="<?php echo esc_attr($c['code']); ?>"
+                      aria-pressed="false">
+                <?php /* Flag is decoration and aria-hidden; the NAME is always
+                         printed, because a platform with no font for a flag
+                         draws two letters or a blank box. */ ?>
+                <?php echo tit_country_label_html($c['code']); ?>
+                <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+        <p class="tit-places-note">Regions include every country inside them, so
+           Europe counts the United Kingdom and Asia counts India. Picking a
+           country replaces the region rather than narrowing inside it.</p>
       </div>
 
       <?php
@@ -611,7 +651,7 @@ function tit_dashboard_shortcode() {
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
             foreach ($by_country as $c) : ?>
               <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($c['k']); ?>" aria-pressed="false">
-                <span class="tit-rank-name"><?php echo esc_html(tit_country_name($c['k'])); ?></span>
+                <span class="tit-rank-name"><?php echo tit_country_label_html($c['k']); ?></span>
                 <span class="tit-rank-track"><span class="tit-rank-fill"
                   style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
                 <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
@@ -657,7 +697,7 @@ function tit_dashboard_shortcode() {
             'country', 'Money raised by country',
             "Totalled where the work sits. When a source names no place, the employer's head office stands in. Click a row to filter.",
             $money['by_country'], $money, 'country',
-            function ($k) { return tit_country_name($k); }
+            function ($k) { return tit_country_label_html($k); }, true
         );
         tit_money_chart(
             'city', 'Money raised by city',
@@ -828,6 +868,11 @@ function tit_dashboard_shortcode() {
         asktherecruiter.com. Layoff and redundancy data is not collected here;
         see the
         <a href="/blog/ai-layoff-tracker/">AI Layoff Tracker</a>.
+        <?php /* In the footer, not buried: a corrections log nobody can find
+                 is not a disclosure. */ ?>
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+        &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Sources</a>
       </p>
     </div>
     <?php
@@ -1350,7 +1395,7 @@ function tit_industry_labels() {
  * exact number on the title attribute, and the card prints what its totals are
  * based on. dashboard.js mirrors this markup when it repaints from /aggregate.
  */
-function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimension, callable $labeller) {
+function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimension, callable $labeller, $labeller_returns_html = false) {
     $max = 0.0;
     foreach ($rows as $r) { $max = max($max, (float) $r['v']); }
     ?>
@@ -1366,7 +1411,10 @@ function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimensio
                            float in scientific notation, and "1.0E+9" in a CSV
                            column is worse than no column. */ ?>
                   data-v="<?php echo esc_attr(number_format($v, 0, '.', '')); ?>" aria-pressed="false">
-            <span class="tit-rank-name"><?php echo esc_html($labeller($r['k'])); ?></span>
+            <span class="tit-rank-name"><?php
+              // Only the country labeller returns markup, and only ever the
+              // flag-plus-name helper, which escapes the name itself.
+              echo $labeller_returns_html ? $labeller($r['k']) : esc_html($labeller($r['k'])); ?></span>
             <span class="tit-rank-track"><span class="tit-rank-fill"
               style="width:<?php echo esc_attr($max > 0 ? max(4, round(100 * $v / $max)) : 4); ?>%"></span></span>
             <span class="tit-rank-n" title="<?php echo esc_attr(tit_money_full($v)); ?>"><?php
@@ -1572,47 +1620,95 @@ function tit_chart_head($title, $sub, $id = '') {
  * do not have. Worldwide always survives so there is always a way back.
  */
 function tit_regions(array $counts) {
-    // Same regions and the same names as the sibling tracker, so one brand does
-    // not describe the world two different ways. India keeps its own tab, which
-    // the sibling has no need of: it is one of the largest hiring markets we
-    // read, and burying it inside Asia would hide the thing people came for.
-    //
-    // Every list is the WHOLE region, never a shortlist of the big names. A
-    // Latvian employer once fell outside 'Europe' because LV was missing, and a
-    // Namibian one outside 'Africa' because NA was, which is a filter quietly
-    // lying about its own name. A code costs nothing to carry and a missing one
-    // costs a record.
-    $defs = array(
-        array('World',         '🌐', ''),
-        array('USA',           '🇺🇸', 'US'),
-        array('Canada',        '🇨🇦', 'CA'),
-        array('Latin America', '🌎', 'BR,MX,AR,CL,CO,PE,UY,CR,EC,BO,PY,VE,GT,HN,SV,NI,PA,DO,CU,JM,TT,HT,BZ,GY,SR'),
-        array('Europe',        '🇪🇺', 'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,'
-                                     . 'CZ,GR,RO,HU,LV,LT,EE,SK,SI,HR,BG,RS,UA,IS,LU,'
-                                     . 'MT,CY,AL,BA,ME,MK,MD,BY,MC,LI,AD,SM,VA,XK,RU,GE,AM,AZ'),
-        array('UK',            '🇬🇧', 'GB'),
-        array('Middle East',   '🕌', 'AE,SA,IL,QA,KW,BH,OM,TR,JO,LB,IQ,IR,SY,YE,PS'),
-        array('Africa',        '🌍', 'ZA,NG,KE,EG,MA,GH,ET,NA,TZ,UG,ZM,ZW,BW,MZ,AO,SN,CI,CM,'
-                                     . 'DZ,TN,LY,SD,RW,MW,MU,MG,CD,CG,GA,BJ,BF,ML,NE,TD,SO,SL,LR,GM,SS'),
-        array('India',         '🇮🇳', 'IN'),
-        array('Asia',          '🌏', 'IN,SG,JP,CN,HK,KR,MY,PH,ID,TH,VN,TW,PK,BD,LK,NP,MM,KH,LA,MN,MO,BN,MV,KZ,UZ'),
-        array('Australia',     '🇦🇺', 'AU,NZ,FJ,PG'),
-    );
-    $total = array_sum(array_map('intval', $counts));
+    /*
+      ONE taxonomy, exhaustive and non-overlapping.
 
+      The old strip read World / USA / Canada / Latin America / Europe / UK /
+      Middle East / Africa / India / Asia / Australia, which mixed two
+      granularities at identical visual weight and was ambiguous with it: UK sat
+      beside Europe, so a reader could not tell whether Europe INCLUDED the UK,
+      and clicking each produced numbers that looked like a contradiction. India
+      sat beside Asia with the same problem, and USA and Canada sat beside Latin
+      America while nothing covered the Americas as a whole.
+
+      Regions now cover the world once each. A country belongs to exactly one,
+      and every region CONTAINS its countries: Europe includes the United
+      Kingdom, Asia includes India, Americas includes the United States. That is
+      what a reader assumes and it makes the totals reconcile.
+
+      No emoji on this row, at all. The strip carried a mosque for the Middle
+      East, which puts a religious symbol on a geographic region. Reviewing the
+      rest found the same class of error twice more: the EU flag stood for a
+      Europe that includes the UK, Switzerland, Norway and Russia, and the
+      Australian flag stood for a group that also holds New Zealand, Fiji and
+      Papua New Guinea. There is no neutral geographic glyph for "Middle East",
+      and a strip where some regions have a symbol and others do not looks
+      broken. A text label alone is better than a bad symbol, so none of them
+      carry one. Flags return on the country row below, where a flag genuinely
+      denotes a country.
+
+      Every list is the WHOLE region, never a shortlist of the big names: a
+      Latvian employer once fell outside "Europe" because LV was missing, which
+      is a filter quietly lying about its own name.
+    */
+    $defs = array(
+        array('World', ''),
+        array('Americas', 'US,CA,MX,BR,AR,CL,CO,PE,UY,CR,EC,BO,PY,VE,GT,HN,SV,NI,PA,DO,'
+                        . 'CU,JM,TT,HT,BZ,GY,SR,BS,BB,AG,DM,GD,KN,LC,VC,PR,VI,VG,KY,BM,'
+                        . 'AI,MS,TC,AW,CW,SX,BQ,MF,BL,GP,MQ,GF,PM,GL,FK,GS'),
+        array('Europe',  'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,CZ,GR,RO,HU,'
+                        . 'LV,LT,EE,SK,SI,HR,BG,RS,UA,IS,LU,MT,CY,AL,BA,ME,MK,MD,BY,MC,'
+                        . 'LI,AD,SM,VA,XK,RU,FO,GG,JE,IM,AX,SJ,GI'),
+        array('Middle East', 'AE,SA,IL,QA,KW,BH,OM,TR,JO,LB,IQ,IR,SY,YE,PS'),
+        array('Africa',  'ZA,NG,KE,EG,MA,GH,ET,NA,TZ,UG,ZM,ZW,BW,MZ,AO,SN,CI,CM,DZ,TN,'
+                        . 'LY,SD,SS,RW,MW,MU,MG,CD,CG,GA,BJ,BF,ML,NE,TD,SO,SL,LR,GM,BI,'
+                        . 'CF,CV,DJ,ER,GN,GQ,GW,KM,LS,MR,SC,SH,ST,SZ,TG,EH,YT,RE'),
+        array('Asia',    'IN,SG,JP,CN,HK,KR,MY,PH,ID,TH,VN,TW,PK,BD,LK,NP,MM,KH,LA,MN,'
+                        . 'MO,BN,MV,KZ,UZ,GE,AM,AZ,KG,TJ,TM,AF,BT,KP,TL,IO,CC,CX'),
+        array('Oceania', 'AU,NZ,FJ,PG,SB,VU,NC,PF,WS,TO,KI,FM,MH,NR,PW,TV,CK,NU,TK,WF,'
+                        . 'AS,GU,MP,NF,PN,UM,AQ,BV,HM,TF'),
+    );
+
+    $total = array_sum(array_map('intval', $counts));
     $out = array();
-    foreach ($defs as [$name, $flag, $codes]) {
+    foreach ($defs as [$name, $codes]) {
         if ($codes === '') {
-            $out[] = compact('name', 'flag', 'codes') + array('n' => $total);
+            $out[] = array('name' => $name, 'codes' => '', 'n' => $total);
             continue;
         }
         $n = 0;
         foreach (explode(',', $codes) as $c) {
             $n += (int) ($counts[$c] ?? 0);
         }
+        // A region with nothing in it is dropped rather than shown at zero: an
+        // empty tab reads as a filter that broke. World always survives, so
+        // there is always a way back.
         if ($n > 0) {
-            $out[] = compact('name', 'flag', 'codes') + array('n' => $n);
+            $out[] = array('name' => $name, 'codes' => $codes, 'n' => $n);
         }
+    }
+    return $out;
+}
+
+/**
+ * The countries worth their own button, BY CURRENT ROW COUNT.
+ *
+ * The old strip hardcoded USA, Canada, UK, India and Australia. Measured live
+ * the same week: the UK held 4,804 rows and Canada 61, while Germany, Israel
+ * and Ireland had no button at all. A hardcoded list stops describing the data
+ * the moment the data changes, and international feeds landing now will change
+ * it weekly. This is derived, so it cannot go stale.
+ *
+ * Ten is where the row still scans; below the cut a country is one pick away in
+ * the Where dropdown, which lists every country we hold.
+ */
+function tit_top_countries(array $counts, $limit = 10) {
+    $counts = array_filter($counts, function ($n) { return (int) $n > 0; });
+    arsort($counts);
+    $out = array();
+    foreach (array_slice($counts, 0, (int) $limit, true) as $code => $n) {
+        if (!preg_match('/^[A-Z]{2}$/', (string) $code)) continue;
+        $out[] = array('code' => $code, 'n' => (int) $n);
     }
     return $out;
 }
@@ -1647,7 +1743,8 @@ function tit_enqueue_assets() {
     // unstyled. Ask each route, rather than naming them one at a time — that
     // omission is exactly how the sources page shipped unstyled.
     $is_plugin_route = (bool) get_query_var('tit_company')
-                    || (bool) get_query_var('tit_sources');
+                    || (bool) get_query_var('tit_sources')
+                    || (bool) get_query_var('tit_recall');
 
     if (!$is_plugin_route) {
         if (!is_singular()) return;
