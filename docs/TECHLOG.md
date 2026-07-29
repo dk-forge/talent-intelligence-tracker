@@ -29,10 +29,54 @@ healthy only if items arrived and are recent. A run is healthy only if it
 executed a step. A deploy is healthy only if the live page changed. A correction
 is healthy only if the figures moved.
 
+### Link rot: the failure that is invisible by construction
+
+Added the same day and in the same spirit as everything above, because it is the
+purest case of the theme. A source link that dies renders identically to one
+that works. Nothing errors, no run goes red, no test fails, and the claim it
+supported quietly stops being sourced. This repo had no defence at all while the
+sibling had two, and it matters more here: the promise is that every update
+links to the filing behind it, across 575 publisher feeds in 139 countries.
+
+`link_check.py` records status, final URL and date per URL; `archive_sources.py`
+gives each cited document a Wayback fallback via the sibling's two-pass design;
+`source_links` holds both, keyed on the URL because 15,631 signals share 12,890
+of them. Both DORMANT, both free (no model call).
+
+Three decisions worth inheriting:
+
+- **A dead link never edits a row.** The only write to `signals` is
+  `archive_url`. An automatic reaction to an HTTP code would let a publisher's
+  bad afternoon delete evidence, so the state is recorded and surfaced and a
+  human decides. This is the same instinct as `store.revise()`: the record of
+  what a source said is not the place to put HTTP weather.
+- **Status codes cannot catch the dangerous case.** `botswanaguardian.co.bw`
+  became a betting site whose feed verified perfectly green. The only signal is
+  that the bytes came from a domain other than the one we stored, so the
+  checker reuses the collector's `registrable_domain()` drift guard. The first
+  real sweep then found `hln.be` answering 200 from `myprivacy.dpgmedia.be` — a
+  consent gate, not a takeover, distinguished because a gate carries the article
+  URL back in its callback and a squatter has no reason to name the document it
+  replaced. Without that distinction `drifted` would have degraded into a list
+  of European cookie banners and the state that matters would be ignored.
+- **Measure before arming.** Dry runs over 291 real stored URLs: 0% rot, and
+  Wayback already holds 29% of publisher URLs against 3% of SEC/GOV.UK ones.
+  That gap set the nightly default to the publisher tail, because EDGAR keeps
+  its own filings and a 40-capture budget spent on 12,700 index pages would take
+  most of a year to preserve what a government already preserves. 0% is a
+  baseline on a corpus weeks old, not a clean bill of health.
+
+An off-the-shelf WordPress broken-link-checker plugin was rejected explicitly
+and the reason is written where someone might be tempted: they crawl post
+content, our links live in `wp_tit_signals`, and one would have reported a green
+badge over an entirely unchecked corpus. That is this day's theme wearing a
+plugin.
+
 ### Plugin versions shipped
 
 | Ver | What |
 |---|---|
+| 1.43.0 | **An archived copy beside every source link** (`shortcodes.php` and `dashboard.js` render it identically, `archive_url` added to `tit_enrichable_columns()`). A SECOND link, never a replacement: the publisher's own copy is the citation. **NOT DEPLOYED** at the time of writing; nothing carries an `archive_url` yet because every archiving run so far was a dry run. |
 | 1.42.3 | **Sources page listed 5 collectors while 9 were running.** UK gender pay gap, SEC executive compensation and the entire 575-feed national press collector were live and unlisted — two of them among the largest contributors of rows. The guard missed it because `test_live_sources_are_only_the_ones_with_collectors` asserted a **hardcoded set of five names**, so it caught a source listed *without* a collector and was blind to a collector running *without* a source. The defect went the blind direction. Now derives the expected set from `run_collect.SOURCES` via a new `COLLECTOR_BY_SOURCE_NAME` map and fails both ways, with `tripwire_chase` excluded by name as deliberately dormant. |
 | 1.42.2 | **Corrections page flipped to past tense** after the Form D correction actually ran. Three-column table (Before / We projected / Measured now) rather than silently replacing the projection with the actual — a corrections page that quietly revises its own numbers is doing the thing it exists to prevent. Tests now fail the build in **both** directions: past-tense wording on a pending entry, and pending wording on an applied one. |
 | 1.41.1 | **"More filters" disclosure removed for real**, plus `Team Or Function` → `Team or Function` (naive title-casing had capitalised a conjunction). See incident below. |

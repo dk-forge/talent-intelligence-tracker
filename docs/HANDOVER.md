@@ -205,12 +205,18 @@ with a reassuring number attached. Said again in a comment at the top of both
 | `google_news` | 101 | 0 | 89 live, 10 bot-walled, 2 robots-disallowed |
 | `gdelt` | 3 | 0 | |
 | `ats_boards` | 10 | 0 | |
-| **publisher total** | **141** | **0 (0.0%)** | |
+| **publisher subtotal** | **141** | **0 (0.0%)** | |
+| random sample of the whole corpus | 150 | 0 | all live; ~90% SEC, ~8% GOV.UK |
+| **total distinct URLs checked** | **291** | **0 (0.0%)** | |
 
-**Read that number with its age.** These rows are days to weeks old and rot is a
-function of time, so 0% today is a baseline rather than a result. The value of
-the ledger is the SECOND measurement, and the per-publisher breakdown after it:
-a publisher going from 0% to 60% has changed its URL scheme, which is a fix.
+**Read that number with its age and its mix.** These rows are days to weeks old
+and rot is a function of time, and the corpus is ~99% SEC EDGAR and the GOV.UK
+pay-gap service, both of which keep their documents indefinitely. 0% today is a
+baseline, not a result. The value of the ledger is the SECOND measurement, and
+the per-publisher breakdown after it: a publisher going from 0% to 60% has
+changed its URL scheme, which is a fix rather than a lament. It also means the
+rot to watch is entirely in the 141-URL publisher tail, which is growing fast
+and is where the 139-country catalogue lands.
 
 **Wayback coverage already held, before we capture anything:**
 publisher URLs **38/131 (29%)**, SEC and GOV.UK URLs **4/150 (3%)**.
