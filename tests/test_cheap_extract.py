@@ -230,6 +230,26 @@ def test_run_collect_tries_cheap_extraction_before_the_model():
     assert "EVIDENCE_NOTE" in src, "a cheap row must carry its evidence marker"
 
 
+def test_run_collect_prechecks_before_the_model():
+    """Read only what can store: every rejection reachable from the raw item
+    alone (validate.precheck) must fire before the paid read, not after it."""
+    src = inspect.getsource(run_collect.run)
+    assert "validate.precheck" in src
+    assert src.index("validate.precheck") < src.index("classify.classify"), \
+        "the free verdicts must land before the money is spent"
+
+
+def test_every_run_measures_reads_bought_vs_rows_stored():
+    """The waste ratio the last real run made necessary: 60 reads bought, 34
+    rows stored, and nothing printed the gap. The counter lives in
+    classify.STATS beside full_calls; run_collect feeds it at store time and
+    prints the two numbers together every run."""
+    assert "read_stored" in classify.STATS
+    src = inspect.getsource(run_collect.run)
+    assert 'STATS["read_stored"]' in src
+    assert "reads bought vs rows stored" in src
+
+
 def test_read_sizes_are_named_constants():
     src = inspect.getsource(classify.classify)
     assert "FULL_READ_CHARS" in src

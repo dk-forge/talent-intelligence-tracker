@@ -40,6 +40,12 @@ STATS = {
     "full_chars_sent": 0,  # what actually went to the model
     "prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0,
     "usd": 0.0,            # OpenRouter's own cost figure, summed
+    # Rows that a full read-through actually bought. run_collect increments it
+    # at store time (would-store on a dry run), and only for records that came
+    # out of classify() — never a deterministic close or a derived row. Beside
+    # full_calls it is the waste ratio: the last real run bought 60 reads and
+    # stored 34 rows, and until this counter existed that gap was invisible.
+    "read_stored": 0,
 }
 
 # --- Read sizes, named because they are the cost levers ---------------------

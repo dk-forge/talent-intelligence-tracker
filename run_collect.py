@@ -379,6 +379,24 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             skipped += 1
             continue
 
+        # Read only what can store. Every rejection build_signal can reach
+        # from the raw item alone — no source URL, an aggregator or job-board
+        # link, an empty body, a filing that announces a reduction — fires
+        # here, before a cent is spent, instead of after the read-through it
+        # used to be discovered behind. Same verdicts, same messages, same
+        # seen-marking; only the timing of the money moved. A derived source
+        # spends nothing, so it keeps its checks inside build_signal alone.
+        if not derive:
+            try:
+                validate.precheck(item)
+            except validate.Rejected as exc:
+                rejected += 1
+                print(f"  REJECT  {item.get('headline','')[:70]}\n"
+                      f"          {exc} (before any model call)")
+                if url and not dry_run:
+                    store.mark_seen(conn, url, collector, "rejected")
+                continue
+
         # Cost lever 2, across runs: a round we already stored, resurfacing
         # from yet another outlet days later, is recognisable from its stated
         # (employer, amount) before any model is paid. fuzzy_duplicate would
@@ -403,6 +421,12 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # output goes through the SAME validate/store path below, marked
             # on `notes` so a reader can see no model read it.
             cheap = cheap_extract.extract(item)
+
+        # Whether this record, if it stores, was bought with a full read.
+        # Feeds the reads-vs-rows ratio: a deterministic close, a derived row
+        # and an offline stub all cost nothing, so counting them would flatter
+        # the number the ratio exists to keep honest.
+        paid_read = cheap is None and not derive and not offline
 
         try:
             if cheap is not None:
@@ -495,6 +519,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
 
         if dry_run:
             stored += 1
+            if paid_read:
+                classify.STATS["read_stored"] += 1
             if _should_print(stored):
                 _print_signal(signal)
             continue
@@ -503,6 +529,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         store.mark_seen(conn, url, collector, outcome)
         if outcome == "stored":
             stored += 1
+            if paid_read:
+                classify.STATS["read_stored"] += 1
             if _should_print(stored):
                 _print_signal(signal)
         else:
@@ -542,6 +570,16 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"[{collector}] read size: avg {classify.STATS['full_chars_sent'] // n} "
             f"chars sent of {classify.STATS['full_chars_raw'] // n} fetched "
             f"(cap {classify.FULL_READ_CHARS})"
+        )
+        # The waste ratio, measured on every run rather than discovered in a
+        # month-end audit. The gap between the two numbers is reads that
+        # stored nothing: a model NO after the gate said yes, a validate
+        # rejection the precheck could not see, or a post-read duplicate.
+        # Each of those is ~$0.00128 spent on a row the page never got.
+        kept_rows = classify.STATS["read_stored"]
+        print(
+            f"[{collector}] reads bought vs rows stored: {n} read-throughs, "
+            f"{kept_rows} rows ({kept_rows * 100 // n}% of reads became rows)"
         )
     if classify.STATS["prompt_tokens"]:
         cached = classify.STATS["cached_tokens"]
