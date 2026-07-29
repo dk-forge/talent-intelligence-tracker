@@ -400,12 +400,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # only the next run can fill, and silence about it is how a throttled
     # source looks like a quiet news day for a month.
     mostly_throttled = throttled > 0 and throttled >= max(1, len(kept) // 2)
-    broken = found == 0 or everything_rejected or mostly_throttled
+
+    # A DIFF-shaped collector emits a row only when something MOVED, so counting
+    # emitted rows as `items_found` marks a perfectly healthy quiet day
+    # `degraded` (store.report_health downgrades any zero) every single day,
+    # until nobody reads the health page any more. Such a collector publishes
+    # what it actually READ as LAST_RUN['read'], and health is measured on that.
+    # Nothing changes for any other source: there the two are the same number,
+    # and a run that reads nothing is still degraded.
+    observed = (getattr(module, "LAST_RUN", None) or {}).get("read")
+    observed = found if observed is None else observed
+    broken = observed == 0 or everything_rejected or mostly_throttled
 
     store.report_health(
         conn, collector,
         status="degraded" if broken else "ok",
-        items_found=found, items_stored=stored,
+        items_found=observed, items_stored=stored,
         detail=(f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"

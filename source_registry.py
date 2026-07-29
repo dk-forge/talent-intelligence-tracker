@@ -418,6 +418,25 @@ SOURCES = (
                  "resolution endpoint returns the publisher URL, so records cite "
                  "the article rather than an outlet homepage."),
 
+    # Job-posting volume: the most direct measure of hiring that exists, and
+    # the one entry on this page that is a MEASUREMENT rather than a document.
+    # The notes say so, and say what it cannot do, because a counted number
+    # presented like a filed one is the easiest lie in this product to tell.
+    Source("Employer job boards (Greenhouse, Lever, Ashby)",
+           "https://boards-api.greenhouse.io/", "live",
+           "Employer publications", ("Hiring", "Posted pay", "Location"),
+           "Global, per employer",
+           notes="Keyless JSON, no model, no cost: an employer's own open roles, "
+                 "counted once a day. Three honest limits. The count is OUR "
+                 "measurement of a page on two dates, so rows are reported and "
+                 "never verified. Nothing can be back-filled, because these APIs "
+                 "publish no history and no archive holds snapshots of them, so "
+                 "every series starts the day we began counting. And a board "
+                 "that shrinks is never read as job cuts: roles leave a board "
+                 "when they are filled, withdrawn or reposted, so only growth is "
+                 "published. SmartRecruiters was dropped in July 2026 because "
+                 "its API robots.txt disallows every agent but LinkedIn's."),
+
     # --- candidate: researched, real, not yet connected --------------------
     Source("SEC EDGAR 8-K (Items 1.01 / 2.01)", "https://www.sec.gov/edgar.shtml",
            "candidate", "Regulatory filings", ("M&A", "Acquisition"), "National", "US"),

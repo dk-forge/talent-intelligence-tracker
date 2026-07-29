@@ -62,6 +62,7 @@ function tit_sources_health_map() {
         'gdelt'       => 'GDELT DOC 2.0',
         'sec_edgar'   => 'SEC EDGAR 8-K (Item 5.02)',
         'sec_form_d'  => 'SEC EDGAR Form D',
+        'ats_boards'  => 'Employer job boards (Greenhouse, Lever, Ashby)',
     );
 
     $out = array();

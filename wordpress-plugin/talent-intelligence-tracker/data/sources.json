@@ -1,5 +1,21 @@
 [
  {
+  "name": "Employer job boards (Greenhouse, Lever, Ashby)",
+  "url": "https://boards-api.greenhouse.io/",
+  "status": "live",
+  "category": "Employer publications",
+  "signals": [
+   "Hiring",
+   "Posted pay",
+   "Location"
+  ],
+  "coverage": "Global, per employer",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "Keyless JSON, no model, no cost: an employer's own open roles, counted once a day. Three honest limits. The count is OUR measurement of a page on two dates, so rows are reported and never verified. Nothing can be back-filled, because these APIs publish no history and no archive holds snapshots of them, so every series starts the day we began counting. And a board that shrinks is never read as job cuts: roles leave a board when they are filled, withdrawn or reposted, so only growth is published. SmartRecruiters was dropped in July 2026 because its API robots.txt disallows every agent but LinkedIn's."
+ },
+ {
   "name": "GDELT DOC 2.0",
   "url": "https://www.gdeltproject.org/",
   "status": "live",

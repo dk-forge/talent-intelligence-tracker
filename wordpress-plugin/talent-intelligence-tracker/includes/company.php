@@ -168,6 +168,16 @@ function tit_company_render($rows, $key) {
         <?php endforeach; ?>
       </div>
 
+      <?php
+      // Job-posting volume, when we have been counting this employer's own
+      // board. Guarded: an FTP deploy can land company.php before
+      // board_series.php, and a hard call would fatal the page for the seconds
+      // in between.
+      if (function_exists('tit_board_series_panel')) {
+          echo tit_board_series_panel($key);  // built and escaped in that file
+      }
+      ?>
+
       <?php if (count($rows) < 3) : ?>
         <p class="tit-thin">
           This profile is thin because we hold

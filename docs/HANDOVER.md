@@ -52,6 +52,64 @@ than the site. Do not skip the workflow to "save time".
 
 ---
 
+## Job-posting volume (2026-07-29)
+
+Job ads are the most direct evidence of hiring there is, and the tracker's
+promise is to know before the ad appears — so the ads themselves have to be
+counted too. `collectors/ats_boards.py` does that, and this session made the
+volume a first-class thing rather than a side effect.
+
+**What changed.**
+
+- **Lever and Workable** join Greenhouse and Ashby. Lever is the only one of the
+  four that distinguishes a missing board from an empty one (it answers
+  `{"ok": false}` rather than `[]`), and it publishes posted salary bands, so
+  the Ashby pay row now has a second source.
+- **SmartRecruiters is withdrawn.** `https://api.smartrecruiters.com/robots.txt`
+  is `Disallow: /` for every agent except LinkedInBot. The endpoint answers us
+  200 anyway, which is exactly why this is enforced in code rather than by
+  whether a request works. The five employers on it (Bosch, Ubisoft, Wise,
+  Kiabi, Sodexo — 5,800 postings between them) moved to a `withdrawn` list in
+  `collectors/ats_watchlist.json` with the reason; the parser and its fixture
+  stay in place in case the terms change.
+- **robots.txt is checked per ATS host** using `national_press.robots_allows` —
+  imported, not reimplemented. A blocked board is reported as `robots` and left
+  OUT of the failure tolerance: their terms are a decision, not an outage.
+- **The archive gained the fields that make it renderable.**
+  `data/ats_board_state.json` now records `company_key`, the board URL, the ATS
+  and a recomputed `trajectory` per board alongside the daily counts.
+- **`build_board_series.py`** (DORMANT, nothing schedules it) turns that archive
+  into `wordpress-plugin/.../data/board_series.json` and can POST it to a new
+  keyed `talent/v1/board-series`. `includes/board_series.php` renders it on the
+  company profile as an inline-SVG sparkline with the rule printed beside it.
+  The endpoint refuses any board without the URL it was counted from.
+- **`resolve_ats_boards.py`** (run by hand) finds boards for employers we
+  ALREADY hold signals for, and reports the name evidence behind each hit.
+  Greenhouse, Workable and the Lever board page publish the employer's own name,
+  so a slug belonging to somebody else is caught; Ashby publishes none, so an
+  Ashby slug is a human judgement and is labelled `slug_only`.
+- **Health counts what it READ, not what it emitted.** `run_collect` now reads
+  `module.LAST_RUN["read"]` when a collector exposes it. Without that, a
+  diff-shaped source is `degraded` every day nothing moved — which is most days,
+  until nobody reads the health page. `health_digest.py` also gained
+  `"ats_boards": 48`; it had been on the 14-day default while running daily.
+
+**The direction rule, which is the part to argue with.** A board is `rising` or
+`falling` only if it moved by at least 5 roles AND at least 10% over 30 days,
+across at least 4 readings spanning at least 14 days. Otherwise `flat`, and with
+less evidence than that, `unknown` — "we cannot tell" is a real answer and
+renders as one. A rising board is evidence of hiring. **A falling board is not
+evidence of cuts** and is never rendered as any: roles leave a board when they
+are filled, withdrawn or reposted. Only growth is published as a signal row.
+
+**What cannot be back-filled, ever.** These APIs publish no history and no
+closed-on date, and no archive holds snapshots of them. Every series starts the
+day we began counting, so a day the daily run misses is gone permanently. That
+is why `collect-structured.yml` commits `data/ats_board_state.json` on
+`!cancelled()` rather than on success.
+
+---
+
 ## The discovery tripwire (built 2026-07-28, DORMANT)
 
 `run_tripwire.py` + `analysis/tripwire/`. It asks a search-backed model what

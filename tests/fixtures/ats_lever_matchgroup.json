@@ -1,0 +1,230 @@
+[
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Hinge",
+   "location": "New York, New York",
+   "team": "Engineering",
+   "allLocations": [
+    "New York, New York"
+   ]
+  },
+  "createdAt": 1779223091267,
+  "id": "3414ba28-35f7-45d3-8e13-35c883959635",
+  "salaryRange": {
+   "interval": "per-year-salary",
+   "currency": "USD",
+   "min": 150000,
+   "max": 180000
+  },
+  "text": "Android Engineer III",
+  "country": "US",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/3414ba28-35f7-45d3-8e13-35c883959635",
+  "applyUrl": "https://jobs.lever.co/matchgroup/3414ba28-35f7-45d3-8e13-35c883959635/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Hyperconnect",
+   "location": "Seoul, South Korea",
+   "team": "Engineering",
+   "allLocations": [
+    "Seoul, South Korea"
+   ]
+  },
+  "createdAt": 1767596368549,
+  "id": "4004a95b-ed89-4193-ad1a-a2ed5d4703d5",
+  "text": "Android Software Engineer (Azar)",
+  "country": "KR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/4004a95b-ed89-4193-ad1a-a2ed5d4703d5",
+  "applyUrl": "https://jobs.lever.co/matchgroup/4004a95b-ed89-4193-ad1a-a2ed5d4703d5/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Tinder",
+   "location": "Seoul, South Korea",
+   "team": "Product",
+   "allLocations": [
+    "Seoul, South Korea"
+   ]
+  },
+  "createdAt": 1761115050243,
+  "id": "0152fd07-2715-4fe1-a208-af9d03c0b358",
+  "text": "APAC Sr. Localization Program Manager (Tinder Korea)",
+  "country": "KR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/0152fd07-2715-4fe1-a208-af9d03c0b358",
+  "applyUrl": "https://jobs.lever.co/matchgroup/0152fd07-2715-4fe1-a208-af9d03c0b358/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Apprenticeship",
+   "department": "Meetic",
+   "location": "Paris, France",
+   "team": "Marketing",
+   "allLocations": [
+    "Paris, France"
+   ]
+  },
+  "createdAt": 1784278363924,
+  "id": "307bfde1-1acd-4e34-afc5-e91c07550f73",
+  "text": "Apprenticeship - Junior Brand Copywriter",
+  "country": "FR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/307bfde1-1acd-4e34-afc5-e91c07550f73",
+  "applyUrl": "https://jobs.lever.co/matchgroup/307bfde1-1acd-4e34-afc5-e91c07550f73/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Apprenticeship",
+   "department": "Meetic",
+   "location": "Paris, France",
+   "team": "Marketing",
+   "allLocations": [
+    "Paris, France"
+   ]
+  },
+  "createdAt": 1784292050770,
+  "id": "4f8b6ca1-70f4-4629-8cca-435397226e29",
+  "text": "Apprenticeship - Junior Brand Designer",
+  "country": "FR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/4f8b6ca1-70f4-4629-8cca-435397226e29",
+  "applyUrl": "https://jobs.lever.co/matchgroup/4f8b6ca1-70f4-4629-8cca-435397226e29/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Apprenticeship",
+   "department": "Meetic",
+   "location": "Paris, France",
+   "team": "Marketing",
+   "allLocations": [
+    "Paris, France"
+   ]
+  },
+  "createdAt": 1784886328059,
+  "id": "0894dfce-c38b-4346-b37e-38b72d7bbf4d",
+  "text": "Apprenticeship - Junior Marketing Assistant",
+  "country": "FR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/0894dfce-c38b-4346-b37e-38b72d7bbf4d",
+  "applyUrl": "https://jobs.lever.co/matchgroup/0894dfce-c38b-4346-b37e-38b72d7bbf4d/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Apprenticeship",
+   "department": "Meetic",
+   "location": "Paris, France",
+   "team": "Marketing",
+   "allLocations": [
+    "Paris, France"
+   ]
+  },
+  "createdAt": 1784276923935,
+  "id": "1e93447f-dfcb-4e73-aed6-d62895a6d5db",
+  "text": "Apprenticeship - Junior Traffic Manager",
+  "country": "FR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/1e93447f-dfcb-4e73-aed6-d62895a6d5db",
+  "applyUrl": "https://jobs.lever.co/matchgroup/1e93447f-dfcb-4e73-aed6-d62895a6d5db/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Eureka",
+   "location": "Tokyo",
+   "team": "Development, Technology",
+   "allLocations": [
+    "Tokyo"
+   ]
+  },
+  "createdAt": 1721615942532,
+  "id": "1deea0b0-c0c9-4541-972e-2a437b64b023",
+  "text": "Back-end Engineer, Platform",
+  "country": "JP",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/1deea0b0-c0c9-4541-972e-2a437b64b023",
+  "applyUrl": "https://jobs.lever.co/matchgroup/1deea0b0-c0c9-4541-972e-2a437b64b023/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Eureka",
+   "location": "Tokyo",
+   "team": "Development, Technology",
+   "allLocations": [
+    "Tokyo"
+   ]
+  },
+  "createdAt": 1780558349830,
+  "id": "750053cb-5ace-444a-9c64-070fb4d46439",
+  "text": "Backend Engineer (Trust & Safety), Platform",
+  "country": "JP",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/750053cb-5ace-444a-9c64-070fb4d46439",
+  "applyUrl": "https://jobs.lever.co/matchgroup/750053cb-5ace-444a-9c64-070fb4d46439/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Tinder",
+   "location": "Los Angeles, California",
+   "team": "Business Development",
+   "allLocations": [
+    "Los Angeles, California"
+   ]
+  },
+  "createdAt": 1781633504238,
+  "id": "88c6e22a-b031-4804-977d-49a8e39995d6",
+  "salaryRange": {
+   "min": 120000,
+   "max": 139000,
+   "currency": "USD",
+   "interval": "per-year-salary"
+  },
+  "text": "Business Development Manager, Events Program",
+  "country": "US",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/88c6e22a-b031-4804-977d-49a8e39995d6",
+  "applyUrl": "https://jobs.lever.co/matchgroup/88c6e22a-b031-4804-977d-49a8e39995d6/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Hyperconnect",
+   "location": "Seoul, South Korea",
+   "team": "Business",
+   "allLocations": [
+    "Seoul, South Korea"
+   ]
+  },
+  "createdAt": 1781081491765,
+  "id": "74295d7a-31a8-4765-afef-9784e1950386",
+  "text": "CRM Manager (Azar)",
+  "country": "KR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/74295d7a-31a8-4765-afef-9784e1950386",
+  "applyUrl": "https://jobs.lever.co/matchgroup/74295d7a-31a8-4765-afef-9784e1950386/apply"
+ },
+ {
+  "categories": {
+   "commitment": "Full-time",
+   "department": "Hyperconnect",
+   "location": "Seoul, South Korea",
+   "team": "Engineering",
+   "allLocations": [
+    "Seoul, South Korea"
+   ]
+  },
+  "createdAt": 1783501026023,
+  "id": "3c12c050-2719-43e6-a69e-fdb971f399a7",
+  "text": "Data Analyst (Azar)",
+  "country": "KR",
+  "workplaceType": "hybrid",
+  "hostedUrl": "https://jobs.lever.co/matchgroup/3c12c050-2719-43e6-a69e-fdb971f399a7",
+  "applyUrl": "https://jobs.lever.co/matchgroup/3c12c050-2719-43e6-a69e-fdb971f399a7/apply"
+ }
+]

@@ -93,3 +93,35 @@ def test_a_mostly_throttled_run_reports_degraded():
     src = inspect.getsource(run_collect.run)
     assert "mostly_throttled" in src
     assert "or mostly_throttled" in src
+
+
+def test_a_diff_shaped_collector_is_judged_on_what_it_read():
+    """`items_found` is what health is measured on, and for a collector whose
+    output is a DIFF the emitted-row count is the wrong quantity: a day when
+    sixty job boards were read and none moved materially is a healthy day.
+    Counting rows instead marks it degraded every day, until the health page is
+    worth nothing. Reading NOTHING is still degraded — that is the real
+    breakage."""
+    import inspect
+
+    import run_collect
+    from collectors import ats_boards
+
+    src = inspect.getsource(run_collect.run)
+    assert 'getattr(module, "LAST_RUN", None)' in src
+    assert "items_found=observed" in src
+    assert "broken = observed == 0" in src
+    # The collector's side of the contract.
+    assert "read" in ats_boards.LAST_RUN
+
+
+def test_every_other_collector_is_unaffected_by_that():
+    """A source with no LAST_RUN must still be judged on what it fetched."""
+    import inspect
+
+    import run_collect
+    from collectors import google_news
+
+    assert not hasattr(google_news, "LAST_RUN")
+    src = inspect.getsource(run_collect.run)
+    assert "observed = found if observed is None else observed" in src

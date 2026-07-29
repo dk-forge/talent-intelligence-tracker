@@ -78,6 +78,12 @@ MAX_AGE_HOURS = {
     # owner a false alarm every fortnight, which is how a digest teaches
     # people to ignore it.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
+    # On the DAILY schedule (collect-structured.yml, 09:00 UTC), so 48 hours is
+    # one missed run plus slack. It had no entry until 2026-07-29 and was
+    # therefore on the 14-day default: a source whose whole value is that a day
+    # nobody records is gone permanently could have been dead for thirteen days
+    # without the digest saying a word.
+    "ats_boards": 48,
     # The discovery tripwire ships DORMANT: nothing schedules it, so a manual
     # run followed by weeks of silence is the expected state, not an incident.
     # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the

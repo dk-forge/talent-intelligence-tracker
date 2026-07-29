@@ -33,7 +33,22 @@ def test_live_sources_are_only_the_ones_with_collectors():
         "SEC EDGAR Form D",
         "GDELT DOC 2.0",
         "Google News RSS",
+        # Live since July 2026: collectors/ats_boards.py runs daily on
+        # collect-structured.yml, reports health under `ats_boards`, has stored
+        # rows, and is tested in tests/test_ats_boards.py.
+        "Employer job boards (Greenhouse, Lever, Ashby)",
     }
+
+
+def test_the_job_board_source_publishes_what_it_cannot_do():
+    """The one source here that is a measurement rather than a document, so the
+    page has to carry its three limits: it cannot be back-filled, its counts are
+    ours rather than the employer's, and a shrinking board is not a layoff."""
+    boards = next(s for s in registry.SOURCES if "job boards" in s.name)
+    assert boards.status == "live"
+    assert "back-fill" in boards.notes
+    assert "reported and never verified" in boards.notes
+    assert "job cuts" in boards.notes
 
 
 def test_google_news_is_live_because_urls_now_resolve():

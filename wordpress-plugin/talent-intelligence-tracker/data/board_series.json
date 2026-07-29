@@ -1,0 +1,934 @@
+{
+ "as_of": "2026-07-29",
+ "boards": {
+  "abridge": [
+   {
+    "ats": "ashby",
+    "company": "Abridge",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 44
+    },
+    "series": [
+     [
+      "2026-07-28",
+      44
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/abridge",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "airtable": [
+   {
+    "ats": "greenhouse",
+    "company": "Airtable",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 41
+    },
+    "series": [
+     [
+      "2026-07-28",
+      41
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/airtable",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "anthropic": [
+   {
+    "ats": "greenhouse",
+    "company": "Anthropic",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 414
+    },
+    "series": [
+     [
+      "2026-07-28",
+      414
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/anthropic",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "brex": [
+   {
+    "ats": "greenhouse",
+    "company": "Brex",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 270
+    },
+    "series": [
+     [
+      "2026-07-28",
+      270
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/brex",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "cloudflare": [
+   {
+    "ats": "greenhouse",
+    "company": "Cloudflare",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 276
+    },
+    "series": [
+     [
+      "2026-07-28",
+      276
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/cloudflare",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "cohere": [
+   {
+    "ats": "ashby",
+    "company": "Cohere",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 139
+    },
+    "series": [
+     [
+      "2026-07-28",
+      139
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/cohere",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "coinbase": [
+   {
+    "ats": "greenhouse",
+    "company": "Coinbase",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 155
+    },
+    "series": [
+     [
+      "2026-07-28",
+      155
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/coinbase",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "cursor": [
+   {
+    "ats": "ashby",
+    "company": "Cursor",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 123
+    },
+    "series": [
+     [
+      "2026-07-28",
+      123
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/cursor",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "databricks": [
+   {
+    "ats": "greenhouse",
+    "company": "Databricks",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 809
+    },
+    "series": [
+     [
+      "2026-07-28",
+      809
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/databricks",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "datadog": [
+   {
+    "ats": "greenhouse",
+    "company": "Datadog",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 423
+    },
+    "series": [
+     [
+      "2026-07-28",
+      423
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/datadog",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "decagon": [
+   {
+    "ats": "ashby",
+    "company": "Decagon",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 113
+    },
+    "series": [
+     [
+      "2026-07-28",
+      113
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/decagon",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "elevenlabs": [
+   {
+    "ats": "ashby",
+    "company": "ElevenLabs",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 215
+    },
+    "series": [
+     [
+      "2026-07-28",
+      215
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/elevenlabs",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "figma": [
+   {
+    "ats": "greenhouse",
+    "company": "Figma",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 178
+    },
+    "series": [
+     [
+      "2026-07-28",
+      178
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/figma",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "flexport": [
+   {
+    "ats": "greenhouse",
+    "company": "Flexport",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 152
+    },
+    "series": [
+     [
+      "2026-07-28",
+      152
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/flexport",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "gitlab": [
+   {
+    "ats": "greenhouse",
+    "company": "GitLab",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 188
+    },
+    "series": [
+     [
+      "2026-07-28",
+      188
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/gitlab",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "gocardless": [
+   {
+    "ats": "greenhouse",
+    "company": "GoCardless",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 29
+    },
+    "series": [
+     [
+      "2026-07-28",
+      29
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/gocardless",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "harvey": [
+   {
+    "ats": "ashby",
+    "company": "Harvey",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 346
+    },
+    "series": [
+     [
+      "2026-07-28",
+      346
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/harvey",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "instacart": [
+   {
+    "ats": "greenhouse",
+    "company": "Instacart",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 120
+    },
+    "series": [
+     [
+      "2026-07-28",
+      120
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/instacart",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "linear": [
+   {
+    "ats": "ashby",
+    "company": "Linear",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 25
+    },
+    "series": [
+     [
+      "2026-07-28",
+      25
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/linear",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "lyft": [
+   {
+    "ats": "greenhouse",
+    "company": "Lyft",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 160
+    },
+    "series": [
+     [
+      "2026-07-28",
+      160
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/lyft",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "monzo": [
+   {
+    "ats": "greenhouse",
+    "company": "Monzo",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 71
+    },
+    "series": [
+     [
+      "2026-07-28",
+      71
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/monzo",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "multiverse": [
+   {
+    "ats": "ashby",
+    "company": "Multiverse",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 24
+    },
+    "series": [
+     [
+      "2026-07-28",
+      24
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/multiverse",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "notion": [
+   {
+    "ats": "ashby",
+    "company": "Notion",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 116
+    },
+    "series": [
+     [
+      "2026-07-28",
+      116
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/notion",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "openai": [
+   {
+    "ats": "ashby",
+    "company": "OpenAI",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 744
+    },
+    "series": [
+     [
+      "2026-07-28",
+      744
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/openai",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "perplexity": [
+   {
+    "ats": "ashby",
+    "company": "Perplexity",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 87
+    },
+    "series": [
+     [
+      "2026-07-28",
+      87
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/perplexity",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "pinterest": [
+   {
+    "ats": "greenhouse",
+    "company": "Pinterest",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 200
+    },
+    "series": [
+     [
+      "2026-07-28",
+      200
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/pinterest",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "ramp": [
+   {
+    "ats": "ashby",
+    "company": "Ramp",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 119
+    },
+    "series": [
+     [
+      "2026-07-28",
+      119
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/ramp",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "reddit": [
+   {
+    "ats": "greenhouse",
+    "company": "Reddit",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 192
+    },
+    "series": [
+     [
+      "2026-07-28",
+      192
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/reddit",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "replit": [
+   {
+    "ats": "ashby",
+    "company": "Replit",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 88
+    },
+    "series": [
+     [
+      "2026-07-28",
+      88
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/replit",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "robinhood": [
+   {
+    "ats": "greenhouse",
+    "company": "Robinhood",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 125
+    },
+    "series": [
+     [
+      "2026-07-28",
+      125
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/robinhood",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "samsara": [
+   {
+    "ats": "greenhouse",
+    "company": "Samsara",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 327
+    },
+    "series": [
+     [
+      "2026-07-28",
+      327
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/samsara",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "scale ai": [
+   {
+    "ats": "greenhouse",
+    "company": "Scale AI",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 208
+    },
+    "series": [
+     [
+      "2026-07-28",
+      208
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/scaleai",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "sierra": [
+   {
+    "ats": "ashby",
+    "company": "Sierra",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 169
+    },
+    "series": [
+     [
+      "2026-07-28",
+      169
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/sierra",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "stripe": [
+   {
+    "ats": "greenhouse",
+    "company": "Stripe",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 532
+    },
+    "series": [
+     [
+      "2026-07-28",
+      532
+     ]
+    ],
+    "source_name": "Greenhouse job board",
+    "source_url": "https://job-boards.greenhouse.io/stripe",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "synthesia": [
+   {
+    "ats": "ashby",
+    "company": "Synthesia",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 75
+    },
+    "series": [
+     [
+      "2026-07-28",
+      75
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/synthesia",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "vanta": [
+   {
+    "ats": "ashby",
+    "company": "Vanta",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 103
+    },
+    "series": [
+     [
+      "2026-07-28",
+      103
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/vanta",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ],
+  "wayve": [
+   {
+    "ats": "ashby",
+    "company": "Wayve",
+    "first_seen": "2026-07-28",
+    "latest": {
+     "date": "2026-07-28",
+     "total": 111
+    },
+    "series": [
+     [
+      "2026-07-28",
+      111
+     ]
+    ],
+    "source_name": "Ashby job board",
+    "source_url": "https://jobs.ashbyhq.com/wayve",
+    "trajectory": {
+     "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+     "direction": "unknown",
+     "observations": 1,
+     "window_days": 30
+    }
+   }
+  ]
+ },
+ "employers": 37,
+ "generated_at": "2026-07-29T08:58:45+00:00",
+ "rule": "Each point is a count of the roles an employer had open on its own job board on that date, taken once a day. The direction is decided by a fixed rule: a board is rising or falling only if it moved by at least 5 roles AND at least 10% over the window, across at least 4 readings spanning at least 14 days. Anything less says 'we cannot tell', which is a real answer here. A rising board is evidence of hiring. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+ "window_days": 30
+}

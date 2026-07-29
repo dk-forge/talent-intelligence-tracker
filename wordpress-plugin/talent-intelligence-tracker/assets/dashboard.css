@@ -647,6 +647,31 @@
   border:1px solid var(--tit-line); border-left:4px solid var(--tit-blue);
   border-radius:10px; max-width:78ch; }
 
+/* Job-posting volume on a company profile. Inline SVG for the same reason the
+   recall chart is: a trend that only appears once a chart library has loaded is
+   a trend nobody can rely on seeing. The sparkline is width:100% and its
+   viewBox does not preserve aspect ratio, so it cannot bleed on a phone. */
+.tit-board-volume { margin:18px 0 0; }
+.tit-board-volume .tit-h2 { font-size:15px; font-weight:800; letter-spacing:.02em;
+  text-transform:uppercase; color:var(--tit-faint); margin:0 0 10px; }
+.tit-board { margin:0 0 14px; padding:14px 16px; border:1px solid var(--tit-line);
+  border-left:4px solid var(--tit-line); border-radius:12px;
+  background:var(--tit-surface); max-width:78ch; }
+.tit-board-rising  { border-left-color:#1f7a4d; color:#1f7a4d; }
+.tit-board-falling { border-left-color:#a8560f; color:#a8560f; }
+.tit-board-flat    { border-left-color:#1c5cab; color:#1c5cab; }
+.tit-board-unknown { border-left-color:var(--tit-line); color:var(--tit-mut); }
+.tit-board-head { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
+.tit-board-head .tit-n { font-size:26px; font-weight:800;
+  font-variant-numeric:tabular-nums; color:var(--tit-ink); }
+.tit-board-head .tit-l { font-size:13px; color:var(--tit-mut); }
+.tit-board .tit-spark { display:block; margin:8px 0 6px; max-width:100%; }
+/* The rule and the numbers behind the verdict, printed where the line is read.
+   A direction whose reasoning sits in a footnote is a direction being asserted. */
+.tit-board-basis { margin:0 0 4px; font-size:13px; line-height:1.5;
+  color:var(--tit-ink); }
+.tit-board .tit-event-meta { margin:0; font-size:12.5px; color:var(--tit-mut); }
+
 
 /* ===========================================================================
    Family styling, taken from the sibling tracker's live stylesheet.

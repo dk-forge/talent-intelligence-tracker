@@ -1,6 +1,6 @@
 """Applicant-tracking system job boards — hiring momentum, measured daily.
 
-Greenhouse, Ashby and SmartRecruiters all publish an employer's open roles as
+Greenhouse, Lever, Ashby and Workable all publish an employer's open roles as
 keyless JSON. Three facts about that make this collector worth having and shape
 every decision in it:
 
@@ -41,6 +41,38 @@ Confidence is `reported`, chosen honestly and not by accident. The board is the
 employer's own publication, but the COUNT is our measurement of it on two dates,
 not a number the employer published. A derived measurement does not earn the
 tier that a filed document does.
+
+**robots.txt decides which ATS we may read at all**, checked in code with the
+press collector's function rather than audited once and forgotten:
+
+    greenhouse       boards-api.greenhouse.io  Disallow: /embed/ only  -> allowed
+    lever            api.lever.co              Allow: / , Crawl-delay: 1 -> allowed,
+                                               and that delay is honoured below
+    workable         apply.workable.com        Disallow: (empty)       -> allowed
+                                               by robots, but it rate-limits
+                                               hard (Cloudflare 1015) and no
+                                               payload with postings in it has
+                                               been captured yet, so the parser
+                                               below ships with NO board on the
+                                               watchlist. See its `withdrawn`
+                                               entry for what would change that.
+    ashby            api.ashbyhq.com           robots.txt answers 401; a 4xx is
+                                               "no robots.txt" under RFC 9309, so
+                                               the posting API Ashby documents as
+                                               public is read. Fails open, and
+                                               says so rather than pretending it
+                                               was an explicit yes.
+    smartrecruiters  api.smartrecruiters.com   Disallow: / for every agent but
+                                               LinkedInBot -> NOT READ. The five
+                                               employers we had on it are
+                                               withdrawn in the watchlist, with
+                                               the reason recorded there. The
+                                               parsing stays because the terms
+                                               may change; the request does not
+                                               happen while they say no.
+
+A board the gate refuses is reported as `robots`, and is NOT counted toward the
+breakage tolerance below: a publisher's terms are a decision, not an outage.
 """
 
 from __future__ import annotations
@@ -49,16 +81,28 @@ import json
 import os
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
 
 from pipeline import vocab
+# ONE robots.txt implementation in this repo. The press collector's is the
+# original and is tested there; a second one would drift and the drift would be
+# invisible until a publisher's terms were quietly ignored. Imported rather than
+# copied for exactly that reason.
+from collectors.national_press import robots_allows
 
 COLLECTOR = "ats_boards"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com; info@asktherecruiter.com)"
 REQUEST_DELAY = 0.2
+# Per-ATS politeness. Lever's is not a preference of ours: its robots.txt says
+# `Crawl-delay: 1`, so the number belongs to Lever and the comment says whose it
+# is, because a bare 1.1 would be edited away by the next person tidying up.
+# Workable's is ours, and it is measured: apply.workable.com starts answering
+# 429 after a few dozen quick requests, so a fast sweep of many accounts breaks
+# itself. One request a second is well under where it complained.
+ATS_DELAY = {"lever": 1.1, "workable": 1.0}
 TIMEOUT = 45
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -78,19 +122,34 @@ REVISITS_ITS_SOURCE_URL = True
 # run_collect passes the flag through only to collectors that declare this.
 ACCEPTS_DRY_RUN = True
 
+# What the last collect() actually did. This exists because health is measured
+# in `items_found`, and for a DIFF-shaped source the number of emitted rows is
+# the wrong quantity: a day on which sixty boards were read and none of them
+# moved materially is a healthy day, not a dead collector. run_collect reads
+# `read` — boards successfully counted — and reports that instead. A run that
+# reads nothing is still, correctly, degraded.
+LAST_RUN = {"boards": 0, "read": 0, "robots_blocked": 0, "failed": 0,
+            "movements": 0}
+
 BOARD_URLS = {
     "greenhouse": "https://job-boards.greenhouse.io/{slug}",
     "ashby": "https://jobs.ashbyhq.com/{slug}",
+    "lever": "https://jobs.lever.co/{slug}",
+    "workable": "https://apply.workable.com/{slug}",
     "smartrecruiters": "https://careers.smartrecruiters.com/{slug}",
 }
 API_URLS = {
     "greenhouse": "https://boards-api.greenhouse.io/v1/boards/{slug}/jobs",
     "ashby": "https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=true",
+    "lever": "https://api.lever.co/v0/postings/{slug}?mode=json",
+    "workable": "https://apply.workable.com/api/v1/widget/accounts/{slug}?details=true",
     "smartrecruiters": "https://api.smartrecruiters.com/v1/companies/{slug}/postings",
 }
 SOURCE_NAMES = {
     "greenhouse": "Greenhouse job board",
     "ashby": "Ashby job board",
+    "lever": "Lever job board",
+    "workable": "Workable job board",
     "smartrecruiters": "SmartRecruiters careers site",
 }
 
@@ -225,12 +284,24 @@ def place_label(key: str) -> str:
 # --- Fetching --------------------------------------------------------------
 
 
-def _get(url: str, *, timeout: int = TIMEOUT) -> dict:
-    time.sleep(REQUEST_DELAY)
+def _get(url: str, *, timeout: int = TIMEOUT, delay: float = REQUEST_DELAY):
+    time.sleep(delay)
     resp = requests.get(url, headers={"User-Agent": USER_AGENT,
                                       "Accept": "application/json"}, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
+
+
+def board_allowed(entry: dict) -> bool:
+    """Whether this employer's ATS lets us read the board endpoint.
+
+    One robots.txt implementation in the repo (see the import at the top), one
+    lookup per ATS host per run — the parser is cached inside it.
+    """
+    ats = entry.get("ats")
+    if ats not in API_URLS:
+        return True   # an unknown ATS is a watchlist error, raised in fetch
+    return robots_allows(API_URLS[ats].format(slug=entry.get("slug", "example")))
 
 
 def _salary(job: dict) -> tuple[int, int] | None:
@@ -256,13 +327,30 @@ def _salary(job: dict) -> tuple[int, int] | None:
     return None
 
 
+def _lever_salary(job: dict) -> tuple[int, int] | None:
+    """A Lever posted annual base-salary band in USD, as (min, max).
+
+    Same rule as Ashby's: annual, USD, nothing converted. Lever spells the
+    interval `per-year-salary`.
+    """
+    band = job.get("salaryRange") or {}
+    if band.get("currency") != "USD" or band.get("interval") != "per-year-salary":
+        return None
+    try:
+        low, high = int(band.get("min")), int(band.get("max"))
+    except (TypeError, ValueError):
+        return None
+    return (low, high) if 0 < low <= high else None
+
+
 def fetch_postings(entry: dict) -> list[dict]:
     """One employer's open roles, normalised to {place, function, salary}."""
     ats, slug = entry["ats"], entry["slug"]
+    delay = ATS_DELAY.get(ats, REQUEST_DELAY)
     out: list[dict] = []
 
     if ats == "greenhouse":
-        for job in _get(API_URLS[ats].format(slug=slug)).get("jobs") or []:
+        for job in _get(API_URLS[ats].format(slug=slug), delay=delay).get("jobs") or []:
             location = ((job.get("location") or {}).get("name") or "")
             out.append({
                 "place": place_key(location),
@@ -270,8 +358,42 @@ def fetch_postings(entry: dict) -> list[dict]:
                 "salary": None,
             })
 
+    elif ats == "lever":
+        # Lever is the one API here that tells a missing board apart from an
+        # empty one: an unknown slug answers {"ok": false}, not [].
+        payload = _get(API_URLS[ats].format(slug=slug), delay=delay)
+        if isinstance(payload, dict):
+            raise BoardError(f"lever:{slug} is not a board: "
+                             f"{str(payload.get('error') or payload)[:80]}")
+        for job in payload or []:
+            categories = job.get("categories") or {}
+            locations = categories.get("allLocations") or [categories.get("location") or ""]
+            out.append({
+                "place": place_key(*locations, job.get("country") or ""),
+                "function": (vocab.normalize_function(categories.get("team", ""))
+                             or vocab.normalize_function(categories.get("department", ""))
+                             or function_for_title(job.get("text", ""))),
+                "salary": _lever_salary(job),
+            })
+
+    elif ats == "workable":
+        payload = _get(API_URLS[ats].format(slug=slug), delay=delay)
+        for job in (payload or {}).get("jobs") or []:
+            location = job.get("location") or {}
+            out.append({
+                "place": place_key(location.get("city", ""),
+                                   location.get("region", ""),
+                                   location.get("country", ""),
+                                   location.get("location_str", "")),
+                "function": (vocab.normalize_function(job.get("department", ""))
+                             or function_for_title(job.get("title", ""))),
+                # Workable's public widget publishes no pay band at all, so
+                # there is nothing to read rather than something to guess.
+                "salary": None,
+            })
+
     elif ats == "ashby":
-        for job in _get(API_URLS[ats].format(slug=slug)).get("jobs") or []:
+        for job in _get(API_URLS[ats].format(slug=slug), delay=delay).get("jobs") or []:
             if job.get("isListed") is False:
                 continue
             postal = ((job.get("address") or {}).get("postalAddress") or {})
@@ -289,7 +411,7 @@ def fetch_postings(entry: dict) -> list[dict]:
         for page in range(SR_MAX_PAGES):
             url = (f"{API_URLS[ats].format(slug=slug)}"
                    f"?limit={SR_PAGE_SIZE}&offset={page * SR_PAGE_SIZE}")
-            payload = _get(url)
+            payload = _get(url, delay=delay)
             content = payload.get("content") or []
             for job in content:
                 location = job.get("location") or {}
@@ -395,6 +517,100 @@ def save_state(state: dict, path: Path | None = None) -> None:
     target = Path(path or STATE_PATH)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
+
+
+# --- Trajectory ------------------------------------------------------------
+#
+# The rule, written down so it can be argued with, and so the page can state it
+# rather than imply it. Given the recorded daily counts for one board:
+#
+#   unknown   fewer than MIN_OBSERVATIONS readings in the window, or the first
+#             and last of them less than MIN_SPAN_DAYS apart. This is the
+#             DEFAULT, and it is a real answer: two readings a day apart say
+#             nothing about an employer's hiring.
+#   rising    the latest count is above the earliest in the window by at least
+#             MIN_DELTA roles AND at least MIN_RELATIVE of it. Evidence of
+#             hiring: an employer does not advertise roles it does not intend
+#             to fill.
+#   falling   the same test downward. NOT evidence of cuts, and never rendered
+#             as any. A role leaves a board when it is filled, when it is
+#             withdrawn, when it is reposted under a new id, and when somebody
+#             tidies up a board that had gone stale. All four look identical
+#             from outside, which is exactly why this tracker will not name one.
+#   flat      moved by less than that. A board that is holding its level.
+#
+# Both a floor and a percentage, because either alone lies at one end of the
+# range: 5 roles is noise at Bosch and a third of a startup's board.
+TRAJECTORY_WINDOW_DAYS = 30
+TRAJECTORY_MIN_OBSERVATIONS = 4
+TRAJECTORY_MIN_SPAN_DAYS = 14
+TRAJECTORY_MIN_DELTA = 5
+TRAJECTORY_MIN_RELATIVE = 0.10
+
+FALLING_CAVEAT = ("A board that shrinks is not evidence of job cuts: roles "
+                  "leave a board when they are filled, withdrawn or reposted.")
+
+
+def trajectory(history: list[dict], *, today: str | None = None,
+               window_days: int = TRAJECTORY_WINDOW_DAYS) -> dict:
+    """Direction of a board's volume over the window, or 'unknown'.
+
+    Pure: same history in, same verdict out, no clock and no network unless
+    `today` is left to default. `basis` carries the numbers the verdict was
+    reached on, so nothing downstream has to restate the rule from memory.
+    """
+    end = today or datetime.now(timezone.utc).date().isoformat()
+    try:
+        cutoff = (datetime.strptime(end, "%Y-%m-%d")
+                  - timedelta(days=window_days)).date().isoformat()
+    except ValueError:
+        return {"direction": "unknown", "basis": "the window could not be read",
+                "window_days": window_days, "observations": 0}
+
+    points = sorted((h for h in history or []
+                     if h.get("date") and h["date"] >= cutoff and h["date"] <= end),
+                    key=lambda h: h["date"])
+    observations = len(points)
+    if observations < TRAJECTORY_MIN_OBSERVATIONS:
+        return {"direction": "unknown", "window_days": window_days,
+                "observations": observations,
+                "basis": (f"{observations} "
+                          f"{'reading' if observations == 1 else 'readings'} in "
+                          f"{window_days} days: too few to say anything (we "
+                          f"need {TRAJECTORY_MIN_OBSERVATIONS})")}
+
+    first, last = points[0], points[-1]
+    span = ((datetime.strptime(last["date"], "%Y-%m-%d")
+             - datetime.strptime(first["date"], "%Y-%m-%d")).days)
+    if span < TRAJECTORY_MIN_SPAN_DAYS:
+        return {"direction": "unknown", "window_days": window_days,
+                "observations": observations,
+                "basis": (f"{observations} readings spanning {span} days: too "
+                          f"short a period to call a direction (we need "
+                          f"{TRAJECTORY_MIN_SPAN_DAYS} days)")}
+
+    was, now = int(first.get("total") or 0), int(last.get("total") or 0)
+    delta = now - was
+    relative = abs(delta) / was if was > 0 else 0.0
+    material = abs(delta) >= TRAJECTORY_MIN_DELTA and relative >= TRAJECTORY_MIN_RELATIVE
+
+    if not material:
+        direction = "flat"
+        basis = (f"{now} open roles on {last['date']} against {was} on "
+                 f"{first['date']}: a move of {delta:+d} across {observations} "
+                 f"readings, below the {TRAJECTORY_MIN_DELTA}-role and "
+                 f"{TRAJECTORY_MIN_RELATIVE:.0%} floors this tracker calls a change")
+    else:
+        direction = "rising" if delta > 0 else "falling"
+        basis = (f"{now} open roles on {last['date']} against {was} on "
+                 f"{first['date']}: {delta:+d} ({relative:.0%}) across "
+                 f"{observations} readings over {span} days")
+        if direction == "falling":
+            basis += ". " + FALLING_CAVEAT
+
+    return {"direction": direction, "basis": basis, "window_days": window_days,
+            "observations": observations, "from": dict(first), "to": dict(last),
+            "delta": delta}
 
 
 def _material(delta: int, base_total: int) -> bool:
@@ -546,25 +762,51 @@ def collect(queries=None, *, dry_run: bool = False,
 
     out: list[dict] = []
     failures: list[str] = []
+    blocked: list[str] = []
+    read = 0
 
     for entry in boards:
         board_id = f"{entry['ats']}:{entry['slug']}"
         record = store["boards"].setdefault(board_id, {})
         record["company"] = entry.get("company") or entry["slug"]
+        # Written on every run so an old state file gains them without a
+        # migration. company_key is the join to a company profile page, and the
+        # url is the source that makes the claim: a series with neither is a
+        # number nobody can attribute or place.
+        record["ats"] = entry["ats"]
+        record["slug"] = entry["slug"]
+        record["company_key"] = vocab.company_key(record["company"])
+        record["url"] = BOARD_URLS[entry["ats"]].format(slug=entry["slug"])
+        record["source_name"] = SOURCE_NAMES[entry["ats"]]
+
+        if not board_allowed(entry):
+            # Their terms, not our outage. Deliberately outside `failures`: a
+            # robots-blocked ATS must never look like a broken scraper, and a
+            # broken scraper must never be excused as a robots block.
+            blocked.append(board_id)
+            record["status"] = "robots"
+            continue
+        record["status"] = "ok"
 
         try:
             postings = fetch_postings(entry)
-        except (requests.RequestException, ValueError) as exc:
+        except (requests.RequestException, ValueError, BoardError) as exc:
+            # BoardError included on purpose: Lever answers a missing slug with
+            # an error object, and one dead slug is one dead board, not a dead
+            # run. The tolerance below still catches it if it spreads.
             failures.append(f"{board_id}: {type(exc).__name__} {exc}")
             continue
 
         current = snapshot(postings)
-        # All three APIs answer 200 with an empty list for a slug that does not
-        # exist, so an employer that HAD roles and now has none is a renamed
-        # slug far more often than an employer that stopped hiring entirely.
+        # Greenhouse, Ashby, Workable and SmartRecruiters all answer 200 with an
+        # empty list for a slug that does not exist, so an employer that HAD
+        # roles and now has none is a renamed slug far more often than an
+        # employer that stopped hiring entirely. (Lever is the exception and is
+        # caught above, with its own error.)
         if current["total"] == 0:
             failures.append(f"{board_id}: returned zero postings")
             continue
+        read += 1
 
         previous = record.get("last")
         baseline = record.get("baseline")
@@ -589,18 +831,34 @@ def collect(queries=None, *, dry_run: bool = False,
         else:
             history[-1] = {"date": day, "total": current["total"]}
         del history[:-HISTORY_LIMIT]
+        # Recomputed from the series every run rather than stored once, so a
+        # rule change reaches every board on the next run and never leaves two
+        # generations of verdict in one file.
+        record["trajectory"] = trajectory(history, today=day)
 
-    print(f"[{COLLECTOR}] {len(boards)} boards, {len(failures)} failed, "
+    LAST_RUN.update(boards=len(boards), read=read, robots_blocked=len(blocked),
+                    failed=len(failures), movements=len(out))
+
+    print(f"[{COLLECTOR}] {len(boards)} boards, {read} read, "
+          f"{len(blocked)} robots-blocked, {len(failures)} failed, "
           f"{len(out)} movements")
+    for board_id in blocked:
+        print(f"  ROBOTS        {board_id}: the ATS disallows this endpoint, "
+              f"so it was not requested")
     for failure in failures:
         print(f"  BOARD FAILED  {failure}")
 
     # FAIL LOUD. A handful of employers closing a board is normal; a third of
     # the watchlist failing at once is an API change, a blocked agent or no
     # network, and none of those may look like a quiet hiring day.
-    if boards and len(failures) / len(boards) > MAX_FAILURE_RATE:
+    #
+    # Robots-blocked boards leave the denominator: they were never attempted,
+    # so counting them would either mask a real breakage (as successes) or
+    # invent one (as failures).
+    attempted = len(boards) - len(blocked)
+    if attempted and len(failures) / attempted > MAX_FAILURE_RATE:
         raise BoardError(
-            f"{len(failures)} of {len(boards)} boards failed, which is past "
+            f"{len(failures)} of {attempted} boards failed, which is past "
             f"the {MAX_FAILURE_RATE:.0%} tolerance. This is a breakage, not a "
             f"quiet day. First: {failures[0] if failures else 'none'}")
 

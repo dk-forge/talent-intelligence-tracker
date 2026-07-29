@@ -36,16 +36,24 @@ class _Boards(unittest.TestCase):
     payloads = {
         "greenhouse:stripe": "ats_greenhouse_stripe.json",
         "ashby:ramp": "ats_ashby_ramp.json",
+        "lever:matchgroup": "ats_lever_matchgroup.json",
         "smartrecruiters:Wise": "ats_smartrecruiters_wise.json",
     }
     entries = [
         {"ats": "greenhouse", "slug": "stripe", "company": "Stripe"},
         {"ats": "ashby", "slug": "ramp", "company": "Ramp"},
+        {"ats": "lever", "slug": "matchgroup", "company": "Match Group"},
         {"ats": "smartrecruiters", "slug": "Wise", "company": "Wise"},
     ]
 
     def setUp(self):
         self._get = ats_boards._get
+        # The robots gate is stubbed for the same reason the fetch is: these
+        # tests are offline, and a live robots.txt read would make them depend
+        # on four third-party hosts being reachable. The gate has its own tests
+        # below, against a stubbed robots.txt rather than a stubbed gate.
+        self._allowed = ats_boards.board_allowed
+        ats_boards.board_allowed = lambda entry: True
 
         def fake_get(url, **kwargs):
             for key, name in self.payloads.items():
@@ -58,9 +66,16 @@ class _Boards(unittest.TestCase):
 
     def tearDown(self):
         ats_boards._get = self._get
+        ats_boards.board_allowed = self._allowed
 
     def postings(self, entry):
         return ats_boards.fetch_postings(entry)
+
+    def entry(self, ats):
+        """By ATS, never by position: the list grows as boards are added, and a
+        test pinned to entries[2] silently starts asserting about a different
+        employer the day one is inserted above it."""
+        return next(e for e in self.entries if e["ats"] == ats)
 
 
 class Parsing(_Boards):
@@ -69,7 +84,7 @@ class Parsing(_Boards):
             self.assertTrue(self.postings(entry), entry["slug"])
 
     def test_locations_resolve_to_the_curated_vocabulary(self):
-        places = {p["place"] for p in self.postings(self.entries[0])}
+        places = {p["place"] for p in self.postings(self.entry("greenhouse"))}
         self.assertIn("city:San Francisco", places)
         self.assertIn("city:Singapore", places)
         # "Japan" is a country and no curated city, which is a country key and
@@ -77,7 +92,7 @@ class Parsing(_Boards):
         self.assertIn("country:JP", places)
 
     def test_a_worldwide_board_places_rows_outside_the_united_states(self):
-        places = {p["place"] for p in self.postings(self.entries[2])}
+        places = {p["place"] for p in self.postings(self.entry("smartrecruiters"))}
         self.assertIn("city:London", places)
         self.assertIn("city:Tokyo", places)
         self.assertTrue(any(p.startswith("country:") for p in places))
@@ -235,7 +250,7 @@ class ItIsNotAJobBoard(_Boards):
 
 class PostedPay(_Boards):
     def test_ashby_pay_ranges_become_a_pay_row_with_a_place(self):
-        items = ats_boards.collect(watchlist=[self.entries[1]],
+        items = ats_boards.collect(watchlist=[self.entry("ashby")],
                                    state={"version": 1, "boards": {}},
                                    today="2026-07-01", persist=False)
         pay = [i for i in items if i["kind"] == "pay"]
@@ -260,9 +275,9 @@ class PostedPay(_Boards):
 
     def test_an_unmoved_band_is_not_republished(self):
         state = {"version": 1, "boards": {}}
-        ats_boards.collect(watchlist=[self.entries[1]], state=state,
+        ats_boards.collect(watchlist=[self.entry("ashby")], state=state,
                            today="2026-07-01", persist=False)
-        again = ats_boards.collect(watchlist=[self.entries[1]], state=state,
+        again = ats_boards.collect(watchlist=[self.entry("ashby")], state=state,
                                    today="2026-07-02", persist=False)
         self.assertEqual([i for i in again if i["kind"] == "pay"], [])
 
@@ -314,6 +329,235 @@ class Watchlist(unittest.TestCase):
         for entry in ats_boards.load_watchlist():
             url = ats_boards.BOARD_URLS[entry["ats"]].format(slug=entry["slug"])
             self.assertTrue(urlparse(url).path.strip("/"), url)
+
+    def test_no_board_url_is_an_aggregator_validate_would_reject(self):
+        """LinkedIn, Indeed and the rest are blocked in validate.py, and their
+        terms forbid this anyway. A watchlist entry pointing at one would be
+        rejected row by row rather than caught here, which is a slow way to
+        find out."""
+        for entry in ats_boards.load_watchlist():
+            url = ats_boards.BOARD_URLS[entry["ats"]].format(slug=entry["slug"])
+            host = urlparse(url).netloc.lower()
+            self.assertNotIn(host, validate._JOB_BOARD_HOSTS, url)
+            self.assertIsNone(validate._JOB_POSTING_PATH.search(urlparse(url).path), url)
+
+    def test_a_withdrawn_board_is_recorded_with_its_reason_and_never_read(self):
+        """SmartRecruiters is not deleted, it is withdrawn: the file says which
+        boards we could read and choose not to, and why. load_watchlist must
+        never hand one of them to the fetcher."""
+        payload = json.loads(
+            (Path(ats_boards.WATCHLIST_PATH)).read_text())
+        withdrawn = payload.get("withdrawn") or []
+        self.assertTrue(withdrawn)
+        for entry in withdrawn:
+            self.assertTrue(entry.get("reason"), entry)
+        live = {f"{b['ats']}:{b['slug']}" for b in ats_boards.load_watchlist()}
+        for entry in withdrawn:
+            self.assertNotIn(f"{entry['ats']}:{entry['slug']}", live)
+
+
+class RobotsIsTheGate(_Boards):
+    """A publisher's terms decide whether we may count their boards at all.
+
+    The gate is the press collector's `robots_allows`, imported rather than
+    reimplemented, so a fix there covers both sources and neither can drift.
+    """
+
+    def test_the_gate_asks_about_the_endpoint_we_actually_fetch(self):
+        asked = []
+        real = ats_boards.robots_allows
+        ats_boards.robots_allows = lambda url, **kw: asked.append(url) or True
+        ats_boards.board_allowed = self._allowed   # the real gate, stubbed robots
+        try:
+            ats_boards.board_allowed({"ats": "greenhouse", "slug": "stripe"})
+        finally:
+            ats_boards.robots_allows = real
+            ats_boards.board_allowed = lambda entry: True
+        self.assertEqual(len(asked), 1)
+        self.assertIn("boards-api.greenhouse.io", asked[0])
+        self.assertIn("stripe", asked[0])
+
+    def test_a_disallowed_board_is_never_requested(self):
+        """Not fetched-then-discarded. The request does not happen."""
+        def explode(url, **kwargs):
+            raise AssertionError(f"a robots-blocked board was fetched: {url}")
+
+        ats_boards.board_allowed = lambda entry: entry["ats"] != "smartrecruiters"
+        ats_boards._get = lambda url, **kw: (
+            explode(url) if "smartrecruiters" in url else _fixture(
+                self.payloads["greenhouse:stripe"]))
+        items = ats_boards.collect(watchlist=[self.entry("smartrecruiters"),
+                                              self.entry("greenhouse")],
+                                   state={"version": 1, "boards": {}},
+                                   today="2026-07-01", persist=False)
+        self.assertEqual(items, [])
+        self.assertEqual(ats_boards.LAST_RUN["robots_blocked"], 1)
+        self.assertEqual(ats_boards.LAST_RUN["read"], 1)
+
+    def test_a_blocked_board_is_not_counted_as_a_breakage(self):
+        """Their terms are a decision, not an outage. A watchlist that is mostly
+        blocked must not raise, and one blocked board must not excuse the rest
+        failing either."""
+        ats_boards.board_allowed = lambda entry: entry["ats"] == "greenhouse"
+        ats_boards.collect(watchlist=self.entries,
+                           state={"version": 1, "boards": {}},
+                           today="2026-07-01", persist=False)
+        self.assertEqual(ats_boards.LAST_RUN["robots_blocked"], 3)
+        self.assertEqual(ats_boards.LAST_RUN["failed"], 0)
+
+        # Same run, but the one board we were allowed to read is broken.
+        ats_boards._get = lambda url, **kw: {"jobs": [], "content": []}
+        with self.assertRaises(ats_boards.BoardError):
+            ats_boards.collect(watchlist=self.entries,
+                               state={"version": 1, "boards": {}},
+                               today="2026-07-01", persist=False)
+
+
+class LeverIsNotLikeTheOthers(_Boards):
+    def test_a_lever_board_parses_places_functions_and_a_posted_band(self):
+        postings = self.postings(self.entry("lever"))
+        self.assertTrue(postings)
+        places = {p["place"] for p in postings}
+        self.assertIn("city:New York", places)
+        self.assertIn("city:Tokyo", places)
+        self.assertTrue(any(p["salary"] for p in postings))
+        self.assertTrue(any(p["function"] for p in postings))
+
+    def test_only_annual_usd_lever_bands_are_read(self):
+        self.assertEqual(ats_boards._lever_salary({"salaryRange": {
+            "interval": "per-year-salary", "currency": "USD",
+            "min": 150000, "max": 180000}}), (150000, 180000))
+        self.assertIsNone(ats_boards._lever_salary({"salaryRange": {
+            "interval": "per-year-salary", "currency": "GBP",
+            "min": 90000, "max": 110000}}))
+        self.assertIsNone(ats_boards._lever_salary({"salaryRange": {
+            "interval": "per-hour-wage", "currency": "USD",
+            "min": 40, "max": 60}}))
+
+    def test_a_missing_lever_slug_kills_one_board_and_not_the_run(self):
+        """Lever is the only one of these APIs that tells a missing board from
+        an empty one, and it says so with an error object rather than a 404."""
+        def fake_get(url, **kwargs):
+            if "lever" in url:
+                return {"ok": False, "error": "Document not found"}
+            for key, name in self.payloads.items():
+                _ats, _, slug = key.partition(":")
+                if f"/{slug}" in url or f"={slug}" in url:
+                    return _fixture(name)
+            raise AssertionError(url)
+
+        ats_boards._get = fake_get
+        ats_boards.collect(watchlist=self.entries,
+                           state={"version": 1, "boards": {}},
+                           today="2026-07-01", persist=False)
+        self.assertEqual(ats_boards.LAST_RUN["failed"], 1)
+        self.assertEqual(ats_boards.LAST_RUN["read"], len(self.entries) - 1)
+
+
+class TheDirectionIsARule(unittest.TestCase):
+    """Volume over time is only worth publishing if the direction attached to it
+    can be argued with. Each of these is the rule, not an example of it."""
+
+    def _series(self, *pairs):
+        return [{"date": d, "total": t} for d, t in pairs]
+
+    def test_too_few_readings_says_so_rather_than_guessing(self):
+        verdict = ats_boards.trajectory(
+            self._series(("2026-07-01", 40), ("2026-07-02", 61)),
+            today="2026-07-02")
+        self.assertEqual(verdict["direction"], "unknown")
+        self.assertIn("too few", verdict["basis"])
+
+    def test_a_short_span_of_many_readings_is_still_unknown(self):
+        verdict = ats_boards.trajectory(
+            self._series(("2026-07-01", 40), ("2026-07-02", 55),
+                         ("2026-07-03", 70), ("2026-07-04", 90)),
+            today="2026-07-04")
+        self.assertEqual(verdict["direction"], "unknown")
+
+    def test_a_sustained_rise_is_evidence_of_hiring(self):
+        verdict = ats_boards.trajectory(
+            self._series(("2026-07-01", 40), ("2026-07-08", 46),
+                         ("2026-07-15", 52), ("2026-07-25", 60)),
+            today="2026-07-25")
+        self.assertEqual(verdict["direction"], "rising")
+        self.assertIn("+20", verdict["basis"])
+
+    def test_a_small_move_on_a_big_board_is_flat(self):
+        verdict = ats_boards.trajectory(
+            self._series(("2026-07-01", 800), ("2026-07-08", 803),
+                         ("2026-07-15", 806), ("2026-07-25", 807)),
+            today="2026-07-25")
+        self.assertEqual(verdict["direction"], "flat")
+
+    def test_a_fall_is_reported_and_explicitly_not_called_a_cut(self):
+        verdict = ats_boards.trajectory(
+            self._series(("2026-07-01", 60), ("2026-07-08", 52),
+                         ("2026-07-15", 46), ("2026-07-25", 40)),
+            today="2026-07-25")
+        self.assertEqual(verdict["direction"], "falling")
+        self.assertIn("not evidence of job cuts", verdict["basis"])
+        # And it never becomes a signal: displacement is the sibling tracker's
+        # word and this collector may not reach for it.
+        self.assertNotIn(verdict["direction"], ("displacement", "cuts"))
+
+    def test_the_only_four_answers_are_the_ones_the_page_can_render(self):
+        allowed = {"rising", "falling", "flat", "unknown"}
+        for series in ([], self._series(("2026-07-01", 1)),
+                       self._series(("2026-07-01", 10), ("2026-07-20", 90),
+                                    ("2026-07-21", 91), ("2026-07-22", 92))):
+            self.assertIn(ats_boards.trajectory(series, today="2026-07-25")["direction"],
+                          allowed)
+
+
+class TheSeriesReachesAProfilePage(_Boards):
+    """The archive is only useful if a profile page can draw it without going
+    back to Greenhouse or Lever, which publish no history at all."""
+
+    def _state_after_two_days(self):
+        state = {"version": 1, "boards": {}}
+        for day in ("2026-07-01", "2026-07-20"):
+            ats_boards.collect(watchlist=self.entries, state=state,
+                               today=day, persist=False)
+        return state
+
+    def test_every_board_records_the_key_and_the_url_that_back_it(self):
+        state = self._state_after_two_days()
+        for board_id, record in state["boards"].items():
+            self.assertTrue(record["company_key"], board_id)
+            self.assertTrue(record["url"].startswith("https://"), board_id)
+            self.assertTrue(record["source_name"], board_id)
+
+    def test_the_export_is_keyed_by_company_and_carries_its_source(self):
+        import build_board_series
+
+        payload = build_board_series.build(self._state_after_two_days(),
+                                           today="2026-07-20")
+        self.assertTrue(payload["boards"])
+        for key, boards in payload["boards"].items():
+            self.assertEqual(key, key.strip())
+            for board in boards:
+                self.assertTrue(board["source_url"].startswith("https://"))
+                self.assertEqual(board["series"][0][0], "2026-07-01")
+                self.assertEqual(board["latest"]["date"], "2026-07-20")
+                self.assertIn(board["trajectory"]["direction"],
+                              {"rising", "falling", "flat", "unknown"})
+        # The rule travels with the numbers, so the page never has to restate
+        # it from memory.
+        self.assertIn("we cannot tell", payload["rule"])
+
+    def test_the_export_drops_nothing_the_endpoint_would_reject(self):
+        """Mirrors the validation in includes/board_series.php: a board with no
+        source URL, no readings or an unknown direction is refused there."""
+        import build_board_series
+
+        payload = build_board_series.build(self._state_after_two_days(),
+                                           today="2026-07-20")
+        self.assertTrue(payload["as_of"] and payload["rule"])
+        for boards in payload["boards"].values():
+            for board in boards:
+                self.assertTrue(board["source_url"])
+                self.assertTrue(board["series"])
 
 
 if __name__ == "__main__":
