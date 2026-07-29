@@ -158,33 +158,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T17:12:44Z",
-      "history": [
-        {
-          "at": "2026-07-29T17:05:58Z",
-          "detail": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T17:12:44Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T170558Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
-      "requested_at": "2026-07-29T17:05:58Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
@@ -370,6 +343,44 @@
       "run_id": "30473757174",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T17:12:44Z",
+      "history": [
+        {
+          "at": "2026-07-29T17:05:58Z",
+          "detail": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T17:12:44Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T17:44:46Z",
+          "detail": "run 30474293718",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T17:44:46Z",
+          "detail": "run 30474293718",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T170558Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-29T17:44:46Z",
+      "priority": 0,
+      "reason": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
+      "requested_at": "2026-07-29T17:05:58Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30474293718",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
