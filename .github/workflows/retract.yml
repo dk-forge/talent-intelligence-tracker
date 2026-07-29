@@ -30,6 +30,11 @@ concurrency:
   # reset-to-origin then copy-our-file-back, so whichever pushed second silently
   # destroyed the other's rows (found 2026-07-28).
   group: talent-collect
+  # Stated rather than left to the platform default. This workflow WITHDRAWS
+  # published rows, so a run killed halfway is the worst outcome of any writer
+  # here, and a data-safety property should not rest on a default that a future
+  # platform change could flip underneath us.
+  cancel-in-progress: false
 
 jobs:
   retract:
