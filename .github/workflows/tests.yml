@@ -33,6 +33,13 @@ jobs:
           php -v
           find wordpress-plugin -name '*.php' -print0 | xargs -0 -n1 php -l
 
+      # Linting proves a file parses, not that it renders. The recall page's
+      # trend chart only draws once there are two measurements, so on the day it
+      # shipped there was no way to see it on the live page without publishing a
+      # fabricated second point. This renders it with synthetic points instead.
+      - name: Render the recall page's chart
+        run: php tests/php/render_recall.php
+
       - name: Run tests
         run: python -m pytest -q
 
