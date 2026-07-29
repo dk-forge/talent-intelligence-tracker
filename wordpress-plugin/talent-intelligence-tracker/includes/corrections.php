@@ -34,70 +34,121 @@ function tit_corrections_url() {
 }
 
 /**
- * Newest first. Each entry: date, how many rows, which fields, and what was
+ * Newest first. Each entry: date, how many rows, which fields, and what is
  * wrong in words a reader can check against the page.
+ *
+ * `status` is 'scheduled' or 'applied', and it is the switch this page turns
+ * on. A defect we have found but not yet fixed is published as soon as it is
+ * understood, because the reader looking at an inflated headline number today
+ * is better served by knowing it is wrong than by our waiting for a tidy
+ * past-tense sentence.
+ *
+ * WHEN THE CORRECTION RUNS, the flip is deliberately small:
+ *   1. 'status'      => 'applied'
+ *   2. 'projection'  => 'measured', once the figures are the observed ones
+ *   3. the three sentences marked TENSE below
+ * Everything else — the badge, the standing notice, the stat labels, the
+ * before/after heading — is derived from `status` and changes on its own.
  */
 function tit_corrections_entries() {
     return array(
         array(
             'date'   => '2026-07-28',
-            'title'  => 'Form D rows said "Hiring up" on filings that disclose no hiring',
+            'status' => 'scheduled',
+            'title'  => 'Form D records say "Hiring up" on filings that disclose no hiring',
             'rows'   => 3005,
             'fields' => array('signal_direction', 'talent_readthrough'),
             'body'   => array(
-                'Every record drawn from SEC Form D filings carried the badge
+                // TENSE: "carries" -> "carried", "says" -> "said".
+                'Every record drawn from SEC Form D filings carries the badge
                  "Hiring up". A Form D reports money raised in a private
                  placement. It states an amount and it states nothing at all
-                 about headcount, so the badge was our claim and not the
+                 about headcount, so the badge is our claim and not the
                  filing\'s.',
-                'Those rows also carried a read-through asserting that "capital
+                'Those records also carry a read-through asserting that "capital
                  raised is spent on headcount within the following two to six
-                 quarters". That sentence appears in no filing. It was a
+                 quarters". That sentence appears in no filing. It is a
                  generalisation printed identically on thousands of records,
                  presented as though it had been read off the document.',
-                'The badge is now "Headcount not stated", and each read-through
-                 says only what its filing records: who raised how much, when,
-                 and the address on the filing, followed by the gap named
-                 plainly. For example: "The filing records the money only; it
-                 names no roles and no hiring plan."',
+                // TENSE: "are scheduled to be corrected" -> "have been corrected".
+                '3,005 records are scheduled to be corrected. The badge becomes
+                 "Headcount not stated", and each read-through will say only what
+                 its filing records: who raised how much, when, and the address on
+                 the filing, followed by the gap named plainly. For example: "The
+                 filing records the money only; it names no roles and no hiring
+                 plan." Until that runs, the badge and the sentence you see on a
+                 Form D record are the wrong ones described here.',
             ),
         ),
         array(
             'date'   => '2026-07-28',
-            'title'  => 'Entities that employ nobody were listed as employers',
+            'status' => 'scheduled',
+            'title'  => 'Entities that employ nobody are listed as employers, and they are inflating our money totals',
             'rows'   => 998,
-            'fields' => array('withdrawn'),
+            'fields' => array('withdrawal pending'),
             'body'   => array(
+                '998 published records are not companies raising money to hire.
+                 They are single-asset property vehicles, insurance separate
+                 accounts and synthetic guaranteed investment contracts, all
+                 published as startup funding.',
                 'A large share of Form D filings are made by entities that exist
                  to hold an asset rather than to employ anyone: a limited company
                  formed to buy one building, a numbered series vehicle, a
-                 non-traded credit fund. They were being published as employers
-                 raising money, which is useless to a recruiter or a job seeker
-                 and, because each raise is large, badly distorted every total on
-                 the page.',
-                'Insurance and annuity products were the same failure in a
-                 different form. A life insurer files a Form D for each variable
-                 life or annuity product it sells, and the "amount sold" is
-                 premium collected from policyholders, not capital the company
-                 raised. The largest single record on the tracker was one of
-                 these, at $7.4bn.',
-                'These records have been withdrawn. Nothing is deleted: a
-                 withdrawn record keeps its row and carries the reason it was
-                 withdrawn.',
-                'This is why the total money raised fell from roughly $200bn to
-                 roughly $115bn on this date. The drop is the correction working,
-                 not a loss of data. The old figure counted property vehicles and
-                 insurance premiums as company fundraising; the new one does not.',
+                 non-traded credit fund. Published as employers raising money they
+                 are useless to a recruiter or a job seeker, and because each
+                 raise is large they distort every money total on the tracker.',
+                'Insurance products are the same failure in a different form. A
+                 life insurer files a Form D for each variable life or annuity
+                 product it sells, and the "amount sold" is premium collected from
+                 policyholders, not capital the company raised. The largest single
+                 record on the tracker is one of these, at $7.4bn.',
+                // TENSE: "are scheduled for withdrawal" -> "have been withdrawn";
+                // drop the last two sentences, which describe the wait.
+                'These 998 records are scheduled for withdrawal. Nothing will be
+                 deleted: a withdrawn record keeps its row and carries the reason
+                 it was withdrawn. Until that runs, every figure on the dashboard
+                 still includes them, so the headline money total is currently
+                 overstated by roughly $86bn. The projection below is what the
+                 tracker will show afterwards.',
             ),
-            'note'   => 'Form D filings in the real-estate industry group are now
-                excluded outright, because the overwhelming majority of them are
-                single-asset vehicles. This does drop a small number of genuine
-                real-estate employers along with them, and the dataset offers no
-                field that separates the two. We think carrying billions in
-                vehicles that employ nobody is the worse of the two errors, but
-                it is a real cost and not a free one.',
+            'projection' => array(
+                array('Funding records', '4,024', '3,026'),
+                array('Money raised', '$199.7bn', '$114.1bn'),
+                array('New York', '$59.04bn', '$8.44bn'),
+                array('Real estate', '$13.16bn across 875 records', '$1.00bn across 1 record'),
+            ),
+            'notes' => array(
+                array(
+                    'A cost worth stating.',
+                    'Form D filings in the real-estate industry group are excluded
+                     outright, because the overwhelming majority of them are
+                     single-asset vehicles. This does drop a small number of
+                     genuine real-estate employers along with them, and the
+                     dataset offers no field that separates the two. We think
+                     carrying billions in vehicles that employ nobody is the worse
+                     of the two errors, but it is a real cost and not a free one.',
+                ),
+                array(
+                    'The fix was checked rather than assumed.',
+                    'A first pass at these exclusions left the four largest
+                     records on the tracker still wrong, because the rule was
+                     written from the spelled-out phrase "guaranteed investment
+                     contract" and the filings use the trade\'s abbreviations:
+                     "Synthetic GICs issued to insurance carriers of BOLI/COLI
+                     policies" at $4.21bn, "Synthetic GICs issued to IRC Section
+                     529 plans" at $3.23bn, "Allocated Units of Precious Metals"
+                     at $2.51bn, "AGL Institutional Life" at $0.59bn. Seven
+                     filings and $12.4bn, found by reading the money list after
+                     the fix instead of trusting it. They are included in the 998.',
+                ),
+            ),
         ),
     );
+}
+
+/** Entries whose correction has not run yet. */
+function tit_corrections_outstanding($entries) {
+    return array_values(array_filter($entries, fn($e) => ($e['status'] ?? '') === 'scheduled'));
 }
 
 function tit_corrections_template() {
@@ -113,6 +164,9 @@ function tit_corrections_render($entries) {
 
     $total = 0;
     foreach ($entries as $e) $total += (int) $e['rows'];
+    $pending = tit_corrections_outstanding($entries);
+    $pending_rows = 0;
+    foreach ($pending as $e) $pending_rows += (int) $e['rows'];
     ?>
     <div class="tit-wrap tit-corrections" id="tit-corrections">
       <nav class="tit-crumb">
@@ -139,6 +193,26 @@ function tit_corrections_render($entries) {
         silently deleted.
       </p>
 
+      <?php
+      // A defect is published as soon as it is understood, not once it is
+      // fixed. Anyone reading an inflated total right now is better served by
+      // knowing it is wrong than by our waiting for a tidy past-tense sentence
+      // — and a reader who checks a figure against this page and finds nothing
+      // has been misled by the silence.
+      if ($pending) : ?>
+        <div class="tit-callout tit-pending">
+          <strong>Some of these are not fixed yet.</strong>
+          <?php printf(
+              esc_html('%1$s published %2$s below %3$s known to be wrong and %4$s scheduled to be corrected or withdrawn. Until that runs, the figures on the tracker still include %5$s. Each entry says what is affected and what the numbers will be afterwards.'),
+              esc_html(number_format_i18n($pending_rows)),
+              $pending_rows === 1 ? 'record' : 'records',
+              $pending_rows === 1 ? 'is' : 'are',
+              $pending_rows === 1 ? 'is' : 'are',
+              $pending_rows === 1 ? 'it' : 'them'
+          ); ?>
+        </div>
+      <?php endif; ?>
+
       <div class="tit-stats">
         <div class="tit-stat">
           <span class="tit-n"><?php echo count($entries); ?></span>
@@ -148,6 +222,12 @@ function tit_corrections_render($entries) {
           <span class="tit-n"><?php echo esc_html(number_format_i18n($total)); ?></span>
           <span class="tit-l">records affected</span>
         </div>
+        <?php if ($pending) : ?>
+          <div class="tit-stat">
+            <span class="tit-n"><?php echo esc_html(number_format_i18n($pending_rows)); ?></span>
+            <span class="tit-l">still to be applied</span>
+          </div>
+        <?php endif; ?>
       </div>
 
       <?php foreach ($entries as $e) : ?>
@@ -167,18 +247,47 @@ function tit_corrections_render($entries) {
                 echo $i ? ', ' : '';
                 echo '<code>' . esc_html($f) . '</code>';
             }
+            $scheduled = ($e['status'] ?? '') === 'scheduled';
             ?>
+            <span aria-hidden="true">&middot;</span>
+            <span class="tit-conf <?php echo $scheduled ? 'tit-c-degraded' : 'tit-c-verified'; ?>"><?php
+              echo $scheduled ? 'not yet applied' : 'applied';
+            ?></span>
           </p>
           <h2><?php echo esc_html($e['title']); ?></h2>
           <?php foreach ($e['body'] as $para) : ?>
             <p><?php echo esc_html(preg_replace('/\s+/', ' ', trim($para))); ?></p>
           <?php endforeach; ?>
-          <?php if (!empty($e['note'])) : ?>
-            <div class="tit-callout">
-              <strong>A cost worth stating.</strong>
-              <?php echo esc_html(preg_replace('/\s+/', ' ', trim($e['note']))); ?>
-            </div>
+
+          <?php if (!empty($e['projection'])) : ?>
+            <?php // Labelled as a projection while it is one. When the run
+                  // lands, the same table is the measured result. ?>
+            <table class="tit-table tit-projection">
+              <caption><?php echo $scheduled
+                ? 'Projected effect, not yet applied'
+                : 'Measured effect'; ?></caption>
+              <thead><tr>
+                <th></th><th>Now</th>
+                <th><?php echo $scheduled ? 'After the correction' : 'After'; ?></th>
+              </tr></thead>
+              <tbody>
+              <?php foreach ($e['projection'] as $line) : ?>
+                <tr>
+                  <th scope="row"><?php echo esc_html($line[0]); ?></th>
+                  <td><?php echo esc_html($line[1]); ?></td>
+                  <td><?php echo esc_html($line[2]); ?></td>
+                </tr>
+              <?php endforeach; ?>
+              </tbody>
+            </table>
           <?php endif; ?>
+
+          <?php foreach (($e['notes'] ?? array()) as $note) : ?>
+            <div class="tit-callout">
+              <strong><?php echo esc_html($note[0]); ?></strong>
+              <?php echo esc_html(preg_replace('/\s+/', ' ', trim($note[1]))); ?>
+            </div>
+          <?php endforeach; ?>
         </div>
       <?php endforeach; ?>
 

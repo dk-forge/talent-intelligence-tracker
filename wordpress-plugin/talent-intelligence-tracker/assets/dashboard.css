@@ -198,6 +198,20 @@
   border:1px solid var(--tit-line); border-radius:4px; padding:1px 5px; }
 .tit-correction p { max-width:74ch; margin:0 0 12px; }
 .tit-correction .tit-callout { margin-top:16px; }
+/* An outstanding defect is not a neutral note, so it does not get the neutral
+   left border. The colour is always paired with the words "not yet applied"
+   and with the heading, so it never carries the meaning on its own. */
+.tit-callout.tit-pending { border-left-color:var(--tit-cutting); }
+/* The before/after table. Auto width: four short rows set across 1100px read
+   as a spreadsheet nobody asked for. */
+.tit-projection { width:auto; min-width:0; margin:6px 0 18px; font-size:14.5px; }
+.tit-projection caption { caption-side:top; text-align:left; padding:0 0 8px;
+  font-size:13px; letter-spacing:.02em; text-transform:uppercase;
+  color:var(--tit-mut); }
+.tit-projection thead th { font-size:13px; color:var(--tit-mut); font-weight:600; }
+.tit-projection th[scope="row"] { font-weight:600; color:var(--tit-fg);
+  text-align:left; white-space:nowrap; }
+.tit-projection td { font-variant-numeric:tabular-nums; }
 
 /* ======================================================================
    Visual layer. The palette is the validated colourblind-safe set (blue /

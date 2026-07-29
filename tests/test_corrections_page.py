@@ -68,13 +68,73 @@ def test_the_page_explains_why_it_exists_before_listing_failures():
     assert "nothing is ever silently deleted" in FLAT
 
 
+ENTRIES = CORRECTIONS[CORRECTIONS.index("function tit_corrections_entries"):]
+ENTRIES = ENTRIES[:ENTRIES.index("\nfunction tit_corrections_outstanding")]
+# Comments carry the future past-tense wording on purpose ("// TENSE: ..."), and
+# a reader never sees them. The tense rule is about published prose only.
+FLAT_ENTRIES = " ".join(
+    re.sub(r"//[^\n]*", "", ENTRIES).split())
+
+
 def test_every_entry_carries_a_date_a_count_and_the_fields_touched():
-    entries = CORRECTIONS[CORRECTIONS.index("function tit_corrections_entries"):]
-    entries = entries[:entries.index("\nfunction ")]
-    for key in ("'date'", "'title'", "'rows'", "'fields'", "'body'"):
-        assert entries.count(key) >= 2, f"{key} missing from an entry"
-    # Both first entries are dated the day the fix shipped.
-    assert entries.count("2026-07-28") == 2
+    for key in ("'date'", "'title'", "'rows'", "'fields'", "'body'", "'status'"):
+        assert ENTRIES.count(key) >= 2, f"{key} missing from an entry"
+    # Both entries are dated the day the defect was found.
+    assert ENTRIES.count("2026-07-28") == 2
+
+
+def test_an_unapplied_correction_is_never_written_in_the_past_tense():
+    """The one failure this page cannot have. It shipped for ~40 minutes saying
+    "The badge is now Headcount not stated" while the correction had not run —
+    exactly the plausible-but-false claim the tracker exists not to make. A
+    defect is disclosed before it is fixed. It is not backdated."""
+    if "'status' => 'scheduled'" not in ENTRIES:
+        return  # all applied, and then the past tense is the honest tense
+    for claim in ("The badge is now", "have been withdrawn", "records have been",
+                  "fell from roughly", "the new one does not"):
+        assert claim not in FLAT_ENTRIES, f"past tense on an unapplied correction: {claim!r}"
+
+
+def test_a_scheduled_entry_says_the_live_figures_still_include_it():
+    """Without this a reader takes the disclosure as already reflected in the
+    numbers, which is worse than not disclosing at all."""
+    assert "scheduled to be corrected" in FLAT
+    assert "scheduled for withdrawal" in FLAT
+    assert "still includes them" in FLAT
+    assert "currently overstated" in FLAT
+
+
+def test_the_projection_is_labelled_as_a_projection():
+    """A projection rendered as a measurement is a fabricated figure."""
+    assert "'projection'" in CORRECTIONS
+    assert "Projected effect, not yet applied" in CORRECTIONS
+    for figure in ("4,024", "3,026", "$199.7bn", "$114.1bn",
+                   "$59.04bn", "$8.44bn", "$13.16bn", "$1.00bn"):
+        assert figure in CORRECTIONS, figure
+
+
+def test_outstanding_work_is_flagged_at_the_top_of_the_page():
+    """Buried in entry two, a reader checking a headline number misses it."""
+    assert "tit_corrections_outstanding" in CORRECTIONS
+    assert "Some of these are not fixed yet" in FLAT
+    assert "still to be applied" in CORRECTIONS
+
+
+def test_flipping_an_entry_to_applied_is_a_small_edit():
+    """The badge, the notice, the extra stat and the table heading all derive
+    from one field, so landing the run is a status change plus prose rather
+    than a template rewrite."""
+    assert "$e['status']" in CORRECTIONS
+    assert "'scheduled'" in CORRECTIONS and "'applied'" in CORRECTIONS
+    # And the sentences that must change are marked where they sit.
+    assert CORRECTIONS.count("// TENSE:") >= 3
+
+
+def test_the_synthetic_gic_finding_is_visible():
+    """It shows the correction was reviewed rather than assumed complete, which
+    is the part of this that is worth a reader's trust."""
+    assert "BOLI/COLI" in FLAT and "$12.4bn" in FLAT
+    assert "reading the money list after the fix instead of trusting it" in FLAT
 
 
 def test_the_entries_name_what_was_wrong_in_words_not_in_jargon():
@@ -84,10 +144,10 @@ def test_the_entries_name_what_was_wrong_in_words_not_in_jargon():
     assert "premium collected from policyholders" in FLAT
 
 
-def test_the_money_drop_is_explained_rather_than_left_to_be_noticed():
-    """Someone who quoted the old figure deserves to know why it moved."""
-    assert "$200bn" in FLAT and "$115bn" in FLAT
-    assert "the correction working" in FLAT
+def test_the_money_distortion_is_quantified_rather_than_left_to_be_noticed():
+    """Someone quoting the headline number deserves to know it is wrong, and
+    by how much, without having to work it out from a row count."""
+    assert "overstated by roughly $86bn" in FLAT
 
 
 def test_the_real_estate_collateral_is_disclosed_in_both_places():
