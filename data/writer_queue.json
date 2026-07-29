@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T23:02:55Z",
+  "last_tick": "2026-07-29T23:21:08Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -169,6 +169,11 @@
           "at": "2026-07-29T23:02:55Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T23:21:08Z",
+          "detail": "run 30498232185",
+          "event": "bound"
         }
       ],
       "id": "20260729T230246Z-backfill-gdelt-2026",
@@ -181,7 +186,7 @@
       "reason": "2026 news backfill price sheet: fetch and free-filter only, zero model spend, owner requested 2026-07-30",
       "requested_at": "2026-07-29T23:02:46Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30498232185",
       "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
