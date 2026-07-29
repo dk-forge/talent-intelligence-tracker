@@ -152,6 +152,15 @@ NOT_A_CAPITAL_RAISE = re.compile(
     r"|insurance\s+(?:polic|contract|product)|life\s+insurance|separate\s+account"
     r"|funding\s+agreement|529\s+(?:program|plan)|health\s+savings"
     r"|guaranteed\s+(?:investment|interest)"
+    # The same products in the trade's abbreviations, which is how the biggest
+    # survivors of the first pass were worded: "Synthetic GICs issued to
+    # insurance carriers of BOLI/COLI policies" ($4.2bn), "AGL Institutional
+    # Life" ($0.6bn). Spelling out "guaranteed investment contract" caught
+    # neither, and both sat at the top of the money list afterwards.
+    r"|\bgics?\b|\bboli\b|\bcoli\b|institutional\s+life\b"
+    # A customer buying allocated bullion is not funding a payroll:
+    # "Allocated Units of Precious Metals" ($2.5bn).
+    r"|allocated\s+units?\b"
     # Employee benefit plans.
     r"|(?:share|stock|equity|unit)\s+incentive\s+plan|deferred\s+compensation"
     # Club memberships, never bare "membership".

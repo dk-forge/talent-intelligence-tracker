@@ -201,6 +201,16 @@ NOT_RAISES = [
     "Interests in a Share Incentive Plan and a Stock incentive Plan",
     "Participant interests in Issuers Deferred Compensation Program",
     "Non-Equity Golf Memberships",
+    # The second tail, found by looking at the money list AFTER the first pass:
+    # the same products written in the trade's abbreviations. Spelling out
+    # "guaranteed investment contract" caught none of these, and they were then
+    # the largest rows on the tracker.
+    "Synthetic GICs issued to insurance carriers of BOLI/COLI policies.",
+    "Synthetic GICs issued to IRC Section 529 plans",
+    "Synthetic GICs issued to IRC Section 403(b)(9) church plans.",
+    "AGL Institutional Life",
+    "Interests in Universal Life Policy (BOLI 3)",
+    "Allocated Units of Precious Metals",
 ]
 
 
