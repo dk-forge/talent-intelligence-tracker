@@ -127,13 +127,18 @@ LOCALES_PER_RUN = 5
 #
 # Worst case per month at the new defaults:
 #   gate  1500 x 2/day x 30 x $0.00003  ~$2.70  (was ~$0.30)
-#   full    60 x 2/day x 30 x $0.00128  ~$4.60  UNCHANGED - the readthrough cap
-#           is what actually bounds the money, and it is untouched here.
+#   full   200 x 2/day x 30 x $0.00128 ~$15.40  a per-run CEILING, not a
+#          forecast: real demand is gate survivors minus the deterministic
+#          closes, clustering set-asides and known rounds, and the run that
+#          motivated the raise wanted 155. The month's guarantee has never
+#          been this number - it is spend.py, which runs first and hard-stops,
+#          and the OpenRouter key's own cap behind it.
 #
-# So this buys SELECTION, not throughput: the gate now screens everything the
-# prefilter passed and the same 60 best get read, instead of 60 out of an
-# arbitrary first-150. Raising READTHROUGH_CAP is the separate, genuinely
-# expensive decision and is the owner's to make.
+# So this buys SELECTION, not throughput: the gate screens everything the
+# prefilter passed and only what it keeps gets read. Raising READTHROUGH_CAP
+# was the separate, genuinely expensive decision, and the owner made it on
+# 2026-07-30 (60 -> 200, see classify.py) so that every qualified candidate
+# is read rather than queueing behind a cap sized for the single-stage era.
 # The OpenRouter key's own limit still binds before any of this.
 DEFAULT_CANDIDATE_CAP = 1500
 

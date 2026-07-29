@@ -369,6 +369,19 @@ def test_run_collect_prechecks_before_the_model():
         "the free verdicts must land before the money is spent"
 
 
+def test_the_cost_knobs_are_env_configurable_with_the_agreed_defaults():
+    """The three model/cap decisions, pinned where they were made. The gate
+    default is the A/B winner; the read cap default is the owner's 2026-07-30
+    authorization; and the read-through model is deliberately NOT switched -
+    that change is gated behind ab_models.py --readthrough."""
+    import pipeline.classify as classify_module
+    src = inspect.getsource(classify_module)
+    assert 'os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")' in src
+    assert 'os.environ.get("TIT_READTHROUGH_CAP", "200")' in src
+    assert 'os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")' in src, \
+        "the read-through model must stay on the incumbent until its own A/B runs"
+
+
 def test_every_run_measures_reads_bought_vs_rows_stored():
     """The waste ratio the last real run made necessary: 60 reads bought, 34
     rows stored, and nothing printed the gap. The counter lives in

@@ -19,12 +19,20 @@ MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
 
 # Two-stage classification. The gate model answers ONE question (is this a
 # talent signal at a named employer?) in one word, at roughly 1/40th the cost
-# of a full read-through; only survivors reach MODEL for the full schema. The
-# A/B on file (docs) tested exactly this split: the cheap model matched or
-# corrected the incumbent on the KEEP/DROP decision (every disagreement was the
-# incumbent wrongly rejecting a real funding signal) while the read-through
-# stayed on the incumbent, whose prose quality is the product. Set
-# TIT_GATE_MODEL=off to run single-stage.
+# of a full read-through; only survivors reach MODEL for the full schema.
+#
+# Why gemini-2.5-flash-lite is the default: the repo's own A/B
+# (docs/HANDOVER.md, "Model switch — measured 2026-07-28", reproducible via
+# ab_models.py) priced it at about HALF the incumbent's gate cost per item,
+# and every KEEP/DROP disagreement went the same way — the incumbent said
+# reject, the challenger said SIGNAL, and the headlines were real funding
+# rounds ("Enigma Raises $71M in Seed Funding"). The challenger was not
+# disagreeing with the incumbent, it was CORRECTING it, which is why the
+# sibling's "reject below 90% agreement" rule would have picked the wrong
+# model here. The read-through stays on MODEL (deepseek/deepseek-chat): its
+# prose is the product, and switching IT is gated behind a quality A/B
+# (ab_models.py --readthrough) that has not been run. Set TIT_GATE_MODEL=off
+# to run single-stage.
 GATE_MODEL = os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")
 
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -69,7 +77,18 @@ FULL_READ_CHARS = 4000
 # looking into a budget-sized bill. Overflow raises Throttled, so run_collect
 # defers the candidate un-seen and the next run picks it up: a capped day
 # spreads over runs instead of being silently dropped.
-READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "60") or "60")
+#
+# RAISED 60 -> 200, authorized by the owner on 2026-07-30, so that every
+# candidate the gate keeps can actually be read instead of queueing behind a
+# ceiling sized for the single-stage era: the last real run bought all 60 of
+# its reads and still budget-deferred 95 gate survivors to the next run. At
+# the measured ~$0.00128 per read this bounds ONE RUN at ~$0.26; it was never
+# the monthly guarantee and still is not. The enforced ceiling remains
+# spend.py, which runs first on every collect job and hard-stops at 90% of
+# the monthly allowance, backstopped by the hard cap on the OpenRouter key
+# itself. The deterministic closers, story clustering and pre-read known-round
+# matching are what keep real demand under this number.
+READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "200") or "200")
 
 # Spec 4 rule 1: a narrow classification does not need a 1,400-token prompt.
 MINI_SYSTEM = (

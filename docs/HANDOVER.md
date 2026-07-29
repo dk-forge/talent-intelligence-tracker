@@ -196,13 +196,20 @@ still `reported`, `notes` carries the evidence marker. Measured on two real
 sweeps: ~25 closes per ~1,000 survivors, 31/31 correct on a full hand-check.
 `run_collect.cluster_stories` reads ONE representative per (employer, amount)
 cluster, and `dedupe.funding_event_duplicate` skips already-stored rounds
-before any model call. **READTHROUGH_CAP stays 60 — raising it is the owner's
-decision** after seeing cost-per-stored-row. Prompt caching: request shape is
+before any model call. **READTHROUGH_CAP raised 60 → 200 on 2026-07-30, by
+the owner's explicit authorization** — the last real run bought all 60 reads
+and still deferred 95 gate survivors, so the old cap was the coverage
+constraint again. 200 is a per-run ceiling (~$0.26 of reads), not the monthly
+guarantee: that remains spend.py's hard stop plus the OpenRouter key's own
+cap. Since 2026-07-30 the free verdicts also fire BEFORE the read
+(`validate.precheck`), leadership appointments close deterministically
+alongside funding, and every run prints "reads bought vs rows stored" so the
+waste ratio (60 bought / 34 stored on the last real run) is measured, not
+audited after the fact. Prompt caching: request shape is
 already cache-optimal and usage accounting now prints per run, but the
 providers serving `deepseek/deepseek-chat` today expose no cache pricing, so
 no saving is claimed; the planned v3.1 switch would earn ~0.5x on cached
-input. Worst-case LLM spend at the new defaults ≈ $6.5/month. Full detail in
-TECHLOG "the cost levers".
+input. Full detail in TECHLOG "the cost levers" and its 2026-07-30 sequel.
 
 ### Open, in priority order
 
@@ -927,6 +934,12 @@ collection. What is actually left:
    left and burning it on benchmarking would stop collection. Run that first,
    then switch. Switching halves ongoing spend, so it is worth doing early once
    the key limit is raised.
+
+   **Status 2026-07-30: the GATE half is applied.** `classify.GATE_MODEL`
+   defaults to `google/gemini-2.5-flash-lite` (overridable via
+   `TIT_GATE_MODEL`), citing this A/B in its comment. The read-through stays
+   on `deepseek/deepseek-chat`, gated behind the quality A/B above — that
+   half of this item is what remains open.
 7. **More languages for Google News.** Adding a language is what adds countries:
    a phrase set in `GOOGLE_NEWS_VOCAB`, the matching terms in
    `prefilter._EMPLOYMENT_TERMS_INTL`, then its locales in

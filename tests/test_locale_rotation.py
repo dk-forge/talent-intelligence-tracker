@@ -116,7 +116,14 @@ def test_the_run_caps_itself_without_being_told_to():
     # run_collect.py describing the superseded single-stage era. On the live
     # page it showed as 97% of rows being US or GB, with Israel on 15.
     assert 10 <= DEFAULT_CANDIDATE_CAP <= 2000
-    assert 10 <= READTHROUGH_CAP <= 100
+    # Read-through bound raised 100 -> 200 on 2026-07-30, with the owner's
+    # explicit authorization, so every gate survivor gets read (the last real
+    # run bought its 60 and still deferred 95). Pinned AT the new default on
+    # purpose: one run at the ceiling is ~$0.26 of reads, and any further
+    # raise should trip this assertion and be argued for, exactly as this one
+    # was. The monthly guarantee stays spend.py's hard stop plus the
+    # OpenRouter key's own cap - a per-run ceiling was never it.
+    assert 10 <= READTHROUGH_CAP <= 200
     # The gate exists precisely so the run can look at more than it classifies;
     # if the read-through ceiling ever exceeds the candidate cap, the gate is
     # dead code and every candidate is billed at the full rate again.
