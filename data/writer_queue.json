@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:51:00Z",
+  "last_tick": "2026-07-29T18:51:54Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,40 +158,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:51:00Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:49:59Z",
-          "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T184959Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody.",
-        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
-      },
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
-      "requested_at": "2026-07-29T18:49:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T18:51:54Z",
       "history": [
         {
           "at": "2026-07-29T18:50:46Z",
           "detail": "guardrail finding rejected on the filing: 5a104e9ca79f",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:51:54Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T185046Z-retract",
@@ -202,6 +179,29 @@
       "priority": -1,
       "reason": "guardrail finding rejected on the filing: 5a104e9ca79f",
       "requested_at": "2026-07-29T18:50:46Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T18:51:39Z",
+          "detail": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T185139Z-retract",
+      "inputs": {
+        "reason": "Not a dated capital raise. The filing is a D/A, the fourteenth annual amendment to a continuous offering whose first sale was 2012-07-22, with the offering amount stated as Indefinite and the securities as debt. The 1.77 billion USD is the cumulative amount sold since 2012 through the issuer's own affiliated broker-dealer, not money raised on 2026-06-23. It is only visible now because withdrawing the seven larger errors lowered the derived ceiling onto it.",
+        "signal_id": "44d73d172ec88543cce90532bc583abe"
+      },
+      "priority": -1,
+      "reason": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
+      "requested_at": "2026-07-29T18:51:39Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
@@ -664,6 +664,44 @@
       "requested_by": "dakotta-labs",
       "run_id": "30481725300",
       "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:51:00Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:49:59Z",
+          "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:51:00Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:51:54Z",
+          "detail": "run 30481782149",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:51:54Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260729T184959Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody.",
+        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
+      },
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
+      "requested_at": "2026-07-29T18:49:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481782149",
+      "state": "failed",
       "workflow": "retract.yml"
     }
   ],
