@@ -597,29 +597,48 @@ function tit_company_head() {
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['slug'])) . '" />' . "\n";
 
-    // Yoast prints a robots tag of its own on these routes: measured on 1.45.0,
-    // a below-threshold profile served BOTH "noindex, follow" from us and
-    // "follow, index" from Yoast. Google resolves that by taking the most
-    // restrictive, so the page was in fact noindex, but two head tags
-    // contradicting each other is a defect a reader of the source cannot
-    // resolve and an audit will report. Yoast is told instead, through
-    // tit_company_yoast_robots() below, and we stay quiet so there is exactly
-    // one tag. The X-Robots-Tag header is sent either way, so a Yoast that
-    // ever stops printing on our routes cannot leave the page indexable.
-    if (!$p['indexable'] && !defined('WPSEO_VERSION')) {
-        echo '<meta name="robots" content="noindex, follow" />' . "\n";
-    }
+    // The robots directive is NOT printed here. See tit_company_head_close().
 }
 add_action('wp_head', 'tit_company_head', 1);
 
-/** The same directive, expressed in Yoast's own vocabulary. */
-function tit_company_yoast_robots($robots) {
-    $current = tit_company_current();
-    if (!$current || $current['profile']['indexable']) return $robots;
-    if (is_array($robots)) $robots['index'] = 'noindex';
-    return $robots;
+/*
+ * EXACTLY ONE ROBOTS TAG, whatever else is installed.
+ *
+ * Measured live on 1.45.0: a below-threshold profile served BOTH
+ * "noindex, follow" from us and "follow, index" from the site's SEO plugin,
+ * printed one after the other. Google resolves a conflict by taking the most
+ * restrictive, so the page genuinely was noindex, but two head tags
+ * contradicting each other is a defect an audit reports and a reader of the
+ * source cannot resolve.
+ *
+ * The first fix named a plugin's filter, and it did nothing, because the tag
+ * was coming from a DIFFERENT plugin than the fingerprint in the page
+ * suggested. Naming a plugin pins us to that plugin and to its current hook
+ * names, and gets this wrong again the day the site changes one. So the head is
+ * buffered and every robots tag in it is replaced with ours. Same trick
+ * tit_render_header() already uses to supply a <title> only when nothing else
+ * did, and it does not care what is installed.
+ *
+ * The X-Robots-Tag header goes out independently in tit_company_template(), so
+ * even a request where this buffer never closes cannot leave a thin profile
+ * indexable.
+ */
+function tit_company_head_open() {
+    if (!tit_company_current()) return;
+    ob_start();
 }
-add_filter('wpseo_robots_array', 'tit_company_yoast_robots');
+add_action('wp_head', 'tit_company_head_open', 0);
+
+function tit_company_head_close() {
+    $current = tit_company_current();
+    if (!$current) return;
+    $head = ob_get_clean();
+
+    $head = preg_replace('#<meta\s+name=(["\'])robots\1[^>]*>#i', '', $head);
+    $directive = $current['profile']['indexable'] ? 'index, follow' : 'noindex, follow';
+    echo '<meta name="robots" content="' . esc_attr($directive) . '" />' . "\n" . $head;
+}
+add_action('wp_head', 'tit_company_head_close', 9999);
 
 /*
  * ---------------------------------------------------------------------------

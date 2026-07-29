@@ -121,24 +121,43 @@ def test_below_the_threshold_is_noindex_rather_than_a_404():
     """The dashboard table links every employer to its profile. 404ing the thin
     ones would break an internal link a recruiter just clicked."""
     assert "X-Robots-Tag: noindex, follow" in COMPANY
-    assert '<meta name="robots" content="noindex, follow" />' in COMPANY
-    assert "!$p['indexable']" in COMPANY or "!$profile['indexable']" in COMPANY
+    assert "'noindex, follow'" in COMPANY
+    assert "!$profile['indexable']" in COMPANY
 
 
 def test_only_one_robots_tag_reaches_the_head():
-    """Measured live on 1.45.0: Yoast prints its own robots tag on these routes,
-    so a below-threshold profile served "noindex, follow" from us AND
-    "follow, index" from Yoast. The most restrictive wins, so the page really
-    was noindex, but two head tags contradicting each other is a defect an audit
-    reports. Yoast is told; we stay quiet when it is there. The header goes out
-    either way, so a silent Yoast cannot leave the page indexable."""
-    assert "add_filter('wpseo_robots_array', 'tit_company_yoast_robots');" in COMPANY
-    assert "!defined('WPSEO_VERSION')" in COMPANY
-    assert "$robots['index'] = 'noindex'" in COMPANY
+    """Measured live on 1.45.0: a below-threshold profile served "noindex,
+    follow" from us AND "follow, index" from the site's SEO plugin. The most
+    restrictive wins, so the page really was noindex, but two head tags
+    contradicting each other is a defect an audit reports.
+
+    The head is buffered and every robots tag in it is replaced with ours. The
+    first attempt named a plugin's filter and did nothing, because the tag came
+    from a different plugin than the page's fingerprint suggested."""
+    assert "add_action('wp_head', 'tit_company_head_open', 0);" in COMPANY
+    assert "add_action('wp_head', 'tit_company_head_close', 9999);" in COMPANY
+    close = COMPANY[COMPANY.index("function tit_company_head_close"):]
+    close = close[:close.index("\nadd_action")]
+    assert "ob_get_clean()" in close
+    assert "preg_replace" in close and "robots" in close
+    assert "'index, follow' : 'noindex, follow'" in close
+
+
+def test_the_robots_fix_names_no_seo_plugin():
+    """Naming a plugin pins us to that plugin and to its current hook names, and
+    gets this wrong again the day the site changes one."""
+    for plugin_hook in ("wpseo_", "WPSEO_VERSION", "seopress_", "rank_math",
+                        "aioseo"):
+        assert plugin_hook not in COMPANY, plugin_hook
+
+
+def test_the_header_is_sent_whatever_the_head_does():
     header = COMPANY[COMPANY.index("function tit_company_template"):]
     header = header[:header.index("\n}\n")]
     assert "X-Robots-Tag: noindex, follow" in header
-    assert "WPSEO" not in header, "the header must not be conditional on a plugin"
+    assert "ob_" not in header, (
+        "the header must not depend on a buffer that a fatal could leave open"
+    )
 
 
 def test_the_sitemap_url_does_not_redirect():
