@@ -147,6 +147,21 @@ function tit_sources_render($sources) {
         a claim that we cover it.
       </div>
 
+      <div class="tit-callout">
+        <strong>What we exclude, and what that costs.</strong> A Form D reports
+        money raised, and most Form D filers are not employers: pooled
+        investment funds, single-asset property vehicles, and insurance or
+        annuity products where the "amount sold" is premium collected from
+        policyholders. All three are excluded. Form D filings in the
+        real-estate industry group are excluded outright, because the
+        overwhelming majority of them are single-asset vehicles &mdash; this
+        does drop a small number of genuine real-estate employers along with
+        them, and the dataset offers no field that separates the two. Funding
+        records also carry no hiring badge, because a filing states an amount
+        and says nothing about headcount.
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">See the corrections log</a>.
+      </div>
+
       <div class="tit-filters">
         <select id="tit-s-status" aria-label="Filter by status">
           <option value="">Running and researched</option>
@@ -243,6 +258,8 @@ function tit_sources_render($sources) {
         Layoff and redundancy data is deliberately not collected here. It is read
         from the <a href="https://asktherecruiter.com/blog/ai-layoff-tracker/">AI
         Layoff Tracker</a>, so there is one source of truth per fact.
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+        &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
       </p>
     </div>

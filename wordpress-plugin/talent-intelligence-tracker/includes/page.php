@@ -69,6 +69,7 @@ add_action('init', 'tit_ensure_dashboard_page', 20);
 function tit_is_our_page() {
     return get_query_var('tit_company')
         || get_query_var('tit_sources')
+        || get_query_var('tit_corrections')
         || is_page(TIT_PAGE_SLUG);
 }
 
