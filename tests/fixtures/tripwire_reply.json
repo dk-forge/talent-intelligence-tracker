@@ -1,0 +1,38 @@
+{
+ "_what_this_is": "Captured-SHAPE replies for `run_tripwire.py --offline`. Not real answers: the items are chosen to exercise every verdict the diff can reach, so a plumbing run proves the whole path without a network call or a cent of spend. IceCure Medical is already in the committed database (held). The rest are not (missing). The last item in `default` has no employer name (unusable), which is what an LLM produces often enough to test for.",
+ "country:IL": {
+  "items": [
+   {"company": "IceCure Medical", "country": "Israel", "city": "Caesarea",
+    "signal_type": "funding", "event_date": "2026-07-10", "amount": "$12M",
+    "stage": "series_b", "outlet": "Globes",
+    "url": "https://en.globes.co.il/en/article-example-1001500001"},
+   {"company": "Plantopia", "country": "Israel", "city": "Tel Aviv",
+    "signal_type": "funding", "event_date": "2026-07-08", "amount": "$9M",
+    "stage": "seed", "outlet": "CTech",
+    "url": "https://www.calcalistech.com/ctechnews/article/example2"},
+   {"company": "Harmony Bio", "country": "Israel", "city": "Herzliya",
+    "signal_type": "leadership", "event_date": "2026-07-02", "amount": "",
+    "stage": "", "outlet": "Globes",
+    "url": "https://en.globes.co.il/en/article-example-1001500002"}
+  ]
+ },
+ "country:JP": {
+  "items": [
+   {"company": "Sakana Robotics", "country": "Japan", "city": "Tokyo",
+    "signal_type": "funding", "event_date": "2026-07-05", "amount": "¥1.2B",
+    "stage": "series_a", "outlet": "Nikkei",
+    "url": "https://www.nikkei.com/article/example3"}
+  ]
+ },
+ "default": {
+  "items": [
+   {"company": "Northwind Freight", "country": "Canada", "city": "Toronto",
+    "signal_type": "leadership", "event_date": "2026-07-06", "amount": "",
+    "stage": "", "outlet": "The Globe and Mail",
+    "url": "https://www.theglobeandmail.com/business/example4"},
+   {"company": "an undisclosed fintech", "country": "Singapore", "city": "",
+    "signal_type": "funding", "event_date": "2026-07-04", "amount": "$40M",
+    "stage": "series_c", "outlet": "", "url": ""}
+  ]
+ }
+}

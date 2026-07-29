@@ -54,7 +54,7 @@ DIGEST_NAME = "health_digest"
 # `newest_run_hours` look fresh while every real collector was dead - which is
 # precisely the blind spot pipeline_stopped() exists to close. They are still
 # classified for staleness and degradation like anything else.
-MEASUREMENT_ONLY = {"recall"}
+MEASUREMENT_ONLY = {"recall", "tripwire"}
 
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.
@@ -78,6 +78,11 @@ MAX_AGE_HOURS = {
     # owner a false alarm every fortnight, which is how a digest teaches
     # people to ignore it.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
+    # The discovery tripwire ships DORMANT: nothing schedules it, so a manual
+    # run followed by weeks of silence is the expected state, not an incident.
+    # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
+    # schedule in .github/workflows/tripwire.yml is uncommented.
+    "tripwire": 2400,
 }
 DEFAULT_MAX_AGE_HOURS = 336  # 14 days
 

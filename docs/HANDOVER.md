@@ -52,6 +52,39 @@ than the site. Do not skip the workflow to "save time".
 
 ---
 
+## The discovery tripwire (built 2026-07-28, DORMANT)
+
+`run_tripwire.py` + `analysis/tripwire/`. It asks a search-backed model what
+happened, diffs the answer against what we hold, and emits the difference as a
+WORK LIST. It exists because the owner found four Israeli rounds we had missed
+by asking Gemini: an outside view does not share our feeds' blind spots, and no
+amount of care inside the pipeline can find a story no feed carries.
+
+| | |
+|---|---|
+| Dimensions | countries (rotating, prioritised by measured recall) + industries (all 18, once a month). NOT cities: you find a Tel Aviv round by asking Israel |
+| Priority | straight off `analysis/recall/results/` — a country that held nothing gets 3 of every 4 slots; falls back to a stated guess if no measurement exists |
+| Budget | `plan.TRIPWIRE_MONTHLY_USD = $1.00`. The query count is DERIVED from it: 8 runs x 4 countries + 18 industries = 50 queries/month |
+| Enforcement | `spend.py`, not a second mechanism. The run reads the month against the product allowance and declines to spend rather than failing red |
+| Output | `data/tripwire_worklist.json` (stable path) + `analysis/tripwire/results/tripwire-DATE.json` (dated trend), with per-country and per-industry miss counts |
+| Proof | `python run_tripwire.py --offline` — whole path, no network, no key, no spend |
+
+**The rule that makes it safe: a tripwire hit is a LEAD, never a record.** Every
+model-asserted field carries a `claimed_` prefix and dies in the work list.
+`collectors/tripwire_chase.py` takes the employer's NAME and nothing else,
+searches Google News for the publisher's own article, and sends THAT through
+`classify -> validate -> store` like any other candidate. A hallucinated company
+finds no articles and stores nothing. A real company whose round the model
+mis-sized still stores the right size, because the size comes from the article.
+
+Still unproven, and the reason it is dormant: nothing has run a LIVE query, so
+the real cost per query is an estimate ($0.02, deliberately pessimistic) and the
+lead quality of the actual model is unmeasured. First live run should be
+`python run_tripwire.py --dry-run --countries IL --no-industries` — one query,
+about two cents, against the country we know we are weak in and can check by eye.
+
+---
+
 ## 2026-07-28 session: the page looked fine and was not
 
 Plugin **v1.24.0**, 44 records, 219 tests green. Read this section before the

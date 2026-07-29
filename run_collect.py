@@ -17,7 +17,8 @@ from datetime import date
 
 import source_registry as registry
 from collectors import (ats_boards, gdelt, google_news, national_press,
-                        sec_edgar, sec_execcomp, sec_form_d, uk_paygap)
+                        sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
+                        uk_paygap)
 from pipeline import classify, prefilter, publish, schema, store, validate
 
 # Registration. A collector that exposes `as_classified` derives its own
@@ -32,6 +33,10 @@ SOURCES = {
     "sec_execcomp": sec_execcomp,
     "uk_paygap": uk_paygap,
     "ats_boards": ats_boards,
+    # Dormant: nothing schedules it. It reads the tripwire's work list and
+    # searches for each lead's PUBLISHER, so the model's claims never reach the
+    # store — only the article does. See collectors/tripwire_chase.py.
+    "tripwire_chase": tripwire_chase,
 }
 
 RUNS_PER_DAY = 2
@@ -52,6 +57,10 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
         # Precise phrases plus `when:` recency. The old broad sweep returned
         # political job-creation stories with no employer in them.
         return list(registry.GOOGLE_NEWS_QUERIES)
+    if source == "tripwire_chase":
+        # The tripwire's work list IS the population: one targeted query per
+        # lead, built from the employer's name inside the collector.
+        return []
 
     base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
 
@@ -173,6 +182,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             print(f"[{collector}] structured source, no search vocabulary")
         elif source.startswith("sec_"):
             print(f"[{collector}] searching SEC filings")
+        elif source == "tripwire_chase":
+            print(f"[{collector}] one targeted query per lead, from the work list")
         else:
             print(f"[{collector}] {len(queries)} queries")
         try:

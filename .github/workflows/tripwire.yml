@@ -1,0 +1,132 @@
+# The discovery tripwire: ask an outside view what we are missing.
+#
+# DORMANT. The schedule below is deliberately commented out, per the standing
+# rule for a new source: it ships with dry-run diagnostics and is armed only
+# after a human has read a real run and agreed it looks right. Dispatch it by
+# hand until then — the default input is a dry run that writes nothing.
+#
+# To arm: uncomment the two schedule lines. Twice a week is what the budget in
+# analysis/tripwire/plan.py is sized on (8 runs a month, 4 countries each, plus
+# one full 18-industry sweep a month = 50 search-backed queries ~ $1.00/month at
+# the pessimistic price). Changing the cadence without changing that constant
+# changes the bill, so change both or neither.
+name: tripwire
+
+on:
+  # schedule:
+  #   - cron: '0 7 * * 1,4'    # Mondays and Thursdays 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Ask for real, print everything, write nothing'
+        type: boolean
+        default: true
+      offline:
+        description: 'Replay the captured fixture: no network, no spend'
+        type: boolean
+        default: false
+      countries:
+        description: 'Override the rotation, e.g. IL,JP,BR (blank = measured priority)'
+        type: string
+        default: ''
+      limit:
+        description: 'Cap the queries this run (blank = the plan)'
+        type: string
+        default: ''
+
+# ONE lock for every workflow that writes data/talent_intel.db. A non-dry run
+# files its result in the source_health table, which makes this a database
+# writer, and every writer here ends with reset-to-origin then
+# copy-our-file-back — so two at once means whichever pushes second silently
+# destroys the other's rows.
+# Enforced by tests/test_workflows.py::test_every_database_writer_shares_one_lock.
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  tripwire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # The product-wide ceiling, checked before a search-backed query is
+      # issued. run_tripwire.py checks it again itself and declines to spend
+      # rather than failing, which is the right behaviour for a discovery run;
+      # this step is here so an exhausted month is visible as a red run on the
+      # cheap path too. Skipped on an offline replay, which spends nothing and
+      # needs no key.
+      - name: Check the spend ceiling
+        if: ${{ !inputs.offline }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --enforce
+
+      - name: Run the tripwire
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python run_tripwire.py \
+            ${{ inputs.dry_run && '--dry-run' || '' }} \
+            ${{ inputs.offline && '--offline' || '' }} \
+            ${{ inputs.countries && format('--countries {0}', inputs.countries) || '' }} \
+            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
+
+      # The work list and the dated result are committed for the same reason the
+      # database is: a discovery run that exists only in a job log cannot be
+      # plotted, cannot be re-derived, and cannot be chased next week.
+      #
+      # `!cancelled()` and not success: a run that failed after asking has
+      # already paid for its queries, and throwing the answers away would mean
+      # paying for them again.
+      - name: Commit the work list
+        if: ${{ !inputs.dry_run && !inputs.offline && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/tripwire_worklist.json analysis/tripwire/results \
+                  data/talent_intel.db data/spend_month.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No change."
+            exit 0
+          fi
+
+          mkdir -p "$RUNNER_TEMP/tripwire"
+          cp data/talent_intel.db "$RUNNER_TEMP/tripwire/talent_intel.db"
+          cp data/tripwire_worklist.json "$RUNNER_TEMP/tripwire/worklist.json"
+          cp -r analysis/tripwire/results "$RUNNER_TEMP/tripwire/results"
+
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "tripwire: $(date -u +%Y-%m-%dT%H:%MZ)" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — replaying onto the current main."
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/tripwire/talent_intel.db" data/talent_intel.db
+            cp "$RUNNER_TEMP/tripwire/worklist.json" data/tripwire_worklist.json
+            cp -r "$RUNNER_TEMP/tripwire/results/." analysis/tripwire/results/
+            git add data/tripwire_worklist.json analysis/tripwire/results data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this run."
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the tripwire result after 5 attempts. \
+          This run's leads exist only on the runner and the money that bought \
+          them is spent."
+          exit 1

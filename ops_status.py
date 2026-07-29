@@ -44,6 +44,7 @@ def main() -> int:
     problems += _report_data(conn)
     problems += _report_health(conn)
     _report_coverage()
+    _report_discovery()
     _report_surfaces()
     _report_spend()
 
@@ -173,6 +174,49 @@ def _report_coverage() -> None:
 
     candidates = sum(len(m.candidate_official_sources) for m in registry.MARKETS)
     print(f"    {candidates} researched official source(s) not yet built (roadmap, not coverage)")
+
+
+def _report_discovery() -> None:
+    """The tripwire: what the outside view says we are missing.
+
+    Read straight off the committed work list, because a session that does not
+    know a work list exists will never chase it. Says DORMANT loudly while
+    nothing schedules it, for the same reason section [0] does: a session that
+    assumes this runs would misread a stale work list as current.
+    """
+    workflow = ROOT / ".github" / "workflows" / "tripwire.yml"
+    armed = workflow.exists() and any(
+        line.strip().startswith("- cron:")
+        for line in workflow.read_text().splitlines())
+
+    print("\n[3b] DISCOVERY TRIPWIRE  "
+          + ("ARMED — runs on schedule" if armed else "DORMANT — dispatch only"))
+
+    worklist = ROOT / "data" / "tripwire_worklist.json"
+    if not worklist.exists():
+        print("    No work list yet. Prove the plumbing with:")
+        print("      python run_tripwire.py --offline")
+        return
+
+    import json
+
+    try:
+        data = json.loads(worklist.read_text())
+    except ValueError:
+        print("    Work list is unreadable. Re-run run_tripwire.py.")
+        return
+
+    counts, cost = data.get("counts") or {}, data.get("cost") or {}
+    print(f"    last run {data.get('ran_on')}: {counts.get('leads', 0)} leads, "
+          f"{data.get('missing_total', 0)} missing, "
+          f"${float(cost.get('run_usd') or 0):.4f} spent")
+    misses = data.get("country_misses") or {}
+    if misses:
+        top = ", ".join(f"{k}={v}" for k, v in list(misses.items())[:8])
+        print(f"    misses by country: {top}")
+    if data.get("missing_total"):
+        print("    Chase them (a lead is never a record):")
+        print("      python run_collect.py --source tripwire_chase --dry-run")
 
 
 def _report_spend() -> None:

@@ -25,6 +25,8 @@ collectors/   one file per source. Returns raw dicts. NEVER writes.
 pipeline/     classify -> validate -> dedupe -> store. Shared by every source.
 data/         talent_intel.db, committed. The repo IS the memory.
 source_registry.py   markets, tiers, search vocabulary — all as data
+analysis/     measurement, never collection: recall/ grades what we hold,
+              tripwire/ finds what we are missing (run_tripwire.py, DORMANT)
 ```
 
 GitHub Actions cron collects 2x/day, commits the database back, and (once the
@@ -55,7 +57,11 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   `verified` however confident the model sounds. `reported` and `rumored` are
   never silently promoted.
 - **Aggregators are discovery pointers, never stored sources.** Google News
-  sends us to the publisher; the publisher is what we store.
+  sends us to the publisher; the publisher is what we store. **A model is a
+  discovery pointer too.** The tripwire (`run_tripwire.py`) asks a search-backed
+  model what we are missing; every field it returns is prefixed `claimed_` and
+  dies in the work list, and `collectors/tripwire_chase.py` takes the employer's
+  name, finds the publisher's own article, and stores that instead.
 - **Never write a row directly.** A new source builds a raw dict and goes
   through `classify -> validate -> store` like everything else. The raw dict
   MUST set `raw_text` — the classifier reads only that, and a source that
