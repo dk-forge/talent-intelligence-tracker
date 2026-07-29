@@ -173,6 +173,32 @@ def test_an_employer_we_hold_nothing_for_is_still_a_404():
     assert "get_404_template()" in COMPANY
 
 
+def test_an_ampersand_is_left_literal_in_a_slug():
+    """Measured live on 1.45.2: /company/b%26q/ answers 404 and /company/b&q/
+    answers 200, because %26 does not survive WordPress's rewrite. 144 of 7,301
+    employer keys contain an ampersand and every one of their dashboard links
+    was dead."""
+    assert "str_replace('%26', '&', rawurlencode(" in COMPANY
+
+
+def test_a_url_we_cannot_serve_is_never_published():
+    """A percent-encoded non-ASCII byte does not survive the rewrite either, and
+    neither does the literal character. A sitemap full of 404s is the signal
+    that gets a whole set distrusted, so those keys are not indexable and the
+    page and the sitemap go on agreeing."""
+    assert "function tit_company_servable_slug" in COMPANY
+    assert r"preg_match('/[^\x20-\x7E]/'" in COMPANY
+    profile = COMPANY[COMPANY.index("function tit_company_profile"):]
+    profile = profile[:profile.index("\n}\n")]
+    assert "tit_company_servable_slug" in profile, (
+        "the page's own indexable flag must carry it, or the sitemap and the "
+        "page disagree again"
+    )
+    sitemap = COMPANY[COMPANY.index("function tit_company_sitemap_entries"):]
+    sitemap = sitemap[:sitemap.index("\n/**")]
+    assert "tit_company_servable_slug" in sitemap
+
+
 def test_the_sitemap_lists_only_gated_employers_and_says_when_they_changed():
     sitemap = COMPANY[COMPANY.index("function tit_company_sitemap_entries"):]
     sitemap = sitemap[:sitemap.index("\nfunction tit_company_sitemap_template")]

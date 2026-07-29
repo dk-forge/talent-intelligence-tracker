@@ -149,7 +149,34 @@ add_action('init', 'tit_company_maybe_flush', 99);
  * form — and the lookup compares in SLUG space, never by converting back.
  */
 function tit_company_slug($company_key) {
-    return rawurlencode(str_replace(' ', '-', $company_key));
+    // MEASURED LIVE 2026-07-29, on 1.45.2: rawurlencode() turns "&" into %26,
+    // and a %26 in this path segment does not survive WordPress's rewrite.
+    // /company/b%26q/ answers 404; /company/b&q/ answers 200. "&" is a legal
+    // sub-delim in a path segment (RFC 3986), so it is left literal. 144 of
+    // 7,301 employer keys contain one, mostly UK NHS trusts and partnerships,
+    // and every one of their dashboard links had been dead.
+    return str_replace('%26', '&', rawurlencode(str_replace(' ', '-', $company_key)));
+}
+
+/**
+ * Whether this employer has a URL we can actually serve.
+ *
+ * Same measurement: a percent-encoded NON-ASCII byte does not survive the
+ * rewrite either, and neither does the literal character. "atkinsréalis uk"
+ * answers 404 as atkinsr%C3%A9alis-uk AND as atkinsréalis-uk. 18 of 7,301 keys
+ * are affected (six accented Latin, the rest Hebrew and Chinese).
+ *
+ * Publishing a URL we know 404s is worse than publishing nothing: a sitemap
+ * full of 404s is the signal that gets a whole set distrusted. So a key we
+ * cannot serve is not indexable, which keeps the page and the sitemap agreeing
+ * for the same reason the threshold does.
+ *
+ * This is a routing limit and not a decision about the employer. Fixing it
+ * means giving company_key a stored ASCII slug of its own, which is a pipeline
+ * change and a migration, not a line here.
+ */
+function tit_company_servable_slug($company_key) {
+    return $company_key !== '' && !preg_match('/[^\x20-\x7E]/', $company_key);
 }
 
 function tit_company_url($company_key) {
@@ -176,7 +203,7 @@ function tit_company_rows($slug) {
     global $wpdb;
     $table = tit_table_name();
     return $wpdb->get_results($wpdb->prepare(
-        "SELECT headline, summary, talent_readthrough, company, pillar, signal_direction,
+        "SELECT headline, summary, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, region, country, hq_city, hq_country, state, functions, industry,
                 headcount, funding_amount, funding_amount_usd, funding_stage,
                 confidence, source_url, source_name, archive_url,
@@ -234,7 +261,8 @@ function tit_company_profile($rows) {
         'verified'      => $verified,
         'tracked_since' => $tracked_since,
         'place'         => $latest_place,
-        'indexable'     => tit_company_meets_threshold($n_docs, $n_kinds),
+        'indexable'     => tit_company_meets_threshold($n_docs, $n_kinds)
+                           && tit_company_servable_slug($rows ? $rows[0]['company_key'] : ''),
     );
 }
 
@@ -667,6 +695,14 @@ function tit_company_sitemap_entries() {
         ARRAY_A
     );
     $rows = is_array($rows) ? $rows : array();
+
+    // The same servability check the page's own indexable flag carries, so a
+    // URL we cannot serve is never published. Done here rather than in SQL
+    // because a byte-range test is one line of PHP and an unreadable REGEXP in
+    // MySQL, and there are only a few hundred rows to walk.
+    $rows = array_values(array_filter($rows, function ($r) {
+        return tit_company_servable_slug($r['company_key']);
+    }));
 
     // Two hours. The gate needs several documents to move, so this set changes
     // slowly, and the query groups the whole table. tit_flush_caches() drops
