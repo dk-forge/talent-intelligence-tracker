@@ -470,15 +470,19 @@ function tit_dashboard_shortcode() {
         </div>
       </div>
 
-      <?php /* Open, always. It shipped as a disclosure with a count badge and
-               the owner has asked twice for neither. A panel that hides the
-               controls and then advertises how many are hidden is two
-               interactions where none was wanted, and the count was standing in
-               for the thing it was hiding. `open` is on the element rather than
-               removing <details> entirely so the markup keeps working if this
-               is ever reversed. */ ?>
-      <details class="tit-more tit-more--open" id="tit-more" open>
-        <summary><span id="tit-more-label">More filters</span></summary>
+      <?php /* Not a disclosure at all any more. It shipped as <details> with a
+               "More filters (1)" summary; the owner asked three times for that
+               wording to go. Keeping <details open> still rendered the summary,
+               so the words stayed on the page while the behaviour changed
+               underneath - the label was also dead by then, since syncMore()
+               had stopped writing to it and only forced the panel open.
+
+               A permanently-open disclosure is not a disclosure, so this is a
+               plain container. The controls inside carry their own labels and
+               the chips bar already names what is applied, which is what the
+               summary was standing in for. Classes and id are unchanged so the
+               existing CSS and the syncMore() guard keep working. */ ?>
+      <div class="tit-more tit-more--open" id="tit-more">
         <div class="tit-filters">
           <?php
           /*
@@ -499,7 +503,7 @@ function tit_dashboard_shortcode() {
           $multi_note = 'Choose more than one if you like';
           ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Team Or Function</span>
+            <span class="tit-field-l">Team or Function</span>
             <select id="tit-f-function" multiple size="5"
                     aria-label="Team or function, choose more than one if you like">
               <?php foreach ($functions as $k => $v) : ?>
@@ -591,7 +595,7 @@ function tit_dashboard_shortcode() {
             <button type="button" class="tit-reset-btn" id="tit-reset">Reset all filters</button>
           </div>
         </div>
-      </details>
+      </div>
 
       <?php /* The state the visible controls drive. Hidden, never focusable,
                and deliberately still real select elements: every existing
