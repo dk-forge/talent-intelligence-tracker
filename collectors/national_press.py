@@ -77,7 +77,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -151,6 +151,8 @@ _AGGREGATOR_HOSTS = frozenset({
 
 ATOM = "{http://www.w3.org/2005/Atom}"
 CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
+DC = "{http://purl.org/dc/elements/1.1/}"
+NEWS = "{http://www.google.com/schemas/sitemap-news/0.9}"
 
 STATS = {"feeds": 0, "ok": 0, "dead": 0, "blocked": 0,
          "items": 0, "duplicate_url": 0, "syndicated": 0}
@@ -225,12 +227,30 @@ _TAGS = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
 
 
+# The other everyday malformation: a bare `&` inside an attribute, which is
+# what a CMS produces when it pastes a tag URL containing an ampersand without
+# escaping it. Diario Libre's front-page feed carries 191 of them and dies at
+# the first; its economy feed is clean, so the outlet looks half-broken for a
+# reason that has nothing to do with the outlet. This matches an `&` that does
+# NOT begin a valid entity, so a well-formed document contains none of them and
+# is never touched.
+_BARE_AMP = re.compile(
+    rb"&(?!(?:[a-zA-Z][a-zA-Z0-9]{1,10}|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});)")
+
+
 def _tidy(raw: bytes) -> bytes:
+    """Trim a BOM and anything after the closing root tag."""
     body = raw.lstrip(b"\xef\xbb\xbf").lstrip()
     match = None
     for match in _ROOT_CLOSE.finditer(body):
         pass
     return body[:match.end()] if match else body
+
+
+def _repair(body: bytes) -> bytes:
+    """Escape bare ampersands. Only ever reached AFTER a strict parse failed,
+    so a valid feed is parsed exactly as served and never rewritten."""
+    return _BARE_AMP.sub(b"&amp;", body)
 
 
 def _text(node, *tags: str) -> str:
@@ -280,14 +300,34 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
 
     Separate from fetch() so every test runs offline against a recorded fixture.
     """
+    body = _tidy(payload)
     try:
-        root = ET.fromstring(_tidy(payload))
+        root = ET.fromstring(body)
     except ET.ParseError:
-        return []
+        # Repair and retry ONCE. A publisher's feed being invalid is not a
+        # reason to lose the publisher, and both repairs here are no-ops on a
+        # document that was already well-formed.
+        try:
+            root = ET.fromstring(_repair(body))
+        except ET.ParseError:
+            return []
 
     nodes = root.findall(".//item") or root.findall(f".//{ATOM}entry")
     line = dateline(feed)
     items: list[dict] = []
+
+    # Some publishers put a relative slug in <link> ("/business/acme-raises").
+    # Dropping those loses the outlet; storing them verbatim is worse, because
+    # every figure here is meant to link to the document that makes the claim
+    # and a relative URL links to nothing. Resolve against the channel's own
+    # declared home page, falling back to the feed's host.
+    # `find` returns an element whose truth value is its child count, so the
+    # obvious `root.find("channel") or root` treats a childless <channel> as
+    # missing. Compare against None explicitly.
+    channel = root.find("channel")
+    base = _text(channel if channel is not None else root, "link", f"{ATOM}link")
+    if not base.startswith("http"):
+        base = feed.rss
 
     for node in nodes:
         # Capped on ITEMS KEPT, not on nodes read: a feed padded with entries
@@ -296,7 +336,9 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
         if len(items) >= MAX_ITEMS_PER_FEED:
             break
         title = _text(node, "title", f"{ATOM}title")
-        link = _text(node, "link", f"{ATOM}link")
+        link = _text(node, "link", f"{ATOM}link", "guid")
+        if link and not link.startswith("http"):
+            link = urljoin(base, link)
         if not (title and link.startswith("http")):
             continue
 
@@ -313,8 +355,20 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
             "source_url": link,
             "discovery_url": link,
             "source_name": feed.name,
+            # Publishers disagree about which element carries the date: KED
+            # Global uses dc:publishDate, Digital Business KZ uses
+            # news:publication_date, Atom uses published/updated. A
+            # pubDate-only reader calls all of those dateless.
+            #
+            # When NOTHING dates an item (Nikkei Asia, Sixth Tone, Kathmandu
+            # Post, Maldives Financial Review), this stays empty and the record
+            # is stored with published_date NULL. It is deliberately NOT
+            # stamped with the collection time: that would file last month's
+            # article as today's news and quietly corrupt every period column.
             "published_date": _text(node, "pubDate", f"{ATOM}published",
-                                    f"{ATOM}updated", "date"),
+                                    f"{ATOM}updated", f"{DC}date",
+                                    f"{DC}publishDate", f"{NEWS}publication_date",
+                                    "date", "published"),
             "language": feed.language,
             # Reporting only ("how many countries did this run reach?"). NOT
             # `country`: validate.py would read that as sourced.

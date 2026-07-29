@@ -100,6 +100,66 @@ def test_a_feed_with_junk_after_the_closing_tag_still_parses():
     assert press.parse(RSS + b"\n<!-- Notice: undefined index -->\n", GLOBES)
 
 
+def test_a_feed_with_unescaped_ampersands_is_repaired_rather_than_lost():
+    """Diario Libre's front page carries 191 bare `&` inside tag URLs and dies
+    on the first; its economy feed is clean. Without this the outlet looks
+    half-broken for a reason that has nothing to do with the outlet.
+
+    The repair runs only AFTER a strict parse has failed, so a valid feed is
+    read exactly as served.
+    """
+    broken = RSS.replace(
+        b"<link>https://en.globes.co.il/en/article-enigma-raises-71m-1001500001</link>",
+        b"<link>https://en.globes.co.il/en/article?a=1&b=2&tag=m&a-del-caribe</link>")
+    with pytest.raises(Exception):
+        __import__("xml.etree.ElementTree", fromlist=["x"]).fromstring(broken)
+    items = press.parse(broken, GLOBES)
+    assert len(items) == 2
+    assert "&b=2" in items[0]["source_url"]
+
+
+def test_a_relative_item_link_is_resolved_against_the_publisher():
+    """B2B Cambodia emits bare slugs in <link>. Storing one verbatim gives a
+    source_url that links to nothing, and every figure here is supposed to link
+    to the document that makes the claim."""
+    relative = RSS.replace(
+        b"https://en.globes.co.il/en/article-enigma-raises-71m-1001500001",
+        b"/en/article-enigma-raises-71m-1001500001")
+    item = press.parse(relative, GLOBES)[0]
+    assert item["source_url"] == "https://en.globes.co.il/en/article-enigma-raises-71m-1001500001"
+
+
+def test_the_dates_publishers_actually_use_are_all_read():
+    """KED Global uses dc:publishDate and Digital Business KZ uses
+    news:publication_date. A pubDate-only reader calls both dateless, and a
+    misdated row lands in the wrong period column rather than nowhere."""
+    dc = RSS.replace(
+        b"<rss version=\"2.0\"",
+        b"<rss version=\"2.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"").replace(
+        b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>",
+        b"<dc:publishDate>2026-07-14</dc:publishDate>")
+    assert press.parse(dc, GLOBES)[0]["published_date"] == "2026-07-14"
+
+
+def test_an_item_with_no_date_anywhere_is_never_stamped_with_the_fetch_time():
+    """Nikkei Asia, Sixth Tone, the Kathmandu Post and the Maldives Financial
+    Review carry no item-level date at all. Stamping those with the collection
+    time would file a month-old article as today's news and quietly corrupt
+    every period column — a wrong date is worse than no date."""
+    undated = RSS.replace(b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>", b"")
+    item = press.parse(undated, GLOBES)[0]
+    assert item["published_date"] == ""
+
+    classified = {
+        "company": "Enigma", "pillar": "company_development",
+        "signal_direction": "hiring", "headline": "Enigma raises $71m",
+        "summary": "Enigma raised $71m.", "talent_readthrough": "Hiring capacity.",
+    }
+    signal = validate.build_signal(classified, item, "national_press")
+    assert signal.published_date is None
+    assert signal.captured_at, "captured_at is when WE saw it, and stays separate"
+
+
 def test_no_more_than_the_per_feed_cap_is_taken():
     """TechNode's feed carries 2,000 entries. Without a cap one archive-heavy
     publisher fills the whole candidate budget and starves the other hundred."""
