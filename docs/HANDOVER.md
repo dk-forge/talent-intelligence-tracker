@@ -118,13 +118,18 @@ again.
    `gh workflow run drain-writers.yml -f enqueue=<wf>.yml -f inputs_json='{"dry_run":"false"}' -f reason='why'`
 3. **`correct-*.yml` also default to `dry_run=true`.** A replay with guessed
    defaults is a green run that changes nothing.
+4. **A backfill is a CHAIN now.** Dispatch the whole window you want; the
+   committed cursor in `data/backfill_state.json` decides where a run actually
+   begins, and each run queues the next. A chain that stops says so — `halted`
+   or `stalled` in `ops_status.py [2e]` — and never requeues itself out of it.
+   Fix the cause, then re-queue the backfill; it resumes at the cursor.
 
 ### Open, in priority order
 
 | # | What | Why |
 |---|---|---|
-| 1 | **Bounded backfill slices** | A 350-min GDELT backfill held the writer lock, hit its timeout, lost ~6h of work AND starved every correction. Priority cannot preempt a running job; only self-requeuing slices fix it. |
-| 2 | **Scope breach: layoff 8-Ks stored here** | Atlassian (~10%), Groupon (400), IO Biotech, Lyra. Layoffs must be READ from the sibling's API. The guard reads the headline and `sec_edgar` writes the same generic headline onto everything, so it never sees the reduction language. |
+| 1 | ~~Bounded backfill slices~~ **BUILT 2026-07-29** | `backfill_slices.py`. All four backfills take one measured slice, commit it, and queue the next in the same commit; `timeout-minutes` 350 -> 90, below `LONG_HOLD_MINUTES`. Progress in a committed `data/backfill_state.json`, shown at `ops_status.py [2e]`. Proven live by run 30481065108, which also found the publish-failure gap now fixed. |
+| 2 | ~~Scope breach: layoff 8-Ks stored here~~ **FIXED 2026-07-29** | It was **seven** rows, not four: + Elastic (7% of its workforce), Commerce.com, and Verizon — the row the guard was originally written for. Forward fix is a third arm, `prefilter.filing_reduction_plan`, reading the filing BODY. Backward fix is `correct_layoff_scope.py`. Measured: 3,784 filings re-read, 0 unreadable, 6 announcing a reduction (0.16%). |
 | 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, both DORMANT** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Measured on real stored URLs below. Next step is to arm them, not to build them. |
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
 | 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.45.3** | `/company/{slug}` with a measured threshold gate: 712 indexable pages of 7,301 employers. See the section below and TECHLOG. Next step is Search Console, not code. |

@@ -13,6 +13,159 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — backfills in bounded slices, and a scope guard that reads the filing
+
+Two fixes for two things that were true all day: a backfill could hold the only
+writer lock for six hours, and a page promising it publishes no layoffs was
+publishing seven.
+
+### The 350-minute lock hold, fixed by finishing
+
+`backfill-gdelt-2026` took the `talent-collect` lock at 04:59 UTC, ran 350
+minutes, hit its own `timeout-minutes: 350` and was **cancelled** — so its
+commit step, guarded by `if: !cancelled()`, was **skipped**. Six hours of
+collection existed only on a runner that was then deleted, and every correction
+queued behind it waited the whole time.
+
+Priority ordering and starvation reporting both landed earlier the same day and
+neither could have helped. **Priority decides who goes next and cannot preempt
+a running job**; saying the lock has been held for two hours does not hand it
+back. The only thing that bounds a lock hold is a job that finishes.
+
+So a backfill is now a **chain of short runs**. A run takes one slice, commits
+it, and appends a ticket for the next slice to `data/writer_queue.json` **in
+the same commit**; `drain-writers.yml` dispatches it when the group empties,
+behind whatever short corrections arrived meanwhile (a `backfill-*` ticket
+still carries `BACKFILL_PRIORITY`). Progress lives in a committed
+`data/backfill_state.json`, so a run that dies loses at most its own slice.
+
+**The cursor is the authority, not the dispatch inputs.** A ticket can wait
+hours behind other work, so an input saying where to start would be a second,
+staler source of truth. Dispatch the whole window; the cursor decides where a
+run begins.
+
+Slice sizes are measured and the measurement is written beside each constant:
+
+| Workflow | Slice | Measured basis |
+|---|---|---|
+| `backfill-gdelt-2026` | 4 days | the 350-min run had not finished a month; 9 queries at 12s pacing plus the retry ladder is ~11 min/day |
+| `backfill-2026` | 7 days | seven month-long runs took 137, 145, 159, 184, 185, 188, 215 min |
+| `backfill-funding-2026` | 28 days | 12.7 min for a whole month (run 30377226199) |
+| `backfill-funding-bulk` | 1 quarter | 6.8 min for two quarters (run 30413051586) |
+
+A size from measurement is an estimate, so the promise is elsewhere: a
+**50-minute wall clock** stops the run at the next window boundary. And
+`timeout-minutes` drops 350 → 90 on all four, below `LONG_HOLD_MINUTES` (120),
+so a sliced backfill can no longer reach the condition the drainer reports as
+starvation. The 40-minute gap between budget and timeout is what makes the run
+end *cleanly*, which is the whole difference: a cancelled run's commit step is
+skipped.
+
+**The lock is untouched.** Same group, same `cancel-in-progress: false`, all
+four. Slicing changes how LONG the lock is held, never how MANY writers hold it.
+
+Three guards, because a self-requeuing job is a loop:
+
+- a slice whose cursor did not move is never requeued and the run goes red;
+- the cursor is **monotonic**. `actions/checkout` pins a run's SHA at DISPATCH,
+  so a run that waited behind the lock read a state file as old as its wait, and
+  recording it unconditionally would rewind the chain. Same shape as the stale
+  checkout that destroyed 311 rows, one file along;
+- a chain past 200 slices stops itself, and a dry or fetch-only run advances
+  nothing.
+
+`backfill_slices.py record` runs **after** `git reset --hard origin/main` and
+merges into whatever main holds, for the same reason the database is merged
+rather than copied. Its exit code is carried past the push, so a bookkeeping
+failure never costs the collected rows.
+
+#### What running one taught us
+
+The first live sliced run (30481065108, `backfill-funding-bulk 2026q1`) took its
+slice correctly, walked the quarter, and then **died inside `publish.publish`**
+because the publish guardrails were holding open findings. The ticket was
+emitted after the publish call, so nothing was emitted: the cursor never moved,
+the state file was never written, and the chain stopped having recorded nothing.
+Only the database commit survived — precisely the asymmetry slicing exists to
+remove.
+
+Collecting and publishing are **separate gates**. Each script now catches
+`PublishError`, emits its ticket anyway, and then goes red. The ticket carries
+`halt`, which is deliberately not the same as failing: the slice's cursor and
+totals are applied in full so the work is never redone, and only the **requeue**
+is withheld — whatever blocked this slice blocks the next one, and a chain
+requeueing into a wall produces one red run per slice and buries the first, real
+one. `ops_status.py [2e]` shows it, because between slices there is nothing
+running and "is it still going?" stopped being answerable by looking for a job.
+
+### Seven layoff records on a page that says it collects none
+
+Layoffs are read from the sibling tracker's API and never collected here. The
+footer says so. Seven records were live anyway.
+
+**The guard read the HEADLINE, and `sec_edgar` has no headline.** It stamps the
+identical string `"<Company> 8-K filing (Item 5.02): officer or director
+change"` onto every document it fetches, so the first arm spent every run
+matching a fourteen-language layoff vocabulary against the collector's own
+boilerplate. The second arm only fires when the model chose `displacement`. The
+reduction language sat untouched in `raw_text`, which nothing read. Nothing
+errored, nothing went red, and a guard **with tests** reported healthy
+throughout — this day's theme again.
+
+**Running the existing predicate over the body does not fix it**, and that is
+worth knowing before someone tries. `workforce_reduction_term` lets an in-scope
+subject appearing EARLIER win the race, and every Item 5.02 filing opens with
+"appointed" or "resigned", so a reduction announced three paragraphs later is
+suppressed every time.
+
+So `prefilter.filing_reduction_plan` is body-shaped, and the question it answers
+is **not "does this mention a cut" but "does this ANNOUNCE one"** — because
+getting it wrong the other way rejects the pillar this product is largest in
+(3,777 live sec_edgar leadership rows). It fires on:
+
+- **Item 2.05** — "Costs Associated with Exit or Disposal Activities", the SEC's
+  own code for this event. Decisive alone: a registrant does not file one for
+  somebody else's layoff.
+- or **any two of {a reduction term, a plan, a stated scale}** within a
+  paragraph. Two, because each alone is ambiguous: a reduction term alone is the
+  passing mention ("she led finance through the 2024 layoffs at her former
+  employer"), a plan alone is usually a compensation plan, a scale alone is a
+  share count.
+
+**Severance, termination benefits and one-time charges are deliberately not
+corroborators.** They are the standard furniture of an Item 5.02 officer
+departure, and admitting them would turn this into a rule that rejects
+leadership changes.
+
+**Measured over the whole corpus rather than asserted:** 3,784 filings re-read,
+0 unreadable, 6 announcing a reduction — **0.16%**.
+
+`correct_layoff_scope.py` is the backward half, and it **re-fetches**, because
+`raw_text` is never stored: Atlassian's stored summary says "elimination of
+certain roles", which the reduction vocabulary does not match, so judging these
+rows on the database would reproduce the original defect one level up.
+Withdrawal goes through `retract_remote` + `retract_local` like every other
+correction here — nothing deleted, nothing edited in place.
+
+It found **three the open list did not have**:
+
+| | |
+|---|---|
+| Elastic N.V. | "expects to reduce its workforce by approximately 7%", $22-25m of severance and termination benefits |
+| Commerce.com (BigCommerce) | a plan "to realign the Company's current workforce", $13.9m primarily severance |
+| Verizon | "despedirá a 3,000 empleados" — from google_news, and **the very row the scope guard was written for**. The guard landed; nobody withdrew the row it was written about. |
+
+Elastic and Commerce.com are the judgement call worth inheriting. Both filings
+carry Item 2.05 **and** a real Item 5.02 event (a Chief Product Officer leaving,
+a CFO taking on COO duties), and the model read only the 5.02 — both rows said
+nothing more than "reported a change in its officer or director". Withdrawing
+them loses the leadership event too. That is the right trade at this size: 6 of
+3,784 live filings announce a reduction and 2 of those carry a leadership event,
+so the boundary costs **0.05% of the leadership pillar** to keep a promise the
+page makes in writing.
+
+---
+
 ## 2026-07-29 — company profile pages, and the threshold that decides which exist
 
 `/talent-intelligence-tracker/company/{slug}/`. Profiles already rendered for
