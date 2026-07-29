@@ -177,6 +177,13 @@
 .tit-crumb { font-size:14px; color:var(--tit-mut); margin:0 0 4px; }
 .tit-crumb span { margin:0 4px; }
 
+/* The one line a reader glances at before deciding to read on, so it has to
+   out-weigh the notes under it without becoming a second heading. Proportional
+   numerals: the figure inside it is inline prose, and tabular numerals pad a
+   narrow "1" to a full advance width, which is what rendered "13" as "1 3". */
+.tit-company .tit-status { margin:2px 0 10px; font-size:17px; font-weight:600;
+  color:var(--tit-fg); font-variant-numeric:proportional-nums; }
+
 .tit-timeline { list-style:none; margin:22px 0 0; padding:0; }
 .tit-event { display:grid; grid-template-columns:1fr; gap:4px;
   padding:18px 0; border-top:1px solid var(--tit-line); }
