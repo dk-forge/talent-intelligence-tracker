@@ -254,6 +254,43 @@ def google_news_queries(lang: str, *, window_days: int = 7) -> list[str]:
     return [f"{p} when:{window_days}d" for p in phrases]
 
 
+# --- The discovery backstop's query ----------------------------------------
+#
+# A different shape from the locale packs above, and it has to be, because it
+# is asked of countries whose Google News edition is thin or absent. Measured
+# 2026-07-28 on Kuwait, Barbados, Fiji, Sri Lanka and Mongolia, counting how
+# many returned items NAMED the country:
+#
+#   phrase pack, country quoted on the end   0-5 items,    0 named the country
+#   country FIRST, then one intent group     28-54 items,  most named it
+#   the same without `when:`                 62-100 items, i.e. the archive
+#
+# gl=BB has almost no edition behind it, so a phrase-led query falls back to
+# the global index and returns US and European stories under a Barbados
+# heading. Leading with the country is what keeps the answer about the
+# country; `when:` is what stops it being a history lesson.
+#
+# One query per country, not three. These are places with a handful of
+# business stories a month, so three near-identical queries would return the
+# same handful three times and spend three times the redirect resolutions on
+# them.
+BACKSTOP_INTENTS = (
+    '"appointed" OR "appoints" OR "chief executive" OR "steps down" OR '
+    '"hiring" OR "to hire" OR "new jobs" OR "creates jobs" OR "opens office" OR '
+    '"raises" OR "funding round" OR "seed funding" OR "investment"'
+)
+
+
+def backstop_query(country: str, *, window_days: int = 21) -> str:
+    """The single discovery query for a country with no direct publisher feed.
+
+    The window is wide because these countries produce few business stories,
+    not because old ones are wanted: already-seen URLs are skipped before any
+    spend, so re-reading a fortnight costs nothing.
+    """
+    return f'"{country}" ({BACKSTOP_INTENTS}) when:{window_days}d'
+
+
 GOOGLE_NEWS_QUERIES = (
     '("appoints chief executive" OR "names chief executive" OR "appointed CEO")',
     '("appoints chief financial officer" OR "appoints CFO" OR "new chief people officer")',
@@ -512,7 +549,17 @@ def _wireable(row: dict) -> bool:
         (row.get("rss") or "").startswith("http")
         or (row.get("api") or "").startswith("http")
         or (row.get("source_type") or "") in _WIREABLE_TYPES
+        # A backstop row has no feed and no publisher, and it is still the most
+        # connected thing we have for its country: a search that runs twice a
+        # day and reports its own health. Excluding it would leave the page
+        # silent about twenty-one countries that ARE collected, which is the
+        # mirror image of the overclaiming the prune above exists to stop.
+        or _is_backstop(row)
     )
+
+
+def _is_backstop(row: dict) -> bool:
+    return (row.get("feed_role") or "").strip().lower() == "backstop"
 
 
 def _catalogue() -> list[dict]:
@@ -534,7 +581,12 @@ def _catalogue() -> list[dict]:
             out.append({
                 "name": row["name"],
                 "url": row["url"],
-                "status": "candidate",
+                # Three states, not two. "candidate" is research; "live" is a
+                # named source a collector reads; "backstop" is a country
+                # reached by discovery search, with no publisher behind the
+                # name. Folding the third into either of the others tells the
+                # reader something untrue in one direction or the other.
+                "status": "backstop" if _is_backstop(row) else "candidate",
                 "category": row.get("category") or "Other",
                 "signals": list(signals),
                 "coverage": row.get("coverage") or "",

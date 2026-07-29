@@ -508,6 +508,23 @@
   "notes": "Verified by the europe region audit, 2026-07-29. National wire service, economy desk."
  },
  {
+  "name": "Antigua and Barbuda (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Antigua and Barbuda",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Antigua Observer",
   "url": "https://antiguaobserver.com",
   "status": "candidate",
@@ -624,6 +641,23 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Aruba (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Aruba",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. No working publisher feed found. Discovery backstop only: a country search whose results are resolved to the publisher's own article before anything is kept."
  },
  {
   "name": "ASCII.jp",
@@ -799,6 +833,23 @@
   "rss": "https://www.bankier.pl/rss/wiadomosci.xml",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Barbados (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Barbados",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "Barbados Today",
@@ -1088,6 +1139,23 @@
   "rss": "https://www.breakit.se/feed/artiklar",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Brunei (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Brunei",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "brutkasten",
@@ -2009,6 +2077,23 @@
   "notes": ""
  },
  {
+  "name": "Curacao (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Curacao",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. No working publisher feed found. Discovery backstop only: a country search whose results are resolved to the publisher's own article before anything is kept."
+ },
+ {
   "name": "Cybersecurity and Infrastructure Security Agency",
   "url": "https://www.cisa.gov",
   "status": "candidate",
@@ -2696,6 +2781,23 @@
   "rss": "https://dohanews.co/feed/",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. Only Qatari publisher found serving a working feed."
+ },
+ {
+  "name": "Dominica (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Dominica",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "Dominica News Online",
@@ -3602,6 +3704,23 @@
   "notes": "Biotech hiring follows FDA milestones."
  },
  {
+  "name": "Fiji (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Fiji",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Financial Afrik",
   "url": "https://financialafrik.com",
   "status": "candidate",
@@ -4132,6 +4251,23 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Official government announcements; primary source. Same rss.<domain> pattern."
  },
  {
+  "name": "Grenada (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Grenada",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Gruenderszene (feed)",
   "url": "https://www.businessinsider.de/gruenderszene/",
   "status": "candidate",
@@ -4210,6 +4346,23 @@
   "rss": "https://habarileo.co.tz/feed/",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. Swahili daily from the same state publisher as Daily News (TSN), on a separate host that is NOT throwing the 500s."
+ },
+ {
+  "name": "Haiti (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Haiti",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "Handelsblatt",
@@ -5405,6 +5558,23 @@
   "notes": "Verified by the apac region audit, 2026-07-29. Business publisher"
  },
  {
+  "name": "Kuwait (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Kuwait",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. Seven national dailies publish HTML only and the state news agency times out, so there is no non-aggregator feed at all. Discovery backstop only: a country search whose results are resolved to the publisher's own article before anything is kept."
+ },
+ {
   "name": "L'Economiste Maghrebin",
   "url": "https://www.leconomistemaghrebin.com",
   "status": "candidate",
@@ -5631,6 +5801,23 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Redirects to /rss/homepage. National business daily."
  },
  {
+  "name": "Laos (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Laos",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Laotian Times",
   "url": "https://laotiantimes.com",
   "status": "candidate",
@@ -5709,6 +5896,23 @@
   "rss": "https://www.leiphone.com/feed",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Chinese AI/tech publisher"
+ },
+ {
+  "name": "Libya (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Libya",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "Libya Herald",
@@ -6381,6 +6585,23 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Mongolia (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Mongolia",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Montevideo Portal",
   "url": "https://www.montevideo.com.uy",
   "status": "candidate",
@@ -6800,6 +7021,23 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Economy-only section feed; higher signal density than the main feed."
  },
  {
+  "name": "Nicaragua (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Nicaragua",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Nikkei Asia",
   "url": "https://asia.nikkei.com",
   "status": "candidate",
@@ -7089,6 +7327,23 @@
   "rss": "https://olhardigital.com.br/feed/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Oman (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Oman",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "OnCuba News",
@@ -7666,6 +7921,23 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Qatar (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Qatar",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "Rappler",
   "url": "https://www.rappler.com",
   "status": "candidate",
@@ -7965,6 +8237,23 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
  },
  {
+  "name": "Rwanda (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Rwanda",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
   "name": "S&P Global Market Intelligence",
   "url": "https://www.spglobal.com/marketintelligence",
   "status": "candidate",
@@ -7992,6 +8281,57 @@
   "rss": "https://www.saastr.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Saint Kitts and Nevis (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Saint Kitts and Nevis",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. No working publisher feed found. Discovery backstop only: a country search whose results are resolved to the publisher's own article before anything is kept."
+ },
+ {
+  "name": "Saint Lucia (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Saint Lucia",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
+  "name": "Saint Vincent and the Grenadines (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Saint Vincent and the Grenadines",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "SAPO TEK",
@@ -8389,6 +8729,23 @@
   "rss": "https://www.spot.uz/rss/",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Business/tech publisher"
+ },
+ {
+  "name": "Sri Lanka (discovery backstop)",
+  "url": "",
+  "status": "backstop",
+  "category": "Discovery Backstop",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Sri Lanka",
+  "rss": "",
+  "free": true,
+  "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
  },
  {
   "name": "St Lucia Times",

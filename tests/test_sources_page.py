@@ -70,6 +70,12 @@ def test_catalogue_only_lists_sources_we_could_actually_connect_to():
             "Government Agency", "Government Open Data", "Regulatory Body",
             "Stock Exchange", "Statistical Agency",
         }
+        # A discovery-backstop row has no feed and no API and is still
+        # collected twice a day: it is a country search that runs and reports
+        # its own health, not a name somebody typed into a spreadsheet. The
+        # rule pinned here is "do not list what we cannot read", and these we
+        # can read.
+        and (r.get("feed_role") or "").strip().lower() != "backstop"
     }
     assert unreachable, "fixture check: the catalogue should still contain some"
 

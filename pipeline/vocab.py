@@ -385,6 +385,14 @@ COUNTRY_NAMES = {
     "AG": "Antigua and Barbuda",
     "AR": "Argentina",
     "AM": "Armenia",
+    # Aruba and Curacao are constituent countries of the Kingdom of the
+    # Netherlands rather than UN members, which is why a list built from the
+    # UN roll left them out. Both are their own labour markets, both are
+    # already on the Americas region tab, and both are countries the news
+    # backstop now searches. Without an entry here a story from either
+    # normalises to nothing and the record is rejected: a place a collector
+    # covers and the vocabulary cannot admit.
+    "AW": "Aruba",
     "AU": "Australia",
     "AT": "Austria",
     "AZ": "Azerbaijan",
@@ -420,6 +428,7 @@ COUNTRY_NAMES = {
     "CI": "Cote d'Ivoire",
     "HR": "Croatia",
     "CU": "Cuba",
+    "CW": "Curacao",
     "CY": "Cyprus",
     "CZ": "Czechia",
     "CD": "DR Congo",
@@ -586,6 +595,8 @@ _COUNTRY_ALIASES = {name.lower(): code for code, name in COUNTRY_NAMES.items()}
 _COUNTRY_ALIASES.update({'usa': 'US',
     'u.s.': 'US',
     'u.s.a.': 'US',
+    # The island spells itself with a cedilla and half the wire copy does not.
+    'curaçao': 'CW',
     'america': 'US',
     'united states of america': 'US',
     'uk': 'GB',

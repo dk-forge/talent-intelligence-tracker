@@ -25,6 +25,18 @@ article URL as the publisher's own feed states it, and `load_feeds()` refuses
 outright to load a feed hosted on an aggregator (see `_AGGREGATOR_HOSTS`), so
 the rule cannot be broken by a careless CSV edit later.
 
+THE COUNTRIES A FEED CANNOT REACH
+---------------------------------
+Twenty-one countries have no usable publisher feed, or exactly one, which for a
+whole country is a single point of failure. Those rows are marked `backstop` in
+the catalogue and handed to `collectors/news_backstop.py`, which searches for
+each country, resolves every redirect to the publisher's own article and drops
+anything that does not resolve. Its results join this collector's items and this
+collector's per-feed ledger, because "which countries did this run reach" has to
+have one answer rather than two. The refusal above is untouched: a
+`news.google.com` URL still cannot be listed as a feed, and still cannot reach
+the database.
+
 GEOGRAPHY, AND WHY IT IS A DATELINE
 -----------------------------------
 "Enigma Raises $71M" places nowhere. Enigma is Israeli, we stored country NULL,
@@ -175,7 +187,11 @@ FEED_HEALTH: list[dict] = []
 # recorded, and a mismatch is refused rather than stored.
 #
 # Two-label suffixes that would otherwise make "co.bw" look like the registrable
-# domain, so that any two Botswana sites would compare equal.
+# domain, so that any two Botswana sites would compare equal. The second block
+# is the Caribbean, the Gulf and the small-island suffixes the discovery
+# backstop reaches: `guardian.co.tt` reduced to "co.tt" before they were
+# listed, which made any two Trinidadian hosts compare equal — the guard
+# passing for the wrong reason, which is worse than it failing.
 _MULTI_SUFFIXES = frozenset("""
     co.uk co.za co.bw co.ke co.tz co.zw co.il co.jp co.kr co.in co.id co.th
     co.nz com.au com.br com.mx com.ar com.co com.pe com.tr com.sg com.my
@@ -183,6 +199,8 @@ _MULTI_SUFFIXES = frozenset("""
     com.qa com.kw com.bh com.om com.jo com.lb com.uy com.ec com.bo com.py
     com.do com.pa com.gt com.sv com.ni com.cy com.mt com.ua org.uk org.za
     net.au gov.uk ac.uk or.ke go.ke
+    co.tt com.bb com.lc com.vc com.ag com.kn com.dm com.gd com.fj com.bn
+    com.lk com.mn com.ly com.aw com.cw com.ht com.rw
 """.split())
 
 
@@ -813,6 +831,41 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
         was_quiet = int((previous.get(feed.name) or {}).get("quiet_runs") or 0)
         record["quiet_runs"] = 0 if record["new"] else was_quiet + 1
 
+        STATS["items"] += record["items"]
+        STATS[record["status"] if record["status"] == "ok" else "dead"] += 1
+        FEED_HEALTH.append(record)
+
+    # The countries this collector cannot reach by feed, reached by discovery
+    # instead. Deliberately NOT a second entry in run_collect's SOURCES: it is
+    # the same catalogue, the same funnel and the same ledger, and splitting it
+    # out would answer "which countries did this run reach" with half the
+    # answer. The aggregator refusal in load_feeds() above is untouched and
+    # still absolute — news_backstop reads Google News as a POINTER and returns
+    # only publisher URLs, which is a different thing from listing an
+    # aggregator as a source.
+    #
+    # Only when the caller did not hand us a population. `feeds=[...]` means
+    # "read exactly these", which is what every test does, and a collector that
+    # reached the network anyway on an explicit list would make the offline
+    # suite depend on Google being up.
+    from collectors import news_backstop
+
+    backstop_items, backstop_health = (
+        news_backstop.collect(session=session) if feeds is None else ([], []))
+    for item in backstop_items:
+        url = item["source_url"]
+        if url in seen_urls:
+            STATS["duplicate_url"] += 1
+            continue
+        seen_urls.add(url)
+        key = title_key(item["headline"])
+        if key and key in seen_titles:
+            STATS["syndicated"] += 1
+            continue
+        seen_titles.add(key)
+        out.append(item)
+    STATS["feeds"] += len(backstop_health)
+    for record in backstop_health:
         STATS["items"] += record["items"]
         STATS[record["status"] if record["status"] == "ok" else "dead"] += 1
         FEED_HEALTH.append(record)

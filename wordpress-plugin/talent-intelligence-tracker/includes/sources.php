@@ -88,7 +88,15 @@ function tit_sources_last_run($row) {
 function tit_sources_render($sources) {
     $health = tit_sources_health_map();
     $live = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') === 'live'));
-    $cand = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') !== 'live'));
+    // Counted apart from "researched" on purpose. A backstop country IS
+    // collected twice a day, so calling it research understates it; but there
+    // is no publisher behind the name, so calling it a live source would imply
+    // a relationship with an outlet that does not exist.
+    $back = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') === 'backstop'));
+    $cand = array_values(array_filter(
+        $sources,
+        fn($s) => ($s['status'] ?? '') !== 'live' && ($s['status'] ?? '') !== 'backstop'
+    ));
 
     $countries  = array_values(array_unique(array_filter(array_column($sources, 'country'))));
     $categories = array_values(array_unique(array_filter(array_column($sources, 'category'))));
@@ -175,6 +183,7 @@ function tit_sources_render($sources) {
         <select id="tit-s-status" aria-label="Filter by status">
           <option value="">Running and researched</option>
           <option value="live">Running now</option>
+          <option value="backstop">Discovery backstop</option>
           <option value="candidate">Researched only</option>
         </select>
         <select id="tit-s-country" aria-label="Filter by country">
@@ -198,9 +207,11 @@ function tit_sources_render($sources) {
       ?>
       <p class="tit-note" id="tit-s-count"><?php
         printf(
-            '%s live %s, %s researched',
+            '%s live %s, %s %s reached by discovery search, %s researched',
             esc_html(number_format_i18n(count($live))),
             count($live) === 1 ? 'collector' : 'collectors',
+            esc_html(number_format_i18n(count($back))),
+            count($back) === 1 ? 'country' : 'countries',
             esc_html(number_format_i18n(count($cand)))
         );
       ?></p>
@@ -218,8 +229,15 @@ function tit_sources_render($sources) {
                 data-category="<?php echo esc_attr($s['category']); ?>"
                 data-search="<?php echo esc_attr(strtolower($s['name'] . ' ' . $s['category'] . ' ' . $sig)); ?>">
               <td class="tit-headline" data-label="Source">
-                <span class="tit-h"><a href="<?php echo esc_url($s['url']); ?>"
-                   rel="nofollow noopener" target="_blank"><?php echo esc_html($s['name']); ?></a></span>
+                <?php // A backstop row names a COUNTRY, not a publisher, so there
+                      // is no site to link to and inventing one would be the
+                      // exact implication this row exists to avoid. ?>
+                <?php if (!empty($s['url'])) : ?>
+                  <span class="tit-h"><a href="<?php echo esc_url($s['url']); ?>"
+                     rel="nofollow noopener" target="_blank"><?php echo esc_html($s['name']); ?></a></span>
+                <?php else : ?>
+                  <span class="tit-h"><?php echo esc_html($s['name']); ?></span>
+                <?php endif; ?>
                 <?php if (!empty($s['notes'])) : ?>
                   <span class="tit-rt"><?php echo esc_html($s['notes']); ?></span>
                 <?php endif; ?>
@@ -228,7 +246,9 @@ function tit_sources_render($sources) {
                 <?php
                 $h = $health[$s['name']] ?? null;
                 $state = $h['status'] ?? '';
-                if ($s['status'] !== 'live') : ?>
+                if ($s['status'] === 'backstop') : ?>
+                  <span class="tit-conf">discovery backstop</span>
+                <?php elseif ($s['status'] !== 'live') : ?>
                   <span class="tit-conf">researched</span>
                 <?php elseif ($state === 'degraded' || $state === 'error') : ?>
                   <span class="tit-conf tit-c-degraded">running, degraded</span>
@@ -289,7 +309,7 @@ function tit_sources_render($sources) {
 
       function apply() {
         var term = (q.value || '').trim().toLowerCase();
-        var liveShown = 0, candShown = 0, shown = 0;
+        var liveShown = 0, backShown = 0, candShown = 0, shown = 0;
         rows.forEach(function (tr) {
           var ok = (!f.status.value   || tr.dataset.status   === f.status.value)
                 && (!f.country.value  || tr.dataset.country  === f.country.value)
@@ -298,7 +318,9 @@ function tit_sources_render($sources) {
           tr.style.display = ok ? '' : 'none';
           if (ok) {
             shown++;
-            if (tr.dataset.status === 'live') liveShown++; else candShown++;
+            if (tr.dataset.status === 'live') liveShown++;
+            else if (tr.dataset.status === 'backstop') backShown++;
+            else candShown++;
             /* Re-stripe by class: display:none rows still count for CSS
                nth-child, so a filtered table would stripe unevenly. */
             tr.classList.toggle('tit-even', shown % 2 === 0);
@@ -310,6 +332,9 @@ function tit_sources_render($sources) {
            bare "N sources" that reads as coverage. */
         count.textContent = liveShown +
           (liveShown === 1 ? ' live collector, ' : ' live collectors, ') +
+          backShown +
+          (backShown === 1 ? ' country reached by discovery search, '
+                           : ' countries reached by discovery search, ') +
           candShown + ' researched';
       }
 
