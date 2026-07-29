@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:47:32Z",
+  "last_tick": "2026-07-29T18:48:09Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,27 +158,27 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:47:32Z",
+      "dispatched_at": "2026-07-29T18:48:09Z",
       "history": [
         {
-          "at": "2026-07-29T18:47:21Z",
-          "detail": "guardrail finding rejected on the filing: c8952c565623",
+          "at": "2026-07-29T18:47:58Z",
+          "detail": "guardrail finding rejected on the filing: a7ea0346ba8c",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:47:32Z",
+          "at": "2026-07-29T18:48:09Z",
           "detail": "",
           "event": "dispatched"
         }
       ],
-      "id": "20260729T184721Z-retract",
+      "id": "20260729T184758Z-retract",
       "inputs": {
-        "reason": "Not funding. The 9.9 billion USD is what Danaher is paying to acquire Masimo at 180.00 USD per share in cash, per Masimo's own 8-K exhibit 99.1 of 2026-02-17. Acquisition consideration was counted as money raised.",
-        "signal_id": "c8952c565623b370b55ef08fe22b07d6"
+        "reason": "Not funding. The Form D itself answers yes to business combination transaction and explains: merger of W.D. Company, Inc. with and into Dillard's, Inc. The amount is stated as estimated based on the closing price of Dillard's Class A common stock on 2026-06-02, so it is the value of shares issued as merger consideration and no cash was raised.",
+        "signal_id": "a7ea0346ba8cb074f447a7e0f78687d3"
       },
       "priority": -1,
-      "reason": "guardrail finding rejected on the filing: c8952c565623",
-      "requested_at": "2026-07-29T18:47:21Z",
+      "reason": "guardrail finding rejected on the filing: a7ea0346ba8c",
+      "requested_at": "2026-07-29T18:47:58Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "dispatched",
@@ -484,6 +484,45 @@
       "requested_at": "2026-07-29T18:46:33Z",
       "requested_by": "dakotta-labs",
       "run_id": "30481472672",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:47:32Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:47:21Z",
+          "detail": "guardrail finding rejected on the filing: c8952c565623",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:47:32Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:48:09Z",
+          "detail": "run 30481526547",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:48:09Z",
+          "detail": "run 30481526547",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T184721Z-retract",
+      "inputs": {
+        "reason": "Not funding. The 9.9 billion USD is what Danaher is paying to acquire Masimo at 180.00 USD per share in cash, per Masimo's own 8-K exhibit 99.1 of 2026-02-17. Acquisition consideration was counted as money raised.",
+        "signal_id": "c8952c565623b370b55ef08fe22b07d6"
+      },
+      "landed_at": "2026-07-29T18:48:09Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: c8952c565623",
+      "requested_at": "2026-07-29T18:47:21Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481526547",
       "state": "landed",
       "workflow": "retract.yml"
     }
