@@ -38,6 +38,12 @@ function tit_register_routes() {
     register_rest_route(TIT_NS, '/enrich', array(
         'methods' => 'POST', 'callback' => 'tit_api_enrich', 'permission_callback' => $keyed,
     ));
+    // Corrections to what we SAID about a source, on rows already published.
+    // Deliberately NOT part of /enrich: that route is for derived values, and
+    // these two are closer to facts. See tit_api_correct().
+    register_rest_route(TIT_NS, '/correct', array(
+        'methods' => 'POST', 'callback' => 'tit_api_correct', 'permission_callback' => $keyed,
+    ));
     register_rest_route(TIT_NS, '/health', array(
         'methods' => 'POST', 'callback' => 'tit_api_report_health', 'permission_callback' => $keyed,
     ));
@@ -778,6 +784,101 @@ function tit_api_retract(WP_REST_Request $req) {
 
     tit_flush_caches();
     return rest_ensure_response(array('retracted' => (int) $updated, 'signal_id' => $signal_id));
+}
+
+/**
+ * Correct what we SAID about a source, on rows that are already published.
+ *
+ * Two columns only, and they are not in tit_enrichable_columns() on purpose.
+ * /enrich writes DERIVED values — a re-parsed figure, a looked-up ticker — and
+ * is safe to be liberal with because a bug there adds a wrong label. These two
+ * are the opposite: signal_direction is the badge a reader sees, and
+ * talent_readthrough is the sentence under it. Both are assertions about a
+ * source, so a bug here does not mislabel a row, it misquotes one. They get a
+ * narrower door rather than a wider allowlist on the existing one.
+ *
+ * Why an in-place update is safe: content_hash is md5 of
+ * company_key|pillar|published_date|normalised_headline (pipeline/validate.py,
+ * content_hash()). Neither of these columns is an input, so correcting them
+ * cannot move a row's hash and cannot orphan the dedup. That is what makes
+ * this preferable to purge-and-reimport, which would churn thousands of rows.
+ *
+ * The request must NAME the collector it is correcting, and every UPDATE is
+ * scoped to it. A correction pass is written against one source's logic; if
+ * the caller builds a bad batch it can then only damage the source it claimed,
+ * never sweep rows belonging to another.
+ *
+ * What this route still cannot do: create a row, revive a retracted one
+ * (is_current = 1 is required), or blank a value — an absent or empty field is
+ * "no correction for this one", never an erasure.
+ */
+function tit_correctable_columns() {
+    return array('signal_direction', 'talent_readthrough');
+}
+
+function tit_api_correct(WP_REST_Request $req) {
+    global $wpdb;
+    $body = $req->get_json_params();
+    $rows = isset($body['rows']) && is_array($body['rows']) ? $body['rows'] : null;
+    $collector = isset($body['collector']) ? sanitize_text_field($body['collector']) : '';
+
+    if ($rows === null || $collector === '') {
+        return new WP_Error('tit_bad_body',
+            'Expected {"collector": "...", "rows": [...]}: a correction must name '
+            . 'the source it is correcting.', array('status' => 400));
+    }
+
+    $table = tit_table_name();
+    $allowed = tit_correctable_columns();
+    $directions = tit_allowed_directions();
+    $updated = 0; $missing = 0; $skipped = 0; $errors = array();
+
+    foreach ($rows as $i => $row) {
+        if (!is_array($row) || empty($row['content_hash'])) {
+            $errors[] = array('index' => $i, 'error' => 'content_hash is required');
+            continue;
+        }
+        $data = array();
+        foreach ($allowed as $col) {
+            if (!array_key_exists($col, $row) || $row[$col] === null || $row[$col] === '') {
+                continue;
+            }
+            $value = (string) $row[$col];
+            // The badge is a closed vocabulary. A typo here would render as a
+            // label nothing filters on, which is worse than the wrong badge.
+            if ($col === 'signal_direction' && !in_array($value, $directions, true)) {
+                $errors[] = array('index' => $i,
+                                  'error' => 'signal_direction not in vocabulary: ' . $value);
+                continue 2;
+            }
+            $data[$col] = $value;
+        }
+        if (!$data) { $skipped++; continue; }
+
+        $ok = $wpdb->update($table, $data, array(
+            'content_hash' => (string) $row['content_hash'],
+            'collector'    => $collector,
+            'is_current'   => 1,
+        ));
+        if ($ok === false) {
+            $errors[] = array('index' => $i, 'error' => 'update failed');
+        } elseif ($ok === 0) {
+            // No live row with that hash for that collector, or it already
+            // holds the corrected values. Re-running a correction is expected.
+            $missing++;
+        } else {
+            $updated += (int) $ok;
+        }
+    }
+
+    if ($updated > 0) {
+        tit_flush_caches();
+    }
+    return rest_ensure_response(array(
+        'collector' => $collector, 'corrected' => $updated,
+        'unchanged_or_missing' => $missing, 'skipped_no_fields' => $skipped,
+        'errors' => $errors,
+    ));
 }
 
 /**
