@@ -13,6 +13,89 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — the sitemap was a list of promises and 22 of them were false
+
+Plugin 1.45.5 and 1.46.0, both a consequence of the same review note.
+
+### What a twenty-URL sample could not find
+
+The company sitemap shipped 712 URLs. Twenty were fetched by hand and all
+twenty passed. **Twenty-two were broken**, and a reviewer hit one on their fifth
+random pick.
+
+An employer key containing "&" was written into `<loc>` as the XML entity
+`&#038;`. That is correct XML. The problem is that consumers disagree about it:
+
+| form in the URL | result, measured |
+|---|---|
+| `%26` percent-encoded | 404, does not survive the WordPress rewrite |
+| `&#038;` XML entity, unresolved | 301 to `/company/b-&/` then 404 |
+| `&` literal, entity resolved | 200 |
+
+The sample resolved the entity, so it only ever exercised the row that works.
+**The sample and the bug were the same shape**, which is the only reason twenty
+passes meant nothing. That pair of outcomes is exactly the "Page with redirect"
+plus "Not found (404)" report the owner has already had to forward once from
+Search Console.
+
+`check_sitemap_urls.py` now fetches EVERY URL in the file with redirects
+disabled and asserts 200, no redirect hop, no noindex, and no decoder-dependent
+character in the RAW `<loc>` text. It reads the raw text rather than the parsed
+tree, because the parsed tree is what hid this. 713 requests take about a
+minute. **A sitemap is a list of promises and the only check that verifies a
+list of promises is checking all of them.**
+
+It also retries a 5xx three times with a long backoff. A first version retried
+after 1.5s and 3s, reported one URL as a hard 504, and that URL answered 200 in
+2.4s a minute later: all three attempts had landed inside one bad window, so the
+checker was measuring its own impatience. Shared hosting 5xxes at random
+(gotcha 8) and a checker that cries wolf teaches its reader to skim.
+
+### 1.45.5, immediately: stop advertising them
+
+The 22 were withheld from the sitemap and made noindex, because their URL was
+about to change and asking a crawler to index a URL you are replacing is the
+same defect from the other side. Pages stayed reachable and stayed linked.
+Sitemap 712 -> 690, and 690/690 verified clean.
+
+### 1.46.0: the slug transliterates
+
+An ampersand has no safe encoding, so it stops being encoded. The slug is now
+`remove_accents`, `&` -> `and`, everything outside `[a-z0-9]` -> `-`:
+`b-and-m-retail`, `atkinsrealis-uk`. 167 of 7,301 keys change and **all 162 that
+had no publishable URL get one**. Sitemap 690 -> **713, all verified clean**.
+
+- **No live link breaks.** The lookup is two steps: the pre-1.46 comparison
+  exactly as it was (which resolves every URL that has ever worked here), then a
+  small index for the canonical forms SQL cannot express. The old URL 301s to
+  the canonical one, so no employer is indexable at two addresses.
+- **The index holds only the 167 keys whose two forms differ**, so the common
+  path is one indexed query touching no map. A 7,301-entry array behind every
+  request would have been a quarter of a megabyte.
+- **Collisions are refused, not resolved.** Three canonical slugs are claimed by
+  two keys each, and all three pairs are one employer recorded twice
+  ("perma-fix"/"perma fix", "daré bioscience"/"dare bioscience", one NHS trust
+  filed with "&" and with "and"). Neither side is served under the shared URL
+  and neither is published. The fix is a merge in employer identity. None is
+  over the publishing threshold.
+- Two of those pairs also SHADOW: one key's canonical slug is another key's
+  legacy slug. Checked explicitly; they are the same two duplicate pairs, so the
+  collision rule already covers them and no third employer is affected.
+
+### The truncated key, and its cause
+
+`company_key` used `\b(inc|llc|ltd|...|co|...)\b` to strip legal suffixes, and a
+hyphen is a word boundary, so `\bco\b` matched the "co" inside "co-operative".
+**CO-OPERATIVE GROUP LIMITED was stored as `-operative group`.** Six real
+employers were mangled: also ASSOCIATED BANC-CORP (`associated banc-`),
+CO-DIAGNOSTICS (`-diagnostics`), two more co-operatives, and Overlay Alpha
+Co-GP. A lookaround now requires a whole space-delimited token; measured across
+7,770 distinct stored names, the key changes for those six and nothing else.
+
+**Rows already stored keep the mangled key.** `company_key` feeds
+`content_hash`, so a new signal for one of those six will not dedupe against the
+old rows until a correction pass rewrites them through `store.revise()`. That is
+a queued writer job and was deliberately not done in the same commit.
 ## 2026-07-29 — backfills in bounded slices, and a scope guard that reads the filing
 
 Two fixes for two things that were true all day: a backfill could hold the only

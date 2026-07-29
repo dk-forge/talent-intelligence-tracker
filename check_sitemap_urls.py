@@ -41,6 +41,7 @@ import argparse
 import random
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -75,9 +76,27 @@ def fetch(url, timeout=45):
         return f"ERR {type(exc).__name__}", {}, ""
 
 
-def check_one(url):
-    """Return a list of complaints about this URL. Empty means it passed."""
-    status, headers, body = fetch(url)
+def check_one(url, attempts=3):
+    """Return a list of complaints about this URL. Empty means it passed.
+
+    Transient 5xx are RETRIED rather than reported. This is shared hosting and
+    it 502s and 504s at random under load (gotcha 8 in CLAUDE.md); a checker
+    that reports those as broken URLs trains its reader to skim the failures,
+    which is how a real one gets missed.
+
+    The backoff is deliberately long. A first pass retried after 1.5s and 3s and
+    still reported one URL as a hard 504; the same URL answered 200 in 2.4s a
+    minute later. All three attempts had landed inside one bad window, which is
+    a checker measuring its own impatience. Seconds are free here and a false
+    failure is not.
+    """
+    for attempt in range(attempts):
+        status, headers, body = fetch(url)
+        if not (isinstance(status, int) and 500 <= status < 600):
+            break
+        if attempt < attempts - 1:
+            time.sleep(5 * (attempt + 1))
+
     problems = []
 
     if status != 200:
