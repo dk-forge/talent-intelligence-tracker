@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:46:46Z",
+  "last_tick": "2026-07-29T18:47:32Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,27 +158,27 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:46:46Z",
+      "dispatched_at": "2026-07-29T18:47:32Z",
       "history": [
         {
-          "at": "2026-07-29T18:46:33Z",
-          "detail": "guardrail finding rejected on the filing: e008269d6b2d",
+          "at": "2026-07-29T18:47:21Z",
+          "detail": "guardrail finding rejected on the filing: c8952c565623",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:46:46Z",
+          "at": "2026-07-29T18:47:32Z",
           "detail": "",
           "event": "dispatched"
         }
       ],
-      "id": "20260729T184633Z-retract",
+      "id": "20260729T184721Z-retract",
       "inputs": {
-        "reason": "Not a capital raise. The Form D reports the value of shares issued in Madison Air's pre-IPO reorganization, not money raised: the 424B4 of 2026-04-17 describes the Organizational Transactions as a reorganization of entities under common control, and 402,614,670 unregistered shares at the 27.00 USD IPO price is exactly the 10,870,596,090 USD on the form. The only cash private placement disclosed is 100.0 million USD from Holdings.",
-        "signal_id": "e008269d6b2d4981d74d30cd203c730b"
+        "reason": "Not funding. The 9.9 billion USD is what Danaher is paying to acquire Masimo at 180.00 USD per share in cash, per Masimo's own 8-K exhibit 99.1 of 2026-02-17. Acquisition consideration was counted as money raised.",
+        "signal_id": "c8952c565623b370b55ef08fe22b07d6"
       },
       "priority": -1,
-      "reason": "guardrail finding rejected on the filing: e008269d6b2d",
-      "requested_at": "2026-07-29T18:46:33Z",
+      "reason": "guardrail finding rejected on the filing: c8952c565623",
+      "requested_at": "2026-07-29T18:47:21Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "dispatched",
@@ -447,6 +447,45 @@
       "run_id": "30481065108",
       "state": "failed",
       "workflow": "backfill-funding-bulk.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:46:46Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:46:33Z",
+          "detail": "guardrail finding rejected on the filing: e008269d6b2d",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:46:46Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:47:32Z",
+          "detail": "run 30481472672",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:47:32Z",
+          "detail": "run 30481472672",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T184633Z-retract",
+      "inputs": {
+        "reason": "Not a capital raise. The Form D reports the value of shares issued in Madison Air's pre-IPO reorganization, not money raised: the 424B4 of 2026-04-17 describes the Organizational Transactions as a reorganization of entities under common control, and 402,614,670 unregistered shares at the 27.00 USD IPO price is exactly the 10,870,596,090 USD on the form. The only cash private placement disclosed is 100.0 million USD from Holdings.",
+        "signal_id": "e008269d6b2d4981d74d30cd203c730b"
+      },
+      "landed_at": "2026-07-29T18:47:32Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: e008269d6b2d",
+      "requested_at": "2026-07-29T18:46:33Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481472672",
+      "state": "landed",
+      "workflow": "retract.yml"
     }
   ],
   "version": 1
