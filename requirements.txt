@@ -1,1 +1,10 @@
 requests>=2.31.0
+
+# Test-only, but it belongs here rather than in a note nobody reads.
+# Three test modules parse the workflow YAML to assert things the code cannot
+# assert about itself: that every database writer shares the talent-collect
+# lock, and that the link-rot and tripwire jobs ship dormant. Without pyyaml
+# two of them collapse to ModuleNotFoundError, so the setup CLAUDE.md documents
+# produced a red suite, and the guards that matter most were the ones reading
+# as broken.
+PyYAML>=6.0
