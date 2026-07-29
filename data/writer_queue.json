@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:56:32Z",
+  "last_tick": "2026-07-29T18:58:30Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,31 +158,30 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:56:32Z",
+      "dispatched_at": "2026-07-29T18:58:30Z",
       "history": [
         {
-          "at": "2026-07-29T18:54:20Z",
-          "detail": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
+          "at": "2026-07-29T18:58:16Z",
+          "detail": "withdraw the 7 workforce-reduction records that breached scope (4 known + Elastic, Commerce.com, Verizon)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:56:32Z",
+          "at": "2026-07-29T18:58:30Z",
           "detail": "",
           "event": "dispatched"
         }
       ],
-      "id": "20260729T185420Z-retract",
+      "id": "20260729T185816Z-correct-layoff-scope",
       "inputs": {
-        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody. Re-queued: the first run withdrew it on WordPress and locally but lost its push to a concurrent commit, so the withdrawal never reached the committed database.",
-        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
+        "dry_run": "false"
       },
-      "priority": -1,
-      "reason": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
-      "requested_at": "2026-07-29T18:54:20Z",
+      "priority": 0,
+      "reason": "withdraw the 7 workforce-reduction records that breached scope (4 known + Elastic, Commerce.com, Verizon)",
+      "requested_at": "2026-07-29T18:58:16Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "dispatched",
-      "workflow": "retract.yml"
+      "workflow": "correct-layoff-scope.yml"
     },
     {
       "attempts": 0,
@@ -756,6 +755,45 @@
       "requested_at": "2026-07-29T18:51:39Z",
       "requested_by": "dakotta-labs",
       "run_id": "30482041924",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:56:32Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:54:20Z",
+          "detail": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:56:32Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:58:30Z",
+          "detail": "run 30482192005",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:58:30Z",
+          "detail": "run 30482192005",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T185420Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody. Re-queued: the first run withdrew it on WordPress and locally but lost its push to a concurrent commit, so the withdrawal never reached the committed database.",
+        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
+      },
+      "landed_at": "2026-07-29T18:58:30Z",
+      "priority": -1,
+      "reason": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
+      "requested_at": "2026-07-29T18:54:20Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30482192005",
       "state": "landed",
       "workflow": "retract.yml"
     }
