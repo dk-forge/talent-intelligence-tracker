@@ -176,7 +176,31 @@ function tit_company_slug($company_key) {
  * change and a migration, not a line here.
  */
 function tit_company_servable_slug($company_key) {
-    return $company_key !== '' && !preg_match('/[^\x20-\x7E]/', $company_key);
+    if ($company_key === '' || preg_match('/[^\x20-\x7E]/', $company_key)) return false;
+
+    /*
+     * AND AN AMPERSAND CANNOT BE ADVERTISED IN ANY ENCODING.
+     *
+     * The page route serves /company/b&q/ perfectly well. A SITEMAP is a
+     * different problem, because a <loc> has to survive two decoders and they
+     * disagree. Measured on 1.45.4, on the URLs we were publishing:
+     *
+     *   percent-encoded   %26      404, does not survive the rewrite
+     *   XML entity        &#038;   301 to /company/b-&/ then 404, for any
+     *                              consumer that does NOT resolve the entity
+     *   resolved literal  &        200, for a consumer that does
+     *
+     * So 22 of the 712 URLs in the file were a redirect into a 404 for half the
+     * readers of it, which is the "Page with redirect" plus "Not found (404)"
+     * pair the owner has already had to forward once from Search Console. A
+     * sample of twenty passed. Fetching the whole file is the only check that
+     * finds this, which is why check_sitemap_urls.py now exists.
+     *
+     * Withheld until they have a slug that is safe in both encodings. The pages
+     * stay reachable and stay linked from the dashboard table; they are just
+     * not advertised, and not indexable while their URL is about to change.
+     */
+    return strpos($company_key, '&') === false;
 }
 
 function tit_company_url($company_key) {

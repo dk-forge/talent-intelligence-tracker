@@ -181,6 +181,16 @@ def test_an_ampersand_is_left_literal_in_a_slug():
     assert "str_replace('%26', '&', rawurlencode(" in COMPANY
 
 
+def test_an_ampersand_url_is_never_advertised_in_the_sitemap():
+    """A <loc> has to survive two decoders and they disagree: %26 404s, the
+    entity &#038; 301s into a 404 for any consumer that does not resolve it, and
+    only a consumer that does resolve it gets a 200. 22 of 712 published URLs
+    were that, and a twenty-URL sample passed."""
+    body = COMPANY[COMPANY.index("function tit_company_servable_slug"):]
+    body = body[:body.index("\n}\n")]
+    assert "strpos($company_key, '&') === false" in body
+
+
 def test_a_url_we_cannot_serve_is_never_published():
     """A percent-encoded non-ASCII byte does not survive the rewrite either, and
     neither does the literal character. A sitemap full of 404s is the signal
