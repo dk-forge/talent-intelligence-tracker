@@ -382,8 +382,13 @@ function tit_dashboard_shortcode() {
             <span class="tit-basis-say" id="tit-basis-say">Showing where the work
               is. When a source names no place we use the employer's head
               office.</span>
+            <?php /* The button names its DESTINATION, and the server renders
+                     the same words JavaScript would, so a reader without it (or
+                     anyone looking at the first paint) is never shown a label
+                     that describes the wrong direction. The default basis is
+                     "any", so the offer is the strict alternative. */ ?>
             <button type="button" class="tit-basis-btn" id="tit-basis-btn"
-                    aria-pressed="false">Use head office instead</button>
+                    aria-pressed="false">Only use places a source named</button>
           </p>
         </div>
 

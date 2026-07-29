@@ -1310,3 +1310,18 @@ html:has(#tit-dashboard), body:has(#tit-dashboard) { overflow-x:clip; }
 
 .tit-reset-field { grid-column:1 / -1; justify-content:flex-start; }
 .tit-wrap .tit-reset-btn { width:auto; min-width:180px; }
+
+/* At 375px the two date inputs plus the word between them are the tightest
+   thing in the panel. Trimming their padding keeps them on ONE row, which is
+   the whole point of the control: a range split over two rows reads as two
+   unrelated dates. */
+@media (max-width:420px){
+  .tit-daterange { gap:6px; }
+  .tit-wrap .tit-daterange input { padding:7px 6px; font-size:13px; }
+  .tit-daterange-to { font-size:11px; }
+}
+/* Six stacked list boxes is a lot of height on a phone; they are inside a panel
+   that ships collapsed, and each one still shows five rows before scrolling. */
+@media (max-width:560px){
+  .tit-wrap .tit-filters select[multiple] { min-height:84px; }
+}
