@@ -81,6 +81,49 @@ def fuzzy_duplicate(conn: sqlite3.Connection, signal) -> str | None:
     return None
 
 
+def funding_event_duplicate(conn: sqlite3.Connection, company_key: str,
+                            amount_usd: int | None, amount_canon: str,
+                            days: int = 21) -> str | None:
+    """A funding round we already hold, matched BEFORE any model is paid.
+
+    fuzzy_duplicate above catches the same round after classification, which
+    means the read-through was already bought. This runs on the deterministic
+    parse of the headline (pipeline/cheap_extract.py), so the seventh outlet
+    to rewrite a round we stored on Monday costs nothing at all.
+
+    Matched on employer + amount, inside a recency window. The amount match
+    uses the USD integer when both sides parse, else the canonical text form
+    (currency kept, so €71M never matches $71M). Returns the existing
+    signal_id, or None — and None on any doubt, because the cost of a miss
+    here is one paid read, while a false match silently drops a real story.
+    """
+    if not company_key or not amount_canon:
+        return None
+    since = (date.today() - timedelta(days=days)).isoformat()
+    rows = conn.execute(
+        """
+        SELECT signal_id, funding_amount, funding_amount_usd
+          FROM signals
+         WHERE is_current = 1
+           AND company_key = ?
+           AND pillar = 'company_development'
+           AND funding_amount IS NOT NULL
+           AND published_date >= ?
+        """,
+        (company_key, since),
+    ).fetchall()
+
+    from . import cheap_extract  # local import; cheap_extract imports nothing from here
+
+    for row in rows:
+        if amount_usd is not None and row["funding_amount_usd"] == amount_usd:
+            return row["signal_id"]
+        stored_canon = cheap_extract._canon_amount(row["funding_amount"] or "")
+        if stored_canon and stored_canon == amount_canon:
+            return row["signal_id"]
+    return None
+
+
 def _token_overlap(a: str, b: str) -> float:
     ta = set(a.lower().split())
     tb = set(b.lower().split())

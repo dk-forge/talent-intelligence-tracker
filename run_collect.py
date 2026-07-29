@@ -19,7 +19,8 @@ import source_registry as registry
 from collectors import (ats_boards, gdelt, google_news, national_press,
                         sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
                         uk_paygap)
-from pipeline import classify, prefilter, publish, schema, store, validate
+from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
+                      schema, store, validate)
 
 # Registration. A collector that exposes `as_classified` derives its own
 # record from structured fields and never calls the model, so it skips the
@@ -185,6 +186,71 @@ def fair_share(items: list[dict], limit: int) -> list[dict]:
     return out
 
 
+def cluster_stories(items: list[dict]) -> tuple[list[dict], list[dict], int]:
+    """Story clustering, before anything is paid for (cost lever 2).
+
+    URL dedup and the syndicated-title check catch verbatim copies; what
+    survives them is the same round REWRITTEN by six outlets — six distinct
+    URLs, six distinct headlines, one event, and until this existed six paid
+    reads. Gate-survivors whose headlines state the same (employer, amount)
+    are one story: read ONE representative, and the rest are not re-read.
+
+    The key is deterministic (cheap_extract.cluster_key) and requires both
+    the employer and the amount stated outright, so a false merge needs two
+    different companies with colliding normalised names raising an identical
+    stated amount inside one run's fetch window. Items whose headline states
+    no (employer, amount) pair are never clustered.
+
+    The representative is the member the deterministic extractor can close
+    (the whole cluster then costs $0), else the one with the most text for
+    the model.
+
+    Two tiers. The STRICT key needs a validly named employer, so its set-aside
+    copies are marked seen and never fetched again. The LOOSE key (final token
+    before the verb — "…startup Fixxly raises $5.5 Mn", where the strict name
+    rules rightly refuse the descriptor phrase) is only trusted within this
+    run: its copies are set aside unmarked, so a false merge costs a deferred
+    read, never a lost story.
+
+    Returns (kept, removed_strict, removed_loose, clusters_formed).
+    """
+    strict: dict[tuple, list[int]] = {}
+    loose: dict[tuple, list[int]] = {}
+    for i, item in enumerate(items):
+        key = cheap_extract.cluster_key(item)
+        if key is not None:
+            strict.setdefault(key, []).append(i)
+            continue
+        key = cheap_extract.loose_cluster_key(item)
+        if key is not None:
+            loose.setdefault(key, []).append(i)
+
+    def representative(members: list[int]) -> int:
+        rep = next((i for i in members
+                    if cheap_extract.extract(items[i], count=False) is not None),
+                   None)
+        if rep is None:
+            rep = max(members, key=lambda i: len(items[i].get("raw_text") or ""))
+        return rep
+
+    drop_strict: set[int] = set()
+    drop_loose: set[int] = set()
+    clusters = 0
+    for groups, drop in ((strict, drop_strict), (loose, drop_loose)):
+        for members in groups.values():
+            if len(members) < 2:
+                continue
+            clusters += 1
+            rep = representative(members)
+            drop.update(i for i in members if i != rep)
+
+    kept = [it for i, it in enumerate(items)
+            if i not in drop_strict and i not in drop_loose]
+    removed_strict = [items[i] for i in sorted(drop_strict)]
+    removed_loose = [items[i] for i in sorted(drop_loose)]
+    return kept, removed_strict, removed_loose, clusters
+
+
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
@@ -273,9 +339,30 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if not offline and source == "google_news":
         kept = [google_news.resolve_source_url(item) for item in kept]
 
+    # Cost lever 2: one story, one read. Six outlets rewriting the same round
+    # survive URL and title dedup as six candidates; cluster them on the
+    # stated (employer, amount) and pay for one. Strict-tier copies are marked
+    # seen so the next run does not fetch them back into the queue; loose-tier
+    # copies stay unmarked (see cluster_stories). Never for a derived source:
+    # its rows are structured facts, not stories.
+    away_strict, away_loose, clusters_formed = [], [], 0
+    if not derive:
+        kept, away_strict, away_loose, clusters_formed = cluster_stories(kept)
+    clustered_away = away_strict + away_loose
+
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
+    cheap_closed = known_rounds = 0
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
+    if clusters_formed:
+        print(f"[{collector}] clustering: {clusters_formed} stories seen from "
+              f"multiple outlets, {len(clustered_away)} rewrites will not be "
+              f"re-read ({len(away_loose)} held back this run only)\n")
+        if not dry_run:
+            for extra in away_strict:
+                extra_url = extra.get("source_url") or extra.get("discovery_url") or ""
+                if extra_url:
+                    store.mark_seen(conn, extra_url, collector, "clustered")
 
     for item in kept:
         url = item.get("source_url") or item.get("discovery_url") or ""
@@ -292,8 +379,36 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             skipped += 1
             continue
 
+        # Cost lever 2, across runs: a round we already stored, resurfacing
+        # from yet another outlet days later, is recognisable from its stated
+        # (employer, amount) before any model is paid. fuzzy_duplicate would
+        # catch it too — after the read-through was bought.
+        cheap = None
+        if not derive:
+            parsed = cheap_extract.parse_funding(item)
+            if parsed is not None:
+                if dedupe.funding_event_duplicate(
+                        conn, parsed.company_key, parsed.amount_usd,
+                        parsed.amount_canon):
+                    known_rounds += 1
+                    duplicates += 1
+                    print(f"  SKIP    {item.get('headline','')[:66]}\n"
+                          f"          round already stored, matched before any read")
+                    if url and not dry_run:
+                        store.mark_seen(conn, url, collector, "duplicate")
+                    continue
+            # Cost lever 1: when the headline/teaser states every field, the
+            # record is built deterministically — no gate call, no read-
+            # through, $0. extract() declines anything ambiguous, and its
+            # output goes through the SAME validate/store path below, marked
+            # on `notes` so a reader can see no model read it.
+            cheap = cheap_extract.extract(item)
+
         try:
-            if derive:
+            if cheap is not None:
+                classified = cheap
+                cheap_closed += 1
+            elif derive:
                 classified = derive(item)
             else:
                 classified = _stub_classify(item) if offline else classify.classify(item)
@@ -372,6 +487,12 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 store.mark_seen(conn, url, collector, "rejected")
             continue
 
+        if cheap is not None:
+            # The evidence marker: this row was parsed from stated text, no
+            # model read it. Confidence is unchanged — the source is exactly
+            # as credible either way and stays capped at "reported".
+            signal.notes = cheap_extract.EVIDENCE_NOTE
+
         if dry_run:
             stored += 1
             if _should_print(stored):
@@ -398,8 +519,16 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         f"duplicate={duplicates} rejected={rejected} "
         f"deferred={throttled} budget-deferred={budget_deferred} already-seen={skipped}"
     )
-    # Spend visibility: the gate is the cost-avoidance stage, so say what it
-    # did. gate_rejects is money NOT spent on full read-throughs.
+    # Spend visibility, cheapest stage first. Every line here is money NOT
+    # spent: deterministic closes and known rounds cost nothing at all,
+    # clustered rewrites never reach the gate, gate rejects never reach the
+    # read-through.
+    if cheap_closed or known_rounds or clusters_formed:
+        print(
+            f"[{collector}] deterministic: {cheap_closed} closed with no "
+            f"model call, {known_rounds} known rounds skipped pre-read, "
+            f"{len(clustered_away)} outlet rewrites clustered away"
+        )
     if classify.STATS["gate_calls"]:
         print(
             f"[{collector}] gate: {classify.STATS['gate_calls']} screened, "
@@ -407,6 +536,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"{classify.STATS['full_calls']} full read-throughs "
             f"(cap {classify.READTHROUGH_CAP}/run)"
         )
+    if classify.STATS["full_calls"]:
+        n = classify.STATS["full_calls"]
+        print(
+            f"[{collector}] read size: avg {classify.STATS['full_chars_sent'] // n} "
+            f"chars sent of {classify.STATS['full_chars_raw'] // n} fetched "
+            f"(cap {classify.FULL_READ_CHARS})"
+        )
+    if classify.STATS["prompt_tokens"]:
+        cached = classify.STATS["cached_tokens"]
+        total = classify.STATS["prompt_tokens"]
+        line = (f"[{collector}] tokens: {total} prompt "
+                f"({cached} cached, {cached * 100 // max(total, 1)}%), "
+                f"{classify.STATS['completion_tokens']} completion")
+        if classify.STATS["usd"]:
+            line += f", ${classify.STATS['usd']:.4f} this run"
+        print(line)
 
     if dry_run:
         print("\nDRY RUN — nothing was written.")

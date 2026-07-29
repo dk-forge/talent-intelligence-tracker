@@ -146,6 +146,22 @@ again.
    or `stalled` in `ops_status.py [2e]` — and never requeues itself out of it.
    Fix the cause, then re-queue the backfill; it resumes at the cursor.
 
+### Cost levers (built 2026-07-29) — the cap raise stays affordable
+
+`pipeline/cheap_extract.py` closes funding/hiring headlines that state every
+field, deterministically and for $0 — same `validate -> store` path, confidence
+still `reported`, `notes` carries the evidence marker. Measured on two real
+sweeps: ~25 closes per ~1,000 survivors, 31/31 correct on a full hand-check.
+`run_collect.cluster_stories` reads ONE representative per (employer, amount)
+cluster, and `dedupe.funding_event_duplicate` skips already-stored rounds
+before any model call. **READTHROUGH_CAP stays 60 — raising it is the owner's
+decision** after seeing cost-per-stored-row. Prompt caching: request shape is
+already cache-optimal and usage accounting now prints per run, but the
+providers serving `deepseek/deepseek-chat` today expose no cache pricing, so
+no saving is claimed; the planned v3.1 switch would earn ~0.5x on cached
+input. Worst-case LLM spend at the new defaults ≈ $6.5/month. Full detail in
+TECHLOG "the cost levers".
+
 ### Open, in priority order
 
 | # | What | Why |

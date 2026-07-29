@@ -31,7 +31,32 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 
 # Per-run visibility for the spend ledger: how many one-word gate calls, how
 # many were rejected there (cost avoided), how many full read-throughs ran.
-STATS = {"gate_calls": 0, "gate_rejects": 0, "full_calls": 0}
+# The token counters come from OpenRouter's usage accounting on every call
+# (both stages), so a run can report what it actually sent and what the cache
+# actually served rather than estimating either.
+STATS = {
+    "gate_calls": 0, "gate_rejects": 0, "full_calls": 0,
+    "full_chars_raw": 0,   # candidate text length before truncation
+    "full_chars_sent": 0,  # what actually went to the model
+    "prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0,
+    "usd": 0.0,            # OpenRouter's own cost figure, summed
+}
+
+# --- Read sizes, named because they are the cost levers ---------------------
+#
+# GATE_CHARS: the gate answers ONE yes/no question, and headline + teaser is
+# the whole candidate for every news source (national_press caps teasers at
+# 400 chars; google_news items are shorter still), so 1,500 chars covers them
+# with room and only ever truncates SEC filing bodies.
+#
+# FULL_READ_CHARS: every field we store lives in the opening paragraphs — a
+# funding amount, a named officer, a site city are all first-paragraph facts,
+# and 4,000 chars is ~1,000 tokens. News candidates never reach this limit
+# (they ARE their opening paragraphs); the only texts it truncates are 8-K
+# filing bodies, where what follows page one is exhibits and boilerplate.
+# Raising it buys tokens, not fields.
+GATE_CHARS = 1500
+FULL_READ_CHARS = 4000
 
 # Hard ceiling on FULL read-throughs per run. The gate makes it cheap to LOOK
 # at many candidates; this makes it impossible for a busy news day to turn
@@ -216,7 +241,7 @@ def gate(text: str, *, timeout: int = 30) -> bool:
     STATS["gate_calls"] += 1
     try:
         content = _call(
-            GATE_MODEL, GATE_SYSTEM, text[:1500],
+            GATE_MODEL, GATE_SYSTEM, text[:GATE_CHARS],
             timeout=timeout, max_tokens=4, json_mode=False,
         )
     except (AuthFailed, CreditsExhausted):
@@ -262,9 +287,22 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
             f"read-through cap ({READTHROUGH_CAP}/run) reached — deferring to the next run"
         )
     STATS["full_calls"] += 1
+    STATS["full_chars_raw"] += len(text)
+    STATS["full_chars_sent"] += min(len(text), FULL_READ_CHARS)
 
+    # PROMPT-CACHE SHAPE — do not reorder this call. The prefix
+    # (MINI_SYSTEM, then SCHEMA_HINT at the head of the user message) is
+    # byte-identical on every read-through, and the per-item text comes LAST.
+    # DeepSeek caches prompt prefixes automatically and OpenRouter passes that
+    # through with no configuration, billing cache reads at 0.1x the input
+    # price (openrouter.ai/docs/features/prompt-caching) — SCHEMA_HINT is
+    # ~2,600 of the ~3,600 input tokens, so a cache hit removes most of the
+    # input bill. Anything inserted BEFORE SCHEMA_HINT (a date, the outlet, a
+    # counter) breaks the shared prefix and silently forfeits that. Whether a
+    # given call actually hit depends on which provider OpenRouter routed to;
+    # STATS["cached_tokens"] records what really happened, per run.
     content = _call(
-        MODEL, MINI_SYSTEM, f"{SCHEMA_HINT}\n\n---\n{text[:4000]}",
+        MODEL, MINI_SYSTEM, f"{SCHEMA_HINT}\n\n---\n{text[:FULL_READ_CHARS]}",
         timeout=timeout, json_mode=True,
     )
 
@@ -292,6 +330,10 @@ def _call(model: str, system: str, user: str, *, timeout: int,
     }
     if max_tokens is not None:
         body["max_tokens"] = max_tokens
+    # OpenRouter usage accounting: the response then carries token counts,
+    # its own cost figure, and prompt_tokens_details.cached_tokens — the only
+    # ground truth on whether prefix caching actually fired. Costs nothing.
+    body["usage"] = {"include": True}
     if json_mode:
         body["response_format"] = {"type": "json_object"}
         # OpenRouter routes a model across several providers, and not all of
@@ -336,9 +378,22 @@ def _call(model: str, system: str, user: str, *, timeout: int,
         raise ClassifyError(f"OpenRouter {resp.status_code}: {resp.text[:300]}")
 
     try:
-        choice = resp.json()["choices"][0]
+        payload = resp.json()
+        choice = payload["choices"][0]
     except (KeyError, IndexError, ValueError) as exc:
         raise ClassifyError(f"unexpected response shape: {exc}") from exc
+
+    # Record what this call really cost before any content check can raise:
+    # an unparseable response was still paid for.
+    usage = payload.get("usage") or {}
+    STATS["prompt_tokens"] += int(usage.get("prompt_tokens") or 0)
+    STATS["completion_tokens"] += int(usage.get("completion_tokens") or 0)
+    details = usage.get("prompt_tokens_details") or {}
+    STATS["cached_tokens"] += int(details.get("cached_tokens") or 0)
+    try:
+        STATS["usd"] += float(usage.get("cost") or 0.0)
+    except (TypeError, ValueError):
+        pass
 
     content = (choice.get("message", {}).get("content") or "").strip()
     if not content:

@@ -63,6 +63,12 @@ class Signal:
     predicted_outcome: str | None
     check_after_date: str | None
     collector: str
+    # Provenance annotation, not a fact about the story. Carries the
+    # deterministic-extraction marker (cheap_extract.EVIDENCE_NOTE) so a
+    # reader of the database can see when no model read the item; revisions
+    # overwrite it with the correction note in store.revise. Deliberately not
+    # in publish.FIELDS.
+    notes: str | None = None
 
 
 # A figure the model returns must appear in the source text. Matches 1,200 /

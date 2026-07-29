@@ -246,6 +246,79 @@ them loses the leadership event too. That is the right trade at this size: 6 of
 3,784 live filings announce a reduction and 2 of those carry a leadership event,
 so the boundary costs **0.05% of the leadership pillar** to keep a promise the
 page makes in writing.
+## 2026-07-29 — the cost levers: reading everything relevant on the same budget
+
+The candidate cap raise (150 → 1500) made every prefilter survivor visible to
+the pipeline; this session built the levers that keep that affordable. Naively
+read-through-ing ~1,000 survivors/run is ~$77/month; the ceiling stays where
+it was because most of what survives the free filter no longer needs a model.
+
+**Lever 1 — deterministic teaser extraction (`pipeline/cheap_extract.py`).**
+A funding or hiring headline that states every field IS the record. Regexes
+close it: employer before a completed-raise verb, amount with its currency
+verbatim (non-USD keeps its currency and a NULL USD integer, per the existing
+no-FX rule), stage only where the text ties it to THIS round, place only from
+a `-based`/possessive prefix that normalises. Everything else DECLINES to the
+paid path — precision over recall, because a wrong $0 extraction is worse
+than a $0.0013 read. Output goes through the same `validate -> store ->
+publish` path with zero exemptions; confidence stays `reported` (a regex does
+not make the source more credible), and the row carries `notes =
+cheap_extract.EVIDENCE_NOTE` so a reader can see no model read it.
+
+Measured on two real populations (the 2026-07-29 overnight 575-feed harvest
+and a fresh live fetch six hours later): 970 and 1,039 prefilter survivors,
+28 and 22 closed deterministically, 31 distinct records, **31/31 correct on a
+full hand-check** — after four tightenings the sweep itself forced:
+- "Kuwait raises $6 billion in three-tranche bond sale" → a name that IS a
+  country or city declines, and bond/tranche/fund-vehicle wording declines.
+- "Dutch-US MedTech Xeltis" stored the descriptor into the name → hyphen-
+  embedded nationalities and sector-tech compounds (medtech, proptech, ...)
+  poison the span.
+- Title-cased headlines blind the capitalisation heuristic ("Building
+  Materials Quick Commerce Startup Fixxly Raises...") → in a title-case
+  headline only a single-token name is trusted.
+- "a fivefold step-up from its Series B" stamped the PREVIOUS round's stage
+  onto a $570m raise → a teaser stage only counts beside the money.
+
+**Lever 2 — story clustering (`run_collect.cluster_stories`) + known rounds.**
+The same round rewritten by several outlets survives URL and syndicated-title
+dedup; now survivors clustering on the stated (employer, amount) get ONE
+read. Two tiers: the strict key (validly named employer) marks its set-aside
+copies seen; the loose key (final token before the verb — the four "…startup
+Fixxly raises $5.5 Mn" rewrites) holds copies back this run only, so a false
+merge can only defer a read, never lose a story. Cross-run,
+`dedupe.funding_event_duplicate` matches a stored round by (company_key,
+amount) BEFORE any model call — `fuzzy_duplicate` caught these only after the
+read was already bought. Measured: 4-5 rewrites clustered away and 1 known
+round per population. Small today; insurance for the story every feed carries.
+
+**Lever 3 — read size.** Largely already bounded: news candidates are
+headline + teaser (avg 436 chars, p95 599, max 1,250 on the live population —
+zero ever reached the cap) and only SEC filing bodies truncate. The magic
+numbers became `classify.GATE_CHARS` / `classify.FULL_READ_CHARS` with the
+reasoning attached, and every run now logs avg chars sent vs fetched.
+
+**Lever 4 — prompt caching: shape kept, no saving claimable today.** The
+read-through's prefix (MINI_SYSTEM + SCHEMA_HINT, ~2,668 of ~3,100 input
+tokens) is byte-stable with the item text last — exactly the shape DeepSeek's
+automatic prefix cache wants, and OpenRouter passes that through unconfigured
+at 0.1x input price. But the providers actually serving
+`deepseek/deepseek-chat` today (StreamLake, DeepInfra, Novita — checked via
+OpenRouter's endpoints API) advertise **no cache-read pricing**, so there is
+no cache to hit on the current slug. `deepseek-chat-v3.1` providers do
+(~0.5x), so the already-planned model switch would earn it for free. Guards
+added anyway: a test pins SCHEMA_HINT at the head of the user message
+(anything inserted before it silently forfeits the prefix), and every call
+now records OpenRouter usage accounting (prompt/cached/completion tokens and
+cost) into `classify.STATS`, printed per run — if routing ever lands on a
+caching provider the run report says so, measured rather than estimated.
+
+**What did NOT change:** `READTHROUGH_CAP` stays 60/run (raising it is the
+owner's decision), spend.py still runs first and still hard-stops, the gate
+is untouched. Worst-case LLM spend at the new defaults: gate ~1,050 × 2/day
+× 30 × $0.00003 ≈ $1.9/mo, reads 60 × 2/day × 30 × $0.00128 ≈ $4.6/mo. The
+~25 deterministic closes per sweep are read slots handed back to stories that
+genuinely need a model.
 
 ---
 
