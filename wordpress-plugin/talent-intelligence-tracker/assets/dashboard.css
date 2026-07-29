@@ -1190,3 +1190,123 @@ html:has(#tit-dashboard), body:has(#tit-dashboard) { overflow-x:clip; }
 .tit-wrap .tit-fine-money { color:var(--tit-ink-violet); font-weight:700;
   text-decoration-color:#cbc4ec; }
 .tit-wrap .tit-fine-money:hover { color:var(--tit-violet); }
+
+/* ===========================================================================
+   Final pass: the hero headline, section anchors, and the filter block.
+   =========================================================================== */
+
+/* --- Hero: benefit first, proof under it -------------------------------- */
+.tit-hero-head { min-width:0; }
+.tit-wrap .tit-hero-head h2 { margin:0; font-size:26px; line-height:1.15;
+  font-weight:750; letter-spacing:-.015em; color:var(--tit-fg); }
+@media (min-width:900px){ .tit-wrap .tit-hero-head h2 { font-size:30px; } }
+/* The trust line, quieter than the promise but never decorative: AA at 8.6:1
+   and set at reading size, because it is the claim the whole page rests on. */
+.tit-wrap .tit-hero-sub { margin:5px 0 0 !important; font-size:15px;
+  font-weight:500; color:var(--tit-mut); max-width:52ch; }
+@media (max-width:700px){
+  .tit-wrap .tit-hero-head h2 { font-size:22px; }
+  .tit-wrap .tit-hero-sub { font-size:14px; }
+}
+/* Two beats in the fine print, not one run-on line. */
+.tit-fine-figures, .tit-fine-say { display:block; }
+.tit-fine-say { color:var(--tit-mut); font-weight:500; margin-top:2px; }
+/* The links stop competing with the promise by leaving its paragraph. */
+.tit-hero-links { margin:7px 0 0 !important; font-size:13px; color:var(--tit-mut); }
+
+/* --- Section anchors ----------------------------------------------------
+   Each section carries the hue its content already uses elsewhere, as a rule
+   and an eyebrow only. No tinted card backgrounds and no new hue: the point is
+   to find a section faster, not to decorate one. Every hue here is one of the
+   four already validated for CVD separation, and each is paired with words. */
+.tit-sec { --sec:var(--tit-blue); padding-left:12px; border-left:4px solid var(--sec);
+  border-radius:2px; }
+.tit-sec--money { --sec:var(--tit-violet); }
+.tit-wrap .tit-sec h3 { color:var(--tit-fg); }
+.tit-sec-eyebrow { display:block; font-size:11px; font-weight:800;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--sec);
+  margin-bottom:1px; }
+
+/* Chart cards get the same anchor at card scale: a swatch on the heading, in
+   the hue that card's own bars already use. */
+.tit-chart { --sec:var(--tit-blue); }
+#chart-place { --sec:var(--tit-teal); }
+#chart-direction { --sec:var(--tit-orange); }
+.tit-chart-money { --sec:var(--tit-violet); }
+.tit-wrap .tit-chart-head h3::before { content:""; display:inline-block;
+  width:9px; height:9px; border-radius:2px; background:var(--sec);
+  margin-right:7px; vertical-align:middle; }
+
+/* --- The matrix note spans the table, not two thirds of it --------------
+   It sits inside .tit-hero, where `.tit-hero p { max-width:78ch }` was capping
+   it at roughly three of the five columns while the table beside it ran the
+   full width. A block that stops short of the thing it describes reads as
+   unfinished markup, which is exactly how it read. */
+.tit-wrap .tit-matrix-note { padding:8px 12px; border-top:1px solid var(--tit-grid);
+  background:var(--tit-surface); }
+.tit-wrap .tit-matrix-note p { margin:0; max-width:none; font-size:12px;
+  line-height:1.5; color:var(--tit-mut); }
+.tit-wrap .tit-matrix-note p + p { margin-top:4px; }
+.tit-wrap .tit-matrix-money-note { color:var(--tit-ink-violet); }
+
+/* --- Primary row -------------------------------------------------------- */
+.tit-primary { align-items:start; }
+@media (min-width:1000px){
+  .tit-primary { grid-template-columns:1.1fr 1.25fr 1fr 1.15fr; }
+}
+.tit-primary-where { min-width:0; }
+.tit-where-label { display:grid; gap:3px; }
+/* The places note belongs TO the Where control, so it sits inside it and the
+   button says what it does. "Change" on its own made a reader guess. */
+.tit-wrap .tit-basis { display:block; margin:5px 0 0 !important; font-size:11.5px;
+  line-height:1.4; color:var(--tit-mut); }
+.tit-wrap .tit-basis-btn { display:inline; margin-top:2px; padding:0; border:0;
+  background:none; color:var(--tit-ink-blue); font-family:inherit;
+  font-size:11.5px; font-weight:700; cursor:pointer;
+  text-decoration:underline; text-underline-offset:2px; }
+.tit-wrap .tit-basis-btn:hover { color:var(--tit-blue); }
+.tit-wrap .tit-basis-btn:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; border-radius:3px; }
+
+/* The headcount control: one box, one label, the number inside the label so
+   the relationship is stated rather than left to be inferred. */
+.tit-primary-toggle { display:flex; align-items:flex-end; }
+.tit-check { display:flex; align-items:flex-start; gap:9px; width:100%;
+  min-height:42px; padding:10px 12px; border:1px solid var(--tit-line);
+  border-radius:9px; background:#fff; cursor:pointer; }
+.tit-check:hover { border-color:var(--tit-blue); }
+.tit-check:has(input:checked) { border-color:var(--tit-blue);
+  background:var(--tit-blue-tint); }
+.tit-check input { flex:none; width:17px; height:17px; margin:1px 0 0;
+  accent-color:var(--tit-blue); cursor:pointer; }
+.tit-check input:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-check-t { font-size:13.5px; font-weight:600; color:var(--tit-fg);
+  line-height:1.3; min-width:0; }
+.tit-check-n { font-variant-numeric:tabular-nums; letter-spacing:0;
+  color:var(--tit-ink-blue); font-weight:700; white-space:nowrap; }
+
+/* --- More filters ------------------------------------------------------- */
+/* Multi-selects scroll in place. A native list box is keyboard reachable with
+   no code of ours, and each choice becomes its own chip in the filtering bar,
+   so a reader can drop one of three without clearing all three. */
+.tit-wrap .tit-filters select[multiple] { height:auto; min-height:96px;
+  padding:4px; font-size:13.5px; font-weight:500; overflow-y:auto; }
+.tit-wrap .tit-filters select[multiple] option { padding:4px 7px;
+  border-radius:5px; }
+.tit-wrap .tit-filters select[multiple] option:checked {
+  background:var(--tit-blue-tint); color:var(--tit-ink-blue); font-weight:700; }
+.tit-field-h { font-size:11px; color:var(--tit-faint); margin-top:2px; }
+.tit-field--wide { grid-column:1 / -1; }
+@media (min-width:900px){ .tit-field--wide { grid-column:span 2; } }
+
+/* From and To on ONE row, always. As two grid cells they landed in different
+   rows whenever the column count was even, so a range read as two unrelated
+   dates. One field, two inputs, a word between them. */
+.tit-daterange { display:flex; align-items:center; gap:8px; min-width:0; }
+.tit-daterange > label { flex:1 1 0; min-width:0; display:block; }
+.tit-wrap .tit-daterange input { width:100%; min-width:0; }
+.tit-daterange-to { flex:none; font-size:12px; font-weight:600;
+  color:var(--tit-mut); }
+
+.tit-reset-field { grid-column:1 / -1; justify-content:flex-start; }
+.tit-wrap .tit-reset-btn { width:auto; min-width:180px; }

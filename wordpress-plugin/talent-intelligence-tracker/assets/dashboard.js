@@ -36,6 +36,9 @@
     confidence: document.getElementById('tit-f-confidence'),
     min_funding_usd: document.getElementById('tit-f-min_funding_usd'),
     funding_stage: document.getElementById('tit-f-funding_stage'),
+    employer_type: document.getElementById('tit-f-employer_type'),
+    work_mode: document.getElementById('tit-f-work_mode'),
+    deal_type: document.getElementById('tit-f-deal_type'),
     country_basis: document.getElementById('tit-f-country_basis'),
     company: document.getElementById('tit-f-company'),
     q: document.getElementById('tit-f-q'),
@@ -60,18 +63,36 @@
   // These name the filter in the active-filter bar, and they mirror the labels
   // above the controls themselves. A chip reading "Roles" over a control
   // reading "Team or function" is two names for one thing.
+  // Title Case, and the SAME words as the controls themselves. A chip reading
+  // "Roles" over a control reading "Team Or Function" is two names for one
+  // thing, and no word here appears anywhere else in the product with a
+  // different meaning.
   var FILTER_LABEL = {
-    pillar: 'What happened', direction: 'Headcount', 'function': 'Team',
+    pillar: 'Looking For', direction: 'Looking For', 'function': 'Team',
     industry: 'Industry', country: 'Where', state: 'Where', city: 'Where',
-    stated_headcount: 'Headcount',
-    confidence: 'Evidence', country_basis: 'Location shown', company: 'Employer',
-    min_funding_usd: 'Amount raised', funding_stage: 'Stage',
+    stated_headcount: 'Headcount', employer_type: 'Employer Type',
+    work_mode: 'Work Setup', deal_type: 'Deal Type',
+    confidence: 'Evidence', country_basis: 'Places', company: 'Employer',
+    min_funding_usd: 'Amount Raised', funding_stage: 'Funding Stage',
     q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
   };
 
   // Saved views that no longer have a button of their own but can still be
   // switched on (by a matrix cell, or by a shared link).
   var QV_LABEL = { 'funding=1': 'Funding updates' };
+
+  var EMPLOYER_TYPE_LABEL = {
+    'public': 'Public Company', 'private': 'Private Company', startup: 'Startup',
+    government: 'Government', nonprofit: 'Nonprofit', education: 'Education'
+  };
+  var WORK_MODE_LABEL = {
+    remote: 'Remote', hybrid: 'Hybrid', onsite: 'Onsite',
+    rto_mandate: 'Return To Office', flexible: 'Flexible'
+  };
+  var DEAL_TYPE_LABEL = {
+    acquisition: 'Acquisition', acquired: 'Acquired', merger: 'Merger',
+    divestiture: 'Divestiture', joint_venture: 'Joint Venture', ipo: 'IPO'
+  };
 
   // Round names as a reader says them. Mirrors tit_funding_stage_labels().
   var STAGE_LABEL = {
@@ -130,8 +151,12 @@
         fill(inputs.city, data.cities);
         // Only the rounds we actually hold, so the control cannot offer a
         // stage that returns an empty page.
-        fill(inputs.funding_stage, data.funding_stages, false, STAGE_LABEL);
+        fillFacetControl('funding_stage', data.funding_stages, STAGE_LABEL);
+        fillFacetControl('employer_type', data.employer_types, EMPLOYER_TYPE_LABEL);
+        fillFacetControl('work_mode', data.work_modes, WORK_MODE_LABEL);
+        fillFacetControl('deal_type', data.deal_types, DEAL_TYPE_LABEL);
         fillPlaces(data);
+        syncMore();
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
@@ -292,11 +317,16 @@
     var all = Number(money.coverage.all) || 0;
     if (!all) return 'No funding updates in this view yet, so there is nothing to add up.';
 
-    var note = 'Totals cover the ' + nfmt(withUsd) + ' of ' + nfmt(all) +
-      (all === 1 ? ' funding update that states' : ' funding updates that state') +
-      ' an amount in US dollars.' +
-      ' Amounts stated in another currency are left out rather than converted' +
-      ' at a rate nobody published.';
+    // "the 3,992 of 3,992" reads as a mistake. Say so plainly when coverage is
+    // complete; keep the two numbers only when they actually differ.
+    var note = (withUsd >= all
+        ? 'All ' + nfmt(all) + (all === 1 ? ' funding update states' : ' funding updates state') +
+          ' a US dollar amount'
+        : 'Totals cover the ' + nfmt(withUsd) + ' of ' + nfmt(all) +
+          (all === 1 ? ' funding update that states' : ' funding updates that state') +
+          ' a US dollar amount') +
+      '; amounts in other currencies are left out rather than converted at a' +
+      ' rate nobody published.';
 
     var placed = (money.placed && dim && money.placed[dim] != null)
       ? Number(money.placed[dim]) : withUsd;
@@ -353,21 +383,24 @@
         lead.className = 'tit-fine-figures';
         fine.insertBefore(lead, fine.firstChild);
       }
-      var line = esc(plural(total, 'update')) + ' · ' +
-        esc(plural(data.companies, 'employer')) + ' · ' +
-        esc(plural(data.countries, 'country', 'countries')) + ' · ' +
-        esc(nfmt(data.verified)) + ' from official filings';
-      // A sum of dollars beside three counts, so it is a link rather than a
+      var bits = [
+        esc(plural(total, 'update')),
+        esc(plural(data.companies, 'employer')),
+        esc(plural(data.countries, 'country', 'countries'))
+      ];
+      // A sum of dollars beside three counts, sitting WITH the other headline
+      // figures rather than trailing the sentence, and a link rather than a
       // bare total: it lands on the money section, which prints what share of
       // the funding updates it covers. Both read the same aggregate, so the
       // figure and its caveat cannot drift apart.
       var mt = data.money && data.money.total;
       if (mt > 0) {
-        line += ' · <a class="tit-fine-money" href="#chart-money-country" title="' +
+        bits.push('<a class="tit-fine-money" href="#chart-money-country" title="' +
           esc(moneyFull(mt) + '. ' + coverageNote(data.money, '')) + '">' +
-          esc(moneyShort(mt)) + ' raised</a>';
+          esc(moneyShort(mt)) + ' raised</a>');
       }
-      lead.innerHTML = line + '. ';
+      bits.push(esc(nfmt(data.verified)) + ' from official filings');
+      lead.innerHTML = bits.join(' · ');
     }
 
     // The at-a-glance matrix moves with the filters like everything else. It
@@ -429,10 +462,21 @@
 
     // What the stated-headcount toggle would leave, so the reader sees what it
     // does before using it.
+    // The number is what you WOULD see if the box were ticked, under the
+    // filters in force, and it sits inside the label so the relationship is
+    // stated rather than inferred. When the server cannot give us one, show
+    // NOTHING: an ambiguous number is worse than no number.
     var statedN = document.getElementById('tit-stated-n');
-    if (statedN && data.stated_headcount != null) {
-      statedN.textContent = nfmt(data.stated_headcount);
+    if (statedN) {
+      statedN.textContent = (data.stated_headcount == null)
+        ? '' : '(' + nfmt(data.stated_headcount) + ')';
     }
+
+    // The date range the page actually covers, restated for the filtered set.
+    // Both bounds come from one query on the server, so the range and its own
+    // label cannot contradict each other the way they did.
+    var spanEl = document.getElementById('tit-span');
+    if (spanEl && data.span) spanEl.textContent = spanNote(data.span.lo, data.span.hi);
 
     // Re-rendering wiped the pressed state off every row; put it back.
     syncChartStates();
@@ -443,6 +487,21 @@
   // the fallback should be unreachable; if it is reached it says so in words
   // and leaves a console trace for us, rather than printing two bare letters
   // into a list of country names and waiting for a reader to find it.
+  // Mirrors tit_span_note(). Both bounds always carry their year: printing the
+  // low bound without one is exactly what made the live page say "3,318 days,
+  // 28 Jun to 28 Jul 2026", nine years of days against thirty days of dates.
+  function niceDate(d) {
+    var p = (d || '').slice(0, 10).split('-');
+    if (p.length !== 3) return '';
+    return String(+p[2]) + ' ' + (MONTHS[+p[1] - 1] || '') + ' ' + p[0];
+  }
+
+  function spanNote(lo, hi) {
+    var a = niceDate(lo), b = niceDate(hi);
+    if (!a || !b) return '';
+    return a === b ? 'Covering ' + b + '.' : 'Covering ' + a + ' to ' + b + '.';
+  }
+
   function countryLabel(k) {
     if (!k) return '';
     var name = TIT.countries && TIT.countries[k];
@@ -538,13 +597,13 @@
       h += '</tr>';
     });
     h += '</tbody></table></div>' +
-      '<p class="tit-matrix-note">Stronger colour means more activity, measured ' +
-      'across each row. Rows overlap on purpose: a funded employer can also be ' +
-      'hiring up, so columns are not sums. ' +
-      '<strong>Click any number to filter the whole page.</strong> ' +
-      '<span class="tit-matrix-money-note">Money raised is the odd row out: it ' +
-      'adds up dollars, while every other row counts updates. ' +
-      esc(coverageNote({ coverage: m.coverage }, '')) + '</span></p>';
+      '<div class="tit-matrix-note">' +
+      '<p>Colour shows how much activity, scaled within each row. Rows can ' +
+      'overlap: a funded employer may also be hiring, so the columns do not ' +
+      'add up. <strong>Click any number to filter the page.</strong></p>' +
+      '<p class="tit-matrix-money-note">Money raised is the exception. It sums ' +
+      'dollars while every other row counts updates. ' +
+      esc(coverageNote({ coverage: m.coverage }, '')) + '</p></div>';
     return h;
   }
 
@@ -626,6 +685,14 @@
       var el = inputs[key];
       if (!el || !q.has(key)) return;
       var value = q.get(key);
+      if (MULTI[key]) {
+        // Facet-driven options may not have arrived yet, same race the single
+        // selects have: add what the link asked for rather than dropping it.
+        var wanted = value.split(',').filter(Boolean);
+        wanted.forEach(function (v) { ensureOption(el, v, v); });
+        setMulti(el, wanted);
+        return;
+      }
       if (el.tagName === 'SELECT') {
         var ok = Array.prototype.some.call(el.options, function (o) { return o.value === value; });
         if (!ok) {
@@ -657,7 +724,55 @@
   }
 
   // Selects whose options are fetched rather than rendered by the server.
-  var FACET_SELECT = { country: 1, state: 1, city: 1, funding_stage: 1 };
+  var FACET_SELECT = {
+    country: 1, state: 1, city: 1, funding_stage: 1,
+    employer_type: 1, work_mode: 1, deal_type: 1
+  };
+
+  // --- Filters that take several values at once -----------------------------
+  // A recruiter wants "Technology or Healthcare", not one at a time. These are
+  // native <select multiple>: keyboard reachable without a line of our own
+  // code, scrollable in place, and every choice becomes its own removable chip.
+  // Kept single where several genuinely make no sense: Evidence is a floor, and
+  // the Amount Raised bands already nest.
+  var MULTI = {
+    'function': 1, industry: 1, employer_type: 1,
+    funding_stage: 1, work_mode: 1, deal_type: 1
+  };
+
+  function multiValues(el) {
+    if (!el) return [];
+    return Array.prototype.filter.call(el.options, function (o) {
+      return o.selected && o.value;
+    }).map(function (o) { return o.value; });
+  }
+
+  function setMulti(el, values) {
+    if (!el) return;
+    Array.prototype.forEach.call(el.options, function (o) {
+      o.selected = values.indexOf(o.value) >= 0;
+    });
+  }
+
+  function optionText(el, value) {
+    if (!el) return value;
+    var hit = quickFind(Array.prototype.slice.call(el.options), function (o) {
+      return o.value === value;
+    });
+    return hit ? hit.textContent : value;
+  }
+
+  // A control whose column is still empty is HIDDEN rather than shown returning
+  // nothing, and it appears by itself the day the pipeline fills that column.
+  // Nothing hardcoded, so nothing to go stale.
+  function fillFacetControl(key, values, labels) {
+    var el = inputs[key];
+    var field = document.getElementById('tit-field-' + key);
+    if (!el) return;
+    fill(el, values || [], false, labels);
+    var has = Array.prototype.some.call(el.options, function (o) { return !!o.value; });
+    if (field) field.hidden = !has;
+  }
 
   // --- The two front controls ----------------------------------------------
   // The filter bar used to be twelve controls of equal weight, each labelled
@@ -774,20 +889,47 @@
   }
 
   // --- How places are decided ----------------------------------------------
-  // A methodology choice, not a filter, so it lives behind a sentence about how
-  // places are decided and shows only when someone questions one. The select
-  // ships visible and is hidden here, so a reader without JavaScript keeps a
-  // working control rather than losing it to a button that does nothing.
+  // A methodology choice, not a filter, so it is attached to the Where control
+  // as a sentence rather than left floating as a twelfth dropdown.
+  //
+  // The button says what it DOES, in both directions. A bare "Change" makes the
+  // reader guess what changes, and the two options here are genuinely not
+  // obvious: one falls back to the employer's head office when a source names
+  // no place, the other shows only places a source actually named and drops the
+  // rest. Naming the destination is the whole point of the control.
   var basisBtn = document.getElementById('tit-basis-btn');
-  var basisPick = document.getElementById('tit-basis-pick');
-  if (basisBtn && basisPick) {
-    basisPick.hidden = true;
-    basisBtn.hidden = false;
+  var basisSay = document.getElementById('tit-basis-say');
+
+  var BASIS_SAY = {
+    any: 'Showing where the work is. When a source names no place we use the' +
+         " employer's head office.",
+    location: 'Showing only places a source actually named. Updates with no' +
+              ' stated place are left out.'
+  };
+  var BASIS_BTN = {
+    any: 'Only use places a source named',
+    location: 'Use head office when no place is named'
+  };
+
+  function basisValue() {
+    return (inputs.country_basis && inputs.country_basis.value) || 'any';
+  }
+
+  function syncBasis() {
+    var v = basisValue();
+    if (basisSay) basisSay.textContent = BASIS_SAY[v] || BASIS_SAY.any;
+    if (basisBtn) {
+      basisBtn.textContent = BASIS_BTN[v] || BASIS_BTN.any;
+      basisBtn.setAttribute('aria-pressed', v === 'location' ? 'true' : 'false');
+    }
+  }
+
+  if (basisBtn) {
     basisBtn.addEventListener('click', function () {
-      var open = basisPick.hidden;
-      basisPick.hidden = !open;
-      basisBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (open && inputs.country_basis) inputs.country_basis.focus();
+      if (!inputs.country_basis) return;
+      inputs.country_basis.value = basisValue() === 'any' ? 'location' : 'any';
+      syncBasis();
+      refresh();
     });
   }
 
@@ -798,27 +940,45 @@
   // folded out of sight.
   var moreBox = document.getElementById('tit-more');
   var moreLabel = document.getElementById('tit-more-label');
-  var MORE_KEYS = ['direction', 'function', 'industry', 'min_funding_usd',
-                   'funding_stage', 'confidence', 'q', 'since', 'until'];
+  // `direction` is NOT here any more. It was rendering as a second control also
+  // labelled "Headcount", beside the primary-row checkbox, with different
+  // behaviour: one label, two controls, which is worse than either alone.
+  var MORE_KEYS = ['function', 'industry', 'employer_type', 'work_mode',
+                   'min_funding_usd', 'funding_stage', 'deal_type',
+                   'confidence', 'q', 'since', 'until'];
 
+  // The NAMES of what is on, not a count of it. "More filters (1)" tells a
+  // reader that something is narrowing the page and refuses to say what, which
+  // is the one thing they needed to know.
   function moreActive() {
-    var n = 0;
+    var on = [];
     MORE_KEYS.forEach(function (k) {
       var el = inputs[k];
       if (!el) return;
+      if (MULTI[k]) {
+        if (multiValues(el).length) on.push(FILTER_LABEL[k] || k);
+        return;
+      }
       var v = (el.value || '').trim();
-      if (v && v !== NEUTRAL[k]) n++;
+      if (v && v !== NEUTRAL[k]) on.push(FILTER_LABEL[k] || k);
     });
-    return n;
+    return on;
   }
 
   // $open is passed only when restoring a shared link. Opening on every
   // refresh would throw the panel open each time a matrix cell set a date,
   // which is a panel fighting the reader rather than serving them.
   function syncMore(open) {
-    var n = moreActive();
-    if (moreLabel) moreLabel.textContent = n ? 'More filters (' + n + ')' : 'More filters';
-    if (open && moreBox && n && !moreBox.open) moreBox.open = true;
+    var on = moreActive();
+    if (moreLabel) {
+      // Name them while naming them still fits. Past three, the list stops
+      // being readable at a glance and "4 active" is the honest summary; a bare
+      // parenthesised digit never is.
+      moreLabel.textContent = !on.length ? 'More filters'
+        : (on.length <= 3 ? 'More filters: ' + on.join(', ')
+                          : 'More filters: ' + on.length + ' active');
+    }
+    if (open && moreBox && on.length && !moreBox.open) moreBox.open = true;
   }
 
   // The CSV and JSON links under the table download exactly what is on screen:
@@ -840,7 +1000,15 @@
   function refresh() {
     var params = new URLSearchParams();
     Object.keys(inputs).forEach(function (key) {
-      var value = inputs[key] && inputs[key].value.trim();
+      if (!inputs[key]) return;
+      if (MULTI[key]) {
+        // Comma separated, and /query checks every value against its closed
+        // vocabulary before it reaches SQL.
+        var chosen = multiValues(inputs[key]);
+        if (chosen.length) params.set(key, chosen.join(','));
+        return;
+      }
+      var value = inputs[key].value.trim();
       // `detail` is the one control whose page default differs from the API's
       // own. The endpoint returns everything unless asked, deliberately: an
       // endpoint that quietly withheld two thirds of its rows would be a worse
@@ -875,6 +1043,7 @@
     // two front controls back in agreement with them.
     syncLooking();
     syncPlace();
+    syncBasis();
     syncMore();
     syncSortHeads();
 
@@ -1008,8 +1177,12 @@
   var activeChips = document.getElementById('tit-active-chips');
   var resetBtn = document.getElementById('tit-reset');
 
-  function chip(key, text) {
-    return '<button type="button" class="tit-chip" data-clear="' + esc(key) + '">' +
+  // $value is passed only for the multi-value filters, so a chip removes the
+  // ONE choice it names rather than the whole filter. Picking three industries
+  // and being able to drop only all three would make multi-select pointless.
+  function chip(key, text, value) {
+    return '<button type="button" class="tit-chip" data-clear="' + esc(key) + '"' +
+      (value == null ? '' : ' data-value="' + esc(value) + '"') + '>' +
       '<span class="tit-chip-k">' + esc(FILTER_LABEL[key] || key) + '</span>' +
       '<span class="tit-chip-v">' + esc(text) + '</span>' +
       '<span class="tit-chip-x" aria-hidden="true">&#215;</span>' +
@@ -1043,6 +1216,12 @@
       // both counts and what routine means. A chip would be a quieter copy of
       // something already impossible to miss.
       if (!el || key === 'sort' || key === 'detail') return;
+      if (MULTI[key]) {
+        multiValues(el).forEach(function (v) {
+          chips.push(chip(key, optionText(el, v), v));
+        });
+        return;
+      }
       var value = (el.value || '').trim();
       if (!value || value === NEUTRAL[key]) return;
       // The country select is slaved to the region strip; showing both would
@@ -1063,18 +1242,22 @@
     return null;
   }
 
-  function clearOne(key) {
+  function clearOne(key, value) {
     if (key === 'region') setRegion(null);
     else if (key === 'quickview') setQuickView(null);
     else if (key === 'stated_headcount') setStated(false);
-    else if (inputs[key]) inputs[key].value = NEUTRAL[key] || '';
+    else if (MULTI[key] && inputs[key]) {
+      setMulti(inputs[key], multiValues(inputs[key]).filter(function (v) {
+        return v !== value;
+      }));
+    } else if (inputs[key]) inputs[key].value = NEUTRAL[key] || '';
     refresh();
   }
 
   if (activeChips) {
     activeChips.addEventListener('click', function (e) {
       var btn = e.target && e.target.closest ? e.target.closest('[data-clear]') : null;
-      if (btn) clearOne(btn.getAttribute('data-clear'));
+      if (btn) clearOne(btn.getAttribute('data-clear'), btn.getAttribute('data-value'));
     });
   }
 
@@ -1082,6 +1265,7 @@
     resetBtn.addEventListener('click', function () {
       Object.keys(inputs).forEach(function (k) {
         if (!inputs[k] || k === 'sort') return;
+        if (MULTI[k]) { setMulti(inputs[k], []); return; }
         inputs[k].value = NEUTRAL[k] || '';
       });
       setRegion(null);
@@ -1385,5 +1569,6 @@
   syncMore(true);
   syncLooking();
   syncPlace();
+  syncBasis();
   if (location.search) refresh();
 })();

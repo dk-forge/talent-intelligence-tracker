@@ -94,12 +94,20 @@ function tit_dashboard_shortcode() {
     // months because it holds years; we hold days. Letting the control ask for
     // a period we have nothing in is a control that manufactures empty states
     // and makes thin coverage look like a broken filter.
+    // ONE query, two scopes. The NOTE describes the set the page is showing, so
+    // it agrees with every other figure in the hero; the date inputs keep the
+    // full range, so the control can never refuse a date that exists. Reading
+    // these from two queries is how a range and its own label drift apart.
     $span = $wpdb->get_row(
-        "SELECT MIN(COALESCE(published_date, DATE(captured_at))) lo,
-                MAX(COALESCE(published_date, DATE(captured_at))) hi
+        "SELECT MIN(COALESCE(published_date, DATE(captured_at))) lo_all,
+                MAX(COALESCE(published_date, DATE(captured_at))) hi_all,
+                MIN(CASE WHEN {$notable_sql} THEN COALESCE(published_date, DATE(captured_at)) END) lo,
+                MAX(CASE WHEN {$notable_sql} THEN COALESCE(published_date, DATE(captured_at)) END) hi
            FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
-    $span_lo = $span['lo'] ?? '';
-    $span_hi = $span['hi'] ?? '';
+    $span_lo = $span['lo_all'] ?? '';
+    $span_hi = $span['hi_all'] ?? '';
+    $view_lo = $span['lo'] ?? $span_lo;
+    $view_hi = $span['hi'] ?? $span_hi;
 
     $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
     $glance = tit_glance_matrix($table, $base);
@@ -188,7 +196,33 @@ function tit_dashboard_shortcode() {
 
       <div class="tit-hero">
         <div class="tit-hero-top">
-          <h2>Who is hiring, who is raising money, and who is changing leadership</h2>
+          <?php
+          /*
+            The benefit, then the proof.
+
+            "Who is hiring, who is raising money, and who is changing
+            leadership" described the CONTENTS and buried the reason to be
+            here. A funding round, a new CEO or a new office all happen weeks
+            before the roles get posted: for a recruiter that is prospecting
+            ahead of everyone else, for a job seeker it is applying before the
+            flood. That is the product, and it now says so.
+
+            Deliberately an h2 and not an h1, though the copy is the page's
+            headline: the theme already renders "Talent Intelligence Tracker"
+            as the h1, that is the keyword-bearing heading we were asked to
+            keep for search, and a second h1 would split the signal it exists
+            to carry. It is styled as the dominant heading, which is what
+            actually matters to a reader.
+
+            No superlatives here or anywhere else on the page: "most advanced"
+            and its family are the one class of claim a skeptic can disprove in
+            thirty seconds, and everything visible has to survive a check.
+          */
+          ?>
+          <div class="tit-hero-head">
+            <h2>Know who's hiring before the job ad appears</h2>
+            <p class="tit-hero-sub">Every update links to the filing or report behind it</p>
+          </div>
           <?php /* The sibling's freshness shape: the absolute timestamp WITH
                    its timezone is the primary fact ("Live · updated Jul 28,
                    1:51 AM EDT"); the relative time and the next-run note live
@@ -205,44 +239,53 @@ function tit_dashboard_shortcode() {
         <div class="tit-glance" id="tit-glance">
           <?php echo tit_glance_matrix_html($glance); ?>
         </div>
-        <?php $span_note = tit_span_note($span_lo, $span_hi); ?>
+        <?php $span_note = tit_span_note($view_lo, $view_hi); ?>
         <?php if ($span_note) : ?>
-          <p class="tit-span"><?php echo esc_html($span_note); ?></p>
+          <p class="tit-span" id="tit-span"><?php echo esc_html($span_note); ?></p>
         <?php endif; ?>
 
         <p class="tit-hero-fine">
           <span class="tit-fine-figures"><?php
-            printf(
-              /* translators: totals restated by JavaScript when a filter changes. */
-              '%s · %s · %s · %s from official filings',
-              esc_html(sprintf(_n('%s update', '%s updates', $total, 'tit'), number_format_i18n($total))),
-              esc_html(sprintf(_n('%s employer', '%s employers', $companies, 'tit'), number_format_i18n($companies))),
-              esc_html(sprintf(_n('%s country', '%s countries', $countries, 'tit'), number_format_i18n($countries))),
-              esc_html(number_format_i18n($verified))
+            /* Money sits WITH the other headline figures, not trailing after
+               the sentence. It is still a link, because it is a sum of dollars
+               among counts and only honest beside the coverage line the money
+               section prints; both read the same aggregate, so the figure and
+               its caveat cannot drift apart. */
+            $bits = array(
+                esc_html(sprintf(_n('%s update', '%s updates', $total, 'tit'), number_format_i18n($total))),
+                esc_html(sprintf(_n('%s employer', '%s employers', $companies, 'tit'), number_format_i18n($companies))),
+                esc_html(sprintf(_n('%s country', '%s countries', $countries, 'tit'), number_format_i18n($countries))),
             );
-            /* The fourth figure is a SUM OF DOLLARS beside three counts, and it
-               covers only the funding updates that state a US dollar amount, so
-               it is a link rather than a bare number: the money section it lands
-               on prints the coverage sentence, and the two can never disagree
-               because both read the same aggregate. */
             if ($money['total'] > 0) {
-                printf(
-                    ' · <a class="tit-fine-money" href="#chart-money-country" title="%s">%s raised</a>',
+                $bits[] = sprintf(
+                    '<a class="tit-fine-money" href="#chart-money-country" title="%s">%s raised</a>',
                     esc_attr(tit_money_full($money['total']) . '. '
                              . tit_money_coverage_sentence($money['coverage'])),
                     esc_html(tit_money_short($money['total']))
                 );
             }
-            echo '. ';
-          ?></span>Every update links to the document that makes the claim, and no figure
-          appears unless the source states it.
+            $bits[] = esc_html(number_format_i18n($verified)) . ' from official filings';
+            echo implode(' · ', $bits);
+          ?></span>
+          <?php /* Two beats, not one run-on line: the figures, then the promise.
+                   They were competing, and the promise is the more important of
+                   the two. The links move to a line of their own for the same
+                   reason: three different jobs in one paragraph means none of
+                   them lands. */ ?>
+          <?php /* The linking half of this promise is now the hero sub-line
+                   directly above, so saying it twice on one screen would make
+                   both readings weaker. What is left is the half the hero does
+                   not carry. */ ?>
+          <span class="tit-fine-say">No figure appears unless its source states it.</span>
+        </p>
+        <p class="tit-hero-links">
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>
       </div>
 
       <div class="tit-sec">
-        <h3>The market right now</h3>
+        <h3><span class="tit-sec-eyebrow">Activity</span>The market right now</h3>
         <p>Pick a region to narrow the updates below.</p>
       </div>
 
@@ -292,32 +335,29 @@ function tit_dashboard_shortcode() {
 
       <?php
       /*
-        The filter bar, restructured.
+        The filter block, in two deliberately different registers.
 
-        It used to be twelve controls of equal weight, and every label named a
-        database column: What happened, Headcount, Team or function, Industry,
-        Country, US state, City, Amount raised, Funding stage, Evidence,
-        Location shown, Employer. Renaming them was not enough, because the
-        problem was structural. Twelve equal choices means no choice is obvious,
-        nothing suggests what to do first, and three separate geography
-        dropdowns is the schema showing through the paint: a person has one
-        question, "where", not three columns.
+        The PRIMARY ROW asks questions, because it is where a recruiter or job
+        seeker begins and should feel spoken to. MORE FILTERS uses short Title
+        Case nouns, because it is a reference list to scan rather than a
+        conversation. The two styles never mix inside a group; mixing them is
+        what made an earlier version read as a wall of unrelated fragments.
 
-        So there is a small primary row phrased as what someone is looking for,
-        and everything else folds into a panel that stays shut until it is
-        wanted and says how many of its filters are on.
+        The front controls do NOT replace the underlying filters. The pillar,
+        direction, country, state and city selects still exist, still carry the
+        same values, and are still what the querystring, the chips bar, the
+        exports and the click-to-filter charts read and write. They are hidden,
+        and the visible controls drive them. That keeps this a presentation
+        change: nothing about what any filter MEANS has moved.
 
-        The two front controls do NOT replace the underlying filters. The
-        pillar, direction, country, state and city selects are still here, still
-        carry the same values, and are still what the querystring, the chips
-        bar, the exports and the click-to-filter charts read and write. They are
-        simply hidden, and the two visible controls drive them. That keeps this
-        a presentation change: nothing about what any filter MEANS has moved.
+        No internal vocabulary is reachable from here. "Pillar", "signal",
+        "direction", "confidence" and "basis" appear in the code and never on
+        the page.
       */
       ?>
       <div class="tit-primary">
         <label class="tit-field tit-field--stack tit-primary-main">
-          <span class="tit-field-l">I'm looking for</span>
+          <span class="tit-field-l">What are you looking for?</span>
           <select id="tit-f-looking" aria-label="What are you looking for">
             <?php foreach (tit_looking_options() as $spec => $label) : ?>
               <option value="<?php echo esc_attr($spec); ?>"><?php echo esc_html($label); ?></option>
@@ -326,159 +366,181 @@ function tit_dashboard_shortcode() {
         </label>
 
         <?php /* One place control, not three. Options are grouped Countries,
-                 then US states, then Cities, and each one knows which parameter
-                 it sets, so the reader picks a place and never a column. */ ?>
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Where</span>
-          <select id="tit-f-place" aria-label="Where">
-            <option value="">Anywhere</option>
-          </select>
-        </label>
-
-        <?php /* The single most useful narrowing on the page. 87% of what we
-                 hold states no headcount, so filtering TO that is asking for
-                 the least informative rows; the valuable control is its
-                 inverse, and until now there was no way to say it. */ ?>
-        <label class="tit-field tit-field--stack tit-primary-toggle">
-          <span class="tit-field-l">Headcount</span>
-          <span class="tit-check">
-            <input type="checkbox" id="tit-f-stated_headcount" value="1">
-            <span class="tit-check-t">Only updates that state a headcount</span>
-            <span class="tit-check-n" id="tit-stated-n" aria-live="polite"><?php
-              echo esc_html(number_format_i18n($n_stated)); ?></span>
-          </span>
-        </label>
-
-        <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Employer</span>
-          <input type="search" id="tit-f-company" placeholder="e.g. Apple"
-                 aria-label="Search by employer">
-        </label>
-      </div>
-
-      <?php /* A methodology choice, not a filter. It belongs where someone
-               questions a location and nowhere else, so it reads as a sentence
-               about how places are decided, with the control folded behind it.
-               dashboard.js hides the select and reveals the Change button; with
-               no JavaScript the select simply shows, which is the harmless
-               way round. */ ?>
-      <p class="tit-basis">
-        <span class="tit-basis-say">Places are where the work is, and the
-          employer's head office when a source names none.</span>
-        <button type="button" class="tit-basis-btn" id="tit-basis-btn" hidden
-                aria-expanded="false">Change</button>
-        <span class="tit-basis-pick" id="tit-basis-pick">
-          <label><span class="tit-sr">Which location a record is filed under</span>
-            <select id="tit-f-country_basis">
-              <option value="any">Where the work is, or head office</option>
-              <option value="location">Only where the source named a place</option>
+                 then US States, then Cities, and each one knows which parameter
+                 it sets, so the reader picks a place and never a column. The
+                 note below is part of THIS control, not a floating sentence:
+                 it explains the one thing a reader is most likely to question
+                 about a location, and offers the alternative by name. */ ?>
+        <div class="tit-field tit-field--stack tit-primary-where">
+          <label class="tit-where-label">
+            <span class="tit-field-l">Where?</span>
+            <select id="tit-f-place" aria-label="Where">
+              <option value="">Anywhere</option>
             </select>
           </label>
-        </span>
-      </p>
+          <p class="tit-basis">
+            <span class="tit-basis-say" id="tit-basis-say">Showing where the work
+              is. When a source names no place we use the employer's head
+              office.</span>
+            <button type="button" class="tit-basis-btn" id="tit-basis-btn"
+                    aria-pressed="false">Use head office instead</button>
+          </p>
+        </div>
+
+        <label class="tit-field tit-field--stack">
+          <span class="tit-field-l">Which employer?</span>
+          <input type="search" id="tit-f-company" placeholder="e.g. Apple"
+                 aria-label="Which employer">
+        </label>
+
+        <?php /* One control that explains itself, with the number INSIDE its own
+                 label. It used to render as three stacked lines, "Headcount",
+                 "Only updates that state a headcount", "4,018", with nothing
+                 saying whether the number was the current count, the count if
+                 applied, or something else. It is the count you WOULD see, under
+                 the filters in force, and it moves with them.
+
+                 Most of what we hold states no headcount at all, so filtering TO
+                 that is asking for the least informative rows. This is the
+                 inverse, and nothing could express it before. */ ?>
+        <div class="tit-field tit-primary-toggle">
+          <label class="tit-check">
+            <input type="checkbox" id="tit-f-stated_headcount" value="1">
+            <span class="tit-check-t">Only show updates that state a headcount
+              <span class="tit-check-n" id="tit-stated-n"><?php
+                echo esc_html('(' . number_format_i18n($n_stated) . ')'); ?></span></span>
+          </label>
+        </div>
+      </div>
 
       <details class="tit-more" id="tit-more">
         <summary><span id="tit-more-label">More filters</span></summary>
         <div class="tit-filters">
           <?php
           /*
-            One control, one axis. "Pay change" used to sit in the Headcount
-            dropdown, and it is not a headcount direction at all: measured on
-            the live data, all 235 comp_shift rows are also the rewards_comp
-            pillar, so the option was a second, narrower copy of "Pay news"
-            wearing the wrong axis. It is dropped from the OPTIONS only. Stored
-            values are untouched, /query still accepts direction=comp_shift so
-            an old link keeps working, and a row whose direction is comp_shift
-            still wears its "Pay change" badge.
+            Five of these take SEVERAL values at once, because a recruiter wants
+            "Technology or Healthcare" and not one at a time. They are native
+            multiple selects: keyboard reachable without a line of our own code,
+            scrollable in place, and every choice becomes its own removable chip
+            in the filtering bar. /query takes them comma separated and each
+            value is checked against its closed vocabulary before it reaches SQL.
+
+            Employer Type, Work Setup and Deal Type are filled from /facets and
+            HIDE THEMSELVES when their column is empty. Shipping a control that
+            always returns nothing is worse than shipping no control, and a
+            hardcoded judgement about which columns are populated goes stale the
+            week after it is written. These appear by themselves the day the
+            pipeline fills them.
           */
+          $multi_note = 'Choose more than one if you like';
           ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Headcount</span>
-            <select id="tit-f-direction" aria-label="Is the employer growing or shrinking">
-              <option value="">Any direction</option>
-              <?php foreach (tit_direction_filter_options() as $k => $v) : ?>
-                <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
-              <?php endforeach; ?>
-            </select>
-          </label>
-          <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Team or function</span>
-            <select id="tit-f-function" aria-label="Which team or function">
-              <option value="">All teams</option>
+            <span class="tit-field-l">Team Or Function</span>
+            <select id="tit-f-function" multiple size="5"
+                    aria-label="Team or function, choose more than one if you like">
               <?php foreach ($functions as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
           </label>
           <label class="tit-field tit-field--stack">
             <span class="tit-field-l">Industry</span>
-            <select id="tit-f-industry" aria-label="Which industry">
-              <option value="">All industries</option>
+            <select id="tit-f-industry" multiple size="5"
+                    aria-label="Industry, choose more than one if you like">
               <?php foreach ($industries as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
+          </label>
+          <label class="tit-field tit-field--stack" id="tit-field-employer_type" hidden>
+            <span class="tit-field-l">Employer Type</span>
+            <select id="tit-f-employer_type" multiple size="5"
+                    aria-label="Employer type, choose more than one if you like"></select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
+          </label>
+          <label class="tit-field tit-field--stack" id="tit-field-work_mode" hidden>
+            <span class="tit-field-l">Work Setup</span>
+            <select id="tit-f-work_mode" multiple size="5"
+                    aria-label="Work setup, choose more than one if you like"></select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
           </label>
           <?php /* Bands, not a box to type a number in. A recruiter thinks in
                    orders of magnitude, and an exact figure produces an
                    empty-looking page for anyone who guesses a threshold nothing
-                   sits above. */ ?>
+                   sits above. Single choice: bands already nest. */ ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Amount raised</span>
+            <span class="tit-field-l">Amount Raised</span>
             <select id="tit-f-min_funding_usd" aria-label="Smallest amount raised">
-              <option value="">Any amount</option>
+              <option value="">Any Amount</option>
               <?php foreach (tit_funding_bands() as $value => $label) : ?>
                 <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
               <?php endforeach; ?>
             </select>
           </label>
-          <?php /* Options come from /facets, so this only ever offers the
-                   stages we actually hold. A fixed list of eleven would put ten
-                   dead options in front of a reader while the Form D backfill
-                   is still filling the column, and a filter that returns
-                   nothing reads as broken. */ ?>
-          <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Funding stage</span>
-            <select id="tit-f-funding_stage" aria-label="Which funding stage">
-              <option value="">Any stage</option>
-            </select>
+          <label class="tit-field tit-field--stack" id="tit-field-funding_stage" hidden>
+            <span class="tit-field-l">Funding Stage</span>
+            <select id="tit-f-funding_stage" multiple size="5"
+                    aria-label="Funding stage, choose more than one if you like"></select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
+          </label>
+          <label class="tit-field tit-field--stack" id="tit-field-deal_type" hidden>
+            <span class="tit-field-l">Deal Type</span>
+            <select id="tit-f-deal_type" multiple size="5"
+                    aria-label="Deal type, choose more than one if you like"></select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
           </label>
           <label class="tit-field tit-field--stack">
             <span class="tit-field-l">Evidence</span>
             <select id="tit-f-confidence" aria-label="What the record is based on">
-              <option value="">Any evidence</option>
+              <option value="">Any Evidence</option>
               <?php foreach (tit_confidence_labels() as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
           </label>
-          <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Search</span>
+          <label class="tit-field tit-field--stack tit-field--wide">
+            <span class="tit-field-l">Keyword Search</span>
             <input type="search" id="tit-f-q" placeholder="Company, industry or keyword"
                    aria-label="Search headlines and read-throughs">
           </label>
-          <label class="tit-field"><span>From</span>
-            <input type="date" id="tit-f-since" aria-label="Earliest date"
-                   min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
-          <label class="tit-field"><span>To</span>
-            <input type="date" id="tit-f-until" aria-label="Latest date"
-                   min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+          <?php /* One row, always. As two separate grid cells these landed in
+                   different rows whenever the column count was even, so a range
+                   read as two unrelated dates. The sibling tracker keeps its own
+                   From and To together in one box for exactly this reason. */ ?>
+          <div class="tit-field tit-field--stack tit-field--wide">
+            <span class="tit-field-l">Date From / Date To</span>
+            <div class="tit-daterange">
+              <label><span class="tit-sr">Earliest date</span>
+                <input type="date" id="tit-f-since" aria-label="Earliest date"
+                       min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+              <span class="tit-daterange-to" aria-hidden="true">to</span>
+              <label><span class="tit-sr">Latest date</span>
+                <input type="date" id="tit-f-until" aria-label="Latest date"
+                       min="<?php echo esc_attr($span_lo); ?>" max="<?php echo esc_attr($span_hi); ?>"></label>
+            </div>
+          </div>
           <?php /* Reset sits with the controls it resets, not alone in a bar
-                   where it read as a faint link. Styled as what it is: a real
-                   button, in the contraction hue, and never the loudest thing
-                   on the page. */ ?>
+                   where it read as a faint link. */ ?>
           <div class="tit-field tit-reset-field">
             <button type="button" class="tit-reset-btn" id="tit-reset">Reset all filters</button>
           </div>
         </div>
       </details>
 
-      <?php /* The state the two front controls drive. Hidden, never focusable,
-               and deliberately still real <select> elements: every existing
+      <?php /* The state the visible controls drive. Hidden, never focusable,
+               and deliberately still real select elements: every existing
                mechanism (the querystring, the chips bar, the exports, the
                click-to-filter charts, the matrix cells) reads and writes these,
                and re-pointing all of it at new state would have turned a
-               presentation change into a semantics change. */ ?>
+               presentation change into a semantics change.
+
+               `direction` lives here now rather than in More filters. It was
+               showing as a second control also labelled "Headcount", beside the
+               primary-row checkbox, with different behaviour: one label, two
+               controls, which is worse than either alone. Hiring is still
+               reachable through "What are you looking for". */ ?>
       <div class="tit-state" hidden aria-hidden="true">
         <select id="tit-f-pillar" tabindex="-1">
           <option value=""></option>
@@ -486,9 +548,19 @@ function tit_dashboard_shortcode() {
             <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
           <?php endforeach; ?>
         </select>
+        <select id="tit-f-direction" tabindex="-1">
+          <option value=""></option>
+          <?php foreach ($directions as $k => $v) : ?>
+            <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
+          <?php endforeach; ?>
+        </select>
         <select id="tit-f-country" tabindex="-1"><option value=""></option></select>
         <select id="tit-f-state" tabindex="-1"><option value=""></option></select>
         <select id="tit-f-city" tabindex="-1"><option value=""></option></select>
+        <select id="tit-f-country_basis" tabindex="-1">
+          <option value="any"></option>
+          <option value="location"></option>
+        </select>
       </div>
 
       <!--
@@ -568,8 +640,8 @@ function tit_dashboard_shortcode() {
         a dollar figure, so a total shown without it would read as the whole
         market when it is a floor.
       -->
-      <div class="tit-sec">
-        <h3>How much money is being raised</h3>
+      <div class="tit-sec tit-sec--money">
+        <h3><span class="tit-sec-eyebrow">Funding</span>How much money is being raised</h3>
         <p>Funding rounds added up, in US dollars. Click a row to narrow the
            whole page to that place or industry.</p>
       </div>
@@ -933,13 +1005,14 @@ function tit_glance_matrix_html(array $m) {
         </tbody>
       </table>
     </div>
-    <p class="tit-matrix-note">Stronger colour means more activity, measured
-       across each row. Rows overlap on purpose: a funded employer can also be
-       hiring up, so columns are not sums.
-       <strong>Click any number to filter the whole page.</strong>
-       <span class="tit-matrix-money-note">Money raised is the odd row out: it
-       adds up dollars, while every other row counts updates.
-       <?php echo esc_html(tit_money_coverage_sentence($m['coverage'] ?? null)); ?></span></p>
+    <div class="tit-matrix-note">
+      <p>Colour shows how much activity, scaled within each row. Rows can
+         overlap: a funded employer may also be hiring, so the columns do not
+         add up. <strong>Click any number to filter the page.</strong></p>
+      <p class="tit-matrix-money-note">Money raised is the exception. It sums
+         dollars while every other row counts updates.
+         <?php echo esc_html(tit_money_coverage_sentence($m['coverage'] ?? null)); ?></p>
+    </div>
     <?php
     return ob_get_clean();
 }
@@ -1073,12 +1146,22 @@ function tit_money_coverage_sentence($coverage) {
     if ($all === 0) {
         return 'No funding updates in this view yet, so there is nothing to add up.';
     }
-    return sprintf(
-        _n('Totals cover the %1$s of %2$s funding update that states an amount in US dollars.',
-           'Totals cover the %1$s of %2$s funding updates that state an amount in US dollars.',
-           $all, 'tit'),
-        number_format_i18n($with), number_format_i18n($all)
-    ) . ' Amounts stated in another currency are left out rather than converted at a rate nobody published.';
+    // "the 3,992 of 3,992" reads as a mistake. When coverage is complete, say
+    // so plainly; keep the two numbers only when they actually differ, which is
+    // the case the sentence exists for.
+    $lead = ($with >= $all)
+        ? sprintf(
+            _n('All %s funding update states a US dollar amount',
+               'All %s funding updates state a US dollar amount', $all, 'tit'),
+            number_format_i18n($all))
+        : sprintf(
+            _n('Totals cover the %1$s of %2$s funding update that states a US dollar amount',
+               'Totals cover the %1$s of %2$s funding updates that state a US dollar amount',
+               $all, 'tit'),
+            number_format_i18n($with), number_format_i18n($all));
+
+    return $lead . '; amounts in other currencies are left out rather than'
+         . ' converted at a rate nobody published.';
 }
 
 /** The same sentence, plus what this particular chart cannot place. */
@@ -1195,14 +1278,12 @@ function tit_funding_stage_labels() {
  */
 function tit_looking_options() {
     return array(
-        ''                           => 'All updates',
+        ''                           => 'Anything',
         'direction=hiring'           => 'Hiring',
         'funding=1'                  => 'Funding',
         'pillar=leadership_change'   => 'Leadership changes',
         'pillar=rewards_comp'        => 'Pay news',
-        'pillar=company_development' => 'Growing and expanding',
         'pillar=how_we_work'         => 'Ways of working',
-        'direction=displacement'     => 'Cutting back',
     );
 }
 
@@ -1217,11 +1298,25 @@ function tit_looking_options() {
  */
 function tit_direction_filter_options() {
     return array(
-        'hiring'       => 'Hiring up',
-        'displacement' => 'Cutting back',
-        'neutral'      => 'Not stated',
+        'hiring'  => 'Hiring up',
+        'neutral' => 'Not stated',
     );
 }
+
+/**
+ * Why "Cutting back" is no longer offered.
+ *
+ * Measured live: hiring 4,018, comp_shift 9,217, neutral 3,361, displacement
+ * SEVEN, out of 16,603. An option returning 0.04% is not a filter, it is a way
+ * to make the page look broken, and this tracker's own footer says layoffs are
+ * collected separately. The stored value is untouched and those rows still
+ * appear in the table, because deleting accurate records to tidy a dropdown
+ * would be the dishonest fix. /query still accepts direction=displacement, so
+ * an existing link keeps working.
+ *
+ * Anyone looking for cuts is sent to the sibling tracker, which is the product
+ * that actually collects them.
+ */
 
 /** Reader-facing industry names, in one place so the page and the money charts agree. */
 function tit_industry_labels() {
@@ -1324,12 +1419,30 @@ function tit_next_run() {
  */
 function tit_span_note($lo, $hi) {
     if (!$lo || !$hi) return '';
-    $days = (int) floor((strtotime($hi) - strtotime($lo)) / DAY_IN_SECONDS) + 1;
+
+    /*
+      This line said "Everything here spans 3,318 days, 28 Jun to 28 Jul 2026",
+      which is nine years of days against thirty days of dates, and a page whose
+      own date range does not add up undermines every number beside it.
+
+      Both halves came from the same query and the same two values all along.
+      What broke was the FORMAT: the low bound printed as 'j M' with no year.
+      That read correctly while everything we held sat inside one year, and
+      turned into a contradiction the moment the UK pay-gap rows reached back to
+      2017 and the Form D sweep began adding 2009 onward. A format that is only
+      correct for a range you happen to hold today is a bug with a fuse on it.
+
+      Now: both bounds carry their year, and the day count is gone. It was
+      there to stop "46 updates" reading like a long-running tracker, and that
+      job is done by the real dates the moment they span years.
+    */
+    if (substr($lo, 0, 10) === substr($hi, 0, 10)) {
+        return sprintf('Covering %s.', date_i18n('j M Y', strtotime($hi)));
+    }
     return sprintf(
-        /* translators: 1: number of days, 2: first date, 3: last date */
-        _n('Everything here spans %1$s day, %2$s.', 'Everything here spans %1$s days, %2$s to %3$s.', $days, 'tit'),
-        number_format_i18n($days),
-        date_i18n('j M', strtotime($lo)),
+        /* translators: 1: earliest date, 2: latest date, both with the year */
+        'Covering %1$s to %2$s.',
+        date_i18n('j M Y', strtotime($lo)),
         date_i18n('j M Y', strtotime($hi))
     );
 }

@@ -105,6 +105,42 @@ function tit_funding_where() {
 }
 
 /**
+ * Split a comma-separated filter value into a validated list.
+ *
+ * A recruiter wants "Technology OR Healthcare", not one at a time, so the
+ * list-like parameters accept several values. Every value is checked against
+ * the closed vocabulary it belongs to before it reaches SQL, so the IN clause
+ * can only ever be built from strings we shipped ourselves.
+ */
+function tit_multi_param(WP_REST_Request $req, $name, array $allowed) {
+    $raw = sanitize_text_field($req->get_param($name) ?? '');
+    if ($raw === '') return array();
+    $out = array();
+    foreach (explode(',', $raw) as $value) {
+        $value = trim($value);
+        if ($value !== '' && in_array($value, $allowed, true) && !in_array($value, $out, true)) {
+            $out[] = $value;
+        }
+    }
+    return $out;
+}
+
+/** Employer kinds, mirrored from the pipeline's vocabulary. */
+function tit_allowed_employer_types() {
+    return array('public', 'private', 'startup', 'government', 'nonprofit', 'education');
+}
+
+/** Where the work happens, when a source says so. */
+function tit_allowed_work_modes() {
+    return array('remote', 'hybrid', 'onsite', 'rto_mandate', 'flexible');
+}
+
+/** Corporate events, when a source names one. */
+function tit_allowed_deal_types() {
+    return array('acquisition', 'acquired', 'merger', 'divestiture', 'joint_venture', 'ipo');
+}
+
+/**
  * Rows that are not a bare routine filing.
  *
  * NULL counts as notable on purpose. materiality is filled by the pipeline, so
@@ -185,10 +221,30 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params[] = '%' . $wpdb->esc_like(strtolower($company)) . '%';
     }
 
-    $industry = sanitize_text_field($req->get_param('industry') ?? '');
-    if ($industry !== '' && in_array($industry, tit_allowed_industries(), true)) {
-        $where[] = 'industry = %s';
-        $params[] = $industry;
+    $industries = tit_multi_param($req, 'industry', tit_allowed_industries());
+    if ($industries) {
+        $where[] = 'industry IN (' . implode(', ', array_fill(0, count($industries), '%s')) . ')';
+        $params = array_merge($params, $industries);
+    }
+
+    // Kind of employer, which is a real question for a job seeker choosing
+    // where to apply and was stored all along with nowhere to ask it.
+    $employer_types = tit_multi_param($req, 'employer_type', tit_allowed_employer_types());
+    if ($employer_types) {
+        $where[] = 'employer_type IN (' . implode(', ', array_fill(0, count($employer_types), '%s')) . ')';
+        $params = array_merge($params, $employer_types);
+    }
+
+    $work_modes = tit_multi_param($req, 'work_mode', tit_allowed_work_modes());
+    if ($work_modes) {
+        $where[] = 'work_mode IN (' . implode(', ', array_fill(0, count($work_modes), '%s')) . ')';
+        $params = array_merge($params, $work_modes);
+    }
+
+    $deal_types = tit_multi_param($req, 'deal_type', tit_allowed_deal_types());
+    if ($deal_types) {
+        $where[] = 'deal_type IN (' . implode(', ', array_fill(0, count($deal_types), '%s')) . ')';
+        $params = array_merge($params, $deal_types);
     }
 
     $state = strtoupper(sanitize_text_field($req->get_param('state') ?? ''));
@@ -199,10 +255,16 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
 
     // functions is a JSON array; match the quoted token so 'finance' never
     // matches a longer value that merely contains it.
-    $function = sanitize_text_field($req->get_param('function') ?? '');
-    if ($function !== '' && in_array($function, tit_allowed_functions(), true)) {
-        $where[] = 'functions LIKE %s';
-        $params[] = '%"' . $wpdb->esc_like($function) . '"%';
+    $function_list = tit_multi_param($req, 'function', tit_allowed_functions());
+    if ($function_list) {
+        // OR, not AND: a row naming engineering satisfies "engineering or
+        // design". Requiring both would answer a question nobody asked.
+        $likes = array();
+        foreach ($function_list as $fn) {
+            $likes[] = 'functions LIKE %s';
+            $params[] = '%"' . $wpdb->esc_like($fn) . '"%';
+        }
+        $where[] = '(' . implode(' OR ', $likes) . ')';
     }
 
     if ($req->get_param('funding') === '1') {
@@ -218,10 +280,10 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params[] = $min_funding;
     }
 
-    $stage = sanitize_text_field($req->get_param('funding_stage') ?? '');
-    if ($stage !== '' && in_array($stage, tit_allowed_funding_stages(), true)) {
-        $where[] = 'funding_stage = %s';
-        $params[] = $stage;
+    $stages = tit_multi_param($req, 'funding_stage', tit_allowed_funding_stages());
+    if ($stages) {
+        $where[] = 'funding_stage IN (' . implode(', ', array_fill(0, count($stages), '%s')) . ')';
+        $params = array_merge($params, $stages);
     }
 
     // "Only updates that state a headcount." About 87% of what we hold says
@@ -287,6 +349,7 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // not keyed on means two different responses share a cache entry, and
         // whichever request arrives first decides what everyone else sees.
         'min_funding_usd', 'funding_stage', 'detail', 'stated_headcount',
+        'employer_type', 'work_mode', 'deal_type',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -489,6 +552,14 @@ function tit_api_aggregate(WP_REST_Request $req) {
                  AND signal_direction IN ('hiring', 'displacement')";
     $stated = (int) $wpdb->get_var($sh_params ? $wpdb->prepare($sh_sql, $sh_params) : $sh_sql);
 
+    // The date range the page actually covers, from ONE query so the day count
+    // and the labels can never disagree. Under the caller's own filters, like
+    // every other figure in the hero.
+    $span_sql = "SELECT MIN(COALESCE(published_date, DATE(captured_at))) lo,
+                        MAX(COALESCE(published_date, DATE(captured_at))) hi
+                   FROM {$table} WHERE {$where}";
+    $span = $wpdb->get_row($params ? $wpdb->prepare($span_sql, $params) : $span_sql, ARRAY_A) ?: array();
+
     $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
     $out = array(
         'total'      => (int) $wpdb->get_var($params ? $wpdb->prepare($total_sql, $params) : $total_sql),
@@ -524,6 +595,7 @@ function tit_api_aggregate(WP_REST_Request $req) {
             'routine' => (int) ($md['routine'] ?? 0),
         ),
         'stated_headcount' => $stated,
+        'span' => array('lo' => $span['lo'] ?? '', 'hi' => $span['hi'] ?? ''),
         'generated'  => gmdate('c'),
     );
     set_transient($cache_key, $out, TIT_CACHE_TTL);
@@ -553,6 +625,13 @@ function tit_api_facets() {
         // eleven would put ten dead options in front of a reader, and a filter
         // that returns nothing reads as broken rather than as thin coverage.
         'funding_stages' => $col('funding_stage'),
+        // Data-driven for the same reason as the stages: a control whose column
+        // is still empty is HIDDEN by the page rather than shown returning
+        // nothing, and it appears by itself the day the pipeline fills it.
+        // Nothing to remember, nothing to go stale.
+        'employer_types' => $col('employer_type'),
+        'work_modes'     => $col('work_mode'),
+        'deal_types'     => $col('deal_type'),
         'industries' => tit_allowed_industries(),
         'functions' => tit_allowed_functions(),
         'pillars'   => tit_allowed_pillars(),
