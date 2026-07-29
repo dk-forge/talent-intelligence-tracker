@@ -459,7 +459,7 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:41:22Z",
+      "dispatched_at": null,
       "history": [
         {
           "at": "2026-07-29T18:40:06Z",
@@ -480,6 +480,11 @@
           "at": "2026-07-29T18:46:46Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-07-29T19:01:42Z",
+          "detail": "it failed only because publish was blocked by the eight guardrail findings; those are answered and enforce now passes, so the slice can finish",
+          "event": "requeued"
         }
       ],
       "id": "20260729T184006Z-backfill-funding-bulk",
@@ -491,8 +496,8 @@
       "reason": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
       "requested_at": "2026-07-29T18:40:06Z",
       "requested_by": "dakotta-labs",
-      "run_id": "30481065108",
-      "state": "failed",
+      "run_id": null,
+      "state": "queued",
       "workflow": "backfill-funding-bulk.yml"
     },
     {
