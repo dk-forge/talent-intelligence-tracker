@@ -1,6 +1,7 @@
 {
  "boards": {
   "ashby:abridge": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -29,18 +30,23 @@
     "total": 44
    },
    "company": "Abridge",
+   "company_key": "abridge",
    "history": [
     {
      "date": "2026-07-28",
      "total": 44
+    },
+    {
+     "date": "2026-07-29",
+     "total": 45
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 3,
      "design": 2,
-     "engineering": 7,
+     "engineering": 8,
      "it_infrastructure": 8,
      "marketing": 1,
      "operations": 7,
@@ -50,20 +56,31 @@
     },
     "places": {
      "city:New York": 4,
-     "city:San Francisco": 32,
+     "city:San Francisco": 33,
      "country:US": 6,
      "remote:": 2
     },
     "salary": {
-     "listed": 44,
+     "listed": 45,
      "median_max": 252000,
      "median_min": 210800,
      "place": "city:San Francisco"
     },
-    "total": 44
-   }
+    "total": 45
+   },
+   "slug": "abridge",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/abridge"
   },
   "ashby:cohere": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -107,14 +124,19 @@
     "total": 139
    },
    "company": "Cohere",
+   "company_key": "cohere",
    "history": [
     {
      "date": "2026-07-28",
      "total": 139
+    },
+    {
+     "date": "2026-07-29",
+     "total": 139
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 1,
      "data_ai": 9,
@@ -154,9 +176,20 @@
      "place": "city:San Francisco"
     },
     "total": 139
-   }
+   },
+   "slug": "cohere",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/cohere"
   },
   "ashby:cursor": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -185,14 +218,19 @@
     "total": 123
    },
    "company": "Cursor",
+   "company_key": "cursor",
    "history": [
     {
      "date": "2026-07-28",
      "total": 123
+    },
+    {
+     "date": "2026-07-29",
+     "total": 122
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 2,
      "design": 1,
@@ -202,13 +240,13 @@
      "legal_compliance": 1,
      "marketing": 8,
      "operations": 4,
-     "sales": 36
+     "sales": 35
     },
     "places": {
      "city:London": 7,
      "city:New York": 13,
      "city:San Francisco": 60,
-     "city:Singapore": 10,
+     "city:Singapore": 9,
      "country:AU": 6,
      "country:DE": 1,
      "country:IN": 2,
@@ -216,10 +254,21 @@
      "country:PH": 1,
      "country:US": 19
     },
-    "total": 123
-   }
+    "total": 122
+   },
+   "slug": "cursor",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/cursor"
   },
   "ashby:decagon": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -251,14 +300,19 @@
     "total": 113
    },
    "company": "Decagon",
+   "company_key": "decagon",
    "history": [
     {
      "date": "2026-07-28",
      "total": 113
+    },
+    {
+     "date": "2026-07-29",
+     "total": 120
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "design": 1,
      "engineering": 44,
@@ -268,27 +322,43 @@
      "marketing": 4,
      "operations": 2,
      "product": 9,
-     "sales": 28
+     "sales": 36
     },
     "places": {
+     "city:Amsterdam": 2,
      "city:London": 15,
      "city:New York": 21,
      "city:San Francisco": 63,
      "city:Toronto": 4,
+     "country:AT": 1,
      "country:AU": 3,
-     "country:GE": 1,
+     "country:DE": 1,
+     "country:DK": 1,
+     "country:FR": 2,
+     "country:SE": 1,
      "country:US": 6
     },
     "salary": {
-     "listed": 90,
+     "listed": 89,
      "median_max": 300000,
      "median_min": 200000,
      "place": "city:San Francisco"
     },
-    "total": 113
-   }
+    "total": 120
+   },
+   "slug": "decagon",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/decagon"
   },
   "ashby:elevenlabs": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -337,19 +407,24 @@
     "total": 215
    },
    "company": "ElevenLabs",
+   "company_key": "elevenlabs",
    "history": [
     {
      "date": "2026-07-28",
      "total": 215
+    },
+    {
+     "date": "2026-07-29",
+     "total": 217
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 4,
      "data_ai": 2,
      "design": 1,
-     "engineering": 34,
+     "engineering": 36,
      "hr_people": 1,
      "it_infrastructure": 3,
      "manufacturing": 1,
@@ -358,7 +433,7 @@
      "sales": 75
     },
     "places": {
-     "city:London": 8,
+     "city:London": 10,
      "city:New York": 12,
      "city:San Francisco": 8,
      "city:Singapore": 8,
@@ -388,10 +463,21 @@
      "country:US": 37,
      "remote:": 1
     },
-    "total": 215
-   }
+    "total": 217
+   },
+   "slug": "elevenlabs",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/elevenlabs"
   },
   "ashby:harvey": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -434,28 +520,33 @@
     "total": 346
    },
    "company": "Harvey",
+   "company_key": "harvey",
    "history": [
     {
      "date": "2026-07-28",
      "total": 346
+    },
+    {
+     "date": "2026-07-29",
+     "total": 350
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 22,
      "data_ai": 3,
      "design": 7,
      "engineering": 122,
      "executive": 2,
-     "finance": 9,
+     "finance": 8,
      "hr_people": 16,
-     "it_infrastructure": 42,
+     "it_infrastructure": 45,
      "legal_compliance": 15,
      "marketing": 31,
      "operations": 4,
      "product": 15,
-     "sales": 49
+     "sales": 51
     },
     "places": {
      "city:Bangalore": 12,
@@ -466,23 +557,35 @@
      "city:Munich": 6,
      "city:New York": 99,
      "city:Paris": 5,
-     "city:San Francisco": 115,
+     "city:San Francisco": 116,
+     "city:Singapore": 1,
      "city:Stockholm": 1,
-     "city:Sydney": 6,
+     "city:Sydney": 7,
      "city:Toronto": 11,
      "country:MX": 3,
-     "country:US": 53
+     "country:US": 54
     },
     "salary": {
-     "listed": 267,
+     "listed": 269,
      "median_max": 265000,
-     "median_min": 193400,
+     "median_min": 191800,
      "place": ""
     },
-    "total": 346
-   }
+    "total": 350
+   },
+   "slug": "harvey",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/harvey"
   },
   "ashby:linear": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -499,14 +602,19 @@
     "total": 25
    },
    "company": "Linear",
+   "company_key": "linear",
    "history": [
     {
      "date": "2026-07-28",
      "total": 25
+    },
+    {
+     "date": "2026-07-29",
+     "total": 25
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 4,
      "engineering": 3,
@@ -519,9 +627,20 @@
      "country:US": 17
     },
     "total": 25
-   }
+   },
+   "slug": "linear",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/linear"
   },
   "ashby:multiverse": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -542,14 +661,19 @@
     "total": 24
    },
    "company": "Multiverse",
+   "company_key": "multiverse",
    "history": [
     {
      "date": "2026-07-28",
      "total": 24
+    },
+    {
+     "date": "2026-07-29",
+     "total": 24
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "design": 2,
      "engineering": 6,
@@ -566,9 +690,20 @@
      "city:London": 23
     },
     "total": 24
-   }
+   },
+   "slug": "multiverse",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/multiverse"
   },
   "ashby:notion": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -605,25 +740,30 @@
     "total": 116
    },
    "company": "Notion",
+   "company_key": "notion",
    "history": [
     {
      "date": "2026-07-28",
      "total": 116
+    },
+    {
+     "date": "2026-07-29",
+     "total": 116
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
-     "customer_support": 6,
+     "customer_support": 2,
      "data_ai": 1,
      "design": 1,
      "engineering": 22,
      "executive": 1,
      "finance": 11,
-     "hr_people": 10,
+     "hr_people": 11,
      "it_infrastructure": 3,
      "legal_compliance": 1,
-     "marketing": 9,
+     "marketing": 8,
      "operations": 5,
      "product": 2,
      "sales": 35
@@ -631,23 +771,34 @@
     "places": {
      "city:Dublin": 6,
      "city:Hyderabad": 5,
-     "city:London": 2,
+     "city:London": 3,
      "city:Munich": 1,
      "city:New York": 13,
      "city:Paris": 3,
      "city:San Francisco": 66,
      "city:Singapore": 1,
      "city:Sydney": 3,
-     "city:Tokyo": 10,
+     "city:Tokyo": 9,
      "country:ES": 1,
      "country:IT": 1,
      "country:KR": 3,
      "country:TW": 1
     },
     "total": 116
-   }
+   },
+   "slug": "notion",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/notion"
   },
   "ashby:openai": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -697,26 +848,31 @@
     "total": 744
    },
    "company": "OpenAI",
+   "company_key": "openai",
    "history": [
     {
      "date": "2026-07-28",
      "total": 744
+    },
+    {
+     "date": "2026-07-29",
+     "total": 738
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 7,
      "data_ai": 30,
      "design": 2,
-     "engineering": 254,
+     "engineering": 253,
      "executive": 4,
      "finance": 45,
      "hr_people": 12,
-     "it_infrastructure": 104,
+     "it_infrastructure": 103,
      "legal_compliance": 14,
      "manufacturing": 1,
-     "marketing": 41,
+     "marketing": 39,
      "operations": 30,
      "product": 11,
      "research": 64,
@@ -730,29 +886,40 @@
      "city:Munich": 8,
      "city:New York": 24,
      "city:Paris": 8,
-     "city:San Francisco": 514,
+     "city:San Francisco": 511,
      "city:Seattle": 13,
-     "city:Singapore": 31,
+     "city:Singapore": 30,
      "city:Stockholm": 4,
-     "city:Sydney": 9,
+     "city:Sydney": 8,
      "city:Tokyo": 19,
      "city:Zurich": 2,
      "country:AE": 2,
      "country:BR": 3,
-     "country:IN": 8,
+     "country:IN": 7,
      "country:KR": 11,
      "country:US": 38
     },
     "salary": {
-     "listed": 589,
+     "listed": 587,
      "median_max": 342000,
      "median_min": 234000,
      "place": "city:San Francisco"
     },
-    "total": 744
-   }
+    "total": 738
+   },
+   "slug": "openai",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/openai"
   },
   "ashby:perplexity": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -786,19 +953,24 @@
     "total": 87
    },
    "company": "Perplexity",
+   "company_key": "perplexity",
    "history": [
     {
      "date": "2026-07-28",
      "total": 87
+    },
+    {
+     "date": "2026-07-29",
+     "total": 86
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 4,
      "data_ai": 11,
      "design": 3,
-     "engineering": 32,
+     "engineering": 31,
      "finance": 1,
      "hr_people": 3,
      "it_infrastructure": 8,
@@ -811,21 +983,32 @@
     "places": {
      "city:London": 7,
      "city:New York": 4,
-     "city:San Francisco": 65,
+     "city:San Francisco": 64,
      "city:Tokyo": 1,
      "country:RS": 9,
      "country:US": 1
     },
     "salary": {
-     "listed": 71,
-     "median_max": 320000,
+     "listed": 70,
+     "median_max": 310000,
      "median_min": 210000,
      "place": "city:San Francisco"
     },
-    "total": 87
-   }
+    "total": 86
+   },
+   "slug": "perplexity",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/perplexity"
   },
   "ashby:ramp": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -859,14 +1042,19 @@
     "total": 119
    },
    "company": "Ramp",
+   "company_key": "ramp",
    "history": [
     {
      "date": "2026-07-28",
      "total": 119
+    },
+    {
+     "date": "2026-07-29",
+     "total": 120
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 2,
      "design": 6,
@@ -878,11 +1066,11 @@
      "legal_compliance": 6,
      "marketing": 11,
      "product": 3,
-     "sales": 44
+     "sales": 45
     },
     "places": {
      "city:London": 9,
-     "city:New York": 92,
+     "city:New York": 93,
      "city:San Francisco": 7,
      "city:Stockholm": 1,
      "country:AR": 1,
@@ -890,15 +1078,26 @@
      "country:US": 8
     },
     "salary": {
-     "listed": 106,
+     "listed": 107,
      "median_max": 275000,
      "median_min": 168000,
      "place": "city:New York"
     },
-    "total": 119
-   }
+    "total": 120
+   },
+   "slug": "ramp",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/ramp"
   },
   "ashby:replit": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -930,21 +1129,26 @@
     "total": 88
    },
    "company": "Replit",
+   "company_key": "replit",
    "history": [
     {
      "date": "2026-07-28",
      "total": 88
+    },
+    {
+     "date": "2026-07-29",
+     "total": 88
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 1,
      "engineering": 43,
      "hr_people": 1,
      "it_infrastructure": 9,
      "manufacturing": 1,
-     "marketing": 5,
+     "marketing": 6,
      "operations": 1,
      "product": 1,
      "sales": 15
@@ -965,9 +1169,20 @@
      "place": "country:CA"
     },
     "total": 88
-   }
+   },
+   "slug": "replit",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/replit"
   },
   "ashby:sierra": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1003,21 +1218,26 @@
     "total": 169
    },
    "company": "Sierra",
+   "company_key": "sierra",
    "history": [
     {
      "date": "2026-07-28",
      "total": 169
+    },
+    {
+     "date": "2026-07-29",
+     "total": 171
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "design": 6,
      "engineering": 51,
      "it_infrastructure": 1,
      "legal_compliance": 4,
      "marketing": 3,
-     "operations": 31,
+     "operations": 33,
      "product": 38,
      "sales": 32
     },
@@ -1027,8 +1247,8 @@
      "city:Munich": 5,
      "city:New York": 3,
      "city:Paris": 3,
-     "city:San Francisco": 78,
-     "city:Singapore": 9,
+     "city:San Francisco": 79,
+     "city:Singapore": 10,
      "city:Sydney": 4,
      "city:Tokyo": 10,
      "city:Toronto": 1,
@@ -1036,15 +1256,26 @@
      "country:US": 7
     },
     "salary": {
-     "listed": 84,
+     "listed": 85,
      "median_max": 290000,
      "median_min": 200000,
      "place": "city:San Francisco"
     },
-    "total": 169
-   }
+    "total": 171
+   },
+   "slug": "sierra",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/sierra"
   },
   "ashby:synthesia": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1071,14 +1302,19 @@
     "total": 75
    },
    "company": "Synthesia",
+   "company_key": "synthesia",
    "history": [
     {
      "date": "2026-07-28",
      "total": 75
+    },
+    {
+     "date": "2026-07-29",
+     "total": 75
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 7,
      "engineering": 7,
@@ -1101,9 +1337,20 @@
      "country:US": 2
     },
     "total": 75
-   }
+   },
+   "slug": "synthesia",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/synthesia"
   },
   "ashby:vanta": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1139,14 +1386,19 @@
     "total": 103
    },
    "company": "Vanta",
+   "company_key": "vanta",
    "history": [
     {
      "date": "2026-07-28",
      "total": 103
+    },
+    {
+     "date": "2026-07-29",
+     "total": 103
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 8,
      "data_ai": 1,
@@ -1178,9 +1430,20 @@
      "place": "country:US"
     },
     "total": 103
-   }
+   },
+   "slug": "vanta",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/vanta"
   },
   "ashby:wayve": {
+   "ats": "ashby",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1206,14 +1469,19 @@
     "total": 111
    },
    "company": "Wayve",
+   "company_key": "wayve",
    "history": [
     {
      "date": "2026-07-28",
      "total": 111
+    },
+    {
+     "date": "2026-07-29",
+     "total": 111
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 17,
      "engineering": 39,
@@ -1227,17 +1495,148 @@
      "supply_chain": 2
     },
     "places": {
-     "city:London": 31,
+     "city:London": 32,
      "city:Tokyo": 10,
      "country:CA": 1,
      "country:DE": 10,
      "country:IL": 5,
-     "country:JP": 7
+     "country:JP": 6
     },
     "total": 111
-   }
+   },
+   "slug": "wayve",
+   "source_name": "Ashby job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://jobs.ashbyhq.com/wayve"
+  },
+  "greenhouse:10xgenomics": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 1,
+     "engineering": 7,
+     "executive": 1,
+     "hr_people": 2,
+     "marketing": 1,
+     "operations": 1,
+     "product": 1,
+     "sales": 5
+    },
+    "places": {
+     "country:CA": 2,
+     "country:FR": 1,
+     "country:JP": 4,
+     "country:MX": 1,
+     "country:MY": 1,
+     "country:RO": 1,
+     "country:US": 3
+    },
+    "total": 27
+   },
+   "company": "10x Genomics",
+   "company_key": "10x genomics",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 27
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 1,
+     "engineering": 7,
+     "executive": 1,
+     "hr_people": 2,
+     "marketing": 1,
+     "operations": 1,
+     "product": 1,
+     "sales": 5
+    },
+    "places": {
+     "country:CA": 2,
+     "country:FR": 1,
+     "country:JP": 4,
+     "country:MX": 1,
+     "country:MY": 1,
+     "country:RO": 1,
+     "country:US": 3
+    },
+    "total": 27
+   },
+   "slug": "10xgenomics",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/10xgenomics"
+  },
+  "greenhouse:agilysys": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "engineering": 3,
+     "marketing": 1,
+     "sales": 6
+    },
+    "places": {
+     "city:Singapore": 2,
+     "country:GA": 7,
+     "country:HK": 1,
+     "country:PH": 1
+    },
+    "total": 12
+   },
+   "company": "Agilysys",
+   "company_key": "agilysys",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 12
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "engineering": 3,
+     "marketing": 1,
+     "sales": 6
+    },
+    "places": {
+     "city:Singapore": 2,
+     "country:GA": 7,
+     "country:HK": 1,
+     "country:PH": 1
+    },
+    "total": 12
+   },
+   "slug": "agilysys",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/agilysys"
   },
   "greenhouse:airtable": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1263,14 +1662,19 @@
     "total": 41
    },
    "company": "Airtable",
+   "company_key": "airtable",
    "history": [
     {
      "date": "2026-07-28",
      "total": 41
+    },
+    {
+     "date": "2026-07-29",
+     "total": 41
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 1,
      "design": 1,
@@ -1292,9 +1696,237 @@
      "remote:": 1
     },
     "total": 41
-   }
+   },
+   "slug": "airtable",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/airtable"
+  },
+  "greenhouse:alarmcom": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 42,
+     "finance": 2,
+     "hr_people": 1,
+     "it_infrastructure": 10,
+     "legal_compliance": 1,
+     "marketing": 5,
+     "operations": 4,
+     "product": 3,
+     "sales": 5,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Boston": 4,
+     "city:Krakow": 13,
+     "country:ES": 1,
+     "country:GB": 1,
+     "country:JP": 1,
+     "country:NL": 1,
+     "country:TW": 6,
+     "country:US": 3
+    },
+    "total": 82
+   },
+   "company": "Alarm.com Holdings, Inc.",
+   "company_key": "alarm com holdings",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 82
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 42,
+     "finance": 2,
+     "hr_people": 1,
+     "it_infrastructure": 10,
+     "legal_compliance": 1,
+     "marketing": 5,
+     "operations": 4,
+     "product": 3,
+     "sales": 5,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Boston": 4,
+     "city:Krakow": 13,
+     "country:ES": 1,
+     "country:GB": 1,
+     "country:JP": 1,
+     "country:NL": 1,
+     "country:TW": 6,
+     "country:US": 3
+    },
+    "total": 82
+   },
+   "slug": "alarmcom",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/alarmcom"
+  },
+  "greenhouse:ambiqmicroinc": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 30,
+     "executive": 1,
+     "it_infrastructure": 3,
+     "legal_compliance": 1,
+     "operations": 1,
+     "product": 2,
+     "sales": 1
+    },
+    "places": {
+     "city:Austin": 26,
+     "city:Singapore": 11,
+     "country:TW": 7,
+     "remote:": 2
+    },
+    "total": 46
+   },
+   "company": "Ambiq Micro, Inc.",
+   "company_key": "ambiq micro",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 46
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 30,
+     "executive": 1,
+     "it_infrastructure": 3,
+     "legal_compliance": 1,
+     "operations": 1,
+     "product": 2,
+     "sales": 1
+    },
+    "places": {
+     "city:Austin": 26,
+     "city:Singapore": 11,
+     "country:TW": 7,
+     "remote:": 2
+    },
+    "total": 46
+   },
+   "slug": "ambiqmicroinc",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/ambiqmicroinc"
+  },
+  "greenhouse:amplitude": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 7,
+     "engineering": 16,
+     "executive": 1,
+     "finance": 2,
+     "it_infrastructure": 4,
+     "marketing": 2,
+     "sales": 10
+    },
+    "places": {
+     "city:Austin": 2,
+     "city:Bangalore": 2,
+     "city:Boston": 1,
+     "city:London": 3,
+     "city:New York": 4,
+     "city:San Francisco": 26,
+     "city:Singapore": 1,
+     "city:Stockholm": 1,
+     "city:Sydney": 1,
+     "country:DE": 1,
+     "country:SA": 1,
+     "country:US": 2,
+     "remote:": 1
+    },
+    "total": 46
+   },
+   "company": "Amplitude",
+   "company_key": "amplitude",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 46
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 7,
+     "engineering": 16,
+     "executive": 1,
+     "finance": 2,
+     "it_infrastructure": 4,
+     "marketing": 2,
+     "sales": 10
+    },
+    "places": {
+     "city:Austin": 2,
+     "city:Bangalore": 2,
+     "city:Boston": 1,
+     "city:London": 3,
+     "city:New York": 4,
+     "city:San Francisco": 26,
+     "city:Singapore": 1,
+     "city:Stockholm": 1,
+     "city:Sydney": 1,
+     "country:DE": 1,
+     "country:SA": 1,
+     "country:US": 2,
+     "remote:": 1
+    },
+    "total": 46
+   },
+   "slug": "amplitude",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/amplitude"
   },
   "greenhouse:anthropic": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1332,14 +1964,19 @@
     "total": 414
    },
    "company": "Anthropic",
+   "company_key": "anthropic",
    "history": [
     {
      "date": "2026-07-28",
      "total": 414
+    },
+    {
+     "date": "2026-07-29",
+     "total": 413
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 8,
      "data_ai": 66,
@@ -1349,7 +1986,7 @@
      "hr_people": 3,
      "it_infrastructure": 49,
      "legal_compliance": 12,
-     "marketing": 10,
+     "marketing": 9,
      "operations": 22,
      "product": 14,
      "research": 9,
@@ -1363,7 +2000,7 @@
      "city:Munich": 2,
      "city:New York": 23,
      "city:Paris": 2,
-     "city:San Francisco": 291,
+     "city:San Francisco": 290,
      "city:Singapore": 6,
      "city:Sydney": 10,
      "city:Tokyo": 13,
@@ -1372,10 +2009,1017 @@
      "country:US": 4,
      "remote:": 1
     },
-    "total": 414
-   }
+    "total": 413
+   },
+   "slug": "anthropic",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/anthropic"
+  },
+  "greenhouse:appian": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 3,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 39,
+     "executive": 3,
+     "hr_people": 2,
+     "it_infrastructure": 8,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "operations": 6,
+     "product": 6,
+     "sales": 50
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:Austin": 1,
+     "city:Boston": 8,
+     "city:Frankfurt": 4,
+     "city:London": 11,
+     "city:Melbourne": 2,
+     "city:Milan": 2,
+     "city:New York": 4,
+     "city:Paris": 1,
+     "city:Singapore": 1,
+     "city:Sydney": 1,
+     "city:Tokyo": 3,
+     "city:Toronto": 3,
+     "country:CO": 1,
+     "country:GE": 4,
+     "country:IN": 42
+    },
+    "total": 187
+   },
+   "company": "Appian Corporation",
+   "company_key": "appian",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 187
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 3,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 39,
+     "executive": 3,
+     "hr_people": 2,
+     "it_infrastructure": 8,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "operations": 6,
+     "product": 6,
+     "sales": 50
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:Austin": 1,
+     "city:Boston": 8,
+     "city:Frankfurt": 4,
+     "city:London": 11,
+     "city:Melbourne": 2,
+     "city:Milan": 2,
+     "city:New York": 4,
+     "city:Paris": 1,
+     "city:Singapore": 1,
+     "city:Sydney": 1,
+     "city:Tokyo": 3,
+     "city:Toronto": 3,
+     "country:CO": 1,
+     "country:GE": 4,
+     "country:IN": 42
+    },
+    "total": 187
+   },
+   "slug": "appian",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/appian"
+  },
+  "greenhouse:appliedatomicsinc": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "design": 1,
+     "engineering": 7,
+     "it_infrastructure": 1
+    },
+    "places": {
+     "country:US": 10
+    },
+    "total": 10
+   },
+   "company": "Applied Atomics",
+   "company_key": "applied atomics",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 10
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "design": 1,
+     "engineering": 7,
+     "it_infrastructure": 1
+    },
+    "places": {
+     "country:US": 10
+    },
+    "total": 10
+   },
+   "slug": "appliedatomicsinc",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/appliedatomicsinc"
+  },
+  "greenhouse:applovin": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 1,
+     "it_infrastructure": 1,
+     "marketing": 6,
+     "product": 1,
+     "sales": 15
+    },
+    "places": {
+     "city:Berlin": 4,
+     "city:New York": 6,
+     "city:Singapore": 1,
+     "country:CA": 10,
+     "country:US": 1,
+     "remote:": 1
+    },
+    "total": 26
+   },
+   "company": "AppLovin",
+   "company_key": "applovin",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 26
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 1,
+     "it_infrastructure": 1,
+     "marketing": 6,
+     "product": 1,
+     "sales": 15
+    },
+    "places": {
+     "city:Berlin": 4,
+     "city:New York": 6,
+     "city:Singapore": 1,
+     "country:CA": 10,
+     "country:US": 1,
+     "remote:": 1
+    },
+    "total": 26
+   },
+   "slug": "applovin",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/applovin"
+  },
+  "greenhouse:asana": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 3,
+     "design": 4,
+     "engineering": 46,
+     "executive": 8,
+     "finance": 3,
+     "hr_people": 2,
+     "it_infrastructure": 13,
+     "legal_compliance": 1,
+     "marketing": 7,
+     "operations": 4,
+     "product": 9,
+     "sales": 24
+    },
+    "places": {
+     "city:Dublin": 9,
+     "city:London": 7,
+     "city:Munich": 3,
+     "city:New York": 17,
+     "city:Paris": 1,
+     "city:San Francisco": 35,
+     "city:Singapore": 1,
+     "city:Sydney": 2,
+     "city:Tokyo": 2,
+     "city:Warsaw": 27,
+     "country:US": 1,
+     "remote:": 4
+    },
+    "total": 148
+   },
+   "company": "Asana",
+   "company_key": "asana",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 148
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 3,
+     "design": 4,
+     "engineering": 46,
+     "executive": 8,
+     "finance": 3,
+     "hr_people": 2,
+     "it_infrastructure": 13,
+     "legal_compliance": 1,
+     "marketing": 7,
+     "operations": 4,
+     "product": 9,
+     "sales": 24
+    },
+    "places": {
+     "city:Dublin": 9,
+     "city:London": 7,
+     "city:Munich": 3,
+     "city:New York": 17,
+     "city:Paris": 1,
+     "city:San Francisco": 35,
+     "city:Singapore": 1,
+     "city:Sydney": 2,
+     "city:Tokyo": 2,
+     "city:Warsaw": 27,
+     "country:US": 1,
+     "remote:": 4
+    },
+    "total": 148
+   },
+   "slug": "asana",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/asana"
+  },
+  "greenhouse:asteralabs": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 109,
+     "it_infrastructure": 3,
+     "legal_compliance": 3,
+     "marketing": 2,
+     "operations": 3,
+     "product": 3,
+     "sales": 3,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Bangalore": 9,
+     "city:Hyderabad": 1,
+     "city:Singapore": 2,
+     "city:Toronto": 4,
+     "country:CA": 18,
+     "country:CN": 4,
+     "country:IL": 30,
+     "country:TW": 13,
+     "country:US": 70,
+     "country:VN": 1
+    },
+    "total": 155
+   },
+   "company": "Astera Labs",
+   "company_key": "astera labs",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 155
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 109,
+     "it_infrastructure": 3,
+     "legal_compliance": 3,
+     "marketing": 2,
+     "operations": 3,
+     "product": 3,
+     "sales": 3,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Bangalore": 9,
+     "city:Hyderabad": 1,
+     "city:Singapore": 2,
+     "city:Toronto": 4,
+     "country:CA": 18,
+     "country:CN": 4,
+     "country:IL": 30,
+     "country:TW": 13,
+     "country:US": 70,
+     "country:VN": 1
+    },
+    "total": 155
+   },
+   "slug": "asteralabs",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/asteralabs"
+  },
+  "greenhouse:atricure": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 7,
+     "data_ai": 1,
+     "engineering": 7,
+     "hr_people": 1,
+     "legal_compliance": 1,
+     "manufacturing": 1,
+     "marketing": 5,
+     "sales": 13
+    },
+    "places": {
+     "city:Amsterdam": 2,
+     "city:Berlin": 1,
+     "city:Boston": 1,
+     "city:Frankfurt": 1,
+     "city:London": 1,
+     "city:New York": 1,
+     "city:Paris": 1,
+     "city:San Francisco": 2,
+     "city:Seattle": 2,
+     "city:Tokyo": 1,
+     "country:AR": 1,
+     "country:CA": 1,
+     "country:GA": 3,
+     "country:GB": 1,
+     "country:MA": 1,
+     "country:MD": 1,
+     "country:MN": 10,
+     "country:NE": 1,
+     "country:US": 8
+    },
+    "total": 56
+   },
+   "company": "AtriCure",
+   "company_key": "atricure",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 56
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 7,
+     "data_ai": 1,
+     "engineering": 7,
+     "hr_people": 1,
+     "legal_compliance": 1,
+     "manufacturing": 1,
+     "marketing": 5,
+     "sales": 13
+    },
+    "places": {
+     "city:Amsterdam": 2,
+     "city:Berlin": 1,
+     "city:Boston": 1,
+     "city:Frankfurt": 1,
+     "city:London": 1,
+     "city:New York": 1,
+     "city:Paris": 1,
+     "city:San Francisco": 2,
+     "city:Seattle": 2,
+     "city:Tokyo": 1,
+     "country:AR": 1,
+     "country:CA": 1,
+     "country:GA": 3,
+     "country:GB": 1,
+     "country:MA": 1,
+     "country:MD": 1,
+     "country:MN": 10,
+     "country:NE": 1,
+     "country:US": 8
+    },
+    "total": 56
+   },
+   "slug": "atricure",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/atricure"
+  },
+  "greenhouse:attotude": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 9,
+     "manufacturing": 1,
+     "supply_chain": 1
+    },
+    "places": {
+     "country:CA": 7,
+     "country:DE": 1,
+     "country:TW": 1,
+     "country:US": 1
+    },
+    "total": 12
+   },
+   "company": "AttoTude",
+   "company_key": "attotude",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 12
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 9,
+     "manufacturing": 1,
+     "supply_chain": 1
+    },
+    "places": {
+     "country:CA": 7,
+     "country:DE": 1,
+     "country:TW": 1,
+     "country:US": 1
+    },
+    "total": 12
+   },
+   "slug": "attotude",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/attotude"
+  },
+  "greenhouse:aurorainnovation": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 5,
+     "design": 5,
+     "engineering": 56,
+     "it_infrastructure": 30,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "operations": 14,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:San Francisco": 21,
+     "city:Seattle": 11
+    },
+    "total": 137
+   },
+   "company": "Aurora Innovation",
+   "company_key": "aurora innovation",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 137
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 5,
+     "design": 5,
+     "engineering": 56,
+     "it_infrastructure": 30,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "operations": 14,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:San Francisco": 21,
+     "city:Seattle": 11
+    },
+    "total": 137
+   },
+   "slug": "aurorainnovation",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/aurorainnovation"
+  },
+  "greenhouse:beaconbiosignals": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 10,
+     "finance": 1,
+     "it_infrastructure": 1,
+     "marketing": 2,
+     "operations": 1,
+     "product": 1,
+     "sales": 3
+    },
+    "places": {
+     "city:Boston": 14,
+     "city:Paris": 2,
+     "country:CA": 1,
+     "country:GA": 1,
+     "country:IL": 1,
+     "remote:": 2
+    },
+    "total": 22
+   },
+   "company": "Beacon Biosignals",
+   "company_key": "beacon biosignals",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 22
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 10,
+     "finance": 1,
+     "it_infrastructure": 1,
+     "marketing": 2,
+     "operations": 1,
+     "product": 1,
+     "sales": 3
+    },
+    "places": {
+     "city:Boston": 14,
+     "city:Paris": 2,
+     "country:CA": 1,
+     "country:GA": 1,
+     "country:IL": 1,
+     "remote:": 2
+    },
+    "total": 22
+   },
+   "slug": "beaconbiosignals",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/beaconbiosignals"
+  },
+  "greenhouse:beamtherapeutics": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 3,
+     "data_ai": 1,
+     "engineering": 1,
+     "executive": 2,
+     "finance": 1,
+     "legal_compliance": 1,
+     "manufacturing": 2,
+     "marketing": 1,
+     "operations": 2,
+     "supply_chain": 1
+    },
+    "places": {
+     "country:MA": 16
+    },
+    "total": 28
+   },
+   "company": "Beam Therapeutics",
+   "company_key": "beam therapeutics",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 28
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 3,
+     "data_ai": 1,
+     "engineering": 1,
+     "executive": 2,
+     "finance": 1,
+     "legal_compliance": 1,
+     "manufacturing": 2,
+     "marketing": 1,
+     "operations": 2,
+     "supply_chain": 1
+    },
+    "places": {
+     "country:MA": 16
+    },
+    "total": 28
+   },
+   "slug": "beamtherapeutics",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/beamtherapeutics"
+  },
+  "greenhouse:betatechnologiesinc": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 57,
+     "executive": 1,
+     "finance": 3,
+     "it_infrastructure": 2,
+     "manufacturing": 9,
+     "supply_chain": 3
+    },
+    "places": {
+     "city:New York": 2,
+     "country:CA": 7,
+     "country:US": 96,
+     "remote:": 1
+    },
+    "total": 107
+   },
+   "company": "BETA Technologies",
+   "company_key": "beta technologies",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 107
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 57,
+     "executive": 1,
+     "finance": 3,
+     "it_infrastructure": 2,
+     "manufacturing": 9,
+     "supply_chain": 3
+    },
+    "places": {
+     "city:New York": 2,
+     "country:CA": 7,
+     "country:US": 96,
+     "remote:": 1
+    },
+    "total": 107
+   },
+   "slug": "betatechnologiesinc",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/betatechnologiesinc"
+  },
+  "greenhouse:blackforestlabs": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 2,
+     "finance": 1,
+     "it_infrastructure": 1,
+     "sales": 3
+    },
+    "places": {
+     "city:San Francisco": 3,
+     "country:DE": 10
+    },
+    "total": 13
+   },
+   "company": "Black Forest Labs",
+   "company_key": "black forest labs",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 13
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 2,
+     "finance": 1,
+     "it_infrastructure": 1,
+     "sales": 3
+    },
+    "places": {
+     "city:San Francisco": 3,
+     "country:DE": 10
+    },
+    "total": 13
+   },
+   "slug": "blackforestlabs",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/blackforestlabs"
+  },
+  "greenhouse:block": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 18,
+     "design": 2,
+     "engineering": 35,
+     "executive": 2,
+     "finance": 1,
+     "hr_people": 1,
+     "it_infrastructure": 9,
+     "legal_compliance": 5,
+     "marketing": 1,
+     "operations": 3,
+     "product": 2,
+     "sales": 113
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:London": 16,
+     "city:Melbourne": 18,
+     "city:New York": 23,
+     "city:Paris": 1,
+     "city:San Francisco": 67,
+     "city:Seattle": 7,
+     "city:Sydney": 9,
+     "city:Tokyo": 3,
+     "city:Toronto": 19,
+     "country:AR": 1,
+     "country:AU": 6,
+     "country:AZ": 1,
+     "country:CA": 5,
+     "country:CO": 2,
+     "country:GA": 3,
+     "country:GB": 2,
+     "country:IL": 4,
+     "country:IN": 1,
+     "country:LA": 4,
+     "country:MN": 1,
+     "country:MO": 2,
+     "country:PA": 3,
+     "country:SC": 1,
+     "country:US": 12
+    },
+    "total": 213
+   },
+   "company": "Block",
+   "company_key": "block",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 213
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 18,
+     "design": 2,
+     "engineering": 35,
+     "executive": 2,
+     "finance": 1,
+     "hr_people": 1,
+     "it_infrastructure": 9,
+     "legal_compliance": 5,
+     "marketing": 1,
+     "operations": 3,
+     "product": 2,
+     "sales": 113
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:London": 16,
+     "city:Melbourne": 18,
+     "city:New York": 23,
+     "city:Paris": 1,
+     "city:San Francisco": 67,
+     "city:Seattle": 7,
+     "city:Sydney": 9,
+     "city:Tokyo": 3,
+     "city:Toronto": 19,
+     "country:AR": 1,
+     "country:AU": 6,
+     "country:AZ": 1,
+     "country:CA": 5,
+     "country:CO": 2,
+     "country:GA": 3,
+     "country:GB": 2,
+     "country:IL": 4,
+     "country:IN": 1,
+     "country:LA": 4,
+     "country:MN": 1,
+     "country:MO": 2,
+     "country:PA": 3,
+     "country:SC": 1,
+     "country:US": 12
+    },
+    "total": 213
+   },
+   "slug": "block",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/block"
+  },
+  "greenhouse:braze": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 6,
+     "data_ai": 11,
+     "engineering": 17,
+     "finance": 1,
+     "hr_people": 4,
+     "it_infrastructure": 18,
+     "marketing": 20,
+     "operations": 4,
+     "product": 2,
+     "sales": 90
+    },
+    "places": {
+     "city:Austin": 38,
+     "city:Berlin": 4,
+     "city:Bucharest": 2,
+     "city:London": 17,
+     "city:Munich": 1,
+     "city:New York": 48,
+     "city:Paris": 1,
+     "city:San Francisco": 32,
+     "city:Singapore": 5,
+     "city:Sydney": 4,
+     "city:Tokyo": 7,
+     "city:Toronto": 10,
+     "country:ES": 1,
+     "country:MX": 1
+    },
+    "total": 238
+   },
+   "company": "Braze",
+   "company_key": "braze",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 238
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 6,
+     "data_ai": 11,
+     "engineering": 17,
+     "finance": 1,
+     "hr_people": 4,
+     "it_infrastructure": 18,
+     "marketing": 20,
+     "operations": 4,
+     "product": 2,
+     "sales": 90
+    },
+    "places": {
+     "city:Austin": 38,
+     "city:Berlin": 4,
+     "city:Bucharest": 2,
+     "city:London": 17,
+     "city:Munich": 1,
+     "city:New York": 48,
+     "city:Paris": 1,
+     "city:San Francisco": 32,
+     "city:Singapore": 5,
+     "city:Sydney": 4,
+     "city:Tokyo": 7,
+     "city:Toronto": 10,
+     "country:ES": 1,
+     "country:MX": 1
+    },
+    "total": 238
+   },
+   "slug": "braze",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/braze"
   },
   "greenhouse:brex": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1403,14 +3047,19 @@
     "total": 270
    },
    "company": "Brex",
+   "company_key": "brex",
    "history": [
     {
      "date": "2026-07-28",
      "total": 270
+    },
+    {
+     "date": "2026-07-29",
+     "total": 275
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 5,
      "data_ai": 5,
@@ -1426,17 +3075,219 @@
      "sales": 38
     },
     "places": {
-     "city:New York": 65,
-     "city:San Francisco": 78,
-     "city:Seattle": 46,
+     "city:New York": 66,
+     "city:San Francisco": 79,
+     "city:Seattle": 47,
      "country:BR": 16,
-     "country:CA": 41,
-     "country:US": 24
+     "country:CA": 42,
+     "country:US": 25
     },
-    "total": 270
-   }
+    "total": 275
+   },
+   "slug": "brex",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/brex"
+  },
+  "greenhouse:ceribell": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 2,
+     "data_ai": 2,
+     "engineering": 5,
+     "hr_people": 1,
+     "it_infrastructure": 1,
+     "legal_compliance": 1,
+     "manufacturing": 1,
+     "marketing": 1,
+     "operations": 1,
+     "sales": 12
+    },
+    "places": {
+     "city:New York": 1,
+     "city:San Francisco": 1,
+     "country:CA": 17,
+     "country:CO": 3,
+     "country:PA": 1
+    },
+    "total": 40
+   },
+   "company": "Ceribell, Inc",
+   "company_key": "ceribell",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 40
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 2,
+     "data_ai": 2,
+     "engineering": 5,
+     "hr_people": 1,
+     "it_infrastructure": 1,
+     "legal_compliance": 1,
+     "manufacturing": 1,
+     "marketing": 1,
+     "operations": 1,
+     "sales": 12
+    },
+    "places": {
+     "city:New York": 1,
+     "city:San Francisco": 1,
+     "country:CA": 17,
+     "country:CO": 3,
+     "country:PA": 1
+    },
+    "total": 40
+   },
+   "slug": "ceribell",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/ceribell"
+  },
+  "greenhouse:chargepoint": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 16,
+     "finance": 2,
+     "it_infrastructure": 2,
+     "marketing": 4,
+     "operations": 1,
+     "product": 1,
+     "sales": 2
+    },
+    "places": {
+     "country:CA": 1,
+     "country:CN": 1,
+     "country:DE": 1,
+     "country:GB": 1,
+     "country:IN": 2,
+     "country:TH": 1,
+     "remote:": 3
+    },
+    "total": 29
+   },
+   "company": "ChargePoint Holdings, Inc.",
+   "company_key": "chargepoint holdings",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 29
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 16,
+     "finance": 2,
+     "it_infrastructure": 2,
+     "marketing": 4,
+     "operations": 1,
+     "product": 1,
+     "sales": 2
+    },
+    "places": {
+     "country:CA": 1,
+     "country:CN": 1,
+     "country:DE": 1,
+     "country:GB": 1,
+     "country:IN": 2,
+     "country:TH": 1,
+     "remote:": 3
+    },
+    "total": 29
+   },
+   "slug": "chargepoint",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/chargepoint"
+  },
+  "greenhouse:chowbus": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "sales": 67
+    },
+    "places": {
+     "city:Boston": 1,
+     "city:New York": 1,
+     "city:San Francisco": 1,
+     "city:Seattle": 1,
+     "city:Toronto": 1,
+     "country:CA": 2,
+     "country:GE": 1,
+     "country:US": 49,
+     "remote:": 1
+    },
+    "total": 69
+   },
+   "company": "Chowbus",
+   "company_key": "chowbus",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 69
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "sales": 67
+    },
+    "places": {
+     "city:Boston": 1,
+     "city:New York": 1,
+     "city:San Francisco": 1,
+     "city:Seattle": 1,
+     "city:Toronto": 1,
+     "country:CA": 2,
+     "country:GE": 1,
+     "country:US": 49,
+     "remote:": 1
+    },
+    "total": 69
+   },
+   "slug": "chowbus",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/chowbus"
   },
   "greenhouse:cloudflare": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1463,14 +3314,19 @@
     "total": 276
    },
    "company": "Cloudflare",
+   "company_key": "cloudflare",
    "history": [
     {
      "date": "2026-07-28",
      "total": 276
+    },
+    {
+     "date": "2026-07-29",
+     "total": 277
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 12,
      "design": 3,
@@ -1484,7 +3340,7 @@
      "marketing": 6,
      "operations": 3,
      "product": 4,
-     "sales": 91,
+     "sales": 92,
      "supply_chain": 1
     },
     "places": {
@@ -1492,10 +3348,21 @@
      "city:Tokyo": 1,
      "remote:": 6
     },
-    "total": 276
-   }
+    "total": 277
+   },
+   "slug": "cloudflare",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/cloudflare"
   },
   "greenhouse:coinbase": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1534,14 +3401,19 @@
     "total": 155
    },
    "company": "Coinbase",
+   "company_key": "coinbase",
    "history": [
     {
      "date": "2026-07-28",
      "total": 155
+    },
+    {
+     "date": "2026-07-29",
+     "total": 155
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 2,
      "data_ai": 9,
@@ -1576,9 +3448,270 @@
      "remote:": 4
     },
     "total": 155
-   }
+   },
+   "slug": "coinbase",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/coinbase"
+  },
+  "greenhouse:comstock": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 2,
+     "it_infrastructure": 43,
+     "operations": 1
+    },
+    "places": {
+     "country:MD": 30
+    },
+    "total": 68
+   },
+   "company": "Comstock",
+   "company_key": "comstock",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 68
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 2,
+     "it_infrastructure": 43,
+     "operations": 1
+    },
+    "places": {
+     "country:MD": 30
+    },
+    "total": 68
+   },
+   "slug": "comstock",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/comstock"
+  },
+  "greenhouse:corcepttherapeutics": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 10,
+     "data_ai": 1,
+     "finance": 1,
+     "hr_people": 1,
+     "legal_compliance": 2,
+     "marketing": 6,
+     "operations": 1,
+     "sales": 17
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:Berlin": 2,
+     "city:Boston": 2,
+     "city:Munich": 1,
+     "city:New York": 2,
+     "city:Seattle": 2,
+     "country:US": 55,
+     "remote:": 2
+    },
+    "total": 68
+   },
+   "company": "Corcept Therapeutics Incorporated",
+   "company_key": "corcept therapeutics incorporated",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 68
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 10,
+     "data_ai": 1,
+     "finance": 1,
+     "hr_people": 1,
+     "legal_compliance": 2,
+     "marketing": 6,
+     "operations": 1,
+     "sales": 17
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:Berlin": 2,
+     "city:Boston": 2,
+     "city:Munich": 1,
+     "city:New York": 2,
+     "city:Seattle": 2,
+     "country:US": 55,
+     "remote:": 2
+    },
+    "total": 68
+   },
+   "slug": "corcepttherapeutics",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/corcepttherapeutics"
+  },
+  "greenhouse:counterpart": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 5,
+     "operations": 1,
+     "product": 1,
+     "sales": 1
+    },
+    "places": {
+     "country:AR": 1,
+     "country:US": 7,
+     "remote:": 2
+    },
+    "total": 10
+   },
+   "company": "Counterpart Holdings Inc.",
+   "company_key": "counterpart holdings",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 10
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 5,
+     "operations": 1,
+     "product": 1,
+     "sales": 1
+    },
+    "places": {
+     "country:AR": 1,
+     "country:US": 7,
+     "remote:": 2
+    },
+    "total": 10
+   },
+   "slug": "counterpart",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/counterpart"
+  },
+  "greenhouse:coupang": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 40,
+     "design": 8,
+     "engineering": 97,
+     "executive": 2,
+     "finance": 23,
+     "hr_people": 6,
+     "it_infrastructure": 34,
+     "legal_compliance": 25,
+     "marketing": 22,
+     "operations": 28,
+     "product": 22,
+     "sales": 21,
+     "supply_chain": 9
+    },
+    "places": {
+     "city:Bangalore": 33,
+     "city:Hyderabad": 12,
+     "city:Seattle": 16,
+     "city:Singapore": 11,
+     "city:Tokyo": 32,
+     "country:CN": 9,
+     "country:IN": 2,
+     "country:JP": 2,
+     "country:KR": 358,
+     "country:TW": 125,
+     "country:US": 26
+    },
+    "total": 646
+   },
+   "company": "Coupang",
+   "company_key": "coupang",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 646
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 40,
+     "design": 8,
+     "engineering": 97,
+     "executive": 2,
+     "finance": 23,
+     "hr_people": 6,
+     "it_infrastructure": 34,
+     "legal_compliance": 25,
+     "marketing": 22,
+     "operations": 28,
+     "product": 22,
+     "sales": 21,
+     "supply_chain": 9
+    },
+    "places": {
+     "city:Bangalore": 33,
+     "city:Hyderabad": 12,
+     "city:Seattle": 16,
+     "city:Singapore": 11,
+     "city:Tokyo": 32,
+     "country:CN": 9,
+     "country:IN": 2,
+     "country:JP": 2,
+     "country:KR": 358,
+     "country:TW": 125,
+     "country:US": 26
+    },
+    "total": 646
+   },
+   "slug": "coupang",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/coupang"
   },
   "greenhouse:databricks": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1645,18 +3778,23 @@
     "total": 809
    },
    "company": "Databricks",
+   "company_key": "databricks",
    "history": [
     {
      "date": "2026-07-28",
      "total": 809
+    },
+    {
+     "date": "2026-07-29",
+     "total": 801
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 16,
-     "design": 4,
-     "engineering": 348,
+     "design": 5,
+     "engineering": 346,
      "executive": 1,
      "finance": 13,
      "hr_people": 6,
@@ -1664,27 +3802,27 @@
      "legal_compliance": 7,
      "manufacturing": 4,
      "marketing": 13,
-     "operations": 15,
+     "operations": 14,
      "product": 23,
      "research": 3,
-     "sales": 130,
+     "sales": 131,
      "supply_chain": 2
     },
     "places": {
-     "city:Amsterdam": 24,
+     "city:Amsterdam": 25,
      "city:Austin": 5,
-     "city:Bangalore": 64,
-     "city:Berlin": 10,
+     "city:Bangalore": 63,
+     "city:Berlin": 11,
      "city:Boston": 13,
-     "city:London": 46,
+     "city:London": 45,
      "city:Madrid": 3,
      "city:Melbourne": 10,
      "city:Milan": 4,
-     "city:Munich": 12,
+     "city:Munich": 11,
      "city:New York": 39,
      "city:Paris": 11,
      "city:Pune": 1,
-     "city:San Francisco": 113,
+     "city:San Francisco": 114,
      "city:Seattle": 26,
      "city:Singapore": 30,
      "city:Stockholm": 10,
@@ -1692,8 +3830,8 @@
      "city:Tokyo": 26,
      "city:Toronto": 11,
      "city:Zurich": 3,
-     "country:AU": 8,
-     "country:BR": 7,
+     "country:AU": 7,
+     "country:BR": 8,
      "country:CA": 15,
      "country:CN": 1,
      "country:CR": 3,
@@ -1705,19 +3843,30 @@
      "country:GB": 2,
      "country:GE": 7,
      "country:IL": 1,
-     "country:IN": 12,
+     "country:IN": 11,
      "country:JP": 5,
      "country:KR": 10,
      "country:MX": 6,
      "country:NZ": 2,
      "country:RS": 11,
-     "country:US": 80,
-     "remote:": 29
+     "country:US": 75,
+     "remote:": 28
     },
-    "total": 809
-   }
+    "total": 801
+   },
+   "slug": "databricks",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/databricks"
   },
   "greenhouse:datadog": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1778,19 +3927,24 @@
     "total": 423
    },
    "company": "Datadog",
+   "company_key": "datadog",
    "history": [
     {
      "date": "2026-07-28",
      "total": 423
+    },
+    {
+     "date": "2026-07-29",
+     "total": 421
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 22,
      "data_ai": 6,
      "design": 7,
-     "engineering": 103,
+     "engineering": 102,
      "executive": 1,
      "finance": 4,
      "hr_people": 7,
@@ -1812,8 +3966,8 @@
      "city:Lisbon": 3,
      "city:London": 9,
      "city:Madrid": 8,
-     "city:New York": 100,
-     "city:Paris": 31,
+     "city:New York": 99,
+     "city:Paris": 30,
      "city:San Francisco": 13,
      "city:Singapore": 21,
      "city:Stockholm": 1,
@@ -1841,10 +3995,363 @@
      "country:US": 39,
      "country:ZA": 1
     },
-    "total": 423
-   }
+    "total": 421
+   },
+   "slug": "datadog",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/datadog"
+  },
+  "greenhouse:dropbox": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "design": 2,
+     "engineering": 5,
+     "hr_people": 2,
+     "it_infrastructure": 4,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "operations": 2,
+     "sales": 8
+    },
+    "places": {
+     "country:IE": 2,
+     "country:JP": 1,
+     "country:MX": 1,
+     "country:PL": 2,
+     "remote:": 22
+    },
+    "total": 28
+   },
+   "company": "Dropbox",
+   "company_key": "dropbox",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 28
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "design": 2,
+     "engineering": 5,
+     "hr_people": 2,
+     "it_infrastructure": 4,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "operations": 2,
+     "sales": 8
+    },
+    "places": {
+     "country:IE": 2,
+     "country:JP": 1,
+     "country:MX": 1,
+     "country:PL": 2,
+     "remote:": 22
+    },
+    "total": 28
+   },
+   "slug": "dropbox",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/dropbox"
+  },
+  "greenhouse:duolingo": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 2,
+     "design": 4,
+     "engineering": 17,
+     "executive": 3,
+     "finance": 2,
+     "legal_compliance": 1,
+     "marketing": 11,
+     "operations": 4,
+     "product": 2,
+     "sales": 2
+    },
+    "places": {
+     "city:London": 3,
+     "city:New York": 28,
+     "city:Seattle": 2,
+     "city:Tokyo": 2,
+     "country:CN": 3,
+     "country:PA": 23,
+     "remote:": 1
+    },
+    "total": 62
+   },
+   "company": "Duolingo",
+   "company_key": "duolingo",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 62
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 2,
+     "design": 4,
+     "engineering": 17,
+     "executive": 3,
+     "finance": 2,
+     "legal_compliance": 1,
+     "marketing": 11,
+     "operations": 4,
+     "product": 2,
+     "sales": 2
+    },
+    "places": {
+     "city:London": 3,
+     "city:New York": 28,
+     "city:Seattle": 2,
+     "city:Tokyo": 2,
+     "country:CN": 3,
+     "country:PA": 23,
+     "remote:": 1
+    },
+    "total": 62
+   },
+   "slug": "duolingo",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/duolingo"
+  },
+  "greenhouse:elastic": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 54,
+     "executive": 2,
+     "finance": 1,
+     "hr_people": 2,
+     "it_infrastructure": 11,
+     "legal_compliance": 3,
+     "marketing": 5,
+     "operations": 9,
+     "product": 16,
+     "sales": 49,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 2,
+     "city:Bangalore": 11,
+     "city:Barcelona": 8,
+     "city:London": 3,
+     "city:New York": 3,
+     "city:Paris": 1,
+     "city:San Francisco": 3,
+     "city:Singapore": 4,
+     "city:Sydney": 1,
+     "city:Tokyo": 2,
+     "city:Toronto": 1,
+     "country:AE": 1,
+     "country:BE": 4,
+     "country:BR": 3,
+     "country:CA": 20,
+     "country:CH": 1,
+     "country:CR": 2,
+     "country:DE": 7,
+     "country:DK": 1,
+     "country:ES": 13,
+     "country:FR": 1,
+     "country:GB": 12,
+     "country:GE": 1,
+     "country:GR": 9,
+     "country:HU": 2,
+     "country:IE": 10,
+     "country:IL": 1,
+     "country:IN": 3,
+     "country:KR": 1,
+     "country:MX": 1,
+     "country:NL": 3,
+     "country:NO": 4,
+     "country:PL": 2,
+     "country:PT": 7,
+     "country:RO": 3,
+     "country:SA": 2,
+     "country:US": 52
+    },
+    "total": 214
+   },
+   "company": "Elastic N.V.",
+   "company_key": "elastic n v",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 214
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 54,
+     "executive": 2,
+     "finance": 1,
+     "hr_people": 2,
+     "it_infrastructure": 11,
+     "legal_compliance": 3,
+     "marketing": 5,
+     "operations": 9,
+     "product": 16,
+     "sales": 49,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 2,
+     "city:Bangalore": 11,
+     "city:Barcelona": 8,
+     "city:London": 3,
+     "city:New York": 3,
+     "city:Paris": 1,
+     "city:San Francisco": 3,
+     "city:Singapore": 4,
+     "city:Sydney": 1,
+     "city:Tokyo": 2,
+     "city:Toronto": 1,
+     "country:AE": 1,
+     "country:BE": 4,
+     "country:BR": 3,
+     "country:CA": 20,
+     "country:CH": 1,
+     "country:CR": 2,
+     "country:DE": 7,
+     "country:DK": 1,
+     "country:ES": 13,
+     "country:FR": 1,
+     "country:GB": 12,
+     "country:GE": 1,
+     "country:GR": 9,
+     "country:HU": 2,
+     "country:IE": 10,
+     "country:IL": 1,
+     "country:IN": 3,
+     "country:KR": 1,
+     "country:MX": 1,
+     "country:NL": 3,
+     "country:NO": 4,
+     "country:PL": 2,
+     "country:PT": 7,
+     "country:RO": 3,
+     "country:SA": 2,
+     "country:US": 52
+    },
+    "total": 214
+   },
+   "slug": "elastic",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/elastic"
+  },
+  "greenhouse:eplusinc": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "engineering": 4,
+     "finance": 2,
+     "hr_people": 2,
+     "it_infrastructure": 8,
+     "marketing": 1,
+     "operations": 3,
+     "sales": 25
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:London": 1,
+     "city:New York": 7,
+     "country:CA": 9,
+     "country:CO": 1,
+     "country:IN": 2,
+     "country:MD": 2,
+     "country:MN": 3,
+     "country:PA": 2,
+     "country:US": 13,
+     "remote:": 4
+    },
+    "total": 68
+   },
+   "company": "ePlus inc.",
+   "company_key": "eplus",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 68
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "engineering": 4,
+     "finance": 2,
+     "hr_people": 2,
+     "it_infrastructure": 8,
+     "marketing": 1,
+     "operations": 3,
+     "sales": 25
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:London": 1,
+     "city:New York": 7,
+     "country:CA": 9,
+     "country:CO": 1,
+     "country:IN": 2,
+     "country:MD": 2,
+     "country:MN": 3,
+     "country:PA": 2,
+     "country:US": 13,
+     "remote:": 4
+    },
+    "total": 68
+   },
+   "slug": "eplusinc",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/eplusinc"
   },
   "greenhouse:figma": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1879,14 +4386,19 @@
     "total": 178
    },
    "company": "Figma",
+   "company_key": "figma",
    "history": [
     {
      "date": "2026-07-28",
      "total": 178
+    },
+    {
+     "date": "2026-07-29",
+     "total": 178
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 7,
      "data_ai": 6,
@@ -1917,9 +4429,105 @@
      "country:IL": 5
     },
     "total": 178
-   }
+   },
+   "slug": "figma",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/figma"
+  },
+  "greenhouse:five9": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 2,
+     "design": 3,
+     "engineering": 42,
+     "executive": 1,
+     "finance": 4,
+     "hr_people": 2,
+     "it_infrastructure": 32,
+     "legal_compliance": 1,
+     "marketing": 3,
+     "operations": 4,
+     "product": 10,
+     "sales": 21,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Bangalore": 46,
+     "city:San Francisco": 6,
+     "country:CA": 6,
+     "country:CO": 4,
+     "country:DE": 1,
+     "country:GB": 1,
+     "country:IN": 14,
+     "country:PH": 16,
+     "country:PT": 11,
+     "country:US": 47
+    },
+    "total": 158
+   },
+   "company": "Five9",
+   "company_key": "five9",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 158
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 2,
+     "design": 3,
+     "engineering": 42,
+     "executive": 1,
+     "finance": 4,
+     "hr_people": 2,
+     "it_infrastructure": 32,
+     "legal_compliance": 1,
+     "marketing": 3,
+     "operations": 4,
+     "product": 10,
+     "sales": 21,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Bangalore": 46,
+     "city:San Francisco": 6,
+     "country:CA": 6,
+     "country:CO": 4,
+     "country:DE": 1,
+     "country:GB": 1,
+     "country:IN": 14,
+     "country:PH": 16,
+     "country:PT": 11,
+     "country:US": 47
+    },
+    "total": 158
+   },
+   "slug": "five9",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/five9"
   },
   "greenhouse:flexport": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -1971,18 +4579,23 @@
     "total": 152
    },
    "company": "Flexport",
+   "company_key": "flexport",
    "history": [
     {
      "date": "2026-07-28",
      "total": 152
+    },
+    {
+     "date": "2026-07-29",
+     "total": 151
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 2,
      "data_ai": 3,
-     "engineering": 13,
+     "engineering": 12,
      "finance": 1,
      "hr_people": 6,
      "it_infrastructure": 2,
@@ -2008,7 +4621,7 @@
      "city:Toronto": 2,
      "city:Warsaw": 1,
      "country:BE": 3,
-     "country:CN": 15,
+     "country:CN": 14,
      "country:DK": 2,
      "country:GE": 6,
      "country:HK": 3,
@@ -2025,10 +4638,133 @@
      "country:VN": 3,
      "remote:": 1
     },
-    "total": 152
-   }
+    "total": 151
+   },
+   "slug": "flexport",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/flexport"
+  },
+  "greenhouse:freeformfuturecorp": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 35,
+     "executive": 1,
+     "finance": 1,
+     "hr_people": 1,
+     "it_infrastructure": 2,
+     "manufacturing": 3,
+     "product": 1,
+     "supply_chain": 1
+    },
+    "places": {
+     "country:CA": 55
+    },
+    "total": 55
+   },
+   "company": "Freeform Future Corp.",
+   "company_key": "freeform future",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 55
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 35,
+     "executive": 1,
+     "finance": 1,
+     "hr_people": 1,
+     "it_infrastructure": 2,
+     "manufacturing": 3,
+     "product": 1,
+     "supply_chain": 1
+    },
+    "places": {
+     "country:CA": 55
+    },
+    "total": 55
+   },
+   "slug": "freeformfuturecorp",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/freeformfuturecorp"
+  },
+  "greenhouse:gatherai": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 3,
+     "design": 1,
+     "engineering": 6,
+     "it_infrastructure": 1,
+     "operations": 2
+    },
+    "places": {
+     "city:Hyderabad": 1,
+     "country:IN": 2,
+     "country:PA": 6,
+     "country:US": 6
+    },
+    "total": 15
+   },
+   "company": "Gather AI",
+   "company_key": "gather ai",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 15
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 3,
+     "design": 1,
+     "engineering": 6,
+     "it_infrastructure": 1,
+     "operations": 2
+    },
+    "places": {
+     "city:Hyderabad": 1,
+     "country:IN": 2,
+     "country:PA": 6,
+     "country:US": 6
+    },
+    "total": 15
+   },
+   "slug": "gatherai",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/gatherai"
   },
   "greenhouse:gitlab": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2073,14 +4809,19 @@
     "total": 188
    },
    "company": "GitLab",
+   "company_key": "gitlab",
    "history": [
     {
      "date": "2026-07-28",
      "total": 188
+    },
+    {
+     "date": "2026-07-29",
+     "total": 187
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 12,
      "data_ai": 4,
@@ -2101,7 +4842,7 @@
      "city:Singapore": 4,
      "country:AE": 5,
      "country:AT": 3,
-     "country:AU": 6,
+     "country:AU": 5,
      "country:BR": 2,
      "country:CA": 36,
      "country:DE": 9,
@@ -2112,18 +4853,29 @@
      "country:IL": 3,
      "country:IN": 3,
      "country:IT": 1,
-     "country:JP": 1,
+     "country:JP": 2,
      "country:NL": 2,
      "country:PL": 2,
      "country:SA": 3,
      "country:TR": 2,
-     "country:US": 51,
+     "country:US": 50,
      "remote:": 8
     },
-    "total": 188
-   }
+    "total": 187
+   },
+   "slug": "gitlab",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/gitlab"
   },
   "greenhouse:gocardless": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2146,14 +4898,19 @@
     "total": 29
    },
    "company": "GoCardless",
+   "company_key": "gocardless",
    "history": [
     {
      "date": "2026-07-28",
      "total": 29
+    },
+    {
+     "date": "2026-07-29",
+     "total": 29
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 5,
      "engineering": 4,
@@ -2172,9 +4929,313 @@
      "country:LV": 8
     },
     "total": 29
-   }
+   },
+   "slug": "gocardless",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/gocardless"
+  },
+  "greenhouse:godaddy": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 8,
+     "finance": 1,
+     "it_infrastructure": 4,
+     "legal_compliance": 1,
+     "marketing": 1
+    },
+    "places": {
+     "city:Pune": 1,
+     "country:BG": 1,
+     "country:CA": 3,
+     "country:CO": 4,
+     "country:IN": 5,
+     "country:RO": 1,
+     "country:US": 5
+    },
+    "total": 21
+   },
+   "company": "GoDaddy",
+   "company_key": "godaddy",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 21
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 8,
+     "finance": 1,
+     "it_infrastructure": 4,
+     "legal_compliance": 1,
+     "marketing": 1
+    },
+    "places": {
+     "city:Pune": 1,
+     "country:BG": 1,
+     "country:CA": 3,
+     "country:CO": 4,
+     "country:IN": 5,
+     "country:RO": 1,
+     "country:US": 5
+    },
+    "total": 21
+   },
+   "slug": "godaddy",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/godaddy"
+  },
+  "greenhouse:hawkeye360": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 3,
+     "hr_people": 1,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "sales": 1
+    },
+    "places": {},
+    "total": 14
+   },
+   "company": "HawkEye 360",
+   "company_key": "hawkeye 360",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 14
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 3,
+     "hr_people": 1,
+     "legal_compliance": 2,
+     "marketing": 1,
+     "sales": 1
+    },
+    "places": {},
+    "total": 14
+   },
+   "slug": "hawkeye360",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/hawkeye360"
+  },
+  "greenhouse:hootsuite": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 3,
+     "engineering": 4,
+     "it_infrastructure": 1,
+     "operations": 2,
+     "sales": 3
+    },
+    "places": {
+     "city:Bucharest": 3,
+     "city:London": 1,
+     "city:Luxembourg": 2,
+     "city:Pune": 1,
+     "city:Toronto": 6,
+     "country:CA": 2,
+     "country:MX": 4
+    },
+    "total": 19
+   },
+   "company": "Hootsuite",
+   "company_key": "hootsuite",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 19
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 3,
+     "engineering": 4,
+     "it_infrastructure": 1,
+     "operations": 2,
+     "sales": 3
+    },
+    "places": {
+     "city:Bucharest": 3,
+     "city:London": 1,
+     "city:Luxembourg": 2,
+     "city:Pune": 1,
+     "city:Toronto": 6,
+     "country:CA": 2,
+     "country:MX": 4
+    },
+    "total": 19
+   },
+   "slug": "hootsuite",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/hootsuite"
+  },
+  "greenhouse:indiesemiconductor": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 18,
+     "hr_people": 1,
+     "it_infrastructure": 3,
+     "sales": 1
+    },
+    "places": {
+     "city:Bangalore": 1,
+     "city:Munich": 3,
+     "city:Toronto": 5,
+     "country:AR": 3,
+     "country:CA": 6,
+     "country:CN": 1,
+     "country:DE": 3,
+     "country:JP": 1,
+     "country:MA": 3
+    },
+    "total": 26
+   },
+   "company": "indie Semiconductor, Inc.",
+   "company_key": "indie semiconductor",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 26
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 18,
+     "hr_people": 1,
+     "it_infrastructure": 3,
+     "sales": 1
+    },
+    "places": {
+     "city:Bangalore": 1,
+     "city:Munich": 3,
+     "city:Toronto": 5,
+     "country:AR": 3,
+     "country:CA": 6,
+     "country:CN": 1,
+     "country:DE": 3,
+     "country:JP": 1,
+     "country:MA": 3
+    },
+    "total": 26
+   },
+   "slug": "indiesemiconductor",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/indiesemiconductor"
+  },
+  "greenhouse:innodatainc": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 11,
+     "engineering": 5,
+     "marketing": 2,
+     "operations": 1,
+     "research": 2,
+     "sales": 1
+    },
+    "places": {
+     "country:CA": 9,
+     "country:GE": 2,
+     "country:US": 18,
+     "remote:": 67
+    },
+    "total": 104
+   },
+   "company": "Innodata Inc.",
+   "company_key": "innodata",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 104
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 11,
+     "engineering": 5,
+     "marketing": 2,
+     "operations": 1,
+     "research": 2,
+     "sales": 1
+    },
+    "places": {
+     "country:CA": 9,
+     "country:GE": 2,
+     "country:US": 18,
+     "remote:": 67
+    },
+    "total": 104
+   },
+   "slug": "innodatainc",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/innodatainc"
   },
   "greenhouse:instacart": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2202,14 +5263,19 @@
     "total": 120
    },
    "company": "Instacart",
+   "company_key": "instacart",
    "history": [
     {
      "date": "2026-07-28",
      "total": 120
+    },
+    {
+     "date": "2026-07-29",
+     "total": 122
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 1,
      "data_ai": 20,
@@ -2218,24 +5284,84 @@
      "finance": 2,
      "it_infrastructure": 4,
      "legal_compliance": 2,
-     "marketing": 4,
+     "marketing": 5,
      "operations": 4,
      "product": 13,
-     "sales": 22
+     "sales": 23
     },
     "places": {
      "city:Boston": 1,
      "city:San Francisco": 1,
-     "country:CA": 53,
+     "country:CA": 54,
      "country:IL": 1,
      "country:PA": 1,
-     "country:US": 59,
+     "country:US": 60,
      "remote:": 1
     },
-    "total": 120
-   }
+    "total": 122
+   },
+   "slug": "instacart",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/instacart"
+  },
+  "greenhouse:kymeratherapeutics": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 8,
+     "data_ai": 1,
+     "executive": 2,
+     "it_infrastructure": 1,
+     "marketing": 1
+    },
+    "places": {
+     "country:MA": 23
+    },
+    "total": 23
+   },
+   "company": "Kymera Therapeutics",
+   "company_key": "kymera therapeutics",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 23
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 8,
+     "data_ai": 1,
+     "executive": 2,
+     "it_infrastructure": 1,
+     "marketing": 1
+    },
+    "places": {
+     "country:MA": 23
+    },
+    "total": 23
+   },
+   "slug": "kymeratherapeutics",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/kymeratherapeutics"
   },
   "greenhouse:lyft": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2263,14 +5389,19 @@
     "total": 160
    },
    "company": "Lyft",
+   "company_key": "lyft",
    "history": [
     {
      "date": "2026-07-28",
      "total": 160
+    },
+    {
+     "date": "2026-07-29",
+     "total": 160
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 29,
      "design": 4,
@@ -2294,9 +5425,20 @@
      "country:TN": 7
     },
     "total": 160
-   }
+   },
+   "slug": "lyft",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/lyft"
   },
   "greenhouse:monzo": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2321,14 +5463,19 @@
     "total": 71
    },
    "company": "Monzo",
+   "company_key": "monzo",
    "history": [
     {
      "date": "2026-07-28",
      "total": 71
+    },
+    {
+     "date": "2026-07-29",
+     "total": 69
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 12,
      "design": 2,
@@ -2338,20 +5485,433 @@
      "it_infrastructure": 3,
      "legal_compliance": 7,
      "marketing": 3,
-     "operations": 2,
+     "operations": 1,
      "product": 2
     },
     "places": {
-     "city:Barcelona": 9,
-     "city:Dublin": 7,
-     "city:London": 50,
-     "city:Madrid": 1,
+     "city:Barcelona": 8,
+     "city:Dublin": 6,
+     "city:London": 51,
      "country:GB": 4
     },
-    "total": 71
-   }
+    "total": 69
+   },
+   "slug": "monzo",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/monzo"
+  },
+  "greenhouse:natera": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 69,
+     "data_ai": 4,
+     "engineering": 16,
+     "it_infrastructure": 3,
+     "legal_compliance": 1,
+     "manufacturing": 1,
+     "marketing": 1,
+     "operations": 3,
+     "product": 5,
+     "sales": 14,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 24,
+     "city:Boston": 2,
+     "city:San Francisco": 4,
+     "city:Seattle": 3,
+     "country:AR": 1,
+     "country:AZ": 1,
+     "country:CA": 43,
+     "country:CO": 7,
+     "country:DE": 1,
+     "country:GA": 4,
+     "country:IL": 3,
+     "country:JP": 1,
+     "country:LA": 1,
+     "country:MD": 3,
+     "country:ME": 1,
+     "country:MO": 2,
+     "country:MT": 1,
+     "country:PA": 4,
+     "country:SD": 1,
+     "country:TN": 1,
+     "country:US": 7,
+     "remote:": 56
+    },
+    "total": 224
+   },
+   "company": "Natera",
+   "company_key": "natera",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 224
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 69,
+     "data_ai": 4,
+     "engineering": 16,
+     "it_infrastructure": 3,
+     "legal_compliance": 1,
+     "manufacturing": 1,
+     "marketing": 1,
+     "operations": 3,
+     "product": 5,
+     "sales": 14,
+     "supply_chain": 1
+    },
+    "places": {
+     "city:Austin": 24,
+     "city:Boston": 2,
+     "city:San Francisco": 4,
+     "city:Seattle": 3,
+     "country:AR": 1,
+     "country:AZ": 1,
+     "country:CA": 43,
+     "country:CO": 7,
+     "country:DE": 1,
+     "country:GA": 4,
+     "country:IL": 3,
+     "country:JP": 1,
+     "country:LA": 1,
+     "country:MD": 3,
+     "country:ME": 1,
+     "country:MO": 2,
+     "country:MT": 1,
+     "country:PA": 4,
+     "country:SD": 1,
+     "country:TN": 1,
+     "country:US": 7,
+     "remote:": 56
+    },
+    "total": 224
+   },
+   "slug": "natera",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/natera"
+  },
+  "greenhouse:nerdy": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 20,
+     "sales": 4
+    },
+    "places": {
+     "city:Bangalore": 1,
+     "city:Hyderabad": 2,
+     "city:Pune": 1,
+     "country:AR": 4,
+     "country:BR": 4,
+     "country:CL": 1,
+     "country:CO": 3,
+     "country:CR": 2,
+     "country:IN": 1,
+     "country:MX": 1,
+     "country:US": 1,
+     "remote:": 3
+    },
+    "total": 24
+   },
+   "company": "Nerdy",
+   "company_key": "nerdy",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 24
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 20,
+     "sales": 4
+    },
+    "places": {
+     "city:Bangalore": 1,
+     "city:Hyderabad": 2,
+     "city:Pune": 1,
+     "country:AR": 4,
+     "country:BR": 4,
+     "country:CL": 1,
+     "country:CO": 3,
+     "country:CR": 2,
+     "country:IN": 1,
+     "country:MX": 1,
+     "country:US": 1,
+     "remote:": 3
+    },
+    "total": 24
+   },
+   "slug": "nerdy",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/nerdy"
+  },
+  "greenhouse:okta": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 5,
+     "data_ai": 11,
+     "design": 10,
+     "engineering": 125,
+     "executive": 3,
+     "finance": 5,
+     "hr_people": 4,
+     "it_infrastructure": 47,
+     "legal_compliance": 6,
+     "marketing": 12,
+     "operations": 12,
+     "product": 10,
+     "sales": 62
+    },
+    "places": {
+     "city:Bangalore": 97,
+     "city:Barcelona": 1,
+     "city:Boston": 3,
+     "city:Dublin": 10,
+     "city:London": 9,
+     "city:Madrid": 1,
+     "city:Melbourne": 1,
+     "city:Munich": 1,
+     "city:New York": 44,
+     "city:Paris": 3,
+     "city:San Francisco": 74,
+     "city:Singapore": 4,
+     "city:Sydney": 6,
+     "city:Tokyo": 7,
+     "city:Toronto": 53,
+     "city:Warsaw": 4,
+     "country:AU": 1,
+     "country:BR": 2,
+     "country:CA": 1,
+     "country:DE": 1,
+     "country:IL": 1,
+     "country:MX": 1,
+     "country:UY": 1
+    },
+    "total": 366
+   },
+   "company": "Okta",
+   "company_key": "okta",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 366
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 5,
+     "data_ai": 11,
+     "design": 10,
+     "engineering": 125,
+     "executive": 3,
+     "finance": 5,
+     "hr_people": 4,
+     "it_infrastructure": 47,
+     "legal_compliance": 6,
+     "marketing": 12,
+     "operations": 12,
+     "product": 10,
+     "sales": 62
+    },
+    "places": {
+     "city:Bangalore": 97,
+     "city:Barcelona": 1,
+     "city:Boston": 3,
+     "city:Dublin": 10,
+     "city:London": 9,
+     "city:Madrid": 1,
+     "city:Melbourne": 1,
+     "city:Munich": 1,
+     "city:New York": 44,
+     "city:Paris": 3,
+     "city:San Francisco": 74,
+     "city:Singapore": 4,
+     "city:Sydney": 6,
+     "city:Tokyo": 7,
+     "city:Toronto": 53,
+     "city:Warsaw": 4,
+     "country:AU": 1,
+     "country:BR": 2,
+     "country:CA": 1,
+     "country:DE": 1,
+     "country:IL": 1,
+     "country:MX": 1,
+     "country:UY": 1
+    },
+    "total": 366
+   },
+   "slug": "okta",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/okta"
+  },
+  "greenhouse:outsetmedical": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 4,
+     "engineering": 10,
+     "finance": 1,
+     "hr_people": 1,
+     "legal_compliance": 1,
+     "product": 1,
+     "sales": 4
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:Seattle": 1,
+     "country:CO": 1,
+     "country:GE": 1,
+     "country:MA": 1,
+     "country:MX": 9,
+     "country:SC": 2,
+     "country:US": 2
+    },
+    "total": 29
+   },
+   "company": "Outset Medical",
+   "company_key": "outset medical",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 29
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 4,
+     "engineering": 10,
+     "finance": 1,
+     "hr_people": 1,
+     "legal_compliance": 1,
+     "product": 1,
+     "sales": 4
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:Seattle": 1,
+     "country:CO": 1,
+     "country:GE": 1,
+     "country:MA": 1,
+     "country:MX": 9,
+     "country:SC": 2,
+     "country:US": 2
+    },
+    "total": 29
+   },
+   "slug": "outsetmedical",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/outsetmedical"
+  },
+  "greenhouse:pagerduty": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "engineering": 1,
+     "legal_compliance": 1,
+     "product": 2,
+     "sales": 11
+    },
+    "places": {
+     "city:London": 1,
+     "city:New York": 2,
+     "city:San Francisco": 5,
+     "city:Singapore": 1,
+     "city:Toronto": 1,
+     "country:US": 6
+    },
+    "total": 18
+   },
+   "company": "PagerDuty",
+   "company_key": "pagerduty",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 18
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "engineering": 1,
+     "legal_compliance": 1,
+     "product": 2,
+     "sales": 11
+    },
+    "places": {
+     "city:London": 1,
+     "city:New York": 2,
+     "city:San Francisco": 5,
+     "city:Singapore": 1,
+     "city:Toronto": 1,
+     "country:US": 6
+    },
+    "total": 18
+   },
+   "slug": "pagerduty",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/pagerduty"
   },
   "greenhouse:pinterest": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2392,14 +5952,19 @@
     "total": 200
    },
    "company": "Pinterest",
+   "company_key": "pinterest",
    "history": [
     {
      "date": "2026-07-28",
      "total": 200
+    },
+    {
+     "date": "2026-07-29",
+     "total": 199
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "data_ai": 32,
      "design": 4,
@@ -2407,21 +5972,21 @@
      "finance": 3,
      "hr_people": 1,
      "it_infrastructure": 6,
-     "marketing": 7,
+     "marketing": 6,
      "operations": 6,
      "product": 9,
-     "sales": 37
+     "sales": 36
     },
     "places": {
      "city:Amsterdam": 2,
      "city:Berlin": 3,
-     "city:Dublin": 12,
+     "city:Dublin": 11,
      "city:Hamburg": 3,
      "city:London": 4,
      "city:Madrid": 1,
      "city:New York": 20,
      "city:Paris": 2,
-     "city:San Francisco": 90,
+     "city:San Francisco": 89,
      "city:Seattle": 6,
      "city:Singapore": 13,
      "city:Stockholm": 2,
@@ -2431,14 +5996,208 @@
      "country:AR": 3,
      "country:BR": 1,
      "country:CA": 3,
-     "country:IL": 13,
+     "country:IL": 14,
      "country:MX": 2,
      "country:US": 1
     },
-    "total": 200
-   }
+    "total": 199
+   },
+   "slug": "pinterest",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/pinterest"
+  },
+  "greenhouse:praxisprecisionmedicines": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 7,
+     "engineering": 1,
+     "finance": 1,
+     "it_infrastructure": 1,
+     "product": 1,
+     "sales": 1
+    },
+    "places": {
+     "country:BR": 1,
+     "country:US": 21
+    },
+    "total": 22
+   },
+   "company": "Praxis Precision Medicines, Inc.",
+   "company_key": "praxis precision medicines",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 22
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 7,
+     "engineering": 1,
+     "finance": 1,
+     "it_infrastructure": 1,
+     "product": 1,
+     "sales": 1
+    },
+    "places": {
+     "country:BR": 1,
+     "country:US": 21
+    },
+    "total": 22
+   },
+   "slug": "praxisprecisionmedicines",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/praxisprecisionmedicines"
+  },
+  "greenhouse:pubmatic": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 7,
+     "design": 3,
+     "engineering": 17,
+     "executive": 1,
+     "finance": 1,
+     "hr_people": 3,
+     "it_infrastructure": 4,
+     "marketing": 8,
+     "product": 5,
+     "sales": 8
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:London": 3,
+     "city:New York": 26,
+     "city:Pune": 25,
+     "city:Singapore": 2,
+     "city:Sydney": 1,
+     "country:IL": 1,
+     "country:IN": 3,
+     "country:US": 8
+    },
+    "total": 70
+   },
+   "company": "PubMatic",
+   "company_key": "pubmatic",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 70
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 4,
+     "data_ai": 7,
+     "design": 3,
+     "engineering": 17,
+     "executive": 1,
+     "finance": 1,
+     "hr_people": 3,
+     "it_infrastructure": 4,
+     "marketing": 8,
+     "product": 5,
+     "sales": 8
+    },
+    "places": {
+     "city:Amsterdam": 1,
+     "city:London": 3,
+     "city:New York": 26,
+     "city:Pune": 25,
+     "city:Singapore": 2,
+     "city:Sydney": 1,
+     "country:IL": 1,
+     "country:IN": 3,
+     "country:US": 8
+    },
+    "total": 70
+   },
+   "slug": "pubmatic",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/pubmatic"
+  },
+  "greenhouse:recursionpharmaceuticals": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 4,
+     "data_ai": 1,
+     "executive": 3,
+     "legal_compliance": 1
+    },
+    "places": {
+     "city:London": 3,
+     "city:New York": 14,
+     "city:Toronto": 1,
+     "country:US": 1
+    },
+    "total": 22
+   },
+   "company": "Recursion Pharmaceuticals, Inc.",
+   "company_key": "recursion pharmaceuticals",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 22
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 4,
+     "data_ai": 1,
+     "executive": 3,
+     "legal_compliance": 1
+    },
+    "places": {
+     "city:London": 3,
+     "city:New York": 14,
+     "city:Toronto": 1,
+     "country:US": 1
+    },
+    "total": 22
+   },
+   "slug": "recursionpharmaceuticals",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/recursionpharmaceuticals"
   },
   "greenhouse:reddit": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2472,31 +6231,36 @@
     "total": 192
    },
    "company": "Reddit",
+   "company_key": "reddit",
    "history": [
     {
      "date": "2026-07-28",
      "total": 192
+    },
+    {
+     "date": "2026-07-29",
+     "total": 193
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
-     "data_ai": 45,
+     "data_ai": 44,
      "design": 1,
-     "engineering": 52,
+     "engineering": 53,
      "finance": 2,
      "it_infrastructure": 4,
      "legal_compliance": 3,
      "operations": 3,
      "product": 5,
-     "sales": 36
+     "sales": 37
     },
     "places": {
      "city:Amsterdam": 3,
      "city:Berlin": 2,
      "city:Dublin": 1,
      "city:London": 9,
-     "city:New York": 16,
+     "city:New York": 17,
      "city:San Francisco": 13,
      "city:Sydney": 2,
      "city:Toronto": 6,
@@ -2508,10 +6272,118 @@
      "country:NL": 6,
      "country:US": 88
     },
-    "total": 192
-   }
+    "total": 193
+   },
+   "slug": "reddit",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/reddit"
+  },
+  "greenhouse:revolutionmedicines": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 71,
+     "data_ai": 6,
+     "design": 1,
+     "engineering": 1,
+     "executive": 8,
+     "finance": 6,
+     "hr_people": 6,
+     "it_infrastructure": 1,
+     "legal_compliance": 15,
+     "manufacturing": 1,
+     "marketing": 4,
+     "operations": 14,
+     "product": 3,
+     "sales": 2,
+     "supply_chain": 4
+    },
+    "places": {
+     "city:Amsterdam": 4,
+     "city:Brussels": 1,
+     "city:London": 2,
+     "city:Munich": 2,
+     "city:Stockholm": 3,
+     "country:AT": 3,
+     "country:CH": 19,
+     "country:DE": 7,
+     "country:ES": 2,
+     "country:FR": 2,
+     "country:GB": 1,
+     "country:IT": 1,
+     "country:JP": 12,
+     "country:PL": 1,
+     "country:US": 207
+    },
+    "total": 267
+   },
+   "company": "Revolution Medicines",
+   "company_key": "revolution medicines",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 267
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 71,
+     "data_ai": 6,
+     "design": 1,
+     "engineering": 1,
+     "executive": 8,
+     "finance": 6,
+     "hr_people": 6,
+     "it_infrastructure": 1,
+     "legal_compliance": 15,
+     "manufacturing": 1,
+     "marketing": 4,
+     "operations": 14,
+     "product": 3,
+     "sales": 2,
+     "supply_chain": 4
+    },
+    "places": {
+     "city:Amsterdam": 4,
+     "city:Brussels": 1,
+     "city:London": 2,
+     "city:Munich": 2,
+     "city:Stockholm": 3,
+     "country:AT": 3,
+     "country:CH": 19,
+     "country:DE": 7,
+     "country:ES": 2,
+     "country:FR": 2,
+     "country:GB": 1,
+     "country:IT": 1,
+     "country:JP": 12,
+     "country:PL": 1,
+     "country:US": 207
+    },
+    "total": 267
+   },
+   "slug": "revolutionmedicines",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/revolutionmedicines"
   },
   "greenhouse:robinhood": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2543,16 +6415,21 @@
     "total": 125
    },
    "company": "Robinhood",
+   "company_key": "robinhood",
    "history": [
     {
      "date": "2026-07-28",
      "total": 125
+    },
+    {
+     "date": "2026-07-29",
+     "total": 126
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
-     "data_ai": 3,
+     "data_ai": 4,
      "design": 6,
      "engineering": 47,
      "executive": 1,
@@ -2571,16 +6448,177 @@
      "city:New York": 48,
      "city:Singapore": 1,
      "city:Toronto": 7,
-     "country:CA": 29,
+     "country:CA": 30,
      "country:CO": 3,
      "country:IL": 7,
      "country:LT": 1,
      "country:SI": 4
     },
-    "total": 125
-   }
+    "total": 126
+   },
+   "slug": "robinhood",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/robinhood"
+  },
+  "greenhouse:roblox": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 29,
+     "design": 1,
+     "engineering": 98,
+     "finance": 2,
+     "it_infrastructure": 29,
+     "legal_compliance": 4,
+     "marketing": 7,
+     "operations": 4,
+     "product": 9,
+     "sales": 1
+    },
+    "places": {
+     "city:Amsterdam": 3,
+     "city:London": 1,
+     "city:Singapore": 2,
+     "country:BR": 1,
+     "country:CA": 188,
+     "country:GB": 1,
+     "country:IN": 14,
+     "country:US": 3,
+     "remote:": 7
+    },
+    "total": 220
+   },
+   "company": "Roblox",
+   "company_key": "roblox",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 220
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 2,
+     "data_ai": 29,
+     "design": 1,
+     "engineering": 98,
+     "finance": 2,
+     "it_infrastructure": 29,
+     "legal_compliance": 4,
+     "marketing": 7,
+     "operations": 4,
+     "product": 9,
+     "sales": 1
+    },
+    "places": {
+     "city:Amsterdam": 3,
+     "city:London": 1,
+     "city:Singapore": 2,
+     "country:BR": 1,
+     "country:CA": 188,
+     "country:GB": 1,
+     "country:IN": 14,
+     "country:US": 3,
+     "remote:": 7
+    },
+    "total": 220
+   },
+   "slug": "roblox",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/roblox"
+  },
+  "greenhouse:rocketlab": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 2,
+     "design": 2,
+     "engineering": 227,
+     "executive": 1,
+     "finance": 4,
+     "hr_people": 3,
+     "it_infrastructure": 16,
+     "legal_compliance": 1,
+     "manufacturing": 6,
+     "operations": 17,
+     "sales": 8,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:Toronto": 5,
+     "country:AZ": 11,
+     "country:CA": 184,
+     "country:CO": 20,
+     "country:MD": 26,
+     "country:NZ": 79
+    },
+    "total": 371
+   },
+   "company": "Rocket Lab Corporation",
+   "company_key": "rocket lab",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 371
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 2,
+     "design": 2,
+     "engineering": 227,
+     "executive": 1,
+     "finance": 4,
+     "hr_people": 3,
+     "it_infrastructure": 16,
+     "legal_compliance": 1,
+     "manufacturing": 6,
+     "operations": 17,
+     "sales": 8,
+     "supply_chain": 2
+    },
+    "places": {
+     "city:Toronto": 5,
+     "country:AZ": 11,
+     "country:CA": 184,
+     "country:CO": 20,
+     "country:MD": 26,
+     "country:NZ": 79
+    },
+    "total": 371
+   },
+   "slug": "rocketlab",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/rocketlab"
   },
   "greenhouse:samsara": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2631,34 +6669,39 @@
     "total": 327
    },
    "company": "Samsara",
+   "company_key": "samsara",
    "history": [
     {
      "date": "2026-07-28",
      "total": 327
+    },
+    {
+     "date": "2026-07-29",
+     "total": 324
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 26,
      "data_ai": 12,
      "design": 3,
-     "engineering": 72,
+     "engineering": 71,
      "finance": 2,
-     "hr_people": 5,
+     "hr_people": 4,
      "it_infrastructure": 6,
      "legal_compliance": 2,
      "marketing": 7,
      "operations": 6,
      "product": 11,
-     "sales": 91,
+     "sales": 90,
      "supply_chain": 1
     },
     "places": {
      "city:Austin": 1,
-     "city:Bangalore": 7,
+     "city:Bangalore": 6,
      "city:Boston": 1,
-     "city:London": 17,
+     "city:London": 16,
      "city:New York": 2,
      "city:San Francisco": 8,
      "city:Seattle": 4,
@@ -2681,13 +6724,24 @@
      "country:NL": 1,
      "country:PL": 1,
      "country:TW": 2,
-     "country:US": 128,
+     "country:US": 127,
      "remote:": 42
     },
-    "total": 327
-   }
+    "total": 324
+   },
+   "slug": "samsara",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/samsara"
   },
   "greenhouse:scaleai": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2727,14 +6781,19 @@
     "total": 208
    },
    "company": "Scale AI",
+   "company_key": "scale ai",
    "history": [
     {
      "date": "2026-07-28",
      "total": 208
+    },
+    {
+     "date": "2026-07-29",
+     "total": 208
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "clinical_healthcare": 2,
      "customer_support": 1,
@@ -2770,9 +6829,20 @@
      "country:US": 7
     },
     "total": 208
-   }
+   },
+   "slug": "scaleai",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/scaleai"
   },
   "greenhouse:stripe": {
+   "ats": "greenhouse",
    "baseline": {
     "date": "2026-07-28",
     "functions": {
@@ -2827,27 +6897,32 @@
     "total": 532
    },
    "company": "Stripe",
+   "company_key": "stripe",
    "history": [
     {
      "date": "2026-07-28",
      "total": 532
+    },
+    {
+     "date": "2026-07-29",
+     "total": 534
     }
    ],
    "last": {
-    "date": "2026-07-28",
+    "date": "2026-07-29",
     "functions": {
      "customer_support": 14,
      "data_ai": 27,
      "design": 15,
-     "engineering": 97,
+     "engineering": 98,
      "executive": 5,
      "finance": 20,
      "hr_people": 3,
      "it_infrastructure": 24,
-     "legal_compliance": 36,
-     "marketing": 27,
+     "legal_compliance": 37,
+     "marketing": 28,
      "operations": 53,
-     "product": 28,
+     "product": 27,
      "sales": 83
     },
     "places": {
@@ -2863,29 +6938,936 @@
      "city:Milan": 1,
      "city:New York": 47,
      "city:Paris": 5,
-     "city:San Francisco": 75,
+     "city:San Francisco": 74,
      "city:Seattle": 22,
-     "city:Singapore": 36,
+     "city:Singapore": 38,
      "city:Stockholm": 1,
      "city:Sydney": 10,
      "city:Tokyo": 4,
-     "city:Toronto": 25,
+     "city:Toronto": 26,
      "country:AE": 2,
      "country:AU": 1,
      "country:CA": 6,
      "country:ES": 2,
      "country:GB": 2,
      "country:IE": 5,
-     "country:IL": 5,
+     "country:IL": 4,
      "country:JP": 2,
      "country:MX": 27,
      "country:NA": 1,
      "country:TW": 2,
      "country:US": 29,
-     "remote:": 46
+     "remote:": 47
     },
-    "total": 532
-   }
+    "total": 534
+   },
+   "slug": "stripe",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "2 readings in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 2,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/stripe"
+  },
+  "greenhouse:thetradedesk": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 4,
+     "design": 3,
+     "engineering": 40,
+     "executive": 1,
+     "finance": 10,
+     "it_infrastructure": 5,
+     "legal_compliance": 7,
+     "marketing": 2,
+     "operations": 2,
+     "product": 11,
+     "sales": 50
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:Hamburg": 3,
+     "city:London": 18,
+     "city:Madrid": 2,
+     "city:Melbourne": 3,
+     "city:New York": 64,
+     "city:Paris": 2,
+     "city:San Francisco": 11,
+     "city:Seattle": 4,
+     "city:Singapore": 5,
+     "city:Sydney": 14,
+     "city:Tokyo": 5,
+     "city:Toronto": 1,
+     "country:HK": 3
+    },
+    "total": 193
+   },
+   "company": "The Trade Desk",
+   "company_key": "the trade desk",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 193
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 4,
+     "design": 3,
+     "engineering": 40,
+     "executive": 1,
+     "finance": 10,
+     "it_infrastructure": 5,
+     "legal_compliance": 7,
+     "marketing": 2,
+     "operations": 2,
+     "product": 11,
+     "sales": 50
+    },
+    "places": {
+     "city:Boston": 2,
+     "city:Hamburg": 3,
+     "city:London": 18,
+     "city:Madrid": 2,
+     "city:Melbourne": 3,
+     "city:New York": 64,
+     "city:Paris": 2,
+     "city:San Francisco": 11,
+     "city:Seattle": 4,
+     "city:Singapore": 5,
+     "city:Sydney": 14,
+     "city:Tokyo": 5,
+     "city:Toronto": 1,
+     "country:HK": 3
+    },
+    "total": 193
+   },
+   "slug": "thetradedesk",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/thetradedesk"
+  },
+  "greenhouse:toast": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 6,
+     "design": 1,
+     "engineering": 49,
+     "executive": 2,
+     "finance": 9,
+     "hr_people": 1,
+     "it_infrastructure": 2,
+     "legal_compliance": 1,
+     "marketing": 1,
+     "operations": 4,
+     "product": 5,
+     "sales": 161,
+     "supply_chain": 4
+    },
+    "places": {
+     "city:Bangalore": 16,
+     "city:Boston": 8,
+     "city:Dublin": 19,
+     "city:London": 5,
+     "city:Manchester": 1,
+     "city:Melbourne": 1,
+     "city:New York": 7,
+     "city:San Francisco": 8,
+     "city:Seattle": 3,
+     "city:Sydney": 3,
+     "city:Toronto": 8,
+     "country:AL": 7,
+     "country:AR": 1,
+     "country:AZ": 1,
+     "country:CA": 25,
+     "country:CO": 3,
+     "country:GA": 7,
+     "country:IL": 7,
+     "country:IN": 2,
+     "country:MA": 2,
+     "country:MD": 1,
+     "country:MN": 3,
+     "country:MO": 5,
+     "country:NE": 1,
+     "country:PA": 7,
+     "country:SC": 3,
+     "country:SD": 1,
+     "country:TN": 2,
+     "country:US": 35,
+     "remote:": 8
+    },
+    "total": 284
+   },
+   "company": "Toast",
+   "company_key": "toast",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 284
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 6,
+     "design": 1,
+     "engineering": 49,
+     "executive": 2,
+     "finance": 9,
+     "hr_people": 1,
+     "it_infrastructure": 2,
+     "legal_compliance": 1,
+     "marketing": 1,
+     "operations": 4,
+     "product": 5,
+     "sales": 161,
+     "supply_chain": 4
+    },
+    "places": {
+     "city:Bangalore": 16,
+     "city:Boston": 8,
+     "city:Dublin": 19,
+     "city:London": 5,
+     "city:Manchester": 1,
+     "city:Melbourne": 1,
+     "city:New York": 7,
+     "city:San Francisco": 8,
+     "city:Seattle": 3,
+     "city:Sydney": 3,
+     "city:Toronto": 8,
+     "country:AL": 7,
+     "country:AR": 1,
+     "country:AZ": 1,
+     "country:CA": 25,
+     "country:CO": 3,
+     "country:GA": 7,
+     "country:IL": 7,
+     "country:IN": 2,
+     "country:MA": 2,
+     "country:MD": 1,
+     "country:MN": 3,
+     "country:MO": 5,
+     "country:NE": 1,
+     "country:PA": 7,
+     "country:SC": 3,
+     "country:SD": 1,
+     "country:TN": 2,
+     "country:US": 35,
+     "remote:": 8
+    },
+    "total": 284
+   },
+   "slug": "toast",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/toast"
+  },
+  "greenhouse:twilio": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 8,
+     "data_ai": 7,
+     "design": 2,
+     "engineering": 59,
+     "finance": 3,
+     "hr_people": 1,
+     "it_infrastructure": 13,
+     "legal_compliance": 6,
+     "marketing": 6,
+     "operations": 8,
+     "product": 9,
+     "sales": 38
+    },
+    "places": {
+     "city:Singapore": 3,
+     "country:AU": 3,
+     "country:BR": 2,
+     "country:CA": 8,
+     "country:CO": 16,
+     "country:EE": 4,
+     "country:ES": 4,
+     "country:GB": 12,
+     "country:IE": 13,
+     "country:IN": 22,
+     "country:JP": 4,
+     "country:MX": 3,
+     "country:US": 94
+    },
+    "total": 188
+   },
+   "company": "Twilio",
+   "company_key": "twilio",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 188
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 8,
+     "data_ai": 7,
+     "design": 2,
+     "engineering": 59,
+     "finance": 3,
+     "hr_people": 1,
+     "it_infrastructure": 13,
+     "legal_compliance": 6,
+     "marketing": 6,
+     "operations": 8,
+     "product": 9,
+     "sales": 38
+    },
+    "places": {
+     "city:Singapore": 3,
+     "country:AU": 3,
+     "country:BR": 2,
+     "country:CA": 8,
+     "country:CO": 16,
+     "country:EE": 4,
+     "country:ES": 4,
+     "country:GB": 12,
+     "country:IE": 13,
+     "country:IN": 22,
+     "country:JP": 4,
+     "country:MX": 3,
+     "country:US": 94
+    },
+    "total": 188
+   },
+   "slug": "twilio",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/twilio"
+  },
+  "greenhouse:twosixtechnologies": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 28,
+     "executive": 1,
+     "it_infrastructure": 14,
+     "operations": 1,
+     "research": 1
+    },
+    "places": {
+     "country:US": 3
+    },
+    "total": 57
+   },
+   "company": "Two Six Technologies Holdings Inc.",
+   "company_key": "two six technologies holdings",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 57
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "design": 1,
+     "engineering": 28,
+     "executive": 1,
+     "it_infrastructure": 14,
+     "operations": 1,
+     "research": 1
+    },
+    "places": {
+     "country:US": 3
+    },
+    "total": 57
+   },
+   "slug": "twosixtechnologies",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/twosixtechnologies"
+  },
+  "greenhouse:upstart": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 5,
+     "design": 1,
+     "engineering": 39,
+     "finance": 1,
+     "hr_people": 2,
+     "it_infrastructure": 9,
+     "legal_compliance": 14,
+     "marketing": 3,
+     "operations": 1,
+     "product": 4,
+     "sales": 2
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:New York": 2,
+     "country:CA": 2,
+     "country:US": 98
+    },
+    "total": 103
+   },
+   "company": "Upstart Holdings, Inc.",
+   "company_key": "upstart holdings",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 103
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 5,
+     "design": 1,
+     "engineering": 39,
+     "finance": 1,
+     "hr_people": 2,
+     "it_infrastructure": 9,
+     "legal_compliance": 14,
+     "marketing": 3,
+     "operations": 1,
+     "product": 4,
+     "sales": 2
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:New York": 2,
+     "country:CA": 2,
+     "country:US": 98
+    },
+    "total": 103
+   },
+   "slug": "upstart",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/upstart"
+  },
+  "greenhouse:upwork": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 1,
+     "executive": 1,
+     "marketing": 2,
+     "product": 2
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:Lisbon": 2,
+     "city:Toronto": 2,
+     "country:US": 4,
+     "remote:": 2
+    },
+    "total": 11
+   },
+   "company": "Upwork",
+   "company_key": "upwork",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 11
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 1,
+     "engineering": 1,
+     "executive": 1,
+     "marketing": 2,
+     "product": 2
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:Lisbon": 2,
+     "city:Toronto": 2,
+     "country:US": 4,
+     "remote:": 2
+    },
+    "total": 11
+   },
+   "slug": "upwork",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/upwork"
+  },
+  "greenhouse:vaxcyte": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 3,
+     "data_ai": 4,
+     "engineering": 6,
+     "executive": 1,
+     "finance": 2,
+     "it_infrastructure": 1,
+     "legal_compliance": 3,
+     "manufacturing": 4,
+     "operations": 1,
+     "supply_chain": 2
+    },
+    "places": {
+     "country:CH": 5,
+     "country:US": 56
+    },
+    "total": 61
+   },
+   "company": "Vaxcyte",
+   "company_key": "vaxcyte",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 61
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "clinical_healthcare": 3,
+     "data_ai": 4,
+     "engineering": 6,
+     "executive": 1,
+     "finance": 2,
+     "it_infrastructure": 1,
+     "legal_compliance": 3,
+     "manufacturing": 4,
+     "operations": 1,
+     "supply_chain": 2
+    },
+    "places": {
+     "country:CH": 5,
+     "country:US": 56
+    },
+    "total": 61
+   },
+   "slug": "vaxcyte",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/vaxcyte"
+  },
+  "greenhouse:verramobility": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 2,
+     "executive": 2,
+     "it_infrastructure": 7,
+     "legal_compliance": 2,
+     "operations": 1,
+     "product": 5,
+     "sales": 1
+    },
+    "places": {
+     "country:US": 2
+    },
+    "total": 40
+   },
+   "company": "Verra Mobility",
+   "company_key": "verra mobility",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 40
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "engineering": 2,
+     "executive": 2,
+     "it_infrastructure": 7,
+     "legal_compliance": 2,
+     "operations": 1,
+     "product": 5,
+     "sales": 1
+    },
+    "places": {
+     "country:US": 2
+    },
+    "total": 40
+   },
+   "slug": "verramobility",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/verramobility"
+  },
+  "greenhouse:vitalfarms": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "operations": 1
+    },
+    "places": {
+     "remote:": 1
+    },
+    "total": 11
+   },
+   "company": "Vital Farms",
+   "company_key": "vital farms",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 11
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "operations": 1
+    },
+    "places": {
+     "remote:": 1
+    },
+    "total": 11
+   },
+   "slug": "vitalfarms",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/vitalfarms"
+  },
+  "greenhouse:xometry": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 27,
+     "design": 1,
+     "engineering": 66,
+     "finance": 1,
+     "hr_people": 5,
+     "it_infrastructure": 5,
+     "legal_compliance": 1,
+     "marketing": 3,
+     "operations": 11,
+     "product": 6,
+     "sales": 52,
+     "supply_chain": 6
+    },
+    "places": {
+     "city:Bangalore": 8,
+     "city:Seattle": 1,
+     "country:AR": 17,
+     "country:AZ": 1,
+     "country:BR": 3,
+     "country:CA": 13,
+     "country:CO": 17,
+     "country:IL": 3,
+     "country:MA": 59,
+     "country:MD": 67,
+     "country:PA": 3,
+     "country:PH": 3
+    },
+    "total": 230
+   },
+   "company": "Xometry",
+   "company_key": "xometry",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 230
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "customer_support": 1,
+     "data_ai": 27,
+     "design": 1,
+     "engineering": 66,
+     "finance": 1,
+     "hr_people": 5,
+     "it_infrastructure": 5,
+     "legal_compliance": 1,
+     "marketing": 3,
+     "operations": 11,
+     "product": 6,
+     "sales": 52,
+     "supply_chain": 6
+    },
+    "places": {
+     "city:Bangalore": 8,
+     "city:Seattle": 1,
+     "country:AR": 17,
+     "country:AZ": 1,
+     "country:BR": 3,
+     "country:CA": 13,
+     "country:CO": 17,
+     "country:IL": 3,
+     "country:MA": 59,
+     "country:MD": 67,
+     "country:PA": 3,
+     "country:PH": 3
+    },
+    "total": 230
+   },
+   "slug": "xometry",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/xometry"
+  },
+  "greenhouse:ziprecruiter": {
+   "ats": "greenhouse",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 4,
+     "engineering": 7,
+     "hr_people": 1,
+     "operations": 4,
+     "product": 3,
+     "sales": 15
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:New York": 1,
+     "city:Seattle": 1,
+     "country:AZ": 4,
+     "country:CA": 16,
+     "country:GA": 1,
+     "country:IN": 1,
+     "remote:": 7
+    },
+    "total": 36
+   },
+   "company": "ZipRecruiter",
+   "company_key": "ziprecruiter",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 36
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "data_ai": 4,
+     "engineering": 7,
+     "hr_people": 1,
+     "operations": 4,
+     "product": 3,
+     "sales": 15
+    },
+    "places": {
+     "city:Austin": 1,
+     "city:New York": 1,
+     "city:Seattle": 1,
+     "country:AZ": 4,
+     "country:CA": 16,
+     "country:GA": 1,
+     "country:IN": 1,
+     "remote:": 7
+    },
+    "total": 36
+   },
+   "slug": "ziprecruiter",
+   "source_name": "Greenhouse job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://job-boards.greenhouse.io/ziprecruiter"
+  },
+  "lever:elfbeauty": {
+   "ats": "lever",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {
+     "finance": 2,
+     "legal_compliance": 2,
+     "marketing": 28,
+     "operations": 5,
+     "sales": 7,
+     "supply_chain": 3
+    },
+    "places": {
+     "city:London": 7,
+     "city:New York": 15,
+     "country:CA": 17,
+     "country:CN": 3,
+     "country:DE": 2,
+     "country:GB": 1,
+     "country:IN": 6,
+     "country:US": 3
+    },
+    "salary": {
+     "listed": 31,
+     "median_max": 120000,
+     "median_min": 90000,
+     "place": ""
+    },
+    "total": 54
+   },
+   "company": "e.l.f. Beauty",
+   "company_key": "e l f beauty",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 54
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {
+     "finance": 2,
+     "legal_compliance": 2,
+     "marketing": 28,
+     "operations": 5,
+     "sales": 7,
+     "supply_chain": 3
+    },
+    "places": {
+     "city:London": 7,
+     "city:New York": 15,
+     "country:CA": 17,
+     "country:CN": 3,
+     "country:DE": 2,
+     "country:GB": 1,
+     "country:IN": 6,
+     "country:US": 3
+    },
+    "salary": {
+     "listed": 31,
+     "median_max": 120000,
+     "median_min": 90000,
+     "place": ""
+    },
+    "total": 54
+   },
+   "slug": "elfbeauty",
+   "source_name": "Lever job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://jobs.lever.co/elfbeauty"
+  },
+  "lever:metlife": {
+   "ats": "lever",
+   "baseline": {
+    "date": "2026-07-29",
+    "functions": {},
+    "places": {
+     "country:CO": 39
+    },
+    "total": 39
+   },
+   "company": "MetLife",
+   "company_key": "metlife",
+   "history": [
+    {
+     "date": "2026-07-29",
+     "total": 39
+    }
+   ],
+   "last": {
+    "date": "2026-07-29",
+    "functions": {},
+    "places": {
+     "country:CO": 39
+    },
+    "total": 39
+   },
+   "slug": "metlife",
+   "source_name": "Lever job board",
+   "status": "ok",
+   "trajectory": {
+    "basis": "1 reading in 30 days: too few to say anything (we need 4)",
+    "direction": "unknown",
+    "observations": 1,
+    "window_days": 30
+   },
+   "url": "https://jobs.lever.co/metlife"
   },
   "smartrecruiters:BoschGroup": {
    "baseline": {
