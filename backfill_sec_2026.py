@@ -26,8 +26,23 @@ import argparse
 import sys
 from datetime import date, datetime, timedelta
 
+import backfill_slices
 from collectors import sec_edgar
 from pipeline import classify, publish, schema, store, validate
+
+WORKFLOW = "backfill-2026.yml"
+
+#: Days of filings per slice. MEASURED, not guessed: the seven month-long runs
+#: on 2026-07-28/29 took 137, 145, 159, 184, 185, 188 and 215 minutes of job
+#: time for roughly thirty days each — 4.6 to 7.2 minutes a day. Every one of
+#: them held the single writer lock for its whole duration, and the drainer
+#: calls a hold past two hours starvation.
+#:
+#: A week is therefore 32 to 50 minutes, which fits inside
+#: SLICE_BUDGET_MINUTES even at the worst rate observed. It is also exactly
+#: WINDOW_DAYS, so a slice is one EFTS window and the two cannot drift into a
+#: slice that splits a window in half.
+SLICE_DAYS = 7
 
 # The item code is the highest-precision phrase available: it appears whenever
 # the event is an officer or director change. The daily collector's extra
@@ -98,15 +113,52 @@ def main() -> int:
     ap.add_argument("--start", required=True)
     ap.add_argument("--end", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--slice", action="store_true",
+                    help="do ONE bounded slice of --start..--end, resuming from "
+                         "the committed cursor, then stop")
+    ap.add_argument("--slice-days", type=int, default=SLICE_DAYS,
+                    help=f"days per slice (default {SLICE_DAYS}; see the constant)")
+    ap.add_argument("--budget-minutes", type=float,
+                    default=backfill_slices.SLICE_BUDGET_MINUTES,
+                    help="stop at the next window boundary after this long")
+    ap.add_argument("--emit-next", help="write the slice ticket here, for "
+                                        "backfill_slices.py record")
+    ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
-    start = date.fromisoformat(args.start)
-    end = min(date.fromisoformat(args.end), date.today())
+    requested_start = date.fromisoformat(args.start)
+    requested_end = min(date.fromisoformat(args.end), date.today())
 
+    job = None
+    if args.slice:
+        job, window = backfill_slices.open_slice(
+            workflow=WORKFLOW, unit="days",
+            start=requested_start.isoformat(), end=requested_end.isoformat(),
+            slice_size=args.slice_days, state_path=args.state,
+            inputs={"dry_run": "false"})
+        if window is None:
+            print(f"{backfill_slices.job_id(WORKFLOW, args.start, args.end)} is "
+                  "already complete — nothing to do.")
+            return 0
+        start, end = date.fromisoformat(window[0]), date.fromisoformat(window[1])
+        print(f"SLICE {start}..{end} of {requested_start}..{requested_end} "
+              f"(slice {job['slices'] + 1}, budget {args.budget_minutes:g} min)")
+    else:
+        start, end = requested_start, requested_end
+
+    budget = backfill_slices.Budget(args.budget_minutes)
     conn = schema.connect()
     stored = duplicates = rejected = skipped = errors = 0
     windows = fetch_failures = 0
+    stopped_early = ""
+    # The last window this run FINISHED. The cursor is derived from it, so a
+    # run that stops on its budget resumes on the exact next day.
+    done_through = None
 
     for lo, hi in iter_windows(start, end):
+        if budget.expired():
+            stopped_early = budget.reason()
+            print(f"\nSTOPPING EARLY: {stopped_early}", file=sys.stderr)
+            break
         windows += 1
         items = collect_window(lo, hi)
         if not items:
@@ -166,12 +218,28 @@ def main() -> int:
             else:
                 duplicates += 1
         conn.commit()
+        done_through = hi
 
-    print(f"\nBACKFILL {args.start}..{args.end}: stored={stored} "
+    print(f"\nBACKFILL {start}..{end}: stored={stored} "
           f"duplicate={duplicates} rejected={rejected} already-seen={skipped} "
           f"transient-errors={errors} windows={windows} empty-windows={fetch_failures}")
     if not args.dry_run:
         publish.publish(conn)
+
+    # The slice ticket, emitted BEFORE the fail-loud check below: a run that
+    # did four weeks and then hit a broken search has still done four weeks,
+    # and slicing exists so that finished work survives however the run ends. A
+    # run that finished nothing emits an unmoved cursor, which
+    # `backfill_slices record` refuses to requeue and goes red on.
+    if args.slice and args.emit_next and not args.dry_run:
+        cursor = (backfill_slices.advance(done_through, "days")
+                  if done_through else job["cursor"])
+        backfill_slices.emit(args.emit_next, backfill_slices.slice_ticket(
+            job, start.isoformat(), end.isoformat(), next_cursor=cursor,
+            totals={"stored": stored, "duplicates": duplicates,
+                    "rejected": rejected, "windows": windows},
+            stopped_early=stopped_early))
+        print(f"  next cursor {cursor}")
 
     # FAIL LOUD. A historical month always contains 8-K 5.02 filings, so every
     # window coming back empty means the SEARCH is broken, not that the month

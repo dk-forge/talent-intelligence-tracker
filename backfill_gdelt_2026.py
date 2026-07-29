@@ -41,12 +41,29 @@ import sys
 from collections import Counter
 from datetime import date, datetime, timedelta
 
+import backfill_slices
 import source_registry as registry
 from collectors import gdelt
 from pipeline import classify, prefilter, publish, schema, store, validate
 
 # One day. See WINDOWING above.
 WINDOW_HOURS = 24
+
+WORKFLOW = "backfill-gdelt-2026.yml"
+
+#: Days of news per slice. MEASURED, not guessed: run 30423752001 held the
+#: writer lock from 04:59 to 10:49 UTC on 2026-07-29 — 350 minutes on a single
+#: month — and had still not finished when its timeout cancelled it, so a
+#: day-window costs at least 11 minutes here. The collector's own arithmetic
+#: agrees: 9 queries at MIN_PAUSE = 12s is 108 seconds of pacing a day before
+#: anything is fetched, and a throttled day walks the 12/24/36s retry ladder to
+#: roughly 12 minutes of pure waiting.
+#:
+#: Four days is therefore ~45-50 minutes of collection, which fits inside
+#: SLICE_BUDGET_MINUTES with room for the slowest observed day. A whole month
+#: in one run is what caused the incident; four days is the largest slice that
+#: is still comfortably a short run.
+SLICE_DAYS = 4
 
 
 def iter_windows(start: date, end: date):
@@ -69,10 +86,43 @@ def main() -> int:
     ap.add_argument("--fetch-only", action="store_true",
                     help="fetch and prefilter, call no model, store nothing — "
                          "proves the collector without spending anything")
+    ap.add_argument("--slice", action="store_true",
+                    help="do ONE bounded slice of --start..--end, resuming from "
+                         "the committed cursor, then stop. Without this the run "
+                         "does the whole window in one go, which is what held "
+                         "the writer lock for 350 minutes on 2026-07-29.")
+    ap.add_argument("--slice-days", type=int, default=SLICE_DAYS,
+                    help=f"days per slice (default {SLICE_DAYS}; see the constant)")
+    ap.add_argument("--budget-minutes", type=float,
+                    default=backfill_slices.SLICE_BUDGET_MINUTES,
+                    help="stop at the next day boundary after this long")
+    ap.add_argument("--emit-next", help="write the slice ticket here, for "
+                                        "backfill_slices.py record")
+    ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
 
-    start = date.fromisoformat(args.start)
-    end = min(date.fromisoformat(args.end), date.today())
+    requested_start = date.fromisoformat(args.start)
+    requested_end = min(date.fromisoformat(args.end), date.today())
+
+    job = window = None
+    if args.slice:
+        job, window = backfill_slices.open_slice(
+            workflow=WORKFLOW, unit="days",
+            start=requested_start.isoformat(), end=requested_end.isoformat(),
+            slice_size=args.slice_days, state_path=args.state,
+            inputs={"dry_run": "false", "fetch_only": "false",
+                    "max_readthroughs": str(args.max_readthroughs)})
+        if window is None:
+            print(f"[gdelt] {backfill_slices.job_id(WORKFLOW, args.start, args.end)} "
+                  "is already complete — nothing to do.")
+            return 0
+        start, end = (date.fromisoformat(window[0]), date.fromisoformat(window[1]))
+        print(f"[gdelt] SLICE {start}..{end} of {requested_start}..{requested_end} "
+              f"(slice {job['slices'] + 1}, budget {args.budget_minutes:g} min)")
+    else:
+        start, end = requested_start, requested_end
+
+    budget = backfill_slices.Budget(args.budget_minutes)
     queries = list(registry.GDELT_QUERIES)
 
     gdelt.reset_stats()
@@ -90,10 +140,17 @@ def main() -> int:
     outlet_countries: Counter = Counter()
     stored_countries: Counter = Counter()
     stopped_early = ""
+    # The last day-window this run FINISHED. The cursor is derived from it, so
+    # a run that stops on its budget half way through a slice resumes on the
+    # exact next day rather than repeating or skipping one.
+    done_through: date | None = None
 
     print(f"[gdelt] {len(queries)} queries x {(end - start).days + 1} day-windows")
 
     for lo, hi in iter_windows(start, end):
+        if budget.expired():
+            stopped_early = budget.reason()
+            break
         windows += 1
         items = gdelt.collect(queries, startdatetime=lo, enddatetime=hi,
                               seen_urls=seen_urls, seen_titles=seen_titles)
@@ -185,9 +242,10 @@ def main() -> int:
         if stopped_early:
             print(f"\nSTOPPING EARLY: {stopped_early}", file=sys.stderr)
             break
+        done_through = lo.date()
 
     g = gdelt.STATS
-    print(f"\nBACKFILL {args.start}..{args.end}")
+    print(f"\nBACKFILL {start}..{end}")
     print(f"  windows            {windows} ({empty_windows} empty)")
     print(f"  queries sent       {g['queries']}  "
           f"(throttled out {g['throttled_out']}, rejected {g['rejected_queries']}, "
@@ -213,6 +271,27 @@ def main() -> int:
 
     if not (args.dry_run or args.fetch_only):
         publish.publish(conn)
+
+    # The slice ticket. Emitted BEFORE the fail-loud checks below on purpose: a
+    # run that collected four days and then hit a broken fetch has still done
+    # four days, and the whole point of slicing is that finished work is never
+    # thrown away by however the run ends. A run that finished NOTHING emits a
+    # cursor that has not moved, which `backfill_slices record` refuses to
+    # requeue and goes red on — so a broken chain stops itself rather than
+    # spinning.
+    #
+    # Nothing is emitted for a dry or fetch-only run: those store nothing, so a
+    # chain of them would advance the cursor over days it never collected.
+    if args.slice and args.emit_next and not (args.dry_run or args.fetch_only):
+        cursor = (backfill_slices.advance(done_through.isoformat(), "days")
+                  if done_through else job["cursor"])
+        backfill_slices.emit(args.emit_next, backfill_slices.slice_ticket(
+            job, start.isoformat(), end.isoformat(),
+            next_cursor=cursor,
+            totals={"stored": stored, "duplicates": duplicates,
+                    "rejected": rejected, "windows": windows},
+            stopped_early=stopped_early))
+        print(f"  next cursor        {cursor}")
 
     # FAIL LOUD. A month of world news cannot be empty. If every window came
     # back with nothing, the FETCH is broken — a rejected query, a throttling

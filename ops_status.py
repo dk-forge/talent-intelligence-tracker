@@ -46,6 +46,7 @@ def main() -> int:
     problems += _report_writer_queue()
     problems += _report_link_rot(conn)
     problems += _report_guardrails(conn)
+    problems += _report_backfills()
     _report_coverage()
     _report_discovery()
     _report_surfaces()
@@ -255,6 +256,42 @@ def _report_writer_queue() -> list[str]:
                     f"work is queued but drain-writers.yml has not ticked in "
                     f"{idle:.0f}h — the drainer itself is down"]
 
+    return state["problems"]
+
+
+def _report_backfills() -> list[str]:
+    """How far each long backfill has actually got.
+
+    A backfill is a chain of short runs now (see backfill_slices.py), which
+    means "is it still going?" stopped being answerable by looking for a
+    running job — between slices there is nothing running at all. The committed
+    cursor is the only place the answer lives, so this is where a session
+    reads it.
+    """
+    import backfill_slices
+
+    state_file = ROOT / "data" / "backfill_state.json"
+    if not state_file.exists():
+        return []
+
+    print("\n[2e] BACKFILLS  (bounded slices; each run requeues the next)")
+    behind = _commits_behind_origin()
+    if behind:
+        print(f"    (stale: {behind} commit(s) behind origin/main — `git pull --ff-only`)")
+
+    state = backfill_slices.summary(backfill_slices.load(state_file))
+    if not state["jobs"]:
+        print("    Nothing in flight.")
+        return []
+
+    for job in state["jobs"]:
+        where = job["cursor"] or "finished"
+        print(f"    {job['state'].upper():<8} {job['id']}")
+        print(f"             at {where} of {job['end']}, {job['slices']} slice(s) done"
+              + (f", updated {job['updated_at']}" if job.get("updated_at") else ""))
+        if job["totals"]:
+            print("             " + ", ".join(
+                f"{k}={v}" for k, v in sorted(job["totals"].items())))
     return state["problems"]
 
 

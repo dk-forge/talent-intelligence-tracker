@@ -7,30 +7,47 @@
 # (backfill-funding-2026.yml) stays for the current quarter, which the data
 # set does not cover until it closes.
 #
-# Dispatch one quarter at a time. The concurrency group serialises every DB
-# writer, and GitHub keeps only ONE pending run per group - dispatching
-# several at once silently discards all but the last.
+# IT RUNS IN BOUNDED SLICES AND REQUEUES ITSELF
+# ---------------------------------------------
+# Run 30413051586 did two quarters in 6.8 minutes, so this has never run long
+# and on its own would not need slicing. It is sliced for a different reason:
+# SEC publishes these data sets back to 2008q1, `quarters` used to take a
+# comma-separated LIST, and it declared `timeout-minutes: 350`. One dispatch
+# asking for the full history is 73 quarters and four hours of the single
+# `talent-collect` writer lock held by a job nobody would think of as long.
+#
+# So `quarters` now takes a RANGE (2008q1..2026q2) and a run does ONE quarter -
+# see backfill_form_d_bulk.SLICE_QUARTERS - commits it, and appends the next
+# ticket to data/writer_queue.json in the SAME commit. drain-writers.yml
+# dispatches it when the group empties. Progress lives in
+# data/backfill_state.json, committed.
 name: backfill-funding-bulk
 
 on:
   workflow_dispatch:
     inputs:
       quarters:
-        description: 'Comma-separated quarters, e.g. 2026q1 or 2026q1,2026q2'
+        description: 'Quarter RANGE, e.g. 2026q1 or 2026q1..2026q4 (the whole backfill; one quarter runs per slice)'
         required: true
       dry_run:
-        description: 'Set to true to write nothing'
+        description: 'Set to true to write nothing. A dry run does NOT advance the cursor or requeue.'
         required: false
         default: 'false'
 
+# One DB writer at a time. Slicing changes how LONG the lock is held, never how
+# many writers may hold it, and this group must not be split or weakened
+# (tests/test_workflows.py::test_every_database_writer_shares_one_lock).
 concurrency:
-  group: talent-collect        # one DB writer at a time
+  group: talent-collect
   cancel-in-progress: false
 
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    # A SLICE ceiling, not a backfill ceiling. Below
+    # writer_queue.LONG_HOLD_MINUTES (120), so this can no longer be what
+    # starves the queue however many quarters are asked for.
+    timeout-minutes: 90
     permissions:
       contents: write
     steps:
@@ -40,7 +57,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
 
-      - name: Backfill Form D from the bulk data sets
+      - name: Backfill one quarter from the bulk data sets
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
@@ -52,44 +69,66 @@ jobs:
         run: |
           python backfill_form_d_bulk.py \
             --quarters "${{ inputs.quarters }}" \
+            --slice \
+            --emit-next "$RUNNER_TEMP/slice.json" \
             ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
 
       # Same memory rule as the daily collector: a failed run that already
       # stored and published rows still holds the only local record of them.
-      - name: Commit the database
+      - name: Commit the slice, and queue the next one
         if: ${{ inputs.dry_run != 'true' && !cancelled() }}
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db
-          if git diff --staged --quiet; then
-            echo "No data change."
-            exit 0
-          fi
           # MERGE our rows into the remote's database, never copy our file over
           # the top of it. This workflow proved the concurrency group alone
           # cannot make that safe: run 30413051586 was dispatched at 01:05,
           # waited for the lock until 03:21, and actions/checkout had pinned the
           # 01:05 SHA — so it copied a two-hour-old file back and destroyed the
           # 311 rows the run ahead of it had just pushed (d46fb10 -> 4d604f3).
-          # See merge_db.py.
+          # See merge_db.py. Slicing shortens that wait; it does not remove the
+          # reason for the merge, because a human can still push from a laptop.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          RECORD_RC=0
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
-            git add data/talent_intel.db
-            if git diff --staged --quiet; then
-              echo "Remote already has this data."
-              exit 0
+            # Applied AFTER the reset, for the same reason the database is
+            # merged rather than copied: both files have other writers, and
+            # anything written before the reset is thrown away by it. `record`
+            # merges this slice into whatever main holds now, and --queue
+            # appends the next ticket so the chain and the data land in ONE
+            # commit. Its exit code is carried past the push rather than
+            # allowed to abort the step: a chain that cannot advance must still
+            # not cost us the rows we collected.
+            RECORD_RC=0
+            if [ -f "$RUNNER_TEMP/slice.json" ]; then
+              python backfill_slices.py record --from "$RUNNER_TEMP/slice.json" \
+                --queue || RECORD_RC=$?
             fi
-            git commit -q -m "data: form D bulk backfill ${{ inputs.quarters }}"
+            git add data/talent_intel.db
+            git add data/backfill_state.json data/writer_queue.json || true
+            if git diff --staged --quiet; then
+              echo "Nothing to commit."
+              break
+            fi
+            git commit -q -m "data: form D bulk backfill slice ${{ inputs.quarters }}"
             if git push; then
               echo "Pushed on attempt $attempt."
-              exit 0
+              break
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "::error::could not push the database after 5 attempts"
+              exit 1
             fi
             echo "Push rejected (attempt $attempt) — merging onto the current main."
             sleep $((attempt * 5))
           done
-          echo "::error::could not push the database after 5 attempts"
+          if [ "$RECORD_RC" = "0" ]; then
+            exit 0
+          fi
+          echo "::error::the slice was committed but the backfill chain did not"
+          echo "::error::advance, so nothing was requeued. Read the record step"
+          echo "::error::above, then: python backfill_slices.py status"
           exit 1

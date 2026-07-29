@@ -27,8 +27,22 @@ from __future__ import annotations
 import argparse
 import sys
 
+import backfill_slices
 from collectors import sec_form_d_bulk as bulk
 from pipeline import publish, schema, store, validate
+
+WORKFLOW = "backfill-funding-bulk.yml"
+
+#: Quarters per slice. MEASURED: run 30413051586 did 2026q1,2026q2 in 6.8
+#: minutes of job time — about 3.4 minutes a quarter, because the data set
+#: publishes the fields as columns and no model is called.
+#:
+#: One quarter is therefore minutes, not hours, and this workflow has never run
+#: long. It is sliced anyway because SEC publishes back to 2008q1 and `--
+#: quarters` takes a comma-separated list: a single dispatch asking for the
+#: full history is 73 quarters and four hours of held lock, and the only thing
+#: currently preventing that is that nobody has typed it.
+SLICE_QUARTERS = 1
 
 
 def run_quarter(conn, quarter: str, *, dry_run: bool) -> dict:
@@ -82,6 +96,15 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--list", action="store_true",
                     help="print the quarters SEC currently publishes and exit")
+    ap.add_argument("--slice", action="store_true",
+                    help="do ONE bounded slice of --quarters, resuming from the "
+                         "committed cursor, then stop. --quarters takes a RANGE "
+                         "here (2008q1..2026q2), not a list.")
+    ap.add_argument("--slice-quarters", type=int, default=SLICE_QUARTERS,
+                    help=f"quarters per slice (default {SLICE_QUARTERS})")
+    ap.add_argument("--emit-next", help="write the slice ticket here, for "
+                                        "backfill_slices.py record")
+    ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
 
     if args.list:
@@ -91,21 +114,50 @@ def main() -> int:
     if not args.quarters:
         ap.error("--quarters is required (or --list)")
 
-    quarters = [q.strip().lower() for q in args.quarters.split(",") if q.strip()]
+    job = None
+    if args.slice:
+        # A range, so the job has a fixed identity across every slice of it. A
+        # comma list would give each dispatch a different job id and the chain
+        # would never find its own cursor.
+        lo_q, _, hi_q = args.quarters.strip().lower().partition("..")
+        hi_q = hi_q or lo_q
+        job, window = backfill_slices.open_slice(
+            workflow=WORKFLOW, unit="quarters", start=lo_q, end=hi_q,
+            slice_size=args.slice_quarters, state_path=args.state,
+            inputs={"dry_run": "false"})
+        if window is None:
+            print(f"{backfill_slices.job_id(WORKFLOW, lo_q, hi_q)} is already "
+                  "complete — nothing to do.")
+            return 0
+        quarters = backfill_slices.slice_members(window[0], window[1], "quarters")
+        print(f"SLICE {', '.join(quarters)} of {lo_q}..{hi_q} "
+              f"(slice {job['slices'] + 1})")
+    else:
+        quarters = [q.strip().lower() for q in args.quarters.split(",") if q.strip()]
+
     conn = schema.connect()
     totals = {"found": 0, "stored": 0, "duplicate": 0, "rejected": 0, "skipped": 0}
     empty: list[str] = []
 
+    done_through = None
+    dataset_error = ""
     for quarter in quarters:
         try:
             counts = run_quarter(conn, quarter, dry_run=args.dry_run)
         except bulk.DatasetError as exc:
+            # Under --slice this must not abandon the quarters already done:
+            # the ticket below is what records them, so the error is carried
+            # to the end rather than returned from the middle.
             print(f"\nSTOPPING: {exc}", file=sys.stderr)
-            return 1
+            dataset_error = str(exc)
+            if not args.slice:
+                return 1
+            break
         for key, value in counts.items():
             totals[key] += value
         if counts["found"] == 0:
             empty.append(quarter)
+        done_through = quarter
 
     print(f"\nFORM D BULK BACKFILL {','.join(quarters)}: "
           f"found={totals['found']} stored={totals['stored']} "
@@ -122,6 +174,17 @@ def main() -> int:
         print(f"published: {result}")
         publish.publish_health(conn)
         conn.commit()
+
+    if args.slice and args.emit_next and not args.dry_run:
+        cursor = (backfill_slices.advance(done_through, "quarters")
+                  if done_through else job["cursor"])
+        backfill_slices.emit(args.emit_next, backfill_slices.slice_ticket(
+            job, quarters[0], quarters[-1], next_cursor=cursor,
+            totals={k: v for k, v in totals.items()},
+            stopped_early=dataset_error))
+        print(f"  next cursor {cursor}")
+    if dataset_error:
+        return 1
 
     # FAIL LOUD. A quarter of Form D holds ~15,700 submissions and ~2,000
     # qualifying raises, so zero is never the market being quiet — it is the

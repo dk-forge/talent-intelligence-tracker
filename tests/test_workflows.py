@@ -213,3 +213,147 @@ def test_every_database_writer_shares_one_lock():
         "database writers are split across concurrency groups, so they do not "
         f"exclude each other: {groups}"
     )
+
+
+# --- Bounded backfill slices ----------------------------------------------
+#
+# `backfill-gdelt-2026` took the writer lock at 04:59 UTC on 2026-07-29, ran
+# for 350 minutes, hit its own timeout, was CANCELLED, and had its commit step
+# SKIPPED by `if: !cancelled()`. Six hours of collection was lost and every
+# correction behind it waited the whole time. Priority ordering cannot preempt
+# a running job, so the fix is slices that finish. These assert the properties
+# that make that true, because each one of them is a way for the fix to rot
+# back into the incident.
+
+def _backfills():
+    import yaml
+
+    for path in WORKFLOWS:
+        if not path.name.startswith("backfill-"):
+            continue
+        yield path.name, yaml.safe_load(path.read_text())
+
+
+def test_there_are_backfills_to_check():
+    assert list(_backfills()), "no backfill workflows found — the test is inert"
+
+
+def test_a_backfill_can_never_hold_the_lock_long_enough_to_starve_it():
+    """The timeout IS the bound on a lock hold. Everything else is intention.
+
+    Kept below writer_queue.LONG_HOLD_MINUTES, the point at which the drainer
+    reports the queue as starved: a sliced backfill should not be able to reach
+    that condition at all.
+    """
+    import backfill_slices
+    import writer_queue
+
+    assert backfill_slices.SLICE_TIMEOUT_MINUTES < writer_queue.LONG_HOLD_MINUTES
+    assert backfill_slices.SLICE_BUDGET_MINUTES < backfill_slices.SLICE_TIMEOUT_MINUTES, (
+        "the run must stop itself BEFORE the runner kills it: a cancelled run's "
+        "commit step is skipped, which is exactly how six hours were lost")
+
+    for name, parsed in _backfills():
+        for job_name, job in parsed["jobs"].items():
+            timeout = job.get("timeout-minutes")
+            assert timeout is not None, f"{name}:{job_name} has no timeout at all"
+            assert timeout <= backfill_slices.SLICE_TIMEOUT_MINUTES, (
+                f"{name}:{job_name} may hold the single writer lock for "
+                f"{timeout} minutes. A backfill runs in slices; only a slice's "
+                "worth of time is its to take.")
+
+
+def test_every_backfill_runs_one_slice_and_emits_its_ticket():
+    for name, parsed in _backfills():
+        steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])]
+        collecting = [_code(s.get("run") or "") for s in steps
+                      if "backfill_" in (s.get("run") or "")
+                      and "backfill_slices.py" not in (s.get("run") or "")]
+        assert collecting, f"{name} does not run a backfill script"
+        for run in collecting:
+            assert "--slice" in run, (
+                f"{name} runs its whole window in one job. That is the 350-minute "
+                "incident: dispatch it in slices or it will hold the lock for as "
+                "long as the window a human typed.")
+            assert "--emit-next" in run, (
+                f"{name} takes a slice but emits no ticket, so the chain stops "
+                "after one and nothing says so")
+
+
+def test_every_backfill_requeues_itself_after_the_reset():
+    """The requeue has to survive `git reset --hard origin/main`.
+
+    Written before it, the ticket and the cursor are both thrown away by the
+    reset and the chain silently ends. This is the same trap as restoring the
+    database by copying a file over it, one file along.
+    """
+    for name, parsed in _backfills():
+        steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])]
+        commit = [_code(s.get("run") or "") for s in steps
+                  if "backfill_slices.py record" in (s.get("run") or "")]
+        assert commit, f"{name} never records its slice, so it can never resume"
+        for run in commit:
+            assert "--queue" in run, (
+                f"{name} records its progress but queues no successor: the "
+                "backfill stops after one slice")
+            assert run.index("git reset --hard") < run.index("backfill_slices.py record"), (
+                f"{name} records the slice BEFORE the reset, which discards it")
+            assert run.index("backfill_slices.py record") < run.index("git commit"), (
+                f"{name} commits before recording, so the cursor and the ticket "
+                "are not in the commit")
+            assert "data/backfill_state.json" in run, (
+                f"{name} does not stage the cursor, so progress is not durable")
+            assert "data/writer_queue.json" in run, (
+                f"{name} does not stage the queue, so the successor ticket is "
+                "written and then dropped")
+
+
+def test_a_backfill_slice_is_committed_even_when_the_chain_stalls():
+    """Rows already collected are never the price of a broken chain.
+
+    `backfill_slices record` exits non-zero when the cursor did not move, and a
+    GitHub `run:` block is `bash -e`: letting that abort the step would throw
+    away the slice's data to report a problem with the slice's bookkeeping.
+    """
+    for name, parsed in _backfills():
+        steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])]
+        for step in steps:
+            run = _code(step.get("run") or "")
+            if "backfill_slices.py record" not in run:
+                continue
+            assert "|| RECORD_RC=$?" in run, (
+                f"{name} lets a failed record abort the step before the commit")
+            assert run.index("git push") < run.index('if [ "$RECORD_RC" = "0" ]'), (
+                f"{name} decides its exit code before it has pushed")
+            assert run.rstrip().endswith("exit 1"), (
+                f"{name} does not go red when the chain stops advancing")
+
+
+def test_the_drainer_wakes_up_for_every_writer_there_is():
+    """A writer missing from the drainer's `workflow_run` list is invisible.
+
+    The drainer's fast path is "the moment a lock holder finishes, look for the
+    next ticket". A workflow absent from that list still holds the lock and
+    still releases it, but nothing notices, so the queue sits until the 15
+    minute cron — and a sliced backfill, which requeues ITSELF and depends on
+    that trigger to move, would take a quarter of an hour per slice instead of
+    seconds. The list is exactly the kind of hand-kept thing that goes stale the
+    day someone adds a writer, so it is derived and compared rather than read.
+    """
+    import yaml
+
+    import writer_queue
+
+    drainer = yaml.safe_load(
+        (Path(__file__).parent.parent / ".github/workflows/drain-writers.yml").read_text())
+    triggers = (drainer.get("on") or drainer.get(True))["workflow_run"]["workflows"]
+
+    members = set(writer_queue.lock_group_workflows().values())
+    missing = members - set(triggers)
+    assert not missing, (
+        f"these hold the writer lock but do not wake the drainer: {sorted(missing)}")
+
+    # And nothing in the list that no longer exists, which would read as
+    # coverage while covering nothing.
+    stale = set(triggers) - members
+    assert not stale, f"the drainer waits on workflows that are not writers: {sorted(stale)}"

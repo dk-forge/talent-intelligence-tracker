@@ -7,34 +7,52 @@
 # TIT_READTHROUGH_CAP is raised for these jobs only: the daily collector keeps
 # its own ceiling.
 #
-# Dispatch one month at a time. The concurrency group serialises every DB
-# writer (the leadership backfill sits in the same group), and GitHub keeps
-# only ONE pending run per group - dispatching several months at once silently
-# discards all but the last.
+# IT RUNS IN BOUNDED SLICES AND REQUEUES ITSELF
+# ---------------------------------------------
+# Unlike backfill-2026 and backfill-gdelt-2026 this one has never run over an
+# hour - run 30377226199 did a whole month in 12.7 minutes, because the issuer
+# filters drop most Form D volume before anything is classified. It is sliced
+# anyway, for one reason: it declared `timeout-minutes: 350` like the others, so
+# the only thing standing between it and a five-hour hold of the single
+# `talent-collect` writer lock was the size of the window a human happened to
+# type. "It has not happened yet" is not a bound.
+#
+# A run does ONE SLICE - see backfill_form_d_2026.SLICE_DAYS - commits it, and
+# appends a ticket for the next slice to data/writer_queue.json in the SAME
+# commit. drain-writers.yml dispatches it when the group empties. Progress
+# lives in data/backfill_state.json, committed; dispatch the WHOLE window you
+# want and the cursor decides where a run begins.
 name: backfill-funding-2026
 
 on:
   workflow_dispatch:
     inputs:
       start:
-        description: 'Start date (YYYY-MM-DD)'
+        description: 'Start date of the WHOLE backfill (YYYY-MM-DD)'
         required: true
       end:
-        description: 'End date inclusive (YYYY-MM-DD)'
+        description: 'End date inclusive of the WHOLE backfill (YYYY-MM-DD)'
         required: true
       dry_run:
-        description: 'Set to true to classify nothing and write nothing'
+        description: 'Set to true to classify nothing and write nothing. A dry run does NOT advance the cursor or requeue.'
         required: false
         default: 'false'
 
+# One DB writer at a time. Slicing changes how LONG the lock is held, never how
+# many writers may hold it, and this group must not be split or weakened
+# (tests/test_workflows.py::test_every_database_writer_shares_one_lock).
 concurrency:
-  group: talent-collect        # one DB writer at a time
+  group: talent-collect
   cancel-in-progress: false
 
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    # A SLICE ceiling, not a backfill ceiling. Below
+    # writer_queue.LONG_HOLD_MINUTES (120), and far enough above
+    # SLICE_BUDGET_MINUTES that the script always stops itself first, so the
+    # run ends cleanly and its commit step actually runs.
+    timeout-minutes: 90
     permissions:
       contents: write
     steps:
@@ -49,25 +67,26 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python spend.py || true
 
-      - name: Backfill Form D
+      - name: Backfill one slice
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
           # No EDGAR_USER_AGENT mapping: the secret does not exist in this
           # repo, and mapping a missing secret sets the env var to empty
-          # string, which blanks the User-Agent and draws SEC 403s on every
-          # window. That is exactly how the leadership backfill's first
-          # dispatch went green having stored nothing. The code default is fine.
-          # A backfill month holds thousands of filings; the daily ceiling
-          # would defer almost all of them. Bounded by the month itself plus
-          # the issuer filters, which drop most Form D volume before any
-          # classification is paid for.
+          # string. SEC rejects a request with no contact address in the UA,
+          # which is how the first leadership dispatch went green having
+          # stored nothing. The code default carries the address.
+          # A backfill slice holds hundreds of filings; the daily ceiling would
+          # defer almost all of them. Bounded by the slice plus the issuer
+          # filters, which drop most Form D volume before any classification.
           TIT_READTHROUGH_CAP: '5000'
         run: |
           python backfill_form_d_2026.py \
             --start "${{ inputs.start }}" \
             --end "${{ inputs.end }}" \
+            --slice \
+            --emit-next "$RUNNER_TEMP/slice.json" \
             ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
 
       - name: Spend after
@@ -78,40 +97,58 @@ jobs:
 
       # Same memory rule as the daily collector: a failed run that already
       # stored and published rows still holds the only local record of them.
-      - name: Commit the database
+      - name: Commit the slice, and queue the next one
         if: ${{ inputs.dry_run != 'true' && !cancelled() }}
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db
-          git add data/spend_month.json || true
-          if git diff --staged --quiet; then
-            echo "No data change."
-            exit 0
-          fi
           # MERGE our rows into the remote's database, never copy our file over
           # the top of it: that is how 481 rows vanished on 2026-07-28
           # (7554436 -> c0ca59d). See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
+          RECORD_RC=0
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
             cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            # Applied AFTER the reset, for the same reason the database is
+            # merged rather than copied: both files have other writers, and
+            # anything written before the reset is thrown away by it. `record`
+            # merges this slice into whatever main holds now, and --queue
+            # appends the next ticket so the chain and the data land in ONE
+            # commit. Its exit code is carried past the push rather than
+            # allowed to abort the step: a chain that cannot advance must still
+            # not cost us the rows we collected.
+            RECORD_RC=0
+            if [ -f "$RUNNER_TEMP/slice.json" ]; then
+              python backfill_slices.py record --from "$RUNNER_TEMP/slice.json" \
+                --queue || RECORD_RC=$?
+            fi
             git add data/talent_intel.db
+            git add data/backfill_state.json data/writer_queue.json || true
             git add data/spend_month.json || true
             if git diff --staged --quiet; then
-              echo "Remote already has this data."
-              exit 0
+              echo "Nothing to commit."
+              break
             fi
-            git commit -q -m "data: form D backfill ${{ inputs.start }}..${{ inputs.end }}"
+            git commit -q -m "data: form D backfill slice ${{ inputs.start }}..${{ inputs.end }}"
             if git push; then
               echo "Pushed on attempt $attempt."
-              exit 0
+              break
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "::error::could not push the database after 5 attempts"
+              exit 1
             fi
             echo "Push rejected (attempt $attempt) — merging onto the current main."
             sleep $((attempt * 5))
           done
-          echo "::error::could not push the database after 5 attempts"
+          if [ "$RECORD_RC" = "0" ]; then
+            exit 0
+          fi
+          echo "::error::the slice was committed but the backfill chain did not"
+          echo "::error::advance, so nothing was requeued. Read the record step"
+          echo "::error::above, then: python backfill_slices.py status"
           exit 1
