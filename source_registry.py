@@ -506,7 +506,7 @@ SOURCES = (
            "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
            "live", "News publishers",
            ("Funding", "Hiring", "Leadership change", "Office opening"),
-           "575 verified feeds across 139 countries",
+           "593 verified feeds across 139 countries",
            notes="Publishers' own feeds, never an aggregator's database: where a "
                  "round is found through a directory, the record cites the outlet "
                  "that reported it. Every feed was fetched and parsed before "

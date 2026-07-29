@@ -530,6 +530,9 @@ United Kingdom,Innovate UK,https://www.gov.uk/search/news-and-communications.ato
 United Kingdom,Sifted,https://sifted.eu/feed/,rss,English,Europe,https://sifted.eu
 United Kingdom,UK Research and Innovation,https://www.ukri.org/feed/,rss,English,National,https://www.ukri.org
 United States,AlleyWatch,https://www.alleywatch.com/feed/,rss,English,Local,https://www.alleywatch.com
+United States,Apple Newsroom,https://www.apple.com/newsroom/rss-feed.rss,rss,English,Global,https://www.apple.com/newsroom/
+United States,BioPharma Dive,https://www.biopharmadive.com/feeds/news/,rss,English,National,https://www.biopharmadive.com
+United States,Business Insider,https://www.businessinsider.com/rss,rss,English,Global,https://www.businessinsider.com
 United States,Canary Media,https://www.canarymedia.com/feed,rss,English,Global,https://www.canarymedia.com
 United States,ClinicalTrials.gov,https://clinicaltrials.gov/ct2/results/rss.xml,rss,English,Global,https://clinicaltrials.gov
 United States,CoinDesk,https://www.coindesk.com/arc/outboundfeeds/rss/,rss,English,Global,https://www.coindesk.com
@@ -537,11 +540,23 @@ United States,Construction Dive,https://www.constructiondive.com/feeds/news/,rss
 United States,Defense News,https://www.defensenews.com/arc/outboundfeeds/rss/,rss,English,Global,https://www.defensenews.com
 United States,dot.LA,https://dot.la/feeds/feed.rss,rss,English,Local,https://dot.la
 United States,Endpoints News,https://endpts.com/feed/,rss,English,Global,https://endpoints.news
+United States,Fast Company,https://www.fastcompany.com/rss,rss,English,Global,https://www.fastcompany.com
 United States,FinLedger,https://finledger.com/feed/,rss,English,Global,https://finledger.com
+United States,Fortune,https://fortune.com/feed/,rss,English,Global,https://fortune.com
 United States,FreightWaves,https://www.freightwaves.com/feed,rss,English,Global,https://www.freightwaves.com
+United States,GeekWire,https://www.geekwire.com/feed/,rss,English,Regional,https://www.geekwire.com
+United States,Google Newsroom,https://blog.google/rss/,rss,English,Global,https://blog.google
+United States,Healthcare Dive,https://www.healthcaredive.com/feeds/news/,rss,English,United States,https://www.healthcaredive.com
+United States,HR Dive,https://www.hrdive.com/feeds/news/,rss,English,United States,https://www.hrdive.com
+United States,Inc.,https://www.inc.com/rss/,rss,English,United States,https://www.inc.com
 United States,LA Business Journal,https://labusinessjournal.com/feed/,rss,English,Local,https://labusinessjournal.com
 United States,Manufacturing Dive,https://www.manufacturingdive.com/feeds/news/,rss,English,National,https://www.manufacturingdive.com
+United States,MedCity News,https://medcitynews.com/feed/,rss,English,United States,https://medcitynews.com
+United States,MIT Technology Review,https://www.technologyreview.com/feed/,rss,English,Global,https://www.technologyreview.com
+United States,New York Times Business,https://rss.nytimes.com/services/xml/rss/nyt/Business.xml,rss,English,United States / Global,https://www.nytimes.com/section/business
+United States,NVIDIA Newsroom,https://nvidianews.nvidia.com/releases.xml,rss,English,Global,https://nvidianews.nvidia.com
 United States,PYMNTS,https://www.pymnts.com/feed/,rss,English,Global,https://www.pymnts.com
+United States,Quartz,https://qz.com/rss,rss,English,Global,https://qz.com
 United States,RecruitingDaily,https://recruitingdaily.com/feed/,rss,English,Global,https://recruitingdaily.com
 United States,Refresh Miami,https://refreshmiami.com/feed/,rss,English,Local,https://refreshmiami.com
 United States,Rest of World,https://restofworld.org/feed/,rss,English,Global,https://restofworld.org
@@ -552,8 +567,11 @@ United States,SpaceNews,https://spacenews.com/feed/,rss,English,Global,https://s
 United States,STAT News,https://www.statnews.com/feed/,rss,English,Global,https://www.statnews.com
 United States,StrictlyVC,https://www.strictlyvc.com/feed/,rss,English,Global,https://www.strictlyvc.com
 United States,Supply Chain Dive,https://www.supplychaindive.com/feeds/news/,rss,English,National,https://www.supplychaindive.com
+United States,TechCrunch,https://techcrunch.com/feed/,rss,English,Global,https://techcrunch.com
 United States,The Block,https://www.theblock.co/rss.xml,rss,English,Global,https://www.theblock.co
+United States,The San Francisco Standard,https://sfstandard.com/feed/,rss,English,Local,https://sfstandard.com
 United States,USPTO,https://www.uspto.gov/rss.xml,rss,English,National,https://www.uspto.gov
+United States,VentureBeat,https://venturebeat.com/feed/,rss,English,Global,https://venturebeat.com
 Uruguay,El Observador,https://www.elobservador.com.uy/rss/pages/economia.xml,rss,Spanish,National,https://www.elobservador.com.uy
 Uruguay,Montevideo Portal,https://www.montevideo.com.uy/anxml.aspx?59,rss,Spanish,National,https://www.montevideo.com.uy
 Uzbekistan,Gazeta.uz,https://www.gazeta.uz/rss/,rss,Russian,National,https://www.gazeta.uz

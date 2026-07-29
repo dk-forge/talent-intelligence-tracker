@@ -59,7 +59,7 @@
    "Leadership change",
    "Office opening"
   ],
-  "coverage": "575 verified feeds across 139 countries",
+  "coverage": "593 verified feeds across 139 countries",
   "country": "",
   "rss": "",
   "free": true,
@@ -622,6 +622,24 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Apple Newsroom",
+  "url": "https://www.apple.com/newsroom/",
+  "status": "candidate",
+  "category": "Company Newsroom",
+  "signals": [
+   "Companies",
+   "Funding",
+   "Hiring",
+   "Partnership",
+   "Economic Development"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.apple.com/newsroom/rss-feed.rss",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 20 items on the verification fetch. Employer's own newsroom. Items carry no date."
+ },
+ {
   "name": "Arab News",
   "url": "https://www.arabnews.com",
   "status": "candidate",
@@ -993,6 +1011,24 @@
   "rss": "https://www.biobiochile.cl/static/feed-rss",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "BioPharma Dive",
+  "url": "https://www.biopharmadive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Companies",
+   "Funding",
+   "Hiring",
+   "Partnership",
+   "Economic Development"
+  ],
+  "coverage": "National",
+  "country": "United States",
+  "rss": "https://www.biopharmadive.com/feeds/news/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 10 items on the verification fetch."
  },
  {
   "name": "Biznis.rs",
@@ -3682,6 +3718,23 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Business/economy."
  },
  {
+  "name": "Fast Company",
+  "url": "https://www.fastcompany.com",
+  "status": "candidate",
+  "category": "Business & Innovation News",
+  "signals": [
+   "Product Launch",
+   "Leadership",
+   "Workplace",
+   "Technology"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.fastcompany.com/rss",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 18 items on the verification fetch. Items carry no date; records store published_date NULL."
+ },
+ {
   "name": "FBC News",
   "url": "https://www.fbcnews.com.fj",
   "status": "candidate",
@@ -4282,6 +4335,24 @@
   "notes": "Verified by the apac region audit, 2026-07-29. broadcaster money desk"
  },
  {
+  "name": "Google Newsroom",
+  "url": "https://blog.google",
+  "status": "candidate",
+  "category": "Company Newsroom",
+  "signals": [
+   "Product Launch",
+   "AI",
+   "Partnership",
+   "Hiring Plans",
+   "Geographic Expansion"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://blog.google/rss/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 20 items on the verification fetch. Employer's own newsroom."
+ },
+ {
   "name": "Government of Canada newsroom (all depts)",
   "url": "https://www.canada.ca/en/news.html",
   "status": "candidate",
@@ -4462,6 +4533,24 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Healthcare Dive",
+  "url": "https://www.healthcaredive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Healthcare",
+   "Acquisition",
+   "Regulation",
+   "Hiring",
+   "Product Launch"
+  ],
+  "coverage": "United States",
+  "country": "United States",
+  "rss": "https://www.healthcaredive.com/feeds/news/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 10 items on the verification fetch."
+ },
+ {
   "name": "heise online",
   "url": "https://www.heise.de",
   "status": "candidate",
@@ -4572,6 +4661,24 @@
   "rss": "https://www.news.gov.hk/en/common/html/topstories.rss.xml",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Government news service"
+ },
+ {
+  "name": "HR Dive",
+  "url": "https://www.hrdive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Hiring",
+   "Layoffs",
+   "HR Technology",
+   "Regulation",
+   "Workforce Trends"
+  ],
+  "coverage": "United States",
+  "country": "United States",
+  "rss": "https://www.hrdive.com/feeds/news/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 10 items on the verification fetch."
  },
  {
   "name": "Hurriyet Ekonomi",
@@ -4781,6 +4888,23 @@
   "rss": "https://inbusiness.kz/ru/rss",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Business publisher"
+ },
+ {
+  "name": "Inc.",
+  "url": "https://www.inc.com",
+  "status": "candidate",
+  "category": "Business & Startup News",
+  "signals": [
+   "Startups",
+   "Funding",
+   "Leadership",
+   "Hiring"
+  ],
+  "coverage": "United States",
+  "country": "United States",
+  "rss": "https://www.inc.com/rss/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 25 items on the verification fetch."
  },
  {
   "name": "Inc42",
@@ -6389,6 +6513,24 @@
   "notes": ""
  },
  {
+  "name": "MedCity News",
+  "url": "https://medcitynews.com",
+  "status": "candidate",
+  "category": "Healthcare News",
+  "signals": [
+   "Healthcare",
+   "Funding",
+   "Product Launch",
+   "Acquisition",
+   "Hiring"
+  ],
+  "coverage": "United States",
+  "country": "United States",
+  "rss": "https://medcitynews.com/feed/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 25 items on the verification fetch."
+ },
+ {
   "name": "Medias24",
   "url": "https://medias24.com",
   "status": "candidate",
@@ -6532,6 +6674,23 @@
   "rss": "https://www.livemint.com/rss/companies",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "MIT Technology Review",
+  "url": "https://www.technologyreview.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "AI",
+   "Technology",
+   "Research",
+   "Product Launch"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://www.technologyreview.com/feed/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 10 items on the verification fetch."
  },
  {
   "name": "MIT Technology Review Brasil",
@@ -6956,6 +7115,24 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "New York Times Business",
+  "url": "https://www.nytimes.com/section/business",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Companies",
+   "Executive Hire",
+   "Acquisition",
+   "Labor Market Trends",
+   "Regulation"
+  ],
+  "coverage": "United States / Global",
+  "country": "United States",
+  "rss": "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 25 items on the verification fetch. Paywalled publisher, open headline feed: headline, teaser and the publisher's own link are stored, which is ordinary citation."
+ },
+ {
   "name": "News is My Business",
   "url": "https://newsismybusiness.com",
   "status": "candidate",
@@ -7309,6 +7486,24 @@
   "rss": "https://www.nu.nl/rss/Economie",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. General news, economy section."
+ },
+ {
+  "name": "NVIDIA Newsroom",
+  "url": "https://nvidianews.nvidia.com",
+  "status": "candidate",
+  "category": "Company Newsroom",
+  "signals": [
+   "AI",
+   "Product Launch",
+   "Partnership",
+   "Earnings",
+   "New Facility"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://nvidianews.nvidia.com/releases.xml",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 20 items on the verification fetch. Employer's own newsroom."
  },
  {
   "name": "NZ Herald (Business)",
@@ -7999,6 +8194,23 @@
   "rss": "",
   "free": true,
   "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator."
+ },
+ {
+  "name": "Quartz",
+  "url": "https://qz.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Companies",
+   "Economics",
+   "Technology",
+   "Labor Market Trends"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://qz.com/rss",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 13 items on the verification fetch."
  },
  {
   "name": "Rappler",
@@ -10035,6 +10247,23 @@
   "notes": "Verified by the mea region audit, 2026-07-29. Largest private English weekly."
  },
  {
+  "name": "The San Francisco Standard",
+  "url": "https://sfstandard.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://sfstandard.com/feed/",
+  "free": true,
+  "notes": "San Francisco daily with heavy startup and AI coverage. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 10 items, newest same-day."
+ },
+ {
   "name": "The Scoop",
   "url": "https://thescoop.co",
   "status": "candidate",
@@ -10682,6 +10911,24 @@
   "rss": "https://www.venturesquare.net/feed",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Korean startup publisher"
+ },
+ {
+  "name": "VentureBeat",
+  "url": "https://venturebeat.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "AI",
+   "Product Launch",
+   "Funding",
+   "Startups",
+   "Cybersecurity"
+  ],
+  "coverage": "Global",
+  "country": "United States",
+  "rss": "https://venturebeat.com/feed/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 7 items on the verification fetch."
  },
  {
   "name": "Ventureburn",
