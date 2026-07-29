@@ -52,20 +52,21 @@ class TestClassification(unittest.TestCase):
 
 
 class TestStalenessBoundary(unittest.TestCase):
-    """36 hours is two missed runs on the 2x/day cron. One missed run is not
-    an incident; two means it stopped."""
+    """The leash is the 2x/day cadence (12h) plus queue slack. A missed run is
+    a coverage hole, and the old 36h let a collector skip three runs before
+    anything said so."""
 
     def test_just_inside_the_window_is_not_stale(self):
-        buckets = health_digest.classify({"google_news": entry(35.9)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(13.9)}, NOW)
         self.assertEqual(buckets["stale"], [])
         self.assertEqual(buckets["ok"], ["google_news"])
 
     def test_just_outside_the_window_is_stale(self):
-        buckets = health_digest.classify({"google_news": entry(36.1)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(14.1)}, NOW)
         self.assertEqual([n for n, _, _ in buckets["stale"]], ["google_news"])
 
     def test_exactly_at_the_window_is_not_stale(self):
-        buckets = health_digest.classify({"google_news": entry(36)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(14)}, NOW)
         self.assertEqual(buckets["stale"], [])
 
     def test_staleness_outranks_a_healthy_status(self):
@@ -75,13 +76,71 @@ class TestStalenessBoundary(unittest.TestCase):
         self.assertEqual([n for n, _, _ in buckets["stale"]], ["google_news"])
         self.assertEqual(buckets["ok"], [])
 
-    def test_dispatch_only_collectors_get_a_longer_leash(self):
-        """gdelt and the SEC collectors are not on the cron. Holding them to
-        the cron's 36 hours would mail the owner every single week."""
-        ledger = {"gdelt": entry(24 * 5), "sec_edgar": entry(24 * 5)}
+    def test_swept_collectors_share_the_cron_leash(self):
+        """gdelt and the SEC pair used to be dispatch-only with a 14-day
+        leash. The collect.yml schedule sweeps them now, so a five-day
+        silence from any of them means the sweep is broken, not that nobody
+        remembered to dispatch them."""
+        ledger = {"gdelt": entry(24 * 5), "sec_edgar": entry(24 * 5),
+                  "sec_form_d": entry(24 * 5)}
+        buckets = health_digest.classify(ledger, NOW)
+        self.assertEqual(sorted(n for n, _, _ in buckets["stale"]),
+                         ["gdelt", "sec_edgar", "sec_form_d"])
+
+    def test_quiet_by_design_sources_keep_a_long_leash(self):
+        """The quarterly bulk feed and the dormant tripwire are quiet on
+        purpose. A short leash on them is how a digest trains its reader to
+        ignore it."""
+        ledger = {"sec_form_d_bulk": entry(24 * 30), "tripwire": entry(24 * 30)}
         buckets = health_digest.classify(ledger, NOW)
         self.assertEqual(buckets["stale"], [])
-        self.assertEqual(sorted(buckets["ok"]), ["gdelt", "sec_edgar"])
+        self.assertEqual(sorted(buckets["ok"]), ["sec_form_d_bulk", "tripwire"])
+
+    def test_the_monthly_structured_sources_are_not_flagged_mid_cycle(self):
+        """sec_execcomp runs on the 5th and uk_paygap on the 6th of each
+        month. The old 14-day default marked both stale every month, days
+        before their next scheduled run."""
+        ledger = {"sec_execcomp": entry(24 * 20), "uk_paygap": entry(24 * 20)}
+        buckets = health_digest.classify(ledger, NOW)
+        self.assertEqual(buckets["stale"], [])
+
+    def test_ops_status_reads_the_same_map_this_digest_does(self):
+        """Two tools judging staleness from two maps disagreed about every
+        collector off the 2x/day cron: ops_status applied a global 36h while
+        this digest gave the same collector 336h. One shared, stdlib-only
+        module is the fix, and this pins both halves of it: the digest's map
+        IS the shared one, and ops_status imports nothing beyond the standard
+        library on the way to it (it must run before any venv exists)."""
+        import staleness
+
+        self.assertIs(health_digest.MAX_AGE_HOURS, staleness.MAX_AGE_HOURS)
+
+        import ast
+        from pathlib import Path
+
+        root = Path(health_digest.__file__).parent
+        for module in ("ops_status.py", "staleness.py"):
+            tree = ast.parse((root / module).read_text())
+            top_level_imports = {
+                name.name.split(".")[0]
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Import)
+                for name in node.names
+            } | {
+                (node.module or "").split(".")[0]
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom) and node.level == 0
+            }
+            third_party = top_level_imports - {
+                "sqlite3", "sys", "datetime", "pathlib", "annotations",
+                "__future__", "re", "unicodedata", "json", "subprocess",
+                "csv", "dataclasses", "math",
+                # Repo-local, themselves dependency-free at import time.
+                "source_registry", "staleness", "writer_queue",
+                "backfill_slices", "pipeline",
+            }
+            self.assertFalse(third_party,
+                             f"{module} imports {third_party} at module scope")
 
     def test_an_unreadable_timestamp_is_surfaced_not_swallowed(self):
         buckets = health_digest.classify(

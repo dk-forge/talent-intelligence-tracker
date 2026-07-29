@@ -61,43 +61,12 @@ MEASUREMENT_ONLY = {"recall", "tripwire", "link_check", "archive_sources"}
 BENIGN_STATUSES = {"ok", "retired", "disabled"}
 DELIBERATELY_STOPPED = {"retired", "disabled"}
 
-# How long a collector may stay quiet before it counts as stale.
-#
-# Only google_news is on the cron: collect.yml runs at 06:00 and 18:00 UTC and
-# passes --source google_news when no input is given. 36 hours is two missed
-# runs, the same threshold ops_status.py uses. The other three collectors are
-# dispatch-only today, so a short leash on them would cry wolf every week; they
-# get a long one and move to 36 the day they join the schedule.
-MAX_AGE_HOURS = {
-    "google_news": 36,
-    "gdelt": 336,
-    "sec_edgar": 336,
-    "sec_form_d": 336,
-    # SEC publishes the Form D DATA SETS once a quarter, so this source is
-    # quiet by design between them. The default 14-day leash would email the
-    # owner a false alarm every fortnight, which is how a digest teaches
-    # people to ignore it.
-    "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
-    # On the DAILY schedule (collect-structured.yml, 09:00 UTC), so 48 hours is
-    # one missed run plus slack. It had no entry until 2026-07-29 and was
-    # therefore on the 14-day default: a source whose whole value is that a day
-    # nobody records is gone permanently could have been dead for thirteen days
-    # without the digest saying a word.
-    "ats_boards": 48,
-    # The discovery tripwire ships DORMANT: nothing schedules it, so a manual
-    # run followed by weeks of silence is the expected state, not an incident.
-    # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
-    # schedule in .github/workflows/tripwire.yml is uncommented.
-    "tripwire": 2400,
-    # Link rot and archiving. Both ship DORMANT (no cron in their workflows), so
-    # a manual run followed by weeks of silence is the expected state rather
-    # than an incident. Tighten both to 200 the day their schedules are
-    # uncommented: link-check is weekly and archive-sources is daily, so two
-    # missed runs is what should start a conversation.
-    "link_check": 2400,
-    "archive_sources": 2400,
-}
-DEFAULT_MAX_AGE_HOURS = 336  # 14 days
+# How long a collector may stay quiet before it counts as stale. The map
+# lives in staleness.py because TWO tools judge this — ops_status.py and this
+# digest — and when each carried its own numbers they disagreed about every
+# collector that was not on the 2x/day cron. Re-exported here so existing
+# callers of health_digest.MAX_AGE_HOURS keep reading the shared truth.
+from staleness import DEFAULT_MAX_AGE_HOURS, MAX_AGE_HOURS  # noqa: E402
 
 # The loudest check. If the NEWEST successful collect anywhere is older than
 # this, the pipeline itself has stopped, which is the failure mode that

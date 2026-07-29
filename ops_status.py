@@ -16,10 +16,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import source_registry as registry
+# Per-collector, derived from each one's actual schedule, and shared with
+# health_digest.py so the two tools cannot disagree about what "stale" means.
+# The global 36h this replaced called a five-day-old monthly source stale
+# while the digest called the same row healthy. staleness.py is stdlib-only,
+# which is the property this file's "no deps, no keys" promise rests on.
+from staleness import max_age_hours
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
-STALE_AFTER_HOURS = 36  # two missed runs on a 2x/day cadence
 
 LIVE_URL = "https://asktherecruiter.com/blog/talent-intelligence-tracker/"
 SIBLING_URL = "https://asktherecruiter.com/blog/ai-layoff-tracker/"
@@ -243,8 +248,11 @@ def _report_health(conn) -> list[str]:
             last = datetime.fromisoformat(row["run_at"])
             hours = (now - last).total_seconds() / 3600
             age = f"{hours:.0f}h ago"
-            if hours > STALE_AFTER_HOURS:
-                problems.append(f"{row['collector']} last ran {hours:.0f}h ago — stale")
+            limit = max_age_hours(row["collector"])
+            if hours > limit:
+                problems.append(f"{row['collector']} last ran {hours:.0f}h ago "
+                                f"— stale (its schedule expects a run within "
+                                f"{limit}h)")
         except (TypeError, ValueError):
             pass
 
