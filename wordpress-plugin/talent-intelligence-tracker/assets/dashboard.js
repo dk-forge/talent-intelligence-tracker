@@ -825,6 +825,56 @@
     });
   }
 
+  // --- Pills over the multi selects ----------------------------------------
+  // The native list boxes were the loudest thing on the panel: five-row
+  // scroll windows whose heights never matched, with most options hidden
+  // behind a scrollbar. Each multi select is now presentation-hidden and
+  // driven by a group of toggle pills built from its own options. The select
+  // stays the STATE: the querystring, the chips bar, resets, the matrix and
+  // the facet refills keep reading and writing it, and the pills re-render
+  // from it after every change. With JavaScript off the native select simply
+  // remains, so nothing is lost.
+  function pillify(el) {
+    if (!el || !el.multiple) return;
+    var host = el.closest('label') || el.parentElement;
+    if (!host) return;
+    var group = host.querySelector('.tit-pillgroup');
+    if (!group) {
+      group = document.createElement('div');
+      group.className = 'tit-pillgroup';
+      group.setAttribute('role', 'group');
+      host.appendChild(group);
+      el.classList.add('tit-select-hidden');
+      el.tabIndex = -1;
+      el.setAttribute('aria-hidden', 'true');
+      group.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('button[data-value]') : null;
+        if (!btn) return;
+        // Inside a <label>, a button click would also re-target the labelled
+        // control; the pills are the control now, so stop that.
+        e.preventDefault();
+        var opt = quickFind(Array.prototype.slice.call(el.options), function (o) {
+          return o.value === btn.getAttribute('data-value');
+        });
+        if (!opt) return;
+        opt.selected = !opt.selected;
+        el.dispatchEvent(new Event('change', { bubbles: false }));
+        pillify(el);
+      });
+    }
+    group.innerHTML = Array.prototype.map.call(el.options, function (o) {
+      if (!o.value) return '';
+      return '<button type="button" data-value="' + esc(o.value) + '"' +
+        ' aria-pressed="' + (o.selected ? 'true' : 'false') + '"' +
+        ' class="tit-pill' + (o.selected ? ' is-on' : '') + '">' +
+        esc(o.textContent) + '</button>';
+    }).join('');
+  }
+
+  function syncAllPills() {
+    Object.keys(MULTI).forEach(function (k) { if (inputs[k]) pillify(inputs[k]); });
+  }
+
   function optionText(el, value) {
     if (!el) return value;
     var hit = quickFind(Array.prototype.slice.call(el.options), function (o) {
@@ -843,6 +893,7 @@
     fill(el, values || [], false, labels);
     var has = Array.prototype.some.call(el.options, function (o) { return !!o.value; });
     if (field) field.hidden = !has;
+    if (has) pillify(el);
   }
 
   // --- The two front controls ----------------------------------------------
@@ -1323,6 +1374,7 @@
     });
 
     activeChips.innerHTML = chips.join('');
+    syncAllPills();
     activeBar.hidden = chips.length === 0;
   }
 
@@ -1646,6 +1698,7 @@
     });
   });
 
+  syncAllPills();
   populateFacets();
 
   // Last, because it needs the inputs, the region tabs and refresh() to exist.

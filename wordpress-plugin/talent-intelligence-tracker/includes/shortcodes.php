@@ -440,10 +440,10 @@ function tit_dashboard_shortcode() {
           <span class="tit-help-w">How these filters work</span>
         </summary>
         <div class="tit-help-b">
-          <p id="tit-help-multi"><strong>Lists that take more than one.</strong>
-            Hold Command on a Mac, or Control on Windows, and click each one you
-            want. Hold Shift to take a run of them. Every choice becomes its own
-            chip above the table, so you can drop one without clearing the rest.</p>
+          <p id="tit-help-multi"><strong>Filters that take more than one.</strong>
+            Tap every one that applies. Tap again to remove it. Every choice
+            also becomes its own chip above the table, so you can drop one
+            without clearing the rest.</p>
           <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
             source named. When a source names no place we use the employer's head
             office instead, so a company known only by its headquarters still
@@ -453,8 +453,8 @@ function tit_dashboard_shortcode() {
 
       <div class="tit-primary">
         <label class="tit-field tit-field--stack tit-primary-main">
-          <span class="tit-field-l">What are you looking for?</span>
-          <select id="tit-f-looking" aria-label="What are you looking for">
+          <span class="tit-field-l">Looking For</span>
+          <select id="tit-f-looking" aria-label="Looking for">
             <?php foreach (tit_looking_options() as $spec => $label) : ?>
               <option value="<?php echo esc_attr($spec); ?>"><?php echo esc_html($label); ?></option>
             <?php endforeach; ?>
@@ -482,22 +482,22 @@ function tit_dashboard_shortcode() {
                  carries it to a screen reader with the control. */ ?>
         <div class="tit-field tit-field--stack tit-primary-where">
           <label class="tit-where-label">
-            <span class="tit-field-l">Where?</span>
-            <select id="tit-f-place" aria-label="Where">
-              <option value="">Anywhere</option>
+            <span class="tit-field-l">Location</span>
+            <select id="tit-f-place" aria-label="Location">
+              <option value="">All Locations</option>
             </select>
           </label>
           <label class="tit-check tit-check--slim tit-basis-check">
             <input type="checkbox" id="tit-basis-chk" value="1"
                    aria-describedby="tit-help-basis">
-            <span class="tit-check-t">Only places a source named</span>
+            <span class="tit-check-t">Exact Locations Only</span>
           </label>
         </div>
 
         <label class="tit-field tit-field--stack">
-          <span class="tit-field-l">Which employer?</span>
+          <span class="tit-field-l">Employer</span>
           <input type="search" id="tit-f-company" placeholder="e.g. Apple"
-                 aria-label="Which employer">
+                 aria-label="Employer">
         </label>
 
         <?php /* One control that explains itself, with the number INSIDE its own
@@ -513,7 +513,7 @@ function tit_dashboard_shortcode() {
         <div class="tit-field tit-primary-toggle">
           <label class="tit-check">
             <input type="checkbox" id="tit-f-stated_headcount" value="1">
-            <span class="tit-check-t">Only show updates that state a headcount
+            <span class="tit-check-t">Only Updates That Move Headcount
               <span class="tit-check-n" id="tit-stated-n"><?php
                 echo esc_html('(' . number_format_i18n($n_stated) . ')'); ?></span></span>
           </label>
@@ -576,7 +576,7 @@ function tit_dashboard_shortcode() {
           */
           ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Team or function</span>
+            <span class="tit-field-l">Team or Function</span>
             <select id="tit-f-function" multiple size="5"
                     aria-describedby="tit-help-multi">
               <?php foreach ($functions as $k => $v) : ?>
@@ -594,27 +594,27 @@ function tit_dashboard_shortcode() {
             </select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-employer_type" hidden>
-            <span class="tit-field-l">Employer type</span>
+            <span class="tit-field-l">Employer Type</span>
             <select id="tit-f-employer_type" multiple size="5"
                     aria-describedby="tit-help-multi"></select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-work_mode" hidden>
-            <span class="tit-field-l">Work setup</span>
+            <span class="tit-field-l">Work Setup</span>
             <select id="tit-f-work_mode" multiple size="5"
                     aria-describedby="tit-help-multi"></select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-funding_stage" hidden>
-            <span class="tit-field-l">Funding stage</span>
+            <span class="tit-field-l">Funding Stage</span>
             <select id="tit-f-funding_stage" multiple size="5"
                     aria-describedby="tit-help-multi"></select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-deal_type" hidden>
-            <span class="tit-field-l">Deal type</span>
+            <span class="tit-field-l">Deal Type</span>
             <select id="tit-f-deal_type" multiple size="5"
                     aria-describedby="tit-help-multi"></select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-site_event" hidden>
-            <span class="tit-field-l">Site change</span>
+            <span class="tit-field-l">Site Change</span>
             <select id="tit-f-site_event" multiple size="5"
                     aria-describedby="tit-help-multi"></select>
           </label>
@@ -623,9 +623,9 @@ function tit_dashboard_shortcode() {
                    empty-looking page for anyone who guesses a threshold nothing
                    sits above. Single choice: bands already nest. */ ?>
           <label class="tit-field tit-field--stack">
-            <span class="tit-field-l">Amount raised</span>
+            <span class="tit-field-l">Amount Raised</span>
             <select id="tit-f-min_funding_usd" aria-label="Smallest amount raised">
-              <option value="">Any amount</option>
+              <option value="">Any Amount</option>
               <?php foreach (tit_funding_bands() as $value => $label) : ?>
                 <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
               <?php endforeach; ?>
@@ -634,14 +634,14 @@ function tit_dashboard_shortcode() {
           <label class="tit-field tit-field--stack">
             <span class="tit-field-l">Evidence</span>
             <select id="tit-f-confidence" aria-label="What the record is based on">
-              <option value="">Any evidence</option>
+              <option value="">Any Evidence</option>
               <?php foreach (tit_confidence_labels() as $k => $v) : ?>
                 <option value="<?php echo esc_attr($k); ?>"><?php echo esc_html($v); ?></option>
               <?php endforeach; ?>
             </select>
           </label>
           <label class="tit-field tit-field--stack tit-field--wide">
-            <span class="tit-field-l">Keyword search</span>
+            <span class="tit-field-l">Keyword Search</span>
             <input type="search" id="tit-f-q" placeholder="Company, industry or keyword"
                    aria-label="Search headlines and read-throughs">
           </label>
@@ -659,7 +659,7 @@ function tit_dashboard_shortcode() {
                    tracker's pattern: a labelled From and a labelled To. */ ?>
           <div class="tit-field tit-field--stack tit-field--wide"
                role="group" aria-labelledby="tit-daterange-l">
-            <span class="tit-field-l" id="tit-daterange-l">Date range</span>
+            <span class="tit-field-l" id="tit-daterange-l">Date Range</span>
             <div class="tit-daterange">
               <label class="tit-daterange-part">
                 <span class="tit-daterange-l">From</span>
@@ -1479,12 +1479,12 @@ function tit_funding_stage_labels() {
  */
 function tit_looking_options() {
     return array(
-        ''                           => 'Anything',
+        ''                           => 'All Updates',
         'direction=hiring'           => 'Hiring',
-        'funding=1'                  => 'Funding',
-        'pillar=leadership_change'   => 'Leadership changes',
-        'pillar=rewards_comp'        => 'Pay news',
-        'pillar=how_we_work'         => 'Ways of working',
+        'funding=1'                  => 'Raised Money',
+        'pillar=leadership_change'   => 'Leadership Moves',
+        'pillar=rewards_comp'        => 'Pay & Benefits',
+        'pillar=how_we_work'         => 'Ways of Working',
     );
 }
 
