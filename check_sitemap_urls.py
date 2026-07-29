@@ -38,6 +38,7 @@ Exit 0 if every URL passed, 1 otherwise. No keys, no dependencies.
 from __future__ import annotations
 
 import argparse
+import random
 import re
 import sys
 import urllib.error
@@ -104,7 +105,14 @@ def main():
     ap.add_argument("--workers", type=int, default=8)
     args = ap.parse_args()
 
-    status, _, xml = fetch(args.url)
+    # Cache-buster on THIS ONE request only. Cloudflare and the host page cache
+    # will happily serve the previous deploy's sitemap, and checking a stale
+    # file tells you about a deploy that is no longer running. The 690 page
+    # fetches below deliberately do NOT carry one: appending a random query to
+    # every request bypasses the edge and hammers the origin, which is what
+    # shared hosting throttles.
+    sep = "&" if "?" in args.url else "?"
+    status, _, xml = fetch(f"{args.url}{sep}cb={random.randint(1, 10**9)}")
     if status != 200:
         print(f"sitemap itself answered {status}", file=sys.stderr)
         return 1

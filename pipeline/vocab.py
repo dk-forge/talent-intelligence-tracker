@@ -684,11 +684,34 @@ def normalize_confidence(value: str):
 
 def company_key(name: str) -> str:
     """Stable join key for a company. Strips common legal suffixes so
-    'Acme Inc.' and 'Acme, Inc' collapse to one employer."""
+    'Acme Inc.' and 'Acme, Inc' collapse to one employer.
+
+    A suffix must be a WHOLE SPACE-DELIMITED TOKEN. `\\b` is not that: a hyphen
+    is a word boundary, so `\\bco\\b` matched the "co" inside "co-operative" and
+    'CO-OPERATIVE GROUP LIMITED' was stored under the key '-operative group'.
+    Six employers were mangled that way, all of them real:
+
+        ASSOCIATED BANC-CORP            -> 'associated banc-'
+        CO-DIAGNOSTICS, INC.            -> '-diagnostics'
+        CO-OPERATIVE GROUP LIMITED      -> '-operative group'
+        THE MIDCOUNTIES CO-OPERATIVE    -> 'the midcounties -operative'
+        CENTRAL ENGLAND CO-OPERATIVE    -> 'central england -operative'
+        Overlay Alpha Co-GP, LLC        -> 'overlay alpha -gp'
+
+    The lookaround below excludes a hyphen on either side, so 'Acme Co.' still
+    loses its suffix (the punctuation strip above has already turned the dot
+    into a space) while 'co-operative' and 'banc-corp' keep theirs.
+
+    THIS CHANGES THE KEY FOR THOSE SIX AND ONLY THOSE SIX, out of 7,770 distinct
+    stored names. company_key feeds content_hash, so rows already stored under a
+    mangled key keep it, and a new signal for one of those six will not dedupe
+    against them until a correction pass rewrites the stored keys through
+    store.revise(). That pass is a queued writer job and is not this change.
+    """
     k = _key(name)
     k = re.sub(r"[^\w\s&-]", " ", k)
     k = re.sub(
-        r"\b(inc|llc|ltd|limited|plc|corp|corporation|co|pbc|lp|llp|gmbh|ag|sa|nv|bv|ab|as|oy|spa|srl|pte|pty)\b",
+        r"(?<![\w-])(inc|llc|ltd|limited|plc|corp|corporation|co|pbc|lp|llp|gmbh|ag|sa|nv|bv|ab|as|oy|spa|srl|pte|pty)(?![\w-])",
         " ",
         k,
     )

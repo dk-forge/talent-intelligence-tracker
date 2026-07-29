@@ -173,31 +173,100 @@ def test_an_employer_we_hold_nothing_for_is_still_a_404():
     assert "get_404_template()" in COMPANY
 
 
-def test_an_ampersand_is_left_literal_in_a_slug():
-    """Measured live on 1.45.2: /company/b%26q/ answers 404 and /company/b&q/
-    answers 200, because %26 does not survive WordPress's rewrite. 144 of 7,301
-    employer keys contain an ampersand and every one of their dashboard links
-    was dead."""
-    assert "str_replace('%26', '&', rawurlencode(" in COMPANY
+def test_the_slug_transliterates_instead_of_encoding():
+    """No encoding of "&" is safe in a URL we have to publish. Measured live:
 
+        %26      404, does not survive the rewrite
+        &#038;   301 into a 404 for any consumer that does not resolve the
+                 entity, 200 for one that does
+        literal  200 on the page route, unpublishable in a sitemap
 
-def test_an_ampersand_url_is_never_advertised_in_the_sitemap():
-    """A <loc> has to survive two decoders and they disagree: %26 404s, the
-    entity &#038; 301s into a 404 for any consumer that does not resolve it, and
-    only a consumer that does resolve it gets a 200. 22 of 712 published URLs
-    were that, and a twenty-URL sample passed."""
-    body = COMPANY[COMPANY.index("function tit_company_servable_slug"):]
+    So it is transliterated. Expected outputs of the rule below:
+
+        "b & m retail"      -> b-and-m-retail
+        "b&q"               -> b-and-q
+        "atkinsréalis uk"   -> atkinsrealis-uk
+        "-operative group"  -> operative-group
+        "marvell technology" -> marvell-technology   (unchanged, and most are)
+    """
+    body = COMPANY[COMPANY.index("function tit_company_slug("):]
     body = body[:body.index("\n}\n")]
-    assert "strpos($company_key, '&') === false" in body
+    assert "remove_accents" in body
+    assert "str_replace('&', ' and ', $slug)" in body
+    assert "preg_replace('/[^a-z0-9]+/', '-', $slug)" in body
+    assert "trim((string) $slug, '-')" in body
+    assert "rawurlencode" not in body.split("if ($slug !== '') return $slug;")[0], (
+        "percent-encoding is not an escape here, it is the bug"
+    )
+
+
+def test_every_url_that_has_ever_worked_still_resolves():
+    """167 slugs change. Every one of them is a URL that is live on the site
+    right now, linked from the dashboard table and possibly from elsewhere."""
+    assert "function tit_company_legacy_slug" in COMPANY
+    rows = COMPANY[COMPANY.index("function tit_company_rows"):]
+    rows = rows[:rows.index("\n}\n")]
+    assert "REPLACE(company_key, ' ', '-') = %s" in rows, (
+        "step 1 is the pre-1.46 comparison and it has to stay exactly as it was"
+    )
+    assert "$index['map'][$slug]" in rows, "step 2 resolves the canonical slugs"
+    assert rows.index("REPLACE(company_key") < rows.index("tit_company_slug_index"), (
+        "the common path must be one indexed query that touches no map"
+    )
+
+
+def test_the_old_slug_redirects_to_the_canonical_one():
+    """One URL per employer, or the same page is indexable at two addresses."""
+    tpl = COMPANY[COMPANY.index("function tit_company_template"):]
+    tpl = tpl[:tpl.index("\n}\n")]
+    assert "wp_safe_redirect(tit_company_url(" in tpl
+    assert "301" in tpl
+    assert "$canonical !== $current['slug']" in tpl
+    assert "tit_company_servable_slug(" in tpl, (
+        "redirecting to a canonical form we cannot serve is a 301 into a 404"
+    )
+
+
+def test_the_lookup_is_still_never_a_slug_to_key_conversion():
+    """The 2026-07-28 regression: rebuilding the key from the slug is not a
+    reversible mapping, because company_key legitimately contains hyphens.
+    Both steps compare in slug space; the index is built by applying the
+    FORWARD mapping to every key."""
+    assert "str_replace('-', ' '" not in COMPANY
+    index = COMPANY[COMPANY.index("function tit_company_slug_index"):]
+    index = index[:index.index("\n}\n")]
+    assert "$slug = tit_company_slug($key);" in index
+
+
+def test_two_keys_claiming_one_slug_are_refused_rather_than_resolved():
+    """Three canonical slugs are claimed by two keys each, and in all three the
+    two keys are one employer recorded twice. Serving either under the shared
+    URL would show half a history."""
+    index = COMPANY[COMPANY.index("function tit_company_slug_index"):]
+    index = index[:index.index("\n}\n")]
+    assert "count($owners) > 1" in index
+    assert "$collisions[$slug] = true" in index
+    servable = COMPANY[COMPANY.index("function tit_company_servable_slug"):]
+    servable = servable[:servable.index("\n}\n")]
+    assert "$index['collisions'][$slug]" in servable
+
+
+def test_the_index_only_stores_the_keys_that_need_it():
+    """7,301 keys, 167 of which differ from their legacy form. Storing all of
+    them would put a quarter-megabyte array behind every page request."""
+    index = COMPANY[COMPANY.index("function tit_company_slug_index"):]
+    index = index[:index.index("\n}\n")]
+    assert "$slug !== tit_company_legacy_slug($owners[0])" in index
+    assert "get_transient('tit_company_slug_index')" in index
+    assert "set_transient('tit_company_slug_index'" in index
+    assert "static $memo" in index, "once per request, not once per row"
 
 
 def test_a_url_we_cannot_serve_is_never_published():
-    """A percent-encoded non-ASCII byte does not survive the rewrite either, and
-    neither does the literal character. A sitemap full of 404s is the signal
-    that gets a whole set distrusted, so those keys are not indexable and the
-    page and the sitemap go on agreeing."""
+    """Two ways to fail now: nothing survives canonicalisation (one Hebrew key),
+    or two keys claim the slug. Either way the page is not indexable and the URL
+    is not in the sitemap, so the two go on agreeing."""
     assert "function tit_company_servable_slug" in COMPANY
-    assert r"preg_match('/[^\x20-\x7E]/'" in COMPANY
     profile = COMPANY[COMPANY.index("function tit_company_profile"):]
     profile = profile[:profile.index("\n}\n")]
     assert "tit_company_servable_slug" in profile, (
@@ -207,6 +276,24 @@ def test_a_url_we_cannot_serve_is_never_published():
     sitemap = COMPANY[COMPANY.index("function tit_company_sitemap_entries"):]
     sitemap = sitemap[:sitemap.index("\n/**")]
     assert "tit_company_servable_slug" in sitemap
+
+
+def test_the_canonical_url_comes_from_the_resolved_key_not_the_requested_slug():
+    """Two slugs reach the page, so the requested one is not an identity. Using
+    it would put whichever URL the reader happened to arrive on into the
+    canonical tag and the structured data."""
+    for call in ("tit_company_url($company_key)",
+                 "tit_company_url($current['rows'][0]['company_key'])"):
+        assert call in COMPANY, call
+    assert "tit_company_url($key)" not in COMPANY
+    assert "tit_company_url($current['slug'])" not in COMPANY
+
+
+def test_the_board_panel_is_handed_the_form_it_matches_on():
+    """board_series.php does its own str_replace(' ', '-') against the key it
+    holds, so it matches the LEGACY form. Handing it the canonical slug would
+    silently stop the sparkline rendering for any renamed employer."""
+    assert "tit_board_series_panel(tit_company_legacy_slug($company_key))" in COMPANY
 
 
 def test_the_sitemap_lists_only_gated_employers_and_says_when_they_changed():
@@ -292,7 +379,7 @@ def test_the_stats_strip_carries_the_four_facts_and_omits_the_ones_we_lack():
 
 def test_the_board_sparkline_is_rendered_here_and_survives_a_partial_deploy():
     assert "function_exists('tit_board_series_panel')" in COMPANY
-    assert "tit_board_series_panel($key)" in COMPANY
+    assert "tit_board_series_panel(tit_company_legacy_slug($company_key))" in COMPANY
 
 
 def test_the_timeline_still_uses_the_existing_row_shape():

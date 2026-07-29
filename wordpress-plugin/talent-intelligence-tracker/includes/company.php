@@ -144,63 +144,139 @@ function tit_company_maybe_flush() {
 add_action('init', 'tit_company_maybe_flush', 99);
 
 /**
- * company_key holds spaces ("peace coffee"); a URL should not. Hyphens survive
- * the rewrite rule intact where %20 does not, so the slug is the hyphenated
- * form — and the lookup compares in SLUG space, never by converting back.
+ * The canonical slug: plain ASCII, [a-z0-9-] and nothing else.
+ *
+ * WHY IT IS NOT JUST company_key WITH THE SPACES HYPHENATED.
+ *
+ * That was the old rule, and it produced URLs that cannot be published,
+ * measured live rather than reasoned about:
+ *
+ *   "&"  no encoding of it is safe. %26 does not survive the rewrite (404).
+ *        The XML entity &#038; in a <loc> 301s to /company/b-&/ and then 404s
+ *        for any consumer that does not resolve the entity. Only a consumer
+ *        that does resolve it gets 200. 144 of 7,301 keys carry one.
+ *   accents and non-Latin scripts  answer 404 percent-encoded AND literal.
+ *        18 keys, one of them over the publishing threshold.
+ *
+ * So the slug is transliterated instead: "&" becomes "and" and everything
+ * outside [a-z0-9] becomes a hyphen. "b & m retail" is b-and-m-retail,
+ * "atkinsréalis uk" is atkinsrealis-uk. 167 of 7,301 keys change, and all 162
+ * that previously had no publishable URL get one.
+ *
+ * The old form still resolves and 301s here, so no live link breaks. See
+ * tit_company_rows() for the two-step lookup that makes that work.
+ *
+ * A key with nothing ASCII in it (one Hebrew key) canonicalises to an empty
+ * string. It keeps its old, unreachable URL rather than becoming /company//,
+ * so the dashboard link is no worse than it is today, and
+ * tit_company_servable_slug() keeps it out of the sitemap and out of the index.
  */
 function tit_company_slug($company_key) {
-    // MEASURED LIVE 2026-07-29, on 1.45.2: rawurlencode() turns "&" into %26,
-    // and a %26 in this path segment does not survive WordPress's rewrite.
-    // /company/b%26q/ answers 404; /company/b&q/ answers 200. "&" is a legal
-    // sub-delim in a path segment (RFC 3986), so it is left literal. 144 of
-    // 7,301 employer keys contain one, mostly UK NHS trusts and partnerships,
-    // and every one of their dashboard links had been dead.
-    return str_replace('%26', '&', rawurlencode(str_replace(' ', '-', $company_key)));
+    $slug = strtolower((string) $company_key);
+    // WordPress core, always loaded: Latin-1 and Latin Extended-A to ASCII.
+    if (function_exists('remove_accents')) $slug = remove_accents($slug);
+    $slug = str_replace('&', ' and ', $slug);
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+    $slug = trim((string) $slug, '-');
+
+    if ($slug !== '') return $slug;
+    return rawurlencode(str_replace(' ', '-', (string) $company_key));
 }
 
 /**
- * Whether this employer has a URL we can actually serve.
+ * The pre-1.46 slug, which is still a live URL on this site and has to stay one.
  *
- * Same measurement: a percent-encoded NON-ASCII byte does not survive the
- * rewrite either, and neither does the literal character. "atkinsréalis uk"
- * answers 404 as atkinsr%C3%A9alis-uk AND as atkinsréalis-uk. 18 of 7,301 keys
- * are affected (six accented Latin, the rest Hebrew and Chinese).
+ * REGRESSION NOTE, kept from the 2026-07-28 fix: the space -> hyphen direction
+ * is TOTAL and the reverse is not. company_key legitimately contains hyphens
+ * ("reme-d"), so a slug is never converted back into a key. This is the forward
+ * mapping, used only to compare in slug space.
+ */
+function tit_company_legacy_slug($company_key) {
+    return str_replace(' ', '-', (string) $company_key);
+}
+
+/**
+ * canonical slug -> company_key, for the keys where the two forms differ, plus
+ * the slugs that two keys would both claim.
  *
- * Publishing a URL we know 404s is worse than publishing nothing: a sitemap
- * full of 404s is the signal that gets a whole set distrusted. So a key we
- * cannot serve is not indexable, which keeps the page and the sitemap agreeing
- * for the same reason the threshold does.
+ * Only the DIFFERING keys are stored: 167 of 7,301, a few kilobytes. Every
+ * other key is found by the direct SQL comparison in tit_company_rows() with no
+ * map at all, which is what keeps this from becoming a 7,301-entry array read
+ * on every request.
  *
- * This is a routing limit and not a decision about the employer. Fixing it
- * means giving company_key a stored ASCII slug of its own, which is a pipeline
- * change and a migration, not a line here.
+ * COLLISIONS ARE REFUSED, NOT RESOLVED. Three canonical slugs are claimed by
+ * two keys each, and in all three cases the two keys are the same employer
+ * recorded twice ("perma-fix" and "perma fix", "daré bioscience" and "dare
+ * bioscience", one NHS trust filed once with "&" and once with "and"). Serving
+ * either one under a shared URL would silently show half an employer's history,
+ * so neither is served and neither is published. The right fix is upstream, in
+ * employer identity, and it is a merge rather than a routing rule.
+ */
+function tit_company_slug_index() {
+    static $memo = null;
+    if ($memo !== null) return $memo;
+
+    $cached = get_transient('tit_company_slug_index');
+    if (is_array($cached) && isset($cached['map'])) {
+        $memo = $cached;
+        return $memo;
+    }
+
+    global $wpdb;
+    $table = tit_table_name();
+    $keys = $wpdb->get_col(
+        "SELECT DISTINCT company_key FROM {$table}
+          WHERE is_current = 1 AND company_key IS NOT NULL AND company_key <> ''"
+    );
+    $keys = is_array($keys) ? $keys : array();
+
+    $claims = array();
+    foreach ($keys as $key) {
+        $slug = tit_company_slug($key);
+        if ($slug === '') continue;
+        $claims[$slug][] = $key;
+    }
+
+    $map = array();
+    $collisions = array();
+    foreach ($claims as $slug => $owners) {
+        if (count($owners) > 1) {
+            $collisions[$slug] = true;
+            continue;
+        }
+        // Stored only when the canonical form differs from the legacy one; the
+        // rest are already reachable by the direct comparison.
+        if ($slug !== tit_company_legacy_slug($owners[0])) {
+            $map[$slug] = $owners[0];
+        }
+    }
+
+    $memo = array('map' => $map, 'collisions' => $collisions);
+    // Dropped by tit_flush_caches() on every write, so a new employer appears
+    // as soon as its row lands rather than up to two hours later.
+    set_transient('tit_company_slug_index', $memo, 2 * HOUR_IN_SECONDS);
+    return $memo;
+}
+
+/**
+ * Whether this employer has a URL we can publish.
+ *
+ * Two ways to fail, and only two, now that the slug transliterates:
+ *
+ *  - nothing survives canonicalisation, so there is no ASCII slug at all (one
+ *    Hebrew key);
+ *  - two keys claim the same canonical slug, so the URL would be ambiguous.
+ *
+ * A key that fails either is not indexable AND not in the sitemap, which is the
+ * same single decision the threshold goes through, for the same reason: a URL
+ * in a sitemap has to be a promise, and a sitemap full of 404s or of pages
+ * showing half an employer is what gets a whole set distrusted.
  */
 function tit_company_servable_slug($company_key) {
-    if ($company_key === '' || preg_match('/[^\x20-\x7E]/', $company_key)) return false;
-
-    /*
-     * AND AN AMPERSAND CANNOT BE ADVERTISED IN ANY ENCODING.
-     *
-     * The page route serves /company/b&q/ perfectly well. A SITEMAP is a
-     * different problem, because a <loc> has to survive two decoders and they
-     * disagree. Measured on 1.45.4, on the URLs we were publishing:
-     *
-     *   percent-encoded   %26      404, does not survive the rewrite
-     *   XML entity        &#038;   301 to /company/b-&/ then 404, for any
-     *                              consumer that does NOT resolve the entity
-     *   resolved literal  &        200, for a consumer that does
-     *
-     * So 22 of the 712 URLs in the file were a redirect into a 404 for half the
-     * readers of it, which is the "Page with redirect" plus "Not found (404)"
-     * pair the owner has already had to forward once from Search Console. A
-     * sample of twenty passed. Fetching the whole file is the only check that
-     * finds this, which is why check_sitemap_urls.py now exists.
-     *
-     * Withheld until they have a slug that is safe in both encodings. The pages
-     * stay reachable and stay linked from the dashboard table; they are just
-     * not advertised, and not indexable while their URL is about to change.
-     */
-    return strpos($company_key, '&') === false;
+    $slug = tit_company_slug($company_key);
+    if ($slug === '' || preg_match('/[^a-z0-9-]/', $slug)) return false;
+    $index = tit_company_slug_index();
+    return !isset($index['collisions'][$slug]);
 }
 
 function tit_company_url($company_key) {
@@ -212,30 +288,53 @@ function tit_company_sitemap_url() {
 }
 
 /**
- * Rows for one employer, newest first, looked up BY SLUG.
+ * Rows for one employer, newest first, looked up BY SLUG, in two steps.
  *
- * REGRESSION NOTE (fixed 2026-07-28, confirmed live): the old lookup rebuilt
- * the key from the slug with hyphens -> spaces. That mapping is not
- * reversible: company_key legitimately contains hyphens (key "reme-d" renders
- * the link /company/reme-d/, which un-slugged to "reme d" and 404ed). The
- * space -> hyphen direction IS total, so the match is done in slug space:
- * REPLACE(company_key, ' ', '-') = slug. Space-keyed companies keep working
- * ("peace coffee" -> "peace-coffee") and hyphen-keyed ones match verbatim.
- * Never reintroduce a slug -> key conversion here.
+ * STEP 1 is the pre-1.46 comparison and it is kept exactly as it was, because
+ * every /company/ URL that has ever worked on this site is of that shape and
+ * has to keep resolving. It is done in SLUG SPACE:
+ *
+ *   REGRESSION NOTE (fixed 2026-07-28, confirmed live): the lookup once rebuilt
+ *   the key from the slug with hyphens -> spaces. That mapping is not
+ *   reversible: company_key legitimately contains hyphens (key "reme-d" renders
+ *   /company/reme-d/, which un-slugged to "reme d" and 404ed). The space ->
+ *   hyphen direction IS total, so the match is REPLACE(company_key,' ','-') =
+ *   slug. Never reintroduce a slug -> key conversion here.
+ *
+ * STEP 2 handles the canonical slugs that step 1 cannot express, because they
+ * involve transliteration SQL has no function for: "b-and-m-retail" for
+ * "b & m retail", "atkinsrealis-uk" for "atkinsréalis uk". Those go through the
+ * small precomputed index, and then match company_key exactly on its own index.
+ * This is still not a slug -> key conversion: the index is built by applying the
+ * forward mapping to every key and remembering the result.
+ *
+ * The two steps are ordered this way so the common path is one indexed query
+ * and touches no map at all.
  */
 function tit_company_rows($slug) {
     global $wpdb;
     $table = tit_table_name();
-    return $wpdb->get_results($wpdb->prepare(
-        "SELECT headline, summary, talent_readthrough, company, company_key, pillar, signal_direction,
+    $columns = "headline, summary, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, region, country, hq_city, hq_country, state, functions, industry,
                 headcount, funding_amount, funding_amount_usd, funding_stage,
                 confidence, source_url, source_name, archive_url,
-                published_date, captured_at, collector
-           FROM {$table}
-          WHERE is_current = 1 AND REPLACE(company_key, ' ', '-') = %s
-          ORDER BY COALESCE(published_date, DATE(captured_at)) DESC",
+                published_date, captured_at, collector";
+    $order = "ORDER BY COALESCE(published_date, DATE(captured_at)) DESC";
+
+    $rows = $wpdb->get_results($wpdb->prepare(
+        "SELECT {$columns} FROM {$table}
+          WHERE is_current = 1 AND REPLACE(company_key, ' ', '-') = %s {$order}",
         $slug
+    ), ARRAY_A);
+    if ($rows) return $rows;
+
+    $index = tit_company_slug_index();
+    if (empty($index['map'][$slug])) return array();
+
+    return $wpdb->get_results($wpdb->prepare(
+        "SELECT {$columns} FROM {$table}
+          WHERE is_current = 1 AND company_key = %s {$order}",
+        $index['map'][$slug]
     ), ARRAY_A) ?: array();
 }
 
@@ -415,6 +514,21 @@ function tit_company_template() {
         exit;
     }
 
+    /*
+     * One URL per employer. A profile reached by its pre-1.46 slug redirects to
+     * the canonical one, permanently, so no link that has ever worked breaks
+     * and no employer is indexable at two addresses.
+     *
+     * This cannot loop: the canonical slug resolves to the same key, and the
+     * comparison is then equal. It is skipped for a key with no servable
+     * canonical form, which would otherwise redirect to a URL that 404s.
+     */
+    $canonical = tit_company_slug($current['rows'][0]['company_key']);
+    if ($canonical !== $current['slug'] && tit_company_servable_slug($current['rows'][0]['company_key'])) {
+        wp_safe_redirect(tit_company_url($current['rows'][0]['company_key']), 301);
+        exit;
+    }
+
     // Below the threshold: the page renders and stays linkable, but is not
     // offered to a search engine and is not in the sitemap. Sent as a header
     // rather than only as a meta tag, so it applies whatever an SEO plugin
@@ -429,6 +543,12 @@ function tit_company_template() {
 add_action('template_redirect', 'tit_company_template');
 
 function tit_company_render($rows, $key, $profile) {
+    // Everything below derives from the KEY WE RESOLVED, never from the slug
+    // that was requested. Two slugs now reach this page (the canonical one and
+    // the pre-1.46 one, which 301s), so the requested slug is not a stable
+    // identity and using it would put the wrong URL in the canonical tag and
+    // in the structured data.
+    $company_key = $rows[0]['company_key'];
     $name = $profile['name'];
     $labels = tit_company_pillar_labels();
     $directions = tit_company_direction_labels();
@@ -491,8 +611,11 @@ function tit_company_render($rows, $key, $profile) {
       // board. Guarded: an FTP deploy can land company.php before
       // board_series.php, and a hard call would fatal the page for the seconds
       // in between.
+      // board_series.php matches on the LEGACY slug form (it does its own
+      // str_replace(' ', '-') against the key it was given), so it is handed
+      // that form explicitly rather than whichever slug the reader arrived on.
       if (function_exists('tit_board_series_panel')) {
-          echo tit_board_series_panel($key);  // built and escaped in that file
+          echo tit_board_series_panel(tit_company_legacy_slug($company_key));  // built and escaped there
       }
       ?>
 
@@ -574,7 +697,7 @@ function tit_company_render($rows, $key, $profile) {
         '@context' => 'https://schema.org',
         '@type'    => 'Organization',
         'name'     => $name,
-        'url'      => tit_company_url($key),
+        'url'      => tit_company_url($company_key),
         'subjectOf' => array_map(function ($r) {
             return array(
                 '@type'         => 'NewsArticle',
@@ -647,7 +770,7 @@ function tit_company_head() {
     if (strlen($desc) > 300) $desc = rtrim(substr($desc, 0, 297)) . '...';
 
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
-    echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['slug'])) . '" />' . "\n";
+    echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['rows'][0]['company_key'])) . '" />' . "\n";
 
     // The robots directive is NOT printed here. See tit_company_head_close().
 }

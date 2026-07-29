@@ -32,7 +32,10 @@ def test_the_profile_page_calls_it_and_survives_a_half_finished_deploy():
     """FTP lands files one at a time, so company.php can arrive first. A hard
     call would fatal every profile page for the seconds in between."""
     assert "function_exists('tit_board_series_panel')" in COMPANY
-    assert "tit_board_series_panel($key)" in COMPANY
+    # Handed the LEGACY slug form explicitly since 1.46.0, because that is what
+    # tit_board_series_for() matches on (it does its own space -> hyphen against
+    # the key it holds) and the profile URL is now a transliterated slug.
+    assert "tit_board_series_panel(tit_company_legacy_slug($company_key))" in COMPANY
 
 
 def test_the_endpoint_is_keyed_like_every_other_write():

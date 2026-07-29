@@ -853,3 +853,31 @@ class IngestionActuallyEnrichs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_a_legal_suffix_must_be_a_whole_token_not_a_word_boundary_match():
+    """`\\b` treats a hyphen as a boundary, so `\\bco\\b` matched the "co" inside
+    "co-operative" and CO-OPERATIVE GROUP LIMITED was stored under the key
+    "-operative group". Six real employers were mangled that way, and the first
+    of them was found by a reader looking at a URL.
+
+    The suffix strip still has to work, so both directions are asserted here:
+    a suffix that IS its own token goes, one that is part of a hyphenated word
+    stays.
+    """
+    from pipeline import vocab
+
+    # Hyphenated words keep every letter.
+    assert vocab.company_key("CO-OPERATIVE GROUP LIMITED") == "co-operative group"
+    assert vocab.company_key("ASSOCIATED BANC-CORP") == "associated banc-corp"
+    assert vocab.company_key("CO-DIAGNOSTICS, INC.") == "co-diagnostics"
+    assert vocab.company_key("THE MIDCOUNTIES CO-OPERATIVE LIMITED") == \
+        "the midcounties co-operative"
+    assert vocab.company_key("Overlay Alpha Co-GP, LLC") == "overlay alpha co-gp"
+
+    # And a real suffix is still stripped, which is what the function is for.
+    assert vocab.company_key("Acme Inc.") == "acme"
+    assert vocab.company_key("Acme, Inc") == "acme"
+    assert vocab.company_key("Acme Co.") == "acme"
+    assert vocab.company_key("Acme Holdings Limited") == "acme holdings"
+    assert vocab.company_key("Kwik-Fit (GB) Limited") == "kwik-fit gb"
