@@ -221,19 +221,76 @@ vehicle carrying it in its NAME should not need a second incident.
   when the interpreter cannot import the collector's patterns, so a narrower
   check never prints a smaller number silently.
 
-`health_digest.py` puts open findings ahead of a stale collector in the subject
-line, with their own paste-ready instruction. A stale scraper costs coverage; an
-unanswered guardrail means publishing is stopped and an unchecked figure is one
-decision away from going out.
+`health_digest.py` puts a quarantine ahead of a stale collector in the subject
+line, with its own paste-ready instruction. A stale scraper costs coverage; a
+quarantined row that nobody has judged is an unchecked figure one decision away
+from going out.
 
-**Operational note for whoever runs the next collect.** The ledger is empty and
-was deliberately not written from a laptop, so the first real run records **8
-findings and goes red**: 5 amounts (X.AI $16.6bn, Madison Air $10.87bn, Masimo
-$9.9bn, ChangXin $8.6bn, Dillard's $2.39bn) and 3 vehicle names (two
-Metropolitan Tower Life Insurance Co rows, one `101 East Court Street LLC`).
-`data/talent_intel.db` is still committed on that run (`!cancelled()`), so
-nothing is lost. Answer them with `guardrails.py --accept` / `--reject`. Do not
-accept anything to clear the queue: an accepted finding never blocks again.
+### The failure mode was wrong, and production said so within the hour
+
+The first build HALTED the run on any open finding. Both of the first two
+production runs failed on the same eight:
+
+```
+collect               -> 8 open guardrail finding(s). Nothing was published.
+backfill-funding-bulk -> 8 open guardrail finding(s). Nothing was published.
+```
+
+Both were carrying dozens of perfectly good records. In steady state that means
+**a single unreviewed row blocks every row**, and since X.AI's $16.6bn is a real
+raise, the first genuine billion-dollar round of any week halts collection until
+a human answers a prompt. The owner needs this running for days unattended, so
+that is a design error and not a bug in the checks.
+
+**Now it quarantines.** The flagged row is dropped from the batch; everything
+else publishes. It is never marked published, so it reaches no headline figure
+AND it is re-offered on every run, which means accepting the finding releases it
+with no requeue and no replay path to remember. `enrich_published()` filters the
+same set, because `funding_amount_usd` travels that way and would otherwise
+reach the money total by the back door while `publish()` was carefully not
+sending it by the front.
+
+What did NOT change, and must not: an unreviewed row stays out of the data and
+out of every aggregate. $86bn is the reason.
+
+### The exit status, and why it is not simply 0 or 1
+
+| state | run | why |
+|---|---|---|
+| quarantine only | **exit 0** | the guard SUCCEEDED. The suspect row is out of every figure. Red here would mean "the machine noticed", and a permanently red `drain-writers` already taught this project what that does to attention. |
+| finding past its window | publish the clean rows, **then** exit non-zero | red should mean a human neglected it, which requires the human to have been told. `health-digest.yml` runs Mondays, so the email is the moment of telling. |
+| aggregate finding | **halts immediately** | a period total or a date span that does not add up names no row, and there is no clean subset of a wrong total. |
+
+Two grace windows, both derived from the cadence rather than picked:
+
+- **192h** for a row that never reached the site: one full digest cycle plus a
+  day. Before the first email fires, red would blame somebody who has not been
+  asked, and nothing is wrong in public. After a whole cycle of silence, it is a
+  choice.
+- **72h** for a row **already on the site**. Different in kind: that figure is
+  wrong in public right now and quarantine cannot pull it back, only a human
+  retraction can. The owner's own ceiling is "days" unattended, so three days is
+  the longest ordinary absence.
+
+The escalation is raised **after** the send, never before. "One suspect row does
+not take the batch down with it" has to hold on the day the run goes red too, so
+the clean rows are already sent, marked published and committed by the time the
+exception is thrown. Red there means "nobody answered", never "work was lost".
+The countdown to red prints on every run, so the day it turns is never a
+surprise.
+
+### Being impossible to miss
+
+`publish.py` prints the quarantine with `::warning::` / `::error::` GitHub
+annotations, so it lands on the run summary page rather than in a log nobody
+opens. Printed from THERE rather than from `run_collect` so six backfill
+scripts, both corrections and the enrich job get it for free; not one of them
+would have grown its own version. `ops_status.py [2d]` and the weekly digest
+both separate **HELD** from **ALREADY LIVE** and print the countdown, because
+those are different problems wearing the same word.
+
+**Verified on a copy of the live database**, 46 rows offered to publish: 6
+quarantined, 40 published, exit 0, and all six still unpublished afterwards.
 
 ---
 
