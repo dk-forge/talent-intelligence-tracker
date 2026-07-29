@@ -18,7 +18,7 @@ TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 
 ## Where things stand (2026-07-29)
 
-**Verified by curl, not by a green tick:** plugin **1.42.3**; dashboard,
+**Verified by curl, not by a green tick:** plugin **1.45.3**; dashboard,
 `/recall/`, `/corrections/`, `/sources/` all 200; **money raised $124B** (was
 $200.3bn); sources page lists all 8 live collectors; writer queue empty, zero
 orphans.
@@ -26,6 +26,43 @@ orphans.
 **Nine registered collectors:** `google_news`, `gdelt`, `national_press`,
 `sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
 `tripwire_chase` (dormant, correctly absent from the sources page).
+
+### Company profiles (built 2026-07-29, live on 1.45.3)
+
+`/talent-intelligence-tracker/company/{slug}/`, computed on render. **712
+indexable pages of 7,301 employers**, gated on **3 source documents and either
+2 kinds of evidence or 5 documents**. The reasoning is in `includes/company.php`
+and the measurement in TECHLOG; the short version is that rows are the wrong
+unit (one pay-versus-performance table becomes four rows) and three documents
+from one templated feed is one thing said three times.
+
+`tit_company_meets_threshold()` decides the page, `tit_company_gate_having()`
+builds the sitemap's SQL from the same constants, and the tests fail on a
+threshold typed twice. **Do not add a second implementation of "is this employer
+worth a URL".** Below the bar renders and stays linked, but is `noindex, follow`
+and out of the sitemap.
+
+**Three things a future session will otherwise rediscover:**
+
+1. **`%26` kills a company URL.** `rawurlencode()` writes `&` as `%26`, which
+   does not survive the rewrite. `/company/b%26q/` 404s, `/company/b&q/` 200s.
+   144 employer keys carry an ampersand and every one of their dashboard links
+   was dead. Non-ASCII keys (18 of them) cannot be served at all, either
+   encoded or literal, and are excluded from indexing and the sitemap. A real
+   fix is a stored ASCII slug on `company_key`: a pipeline change plus a
+   migration.
+2. **The site's SEO plugin is SEOPress, not Yoast.** It prints its own robots
+   tag on our routes. The head is buffered and every robots tag replaced with
+   one of ours, so nothing here names a plugin. Do not "fix" this by calling a
+   plugin filter.
+3. **The `robots_txt` filter is inert.** `/blog/robots.txt` is a physical file
+   Apache serves from disk, and the robots.txt a crawler reads for this host is
+   the root app's. **Manual step, not done:** submit
+   `https://asktherecruiter.com/blog/talent-intelligence-tracker/company-sitemap.xml`
+   in Search Console, or add it to the root robots.txt. Until then, discovery is
+   the internal links from the dashboard table.
+
+**Not verified:** how any of it looks. That session had no browser.
 
 ### Publish guardrails (built 2026-07-29) — read this before the next collect run
 
@@ -90,7 +127,7 @@ accepted; the rest need the filing read.
 | 2 | **Scope breach: layoff 8-Ks stored here** | Atlassian (~10%), Groupon (400), IO Biotech, Lyra. Layoffs must be READ from the sibling's API. The guard reads the headline and `sec_edgar` writes the same generic headline onto everything, so it never sees the reduction language. |
 | 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, both DORMANT** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Measured on real stored URLs below. Next step is to arm them, not to build them. |
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
-| 5 | **Company profile pages** | `/company/{slug}` — best view for a recruiter vetting an account, and the only SEO shape that beats an incumbent's domain authority. |
+| 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.45.3** | `/company/{slug}` with a measured threshold gate: 712 indexable pages of 7,301 employers. See the section below and TECHLOG. Next step is Search Console, not code. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
 | 7 | ~~Publish guardrails~~ **BUILT 2026-07-29** | `pipeline/guardrails.py`, on the write path. Next step is to ANSWER the 8 findings it already holds, not to build anything. See below. |
 | 8 | **First live tripwire run + second recall measurement** | The tripwire has never issued a live query (cost is an estimate). The trend chart cannot draw until a second measurement exists. |

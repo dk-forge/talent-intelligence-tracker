@@ -13,6 +13,102 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — company profile pages, and the threshold that decides which exist
+
+`/talent-intelligence-tracker/company/{slug}/`. Profiles already rendered for
+every employer we held a row for. The work was deciding which of them deserve
+a URL, and making one decision serve both the page and the sitemap.
+
+### The threshold, and why it counts documents
+
+Measured against the live `/query` endpoint (15,630 current rows, 7,408
+employers by display name; 7,301 by `company_key`, which is what the page groups
+on):
+
+| rows per employer | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|
+| employers | 4,840 | 751 | 376 | 503 | 393 | 135 | 90 | 137 | 183 |
+
+| documents per employer | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|
+| employers | 5,317 | 1,215 | 274 | 70 | 60 | 66 | 87 | 137 | 182 |
+
+Three readings, in the order they change the answer:
+
+1. **Rows are the wrong unit.** 235 employers carry four rows behind ONE
+   document, because `sec_execcomp` splits a single pay-versus-performance table
+   into a row per fiscal year. A row count measures how finely we parse a
+   filing, not how much we know.
+2. **One document restated is not a page.** 72% of employers sit behind a single
+   document, and a reader is better served by that document.
+3. **Three documents from one feed is one thing said three times.** The UK pay
+   gap rows carry an *identical* read-through sentence with a different
+   percentage, one per reporting year. 638 employers would clear a plain
+   three-document bar on that alone, which is the template-plus-a-number shape
+   that gets a whole set filtered.
+
+So: **3 documents, and either 2 kinds of evidence or 5 documents.** 713 of 7,301
+employers, 9.8%. 186 qualify on breadth, 527 on a multi-year series.
+
+Below the bar the page still renders and stays linked from the dashboard table,
+but goes `noindex, follow` and is absent from the sitemap. Not a 404: the
+dashboard links there and a recruiter following that link should get the page.
+
+**One predicate does both.** `tit_company_meets_threshold()` answers it for the
+page; `tit_company_gate_having()` builds the sitemap's `HAVING` clause from the
+same three constants, and `tests/test_company_page.py` fails on a threshold
+typed a second time. The sibling shipped noindex URLs inside its own sitemap and
+heard about it from Search Console; that is not prevented by care.
+
+Everything is computed on render from `wp_tit_signals`. No generated pages, no
+regeneration step, and the sitemap is a query rather than a file.
+
+### Three defects found by curling it, not by reading it
+
+- **Two contradictory robots tags** (1.45.0). A thin profile served
+  `noindex, follow` from us and `follow, index` from the SEO plugin. The first
+  fix named Yoast's filter and did nothing: the tag is SEOPress's. Naming a
+  plugin pins us to that plugin and to its hook names. The head is buffered and
+  every robots tag replaced with exactly one of ours, the same trick
+  `tit_render_header()` uses for `<title>`. A test now refuses any SEO plugin's
+  name in the file. The `X-Robots-Tag` header goes out before any buffering, so
+  a buffer that never closes cannot leave a thin profile indexable.
+- **The sitemap 301ed** to `.../company-sitemap.xml/`, because WordPress
+  trailing-slashes anything it does not recognise as a file. `redirect_canonical`
+  is off for that one query var.
+- **`%26` kills a company URL.** Found by fetching eight random URLs from our own
+  sitemap: one 404. `rawurlencode()` writes `&` as `%26`, which does not survive
+  the rewrite. `/company/b%26q/` is 404, `/company/b&q/` is 200, and `&` is a
+  legal sub-delim in a path segment, so it is left literal. **144 of 7,301
+  employer keys carry an ampersand** (Ernst & Young, Holland & Barrett, Mitchells
+  & Butlers, most UK NHS trusts) and every one of their dashboard links had been
+  dead since profiles shipped. A percent-encoded non-ASCII byte does not survive
+  either, and neither does the literal character: 18 keys, now not indexable and
+  not in the sitemap, because a sitemap full of 404s is what gets a set
+  distrusted. Fixing those properly needs a stored ASCII slug on `company_key`,
+  which is a pipeline change and a migration.
+
+### Known and not fixed: sitemap discovery is one manual step
+
+`/blog/robots.txt` is a physical file, so Apache serves it from disk and the
+`robots_txt` filter never runs (gotcha 5). The robots.txt a crawler actually
+reads for this host is `https://asktherecruiter.com/robots.txt`, which belongs
+to the separate root app. Neither is reachable from this repo. Discovery today
+is the internal links; **submit the sitemap in Search Console, or add its URL to
+the root robots.txt.** The filter is left registered and is not counted as
+working.
+
+### Verified live, by curl, on 1.45.3
+
+712 URLs in the sitemap, `application/xml`, no redirect, XML parses. 20 sampled
+entries (including 6 with an ampersand) all 200 with exactly one
+`index, follow`. `oracle` and `bloomberg` (3 documents, 1 kind) 200 with
+`X-Robots-Tag: noindex, follow` and absent from the sitemap. Dashboard,
+`/sources/`, `/recall/`, `/corrections/` and `/aggregate` all unchanged.
+**The visual result is unverified: this session had no browser.**
+
+---
+
 ## 2026-07-29 — pre-publish guardrails
 
 Built because the $86bn Form D overstatement was never a thing nobody could

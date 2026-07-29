@@ -222,8 +222,16 @@ def test_the_sitemap_is_xml_and_is_itself_noindex():
     assert "'X-Robots-Tag: noindex'" in COMPANY
 
 
-def test_crawlers_are_told_where_the_sitemap_is():
+def test_the_robots_txt_filter_is_not_counted_as_working():
+    """It is registered, and it is inert: /blog/robots.txt is a physical file
+    Apache serves from disk, and the robots.txt a crawler reads for this host
+    belongs to the separate root app. Neither is reachable from this repo, so
+    the sitemap reaches a crawler through the internal links plus one manual
+    step. Claiming otherwise in a comment is how a manual step gets forgotten."""
     assert "add_filter('robots_txt', 'tit_company_robots_txt');" in COMPANY
+    doc = COMPANY[COMPANY.index("function tit_company_robots_txt") - 1200:
+                  COMPANY.index("function tit_company_robots_txt")]
+    assert "INERT" in doc and "MANUAL STEP" in doc
 
 
 # --- live figures, never a build step ------------------------------------

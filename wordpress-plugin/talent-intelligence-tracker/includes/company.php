@@ -747,7 +747,25 @@ function tit_company_sitemap_template() {
 }
 add_action('template_redirect', 'tit_company_sitemap_template');
 
-/** Point crawlers at it, so it does not depend on anyone submitting it. */
+/**
+ * Advertise it in robots.txt, WHICH IS CURRENTLY INERT, and this is written
+ * down rather than left as an assumption.
+ *
+ * Checked live 2026-07-29: /blog/robots.txt is a PHYSICAL FILE, so Apache
+ * serves it from disk and WordPress never runs this filter (gotcha 5 in
+ * CLAUDE.md, the same reason llms.txt had to be a real file). And the robots.txt
+ * a crawler actually reads for this host is https://asktherecruiter.com/
+ * robots.txt, which belongs to the separate root app and lists only the SEO
+ * plugin's sitemap index. Neither file is reachable from this repo.
+ *
+ * So sitemap discovery today is the internal links: the dashboard table links
+ * every employer to its profile. Getting the sitemap itself in front of a
+ * crawler is a ONE-LINE MANUAL STEP for the owner, recorded in the handover:
+ * submit it in Search Console, or add its URL to the root robots.txt.
+ *
+ * The filter stays because it costs nothing and starts working by itself the
+ * day that physical file goes away. It is not counted as working now.
+ */
 function tit_company_robots_txt($output) {
     return $output . "\nSitemap: " . tit_company_sitemap_url() . "\n";
 }
