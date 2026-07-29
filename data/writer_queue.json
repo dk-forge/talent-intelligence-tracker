@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T18:49:26Z",
+  "last_tick": "2026-07-29T18:50:13Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -158,45 +158,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:48:48Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:48:33Z",
-          "detail": "guardrail finding rejected on the filing: aab1724dffa4",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:48:48Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:49:26Z",
-          "detail": "run 30481620991",
-          "event": "bound"
-        }
-      ],
-      "id": "20260729T184833Z-retract",
-      "inputs": {
-        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Employee Benefit Plan Custody Account, the offering amount is Indefinite, it claims Investment Company Act exclusions 3C.3 and 3C.7, and it is sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
-        "signal_id": "aab1724dffa4a6620cce4214d3bf654e"
-      },
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: aab1724dffa4",
-      "requested_at": "2026-07-29T18:48:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481620991",
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-29T18:50:13Z",
       "history": [
         {
           "at": "2026-07-29T18:49:13Z",
           "detail": "guardrail finding rejected on the filing: e0931724fe15",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:50:13Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260729T184913Z-retract",
@@ -207,6 +179,29 @@
       "priority": -1,
       "reason": "guardrail finding rejected on the filing: e0931724fe15",
       "requested_at": "2026-07-29T18:49:13Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T18:49:59Z",
+          "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T184959Z-retract",
+      "inputs": {
+        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody.",
+        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
+      },
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
+      "requested_at": "2026-07-29T18:49:59Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
@@ -590,6 +585,45 @@
       "requested_at": "2026-07-29T18:47:58Z",
       "requested_by": "dakotta-labs",
       "run_id": "30481572578",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T18:48:48Z",
+      "history": [
+        {
+          "at": "2026-07-29T18:48:33Z",
+          "detail": "guardrail finding rejected on the filing: aab1724dffa4",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T18:48:48Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T18:49:26Z",
+          "detail": "run 30481620991",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T18:50:13Z",
+          "detail": "run 30481620991",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T184833Z-retract",
+      "inputs": {
+        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Employee Benefit Plan Custody Account, the offering amount is Indefinite, it claims Investment Company Act exclusions 3C.3 and 3C.7, and it is sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
+        "signal_id": "aab1724dffa4a6620cce4214d3bf654e"
+      },
+      "landed_at": "2026-07-29T18:50:13Z",
+      "priority": -1,
+      "reason": "guardrail finding rejected on the filing: aab1724dffa4",
+      "requested_at": "2026-07-29T18:48:33Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30481620991",
       "state": "landed",
       "workflow": "retract.yml"
     }
