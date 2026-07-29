@@ -40,6 +40,16 @@ What merges, and on what key:
                      reachability observation for a cycle is a very different
                      cost from losing a signal, which is why this one is allowed
                      to be simple.
+  publish_guardrails pre-publish findings, PK (check_name, subject). NOT simple,
+                     and the one table here where the newer write must sometimes
+                     LOSE: a row carrying a human's accept or reject always beats
+                     an automatic one, whichever side holds it. Without that, a
+                     run in flight would overwrite an acceptance made from a
+                     laptop while it worked, and a genuine mega-raise the owner
+                     had already cleared would start blocking every publish
+                     again. Where neither side is reviewed and they disagree,
+                     'open' wins: this table decides whether a figure goes out,
+                     so its merge conflicts resolve loud.
 
 Usage:
     python merge_db.py OURS INTO
@@ -186,6 +196,46 @@ def _merge_cache(ours: sqlite3.Connection, into: sqlite3.Connection, table: str,
     return into.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] - before
 
 
+def _merge_guardrails(ours: sqlite3.Connection, into: sqlite3.Connection) -> int:
+    """Union the guardrail ledger, keeping whichever side a human answered.
+
+    This one cannot use _merge_cache. Every other table here resolves a
+    collision with "the later write wins", and that rule is actively wrong for a
+    review queue: the later write is usually a collect run re-firing the same
+    finding, and the earlier one may be the owner's decision. Letting the run
+    win would silently reopen an accepted row and start blocking publishing over
+    a figure that had already been checked.
+
+    Where neither side is reviewed and the two disagree, 'open' wins. This table
+    decides whether a figure goes out, so its conflicts resolve loud.
+    """
+    table = "publish_guardrails"
+    shared = [c for c in _columns(ours, table) if c in set(_columns(into, table))]
+    if not shared:
+        return 0
+    placeholders = ", ".join("?" for _ in shared)
+    sql = (
+        f"INSERT INTO {table} ({', '.join(shared)}) VALUES ({placeholders}) "
+        f"ON CONFLICT(check_name, subject) DO UPDATE SET "
+        f"  label = excluded.label, detail = excluded.detail, "
+        f"  value = excluded.value, "
+        f"  first_seen = MIN({table}.first_seen, excluded.first_seen), "
+        f"  last_seen = MAX({table}.last_seen, excluded.last_seen), "
+        f"  seen = MAX({table}.seen, excluded.seen), "
+        f"  state = CASE "
+        f"    WHEN {table}.reviewed_at IS NOT NULL THEN {table}.state "
+        f"    WHEN excluded.reviewed_at IS NOT NULL THEN excluded.state "
+        f"    WHEN {table}.state = 'open' OR excluded.state = 'open' THEN 'open' "
+        f"    ELSE excluded.state END, "
+        f"  reviewed_at = COALESCE({table}.reviewed_at, excluded.reviewed_at), "
+        f"  reviewed_by = COALESCE({table}.reviewed_by, excluded.reviewed_by), "
+        f"  review_note = COALESCE({table}.review_note, excluded.review_note)")
+    before = into.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+    into.executemany(sql, [tuple(r[c] for c in shared)
+                           for r in ours.execute(f"SELECT * FROM {table}")])
+    return into.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] - before
+
+
 def merge(ours_path: Path, into_path: Path) -> dict[str, int]:
     if not ours_path.exists():
         raise SystemExit(f"nothing to merge: {ours_path} does not exist")
@@ -206,6 +256,7 @@ def merge(ours_path: Path, into_path: Path) -> dict[str, int]:
                 "source_health_added": _merge_cache(ours, into, "source_health"),
                 "source_links_added": _merge_cache(
                     ours, into, "source_links", newer_column="updated_at"),
+                "guardrail_findings_added": _merge_guardrails(ours, into),
             }
         # A merge that loses rows is the bug this file exists to end, so it is
         # checked rather than assumed.

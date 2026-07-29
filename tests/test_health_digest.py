@@ -190,6 +190,38 @@ class TestEmail(unittest.TestCase):
         self.assertIn("9.40", body)
         self.assertIn("AT THE CEILING", body)
 
+    def test_open_guardrails_lead_the_subject_and_carry_their_own_instruction(self):
+        """An unanswered guardrail stops publishing outright, so it outranks a
+        stale scraper: one costs coverage, the other means a figure nobody has
+        checked is one decision away from going out."""
+        buckets = health_digest.classify({"google_news": entry(24 * 5)}, NOW)
+        rows = [{"check_name": "amount", "subject": "abc",
+                 "label": "X.AI Holdings Corp. $16,599,961,030",
+                 "value": 16_599_961_030.0}]
+        subject, body = health_digest.build_email(
+            buckets, False, 24 * 5, None, "local", rows)
+        self.assertIn("guardrail", subject.lower())
+        self.assertIn("X.AI Holdings Corp.", body)
+        self.assertIn("guardrails.py", body)
+        self.assertIn("Nothing was dropped", body)
+
+    def test_a_digest_with_no_guardrail_findings_says_nothing_about_them(self):
+        buckets = health_digest.classify({"google_news": entry(24 * 5)}, NOW)
+        _, body = health_digest.build_email(
+            buckets, False, 24 * 5, None, "local", [])
+        self.assertNotIn("PUBLISH GUARDRAILS", body)
+
+    def test_guardrails_are_read_locally_even_when_the_ledger_is_live(self):
+        """They run BEFORE publishing, so a blocking finding is by definition
+        one the site has never been told about."""
+        import inspect
+        source = inspect.getsource(health_digest.main)
+        self.assertIn("read_guardrails()", source)
+
+    def test_an_unreadable_guardrail_ledger_is_never_fatal(self):
+        from pathlib import Path
+        self.assertEqual(health_digest.read_guardrails(Path("/nope/none.db")), [])
+
     def test_no_em_dashes_in_owner_facing_copy(self):
         buckets = health_digest.classify(
             {"google_news": entry(24 * 5, "degraded", "zero items")}, NOW)

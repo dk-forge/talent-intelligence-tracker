@@ -45,6 +45,7 @@ def main() -> int:
     problems += _report_health(conn)
     problems += _report_writer_queue()
     problems += _report_link_rot(conn)
+    problems += _report_guardrails(conn)
     _report_coverage()
     _report_discovery()
     _report_surfaces()
@@ -316,6 +317,75 @@ def _report_link_rot(conn) -> list[str]:
         for row in worst[:5]:
             print(f"      {row['rot_pct']:>5}%  {row['rot']}/{row['checked']}  {row['host']}")
     return problems
+
+
+def _report_guardrails(conn) -> list[str]:
+    """What the pre-publish guardrails caught, and what is blocking a publish.
+
+    The $86bn Form D overstatement stood in public for weeks because nothing in
+    the pipeline asked whether a single row was implausible, whether the period
+    totals reconciled, or whether the printed date span matched the data. The
+    checks now run on the write path (pipeline/guardrails.py). This is where a
+    session SEES them, which is the half that makes flag-not-drop work: a
+    finding nobody looks at is a silent drop with extra steps.
+    """
+    from pipeline import guardrails
+
+    print("\n[2d] PUBLISH GUARDRAILS  (no figure goes out over an unanswered flag)")
+
+    try:
+        stats = guardrails.derive_amount_threshold(guardrails.stored_amounts(conn))
+    except sqlite3.OperationalError:
+        print("    No signals table yet.")
+        return []
+
+    print(f"    single-row amount ceiling  ${stats['threshold']:,}"
+          + ("" if stats["derived"] else "   (FALLBACK, not derived)"))
+    print(f"      {stats['reason']}")
+
+    try:
+        counts = dict(conn.execute(
+            "SELECT state, COUNT(*) FROM publish_guardrails GROUP BY state").fetchall())
+    except sqlite3.OperationalError:
+        counts = {}
+
+    if counts:
+        print("    ledger: " + ", ".join(f"{s}={n}" for s, n in sorted(counts.items())))
+        rows = guardrails.open_findings(conn)
+        pending = ("open guardrail finding(s) are blocking every publish")
+    else:
+        # No run has written the ledger yet. Evaluating here rather than saying
+        # "nothing flagged" is the difference between an ops tool and a
+        # reassuring one: an empty ledger means nobody has looked, and the tool
+        # that tells every session to trust it must not confuse the two. Still
+        # read-only, which is this file's whole contract.
+        findings = guardrails.evaluate(conn)["findings"]
+        rows = [{"check_name": f.check, "subject": f.subject, "label": f.label,
+                 "detail": f.detail, "value": f.value} for f in findings]
+        print(f"    ledger empty (no run has recorded yet). Evaluated live: "
+              f"{len(rows)} finding(s).")
+        if not guardrails.collector_patterns_available():
+            print("    NOTE: this interpreter cannot import the Form D "
+                  "collector's own name")
+            print("    patterns, so the vehicle check here is NARROWER than the "
+                  "pipeline's.")
+            print("    For the full set:  .venv/bin/python guardrails.py --check")
+        pending = ("finding(s) will block the next publish the moment a run "
+                   "records them")
+
+    if not rows:
+        return []
+
+    for row in rows[:6]:
+        value = row.get("value")
+        amount = f"${float(value):,.0f}" if value else ""
+        print(f"    OPEN  {row['check_name']:<14} {(row.get('label') or '')[:46]:<46} {amount}")
+    if len(rows) > 6:
+        print(f"          ... and {len(rows) - 6} more")
+
+    return [f"{len(rows)} {pending}. Read them with `python3 guardrails.py`, "
+            f"then accept the real ones and retract the rest. Nothing is dropped "
+            f"automatically, on purpose."]
 
 
 def _report_coverage() -> None:

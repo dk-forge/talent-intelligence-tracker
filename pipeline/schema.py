@@ -227,6 +227,34 @@ CREATE TABLE IF NOT EXISTS source_links (
 -- quarter, so this is the difference between one lookup and forty.
 -- `resolved = 0` rows are negative results and are kept on purpose — a name
 -- Wikidata does not know must be asked about once, not on every run.
+-- Pre-publish guardrail findings (pipeline/guardrails.py).
+--
+-- WHY A LEDGER AND NOT A DROP. The $86bn Form D overstatement stood in public
+-- for weeks because nothing asked whether a single row was implausible. The
+-- answer to that is not "bin anything large": a genuine $8.6bn raise has to
+-- survive, and a guardrail that silently corrects is just a different invisible
+-- defect. So a finding is RECORDED, surfaced by ops_status.py [2d] and the
+-- weekly digest, and blocks publishing until a person accepts or rejects it.
+--
+-- The state column is the whole point: an accepted finding stays accepted when
+-- it fires again, so a real mega-round is reviewed once and never again, while
+-- an unreviewed one keeps the job red.
+CREATE TABLE IF NOT EXISTS publish_guardrails (
+    check_name  TEXT NOT NULL,   -- amount | period_totals | date_span | vehicle_name
+    subject     TEXT NOT NULL,   -- content_hash for a row check, a scope key otherwise
+    label       TEXT,
+    detail      TEXT,
+    value       REAL,            -- the dollars or the size of the discrepancy
+    state       TEXT NOT NULL DEFAULT 'open',  -- open | accepted | rejected | resolved
+    first_seen  TEXT NOT NULL,
+    last_seen   TEXT NOT NULL,
+    seen        INTEGER NOT NULL DEFAULT 1,
+    reviewed_at TEXT,
+    reviewed_by TEXT,
+    review_note TEXT,
+    PRIMARY KEY (check_name, subject)
+);
+
 CREATE TABLE IF NOT EXISTS employer_identity (
     company_key   TEXT PRIMARY KEY,
     company       TEXT,
@@ -263,6 +291,7 @@ CREATE INDEX IF NOT EXISTS idx_links_state    ON source_links(state);
 CREATE INDEX IF NOT EXISTS idx_links_checked  ON source_links(checked_at);
 CREATE INDEX IF NOT EXISTS idx_links_archive  ON source_links(archive_state);
 CREATE INDEX IF NOT EXISTS idx_links_host     ON source_links(host);
+CREATE INDEX IF NOT EXISTS idx_guardrails_state ON publish_guardrails(state);
 -- Deliberately NO index on signals(source_url). It would help the GROUP BY in
 -- source_links.distinct_source_urls by a millisecond or two on 15k rows, and it
 -- added 1.7 MB to a database that is committed to the repo on every collect run

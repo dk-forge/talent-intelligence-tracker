@@ -13,6 +13,134 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — pre-publish guardrails
+
+Built because the $86bn Form D overstatement was never a thing nobody could
+have checked. It was a thing nobody was going to remember to check. Four
+arithmetic assertions now run on the write path, in `pipeline/guardrails.py`,
+called from `pipeline/publish.py` before a single row is sent. No model, no
+network, no cost.
+
+**Flag, never drop. Fail loud.** Findings land in a `publish_guardrails` ledger
+and block publishing until a person accepts or rejects each one. Accepting is
+remembered, so ChangXin Memory's genuine $8.6bn raise is answered once and never
+blocks again. Nothing is auto-binned: silent auto-correction would be a
+different invisible defect, which is the same argument that keeps `link_check`
+from retracting a row over an HTTP code.
+
+### 1. Implausible single-row amounts
+
+The threshold is **derived, never typed**: the value whose expected count under
+a robust log-normal fit of the stored amounts is 0.1 rows. Centre is the median
+of log10, scale is 1.4826 x MAD, and z comes from n. On 3,057 stored amounts
+that is **$1,799,597,726**, and it flags 5 rows.
+
+Median and MAD were chosen by **measurement, not by preference**. Replaying the
+998 retracted vehicles back in:
+
+| estimator | clean | contaminated | vehicles caught |
+|---|---|---|---|
+| median / MAD | $1.80bn | **$1.35bn** | 14, worth $68.4bn |
+| mean / sd | $2.32bn | **$2.42bn** | 11, worth $62.5bn |
+
+The robust pair tightens as bad rows arrive; the mean-based one relaxes.
+
+**The limit, stated because it decides what the other three checks are for.**
+The retracted vehicles were not a distinguishable population by amount: log10
+median 6.641 against the clean corpus's 6.737. Only the individual extremes
+stood out. This check catches the largest members of a bad class, never the
+class, and a contaminant forming a large tightly-clustered mode two decades up
+would lift any fitted threshold, robust or not.
+
+### 2. Period totals must reconcile
+
+Three invariants, from the page that carried "this quarter 268" against "2026 so
+far 6,018" beside a headline of 14,019.
+
+- **Ordering, derived from the start dates rather than assumed to nest.** Every
+  cell counts rows on or after its own start, so an earlier start can never hold
+  less. Asserting week-inside-month would have been wrong: "this week" reaches
+  six days back and crosses the month boundary for roughly half of every month.
+  Pinned by a test.
+- Year-to-date never exceeds all-time.
+- **A subset never exceeds "All updates"** in the same column. This is the shape
+  of the original defect: 998 vehicles counted as funding under a clause scoped
+  differently from the one counting updates.
+
+### 3. The printed date span must match the data
+
+From "Everything here spans 3,318 days, 28 Jun to 28 Jul 2026" — nine years of
+days against thirty days of dates, because the count was measured over the whole
+table while the bounds came from the recent window. The page still holds **two
+legitimate scopes at once** (`lo_all/hi_all` drive the date inputs, `lo/hi` the
+sentence under the tiles), so the check asserts both, that each day count comes
+from its own bounds, that the view sits inside the whole, and that the span
+reaches every period a tile reports a nonzero count for. `guardrails.py --live`
+adds the only assertion that can see what a reader reads: the `span` object from
+a live `/aggregate` must match one of the two recomputed scopes and nothing else.
+
+### 4. Vehicle and SPV names on funding rows
+
+Runs on **every** funding row, not only Form D ones: the collector's filter
+governs what Form D collects, this governs what reaches a headline figure
+whatever route it took. It reuses `sec_form_d.EXCLUDED_NAME_PATTERNS` rather
+than restating it, and adds the publish-time set: street addresses, numbered
+accounts, separate accounts, and **the abbreviations** — `GIC`, `GICs`, `BOLI`,
+`COLI`, funding agreement, institutional life.
+
+**Every pattern was measured** against the 998 real retracted rows (recoverable
+from `signals` where `is_current = 0` and the retraction note) and against the
+3,057 live funding rows. A pattern earns its place only if its yield on the real
+defect beats its cost in live review. Two were tested and **rejected**, recorded
+in the source so nobody re-adds them from first principles:
+
+| candidate | retracted | live cost | verdict |
+|---|---|---|---|
+| `series \d+$` | 2 rows, $0.00bn | 16 rows, all one employer | rejected |
+| `\d{1,2}\s*(llc\|lp)$` | 38 rows, $0.23bn | 24 rows incl. HawkEye 360, Inc. | rejected |
+
+Measured recall of what shipped: **229 of 998 rows, but $71.3bn of the $85.6bn**,
+because the vehicles are exactly the large ones. On today's live rows it flags 3.
+
+**A finding worth reading even though it is empty.** The GIC/BOLI/COLI
+abbreviations match nothing, and checking every stored text column of the
+retracted rows says why: that wording lived only in the SEC dataset's
+`DESCRIPTIONOFOTHERTYPE`, which was never stored. So the abbreviation's real
+home is `sec_form_d_bulk.NOT_A_CAPITAL_RAISE`, where the description is read.
+It is in the publish-time set as well because it costs nothing and the next
+vehicle carrying it in its NAME should not need a second incident.
+
+### Wiring, and the two things that would have made it a decoration
+
+- **`merge_db.py` merges the ledger, and a human's answer beats a later
+  automatic write.** Every other table there resolves a collision with "later
+  wins", which is actively wrong for a review queue: the later write is usually
+  a run re-firing the same finding, and the earlier one may be the owner's
+  acceptance. Without this, a run in flight would silently reopen an accepted
+  row. An unreviewed disagreement resolves to `open`, because this table decides
+  whether a figure goes out.
+- **`ops_status.py [2d]` evaluates live when the ledger is empty** instead of
+  printing "nothing flagged". An empty ledger means nobody has looked, and the
+  tool every session is told to trust must not confuse the two. It also says so
+  when the interpreter cannot import the collector's patterns, so a narrower
+  check never prints a smaller number silently.
+
+`health_digest.py` puts open findings ahead of a stale collector in the subject
+line, with their own paste-ready instruction. A stale scraper costs coverage; an
+unanswered guardrail means publishing is stopped and an unchecked figure is one
+decision away from going out.
+
+**Operational note for whoever runs the next collect.** The ledger is empty and
+was deliberately not written from a laptop, so the first real run records **8
+findings and goes red**: 5 amounts (X.AI $16.6bn, Madison Air $10.87bn, Masimo
+$9.9bn, ChangXin $8.6bn, Dillard's $2.39bn) and 3 vehicle names (two
+Metropolitan Tower Life Insurance Co rows, one `101 East Court Street LLC`).
+`data/talent_intel.db` is still committed on that run (`!cancelled()`), so
+nothing is lost. Answer them with `guardrails.py --accept` / `--reject`. Do not
+accept anything to clear the queue: an accepted finding never blocks again.
+
+---
+
 ## 2026-07-29 — the day everything that looked healthy turned out not to be
 
 One theme ran through every defect found this day, and it is worth stating once

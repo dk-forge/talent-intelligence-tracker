@@ -13,6 +13,8 @@ import time
 
 import requests
 
+from . import guardrails
+
 # ModSecurity on this host blocks python-requests outright. Anything talking to
 # the WP host must look like a browser or every call returns an inexplicable
 # 403.
@@ -25,6 +27,29 @@ RETRY_STATUSES = (500, 502, 503, 504)
 
 class PublishError(RuntimeError):
     pass
+
+
+def _guard(conn, *, dry_run: bool) -> dict:
+    """Run the pre-publish guardrails, or refuse to publish.
+
+    HERE and not in a separate audit script, because the $86bn Form D
+    overstatement was not a thing nobody could have checked - it was a thing
+    nobody was going to remember to check. Every route that can move a headline
+    figure goes through this module: run_collect, every backfill, the
+    corrections, and the enrich path that once took the money charts from $3.2M
+    to $20.79bn on its own. So the check lives on the write path, and a job that
+    trips it goes red.
+
+    Raised as a PublishError so every existing caller already handles it and
+    already exits non-zero; the findings ride along on the exception for anyone
+    who wants to print them.
+    """
+    try:
+        return guardrails.enforce(conn, write=not dry_run)
+    except guardrails.GuardrailTripped as exc:
+        error = PublishError(str(exc))
+        error.findings = exc.findings
+        raise error from exc
 
 
 def _config() -> tuple[str, str]:
@@ -105,6 +130,10 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
     """
     import sqlite3 as _sqlite3
 
+    # funding_amount_usd is in ENRICHABLE, so this path alone can move the money
+    # total on a row the site already holds. It is guarded like any other write.
+    guard = _guard(conn, dry_run=dry_run)
+
     cols = ", ".join(ENRICHABLE)
     sql = (
         f"SELECT content_hash, {cols} FROM signals "
@@ -122,9 +151,10 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
         conn.row_factory = previous_factory
     rows = [{k: v for k, v in r.items() if v is not None} for r in raw]
     if not rows:
-        return {"sent": 0, "updated": 0, "errors": []}
+        return {"sent": 0, "updated": 0, "errors": [], "guardrails": guard}
     if dry_run:
-        return {"sent": 0, "updated": 0, "errors": [], "would_send": len(rows)}
+        return {"sent": 0, "updated": 0, "errors": [], "would_send": len(rows),
+                "guardrails": guard}
 
     site, key = _config()
     session = requests.Session()
@@ -144,7 +174,7 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
         updated += int(result.get("updated", 0))
         errors.extend(result.get("errors") or [])
         sent += len(batch)
-    return {"sent": sent, "updated": updated, "errors": errors}
+    return {"sent": sent, "updated": updated, "errors": errors, "guardrails": guard}
 
 
 def unpublished(conn, limit: int | None = None) -> list[dict]:
@@ -230,14 +260,23 @@ def publish_health(conn, *, dry_run: bool = False) -> int:
 
 
 def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
-    """Send unpublished signals. Returns a summary."""
+    """Send unpublished signals. Returns a summary.
+
+    The guardrails run FIRST, before a single row is sent and before the
+    "nothing to send" short circuit. Two of the four are checks on the whole
+    published set rather than on the batch, so a run with no new rows is exactly
+    when a period total or a date span can be wrong and nobody would look.
+    """
+    guard = _guard(conn, dry_run=dry_run)
+
     rows = unpublished(conn, limit)
     if not rows:
-        return {"sent": 0, "stored": 0, "duplicate": 0, "errors": []}
+        return {"sent": 0, "stored": 0, "duplicate": 0, "errors": [],
+                "guardrails": guard}
 
     if dry_run:
         return {"sent": 0, "stored": 0, "duplicate": 0, "errors": [],
-                "would_send": len(rows)}
+                "would_send": len(rows), "guardrails": guard}
 
     site, key = _config()
     session = requests.Session()
@@ -266,4 +305,5 @@ def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
             conn.commit()
         sent += len(batch)
 
-    return {"sent": sent, "stored": stored, "duplicate": duplicate, "errors": errors}
+    return {"sent": sent, "stored": stored, "duplicate": duplicate,
+            "errors": errors, "guardrails": guard}

@@ -242,6 +242,84 @@ def test_merging_the_same_database_twice_changes_nothing(two_writers):
     assert first["signals_total"] == second["signals_total"]
 
 
+def _finding(conn, subject, state="open", reviewed_at=None, last_seen="2026-07-29T00:00:00"):
+    conn.execute(
+        "INSERT INTO publish_guardrails (check_name, subject, label, detail, "
+        "  value, state, first_seen, last_seen, seen, reviewed_at, review_note) "
+        "VALUES ('amount', ?, 'X', 'd', 1.0, ?, '2026-07-28T00:00:00', ?, 1, ?, ?)",
+        (subject, state, last_seen, reviewed_at,
+         "checked the filing" if reviewed_at else None))
+
+
+def test_a_runs_new_guardrail_findings_are_not_lost_by_the_merge(two_writers):
+    """A run that trips a guardrail then loses its push would otherwise throw
+    the findings away and publish clean on the next attempt."""
+    ours, theirs = two_writers
+
+    conn = schema.connect(ours)
+    _finding(conn, "from-the-run")
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    assert conn.execute(
+        "SELECT COUNT(*) FROM publish_guardrails WHERE subject = 'from-the-run'"
+    ).fetchone()[0] == 1
+
+
+def test_a_humans_acceptance_beats_a_later_automatic_write(two_writers):
+    """The owner accepts a real mega-raise from a laptop while a run is in
+    flight. The run's copy still says 'open' and is written LATER. If the newer
+    write won, the acceptance would evaporate and every publish would block
+    again over a figure somebody had already checked."""
+    ours, theirs = two_writers
+
+    conn = schema.connect(theirs)
+    _finding(conn, "changxin", state="accepted",
+             reviewed_at="2026-07-29T09:00:00", last_seen="2026-07-29T09:00:00")
+    conn.commit()
+    conn.close()
+
+    conn = schema.connect(ours)
+    _finding(conn, "changxin", state="open", last_seen="2026-07-29T18:00:00")
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    row = conn.execute(
+        "SELECT state, review_note FROM publish_guardrails "
+        " WHERE subject = 'changxin'").fetchone()
+    assert row[0] == "accepted"
+    assert row[1] == "checked the filing"
+
+
+def test_an_unreviewed_disagreement_resolves_to_open(two_writers):
+    """This table decides whether a figure goes out, so a merge it cannot
+    resolve has to fail loud rather than quietly clear the queue."""
+    ours, theirs = two_writers
+
+    conn = schema.connect(theirs)
+    _finding(conn, "row", state="resolved")
+    conn.commit()
+    conn.close()
+
+    conn = schema.connect(ours)
+    _finding(conn, "row", state="open", last_seen="2026-07-29T18:00:00")
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    assert conn.execute(
+        "SELECT state FROM publish_guardrails WHERE subject = 'row'"
+    ).fetchone()[0] == "open"
+
+
 def test_a_missing_database_fails_loudly(tmp_path):
     """Data-changing jobs fail loudly. A merge that quietly does nothing would
     let the workflow commit an unmerged file and call it a success."""

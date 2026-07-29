@@ -143,6 +143,33 @@ def read_local(db_path: Path = DB) -> dict:
     return {r["collector"]: dict(r) for r in rows}
 
 
+def read_guardrails(db_path: Path = DB) -> list[dict]:
+    """Guardrail findings still waiting on a human.
+
+    Always read LOCALLY, even when the collector ledger comes from the live
+    site: the guardrails run before publishing, so a finding that is blocking a
+    publish is by definition one the site has never been told about. Reading it
+    from the site would be asking the patient to diagnose itself.
+
+    Never fatal. A digest that cannot read this still has collectors to report.
+    """
+    if not db_path.exists():
+        return []
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            rows = conn.execute(
+                "SELECT check_name, subject, label, detail, value "
+                "  FROM publish_guardrails WHERE state = 'open' "
+                " ORDER BY COALESCE(value, 0) DESC").fetchall()
+        finally:
+            conn.close()
+        return [dict(r) for r in rows]
+    except sqlite3.Error:
+        return []
+
+
 # --------------------------------------------------------------------------
 # Classification (pure, so it is testable without a network or a database)
 # --------------------------------------------------------------------------
@@ -266,8 +293,9 @@ PASTE_LEAD = (
 
 
 def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
-                source_label: str) -> tuple[str, str]:
+                source_label: str, guardrails: list[dict] | None = None) -> tuple[str, str]:
     """Subject and plain-text body. No em-dashes: this is owner-facing copy."""
+    guardrails = guardrails or []
     stale = buckets["stale"]
     degraded = buckets["degraded"]
     unknown = buckets["unknown_age"]
@@ -278,6 +306,11 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         subject = "Pipeline may have stopped: no collect in %s" % (
             "any recorded run" if newest_hours is None
             else "%.0f hours" % newest_hours)
+    elif guardrails:
+        # Ahead of a degraded collector on purpose. A stale scraper costs
+        # coverage; an unanswered guardrail means publishing is stopped AND a
+        # figure nobody has checked is one decision away from going out.
+        subject = "%d publish guardrail finding(s) waiting on you" % len(guardrails)
     elif names:
         subject = "%d collector(s) need attention: %s" % (
             len(names), ", ".join(names[:4]))
@@ -300,6 +333,22 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             "  and look for a 'this workflow was disabled' banner on collect.",
             "",
         ]
+
+    if guardrails:
+        lines += [
+            "PUBLISH GUARDRAILS: %d finding(s) open, and publishing is blocked "
+            "until each one is answered." % len(guardrails),
+            "  Nothing was dropped. Each row is still there, flagged, waiting "
+            "for a yes or a no.",
+        ]
+        for row in guardrails[:6]:
+            value = row.get("value") or 0
+            lines.append("  %-14s %s%s" % (
+                row.get("check_name", ""), (row.get("label") or "")[:60],
+                "  ($%.2fbn)" % (value / 1e9) if value >= 1e9 else ""))
+        if len(guardrails) > 6:
+            lines.append("  ... and %d more" % (len(guardrails) - 6))
+        lines.append("")
 
     for name, hours, limit in stale:
         lines.append("STALE: %s last ran %.0f hours ago, expected within %d. "
@@ -333,6 +382,14 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'me what actually broke."'
             % ("any recorded run" if newest_hours is None
                else "%.0f hours" % newest_hours))
+    elif guardrails:
+        lines.append(
+            '  "The health digest says the publish guardrails have open '
+            'findings. Run python3 guardrails.py, read every one, and for each '
+            'tell me whether the row is a real employer raising real money or a '
+            'vehicle that employs nobody. Do not accept anything to clear the '
+            'queue: an accepted finding never blocks again. Retract the bad '
+            'ones with retract.py so the correction stays visible on the site."')
     elif "link_check" in names:
         # A drifted link is the one finding here that is neither a parser bug
         # nor decay, so the generic "fix the collector" instruction below would
@@ -447,6 +504,7 @@ def main(argv=None) -> int:
     newest = newest_run_hours(collectors, now)
     stopped = pipeline_stopped(collectors, now)
     spend = spend_line()
+    guardrail_rows = read_guardrails()
 
     print("HEALTH DIGEST  (%s)" % source_label)
     print("  %d ok, %d degraded, %d stale, %d without a timestamp"
@@ -471,16 +529,21 @@ def main(argv=None) -> int:
     elif spend:
         print("  spend unavailable: %s" % spend["error"])
 
+    for row in guardrail_rows:
+        print("  ::warning:: GUARDRAIL %s: %s"
+              % (row.get("check_name", ""), (row.get("label") or "")[:100]))
+
     needs_human = bool(
         stopped or buckets["stale"] or buckets["degraded"] or buckets["unknown_age"]
-        or (spend and spend.get("at_ceiling"))
+        or guardrail_rows or (spend and spend.get("at_ceiling"))
     )
 
     if not needs_human and not args.send_test:
         print("  Nothing needs a human. No email sent.")
         return 0
 
-    subject, body = build_email(buckets, stopped, newest, spend, source_label)
+    subject, body = build_email(buckets, stopped, newest, spend, source_label,
+                                guardrail_rows)
     if args.send_test and not needs_human:
         subject = "Test alert: everything is healthy"
         body = ("This is a test of the alert path, sent on request.\n\n"

@@ -27,6 +27,48 @@ orphans.
 `sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
 `tripwire_chase` (dormant, correctly absent from the sources page).
 
+### Publish guardrails (built 2026-07-29) — read this before the next collect run
+
+Four arithmetic checks run inside `pipeline/publish.py` before anything is sent:
+an implausible single funding amount, period totals that do not reconcile, a
+printed date span that does not match the data, and a vehicle/SPV name on a
+funding row. They cost nothing (no model, no network) and they **block
+publishing and exit non-zero** while any finding is unanswered. Full derivation,
+measurements and rejected candidates are in [TECHLOG.md](TECHLOG.md).
+
+**The ledger is empty on purpose.** It was not written from a laptop, because
+that would be an unqueued write to the committed database. So the **first real
+collect run will record 8 findings and go red**:
+
+| check | rows |
+|---|---|
+| `amount` (ceiling $1,799,597,726, derived) | X.AI $16.6bn, Madison Air $10.87bn, Masimo $9.9bn, ChangXin Memory $8.6bn, Dillard's $2.39bn |
+| `vehicle_name` | Metropolitan Tower Life Insurance Co (x2), `101 East Court Street LLC` |
+
+That is the design working, not a fault. The database is still committed on a
+failed run (`!cancelled()`), so nothing is lost. See them right now without
+writing anything:
+
+```bash
+.venv/bin/python guardrails.py --check          # evaluate, write nothing
+.venv/bin/python guardrails.py --check --live   # also reconcile the live span
+python3 ops_status.py                           # section [2d]
+```
+
+Then answer each one:
+
+```bash
+python3 guardrails.py --accept amount/<content_hash> --note 'read the filing, real'
+python3 guardrails.py --reject vehicle_name/<content_hash> --note 'SPV'
+python3 retract.py <signal_id> 'why'            # rejecting records the judgement;
+                                                # retract.py removes the row
+```
+
+**Do not accept anything to clear the queue.** An accepted finding never blocks
+again. ChangXin Memory's $8.6bn is genuine (it is the raise the Form D
+correction came in $9.25bn above its projection because of) and should be
+accepted; the rest need the filing read.
+
 ### Three traps that will bite you today
 
 1. **`deploy-plugin.yml` defaults to `dry_run=true`.** A plain dispatch is a
@@ -50,7 +92,7 @@ orphans.
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
 | 5 | **Company profile pages** | `/company/{slug}` — best view for a recruiter vetting an account, and the only SEO shape that beats an incumbent's domain authority. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
-| 7 | **Publish guardrails** | Flag any single funding amount over a threshold before it enters an aggregate; assert no period total exceeds YTD. The $200B stood in public because nothing checked. |
+| 7 | ~~Publish guardrails~~ **BUILT 2026-07-29** | `pipeline/guardrails.py`, on the write path. Next step is to ANSWER the 8 findings it already holds, not to build anything. See below. |
 | 8 | **First live tripwire run + second recall measurement** | The tripwire has never issued a live query (cost is an estimate). The trend chart cannot draw until a second measurement exists. |
 
 ### Non-negotiable
