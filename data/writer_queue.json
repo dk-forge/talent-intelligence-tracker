@@ -1,0 +1,112 @@
+{
+  "last_tick": "2026-07-29T07:23:42Z",
+  "orphans": [
+    {
+      "created_at": "2026-07-29T07:05:35Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30430391475",
+      "workflow": "collect"
+    },
+    {
+      "created_at": "2026-07-29T06:56:12Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30429827776",
+      "workflow": "enrich"
+    },
+    {
+      "created_at": "2026-07-29T06:56:09Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30429825063",
+      "workflow": "enrich"
+    },
+    {
+      "created_at": "2026-07-29T06:50:09Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30429477356",
+      "workflow": "correct-sec-pillar"
+    },
+    {
+      "created_at": "2026-07-29T06:35:58Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30428695347",
+      "workflow": "recall"
+    },
+    {
+      "created_at": "2026-07-29T06:27:29Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30428223266",
+      "workflow": "correct-sec-pillar"
+    },
+    {
+      "created_at": "2026-07-29T06:24:20Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30428056186",
+      "workflow": "enrich"
+    },
+    {
+      "created_at": "2026-07-29T05:55:56Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30426534748",
+      "workflow": "correct-form-d"
+    },
+    {
+      "created_at": "2026-07-29T05:41:56Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30425837363",
+      "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-07-29T01:01:10Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30412858028",
+      "workflow": "backfill-gdelt-2026"
+    },
+    {
+      "created_at": "2026-07-29T01:01:10Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30412857963",
+      "workflow": "backfill-funding-bulk"
+    },
+    {
+      "created_at": "2026-07-28T22:15:32Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30403887301",
+      "workflow": "backfill-gdelt-2026"
+    },
+    {
+      "created_at": "2026-07-28T21:56:20Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30402660365",
+      "workflow": "backfill-funding-bulk"
+    },
+    {
+      "created_at": "2026-07-28T21:54:00Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30402506572",
+      "workflow": "backfill-funding-bulk"
+    },
+    {
+      "created_at": "2026-07-28T18:20:54Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "run_id": "30387015418",
+      "workflow": "backfill-funding-2026"
+    }
+  ],
+  "tickets": [],
+  "version": 1
+}
