@@ -86,7 +86,7 @@ def test_the_entries_name_what_was_wrong_in_words_not_in_jargon():
 
 def test_the_money_drop_is_explained_rather_than_left_to_be_noticed():
     """Someone who quoted the old figure deserves to know why it moved."""
-    assert "$200bn" in FLAT and "$120bn" in FLAT
+    assert "$200bn" in FLAT and "$115bn" in FLAT
     assert "the correction working" in FLAT
 
 

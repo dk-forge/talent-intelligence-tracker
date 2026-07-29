@@ -42,7 +42,7 @@ function tit_corrections_entries() {
         array(
             'date'   => '2026-07-28',
             'title'  => 'Form D rows said "Hiring up" on filings that disclose no hiring',
-            'rows'   => 3009,
+            'rows'   => 3005,
             'fields' => array('signal_direction', 'talent_readthrough'),
             'body'   => array(
                 'Every record drawn from SEC Form D filings carried the badge
@@ -65,7 +65,7 @@ function tit_corrections_entries() {
         array(
             'date'   => '2026-07-28',
             'title'  => 'Entities that employ nobody were listed as employers',
-            'rows'   => 994,
+            'rows'   => 998,
             'fields' => array('withdrawn'),
             'body'   => array(
                 'A large share of Form D filings are made by entities that exist
@@ -85,7 +85,7 @@ function tit_corrections_entries() {
                  withdrawn record keeps its row and carries the reason it was
                  withdrawn.',
                 'This is why the total money raised fell from roughly $200bn to
-                 roughly $120bn on this date. The drop is the correction working,
+                 roughly $115bn on this date. The drop is the correction working,
                  not a loss of data. The old figure counted property vehicles and
                  insurance premiums as company fundraising; the new one does not.',
             ),
