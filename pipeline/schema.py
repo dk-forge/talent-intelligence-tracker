@@ -100,6 +100,14 @@ CREATE TABLE IF NOT EXISTS signals (
     -- employer being bought. Same event, opposite meaning to a recruiter.
     deal_type         TEXT,
 
+    -- What the employer did with a PLACE of work: opened | closed | expanded |
+    -- relocated | announced. The earliest geographic hiring signal there is,
+    -- because a site decision lands months before the job adverts do. It says
+    -- nothing at all about headcount: 'opened' is not 'hiring' and 'closed' is
+    -- not 'displacement' unless the source states the roles. city/country
+    -- carry the where, as they do for every other row.
+    site_event        TEXT,
+
     -- How much this row is worth a recruiter's attention: high | medium |
     -- routine. Computed deterministically in Python (validate.compute_
     -- materiality) from values already on the row, so it costs nothing and can
@@ -202,6 +210,7 @@ CREATE INDEX IF NOT EXISTS idx_signals_fund_usd ON signals(funding_amount_usd);
 CREATE INDEX IF NOT EXISTS idx_signals_effective ON signals(effective_date);
 CREATE INDEX IF NOT EXISTS idx_signals_cik      ON signals(cik);
 CREATE INDEX IF NOT EXISTS idx_signals_material ON signals(materiality);
+CREATE INDEX IF NOT EXISTS idx_signals_site_evt ON signals(site_event);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
 """
 
@@ -236,6 +245,7 @@ MIGRATIONS = (
     ("signals", "headcount_scope", "TEXT"),
     ("signals", "materiality", "TEXT"),
     ("signals", "deal_type", "TEXT"),
+    ("signals", "site_event", "TEXT"),
 )
 
 

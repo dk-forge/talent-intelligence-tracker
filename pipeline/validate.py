@@ -49,6 +49,7 @@ class Signal:
     funding_stage: str | None
     work_mode: str | None
     deal_type: str | None
+    site_event: str | None
     materiality: str
     confidence: str
     source_url: str
@@ -560,6 +561,13 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # inferring a headcount.
     deal_type = vocab.normalize_deal_type(classified.get("deal_type", "") or "")
 
+    # What the employer did with a place of work, when the source says so.
+    # Treated exactly like deal_type and for the same reason: it is an event
+    # type, not a headcount claim, so it never touches signal_direction. An
+    # opening with no stated roles stays 'neutral' and the page still says
+    # "headcount not stated", which is the true thing to say about it.
+    site_event = vocab.normalize_site_event(classified.get("site_event", "") or "")
+
     # Employer identity, and the join key to the sibling layoff tracker.
     # company_key is a normalised name and collapses whenever two employers
     # share one; cik and ticker do not.
@@ -601,6 +609,7 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         funding_stage=funding_stage,
         work_mode=work_mode,
         deal_type=deal_type,
+        site_event=site_event,
         materiality=compute_materiality(
             headcount=headcount,
             funding_usd=funding_usd,

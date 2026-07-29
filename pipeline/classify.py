@@ -49,7 +49,7 @@ MINI_SYSTEM = (
 SCHEMA_HINT = """Return JSON with exactly these keys:
 {"is_talent_signal": true|false,
  "company": "the employer NAMED in the text, exactly as the text names it, or empty. A description is not a name: '$7B firm', 'a major bank', 'the company', 'an undisclosed buyer' all mean the employer was not named, so return empty. Numbers and symbols in a real name are fine (3M, 7-Eleven, 23andMe).",
- "pillar": "company_development|leadership_change|rewards_comp|how_we_work",
+ "pillar": "exactly one of these four, and they are defined so you do not have to guess: company_development = money and corporate events (funding raised, investment, acquisitions, mergers, results, entering a market); leadership_change = an appointment, departure, promotion or board change; rewards_comp = pay, equity, bonuses, benefits, pay transparency; how_we_work = WHERE and HOW the work happens — a company opening, closing, expanding or relocating an office, hub, plant, campus or site, AND remote, hybrid, return-to-office, four-day-week or flexible-working policy. A site opening is how_we_work even when the story is mostly about the money spent on it; the funding of a company is company_development, the building it opens is how_we_work.",
  "signal_direction": "hiring|displacement|neutral|comp_shift",
  "city": "city named IN THE TEXT where the roles are, or empty. Do not guess.",
  "country": "country IN THE TEXT. The dateline, the publisher's own country, and a nationality in the story all count ('Egyptian startup' means Egypt; a story in the Post and Courier is the United States). Empty only if nothing in the text carries a country.",
@@ -67,6 +67,7 @@ SCHEMA_HINT = """Return JSON with exactly these keys:
  "ticker": "the stock ticker ONLY if the text prints it (e.g. 'NASDAQ: AAPL' means AAPL). Empty otherwise. Never recall it from memory.",
  "work_mode": "where the work happens, ONLY if the text says: remote, hybrid, onsite, rto_mandate (staff ordered back to the office), flexible. Empty otherwise.",
  "deal_type": "the corporate event, ONLY if the text describes one, and ALWAYS from the point of view of the company you named above: acquisition (that company is BUYING another), acquired (that company is BEING bought), merger (a merger of equals, or the text calls it a merger), divestiture (it is selling a unit, spinning one off, or carving one out), joint_venture, ipo (it is going public). Empty when the text describes no deal. The DIRECTION is the whole point, because the buyer and the bought company mean opposite things to a recruiter. Worked examples: 'Acme acquires Beta Systems' -> company Acme, deal_type acquisition; 'Beta Systems to be acquired by Acme' -> company Beta Systems, deal_type acquired. A funding round is NOT a deal_type. A deal on its own says NOTHING about headcount, so it never changes signal_direction.",
+ "site_event": "what the employer did with a PLACE OF WORK, ONLY if the text says so: opened (a site is now open), closed (a site is closing or has closed), expanded (an existing site is getting bigger), relocated (a site is moving), announced (a site is planned, proposed or under construction but not open yet). Empty when the text describes no site event. 'To open in 2028' is announced, not opened. This is an event type and NOT a headcount claim: it never changes signal_direction, and a site opening with no stated roles is still 'neutral'.",
  "employer_type": "what kind of organisation the employer is, from your own knowledge of the company: public, private, startup, government, nonprofit, education. This is recorded as background about the employer, never as something the article claimed, so answer whenever you know the company. Empty only if you do not.",
  "headline": "the factual headline, unembellished",
  "summary": "1-2 sentences restating ONLY what the source says",
@@ -78,7 +79,13 @@ Set is_talent_signal true for any of these at a NAMED EMPLOYER:
  - hiring, headcount or workforce change
  - a leadership or board appointment or departure
  - a pay, equity or benefits action
- - a location decision: new office, hub, capability centre, RTO policy
+ - a location decision: opening, closing, expanding or relocating an office,
+   hub, capability centre, plant, campus or site. These are how_we_work, and
+   they are a signal in their own right: a site decision is public months
+   before the job adverts are, which is why it counts even when the source
+   states no headcount at all.
+ - a work-policy change: return to office, remote, hybrid, four-day week,
+   flexible working. Also how_we_work.
  - FUNDING: a round raised, investment received, or capital raised. Funding is
    company_development.
 
@@ -94,6 +101,8 @@ worse than no badge.
  - "displacement" ONLY when the source says roles are being cut. One executive
    leaving, retiring or being replaced is NOT displacement: it is one person in
    a planned succession, so it is "neutral".
+   A site CLOSING is not displacement either unless the source states that
+   roles go with it. Plenty of closures are consolidations into another site.
  - "comp_shift" for a pay, equity or benefits action.
  - "neutral" for everything else, including funding with no stated hiring, and
    leadership appointments and departures. Most rows are legitimately neutral;
@@ -170,8 +179,11 @@ class ClassifyError(RuntimeError):
 GATE_SYSTEM = (
     "You decide whether a news item is a talent-market signal about ONE NAMED "
     "employer: hiring or headcount change, a leadership or board appointment "
-    "or departure, a pay, equity or benefits action, an office, hub, location "
-    "or remote-work decision, or a funding round raised. Answer NO for items "
+    "or departure, a pay, equity or benefits action, a decision about a place "
+    "of work (opening, closing, expanding or relocating an office, hub, plant, "
+    "campus or site), a remote, hybrid, return-to-office or four-day-week "
+    "policy, or a funding round raised. A site decision counts even when the "
+    "item states no headcount. Answer NO for items "
     "with no named employer, market roundups, opinion pieces, single job "
     "adverts, and government programmes. Answer NO when the STORY IS ABOUT "
     "layoffs, redundancies, job cuts or dismissals in any language: a "

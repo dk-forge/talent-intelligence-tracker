@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.41.1
+ * Version: 1.42.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.41.1');
+define('TIT_VERSION', '1.42.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -176,7 +176,7 @@ function tit_maybe_upgrade() {
  */
 function tit_required_columns() {
     return array('cik', 'employer_type', 'funding_amount_usd', 'funding_stage',
-                 'deal_type', 'materiality');
+                 'deal_type', 'site_event', 'materiality');
 }
 
 /**

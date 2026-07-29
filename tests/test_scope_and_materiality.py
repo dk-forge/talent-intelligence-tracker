@@ -14,6 +14,7 @@ unittest rather than pytest on purpose: pytest is not installed on the machine
 that runs these, so a pytest-only file is a file that never runs.
 """
 
+import re
 import sqlite3
 import sys
 import tempfile
@@ -24,6 +25,7 @@ from pathlib import Path
 sys.modules.setdefault("requests", types.ModuleType("requests"))
 
 from pipeline import prefilter, publish, schema, validate, vocab  # noqa: E402
+from tests import phpsource  # noqa: E402
 
 
 def raw(**overrides):
@@ -350,11 +352,80 @@ class DealType(unittest.TestCase):
         self.assertEqual(set(vocab.DEAL_TYPE_LABELS), set(vocab.DEAL_TYPES))
 
 
+class SiteEvent(unittest.TestCase):
+    """A place of work opening or closing is the earliest geographic hiring
+    signal there is, and it is not a headcount claim. Both halves matter."""
+
+    def test_an_opening_is_recorded_without_becoming_hiring(self):
+        text = "Siemens opens automation factory in Cairo"
+        signal = build(text=text, company="Siemens", site_event="opened",
+                       signal_direction="neutral", city="", country="Egypt")
+        self.assertEqual(signal.site_event, "opened")
+        self.assertEqual(signal.signal_direction, "neutral")
+        self.assertIsNone(signal.headcount)
+
+    def test_a_closure_is_recorded_without_becoming_displacement(self):
+        """Plenty of closures are a consolidation into another site. The source
+        has to say roles are going before the row does."""
+        text = "Acme Systems closes its Cork office and moves the work to Dublin"
+        signal = build(text=text, company="Acme Systems", site_event="closed",
+                       signal_direction="neutral", city="", country="Ireland")
+        self.assertEqual(signal.site_event, "closed")
+        self.assertEqual(signal.signal_direction, "neutral")
+
+    def test_a_planned_site_is_not_an_open_one(self):
+        """"Announced" is not a softer word for "opened": a plant promised for
+        2028 and a building open this morning are different answers to the
+        question the page is for."""
+        signal = build(text="Electra to build a manufacturing plant in Ohio",
+                       company="Electra", site_event="to build",
+                       signal_direction="neutral", city="", country="United States")
+        self.assertEqual(signal.site_event, "announced")
+
+    def test_a_site_event_carries_the_city_the_source_named(self):
+        signal = build(text="Sixth Street opens an office in Dublin",
+                       company="Sixth Street", site_event="opened",
+                       signal_direction="neutral", city="Dublin")
+        self.assertEqual(signal.site_event, "opened")
+        self.assertEqual(signal.city, "Dublin")
+        self.assertEqual(signal.country, "IE")
+
+    def test_a_story_with_no_site_event_gets_none(self):
+        signal = build(text="Stripe appoints a new chief financial officer",
+                       company="Stripe", pillar="leadership_change",
+                       signal_direction="neutral", city="")
+        self.assertIsNone(signal.site_event)
+
+    def test_every_site_event_normalises_to_itself(self):
+        for value in vocab.SITE_EVENTS:
+            self.assertEqual(vocab.normalize_site_event(value), value)
+
+    def test_unknown_wording_is_not_invented(self):
+        for text in ("", "a new chapter", "refurbished", "visited"):
+            with self.subTest(text=text):
+                self.assertIsNone(vocab.normalize_site_event(text))
+
+    def test_every_site_event_has_a_label(self):
+        self.assertEqual(set(vocab.SITE_EVENT_LABELS), set(vocab.SITE_EVENTS))
+
+    def test_the_wordpress_filter_offers_exactly_these_values(self):
+        """A value the pipeline stores and the API refuses is a filter that
+        silently returns nothing."""
+        api = (Path(__file__).resolve().parent.parent / "wordpress-plugin"
+               / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
+        block = phpsource.balanced_block(
+            api[api.index("function tit_allowed_site_events"):], "array(",
+            what="tit_allowed_site_events",
+        )
+        offered = set(re.findall(r"'([a-z_]+)'", block))
+        self.assertEqual(offered, set(vocab.SITE_EVENTS))
+
+
 class ColumnsTravel(unittest.TestCase):
     """A column missing from any one of these three places is a column the site
     can never show, however well it is populated locally."""
 
-    NEW_COLUMNS = ("materiality", "deal_type")
+    NEW_COLUMNS = ("materiality", "deal_type", "site_event")
 
     def test_the_dataclass_carries_them(self):
         for column in self.NEW_COLUMNS:

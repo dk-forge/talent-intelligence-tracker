@@ -1080,3 +1080,73 @@ def normalize_deal_type(value: str):
     if flat in DEAL_TYPES:
         return flat
     return _DEAL_TYPE_ALIASES.get(k)
+
+
+# --- Site events -----------------------------------------------------------
+#
+# What an employer did with a PLACE of work: opened one, closed one, made an
+# existing one bigger, moved one. This is the earliest geographic hiring signal
+# there is — a site decision lands months before the job adverts do — and until
+# it had a column of its own it was invisible unless the story happened to
+# state a headcount.
+#
+# `announced` is the honest fifth value and is not a synonym for `opened`. A
+# company saying it WILL build a plant in 2028 and a company cutting a ribbon
+# this morning mean different things to somebody deciding where to apply, and
+# collapsing them would put "three employers opened sites here this quarter"
+# on a page where none of the three has opened anything yet.
+#
+# It says NOTHING about headcount. `opened` never implies signal_direction
+# 'hiring' and `closed` never implies 'displacement': the direction still comes
+# from what the source states, and "headcount not stated" stays the common and
+# correct answer. That separation is the whole reason this is its own column
+# rather than a direction value.
+SITE_EVENTS = ("opened", "closed", "expanded", "relocated", "announced")
+
+SITE_EVENT_LABELS = {
+    "opened": "Site opened",
+    "closed": "Site closed",
+    "expanded": "Site expanded",
+    "relocated": "Site relocated",
+    "announced": "Site announced",
+}
+
+_SITE_EVENT_ALIASES = {
+    "open": "opened", "opens": "opened", "opening": "opened",
+    "new office": "opened", "new site": "opened", "launched": "opened",
+    "launch": "opened", "inaugurated": "opened", "established": "opened",
+    "establishes": "opened", "set up": "opened", "opened site": "opened",
+    "close": "closed", "closes": "closed", "closing": "closed",
+    "shut": "closed", "shuts": "closed", "shutdown": "closed",
+    "shutting": "closed", "shuttered": "closed", "wind down": "closed",
+    "winding down": "closed", "exit": "closed", "exits": "closed",
+    "expand": "expanded", "expands": "expanded", "expanding": "expanded",
+    "expansion": "expanded", "enlarged": "expanded", "extended": "expanded",
+    "upgrade": "expanded", "upgraded": "expanded",
+    "relocate": "relocated", "relocates": "relocated",
+    "relocating": "relocated", "relocation": "relocated",
+    "move": "relocated", "moves": "relocated", "moved": "relocated",
+    "moving": "relocated",
+    "announce": "announced", "announces": "announced",
+    "planned": "announced", "plans": "announced", "proposed": "announced",
+    "to build": "announced", "to open": "announced", "will open": "announced",
+    "under construction": "announced", "breaking ground": "announced",
+}
+
+
+def normalize_site_event(value: str):
+    """Closed vocabulary, or None.
+
+    Deliberately not derived from the headline in Python. "Acme to close its
+    Cork plant" and "Acme closes its Cork plant" differ by one word and by a
+    year, and a regex reading a headline cannot tell a decision from an event —
+    which is the same reason normalize_deal_type refuses to guess a direction.
+    """
+    k = _key(value).replace("_", " ").replace("-", " ")
+    k = re.sub(r"\s+", " ", k).strip()
+    if not k:
+        return None
+    flat = k.replace(" ", "_")
+    if flat in SITE_EVENTS:
+        return flat
+    return _SITE_EVENT_ALIASES.get(k)

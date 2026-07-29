@@ -250,26 +250,209 @@ _EMPLOYMENT = re.compile(
     re.I | re.UNICODE,
 )
 
-# Site-establishment terms. A company opening a capability centre IS a hiring
-# event, even when the headline never says "jobs" — and this is precisely the
-# phrasing the standalone euphemism queries exist to surface. The first version
-# of this filter dropped every one of them, which would have made those queries
-# dead on arrival exactly as the sibling's did.
+# --- Site events: a company opening, closing or moving a place of work -----
 #
-# "GCC" is deliberately absent: it is also the Gulf Cooperation Council.
+# A company opening a site in a city is a geographic hiring signal that arrives
+# months before the job adverts do, and a closure is the same signal inverted.
+# Neither states a headcount, which is exactly why the first version of this
+# block only recognised a handful of English phrases: it was written to rescue
+# the euphemism queries ("capability centre"), not to see the event.
+#
+# Measured on 9,872 items pulled live from the wired publisher feeds in
+# data/sources_catalogue.csv (2026-07-29): of 28 hand-labelled corporate site
+# events in that sweep, the phrase list below this comment used to catch 7.
+# The misses were not exotic. They were ordinary newsroom wording:
+#
+#   "Siemens opens electrification, automation factory in Egypt"   (noun)
+#   "Why is Amazon opening a disaster relief hub near Edmonton?"   (verb form)
+#   "AstraZeneca India to set up genomic solutions centre"          (word gap)
+#   "Clínica Bíblica ... la apertura de su sede en Liberia"        (language)
+#   "Schnucks to shutter sole company-owned warehouse"             (closures)
+#
+# So the shape is a VERB, up to five intervening words, and a SITE NOUN, in
+# each language the feeds are read in. Anchoring to the noun is what keeps
+# "opens the door to" and "launches a platform" out; the intervening words are
+# what let the money and the adjectives sit where a sub-editor puts them.
+#
+# "GCC" is deliberately absent as a bare word: it is also the Gulf Cooperation
+# Council. So is a bare "data centre": it matched the entire AI-infrastructure
+# news cycle (power demand, loans, surveys, zoning votes) and was 23 of 67 hits
+# on its own. A data centre somebody is BUILDING still matches through the verb.
+
+_SITE_NOUN = (
+    r"offices?|hubs?|campus(?:es)?|plants?|factor(?:y|ies)|facilit(?:y|ies)|"
+    r"warehouses?|premises|branch(?:es)?|headquarters|hq|"
+    r"laborator(?:y|ies)|cent(?:re|er)s?|sites?|depots?|"
+    # Spanish, Portuguese
+    r"oficinas?|sedes?|plantas?|f[áa]bricas?|escrit[óo]rios?|filia(?:l|is|les)|"
+    r"sucursa(?:l|les)|centros?|almacenes?|"
+    # French
+    r"bureaux?|usines?|si[èe]ges?|entrep[ôo]ts?|"
+    # German, Dutch, Nordic, Czech, Turkish
+    r"standorte?n?|werke?s?|niederlassung(?:en)?|zentrale|"
+    r"kantoren?|vestiging(?:en)?|fabriek(?:en)?|"
+    r"kontore?r?|fabrikke?r?|"
+    r"pobo[čc]k\w*|z[áa]vod\w*|"
+    r"ofis\w*|fabrika\w*|tesis\w*|"
+    # Italian
+    r"uffici(?:o)?|stabiliment\w+"
+)
+
+# Every verb is `\b`-anchored where it is used. Unanchored, the Turkish "taşı"
+# matched inside the Indonesian "Investasi" and filed a Batam electricity story
+# as a site relocation.
+_SITE_OPEN_VERB = (
+    r"opens?|opened|opening|launch(?:es|ed|ing)?|"
+    r"sets? up|setting up|establish(?:es|ed|ing)?|"
+    r"builds?|building|built|inaugurat(?:es|ed|ing)?|"
+    r"break(?:s|ing)? ground|invests?|investing|adds?|adding|"
+    # Bare "expansion" is the original noise word (MLB, Medicaid, cattle herds,
+    # World of Warcraft) and stays out of the employment gate. Anchored to a
+    # site noun it is unambiguous, and an expansion IS one of the five site
+    # events: "expansion of its Dublin facility" is a place getting bigger.
+    r"expands?|expanding|expansions?|"
+    r"abre|abrir[áa]?|abren|inaugura\w*|apertura|invierte|"
+    r"ampl[íi]a|ampliaci[óo]n|erweitert|erweiterung|udvider|"
+    r"roz[šs][íi][řr]\w+|b[üu]y[üu]t\w+|"
+    r"ouvre|ouvrir|ouvertures?|implante|"
+    r"er[öo]ffnet|er[öo]ffnung|errichtet|"
+    r"apre|aprir[àe]|investe|"
+    r"opent|åbner|otev[řr]\w+|a[çc][ıi]yor|a[çc]t[ıi]|kuruyor"
+)
+_SITE_CLOSE_VERB = (
+    r"clos(?:es|ed|ing)|shut(?:s|ting)? down|shutters?|shuttering|"
+    r"winds? down|winding down|mothball\w*|"
+    r"cierra|cierre|clausura|"
+    r"ferme|fermeture|"
+    r"schlie[ßs]t|schlie[ßs]ung|"
+    r"chiude|chiusura|sluit|lukker|zav[íi]r\w+|kapat\w+"
+)
+_SITE_MOVE_VERB = (
+    r"relocat(?:es|ed|ing|ion)?|moves? (?:its|their)|"
+    r"traslada|se muda|d[ée]m[ée]nage|verlagert|verhuist|flytter|st[ěe]huje|ta[şs][ıi]"
+)
+
+_SITE_GAP = r"(?:[\w$€£₹¥.,'’\-]+\s+){0,5}?"
+# The noun-first "new <something> office" pattern has no verb to anchor it, so
+# it gets a shorter reach. At five words it swallowed "New Jersey law will let
+# data centers pay for home energy upgrades".
+_SITE_NEW_GAP = r"(?:[\w$€£₹¥.,'’\-]+\s+){0,3}?"
+
 _SITE_TERMS = (
-    r"capability cent(?:re|er)s?", r"cent(?:re|er)s? of excellence",
-    r"delivery cent(?:re|er)s?", r"shared services", r"tech(?:nology)? cent(?:re|er)s?",
-    r"engineering cent(?:re|er)s?", r"r&d cent(?:re|er)s?", r"innovation cent(?:re|er)s?",
-    r"development cent(?:re|er)s?", r"opens? (?:a |its |new )?(?:office|hub|campus|site)",
-    r"sets? up (?:a |its |new )?(?:office|hub|centre|center)",
-    r"new (?:office|hub|campus|facility|plant|site)",
+    rf"\b(?:{_SITE_OPEN_VERB})\s+{_SITE_GAP}(?:{_SITE_NOUN})\b",
+    rf"\b(?:{_SITE_CLOSE_VERB})\s+{_SITE_GAP}(?:{_SITE_NOUN})\b",
+    rf"\b(?:{_SITE_MOVE_VERB})\s+{_SITE_GAP}(?:{_SITE_NOUN})\b",
+    # Noun-first phrasings, which a headline uses with no verb at all.
+    rf"\bnew\s+{_SITE_NEW_GAP}(?:{_SITE_NOUN})\b",
+    r"\bnue[vn]\w*\s+(?:[\w'’\-]+\s+){0,2}?(?:oficina|sede|planta|f[áa]brica|centro|sucursal|tienda)\w*",
+    r"\bnov[ao]\s+(?:[\w'’\-]+\s+){0,2}?(?:sede|f[áa]brica|escrit[óo]rio|filial|unidade)\w*",
+    r"\bnouve(?:au|lle)\s+(?:[\w'’\-]+\s+){0,2}?(?:bureau|site|usine|si[èe]ge|centre)\w*",
+    r"\bneue[rns]?\s+(?:[\w'’\-]+\s+){0,2}?(?:standort|werk|niederlassung|b[üu]ro|zentrum)\w*",
+    r"\bnuov[ao]\s+(?:[\w'’\-]+\s+){0,2}?(?:sede|stabilimento|ufficio)\w*",
+    # Site types that name the event on their own.
+    r"\bcapability cent(?:re|er)s?\b", r"\bcent(?:re|er)s? of excellence\b",
+    r"\bdelivery cent(?:re|er)s?\b", r"\bshared services\b",
+    r"\btech(?:nology)? cent(?:re|er)s?\b", r"\bengineering cent(?:re|er)s?\b",
+    r"\br&d cent(?:re|er)s?\b", r"\binnovation cent(?:re|er)s?\b",
+    r"\bdevelopment cent(?:re|er)s?\b",
+    r"\bdistribution cent(?:re|er)s?\b", r"\bfulfil?lment cent(?:re|er)s?\b",
     # Bare "GCC" stays out (Gulf Cooperation Council), but a verb in front of
     # it is unambiguous: in Indian business press "opens a new GCC" is a Global
     # Capability Centre, which is exactly the category we want.
     r"(?:new|opens?|open|launch(?:es|ing)?|sets? up|establish(?:es|ing)?)\s+(?:a\s+|its\s+|the\s+)?(?:new\s+)?gcc\b",
+    *_hebrew(r"משרד(?:ים)? חדש\w*", r"מרכז פיתוח", r"מפעל חדש", r"פותח\w* משרד"),
 )
-_SITE = re.compile(r"\b(?:" + "|".join(_SITE_TERMS) + r")\b", re.I)
+_SITE = re.compile(r"(?:" + "|".join(_SITE_TERMS) + r")", re.I | re.UNICODE)
+
+# The same words about square metres, loans and munitions rather than about an
+# employer putting people somewhere. Checked in a narrow window around the hit,
+# so an ordinary sentence elsewhere in the article cannot veto a real match.
+_SITE_FALSE_FRIENDS = (
+    r"(?:office|retail|industrial|commercial)\s+"
+    r"(?:space|supply|market|assets?|rents?|rentals?|vacanc\w+|portfolios?|prices?|stock|demand|leasing)",
+    r"shopping cent(?:re|er)", r"town cent(?:re|er)", r"city cent(?:re|er)",
+    r"cent(?:re|er) of (?:attention|the (?:pitch|park|storm|debate|controversy|row))",
+    r"opens? (?:the )?(?:door|doors|debate|way|possibility|window)",
+    r"centro de (?:atenci[óo]n|la pol[ée]mica)",
+    # In finance copy a "facility" is a loan far more often than a building.
+    r"(?:credit|loan|lending|financing|funding|liquidity|swap|repo|infrastructure)\s+facilit",
+    # A launched drone is not a launched site.
+    r"\b(?:drones?|missiles?|airstrikes?|warheads?)\b",
+)
+_SITE_FALSE = re.compile(r"(?:" + "|".join(_SITE_FALSE_FRIENDS) + r")", re.I)
+
+
+def site_event_term(text: str) -> str | None:
+    """The phrase that makes `text` a site event, or None.
+
+    Free, deterministic, and the only thing that decides whether the model is
+    ever asked about a story whose headline says nothing about people.
+    """
+    if not text:
+        return None
+    hit = _SITE.search(text)
+    if not hit:
+        return None
+    window = text[max(0, hit.start() - 30): hit.end() + 30]
+    if _SITE_FALSE.search(window):
+        return None
+    return hit.group(0)
+
+
+# --- How we work: the policy half of that pillar ---------------------------
+#
+# The four English phrases below already lived in _EMPLOYMENT_TERMS. What was
+# missing was the other 42 languages the feeds are read in, and the reasoning
+# is the German and Danish blocks' reasoning: a phrase that does not match is a
+# silent zero, indistinguishable from a quiet news week.
+#
+# Be honest about the size of this: the same 9,872-item sweep held THREE
+# work-policy headlines, and the existing English phrases already caught two of
+# them. So this block is insurance against a silent zero, not a fix for the
+# empty pillar — the empty pillar is a routing problem and is fixed in
+# classify.py, where the model is finally told what how_we_work means.
+#
+# Bare "teletrabajo" and bare "télétravail" are deliberately absent, for the
+# reason bare "investice" is absent from the Czech block: on the live feeds
+# they held an energy-consumption feature and a cross-border-commuting column.
+# The policy-shaped phrases below do not.
+_WORK_POLICY_TERMS = (
+    r"return to (?:the )?office", r"back[- ]to[- ]the[- ]office", r"\brto\b",
+    r"office attendance", r"days? (?:a|per) week in the office",
+    r"in[- ]office (?:requirement|mandate|polic\w+|days?)",
+    r"remote[- ]work(?:ing)? polic\w+", r"remote[- ]first",
+    r"work(?:ing)? from home", r"work[- ]from[- ]home", r"work from anywhere",
+    r"hybrid work(?:ing)?", r"hybrid model", r"hybrid polic\w+",
+    r"four[- ]day (?:working )?week", r"4[- ]day week",
+    r"compressed hours", r"flexible working", r"hot[- ]desking",
+    # Spanish, Portuguese
+    r"pol[íi]tica de teletrabajo", r"trabajo h[íi]brido",
+    r"vuelta a la oficina", r"regreso a la oficina", r"jornada de cuatro d[íi]as",
+    r"pol[íi]tica de teletrabalho", r"trabalho h[íi]brido",
+    r"volta ao escrit[óo]rio", r"semana de quatro dias",
+    # French
+    r"accord de t[ée]l[ée]travail", r"travail hybride", r"retour au bureau",
+    r"semaine de quatre jours",
+    # German, Dutch, Nordic
+    r"mobiles arbeiten", r"hybrides arbeiten", r"homeoffice[- ]regel\w+",
+    r"r[üu]ckkehr ins b[üu]ro", r"vier[- ]tage[- ]woche",
+    r"thuiswerkbeleid", r"hybride werken", r"vierdaagse werkweek",
+    r"hjemmearbejdspolitik", r"distansarbete", r"fyradagarsvecka",
+    r"fire[- ]dages arbejdsuge",
+    # Czech, Polish, Turkish, Italian
+    r"pr[áa]ce z domova", r"hybridn[íi] re[žz]im",
+    r"praca zdalna", r"praca hybrydowa",
+    r"uzaktan [çc]al[ıi][şs]ma polit\w+", r"hibrit [çc]al[ıi][şs]",
+    r"ofise d[öo]n[üu][şs]",
+    r"lavoro agile", r"smart working", r"rientro in ufficio", r"settimana corta",
+    *_hebrew(
+        r"עבודה מרחוק", r"עבודה היברידית", r"חזרה למשרד", r"שבוע עבודה מקוצר",
+        r"עבודה מהבית",
+    ),
+)
+_WORK_POLICY = re.compile(
+    r"(?:" + "|".join(_WORK_POLICY_TERMS) + r")", re.I | re.UNICODE
+)
 
 # Domains where "expansion", "hiring" and "roster" mean something else entirely.
 # Cheap to check, and they were most of the noise in the first live run.
@@ -430,6 +613,16 @@ _IN_SCOPE_SUBJECT_TERMS = (
     r"new jobs", r"add(?:s|ing)?\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff)",
     r"opens? (?:a |its |new )", r"new (?:office|hub|campus|plant|facility|site)",
     r"capability cent(?:re|er)",
+    # A site OPENING and a work-policy change are subjects this product owns,
+    # so a story that leads with one keeps its story even when it goes on to
+    # mention a past cut. Site CLOSURE verbs are deliberately NOT here: a
+    # closure that states job losses is the sibling's record, and listing
+    # "schließt Standort" as an in-scope subject would have kept "Enpal
+    # schließt Standort in Hamburg - rund 85 Mitarbeiter entlassen" on a page
+    # that promises it publishes no layoffs (live on the German feeds,
+    # 2026-07-29). Closures still reach us; they just do not win this race.
+    r"opens? (?:a |its |the |new )?(?:office|hub|campus|site|plant|factory|cent(?:re|er))",
+    r"return to (?:the )?office", r"hybrid work(?:ing)?", r"four[- ]day week",
     # Leadership
     r"appoint\w*", r"names? (?:a |its |new )?(?:ceo|chief|cfo|cto|coo|president)",
     r"steps? down", r"resign\w*", r"succeeds?", r"promot\w+",
@@ -563,8 +756,11 @@ def passes(text: str) -> tuple[bool, str]:
         hit = _OFF_TOPIC.search(text).group(0)
         return False, f"off-topic domain ({hit})"
 
-    if not (_EMPLOYMENT.search(text) or _SITE.search(text) or _CJK.search(text)):
-        return False, "no employment or site-opening term"
+    if not (_EMPLOYMENT.search(text)
+            or site_event_term(text)
+            or _WORK_POLICY.search(text)
+            or _CJK.search(text)):
+        return False, "no employment, site or work-policy term"
 
     # Checked AFTER the employment gate on purpose: a layoff story always
     # passes that gate (it is full of "jobs" and "employees"), so this is the

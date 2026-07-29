@@ -559,6 +559,12 @@ function tit_dashboard_shortcode() {
                     aria-label="Deal type, choose more than one if you like"></select>
             <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
           </label>
+          <label class="tit-field tit-field--stack" id="tit-field-site_event" hidden>
+            <span class="tit-field-l">Site Change</span>
+            <select id="tit-f-site_event" multiple size="5"
+                    aria-label="Site change, choose more than one if you like"></select>
+            <span class="tit-field-h"><?php echo esc_html($multi_note); ?></span>
+          </label>
           <label class="tit-field tit-field--stack">
             <span class="tit-field-l">Evidence</span>
             <select id="tit-f-confidence" aria-label="What the record is based on">

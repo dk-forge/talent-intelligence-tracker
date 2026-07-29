@@ -38,6 +38,7 @@
     funding_stage: document.getElementById('tit-f-funding_stage'),
     employer_type: document.getElementById('tit-f-employer_type'),
     work_mode: document.getElementById('tit-f-work_mode'),
+    site_event: document.getElementById('tit-f-site_event'),
     deal_type: document.getElementById('tit-f-deal_type'),
     country_basis: document.getElementById('tit-f-country_basis'),
     company: document.getElementById('tit-f-company'),
@@ -71,7 +72,7 @@
     pillar: 'Looking For', direction: 'Looking For', 'function': 'Team',
     industry: 'Industry', country: 'Where', state: 'Where', city: 'Where',
     stated_headcount: 'Headcount', employer_type: 'Employer Type',
-    work_mode: 'Work Setup', deal_type: 'Deal Type',
+    work_mode: 'Work Setup', deal_type: 'Deal Type', site_event: 'Site Change',
     confidence: 'Evidence', country_basis: 'Places', company: 'Employer',
     min_funding_usd: 'Amount Raised', funding_stage: 'Funding Stage',
     q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
@@ -92,6 +93,14 @@
   var DEAL_TYPE_LABEL = {
     acquisition: 'Acquisition', acquired: 'Acquired', merger: 'Merger',
     divestiture: 'Divestiture', joint_venture: 'Joint Venture', ipo: 'IPO'
+  };
+
+  // What an employer did with a place of work. "Announced" is its own value
+  // and not a softer word for "Opened": a plant promised for 2028 and a
+  // building open this morning are different answers to "who is here now".
+  var SITE_EVENT_LABEL = {
+    opened: 'Opened', closed: 'Closed', expanded: 'Expanded',
+    relocated: 'Relocated', announced: 'Announced'
   };
 
   // Round names as a reader says them. Mirrors tit_funding_stage_labels().
@@ -155,6 +164,7 @@
         fillFacetControl('employer_type', data.employer_types, EMPLOYER_TYPE_LABEL);
         fillFacetControl('work_mode', data.work_modes, WORK_MODE_LABEL);
         fillFacetControl('deal_type', data.deal_types, DEAL_TYPE_LABEL);
+        fillFacetControl('site_event', data.site_events, SITE_EVENT_LABEL);
         fillPlaces(data);
         syncMore();
       })
@@ -773,7 +783,7 @@
   // Selects whose options are fetched rather than rendered by the server.
   var FACET_SELECT = {
     country: 1, state: 1, city: 1, funding_stage: 1,
-    employer_type: 1, work_mode: 1, deal_type: 1
+    employer_type: 1, work_mode: 1, deal_type: 1, site_event: 1
   };
 
   // --- Filters that take several values at once -----------------------------
@@ -784,7 +794,7 @@
   // the Amount Raised bands already nest.
   var MULTI = {
     'function': 1, industry: 1, employer_type: 1,
-    funding_stage: 1, work_mode: 1, deal_type: 1
+    funding_stage: 1, work_mode: 1, deal_type: 1, site_event: 1
   };
 
   function multiValues(el) {
@@ -991,7 +1001,7 @@
   // labelled "Headcount", beside the primary-row checkbox, with different
   // behaviour: one label, two controls, which is worse than either alone.
   var MORE_KEYS = ['function', 'industry', 'employer_type', 'work_mode',
-                   'min_funding_usd', 'funding_stage', 'deal_type',
+                   'min_funding_usd', 'funding_stage', 'deal_type', 'site_event',
                    'confidence', 'q', 'since', 'until'];
 
   // The NAMES of what is on, not a count of it. "More filters (1)" tells a

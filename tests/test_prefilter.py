@@ -160,9 +160,20 @@ def test_employment_words_match_on_boundaries_not_substrings():
 
 
 def test_a_company_expansion_with_no_people_is_filtered():
-    """'Expansion' alone is never enough — that was the whole problem."""
-    keep, _ = prefilter.passes("Acme announces expansion of its Dublin facility")
+    """'Expansion' ALONE is never enough. That was the whole problem, and the
+    nine headlines in REAL_NOISE are still the proof of it.
+
+    Anchored to a place of work it is a different word. "expansion of its
+    Dublin facility" is a site getting bigger, which is one of the five site
+    events and a geographic hiring signal months ahead of the job adverts, so
+    it now survives the free gate and the model is asked about it. That claims
+    nothing about headcount: the stored row still says the source stated none.
+    """
+    keep, _ = prefilter.passes("Acme announces expansion in the region")
     assert not keep
+
+    keep, _ = prefilter.passes("Acme announces expansion of its Dublin facility")
+    assert keep
 
 
 def test_the_same_expansion_with_a_headcount_survives():
@@ -344,3 +355,124 @@ def test_every_hebrew_alternative_survives_the_enclosing_word_boundary():
         probe = re.compile(r"\b(?:" + alternative + r")\b", re.I | re.UNICODE)
         assert probe.search("החברה השלימה גיוס וגם סבב סיד, אמר המנכ״ל שלה") or \
             probe.search("החברה השלימה סבב א' השבוע"), alternative
+
+
+# --- Site events -----------------------------------------------------------
+#
+# Every headline below is verbatim from a sweep of the wired publisher feeds in
+# data/sources_catalogue.csv on 2026-07-29: 9,872 items from 555 live feeds.
+# Of 28 hand-labelled corporate site events in that sweep the previous phrase
+# list caught 7. These are the misses, and they are not exotic — an ordinary
+# noun, an ordinary verb form, a normal number of words in between, or a
+# language nobody wrote the phrase in.
+
+REAL_SITE_EVENTS = [
+    # The noun was missing: "factory", "warehouse", "branch", "distribution".
+    "Siemens opens electrification, automation factory in Egypt to boost local manufacturing",
+    "Schnucks to shutter sole company-owned warehouse",
+    "Java opens 110th branch in Kiambu’s Thindigua",
+    "American Eagle Outfitters to open $41M North Carolina distribution center",
+    # The verb form was missing: "opening", "build", "set up", "add".
+    "Why is Amazon opening a disaster relief hub near Edmonton?",
+    "Electra to build $850M manufacturing plant in Ohio",
+    "AstraZeneca India to set up genomic solutions centre in Amaravati",
+    "Amazon to add supply chain facilities in New York, Texas",
+    # Words in between: money, adjectives, a place name.
+    "Meta to build $13 billion data centre in Alberta, largest outside the U.S.",
+    "Rocket Lab to open Alaska launch site under $266 million Space Force deal",
+    "Bryden pi to relocate to new Chaguanas distribution hub",
+    # The language was missing entirely.
+    "Clínica Bíblica inicia una nueva etapa en Guanacaste con la apertura de su sede en Liberia",
+    "Marshalls inaugurará nueva tienda en Arecibo y proyecta crear 60 empleos",
+    "Touba : vers un nouveau site industriel de 180 hectares, selon le DG de l’APROSI",
+    "Solar-Start-up: Enpal schließt Standort in Hamburg",
+]
+
+
+@pytest.mark.parametrize("headline", REAL_SITE_EVENTS)
+def test_a_real_site_event_survives_the_free_gate(headline):
+    assert prefilter.site_event_term(headline), headline
+    assert prefilter.passes(headline)[0], headline
+
+
+# Also verbatim from that sweep, and all of them were hits before the false
+# friends existed. The same words are ordinary in property copy, in finance
+# copy and in war reporting.
+SITE_FALSE_FRIENDS = [
+    "Singapore-based investors now the top non-local buyers of Hong Kong office assets",
+    "Metro Manila IT ecozone ban lift to expand PEZA office supply—Colliers",
+    "IFM Investors snaps up $300 million Melbourne shopping centre portfolio developed by Oreana",
+    "Saint Lucia to benefit from new Caribbean infrastructure facility",
+    "Saudi Arabia: Iraq-launched drones targeted oil facilities",
+]
+
+
+@pytest.mark.parametrize("headline", SITE_FALSE_FRIENDS)
+def test_the_same_words_about_square_metres_and_loans_are_not_a_site_event(headline):
+    assert prefilter.site_event_term(headline) is None, headline
+
+
+def test_a_bare_data_centre_is_not_a_site_event():
+    """It was, and it was 23 of 67 hits on its own: power demand, green loans,
+    industry surveys, a zoning vote. A data centre somebody is BUILDING still
+    matches, through the verb."""
+    for noise in [
+        "Data center demand is soaring, and off-grid gas won't fix the problem",
+        "AI Data Centres To Consume 26.3 GW Power By FY32: MoS Power",
+        "Mississauga to vote this week on one-year freeze on AI data centres",
+    ]:
+        assert prefilter.site_event_term(noise) is None, noise
+
+    assert prefilter.site_event_term(
+        "Meta to build $13 billion data centre in Alberta")
+
+
+def test_site_verbs_are_anchored_on_word_boundaries():
+    """Unanchored, the Turkish "taşı" (moves) matched inside the Indonesian
+    "Investasi" and filed a Batam electricity-supply story as a relocation.
+    Same class of bug as "RIF" inside "tariff"."""
+    assert prefilter.site_event_term(
+        "Batam Siapkan Listrik dan Air demi Tarik Investasi Data Center") is None
+
+
+def test_a_closure_that_states_job_losses_is_still_the_siblings():
+    """The boundary has to survive site events, or adding them quietly reopens
+    the thing the page promises it does not publish. Both headlines are live
+    German feed items about the same closure; only one of them says what
+    happened to the people.
+
+    This is why the site OPENING verbs went into _IN_SCOPE_SUBJECT and the
+    CLOSURE verbs did not: an in-scope subject appearing before the cut is what
+    keeps a story here, and "schließt Standort" appears before "entlassen".
+    """
+    with_cut = "Enpal schließt Standort in Hamburg – rund 85 Mitarbeiter entlassen"
+    assert prefilter.workforce_reduction_term(with_cut)
+    assert not prefilter.passes(with_cut)[0]
+
+    without_cut = "Solar-Start-up: Enpal schließt Standort in Hamburg"
+    assert prefilter.workforce_reduction_term(without_cut) is None
+    assert prefilter.passes(without_cut)[0]
+
+
+def test_an_opening_still_wins_a_race_against_an_old_cut():
+    """"Klarna hires 1,000 after AI-driven job cuts" was already ours. A site
+    opening is the same shape of story and had no subject term of its own."""
+    story = "Acme opens a Dublin hub two years after its redundancy programme"
+    assert prefilter.workforce_reduction_term(story) is None
+    assert prefilter.passes(story)[0]
+
+
+def test_a_work_policy_change_survives_in_more_than_english():
+    """Measured honestly: the 9,872-item sweep held THREE work-policy headlines
+    and the English phrases already caught two. This block is insurance against
+    a silent zero in the other 42 languages, which is exactly what the German
+    and Danish blocks are, and not a claim that it filled the pillar."""
+    for headline in [
+        "Dell orders staff back to the office five days a week",
+        "SAP kündigt Rückkehr ins Büro für alle Standorte an",
+        "Telefónica anuncia la vuelta a la oficina tres días por semana",
+        "Ferrovial confirme le retour au bureau pour ses équipes",
+        "Novo Nordisk indfører hjemmearbejdspolitik for hele koncernen",
+        "Seznam ruší hybridní režim, zaměstnanci se vrací",
+    ]:
+        assert prefilter.passes(headline)[0], headline

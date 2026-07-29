@@ -154,6 +154,17 @@ function tit_allowed_work_modes() {
     return array('remote', 'hybrid', 'onsite', 'rto_mandate', 'flexible');
 }
 
+/**
+ * What an employer did with a place of work, when a source says so.
+ *
+ * The earliest geographic hiring signal there is: a site decision is public
+ * months before the job adverts are. It carries no headcount claim of its own,
+ * which is why it is a filter and not a direction.
+ */
+function tit_allowed_site_events() {
+    return array('opened', 'closed', 'expanded', 'relocated', 'announced');
+}
+
 /** Corporate events, when a source names one. */
 function tit_allowed_deal_types() {
     return array('acquisition', 'acquired', 'merger', 'divestiture', 'joint_venture', 'ipo');
@@ -266,6 +277,12 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params = array_merge($params, $deal_types);
     }
 
+    $site_events = tit_multi_param($req, 'site_event', tit_allowed_site_events());
+    if ($site_events) {
+        $where[] = 'site_event IN (' . implode(', ', array_fill(0, count($site_events), '%s')) . ')';
+        $params = array_merge($params, $site_events);
+    }
+
     $state = strtoupper(sanitize_text_field($req->get_param('state') ?? ''));
     if (preg_match('/^[A-Z]{2}$/', $state)) {
         $where[] = 'state = %s';
@@ -368,7 +385,7 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // not keyed on means two different responses share a cache entry, and
         // whichever request arrives first decides what everyone else sees.
         'min_funding_usd', 'funding_stage', 'detail', 'stated_headcount',
-        'employer_type', 'work_mode', 'deal_type',
+        'employer_type', 'work_mode', 'deal_type', 'site_event',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -464,6 +481,7 @@ function tit_api_query(WP_REST_Request $req) {
                         pillar, signal_direction, city, region, country, hq_city, hq_country,
                         state, functions, industry, headcount, headcount_scope,
                         funding_amount, funding_amount_usd, funding_stage, work_mode,
+                        deal_type, site_event,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
                         materiality, confidence, source_url, source_name,
                         published_date, effective_date, captured_at
@@ -683,6 +701,7 @@ function tit_api_facets() {
         'employer_types' => $col('employer_type'),
         'work_modes'     => $col('work_mode'),
         'deal_types'     => $col('deal_type'),
+        'site_events'    => $col('site_event'),
         'industries' => tit_allowed_industries(),
         'functions' => tit_allowed_functions(),
         'pillars'   => tit_allowed_pillars(),

@@ -65,6 +65,7 @@ function tit_create_or_update_table() {
         funding_stage VARCHAR(24) NULL,
         work_mode VARCHAR(16) NULL,
         deal_type VARCHAR(16) NULL,
+        site_event VARCHAR(16) NULL,
         materiality VARCHAR(12) NULL,
         confidence VARCHAR(12) NOT NULL,
         source_url TEXT NOT NULL,
@@ -238,6 +239,9 @@ function tit_insert_signal(array $row, $flush = true) {
         // The corporate event, from the row employer's side of it: 'acquisition'
         // is buying, 'acquired' is being bought.
         'deal_type'          => !empty($row['deal_type']) ? (string) $row['deal_type'] : null,
+        // What the employer did with a place of work. An event type, never
+        // a headcount claim: 'opened' does not mean the row is hiring.
+        'site_event'         => !empty($row['site_event']) ? (string) $row['site_event'] : null,
         // Absent from an older pipeline's payload, and NULL is the right answer
         // when it is: "we have not judged this" is not "this is routine".
         'materiality'        => !empty($row['materiality']) ? (string) $row['materiality'] : null,
