@@ -24,7 +24,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: collect
+  # ONE lock for every workflow that writes data/talent_intel.db. These used to
+  # sit in a separate 'collect' group from the backfills' 'talent-collect', so a
+  # backfill and a collector could run at the same time - and both end with
+  # reset-to-origin then copy-our-file-back, so whichever pushed second silently
+  # destroyed the other's rows (found 2026-07-28).
+  group: talent-collect
 
 jobs:
   retract:
