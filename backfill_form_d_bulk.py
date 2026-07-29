@@ -44,7 +44,11 @@ def run_quarter(conn, quarter: str, *, dry_run: bool) -> dict:
             counts["skipped"] += 1
             continue
         try:
-            signal = validate.build_signal(bulk.as_classified(item), item, bulk.COLLECTOR)
+            # conn: without it identity.enrich() inside build_signal is a no-op,
+            # so the row lands with no ticker, type or HQ. See the note at the
+            # same call in run_collect.py.
+            signal = validate.build_signal(bulk.as_classified(item), item,
+                                           bulk.COLLECTOR, conn=conn)
         except validate.Rejected as exc:
             counts["rejected"] += 1
             print(f"  REJECT  {item['headline'][:66]}\n          {exc}")

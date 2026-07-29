@@ -318,7 +318,18 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             continue
 
         try:
-            signal = validate.build_signal(classified, item, collector)
+            # `conn` is not optional in practice, whatever the signature says.
+            # Without it the `identity.enrich()` call inside build_signal is a
+            # no-op by design — "until a caller passes conn this line does
+            # nothing at all" — and every collector and backfill in this repo
+            # omitted it, so the identity spine has never once run on the
+            # ingestion path, only in the offline backfill. That is how rows
+            # reach the site with no ticker, no employer type and, worst of
+            # all, no country in EITHER column, which makes them invisible to
+            # every geographic filter (the site unions the two as
+            # country_basis=any). Cache-only and network-free: this costs one
+            # indexed lookup and cannot fail a record.
+            signal = validate.build_signal(classified, item, collector, conn=conn)
         except validate.Rejected as exc:
             rejected += 1
             print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")

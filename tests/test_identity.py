@@ -667,15 +667,18 @@ class TheCacheTable(unittest.TestCase):
 class Backfill(unittest.TestCase):
 
     def _seed(self, conn, rows):
-        for i, (company, key) in enumerate(rows):
+        """rows are (company, company_key) or (company, company_key, country)."""
+        for i, row in enumerate(rows):
+            company, key = row[0], row[1]
+            country = row[2] if len(row) > 2 else None
             conn.execute(
                 """INSERT INTO signals (signal_id, headline, summary,
                      talent_readthrough, company, company_key, pillar,
                      signal_direction, confidence, source_url, source_name,
-                     captured_at, as_of, content_hash, collector)
+                     captured_at, as_of, content_hash, collector, country)
                    VALUES (?,'h','s','t',?,?,'leadership','neutral','reported',
-                           'https://e.com/a','E','2026-07-28','2026-07-28',?,'test')""",
-                (f"s{i}", company, key, f"hash{i}"))
+                           'https://e.com/a','E','2026-07-28','2026-07-28',?,'test',?)""",
+                (f"s{i}", company, key, f"hash{i}", country))
 
     def test_it_fills_rows_and_reports_what_it_filled(self):
         conn = _db()
@@ -754,6 +757,98 @@ class Backfill(unittest.TestCase):
             stats = identity.backfill(conn, limit=1, verbose=False)
         self.assertEqual(stats["employers"], 1)
         self.assertEqual(stats["resolved"], 1)
+
+    def test_an_employer_with_no_country_at_all_is_reached_first(self):
+        """Row count orders the queue, but geographic invisibility outranks it.
+
+        The site's country filter unions job location with employer HQ, so a
+        row holding neither is excluded from every geographic filter — not
+        merely less rich than its neighbours. Measured 2026-07-28: 152 such
+        rows, and every one of their employers sat at the tail of an `n DESC`
+        ordering, because an unplaced employer is usually a small one with a
+        single row. A `--limit` run could never reach them.
+        """
+        conn = _db()
+        self._seed(conn, [
+            ("Apple Inc.", "apple", "US"),     # placed, and the most rows
+            ("Apple Inc.", "apple", "US"),
+            ("Apple Inc.", "apple", "US"),
+            ("Greyparrot Ltd", "greyparrot", None),   # one row, and unplaced
+        ])
+        todo = identity._employers_needing_identity(conn, None)
+        self.assertEqual([k for k, _n in todo], ["greyparrot", "apple"])
+
+    def test_row_count_still_orders_within_the_unplaced_group(self):
+        """The original argument — an interrupted run has already fixed the
+        employers that appear most — is kept, one tier down."""
+        conn = _db()
+        self._seed(conn, [("One Ltd", "one"), ("Two Ltd", "two"),
+                          ("Two Ltd", "two")])
+        todo = identity._employers_needing_identity(conn, None)
+        self.assertEqual([k for k, _n in todo], ["two", "one"])
+
+
+def _call_text(source: str, index: int) -> str:
+    """The argument list of the call starting at `index`, brackets balanced.
+
+    Splitting on the first ")" is not enough: two of these callers wrap the
+    classified half in a call of its own, `build_signal(bulk.as_classified(item),
+    ...)`, and a naive split stops inside it and never sees the connection.
+    """
+    depth, start = 0, source.index("(", index)
+    for offset, char in enumerate(source[start:], start):
+        depth += (char == "(") - (char == ")")
+        if depth == 0:
+            return source[start:offset + 1]
+    return source[start:]
+
+
+class IngestionActuallyEnrichs(unittest.TestCase):
+    """`identity.enrich()` is wired into `build_signal` but only fires when the
+    caller passes `conn` — "until a caller passes conn this line does nothing at
+    all", as its own comment says. Every collector and backfill in this repo
+    omitted it, so the identity spine had never once run during ingestion: rows
+    reached the site with no ticker, no employer type and no HQ country, and a
+    row with no country in either column is invisible to every geographic
+    filter on the site. Exactly the shape of the raw_text bug that made a
+    source silently post zero, so it gets the same kind of guard.
+    """
+
+    CALLERS = ("run_collect.py", "backfill_sec_2026.py", "backfill_gdelt_2026.py",
+               "backfill_form_d_2026.py", "backfill_form_d_bulk.py")
+
+    def test_every_build_signal_caller_hands_over_the_connection(self):
+        root = Path(__file__).resolve().parent.parent
+        for name in self.CALLERS:
+            source = (root / name).read_text()
+            index = source.find("validate.build_signal(")
+            self.assertNotEqual(index, -1, f"{name} no longer calls build_signal")
+            self.assertIn("conn=conn", _call_text(source, index),
+                          f"{name} calls build_signal without conn, so identity "
+                          f"enrichment is a silent no-op on that path")
+
+    def test_the_cache_is_read_without_touching_the_network(self):
+        """Ingestion may not take a new failure mode or any latency for this."""
+        conn = _db()
+        signal = types.SimpleNamespace(company="Apple Inc.", ticker=None, cik=None,
+                                       hq_city=None, hq_country=None,
+                                       employer_type=None)
+        identity.cache_put(conn, identity.Identity(
+            company_key="apple", company="Apple Inc.", hq_country="US",
+            employer_type="public", resolved=True))
+
+        def explode(*_a, **_k):     # any network call at all is the failure
+            raise AssertionError("ingestion reached the network")
+
+        original = identity._get_json
+        identity._get_json = explode
+        try:
+            filled = identity.enrich(signal, conn)
+        finally:
+            identity._get_json = original
+
+        self.assertEqual(sorted(filled), ["employer_type", "hq_country"])
+        self.assertEqual(signal.hq_country, "US")
 
 
 if __name__ == "__main__":

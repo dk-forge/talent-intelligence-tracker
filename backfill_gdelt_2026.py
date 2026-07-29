@@ -154,7 +154,11 @@ def main() -> int:
                     store.mark_seen(conn, url, gdelt.COLLECTOR, "rejected")
                 continue
             try:
-                signal = validate.build_signal(classified, item, gdelt.COLLECTOR)
+                # conn: without it identity.enrich() inside build_signal is a
+                # no-op, so the row lands with no ticker, type or HQ. See
+                # the note at the same call in run_collect.py.
+                signal = validate.build_signal(classified, item, gdelt.COLLECTOR,
+                                               conn=conn)
             except validate.Rejected:
                 rejected += 1
                 if not args.dry_run:

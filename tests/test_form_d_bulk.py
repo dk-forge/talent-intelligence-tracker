@@ -290,6 +290,73 @@ def test_edgar_name_bookkeeping_does_not_reach_the_company_column():
         "BAE SYSTEMS PLC", "DataBahn, Inc.", "Maverick Bancshares, Inc."]
 
 
+def _foreign_row(acc, name, amount, code, description, city="Vancouver"):
+    """A row whose issuer address is outside the US. STATEORCOUNTRY carries
+    EDGAR's own two-character code (A1 = British Columbia), which is not a US
+    state code, and STATEORCOUNTRYDESCRIPTION carries the readable place."""
+    return (
+        f"{acc}\t021-1\t31-MAR-2026\t\tX0708\tD\tLIVE",
+        f"{acc}\tYES\t101\t1234567\t{name}\t1 Main St\t{city}\t{code}\t{description}",
+        f"{acc}\tOther Technology\t\tfalse\tfalse\tfalse\t\t{amount}",
+    )
+
+
+@pytest.mark.parametrize("description, expected", [
+    ("BRITISH COLUMBIA, CANADA", "CANADA"),
+    ("ONTARIO, CANADA", "CANADA"),
+    ("NEW SOUTH WALES, AUSTRALIA", "AUSTRALIA"),
+    ("ENGLAND, UNITED KINGDOM", "UNITED KINGDOM"),
+    ("ISRAEL", "ISRAEL"),               # already one segment; must not change
+    ("", ""),
+])
+def test_the_country_is_read_out_of_a_province_qualified_place(description, expected):
+    assert bulk._country_name(description) == expected
+
+
+def test_a_canadian_issuer_gets_canada_and_not_british_columbia_canada():
+    """The filing states the country and we were throwing it away.
+
+    STATEORCOUNTRYDESCRIPTION is written narrowest-first, so a foreign issuer's
+    reads "BRITISH COLUMBIA, CANADA". Passing the whole string on as the
+    country meant vocab.normalize_country saw a province and stored NULL, and
+    100 Canadian issuers landed with no country in EITHER column — invisible to
+    every geographic filter, with the answer printed in the filing.
+    """
+    items = bulk.parse_archive(_archive([
+        _foreign_row("0004-26-000001", "Group Eleven Resources Corp.", "1500000",
+                     "A1", "BRITISH COLUMBIA, CANADA"),
+    ]))
+    assert len(items) == 1
+    assert items[0]["country"] == "Canada"   # title-cased, like every place here
+    assert items[0]["state"] == ""      # a province is not the US state column
+    # And the filing's own wording survives in the text the classifier reads.
+    assert "British Columbia, Canada" in items[0]["raw_text"]
+
+    signal = validate.build_signal(bulk.as_classified(items[0]), items[0], bulk.COLLECTOR)
+    assert signal.country == "CA"
+
+
+def test_a_us_issuer_is_unchanged_and_keeps_its_state():
+    items = bulk.parse_archive(_archive([
+        _row("0004-26-000002", "Acme Robotics Inc.", "4500000")]))
+    assert items[0]["country"] == "United States"
+    assert items[0]["state"] == "CA"
+    signal = validate.build_signal(bulk.as_classified(items[0]), items[0], bulk.COLLECTOR)
+    assert signal.country == "US"
+
+
+def test_an_unrecognised_place_still_stores_nothing_rather_than_a_guess():
+    """The fix reads a field, it does not invent one. A tail the vocabulary
+    does not know must still come out NULL — a wrong country is worse than a
+    missing one."""
+    items = bulk.parse_archive(_archive([
+        _foreign_row("0004-26-000003", "Nowhere Mining Ltd", "2000000",
+                     "Z9", "SOMEWHERE, NOT A COUNTRY"),
+    ]))
+    signal = validate.build_signal(bulk.as_classified(items[0]), items[0], bulk.COLLECTOR)
+    assert signal.country is None
+
+
 def test_the_two_form_d_paths_share_one_definition_of_a_vehicle():
     """The search path and the bulk path reach the same filings. If they drift
     on what counts as an employer, one route publishes what the other drops."""

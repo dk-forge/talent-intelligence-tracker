@@ -903,12 +903,26 @@ def _employers_needing_identity(conn: sqlite3.Connection, limit: int | None,
     240 names each time while the rest are never reached. Asking who has no
     cache row is a question whose answer shrinks.
 
-    Ordered by how many rows the employer has, so an interrupted run has
-    already fixed the employers that appear most.
+    Employers with no geography at all come FIRST, and that ordering is the
+    point of the query rather than a nicety. The site's country filter unions
+    job location with employer HQ (`country_basis=any`), so a row holding
+    NEITHER is not merely less rich than its neighbours — it is invisible to
+    every geographic filter on the site, and geography is how this product
+    segments. A missing `hq_city` costs a row nothing it was ever going to
+    have; a missing country costs it every reader who arrived by place.
+    Measured 2026-07-28: 152 current rows carried neither, 116 of them funding
+    filings, and each of them sat at the very tail of a `n DESC` ordering
+    because an unplaced employer is usually a small one with a single row.
+    Row count still orders WITHIN each group, so the original argument — an
+    interrupted run has already fixed the employers that appear most — holds
+    exactly as before, one tier down.
     """
     unresolved_clause = "" if retry_negative else " AND i.company_key IS NULL"
     sql = f"""
-        SELECT s.company_key, MIN(s.company) AS company, COUNT(*) AS n
+        SELECT s.company_key, MIN(s.company) AS company, COUNT(*) AS n,
+               SUM(CASE WHEN (s.country IS NULL OR s.country = '')
+                         AND (s.hq_country IS NULL OR s.hq_country = '')
+                        THEN 1 ELSE 0 END) AS unplaced
           FROM signals s
      LEFT JOIN employer_identity i ON i.company_key = s.company_key
          WHERE s.is_current = 1
@@ -917,7 +931,7 @@ def _employers_needing_identity(conn: sqlite3.Connection, limit: int | None,
                 OR s.hq_city IS NULL OR s.employer_type IS NULL)
                {unresolved_clause}
       GROUP BY s.company_key
-      ORDER BY n DESC, s.company_key
+      ORDER BY (unplaced > 0) DESC, unplaced DESC, n DESC, s.company_key
     """
     rows = conn.execute(sql).fetchall()
     out = [(r[0], r[1] or r[0]) for r in rows]
