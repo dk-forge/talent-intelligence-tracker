@@ -262,7 +262,11 @@ function tit_corrections_render($entries) {
           <?php if (!empty($e['projection'])) : ?>
             <?php // Labelled as a projection while it is one. When the run
                   // lands, the same table is the measured result. ?>
-            <table class="tit-table tit-projection">
+            <?php // NOT .tit-table: below 860px that class turns a table into
+                  // cards and hides the header row, which would leave these as
+                  // two unlabelled numbers side by side. Three short columns
+                  // fit a 375px phone as an ordinary table. ?>
+            <table class="tit-projection">
               <caption><?php echo $scheduled
                 ? 'Projected effect, not yet applied'
                 : 'Measured effect'; ?></caption>

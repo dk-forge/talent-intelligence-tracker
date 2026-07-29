@@ -165,6 +165,15 @@ def test_the_badge_name_matches_what_the_page_actually_renders():
     assert f'"{label}"' in CORRECTIONS
 
 
+def test_the_projection_table_is_not_wired_to_the_card_layout():
+    """Below 860px `.tit-table` turns rows into cards and visually hides thead.
+    These cells are numbers whose entire meaning is which column they sit in,
+    so on a phone that would render as two unlabelled figures side by side."""
+    assert 'class="tit-projection"' in CORRECTIONS
+    assert 'class="tit-table tit-projection"' not in CORRECTIONS
+    assert ".tit-projection th, .tit-projection td" in CSS, "no standalone cell styling"
+
+
 def test_the_page_is_styled_and_constrained_like_the_others():
     assert ".tit-corrections" in CSS and ".tit-correction " in CSS
     layout = CSS[CSS.index(".tit-wrap.tit-sources"):]

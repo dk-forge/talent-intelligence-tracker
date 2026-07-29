@@ -202,16 +202,28 @@
    left border. The colour is always paired with the words "not yet applied"
    and with the heading, so it never carries the meaning on its own. */
 .tit-callout.tit-pending { border-left-color:var(--tit-cutting); }
-/* The before/after table. Auto width: four short rows set across 1100px read
-   as a spreadsheet nobody asked for. */
-.tit-projection { width:auto; min-width:0; margin:6px 0 18px; font-size:14.5px; }
+/* The before/after table. Styled standalone rather than reusing .tit-table:
+   below 860px that class turns rows into cards and visually hides thead, and
+   these cells are numbers whose whole meaning is which column they are in.
+   Auto width, because four short rows set across 1100px read as a spreadsheet
+   nobody asked for. */
+.tit-projection { width:auto; max-width:100%; min-width:0; margin:6px 0 20px;
+  border-collapse:collapse; font-size:14.5px; }
 .tit-projection caption { caption-side:top; text-align:left; padding:0 0 8px;
-  font-size:13px; letter-spacing:.02em; text-transform:uppercase;
-  color:var(--tit-mut); }
-.tit-projection thead th { font-size:13px; color:var(--tit-mut); font-weight:600; }
-.tit-projection th[scope="row"] { font-weight:600; color:var(--tit-fg);
-  text-align:left; white-space:nowrap; }
-.tit-projection td { font-variant-numeric:tabular-nums; }
+  font-size:12.5px; letter-spacing:.03em; text-transform:uppercase;
+  color:var(--tit-mut); font-weight:600; }
+.tit-projection th, .tit-projection td { padding:8px 16px 8px 0; text-align:left;
+  vertical-align:top; border-bottom:1px solid var(--tit-line); }
+.tit-projection tr:last-child th, .tit-projection tr:last-child td { border-bottom:0; }
+.tit-projection thead th { font-size:12.5px; color:var(--tit-mut); font-weight:600;
+  white-space:nowrap; }
+.tit-projection th[scope="row"] { font-weight:600; color:var(--tit-fg); }
+.tit-projection td { font-variant-numeric:tabular-nums; color:var(--tit-fg); }
+@media (max-width:560px){
+  /* The row label earns its own line before the two figures rather than
+     squeezing three columns into 320px. */
+  .tit-projection th, .tit-projection td { padding:6px 12px 6px 0; font-size:13.5px; }
+}
 
 /* ======================================================================
    Visual layer. The palette is the validated colourblind-safe set (blue /
