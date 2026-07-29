@@ -1,0 +1,137 @@
+name: collect national press
+
+# One collector reading every verified feed in data/sources_catalogue.csv.
+#
+# Separate from collect.yml on purpose. The news collectors there share a
+# search vocabulary and a locale rotation; this one has neither — the catalogue
+# IS its population — and its failure mode is different too: a feed going dark
+# is a country going dark, and that has to be visible on its own schedule
+# rather than averaged into a run that also fetched Google News.
+#
+# Runs at 09:00 and 21:00 UTC, deliberately offset from collect.yml's 06:00 and
+# 18:00 so the two never queue behind each other for the same database lock.
+#
+# COST. Fetching feeds is free. What costs money is the read-through, and that
+# is bounded by classify.READTHROUGH_CAP (60/run) regardless of how many feeds
+# the catalogue lists, with the two-stage gate throwing most candidates away for
+# about 1/40th of a full call first. Adding a country to the catalogue therefore
+# costs bandwidth, not budget. spend.py still runs first and is the hard stop.
+on:
+  schedule:
+    - cron: '0 9,21 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Show what would be stored, write nothing'
+        type: boolean
+        default: false
+      limit:
+        description: 'Cap candidates sent to the classifier (blank = the default cap)'
+        type: string
+        default: ''
+
+# The same lock every database writer uses. Two writers both end with
+# reset-to-origin then copy-our-file-back, so overlapping runs silently destroy
+# each other's rows.
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect-press:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      - name: Check the spend ceiling
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --enforce
+
+      - name: Collect
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python run_collect.py \
+            --source national_press \
+            ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
+            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
+
+      # The per-feed ledger, printed into the run log as well as committed. A
+      # publisher that went dark three weeks ago is invisible in an aggregate
+      # that still returns hundreds of items from the other hundred feeds.
+      - name: Per-feed health
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("data/national_press_health.json")
+          if not p.exists():
+              print("no ledger written — the collector did not reach its report step")
+              raise SystemExit(0)
+          d = json.loads(p.read_text())
+          print(f"{d['live']}/{d['feeds']} feeds live at {d['run_at']}")
+          for f in d["by_feed"]:
+              if f["status"] != "ok":
+                  print(f"  ::warning::{f['country']} — {f['name']} is "
+                        f"{f['status']} ({f['detail']}) {f['url']}")
+          PY
+
+      - name: Status
+        if: ${{ !inputs.dry_run }}
+        run: python ops_status.py || true
+
+      # Identical to collect.yml, and for the same reason: a run that collected
+      # for several minutes and then lost its push has the only copy of those
+      # records on the runner. `!cancelled()` rather than success(), because a
+      # run that failed AFTER publishing still holds the seen_urls that stop the
+      # next run paying for the same stories again.
+      - name: Commit the database
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db data/national_press_health.json data/spend_month.json 2>/dev/null \
+            || git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/national_press_health.json "$RUNNER_TEMP/press_health.json" 2>/dev/null || true
+
+          for attempt in 1 2 3 4 5; do
+            git commit -q -m "data: national press $(date -u +%Y-%m-%dT%H:%MZ)" || true
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — replaying onto the current main."
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            cp "$RUNNER_TEMP/press_health.json" data/national_press_health.json 2>/dev/null || true
+            git add data/talent_intel.db data/national_press_health.json 2>/dev/null \
+              || git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this data."
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the database after 5 attempts. \
+          This run's records exist only on the runner and are lost."
+          exit 1

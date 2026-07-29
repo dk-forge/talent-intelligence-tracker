@@ -64,6 +64,22 @@
   "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred."
  },
  {
+  "name": "36Kr",
+  "url": "https://36kr.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "China",
+  "rss": "https://36kr.com/feed",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "AI Layoff Tracker (sibling)",
   "url": "https://asktherecruiter.com/blog/ai-layoff-tracker/",
   "status": "candidate",
@@ -126,20 +142,6 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
-  "name": "ArcticStartup",
-  "url": "https://arcticstartup.com",
-  "status": "candidate",
-  "category": "Startup Ecosystem",
-  "signals": [
-   "Funding"
-  ],
-  "coverage": "Regional",
-  "country": "Finland",
-  "rss": "https://arcticstartup.com/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "Arizona Commerce Authority",
   "url": "https://www.azcommerce.com",
   "status": "candidate",
@@ -191,35 +193,6 @@
   "notes": ""
  },
  {
-  "name": "Austin Business Journal",
-  "url": "https://www.bizjournals.com/austin",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "HQ Relocation",
-   "Facility Expansion"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/austin/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
-  "name": "Automotive News",
-  "url": "https://www.autonews.com",
-  "status": "candidate",
-  "category": "Trade Publication",
-  "signals": [
-   "Facility Expansion"
-  ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://www.autonews.com/rss",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "Axios",
   "url": "https://www.axios.com",
   "status": "candidate",
@@ -235,19 +208,21 @@
   "notes": "Pro Rata is the most-read daily deal-flow newsletter in venture."
  },
  {
-  "name": "Becker's Hospital Review",
-  "url": "https://www.beckershospitalreview.com",
+  "name": "Bankier.pl",
+  "url": "https://www.bankier.pl",
   "status": "candidate",
-  "category": "Trade Publication",
+  "category": "Business News",
   "signals": [
-   "M&A",
-   "Executive Hire"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
   ],
   "coverage": "National",
-  "country": "United States",
-  "rss": "https://www.beckershospitalreview.com/?format=feed",
+  "country": "Poland",
+  "rss": "https://www.bankier.pl/rss/wiadomosci.xml",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "BetaKit",
@@ -263,6 +238,23 @@
   "rss": "https://betakit.com/feed/",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "BFM Business",
+  "url": "https://www.bfmtv.com/economie/",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.bfmtv.com/rss/economie/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Bloomberg",
@@ -281,19 +273,53 @@
   "notes": ""
  },
  {
-  "name": "BostInno",
-  "url": "https://www.bizjournals.com/boston/inno",
+  "name": "Bootstrapping.dk",
+  "url": "https://bootstrapping.dk",
   "status": "candidate",
   "category": "Startup Ecosystem",
   "signals": [
    "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Denmark",
+  "rss": "https://bootstrapping.dk/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Brazil Journal",
+  "url": "https://braziljournal.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
    "Hiring"
   ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/boston/inno/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://braziljournal.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Breakit",
+  "url": "https://www.breakit.se",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sweden",
+  "rss": "https://www.breakit.se/feed/artiklar",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Bureau of Economic Analysis",
@@ -325,9 +351,9 @@
   ],
   "coverage": "Global",
   "country": "United States",
-  "rss": "https://www.bls.gov/feed/bls_latest.rss",
+  "rss": "",
   "free": true,
-  "notes": "Official source URL verified on 2026-07-27."
+  "notes": "Official source URL verified on 2026-07-27. Feed retired 2026-07-29: https://www.bls.gov/feed/bls_latest.rss returned HTTP 403 bot block."
  },
  {
   "name": "Business France",
@@ -360,6 +386,23 @@
   "notes": ""
  },
  {
+  "name": "Business News Australia",
+  "url": "https://www.businessnewsaustralia.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.businessnewsaustralia.com/rss.xml",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Business Wire",
   "url": "https://www.businesswire.com/",
   "status": "candidate",
@@ -374,6 +417,23 @@
   "rss": "",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "BusinessDay Nigeria",
+  "url": "https://businessday.ng",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://businessday.ng/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "California Employment Development Department",
@@ -623,51 +683,6 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
-  "name": "Contxto",
-  "url": "https://contxto.com",
-  "status": "candidate",
-  "category": "Startup Ecosystem",
-  "signals": [
-   "Funding",
-   "Expansion"
-  ],
-  "coverage": "Regional",
-  "country": "Argentina",
-  "rss": "https://contxto.com/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
-  "name": "Crain's Chicago",
-  "url": "https://www.chicagobusiness.com",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Executive Hire",
-   "Office Opening"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.chicagobusiness.com/rss",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
-  "name": "Crain's New York",
-  "url": "https://www.crainsnewyork.com",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Executive Hire",
-   "Office Opening"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.crainsnewyork.com/rss",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "Crunchbase",
   "url": "https://www.crunchbase.com",
   "status": "candidate",
@@ -713,6 +728,39 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "CzechCrunch",
+  "url": "https://cc.cz",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Czechia",
+  "rss": "https://cc.cz/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Dagens industri",
+  "url": "https://www.di.se",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Sweden",
+  "rss": "https://www.di.se/rss",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Includes Di Digital, its technology desk."
  },
  {
   "name": "DailySocial",
@@ -904,6 +952,56 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "El Economista Mexico",
+  "url": "https://www.eleconomista.com.mx",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Mexico",
+  "rss": "https://www.eleconomista.com.mx/rss/ultimas-noticias",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "El Financiero",
+  "url": "https://www.elfinanciero.com.mx",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Mexico",
+  "rss": "https://www.elfinanciero.com.mx/rss",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "El Referente",
+  "url": "https://www.elreferente.es",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Spain",
+  "rss": "https://www.elreferente.es/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Empire State Development",
   "url": "https://esd.ny.gov",
   "status": "candidate",
@@ -954,18 +1052,20 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
-  "name": "ERE",
-  "url": "https://www.ere.net",
+  "name": "Entrackr",
+  "url": "https://entrackr.com",
   "status": "candidate",
-  "category": "Trade Publication",
+  "category": "Technology News",
   "signals": [
-   "Recruiting Campaigns"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
   ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://www.ere.net/feed/",
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://entrackr.com/rss",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Feed fetched and parsed 2026-07-29. Dedicated Indian funding beat; publishes weekly funding round-ups."
  },
  {
   "name": "EU-Startups",
@@ -980,6 +1080,55 @@
   "rss": "https://www.eu-startups.com/feed/",
   "free": true,
   "notes": ""
+ },
+ {
+  "name": "European Commission press corner",
+  "url": "https://ec.europa.eu/commission/presscorner",
+  "status": "candidate",
+  "category": "Government Programme",
+  "signals": [
+   "Government Grant",
+   "Programme Launch"
+  ],
+  "coverage": "Regional",
+  "country": "European Union",
+  "rss": "https://ec.europa.eu/commission/presscorner/api/rss?language=en",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. EU-level announcements reaching member states with no national outlet. Grants, not venture rounds."
+ },
+ {
+  "name": "Exame",
+  "url": "https://exame.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://exame.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Expansion",
+  "url": "https://expansion.mx",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Mexico",
+  "rss": "https://expansion.mx/rss",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Export-Import Bank of the United States",
@@ -1067,6 +1216,23 @@
   "rss": "https://www.fiercebiotech.com/rss/xml",
   "free": true,
   "notes": "Biotech hiring follows FDA milestones."
+ },
+ {
+  "name": "Financial Post",
+  "url": "https://financialpost.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://financialpost.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Financial Times",
@@ -1195,6 +1361,39 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "FrenchWeb",
+  "url": "https://www.frenchweb.fr",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.frenchweb.fr/feed",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Geektime",
+  "url": "https://www.geektime.co.il",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.geektime.co.il/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Hebrew-language Israeli tech daily. Dense funding coverage."
+ },
+ {
   "name": "GeekWire",
   "url": "https://www.geekwire.com/",
   "status": "candidate",
@@ -1243,6 +1442,56 @@
   "notes": ""
  },
  {
+  "name": "Globes",
+  "url": "https://en.globes.co.il",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=1725",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. English edition of Israel's business daily. Carries the funding and M&A beat that CTech covers without a feed."
+ },
+ {
+  "name": "Gruenderszene (feed)",
+  "url": "https://www.businessinsider.de/gruenderszene/",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.businessinsider.de/gruenderszene/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. The catalogue's Gruenderszene row has no feed of its own; this is the working one."
+ },
+ {
+  "name": "Handelsblatt",
+  "url": "https://www.handelsblatt.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.handelsblatt.com/contentexport/feed/unternehmen",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Health and Human Services",
   "url": "https://www.hhs.gov",
   "status": "candidate",
@@ -1258,20 +1507,6 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
- },
- {
-  "name": "Hypepotamus",
-  "url": "https://hypepotamus.com",
-  "status": "candidate",
-  "category": "Startup Ecosystem",
-  "signals": [
-   "Funding"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://hypepotamus.com/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "IDA Ireland",
@@ -1337,6 +1572,21 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Innovate UK",
+  "url": "https://www.gov.uk/government/organisations/innovate-uk",
+  "status": "candidate",
+  "category": "Government Programme",
+  "signals": [
+   "Government Grant",
+   "Programme Launch"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=innovate-uk",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Primary source: the UK innovation agency announcing its own funding. Open Government Licence. Grants, not venture rounds."
  },
  {
   "name": "Innovation, Science and Economic Development Canada",
@@ -1422,6 +1672,21 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Israel Innovation Authority",
+  "url": "https://innovationisrael.org.il/en/",
+  "status": "candidate",
+  "category": "Government Programme",
+  "signals": [
+   "Government Grant",
+   "Programme Launch"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://innovationisrael.org.il/en/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Primary source: the agency announcing its own grants and programmes. Grants, not venture rounds. Slow host."
+ },
+ {
   "name": "ITWeb",
   "url": "https://www.itweb.co.za",
   "status": "candidate",
@@ -1435,6 +1700,23 @@
   "rss": "https://www.itweb.co.za/rss",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "ITwiz",
+  "url": "https://itwiz.pl",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Poland",
+  "rss": "https://itwiz.pl/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Japan External Trade Organization",
@@ -1454,6 +1736,57 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Journal du Net",
+  "url": "https://www.journaldunet.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.journaldunet.com/rss/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Katadata",
+  "url": "https://katadata.co.id",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://katadata.co.id/rss",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "KED Global",
+  "url": "https://www.kedglobal.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "South Korea",
+  "rss": "https://www.kedglobal.com/rss/news.xml",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. English edition of the Korea Economic Daily."
+ },
+ {
   "name": "Kentucky Cabinet for Economic Development",
   "url": "https://ced.ky.gov",
   "status": "candidate",
@@ -1471,6 +1804,23 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "L'Usine Digitale",
+  "url": "https://www.usine-digitale.fr",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.usine-digitale.fr/rss/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "LA Business Journal",
   "url": "https://labusinessjournal.com",
   "status": "candidate",
@@ -1486,6 +1836,24 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "La French Tech",
+  "url": "https://lafrenchtech.gouv.fr",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Companies",
+   "Funding",
+   "Hiring",
+   "Partnership",
+   "Economic Development"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://lafrenchtech.gouv.fr/en/feed/",
+  "free": true,
+  "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
   "name": "Maddyness",
   "url": "https://www.maddyness.com",
   "status": "candidate",
@@ -1498,6 +1866,22 @@
   "rss": "https://www.maddyness.com/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "MamStartup",
+  "url": "https://mamstartup.pl",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Poland",
+  "rss": "https://mamstartup.pl/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Manufacturing Dive",
@@ -1529,6 +1913,120 @@
   "notes": ""
  },
  {
+  "name": "MaRS Discovery District",
+  "url": "https://www.marsdd.com",
+  "status": "candidate",
+  "category": "Innovation Hub",
+  "signals": [
+   "Funding",
+   "Programme Launch"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.marsdd.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Non-profit innovation hub publishing its own programme and portfolio announcements."
+ },
+ {
+  "name": "Meet Global",
+  "url": "https://meet.bnext.com.tw",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Taiwan",
+  "rss": "https://meet.bnext.com.tw/rss",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "MENAbytes",
+  "url": "https://www.menabytes.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "United Arab Emirates",
+  "rss": "https://www.menabytes.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. MENA plus Pakistan."
+ },
+ {
+  "name": "Mint",
+  "url": "https://www.livemint.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://www.livemint.com/rss/companies",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "MIT Technology Review Brasil",
+  "url": "https://mittechreview.com.br",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://mittechreview.com.br/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Moneycontrol",
+  "url": "https://www.moneycontrol.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://www.moneycontrol.com/rss/business.xml",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Moneyweb",
+  "url": "https://www.moneyweb.co.za",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://www.moneyweb.co.za/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Morningstar",
   "url": "https://www.morningstar.com",
   "status": "candidate",
@@ -1541,6 +2039,23 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "Nairametrics",
+  "url": "https://nairametrics.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://nairametrics.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "National Institute for Health and Care Excellence",
@@ -1558,6 +2073,23 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "NeoFeed",
+  "url": "https://neofeed.com.br",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Brazil",
+  "rss": "https://neofeed.com.br/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "New Jersey Economic Development Authority",
@@ -1612,6 +2144,38 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "NoCamels",
+  "url": "https://nocamels.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://nocamels.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. English-language Israeli innovation news."
+ },
+ {
+  "name": "Novobrief",
+  "url": "https://novobrief.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Spain",
+  "rss": "https://novobrief.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Ohio Department of Development",
   "url": "https://development.ohio.gov",
   "status": "candidate",
@@ -1629,21 +2193,6 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
-  "name": "Oxford University Innovation",
-  "url": "https://innovation.ox.ac.uk/news/",
-  "status": "candidate",
-  "category": "University Innovation",
-  "signals": [
-   "Spinouts",
-   "Funding"
-  ],
-  "coverage": "Local",
-  "country": "United Kingdom",
-  "rss": "https://innovation.ox.ac.uk/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "PitchBook",
   "url": "https://pitchbook.com",
   "status": "candidate",
@@ -1657,21 +2206,6 @@
   "rss": "",
   "free": false,
   "notes": ""
- },
- {
-  "name": "Pittsburgh Business Times",
-  "url": "https://www.bizjournals.com/pittsburgh",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Funding",
-   "Hiring"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/pittsburgh/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "PR Newswire",
@@ -1690,19 +2224,21 @@
   "notes": ""
  },
  {
-  "name": "Puget Sound Business Journal",
-  "url": "https://www.bizjournals.com/seattle",
+  "name": "Puls Biznesu",
+  "url": "https://www.pb.pl",
   "status": "candidate",
-  "category": "Business Journal",
+  "category": "Business News",
   "signals": [
-   "Hiring",
-   "Layoffs"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
   ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/seattle/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "coverage": "National",
+  "country": "Poland",
+  "rss": "https://www.pb.pl/rss/najnowsze.xml",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "PYMNTS",
@@ -1824,21 +2360,6 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
-  "name": "San Francisco Business Times",
-  "url": "https://www.bizjournals.com/sanfrancisco",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Office Opening",
-   "Executive Hire"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/sanfrancisco/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
   "name": "SBIR/STTR Awards",
   "url": "https://www.sbir.gov",
   "status": "candidate",
@@ -1849,9 +2370,9 @@
   ],
   "coverage": "National",
   "country": "United States",
-  "rss": "https://www.sbir.gov/rss",
+  "rss": "",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector. Feed retired 2026-07-29: https://www.sbir.gov/rss returned HTTP 404."
  },
  {
   "name": "SEC EDGAR 8-K (Items 1.01 / 2.01)",
@@ -1869,6 +2390,23 @@
   "notes": ""
  },
  {
+  "name": "ShiftDelete",
+  "url": "https://shiftdelete.net",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Turkey",
+  "rss": "https://shiftdelete.net/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Sifted",
   "url": "https://sifted.eu/",
   "status": "candidate",
@@ -1882,6 +2420,22 @@
   "rss": "https://sifted.eu/feed/",
   "free": true,
   "notes": "Best single source for European startups."
+ },
+ {
+  "name": "Silicon Canals",
+  "url": "https://siliconcanals.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Netherlands",
+  "rss": "https://siliconcanals.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Netherlands and Benelux."
  },
  {
   "name": "Silicon Hills News",
@@ -1900,19 +2454,21 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
-  "name": "Silicon Valley Business Journal",
-  "url": "https://www.bizjournals.com/sanjose",
+  "name": "Silicon Republic",
+  "url": "https://www.siliconrepublic.com",
   "status": "candidate",
-  "category": "Business Journal",
+  "category": "Technology News",
   "signals": [
-   "Layoffs",
-   "HQ Relocation"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
   ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/sanjose/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://www.siliconrepublic.com/feed",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "SiliconANGLE",
@@ -1930,18 +2486,21 @@
   "notes": ""
  },
  {
-  "name": "South Florida Business Journal",
-  "url": "https://www.bizjournals.com/southflorida",
+  "name": "SmartCompany",
+  "url": "https://www.smartcompany.com.au",
   "status": "candidate",
-  "category": "Business Journal",
+  "category": "Business News",
   "signals": [
-   "Office Opening"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
   ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/southflorida/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.smartcompany.com.au/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "SpaceNews",
@@ -1958,19 +2517,20 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
-  "name": "Staffing Industry Analysts",
-  "url": "https://www2.staffingindustry.com",
+  "name": "Startbase",
+  "url": "https://www.startbase.com",
   "status": "candidate",
-  "category": "Trade Publication",
+  "category": "Startup Ecosystem",
   "signals": [
-   "M&A",
-   "Labor Market Trends"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
   ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://www2.staffingindustry.com/rss/feed/SIA_Daily_News",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.startbase.com/topics/feed/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Startup Daily",
@@ -1986,6 +2546,21 @@
   "rss": "https://www.startupdaily.net/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Startup Estonia",
+  "url": "https://startupestonia.ee",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Programme Launch"
+  ],
+  "coverage": "National",
+  "country": "Estonia",
+  "rss": "https://startupestonia.ee/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. State-backed ecosystem body publishing its own announcements. Its dashboard blends commercial aggregator data; only the announcements are used."
  },
  {
   "name": "Startups.com.br",
@@ -2028,9 +2603,9 @@
   ],
   "coverage": "National",
   "country": "Canada",
-  "rss": "https://www150.statcan.gc.ca/n1/dai-quo/rss/dq-eq-eng.htm",
+  "rss": "",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector. Feed retired 2026-07-29: https://www150.statcan.gc.ca/n1/dai-quo/rss/dq-eq-eng.htm returned HTTP 404."
  },
  {
   "name": "StrictlyVC",
@@ -2062,6 +2637,39 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "t3n",
+  "url": "https://t3n.de",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://t3n.de/rss.xml",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Tech Collective SEA",
+  "url": "https://techcollectivesea.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Singapore",
+  "rss": "https://techcollectivesea.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "Tech in Asia",
   "url": "https://www.techinasia.com/",
   "status": "candidate",
@@ -2075,6 +2683,22 @@
   "rss": "https://www.techinasia.com/feed",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "Tech in Asia Indonesia",
+  "url": "https://id.techinasia.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://id.techinasia.com/feed",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Tech.eu",
@@ -2106,6 +2730,39 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "TechCentral",
+  "url": "https://techcentral.co.za",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://techcentral.co.za/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Techcouver",
+  "url": "https://techcouver.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Canada",
+  "rss": "https://techcouver.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. British Columbia."
+ },
+ {
   "name": "TechCrunch",
   "url": "https://techcrunch.com/",
   "status": "candidate",
@@ -2122,19 +2779,20 @@
   "notes": ""
  },
  {
-  "name": "Technical.ly",
-  "url": "https://technical.ly",
+  "name": "TechMoran",
+  "url": "https://techmoran.com",
   "status": "candidate",
-  "category": "Technology Community",
+  "category": "Technology News",
   "signals": [
-   "Hiring",
-   "Funding"
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
   ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://technical.ly/feed/",
+  "coverage": "Regional",
+  "country": "Kenya",
+  "rss": "https://techmoran.com/feed/",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Feed fetched and parsed 2026-07-29. East Africa: Kenya, Uganda, Tanzania, Rwanda."
  },
  {
   "name": "TechNode",
@@ -2167,6 +2825,39 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "THE BRIDGE",
+  "url": "https://thebridge.jp",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Japan",
+  "rss": "https://thebridge.jp/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "The Business Times Singapore",
+  "url": "https://www.businesstimes.com.sg",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Singapore",
+  "rss": "https://www.businesstimes.com.sg/rss/companies-markets",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
   "name": "The Economic Times",
   "url": "https://economictimes.indiatimes.com",
   "status": "candidate",
@@ -2178,9 +2869,93 @@
   ],
   "coverage": "National",
   "country": "India",
-  "rss": "https://economictimes.indiatimes.com/rss.cms",
+  "rss": "https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "The Hindu BusinessLine",
+  "url": "https://www.thehindubusinessline.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://www.thehindubusinessline.com/companies/feeder/default.rss",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "The Jerusalem Post",
+  "url": "https://www.jpost.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Front-page feed; JPost publishes no separate business or tech feed (business path 404s). Low signal density, but the free prefilter drops the rest at no cost."
+ },
+ {
+  "name": "The Recursive",
+  "url": "https://therecursive.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Bulgaria",
+  "rss": "https://www.therecursive.com/rss/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. South-East Europe: Bulgaria, Romania, Greece, Serbia, Croatia, Slovenia, North Macedonia, Albania."
+ },
+ {
+  "name": "The Straits Times Business",
+  "url": "https://www.straitstimes.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Singapore",
+  "rss": "https://www.straitstimes.com/news/business/rss.xml",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "The Times of Israel",
+  "url": "https://www.timesofisrael.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Hiring"
+  ],
+  "coverage": "National",
+  "country": "Israel",
+  "rss": "https://www.timesofisrael.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "The Wall Street Journal",
@@ -2228,20 +3003,6 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
- },
- {
-  "name": "Triangle Business Journal",
-  "url": "https://www.bizjournals.com/triangle",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Facility Expansion"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/triangle/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
   "name": "U.S. Department of Commerce",
@@ -2308,6 +3069,21 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
+  "name": "UK Research and Innovation",
+  "url": "https://www.ukri.org",
+  "status": "candidate",
+  "category": "Government Programme",
+  "signals": [
+   "Government Grant",
+   "Programme Launch"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.ukri.org/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Open Government Licence. Grants, not venture rounds."
+ },
+ {
   "name": "UKTN",
   "url": "https://www.uktech.news",
   "status": "candidate",
@@ -2319,21 +3095,6 @@
   "coverage": "National",
   "country": "United Kingdom",
   "rss": "https://www.uktech.news/feed",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
-  "name": "Unleash",
-  "url": "https://www.unleash.ai",
-  "status": "candidate",
-  "category": "Trade Publication",
-  "signals": [
-   "M&A",
-   "HR Tech"
-  ],
-  "coverage": "Global",
-  "country": "United Kingdom",
-  "rss": "https://www.unleash.ai/feed/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
@@ -2444,33 +3205,68 @@
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
  },
  {
-  "name": "Washington Business Journal",
-  "url": "https://www.bizjournals.com/washington",
+  "name": "Ventureburn",
+  "url": "https://ventureburn.com",
   "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Government Contract"
-  ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://www.bizjournals.com/washington/feed",
-  "free": false,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
- },
- {
-  "name": "WRAL TechWire",
-  "url": "https://wraltechwire.com",
-  "status": "candidate",
-  "category": "Technology Community",
+  "category": "Startup Ecosystem",
   "signals": [
    "Funding",
-   "Hiring Plans"
+   "Executive Hire",
+   "Company Expansion"
   ],
-  "coverage": "Local",
-  "country": "United States",
-  "rss": "https://wraltechwire.com/feed/",
+  "coverage": "National",
+  "country": "South Africa",
+  "rss": "https://ventureburn.com/feed/",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+  "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Vulcan Post",
+  "url": "https://vulcanpost.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Singapore",
+  "rss": "https://vulcanpost.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. Singapore and Malaysia."
+ },
+ {
+  "name": "Wamda",
+  "url": "https://www.wamda.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "United Arab Emirates",
+  "rss": "https://www.wamda.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29. MENA including Oman, Jordan, Egypt, Saudi Arabia."
+ },
+ {
+  "name": "Webrazzi",
+  "url": "https://webrazzi.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Turkey",
+  "rss": "https://webrazzi.com/feed/",
+  "free": true,
+  "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
   "name": "Yahoo Finance",

@@ -16,8 +16,8 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, gdelt, google_news, sec_edgar, sec_execcomp,
-                        sec_form_d, uk_paygap)
+from collectors import (ats_boards, gdelt, google_news, national_press,
+                        sec_edgar, sec_execcomp, sec_form_d, uk_paygap)
 from pipeline import classify, prefilter, publish, schema, store, validate
 
 # Registration. A collector that exposes `as_classified` derives its own
@@ -26,6 +26,7 @@ from pipeline import classify, prefilter, publish, schema, store, validate
 SOURCES = {
     "google_news": google_news,
     "gdelt": gdelt,
+    "national_press": national_press,
     "sec_edgar": sec_edgar,
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,
