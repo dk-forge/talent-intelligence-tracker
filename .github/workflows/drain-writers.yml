@@ -49,6 +49,7 @@ on:
       - collect-structured
       - correct-form-d
       - correct-sec-pillar
+      - correct-site-pillar
       - enrich
       - recall
       - retract

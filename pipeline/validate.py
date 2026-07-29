@@ -375,12 +375,55 @@ def compute_materiality(
 _PILLAR_BY_DOCUMENT = {"sec_edgar": "leadership_change"}
 
 
+# --- Pillars the HEADLINE decides ------------------------------------------
+#
+# The rule above keys on the document, because an Item 5.02 filing is an
+# officer change whatever it says. This one keys on the sentence, because a
+# news story has no document type to settle it: what makes "4Life Opens New
+# Office in Mexico" a location-strategy record is that the headline says so.
+#
+# how_we_work is already LABELLED "How we work & location strategy" and a site
+# opening is the strongest geographic hiring signal there is, which is the
+# argument commit 71d17c2 made when it added the site_event column. That commit
+# fixed the classifier. It could not fix the rows collected while SCHEMA_HINT
+# defined no pillar at all, and those split down the middle: of the office
+# openings the news collectors hold, some sit in how_we_work and the rest in
+# company_development, with the same article filed under both pillars in one
+# case (4Life, measured 2026-07-29).
+#
+# SCOPED TO THE COLLECTORS WHOSE HEADLINE IS A JOURNALIST'S SENTENCE. The
+# others write their own headline from a template, so their pillar is already
+# settled by their document and a phrase match there could only be an accident
+# of an employer's name. The asymmetry decides the direction of the guard: a
+# false positive is a forced wrong pillar on rows nobody re-reads, while a
+# false negative is the model deciding, which is the status quo. A new prose
+# collector belongs in this set; forgetting it costs nothing but the fix.
+SITE_HEADLINE_COLLECTORS = frozenset({
+    "google_news", "national_press", "gdelt", "news_backstop", "tripwire_chase",
+})
+
+
+def forced_site_event(collector: str, headline: str) -> str | None:
+    """'opened' where a news headline plainly says so, else None.
+
+    None means "the headline does not settle it", never "no site event": a
+    planned opening, an expansion and a closure all land here and stay the
+    model's to read, because it has the body and this has one sentence.
+    See prefilter.site_opening_term for what "plainly" is allowed to mean.
+    """
+    if collector not in SITE_HEADLINE_COLLECTORS:
+        return None
+    return "opened" if prefilter.site_opening_term(headline or "") else None
+
+
 def forced_pillar(collector: str, headline: str) -> str | None:
-    """The pillar this document has by construction, or None to let the model
-    decide. See _PILLAR_BY_DOCUMENT."""
+    """The pillar this document or headline has by construction, or None to let
+    the model decide. See _PILLAR_BY_DOCUMENT and SITE_HEADLINE_COLLECTORS."""
     pillar = _PILLAR_BY_DOCUMENT.get(collector)
     if pillar and _OFFICER_CHANGE.search(headline or ""):
         return pillar
+    if forced_site_event(collector, headline):
+        return "how_we_work"
     return None
 
 
@@ -566,7 +609,14 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # type, not a headcount claim, so it never touches signal_direction. An
     # opening with no stated roles stays 'neutral' and the page still says
     # "headcount not stated", which is the true thing to say about it.
-    site_event = vocab.normalize_site_event(classified.get("site_event", "") or "")
+    #
+    # The forced value FILLS A BLANK and never overrides the model, which is
+    # the opposite of how forced_pillar treats the same headline. Deliberate:
+    # the pillar rule fires only where the document or the sentence settles the
+    # question outright, while a model that named a site event read the body,
+    # and the body outranks a headline on "expanded or opened" every time.
+    site_event = (vocab.normalize_site_event(classified.get("site_event", "") or "")
+                  or forced_site_event(collector, headline))
 
     # Employer identity, and the join key to the sibling layoff tracker.
     # company_key is a normalised name and collapses whenever two employers

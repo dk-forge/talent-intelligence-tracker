@@ -399,6 +399,102 @@ def site_event_term(text: str) -> str | None:
     return hit.group(0)
 
 
+# --- The opening half of that vocabulary, on its own ------------------------
+#
+# site_event_term() answers "is this story about a place of work at all", which
+# is all a discovery gate needs before handing the text to a model. One caller
+# needs the narrower question "does this headline plainly say a site OPENED",
+# because it acts on the answer WITHOUT a model: validate.forced_site_event(),
+# and through it the correction pass over the rows collected before the pillar
+# and the column existed.
+#
+# Built from the same _SITE_NOUN, _SITE_GAP and _SITE_FALSE as everything
+# above, so the languages and the false friends cannot drift apart from the
+# gate's. Only the verb list is narrower, in three deliberate ways:
+#
+#   * BARE "open" IS GONE. It is an adjective inside an employer's own name and
+#     the live table already holds Open Text, Open Lending, OPEN DOORS
+#     PARTNERS, Open Air Hotels and The Open University. "Open Office Ltd
+#     raised $3M in a private placement" is a funding row, and under a bare
+#     verb it reads as a site opening. Every real headline inflects: "opens",
+#     "opened", "abre". Same class of bug as RIF inside tariff.
+#   * INVESTS / ADDS / BUILDS / EXPANDS ARE GONE. They are worth SHOWING a
+#     model — an expansion IS one of the five site events — but they are not
+#     the value `opened`, and choosing between opened, expanded and announced
+#     from a headline is exactly what vocab.normalize_site_event refuses to do
+#     in Python. Whatever this cannot settle stays the model's to settle.
+#   * A PLANNED OR FUTURE READING VETOES THE MATCH. "To open in 2028" is
+#     `announced`, not `opened`, and one word carries the entire difference —
+#     the distinction normalize_site_event names when it says a regex cannot
+#     tell a decision from an event. Where that word is present this returns
+#     None, so the model decides exactly as it does today. That is a smaller
+#     claim than the gate makes, and it is the only one that can be made
+#     without reading the body.
+_SITE_OPENED_VERB = (
+    r"opens|opened|opening|inaugurat(?:es|ed|ing)|"
+    # Inflected forms only, for the reason above.
+    r"abre|abren|abri[óo]|inaugura|inaugur[óo]|"
+    r"ouvre|ouvrent|er[öo]ffnet|apre|aprono|opent|åbner|"
+    r"otev[řr]el\w*|otev[řr][íi]r\w*|a[çc][ıi]yor|a[çc]t[ıi]"
+)
+
+_SITE_OPENED = re.compile(
+    rf"\b(?:{_SITE_OPENED_VERB})\s+{_SITE_GAP}(?:{_SITE_NOUN})\b",
+    re.I | re.UNICODE)
+
+# A headline naming a closure or a relocation as well is not a plain opening,
+# whichever half matched first. "Acme closes Cork plant and opens Dublin
+# office" is two events and a summary the model should write.
+_SITE_CLOSE = re.compile(
+    rf"\b(?:{_SITE_CLOSE_VERB})\s+{_SITE_GAP}(?:{_SITE_NOUN})\b", re.I | re.UNICODE)
+_SITE_MOVE = re.compile(
+    rf"\b(?:{_SITE_MOVE_VERB})\s+{_SITE_GAP}(?:{_SITE_NOUN})\b", re.I | re.UNICODE)
+
+# Anchored to the opening verb wherever it can be, so an unrelated infinitive
+# elsewhere in the headline is not a veto: "Infiligence Opens Richmond
+# Engineering Hub to Bring Enterprise AI Into Production" is an opening that
+# happens to contain the word "to".
+_SITE_PLANNED = re.compile(
+    r"\b(?:to|will|would|shall|may|could|is set|are set|due|slated|scheduled|"
+    r"expected|poised|plans?|planned|planning|proposes?|proposed|aims?|hopes?|"
+    # "announces the opening of its Cork office" is a plan; "opens its Cork
+    # office" is an event. The gerund is the ambiguous form and the announcing
+    # verb is what disambiguates it, so it has to be a marker like the rest.
+    r"announc\w+|unveils?|unveiled|reveals?|revealed|confirms?|confirmed)\b"
+    r"[^.;]{0,20}?\b(?:open|opens|opening|inaugurate)\b"
+    r"|\b(?:under construction|breaking ground|groundbreaking|to be opened)\b"
+    # A dated opening is a diary entry, whichever tense the verb is in.
+    r"|\b(?:next|later this|early next|late next)\s+(?:year|month|quarter|week|spring|summer|autumn|fall|winter)\b"
+    r"|\bin\s+(?:19|20)\d\d\b|\bby\s+(?:19|20)\d\d\b"
+    r"|\babrir[áa]n?\b|\bva a abrir\b|\bprev[ée] abrir\b|\bapertura prevista\b"
+    r"|\bouvrira\b|\bva ouvrir\b|\bdoit ouvrir\b"
+    r"|\bwird\b[^.;]{0,20}?\ber[öo]ffnen\b|\bsoll\b[^.;]{0,20}?\ber[öo]ffnen\b"
+    r"|\bgeplant\b|\baprir[àa]\b|\bprevede di aprire\b",
+    re.I | re.UNICODE)
+
+
+def site_opening_term(text: str) -> str | None:
+    """The phrase that makes `text` plainly say a site has OPENED, or None.
+
+    None means "not decidable from the headline", never "not a site event".
+    """
+    if not text:
+        return None
+    hit = _SITE_OPENED.search(text)
+    if not hit:
+        return None
+    window = text[max(0, hit.start() - 30): hit.end() + 30]
+    if _SITE_FALSE.search(window):
+        return None
+    # The tense veto reads the WHOLE headline, not the window: "Acme to open a
+    # new office in Cork next year" puts the marker far from the noun.
+    if _SITE_PLANNED.search(text):
+        return None
+    if _SITE_CLOSE.search(text) or _SITE_MOVE.search(text):
+        return None
+    return hit.group(0)
+
+
 # --- How we work: the policy half of that pillar ---------------------------
 #
 # The four English phrases below already lived in _EMPLOYMENT_TERMS. What was
