@@ -223,8 +223,19 @@ def main() -> int:
     print(f"\nBACKFILL {start}..{end}: stored={stored} "
           f"duplicate={duplicates} rejected={rejected} already-seen={skipped} "
           f"transient-errors={errors} windows={windows} empty-windows={fetch_failures}")
+    # Publishing is a SEPARATE gate from collecting, and a slice must survive
+    # it failing. This is not hypothetical: the first live sliced run
+    # (30481065108) collected its quarter and then died inside
+    # `publish.publish` because the publish guardrails held eight open
+    # findings — so the ticket was never emitted, the cursor never moved, and
+    # the chain stopped with nothing recorded. The rows are real either way.
+    blocked = ""
     if not args.dry_run:
-        publish.publish(conn)
+        try:
+            publish.publish(conn)
+        except publish.PublishError as exc:
+            blocked = f"publish refused: {exc}"
+            print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
 
     # The slice ticket, emitted BEFORE the fail-loud check below: a run that
     # did four weeks and then hit a broken search has still done four weeks,
@@ -238,8 +249,10 @@ def main() -> int:
             job, start.isoformat(), end.isoformat(), next_cursor=cursor,
             totals={"stored": stored, "duplicates": duplicates,
                     "rejected": rejected, "windows": windows},
-            stopped_early=stopped_early))
+            stopped_early=stopped_early, halt=blocked))
         print(f"  next cursor {cursor}")
+    if blocked:
+        return 1
 
     # FAIL LOUD. A historical month always contains 8-K 5.02 filings, so every
     # window coming back empty means the SEARCH is broken, not that the month

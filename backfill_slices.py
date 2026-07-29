@@ -322,6 +322,16 @@ def record(state: dict, ticket: dict, now: datetime | None = None) -> dict:
     if complete:
         job["state"] = "done"
         job["cursor"] = None
+    elif ticket.get("halt"):
+        # The slice's rows are kept and the cursor moves — they were collected
+        # and must not be collected again. What does NOT happen is the requeue:
+        # whatever stopped this slice stops the next one too, and a chain that
+        # requeues into a wall produces one red run per slice and buries the
+        # first, real one.
+        job["state"] = "halted"
+        problem = (f"{key} stopped the chain at {now_cursor}: {ticket['halt']}. "
+                   "The slice is recorded, nothing was queued behind it. Fix "
+                   "the cause, then re-queue the backfill; it resumes here.")
     elif job["slices"] >= MAX_SLICES_PER_JOB:
         job["state"] = "stalled"
         problem = (f"{key} has run {job['slices']} slices without finishing, over "
@@ -394,13 +404,22 @@ def open_slice(*, workflow: str, unit: str, start: str, end: str, slice_size: in
 
 
 def slice_ticket(job: dict, lo: str, hi: str, *, next_cursor: str | None = None,
-                 totals: dict | None = None, stopped_early: str = "") -> dict:
+                 totals: dict | None = None, stopped_early: str = "",
+                 halt: str = "") -> dict:
     """What a backfill script emits for `record` to apply after the reset.
 
     `next_cursor` defaults to the unit after `hi`, and is passed explicitly by
     a run that stopped mid-slice on its budget: the cursor then points at the
     first window it did NOT do, so the chain resumes exactly there and no day
     is collected twice or skipped.
+
+    `halt` is for a failure that the NEXT slice would hit too. The progress is
+    still recorded — rows were collected and must not be re-collected — but
+    nothing is queued behind it, because a chain that requeues into a wall
+    produces one red run per slice and buries the first, real one. The measured
+    case is `publish.publish` refusing while the publish guardrails hold open
+    findings: a human clears those, then re-queues the backfill and it picks up
+    from the cursor.
     """
     return {
         "job_id": job_id(job["workflow"], job["start"], job["end"]),
@@ -414,6 +433,7 @@ def slice_ticket(job: dict, lo: str, hi: str, *, next_cursor: str | None = None,
         "next_cursor": next_cursor or advance(hi, job["unit"]),
         "totals": totals or {},
         "stopped_early": stopped_early,
+        "halt": halt,
     }
 
 
@@ -433,10 +453,10 @@ def summary(state: dict | None = None) -> dict:
             "unit": job.get("unit"), "updated_at": job.get("updated_at"),
             "totals": job.get("totals", {}),
         })
-        if job.get("state") == "stalled":
+        if job.get("state") in ("stalled", "halted"):
             problems.append(
-                f"backfill {key} is stalled at {job.get('cursor')} after {done} "
-                "slice(s) — it will NOT requeue itself; read the last run")
+                f"backfill {key} is {job['state']} at {job.get('cursor')} after "
+                f"{done} slice(s) — it will NOT requeue itself; read the last run")
     return {"jobs": jobs, "problems": problems}
 
 
@@ -454,6 +474,8 @@ def _cmd_record(args) -> int:
     job = result["job"]
     if result["problem"]:
         print(f"::error::{result['problem']}")
+        # The state file is already saved above, so a halted or stalled chain
+        # still records the slice it did. Only the requeue is skipped.
         return 2
     if result["complete"]:
         print(f"{ticket['job_id']} COMPLETE after {job['slices']} slice(s): "

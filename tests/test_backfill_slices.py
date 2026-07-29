@@ -367,3 +367,89 @@ def test_a_real_backfill_run_slices_emits_and_the_chain_advances(tmp_path, monke
     job = bs.load(state_path)["jobs"][bs.job_id(sec.WORKFLOW, "2026-01-01", "2026-01-20")]
     assert job["cursor"] == "2026-01-08" and job["state"] == "running"
     assert json.loads(queue_path.read_text())["tickets"][0]["workflow"] == sec.WORKFLOW
+
+
+def test_a_publish_failure_records_the_slice_but_stops_the_chain(tmp_path):
+    """Measured on the first live sliced run (30481065108).
+
+    It collected its whole quarter and then died inside `publish.publish`,
+    because the publish guardrails were holding eight open findings. The ticket
+    was emitted after the publish call, so nothing was recorded, the cursor
+    never moved, and the chain stopped having written nothing down.
+
+    Collecting and publishing are separate gates. The slice's progress is kept
+    either way; what a halt withholds is the REQUEUE, because whatever blocked
+    this slice blocks the next one and a chain requeueing into a wall produces
+    one red run per slice and buries the first, real one.
+    """
+    state, job = _job()
+    ticket = bs.slice_ticket(job, "2026-01-01", "2026-01-04",
+                             totals={"stored": 9},
+                             halt="publish refused: 8 open guardrail findings")
+    result = bs.record(state, ticket)
+
+    assert result["advanced"] is True
+    assert result["job"]["cursor"] == "2026-01-05", "the collected slice was lost"
+    assert result["job"]["totals"]["stored"] == 9
+    assert result["job"]["state"] == "halted"
+    assert bs.next_inputs(result["job"]) is None, "a halted chain must not requeue"
+    assert "guardrail" in result["problem"]
+    assert bs.summary(state)["problems"], "a halted chain must reach ops_status"
+
+
+def test_a_halted_chain_resumes_where_it_stopped_once_a_human_clears_it(tmp_path):
+    state, job = _job()
+    bs.record(state, bs.slice_ticket(job, "2026-01-01", "2026-01-04",
+                                     halt="publish refused"))
+    _, window = bs.plan(state, workflow=GDELT, unit="days", start="2026-01-01",
+                        end="2026-01-10", slice_size=4)
+    assert window == ("2026-01-05", "2026-01-08")
+
+
+def test_the_cli_records_a_halt_and_goes_red_without_queueing(tmp_path):
+    import json
+
+    state, job = _job()
+    state_path = tmp_path / "backfill_state.json"
+    queue_path = tmp_path / "writer_queue.json"
+    ticket_path = tmp_path / "slice.json"
+    bs.save(state, state_path)
+    writer_queue.save(writer_queue.empty_queue(), queue_path)
+    bs.emit(ticket_path, bs.slice_ticket(job, "2026-01-01", "2026-01-04",
+                                         totals={"stored": 3},
+                                         halt="publish refused"))
+
+    assert bs.main(["--file", str(state_path), "record", "--from", str(ticket_path),
+                    "--queue", "--queue-file", str(queue_path)]) == 2
+    saved = json.loads(state_path.read_text())["jobs"][bs.job_id(
+        GDELT, "2026-01-01", "2026-01-10")]
+    assert saved["cursor"] == "2026-01-05", "a red run still records its slice"
+    assert json.loads(queue_path.read_text())["tickets"] == []
+
+
+def test_every_sliced_backfill_survives_publish_refusing(tmp_path):
+    """The property, asserted against the scripts rather than described.
+
+    `publish.publish` sits between the collecting and the ticket in all four,
+    and a bare call there throws the slice away.
+    """
+    import inspect
+
+    import backfill_form_d_2026
+    import backfill_form_d_bulk
+    import backfill_gdelt_2026
+    import backfill_sec_2026
+
+    for module in (backfill_gdelt_2026, backfill_sec_2026,
+                   backfill_form_d_2026, backfill_form_d_bulk):
+        source = inspect.getsource(module.main)
+        assert "except publish.PublishError" in source, (
+            f"{module.__name__} lets a publish failure discard the slice it "
+            "already collected")
+        assert source.index("except publish.PublishError") < \
+            source.index("backfill_slices.emit("), (
+                f"{module.__name__} emits its ticket before it knows whether "
+                "publishing worked")
+        assert "halt=" in source, (
+            f"{module.__name__} does not tell `record` to stop the chain, so it "
+            "requeues into the same wall one slice at a time")

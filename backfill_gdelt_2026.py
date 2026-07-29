@@ -269,8 +269,19 @@ def main() -> int:
     if stopped_early:
         print(f"  STOPPED EARLY      {stopped_early}")
 
+    # Publishing is a SEPARATE gate from collecting, and a slice must survive
+    # it failing. This is not hypothetical: the first live sliced run
+    # (30481065108) collected its quarter and then died inside
+    # `publish.publish` because the publish guardrails held eight open
+    # findings — so the ticket was never emitted, the cursor never moved, and
+    # the chain stopped with nothing recorded. The rows are real either way.
+    blocked = ""
     if not (args.dry_run or args.fetch_only):
-        publish.publish(conn)
+        try:
+            publish.publish(conn)
+        except publish.PublishError as exc:
+            blocked = f"publish refused: {exc}"
+            print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
 
     # The slice ticket. Emitted BEFORE the fail-loud checks below on purpose: a
     # run that collected four days and then hit a broken fetch has still done
@@ -290,8 +301,10 @@ def main() -> int:
             next_cursor=cursor,
             totals={"stored": stored, "duplicates": duplicates,
                     "rejected": rejected, "windows": windows},
-            stopped_early=stopped_early))
+            stopped_early=stopped_early, halt=blocked))
         print(f"  next cursor        {cursor}")
+    if blocked:
+        return 1
 
     # FAIL LOUD. A month of world news cannot be empty. If every window came
     # back with nothing, the FETCH is broken — a rejected query, a throttling

@@ -139,6 +139,13 @@ def main() -> int:
     totals = {"found": 0, "stored": 0, "duplicate": 0, "rejected": 0, "skipped": 0}
     empty: list[str] = []
 
+    # Publishing is a SEPARATE gate from collecting, and a slice must survive
+    # it failing. This is not hypothetical: the first live sliced run
+    # (30481065108) collected its quarter and then died inside
+    # `publish.publish` because the publish guardrails held eight open
+    # findings — so the ticket was never emitted, the cursor never moved, and
+    # the chain stopped with nothing recorded. The rows are real either way.
+    blocked = ""
     done_through = None
     dataset_error = ""
     for quarter in quarters:
@@ -170,10 +177,14 @@ def main() -> int:
             items_found=totals["found"], items_stored=totals["stored"],
             detail=f"bulk data set backfill: {','.join(quarters)}")
         conn.commit()
-        result = publish.publish(conn)
-        print(f"published: {result}")
-        publish.publish_health(conn)
-        conn.commit()
+        try:
+            result = publish.publish(conn)
+            print(f"published: {result}")
+            publish.publish_health(conn)
+            conn.commit()
+        except publish.PublishError as exc:
+            blocked = f"publish refused: {exc}"
+            print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
 
     if args.slice and args.emit_next and not args.dry_run:
         cursor = (backfill_slices.advance(done_through, "quarters")
@@ -181,9 +192,9 @@ def main() -> int:
         backfill_slices.emit(args.emit_next, backfill_slices.slice_ticket(
             job, quarters[0], quarters[-1], next_cursor=cursor,
             totals={k: v for k, v in totals.items()},
-            stopped_early=dataset_error))
+            stopped_early=dataset_error, halt=dataset_error or blocked))
         print(f"  next cursor {cursor}")
-    if dataset_error:
+    if dataset_error or blocked:
         return 1
 
     # FAIL LOUD. A quarter of Form D holds ~15,700 submissions and ~2,000
