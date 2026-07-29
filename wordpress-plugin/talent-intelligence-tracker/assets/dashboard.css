@@ -219,10 +219,16 @@
   white-space:nowrap; }
 .tit-projection th[scope="row"] { font-weight:600; color:var(--tit-fg); }
 .tit-projection td { font-variant-numeric:tabular-nums; color:var(--tit-fg); }
+/* Once a correction has run the table carries three value columns: what was
+   there before, what we projected, and what actually happened. The first two
+   are set quieter so the eye lands on what is true now — without the number we
+   got wrong being hidden, which is the whole point of keeping it. */
+.tit-projection td:not(:last-child) { color:var(--tit-mut); }
+.tit-asof { max-width:74ch; margin:-10px 0 18px; font-size:13px; color:var(--tit-mut); }
 @media (max-width:560px){
-  /* The row label earns its own line before the two figures rather than
-     squeezing three columns into 320px. */
-  .tit-projection th, .tit-projection td { padding:6px 12px 6px 0; font-size:13.5px; }
+  /* Tighter gutters rather than a horizontal scroll: these are short strings
+     and the row label is the only wide cell. */
+  .tit-projection th, .tit-projection td { padding:6px 9px 6px 0; font-size:12.5px; }
 }
 
 /* ======================================================================

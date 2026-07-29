@@ -74,6 +74,7 @@ ENTRIES = ENTRIES[:ENTRIES.index("\nfunction tit_corrections_outstanding")]
 # a reader never sees them. The tense rule is about published prose only.
 FLAT_ENTRIES = " ".join(
     re.sub(r"//[^\n]*", "", ENTRIES).split())
+ANYTHING_SCHEDULED = "'status' => 'scheduled'" in ENTRIES
 
 
 def test_every_entry_carries_a_date_a_count_and_the_fields_touched():
@@ -88,36 +89,74 @@ def test_an_unapplied_correction_is_never_written_in_the_past_tense():
     "The badge is now Headcount not stated" while the correction had not run —
     exactly the plausible-but-false claim the tracker exists not to make. A
     defect is disclosed before it is fixed. It is not backdated."""
-    if "'status' => 'scheduled'" not in ENTRIES:
+    if not ANYTHING_SCHEDULED:
         return  # all applied, and then the past tense is the honest tense
     for claim in ("The badge is now", "have been withdrawn", "records have been",
                   "fell from roughly", "the new one does not"):
         assert claim not in FLAT_ENTRIES, f"past tense on an unapplied correction: {claim!r}"
 
 
-def test_a_scheduled_entry_says_the_live_figures_still_include_it():
-    """Without this a reader takes the disclosure as already reflected in the
-    numbers, which is worse than not disclosing at all."""
-    assert "scheduled to be corrected" in FLAT
-    assert "scheduled for withdrawal" in FLAT
-    assert "still includes them" in FLAT
-    assert "currently overstated" in FLAT
+def test_an_applied_correction_does_not_still_say_it_is_pending():
+    """The inverse of the tense bug and exactly as false: for several hours the
+    page told readers our figures were inflated after they had been fixed. Both
+    directions are the same failure, the page disagreeing with the data.
+
+    Asserted against the ENTRY PROSE, not the template: the template keeps its
+    pending wording for the next defect, gated on status."""
+    if ANYTHING_SCHEDULED:
+        return  # something really is pending, and saying so is then correct
+    for stale in ("scheduled for withdrawal", "scheduled to be corrected",
+                  "currently overstated", "will show afterwards", "Until that runs"):
+        assert stale not in FLAT_ENTRIES, f"pending language on an applied correction: {stale!r}"
 
 
-def test_the_projection_is_labelled_as_a_projection():
-    """A projection rendered as a measurement is a fabricated figure."""
-    assert "'projection'" in CORRECTIONS
-    assert "Projected effect, not yet applied" in CORRECTIONS
-    for figure in ("4,024", "3,026", "$199.7bn", "$114.1bn",
-                   "$59.04bn", "$8.44bn", "$13.16bn", "$1.00bn"):
+def test_the_pending_notice_is_gated_and_not_merely_deleted():
+    """The banner must disappear because nothing is outstanding, not because
+    someone removed it — otherwise the next defect ships with no warning."""
+    assert "if ($pending)" in CORRECTIONS
+    assert "$pending = tit_corrections_outstanding($entries);" in CORRECTIONS
+
+
+def test_the_pending_machinery_survives_for_the_next_defect():
+    """Deleting it rather than gating it would mean the next defect is
+    published only once fixed, which is the posture this page rejects."""
+    for fragment in ("not yet applied", "Some of these are not fixed yet",
+                     "tit_corrections_outstanding", "Projected effect, not yet applied"):
+        assert fragment in CORRECTIONS, fragment
+
+
+def test_a_projection_that_missed_is_kept_beside_the_result():
+    """We published $114.1bn and it landed at $124.0bn. Both stay on the page:
+    a corrections log that quietly revises its own numbers is doing the thing
+    it exists to prevent."""
+    assert "'measured'" in CORRECTIONS
+    assert "We projected" in CORRECTIONS
+    assert "What we projected, and what actually happened" in CORRECTIONS
+    for figure in ("4,024", "3,026", "3,064", "$199.7bn", "$114.1bn", "$124.0bn"):
         assert figure in CORRECTIONS, figure
 
 
-def test_outstanding_work_is_flagged_at_the_top_of_the_page():
-    """Buried in entry two, a reader checking a headline number misses it."""
-    assert "tit_corrections_outstanding" in CORRECTIONS
-    assert "Some of these are not fixed yet" in FLAT
-    assert "still to be applied" in CORRECTIONS
+def test_the_gap_between_projection_and_result_is_explained():
+    """"About $10bn higher" with no cause reads as the correction failing. It
+    did not: the money arrived from a new collector after the projection."""
+    assert "$9.25bn" in FLAT and "$0.9bn" in FLAT
+    assert "national-press collector" in FLAT
+    assert "not the correction falling short" in FLAT
+
+
+def test_the_page_states_what_it_cannot_promise():
+    """The honest ceiling: a correction reaches the records the pipeline holds.
+    A reader is told what a survivor would look like rather than being given a
+    guarantee we cannot make."""
+    assert "cannot promise" in FLAT
+    assert "would like to be told" in FLAT
+
+
+def test_measured_figures_are_dated_because_they_keep_moving():
+    """A new collector is adding records daily. An undated total on a
+    corrections page becomes wrong on its own."""
+    assert "Measured on the live tracker" in CORRECTIONS
+    assert "snapshot" in FLAT
 
 
 def test_flipping_an_entry_to_applied_is_a_small_edit():
@@ -126,8 +165,13 @@ def test_flipping_an_entry_to_applied_is_a_small_edit():
     than a template rewrite."""
     assert "$e['status']" in CORRECTIONS
     assert "'scheduled'" in CORRECTIONS and "'applied'" in CORRECTIONS
-    # And the sentences that must change are marked where they sit.
-    assert CORRECTIONS.count("// TENSE:") >= 3
+    # While anything is pending, the sentences that must change are marked
+    # where they sit, so the flip does not become a hunt through prose.
+    if ANYTHING_SCHEDULED:
+        assert CORRECTIONS.count("// TENSE:") >= 2
+    # And the contract itself stays documented either way.
+    assert "WHEN A CORRECTION RUNS" in CORRECTIONS
+    assert "never overwritten" in CORRECTIONS
 
 
 def test_the_synthetic_gic_finding_is_visible():
@@ -144,10 +188,13 @@ def test_the_entries_name_what_was_wrong_in_words_not_in_jargon():
     assert "premium collected from policyholders" in FLAT
 
 
-def test_the_money_distortion_is_quantified_rather_than_left_to_be_noticed():
-    """Someone quoting the headline number deserves to know it is wrong, and
-    by how much, without having to work it out from a row count."""
-    assert "overstated by roughly $86bn" in FLAT
+def test_the_money_movement_is_quantified_rather_than_left_to_be_noticed():
+    """Someone quoting the headline number deserves to be told, in figures,
+    either how wrong it currently is or how far it just moved."""
+    if ANYTHING_SCHEDULED:
+        assert "overstated by roughly" in FLAT_ENTRIES
+    else:
+        assert "$199.7bn" in FLAT_ENTRIES and "$124.0bn" in FLAT_ENTRIES
 
 
 def test_the_real_estate_collateral_is_disclosed_in_both_places():
