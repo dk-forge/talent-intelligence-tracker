@@ -168,3 +168,179 @@ def test_a_company_expansion_with_no_people_is_filtered():
 def test_the_same_expansion_with_a_headcount_survives():
     keep, _ = prefilter.passes("Acme announces expansion of its Dublin facility, 200 jobs")
     assert keep
+
+
+# --- Hebrew, Czech and Danish ----------------------------------------------
+#
+# Three of the fourteen languages on the wired catalogue feeds had no
+# vocabulary at all, which is the same silent-and-total failure the funding
+# block above was written for: the gate cannot tell "nothing happened in
+# Israel this week" from "we cannot read Hebrew". Geektime, Globes, Techtime,
+# Ynet and Haaretz publish in Hebrew, and the four Israeli rounds this whole
+# collector exists to catch (Glow, Plantopia, Harmony, Enigma) are the visible
+# end of it.
+#
+# Every headline marked "live" below is verbatim from that publisher's own
+# feed on 2026-07-28. The constructed ones are ordinary newsroom phrasing for
+# an intent the live sample happened not to contain that day.
+
+HEBREW_SIGNALS = [
+    # live, Geektime — a raise
+    "פחות משנה אחרי החשיפה: Hush גייסה עוד 30 מיליון דולר",
+    # live, Geektime — the SAME root used for hiring, not money
+    "8 חודשים מהחשיפה: יוצאי Wiz ומיקרוסופט מגייסים שוב, הפעם ממיקרוסופט",
+    # live, Geektime — a seed round
+    '"התעשייה הרימה ידיים": סבב סיד חריג לסטארטאפ הישראלי Way',
+    # live, Globes — headcount and pay in one line
+    "הדיפנס-טק פורח: מספר המשרות זינק ב-20%, השכר קפץ מעל 50 אלף שקל",
+    # live, Globes — an executive who has not started yet
+    "עוד לא נכנסה לתפקיד וכבר קיבלה מצנח זהב של מיליונים",
+    # constructed: an appointment, a resignation, a hiring drive
+    'נעם בר מונה ליו"ר הדירקטוריון של החברה',
+    "סמנכ״ל הכספים של החברה התפטר לאחר ארבע שנים",
+    "החברה מגייסת עשרות עובדים למרכז הפיתוח בתל אביב",
+    "החברה השלימה סבב א' בהיקף 20 מיליון דולר",
+]
+
+CZECH_SIGNALS = [
+    "Startup získal investici 50 milionů korun od investorů",
+    "Firma nabírá nové zaměstnance do pražské pobočky",
+    "Novým ředitelem banky byl jmenován Jan Novák",
+    "Zaměstnancům vzrostly mzdy o pět procent",
+    "Startup uzavřel investiční kolo ve výši 100 milionů",
+]
+
+DANISH_SIGNALS = [
+    # live, TechSavvy — the amount carries a Danish plural suffix, which is
+    # exactly where the enclosing word boundary bit once
+    "Visibuilt rejser 25 millioner kroner til at bringe biobaserede "
+    "bindemidler tættere på markedet",
+    # live, Bootstrapping.dk
+    "Serpier rejser runde og vil lade AI-agent automatisere marketing hos webshops",
+    "Dansk startup henter 40 mio. kr. i ny finansieringsrunde",
+    "Novo Nordisk ansætter 500 nye medarbejdere i Kalundborg",
+    "Maersk udnævner ny administrerende direktør",
+    "Overenskomst giver lønstigning til 20.000 ansatte",
+]
+
+
+@pytest.mark.parametrize("headline", HEBREW_SIGNALS + CZECH_SIGNALS + DANISH_SIGNALS)
+def test_hebrew_czech_and_danish_signals_survive(headline):
+    keep, reason = prefilter.passes(headline)
+    assert keep, f"dropped a genuine signal ({reason}): {headline}"
+
+
+# Verbatim from the same feeds on the same day. A vocabulary that keeps
+# everything is worth as little as one that keeps nothing, and the live
+# measurement is the only thing that tells the two apart: with these blocks in
+# place the three language groups kept 19%, 11% and 16% of what their feeds
+# carried, which is the band the English gate already sits in.
+HEBREW_NOISE = [
+    "וואטסאפ ווב משתדרגת עם פיצ'רים חדשים: סוף סוף תאפשר לכם לעשות שיחות",
+    "דירות להשכרה בתל אביב: המחירים ממשיכים לעלות",
+    "העובדה שהחברה גדלה לא מעידה על רווחיות",
+]
+CZECH_NOISE = [
+    "Po spoustě slabých filmů konečně jeden povedený. Spider-Man má slabinu",
+    "Nová platforma pro streamování hudby míří do Česka",
+]
+DANISH_NOISE = [
+    "Krigen blusser op igen: Iran angriber tre skibe",
+    "Overblik: Her er dine rettigheder, hvis ferien bliver påvirket af naturbrande",
+]
+
+
+@pytest.mark.parametrize("headline", HEBREW_NOISE + CZECH_NOISE + DANISH_NOISE)
+def test_hebrew_czech_and_danish_noise_is_filtered(headline):
+    keep, reason = prefilter.passes(headline)
+    assert not keep, f"would have paid to classify: {headline}"
+    assert reason
+
+
+@pytest.mark.parametrize("headline", [
+    # live, Geektime
+    '"ה-AI מאפשרת לקצר תהליכים": Papaya מפטרת 30 עובדים',
+    "החברה הודיעה על פיטורים של 200 עובדים",
+    # live, E15 — "will scrap another five thousand positions"
+    "Porsche pokračuje v masivních škrtech. Do roku 2035 zruší dalších pět tisíc míst",
+    "Firma oznámila hromadné propouštění stovek zaměstnanců",
+    "Danske Bank fyrer 300 medarbejdere",
+    "Vestas afskediger 500 ansatte i Danmark",
+])
+def test_a_cut_in_these_languages_is_recognised_as_the_siblings(headline):
+    """The scope boundary has to hold in fourteen languages, not one. A rule
+    that only reads English lets every non-English cut through, which is
+    exactly how the Spanish Verizon row reached a page promising it collects
+    none. Asserted through the helper because validate.py calls it directly as
+    the backstop for a headline that hid the cut."""
+    assert prefilter.workforce_reduction_term(headline)
+    assert not prefilter.passes(headline)[0]
+
+
+@pytest.mark.parametrize("headline", [
+    "Acme gjorde comeback: henter 40 mio. efter sidste års fyringer",
+    "Startup získal investici 50 milionů po loňském propouštění",
+    "החברה גייסה 30 מיליון דולר אחרי הפיטורים בשנה שעברה",
+])
+def test_a_raise_after_a_cut_stays_ours_in_these_languages_too(headline):
+    """Same rule as "Klarna hires 1,000 after AI-driven job cuts": the subject
+    leads. Without the funding verbs in the in-scope list the heuristic has
+    nothing to find in these languages and hands the growth story away."""
+    assert prefilter.workforce_reduction_term(headline) is None
+    assert prefilter.passes(headline)[0]
+
+
+# --- Hebrew is not just another Latin block --------------------------------
+
+@pytest.mark.parametrize("prefixed", [
+    "החברה גייסה 30 מיליון דולר",      # ha-  (the)
+    "מיליון דולר בגיוס האחרון",        # be-  (in)
+    "והעובדים קיבלו בונוס שנתי",       # ve- + ha- (and the), two clitics
+    'המנכ״ל של החברה מונה אתמול',      # ha- in front of an acronym
+])
+def test_hebrew_clitics_do_not_hide_the_word(prefixed):
+    """Hebrew writes "and", "the", "in", "to", "from" and "that" as single
+    letters glued to the next word, and those letters are `\\w`. So `\\b` finds
+    no boundary in front of the stem and a plain `\\bגיוס\\b` matches only the
+    bare noun — which is the minority of real occurrences."""
+    keep, reason = prefilter.passes(prefixed)
+    assert keep, reason
+
+
+@pytest.mark.parametrize("lookalike", [
+    "דירות להשכרה בתל אביב",           # a RENTAL contains "salary"
+    "העובדה שהחברה גדלה",              # "the FACT" contains "employee"
+    "נפטר בגיל 80 מייסד הקבוצה",       # "died" contains the layoff root
+])
+def test_hebrew_stems_are_not_matched_as_bare_substrings(lookalike):
+    """The other half of the same problem. Matching these as substrings — the
+    way the CJK and Arabic block does, where it is safe — would fire on
+    ordinary words, and every one of these is an ordinary word."""
+    assert prefilter.workforce_reduction_term(lookalike) is None
+    keep, _ = prefilter.passes(lookalike)
+    assert not keep
+
+
+def test_a_hebrew_first_name_is_not_a_layoff():
+    """"Peter" is spelled פיטר, which is also the verb "laid off", so the bare
+    verb is deliberately absent from the reduction vocabulary and only the
+    inflected forms are listed. A reduction verdict is a hard drop rather than
+    a cheaper classification, so this is the one gate where under-matching is
+    the safe direction."""
+    story = "פיטר תיל משקיע בקרן חדשה"
+    assert prefilter.workforce_reduction_term(story) is None
+    assert prefilter.passes(story)[0]
+
+
+def test_every_hebrew_alternative_survives_the_enclosing_word_boundary():
+    """`_hebrew()` output is compiled inside `\\b(?:...)\\b`, so an alternative
+    that ends on punctuation (a geresh, say) can never match however correct it
+    looks in isolation. Cheap to assert, and invisible otherwise: the pattern
+    compiles, the tests that do not cover it pass, and the term is simply
+    dead."""
+    import re
+
+    for alternative in prefilter._hebrew(r"גיוס", r"סבב (?:סיד|א)", r'מנכ["\'׳״]?ל'):
+        probe = re.compile(r"\b(?:" + alternative + r")\b", re.I | re.UNICODE)
+        assert probe.search("החברה השלימה גיוס וגם סבב סיד, אמר המנכ״ל שלה") or \
+            probe.search("החברה השלימה סבב א' השבוע"), alternative

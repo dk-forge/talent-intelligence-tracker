@@ -53,6 +53,46 @@ _FUNDING_TERMS = (
     r"financieringsronde",
 )
 
+# --- Hebrew word boundaries ------------------------------------------------
+#
+# Hebrew needs its own wrapper, and skipping it is a silent bug rather than a
+# loud one. Two properties break the assumptions every other Latin block here
+# rests on:
+#
+#   1. There are no capitals, so `re.I` buys nothing and hides nothing.
+#   2. The clitics are GLUED to the next word. "and", "the", "in", "to",
+#      "from" and "that" are single letters written with no space, so
+#      "בגיוס" (in the raise) and "שהעובדים" (that the employees) are one
+#      token each.
+#
+# Hebrew letters are `\w` under Python's Unicode rules, so `\b` sees the whole
+# glued token as one word and finds no boundary in front of the stem: a plain
+# `\bגיוס\b` matches the bare noun and misses every prefixed form, which is
+# most of them. Writing the stems as bare substrings instead — the way the CJK
+# and Arabic block below does — is the opposite failure: "שכר" (salary) is
+# inside "השכרה" (a rental) and "עובד" (employee) is inside "העובדה" (the
+# fact), and both of those are ordinary headline words.
+#
+# So the boundary is spelled out: nothing Hebrew immediately before, up to two
+# clitic letters, the stem with its own inflections, nothing Hebrew
+# immediately after. `נפטר` (died) cannot reach `פטר` because נ is not a
+# clitic, which is exactly the kind of collision the explicit set buys.
+_HEB = "א-ת"          # alef..tav, the five final forms included
+_HEB_CLITICS = "והבלכמש"        # ve- ha- be- le- ke- mi- she-
+
+
+def _hebrew(*stems: str) -> tuple[str, ...]:
+    """Hebrew stems, each wrapped in the boundary `\\b` cannot express.
+
+    Every stem states its own suffixes. Allowing a trailing `\\w*` instead
+    would be shorter and would put "שכר" back inside "השכרה".
+    """
+    return tuple(
+        rf"(?<![{_HEB}])[{_HEB_CLITICS}]{{0,2}}(?:{stem})(?![{_HEB}])"
+        for stem in stems
+    )
+
+
 # The same gate in the languages Google News is queried in. Without these, a
 # German or Portuguese headline fails the free filter and is dropped before it
 # ever reaches the model, so querying those editions would have produced
@@ -108,6 +148,81 @@ _EMPLOYMENT_TERMS_INTL = (
     # Vietnamese
     r"tổng giám đốc", r"tuyển dụng", r"nhân viên", r"việc làm",
     r"từ chức", r"gọi vốn", r"huy động vốn",
+    # Czech. Note what is NOT here: bare "investice", "investor", "investuje".
+    # A live read of cc.cz, e15.cz and lupa.cz on 2026-07-28 kept 15 of 55
+    # items and NINE of the fifteen were held by one of those three nouns —
+    # an investment portfolio, a carmaker's share price, a startup failing to
+    # repay creditors. English has the same trap and answers it the same way:
+    # "investment" is not an employment term, "funding round" is.
+    r"zaměstna\w+", r"pracovní\w* míst\w*", r"nábor\w*", r"nabír\w+",
+    r"ředitel\w*", r"nov\w+ šéf\w*", r"šéfem se stal\w*", r"do čela",
+    r"jmenova\w+", r"jmenuj\w+", r"vedení firmy",
+    r"rezignova\w+", r"odstupuje", r"odchází z čela", r"představenstv\w+",
+    r"mzd\w+", r"mezd", r"plat(?:y|u|ů|ech|ům)?", r"platov\w+", r"odměn\w+",
+    r"získal\w*\s+(?:\S+\s+){0,4}?(?:investic\w+|milion\w+|miliard\w+|korun\w*)",
+    r"od investorů", r"investic\w+\s+(?:ve výši|za|od)",
+    r"vstoupil\w*\s+do\s+(?:firmy|startupu|společnosti)",
+    r"kolo financování", r"investiční kolo", r"rizikový kapitál",
+    r"seed(?:ov\w+)?\s+(?:kolo|investic\w+)", r"série [a-e]\b",
+    # Danish. "rejser" and "henter" are the two verbs a Danish funding
+    # headline actually uses, and both are ordinary words on their own
+    # ("travels", "collects"), so each is anchored to what is being raised.
+    r"ansæt\w+", r"ansatte?", r"medarbejder\w*", r"personale\w*",
+    r"stilling(?:er|erne|en)?", r"arbejdsplads\w*", r"beskæftigelse\w*",
+    r"rekrutter\w+", r"direktør\w*", r"topchef\w*", r"udnævn\w+",
+    r"tiltræder", r"fratræder", r"bestyrelsesformand", r"ny chef",
+    r"løn\w*", r"mindsteløn", r"lønstigning\w*",
+    # The trailing `\w*` on the amount is load-bearing, not decoration: this
+    # whole tuple is compiled inside `\b(?:...)\b`, so an alternative ending
+    # at "million" matches nothing in "rejser 25 millioner kroner" — the
+    # trailing boundary lands mid-word and fails. That is a live TechSavvy
+    # funding headline (Visibuilt) and it read as a clean miss.
+    r"rejse[rt]?\s+(?:en\s+|ny\s+)?(?:runde|kapital|finansiering|"
+    r"[\d.,]+\s*(?:mio|mia|million\w*|milliard\w*))",
+    r"henter\s+(?:[\d.,]+|million\w*|milliard\w*|kapital|investering\w*|"
+    r"tocifret|trecifret)",
+    r"finansieringsrunde", r"kapitalrunde", r"kapitalindsprøjtning",
+    r"vækstkapital", r"investorpenge",
+    # Same reasoning as the Czech block: bare "investering" held a data
+    # breach story and a defence-spending analysis on the live Børsen and
+    # Version2 feeds, so it is anchored to somebody receiving one.
+    r"(?:henter|rejser|får|sikrer sig|lander)\s+(?:en\s+|ny\s+)?investering\w*",
+    # Hebrew. Wired feeds: Geektime, Globes (two Hebrew nodes), Techtime,
+    # Ynet, Haaretz. Until this block existed the whole set was invisible to
+    # the gate, which is the recall loss the four missed Israeli rounds
+    # (Glow, Plantopia, Harmony, Enigma) were the visible end of.
+    *_hebrew(
+        # Funding. ג.י.ס is one root for "raised money" and "recruited
+        # people", so this group earns its place twice over: "Hush גייסה עוד
+        # 30 מיליון דולר" (raised another $30m) and "יוצאי Wiz מגייסים שוב"
+        # (Wiz alumni are hiring again) are both live Geektime headlines and
+        # both are signals here.
+        r"גיוס(?:ים)?", r"גייס(?:ה|ו|תי|ת)?", r"מגייס(?:ת|ים|ות)?", r"לגייס",
+        # "סבב א'" ends in a geresh, which is punctuation rather than a
+        # letter, so including it would put the trailing `\b` between two
+        # non-word characters and the alternative would never match. The
+        # stem stops at the letter and the geresh falls outside.
+        r"סבב (?:סיד|גיוס|השקעה|הון|א)",
+        # Anchored to "invests IN", for the reason the Czech and Danish
+        # blocks are: the bare noun held "משקיע העל מגדיל את ההימור" (a
+        # markets column about a short position) on the live Globes feed.
+        r"השקע(?:ה|ות)", r"משקיע(?:ה|ים|ות)?\s+ב\S*", r"הון סיכון",
+        # Hiring and employment. "העסקה" is deliberately absent: with the
+        # definite article it is indistinguishable from "עסקה", a deal, and
+        # it held two M&A stories. The construct form is unambiguous.
+        r"עובד(?:ים|ות|ת)?", r"משר(?:ה|ות)", r"מועסק(?:ים|ות)?",
+        r"העסקת", r"תנאי העסקה", r"מעסיק(?:ה|ים)?", r"תעסוקה", r"כוח אדם",
+        r"דרושים", r"הייטקיסט(?:ים)?", r"טאלנט(?:ים)?", r"שוק העבודה",
+        # Leadership. The acronyms are written with a gershayim, which is
+        # punctuation rather than a letter and comes in an ASCII and a
+        # Unicode flavour depending on the CMS.
+        r"מנכ[\"'׳״]?ל(?:ית)?", r"סמנכ[\"'׳״]?ל(?:ית)?", r"יו[\"'׳״]?ר",
+        r"מינו(?:י|יים)", r"מונ(?:ה|תה)", r"ימונה", r"נכנס(?:ה|ים)? לתפקיד",
+        r"התפטר(?:ה|ו|ות)?", r"מתפטר(?:ת|ים)?", r"פרישה", r"דירקטוריון",
+        # Pay
+        r"שכר", r"משכור(?:ת|ות)", r"בונוס(?:ים)?", r"תגמול(?:ים)?",
+        r"מצנח זהב",
+    ),
 )
 
 # CJK and Arabic have no spaces between words the way \b expects, so these are
@@ -275,6 +390,28 @@ _REDUCTION_TERMS = (
     r"zwolnieni\w+", r"redukcj\w+ etat\w+",
     r"varsl\w+", r"neddragning\w*",
     r"i̇?şten çıkar\w*", r"toplu i̇?şten",
+    # Czech. The live E15 feed carried "Porsche ... zruší dalších pět tisíc
+    # míst" while this was missing, which is a sibling story reaching a page
+    # that promises it publishes none.
+    r"propouš\w+", r"propust\w+", r"propušt\w+",
+    r"(?:z)?ruší\s+(?:\S+\s+){0,3}?(?:pracovních\s+)?míst\w*",
+    r"snižování stavu", r"snižuje stav\w*",
+    # Danish
+    r"fyring\w*", r"massefyring\w*", r"afskedig\w*", r"nedskæring\w*",
+    r"personalereduktion\w*",
+    r"fyrer\s+(?:[\d.,]+\s+)?(?:medarbejdere|ansatte|folk|procent)",
+    r"nedlægger\s+(?:[\d.,]+\s+)?(?:stillinger|arbejdsplads\w*|job)",
+    r"skærer\s+(?:[\d.,]+\s+)?(?:stillinger|arbejdsplads\w*|job)",
+    # Hebrew. Bare "פיטר" is deliberately absent even though it is the verb:
+    # it is also how "Peter" is spelled, so it would hand every Peter Thiel
+    # funding story to the sibling. Under-matching is the safe direction for
+    # THIS gate specifically — the inflected forms below are unambiguous.
+    *_hebrew(
+        r"פיטור(?:ים|ין)", r"פיטורי\w*", r"פיטר(?:ה|ו)", r"פיטר את",
+        r"מפטר(?:ת|ים|ות)?", r"לפטר", r"יפטר(?:ו)?",
+        r"צמצומ(?:ים)? (?:בכוח אדם|במצבת|בכוח האדם)",
+        r"צמצום כוח אדם", r"קיצוצים במשרות",
+    ),
 )
 _REDUCTION = re.compile(r"\b(?:" + "|".join(_REDUCTION_TERMS) + r")", re.I | re.UNICODE)
 
@@ -308,6 +445,23 @@ _IN_SCOPE_SUBJECT_TERMS = (
     r"nomm\w+", r"ernennt", r"nombra\w*", r"nomea\w*", r"nomina\w*",
     r"lev\w*e de fonds", r"finanzierungsrunde", r"ronda de financiaci\w*n",
     r"rodada de investimento", r"round di finanziamento",
+    # Czech, Danish, Hebrew — the same three intents. Without these the
+    # ordering heuristic below has no subject to find in those languages, so
+    # "Acme raised $40m after last year's redundancies" reads as a reduction
+    # story and goes to the sibling.
+    r"nabír\w+", r"nábor\w*", r"jmenova\w+", r"jmenuj\w+",
+    r"získal\w*\s+(?:\S+\s+){0,4}?(?:investic\w+|milion\w+|miliard\w+|korun\w*)",
+    r"kolo financování", r"investiční kolo",
+    r"ansæt\w+", r"rekrutter\w+", r"udnævn\w+", r"tiltræder",
+    r"finansieringsrunde", r"kapitalrunde", r"kapitalindsprøjtning",
+    r"henter\s+(?:[\d.,]+|million\w*|milliard\w*|kapital|investering\w*)",
+    r"rejse[rt]?\s+(?:en\s+|ny\s+)?(?:runde|kapital|finansiering|"
+    r"[\d.,]+\s*(?:mio|mia|million\w*|milliard\w*))",
+    *_hebrew(
+        r"גיוס(?:ים)?", r"גייס(?:ה|ו)?", r"מגייס(?:ת|ים|ות)?", r"לגייס",
+        r"השקע(?:ה|ות)", r"מינו(?:י|יים)", r"מונ(?:ה|תה)", r"ימונה",
+        r"מגייס(?:ת|ים)? עובדים", r"קליט(?:ה|ת) עובדים",
+    ),
 )
 _IN_SCOPE_SUBJECT = re.compile(
     r"\b(?:" + "|".join(_IN_SCOPE_SUBJECT_TERMS) + r")", re.I | re.UNICODE
