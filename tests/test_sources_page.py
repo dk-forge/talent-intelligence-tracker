@@ -26,18 +26,48 @@ def test_status_is_only_live_or_candidate():
 
 def test_live_sources_are_only_the_ones_with_collectors():
     """A source is live when a collector reads it, not when it looks easy.
-    Adding a name here without a collector is the failure this guards."""
+
+    This used to assert against a hardcoded set of five names, which made it
+    guard only ONE direction: it caught a name added without a collector, and
+    was silent when a collector ran with no name on the page. That is the
+    direction the defect actually took. On 2026-07-29 the page listed five
+    sources while run_collect registered nine, so the UK pay gap service, SEC
+    executive compensation and the 575-feed national press collector were all
+    collecting and unlisted -- two of them among the largest contributors of
+    rows in the database. Understating coverage is not the safe direction it
+    looks like: the page exists so a reader can judge what the tracker runs on.
+
+    So it asserts the PROPERTY instead: the live set equals the set of
+    registered collectors, derived from run_collect rather than restated here.
+    Adding either half alone now fails.
+    """
     live = {s.name for s in registry.SOURCES if s.status == "live"}
-    assert live == {
-        "SEC EDGAR 8-K (Item 5.02)",
-        "SEC EDGAR Form D",
-        "GDELT DOC 2.0",
-        "Google News RSS",
-        # Live since July 2026: collectors/ats_boards.py runs daily on
-        # collect-structured.yml, reports health under `ats_boards`, has stored
-        # rows, and is tested in tests/test_ats_boards.py.
-        "Employer job boards (Greenhouse, Lever, Ashby)",
-    }
+    collectors = set(_registered_collector_keys())
+    mapped = {registry.COLLECTOR_BY_SOURCE_NAME.get(n) for n in live}
+
+    unlisted = collectors - mapped - _DORMANT_COLLECTORS
+    assert not unlisted, (
+        f"collector(s) running with no entry on the sources page: {sorted(unlisted)}"
+    )
+    unbacked = {n for n in live
+                if registry.COLLECTOR_BY_SOURCE_NAME.get(n) not in collectors}
+    assert not unbacked, (
+        f"source(s) listed live with no registered collector: {sorted(unbacked)}"
+    )
+
+
+# Shipped dormant on purpose, so it must NOT appear as a live source until a
+# run has actually stored from it. See CLAUDE.md on the dormant-source pattern.
+_DORMANT_COLLECTORS = {"tripwire_chase"}
+
+
+def _registered_collector_keys():
+    """The collectors run_collect actually knows about, read from the source."""
+    import re
+    text = (Path(__file__).parent.parent / "run_collect.py").read_text()
+    block = re.search(r"SOURCES\s*=\s*\{(.*?)\n\}", text, re.S)
+    assert block, "could not find the SOURCES registry in run_collect.py"
+    return re.findall(r"['\"]([a-z_0-9]+)['\"]\s*:", block.group(1))
 
 
 def test_the_job_board_source_publishes_what_it_cannot_do():

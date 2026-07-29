@@ -49,6 +49,23 @@
   "notes": "Keyless and unthrottled. Read in each edition's own language, because English phrases in a non-English edition return almost nothing. Its links are encoded redirects, but Google's own resolution endpoint returns the publisher URL, so records cite the article rather than an outlet homepage."
  },
  {
+  "name": "National and regional tech press",
+  "url": "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
+  "status": "live",
+  "category": "News publishers",
+  "signals": [
+   "Funding",
+   "Hiring",
+   "Leadership change",
+   "Office opening"
+  ],
+  "coverage": "575 verified feeds across 139 countries",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "Publishers' own feeds, never an aggregator's database: where a round is found through a directory, the record cites the outlet that reported it. Every feed was fetched and parsed before being listed, because a feed that answers 200 with zero items reads as healthy forever. Feeds a publisher's robots.txt disallows are not requested at all, and 25 were withdrawn on that basis. Countries with no usable publisher feed are covered by a Google News country edition instead, marked as discovery backstop rather than as a named publisher."
+ },
+ {
   "name": "SEC EDGAR 8-K (Item 5.02)",
   "url": "https://www.sec.gov/edgar.shtml",
   "status": "live",
@@ -78,6 +95,36 @@
   "rss": "",
   "free": true,
   "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred."
+ },
+ {
+  "name": "SEC executive compensation disclosures",
+  "url": "https://www.sec.gov/edgar.shtml",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Pay",
+   "Leadership change"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": "Read straight from the filing, with no model in the path. Pay figures are as disclosed and are never converted, estimated or annualised by us."
+ },
+ {
+  "name": "UK gender pay gap service",
+  "url": "https://gender-pay-gap.service.gov.uk/",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Pay",
+   "Employer size"
+  ],
+  "coverage": "United Kingdom",
+  "country": "GB",
+  "rss": "",
+  "free": true,
+  "notes": "A statutory annual return every UK employer over 250 staff must file, so it is a filing rather than a claim, and it needs no model to read. It is also the reason one country dominates the country chart: nearly every GB row in the tracker comes from here, which is filing volume and not British business activity. The chart says so where it renders."
  },
  {
   "name": "20 Minutes Economie",

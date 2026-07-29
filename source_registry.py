@@ -372,6 +372,27 @@ class Source:
     notes: str = ""
 
 
+# Which collector reads each live source, keyed by the name shown on the page.
+# This exists so the sources page can be checked against what run_collect
+# actually registers, in BOTH directions. The check used to be a hardcoded list
+# of five names, which caught a source listed without a collector and was blind
+# to a collector running with no source listed - and that is the direction the
+# defect took: on 2026-07-29 nine collectors were registered while the page
+# named five.
+#
+# Only live sources belong here. A candidate has no collector by definition.
+COLLECTOR_BY_SOURCE_NAME = {
+    "SEC EDGAR 8-K (Item 5.02)": "sec_edgar",
+    "SEC EDGAR Form D": "sec_form_d",
+    "GDELT DOC 2.0": "gdelt",
+    "Google News RSS": "google_news",
+    "Employer job boards (Greenhouse, Lever, Ashby)": "ats_boards",
+    "UK gender pay gap service": "uk_paygap",
+    "SEC executive compensation disclosures": "sec_execcomp",
+    "National and regional tech press": "national_press",
+}
+
+
 SOURCES = (
     # --- live: something actually reads these today ------------------------
     Source("SEC EDGAR 8-K (Item 5.02)", "https://www.sec.gov/edgar.shtml", "live",
@@ -436,6 +457,43 @@ SOURCES = (
                  "when they are filled, withdrawn or reposted, so only growth is "
                  "published. SmartRecruiters was dropped in July 2026 because "
                  "its API robots.txt disallows every agent but LinkedIn's."),
+
+    # These three were LIVE and collecting while this page listed five sources.
+    # The project rule is that this page names EXACTLY the live collectors, and
+    # understating them is not the safe direction it looks like: a reader
+    # judging our coverage was being shown roughly half of what the tracker
+    # actually runs on, and the two SEC ones are among the largest contributors
+    # of rows in the database. Added 2026-07-29 after diffing this registry
+    # against run_collect.SOURCES.
+    Source("UK gender pay gap service", "https://gender-pay-gap.service.gov.uk/",
+           "live", "Government filings", ("Pay", "Employer size"),
+           "United Kingdom", "GB",
+           notes="A statutory annual return every UK employer over 250 staff must "
+                 "file, so it is a filing rather than a claim, and it needs no "
+                 "model to read. It is also the reason one country dominates the "
+                 "country chart: nearly every GB row in the tracker comes from "
+                 "here, which is filing volume and not British business activity. "
+                 "The chart says so where it renders."),
+    Source("SEC executive compensation disclosures",
+           "https://www.sec.gov/edgar.shtml", "live",
+           "Regulatory filings", ("Pay", "Leadership change"), "National", "US",
+           notes="Read straight from the filing, with no model in the path. Pay "
+                 "figures are as disclosed and are never converted, estimated or "
+                 "annualised by us."),
+    Source("National and regional tech press",
+           "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
+           "live", "News publishers",
+           ("Funding", "Hiring", "Leadership change", "Office opening"),
+           "575 verified feeds across 139 countries",
+           notes="Publishers' own feeds, never an aggregator's database: where a "
+                 "round is found through a directory, the record cites the outlet "
+                 "that reported it. Every feed was fetched and parsed before "
+                 "being listed, because a feed that answers 200 with zero items "
+                 "reads as healthy forever. Feeds a publisher's robots.txt "
+                 "disallows are not requested at all, and 25 were withdrawn on "
+                 "that basis. Countries with no usable publisher feed are covered "
+                 "by a Google News country edition instead, marked as discovery "
+                 "backstop rather than as a named publisher."),
 
     # --- candidate: researched, real, not yet connected --------------------
     Source("SEC EDGAR 8-K (Items 1.01 / 2.01)", "https://www.sec.gov/edgar.shtml",
