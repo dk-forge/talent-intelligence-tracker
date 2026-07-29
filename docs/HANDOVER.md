@@ -4,8 +4,68 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: 2026-07-28, after the front-end session that found the live page
-had never actually worked (plugin v1.24.0).
+Last updated: **2026-07-29**, after the session that corrected the $86bn Form D
+overstatement, wired 575 national press feeds across 139 countries, published a
+9% recall measurement, and found fifteen data-writing runs had been silently
+destroyed. Plugin **v1.42.3**.
+
+**Chronological detail lives in [TECHLOG.md](TECHLOG.md)** — that file is what
+happened and why; this one is current state and next actions. Both are for the
+TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
+(a gated baton) and `docs/TECHLOG.md`; never cross-write them.
+
+---
+
+## Where things stand (2026-07-29)
+
+**Verified by curl, not by a green tick:** plugin **1.42.3**; dashboard,
+`/recall/`, `/corrections/`, `/sources/` all 200; **money raised $124B** (was
+$200.3bn); sources page lists all 8 live collectors; writer queue empty, zero
+orphans.
+
+**Nine registered collectors:** `google_news`, `gdelt`, `national_press`,
+`sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
+`tripwire_chase` (dormant, correctly absent from the sources page).
+
+### Three traps that will bite you today
+
+1. **`deploy-plugin.yml` defaults to `dry_run=true`.** A plain dispatch is a
+   green run that uploads **zero bytes** — every step passes, the FTPS upload is
+   skipped. Always `-f dry_run=false`, then **curl the live `ver=`**. This was
+   walked into an hour after being documented; reading about it does not prevent
+   it, only the verification step does.
+2. **Never dispatch a database writer directly.** GitHub keeps one pending run
+   per concurrency group and silently evicts the waiter. Queue it:
+   `gh workflow run drain-writers.yml -f enqueue=<wf>.yml -f inputs_json='{"dry_run":"false"}' -f reason='why'`
+3. **`correct-*.yml` also default to `dry_run=true`.** A replay with guessed
+   defaults is a green run that changes nothing.
+
+### Open, in priority order
+
+| # | What | Why |
+|---|---|---|
+| 1 | **Bounded backfill slices** | A 350-min GDELT backfill held the writer lock, hit its timeout, lost ~6h of work AND starved every correction. Priority cannot preempt a running job; only self-requeuing slices fix it. |
+| 2 | **Scope breach: layoff 8-Ks stored here** | Atlassian (~10%), Groupon (400), IO Biotech, Lyra. Layoffs must be READ from the sibling's API. The guard reads the headline and `sec_edgar` writes the same generic headline onto everything, so it never sees the reduction language. |
+| 3 | **Link checker + Wayback** | Neither exists here; the sibling has both. A dead link silently converts a sourced claim into an unsourced one. **Do not use a WordPress broken-link plugin** — those crawl post content, and our links live in `wp_tit_signals`. |
+| 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
+| 5 | **Company profile pages** | `/company/{slug}` — best view for a recruiter vetting an account, and the only SEO shape that beats an incumbent's domain authority. |
+| 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
+| 7 | **Publish guardrails** | Flag any single funding amount over a threshold before it enters an aggregate; assert no period total exceeds YTD. The $200B stood in public because nothing checked. |
+| 8 | **First live tripwire run + second recall measurement** | The tripwire has never issued a live query (cost is an estimate). The trend chart cannot draw until a second measurement exists. |
+
+### Non-negotiable
+
+- **Never store an aggregator as a source** (Crunchbase, Dealroom, Tracxn,
+  Harmonic, StartupBlink, Startup Nation Central, TechIreland, Fundup) —
+  discovery pointers only; cite the original publisher.
+- **Never bypass a paywall. Never scrape LinkedIn** (`validate.py` blocks it).
+- **Never write a row directly.** `extract → validate → store → publish`, and the
+  raw dict **must** set `raw_text` or the extractor returns `None` silently.
+- **An LLM claim is a lead, never a record.** The tripwire prefixes model-asserted
+  fields with `claimed_`; the chase takes the employer name and nothing else.
+- **No em-dashes in UI copy. No superlatives** on page, meta or structured data.
+- **Cost ceiling ~$5/month.** Dedup before the LLM, gate on headline+teaser only,
+  per-language prefilters, earned cadence. Feeds are free; only stories cost.
 
 ---
 
