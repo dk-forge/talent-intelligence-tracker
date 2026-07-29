@@ -73,8 +73,22 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   is covered when it has a working connector, a health check and a passing
   test. `candidate_official_sources` is the roadmap, and must never render as
   the present.
-- **Don't claim "100% automated."** Scraper repair and novel-source judgement
-  are human. Say ~99% and name the sliver.
+- **Coverage is measured, not asserted.** `measure_recall.py` runs weekly
+  (`recall.yml`) against a sealed gold set assembled from public sources
+  WITHOUT consulting our own database, and publishes the result including the
+  categories where we come off badly, at `/talent-intelligence-tracker/recall/`.
+  It emits `data/recall_worklist.json`: the countries that held nothing and the
+  document types under-delivering. That is the feed roadmap, and a country
+  scoring zero is an instruction rather than a statistic.
+  - **Never rebuild a gold set out of what is easy to find.** That is how the
+    number climbs while coverage does not. `REQUIRED_SHAPE` in
+    `analysis/recall/goldset.py` rejects a set that is too small, too US, too
+    large-event, or built from one kind of document. Assembling each new set is
+    a human step by design, and the page says so.
+  - **Never re-use one set forever.** It converges, and then it measures memory
+    rather than reach. The run detects that and asks for a replacement.
+- **Don't claim "100% automated."** Scraper repair, novel-source judgement and
+  assembling each new recall gold set are human. Say ~99% and name the sliver.
 
 ## Cost discipline
 
