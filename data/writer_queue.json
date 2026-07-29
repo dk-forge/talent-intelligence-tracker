@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T10:54:29Z",
+  "last_tick": "2026-07-29T10:55:15Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -169,6 +169,11 @@
           "at": "2026-07-29T10:54:29Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T10:55:15Z",
+          "detail": "run 30445486869",
+          "event": "bound"
         }
       ],
       "id": "20260729T074838Z-correct-form-d",
@@ -179,7 +184,7 @@
       "reason": "998 retractions, 3005 corrections",
       "requested_at": "2026-07-29T07:48:38Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30445486869",
       "state": "dispatched",
       "workflow": "correct-form-d.yml"
     },
@@ -204,6 +209,26 @@
       "run_id": null,
       "state": "queued",
       "workflow": "correct-sec-pillar.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T10:55:02Z",
+          "detail": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T105502Z-collect-press",
+      "inputs": {},
+      "priority": 0,
+      "reason": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
+      "requested_at": "2026-07-29T10:55:02Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-press.yml"
     },
     {
       "attempts": 0,
