@@ -180,6 +180,43 @@ class Feed:
         return self.coverage.strip().lower() in ("regional", "global", "international")
 
 
+# --- Earned cadence --------------------------------------------------------
+#
+# With 481 feeds wired, most of a run is spent on publishers that produce
+# nothing we keep. Dead weight should cost nothing — not budget, and not much
+# free compute either — so a feed earns its polling rate.
+#
+# A feed that has produced no NEW item for this many consecutive runs drops to
+# a periodic probe. It is never dropped: the probe still fetches and still
+# reports health, so a feed that went quiet because it BROKE is still detected,
+# which is the whole failure this collector exists to make visible. It simply
+# stops being fetched twice a day to prove the same silence.
+#
+# 14 runs is a week at the 2/day schedule. A weekly trade publication or a
+# quarterly agency therefore reaches probe cadence and stays perfectly healthy.
+QUIET_RUNS_BEFORE_PROBE = 14
+PROBE_EVERY = 14
+
+
+def _previous_ledger() -> dict:
+    try:
+        return json.loads(HEALTH_PATH.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def due_this_run(feed_name: str, previous: dict, run_number: int) -> bool:
+    """Whether a feed is polled this run, or is resting between probes."""
+    record = previous.get(feed_name)
+    if not record:
+        return True
+    quiet = int(record.get("quiet_runs") or 0)
+    if quiet < QUIET_RUNS_BEFORE_PROBE:
+        return True
+    # Staggered by name so the quiet feeds do not all probe on the same run.
+    return (run_number + (hash(feed_name) % PROBE_EVERY)) % PROBE_EVERY == 0
+
+
 def load_feeds(path: Path | None = None) -> list[Feed]:
     """Every catalogue row carrying an http(s) feed URL, aggregators refused.
 
@@ -286,7 +323,20 @@ def _text(node, *tags: str) -> str:
     return ""
 
 
-def _plain(html: str, limit: int = 700) -> str:
+# What the paid gate actually reads. The gate is charged per token and runs on
+# EVERY candidate, so this number is the main lever on the bill once 481 feeds
+# are wired: at ~4 chars per token, 400 characters of teaser plus a headline and
+# a one-line dateline is roughly 120 tokens, against ~250 at the original 700.
+#
+# Deliberately not smaller. The teaser is where a funding figure usually sits
+# when the headline omits it ("Enigma closes seed round" / "...$71m led by
+# Greenfield"), and the whole reason the funding pillar exists is that those
+# figures are readable for free. Trimming to a bare headline would save a
+# fraction of a cent per run and cost the numbers.
+TEASER_CHARS = 400
+
+
+def _plain(html: str, limit: int = TEASER_CHARS) -> str:
     """Feed summaries are HTML. The classifier reads prose, and leaving the
     markup in wastes tokens on `<img srcset=...>` in every single candidate."""
     text = _TAGS.sub(" ", html or "")
@@ -306,13 +356,9 @@ def dateline(feed: Feed) -> str:
     one step removed.
     """
     if feed.is_regional or not feed.country:
-        where = f"a {feed.coverage.lower() or 'regional'} publication" if feed.coverage else "a regional publication"
-        return (f"(Feed record: reported by {feed.name}, {where}. "
-                f"The publisher's location does not establish the story's location.)")
+        return f"(Outlet: {feed.name}, regional — its base does not place the story.)"
     seat = f"{feed.city}, {feed.country}" if feed.city else feed.country
-    return (f"(Feed record: reported by {feed.name}, a national publication based in "
-            f"{seat}. This is where the OUTLET is, which is a hint about the story "
-            f"and not a statement of fact about it.)")
+    return f"(Outlet: {feed.name}, based in {seat} — a hint, not a stated fact.)"
 
 
 def parse(payload: bytes, feed: Feed) -> list[dict]:
@@ -509,12 +555,26 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
     STATS["feeds"] = len(feed_list)
     print(f"[{COLLECTOR}] {len(feed_list)} feeds from {CATALOGUE_CSV.name}")
 
+    previous_run = _previous_ledger()
+    previous = {r["name"]: r for r in previous_run.get("by_feed", [])}
+    run_number = int(previous_run.get("run_number") or 0) + 1
+
     seen_urls: set[str] = set()
     seen_titles: set[str] = set()
     out: list[dict] = []
     last_hit: dict[str, float] = {}
 
     for feed in feed_list:
+        if not due_this_run(feed.name, previous, run_number):
+            # Resting, not forgotten: carry the previous verdict forward so the
+            # ledger stays complete and a quiet feed keeps its history.
+            record = dict(previous[feed.name])
+            record.update(status="resting", items=0, new=0,
+                          detail=f"quiet for {record.get('quiet_runs')} runs, "
+                                 f"probing every {PROBE_EVERY}")
+            FEED_HEALTH.append(record)
+            continue
+
         # Politeness, per host rather than per request: two feeds on one
         # publisher wait, a hundred feeds on a hundred hosts do not.
         host = feed.host
@@ -576,20 +636,28 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
             out.append(item)
             record["new"] += 1
 
+        # Yield history, which is what earns the polling rate.
+        was_quiet = int((previous.get(feed.name) or {}).get("quiet_runs") or 0)
+        record["quiet_runs"] = 0 if record["new"] else was_quiet + 1
+
         STATS["items"] += record["items"]
         STATS[record["status"] if record["status"] == "ok" else "dead"] += 1
         FEED_HEALTH.append(record)
 
-    _report(dry_run)
+    _report(dry_run, run_number)
     return out
 
 
-def _report(dry_run: bool) -> None:
+def _report(dry_run: bool, run_number: int = 0) -> None:
     """Per-feed health, loudly. A dead feed among a hundred live ones is exactly
     the failure that hides inside an aggregate: the collector still returns
     hundreds of items and still reports `ok`, so nothing ever says that Israel
     went dark three weeks ago."""
-    dead = [r for r in FEED_HEALTH if r["status"] != "ok"]
+    resting = [r for r in FEED_HEALTH if r["status"] == "resting"]
+    dead = [r for r in FEED_HEALTH if r["status"] not in ("ok", "resting")]
+    if resting:
+        print(f"[{COLLECTOR}] {len(resting)} feeds resting (quiet for "
+              f"{QUIET_RUNS_BEFORE_PROBE}+ runs, probed every {PROBE_EVERY})")
     print(f"[{COLLECTOR}] {STATS['ok']} feeds live, {len(dead)} not answering, "
           f"{STATS['items']} items, {STATS['duplicate_url']} duplicate URLs, "
           f"{STATS['syndicated']} syndicated copies dropped")
@@ -607,7 +675,9 @@ def _report(dry_run: bool) -> None:
 
     payload = {
         "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "run_number": run_number,
         "feeds": STATS["feeds"], "live": STATS["ok"], "dead": len(dead),
+        "resting": len(resting),
         "items": STATS["items"], "blocked_aggregators": STATS["blocked"],
         "by_feed": sorted(FEED_HEALTH, key=lambda r: r["name"].lower()),
     }

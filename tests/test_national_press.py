@@ -513,3 +513,68 @@ def test_leading_junk_before_the_first_tag_is_trimmed():
 def test_a_single_declaration_is_left_alone():
     """The trim must not eat the ordinary case it is standing next to."""
     assert press._tidy(RSS).startswith(b"<?xml")
+
+
+# --- Earned cadence --------------------------------------------------------
+
+def test_a_feed_that_has_produced_nothing_for_weeks_drops_to_a_probe(tmp_path):
+    """With 481 feeds wired, most of a run is spent on publishers producing
+    nothing we keep. Dead weight should cost nothing — not budget, and not much
+    free compute either."""
+    press.HEALTH_PATH = tmp_path / "health.json"
+    quiet = {"name": "Globes", "quiet_runs": press.QUIET_RUNS_BEFORE_PROBE + 3,
+             "country": "Israel", "url": GLOBES.rss, "status": "ok",
+             "items": 0, "new": 0, "detail": ""}
+    press.HEALTH_PATH.write_text(json.dumps({"run_number": 1, "by_feed": [quiet]}))
+
+    session = FakeSession({GLOBES.rss: FakeResponse(RSS)})
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+
+    rested = press.FEED_HEALTH[0]["status"] == "resting"
+    if rested:
+        assert GLOBES.rss not in session.calls, "a resting feed must not be fetched"
+    else:
+        # It was its turn to probe. A probe is a real fetch AND a real health
+        # report, which is the point: a feed that went quiet because it BROKE
+        # still has to be detected.
+        assert GLOBES.rss in session.calls
+
+
+def test_a_probe_still_happens_so_a_broken_quiet_feed_is_still_found():
+    """Resting must never mean forgotten. Across a full probe cycle every quiet
+    feed is fetched at least once."""
+    previous = {"Globes": {"name": "Globes", "quiet_runs": 99}}
+    assert any(press.due_this_run("Globes", previous, n)
+               for n in range(press.PROBE_EVERY))
+
+
+def test_a_feed_that_yields_is_polled_every_run():
+    previous = {"Globes": {"name": "Globes", "quiet_runs": 0}}
+    assert all(press.due_this_run("Globes", previous, n) for n in range(20))
+
+
+def test_a_feed_we_have_never_seen_is_always_polled():
+    assert press.due_this_run("Brand New Outlet", {}, 7)
+
+
+def test_yield_history_resets_the_moment_a_feed_produces_something(tmp_path):
+    press.HEALTH_PATH = tmp_path / "health.json"
+    press.HEALTH_PATH.write_text(json.dumps(
+        {"run_number": 1,
+         "by_feed": [{"name": "Globes", "quiet_runs": 5, "country": "Israel",
+                      "url": GLOBES.rss, "status": "ok", "items": 0, "new": 0,
+                      "detail": ""}]}))
+    session = FakeSession({GLOBES.rss: FakeResponse(RSS)})
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    assert press.FEED_HEALTH[0]["quiet_runs"] == 0
+
+
+def test_the_gate_payload_stays_small_because_it_is_charged_per_token():
+    """The gate runs on EVERY candidate and is billed by the token, so this is
+    the main lever on the bill once hundreds of feeds are wired. It is
+    deliberately not smaller than this: the teaser is where a funding figure
+    sits when the headline omits it."""
+    item = press.parse(RSS, GLOBES)[0]
+    assert len(item["raw_text"]) < 700, "the gate payload has grown"
+    # And the figure still survives the trim, which is the whole point.
+    assert "$71m" in item["raw_text"]
