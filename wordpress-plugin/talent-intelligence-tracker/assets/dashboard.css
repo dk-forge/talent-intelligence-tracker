@@ -1679,3 +1679,76 @@ main:has(#tit-dashboard) {
    columns breathing instead of packing. */
 .tit-filters { row-gap:16px; }
 .tit-wrap .tit-field--stack { gap:6px; }
+
+/* ===========================================================================
+   From the design proposal, translated into the family's own palette.
+   Three ideas survived its review: the pulsing live dot, the empty state
+   that states a policy instead of apologising, and the phone jump bar (its
+   bottom-sheet idea at a tenth of the cost). Everything else it proposed --
+   the cream ground, the navy header band, the serif display face, the
+   webfonts -- was rejected for fighting the sibling family or the no-CDN
+   rule. See the decision table in the commit message.
+   =========================================================================== */
+
+/* --- The live dot breathes -------------------------------------------------
+   "Live" is a claim about NOW, and a static dot makes it read like a printed
+   label. A slow pulse is the smallest possible way to say the page is being
+   kept, and anyone who asked for less motion gets the still dot back. */
+@keyframes tit-pulse { 0%,100%{opacity:1; transform:scale(1)}
+  50%{opacity:.45; transform:scale(.8)} }
+.tit-live-dot { animation:tit-pulse 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce){ .tit-live-dot { animation:none; } }
+
+/* --- The empty state -------------------------------------------------------
+   A one-line "nothing matches" in a seven-column table read as a rendering
+   fault. This reads as an answer: what happened, why it is deliberate, and
+   the way out. Centred in the space the rows would have filled so the page
+   does not collapse to a sliver when a filter combination returns nothing. */
+.tit-empty-tr td { padding:0; }
+.tit-table-empty { padding:34px 18px; text-align:center; }
+.tit-table-empty-h { margin:0 0 5px; font-size:18px; font-weight:700;
+  color:var(--tit-fg); }
+.tit-table-empty-p { margin:0 0 14px; font-size:14px; color:var(--tit-mut); }
+.tit-wrap .tit-empty-clear { padding:9px 16px; border:1px solid var(--tit-line);
+  border-radius:9px; background:#fff; color:var(--tit-fg); font-family:inherit;
+  font-size:13.5px; font-weight:650; cursor:pointer; }
+.tit-wrap .tit-empty-clear:hover { border-color:var(--tit-blue);
+  color:var(--tit-blue); }
+.tit-wrap .tit-empty-clear:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+@media (max-width:860px){
+  /* Below the card breakpoint the row is a flex card; let the block span it. */
+  .tit-wrap .tit-table .tit-empty-tr td { flex:1 0 100%; }
+}
+
+/* --- The phone jump bar ----------------------------------------------------
+   Exists only below the full-bleed breakpoint, where the charts-first order
+   puts the filters several screens from a thumb. Fixed to the viewport, so
+   the wrap reserves its height underneath and the citation line can never be
+   trapped behind it. Two buttons, no sheet: the filters themselves stay the
+   one copy of the filter UI. */
+.tit-jump { display:none; }
+@media (max-width:700px){
+  .tit-jump { position:fixed; left:50%; transform:translateX(-50%);
+    bottom:calc(10px + env(safe-area-inset-bottom, 0px)); z-index:50;
+    display:flex; gap:8px; }
+  /* Reserve the bar's height only when the bar exists: it is built by
+     JavaScript, and a page without JavaScript should not carry blank space
+     for chrome it will never get. :has() is already load-bearing elsewhere
+     in this stylesheet, so it is safe to lean on here. */
+  #tit-dashboard:has(.tit-jump) { padding-bottom:74px; }
+}
+.tit-wrap .tit-jump-btn { display:inline-flex; align-items:center; gap:6px;
+  padding:10px 16px; border:1px solid var(--tit-line); border-radius:99px;
+  background:#fff; color:var(--tit-fg); font-family:inherit; font-size:14px;
+  font-weight:650; line-height:1.2; cursor:pointer;
+  box-shadow:0 4px 10px rgba(16,18,24,.14), 0 10px 26px rgba(16,18,24,.16); }
+/* The Filters button leads, in the family blue; selection state elsewhere
+   uses the same fill, so the bar speaks the page's existing language. */
+.tit-wrap .tit-jump-btn:first-child { background:var(--tit-blue);
+  border-color:var(--tit-blue); color:#fff; }
+.tit-wrap .tit-jump-btn:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+.tit-jump-n { font-size:12px; font-weight:700;
+  font-variant-numeric:tabular-nums; letter-spacing:0;
+  background:rgba(255,255,255,.26); border-radius:99px; padding:1px 7px; }

@@ -1180,9 +1180,20 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data) return;
+        // The empty state is a statement of policy, not an apology: showing
+        // nothing beats guessing, and it says so where the rows would be.
+        // A one-line "nothing matches" in a seven-column table read as a
+        // rendering fault; this reads as an answer, and it carries its own
+        // way out (handled by delegation on the tbody, since this markup is
+        // re-created on every empty render).
         tbody.innerHTML = data.rows.length
           ? data.rows.map(renderRow).join('')
-          : '<tr><td colspan="7">Nothing matches those filters yet.</td></tr>';
+          : '<tr class="tit-empty-tr"><td colspan="7">' +
+            '<div class="tit-table-empty">' +
+            '<p class="tit-table-empty-h">Nothing matches those filters</p>' +
+            '<p class="tit-table-empty-p">We would rather show you nothing than guess.</p>' +
+            '<button type="button" class="tit-empty-clear">Reset all filters</button>' +
+            '</div></td></tr>';
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
@@ -1405,6 +1416,15 @@
     activeChips.innerHTML = chips.join('');
     syncAllPills();
     activeBar.hidden = chips.length === 0;
+
+    // The phone jump bar's Filters button carries the same count the chips
+    // bar shows, so a reader scrolled past the chips still knows the page is
+    // narrowed. Looked up per paint: the bar is built later in this file.
+    var jumpN = document.getElementById('tit-jump-n');
+    if (jumpN) {
+      jumpN.textContent = String(chips.length);
+      jumpN.hidden = chips.length === 0;
+    }
   }
 
   function quickFind(list, test) {
@@ -1431,19 +1451,60 @@
     });
   }
 
+  // One reset, two doors: the button in the filter panel and the Clear
+  // Filters button inside the empty state. They must do the identical thing,
+  // so they are the same function rather than two loops that drift apart.
+  function resetAll() {
+    Object.keys(inputs).forEach(function (k) {
+      if (!inputs[k] || k === 'sort') return;
+      if (MULTI[k]) { setMulti(inputs[k], []); return; }
+      inputs[k].value = NEUTRAL[k] || '';
+    });
+    setRegion(null);
+    setQuickView(null);
+    setStated(false);
+    refresh();
+  }
+
   if (resetBtn) {
-    resetBtn.addEventListener('click', function () {
-      Object.keys(inputs).forEach(function (k) {
-        if (!inputs[k] || k === 'sort') return;
-        if (MULTI[k]) { setMulti(inputs[k], []); return; }
-        inputs[k].value = NEUTRAL[k] || '';
-      });
-      setRegion(null);
-      setQuickView(null);
-      setStated(false);
-      refresh();
+    resetBtn.addEventListener('click', resetAll);
+  }
+
+  // The empty state's own way out. The button is re-created on every empty
+  // render, so the listener lives on the tbody and finds it by class.
+  if (tbody) {
+    tbody.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.tit-empty-clear') : null;
+      if (btn) resetAll();
     });
   }
+
+  // --- The phone jump bar ----------------------------------------------------
+  // With the charts above the machinery, a phone reader is several screens
+  // from the filters by the time they reach the rows. The design proposal
+  // solves this with a bottom-sheet filter panel, which would mean a second
+  // copy of every control; this is the same reach-it-with-a-thumb idea at
+  // none of that cost: a fixed bar, phones only (the stylesheet decides where
+  // it exists), that jumps to the filter block or the rows. Built here rather
+  // than shipped in markup so a page without JavaScript never shows chrome
+  // that does nothing. paintActive() keeps the count on the Filters button in
+  // step with the chips it already paints.
+  var jumpBar = document.createElement('div');
+  jumpBar.className = 'tit-jump';
+  jumpBar.innerHTML =
+    '<button type="button" class="tit-jump-btn" data-jump="#tit-filter-sec">Filters' +
+    '<span class="tit-jump-n" id="tit-jump-n" hidden></span></button>' +
+    '<button type="button" class="tit-jump-btn" data-jump=".tit-detail">Updates</button>';
+  jumpBar.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-jump]') : null;
+    if (!btn) return;
+    var target = root.querySelector(btn.getAttribute('data-jump'));
+    if (!target) return;
+    var still = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  });
+  root.appendChild(jumpBar);
 
   // --- Per-chart controls ---------------------------------------------------
   // Every card gets its own expand, share and download, and each one acts on
