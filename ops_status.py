@@ -158,6 +158,27 @@ def _report_health(conn) -> list[str]:
     return problems
 
 
+def _commits_behind_origin() -> int:
+    """How many commits this checkout is behind origin/main, 0 if unknown.
+
+    Deliberately does NOT fetch: ops_status is read-only and must work offline
+    and inside an egress-blocked session. It compares against whatever
+    origin/main this checkout last saw, which is enough to catch the common
+    case of a session reading a queue file written after its own checkout.
+    Any failure (no git, no remote ref, not a repo) returns 0 and stays quiet
+    rather than inventing a warning.
+    """
+    import subprocess
+    try:
+        out = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD..origin/main"],
+            cwd=ROOT, capture_output=True, text=True, timeout=5,
+        )
+        return int(out.stdout.strip()) if out.returncode == 0 else 0
+    except Exception:
+        return 0
+
+
 def _report_writer_queue() -> list[str]:
     """What is waiting for the one writer slot, and what fell out of it.
 
@@ -178,12 +199,30 @@ def _report_writer_queue() -> list[str]:
 
     print("\n[2b] WRITER QUEUE  (the single database-writer slot)")
 
+    behind = _commits_behind_origin()
+
     queue_file = ROOT / "data" / "writer_queue.json"
     if not queue_file.exists():
+        # An absent file means "nothing lost" ONLY if this checkout is current.
+        # The drainer commits the queue to main, so a checkout even one commit
+        # behind reads a file that predates every eviction and prints a
+        # confident all-clear. That happened on 2026-07-29: this section said
+        # "Nothing queued, nothing lost" while main recorded 15 orphans and a
+        # waiting ticket. CLAUDE.md tells every session to run ops_status
+        # FIRST, so a false all-clear here is the most expensive lie the tool
+        # can tell — it is the eviction bug wearing the reporting tool as a hat.
+        if behind:
+            print(f"    UNKNOWN — this checkout is {behind} commit(s) behind origin/main,")
+            print("    and the queue lives in a committed file, so what you see here is")
+            print("    older than what actually happened. Run: git pull --ff-only")
+            return ["writer queue state is unknown: checkout is behind origin/main"]
         print("    Nothing queued, nothing lost.")
         print("    Queue a writer:  gh workflow run drain-writers.yml \\")
         print("                       -f enqueue=<workflow>.yml -f inputs_json='{...}'")
         return []
+
+    if behind:
+        print(f"    (stale: {behind} commit(s) behind origin/main — `git pull --ff-only`)")
 
     state = writer_queue.summary(writer_queue.load(queue_file))
     counts = state["counts"]
