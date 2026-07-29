@@ -8,13 +8,14 @@ retract the source.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
 
 import correct_form_d as correct
 from collectors import sec_form_d_bulk as bulk
-from pipeline import validate
+from pipeline import publish, validate
 
 
 def _published(**over):
@@ -129,14 +130,42 @@ PLUGIN = Path(__file__).parent.parent / "wordpress-plugin" / "talent-intelligenc
 API = (PLUGIN / "includes" / "api.php").read_text()
 
 
+def _php_enrichable() -> set[str]:
+    """The column names in tit_enrichable_columns(), comments stripped.
+
+    The prose in that function names columns it is explaining are NOT
+    enrichable, so a plain substring read of the body would count them.
+    """
+    body = API[API.index("function tit_enrichable_columns"):]
+    body = body[:body.index("}")]
+    body = re.sub(r"//[^\n]*", "", body)
+    return set(re.findall(r"'([a-z_]+)'", body))
+
+
 def test_enrich_was_not_widened_to_carry_the_correction():
     """/enrich is limited to DERIVED values on purpose. These two are closer to
     facts, so they got their own door instead of a wider allowlist on that one:
     a bug in enrichment should still be unable to rewrite what a filing said."""
-    allowlist = API[API.index("function tit_enrichable_columns"):]
-    allowlist = allowlist[:allowlist.index("}")]
+    allowlist = _php_enrichable()
     assert "signal_direction" not in allowlist
     assert "talent_readthrough" not in allowlist
+
+
+def test_the_two_enrich_allowlists_agree():
+    """The client decides what to SEND and the server what to ACCEPT, so a
+    column on one list alone is silently inert: present in the payload and
+    dropped, or accepted and never sent. hq_country reached published rows only
+    once BOTH sides listed it, and nothing else failed in the meantime."""
+    assert _php_enrichable() == set(publish.ENRICHABLE)
+
+
+def test_sourced_location_is_not_enrichable_on_either_side():
+    """hq_country/hq_city are looked up, so they belong here. country/city are
+    what the source said about the job, so they never can: /enrich exists to
+    add derived values, not to overwrite a filing."""
+    for side in (_php_enrichable(), set(publish.ENRICHABLE)):
+        assert {"hq_city", "hq_country"} <= side
+        assert not ({"country", "city", "region", "state"} & side)
 
 
 def test_the_correction_route_writes_those_two_columns_and_nothing_else():
