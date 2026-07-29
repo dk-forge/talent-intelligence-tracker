@@ -493,11 +493,27 @@ def test_the_dispatch_default_is_a_dry_run():
     assert inputs["dry_run"]["default"] is True
 
 
+def _results_listing():
+    """What the results directory holds, treating "not there yet" as empty.
+
+    git does not track an empty directory, so a fresh checkout — which is every
+    CI run — has no analysis/tripwire/results until a real run creates one.
+    Listing it directly raised FileNotFoundError and failed the build for a
+    reason unrelated to what this test protects, which is that an offline run
+    writes NOTHING. A directory that does not exist holds nothing, so the
+    assertion is the same either way.
+    """
+    try:
+        return set(os.listdir(os.path.join(ROOT, "analysis", "tripwire", "results")))
+    except FileNotFoundError:
+        return set()
+
+
 def test_an_offline_run_spends_nothing_and_writes_nothing(tmp_path):
     """The dry-run diagnostic the project requires before anything is armed.
     Proves the whole path — plan, ask, parse, diff, cost, work list — with no
     network call and no key."""
-    before = set(os.listdir(os.path.join(ROOT, "analysis", "tripwire", "results")))
+    before = _results_listing()
     proc = subprocess.run(
         [sys.executable, "run_tripwire.py", "--offline", "--no-industries",
          "--countries", "IL,JP"],
@@ -508,7 +524,7 @@ def test_an_offline_run_spends_nothing_and_writes_nothing(tmp_path):
     assert "OFFLINE replay" in proc.stdout
     assert "MISSING" in proc.stdout
     assert "nothing written to the repository" in proc.stdout
-    after = set(os.listdir(os.path.join(ROOT, "analysis", "tripwire", "results")))
+    after = _results_listing()
     assert before == after
     assert not os.path.exists(os.path.join(ROOT, "data", "tripwire_worklist.json")) \
         or "tripwire_worklist" not in proc.stdout.split("nothing written")[1]
