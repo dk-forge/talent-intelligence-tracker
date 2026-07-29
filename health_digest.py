@@ -65,6 +65,11 @@ MAX_AGE_HOURS = {
     "gdelt": 336,
     "sec_edgar": 336,
     "sec_form_d": 336,
+    # SEC publishes the Form D DATA SETS once a quarter, so this source is
+    # quiet by design between them. The default 14-day leash would email the
+    # owner a false alarm every fortnight, which is how a digest teaches
+    # people to ignore it.
+    "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
 }
 DEFAULT_MAX_AGE_HOURS = 336  # 14 days
 
