@@ -195,6 +195,22 @@ GOOGLE_NEWS_VOCAB = {
         '("توظيف" OR "فرص عمل" OR "مكتب جديد")',
         '("جولة تمويل" OR "تمويل" "مليون")',
     ),
+    # Added 2026-07-29 with the Israel market. Fetched live before being
+    # committed, per the standing rule: the leadership phrases returned 21
+    # items and the prefilter's Hebrew block kept 10 of the 10 read; funding
+    # returned 26 with 9 of 12 kept. One trap is baked into the spelling:
+    # מנכ"ל (CEO) is written with a gershayim, and the ASCII double-quote form
+    # of it TERMINATES the surrounding phrase quoting, so the whole query
+    # matched nothing — 0 items, silently. The U+05F4 gershayim (״) below is
+    # punctuation to Google's tokenizer, matches the ASCII-quoted spelling in
+    # real headlines, and leaves the phrase quotes intact. "עובדים חדשים"
+    # (new employees) was tried and dropped: it pulled machine-translated
+    # union stories from the Vietnamese wire, not Israeli employers.
+    "he": (
+        '("מנכ״ל חדש" OR "מונה למנכ״ל" OR "מונתה למנכ״לית")',
+        '("מגייסת עובדים" OR "מגייס עובדים" OR "גיוס עובדים" OR "משרות חדשות" OR "מרכז פיתוח חדש")',
+        '("גיוס הון" OR "סבב גיוס" OR "השלימה גיוס" OR "גייסה מיליון")',
+    ),
 }
 
 GOOGLE_NEWS_LOCALES = (
@@ -225,6 +241,12 @@ GOOGLE_NEWS_LOCALES = (
     ("en", "HK"), ("en", "IL"),
     ("es", "PE"), ("es", "EC"), ("es", "UY"),
     ("fr", "CA"), ("fr", "MA"), ("fr", "SN"),
+    # 2026-07-29, with the Israel market. The English IL edition above reads
+    # what Israeli outlets publish in English; the Hebrew one is where the
+    # rounds break first (Calcalist, Globes, TheMarker publish Hebrew hours
+    # before CTech's English write-up, when one comes at all). The measured
+    # recall failure this answers: Israel held 1 of 10 goldset events.
+    ("he", "IL"),
 )
 
 
@@ -484,7 +506,7 @@ SOURCES = (
            "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
            "live", "News publishers",
            ("Funding", "Hiring", "Leadership change", "Office opening"),
-           "575 verified feeds across 139 countries",
+           "593 verified feeds across 139 countries",
            notes="Publishers' own feeds, never an aggregator's database: where a "
                  "round is found through a directory, the record cites the outlet "
                  "that reported it. Every feed was fetched and parsed before "
@@ -727,6 +749,50 @@ MARKETS = (
            live_sources=("google_news",),
            candidate_official_sources=("Business France",),
            terms=("créations d'emplois", "nouveau site")),
+    # --- 2026-07-29 widening -------------------------------------------------
+    # Every addition below already has its papers of record wired in
+    # data/sources_catalogue.csv (spec 14.2: a local-language term without
+    # that country's outlets is pure waste — a test now asserts the pairing),
+    # and its Google News edition already sits in GOOGLE_NEWS_LOCALES above,
+    # so listing it here claims nothing that is not already collected. All
+    # start at discovery_only, the tier that is honest about what runs.
+    #
+    # Israel first, because it is the measured hole: the 2026-07-28 recall
+    # goldset held 1 of 10 Israeli events, and the owner found four missed
+    # Tel Aviv rounds by simply asking an outside model. Ten wired feeds
+    # (Globes x3, Geektime, Techtime, Ynet, Haaretz, the Innovation
+    # Authority, NoCamels, JPost) plus the new Hebrew query pack are the
+    # response. Hebrew terms are live-verified newsroom phrasing, not
+    # translations — see the "he" pack note above for the gershayim trap.
+    Market("IL", "Israel", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=("Israel Innovation Authority programme "
+                                       "announcements",),
+           terms=("גיוס הון", "מגייסת עובדים", "מנכ״ל חדש",
+                  "Israeli startup raises", "opens Tel Aviv office")),
+    Market("IN", "India", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=("Invest India press releases",),
+           # Indian business press is English-first; the segment that earns
+           # its keep is the GCC wave, phrased to avoid colliding with the
+           # standalone euphemism queries (a test keeps the two sets disjoint).
+           terms=("GCC in India", "hiring in Bengaluru", "नई नौकरियां")),
+    Market("CA", "Canada", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=("Invest in Canada announcements",),
+           terms=("new jobs Toronto", "embauche au Québec")),
+    Market("AU", "Australia", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=("Austrade announcements",),
+           terms=("new jobs Sydney", "hiring in Melbourne")),
+    Market("SG", "Singapore", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=("Singapore EDB press releases",),
+           terms=("regional headquarters Singapore", "new jobs Singapore")),
+    Market("JP", "Japan", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=("JETRO investment announcements",),
+           terms=("採用拡大", "新拠点", "社長に就任")),
 )
 
 # Spec 14.2: adding a local-language term without that country's papers of

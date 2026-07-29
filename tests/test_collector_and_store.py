@@ -201,6 +201,79 @@ def test_rotation_is_deterministic():
     assert registry.rotate(segments, 200, 1, 2, 4) == registry.rotate(segments, 200, 1, 2, 4)
 
 
+def test_a_market_with_terms_has_its_papers_of_record_wired():
+    """Spec 14.2: a local-language term without that country's outlets is pure
+    waste — the term can only surface a story if somebody publishes one we
+    read. Every market that carries `terms` must therefore have at least two
+    wired publisher feeds for its country in the catalogue (two, because one
+    feed for a whole country is a single point of failure the catalogue
+    already refuses elsewhere)."""
+    import csv
+
+    with registry.CATALOGUE_CSV.open(newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    wired_by_country: dict[str, int] = {}
+    for row in rows:
+        if (row.get("rss") or "").startswith("http"):
+            country = (row.get("country") or "").strip()
+            wired_by_country[country] = wired_by_country.get(country, 0) + 1
+
+    for market in registry.MARKETS:
+        if not market.terms:
+            continue
+        assert wired_by_country.get(market.name, 0) >= 2, (
+            f"{market.iso2} carries local terms but {market.name} has fewer "
+            f"than two wired feeds in the catalogue — the terms have no "
+            f"papers of record to surface stories in"
+        )
+
+
+def test_every_market_is_reachable_by_some_discovery_route():
+    """A market in MARKETS that nothing queries and nothing reads claims 'we
+    monitor news here' while no collector ever asks. Two legitimate routes
+    exist: a Google News edition in the locale rotation, or wired publisher
+    feeds in the catalogue (Luxembourg has no dedicated Google News edition
+    and is read through six national feeds instead). A market with neither is
+    a name on a page."""
+    import csv
+
+    rotated = {country for _, country in registry.GOOGLE_NEWS_LOCALES}
+    rotated.add(registry.GOOGLE_NEWS_ANCHOR[1])
+
+    with registry.CATALOGUE_CSV.open(newline="") as fh:
+        fed = {row["country"].strip() for row in csv.DictReader(fh)
+               if (row.get("rss") or "").startswith("http")}
+
+    for market in registry.MARKETS:
+        assert market.iso2 in rotated or market.name in fed, (
+            f"{market.iso2} is listed as a market but no locale queries its "
+            f"edition and no catalogue feed covers it"
+        )
+
+
+def test_the_segment_matrix_still_sweeps_inside_the_recency_window():
+    """The coupling that broke once already: queries asked `when:3d` while the
+    rotation took 6.2 days, and the gap was invisible — the markets simply
+    returned less. The locale window is derived (recency_window_days) and
+    tested in test_locale_rotation.py; this guards the SEGMENT matrix the same
+    way, so that widening MARKETS cannot quietly stretch its sweep past what a
+    derived window would cover. At 4 segments a run, twice a day, the matrix
+    must sweep inside the window the locale rotation derives."""
+    import math
+
+    from run_collect import LOCALES_PER_RUN, RUNS_PER_DAY, SEGMENTS_PER_RUN
+
+    segments = registry.build_segments()
+    sweep_days = math.ceil(len(segments) / SEGMENTS_PER_RUN / RUNS_PER_DAY)
+    window = registry.recency_window_days(LOCALES_PER_RUN, RUNS_PER_DAY)
+    assert sweep_days <= window, (
+        f"{len(segments)} segments at {SEGMENTS_PER_RUN}/run x "
+        f"{RUNS_PER_DAY}/day sweep in {sweep_days}d, outside the {window}d "
+        f"recency window: a segment's stories can age out before its turn "
+        f"comes round"
+    )
+
+
 def test_euphemisms_are_standalone_never_segments():
     """A euphemism AND-ed with the base vocabulary can only ever match articles
     that also use the obvious word. That bug made 16 sibling terms dead on

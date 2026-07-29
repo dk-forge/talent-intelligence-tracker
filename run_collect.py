@@ -79,11 +79,16 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     return queries
 
 
-# Five editions a run, twice a day, sweeps the 49-edition list in about five
-# days (was 3/run over 36 editions = six days). The recency window derives from
-# this, so widening the list without raising the rate would just have stretched
-# the window rather than covering more ground per day. Fetching is free; the
-# gate makes looking cheap; the read-through cap bounds the money.
+# Five editions a run, twice a day, sweeps the 51-edition list in 5.1 days
+# (was 3/run over 36 editions = six days; he:IL made it 51 on 2026-07-29).
+# The recency window derives from this — 51 editions push it from 6d to 7d
+# with nobody remembering to — so nothing ages out between visits. The
+# honest cost of the wide list is LATENCY, not loss: a non-anchor market's
+# new story waits up to ~5 days for its edition's turn. The fix would be a
+# third daily cron slot (RUNS_PER_DAY=3 sweeps in 3.4d), but that is +50%
+# on every per-run spend ceiling, and raising spend is the owner's decision,
+# the same rule that pins READTHROUGH_CAP. Raise RUNS_PER_DAY and the cron
+# together or not at all: the rotation arithmetic reads this constant.
 LOCALES_PER_RUN = 5
 
 # Candidates are what cost money, so the run carries its own cap rather than
