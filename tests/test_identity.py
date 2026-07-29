@@ -881,3 +881,63 @@ def test_a_legal_suffix_must_be_a_whole_token_not_a_word_boundary_match():
     assert vocab.company_key("Acme Co.") == "acme"
     assert vocab.company_key("Acme Holdings Limited") == "acme holdings"
     assert vocab.company_key("Kwik-Fit (GB) Limited") == "kwik-fit gb"
+
+
+def test_one_employer_spelled_two_ways_normalises_to_one_key():
+    """The filer spells itself two ways and we were storing two employers.
+
+    Both spellings claim the same profile URL, because the slug folds accents,
+    turns "&" into "and" and collapses punctuation — so includes/company.php saw
+    a collision and refused to publish either side. EMPLOYER_KEY_ALIASES states
+    the merge; this is the only place it is asserted as behaviour rather than as
+    a table.
+    """
+    from pipeline import vocab
+
+    pairs = (
+        ("Perma-Fix Environmental Services, Inc.", "PERMA FIX ENVIRONMENTAL SERVICES INC"),
+        ("Daré Bioscience, Inc.", "DARE BIOSCIENCE, INC."),
+        ("Barking, Havering & Redbridge University Hospitals NHS Trust",
+         "Barking, Havering and Redbridge University Hospitals NHS Trust"),
+    )
+    for one, other in pairs:
+        assert vocab.company_key(one) == vocab.company_key(other), (one, other)
+
+    assert vocab.company_key("Daré Bioscience, Inc.") == "dare bioscience"
+
+
+def test_the_alias_map_does_not_reach_past_the_pairs_it_names():
+    """A merge is a claim that two employers are one, and the map is the only
+    place this codebase makes that claim without a document behind it. So it
+    folds nothing generally: an accent, an ampersand or a hyphen in any OTHER
+    name survives, and a rule-shaped version of this was measured and rejected
+    for moving 274 keys to merge three employers."""
+    from pipeline import vocab
+
+    assert vocab.company_key("Atkinsréalis UK") == "atkinsréalis uk"
+    assert vocab.company_key("B & M Retail") == "b & m retail"
+    assert vocab.company_key("Kwik-Fit") == "kwik-fit"
+
+
+def test_an_alias_may_only_merge_two_spellings_of_one_name():
+    """The map is the one place in this codebase that asserts two employers are
+    one without a document saying so, so it may only ever collapse PUNCTUATION.
+    Two keys that already differ in their letters are two employers, and
+    renaming one to the other here would be an editorial decision hiding in a
+    lookup table.
+    """
+    import re
+    import unicodedata
+
+    from pipeline import vocab
+
+    def slug(key):
+        folded = unicodedata.normalize("NFKD", key.lower())
+        folded = "".join(c for c in folded if not unicodedata.combining(c))
+        return re.sub(r"[^a-z0-9]+", "-", folded.replace("&", " and ")).strip("-")
+
+    for variant, survivor in vocab.EMPLOYER_KEY_ALIASES.items():
+        assert variant != survivor
+        assert slug(variant) == slug(survivor), (
+            f"{variant!r} and {survivor!r} are not two spellings of one name, "
+            f"they are two names")

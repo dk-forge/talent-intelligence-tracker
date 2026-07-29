@@ -48,6 +48,7 @@ on:
       - collect
       - collect national press
       - collect-structured
+      - correct-company-key
       - correct-form-d
       - correct-layoff-scope
       - correct-sec-pillar

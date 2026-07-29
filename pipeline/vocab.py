@@ -682,6 +682,51 @@ def normalize_confidence(value: str):
     return k if k in CONFIDENCE_TIERS else None
 
 
+# One employer, two spellings: variant key -> the key we keep.
+#
+# WHY THIS IS A LIST AND NOT A RULE.
+#
+# Each pair below differs from its partner ONLY in punctuation, and the
+# difference comes from the filer rather than from us: SEC's EDGAR company
+# index writes "PERMA FIX ENVIRONMENTAL SERVICES INC" where the 8-K cover page
+# writes "Perma-Fix Environmental Services, Inc.", and the GOV.UK pay-gap
+# service holds one NHS trust twice, under two employer ids, once with "&" and
+# once with "and". So company_key produced two keys for one employer, both of
+# which claim the SAME profile URL (the slug transliterates "&" to "and",
+# strips accents and turns every run of punctuation into one hyphen).
+# includes/company.php detects that as a collision and refuses to serve or
+# publish either side, deliberately, rather than guessing which half of an
+# employer's history to show.
+#
+# The rule-shaped fix is to make company_key fold exactly what the slug folds,
+# so two names that produce one URL can only produce one key. That was measured
+# before it was rejected: over the 7,788 distinct stored names it changes 274
+# keys and 624 stored rows to merge THREE employers, and every one of those 274
+# would need re-issuing because company_key feeds content_hash. It also
+# contradicts the fix directly above — folding hyphens to spaces feeds "co" back
+# to the suffix strip, and CO-OPERATIVE GROUP is mangled a second way.
+#
+# So the merge is stated, one line per employer, at the cost of needing to be
+# added to. That cost is paid for by the check in ops_status.py [1c], which
+# lists any two stored keys that claim one slug and are not named here: a new
+# pair is loud rather than quietly unpublishable.
+#
+# The SURVIVING key in each pair is the one whose plain space-for-hyphen form is
+# already the canonical slug (ASCII, "and", no punctuation). That keeps the fast
+# path in tit_company_rows() — a direct REPLACE(company_key,' ','-') comparison
+# in SQL — able to find it without going through the slug index at all.
+EMPLOYER_KEY_ALIASES = {
+    # SEC filer 0000891532, one 8-K and three pay-versus-performance tables.
+    'perma-fix environmental services': 'perma fix environmental services',
+    # SEC filer 0001401914. The company spells itself Daré; EDGAR shouts DARE.
+    'daré bioscience': 'dare bioscience',
+    # GOV.UK pay-gap employers 15028 (to 2022) and 22115 (from 2023). The trust
+    # re-registered and dropped the ampersand; both ids are the same trust.
+    'barking havering & redbridge university hospitals nhs trust':
+        'barking havering and redbridge university hospitals nhs trust',
+}
+
+
 def company_key(name: str) -> str:
     """Stable join key for a company. Strips common legal suffixes so
     'Acme Inc.' and 'Acme, Inc' collapse to one employer.
@@ -706,7 +751,12 @@ def company_key(name: str) -> str:
     stored names. company_key feeds content_hash, so rows already stored under a
     mangled key keep it, and a new signal for one of those six will not dedupe
     against them until a correction pass rewrites the stored keys through
-    store.revise(). That pass is a queued writer job and is not this change.
+    store.revise(). That pass is `correct_company_key.py`, and it derives its
+    worklist by calling this function rather than from a list of six, so it
+    covers the aliases below and anything a later fix here moves.
+
+    The last step applies EMPLOYER_KEY_ALIASES, three curated merges of one
+    employer recorded under two spellings. See the note above that map.
     """
     k = _key(name)
     k = re.sub(r"[^\w\s&-]", " ", k)
@@ -715,7 +765,11 @@ def company_key(name: str) -> str:
         " ",
         k,
     )
-    return re.sub(r"\s+", " ", k).strip()
+    k = re.sub(r"\s+", " ", k).strip()
+    # After the suffix strip, never before: the alias is written in the form the
+    # rest of this function produces, so a reader can check an entry against a
+    # stored key by eye.
+    return EMPLOYER_KEY_ALIASES.get(k, k)
 
 
 # --- Funding stage ---------------------------------------------------------

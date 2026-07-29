@@ -42,6 +42,7 @@ def main() -> int:
 
     problems += _report_collection_armed()
     problems += _report_data(conn)
+    problems += _report_employer_keys(conn)
     problems += _report_health(conn)
     problems += _report_writer_queue()
     problems += _report_link_rot(conn)
@@ -120,6 +121,104 @@ def _report_data(conn) -> list[str]:
     print(f"    newest capture: {newest}")
 
     return problems
+
+
+def _report_employer_keys(conn) -> list[str]:
+    """Is every stored employer key still the key we would compute today?
+
+    `company_key` is a normalised name, computed at ingestion and then stored,
+    so every change to `vocab.company_key` leaves the rows behind it spelled the
+    old way. That is invisible from the outside and it breaks two things
+    quietly: the key is the first input to `content_hash`, so a stale row cannot
+    dedupe against its own history and the next signal about that employer lands
+    as a second record; and the profile URL is derived from the key, so the
+    employer's page moves.
+
+    The second check is the other half. Two keys that differ only in punctuation
+    claim ONE profile URL, because the slug transliterates accents, turns "&"
+    into "and" and collapses every run of punctuation. includes/company.php
+    refuses to serve or publish either side of that, which is the right call and
+    is also completely silent — a page that simply never appears. So an
+    unmerged pair is named here instead, and the merge goes in
+    `vocab.EMPLOYER_KEY_ALIASES`.
+    """
+    from pipeline import vocab
+
+    print("\n[1c] EMPLOYER KEYS  (the only employer identity there is)")
+    problems = []
+
+    rows = conn.execute(
+        "SELECT company, company_key FROM signals WHERE is_current = 1 "
+        "  AND company_key IS NOT NULL AND company_key <> ''"
+    ).fetchall()
+
+    stale: dict[str, tuple[str, int]] = {}
+    keys = set()
+    for row in rows:
+        keys.add(row["company_key"])
+        fresh = vocab.company_key(row["company"])
+        if fresh != row["company_key"]:
+            old, count = stale.get(row["company_key"], (fresh, 0))
+            stale[row["company_key"]] = (old, count + 1)
+
+    if stale:
+        n = sum(count for _, count in stale.values())
+        print(f"    {n} row(s) across {len(stale)} employer(s) carry a key this "
+              f"name no longer normalises to")
+        for old, (new, count) in sorted(stale.items())[:6]:
+            print(f"      {count:>3}  {old!r} -> {new!r}")
+        if len(stale) > 6:
+            print(f"      ... and {len(stale) - 6} more")
+        problems.append(
+            f"{n} row(s) carry a stale company_key, so they cannot dedupe "
+            f"against their own history: queue correct-company-key.yml "
+            f"(dry run first)")
+    else:
+        print(f"    {len(keys)} keys, all current with pipeline/vocab.py")
+
+    # A collision is two keys claiming one URL. Computed the way the slug is,
+    # which is a deliberate duplicate of six lines of PHP: the alternative is
+    # not checking at all from here, and the pair it finds is checked by hand
+    # before anything acts on it.
+    claims: dict[str, list[str]] = {}
+    for key in keys:
+        claims.setdefault(_profile_slug(key), []).append(key)
+    collisions = {slug: sorted(owners) for slug, owners in claims.items()
+                  if slug and len(owners) > 1}
+
+    # A pair the alias map already merges is not waiting on a decision, it is
+    # waiting on the correction that moves its rows. Saying so is the difference
+    # between "somebody must choose which spelling wins" and "the job is
+    # queued", and only the first is work.
+    undecided = {slug: owners for slug, owners in collisions.items()
+                 if not any(vocab.EMPLOYER_KEY_ALIASES.get(o) in owners for o in owners)}
+
+    if collisions:
+        print(f"    {len(collisions)} slug(s) claimed by two keys, so neither "
+              f"employer is published:")
+        for slug, owners in sorted(collisions.items()):
+            merged = "" if slug in undecided else "   (merged; the rows have not moved yet)"
+            print(f"      /company/{slug}/{merged}")
+            for owner in owners:
+                print(f"          {owner!r}")
+    if undecided:
+        problems.append(
+            f"{len(undecided)} employer(s) recorded under two keys that claim "
+            f"one URL and are not merged: decide which spelling wins, add it to "
+            f"vocab.EMPLOYER_KEY_ALIASES, then queue correct-company-key.yml")
+
+    return problems
+
+
+def _profile_slug(key: str) -> str:
+    """tit_company_slug() from includes/company.php: accents folded, "&" to
+    "and", every other run of non-alphanumerics to one hyphen."""
+    import re
+    import unicodedata
+
+    folded = unicodedata.normalize("NFKD", key.lower())
+    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]+", "-", folded.replace("&", " and ")).strip("-")
 
 
 def _report_health(conn) -> list[str]:
