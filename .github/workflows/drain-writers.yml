@@ -65,7 +65,11 @@ on:
         required: false
         default: ''
       reason:
-        description: 'Why, for the record'
+        description: 'Why, for the record (also the note when resolving)'
+        required: false
+        default: ''
+      resolve:
+        description: 'Run id of an evicted run to mark handled, or "all"'
         required: false
         default: ''
       priority:
@@ -101,14 +105,33 @@ jobs:
       # fallback. Either way the dispatch is VERIFIED below rather than assumed,
       # because a dispatch that quietly creates no run would be the same class
       # of bug this workflow exists to kill.
+      # Dispatch inputs arrive through the environment, never interpolated into
+      # the script. A `${{ }}` inside a run block is pasted in as text before
+      # the shell sees it, so a quote in a reason string would end the command.
       - name: Queue the request, if this run carried one
         if: ${{ inputs.enqueue != '' }}
+        env:
+          WF: ${{ inputs.enqueue }}
+          WF_INPUTS: ${{ inputs.inputs_json }}
+          REASON: ${{ inputs.reason }}
+          ACTOR: ${{ github.actor }}
+          PRIORITY: ${{ inputs.priority }}
         run: |
-          python writer_queue.py enqueue "${{ inputs.enqueue }}" \
-            --inputs '${{ inputs.inputs_json }}' \
-            --reason "${{ inputs.reason }}" \
-            --by "${{ github.actor }}" \
-            ${{ inputs.priority != '' && format('--priority {0}', inputs.priority) || '' }}
+          set -euo pipefail
+          ARGS=(enqueue "$WF" --inputs "$WF_INPUTS" --reason "$REASON" --by "$ACTOR")
+          [ -n "$PRIORITY" ] && ARGS+=(--priority "$PRIORITY")
+          python writer_queue.py "${ARGS[@]}"
+
+      # Triage the backlog without needing a checkout. An orphan stays loud
+      # until a human decides; deciding NOT to re-run something is a legitimate
+      # decision, and this is where it gets recorded.
+      - name: Resolve an orphan, if this run asked to
+        if: ${{ inputs.resolve != '' }}
+        env:
+          TARGET: ${{ inputs.resolve }}
+          NOTE: ${{ inputs.reason }}
+          ACTOR: ${{ github.actor }}
+        run: python writer_queue.py resolve "$TARGET" --note "$NOTE (by $ACTOR)"
 
       - name: Read what is actually running
         env:

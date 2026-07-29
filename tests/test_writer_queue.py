@@ -224,6 +224,37 @@ def test_an_evicted_run_nobody_queued_becomes_a_loud_orphan(members):
     assert any("555" in p for p in problems)
 
 
+def test_an_orphan_stays_loud_until_a_human_decides(tmp_path, members):
+    """Including the decision NOT to re-run it — several of the runs lost on
+    2026-07-29 were duplicate dispatches of the same backfill. What must never
+    happen is the decision never being made."""
+    path = tmp_path / "writer_queue.json"
+    runs = tmp_path / "runs.json"
+    queue = wq.empty_queue()
+    runs.write_text(json.dumps([
+        _run("555", "recall", conclusion="cancelled", job_count=0),
+        _run("556", "enrich", conclusion="cancelled", job_count=0),
+    ]))
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 2
+    assert len(wq.summary(wq.load(path))["problems"]) == 2
+
+    assert wq.main(["--file", str(path), "resolve", "555", "--note", "rerun"]) == 0
+    assert len(wq.summary(wq.load(path))["problems"]) == 1
+
+    assert wq.main(["--file", str(path), "resolve", "all", "--note", "duplicates"]) == 0
+    assert wq.summary(wq.load(path))["problems"] == []
+    # Resolved is not forgotten: the record of the loss survives.
+    assert len(wq.load(path)["orphans"]) == 2
+
+
+def test_resolving_something_that_is_not_waiting_is_an_error(tmp_path):
+    path = tmp_path / "writer_queue.json"
+    wq.save(wq.empty_queue(), path)
+    assert wq.main(["--file", str(path), "resolve", "nope"]) == 2
+
+
 def test_an_orphan_is_only_noticed_once(members):
     queue = wq.empty_queue()
     runs = [_run("555", "recall", conclusion="cancelled", job_count=0)]

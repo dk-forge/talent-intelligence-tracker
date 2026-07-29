@@ -81,6 +81,35 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   `tests/test_workflows.py`. The one exception is `correct-form-d.yml`, which
   edits rows in place rather than appending a revision, so a merge would
   silently skip its corrections; it rebases and goes red instead, and says so.
+- **Never dispatch a database writer directly. Queue it.**
+
+  ```bash
+  gh workflow run drain-writers.yml -f enqueue=correct-form-d.yml \
+       -f inputs_json='{"dry_run":"false"}' -f reason='why'
+  ```
+
+  Every writer shares the `talent-collect` lock, and GitHub keeps exactly ONE
+  pending run per lock. Dispatching past a run that is already waiting **evicts
+  it**: it ends `cancelled` having created no jobs — no steps, no logs, no
+  annotation, nothing anywhere saying work was lost. Thirteen writer runs went
+  that way on 2026-07-28/29, and every one was reported as "queued". A
+  *scheduled* `collect` run evicted one too, so this is not only an
+  agent-dispatch problem.
+
+  `drain-writers.yml` dispatches the next ticket only into an **empty** group,
+  so there is never a second pending run and queued work cannot be evicted. It
+  is deliberately NOT in `talent-collect`: a drainer that queued behind the lock
+  could never drain it. Work waits in `data/writer_queue.json`, which is
+  committed, and `ops_status.py [2b]` is where you see it.
+
+  Anything dispatched directly can still be evicted, so every tick reads the run
+  list and goes RED on any writer run that ended cancelled with zero jobs. Those
+  cannot be replayed — GitHub does not expose a dispatched run's inputs — so
+  they are recorded as orphans and stay loud until a human decides:
+  `gh workflow run drain-writers.yml -f resolve=<run_id> -f reason='why'`.
+  **Never guess the inputs of a lost run**: `correct-form-d` and
+  `correct-sec-pillar` both default to `dry_run=true`, so a re-dispatch with
+  defaults is a green run that changes nothing.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how

@@ -621,18 +621,31 @@ def _cmd_status(args) -> int:
 
 
 def _cmd_resolve(args) -> int:
-    """Mark an orphan handled, once a human has re-dispatched it."""
+    """Mark an orphan handled, once a human has decided what to do about it.
+
+    Deciding NOT to re-run something is a legitimate outcome — several of the
+    runs lost on 2026-07-29 were duplicate dispatches of the same backfill. What
+    is not legitimate is the decision never being made, so an orphan stays loud
+    until someone says otherwise here, and the note records who said what.
+    """
     path = Path(args.file) if args.file else None
     queue = load(path)
-    hits = [o for o in queue.get("orphans", []) if o["run_id"] == str(args.run_id)]
+    orphans = queue.get("orphans", [])
+
+    if args.run_id == "all":
+        hits = [o for o in orphans if not o.get("resolved")]
+    else:
+        hits = [o for o in orphans if o["run_id"] == str(args.run_id)]
+
     if not hits:
-        print(f"::error::no orphan with run id {args.run_id}")
+        print(f"::error::no unresolved orphan matching {args.run_id!r}")
         return 2
     for orphan in hits:
         orphan["resolved"] = _iso(_now())
         orphan["resolved_note"] = args.note
     save(queue, path)
-    print(f"resolved orphan {args.run_id}")
+    print(f"resolved {len(hits)} orphan(s): "
+          + ", ".join(o["run_id"] for o in hits))
     return 0
 
 
