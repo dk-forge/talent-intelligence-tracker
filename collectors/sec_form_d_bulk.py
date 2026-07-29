@@ -115,10 +115,13 @@ INDUSTRY_MAP = {
     "business services": "professional_services",
 }
 
-US_STATE_CODES = frozenset("""
-AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO
-MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY
-""".split())
+# Where the issuer is, from the same two definitions the search path uses. The
+# dataset's STATEORCOUNTRY / STATEORCOUNTRYDESCRIPTION columns hold the same two
+# fields as the XML's stateOrCountry / stateOrCountryDescription, so the rule
+# for reading them lives once, in sec_form_d, and is bound here rather than
+# restated — the two routes reach the same filings and must not drift.
+US_STATE_CODES = sec_form_d.US_STATE_CODES
+_country_name = sec_form_d._country_name
 
 # EDGAR's own bookkeeping, glued onto the company name: a backslash and a state
 # ("Maverick Bancshares, Inc.\TX"), or a slash-wrapped marker ("BAE SYSTEMS PLC
@@ -126,28 +129,6 @@ MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY
 _EDGAR_NAME_SUFFIX = re.compile(r"\s*(?:\\[A-Za-z]{2,3}|/[A-Za-z]{2,3}/)\s*$")
 
 
-def _country_name(description: str) -> str:
-    """The COUNTRY out of a STATEORCOUNTRYDESCRIPTION, which holds two things.
-
-    The field is written narrowest-first, and only a US filer's fits in one
-    segment. A US issuer gets a bare state ("CALIFORNIA"); a foreign one gets
-    the sub-national unit and THEN the country: "BRITISH COLUMBIA, CANADA",
-    "ONTARIO, CANADA", "NEW SOUTH WALES, AUSTRALIA", "ENGLAND, UNITED KINGDOM".
-
-    Passing that whole string on as the country is what shipped: it reached
-    `vocab.normalize_country` as "British Columbia, Canada", matched nothing,
-    and stored NULL. 100 Canadian issuers therefore landed with no country in
-    EITHER column — invisible to every geographic filter on the site, with the
-    country printed in the filing we had already fetched and parsed. Plain
-    one-segment foreign names ("ISRAEL", "UNITED KINGDOM") always worked, which
-    is why the gap read as a few odd rows rather than as a bug.
-
-    The country is the LAST segment and only the last. Nothing is guessed: a
-    tail the vocabulary does not recognise still normalises to None upstream
-    and still stores NULL, exactly as before. The full string is kept verbatim
-    in the record's body text, so the filing's own wording is not lost.
-    """
-    return (description or "").rsplit(",", 1)[-1].strip()
 
 # A Form D reports a SECURITIES OFFERING, and not every offering is a company
 # raising capital. When the security is "Other", the filer describes it, and

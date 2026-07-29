@@ -115,6 +115,44 @@ EXCLUDED_NAME_PATTERNS = re.compile(
 # floor (shell companies, single-property real estate LPs) is high.
 MIN_RAISED = 1_000_000
 
+# Where a Form D issuer is, decided from the address the filing states. Both of
+# these live HERE, in the module the bulk path already imports, so the two
+# routes to one filing cannot disagree about which issuers are American — the
+# same reason EXCLUDED_INDUSTRIES and EXCLUDED_NAME_PATTERNS have one home.
+#
+# `stateOrCountry` is a two-character code, and EDGAR uses one namespace for
+# both kinds of place: a US state is its postal code ("CA") and anywhere else
+# is an EDGAR code that is not one ("A1" is British Columbia, "K7" is Israel).
+# Membership in this set, and only that, decides US-versus-foreign.
+US_STATE_CODES = frozenset("""
+AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO
+MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY
+""".split())
+
+
+def _country_name(description: str) -> str:
+    """The COUNTRY out of a stateOrCountryDescription, which holds two things.
+
+    The field is written narrowest-first, and only a US filer's fits in one
+    segment. A US issuer gets a bare state ("CALIFORNIA"); a foreign one gets
+    the sub-national unit and THEN the country: "BRITISH COLUMBIA, CANADA",
+    "ONTARIO, CANADA", "NEW SOUTH WALES, AUSTRALIA", "ENGLAND, UNITED KINGDOM".
+
+    Passing that whole string on as the country is what shipped on the bulk
+    path: it reached `vocab.normalize_country` as "British Columbia, Canada",
+    matched nothing, and stored NULL. 100 Canadian issuers therefore landed
+    with no country in EITHER column — invisible to every geographic filter on
+    the site, with the country printed in the filing we had already fetched and
+    parsed. Plain one-segment foreign names ("ISRAEL", "UNITED KINGDOM") always
+    worked, which is why the gap read as a few odd rows rather than as a bug.
+
+    The country is the LAST segment and only the last. Nothing is guessed: a
+    tail the vocabulary does not recognise still normalises to None upstream
+    and still stores NULL, exactly as before. The full string is kept verbatim
+    in the record's body text, so the filing's own wording is not lost.
+    """
+    return (description or "").rsplit(",", 1)[-1].strip()
+
 
 def _tag(xml: str, name: str) -> str:
     m = re.search(rf"<{name}>(.*?)</{name}>", xml, re.S)
@@ -216,17 +254,26 @@ def collect(queries=None, *, days_back: int = 5, pages: int = 3,
                 continue
 
             city = _tag(xml, "city").title()
-            state = _tag(xml, "stateOrCountry")
+            # The issuer address, read the same way the bulk path reads it. The
+            # code alone is not a country: "A1" is British Columbia, and this
+            # path used to store it in `state` (a US state column) while
+            # asserting country "United States" on every record. The XML has
+            # carried the readable place next to the code the whole time.
+            state_code = _tag(xml, "stateOrCountry").upper()
+            place = _tag(xml, "stateOrCountryDescription").title()
+            in_us = state_code in US_STATE_CODES
             money = _humanise(raised)
 
             # The classifier reads only raw_text, so every fact it may use has
             # to be stated here — in the words a source would use, because the
             # figures-are-sourced check compares against exactly this string.
+            # The place is the filing's own wording, so a foreign issuer's
+            # country is in the text the classifier sees, not just in a column.
             headline = f"{company} raised {money} in a private placement"
             body = (
                 f"{company} filed a Form D with the SEC reporting {money} "
                 f"({raised:,} dollars) sold in a private securities offering. "
-                f"Industry: {industry}. Location: {city}, {state}. "
+                f"Industry: {industry}. Location: {city}, {place or state_code}. "
                 f"Form D filings are required for exempt offerings and are the "
                 f"public record of private fundraising."
             )
@@ -238,8 +285,8 @@ def collect(queries=None, *, days_back: int = 5, pages: int = 3,
                 "source_name": "SEC EDGAR (Form D)",
                 "discovery_url": url,
                 "published_date": (hit.get("_source") or {}).get("file_date"),
-                "country": "United States",
-                "state": state,
+                "country": "United States" if in_us else _country_name(place),
+                "state": state_code if in_us else "",
                 "city": city,
                 "funding_amount": money,
                 "collector": COLLECTOR,

@@ -366,6 +366,129 @@ def test_the_two_form_d_paths_share_one_definition_of_a_vehicle():
     assert "pooled investment fund" in bulk.EXCLUDED_INDUSTRIES
 
 
+def test_the_two_form_d_paths_share_one_definition_of_where_an_issuer_is():
+    """Same reason, for the address rather than the vehicle. A filing that is
+    Canadian down one route must not be American down the other."""
+    assert bulk.US_STATE_CODES is sec_form_d.US_STATE_CODES
+    assert bulk._country_name is sec_form_d._country_name
+    assert "CA" in bulk.US_STATE_CODES        # a state code
+    assert "A1" not in bulk.US_STATE_CODES    # an EDGAR country code
+
+
+# ---------------------------------------------------------------------------
+# The search path (sec_form_d.collect) reaches the same filings through EFTS
+# and reads the XML itself. These drive it end to end with the network stubbed.
+
+def _primary_doc(name, *, code, description, amount="1500000",
+                 city="Vancouver", industry="Other Technology") -> str:
+    """A Form D primary_doc.xml, cut down to the tags the collector reads.
+
+    The address block is the real shape: `stateOrCountry` is the two-character
+    code and `stateOrCountryDescription` is the readable place beside it.
+    """
+    return (
+        "<?xml version='1.0'?><edgarSubmission><primaryIssuer>"
+        f"<entityName>{name}</entityName>"
+        "<issuerAddress>"
+        "<street1>1 Main St</street1>"
+        f"<city>{city}</city>"
+        f"<stateOrCountry>{code}</stateOrCountry>"
+        f"<stateOrCountryDescription>{description}</stateOrCountryDescription>"
+        "</issuerAddress>"
+        "</primaryIssuer><offeringData>"
+        f"<industryGroupType>{industry}</industryGroupType>"
+        f"<totalAmountSold>{amount}</totalAmountSold>"
+        "</offeringData></edgarSubmission>"
+    )
+
+
+def _classified(item: dict) -> dict:
+    """What the classifier returns for a Form D on this path — with the country
+    left EMPTY, which is the case that matters here. `validate.build_signal`
+    falls back to the raw record's country when the model does not state one,
+    so the hardcoded "United States" was the value that reached the database.
+    """
+    company = item["headline"].split(" raised ")[0]
+    return {
+        "company": company,
+        "pillar": "company_development",
+        "signal_direction": "neutral",
+        "headline": item["headline"],
+        "summary": f"{company} reported a private placement in a Form D filing.",
+        "talent_readthrough": "The filing records money only; it names no roles.",
+        "country": "",
+        "confidence": "verified",
+    }
+
+
+def _search_path(monkeypatch, xml: str) -> list[dict]:
+    """One EFTS hit whose filing is `xml`. No network, no sleeping."""
+    hit = {
+        "_id": "0004-26-000009:primary_doc.xml",
+        "_source": {"display_names": ["Group Eleven Resources Corp.  (CIK 0001234567)"],
+                    "file_date": "2026-03-31"},
+    }
+
+    class Resp:
+        text = xml
+
+    monkeypatch.setattr(sec_form_d.time, "sleep", lambda *a: None)
+    monkeypatch.setattr(sec_form_d, "search",
+                        lambda **kw: hit and ([hit] if kw.get("page", 0) == 0 else []))
+    monkeypatch.setattr(sec_form_d.requests, "get", lambda *a, **k: Resp())
+    return sec_form_d.collect()
+
+
+def test_a_canadian_issuer_through_the_search_path_gets_canada(monkeypatch):
+    """The same bug the bulk path was fixed for, on the route that fetches the
+    XML itself. It read `stateOrCountry` ("A1") into the US state column and
+    hardcoded country "United States" on every record, so a Vancouver issuer
+    was published as an American company in state "A1" — and a wrong country is
+    worse than a missing one. The description was in the XML the whole time."""
+    items = _search_path(monkeypatch, _primary_doc(
+        "Group Eleven Resources Corp.", code="A1",
+        description="BRITISH COLUMBIA, CANADA"))
+
+    assert len(items) == 1
+    assert items[0]["country"] == "Canada"
+    assert items[0]["state"] == ""      # a province is not the US state column
+    assert "British Columbia, Canada" in items[0]["raw_text"]
+    assert "A1" not in items[0]["raw_text"]
+
+    signal = validate.build_signal(_classified(items[0]), items[0], sec_form_d.COLLECTOR)
+    assert signal.country == "CA"
+
+
+def test_a_one_segment_foreign_place_through_the_search_path(monkeypatch):
+    """"ISRAEL" has no province in front of it. It must survive whole."""
+    items = _search_path(monkeypatch, _primary_doc(
+        "Tel Aviv Robotics Ltd", code="L3", description="ISRAEL", city="Tel Aviv"))
+    assert items[0]["country"] == "Israel"
+    assert items[0]["state"] == ""
+    signal = validate.build_signal(_classified(items[0]), items[0], sec_form_d.COLLECTOR)
+    assert signal.country == "IL"
+
+
+def test_a_us_issuer_through_the_search_path_keeps_its_state(monkeypatch):
+    items = _search_path(monkeypatch, _primary_doc(
+        "Acme Robotics Inc.", code="CA", description="CALIFORNIA",
+        city="San Francisco", amount="4500000"))
+    assert items[0]["country"] == "United States"
+    assert items[0]["state"] == "CA"
+    signal = validate.build_signal(_classified(items[0]), items[0], sec_form_d.COLLECTOR)
+    assert signal.country == "US"
+
+
+def test_an_unrecognised_place_through_the_search_path_stores_nothing(monkeypatch):
+    """Reading a field, not inventing one: a tail the vocabulary does not know
+    still comes out NULL rather than a guess."""
+    items = _search_path(monkeypatch, _primary_doc(
+        "Nowhere Mining Ltd", code="Z9", description="SOMEWHERE, NOT A COUNTRY",
+        amount="2000000"))
+    signal = validate.build_signal(_classified(items[0]), items[0], sec_form_d.COLLECTOR)
+    assert signal.country is None
+
+
 def test_a_user_agent_with_a_contact_address():
     """A browser-shaped UA gets 'Request Rate Threshold Exceeded' from SEC."""
     assert "@" in bulk.USER_AGENT

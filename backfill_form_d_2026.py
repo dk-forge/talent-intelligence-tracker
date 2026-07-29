@@ -120,7 +120,13 @@ def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int
                 continue
 
             city = sec_form_d._tag(xml, "city").title()
-            state = sec_form_d._tag(xml, "stateOrCountry")
+            # Read exactly as the daily collector reads it: the two-character
+            # code decides US-versus-foreign, and the country comes off the
+            # description beside it. Storing "United States" unconditionally is
+            # the bug both paths shipped.
+            state_code = sec_form_d._tag(xml, "stateOrCountry").upper()
+            place = sec_form_d._tag(xml, "stateOrCountryDescription").title()
+            in_us = state_code in sec_form_d.US_STATE_CODES
             money = sec_form_d._humanise(raised)
 
             # Identical wording to the daily collector's: the classifier reads
@@ -130,7 +136,7 @@ def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int
             body = (
                 f"{company} filed a Form D with the SEC reporting {money} "
                 f"({raised:,} dollars) sold in a private securities offering. "
-                f"Industry: {industry}. Location: {city}, {state}. "
+                f"Industry: {industry}. Location: {city}, {place or state_code}. "
                 f"Form D filings are required for exempt offerings and are the "
                 f"public record of private fundraising."
             )
@@ -142,8 +148,8 @@ def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int
                 "source_name": "SEC EDGAR (Form D)",
                 "discovery_url": url,
                 "published_date": (hit.get("_source") or {}).get("file_date"),
-                "country": "United States",
-                "state": state,
+                "country": "United States" if in_us else sec_form_d._country_name(place),
+                "state": state_code if in_us else "",
                 "city": city,
                 "funding_amount": money,
                 "query": f"form D backfill {startdt}",
