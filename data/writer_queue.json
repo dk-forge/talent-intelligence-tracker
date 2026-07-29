@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T07:23:42Z",
+  "last_tick": "2026-07-29T07:25:12Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -107,6 +107,29 @@
       "workflow": "backfill-funding-2026"
     }
   ],
-  "tickets": [],
+  "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-29T07:25:00Z",
+          "detail": "canary: prove the queue dispatch path end to end, writing nothing",
+          "event": "queued"
+        }
+      ],
+      "id": "20260729T072500Z-enrich",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "priority": 0,
+      "reason": "canary: prove the queue dispatch path end to end, writing nothing",
+      "requested_at": "2026-07-29T07:25:00Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "enrich.yml"
+    }
+  ],
   "version": 1
 }
