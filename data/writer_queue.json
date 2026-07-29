@@ -158,34 +158,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T19:45:27Z",
-      "history": [
-        {
-          "at": "2026-07-29T19:42:12Z",
-          "detail": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T19:45:27Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260729T194212Z-backfill-funding-bulk",
-      "inputs": {
-        "dry_run": "false",
-        "quarters": "2026q1..2026q2"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
-      "requested_at": "2026-07-29T19:42:12Z",
-      "requested_by": "backfill-slices",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-funding-bulk.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
@@ -920,6 +892,45 @@
       "run_id": "30484111321",
       "state": "landed",
       "workflow": "correct-layoff-scope.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T19:45:27Z",
+      "history": [
+        {
+          "at": "2026-07-29T19:42:12Z",
+          "detail": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T19:45:27Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T20:21:39Z",
+          "detail": "run 30485821825",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-29T20:21:39Z",
+          "detail": "run 30485821825",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T194212Z-backfill-funding-bulk",
+      "inputs": {
+        "dry_run": "false",
+        "quarters": "2026q1..2026q2"
+      },
+      "landed_at": "2026-07-29T20:21:39Z",
+      "priority": 10,
+      "reason": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
+      "requested_at": "2026-07-29T19:42:12Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30485821825",
+      "state": "landed",
+      "workflow": "backfill-funding-bulk.yml"
     }
   ],
   "version": 1
