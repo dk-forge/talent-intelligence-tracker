@@ -1,0 +1,83 @@
+name: correct-form-d
+
+# Correct the Form D rows that are ALREADY published.
+#
+# Two things they carry that the filings do not say - a "Hiring up" badge on a
+# filing that states money and not headcount, and a read-through asserting a
+# two-to-six-quarter hiring lag that appears in no filing - plus rows that are
+# not employers or not capital raises at all, which are withdrawn rather than
+# corrected. See correct_form_d.py.
+#
+# Runs here rather than from a laptop because this is where WP_API_KEY lives.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+      skip_retractions:
+        description: 'Correct the wording only; leave the vehicles published'
+        type: boolean
+        default: false
+      force:
+        description: 'Proceed even if an implausible share of rows looks excluded'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # retract.yml and the backfills. Two writers both end with
+  # reset-to-origin-then-copy-our-file-back, so whichever pushes second
+  # silently destroys the other's rows.
+  group: talent-collect
+  # This WITHDRAWS and REWRITES published rows. A run killed halfway leaves the
+  # site and the local database disagreeing, so say so explicitly rather than
+  # resting a data-safety property on a platform default.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # 994 retractions are one request each, and the corrections go in batches
+    # of 25. Generous, but a timeout mid-run is the failure mode to avoid.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          ARGS=""
+          [ "${{ inputs.dry_run }}"          = "true" ] && ARGS="$ARGS --dry-run"
+          [ "${{ inputs.skip_retractions }}" = "true" ] && ARGS="$ARGS --skip-retractions"
+          [ "${{ inputs.force }}"            = "true" ] && ARGS="$ARGS --force"
+          # No `|| true`: a failed batch must fail the run, not pass quietly.
+          python correct_form_d.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: correct published form D rows $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Another writer may have landed while this ran. Rebase rather than
+          # force: the other run's rows are as real as ours.
+          git pull --rebase --autostash origin main
+          git push
