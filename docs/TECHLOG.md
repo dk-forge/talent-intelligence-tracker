@@ -56,6 +56,18 @@ magnitude vocabulary **fails silently and looks like sparse data**, which is why
 the figure-guard work costed a 43-language fold and declined to guess at one.
 This is the shape that makes the gap visible instead of guessing.
 
+**What is attested and what is not.** Of the 48 languages in the table, **41
+have at least one form attested** — matched against the 5,417 headlines pulled
+from 116 wired feeds on 2026-07-30, or against the stored `funding_amount`
+strings. **Seven are dictionary citation forms that have never been seen**:
+Macedonian (14 wired feeds and not one money headline in the fetch), Nepali,
+Swahili, and the four whose feeds are catalogued but unwired — Bengali, Dhivehi,
+Kinyarwanda, Maltese. And for four more the attestation is weaker than it looks:
+Albanian `milion`, Estonian `miljon`, Kurdish `milyon` and Uzbek `million` are
+forms SHARED with a neighbouring language, so what was seen was Czech, Latvian,
+Turkish and English rather than those four. Treat those eleven as unverified
+until a row from one of them lands.
+
 Forms are **enumerated, not stemmed**. Latvian carried `miljonus`, `miljonu`,
 `miljoni` and `miljoniem` in ONE fetch of `db.lv`; a stem with a loose tail
 would also catch `milionário`, and bare `investice` already cost nine false
