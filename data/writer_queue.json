@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T21:20:35Z",
-  "last_tick": "2026-07-30T21:20:35Z",
+  "last_tick": "2026-07-30T21:31:18Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -170,6 +170,11 @@
           "at": "2026-07-30T21:20:35Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T21:31:18Z",
+          "detail": "run 30583000986",
+          "event": "bound"
         }
       ],
       "id": "20260730T191540Z-backfill-structured-2026",
@@ -182,7 +187,7 @@
       "reason": "2026 registry backfill, $0 model spend: companies_house",
       "requested_at": "2026-07-30T19:15:40Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30583000986",
       "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
@@ -286,6 +291,28 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-30T21:31:07Z",
+          "detail": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
+          "event": "queued"
+        }
+      ],
+      "id": "20260730T213107Z-correct-funding-amount",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
+      "requested_at": "2026-07-30T21:31:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "correct-funding-amount.yml"
     },
     {
       "attempts": 0,
