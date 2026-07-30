@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T21:49:06Z",
-  "last_tick": "2026-07-30T21:49:06Z",
+  "last_dispatch": "2026-07-30T21:49:43Z",
+  "last_tick": "2026-07-30T21:49:43Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,12 +159,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T21:49:43Z",
       "history": [
         {
           "at": "2026-07-30T19:16:04Z",
           "detail": "2026 Google News history walk, $3.02 total, multilingual reach GDELT cannot give",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T191604Z-backfill-gnews-2026",
@@ -177,7 +182,7 @@
       "requested_at": "2026-07-30T19:16:04Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -257,33 +262,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-30T21:49:06Z",
-      "history": [
-        {
-          "at": "2026-07-30T21:38:37Z",
-          "detail": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T21:49:06Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260730T213837Z-correct-funding-amount",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
-      "requested_at": "2026-07-30T21:38:37Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-funding-amount.yml"
     },
     {
       "attempts": 0,
@@ -1497,6 +1475,44 @@
       "requested_at": "2026-07-30T21:31:07Z",
       "requested_by": "dakotta-labs",
       "run_id": "30584803623",
+      "state": "landed",
+      "workflow": "correct-funding-amount.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T21:49:06Z",
+      "history": [
+        {
+          "at": "2026-07-30T21:38:37Z",
+          "detail": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:49:06Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "run 30584878032",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "run 30584878032",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T213837Z-correct-funding-amount",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-30T21:49:43Z",
+      "priority": 0,
+      "reason": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
+      "requested_at": "2026-07-30T21:38:37Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30584878032",
       "state": "landed",
       "workflow": "correct-funding-amount.yml"
     }
