@@ -18,14 +18,25 @@ if (!defined('ABSPATH')) exit;
  * rows are added. A query added inside a loop over rows fails there instead of
  * on the live site under a crawl.
  *
- * Twenty-one is what it costs TODAY, measured, and it is written down here
- * before anything is done about it. Several of the twenty-one ask the database
- * for a number another one of them already returned, and none of the twenty-one
- * is cached, so every reader on a cold page cache pays all of them. Both of
- * those are worth fixing and neither can be claimed as fixed without a number
- * that moved.
+ * It was 21, measured. Nine of those asked the database for a number another one
+ * of them had already returned. What is left is twelve scans that each fetch
+ * something nothing else does:
+ *
+ *   1  every scalar the page prints, in one pass (the total, both sides of the
+ *      detail control, employers, official filings, both date spans, the newest
+ *      capture)
+ *   1  what kind of update, for the first ranking
+ *   1  which way headcount is going, for the third, and the toggle's own figure
+ *   1  every country's count, which the region strip, the country buttons, the
+ *      place ranking and the concentration caveat's denominator all read
+ *   1  the largest single source inside one country, for the caveat
+ *   1  the top cities row
+ *   1  the at-a-glance matrix, conditional aggregation over one scan
+ *   1  the money head: the total, its coverage, and what each card can place
+ *   3  money by country, by city and by industry
+ *   1  the first page of rows, with a LIMIT
  */
-const TIT_DASH_QUERY_BUDGET = 21;
+const TIT_DASH_QUERY_BUDGET = 12;
 
 /**
  * How many rows the server prints before JavaScript is involved.
@@ -73,7 +84,44 @@ function tit_dashboard_html() {
     global $wpdb;
     $table = tit_table_name();
 
-    $total_all = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE is_current = 1");
+    /*
+      EVERY SCALAR THE PAGE PRINTS, IN ONE PASS.
+
+      This was six separate queries, each of them a full scan of the same rows
+      under the same clause: the total, both sides of the detail control, the
+      employer count, the filings count, the two date spans and the newest
+      capture. Six scans of a table this page is about to scan several more
+      times, to fetch numbers that all come off the same rows.
+
+      Conditional aggregation instead: the CASE expressions carry the notable
+      clause where a WHERE used to, so the whole hero comes back on one pass.
+      Same shape places.php uses, and the same reason — a figure that shares its
+      scan with the figure beside it cannot end up describing a different set.
+
+      The date bounds are deliberately TWO pairs from the one row. The note
+      describes the set the page is showing, so it agrees with every other
+      figure in the hero; the date inputs keep the full range, so the control
+      can never refuse a date that exists. Reading those from two queries is how
+      a range and its own label drift apart.
+    */
+    $notable_sql = function_exists('tit_notable_where') ? tit_notable_where() : '1 = 1';
+    $base = "is_current = 1 AND {$notable_sql}";
+    $date_expr = 'COALESCE(published_date, DATE(captured_at))';
+
+    $head = $wpdb->get_row(
+        "SELECT COUNT(*) total_all,
+                SUM(materiality = 'routine') routine,
+                SUM({$notable_sql}) notable,
+                SUM(({$notable_sql}) AND confidence = 'verified') verified,
+                COUNT(DISTINCT CASE WHEN {$notable_sql} THEN company_key END) companies,
+                MIN({$date_expr}) lo_all,
+                MAX({$date_expr}) hi_all,
+                MIN(CASE WHEN {$notable_sql} THEN {$date_expr} END) lo,
+                MAX(CASE WHEN {$notable_sql} THEN {$date_expr} END) hi,
+                MAX(captured_at) newest_run
+           FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
+
+    $total_all = (int) ($head['total_all'] ?? 0);
 
     ob_start();
 
@@ -109,77 +157,90 @@ function tit_dashboard_html() {
       figure below sits under the SAME clause the table does, or the hero would
       describe a set the rows do not belong to.
     */
-    $notable_sql = function_exists('tit_notable_where') ? tit_notable_where() : '1 = 1';
-    $base = "is_current = 1 AND {$notable_sql}";
-
-    // Both sides of the control, counted, never written down.
-    $md = $wpdb->get_row(
-        "SELECT SUM(materiality = 'routine') routine,
-                SUM(materiality IS NULL OR materiality <> 'routine') notable
-           FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
-    $n_routine = (int) ($md['routine'] ?? 0);
-    $n_notable = (int) ($md['notable'] ?? $total_all);
+    // Both sides of the detail control, and the hero's own figures, all off the
+    // one pass above.
+    $n_routine = (int) ($head['routine'] ?? 0);
+    $n_notable = (int) ($head['notable'] ?? $total_all);
     $total = $n_notable;
+    $companies = (int) ($head['companies'] ?? 0);
+    $verified = (int) ($head['verified'] ?? 0);
 
-    // How many updates in the default view actually state a headcount. Printed
-    // beside the toggle, so a reader sees what it would do before using it.
-    $n_stated = (int) $wpdb->get_var(
-        "SELECT COUNT(*) FROM {$table} WHERE {$base}
-          AND signal_direction IN ('hiring', 'displacement')"
-    );
+    // Bounds for the date inputs. The sibling can offer years, quarters and
+    // months because it holds years; we hold days. Letting the control ask for
+    // a period we have nothing in is a control that manufactures empty states
+    // and makes thin coverage look like a broken filter.
+    $span_lo = $head['lo_all'] ?? '';
+    $span_hi = $head['hi_all'] ?? '';
+    $view_lo = $head['lo'] ?? $span_lo;
+    $view_hi = $head['hi'] ?? $span_hi;
+    $newest_run = $head['newest_run'] ?? '';
 
     $by_pillar = $wpdb->get_results(
         "SELECT pillar, COUNT(*) n FROM {$table} WHERE {$base} GROUP BY pillar ORDER BY n DESC",
         ARRAY_A
     ) ?: array();
 
-    $countries = (int) $wpdb->get_var(
-        "SELECT COUNT(DISTINCT COALESCE(country, hq_country)) FROM {$table} WHERE {$base}"
-    );
-    $companies = (int) $wpdb->get_var(
-        "SELECT COUNT(DISTINCT company_key) FROM {$table} WHERE {$base}"
-    );
-    $verified = (int) $wpdb->get_var(
-        "SELECT COUNT(*) FROM {$table} WHERE {$base} AND confidence = 'verified'"
-    );
+    $by_direction = $wpdb->get_results(
+        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE {$base}
+          GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
 
-    // Bounds for the date inputs. The sibling can offer years, quarters and
-    // months because it holds years; we hold days. Letting the control ask for
-    // a period we have nothing in is a control that manufactures empty states
-    // and makes thin coverage look like a broken filter.
-    // ONE query, two scopes. The NOTE describes the set the page is showing, so
-    // it agrees with every other figure in the hero; the date inputs keep the
-    // full range, so the control can never refuse a date that exists. Reading
-    // these from two queries is how a range and its own label drift apart.
-    $span = $wpdb->get_row(
-        "SELECT MIN(COALESCE(published_date, DATE(captured_at))) lo_all,
-                MAX(COALESCE(published_date, DATE(captured_at))) hi_all,
-                MIN(CASE WHEN {$notable_sql} THEN COALESCE(published_date, DATE(captured_at)) END) lo,
-                MAX(CASE WHEN {$notable_sql} THEN COALESCE(published_date, DATE(captured_at)) END) hi
-           FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
-    $span_lo = $span['lo_all'] ?? '';
-    $span_hi = $span['hi_all'] ?? '';
-    $view_lo = $span['lo'] ?? $span_lo;
-    $view_hi = $span['hi'] ?? $span_hi;
+    /*
+      How many updates in the default view actually state a headcount. Printed
+      beside the toggle, so a reader sees what it would do before using it.
 
-    $newest_run = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table} WHERE is_current = 1");
+      Summed from the direction ranking rather than counted again. It was its own
+      COUNT(*) with `signal_direction IN ('hiring', 'displacement')`, which is
+      the same two buckets the query above has just returned with their counts.
+      One clause, one place: if the definition of "moves headcount" ever changes,
+      it changes here and the ranking cannot disagree with the toggle beside it.
+    */
+    $stated_dirs = array('hiring' => true, 'displacement' => true);
+    $n_stated = 0;
+    foreach ($by_direction as $d) {
+        if (isset($stated_dirs[$d['k']])) $n_stated += (int) $d['n'];
+    }
+
     $glance = tit_glance_matrix($table, $base);
     // The money views and the matrix's money row share one coverage figure, so
     // a dollar total can never sit next to a sentence describing a different
     // set of rows.
     $money = tit_money_aggregate($table, $base);
     $glance['coverage'] = $money['coverage'];
+
+    /*
+      EVERY COUNTRY'S COUNT, ONCE.
+
+      Four things read this: the region strip (which sums the codes inside each
+      region), the top-country buttons, the place ranking, and the concentration
+      caveat's denominator. Three of them used to ask the database for it
+      separately -- the same GROUP BY twice, once whole and once ordered with a
+      LIMIT, plus a third COUNT(DISTINCT) for how many countries there are.
+
+      They are all the same map, so it is fetched once and the rest is array
+      work. COUNT(DISTINCT COALESCE(country, hq_country)) is exactly the number
+      of keys in it, because COUNT(DISTINCT) skips NULLs and so does the WHERE
+      here. That equality is the whole reason the query could go, and it is why
+      the two must stay in one place: a filter added to one and not the other
+      would put a country count next to a country chart that disagreed with it.
+    */
     $counts_by_country = array_column($wpdb->get_results(
         "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
           WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
           GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
+    $counts_by_country = array_map('intval', $counts_by_country);
+    $countries = count($counts_by_country);
+
     // 40, matching /aggregate, not 6. The chart scrolls and expands, so a short
     // list is no longer what keeps the card small -- and a hard six meant the
     // World view could not show two of the eight countries we actually hold.
-    $by_country = $wpdb->get_results(
-        "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
-          WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
-          GROUP BY k ORDER BY n DESC LIMIT 40", ARRAY_A) ?: array();
+    $by_country = $counts_by_country;
+    arsort($by_country);
+    $by_country = array_map(
+        function ($k, $n) { return array('k' => $k, 'n' => $n); },
+        array_keys(array_slice($by_country, 0, 40, true)),
+        array_slice($by_country, 0, 40, true)
+    );
+
     /*
       When ONE collector accounts for most of a country, say so.
 
@@ -189,12 +250,11 @@ function tit_dashboard_html() {
       reader scanning the country chart would take that bar as a measure of how
       much is happening there. Computed, never written down, so it names
       whichever country is currently dominated and disappears when none is.
-    */
-    $place_caveat = tit_place_caveat($table, $base);
 
-    $by_direction = $wpdb->get_results(
-        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE {$base}
-          GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
+      The country totals it needs to divide by are the map above, handed over
+      rather than counted a second time.
+    */
+    $place_caveat = tit_place_caveat($table, $base, array(), $counts_by_country);
 
     // Materiality first, recency inside it, matching /query's default sort so
     // the first paint and the first repaint cannot put the rows in a different
@@ -1984,7 +2044,8 @@ function tit_regions(array $counts) {
  * warning about nothing. Only the single worst case is named, because a list of
  * caveats reads as an excuse rather than as a fact.
  */
-function tit_place_caveat($table, $where = 'is_current = 1', array $params = array()) {
+function tit_place_caveat($table, $where = 'is_current = 1', array $params = array(),
+                         ?array $country_totals = null) {
     global $wpdb;
     $expr = 'COALESCE(country, hq_country)';
     // Two plain queries rather than one with a correlated subquery: that shape
@@ -1998,11 +2059,25 @@ function tit_place_caveat($table, $where = 'is_current = 1', array $params = arr
     $row = $wpdb->get_row($params ? $wpdb->prepare($top_sql, $params) : $top_sql, ARRAY_A);
     if (!$row || (int) $row['n'] < 200) return '';
 
-    // The country's own total goes through prepare with the filter params
-    // FIRST, because they appear first in statement order.
-    $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where} AND {$expr} = %s";
-    $total = (int) $wpdb->get_var(
-        $wpdb->prepare($total_sql, array_merge($params, array($row['cc']))));
+    /*
+      The country's own total, from the caller's own map when it has one.
+
+      The dashboard has already grouped every country's count under this exact
+      clause to draw the place ranking, so asking the database again for one of
+      those numbers is a second scan for a figure sitting in memory. /aggregate
+      has no such map (its own ranking is a LIMIT 40, and the dominated country
+      is not guaranteed to be in it), so it passes nothing and pays for the
+      query, which is the honest cost of not already knowing.
+    */
+    if ($country_totals !== null && isset($country_totals[$row['cc']])) {
+        $total = (int) $country_totals[$row['cc']];
+    } else {
+        // Goes through prepare with the filter params FIRST, because they
+        // appear first in statement order.
+        $total_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where} AND {$expr} = %s";
+        $total = (int) $wpdb->get_var(
+            $wpdb->prepare($total_sql, array_merge($params, array($row['cc']))));
+    }
     if ($total <= 0 || (int) $row['n'] < $total * 0.66) return '';
 
     $row['total'] = $total;
