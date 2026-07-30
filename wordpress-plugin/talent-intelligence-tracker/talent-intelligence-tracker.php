@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.52.0
+ * Version: 1.53.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.52.0');
+define('TIT_VERSION', '1.53.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -51,6 +51,9 @@ tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
 tit_require('includes/recall.php');
 tit_require('includes/board_series.php');
+// Reads the SIBLING's public HTTP API at render time. Ships disabled; see
+// the header of that file for the measurement that says why.
+tit_require('includes/cross_tracker.php');
 tit_require('includes/htaccess.php');
 
 // Stub fallbacks so a partial upload degrades instead of fatalling.
@@ -242,6 +245,47 @@ function tit_asset_version($relative_path) {
     $file = TIT_PATH . $relative_path;
     $mtime = is_readable($file) ? filemtime($file) : 0;
     return $mtime ? TIT_VERSION . '.' . $mtime : TIT_VERSION;
+}
+
+/**
+ * US postal codes are how the data is stored and a bad thing to read.
+ *
+ * `tit-f-state` rendered 51 bare codes as option labels -- "AK", "AL", "AZ" --
+ * while every other filter on the page spells its values out, including the
+ * country list right beside it, which was changed away from codes for exactly
+ * this reason. A reader has to know the codebook before they can pick a state.
+ *
+ * THE WHOLE SET, on day one. A partial vocabulary here fails the way
+ * tit_country_names() once did: 52 of ~200 codes, so two countries printed as
+ * raw codes inside a chart of country names, and the failure looked like sparse
+ * data rather than an error. So this carries all 50 states, DC and the five
+ * inhabited territories, whether or not a row currently mentions them, and an
+ * unrecognised code falls through to itself rather than to a guess.
+ */
+function tit_state_names() {
+    return array(
+        'AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona',
+        'AR' => 'Arkansas', 'CA' => 'California', 'CO' => 'Colorado',
+        'CT' => 'Connecticut', 'DE' => 'Delaware', 'FL' => 'Florida',
+        'GA' => 'Georgia', 'HI' => 'Hawaii', 'ID' => 'Idaho',
+        'IL' => 'Illinois', 'IN' => 'Indiana', 'IA' => 'Iowa',
+        'KS' => 'Kansas', 'KY' => 'Kentucky', 'LA' => 'Louisiana',
+        'ME' => 'Maine', 'MD' => 'Maryland', 'MA' => 'Massachusetts',
+        'MI' => 'Michigan', 'MN' => 'Minnesota', 'MS' => 'Mississippi',
+        'MO' => 'Missouri', 'MT' => 'Montana', 'NE' => 'Nebraska',
+        'NV' => 'Nevada', 'NH' => 'New Hampshire', 'NJ' => 'New Jersey',
+        'NM' => 'New Mexico', 'NY' => 'New York', 'NC' => 'North Carolina',
+        'ND' => 'North Dakota', 'OH' => 'Ohio', 'OK' => 'Oklahoma',
+        'OR' => 'Oregon', 'PA' => 'Pennsylvania', 'RI' => 'Rhode Island',
+        'SC' => 'South Carolina', 'SD' => 'South Dakota', 'TN' => 'Tennessee',
+        'TX' => 'Texas', 'UT' => 'Utah', 'VT' => 'Vermont',
+        'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia',
+        'WI' => 'Wisconsin', 'WY' => 'Wyoming',
+        'DC' => 'District of Columbia',
+        'AS' => 'American Samoa', 'GU' => 'Guam',
+        'MP' => 'Northern Mariana Islands', 'PR' => 'Puerto Rico',
+        'VI' => 'US Virgin Islands',
+    );
 }
 
 /**

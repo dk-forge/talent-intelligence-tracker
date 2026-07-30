@@ -15,10 +15,19 @@
   // Bailing on that read is what made every control on the live page inert.
   var TIT = window.TIT;
   if (!TIT || !TIT.api) {
-    TIT = { api: root.getAttribute('data-api') || '', countries: {} };
+    TIT = { api: root.getAttribute('data-api') || '', countries: {}, states: {} };
     try {
       TIT.countries = JSON.parse(root.getAttribute('data-countries') || '{}');
     } catch (e) { /* names degrade to the raw country codes */ }
+    try {
+      TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
+    } catch (e) { /* names degrade to the raw postal codes */ }
+  }
+  // The localized object may predate this attribute by one deploy.
+  if (!TIT.states) {
+    try {
+      TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
+    } catch (e) { TIT.states = {}; }
   }
   if (!TIT.api) return;
 
@@ -156,7 +165,7 @@
         // codes, and a dropdown reading "AE, AR, AT" asks the reader to know
         // the codebook before they can pick a country.
         fill(inputs.country, data.countries, true);
-        fill(inputs.state, data.states);
+        fill(inputs.state, data.states, false, TIT.states);
         fill(inputs.city, data.cities);
         // Only the rounds we actually hold, so the control cannot offer a
         // stage that returns an empty page.
@@ -210,7 +219,9 @@
         var flag = countryFlag(v);
         return { v: v, l: countryLabel(v), t: (flag ? flag + ' ' : '') + countryLabel(v) };
       }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
-      ['US states', 'state', (data.states || []).map(function (v) { return { v: v, l: v }; })],
+      ['US states', 'state', (data.states || []).map(function (v) {
+        return { v: v, l: stateLabel(v) };
+      }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
       ['Cities', 'city', (data.cities || []).map(function (v) { return { v: v, l: v }; })]
     ];
     groups.forEach(function (g) {
@@ -569,6 +580,19 @@
     var a = niceDate(lo), b = niceDate(hi);
     if (!a || !b) return '';
     return a === b ? 'Covering ' + b + '.' : 'Covering ' + a + ' to ' + b + '.';
+  }
+
+  // Mirrors tit_state_names(). `tit-f-state` rendered 51 bare postal codes as
+  // its option labels while the country control beside it spelled every value
+  // out, so the one filter on the page that still asked a reader to know a
+  // codebook was the American one. Unlike countryLabel() an unknown code falls
+  // through silently to itself: the map covers all 50 states, DC and the five
+  // inhabited territories, but `state` is populated from whatever the pipeline
+  // stored, and a Canadian province arriving there should read as itself rather
+  // than as "(unmapped)".
+  function stateLabel(k) {
+    if (!k) return '';
+    return (TIT.states && TIT.states[k]) || k;
   }
 
   function countryLabel(k) {
@@ -1343,7 +1367,12 @@
       chips.push(chip('region', name ? name.textContent : region));
     }
     if (stated) {
-      chips.push(chip('stated_headcount', 'Only with a stated headcount'));
+      /* The SAME words as the checkbox. This read "Only with a stated
+         headcount", which is a claim about the headcount column: that column is
+         non-null on 11 of 15,711 current rows, and this control does not read it
+         at all -- it reads signal_direction. One control had three names (the
+         checkbox, this chip, and the SQL), and only the checkbox was right. */
+      chips.push(chip('stated_headcount', 'Only Updates That Move Headcount'));
     }
     if (quickView) {
       // A view with no button of its own still has to appear here. funding=1

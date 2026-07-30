@@ -457,7 +457,26 @@ function tit_company_profile($rows) {
         if ($r['pillar'] === 'leadership_change') $leadership++;
         if ($r['confidence'] === 'verified') $verified++;
 
-        $seen = substr((string) $r['captured_at'], 0, 10);
+        /*
+          "Tracked since" is the date of the EARLIEST DOCUMENT, not the date we
+          first read one.
+
+          It was MIN(captured_at), which is when this pipeline happened to
+          collect the row. Every one of the 15,711 current rows was captured in
+          July 2026, because that is when the backfills ran, so all 715 indexable
+          profiles said "since July 2026" -- while the same page said "last
+          update 3 months ago" a few lines away, because published_date runs back
+          to 2017. Two dates from one employer's history contradicting each other
+          on one screen, and both of them in the meta description.
+
+          COALESCE(published_date, DATE(captured_at)) is the expression the
+          dashboard's span note and the place pages already use for exactly this
+          reason (shortcodes.php's $date_expr, places.php's own). A row whose
+          source stated no date falls back to when we saw it, which is the only
+          answer left and is never earlier than the truth.
+        */
+        $dated = substr((string) ($r['published_date'] ?? ''), 0, 10);
+        $seen = $dated !== '' ? $dated : substr((string) $r['captured_at'], 0, 10);
         if ($seen && ($tracked_since === '' || $seen < $tracked_since)) $tracked_since = $seen;
 
         if ($latest_place === '') {

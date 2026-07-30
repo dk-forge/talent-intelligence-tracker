@@ -123,6 +123,23 @@ function tit_corrections_entries() {
             ),
             'notes' => array(
                 array(
+                    'The money total has since fallen from $124.0bn to $101.4bn, and
+                     nothing was corrected downwards to make it.',
+                    'The figure above is what the live tracker held on 29 July 2026,
+                     the day this correction ran, and it is left as measured. Two
+                     later passes moved it: every stale company_key was re-issued,
+                     which merged eleven employers that had been counted as more
+                     than eleven, and five funding amounts were found to be off by
+                     a factor of a million because the multiplier parser read only
+                     English. Two of those five were Danish kroner sitting in a US
+                     dollar column, and this page promises amounts in other
+                     currencies are left out rather than converted at a rate nobody
+                     published, so their dollar figures were removed rather than
+                     restated. The current total is on the dashboard, computed on
+                     request; this page does not restate it, because a corrections
+                     log that keeps rewriting its own history is not a log.',
+                ),
+                array(
                     'We published a projection of $114.1bn and the result was $124.0bn.',
                     'Before this ran, this page said the money total would land near
                      $114.1bn. It landed at $124.0bn, about $10bn higher, and that
@@ -332,10 +349,23 @@ function tit_corrections_render($entries) {
               </tbody>
             </table>
             <?php if (!$scheduled) : ?>
-              <p class="tit-asof">Measured on the live tracker,
-                <?php echo esc_html(date_i18n('j F Y')); ?>. These figures keep
-                moving as new records arrive, so treat them as a snapshot of the
-                correction&rsquo;s effect rather than a current total.</p>
+              <?php
+              /*
+                THE DATE THE FIGURES WERE MEASURED, not the date the page is
+                being read. This printed date_i18n('j F Y'), so a table measured
+                on 29 July 2026 was captioned with today's date, whatever today
+                was -- and it kept doing so while a LATER correction moved the
+                money total from $124.0bn down to about $99bn. A stale figure is
+                bad; a stale figure wearing today's date as a credential is the
+                thing this page exists to prevent.
+              */
+              $measured_ts = strtotime(($e['measured_on'] ?? $e['applied_on'] ?? $e['date']) . ' 00:00:00 UTC');
+              ?>
+              <p class="tit-asof">Measured on the live tracker
+                <?php echo esc_html($measured_ts ? date_i18n('j F Y', $measured_ts) : ''); ?>,
+                the day this correction ran. It is a snapshot of what this
+                correction did, not a current total, and later corrections have
+                moved these figures again: see the note below where one has.</p>
             <?php endif; ?>
           <?php endif; ?>
 
@@ -364,7 +394,29 @@ function tit_corrections_render($entries) {
 
 function tit_corrections_title($title) {
     return get_query_var('tit_corrections')
-        ? 'Corrections — Talent Intelligence Tracker'
+        ? 'Corrections · Talent Intelligence Tracker'
         : $title;
 }
 add_filter('pre_get_document_title', 'tit_corrections_title');
+
+/**
+ * A page that exists to be checked has to say so where it is found.
+ *
+ * Fixed prose rather than a computed count, and deliberately: the figures on
+ * this page are individual corrections with dates on them, and a description
+ * that summarised "N corrections" would go stale the day one lands and would
+ * read as a defect count rather than as a record.
+ */
+function tit_corrections_head() {
+    if (!get_query_var('tit_corrections')) return;
+    if (!function_exists('tit_head_description')) return;
+    tit_head_description(
+        'Every figure this tracker has published and later changed, what it was, '
+        . 'what it is now, and what caused the difference. Corrections append a '
+        . 'revision rather than overwriting a record, so what we said on an '
+        . 'earlier date stays answerable.'
+    );
+    echo '<link rel="canonical" href="'
+       . esc_url(home_url('/talent-intelligence-tracker/corrections/')) . '" />' . "\n";
+}
+add_action('wp_head', 'tit_corrections_head', 1);

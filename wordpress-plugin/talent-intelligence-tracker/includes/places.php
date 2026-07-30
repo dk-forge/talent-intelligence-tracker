@@ -1059,7 +1059,9 @@ function tit_place_render($kind, $cell, $facts) {
         ); ?>
         Each one links to the filing or report that makes the claim. These are
         counts of documents we have read, so they measure what we have found and
-        can cite, not everything that happened.
+        can cite, not everything that happened. They also include the routine
+        officer filings the tracker sets aside by default, so its figure for this
+        place is lower than the one above.
       </p>
 
       <?php if (function_exists('tit_span_note')) :
@@ -1341,6 +1343,25 @@ function tit_places_render() {
         employers. Below that the tracker filtered to it already shows everything
         we hold on one screen, so a page of its own would add a heading and
         nothing else.
+      </p>
+      <?php
+      /*
+        WHY THESE COUNTS ARE HIGHER THAN THE TRACKER'S.
+        These pages count every update we hold. The dashboard's default view
+        sets routine officer filings aside and says so where it does it; this
+        side said nothing, so following a link from a page counting 15,709 to a
+        tracker counting 12,566 showed an unexplained jump of about three
+        thousand. The clause is deliberately NOT copied here -- a place page
+        exists to say what we hold about a place, and a reader who came for
+        "everything on Manchester" is asking the question the wider count
+        answers -- so the difference is stated instead.
+      */
+      ?>
+      <p class="tit-note">
+        Counts on this page and on the pages it links to include every update we
+        hold, routine officer filings included. The tracker itself sets those
+        aside in its default view, so its figure for the same place is lower, and
+        the control above its table says how many it is holding back.
       </p>
       <div class="tit-callout">
         <strong>Pages appear by themselves.</strong> This list is computed from

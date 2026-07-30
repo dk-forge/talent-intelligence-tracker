@@ -120,10 +120,44 @@ add_action('template_redirect', 'tit_recall_template');
 
 function tit_recall_title($title) {
     return get_query_var('tit_recall')
-        ? 'Measured recall, and what we miss | Talent Intelligence Tracker'
+        ? 'Measured Recall, And What We Miss · Talent Intelligence Tracker'
         : $title;
 }
 add_filter('pre_get_document_title', 'tit_recall_title');
+
+/**
+ * The measured figure, read out of the published measurement.
+ *
+ * Never typed. This is the page that reports what the collectors MISS, and a
+ * hand-written percentage on it would be the least defensible number on the
+ * site. If no measurement has been published yet the description says nothing
+ * about coverage rather than implying a result.
+ */
+function tit_recall_head() {
+    if (!get_query_var('tit_recall')) return;
+    if (!function_exists('tit_head_description')) return;
+
+    $data = tit_recall_data();
+    $series = isset($data['series']) && is_array($data['series']) ? $data['series'] : array();
+    $latest = $series ? end($series) : null;
+    $overall = is_array($latest) && isset($latest['overall']) ? $latest['overall'] : array();
+
+    $text = 'How much of what happened this tracker actually holds, measured '
+          . 'against a fixed set of real events assembled from public sources '
+          . 'without consulting our own database.';
+    if (!empty($overall['total'])) {
+        $text .= sprintf(
+            ' Latest measurement: %s of %s events held, including the categories '
+            . 'we come off badly in.',
+            number_format_i18n((int) ($overall['held'] ?? 0)),
+            number_format_i18n((int) $overall['total'])
+        );
+    }
+    tit_head_description($text);
+    echo '<link rel="canonical" href="'
+       . esc_url(home_url('/talent-intelligence-tracker/recall/')) . '" />' . "\n";
+}
+add_action('wp_head', 'tit_recall_head', 1);
 
 /** Human labels for the cell keys the measurement emits. */
 function tit_recall_label($key) {
