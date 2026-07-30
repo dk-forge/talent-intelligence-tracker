@@ -1,5 +1,5 @@
 {
-  "last_tick": "2026-07-29T23:48:38Z",
+  "last_tick": "2026-07-30T01:54:36Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -156,6 +156,35 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T01:54:36Z",
+      "history": [
+        {
+          "at": "2026-07-30T01:54:29Z",
+          "detail": "first supervised tripwire run, owner approved 2026-07-30: dry run, Israel only, ~2 cents, to be read before arming",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T01:54:36Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260730T015429Z-tripwire",
+      "inputs": {
+        "countries": "IL",
+        "dry_run": "true",
+        "limit": "20"
+      },
+      "priority": 0,
+      "reason": "first supervised tripwire run, owner approved 2026-07-30: dry run, Israel only, ~2 cents, to be read before arming",
+      "requested_at": "2026-07-30T01:54:29Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "tripwire.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
