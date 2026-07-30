@@ -47,6 +47,15 @@ jobs:
       - name: Route company slugs through a key correction
         run: php tests/php/route_company_slugs.php
 
+      # A country, city or industry page exists only if its coverage clears the
+      # gate, and what a URL below the gate ANSWERS is a status code across a
+      # change of state that no amount of reading the source settles. This also
+      # counts the queries one render costs and fails if the number moves: the
+      # owner asked for these pages to be fast, and a bound on the work is the
+      # only version of that claim a test can hold.
+      - name: Render the place pages and count their queries
+        run: php tests/php/render_place_pages.php
+
       - name: Run tests
         run: python -m pytest -q
 
