@@ -33,6 +33,67 @@
   --tit-pay:#4a3aa7;        /* violet, third series */
   --tit-neutral:#52607a;
   --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
+
+  /* =======================================================================
+     THE FONT DECISION, SETTLED, WITH THE MEASUREMENT THAT SETTLED IT.
+
+     The Claude Design mock's character rests on three Google webfonts:
+     Source Serif 4 for display, Public Sans for body, IBM Plex Mono for
+     labels and figures. The first design pass held the whole re-skin on
+     this question and substituted nothing rather than guess. Measured
+     2026-07-30, rather than argued:
+
+       stylesheet from fonts.googleapis.com          17,959 bytes
+       latin woff2 from fonts.gstatic.com           179,036 bytes
+         Source Serif 4  122,168   (68% of it, headings only)
+         Public Sans      26,636
+         IBM Plex Mono    30,232   (three static faces, 400/500/600)
+       ----------------------------------------------------------
+       total added to first paint                  ~196,995 bytes
+
+     Against: a live origin TTFB of 2.72s measured on the deployed page the
+     same day, and a whole-markup budget of 156KB. The fonts would weigh
+     more than the page they set.
+
+     They also arrive on a SERIALISED two-origin path. The gstatic requests
+     cannot begin until the googleapis stylesheet has been fetched and
+     parsed, so it is DNS + TCP + TLS to one new host, then DNS + TCP + TLS
+     to a second, before the first glyph is asked for. That is the shape
+     that hurts on a phone, and it is not visible in a byte count.
+
+     And the site runs Complianz (`cmplz-manage-consent` is in the live
+     markup). Google Fonts is one of the third-party services a consent
+     layer blocks before consent, so the design's character would be
+     delivered to some readers and not others, decided by a cookie banner.
+     Turning that block off is the owner's privacy call, not a design one.
+
+     SELF-HOSTING FROM THE PLUGIN IS THE RIGHT LONG-TERM ANSWER and is NOT
+     done here. It removes the CDN objection, both extra origins and the
+     consent problem outright, and this plugin's assets are already excluded
+     from Autoptimize's CSS aggregation, so relative url() paths in an
+     @font-face would resolve rather than break — the one thing that would
+     have made it unsafe is already handled. What it needs is 179KB of
+     third-party font binaries plus their OFL licence downloaded and
+     committed into a public repository that deploys to the owner's
+     production site. That is the owner's decision to make, and it is a
+     one-line yes: the five latin woff2 files are named in the tech log.
+
+     WHAT SHIPS INSTEAD is the mock's typographic STRUCTURE at zero bytes
+     and zero requests: a serif for display against a grotesque for body
+     against a mono for labels and figures. That contrast is what carries
+     the character; the specific cut of the serif is what it does not get,
+     and Source Serif's personality at 54px is a real loss honestly stated
+     rather than a substitution pretended to be equivalent.
+
+     The body face needed no change at all, which is worth writing down: the
+     stack below was already here, and Public Sans is a neo-grotesque close
+     enough to system-ui on both platforms that the mock's body text and
+     this page's are hard to tell apart.
+     ======================================================================= */
+  --tit-serif:ui-serif,"New York",Georgia,"Iowan Old Style","Times New Roman",serif;
+  --tit-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Cascadia Mono",
+             "Segoe UI Mono","Roboto Mono","Liberation Mono",monospace;
+
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;
   color:var(--tit-fg); font-size:16px; line-height:1.6; max-width:100%;
@@ -605,6 +666,219 @@
 
 .tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
   max-width:none; line-height:1.5; }
+
+/* --- The dated glance panel --------------------------------------------
+   Four rungs of one ladder: today, this week, this month, this year, with
+   the all-time figures on .tit-hero-fine directly below as the fifth. The
+   left rail is a fixed column so the five labels line up and the eye can
+   run down them; below 560px it becomes a stacked block, because a 102px
+   rail beside a five-fact sentence on a 390px screen leaves the sentence
+   about eighteen characters wide.
+
+   Nothing here scrolls sideways. The body wraps, which is the whole reason
+   it is a flowing span of phrases rather than a table: a table of five
+   columns by five rows cannot be made to fit a phone without either a
+   horizontal gesture or a font size nobody can read, and this page has
+   already been through that with the matrix. */
+.tit-dg-box { margin:0 0 12px; }
+.tit-dg { border:1px solid var(--tit-line); border-left:3px solid var(--tit-hiring);
+  border-radius:10px; background:#fff; padding:12px 14px; }
+.tit-dg-head { display:flex; flex-wrap:wrap; align-items:baseline;
+  justify-content:space-between; gap:6px 12px; margin:0 0 8px;
+  padding-bottom:8px; border-bottom:1px solid var(--tit-grid); }
+/* The display serif, which is where the mock's character actually lives.
+   See the font note at the top of this file for what it is and is not. */
+.tit-wrap .tit-dg-title { font-family:var(--tit-serif); font-size:16px;
+  font-weight:600; margin:0; color:var(--tit-fg); letter-spacing:-.2px; }
+.tit-dg-copy { flex:none; font:inherit; font-size:12.5px; font-weight:600;
+  padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
+  background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }
+.tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:#b9d3f2; }
+.tit-dg-copy:focus-visible { outline:2px solid var(--tit-hiring); outline-offset:1px; }
+
+.tit-dg-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px;
+  padding:4px 0; font-size:13.5px; line-height:1.55; }
+.tit-dg-row + .tit-dg-row { border-top:1px solid var(--tit-grid); }
+
+/* The period label is a filter, so it is a button; it is styled as a label
+   because it has to read as one down the rail. The mono face is the mock's
+   own treatment for this kind of eyebrow, and here it also makes the five
+   labels the same width class so the rail looks like a rail. */
+.tit-wrap .tit-dg-label { flex:none; min-width:102px; text-align:left;
+  font-family:var(--tit-mono); font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--tit-mut);
+  background:none; border:0; padding:0; cursor:pointer; }
+.tit-wrap .tit-dg-label-static { cursor:default; }
+.tit-wrap .tit-dg-label:not(.tit-dg-label-static):hover { color:var(--tit-hiring); }
+.tit-wrap .tit-dg-label:focus-visible { outline:2px solid var(--tit-hiring);
+  outline-offset:2px; border-radius:3px; }
+.tit-wrap .tit-dg-label[aria-pressed="true"] { color:var(--tit-hiring); }
+
+.tit-dg-body { flex:1 1 260px; min-width:0; color:var(--tit-mut); }
+/* Figures are the thing being read. Tabular numerals so a column of them
+   does not jitter, and the same mono the rail uses. */
+.tit-wrap .tit-dg-body b { font-family:var(--tit-mono); font-weight:600;
+  font-size:13px; color:var(--tit-fg); font-variant-numeric:tabular-nums; }
+/* The absent comparison is quieter than the figures but still readable:
+   --tit-faint is decorative-only by this file's own rule, so this is
+   --tit-mut in italic instead. */
+.tit-dg-nocmp { font-style:italic; }
+.tit-dg-cov { margin:8px 0 0 !important; font-size:12px; color:var(--tit-mut);
+  line-height:1.45; }
+
+/* The all-time line joins the ladder as its bottom rung. */
+.tit-wrap .tit-hero-fine { display:flex; flex-wrap:wrap; align-items:baseline;
+  gap:2px 10px; }
+.tit-wrap .tit-hero-fine .tit-fine-figures { flex:1 1 260px; min-width:0; }
+.tit-wrap .tit-hero-fine .tit-fine-say { flex:1 0 100%; }
+
+@media (max-width:559px){
+  /* Stacked, so neither the rail nor the sentence is squeezed. */
+  .tit-dg-row { display:block; }
+  .tit-wrap .tit-dg-label { min-width:0; display:block; margin-bottom:1px; }
+  .tit-dg-body { display:block; }
+  .tit-wrap .tit-hero-fine { display:block; }
+  .tit-wrap .tit-hero-fine .tit-dg-label { margin-bottom:1px; }
+}
+
+/* --- "Why you can trust this", with the FAQ as its second tab -----------
+   PROGRESSIVE ENHANCEMENT, AND IT IS THE LOAD-BEARING PART.
+
+   Both panels are in the initial HTML in full, and this file hides one of
+   them ONLY under `.is-tabbed`, which dashboard.js adds. So the default
+   state — no JavaScript, JavaScript not yet run, or Autoptimize having
+   swallowed the file, which has happened here before — is both panels
+   stacked with their own headings. Nothing an FAQ says is ever behind a
+   click for a crawler, which is the whole reason this is not a fetch.
+
+   The tab strip is hidden by the same rule in reverse: a row of buttons
+   that cannot switch anything is worse than no buttons, so it appears only
+   once the thing that makes it work has arrived. */
+.tit-trust { margin:24px 0 0; padding:18px; border:1px solid var(--tit-line);
+  border-radius:14px; background:var(--tit-ground);
+  display:grid; gap:18px; }
+@media (min-width:900px){
+  .tit-trust { grid-template-columns:minmax(240px,1fr) minmax(0,2fr); gap:28px; }
+}
+.tit-wrap .tit-trust h3 { font-family:var(--tit-serif); font-size:20px;
+  font-weight:600; margin:0 0 8px; letter-spacing:-.3px; color:var(--tit-fg); }
+.tit-wrap .tit-trust-lede p { margin:0 0 12px; font-size:14px;
+  color:var(--tit-mut); max-width:46ch; }
+.tit-trust-btns { display:flex; flex-wrap:wrap; gap:8px; margin:0 !important; }
+.tit-wrap .tit-btn { display:inline-block; font-size:13px; font-weight:600;
+  padding:9px 14px; border-radius:8px; border:1px solid var(--tit-line);
+  background:#fff; color:var(--tit-fg); text-decoration:none; }
+.tit-wrap .tit-btn-solid { background:var(--tit-fg); border-color:var(--tit-fg); color:#fff; }
+.tit-wrap .tit-btn:hover { border-color:var(--tit-hiring); }
+.tit-wrap .tit-btn-solid:hover { background:#000; border-color:#000; }
+.tit-wrap .tit-btn:focus-visible { outline:2px solid var(--tit-hiring); outline-offset:2px; }
+
+.tit-tabs { display:none; gap:4px; margin:0 0 14px;
+  border-bottom:1px solid var(--tit-line); }
+.tit-trust.is-tabbed .tit-tabs { display:flex; }
+.tit-wrap .tit-tab { font:inherit; font-size:13px; font-weight:600;
+  padding:8px 13px; border:0; background:none; color:var(--tit-mut);
+  cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+.tit-wrap .tit-tab[aria-selected="true"] { color:var(--tit-fg);
+  border-bottom-color:var(--tit-hiring); }
+.tit-wrap .tit-tab:hover { color:var(--tit-fg); }
+/* Visible focus, and it must not be the selected-tab underline doing double
+   duty: a keyboard reader arrowing across tabs needs to see where they are
+   even when that tab is not the selected one. */
+.tit-wrap .tit-tab:focus-visible { outline:2px solid var(--tit-hiring);
+  outline-offset:-2px; border-radius:6px 6px 0 0; }
+
+.tit-tabpanel + .tit-tabpanel { margin-top:18px; }
+.tit-trust.is-tabbed .tit-tabpanel { margin-top:0; }
+.tit-trust.is-tabbed .tit-tabpanel[hidden] { display:none !important; }
+/* Once a tab labels the panel, the panel's own heading is a duplicate. It
+   stays in the markup because it is what labels the panel with no
+   JavaScript at all. */
+.tit-wrap .tit-tabpanel-h { font-size:15px; margin:0 0 10px; color:var(--tit-fg); }
+.tit-trust.is-tabbed .tit-tabpanel-h { position:absolute; width:1px; height:1px;
+  overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+.tit-wrap .tit-tabpanel:focus-visible { outline:2px solid var(--tit-hiring);
+  outline-offset:3px; border-radius:8px; }
+
+/* FOUR ITEMS, NEVER THREE-PLUS-ONE.
+   The mock puts them in `repeat(auto-fit, minmax(210px, 1fr))`, which at most
+   desktop widths resolves to three columns and strands the fourth alone on a
+   second row. Explicit counts instead: one column on a phone, two from 560px,
+   four from 1100px. There is no width at which one item sits by itself. */
+.tit-trust-items { list-style:none; margin:0; padding:0;
+  display:grid; grid-template-columns:1fr; gap:16px; }
+@media (min-width:560px){ .tit-trust-items { grid-template-columns:repeat(2,1fr); } }
+@media (min-width:1100px){ .tit-trust-items { grid-template-columns:repeat(4,1fr); } }
+.tit-trust-items li { min-width:0; }
+.tit-wrap .tit-trust-k { display:block; font-family:var(--tit-mono);
+  font-size:10.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+  color:#17624a; margin-bottom:6px; }
+.tit-wrap .tit-trust-t { display:block; font-size:13.5px; line-height:1.55;
+  color:var(--tit-mut); }
+
+/* --- The press page ------------------------------------------------------
+   Its own table class rather than .tit-table, and the reason is the same one
+   corrections.php gives for .tit-projection: below 860px .tit-table hides its
+   thead and relies on each cell carrying a data-label, so a six-column table
+   of numbers borrowed from it would render as a stack of unlabelled figures
+   on the one page whose entire job is to be quotable.
+
+   These cells DO carry data-labels, so the same stacking is safe here, and it
+   is used below 760px rather than a horizontal scroller: a container that
+   scrolls sideways beats the body scrolling and still hides half the columns
+   behind a gesture, which is the verdict the matrix already reached. */
+.tit-press-scroll { border:1px solid var(--tit-line); border-radius:12px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 18px; }
+.tit-press-table { width:100%; border-collapse:collapse; font-size:14.5px;
+  min-width:640px; }
+.tit-press-table th, .tit-press-table td { padding:11px 14px; text-align:left;
+  vertical-align:top; border-bottom:1px solid var(--tit-line); }
+.tit-wrap .tit-press-table thead th { font-size:12px; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--tit-mut); background:var(--tit-surface);
+  font-weight:600; white-space:nowrap; }
+.tit-press-table th[scope="row"] { font-weight:650; color:var(--tit-fg);
+  white-space:nowrap; }
+.tit-press-table td { font-variant-numeric:tabular-nums; }
+.tit-press-table tbody tr:last-child th,
+.tit-press-table tbody tr:last-child td { border-bottom:0; }
+
+@media (max-width:759px){
+  /* One card per row, every figure keeping its column name. Nothing is behind
+     a swipe and nothing is an unlabelled number. */
+  .tit-press-scroll { overflow-x:visible; border:0; border-radius:0; }
+  .tit-wrap .tit-press-table { min-width:0; display:block; }
+  .tit-press-table thead { position:absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+  .tit-press-table tbody, .tit-press-table tr { display:block; }
+  .tit-press-table tr { border:1px solid var(--tit-line); border-radius:10px;
+    padding:11px 13px; margin:0 0 9px; background:#fff; }
+  .tit-wrap .tit-press-table th[scope="row"] { display:block; border:0; padding:0 0 6px;
+    font-size:15px; white-space:normal; }
+  .tit-wrap .tit-press-table td { display:flex; justify-content:space-between;
+    gap:12px; border:0; padding:3px 0; }
+  .tit-press-table td::before { content:attr(data-label); color:var(--tit-mut);
+    font-size:12.5px; }
+}
+
+.tit-press-facts { margin:0 0 18px; padding-left:20px; max-width:78ch; }
+.tit-press-facts li { margin:0 0 12px; font-size:14px; line-height:1.6;
+  color:var(--tit-mut); }
+.tit-wrap .tit-press-facts strong { color:var(--tit-fg); }
+/* `.tit-wrap.tit-press`, NOT `.tit-wrap .tit-press`. The press page's root
+   element carries BOTH classes, so the descendant form matches nothing and the
+   headings quietly kept the body stack. Caught by reading the computed
+   font-family in a browser rather than by reading the selector, which is the
+   only way this kind of miss is ever caught. */
+.tit-wrap.tit-press h2 { font-family:var(--tit-serif); font-size:20px;
+  font-weight:600; letter-spacing:-.3px; margin:26px 0 8px; color:var(--tit-fg); }
+.tit-wrap.tit-press h1 { font-family:var(--tit-serif); letter-spacing:-.6px; }
+
+.tit-faq { max-width:78ch; }
+.tit-wrap .tit-faq-q { font-size:14px; font-weight:650; margin:14px 0 4px;
+  color:var(--tit-fg); }
+.tit-wrap .tit-faq .tit-faq-q:first-child { margin-top:0; }
+.tit-wrap .tit-faq-a { font-size:13.5px; line-height:1.6; margin:0;
+  color:var(--tit-mut); }
 
 /* --- Section headers: one line, no rule, no dead space ------------------- */
 .tit-sec { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px;

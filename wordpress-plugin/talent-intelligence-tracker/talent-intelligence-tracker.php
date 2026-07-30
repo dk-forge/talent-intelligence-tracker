@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.54.0
+ * Version: 1.55.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.54.0');
+define('TIT_VERSION', '1.55.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -50,6 +50,10 @@ tit_require('includes/places.php');
 tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
 tit_require('includes/recall.php');
+// After corrections.php and recall.php: the press page links to both and reads
+// tit_press_link()'s whitelist against what dashboard.js parses, so it is last
+// of the routed pages rather than first.
+tit_require('includes/press.php');
 tit_require('includes/board_series.php');
 // Reads the SIBLING's public HTTP API at render time. Ships disabled; see
 // the header of that file for the measurement that says why.

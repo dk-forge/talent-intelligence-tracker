@@ -260,7 +260,44 @@ function check($condition, $message) {
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
  */
-const TIT_DASH_BYTE_BUDGET = 156000;
+const TIT_DASH_BYTE_BUDGET = 168000;
+
+/*
+ * RAISED 156,000 -> 168,000 on 2026-07-30 (second design pass), and here is the
+ * itemised bill. Measured on this fixture with the "TEST FIXTURE " prefix
+ * stripped, so these are bytes production actually ships.
+ *
+ *   2,824  the dated glance panel: today / this week / this month / this year,
+ *          each with updates, employers, dollars raised, official filings and
+ *          the largest single raise. It replaces nothing — the all-time
+ *          figures line stays as the panel's bottom rung — so it is new markup
+ *          in full. It is also the owner's most-wanted item and the first
+ *          thing on the page that carries a date, which is what a reader opens
+ *          a tracker to find out.
+ *
+ *   6,673  the "Why you can trust this" panel and the FAQ, both rendered
+ *          server-side in full. This is the expensive half and it is
+ *          deliberate: the constraint on the FAQ is that every answer is in
+ *          the INITIAL HTML rather than fetched on click, because an FAQ
+ *          behind a click is an FAQ no crawler and no answer engine ever
+ *          reads, and it is among the most valuable blocks on the page. Paying
+ *          for it in markup is the whole point rather than an oversight.
+ *
+ *   3,450  the FAQPage structured data, which is that same FAQ a second time.
+ *          Kept, and it is the one line here worth arguing about. It is a
+ *          straight duplicate of visible prose, and it earns its bytes only
+ *          because the answers ARE visible: company.php and places.php both
+ *          record that the sibling earned a manual-action risk emitting
+ *          identical FAQPage markup across ~1,830 URLs where the answers were
+ *          nowhere in the document. If a future session ever moves an answer
+ *          behind a fetch, this block has to go with it.
+ *  ------
+ *  12,947  measured 153,670 -> 166,688 on this fixture.
+ *
+ * The headroom is 1,312 bytes and that is on purpose. The budget is not a
+ * target and it is not a ceiling to grow into: it is here so the next session
+ * that adds a card has to come to this line and write down what it cost.
+ */
 
 /*
  * RAISED 152,000 -> 156,000 on 2026-07-30, and here is what bought it.
@@ -643,6 +680,201 @@ check(strpos($html, '>HQ<') !== false,
 check(strpos($html, 'Location not stated') !== false && strpos($html, 'Date not stated') !== false,
       'and a row with no place or no date says that too, rather than showing a blank cell');
 check(strpos($html, '/company/') !== false, 'every employer name links to that employer\'s page');
+
+/* --- the dated glance panel ---------------------------------------------- */
+
+/*
+ * THE PANEL THE OWNER ASKED FOR, AND THE ONE RULE IT MUST NOT BREAK.
+ *
+ * The hero used to open with an undated lump of totals, which answers "how big
+ * is this dataset" in the position where a reader is asking "what has moved".
+ * The panel answers the second question on four rungs, and every figure on it is
+ * computed on the matrix's existing scan.
+ */
+check(strpos($html, 'id="tit-dg"') !== false,
+      'the dated glance panel has to render, and it is the first thing on the '
+      . 'page that carries a date');
+foreach (array('week', 'month', 'year') as $bucket) {
+    check(strpos($html, 'data-dg="' . $bucket . '"') !== false,
+          "the {$bucket} rung of the dated panel is missing");
+}
+// The year label is DERIVED from the clock. A typed "2026 so far" is a line that
+// becomes wrong at midnight on 31 December and stays wrong until somebody reads
+// it carefully, which is the same failure as corrections.php's hardcoded
+// "$124.0bn" under a caption reading "Measured now".
+check(strpos($html, '>' . date('Y') . ' so far<') !== false,
+      'the year rung has to name the CURRENT year, derived rather than typed, '
+      . 'so it becomes "' . (date('Y') + 1) . ' so far" by itself');
+
+/*
+ * EVERY FIGURE ON THE PANEL IS THE ONE THE DATABASE HOLDS.
+ *
+ * Read back out of the rendered markup and recomputed here from the same clause
+ * the render used. A panel of headline numbers is the worst place on the site
+ * for a figure that drifted from its source, and "computed, never typed" is only
+ * a claim until something checks the arithmetic.
+ */
+$dg_date = 'COALESCE(published_date, DATE(captured_at))';
+foreach (array('week'  => gmdate('Y-m-d', strtotime(gmdate('Y-m-d') . ' -6 days')),
+               'month' => gmdate('Y-m-01'),
+               'year'  => gmdate('Y-01-01')) as $bucket => $since) {
+    $expect = (int) $wpdb->get_var(
+        "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND {$dg_date} >= '{$since}'");
+    if (preg_match('/data-dg="' . $bucket . '".*?<b>([\d,]+)<\/b> updates/s', $html, $m)) {
+        check((int) str_replace(',', '', $m[1]) === $expect,
+              "the {$bucket} rung prints {$m[1]} updates and the database holds "
+              . number_format($expect) . '. Every figure on this panel is computed.');
+    } else {
+        check(false, "the {$bucket} rung has to print an update count");
+    }
+    // And it has to agree with the matrix cell for the same window, which is the
+    // reason the two share one query rather than running two.
+    check(strpos($html, 'data-since="' . $since . '"') !== false,
+          "the {$bucket} rung and the matrix column for the same window have to "
+          . 'carry the same data-since, or one handler cannot drive both');
+}
+
+/*
+ * THE COMPARISON THAT MUST NOT BE INVENTED.
+ *
+ * The sibling can print "down 25% vs the week before" because it holds years.
+ * This tracker's news collectors first ran on 2026-07-27 and national_press on
+ * 2026-07-29, so a week-over-week figure drawn today divides a populated week by
+ * one that mostly predates the collector, and prints something in the thousands
+ * of percent. That is not an exaggerated trend, it is an artefact of the corpus
+ * start date wearing a statistic's clothes, and it would be the most quotable
+ * number on the page.
+ *
+ * Both directions are pinned, because a rule that only ever suppresses is
+ * indistinguishable from a feature that never worked:
+ *  - this fixture spans forty days, so the comparison IS printed;
+ *  - with every older row deleted it must NOT be, and must say why.
+ */
+check(preg_match('/vs the week before/', $html) === 1,
+      'this fixture holds forty days, so the week-over-week comparison should '
+      . 'be printed: the rule has to switch itself ON once real history exists, '
+      . 'or it is not a rule, it is a permanent suppression');
+
+/* --- "Why you can trust this", and the FAQ tucked into it ---------------- */
+
+/*
+ * THE CONTRACT THIS PANEL LIVES OR DIES BY: EVERY WORD IS IN THE INITIAL HTML.
+ *
+ * A tab that fetches its content on click hides that content from a crawler,
+ * and an FAQ is among the most SEO-valuable blocks on a page. So both panels
+ * are rendered server-side, always, in full, and JavaScript's whole job is to
+ * add a class that lets the stylesheet hide one of them.
+ *
+ * The assertions below are made against markup produced with NO JavaScript
+ * running at all, which is exactly the state a crawler sees. If a future
+ * session ever moves a panel behind a fetch, every one of these fails.
+ */
+check(strpos($html, 'id="tit-trust"') !== false,
+      'the "Why you can trust this" panel has to render; it existed nowhere in '
+      . 'this product before, so its absence is not a regression, it is a '
+      . 'deletion');
+foreach (array('Sourced', 'Unconverted', 'Unguessed', 'Correctable') as $item) {
+    check(strpos($html, $item) !== false,
+          "the {$item} item is missing from the trust panel");
+}
+check(substr_count($html, 'class="tit-trust-k"') === 4,
+      'four numbered items, and the stylesheet lays them out 1 / 2 / 4 across '
+      . 'so there is no width at which the fourth is stranded alone on a second '
+      . 'row, which is what the mock\'s auto-fit grid does');
+
+// Real tab semantics, not two divs and a click handler.
+check(strpos($html, 'role="tablist"') !== false
+      && substr_count($html, 'role="tab"') === 2
+      && substr_count($html, 'role="tabpanel"') === 2,
+      'the tabs have to be real tabs: a tablist, two tabs and two panels');
+check(substr_count($html, 'aria-selected=') === 2 && substr_count($html, 'aria-controls=') === 2,
+      'each tab states whether it is selected and which panel it controls');
+
+/*
+ * NEITHER PANEL MAY BE HIDDEN IN THE MARKUP.
+ *
+ * `hidden` is applied by dashboard.js, never by the server. If the server ever
+ * ships one panel hidden, a reader with no JavaScript loses it completely and a
+ * crawler reads a page with half its content marked away — which is the failure
+ * this whole design exists to avoid.
+ */
+$trust_block = substr($html, strpos($html, 'id="tit-trust"'));
+$trust_block = substr($trust_block, 0, strpos($trust_block, '</script>') + 9);
+check(strpos($trust_block, 'role="tabpanel" hidden') === false
+      && strpos($trust_block, 'hidden role="tabpanel"') === false,
+      'no panel may be server-rendered hidden. With JavaScript off both stack, '
+      . 'and that is the state a crawler reads');
+// And each panel keeps a heading of its own, which is what labels it when the
+// tab strip is not there to.
+check(substr_count($html, 'class="tit-tabpanel-h"') === 2,
+      'each panel carries its own heading, so with no JavaScript the two '
+      . 'degrade to stacked headings and answers rather than to unlabelled prose');
+
+/*
+ * EVERY NUMBER IN THE COPY IS COMPUTED.
+ *
+ * A panel whose subject is trustworthiness is the last place on this site that
+ * can carry a stale figure. corrections.php once shipped a typed "$124.0bn"
+ * captioned "Measured now" against a live figure of $101B; the sibling's press
+ * page still carries a hardcoded "51 ... we currently carry every one of them"
+ * with no query behind it. This asserts the panel's figures move with the data
+ * by checking them against the database rather than against a string.
+ */
+$trust_verified = (int) $wpdb->get_var(
+    "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND confidence = 'verified'");
+check(strpos($html, number_format_i18n($trust_verified) . ' of the ') !== false,
+      'the Sourced item states the official-filings count from the database ('
+      . number_format_i18n($trust_verified) . ')');
+$trust_routine = (int) $wpdb->get_var(
+    "SELECT COUNT(*) FROM wp_tit_signals WHERE is_current = 1 AND materiality = 'routine'");
+check(strpos($html, number_format_i18n($trust_routine) . ' of the ') !== false,
+      'and the FAQ states the hidden-rows count from the database ('
+      . number_format_i18n($trust_routine) . ')');
+
+/*
+ * THE FAQ ITSELF, AND ITS STRUCTURED DATA.
+ *
+ * The FAQPage block is a straight duplicate of visible prose and is only
+ * defensible because the prose IS visible: company.php and places.php both
+ * record the sibling's manual-action risk from emitting identical FAQPage
+ * markup across ~1,830 URLs where the answers appeared nowhere in the document.
+ * So this checks the two together — the schema may exist only while every
+ * question it names is also rendered as text.
+ */
+check(substr_count($html, 'class="tit-faq-q"') >= 6,
+      'the FAQ has to carry its questions as real headings in the markup');
+check(strpos($html, '"@type":"FAQPage"') !== false,
+      'and the FAQPage structured data, which is worth its bytes only because '
+      . 'the answers are on the page');
+if (preg_match('/"@type":"FAQPage".*?<\/script>/s', $html, $ld)) {
+    $decoded = json_decode(substr($ld[0], 0, strrpos($ld[0], '}') + 1), true);
+    foreach (($decoded['mainEntity'] ?? array()) as $q) {
+        check(strpos($html, esc_html($q['name'])) !== false,
+              'the schema names a question that is not rendered on the page: "'
+              . $q['name'] . '". Structured data may only describe what a reader '
+              . 'can read, or this is the sibling\'s manual action again');
+    }
+}
+// The project cannot support these, so its own FAQ may not claim them.
+foreach (array('100% automated', 'real time', 'comprehensive', 'most advanced') as $overclaim) {
+    check(stripos($html, $overclaim) === false,
+          'the page claims "' . $overclaim . '", which this project cannot '
+          . 'support. The automation figure is ~99% and names the human sliver');
+}
+
+$wpdb->pdo->exec("DELETE FROM wp_tit_signals WHERE {$dg_date} < '"
+                 . gmdate('Y-m-d', strtotime(gmdate('Y-m-d') . ' -9 days')) . "'");
+$young = cold_render();
+check(strpos($young, 'vs the week before') === false,
+      'a corpus whose history starts INSIDE the comparison window must not emit '
+      . 'a percentage. This is the "up 4,000%" case and it is a fabrication, not '
+      . 'a large number.');
+check(preg_match('/\bup <b>\d+%|\bdown <b>\d+%/', $young) === 0,
+      'and no percentage of any kind reaches the week rung while the prior week '
+      . 'is outside what we hold');
+check(strpos($young, 'we do not hold a full week before this one') !== false,
+      'the absence has to be STATED. A reader who sees nothing cannot tell '
+      . '"flat" from "we cannot say yet", and the second is the honest answer');
 
 /* --- the assets ---------------------------------------------------------- */
 

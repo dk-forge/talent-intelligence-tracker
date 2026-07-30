@@ -75,6 +75,10 @@ function tit_is_our_page() {
         // Same argument as the dashboard: right for an article, wrong for a
         // page whose headings are chart titles.
         || get_query_var('tit_recall')
+        // The press page is headings and tables, so Easy Table of Contents
+        // would inject a list of links to them above the figures a journalist
+        // came for. Same argument as every other route this plugin owns.
+        || get_query_var('tit_press')
         || get_query_var('tit_places')
         || get_query_var('tit_place')
         || is_page(TIT_PAGE_SLUG);

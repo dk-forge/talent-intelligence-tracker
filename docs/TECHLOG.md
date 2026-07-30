@@ -13,6 +13,279 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the page is dated now, the font question is answered with numbers, and the press page's links are checked against the code that reads them
+
+Plugin **1.54.0 -> 1.55.0**. Second design pass, taking the four items the
+first pass explicitly HELD. Every figure below is measured.
+
+**NOT DEPLOYED.** The brief asked for a deploy and a live check, and also said
+do not push. `deploy-plugin.yml` uploads from a checked-out git ref, so shipping
+this needs the branch pushed first. The prohibition won. What was verified
+instead is in the "Measured" table below, all of it against the real render in a
+real browser rather than against the source. The live page was left on 1.54.0
+and confirmed unharmed (HTTP 200, TTFB 2.72s, `dashboard.css?ver=1.54.0`).
+
+### Measured, before -> after
+
+| | before | after |
+|---|---|---|
+| cold render queries | 12 | **12** (constant untouched) |
+| warm render queries | 0 | **0** |
+| N+1 tripwire (+5,000 rows) | same count | **same count** |
+| markup bytes (synthetic corpus, fixture prefixes excluded) | 153,670 | **166,802** |
+| body sideways scroll at 390px | none | **none** (`scrollWidth` 390 = `innerWidth` 390) |
+| elements overflowing the viewport at 390px | 0 | **0** |
+| containers needing a horizontal gesture at 390px | 0 | **0** |
+| offline tests | 2,040 | **2,044** |
+| PHP harnesses | 5 pass | **6 pass** (`render_press.php` is new) |
+| press page cold / warm queries | n/a | **5 / 0** |
+| webfont bytes added | 0 | **0** |
+
+`ops_status.py` exits 2 both before and after, and not because of anything here:
+five collectors are stale on wall-clock time. It reads neither
+`wordpress-plugin/` nor `tests/php/` (grep: zero references), so nothing in this
+pass can move it.
+
+### 1. The dated glance panel, and the four buckets that cost nothing
+
+The hero opened with one undated lump — "12,566 updates · 5,542 employers ·
+51 countries · $101B raised · 7,573 from official filings" — which answers "how
+big is this dataset" in the position where a reader is asking "what has moved".
+Every figure in it is as true in March as today, so nothing on the first screen
+said whether the thing was still running.
+
+It is now a ladder: **Today / This week / This month / 2026 so far**, each with
+updates, employers, dollars raised, updates from official filings, and the
+largest single raise named. The old line survives as the bottom rung, labelled
+**Everything We Hold**, because it answers a real question and the meta
+description is built from the same three figures.
+
+- **Translated, not ported.** The sibling's row reads "1,864 workers · 3
+  verified layoffs · largest: Damen Mangalia (1,000)". Layoffs are not collected
+  here, so "workers" and "layoffs" have no meaning on this page. The equivalents
+  are what this tracker holds.
+- **Zero extra queries, and that is a correctness decision first.** The panel
+  rides on `tit_glance_matrix()`'s existing single scan. The two describe the
+  same windows over the same rows, so computing them separately could have put
+  "this week, 1,204 updates" above a matrix cell reading 1,198 — invisible until
+  a reader adds them up. Sharing one statement makes disagreement impossible
+  rather than unlikely, and it is why the budget is still 12. Verified on screen:
+  the panel's "This week 638" and the matrix's "Everything in This View / This
+  week 638" are the same number because they are the same expression.
+- **Largest raise: two scalar subqueries per bucket, not an argmax.** An
+  aggregate returns the largest AMOUNT; it cannot return who raised it, and SQL
+  has no portable argmax. The tricks that fake one are engine-specific — SQLite
+  defines bare columns beside `MAX()`, MySQL does not; the string-packing form
+  needs a different concat operator in each — and the harness is SQLite while
+  production is MySQL, so anything that differs between them is a bug that ships
+  green. Scalar subqueries are standard in both and stay inside one statement,
+  the same shape the top-cities strip already uses. `row_id ASC` breaks ties, or
+  two equal rounds resolve to whichever row the engine reached first, which is
+  the defect the city flags had.
+- **Today is computed and usually absent.** This repo already measured that
+  "today" reads zero for most of most days (source dates, not capture dates;
+  collection twice daily) and removed the column from the matrix for exactly
+  that reason. Reintroducing it as a permanent zero would repeat a mistake that
+  is written down. It is computed every render and the row is printed only when
+  it holds something.
+
+**The week-over-week comparison is suppressed, and the rule is about history
+rather than size.** The sibling can say "down 25% vs the week before" because it
+holds years. Here the news collectors first ran 2026-07-27 and `national_press`
+on 07-29, so the prior week is not a quiet week, it is a week that mostly
+predates the collector; dividing by it prints something like "up 4,000%", which
+would be the most quotable number on the page and is an artefact of the corpus
+start date. The comparison prints only when the view holds data from on or
+before the start of the period being compared against, measured **per view** so
+it also holds under a filter that narrows to a young collector. When it is
+absent the panel says why in a few words, because a reader who sees nothing
+cannot tell "flat" from "we cannot say yet".
+
+`render_dashboard.php` pins **both directions**, which matters: a rule that only
+ever suppresses is indistinguishable from a feature that never worked. The
+40-day fixture prints the comparison; the same corpus with everything older than
+9 days deleted must not, must emit no percentage of any kind, and must state the
+reason.
+
+**Copy as Post is honest or it is not shipped.** The sibling's version is scoped
+only by its region tab and ignores the rest of its filter bar, so a reader
+looking at one country can copy a worldwide total. This one reads the RENDERED
+rows out of the DOM at click time and appends the active filters read from the
+chips bar the page already maintains, and says "unfiltered" explicitly when
+there are none. The panel repaints from `/aggregate` under those filters, so the
+two halves cannot drift. The button is rendered `hidden` and revealed by script,
+because its whole function is `navigator.clipboard` and a control that visibly
+does nothing is worse than an absent one.
+
+### 2. The font decision, settled with a measurement
+
+Held last pass because the mock loads three Google webfonts on a page with a
+2.5-4.0s cold TTFB against a deliberate no-CDN rule, and substituting by guess
+was refused. Measured 2026-07-30 rather than argued:
+
+| | bytes |
+|---|---|
+| stylesheet, fonts.googleapis.com | 17,959 |
+| Source Serif 4, latin woff2 | 122,168 |
+| IBM Plex Mono, latin woff2 (three static faces) | 30,232 |
+| Public Sans, latin woff2 | 26,636 |
+| **total added to first paint** | **~196,995** |
+
+Against a live origin TTFB measured the same day at **2.72s** and a whole-markup
+budget of 156KB. The fonts weigh more than the page they set, and Source Serif
+alone is 68% of it for headings only. They also arrive on a **serialised
+two-origin path**: the gstatic requests cannot start until the googleapis
+stylesheet has been fetched and parsed, so it is DNS + TCP + TLS to one new host
+and then to a second before a glyph is asked for, which a byte count does not
+show.
+
+And the site runs **Complianz** (`cmplz-manage-consent` is in the live markup,
+confirmed by curl). Google Fonts is a named blockable third-party service in a
+consent layer, so the design's character would reach some readers and not
+others, decided by a cookie banner. Turning that off is a privacy decision that
+belongs to the owner.
+
+**Decision: no webfonts. Ship the mock's typographic STRUCTURE at zero bytes** —
+a serif for display, a grotesque for body, a mono for labels and figures. That
+contrast is what carries the character. What it does not get is Source Serif's
+personality at 54px, which is a real loss and is stated rather than papered
+over. Worth writing down: **the body face needed no change at all.** The stack
+was already `system-ui, -apple-system, "Segoe UI", Roboto`, and Public Sans is a
+neo-grotesque close enough to system-ui on both platforms that the two are hard
+to tell apart.
+
+**Self-hosting from the plugin is the right long-term answer and is NOT done
+here.** It removes the CDN objection, both extra origins and the consent problem
+outright, and the one thing that would have made it unsafe is already handled:
+this plugin's assets are excluded from Autoptimize's CSS aggregation, so
+relative `url()` paths in an `@font-face` resolve rather than break. What it
+needs is 179KB of third-party font binaries plus their OFL licence downloaded
+and committed into a public repository that deploys to production, which is the
+owner's call and not an agent's. **The five latin woff2 files, so it is a
+one-line yes:**
+
+```
+122,168  fonts.gstatic.com/s/sourceserif4/v14/vEFI2_tTDB4M7-auWDN0ahZJW1gb8te1Xb7G.woff2
+ 26,636  fonts.gstatic.com/s/publicsans/v21/ijwRs572Xtc6ZYQws9YVwnNGfJ7QwOk1.woff2
+ 10,052  fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1i8q131nj-o.woff2       (400)
+ 10,060  fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlBFgsAXHNk.woff2   (500)
+ 10,120  fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlBFgsAXHNk.woff2   (600)
+```
+
+Subsetting to the glyphs this product actually uses would cut Source Serif hard,
+since 122KB is a variable font carrying the full 8..60 optical-size axis and
+200..900 weight range for a page that needs three weights.
+
+### 3. "Why you can trust this", with the FAQ as its second tab
+
+Did not exist anywhere: not in this repo, not in the sibling, not live. Built
+from the mock now that the mock is on disk.
+
+**Two fixes to the mock.** Its four numbered items sit in
+`repeat(auto-fit, minmax(210px, 1fr))`, which resolves to three columns at most
+desktop widths and strands the fourth alone on a second row. Explicit counts
+instead — 1 / 2 / 4, all divisors of four — so there is no width at which one
+item sits by itself. Verified in a browser: 4-across at 1280px, 2+2 at 900px,
+stacked at 390px. And the mock has no FAQ; there was none anywhere in this
+product to move, checked before writing, because two FAQs that drift apart is
+worse than one.
+
+**Every panel is in the initial HTML and nothing is fetched.** A tab that loads
+on click hides its content from a crawler, and an FAQ is among the most
+SEO-valuable blocks on a page. Both panels are rendered server-side in full;
+JavaScript's entire job is to add `is-tabbed`, and the stylesheet does the hiding
+only once that class is present. Verified in a real DOM with the script removed:
+both panels `display:block` with 909 and 2,762 characters of text, all eight
+questions visible, both panel headings visible, the tab strip `display:none` and
+the copy button hidden — so nobody is offered a control that cannot work. With
+the script, arrow keys move selection and focus, roving tabindex makes the strip
+one stop, and `aria-selected` follows.
+
+**Every number in the copy is computed**, checked by recomputing it from the
+database in the harness. corrections.php here once shipped a typed "$124.0bn"
+captioned "Measured now" against a live figure of $101B, and the sibling's press
+page still carries a hardcoded "51 ... we currently carry every one of them"
+with no query behind it. A panel whose subject is trustworthiness is the last
+place on the site that can afford either.
+
+FAQPage structured data is emitted, and it is the one line worth arguing about:
+3,450 bytes duplicating visible prose. It earns them only because the answers
+ARE visible — company.php and places.php both record that the sibling earned a
+manual-action risk emitting identical FAQPage markup across ~1,830 URLs where
+the answers appeared nowhere in the document. The harness asserts the two
+together: every question the schema names must also be rendered as text, so if a
+future session moves an answer behind a fetch the schema fails with it.
+
+### 4. The press page, and a test that closes the sibling's silent-link bug
+
+`/talent-intelligence-tracker/press/`. The owner assumed one existed. Sections:
+numbers you can use right now (four windows, each with a preset view), context
+for this year, the archive, **what this tracker does not do**, how to cite, press
+contact. The sibling's page was read for shape only; nothing imported, nothing
+copied.
+
+**The archive is a live query and not a snapshot, deliberately.** Corrections
+here append a revision rather than overwriting, so the current rows are what we
+now believe; a frozen copy would preserve a figure we have since corrected and
+present it as though it still stood. What makes an older number answerable is
+the corrections log, and the page says so. Months with nothing in them are
+skipped rather than rendered as zeroes, because every month before July 2026
+would read as "nothing happened" rather than "we were not there".
+
+**The link check is the point of the whole file.** The sibling shipped press-page
+evidence links built on `ai_primary=1` — a parameter its REST API accepts and its
+dashboard JavaScript ignores — so every "see the rows behind this number" link
+advertised a filtered view and served the entire corpus, silently, in a way no
+reader could detect. Its own ARCHITECTURE.md now cites it as the canonical
+example: a bad parameter NAME over-reports, a bad VALUE under-reports, neither
+raises.
+
+A hand-maintained whitelist does not fix that, because the defect IS the
+whitelist drifting from the front end. So `render_press.php` **parses the
+`inputs` map out of `assets/dashboard.js`** and requires every parameter this
+page emits to be in it, plus proves by string match that `applyUrlState()` still
+reads `funding` and `stated_headcount` by name. Values are checked too: a
+`country` must be an ISO code this product recognises, a `since`/`until` must be
+a date the control accepts. Proved to work by temporarily emitting
+`ai_primary=1` — the harness failed with the exact sentence describing the
+sibling's bug — then reverted.
+
+Also asserted: no superlatives (eight phrases), no em-dashes, Title Case
+headings, no withdrawn record reaching any figure, the year label derived from
+the clock, and a 5-query cold / 0-query warm budget so a per-row lookup inside
+the archive loop fails here rather than under a crawl.
+
+### Where the brief proved wrong about the code
+
+- **"Query budget: `TIT_DASH_QUERY_BUDGET` is 12 cold / 0 warm ... Do not raise
+  the constant to pass."** Correct, and the panel cost zero — but the reason it
+  could is that the buckets it wanted were **not** the matrix's. The matrix runs
+  week / month / quarter / YTD and the panel needed today / week / month / year.
+  Three boundaries are shared and two are not, so this is a genuine extension of
+  the scan rather than a re-use of existing columns.
+- **The brief's model includes a "Today" row unconditionally.** This repo's own
+  TECHLOG had already measured Today as structurally near-empty and removed it
+  from the matrix. Shipping it as a permanent zero would have re-introduced a
+  documented mistake; it self-suppresses instead.
+- **"Self-hosting subset woff2 from the plugin is probably the right answer."**
+  Right about the destination and wrong about who can take the step: it means
+  downloading third-party binaries into a public repo that deploys to
+  production. The Autoptimize question the brief asked about turned out already
+  answered — our assets are excluded from CSS aggregation, so relative
+  `@font-face` URLs would resolve. The blocker the brief did not anticipate is
+  **Complianz**, which is installed and would gate a CDN font behind consent.
+- **"Check whether FAQ content already exists somewhere before writing new."**
+  Checked; none exists. The only FAQ-shaped thing in the codebase is the warning
+  in company.php and places.php about the sibling's FAQPage manual-action risk,
+  which shaped the design rather than supplying content.
+- **A CSS miss worth recording.** `.tit-wrap .tit-press h2` matched nothing: the
+  press page's root carries **both** classes, so it needed `.tit-wrap.tit-press`.
+  The selector read as correct and the headings quietly kept the body stack. Only
+  caught by reading `getComputedStyle().fontFamily` in a browser, which is the
+  same lesson as gotcha 11 at a smaller scale.
+
+---
+
 ## 2026-07-29 — four coverage levers at $0 and one priced walker, and three of the four briefs were wrong about the code
 
 Five items, briefed as "close the coverage gap as cheaply as possible". Four had

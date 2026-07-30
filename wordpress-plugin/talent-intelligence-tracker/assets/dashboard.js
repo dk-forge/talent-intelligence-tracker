@@ -473,6 +473,19 @@
     // had its own summary contradicting its own strip. Markup mirrors
     // tit_glance_matrix_html() in shortcodes.php, the same contract renderRow
     // has with the table.
+    // The dated panel moves with the filters for the same reason the matrix
+    // does, and for one more: Copy as Post reads its rendered rows, so a stale
+    // panel would let a reader copy an unfiltered total off a filtered page.
+    // The coverage sentence is carried in from the money aggregate rather than
+    // recomputed, so the panel and the money cards state one coverage.
+    var dgbox = document.getElementById('tit-dg-box');
+    if (dgbox && data.glance && data.glance.dated) {
+      var dated = data.glance.dated;
+      dated.coverage = (data.money && data.money.coverage) || null;
+      dgbox.innerHTML = datedHtml(dated);
+      showDatedCopy();
+    }
+
     var glance = root.querySelector('.tit-glance');
     if (glance && data.glance && data.glance.rows) {
       glance.innerHTML = matrixHtml(data.glance);
@@ -687,6 +700,73 @@
     }
     var note = chart.querySelector('.tit-money-note');
     if (note) note.textContent = coverageNote(money, dim);
+  }
+
+  /*
+    THE DATED GLANCE PANEL, REPAINTED UNDER THE ACTIVE FILTERS.
+
+    Mirrors tit_dated_glance_html() in shortcodes.php exactly, the same contract
+    matrixHtml() has with tit_glance_matrix_html() and renderRow() has with the
+    table. The server paints this once and this repaints it on every filter
+    change, so any difference between the two shows up as the panel rewriting
+    itself while a reader watches.
+
+    It has to repaint, and not only for consistency. The Copy as Post button
+    reads these rendered rows, so a panel left showing unfiltered figures under a
+    filtered page would let somebody copy a worldwide total off a one-country
+    view. The two are one feature.
+
+    Every suppression rule the server applies is applied here for the same
+    reason it exists there: Today is dropped when it holds nothing, and the
+    week-over-week comparison is printed only when this view holds a full week
+    before the current one.
+  */
+  function datedHtml(d) {
+    if (!d || !d.rows || !d.rows.length) return '';
+    var lo = d.history_lo || '';
+    var prevStart = d.prev_start || '';
+    var prev = +d.prev_n || 0;
+    // The corpus, not the week, is what decides this. See the long note in
+    // tit_dated_glance_html(): the news collectors here first ran on
+    // 2026-07-27, so dividing by a week that mostly predates them prints
+    // something like "up 4,000%" and calls it a trend.
+    var haveHistory = !!(lo && prevStart && lo <= prevStart);
+
+    var h = '<div class="tit-dg" id="tit-dg"><div class="tit-dg-head">' +
+      '<h3 class="tit-dg-title">Today, ' + esc(d.today_label || '') +
+      ' <span aria-hidden="true">·</span> Sourced Talent Signals Worldwide</h3>' +
+      '<button type="button" class="tit-dg-copy" id="tit-dg-copy">Copy as Post</button></div>';
+
+    d.rows.forEach(function (r) {
+      if (r.key === 'today' && (+r.n || 0) === 0) return;
+      var bits = [];
+      bits.push('<b>' + nfmt(r.n) + '</b> ' + (+r.n === 1 ? 'update' : 'updates'));
+      if (+r.e > 0) bits.push('<b>' + nfmt(r.e) + '</b> ' + (+r.e === 1 ? 'employer' : 'employers'));
+      if (+r.money > 0) bits.push('<b>' + esc(moneyShort(r.money)) + '</b> raised');
+      if (+r.v > 0) bits.push('<b>' + nfmt(r.v) + '</b> from official filings');
+      if (r.top && +r.top_usd > 0) {
+        bits.push('largest: <b>' + esc(r.top) + '</b> (' + esc(moneyShort(r.top_usd)) + ')');
+      }
+      if (r.key === 'week') {
+        if (haveHistory && prev > 0 && (+r.n || 0) > 0) {
+          var delta = Math.round(100 * ((+r.n) - prev) / prev);
+          bits.push((delta >= 0 ? 'up ' : 'down ') + '<b>' + Math.abs(delta) +
+                    '%</b> vs the week before');
+        } else {
+          bits.push('<span class="tit-dg-nocmp">no week-on-week change yet: ' +
+                    'we do not hold a full week before this one</span>');
+        }
+      }
+      h += '<div class="tit-dg-row" data-dg="' + esc(r.key) + '">' +
+        '<button type="button" class="tit-dg-label" data-since="' + esc(r.since) +
+        '" aria-pressed="false">' + esc(r.label) + '</button>' +
+        '<span class="tit-dg-body">' +
+        bits.join(' <span aria-hidden="true">·</span> ') + '</span></div>';
+    });
+
+    var cov = coverageNote({ coverage: d.coverage }, '');
+    if (cov) h += '<p class="tit-dg-cov">' + esc(cov) + '</p>';
+    return h + '</div>';
   }
 
   function matrixHtml(m) {
@@ -1767,6 +1847,7 @@
       });
     });
     syncGlance();
+    syncDated();
   }
 
   // /facets lists values from the location columns only, so a place that only
@@ -1857,6 +1938,174 @@
       if (!wasOn && inputs.until) inputs.until.value = '';
       refresh();
     });
+  }
+
+  // --- The dated glance panel ----------------------------------------------
+  // Its period labels carry the SAME data-since the matrix cells do, so one
+  // rule drives both: clicking a period narrows the page to it, clicking the
+  // lit one clears it. It sets no row filter, because a period row is the
+  // period and nothing else.
+  var dgBox = document.getElementById('tit-dg-box');
+
+  function syncDated() {
+    if (!dgBox) return;
+    var since = inputs.since ? inputs.since.value : '';
+    Array.prototype.forEach.call(dgBox.querySelectorAll('.tit-dg-label[data-since]'), function (b) {
+      var on = since !== '' && b.getAttribute('data-since') === since;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  if (dgBox) {
+    dgBox.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest
+        ? e.target.closest('.tit-dg-label[data-since]') : null;
+      if (!btn) return;
+      var wasOn = btn.getAttribute('aria-pressed') === 'true';
+      if (inputs.since) inputs.since.value = wasOn ? '' : (btn.getAttribute('data-since') || '');
+      if (!wasOn && inputs.until) inputs.until.value = '';
+      refresh();
+    });
+  }
+
+  /*
+    COPY AS POST, BUILT FROM WHAT IS ON SCREEN.
+
+    The rule this button has to satisfy is that it can never hand somebody a
+    figure the page is not showing. The sibling's version is scoped only by its
+    region tab and ignores the rest of its filter bar, so a reader looking at one
+    country could copy a worldwide total; that is a quote-out-of-context bug with
+    our own name on it.
+
+    Two things make it honest here. It reads the RENDERED rows out of the DOM
+    rather than rebuilding them from an aggregate, so whatever is copied is
+    literally what is displayed. And it names the active filters, read from the
+    chips bar the page already maintains, so the numbers arrive with the view
+    they describe attached rather than as bare worldwide-looking totals. The
+    panel itself repaints from /aggregate under those filters (see
+    paintAggregate), so the two halves cannot drift.
+
+    The button is rendered `hidden` and revealed here. Its entire function is
+    navigator.clipboard, so with no JavaScript, or on a browser without the
+    clipboard API, it would be a control that visibly does nothing — worse than
+    no control at all.
+  */
+  var canCopy = !!(navigator.clipboard && navigator.clipboard.writeText);
+
+  // Revealed after every paint, not once: the panel replaces its own innerHTML
+  // on each filter change, so the button bound at startup is a node that no
+  // longer exists by the second repaint. Delegation on the box handles the
+  // click; this handles the reveal.
+  function showDatedCopy() {
+    if (!dgBox || !canCopy) return;
+    var b = dgBox.querySelector('.tit-dg-copy');
+    if (b) b.hidden = false;
+  }
+  showDatedCopy();
+
+  if (dgBox && canCopy) {
+    dgBox.addEventListener('click', function (e) {
+      var dgCopy = e.target && e.target.closest ? e.target.closest('.tit-dg-copy') : null;
+      if (!dgCopy) return;
+      var lines = [];
+      var title = dgBox.querySelector('.tit-dg-title');
+      if (title) lines.push(title.textContent.replace(/\s+/g, ' ').trim());
+
+      Array.prototype.forEach.call(dgBox.querySelectorAll('.tit-dg-row'), function (row) {
+        var label = row.querySelector('.tit-dg-label');
+        var body = row.querySelector('.tit-dg-body');
+        if (!label || !body) return;
+        lines.push(label.textContent.trim() + ': ' +
+                   body.textContent.replace(/\s+/g, ' ').trim());
+      });
+
+      // The all-time rung lives on .tit-hero-fine, outside the panel box, so it
+      // is collected by name rather than by position.
+      var allFig = root.querySelector('.tit-hero-fine .tit-fine-figures');
+      if (allFig) {
+        lines.push('Everything we hold: ' +
+                   allFig.textContent.replace(/\s+/g, ' ').trim());
+      }
+
+      /*
+        THE VIEW THESE FIGURES DESCRIBE, from the chips the page is already
+        showing. Without this a filtered copy reads as a worldwide one. When
+        nothing is filtered it says so explicitly rather than staying silent,
+        because "no filters" and "filters I forgot to mention" look identical in
+        a pasted block of text.
+      */
+      var chipEls = activeChips ? activeChips.querySelectorAll('.tit-chip') : [];
+      var applied = Array.prototype.map.call(chipEls, function (c) {
+        return c.textContent.replace(/\s*×\s*$/, '').replace(/\s+/g, ' ').trim();
+      }).filter(Boolean);
+      lines.push(applied.length
+        ? 'View: ' + applied.join('; ')
+        : 'View: everything we hold, unfiltered.');
+
+      lines.push('No figure appears unless its source states it. ' +
+                 'Talent Intelligence Tracker: ' + location.origin + location.pathname +
+                 (location.search || ''));
+
+      navigator.clipboard.writeText(lines.join('\n')).then(function () {
+        var was = dgCopy.textContent;
+        dgCopy.textContent = 'Copied';
+        setTimeout(function () { dgCopy.textContent = was; }, 1500);
+      });
+    });
+  }
+
+  /*
+    --- "Why you can trust this" / Questions, as real tabs -------------------
+
+    THE PANELS ARE ALREADY ON THE PAGE. Both of them, in full, rendered by the
+    server. This function does not fetch, build or inject a single word: it puts
+    `is-tabbed` on the container and sets `hidden` on the panel that is not
+    selected. That ordering is the point — an FAQ that arrives on click is an
+    FAQ a crawler never sees, and it is one of the most valuable blocks on the
+    page for search. Before this runs, and if it never runs, a reader gets both
+    panels stacked under their own headings.
+
+    Full tab semantics, because half of them is worse than none: roving
+    tabindex so the strip is one stop rather than two, Left/Right to move
+    between tabs, Home/End to jump, and the selected panel focusable so a
+    reader who tabs out of the strip lands in the content it just revealed.
+  */
+  var trust = document.getElementById('tit-trust');
+  if (trust) {
+    var tabs2 = Array.prototype.slice.call(trust.querySelectorAll('[role="tab"]'));
+    var panels = tabs2.map(function (t) {
+      return document.getElementById(t.getAttribute('aria-controls'));
+    });
+    if (tabs2.length > 1 && panels.every(Boolean)) {
+      var selectTab = function (i, focus) {
+        tabs2.forEach(function (t, j) {
+          var on = (i === j);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.tabIndex = on ? 0 : -1;
+          panels[j].hidden = !on;
+        });
+        if (focus) tabs2[i].focus();
+      };
+      // The class first, so the stylesheet's hiding rules are in force before
+      // anything is hidden. The other order paints one panel, hides it, and
+      // then reveals the strip, which a reader sees as a flicker.
+      trust.classList.add('is-tabbed');
+      selectTab(0, false);
+
+      tabs2.forEach(function (t, i) {
+        t.addEventListener('click', function () { selectTab(i, false); });
+        t.addEventListener('keydown', function (e) {
+          var next = null;
+          if (e.key === 'ArrowRight') next = (i + 1) % tabs2.length;
+          else if (e.key === 'ArrowLeft') next = (i - 1 + tabs2.length) % tabs2.length;
+          else if (e.key === 'Home') next = 0;
+          else if (e.key === 'End') next = tabs2.length - 1;
+          if (next === null) return;
+          e.preventDefault();
+          selectTab(next, true);
+        });
+      });
+    }
   }
 
   // --- Sortable table headers ----------------------------------------------
