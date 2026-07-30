@@ -311,6 +311,12 @@ function tit_dashboard_shortcode() {
                    to catch is making a checkable claim; one that only lists its
                    sources is not. */ ?>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
+          <?php /* The place pages are reachable from here and from each other,
+                   and from nowhere else: these routes are in no theme menu, and
+                   a set of pages a crawler can only find through a sitemap gets
+                   crawled slowly and trusted less. One link, in the fine print,
+                   next to the other two pages that exist to be checked. */ ?>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/places/')); ?>">Every country, city and industry we cover</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>
       </div>
@@ -2008,8 +2014,14 @@ function tit_top_countries(array $counts, $limit = 10) {
  * Enqueue the dashboard assets. Idempotent: WordPress ignores a second
  * enqueue of the same handle, so both the wp_enqueue_scripts hook and the
  * shortcode itself can call this safely.
+ *
+ * $with_js is false for the routes that are plain content: a country page or the
+ * places directory has no filter panel, no charts and no repaint, so shipping
+ * dashboard.js there is 60KB of parse work for a page with nothing to bind to.
+ * They still get the stylesheet, which is the same file the dashboard already
+ * served, so there is no second request for anyone who arrived from the tracker.
  */
-function tit_enqueue_dashboard_assets() {
+function tit_enqueue_dashboard_assets($with_js = true) {
     // Version is TIT_VERSION plus the file's own mtime, the same shape the
     // sibling plugin uses. TIT_VERSION alone is not enough: an FTP deploy can
     // change the stylesheet without the constant moving (a CSS-only fix), and
@@ -2018,6 +2030,7 @@ function tit_enqueue_dashboard_assets() {
     // old rewritten copy and the deploy appears not to have landed.
     wp_enqueue_style('tit-dashboard', TIT_URL . 'assets/dashboard.css', array(),
         tit_asset_version('assets/dashboard.css'));
+    if (!$with_js) return;
     wp_enqueue_script('tit-dashboard', TIT_URL . 'assets/dashboard.js', array(),
         tit_asset_version('assets/dashboard.js'), true);
     wp_localize_script('tit-dashboard', 'TIT', array(
@@ -2029,13 +2042,25 @@ function tit_enqueue_dashboard_assets() {
 }
 
 function tit_enqueue_assets() {
-    // Our own routed pages (company profiles, sources) carry no shortcode and
-    // are not singular posts, so a shortcode-only check leaves them completely
-    // unstyled. Ask each route, rather than naming them one at a time — that
-    // omission is exactly how the sources page shipped unstyled.
-    $is_plugin_route = (bool) get_query_var('tit_company')
-                    || (bool) get_query_var('tit_sources')
-                    || (bool) get_query_var('tit_recall');
+    /*
+      Our own routed pages (company profiles, sources, the corrections log, the
+      place pages) carry no shortcode and are not singular posts, so a
+      shortcode-only check leaves them completely unstyled. That is how the
+      sources page shipped unstyled, and the fix at the time was to name the
+      three routes that existed - which then quietly stopped covering
+      tit_corrections, and would have stopped covering the place pages too.
+
+      So no route is named. Every query var this plugin registers is prefixed
+      tit_, and any of them being set means the request belongs to us. A new
+      route is styled the day it exists, with nothing to remember.
+    */
+    $is_plugin_route = false;
+    foreach ((array) ($GLOBALS['wp']->query_vars ?? array()) as $name => $value) {
+        if (strpos((string) $name, 'tit_') === 0 && $value) {
+            $is_plugin_route = true;
+            break;
+        }
+    }
 
     if (!$is_plugin_route) {
         if (!is_singular()) return;
@@ -2043,7 +2068,14 @@ function tit_enqueue_assets() {
         if (!$post || !has_shortcode($post->post_content, 'talent_intelligence_dashboard')) return;
     }
 
-    tit_enqueue_dashboard_assets();
+    /*
+      Whether this route needs the script, asked rather than assumed. A route
+      that is plain content answers false through this filter and gets the
+      stylesheet only. It is a filter and not a list of route names here for the
+      same reason the check above stopped naming routes: the file that owns a
+      route is the only thing that knows what the route needs.
+    */
+    tit_enqueue_dashboard_assets((bool) apply_filters('tit_route_needs_js', true));
 }
 add_action('wp_enqueue_scripts', 'tit_enqueue_assets');
 

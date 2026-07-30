@@ -1752,3 +1752,37 @@ main:has(#tit-dashboard) {
 .tit-jump-n { font-size:12px; font-weight:700;
   font-variant-numeric:tabular-nums; letter-spacing:0;
   background:rgba(255,255,255,.26); border-radius:99px; padding:1px 7px; }
+
+/* --- Country, city and industry pages, and their directory -----------------
+   Almost nothing new: these pages reuse .tit-stats, .tit-callout, .tit-note,
+   .tit-pillars, .tit-timeline and .tit-cite exactly as the dashboard and the
+   employer profiles already use them. What is here is the handful of rules
+   those pages cannot borrow, and the list needs no media query beyond the grid
+   below: it is a flow layout that reflows by itself.
+
+   Nothing scrolls the page body sideways. The one wide thing a place page can
+   carry is a long employer name, and it wraps. */
+.tit-place h1 { font-size:32px; margin:6px 0 8px; color:var(--tit-fg); }
+.tit-wrap .tit-place-h2 { font-size:21px; margin:30px 0 8px; color:var(--tit-fg);
+  line-height:1.3; }
+/* The count beside a heading is subordinate to it, never the same weight. */
+.tit-wrap .tit-place-h2 .tit-place-n { font-size:14px; font-weight:500; }
+.tit-place .tit-span { font-size:14px; color:var(--tit-mut); margin:0 0 16px; }
+.tit-place .tit-h { font-size:18px; margin:8px 0 0; font-weight:600; }
+.tit-place .tit-rt { margin:7px 0 0; border-left:3px solid var(--tit-line);
+  padding-left:12px; }
+
+.tit-place-list { list-style:none; margin:0 0 8px; padding:0; }
+.tit-place-list li { display:flex; flex-wrap:wrap; align-items:baseline;
+  gap:4px 10px; padding:11px 0; border-bottom:1px solid var(--tit-line); }
+.tit-place-list li:last-child { border-bottom:0; }
+.tit-place-n { color:var(--tit-mut); font-size:13.5px;
+  font-variant-numeric:tabular-nums; }
+
+/* The directory's three lists are long and their items are short, so they read
+   as columns rather than as one tall stack. auto-fill, so the column count
+   follows the viewport with no breakpoint to keep in step. */
+@media (min-width:620px){
+  .tit-place-grid { display:grid; gap:0 26px;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); }
+}
