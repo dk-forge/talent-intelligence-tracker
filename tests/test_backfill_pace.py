@@ -159,6 +159,7 @@ def _runs_per_day(expression: str) -> float:
 
 SLICED_WORKFLOWS = ("backfill-2026.yml", "backfill-funding-2026.yml",
                     "backfill-funding-bulk.yml", "backfill-gdelt-2026.yml",
+                    "backfill-gnews-2026.yml",
                     "backfill-structured-2026.yml")
 
 

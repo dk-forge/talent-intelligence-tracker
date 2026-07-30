@@ -338,6 +338,210 @@ backfill's own failure is a red run.
   still resolves.
 * **`run_collect.py` and `source_registry.py`.** Untouched — other lanes.
 
+## 2026-07-30 — Google News DOES have an archive, and what it costs to walk it
+
+`backfill_gnews_2026.py`, `.github/workflows/backfill-gnews-2026.yml`,
+`tests/test_backfill_gnews.py` (18 tests). Suite 2,082 -> 2,100. Not armed.
+
+### The premise this repo has been carrying, and its measurement
+
+Three files said, in three wordings, that **"Google News RSS has no archive; it
+serves a recent window and nothing else"** — `backfill_gdelt_2026.py`'s opening
+paragraph, `backfill-gdelt-2026.yml` line 3, and this log at line 503. It is the
+stated reason GDELT exists, and it was never tested. Measured 2026-07-30, one
+leadership query, `en:US`, counting items and the pubDate span of what came back:
+
+| query | items | pubDate span |
+|---|---|---|
+| no operator | 100 | 2026-03-11..07-30 |
+| `when:7d` | 50 | 2026-07-23..07-30 |
+| `after:2026-01-01 before:2026-02-01` | 100 | 2026-01-02..01-30 |
+| `after:2026-01-01 before:2026-01-08` | 41 | 2026-01-01..01-08 |
+| `after:2026-01-05 before:2026-01-06` | 16 | 2026-01-05..01-06 |
+| `after:2025-03-01 before:2025-04-01` | 92 | 2025-03-03..04-01 |
+| `after:2021-03-01 before:2021-04-01` | 36 | 2021-03-01..04-01 |
+| `after:2016-03-01 before:2016-04-01` | 12 | 2016-03-01..03-29 |
+
+`after:`/`before:` are honoured, the returned dates fall inside the window, and
+the archive reaches at least a decade back. All three files are corrected in
+place rather than left to be re-inherited.
+
+### The cap is 100 and there is no pagination, so the window is one day
+
+Slicing recovers what a wide window loses, and the recovery was measured rather
+than assumed. January 2026, same query:
+
+| | unique articles |
+|---|---|
+| one 31-day query | 100 (at the cap) |
+| 31 one-day queries | 170 |
+| in daily, not month | 70 |
+| **in month, not daily** | **0** |
+
+The month's set is a strict SUBSET of the daily sets, so a day window loses
+nothing and finds 70% more. Busiest single day of that month: 22 items against
+the 100 cap, 4.5x headroom, which is why a day is enough and half-days are not
+needed. `RESULT_CAP` and a truncation counter in the run report are the guard —
+a query that comes back at exactly 100 has silently lost the rest of its window,
+and the answer is a narrower window, never a broader query.
+
+### The aggregator problem is not worse with age. It is not a problem at all
+
+Google News is a discovery pointer and the publisher is what we store, so a
+historical pointer is worth nothing unless it still resolves. 54 items sampled
+across four windows, resolved through `resolve_source_url` and then fetched:
+
+| window | resolved to a publisher deep path | HTTP < 400 |
+|---|---|---|
+| 2026-01 leadership | 12/12 | 6/12 |
+| 2026-04 leadership | 12/12 | 11/12 |
+| 2026-07 leadership | 12/12 | 10/12 |
+| 2021-03 leadership | 8/8 | 7/8 |
+| 2026-01 funding | 10/10 | 8/10 |
+
+**54 of 54 resolved**, every one to a deep path rather than a homepage, at every
+age including a five-year-old window. The non-200s are the known bot-wall set —
+bizjournals, bloomberg, businesswire, axios, costar — the same population
+`link_check.py` already classifies as `bot_walled` rather than rotted, and the
+same rate the daily collector's own URLs show (89 live / 10 bot-walled of 101 on
+2026-07-29). Age is not a factor in either resolution or liveness.
+
+### The funnel, measured on three real historical days
+
+Full 52-edition sweep, 156 requests per day, nothing written:
+
+| | 2026-01-14 | 2026-02-11 | 2026-03-18 |
+|---|---|---|---|
+| wall clock to fetch | 2.7 min | 2.6 min | 2.5 min |
+| items after URL de-dup | 643 | 679 | 666 |
+| past the free prefilter | 401 | 444 | 417 |
+| **already seen** | **0** | **0** | **0** |
+
+Zero already-seen across 1,262 candidates is the direct confirmation of the
+rejection audit's finding: this history was never fetched, so it was never
+filtered out. It is missing because we did not exist yet.
+
+On a 140-candidate sample of 2026-02-11, run through the free reducers in
+`run_collect.py`'s own order: resolution 0.26s/item on a keep-alive session
+(so ~1.9 min for a whole day), clustering removed 1, precheck rejected 0,
+`cheap_extract` closed 8 for $0, and **94% reached the gate**. The free stages
+that carry the daily collector barely help on virgin history, which is the
+finding that decides the shape below.
+
+### The refusal, with its number
+
+At the ledger's measured prices (gate $0.00003, read $0.00128) and its measured
+gate survival (155 survivors of ~1,050 screened, 15%):
+
+| | |
+|---|---|
+| one day of history swept IN FULL | **$0.0877** (gate $0.0119 + read $0.0758) |
+| a year of 2026 in full | **$32.09** |
+| ...of which the GATE ALONE | **$4.34** |
+| GDELT's whole year, reads included | $4.51 |
+
+**Merely LOOKING at a year of Google News across 52 editions costs as much as
+GDELT's entire year.** A full-breadth sweep is 7x GDELT and is REFUSED here. It
+is not a pace anybody can choose out of a ~$5/month budget.
+
+### So the budget buys a RATION, and that is the one real divergence from GDELT
+
+A read ceiling alone — the shape `backfill_gdelt_2026.py` uses — cannot fix
+this, and would break the chain outright. A day of history demands ~59 reads; a
+budget-derived ceiling is in the tens; the ceiling therefore binds inside window
+ONE, the run finishes no window, `done_through` never moves, and
+`backfill_slices.record` correctly refuses to requeue a cursor that did not
+advance. **The chain would stall on its first slice with a green exit code** —
+which is this repo's most-repeated failure mode, arriving through the mechanism
+built to prevent it.
+
+So `DAILY_GATE_RATION` rations the GATE, derived from
+`MONTHLY_WALKER_BUDGET_USD` (`$1.00`, deliberately below GDELT's `$1.50`,
+because the two share one product budget and GDELT's chain is the one already
+dispatched). `pipeline.candidate_rank` — free, no model, no network, and a
+permutation rather than a filter — decides which candidates of a day get it, so
+the reads land on the country need the recall worklist measured. **A window that
+spends its ration is FINISHED**, and everything past the cut is left UNMARKED,
+so a second walk of the same range skips what the first stored (free, via
+`store.already_seen`) and spends its ration on entirely different rows.
+Coverage converges by repetition at the owner's pace instead of demanding $32
+up front.
+
+```
+  slice = 4 day-windows, ration 37 candidates gated per day
+  that reads 9.4% of a day, ranked by country need
+
+  pace                    wall clock   $/month   $ 2026   reads
+  1 slice/day                92 days      0.99     3.02    2042
+  2 slices/day               46 days      1.97     3.02    2042
+  4 slices/day               23 days      3.94     3.02    2042
+```
+
+The 9.4% is printed, not implied. A walker that claims to read a day it samples
+a tenth of is a coverage claim, not a budget.
+
+### Why it is worth building at all, given GDELT is cheaper
+
+`registry.GDELT_QUERIES` is English-only by design — the comment above it says
+so, and says why (reusing the Google News strings produced 216 noise items of
+219). The recall worklist's zero-scoring markets are AU, CA, JP, GB, IN, BR, CN,
+DE, SA, SG, AE, AR, CH, CO, with non-US funding at 2.3% held. GDELT cannot walk
+the history of a market it cannot ask in that market's language. Google News has
+51 non-English editions with live-verified phrase packs, reachable with the same
+`after:`/`before:` operators. **The two walkers are complements, not
+substitutes**, and the cheaper one structurally cannot do this job.
+
+Measured on 2026-02-19 across `en:US,he:IL,ja:JP` in `--fetch-only`: 130
+articles, 120 past the free filter, ration cut it to 37, and the would-gate
+split was US=23 JP=10 IL=4 — Hebrew and Japanese leadership and funding stories
+from a day in February that no collector had ever seen.
+
+### What is asserted, and what was refused
+
+`tests/test_backfill_gnews.py` pins the properties rather than the symptoms:
+a historical query carries `after:`/`before:` and never `when:` (mixing them is
+an empty set for every day older than the recency figure, silently); a locale
+without a `GOOGLE_NEWS_VOCAB` pack is refused rather than defaulted to English;
+a query at the cap is counted as truncated; the ration is derived from the
+budget and moves when it moves; the gate's price includes the read it buys;
+**a window that spends its whole ration still finishes and still advances the
+cursor**; two runs recorded inside one frozen clock second walk different
+windows (the sibling's date-ordinal trap, `~$3.80/day for six days`); a retried
+run after a requeue resumes at the cursor and not at the dispatch input; a
+finished job re-dispatched does nothing rather than starting over; a dry run
+emits no ticket and writes no cursor; and a `--fetch-only` run calls no model
+AND writes nothing.
+
+That last one was a real bug found by writing the test. The free reducers
+`mark_seen` their rejections, which is a database write, so `--fetch-only`
+would have consumed the very candidates it was rehearsing. Fixed with a single
+`writes` flag every write path asks.
+
+**Refused, with reasons:**
+
+* **A full-breadth year walk.** $32.09 against a ~$5/month budget. The number is
+  printed by `--plan-cost` under the heading THE REFUSAL so nobody has to
+  rediscover it.
+* **A read-only ceiling, GDELT's shape.** It stalls the chain on window one, and
+  it leaves the gate cost unbounded at $4.34/year.
+* **Widening the window to a week or a month to save requests.** It truncates at
+  100 and the truncation is silent. The 31-day query returned 100 while the days
+  under it returned 170.
+* **Any cron.** The ration IS the budget and a cron multiplies it by the runs per
+  day. `test_the_google_news_walker_is_not_armed` fails if one appears.
+
+### The one number in the model not measured here
+
+`GATE_SURVIVAL = 0.15` comes from the daily collector's ledger (155 survivors of
+~1,050 screened), not from a historical window, because measuring it needs the
+API key and therefore real spend. It is a named constant with that provenance in
+its comment so a future session corrects it in one place rather than in six
+arithmetic expressions. `--max-readthroughs` is a per-run backstop sized at 3x
+the expectation, so a window whose survival runs far above 15% cannot turn a
+$0.03 slice into a surprise.
+
+---
+
 ## 2026-07-30 — the page is dated now, the font question is answered with numbers, and the press page's links are checked against the code that reads them
 
 Plugin **1.54.0 -> 1.55.0**. Second design pass, taking the four items the
@@ -825,7 +1029,7 @@ sibling read-only for the pattern.
 **It has been here since 2026-07-29.** `backfill_gdelt_2026.py` +
 `backfill_slices.py`: monotonic cursor committed to `data/backfill_state.json`,
 one slice per run, server-side windows (GDELT DOC 2.0 takes explicit
-`startdatetime`/`enddatetime`; Google News RSS has no archive, which is why GDELT
+`startdatetime`/`enddatetime`. **This line said "Google News RSS has no archive, which is why GDELT" and it is false — corrected 2026-07-30, see that day's entry; `after:`/`before:` reach back a decade.** GDELT
 is the route), seen-URL skipping before any spend, `--fetch-only` for a free
 rehearsal, `MAX_SLICES_PER_JOB`, and a `halt` path that records the slice and
 declines to requeue into a wall. **The sibling was not read: there was nothing to
@@ -4036,135 +4240,3 @@ reached the classifier.
   real Danish funding headlines read as clean misses.
 
 Measured keep rates after: 19% / 11% / 16%, the band the English gate already sits in.
-
----
-
-## robots.txt: the file that breaks without breaking
-
-Two sitemap lines had to reach `robots.txt`. It is served from disk by Apache
-before WordPress runs, so no plugin, filter or REST route can add them — it is an
-upload. And it is the `.htaccess` danger class one layer out: a truncated
-`robots.txt` still answers 200, the site renders identically, nothing goes red,
-and the domain quietly stops being crawled. The first symptom is a traffic graph
-three weeks later.
-
-So `robots_sitemaps.py` reuses the shape `includes/htaccess.php` already proved
-on this host — keep the old bytes, write, probe the live URL, restore on any
-doubt — with two additions that file does not need. The probe is **cache-busted**,
-because Cloudflare will serve the pre-write copy back and make a failed write
-look like a success. And the probe **retries a 5xx**, because this host 500s at
-random under load and a rollback triggered by somebody else's bad minute is an
-outage we caused.
-
-**The remote path is never guessed.** An FTP account here is chrooted, so a path
-from the control panel is not what the session sees, and writing to the wrong
-`robots.txt` is unrecoverable in the only sense that matters: we would not know.
-The file is fetched over HTTP first, then a candidate remote path is accepted
-only if its bytes are **identical to what that URL just served**. No match, no
-write. The root target additionally refuses any path containing `/blog/`, because
-two copies holding identical bytes would otherwise let the root target adopt the
-blog file and report two successes for one write.
-
-It is a separate workflow from `deploy-plugin.yml` on purpose. That one refuses
-to write anywhere but `WP_PLUGIN_REMOTE_DIR`, which is the guard that keeps it
-away from the live sibling product; teaching it to write outside that directory
-would delete the guard to reuse the credentials, and the credentials are the
-cheap part. No cron, ever: this is one edit to one file.
-
-### What was actually there
-
-The brief said two copies, each holding only the `sitemap_index.xml` line. There
-is **one**, and it holds four directives:
-
-| URL | status | bytes | type |
-|---|---|---|---|
-| `/blog/robots.txt` | 200 | 175 | `text/plain` |
-| `/robots.txt` | 200 | 13,181 | `text/html` |
-
-The apex has no `robots.txt` at all. It answers `/robots.txt`,
-`/definitely-not-here-xyz123.txt` and every other unmatched path with the same
-13,181-byte "Coming soon" landing page. The content-binding refuses it on its
-own, and the refusal says why rather than "served HTML": putting a file there is
-a **create**, not an edit, and a root `robots.txt` where none existed changes the
-crawl rules for the whole domain in one step.
-
-Which matters more than it looks. RFC 9309 has a crawler read `/robots.txt` at
-the host root **and nowhere else**, so the `Sitemap:` lines in
-`/blog/robots.txt` — the existing `sitemap_index.xml` one included — are read by
-nothing. Adding two more is correct, harmless, idempotent, and **will not on its
-own get either sitemap crawled**. That needs a real file at the apex or a Search
-Console submission, and it is a decision, not a default.
-
----
-
-## What the tripwire costs, before arming it
-
-`run_tripwire.py` has never run: `analysis/tripwire/results/` does not exist,
-`lifetime_usd` is 0, and `tests/fixtures/tripwire_reply.json` is a captured
-*shape*, not a captured reply — it carries no token counts. So this is derived
-from the prompt and the price list, with every assumption named, and not read off
-a past run, because there is no past run to read.
-
-**Model.** `perplexity/sonar` (`ask.MODEL`, overridable by `TIT_TRIPWIRE_MODEL`).
-OpenRouter's endpoint API prices it at **$1.00/M prompt, $1.00/M completion,
-$0.005 per web search**. `_call()` skips the web plugin for any model whose name
-contains `sonar`, so nothing pays OpenRouter's per-result plugin fee on top.
-
-**Queries per run.** `COUNTRIES_PER_RUN` is derived, not chosen:
-`int(1.00 / 0.02) = 50` queries a month, minus the 18-industry sweep, over 8 runs
-= **4**. So an ordinary run issues 4 queries. One run a month also carries the
-full sweep (`industries_due()` is derived from the dated result files), making it
-**22** — exactly `MAX_QUERIES_PER_RUN`.
-
-**Tokens per query.** The prompt is exact: `SYSTEM` 285 chars + `SCHEMA` 868 +
-the question ≈ **1,433 chars**, ~**410 tokens** at 3.5 chars/token (the range
-across 3.0–4.0 is 358–478). The reply is bounded by `LEADS_PER_QUERY = 8`, and
-the fixture's items serialise at 242 chars each, so a full reply is ~1,946 chars,
-~**560 tokens** (487–649).
-
-| | per query |
-|---|---|
-| search fee | $0.00500 |
-| ~410 prompt tokens | $0.00041 |
-| ~560 completion tokens | $0.00056 |
-| **total** | **$0.0060** |
-
-**The search fee is 84% of it.** Token size is nearly irrelevant here, which is
-worth knowing before anyone shortens the schema to save money.
-
-One honest uncertainty, stated rather than smoothed: if OpenRouter reports
-Perplexity's retrieved search context inside `prompt_tokens` (~3–6k tokens),
-per-query rises to **$0.008–$0.011**. That is the upper bound, and the first real
-run settles it — `usage.include` is already on and `report.cost_block` already
-records it.
-
-**Therefore**, at the dormant cron `0 7 * * 1,4` (Mon+Thu = 8.67 runs/month, not
-the 9 the brief assumed, and near enough the 8 `plan.py` is sized on):
-
-- ordinary run, 4 queries: **$0.024 – $0.042**
-- monthly sweep run, 22 queries: **$0.13 – $0.23**
-- **month: 53 queries, $0.32 – $0.56**
-
-against the $1.00 cap in `plan.TRIPWIRE_MONTHLY_USD` and a $5 product ceiling
-already carrying ~$3 of collection. The pessimistic $0.02/query estimate is
-**3.3× the likely price**, so the plan is sized conservatively in the right
-direction and arming it does not need the cap moved.
-
-### What the money buys
-
-It is the only component that discovers sources nobody told us about. The
-rejection audit is unambiguous about where the misses are: of 81 recall misses,
-**0 were fetched and dropped** — no filter problem at all — while **23 are a
-source problem**, 12 at publishers we have researched but not wired
-(`calcalistech.com` 4, `businesswire.com` 2, `globenewswire.com` 2) and **11 at
-10 publishers nobody has ever heard of here**: `latamlist.com`,
-`european-biotechnology.com`, `finsmes.com`, `pv-magazine.com`, `techla.pro`.
-A wiring backlog is work; an unknown-publisher list is *not knowable* from
-inside, and that is precisely the gap a search-backed outside view closes. With
-27 countries measured at zero recall and 4 asked about per run, a month walks
-roughly a third of them. Leads are claims and die in the work list;
-`collectors/tripwire_chase.py` converts them by finding the publisher's own
-article, so the yield is measured in confirmed misses, and
-`usd_per_confirmed_miss` stays "not yet measurable" until it has stored
-something. For $0.32–$0.56 a month, the question is not whether it pays for
-itself but whether we would rather keep guessing which publishers exist.
