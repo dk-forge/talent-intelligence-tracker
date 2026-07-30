@@ -74,6 +74,16 @@ jobs:
       - name: Exercise the enrich and correct write routes
         run: php tests/php/enrich_and_correct.php
 
+      # The sources page explains why most rows carry no archived copy, and the
+      # explanation is arithmetic over the whole table: filings whose publishers
+      # keep them, versus citations that can be taken down. A sentence with
+      # counts in it is true the day it is written, and this one has to stay true
+      # while the archived share climbs, so it is rendered against two corpora
+      # rather than read. It also holds the page to one query cold and none warm:
+      # COUNT(DISTINCT source_url) over 15,711 rows is not free.
+      - name: Render the sources page and check what it claims about the archive
+        run: php tests/php/render_sources.php
+
       - name: Run tests
         run: python -m pytest -q
 

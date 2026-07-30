@@ -95,6 +95,93 @@ function tit_sources_health_map($sources = null) {
     return $out;
 }
 
+/**
+ * How much of what we cite carries a saved copy, and how much of it needs one.
+ *
+ * WHY THIS IS COMPUTED AND NOT WRITTEN DOWN.
+ *
+ * The reader-facing half of the link-rot work is an "Archived" link on a record
+ * card, and it is printed only where a snapshot actually exists. Today that is a
+ * small share of rows, which without a sentence beside it reads as a gap: 99% of
+ * the page apparently missing something the other 1% has. It is not a gap. The
+ * overwhelming majority of what we cite is filings held by regulators and
+ * government registers, whose publishers keep them on file, and copying those to
+ * a third party preserves nothing that is not already preserved.
+ *
+ * So the page has to say which share is which, and it has to keep saying it
+ * correctly while the archived figure climbs. Every number here is a count.
+ *
+ * THE SPLIT IS DERIVED, NOT TYPED. A hand-written list of "the SEC ones" in PHP
+ * is the same mistake the collector map made: it was typed with five of nine
+ * entries and three collectors that run twice a day rendered as never having
+ * run. `data/sources.json` already carries a category per collector, written by
+ * build_sources_json.py from the registry, and the filing systems are exactly
+ * the categories whose name ends in "filings". A collector added tomorrow
+ * arrives here classified; a typed copy could not.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT CLAIM. The archive ledger (`source_links`)
+ * lives in the pipeline database and knows three states: archived, asked for and
+ * still pending, and confirmed to have no copy available. Only the first of
+ * those reaches WordPress, as the `archive_url` on a row. So a document with no
+ * Archived link here means "no copy on file", never "no copy exists" and never
+ * "we looked and there was none". ops_status [2c] draws that distinction (it
+ * separates "never answered about" from "confirmed absent") and this page must
+ * not flatten it into an absence it cannot see. Hence the closing sentence.
+ *
+ * One query, cached. The sources page cost zero before this and costs one now.
+ */
+function tit_sources_archive_facts($sources) {
+    $cached = get_transient('tit_sources_archive');
+    if (is_array($cached)) return $cached;
+
+    global $wpdb;
+    $table = tit_table_name();
+
+    // COUNT(DISTINCT source_url), because the ledger is keyed on the URL and
+    // never on the row: thousands of SEC rows sit behind a handful of index
+    // pages, and one snapshot serves all of them. Counting rows would report a
+    // corpus we do not have and a coverage share that is not the one the
+    // archiver is working through.
+    $rows = $wpdb->get_results(
+        "SELECT collector,
+                COUNT(DISTINCT source_url) AS urls,
+                COUNT(DISTINCT CASE WHEN archive_url IS NOT NULL AND archive_url <> ''
+                                    THEN source_url END) AS archived
+           FROM {$table}
+          WHERE is_current = 1
+       GROUP BY collector",
+        ARRAY_A
+    );
+
+    $category = array();
+    foreach ((array) $sources as $s) {
+        $c = trim((string) ($s['collector'] ?? ''));
+        if ($c !== '') $category[$c] = (string) ($s['category'] ?? '');
+    }
+
+    $out = array('total' => 0, 'archived' => 0, 'filed' => 0, 'perishable' => 0,
+                 'perishable_archived' => 0);
+    foreach ((array) $rows as $r) {
+        $urls = (int) $r['urls'];
+        $arch = (int) $r['archived'];
+        $out['total']    += $urls;
+        $out['archived'] += $arch;
+        // A collector we cannot classify counts as perishable. That is the safe
+        // direction: it overstates what needs preserving and never claims a
+        // publisher keeps something on our behalf.
+        $cat = $category[$r['collector']] ?? '';
+        if ($cat !== '' && substr($cat, -8) === ' filings') {
+            $out['filed'] += $urls;
+        } else {
+            $out['perishable']          += $urls;
+            $out['perishable_archived'] += $arch;
+        }
+    }
+
+    set_transient('tit_sources_archive', $out, 2 * HOUR_IN_SECONDS);
+    return $out;
+}
+
 function tit_sources_last_run($row) {
     if (empty($row['run_at'])) return '';
     $ts = strtotime($row['run_at'] . (str_ends_with($row['run_at'], 'Z') ? '' : ' UTC'));
@@ -191,6 +278,68 @@ function tit_sources_render($sources) {
         and is never counted as coverage. A source appearing on this page is not
         a claim that we cover it.
       </div>
+
+      <?php
+      /*
+       * The archived-copy line.
+       *
+       * It exists because of what the dashboard now shows: an "Archived" link
+       * beside the source on the records that have a saved copy, and nothing on
+       * the ones that do not. Printed without this paragraph, a sparse link
+       * reads as a hole in a page whose entire claim is that every figure still
+       * reaches its document. It is not a hole, and the reason is countable.
+       *
+       * The wording has to survive the figure moving. The archiver is working
+       * through the perishable tail, so the share below climbs on its own; every
+       * number is a count and none of the sentences depend on the share being
+       * small. It reads the same at half a percent and at forty.
+       *
+       * THE SPLIT IS ALWAYS SAID. THE COVERAGE FIGURE IS ONLY SAID WHEN THERE IS
+       * ONE. The two sentences answer different questions and only one of them
+       * depends on a snapshot existing. "Most of what we cite needs no copy" is
+       * true of this corpus whether or not a single capture has landed, and it is
+       * the sentence a reader needs. "N documents carry a copy" is a claim about
+       * a link on the dashboard, and at N = 0 there is no link to explain, so
+       * printing "0 of 12,970 (0.0%)" would be a paragraph about a feature the
+       * reader cannot see. Measured 2026-07-30: the pipeline held 72 snapshots
+       * and the live table held none of them, because they travel here as a
+       * later enrichment rather than with the row. That is a real state this
+       * page has to render honestly rather than a hypothetical.
+       */
+      $arc = tit_sources_archive_facts($sources);
+      if ($arc['total'] > 0) : ?>
+        <div class="tit-callout">
+          <strong>We save a copy of the citations that can disappear.</strong>
+          <?php
+          printf(
+              esc_html('Of the %1$s documents cited on this tracker, %2$s are filings held by '
+                     . 'regulators and government registers. Those bodies keep their own copies, '
+                     . 'so a second copy of a filing preserves nothing. The other %3$s come from '
+                     . 'news publishers and employer sites, which unpublish stories, change their '
+                     . 'URL schemes and let domains lapse, and those are the ones worth saving.'),
+              esc_html(number_format_i18n($arc['total'])),
+              esc_html(number_format_i18n($arc['filed'])),
+              esc_html(number_format_i18n($arc['perishable']))
+          );
+          if ($arc['archived'] > 0) {
+              printf(
+                  ' ' . esc_html('%1$s of all cited documents (%2$s) carry a copy at the Internet '
+                               . 'Archive, and the records behind them show an "Archived" link '
+                               . 'beside the publisher\'s own. A record with no such link is not a '
+                               . 'record whose document has gone. We record a copy we hold, never '
+                               . 'an absence we have checked for, so the missing ones are mostly '
+                               . 'documents nobody has asked the archive about yet.'),
+                  esc_html(number_format_i18n($arc['archived'])),
+                  esc_html(number_format_i18n($arc['archived'] / $arc['total'] * 100, 1) . '%')
+              );
+          } else {
+              echo ' ' . esc_html('None of them carries a saved copy on this site yet. When one '
+                                . 'does, an "Archived" link appears beside the publisher\'s own, '
+                                . 'and only on the records that actually have one.');
+          }
+          ?>
+        </div>
+      <?php endif; ?>
 
       <div class="tit-callout">
         <strong>A list of sources is not evidence of coverage.</strong> So we

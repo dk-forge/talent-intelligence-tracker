@@ -13,6 +13,411 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the archived copy was already shipped, and no reader had ever seen one
+
+**Plugin 1.56.0 -> 1.57.0.** The brief for this session said to add an "Archived"
+link to the record cards. It was already there. `shortcodes.php` and
+`dashboard.js` have both printed one since 1.43.0, conditional on
+`archive_url`, and `.tit-archived` has had a rule in the stylesheet the whole
+time. What was missing is that **nothing renders it**, and the reason is two
+layers down from the markup.
+
+Measured before touching anything, on the live page and the live API:
+
+| | |
+|---|---|
+| `tit-archived` spans on the live dashboard (1.56.0) | **0** |
+| rows on page 1 of `/query` carrying `archive_url` | **0 of 50** |
+| a 200-row sample of live `reported` rows carrying one | **0** |
+| six named employers whose LOCAL row has a snapshot, checked one by one on the live API | 6 rows found, **0 with `archive_url`** |
+| pipeline database, current signals with a snapshot | **71** |
+| `source_links` ledger, distinct URLs with a snapshot | **72** |
+
+So the 72 captures from the 2026-07-29 archive runs are in the pipeline database
+and have never reached WordPress. They cannot arrive with the row:
+`pipeline/publish.py` deliberately keeps `archive_url` out of `FIELDS`, because a
+row is built at classification time and its snapshot is taken afterwards, so at
+publish time the column is always empty. It travels in `ENRICHABLE` instead, via
+`enrich_published()` and the `/enrich` route. That path exists, is allowlisted at
+both ends (`tit_enrichable_columns()` names it), and has evidently not carried
+these values yet. **That is the actual blocker on this feature, and it is a
+pipeline run rather than a plugin change.** Nothing in this commit can fix it.
+
+### What the card footer says now
+
+`29 Jul 2026 · Reuters` becomes `29 Jul 2026 · Reuters · Archived`. The owner's
+decisions, applied:
+
+- The word is **Archived**, one word, Title Case. It was lowercase `archived`.
+  Not "Wayback": a brand name a recruiter has no reason to know, on a card that
+  is already dense.
+- `title="Archived copy at the Internet Archive"`. It was a 15-word sentence.
+- **Subordinate to the source, at the same size.** It was 12.5px against the
+  cell's 14.5px, which is smaller doing the job colour should do; a footnote to
+  the row rather than a second link anyone would click. Now `font-size:inherit`,
+  measured at 14.5px desktop and 13px in the card, in `--tit-mut` (#4a4d55,
+  8.6:1) against the source link's #1a5fb4, with the underline dropped to
+  `--tit-faint`.
+- **"Lighter weight" is carried by colour, not by a numeral, and that is a
+  deliberate refusal.** The source link is already weight 400. A sub-400 value
+  resolves to Light on a variable system-ui face and snaps back to 400 on
+  everything else, so the same word would be two different greys on two phones.
+  `font-weight:400` is set explicitly all the same, because the Employer cell
+  next door is 650 and an inherited weight is a bug waiting for a refactor.
+- **Printed only where a snapshot exists**, which the markup already did. Kept,
+  and now asserted in both directions rather than assumed.
+
+### The separator, which is three characters and one measurement
+
+The middot was a text node in the markup: `<span class="tit-archived"> · <a>`.
+Below 860px each row is a card and this cell shares one wrapping line with the
+rest of the meta, where the standing rule is that spacing separates items and
+punctuation does not, written down in `dashboard.css` because a middot rendered
+as a `::before` once landed at the start of a wrapped line and read as a bullet
+list that had lost its text.
+
+Two things came out of fixing it that are worth writing down.
+
+**The first attempt did nothing, and looked like it worked.** The override went
+into the `@media (max-width:860px)` block at line 486; the base `.tit-archived`
+rules are at line 1034. Equal specificity, later wins, so `content:none` lost to
+the `content` declaration 550 lines below it. The tell was that the sibling
+declaration in the same block (`margin-left:10px`) DID apply, because nothing
+competed with it. Measured in the browser: `getComputedStyle(span,'::before')`
+still returned `"·"` at a 390px viewport. The rules are now all in one place with
+the media block directly after them.
+
+**The desktop cell wraps too, and the fix is a no-break space.** The Source
+column is ~170px, so `Business Standard · Archived` does not fit on one line
+either. `content:"\00A0\00B7 "` with `white-space:pre-wrap`: the no-break space
+glues the middot to the publisher's name so it can never lead a line, and the
+ordinary space after it is the only break opportunity, so the line divides as
+`Business Standard ·` / `Archived`. Swept 72 synthetic source-name widths (3 to
+26 characters, three glyph widths) against the real stylesheet in a browser:
+**the separator led a line 0 times.** Six real outlet names (Inc42, Reuters,
+TechCrunch, Business Standard, Ottawa Citizen, TheJournal) all place it between
+50 and 92px into the line.
+
+### What it costs
+
+| | before | after |
+|---|---|---|
+| dashboard queries, cold | 12 | **12** |
+| dashboard queries, warm | 0 | **0** |
+| dashboard markup | 167,299 B | **167,760 B** (budget 168,000) |
+| sources page queries, cold | 0 | **1** |
+| sources page queries, warm | 0 | **0** |
+| horizontal overflow at 390px, dashboard | 0 | **0** (`scrollWidth` 375 against a 390 viewport) |
+| containers needing a horizontal gesture | 0 | **0** |
+| elements past the right edge | 0 | **0** |
+
+`TIT_DASH_QUERY_BUDGET` is untouched and did not need to move: `archive_url` is
+already in the row `SELECT` the shortcode runs, so the link costs no lookup at
+all. The N+1 tripwire (re-render after inserting 5,000 rows) still reports the
+same 12.
+
+The 461 markup bytes are almost entirely FIXTURE. Before this, the whole
+dashboard render carried zero archived spans while 1,800 rows in the harness held
+an `archive_url`, because every one of those is `materiality=routine` and the
+default view sets them aside, so neither half of the conditional was being
+tested. Six rows were added, dated today and inserted last so the sort
+(materiality bucket, date, `row_id DESC`) puts them on page one deterministically.
+Production pays about 110 bytes per row that actually has a copy. Headroom on the
+byte budget is now 240 bytes, which is not room for anything.
+
+### The sources page, and the number that has to keep reading correctly
+
+72 of 12,970 cited documents is 0.6%. Shown beside a sparse link and no
+explanation, that reads as a hole: 99% of the page apparently missing something
+the other 1% has. It is not a hole. **12,735 of those 12,970 are SEC and GOV.UK
+filings whose publishers keep them indefinitely**, and copying one of those to a
+third party preserves nothing that is not already preserved. The perishable tail
+is 235 URLs, which is what `archive-sources.yml` is pointed at and what
+`ops_status [2c]` already calls this schedule's ceiling rather than a stall.
+
+There were **no existing archive figures on the sources page** to put a sentence
+next to. The brief said there were. The page had never mentioned the archive at
+all, so the figures had to be built as well as explained.
+
+The split is DERIVED, not typed. `data/sources.json` already carries a category
+per collector, written by `build_sources_json.py` from the registry, and the
+filing systems are exactly the categories ending in "filings" (Regulatory
+filings, Government filings). A collector with no catalogue entry counts as
+perishable, because that direction overstates what needs preserving and never
+claims somebody else is keeping a document on our behalf. The alternative is the
+mistake the collector map already shipped on this same page: a hand-typed list
+with five of nine entries, which left three collectors running twice a day
+rendering as "not yet reported".
+
+Two things the paragraph refuses to say:
+
+- **It does not claim an absence.** The ledger knows three states (archived,
+  pending, confirmed to have no copy) and only the first reaches WordPress. So
+  the page says what it holds and stops: "We record a copy we hold, never an
+  absence we have checked for." `ops_status [2c]` separates "12,898 never
+  answered about" from "0 confirmed absent"; flattening that into "99.4% have no
+  copy" would be the page contradicting the status tool.
+- **It does not print a coverage figure of zero.** The split is always said,
+  because "most of what we cite needs no copy" is true of this corpus whether or
+  not a capture has landed. The figure is printed only when there is one, because
+  "0 of 12,970 (0.0%)" is a paragraph explaining a link that is nowhere on the
+  site. Which is exactly today's state, and is why that branch exists.
+
+Rendered against a corpus shaped like production it reads: *"Of the 12,970
+documents cited on this tracker, 12,735 are filings held by regulators and
+government registers... The other 235 come from news publishers and employer
+sites, which unpublish stories, change their URL schemes and let domains lapse,
+and those are the ones worth saving. 72 of all cited documents (0.6%) carry a
+copy at the Internet Archive..."* The same sentences at 55 of 1,261 read
+*"55 of all cited documents (4.4%)"*, which is the point: the archiver is running
+again and the figure climbs on its own. Both are asserted.
+
+### Tests
+
+`tests/php/render_sources.php` is new and wired into `tests.yml`, which brings
+the PHP harnesses to **7**. It renders the real page against three corpora
+(sparse, caught-up, nothing captured) and one empty table, checks the arithmetic
+adds up rather than trusting it (filings + perishable == corpus), and holds the
+page to 1 query cold and 0 warm, because `COUNT(DISTINCT source_url)` over 15,711
+rows is not free and this page cost nothing before.
+
+`render_dashboard.php` gained a row-by-row walk of the first page rather than a
+count of spans: a count passes on a render that prints the link everywhere and on
+one that prints it nowhere. Both halves are the assertion, and the half that
+matters is the rows WITHOUT a copy printing nothing at all.
+
+Offline suite **2,406 passed**, unchanged. All 7 PHP harnesses green.
+
+`tests/php/render_press.php` has never been in `tests.yml` and still is not; that
+is a pre-existing gap and is filed separately rather than folded in here.
+
+### Where this stops
+
+**Not deployed.** The worktree branch is 40 commits behind `origin/main` and the
+brief said not to push, so there is no ref carrying this change for
+`deploy-plugin.yml` to check out. Live is still 1.56.0. The verification that
+matters here is DOM measurement in a browser against the real stylesheet, not an
+eyeballing: the browser pane returned blank screenshots all session, so nothing
+in this entry rests on having looked at it.
+
+And when it does deploy, **the dashboard will look identical**, because no live
+row carries an `archive_url` yet. The sources page will print the split and say
+"None of them carries a saved copy on this site yet". The link appears when
+`enrich_published()` carries the 72 snapshots across, which is a writer-queue
+action and not this commit's to take.
+
+---
+
+## 2026-07-30 — a million in forty-three languages, and the separator that goes with it
+
+`$190 Milyon Dolar` was stored as **one hundred and ninety dollars**. Turkish
+for a million was in no list the amount parser held, the token fell through to
+no multiplier at all, and a nine-figure round landed on the money chart as
+pocket change. Four rows went that way in a single collection, and the mechanism
+is not Turkish: **575 national press feeds across 139 countries and 43 languages
+had been wired into a parser whose scale vocabulary was English with a handful
+of Romance words bolted on.**
+
+`funding_amount_usd` is the only ARITHMETIC figure here. Every other number on
+the page is a count of rows; this one is summed into a headline total and read
+by the implausible-amount guardrail. So the failure does not look like a missing
+row. It looks like a total that is wrong by a factor of a million on a page that
+renders perfectly.
+
+### What was wrong, in two halves
+
+| | |
+|---|---|
+| scale word in any language but English | ignored — `$190 Milyon` -> 190 |
+| `.` as a thousands separator | read as a decimal point — `$150.000` -> 150 |
+
+The second is the mirror-image risk of fixing the first: `1,5 milyon` is one and
+a half million, and an English-tuned reader makes it fifteen.
+
+### The vocabulary is declared per language, and the test reads the catalogue
+
+Not a word list that grows by whichever string last broke. `SCALE_WORDS_BY_LANGUAGE`
+is keyed by the language name `data/sources_catalogue.csv` uses, and
+`tests/test_funding_amount_parsing.py` reads that CSV at test time: a **wired**
+language that is neither covered nor named in `UNCOVERED_LANGUAGES` with a
+reason is a red build. **43 wired languages covered, one named as a gap** —
+Oshiwambo, whose single masthead (New Era, Namibia) writes its money copy in the
+English half of an English/Oshiwambo title. Six further catalogue languages are
+covered though nothing is wired for them yet (Bengali, Dhivehi, Kinyarwanda,
+Kurdish, Maltese, Uzbek), so wiring those feeds costs nothing here.
+
+That structure exists because of the measurement two entries below: a partial
+magnitude vocabulary **fails silently and looks like sparse data**, which is why
+the figure-guard work costed a 43-language fold and declined to guess at one.
+This is the shape that makes the gap visible instead of guessing.
+
+**What is attested and what is not.** Of the 48 languages in the table, **41
+have at least one form attested** — matched against the 5,417 headlines pulled
+from 116 wired feeds on 2026-07-30, or against the stored `funding_amount`
+strings. **Seven are dictionary citation forms that have never been seen**:
+Macedonian (14 wired feeds and not one money headline in the fetch), Nepali,
+Swahili, and the four whose feeds are catalogued but unwired — Bengali, Dhivehi,
+Kinyarwanda, Maltese. And for four more the attestation is weaker than it looks:
+Albanian `milion`, Estonian `miljon`, Kurdish `milyon` and Uzbek `million` are
+forms SHARED with a neighbouring language, so what was seen was Czech, Latvian,
+Turkish and English rather than those four. Treat those eleven as unverified
+until a row from one of them lands.
+
+Forms are **enumerated, not stemmed**. Latvian carried `miljonus`, `miljonu`,
+`miljoni` and `miljoniem` in ONE fetch of `db.lv`; a stem with a loose tail
+would also catch `milionário`, and bare `investice` already cost nine false
+positives in fifteen when the prefilter learned this. Every form is off a live
+feed fetch on 2026-07-30 (one request per publisher in `data/feeds.csv`, titles
+only, no model, no storage) or off a stored row.
+
+### Three things carried over from the Hebrew/Czech/Danish prefilter work
+
+They shaped the CODE and not only the word lists, which is the part worth
+keeping:
+
+1. **`\b` is meaningless in Chinese, Japanese, Korean and Thai.** Those write
+   the number, the scale word and the currency as one unbroken run — `1亿美元`,
+   `ล้านบาท` — so a pattern ending in `亿\b` can never match, because 美 is a word
+   character too. And Thai scale words carry combining marks, which `\w` does
+   not match at all, so no `\w`-based boundary exists anywhere in `ล้าน`. Those
+   go through `_GLUED_SCALE` as plain prefixes, longest first so `百万` is not
+   read as `万`. Their units are not translations either: 亿 is 10^8 and 万 is
+   10^4, so reading 亿 as a billion is wrong by a factor of ten.
+2. **Hebrew and Arabic glue clitics onto the FRONT of a word**, and they are
+   word characters, so `מיליון` is written `כמיליון` as often as not. A short
+   prefix list is stripped, and only when the remainder is a word already in the
+   table — the narrow form of the rule, because a loose substring match is what
+   puts *salary* inside *a rental*.
+3. **An alternation whose alternative ends in a magnitude word can silently
+   never match.** That IS the Turkish bug, exactly: inside
+   `(k|m|...|mil|mi|...)?\b`, `mil` matched the front of `milyon`, the boundary
+   then failed, and an OPTIONAL group settled for no multiplier at all. There is
+   no alternation any more. The letter run after the number is read once and
+   looked up in a dict, which is a boundary that cannot be got wrong and which
+   removes the ordering trap entirely.
+
+### Conflicts are detected, not ordered — and that found two entries that were WRONG
+
+A token two languages claim with different multipliers joins the refusal set
+unless `RESOLVED_SCALE_COLLISIONS` names the winner and the reason. Running that
+over the new tables immediately surfaced two entries the old table had wrong
+rather than merely missing:
+
+* **`billones` and `billioner` were mapped to 10^9.** A Spanish *billón* and a
+  Danish *billion* are **10^12**. That is the same thousand-fold error this
+  whole pass exists to remove, pointing the other way, and it was waiting for
+  its first row. Both refuse now, along with `billión`, `Billionen` (German
+  10^12, spelled almost exactly like the English 10^9), `bilião`/`biliões`
+  (European Portuguese 10^12, against Brazilian `bilhão` at 10^9) and `trillón`.
+
+Which is why **milliard is now read rather than refused**, reversing the note
+that excluded it. There is no long-scale disagreement about milliard anywhere:
+`milliard`, `miliard`, `milyar`, `miljard`, `Milliarde`, `mia`, `mld`, `mrd`,
+`млрд`, `مليار` and `מיליארד` are 10^9 in **every** language that has the word.
+The earlier note excluded it in the same breath as `billón`, whose ambiguity is
+real, and it inherited a refusal by association. `mil` and `mi` keep refusing,
+from the sweeps that found them.
+
+### Separators: shape first, locale only to REFUSE
+
+The rule is shape, and it holds under **both** conventions rather than assuming
+one. Spanish writes `1,5 millones` and `1.500 millones` and never `1,500
+millones` for one and a half, so **a lone separator with exactly three digits
+after it is a thousands group** — no locale needed, and that is what makes the
+Indonesian `$150.000` a hundred and fifty thousand. Anything other than a
+three-digit tail is a decimal fraction, again in both conventions, because a
+thousands separator always leaves exactly three digits behind it.
+
+Locale is consulted only where it CONTRADICTS that: a three-digit group written
+with the separator the scale word's own language uses for decimals. Then the two
+readings are a thousand apart and nothing in the string chooses, so `US$ 1,500
+milhões` **refuses**. That is the standing rule — `$150.000` read as 150 is
+worse than NULL, because NULL is visibly missing while 150 looks like data — and
+it applies to the tie the shape rule cannot break, not to the ones it can.
+
+Two other separator fixes rode along: **two separators now mean the LAST one is
+the decimal**, which is true either way and stops `1.000,50` reading as 1.0005;
+and space-grouped numbers (`1 500 000`, French and Polish, NBSP and U+202F
+included) read.
+
+### `_MIN_PLAUSIBLE_USD` had BLINDED the guard that found all of this
+
+The sub-thousand floor added earlier the same day is right — a sub-thousand
+figure means the string was cut short, the scale word was one we do not know, or
+a separator was misread, and refusing beats guessing. But
+`test_no_stored_amount_parses_to_an_absurdly_small_figure` reads *what the parser
+says about the strings we hold*, so a parser that cannot produce a sub-thousand
+figure makes that test **unfailable**. The property anyone wanted checked was
+never the parser's output range; it was that no string we HOLD is being read
+that way.
+
+So `read_funding_figure()` returns the figure BEFORE the plausibility bounds,
+and a companion test names every string the floor is swallowing with a reason
+each (`FLOOR_REFUSALS`, one entry today: Pluang's `$1`, from a headline the
+publisher truncated mid-figure — the article slug says 15 juta USD). It is an
+allowlist rather than an exact set, so correcting a row keeps the build green
+while a NEW one turns it red. The six Turkish and Indonesian rows would have
+arrived there as six unexplained entries rather than as silence.
+
+### Measured
+
+`python3 correct_funding_amount.py` (dry run) against the committed database,
+3,254 live rows carrying an amount string:
+
+| | |
+|---|---|
+| rows whose stored figure disagrees with the parser | **12** (0.37%), all published |
+| of those, corrected to a figure | 7 |
+| of those, cleared to no figure at all | 5 |
+| money total | $133,405,633,262 -> **$133,745,781,597** |
+| net | **+$340,148,335** |
+
+The seven corrected are four Turkish `Milyon` rows (ThreatLocker $190M, Mate
+Güvenlik $35M, Hush Güvenlik $30M, UNIT AI $12M), Infobae's `USD 53 millones`,
+BetaKit's hyphenated `$20-million USD` and Investing.com Indonesia's `$150.000`.
+The five cleared are three foreign-currency amounts this page promises to leave
+out rather than convert at a rate nobody published (`500 millones`, `25
+millioner kroner`, `10,5 mio. kr.`), one ambiguous scale word (`US$ 544 mi`) and
+one truncated headline (`$1`).
+
+**The rows are not touched by this change.** `correct_funding_amount.py` already
+exists for exactly this and re-derives the WHOLE column rather than taking a list
+of twelve ids; it needs one queued run once this parser is on `main`:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
+  -f inputs_json='{"dry_run":"false"}' \
+  -f reason='re-derive funding_amount_usd after the 43-language scale vocabulary'
+```
+
+**It does not have to wait for this change, and that is worth being precise
+about.** Checked by running the same derivation against `origin/main`'s parser:
+it produces the identical 12 rows and the identical +$340,148,335, because the
+narrower fix earlier the same day (`milyon`, the dot-as-thousands reading, the
+plausibility floor) already covers every defect the CURRENTLY STORED corpus
+happens to contain. The 43-language vocabulary corrects nothing that is stored
+today. It is a forward guard: what it stops is the next Latvian, Vietnamese or
+Hebrew row arriving worth two hundred dollars, and there was no reason to expect
+those to arrive as anything else.
+
+### What is not covered, and is a decision rather than an oversight
+
+**A dollar still has to be stated in English.** `_USD_MARKER` accepts `$`, `US$`
+and `USD` and nothing else, so a Turkish `20 Milyon Dolar`, a Brazilian `33
+milhões de dólares` or a Chinese `1亿美元` refuses for naming no currency the
+parser recognises, even though every one of them says "dollar" in its own
+language. **Six such rows are stored today** — five Turkish `dolar` and one
+Brazilian `dolares` — each holding NULL where a real figure exists. Widening the MARKER is a different
+and riskier decision from widening the scale vocabulary — a Turkish *dolar* is
+usually a US dollar and not always, while `美元` is unambiguous — and the scale
+vocabulary cannot turn a foreign amount into a dollar figure precisely because
+the marker gates it. Left alone deliberately, and written down here so the next
+session meets the choice rather than the gap.
+
+2,402 tests pass.
+
+---
+
 ## 2026-07-30 — the parser was fixed and the rows were not: funding_amount_usd is re-derived by a queued pass, not by a list of twelve
 
 `correct_funding_amount.py`, `.github/workflows/correct-funding-amount.yml`, one

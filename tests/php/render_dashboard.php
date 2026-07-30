@@ -297,6 +297,16 @@ const TIT_DASH_BYTE_BUDGET = 168000;
  * The headroom is 1,312 bytes and that is on purpose. The budget is not a
  * target and it is not a ceiling to grow into: it is here so the next session
  * that adds a card has to come to this line and write down what it cost.
+ *
+ * 2026-07-30, NOT raised, and 461 bytes of that headroom is now spent: 167,299
+ * -> 167,760. It bought the archived-copy assertions, and almost all of it is
+ * FIXTURE rather than page. Six rows were added so the first page contains a row
+ * with a saved copy and a row without (before them the render carried none of
+ * either, because the only 1,800 rows holding an archive_url are routine officer
+ * filings the default view sets aside). Production pays about 110 bytes per row
+ * that actually has a copy, and 72 of 12,970 cited documents do. The remaining
+ * headroom is 240 bytes, which is not room for anything: the next addition
+ * raises this number and writes down why.
  */
 
 /*
@@ -450,6 +460,43 @@ for ($i = 0; $i < 100; $i++) {
         'company_key' => 'ottawa employer ' . ($i % 12),
         'collector' => 'national_press', 'source_name' => 'Ottawa Citizen',
         'source_url' => 'https://example.test/ottawa/' . $i,
+    ));
+}
+
+/*
+ * THE ARCHIVED-COPY PAIR, and why they are the last rows inserted.
+ *
+ * The first page is ordered materiality bucket, then date, then row_id DESC, so
+ * an unjudged row dated today and inserted last is deterministically at the top.
+ * That matters because the property under test is a CONDITIONAL: the "Archived"
+ * link prints where a snapshot exists and prints nothing where one does not, and
+ * a fixture where no archived row reaches page one asserts neither half. Before
+ * this pair existed the whole dashboard render carried zero of these spans while
+ * 1,800 rows in the table held an archive_url, because every one of them is
+ * materiality=routine and set aside from the default view.
+ *
+ * Both halves are the assertion. A placeholder or a dead link on the rows
+ * WITHOUT a copy is the failure that matters here: this page's one claim is that
+ * every figure still reaches its document, and a link offered and not there
+ * breaks that claim more thoroughly than an absent link ever could.
+ */
+for ($i = 0; $i < 3; $i++) {
+    $wpdb->insert_row(array(
+        'country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
+        'company' => 'TEST FIXTURE Archived Employer ' . $i,
+        'company_key' => 'archived employer ' . $i,
+        'collector' => 'national_press', 'source_name' => 'TEST FIXTURE Archived Outlet',
+        'confidence' => 'reported', 'published_date' => gmdate('Y-m-d'),
+        'source_url' => 'https://example.test/archived/' . $i,
+        'archive_url' => 'https://web.archive.test/save/' . $i,
+    ));
+    $wpdb->insert_row(array(
+        'country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
+        'company' => 'TEST FIXTURE Unarchived Employer ' . $i,
+        'company_key' => 'unarchived employer ' . $i,
+        'collector' => 'national_press', 'source_name' => 'TEST FIXTURE Unarchived Outlet',
+        'confidence' => 'reported', 'published_date' => gmdate('Y-m-d'),
+        'source_url' => 'https://example.test/unarchived/' . $i,
     ));
 }
 
@@ -722,6 +769,52 @@ check(strpos($html, '>HQ<') !== false,
 check(strpos($html, 'Location not stated') !== false && strpos($html, 'Date not stated') !== false,
       'and a row with no place or no date says that too, rather than showing a blank cell');
 check(strpos($html, '/company/') !== false, 'every employer name links to that employer\'s page');
+
+/* --- the archived copy, where one exists and only there ------------------ */
+
+/*
+ * A source link that dies turns a sourced claim into an unsourced one while the
+ * page looks unchanged, which is the one failure this product cannot absorb. The
+ * fallback is a snapshot link beside the publisher's own, and the whole value of
+ * it is that it is TRUE: printed where a copy is on file, absent where one is
+ * not, never a placeholder and never a link to a page that is not there.
+ *
+ * The row-by-row walk below is the only version of that claim a string check can
+ * hold. Counting spans would pass on a render that printed the link on every row
+ * and on a render that printed it on none.
+ */
+preg_match_all('/<tr>.*?<\/tr>/s', $tbody, $tr_matches);
+$rows_seen = array('archived' => 0, 'plain' => 0);
+foreach ($tr_matches[0] as $tr) {
+    $has_span = strpos($tr, 'class="tit-archived"') !== false;
+    if (strpos($tr, 'TEST FIXTURE Archived Outlet') !== false) {
+        $rows_seen['archived']++;
+        check($has_span, 'a row whose document has a saved copy has to offer it');
+    } else {
+        if (strpos($tr, 'TEST FIXTURE Unarchived Outlet') !== false) $rows_seen['plain']++;
+        check(!$has_span,
+              'and a row with no saved copy must print no link at all: a dead or '
+              . 'placeholder "Archived" is worse here than an absent one');
+    }
+}
+check($rows_seen['archived'] > 0 && $rows_seen['plain'] > 0,
+      'the first page has to contain both kinds of row or this asserts nothing: '
+      . $rows_seen['archived'] . ' archived, ' . $rows_seen['plain'] . ' not');
+
+// Title Case, and the word by itself. "Wayback" is a brand a recruiter does not
+// have to know, and the card footer is already dense.
+check(substr_count($tbody, '>Archived</a>') === $rows_seen['archived'],
+      'the visible text is the single word "Archived", in Title Case');
+check(strpos($tbody, 'title="Archived copy at the Internet Archive"') !== false,
+      'with the long form on the title attribute, for anyone who hovers');
+
+// The separator is a CSS ::before. A literal middot in the markup wraps to the
+// START of the next line inside the 390px card layout and reads as a bullet
+// whose text went missing, which is the bug the meta line already carries a
+// comment about.
+check(strpos($tbody, '<span class="tit-archived"> ') === false
+      && strpos($tbody, "\u{00B7}") === false,
+      'and the separator before it is not a text node in the markup');
 
 /* --- the dated glance panel ---------------------------------------------- */
 
