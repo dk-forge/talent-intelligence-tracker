@@ -141,6 +141,48 @@
       "unit": "days",
       "updated_at": "2026-07-30T21:20:09Z",
       "workflow": "backfill-structured-2026.yml"
+    },
+    "backfill-structured-2026:companies_house:0..7": {
+      "cursor": "1",
+      "end": "7",
+      "history": [
+        {
+          "at": "2026-07-30T21:47:25Z",
+          "run": "",
+          "slice": "0..0",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 242,
+            "fetched": 755,
+            "rejected": 76,
+            "skipped": 0,
+            "stored": 437
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "companies_house",
+        "start": "2026-01-01"
+      },
+      "label": "companies_house",
+      "opened_at": "2026-07-30T21:47:25Z",
+      "slice_size": 1,
+      "slices": 1,
+      "start": "0",
+      "state": "running",
+      "totals": {
+        "duplicates": 242,
+        "fetched": 755,
+        "rejected": 76,
+        "skipped": 0,
+        "stored": 437
+      },
+      "unit": "slices",
+      "updated_at": "2026-07-30T21:47:25Z",
+      "workflow": "backfill-structured-2026.yml"
     }
   },
   "version": 1
