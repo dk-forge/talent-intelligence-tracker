@@ -4036,3 +4036,135 @@ reached the classifier.
   real Danish funding headlines read as clean misses.
 
 Measured keep rates after: 19% / 11% / 16%, the band the English gate already sits in.
+
+---
+
+## robots.txt: the file that breaks without breaking
+
+Two sitemap lines had to reach `robots.txt`. It is served from disk by Apache
+before WordPress runs, so no plugin, filter or REST route can add them — it is an
+upload. And it is the `.htaccess` danger class one layer out: a truncated
+`robots.txt` still answers 200, the site renders identically, nothing goes red,
+and the domain quietly stops being crawled. The first symptom is a traffic graph
+three weeks later.
+
+So `robots_sitemaps.py` reuses the shape `includes/htaccess.php` already proved
+on this host — keep the old bytes, write, probe the live URL, restore on any
+doubt — with two additions that file does not need. The probe is **cache-busted**,
+because Cloudflare will serve the pre-write copy back and make a failed write
+look like a success. And the probe **retries a 5xx**, because this host 500s at
+random under load and a rollback triggered by somebody else's bad minute is an
+outage we caused.
+
+**The remote path is never guessed.** An FTP account here is chrooted, so a path
+from the control panel is not what the session sees, and writing to the wrong
+`robots.txt` is unrecoverable in the only sense that matters: we would not know.
+The file is fetched over HTTP first, then a candidate remote path is accepted
+only if its bytes are **identical to what that URL just served**. No match, no
+write. The root target additionally refuses any path containing `/blog/`, because
+two copies holding identical bytes would otherwise let the root target adopt the
+blog file and report two successes for one write.
+
+It is a separate workflow from `deploy-plugin.yml` on purpose. That one refuses
+to write anywhere but `WP_PLUGIN_REMOTE_DIR`, which is the guard that keeps it
+away from the live sibling product; teaching it to write outside that directory
+would delete the guard to reuse the credentials, and the credentials are the
+cheap part. No cron, ever: this is one edit to one file.
+
+### What was actually there
+
+The brief said two copies, each holding only the `sitemap_index.xml` line. There
+is **one**, and it holds four directives:
+
+| URL | status | bytes | type |
+|---|---|---|---|
+| `/blog/robots.txt` | 200 | 175 | `text/plain` |
+| `/robots.txt` | 200 | 13,181 | `text/html` |
+
+The apex has no `robots.txt` at all. It answers `/robots.txt`,
+`/definitely-not-here-xyz123.txt` and every other unmatched path with the same
+13,181-byte "Coming soon" landing page. The content-binding refuses it on its
+own, and the refusal says why rather than "served HTML": putting a file there is
+a **create**, not an edit, and a root `robots.txt` where none existed changes the
+crawl rules for the whole domain in one step.
+
+Which matters more than it looks. RFC 9309 has a crawler read `/robots.txt` at
+the host root **and nowhere else**, so the `Sitemap:` lines in
+`/blog/robots.txt` — the existing `sitemap_index.xml` one included — are read by
+nothing. Adding two more is correct, harmless, idempotent, and **will not on its
+own get either sitemap crawled**. That needs a real file at the apex or a Search
+Console submission, and it is a decision, not a default.
+
+---
+
+## What the tripwire costs, before arming it
+
+`run_tripwire.py` has never run: `analysis/tripwire/results/` does not exist,
+`lifetime_usd` is 0, and `tests/fixtures/tripwire_reply.json` is a captured
+*shape*, not a captured reply — it carries no token counts. So this is derived
+from the prompt and the price list, with every assumption named, and not read off
+a past run, because there is no past run to read.
+
+**Model.** `perplexity/sonar` (`ask.MODEL`, overridable by `TIT_TRIPWIRE_MODEL`).
+OpenRouter's endpoint API prices it at **$1.00/M prompt, $1.00/M completion,
+$0.005 per web search**. `_call()` skips the web plugin for any model whose name
+contains `sonar`, so nothing pays OpenRouter's per-result plugin fee on top.
+
+**Queries per run.** `COUNTRIES_PER_RUN` is derived, not chosen:
+`int(1.00 / 0.02) = 50` queries a month, minus the 18-industry sweep, over 8 runs
+= **4**. So an ordinary run issues 4 queries. One run a month also carries the
+full sweep (`industries_due()` is derived from the dated result files), making it
+**22** — exactly `MAX_QUERIES_PER_RUN`.
+
+**Tokens per query.** The prompt is exact: `SYSTEM` 285 chars + `SCHEMA` 868 +
+the question ≈ **1,433 chars**, ~**410 tokens** at 3.5 chars/token (the range
+across 3.0–4.0 is 358–478). The reply is bounded by `LEADS_PER_QUERY = 8`, and
+the fixture's items serialise at 242 chars each, so a full reply is ~1,946 chars,
+~**560 tokens** (487–649).
+
+| | per query |
+|---|---|
+| search fee | $0.00500 |
+| ~410 prompt tokens | $0.00041 |
+| ~560 completion tokens | $0.00056 |
+| **total** | **$0.0060** |
+
+**The search fee is 84% of it.** Token size is nearly irrelevant here, which is
+worth knowing before anyone shortens the schema to save money.
+
+One honest uncertainty, stated rather than smoothed: if OpenRouter reports
+Perplexity's retrieved search context inside `prompt_tokens` (~3–6k tokens),
+per-query rises to **$0.008–$0.011**. That is the upper bound, and the first real
+run settles it — `usage.include` is already on and `report.cost_block` already
+records it.
+
+**Therefore**, at the dormant cron `0 7 * * 1,4` (Mon+Thu = 8.67 runs/month, not
+the 9 the brief assumed, and near enough the 8 `plan.py` is sized on):
+
+- ordinary run, 4 queries: **$0.024 – $0.042**
+- monthly sweep run, 22 queries: **$0.13 – $0.23**
+- **month: 53 queries, $0.32 – $0.56**
+
+against the $1.00 cap in `plan.TRIPWIRE_MONTHLY_USD` and a $5 product ceiling
+already carrying ~$3 of collection. The pessimistic $0.02/query estimate is
+**3.3× the likely price**, so the plan is sized conservatively in the right
+direction and arming it does not need the cap moved.
+
+### What the money buys
+
+It is the only component that discovers sources nobody told us about. The
+rejection audit is unambiguous about where the misses are: of 81 recall misses,
+**0 were fetched and dropped** — no filter problem at all — while **23 are a
+source problem**, 12 at publishers we have researched but not wired
+(`calcalistech.com` 4, `businesswire.com` 2, `globenewswire.com` 2) and **11 at
+10 publishers nobody has ever heard of here**: `latamlist.com`,
+`european-biotechnology.com`, `finsmes.com`, `pv-magazine.com`, `techla.pro`.
+A wiring backlog is work; an unknown-publisher list is *not knowable* from
+inside, and that is precisely the gap a search-backed outside view closes. With
+27 countries measured at zero recall and 4 asked about per run, a month walks
+roughly a third of them. Leads are claims and die in the work list;
+`collectors/tripwire_chase.py` converts them by finding the publisher's own
+article, so the yield is measured in confirmed misses, and
+`usd_per_confirmed_miss` stays "not yet measurable" until it has stored
+something. For $0.32–$0.56 a month, the question is not whether it pays for
+itself but whether we would rather keep guessing which publishers exist.
