@@ -1922,8 +1922,22 @@ main:has(#tit-dashboard) {
       groups fit in a column at all. See the note above pillify() in
       dashboard.js for why this replaced both a native list box and a pill row.
 
-   3. THE PANEL IS A COLUMN BESIDE THE ROWS, AND IT STICKS. The owner: "filters
-      dont move with the page a like the layoff one."
+   3. THE CONTROLS ARE A COMPACT BAR ABOVE THE ROWS, FROZEN TO THE TOP.
+
+      This REPLACES the sticky 262px sidebar that shipped in 1.54.0. The owner
+      saw that on the live page and asked for its opposite: "move those to above
+      the stuff and compact and have it frozen on top when you scroll down". The
+      sidebar's real cost was width -- 262px plus a 20px gap is 282 of a 1340px
+      content width, and the seven-column table left in the remainder squeezed
+      What Happened to about 210px, which wraps a headline to one word per line.
+
+      Each group is now a BUTTON carrying its own name and its count, and its
+      checkboxes live in a panel that exists only while it is open. Point 2 above
+      still holds inside that panel -- the options are still real checkboxes, one
+      per line, and the panel still scrolls when a vocabulary is long. What went
+      is the requirement that all seven be scrollable AT ONCE, which is what made
+      the column tall, and the pre-emptive 168px cap that made each list feel
+      like a keyhole.
 
    The aesthetic is taken from the record cards, which the owner endorsed: the
    same paper (--tit-surface on the ground, #fff for anything interactive), the
@@ -1931,48 +1945,51 @@ main:has(#tit-dashboard) {
    mono-ish eyebrow, the same 8.6:1 muted ink for supporting text.
    =========================================================================== */
 
-/* The two-column feed. Plain flex-wrap rather than a grid with a breakpoint,
-   so the panel drops below the rows at whatever width it stops fitting instead
-   of at a width we guessed. `min-width:0` on both children is what stops a long
-   employer name or a wide table forcing the row wider than the viewport. */
-.tit-feed { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start;
-  margin:0 0 24px; }
-.tit-panel { flex:1 1 262px; min-width:0; border:1px solid var(--tit-line);
-  border-radius:12px; background:var(--tit-surface);
-  box-shadow:var(--tit-shadow); overflow:hidden; }
-.tit-results { flex:999 1 560px; min-width:0; }
+/* The feed is a stack now, not two columns: bar, then rows at full width.
+   `min-width:0` survives on the results because the table inside it must still
+   be allowed to be narrower than its own content rather than forcing the page
+   wider than the viewport. */
+.tit-feed { display:block; margin:0 0 24px; }
+.tit-results { min-width:0; }
 
-/* STICKY, and only where sticky is an improvement.
-   Below 1000px the flex row has wrapped, so the panel is a full-width block
-   above the rows; pinning that would cover the rows it filters. On a phone it
-   would also sit under the thumb and fight the page scroll. So the rule is
-   opt-in at a width where a real sidebar exists, and `max-height` plus its own
-   scroller means a panel taller than the viewport scrolls INSIDE itself rather
-   than clipping its last group off the bottom.
+/* THE BAR, AND WHAT MAKES IT STICK.
 
-   Note `overflow:hidden` above is on the panel, which is the sticky element
-   itself and therefore harmless. A scrollable ANCESTOR is what kills sticky;
-   this stylesheet already forces html and body to overflow-x:clip for that
-   reason, and .tit-feed deliberately sets no overflow at all. Verify in the
-   live DOM after any theme change: sticky fails silently. */
-@media (min-width:1000px){
-  .tit-panel { position:sticky; top:16px; max-height:calc(100vh - 32px);
-    display:flex; flex-direction:column; }
-  .tit-panel-body { overflow-y:auto; }
-}
-/* Anyone who asked for less motion gets a panel that simply sits still. A
-   sticky element is not an animation, but it is unrequested movement relative
-   to the page, which is the thing the preference is about. */
+   `top` is a variable so the value has one home: a theme with a fixed header,
+   or the WordPress admin bar on a logged-in view, needs the bar to start below
+   it, and every rule that reads the offset reads this.
+
+   z-index sits above the table's own sticky header and below the phone jump
+   bar. An OPEN dropdown panel is a child of the bar, so the bar's stacking
+   context is what keeps a panel over the rows.
+
+   Sticky is cancelled outright by a scrollable ANCESTOR. html and body are held
+   at overflow-x:clip elsewhere in this file for that reason, .tit-feed sets no
+   overflow at all, and .tit-filterbar itself must not either -- an `overflow:hidden`
+   here would also clip every dropdown panel to the height of the bar, which is
+   the silent version of the same bug. Verify in a live DOM after any theme
+   change: sticky fails without erroring. */
+.tit-filterbar { --tit-filterbar-top:0px;
+  position:sticky; top:var(--tit-filterbar-top); z-index:30;
+  margin:0 0 16px; border:1px solid var(--tit-line); border-radius:12px;
+  background:var(--tit-surface); box-shadow:var(--tit-shadow); }
+.admin-bar .tit-filterbar { --tit-filterbar-top:32px; }
+@media (max-width:782px){ .admin-bar .tit-filterbar { --tit-filterbar-top:46px; } }
+
+/* Anyone who asked for less motion gets a bar that simply sits still. A sticky
+   element is not an animation, but it is unrequested movement relative to the
+   page, which is the thing the preference is about. */
 @media (prefers-reduced-motion: reduce){
-  .tit-panel { position:static !important; max-height:none !important; }
+  .tit-filterbar { position:static; }
 }
 
-.tit-panel-head { display:flex; align-items:center; justify-content:space-between;
-  gap:10px; padding:12px 14px; border-bottom:1px solid var(--tit-line);
-  background:#fff; }
+.tit-panel-head { display:flex; align-items:center; gap:10px;
+  padding:5px 12px; border-bottom:1px solid var(--tit-line); background:#fff;
+  border-radius:12px 12px 0 0; }
 /* The card eyebrow, same treatment the record cards use for their tag row. */
 .tit-panel-t { font-size:11px; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; color:var(--tit-mut); }
+/* Reset goes to the far end of the head, whatever else is in it. */
+.tit-wrap .tit-panel-reset { margin-left:auto; }
 .tit-wrap .tit-panel-reset { padding:4px 0; border:0; background:none;
   color:var(--tit-ink-blue); font-family:inherit; font-size:12.5px;
   font-weight:650; cursor:pointer; }
@@ -1980,41 +1997,85 @@ main:has(#tit-dashboard) {
   text-underline-offset:2px; }
 .tit-wrap .tit-panel-reset:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; border-radius:4px; }
-.tit-panel-body { padding:14px; }
+/* The gutter is 8px and the control ceiling 140px, and both are load-bearing
+   rather than taste. Measured at 1280px with every facet control present: the
+   fourteen cells total 2,007px of content, the bar's inner width is 1,134px,
+   and at a 10px gutter with a 158px ceiling the last cell missed the second row
+   by THREE pixels and wrapped alone onto a third. Two rows is 150px of frozen
+   chrome; three is 178px. Nothing breaks if a longer vocabulary pushes it back
+   to three -- it is a bar, it wraps -- but do not widen either number without
+   re-measuring, because the slack here is single digits. */
+.tit-panel-body { display:flex; flex-wrap:wrap; align-items:flex-end;
+  gap:8px 8px; padding:10px 12px; }
 
-/* ONE COLUMN INSIDE THE PANEL, and the space the owner asked for.
-   These two rules are the fix for "fix the space all this": the grid stops
-   being three columns of 8px-separated rows and becomes one column with 18px
-   between groups and a hairline rule at each boundary. A rule is worth more
-   than the gap it replaces, because a gap only reads as separation once it is
-   bigger than the gap INSIDE a group, and here it never was. */
-.tit-panel .tit-primary,
-.tit-panel .tit-filters { display:block; margin:0; }
-.tit-panel .tit-field,
-.tit-panel .tit-primary > .tit-field {
-  display:block; width:100%; margin:0; padding:14px 0;
-  border-top:1px solid var(--tit-grid); }
-/* No rule above the first group in each block: it would double the panel head's
-   own border and read as an empty row. */
-.tit-panel .tit-primary > .tit-field:first-child { border-top:0; padding-top:0; }
-.tit-panel .tit-field[hidden] { display:none !important; }
-.tit-panel .tit-field-l { display:block; margin-bottom:7px; font-size:12px;
-  font-weight:700; color:var(--tit-fg); }
-.tit-panel .tit-field--wide { grid-column:auto; }
-.tit-panel select, .tit-panel input[type=search], .tit-panel input[type=date] {
-  width:100%; min-width:0; }
+/* THE TWO CONTAINERS DISSOLVE.
+   .tit-primary and .tit-filters are two server-rendered groupings that used to
+   be two grids. Making them `display:contents` lets every field become a direct
+   flex item of the bar, so one wrap algorithm packs all thirteen controls
+   instead of two grids each padding out its own last row. It also means the PHP
+   did not have to be re-nested to change the layout, which keeps this a
+   presentation change: the same fields, in the same order, in the same DOM.
 
-/* --- A GROUP'S OPTIONS: real checkboxes, in a box that scrolls -------------
-   The height is capped rather than fitted so that seven groups are navigable in
-   a column: 168px is five rows plus a visible sliver of the sixth, which is how
-   a reader knows there is more without needing a scrollbar to be drawn for
-   them. The select it replaces is display:none, so there is no swap-in jump to
-   match a height to any more (the old pill row had to be pinned to 96px for
-   exactly that reason, and both numbers had to be kept in step by hand). */
+   `display:contents` is safe on exactly these three because none of them paints
+   anything -- no border, no background, no padding. Give any of them a box and
+   this rule silently drops it. */
+.tit-filterbar .tit-primary,
+.tit-filterbar .tit-more,
+.tit-filterbar .tit-filters { display:contents; }
+
+/* EVERY CONTROL IS ONE LINE HIGH, and that is what makes the bar compact
+   enough to freeze.
+
+   The label sits BESIDE its control rather than above it. Stacked, each cell is
+   a 14px label over a 30px control and the bar came out 280px tall on a 1280px
+   viewport -- 31% of the window pinned under chrome, which is not an
+   improvement on the sidebar, it is the same mistake rotated. Inline, a cell is
+   32px, the bar wraps to two rows and measures 122px including its head.
+
+   No floor and no ceiling on width: a cell is exactly as wide as its label plus
+   its control, so the wrap packs by real width instead of by a guess. `nowrap`
+   on the label is what keeps that honest -- a label allowed to wrap makes its
+   own cell two lines tall and takes the whole row with it. */
+.tit-filterbar .tit-field { display:flex; flex-direction:row; align-items:center;
+  gap:6px; margin:0; padding:0; min-width:0; max-width:none; flex:0 0 auto; }
+.tit-filterbar .tit-field[hidden] { display:none !important; }
+/* --wide meant "span two grid columns". There is no grid here, so it means
+   nothing, and left unhandled it inherits a grid-column that does not apply. */
+.tit-filterbar .tit-field--wide { grid-column:auto; }
+.tit-filterbar .tit-field-l { display:block; flex:none; margin:0; font-size:11.5px;
+  font-weight:700; letter-spacing:.01em; color:var(--tit-mut);
+  text-transform:none; white-space:nowrap; }
+.tit-filterbar select, .tit-filterbar input[type=search],
+.tit-filterbar input[type=date] {
+  width:auto; max-width:140px; min-width:0; padding:5px 7px; font-size:13px; }
+
+/* Location is a label, a select and the qualifier that changes what the select
+   MEANS, so all three stay on one line and in that order. */
+.tit-filterbar .tit-where-label { display:flex; align-items:center; gap:6px;
+  min-width:0; }
+.tit-filterbar .tit-basis-check { display:flex; align-items:center; gap:5px;
+  margin:0 0 0 8px; font-size:12px; white-space:nowrap; }
+/* Inside the date panel the two inputs go back to being stacked and labelled,
+   which is the one place there is room for it. */
+.tit-filterbar .tit-daterange { display:flex; gap:8px; }
+.tit-filterbar .tit-daterange-part { display:flex; flex-direction:column; gap:2px;
+  min-width:0; }
+.tit-filterbar .tit-daterange-l { font-size:10.5px; color:var(--tit-mut); }
+
+/* --- A GROUP'S OPTIONS: real checkboxes, inside a dropdown -----------------
+   The cap is now a ceiling on a panel that is only ever open on purpose, not a
+   keyhole the reader is permanently looking through. 168px was five rows and a
+   sliver, chosen so seven boxes could coexist in a column; nothing coexists
+   with an open panel, so the cap can be generous and only the genuinely long
+   vocabularies (Industry has twenty) ever reach it. */
 .tit-wrap .tit-select-hidden { display:none; }
-.tit-optbox { max-height:168px; overflow-y:auto; overscroll-behavior:contain;
-  border:1px solid var(--tit-line); border-radius:8px; background:#fff;
-  padding:4px; }
+.tit-optbox { max-height:min(320px, 60vh); overflow-y:auto;
+  overscroll-behavior:contain; background:#fff; padding:4px; }
+/* Inside a dropdown the panel draws the edge, so the box must not draw a second
+   one 4px inside it. Standalone (no JS dropdown, or a future flat use) it keeps
+   its own border, which is what gives the group a boundary at all. */
+.tit-dd-panel > .tit-optbox { border:0; border-radius:0; max-height:none; }
+.tit-filterbar .tit-optbox { border:1px solid var(--tit-line); border-radius:8px; }
 .tit-optbox:focus-within { border-color:var(--tit-blue); }
 .tit-wrap .tit-optrow { display:flex; align-items:flex-start; gap:9px;
   padding:7px 8px; border-radius:6px; font-size:13.5px; line-height:1.35;
@@ -2035,33 +2096,151 @@ main:has(#tit-dashboard) {
    .tit-select-hidden is applied by pillify() at RUNTIME, so a page whose script
    never ran never gets the class and keeps a working native multiple select.
    That is precisely why the select is hidden by a JS-applied class rather than
-   by an attribute or a server-rendered class. Do not move this to the server. */
+   by an attribute or a server-rendered class. Do not move this to the server.
+   The same reasoning covers the whole dropdown layer below: every part of it is
+   built by script, so a page whose script never ran shows the bar with plain
+   native controls in it and nothing missing. */
 .tit-wrap .tit-filters select[multiple] { width:100%; }
 
-/* The place-basis checkbox sits under the Location select it qualifies. */
-.tit-panel .tit-basis-check { margin-top:8px; }
-.tit-panel .tit-where-label { display:block; }
+/* --- THE DROPDOWN LAYER ---------------------------------------------------
+   A trigger that states its own name and how many of its options are on, and a
+   panel that exists only while it is open.
 
-/* The date range keeps both inputs on one row inside a 262px column. */
-.tit-panel .tit-daterange { gap:8px; }
+   The positioning context is the field, so the panel hangs off the control it
+   belongs to and needs no measuring code. It is `position:absolute` rather than
+   the Popover API because a popover is in the top layer, outside the bar's
+   stacking context, and would then need its coordinates computed on scroll --
+   for a bar that is itself sticky that is a scroll listener we do not want. */
+.tit-filterbar .tit-dd { position:relative; }
+.tit-wrap .tit-dd-btn { display:flex; align-items:center; gap:6px; width:100%;
+  box-sizing:border-box; padding:5px 8px; border:1px solid var(--tit-line);
+  border-radius:8px; background:#fff; color:var(--tit-fg);
+  font-family:inherit; font-size:13px; font-weight:500; line-height:1.3;
+  text-align:left; cursor:pointer; }
+.tit-wrap .tit-dd-btn:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-dd-btn:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* The name ellipsizes; the count and the caret never do, or a control with
+   three things chosen would hide the fact that anything is. */
+.tit-dd-btn-t { flex:1 1 auto; min-width:0; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.tit-dd-caret { flex:none; width:9px; height:9px; border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor; transform:translateY(-2px) rotate(45deg);
+  opacity:.55; }
+.tit-dd-btn[aria-expanded="true"] .tit-dd-caret {
+  transform:translateY(1px) rotate(225deg); }
+/* Selection is fill AND weight AND a printed number, never colour alone. */
+.tit-wrap .tit-dd-btn.is-on { border-color:var(--tit-blue);
+  background:var(--tit-blue-tint); font-weight:650; color:var(--tit-ink-blue); }
+.tit-dd-n { flex:none; min-width:18px; padding:0 5px; border-radius:9px;
+  background:var(--tit-blue); color:#fff; font-size:11px; font-weight:700;
+  line-height:18px; text-align:center; }
+/* On the bar a trigger is sized by its own text rather than stretched to a
+   cell, because the cells have no fixed width to stretch to. AFTER the base
+   rule and at the same specificity, which is what makes it win -- `.tit-wrap
+   .tit-dd-btn` above sets width:100% and an equally specific earlier rule would
+   simply lose. The ceiling stops a long group name taking a third of a row. */
+.tit-wrap .tit-filterbar .tit-dd-btn { width:auto; max-width:210px; }
 
-/* The (i) is a panel-width affordance now, not a pill floating above a grid. */
-.tit-panel .tit-help { margin:0 0 12px; }
-.tit-panel .tit-help-b { max-width:none; }
+.tit-dd-panel { position:absolute; z-index:60; top:calc(100% + 4px); left:0;
+  min-width:100%; width:max-content; max-width:min(300px, calc(100vw - 24px));
+  box-sizing:border-box; border:1px solid var(--tit-line); border-radius:10px;
+  background:#fff; box-shadow:0 6px 24px rgba(16,18,24,.14); padding:4px; }
+/* Stated rather than relied on: `hidden` is a user agent rule and .tit-dd-panel
+   would otherwise be beaten by any author display. This is the bug that leaves
+   every panel on the page permanently open, and it looks like a layout fault
+   rather than a specificity one. */
+.tit-wrap .tit-dd-panel[hidden] { display:none; }
+/* A panel on the right-hand end of the bar would otherwise run off the page and
+   put a horizontal scrollbar on the body. Flipped by script, which is the only
+   thing that can know where the trigger actually sits. */
+.tit-dd-panel.is-flipped { left:auto; right:0; }
+/* Two panels hold inputs rather than a checkbox group, so they need the padding
+   the option rows provide for themselves. */
+.tit-dd-panel .tit-daterange { padding:6px; }
+.tit-dd-panel .tit-where-label { padding:8px 8px 0; }
+.tit-dd-panel .tit-basis-check { margin:0; padding:8px; }
+.tit-dd-panel .tit-where-label select { max-width:none; width:100%; }
 
-/* At the width where the panel is a full-width block again, its groups are
-   allowed two columns: the boxes are the same height, so a two-up grid reads as
-   a grid rather than as a ragged stack, and it halves the scrolling a phone
-   reader does to get past the panel. */
-@media (min-width:620px) and (max-width:999px){
-  .tit-panel .tit-filters { display:grid; grid-template-columns:1fr 1fr;
-    column-gap:20px; }
-  .tit-panel .tit-filters .tit-field--wide { grid-column:1 / -1; }
+/* The visible field label becomes the trigger's own text, so the span is hidden
+   rather than removed -- the date range still names its group through it with
+   aria-labelledby, and an aria reference resolves to a hidden element.
+   Stated explicitly because `.tit-filterbar .tit-field-l` above sets `display:block`,
+   and an author rule beats the user agent's `[hidden]`. That is the same
+   specificity trap that once rendered an empty facet control as a blank box. */
+.tit-wrap .tit-field-l[hidden] { display:none; }
+
+/* The (i) sits in the bar head beside the title, not in the control flow.
+
+   ANCHORED TO THE HEAD, NOT TO THE <details>. Anchored to the details it starts
+   wherever that summary happens to sit -- x=104 on a 390px screen once the
+   Filters toggle is beside it -- and a 366px panel from there ends at 470,
+   which is 80px of the page hanging off the right edge. From the head's own
+   left edge it starts at the bar's gutter at every width.
+
+   AND HIDDEN WHEN THE DISCLOSURE IS CLOSED, EXPLICITLY. A closed <details>
+   hides its non-summary children through the UA's slot, and taking a child out
+   of flow with position:absolute escapes that: the panel rendered permanently,
+   over the controls, on a disclosure that said it was shut. It measured as two
+   overflowing elements at 390px, which is how it was caught rather than by
+   looking. */
+.tit-filterbar .tit-help { margin:0; }
+.tit-filterbar .tit-panel-head { position:relative; }
+.tit-filterbar .tit-help-b { position:absolute; z-index:60; left:0;
+  top:calc(100% + 6px);
+  width:min(420px, calc(100vw - 24px)); box-sizing:border-box; padding:12px 14px;
+  border:1px solid var(--tit-line); border-radius:10px; background:#fff;
+  box-shadow:0 6px 24px rgba(16,18,24,.14); max-width:none; }
+.tit-filterbar .tit-help:not([open]) .tit-help-b { display:none; }
+
+/* --- THE PHONE: one button, and a sheet in normal flow --------------------
+   Thirteen controls at 150px minimum is four rows on a 390px screen. A sticky
+   bar four rows tall pins most of the viewport under chrome, which is worse
+   than the sidebar it replaced. So below 900px the bar is its head only, and
+   the body opens beneath it.
+
+   The sheet is IN FLOW, not fixed: a fixed sheet on a phone either traps the
+   page scroll or floats over the rows it is filtering, and the jump bar already
+   occupies the fixed-position budget at the bottom of this page.
+
+   The bar also stops being sticky here. Two pinned bars fight -- the sibling
+   tracker recorded exactly that, and de-stickied one of them. */
+@media (max-width:899px){
+  .tit-filterbar { position:static; }
+  .tit-filterbar .tit-panel-t { display:none; }
+  .tit-filterbar:not(.is-open) .tit-panel-body { display:none; }
+  .tit-filterbar .tit-field, .tit-filterbar .tit-field--wide { max-width:none;
+    flex:1 1 220px; }
+  .tit-dd-panel { max-width:calc(100vw - 40px); }
 }
+/* The toggle is revealed by script; `hidden` in the markup is what a no-JS
+   reader keeps, and they keep the open bar with it. */
+.tit-wrap .tit-bar-toggle { display:inline-flex; align-items:center; gap:7px;
+  padding:7px 12px; border:1px solid var(--tit-line); border-radius:8px;
+  background:#fff; color:var(--tit-fg); font-family:inherit; font-size:13.5px;
+  font-weight:650; cursor:pointer; }
+.tit-wrap .tit-bar-toggle[hidden] { display:none; }
+.tit-wrap .tit-bar-toggle:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+.tit-bar-n { min-width:18px; padding:0 5px; border-radius:9px;
+  background:var(--tit-blue); color:#fff; font-size:11px; font-weight:700;
+  line-height:18px; text-align:center; }
+.tit-wrap .tit-bar-n[hidden] { display:none; }
+@media (min-width:900px){
+  /* Never on a desktop, whatever script did: the bar is always open there. */
+  .tit-wrap .tit-bar-toggle { display:none; }
+}
+
+/* The 620-999px two-column grid that used to live here is GONE. It re-declared
+   `.tit-filters` as a grid at the width where the old sidebar wrapped into a
+   block, and a grid at any width now beats the `display:contents` above and
+   rebuilds the two containers this layout dissolves. The bar's own flex-wrap
+   already fills every width between 390px and 1340px without a breakpoint. */
+
 /* 390px: nothing here may scroll the body sideways, so every box is width-100%
    and the option text wraps rather than the row scrolling. */
 @media (max-width:430px){
-  .tit-optbox { max-height:152px; }
+  .tit-optbox { max-height:min(260px, 50vh); }
   .tit-wrap .tit-optrow { font-size:13px; padding:8px; }
 }
 
@@ -2379,7 +2558,7 @@ main:has(#tit-dashboard) {
   grid-template-columns:minmax(0,1fr) minmax(56px,90px) auto; }
 .tit-wrap .tit-pillar-head { display:contents; }
 .tit-wrap .tit-pillar-name { grid-column:1; margin:0; }
-.tit-wrap .tit-pillar .tit-bar { grid-column:2; margin:0; }
+.tit-wrap .tit-pillar .tit-filterbar { grid-column:2; margin:0; }
 .tit-wrap .tit-pillar-n { grid-column:3; text-align:right; }
 /* Where `display:contents` is unavailable the old stacked form is still legible,
    so this degrades rather than breaks. */

@@ -159,7 +159,7 @@ def _runs_per_day(expression: str) -> float:
 
 SLICED_WORKFLOWS = ("backfill-2026.yml", "backfill-funding-2026.yml",
                     "backfill-funding-bulk.yml", "backfill-gdelt-2026.yml",
-                    "backfill-gnews-2026.yml",
+                    "backfill-gnews-2026.yml", "backfill-press-2026.yml",
                     "backfill-structured-2026.yml")
 
 
@@ -198,6 +198,70 @@ def test_the_historical_walker_is_not_armed():
         "the historical walker has grown a schedule. Its per-slice cost is real "
         "money, so this is the owner's decision and it must be recorded in "
         "TECHLOG with the chosen pace and the projected month.")
+
+
+def test_the_press_archive_walker_is_not_armed():
+    """A third refusal, and it has BOTH of the other two reasons at once.
+
+    It costs money — ~$0.18 a pass over the roster at the derived ration, and a
+    full-depth year would be $9.42, more than GDELT's whole year — so the pace
+    is a spend decision. AND it writes the database, so a `schedule:` here would
+    enter the single `talent-collect` group uncoordinated and either evict the
+    pending run or become an unreplayable orphan. Either one alone would be
+    enough; a reader who dismisses one still has to answer the other.
+    """
+    path = WORKFLOWS / "backfill-press-2026.yml"
+    assert path.exists()
+    assert _crons(path) == [], (
+        "the press archive walker has grown a schedule. That is a spend "
+        "decision AND a writer-lock decision, and it must be recorded in "
+        "TECHLOG with the chosen pace and the projected month.")
+
+
+def test_the_press_walkers_roster_cursor_advances_per_run():
+    """The sibling's mistake, checked against the walker that is most likely to
+    tempt somebody into a date cursor.
+
+    This walker's window is a fixed INPUT (a sitemap costs the same fetch for a
+    day as for six months), so the cursor walks the publisher roster instead. A
+    date cursor here would be worse than the sibling's, not better: it would
+    re-download every publisher's whole year for each four-day window.
+    """
+    import backfill_press_2026 as walker
+
+    state = backfill_slices.empty_state()
+    job = backfill_slices.open_job(
+        state, workflow="backfill-press-2026.yml", unit="slices",
+        start="0", end="10", slice_size=1, label="2026-01-01..2026-07-26")
+
+    first = backfill_slices.next_slice(job["cursor"], job["end"], "slices", 1)
+    assert first == ("0", "0")
+    _finish(state, job, *first, now=FIXED)
+    second = backfill_slices.next_slice(job["cursor"], job["end"], "slices", 1)
+    assert second == ("1", "1"), (
+        "the second run of the same second repeated roster slice 0 — forty "
+        "publishers would go unvisited while the run count looked perfect")
+    _finish(state, job, *second, now=FIXED)
+    assert job["slices"] == 2
+
+    # And the date window survives being carried to the next run. `next_inputs`
+    # injects start/end for a DATE job; doing that here would overwrite
+    # "2026-01-01".."2026-07-26" with the roster indices "0" and "10", and the
+    # next run would silently walk a one-day window.
+    job["inputs"] = {"start": "2026-01-01", "end": "2026-07-26", "ration": "75"}
+    carried = backfill_slices.next_inputs(job)
+    assert carried["start"] == "2026-01-01"
+    assert carried["end"] == "2026-07-26"
+
+    # One workflow, one window, one cursor: a second window is a second job.
+    other = backfill_slices.open_job(
+        state, workflow="backfill-press-2026.yml", unit="slices",
+        start="0", end="10", slice_size=1, label="2025-01-01..2025-12-31")
+    assert other["cursor"] == "0", (
+        "a second historical window resumed at the first window's cursor — the "
+        "two share a job id, so one window has a hole and the other is walked "
+        "twice")
+    assert walker.WORKFLOW == "backfill-press-2026.yml"
 
 
 def test_the_structured_walker_is_not_armed():

@@ -867,79 +867,130 @@ function tit_dashboard_html() {
       ?>
       <?php
       /*
-        THE FEED: the controls beside the rows they control, not three screens
-        above them.
+        THE FEED: a compact filter BAR above the rows, frozen to the top of the
+        viewport as the reader scrolls.
 
-        The owner's words were "filters dont move with the page a like the layoff
-        one". The sibling tracker keeps its controls in a column next to the
-        results, so a reader who scrolls into the rows still has the filters in
-        view; ours sat in a full-width block that scrolled away and left a reader
-        with no way back to it except upward.
+        THIS REVERSES THE COLUMN THAT SHIPPED IN 1.54.0. That pass read the
+        owner's "filters dont move with the page a like the layoff one" as a
+        request for the sibling's SIDEBAR, and built one: a 262px column of
+        seven capped scrolling checkbox boxes, sticky at 1000px and up. The
+        owner has now seen it on the live page and asked for the opposite, in
+        two messages that are really one message:
 
-        A full-width block cannot be made sticky in any useful way -- it is
-        taller than the viewport, so there is nothing to pin. So the panel
-        becomes a COLUMN, which is what makes sticky possible at all, and it is
-        sticky only where there is room for it to be: at 900px and up. Below
-        that the flex row wraps and it is an ordinary stacked block, because a
-        sticky sidebar on a phone either covers the content or traps the scroll,
-        and both are worse than scrolling past a panel once.
+          "the formatting do you see this? Make them more compact"
+          "the filter so complicated with the scrolling up and down should we
+           move those to above the stuff and compact and have it frozen on top
+           when you scroll down??"
+
+        The two are cause and effect. A 262px column plus its 20px gap took 282
+        of a 1340px content width, so the table rendered into ~1038px across
+        seven columns and What Happened -- the column carrying a headline AND a
+        read-through -- was squeezed to about 210px, which wraps a sentence to
+        one word per line. Widening that column alone would only have taken the
+        space from another. The column IS the width problem, so the column goes
+        and the table gets the whole 1340px back.
+
+        WHY A BAR CAN BE COMPACT WHEN A COLUMN COULD NOT. In a column every
+        group is stacked, so seven option lists have to be seven boxes and each
+        one has to scroll to fit. Across a bar each group is a BUTTON that
+        states its own name and how many of its options are on, and its options
+        live in a panel that exists only while it is open. Thirteen controls
+        become thirteen buttons on two wrapped rows, and no list has to be
+        pre-emptively squeezed into a scroller. That is also why the options are
+        not laid out flat across the top: seven open checkbox lists side by side
+        is the same wall of options in a worse place.
 
         Sticky is CANCELLED OUTRIGHT by any scrollable ancestor, and this
         stylesheet already carries the rules that keep html and body from
         becoming one (see the overflow-x:clip note in dashboard.css). Nothing
         between #tit-dashboard and this element may set overflow, which is why
-        the panel is a direct child of the flex row and the row sets none.
+        the bar is a direct child of .tit-feed and .tit-feed sets none.
       */
       ?>
       <div class="tit-feed">
-        <aside class="tit-panel" id="tit-panel" aria-labelledby="tit-panel-t">
+        <div class="tit-filterbar" id="tit-panel" aria-labelledby="tit-panel-t">
           <div class="tit-panel-head">
+            <?php /* The phone affordance, and the ONLY thing that collapses.
+                     A bar wide enough for thirteen controls is four rows on a
+                     390px screen, which would pin most of the viewport under
+                     chrome; so on a phone the bar is this one button and the
+                     controls open below it as a sheet, in normal flow rather
+                     than fixed, so nothing traps the page scroll.
+
+                     Ships `hidden` and is revealed by script, because a reader
+                     with no JavaScript must never meet a button that does
+                     nothing -- they get the whole bar, uncollapsed, which is
+                     the markup as served. */ ?>
+            <button type="button" class="tit-bar-toggle" id="tit-bar-toggle"
+                    aria-expanded="false" aria-controls="tit-panel-body" hidden>
+              <span class="tit-bar-toggle-t">Filters</span>
+              <span class="tit-bar-n" id="tit-bar-n" hidden></span>
+            </button>
             <span class="tit-panel-t" id="tit-panel-t">Filters</span>
-            <?php /* Reset lives at the top of the panel now. It was the last
-                     cell of the filter grid, below seven scrolling boxes, which
-                     is the one place a reader who wants to start over will not
-                     look. Same id, so the same handler binds it. */ ?>
+            <?php
+            /*
+              ONE affordance where there were eight blocks of instruction, and it
+              lives in the bar head rather than in the control flow.
+
+              The panel used to shout "CHOOSE MORE THAN ONE IF YOU LIKE" under
+              every one of seven multi-selects, in uppercase, saying the same
+              thing each time. Repeating an instruction seven times adds nothing
+              to the seventh reader and makes it the loudest thing on a block
+              whose job is to be quiet.
+
+              So instructions live here, once, behind an (i) that opens when
+              somebody wants them. Native <details>: keyboard reachable and
+              screen reader reachable without a line of our own code, and it
+              works with JavaScript off. Each paragraph carries an id and every
+              control it explains points at it with aria-describedby, so the
+              explanation is announced WITH the control whether or not the panel
+              is open. A title attribute would have reached neither a keyboard
+              nor a screen reader reliably.
+
+              In the head because on the bar it would otherwise be a fourteenth
+              control-shaped thing sitting among thirteen actual controls, and
+              it is not a filter.
+            */
+            ?>
+            <details class="tit-help" id="tit-help">
+              <summary class="tit-help-s">
+                <span class="tit-help-i" aria-hidden="true">i</span>
+                <span class="tit-help-w">How These Filters Work</span>
+              </summary>
+              <div class="tit-help-b">
+                <p id="tit-help-multi"><strong>Filters that take more than one.</strong>
+                  Tap every one that applies. Tap again to remove it. Every choice
+                  also becomes its own chip above the table, so you can drop one
+                  without clearing the rest.</p>
+                <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
+                  source named. When a source names no place we use the employer's head
+                  office instead, so a company known only by its headquarters still
+                  appears. Tick "Only Countries A Source Named" to leave those out.</p>
+              </div>
+            </details>
+            <?php /* Reset lives at the head of the bar. It was the last cell of
+                     the filter grid, below seven scrolling boxes, which is the
+                     one place a reader who wants to start over will not look.
+                     Same id, so the same handler binds it. */ ?>
             <button type="button" class="tit-panel-reset" id="tit-reset">Reset All</button>
           </div>
-          <div class="tit-panel-body">
+          <div class="tit-panel-body" id="tit-panel-body">
       <?php
       /*
-        ONE affordance where there were eight blocks of instruction.
+        EVERY CONTROL BELOW IS ONE FLEX ITEM OF THE BAR.
 
-        The panel shouted "CHOOSE MORE THAN ONE IF YOU LIKE" under every one of
-        seven multi-selects, in uppercase, saying the same thing each time, and
-        it carried a three-line paragraph about how places are decided wedged
-        between two controls. Both were instructions. Repeating an instruction
-        seven times adds nothing to the seventh reader and makes it the loudest
-        thing on a block whose job is to be quiet. A native multiple select
-        already looks like a list you can pick several from.
+        .tit-primary and .tit-filters are still two containers in this file and
+        still hold the fields they always held, in the order they always held
+        them. The stylesheet gives both `display:contents`, so the bar packs all
+        thirteen controls with one wrap rather than two grids each padding out
+        its own last row. Nothing was re-nested to make the layout change, which
+        is what keeps this a presentation change.
 
-        So instructions live here, once, behind an (i) that opens when someone
-        wants them. Native <details>: keyboard reachable and screen reader
-        reachable without a line of our own code, and it works with JavaScript
-        off. Each paragraph carries an id and every control it explains points
-        at it with aria-describedby, so the explanation is announced WITH the
-        control whether or not the panel is open. A title attribute would have
-        reached neither a keyboard nor a screen reader reliably.
+        Give either container a border, a background or padding and that rule
+        silently drops it. If one of them ever needs to paint, it stops being a
+        `display:contents` box and the bar has to become a single container.
       */
       ?>
-      <details class="tit-help" id="tit-help">
-        <summary class="tit-help-s">
-          <span class="tit-help-i" aria-hidden="true">i</span>
-          <span class="tit-help-w">How These Filters Work</span>
-        </summary>
-        <div class="tit-help-b">
-          <p id="tit-help-multi"><strong>Filters that take more than one.</strong>
-            Tap every one that applies. Tap again to remove it. Every choice
-            also becomes its own chip above the table, so you can drop one
-            without clearing the rest.</p>
-          <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
-            source named. When a source names no place we use the employer's head
-            office instead, so a company known only by its headquarters still
-            appears. Tick "Only Countries A Source Named" to leave those out.</p>
-        </div>
-      </details>
-
       <div class="tit-primary">
         <label class="tit-field tit-field--stack tit-primary-main">
           <span class="tit-field-l">Looking For</span>
@@ -1163,7 +1214,12 @@ function tit_dashboard_html() {
                    are printed, the separator is gone, and the group keeps its
                    own name for anyone arriving by keyboard. This is the sibling
                    tracker's pattern: a labelled From and a labelled To. */ ?>
+          <?php /* The id is what dashboard.js finds this cell by to make it the
+                   one dropdown whose panel holds inputs rather than a checkbox
+                   group. Same shape as the facet cells' `tit-field-<key>` ids so
+                   there is one convention for "script addresses this cell". */ ?>
           <div class="tit-field tit-field--stack tit-field--wide"
+               id="tit-field-daterange"
                role="group" aria-labelledby="tit-daterange-l">
             <span class="tit-field-l" id="tit-daterange-l">Date Range</span>
             <div class="tit-daterange">
@@ -1183,7 +1239,7 @@ function tit_dashboard_html() {
       </div>
 
           </div>
-        </aside>
+        </div>
 
         <div class="tit-results">
       <?php /* The state the visible controls drive. Hidden, never focusable,

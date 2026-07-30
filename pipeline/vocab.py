@@ -72,6 +72,22 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # robots.txt disallowing /dsaf001/main.do is a fact about link checking
     # rather than a reason to cite something else.
     "dart.fss.or.kr",
+    # ARES is the Czech Ministry of Finance's own register service and it
+    # republishes the courts' public register (veřejný rejstřík) rather than
+    # reporting on it, so it is the same class of host as sec.gov: the register
+    # itself. Without this line collectors/czechia_ares.py caps at 'reported'
+    # and a court-maintained register reads as a news story. The collector
+    # cites the API document under this host on purpose — the site's own
+    # /ekonomicke-subjekty/{ico} page answers 200 with an identical app shell
+    # for a real and an invented company, and or.justice.cz robots-disallows
+    # the whole register UI. See the collector's docstring.
+    "ares.gov.cz",
+    # Ariregister is the Estonian Centre of Registers and Information Systems'
+    # own publication of the business register it maintains. Same class again.
+    # Two hosts, because the collector reads the open-data files from one
+    # subdomain and cites the register's own company page on the other.
+    "ariregister.rik.ee",
+    "avaandmed.ariregister.rik.ee",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",

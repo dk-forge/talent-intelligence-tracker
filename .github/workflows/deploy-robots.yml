@@ -26,14 +26,22 @@
 #   https://asktherecruiter.com/blog/robots.txt   200  175 bytes  text/plain
 #   https://asktherecruiter.com/robots.txt        200  13,181 bytes  text/HTML
 #
-# The apex has no robots.txt. It answers /robots.txt and every other unmatched
-# path with the same "Coming soon" landing page, so `targets: root` refuses and
-# explains itself rather than writing. Note also that RFC 9309 has a crawler
-# read /robots.txt at the host root and nowhere else, so the Sitemap lines in
-# /blog/robots.txt — the existing one included — are read by nothing. Adding
-# these two is correct and will not on its own get either sitemap crawled;
-# that needs a real file at the apex or a Search Console submission, and
-# creating a root robots.txt where none exists is the owner's call.
+# The apex is not on this host. It answers /robots.txt, and every other
+# unmatched path, with the same "Coming soon" page built by Cloudflare (25
+# /cf-fonts/ stylesheet references); only /blog/ routes through to Bluehost. So
+# `targets: root` can never be satisfied over FTP whatever path it is given —
+# the content check would be comparing a Bluehost file against a Cloudflare
+# response — and it refuses saying exactly that.
+#
+# The blog file lives at /public_html/AskTheRecruiter.com/blog/robots.txt. The
+# mixed-case domain directory is why the first real dispatch (run 30577050236)
+# found none of the four generic candidates.
+#
+# Note also that RFC 9309 has a crawler read /robots.txt at the host root and
+# nowhere else, so the Sitemap lines in /blog/robots.txt — the existing one
+# included — are read by nothing. Adding these two is correct and will not on
+# its own get either sitemap crawled; that needs a real file at the apex, or a
+# Search Console submission, which the owner has already done.
 #
 # Dispatch:
 #   gh workflow run deploy-robots.yml -R dk-forge/talent-intelligence-tracker \
@@ -92,12 +100,25 @@ jobs:
           python -c "import yaml, requests"
           python -m pytest tests/test_robots_sitemaps.py -q
 
+      # WP_PLUGIN_REMOTE_DIR is READ here, and only to derive a path to LOOK
+      # at. Run 30577050236 refused because the session is rooted somewhere
+      # none of the four hand-written candidates reach, and that secret is the
+      # one remote path known to work for these credentials — deploy-plugin.yml
+      # mirrors into it. Three levels up from it is the WordPress root, which
+      # is where a robots.txt lives.
+      #
+      # This does not widen that workflow's write path. The derived path is a
+      # candidate like any other: it must serve byte-identical content before a
+      # byte is written, and NEVER_WRITE_INSIDE refuses anything under
+      # wp-content outright, in candidate_paths, in process, and again in
+      # FtpTransport.write.
       - name: Append the sitemap lines
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_PORT: ${{ secrets.FTP_PORT }}
+          WP_PLUGIN_REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
         run: |
           python robots_sitemaps.py \
             --targets '${{ inputs.targets }}' \

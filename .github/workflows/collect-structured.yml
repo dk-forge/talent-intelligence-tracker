@@ -1,6 +1,7 @@
 # The structured sources: SEC executive compensation, UK gender pay gap, BSE
 # India leadership filings, EDINET Japan representative-director filings, DART
-# Korea leadership filings, Companies House UK officer appointments, and ATS
+# Korea leadership filings, Companies House UK officer appointments, ARES
+# Czechia office changes, Estonian business register appointments, and ATS
 # job boards.
 #
 # These cost NOTHING to run. Every field they store is a column in a frame, a
@@ -48,6 +49,24 @@
 # requests and ~23 minutes. Its window is 42 days, derived from that rotation
 # plus a fortnight of slack, so a missed week is picked up on the slice's next
 # visit rather than becoming a permanent hole; `ch_slice` replays one by hand.
+#
+# czechia_ares is weekly on FRIDAY and needs no key at all. It is the only
+# collector here whose population comes from a CHANGE FEED: the register
+# publishes which companies moved, and the run then reads those companies'
+# employee band and, for the 1% at 250 staff or more, their register record. A
+# 14-day window is ~475 requests and about two minutes, a quarter of the
+# Ministry of Finance's stated 500-per-minute ceiling. The window CANNOT exceed
+# 28 days — that is all the notification feed holds, and it answers a wider
+# request with the batches it has rather than an error, so the collector
+# refuses one instead of reporting a quiet month.
+#
+# estonia_ariregister is weekly on SATURDAY and needs no key either. It is
+# unlike everything else here in shape: three static file downloads (45MB +
+# 20MB + 18MB compressed) which stream out to about 1.5GB, so it is heavy in
+# bytes and trivial in requests. Its window has no ceiling — every file is a
+# fresh full snapshot — but widening it recovers less than it looks like,
+# because the file lists CURRENT office-holders only and an appointment that
+# has already ended is not in it at all.
 name: collect-structured
 
 on:
@@ -72,12 +91,23 @@ on:
     # roster is sliced rather than swept whole — a whole sweep is ~92 minutes,
     # and writer_queue.LONG_HOLD_MINUTES is 120.
     - cron: '0 4 * * 4'      # Thursdays: companies_house officer appointments
+    # FRIDAY, same argument again. Cheap: the run is ~475 requests for a
+    # 14-day window (24 to walk the change feed, ~100 to band 10,000 changed
+    # companies 100 at a time, ~110 register records) and about two minutes of
+    # wall clock at a quarter of the Ministry of Finance's stated ceiling of
+    # 500 queries a minute.
+    - cron: '0 4 * * 5'      # Fridays: ARES Czechia office changes
+    # SATURDAY, same argument again, and this one is heavy in BYTES rather than
+    # in requests: three published files, 45MB + 20MB + 18MB compressed,
+    # expanding to about 1.5GB that is streamed rather than held. Three HTTP
+    # requests in total and roughly two minutes of parsing.
+    - cron: '0 4 * * 6'      # Saturdays: Estonian business register appointments
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -88,7 +118,7 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India, EDINET Japan, DART Korea and Companies House. How many days back to read. Blank = each collector default (7, or 42 for Companies House, derived from its rotation). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30 — it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, Companies House none. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
+        description: 'BSE India, EDINET Japan, DART Korea, Companies House, ARES Czechia and Ariregister Estonia. How many days back to read. Blank = each collector default (7; 42 for Companies House, derived from its rotation; 14 for Czechia; 21 for Estonia). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30 — it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, ARES 28 (all its notification feed holds, and it answers a wider request with the batches it has rather than an error), Companies House and Estonia none. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
         required: false
         default: ''
       ch_slice:
@@ -144,6 +174,8 @@ jobs:
             '0 4 * * 2')   scheduled=edinet_japan ;;
             '0 4 * * 3')   scheduled=opendart_korea ;;
             '0 4 * * 4')   scheduled=companies_house ;;
+            '0 4 * * 5')   scheduled=czechia_ares ;;
+            '0 4 * * 6')   scheduled=estonia_ariregister ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then
@@ -194,6 +226,15 @@ jobs:
           # STREAMING key is a separate registration and is not interchangeable
           # with this one, so a perfectly valid-looking key can 401 forever.
           COMPANIES_HOUSE_API_KEY_UK: ${{ secrets.COMPANIES_HOUSE_API_KEY_UK }}
+          # ARES and Ariregister need NO SECRET AT ALL, which is why neither
+          # appears below with one. Both are keyless open data: ares.gov.cz
+          # answers every path used here unauthenticated, and the Estonian
+          # files are static downloads. There is deliberately no empty-secret
+          # mapping for either — mapping a secret that does not exist sets the
+          # variable to empty string, which is how the first leadership
+          # dispatch went green having stored nothing.
+          TIT_ARES_DAYS: ${{ inputs.days }}
+          TIT_EE_DAYS: ${{ inputs.days }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \

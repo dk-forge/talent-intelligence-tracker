@@ -84,6 +84,25 @@ MAX_AGE_HOURS = {
     # is derived as 4x7+14 days precisely so a missed slice is picked up on its
     # next visit rather than becoming a hole.
     "companies_house": 180,  # ~7.5 days: weekly cron plus room to notice
+    # collect-structured.yml, weekly on FRIDAYS (Monday bse_india, Tuesday
+    # edinet_japan, Wednesday opendart_korea, Thursday companies_house; one
+    # writer lock, one slot each). Cadence plus slack, the same shape as the
+    # four above. Czechia's change feed publishes daily and the collector reads
+    # a 14-day window, so a missed week is recoverable by widening
+    # TIT_ARES_DAYS — but only up to 28 days, because that is all the
+    # notification feed holds and it answers a wider request with the batches it
+    # has rather than an error. Two consecutive misses are therefore the point
+    # at which a hole becomes permanent, which is why the leash flags part-way
+    # into the second week rather than after two full misses.
+    "czechia_ares": 180,     # ~7.5 days: weekly cron plus room to notice
+    # collect-structured.yml, weekly on SATURDAYS, same argument one day
+    # further along. Estonia is the opposite of perishable in one way and worse
+    # than perishable in another: the published file is a fresh full snapshot
+    # every day, so a missed run is recovered simply by widening TIT_EE_DAYS
+    # over the next one, but the file holds CURRENT office-holders only — so an
+    # appointment made and ended between two runs vanishes from the source
+    # entirely and no window can reach it. Cadence plus slack, not a month.
+    "estonia_ariregister": 180,  # ~7.5 days: weekly cron plus room to notice
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
@@ -92,6 +111,14 @@ MAX_AGE_HOURS = {
     # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
     # schedule in .github/workflows/tripwire.yml is uncommented.
     "tripwire": 2400,
+    # The historical press walker ships DISPATCH-ONLY: there is no cron in
+    # .github/workflows/backfill-press-2026.yml and adding one is both a spend
+    # decision and a writer-lock decision. So a run followed by weeks of silence
+    # is the expected state and not an incident, the same shape as `tripwire`
+    # above. It also reads HISTORY rather than today's news, so "when did it
+    # last run" is a question about the owner's pace and not about coverage
+    # going quiet. Tighten this the day a schedule is chosen.
+    "press_archive": 2400,
     # Link rot and archiving, both scheduled since 2026-07-30 — but by
     # schedule-link-hygiene.yml writing a TICKET rather than by a cron in their
     # own workflows, because both are database writers and a cron in a

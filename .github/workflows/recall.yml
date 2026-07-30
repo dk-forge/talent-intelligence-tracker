@@ -73,6 +73,25 @@ jobs:
           python measure_recall.py --quiet --push \
             ${{ inputs.publish == false && ' ' || '--publish' }}
 
+      # WHY the misses are misses, beside the measurement that counts them.
+      #
+      # A recall figure says how much we hold. It cannot say whether the gap is
+      # a filter, a missing source or a young corpus, and those three have
+      # nothing in common as work: one is a code change, one is a feed, one is
+      # only time. The audit splits them, and its most useful number is a zero
+      # (`fetched_then_dropped`), which is the kind of number nobody computes
+      # unless something computes it for them.
+      #
+      # Costs nothing: no model, no network, reads the committed database and
+      # the same sealed gold set. Run AFTER the measurement so it audits the
+      # corpus the measurement just scored, and never fatal -- an audit that
+      # failed is a lost diagnosis, while a failed step here would throw away
+      # the recall measurement that is the point of the job.
+      - name: Audit why the misses are misses
+        if: ${{ always() }}
+        continue-on-error: true
+        run: python -m analysis.recall.rejection_audit --write
+
       # Push the run into the site's health ledger so the health page shows the
       # measurement's own state. Never fatal: a stale health timestamp is a much
       # smaller problem than a lost measurement, which is already on disk by now.
@@ -109,7 +128,7 @@ jobs:
           db=data/talent_intel.db
           # Snapshot files, copied back whole. The database is handled separately
           # below because it is the one thing here that merges.
-          paths="analysis/recall/results data/recall_worklist.json wordpress-plugin/talent-intelligence-tracker/data/recall.json"
+          paths="analysis/recall/results data/recall_worklist.json data/recall_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json"
           git add $paths $db 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change to commit."

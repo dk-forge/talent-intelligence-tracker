@@ -46,7 +46,31 @@ class FakeFtp:
         self.reads.append(path)
         return self.files.get(path)
 
+    # The session the server would show us, for the refusal report. Defaults
+    # are deliberately bare: most tests never reach the report at all.
+    cwd = "/"
+    listings: dict[str, list[str]] = {}
+    listing_error = ""
+    session_paths_extra: list[str] = []
+
+    def _pwd(self):
+        return self.cwd
+
+    def _nlst(self, directory):
+        if self.listing_error:
+            raise OSError(self.listing_error)
+        if directory not in self.listings:
+            raise OSError(f"550 {directory}: No such file or directory")
+        return self.listings[directory]
+
+    def session_report(self, paths):
+        # The real function, not a lookalike of it.
+        return rs.session_report_lines(
+            self._pwd, self._nlst, list(paths) + list(self.session_paths_extra))
+
     def write(self, path, data):
+        if rs.NEVER_WRITE_INSIDE in path:
+            raise AssertionError(f"wrote inside wp-content: {path}")
         self.writes.append((path, data))
         if self.corrupt is not None:
             data = self.corrupt(data)
@@ -133,17 +157,55 @@ def test_html_served_with_200_is_refused():
                          "<!DOCTYPE html><html><body>503 backend</body></html>")
 
 
-def test_the_apex_landing_page_refusal_explains_what_it_found():
-    """Measured 2026-07-30: https://asktherecruiter.com/robots.txt does not
-    exist. The apex answers it — and every other unmatched path — with the same
-    13,181-byte 'Coming soon' page at HTTP 200. 'Served HTML' is true and
-    useless; the refusal has to say that this would be a CREATE."""
+def test_the_apex_refusal_names_the_actual_reason():
+    """The apex is not on this host. It answers /robots.txt — and every other
+    unmatched path — with a 13,181-byte 'Coming soon' page built by Cloudflare
+    (25 /cf-fonts/ references); only /blog/ reaches Bluehost.
+
+    So no FTP path can ever satisfy this target: the content check would be
+    comparing a Bluehost file against a Cloudflare response. 'Served HTML' is
+    true and cost an hour; the refusal has to say which server and where the
+    file would actually have to go."""
     with pytest.raises(rs.Refusal) as caught:
         rs.guard_fetched(target("root"), 200,
                          '<!DOCTYPE html>\n<html lang="en"><head>'
                          '<title>Ask The Recruiter</title></head></html>')
     message = str(caught.value)
-    assert "NO robots.txt" in message and "CREATE" in message
+    assert "NOT ON THIS HOST" in message
+    assert "Cloudflare" in message
+    assert "NO FTP PATH CAN EVER SATISFY" in message
+
+
+def test_the_paths_the_owner_listed_are_candidates():
+    """Ground truth beats four generic guesses. The mixed case is load-bearing:
+    the server treats `asktherecruiter.com` as a different directory."""
+    assert "/public_html/AskTheRecruiter.com/blog/robots.txt" in \
+        rs.candidate_paths(target("blog"))
+    assert "/public_html/AskTheRecruiter.com/robots.txt" in \
+        rs.candidate_paths(target("root"))
+
+
+def test_the_blog_file_is_found_where_the_owner_says_it_is():
+    ftp = FakeFtp({"/public_html/AskTheRecruiter.com/blog/robots.txt":
+                   LIVE.encode("utf-8")})
+    assert rs.locate(target("blog"), LIVE, ftp) == \
+        "/public_html/AskTheRecruiter.com/blog/robots.txt"
+
+
+def test_the_secret_derives_the_same_prefix_the_listing_showed():
+    derived = rs.derived_candidates(
+        "/public_html/AskTheRecruiter.com/blog/wp-content/plugins/talent-intelligence-tracker")
+    assert derived["blog"] == "/public_html/AskTheRecruiter.com/blog/robots.txt"
+    assert derived["root"] == "/public_html/AskTheRecruiter.com/robots.txt"
+
+
+def test_a_known_path_is_still_content_checked():
+    """A path that was right last month is not evidence about today."""
+    ftp = FakeFtp({"/public_html/AskTheRecruiter.com/blog/robots.txt":
+                   b"User-agent: *\nDisallow: /\n"})
+    with pytest.raises(rs.Refusal, match="no remote file matched"):
+        rs.locate(target("blog"), LIVE, ftp)
+    assert ftp.writes == []
 
 
 def test_the_blog_target_has_no_such_note():
@@ -276,6 +338,118 @@ def test_a_line_ending_difference_still_binds():
     assert rs.locate(target("root"), LIVE, ftp) == "/robots.txt"
 
 
+# --- the path derived from one that already works ----------------------------
+#
+# Run 30577050236 dispatched for real and refused: the FTP session is rooted
+# somewhere none of the four hand-written candidates reach. Guessing a fifth is
+# how a job ends up writing into whatever directory the session landed in.
+
+def test_the_plugin_directory_derives_the_wordpress_root():
+    derived = rs.derived_candidates(
+        "/home/atr/public_html/blog/wp-content/plugins/talent-intelligence-tracker")
+    assert derived["blog"] == "/home/atr/public_html/blog/robots.txt"
+    assert derived["root"] == "/home/atr/public_html/robots.txt"
+
+
+def test_a_trailing_slash_does_not_shift_the_walk_up():
+    assert rs.derived_candidates("/x/blog/wp-content/plugins/tit/")["blog"] == \
+        "/x/blog/robots.txt"
+
+
+@pytest.mark.parametrize("value", [
+    "", "   ",
+    "/home/atr/public_html/blog",                     # not a plugin directory
+    "/wp-content/plugins/tit",                        # walks up past the root
+    "/home/atr/public_html/blog/wp-content/themes/x",  # not plugins
+])
+def test_a_secret_that_is_not_a_plugin_directory_derives_nothing(value):
+    """The shape is checked, not trusted. A secret that changed meaning must
+    produce no candidate at all rather than a plausible wrong one."""
+    assert rs.derived_candidates(value) == {}
+
+
+def test_the_derived_path_is_tried_before_the_guesses(monkeypatch):
+    monkeypatch.setenv("WP_PLUGIN_REMOTE_DIR",
+                       "/home/atr/public_html/blog/wp-content/plugins/talent-intelligence-tracker")
+    paths = rs.candidate_paths(target("blog"))
+    assert paths[0] == "/home/atr/public_html/blog/robots.txt"
+    assert "/blog/robots.txt" in paths, "the hand-written candidates were dropped"
+
+
+def test_the_derived_path_is_exempt_from_the_name_shape_filter(monkeypatch):
+    """A WordPress root not literally called 'blog' would otherwise be filtered
+    out by the blog target's required fragment — a filter that exists to
+    discipline guesses, and a proven path is not one."""
+    monkeypatch.setenv("WP_PLUGIN_REMOTE_DIR",
+                       "/home/atr/public_html/wordpress/wp-content/plugins/tit")
+    assert rs.candidate_paths(target("blog"))[0] == \
+        "/home/atr/public_html/wordpress/robots.txt"
+
+
+def test_an_explicit_override_wins_over_the_derived_path(monkeypatch):
+    monkeypatch.setenv("WP_PLUGIN_REMOTE_DIR",
+                       "/home/atr/public_html/blog/wp-content/plugins/tit")
+    monkeypatch.setenv("TIT_ROBOTS_BLOG_PATH", "/somewhere/else/blog/robots.txt")
+    assert rs.candidate_paths(target("blog")) == ["/somewhere/else/blog/robots.txt"]
+
+
+# --- a refusal that says what it looked at -----------------------------------
+
+def test_a_refusal_prints_what_the_session_can_see(capsys):
+    """Run 30577050236 refused with four paths and no way to tell whether the
+    file was elsewhere, the session was chrooted elsewhere, or the account
+    could not list at all. One dry run should answer that."""
+    ftp = FakeFtp({"/home/atr/public_html/blog/robots.txt": LIVE.encode("utf-8")})
+    ftp.cwd = "/home/atr"
+    ftp.listings = {"/home/atr": ["public_html", "logs"],
+                    "/home": ["atr"],
+                    "/": ["home"]}
+    with pytest.raises(rs.Refusal, match="listing above"):
+        rs.locate(target("root"), LIVE, ftp)
+    out = capsys.readouterr().out
+    assert "login directory: /home/atr" in out
+    assert "public_html" in out
+
+
+def test_a_server_that_refuses_a_listing_says_so(capsys):
+    ftp = FakeFtp({})
+    ftp.cwd = "/home/atr"
+    ftp.listing_error = "550 Permission denied"
+    with pytest.raises(rs.Refusal):
+        rs.locate(target("root"), LIVE, ftp)
+    out = capsys.readouterr().out
+    assert "not listable" in out and "550" in out, (
+        "an empty report and a forbidden one are different facts")
+
+
+def test_the_report_flags_the_directory_that_has_the_file(capsys):
+    ftp = FakeFtp({})
+    ftp.cwd = "/home/atr"
+    ftp.listings = {"/home/atr": ["public_html"],
+                    "/home/atr/public_html": ["blog", "robots.txt"]}
+    ftp.session_paths_extra = ["/home/atr/public_html/robots.txt"]
+    with pytest.raises(rs.Refusal):
+        rs.locate(target("root"), LIVE, ftp)
+    assert "HAS robots.txt" in capsys.readouterr().out
+
+
+def test_describing_the_session_never_masks_the_refusal(capsys):
+    ftp = FakeFtp({})
+    ftp.session_report = lambda paths: (_ for _ in ()).throw(RuntimeError("boom"))
+    with pytest.raises(rs.Refusal, match="no remote file matched"):
+        rs.locate(target("root"), LIVE, ftp)
+    assert "could not describe the session" in capsys.readouterr().out
+
+
+def test_a_transport_with_no_report_is_simply_quiet():
+    class Bare:
+        def read(self, path):
+            return None
+
+    with pytest.raises(rs.Refusal, match="no remote file matched"):
+        rs.locate(target("root"), LIVE, Bare())
+
+
 # --- end to end --------------------------------------------------------------
 
 def test_a_dry_run_writes_nothing():
@@ -293,6 +467,22 @@ def test_an_applied_run_appends_and_verifies():
     after = ftp.files["/robots.txt"].decode("utf-8")
     assert rs.sitemap_urls(after) == [rs.EXISTING_SITEMAP, *rs.NEW_SITEMAPS]
     assert after.startswith(LIVE)
+
+
+def test_the_derived_path_carries_a_run_the_guesses_could_not(monkeypatch):
+    """Run 30577050236, fixed: the file exists only where WP_PLUGIN_REMOTE_DIR
+    says the WordPress root is, and nowhere any hand-written candidate looks."""
+    monkeypatch.setenv("WP_PLUGIN_REMOTE_DIR",
+                       "/home/atr/public_html/blog/wp-content/plugins/talent-intelligence-tracker")
+    ftp = FakeFtp({"/home/atr/public_html/blog/robots.txt": LIVE.encode("utf-8")})
+    http = FakeHttp(ftp, {f"{rs.SITE}/blog/robots.txt":
+                          "/home/atr/public_html/blog/robots.txt"})
+
+    outcome = rs.process(target("blog"), http=http, ftp=ftp, apply=True)
+    assert outcome["result"] == "written"
+    assert outcome["path"] == "/home/atr/public_html/blog/robots.txt"
+    after = ftp.files[outcome["path"]].decode("utf-8")
+    assert rs.sitemap_urls(after) == [rs.EXISTING_SITEMAP, *rs.NEW_SITEMAPS]
 
 
 def test_re_running_an_applied_change_is_a_no_op():
@@ -478,20 +668,59 @@ def test_the_default_target_is_the_copy_that_exists():
 
 
 def test_the_workflow_does_not_widen_the_plugin_deploys_write_path():
-    """deploy-plugin.yml refuses to write anywhere but WP_PLUGIN_REMOTE_DIR,
-    and that guard is what keeps it away from the live sibling product. This
-    file exists so that guard never has to be relaxed."""
-    text = WORKFLOW.read_text()
-    assert "secrets.WP_PLUGIN_REMOTE_DIR" not in text, (
-        "this workflow reaches for the plugin deploy's scoped directory")
+    """This assertion changed shape after run 30577050236.
+
+    It used to say `secrets.WP_PLUGIN_REMOTE_DIR` never appears in this file.
+    That was a proxy for the thing worth protecting, and the proxy broke the
+    day the secret turned out to be the only remote path known to work for
+    these credentials — reading it to DERIVE a candidate to look at widens
+    nothing.
+
+    So it now asserts the property itself: this job never writes inside
+    wp-content, the directory deploy-plugin.yml owns, and deploy-plugin.yml
+    still has no robots.txt write path of its own.
+    """
     plugin = (ROOT / ".github/workflows/deploy-plugin.yml").read_text()
     assert "robots" not in plugin, "the plugin deploy grew a robots.txt write path"
+
+    assert rs.NEVER_WRITE_INSIDE == "/wp-content/"
+    # Three independent refusals, because one of them is one edit from gone.
+    assert rs.candidate_paths(
+        rs.Target("x", "u", ["/site/wp-content/plugins/x/robots.txt"],
+                  proven=["/site/wp-content/robots.txt"])) == []
+
+
+def test_a_path_inside_wp_content_is_refused_at_the_socket():
+    """The last line, after the candidate filter and the process check: even a
+    transport handed a bad path directly declines to send it."""
+    transport = rs.FtpTransport.__new__(rs.FtpTransport)
+    with pytest.raises(rs.Refusal, match="wp-content"):
+        rs.FtpTransport.write(transport, "/site/wp-content/robots.txt", b"x")
+
+
+def test_a_derived_candidate_is_still_content_checked_before_a_write():
+    """Derivation buys a path to LOOK at, never a path to trust."""
+    ftp = FakeFtp({"/site/blog/robots.txt": b"something else entirely\n"})
+    blog = rs.Target("blog", f"{rs.SITE}/blog/robots.txt", [],
+                     proven=["/site/blog/robots.txt"])
+    with pytest.raises(rs.Refusal, match="no remote file matched"):
+        rs.locate(blog, LIVE, ftp)
+    assert ftp.writes == []
 
 
 def test_the_workflow_is_not_in_the_writer_lock_group():
     """It writes no database and no repository file, so queueing for that lock
     would only add one more body able to evict a pending writer."""
     assert (_workflow().get("concurrency") or {}).get("group") == "deploy-robots"
+
+
+def test_the_workflow_passes_the_secret_the_derivation_needs():
+    steps = [s for job in _workflow()["jobs"].values() for s in job.get("steps", [])]
+    writing = next(s for s in steps
+                   if "robots_sitemaps.py" in (s.get("run") or "")
+                   and "pytest" not in (s.get("run") or ""))
+    assert writing["env"].get("WP_PLUGIN_REMOTE_DIR") == \
+        "${{ secrets.WP_PLUGIN_REMOTE_DIR }}"
 
 
 def test_the_workflow_runs_these_guards_before_it_reaches_for_a_credential():

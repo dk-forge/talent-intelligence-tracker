@@ -13,6 +13,1056 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — Czechia states both directions and Estonia states only one, and the window belongs on the registration date
+
+`collectors/czechia_ares.py` + `collectors/estonia_ariregister.py`, two new
+weekly slots in `collect-structured.yml` (Friday and Saturday, the two days no
+other database writer holds), 6 new fixtures, 91 new offline tests. Both are
+keyless, both expose `as_classified`, neither calls a model: **$0**. Every
+number below was fetched live on 2026-07-30 and most are from a real dry run
+rather than a projection.
+
+### The two sources, in one table
+
+| | Czechia (ARES) | Estonia (Ariregister) |
+|---|---|---|
+| shape | change feed -> employee band -> register record | three static file downloads |
+| population | 22,492 companies changed in 28 days | 375,305 companies, 520,895 person rows |
+| materiality | RES band `>= 330` = 250+ staff, **226 of 22,492 (1.0%)** | 2025 annual report `>= 50` FTE, **825 of 194,851** |
+| directions | **arrivals AND departures**, both source-dated | **arrivals only, and never anything else** |
+| measured | **108 events in 14 days, ~2,800/yr** | **16 in 21 days, ~265/yr** |
+| cost per run | 208 requests, ~2 min | 3 requests, 83MB, ~2 min |
+
+### Czechia: the window does not belong on the office date, and a live run is the only thing that could have said so
+
+The brief said: use the office dates as the event date, record the registration
+date too, never diff snapshots. All three are right, and the first one is not a
+window. `clenstvi.clenstvi.vznikClenstvi` / `zanikClenstvi` are when the office
+began and ended; `datumZapisu` / `datumVymazu` are when the court wrote it down;
+the notification feed announces the writing.
+
+Filtering on the OFFICE date therefore asks the feed which companies moved this
+week and then discards every change whose effective date was earlier than the
+window. **A real seven-day run (2026-07-23..07-30, 76 material companies)
+produced ZERO events** and tripped the emptiness floor, which is the only reason
+this was found: every unit test passed, because a fixture built from a 28-day
+window has its office dates inside it.
+
+Same 76 companies, same week, selecting on the REGISTRATION date instead:
+**41 events** — 18 arrivals, 13 departures, 8 promotions, 2 role endings — at a
+median office-to-registration lag of **25 days**. That is why a 7-day office
+window found nothing. Both dates are still source-stated and both are still on
+the record; what changed is only which of them decides an event is new.
+
+`MAX_BACKLOG_DAYS = 365` is the other half. Seven of those 41 had office dates
+**one to ten years** before their registration — a court finally writing down a
+2016 board change. There is no honest date for those: the true one puts a
+decade-old change on a dashboard of this week's market and today's is a figure
+nobody stated. Declined and counted; the shipped 14-day run declines 11.
+
+### Czechia: `datumVymazu` is not a departure, and reading only the live version is not the fix
+
+The VR record is a full version history. **353 of 543 member versions on ČEZ's
+record carry a `datumVymazu` and no `zanikClenstvi`** — they are amendments.
+Martin Novák's seat beginning 2026-05-25 appears twice, the first version
+deleted five weeks later purely because his academic titles were added; he is
+still on the board. Reading `datumVymazu` as an exit reports a leaving rate
+about nine times the truth.
+
+**And the obvious repair is wrong in the other direction.** Jean-Charles Chen's
+seat at ICO 17774713 has a live version saying `Člen správní rady` with no dates
+at all, and a superseded one carrying `zanikFunkce: 2026-07-10` for
+`Předseda správní rady`. He stopped being chairman that day and stayed on the
+board, and **the only place that fact exists is the version the register has
+already deleted.** So `memberships()` groups every version on (organ, person,
+membership start) and `_events` reads them all, deduplicating a membership event
+on (kind, date) and a role event on (kind, date, role) — because one person can
+be promoted and demoted inside one unbroken membership, while the same arrival
+restated by five amendments is one row.
+
+### Czechia: the materiality filter, and the hole in it
+
+`kategoriePoctuPracovniku` code `330` is `250 - 499 zaměstnanců`, read from the
+register's own codebook at `/ciselniky-nazevniky/vyhledat` rather than assumed.
+There is no search-by-band: `EkonomickeSubjektyRegistraceFiltr` accepts an `ico`
+array and nothing else, read from the OpenAPI document at
+`/ekonomicke-subjekty-v-be/rest/v3/api-docs`. The change feed is what makes
+per-ICO lookups affordable instead.
+
+**Legal form was refused with a number.** `a.s.` joint-stock companies would poll
+1,362 in that window to find 117 material ones — **8.6% precision**, the UK
+accounts-category failure (6.35%) again and for the same structural reason:
+legal form records how a business is owned, not how many people it employs.
+
+**The hole is large, and it is on the sources page rather than only in a
+docstring.** `000 Neuvedeno` is **12,624 of 19,285 RES records (65%)** and **567
+of the 1,362 joint-stock companies (41.6%)**; another **3,207 of 22,492 (14.3%)**
+have no RES record at all; and the band goes stale (ČEZ's `datumAktualizace` is
+2023-06-29, and 75 of the 226 material companies were last updated in 2023). A
+large employer whose statistical band was never populated is missed rather than
+judged small. That is a recall hole, not a precision one.
+
+### Czechia: the citation, because two nicer-looking URLs both fail
+
+`source_url` is the API document, `ekonomicke-subjekty-vr/{ico}`. The two
+alternatives were fetched rather than assumed:
+
+* `ares.gov.cz/ekonomicke-subjekty/{ico}` is a Vue app and answers **HTTP 200
+  with the same 912-byte shell** for ČEZ and for the invented `00000001`. That is
+  the EDINET viewer trap and Korea's "Reject" body.
+* `or.justice.cz/ias/ui/rejstrik-$firma?ico=` is the Ministry of Justice's own
+  register and the nicest page for a human, but `or.justice.cz/robots.txt` says
+  `Disallow: /ias/`, which is the whole application — citing it would make
+  `link_check.py` record every Czech row as `robots` and check none of them.
+
+A bogus ICO on the API is an unambiguous **404** with
+`{"kod":"NENALEZENO", ...}`. `ares.gov.cz/robots.txt` disallows only `/cms/`.
+The Ministry of Finance states the limit as more than **500 queries a minute**
+and reserves the right to cut off anyone probing "náhodnými údaji" — random
+values; this collector never guesses an ICO, every lookup comes from the
+register's own feed, and a run sits at about a quarter of the ceiling.
+
+### Estonia: the negative is the finding, and it is bigger than the feed
+
+**`lopp_kpv` is null in 520,895 of 520,895 person rows.** The published file
+holds current office-holders only, so Estonia yields appointments and never
+departures. That sentence is in `raw_text`, in the summary, in the read-through
+and in the sources-page note, and a test requires all four — a leadership feed
+that silently reports only arrivals reads as a country where nobody ever leaves.
+
+Refused rather than worked around: `arireg.ettevotjaMuudatusedTasuline_v1`, the
+SOAP change list, needs an account and is *tasuline* (chargeable); and diffing
+yesterday's file against today's, because a vanished row may be a departure, a
+correction, a merger or a deregistration and the file states no date for any of
+them. That is Korea's roster refusal again.
+
+### Estonia: the threshold is somebody else's definition, and 250 was tried first
+
+**18,155 appointments in the 90 days to 2026-07-30 — 202 a day, ~74,000 a year**
+— from a country of 1.3 million people. `JUHL`, board member, is 446,636 of the
+520,895 rows and most of those are one-person `OÜ` micro-companies. So there is a
+threshold, from the annual reports'
+`AverageNumberOfEmployeesInFullTimeEquivalentUnits` (3,006,385 element rows ->
+194,930 figures -> 194,851 companies, joined on `report_id`):
+
+| FTE floor | companies | appointments in 365 days |
+|---|---|---|
+| 10+ | 5,449 | 808 |
+| 25+ | 1,878 | 384 |
+| **50+** | **825** | **235** |
+| 100+ | 368 | 119 |
+| 250+ | 107 | **38** |
+
+**The floor is 50**, EU Recommendation 2003/361's own line: micro under 10,
+small under 50, medium 50-249, large 250+. **250 — what `companies_house` and
+`czechia_ares` draw — was tried first and refused with its number**: 38 a year is
+under one a week, so most weekly runs would store nothing, and a collector
+returning zero is `degraded` by this repo's own rule. The threshold matching the
+UK's letter produces a connector that is broken most weeks; 50 matches its
+intent. Measured at 50 over 2026-05-01..07-30: **66 appointments in 91 days**,
+at employers from Bondora (54 staff) to BAUHOF GROUP (492).
+
+What it costs, stated: a company with no 2025 annual report has no figure and is
+excluded, so a fast-growing new employer is invisible until it files. And the
+report files are frozen at "kuni 30.06.2026", which is why
+`discover_report_files` reads the download page for the current filenames rather
+than hard-coding that date — a hard-coded URL 404s into every company failing the
+threshold, which looks exactly like a quiet fortnight.
+
+### GDPR: taken at the boundary, never persisted
+
+The owner's ruling, and both sources needed it. The Czech national open data
+catalogue states this dataset's own conditions of use as `neobsahuje autorská
+díla`, `není autorskoprávně chráněnou databází`, `není chráněna zvláštním právem
+pořizovatele databáze` (`narrowMatch` CC0) **and `obsahuje osobní údaje`** — the
+publisher itself says it contains personal data. It does: `datumNarozeni` on
+13,834 of 15,645 person rows in the material sample and a full residential
+address on 15,619. Estonia's file carries a home address on 60,930 rows, a birth
+date on 16,099, an email on 14,360 and a national-ID hash on 485,719.
+
+`scrub_person` in each collector returns given name and surname and nothing else,
+and it is the only path from the source to a row. Everything else is dropped
+before a dict exists, so no later stage can leak what it never received. The
+tests assert it end to end — a fixture that KEEPS every one of those fields,
+through `as_classified` and `validate.build_signal`, with the stored Signal
+required to contain none of them.
+
+### `validate._NUMBER` cost twelve rows before both collectors were rebuilt around it
+
+Twelve of Estonia's first 66 rows were discarded with
+`figure(s) not present in source text: ['2026b']`. The summary read "...on 9
+June 2026. BAUHOF GROUP AS reported 492 employees..." and the body read "...on 9
+June 2026. The register names the role..." — `\d[\d,.]*` matches `2026.`
+including the full stop, `_H_SPACE*` matches the space, and `B` is read as a
+magnitude suffix. This is the case `validate.py` already names and deliberately
+leaves alone ("any word starting with b, m or k still glues INSIDE a line"), and
+the 2026-07-30 newline fix does not reach it.
+
+Not fixed here — that regex has a measured reason to stay as it is, and it is
+not this brief's lane. Both collectors now **compose the summary once in `_row`
+and return it unchanged from `as_classified`**, so the summary is a literal
+prefix of `raw_text` and every figure in it is verbatim in the source by
+construction rather than by care. BAUHOF GROUP AS is in the Estonian fixture for
+exactly this, and a test asserts the prefix property on every row.
+
+Diacritics round-trip proved on real names in both collectors: `CHALOUPKOVÁ`,
+`PÁLENÍČEK`, `Kõrve`, `Rieksts-Riekstinš`, `Möldre`, `Suislep-Peets`. Nothing is
+re-cased or normalised — the register writes some people in capitals and some in
+title case, and NFKC is not a safe blanket fix.
+
+### Where this brief was wrong about the repo
+
+* **There are no TECHLOG triage entries for Norway, Spain, Finland or Poland.**
+  The brief said to read them as the discipline to apply. The 2026-07-30 triage
+  in `source_registry.py` covers IL, GB, AU, IE, FR, DE, IN, CA, JP, SG and the
+  Form 6-K dead end; none of those four appears anywhere in `docs/TECHLOG.md`.
+  Norway and Finland are mentioned once, in the MARKETS comment, as countries
+  excluded from the 2026-07-29 twelve for having no language pack. The
+  discipline was taken from the Korea and Australia entries instead.
+* **Estonia's person-row count is 520,895, not 599,289**, and appointments run
+  **202 a day**, not ~230. The zero-end-dates finding itself is exactly right:
+  0 of 520,895.
+* **The notification-batch endpoint is not guessable.** `GET
+  /ekonomicke-subjekty-notifikace/{n}` and five other shapes all 404; the real
+  path is
+  `/ekonomicke-subjekty-notifikace/datovy-zdroj/{datovyZdroj}/cislo-davky/{cisloDavky}`,
+  found only by reading `/ekonomicke-subjekty-v-be/rest/v3/api-docs` — linked
+  from `ares.gov.cz/swagger-ui/swagger-initializer.js`, whose default `url` is
+  still the Swagger petstore.
+* The 24,651-notification count, the `330` band code, the CC0 mapping, the
+  robots position, the 500-per-minute limit, the 100-ICO ceiling on the RES
+  search and Estonia's CC BY 4.0 all checked out exactly as briefed.
+
+### Neither country is in `MARKETS`, and one of the two reasons is mechanical
+
+The first is the one that keeps Japan and Korea at `discovery_only`: no run has
+gone through `run_collect` and STORED a row, and a tier is a claim about the
+connector rather than about the source.
+
+The second is arithmetic. **The segment budget is full at 56 of 56.**
+`build_segments()` spends one slot per market plus one per `terms` entry, and
+`test_the_segment_matrix_still_sweeps_inside_the_recency_window` requires
+`ceil(segments / 4 / 2) <= recency_window_days`, which is 7 at 51 locales. Two
+more markets make the sweep 8 days and the guard refuses it. Room comes from
+widening the locale rotation — a live-verified language pack, not a translation —
+and not from raising `SEGMENTS_PER_RUN`, which is a guard that exists because
+queries once asked `when:3d` while the matrix took 6.2 days. Both countries are
+listed on the sources page with a live collector behind them, which is where
+coverage is claimed truthfully today. The whole argument is written into the
+triage comment in `source_registry.py` so nobody re-derives it.
+
+### Numbers
+
+| | |
+|---|---|
+| tests | **+91**, suite green at 2,377 with 202 subtests |
+| new collectors | 2, both keyless, both `as_classified`, **$0** |
+| Czechia, real 14-day dry run | 10,483 notifications, 10,190 companies, 92 material, **108 events**, 11 backlog declined, 0 rejected |
+| Czechia by kind | 36 arrivals, 34 departures, 13 promotions, 12 role endings |
+| Estonia, real 21-day dry run | 375,305 companies, 520,895 card entries, 388 legal persons declined, 405 roles declined, **16 appointments**, 0 rejected |
+| new schedule slots | Friday 04:00 (CZ), Saturday 04:00 (EE) — the only two days `talent-collect` was free |
+| live sources on the page | 12 -> **14** |
+
+Nothing was dispatched, and `data/talent_intel.db` was never written: both dry
+runs ran against a scratch copy in a temp directory, because a dry run still
+writes a `source_health` row.
+
+---
+
+## 2026-07-30 — the audit's twelve and eleven: nine feeds wired, eight refusals written down, and Brazil is one day old
+
+`data/recall_rejection_audit.json` classifies 81 gold-set misses. Two of its
+buckets are a worklist rather than a statistic — `publisher_not_wired` (12
+misses across 7 publishers) and `publisher_unknown` (11 across 10) — and until
+today nobody had acted on either. All 17 publishers were attempted. **Nine
+feeds are wired, eight publishers are refused with the evidence written into
+the catalogue, and one was left alone because it was already exhaustively
+checked.** Every figure below was fetched live on 2026-07-30 through
+`collectors/national_press.py`'s own `robots_allows` / `fetch` / `parse` path,
+not through curl and not through a browser.
+
+`data/sources_catalogue.csv` 1,294 -> 1,305 rows; `data/feeds.csv` 653 -> 662
+feeds. New offline tests in `tests/test_audit_publishers.py`. No collector, no
+pipeline and no workflow changed: the catalogue IS the configuration, which is
+the whole point of that collector.
+
+### The judgement call: a press-release wire is not an aggregator
+
+Five of the seventeen are wires — Business Wire, GlobeNewswire, PR Newswire,
+Presseportal (news aktuell), and Yahoo Finance, which is not one but reads like
+one from the URL. "Aggregators are discovery pointers, never stored sources" is
+non-negotiable, so the question had to be answered from the policy that already
+exists rather than invented here.
+
+It already is answered, in three places that agree:
+
+- `national_press._AGGREGATOR_HOSTS` lists Google News, Yahoo News, Flipboard,
+  MSN, FeedBurner and the funding databases (Dealroom, Crunchbase, Tracxn,
+  StartupBlink, Harmonic, Beauhurst, Fundup, Magnitt, Startup Nation Central,
+  TechIreland). **No wire appears in it.**
+- `validate._BLOCKED_SOURCE_HOSTS` is the same five aggregator hosts. **No wire
+  appears in it either.**
+- The database already cites `prnewswire.com` on 3 current rows and
+  `businesswire.com` on 1.
+
+The distinction the existing policy draws is about WHOSE DOCUMENT it is. A
+release on a wire is the company's own announcement, published under its own
+name — the same class of thing as a company newsroom, which this catalogue
+already carries 16 of. Google News republishes somebody else's article and adds
+a redirect. That is why `news.crunchbase.com` is in `_EDITORIAL_EXCEPTIONS`
+while the rest of crunchbase.com is blocked: the test is the reporting, not the
+domain's other businesses. We have over-blocked by analogy once already, and
+this is the shape it takes.
+
+So the wires were treated as wireable and each one failed or passed on its own
+merits. Four of the five still ended up refused, and **not one of those
+refusals is a policy refusal** — three are mechanical and one is Yahoo.
+
+**Yahoo Finance is the exception, and it is a policy refusal.** `news.yahoo.com`
+is in both sets above, both of which are reduced to registrable domains, so
+`yahoo.com` is blocked on every subdomain — `finance.yahoo.com` included. A feed
+listed for it would be refused at load time and print a line in the run log
+twice a day forever. The existing answer to a syndicated release is
+`validate.prefer_canonical`, which follows the document's own `rel=canonical` to
+the publisher and stores that instead; the audit's own miss here is described as
+"Clinigen press release via Yahoo Finance", which is exactly the case that
+function was measured on.
+
+### Wired: nine feeds, all verified through the collector's own path
+
+| publisher | country / coverage | feed | items | newest |
+|---|---|---|---|---|
+| LatamList | Latin America (regional) | `/feed/` | 10 | 0d |
+| European Biotechnology Magazine | Europe (regional) | `/feed/` | 10 | 0d |
+| pv magazine | Europe (regional), Global | `/feed/` | 10 | 0d |
+| Techla Media | Spain, Regional (es) | `/feed/` | 10 | 0d |
+| Business Upturn | India | `/feed.xml` | 25 | 0d |
+| The Motley Fool Australia | Australia | `/feed/` | 20 | 0d |
+| Presseportal (Wirtschaft) | Germany | `/rss/wirtschaft.rss2` | 15 | 0d |
+| Presseportal (Finanzen) | Germany | `/rss/finanzen.rss2` | 15 | 0d |
+| TNGlobal (TechNode Global) | Singapore, Regional | `/feed/` | 25 | 0d |
+
+Run as a population through `national_press.collect(feeds=..., dry_run=True)`:
+**9 feeds live, 0 not answering, 140 items, 3 duplicate URLs, 137 returned, of
+which 21 pass the free prefilter (15%)** — against ~11% for the pipeline as a
+whole. LatamList alone keeps 7 of 10, because it publishes almost nothing except
+funding rounds.
+
+Four things worth not rediscovering:
+
+1. **Business Upturn's feed is at `/feed.xml` and nowhere else.** All fourteen
+   other candidate paths 404 and the HTML head declares no `rel="alternate"`, so
+   the only way to it is probing. A session that stops after `/feed/` and `/rss/`
+   concludes the publisher has no feed.
+2. **`technode.global` is a different publication from `technode.com`**, which
+   this catalogue already carried. Shanghai and Singapore, separate registrable
+   domains, so nothing de-duplicates them and the second is a real addition.
+3. **Presseportal's advertised feed is the firehose.** Its `rel="alternate"`
+   points at `presseportal.rss2`, which is every release including the police
+   blotter; `/rss/` lists 38 subject feeds and the two that match our pillars are
+   `wirtschaft` and `finanzen`. Both are wired; `PER_HOST_PAUSE` spaces them.
+4. **Three of the nine state no home country** (LatamList publishes no imprint,
+   European Biotechnology's imprint renders behind a form, pv magazine's
+   `/imprint/` 404s). Each is recorded with the region convention this file
+   already uses — `Latin America (regional)`, `Europe (regional)` — rather than a
+   guessed seat, and all three carry `coverage` Regional or Global, so
+   `national_press.dateline()` says "regional" and claims no country either way.
+   A guessed seat would have been worse than no seat: it is a hint fed to the
+   model.
+
+### Refused, with the numbers, so nobody probes them again
+
+| publisher | verdict | evidence |
+|---|---|---|
+| CTech (`calcalistech.com`) | no feed exists | already established on 2026-07-30: 21 paths, robots, and 20,000 Wayback captures. **Not re-probed.** 4 misses, the largest single share |
+| Business Wire | nothing fetchable | `robots.txt` itself now answers **HTTP 403** to our UA, so its terms are no longer readable, and all 15 candidate paths 403 through both Accept sets |
+| GlobeNewswire | publisher's own terms | `robots.txt` is 200 and names the feed: `Disallow: /SubscribeToRss/` and `Disallow: /newsroom/rss/`. 13 other paths 404, `/rss/news` is HTTP 500, no `rel=alternate` |
+| PR Newswire | no feed published | robots allows (only `/templates/*`, `/widget-landing-page.html`, `/multivu/`); 11 of 15 paths 404 and 4 answer 200 with 0 parseable items; no `rel=alternate` |
+| Yahoo Finance | policy | `yahoo.com` is an aggregator registrable domain in both blocklists. See above |
+| Tech.eu | publisher's own terms | re-verified: `robots_allows("https://tech.eu/feed/")` is still False. Withdrawal from 2026-07-29 stands |
+| Business Standard (Companies) | bot wall | re-verified: `/rss/companies-101.rss` still HTTP 403 through both Accept sets |
+| FinSMEs | WAF, not terms | robots is 200 and **permissive for us** (only Ahrefs, scrapy, Semrush, BLEX, Dot, MJ12, Grapeshot are disallowed), yet 13 of 15 paths answer **403**, including `/feed/`. We already hold **10 stored rows citing finsmes.com**, all via google_news, so the outlet is reachable and only its feed is closed |
+| WeAreAquaculture | thin, therefore degraded | `/feed/` is 200 and redirects to `/stories.rss`, well-formed RSS carrying **exactly one `<item>`** — an 8,401-byte body, verified twice, and undiscoverable from the HTML head. At two runs a day a one-item feed carries at most two stories a day and silently drops the rest |
+
+**A news sitemap is not a substitute, and this is measured rather than assumed.**
+Both GlobeNewswire and PR Newswire advertise `Sitemap:` lines for news sitemaps,
+which is the last resort the search order calls for. Fetched through
+`national_press.fetch()`, `sitemaps.globenewswire.com/news-en.xml` and
+`www.prnewswire.com/sitemap-news.xml` each yield **0 items**: `parse()` looks for
+RSS `<item>` or Atom `<entry>` and a sitemap has `<url>`. The same is true of the
+three `wp-json/wp/v2/posts` rows already in the catalogue (Citinewsroom,
+Techweez, Techzim) — all three read `dead` or `empty` in the last health ledger.
+**Do not catalogue a sitemap or a JSON API as an `rss` feed**; it produces a row
+that looks wired and reports `empty` forever.
+
+### Brazil, measured rather than assumed
+
+The owner asked why Brazilian startup funding is thin: 11 stored BR rows against
+13 Brazilian feeds. The three candidate explanations were dead feeds, a
+Portuguese keyword gate rejecting everything, and deferral at the read cap. It is
+none of them in any interesting sense.
+
+- **The feeds work.** Last recorded sweep: 13 BR feeds, **12 ok**, 1 dead
+  (TI Inside, HTTP 403 — transient; it returned 25 items today), **156 items,
+  every one 0–1 days old.** A live re-fetch today returned **181 items** across
+  the same 13.
+- **The prefilter is not eating them.** Of those 181, **25 pass the free
+  prefilter — 13.8%**, against the ~10.9% the pipeline averages (9,308 fetched,
+  8,290 filtered, per `run_collect`'s own recorded figures). **Brazil is above
+  the average, not below it.** Reject reasons: 155 "no employment, site or
+  work-policy term", 1 off-topic. A silent Portuguese gate would show as ~0%,
+  and this is the check that rules it out.
+- **It is a history problem, which is the audit's verdict for the corpus as a
+  whole.** `national_press` first ran on 2026-07-29 and holds **88 current rows
+  in total, across every country**. BR is **9 of those 88 — the largest
+  single-country share of the collector's output**, ahead of AU 7, IN 5, CN 5,
+  DE 4, CA 4. Brazil is not underperforming; the collector is one day old. The
+  other 2 BR rows are SEC filings from April.
+- **The read cap is a real but secondary constraint.** BR is 156 of the
+  collector's 10,723 items (**1.5%**), so at `READTHROUGH_CAP` 200 and a fair
+  share, Brazil buys roughly three reads a run.
+
+**One real finding, small and worth its own line.** Re-reading the 156 rejected
+items against a richer Portuguese vocabulary, **2 are genuine misses**:
+"Governança Brasil tem novo CRO" (a leadership appointment) and "Com a agtech
+Ecotrace, GS1 Ventures faz seu primeiro aporte" (a funding round). That is ~1.3%
+of rejects, so it is a gap and not a bug. The cause is visible in
+`prefilter._EMPLOYMENT_TERMS_INTL`: **Portuguese carries ten terms and exactly
+one funding phrase, `rodada de investimento`**, while the everyday Brazilian
+wording is `capta` / `captação` / `aporte` / `levanta R$` / `Série A`. Czech and
+Turkish each got a measured expansion after exactly this kind of read; Portuguese
+never has. Deliberately NOT changed here — `pipeline/prefilter.py` is another
+session's file this week — and recorded so it can be done as its own measured
+change. Note it is not costing us everything it looks like it might: "Einship,
+startup de IA para comércio exterior, capta R$ 5,3 milhões" IS stored, because
+the body carried a term the gate knows.
+
+### What is asserted
+
+`tests/test_audit_publishers.py`, six tests, offline, no network:
+
+- every domain the audit named in the two actionable buckets exists in the
+  catalogue;
+- each is **either wired or refused in writing** — an empty `rss` AND an empty
+  `feed_checked` fails, because that is indistinguishable from nobody having
+  looked;
+- a refusal carries **at least 200 characters of note**, so the next session
+  inherits what was tried rather than repeating it;
+- nothing from the audit was wired on an aggregator registrable domain, checked
+  against `_AGGREGATOR_DOMAINS` itself;
+- the wire precedent is pinned: no host containing `newswire`, `businesswire` or
+  `presseportal` may enter `_AGGREGATOR_HOSTS` without someone deliberately
+  changing this test and explaining the rows already in the database;
+- a wired row records **what the feed returned** (item count and newest age) in
+  `feed_checked`, because "a feed that returns nothing is degraded, not
+  coverage" has to be checkable after the fact.
+
+Matching is on the **registrable domain**, imported from
+`collectors.national_press` rather than reimplemented. There are already two
+copies in this repo (the collector and `analysis/recall/rejection_audit.py`); a
+third deciding which publishers count as handled would be the one that goes
+stale first.
+
+**+6 offline tests.** The whole suite reads **2,367 passing** in this working
+tree, which also holds two other sessions' in-flight files (`czechia_ares`,
+`estonia_ariregister`, a press-archive walker); only the six above and the two
+generated data files below belong to this change.
+
+`data/sources.json` and `data/feeds.csv` are both GENERATED —
+`build_sources_json.py` and `build_feeds_export.py`. Never hand-edit either;
+`tests/test_sources_page.py` and `tests/test_national_press.py` each fail if you
+do.
+
+---
+
+## 2026-07-30 — historical press: a sitemap is an archive and an RSS feed is not, and the honest ceiling is four of fifty-one
+
+`collectors/press_archive.py` + `backfill_press_2026.py` +
+`.github/workflows/backfill-press-2026.yml`, dispatch-only, 41 new offline
+tests. Every figure below was fetched from live publishers on 2026-07-30, and
+three of the premises this started from turned out to be wrong when the real
+sources answered. Those are recorded here rather than quietly worked around,
+because each one is the kind of mistake that produces a confident number.
+
+### Why anything was built at all
+
+`data/recall_rejection_audit.json`: of 81 gold-set misses, **zero were fetched
+and rejected**. There is no filter defect anywhere in this product. **51 are
+`outside_our_history`**, every one published between **2026-07-01 and
+2026-07-17**, against news collectors that first ran on 2026-07-27 and a
+`national_press` that first ran on 2026-07-29. We did not miss them; we did not
+exist.
+
+`national_press` reads 653 publisher feeds and can never help: **an RSS feed is
+a window, not an archive.** It serves the last few dozen items and
+`MAX_ITEMS_PER_FEED` takes 25 of them, which on a daily is two or three days.
+Nothing in the RSS route reaches 2026-07-01 at any price. A publisher's XML
+sitemap is a different document with a different promise, written for crawlers
+that want the whole site.
+
+### Route A: publisher sitemaps. Measured with the shipping code, 82 publishers
+
+Against **2026-03** — a month that predates us AND is out of reach of a
+48-hour news sitemap, which is the only kind of test month that cannot be faked.
+
+| | |
+|---|---|
+| serve a discoverable sitemap | 72 / 82 (88%) |
+| reach 2026-03 with a dated article URL | **34 / 82 (41%)** |
+| ... with 50 URLs or more | 25 / 82 |
+| ... with 100 or more | 23 / 82 |
+| URLs per reaching publisher, one month | median 163, mean 233 |
+| past the free prefilter on the SLUG | 244 / 7,910 (**3.08%**) |
+| past it on the real title+teaser | ~5.6% (11 of 60 against the slug's 6) |
+| wall clock | 980s for all 82, median 5.3s each |
+| robots.txt refusals | 0 |
+
+### Where the brief and the first pass were both wrong
+
+**1. `<lastmod>` does not locate a month, and counting it overstates reach by
+half.** A first probe counted lastmod months and reported **54 of 72 publishers
+"reaching 2026-07"**. That is nonsense twice over. A section page's `<lastmod>`
+moves to today whenever a story is added to it, so WirtschaftsWoche's
+`sitemapExternal` index (a list of TOPICS: "cisco", "chiphersteller") and
+Baguete's seven URLs of site furniture both scored. And a 48-hour news sitemap
+read on 30 July trivially "reaches July": **PR TIMES scored 942 July URLs that
+way and actually reaches four.**
+
+Worse, the obvious selection — "fetch every child whose lastmod is not older
+than the window" — is wrong on a real index. SmartCompany's `sitemap_index.xml`
+lists 105 children:
+
+    post-sitemap.xml            lastmod 2026-07-29   contents 2006-12..2007-08
+    post-sitemap45.xml          lastmod 2013-08-29   contents 2013-07..2013-08
+    post-sitemap89.xml          lastmod 2026-07-29   contents 2026-04..2026-07
+    site-post-tag-sitemap5..9   lastmod 2026-07-30   contents TAG PAGES
+    news-sitemap.xml            lastmod 2026-07-29   contents the last 48 hours
+
+Page ONE of a chronologically paginated set carries the whole site's newest
+modification date while holding posts from 2006. What IS reliable is the
+ordering, so `locate_children()` **bisects the largest paginated family**:
+July 2026 is one fetch instead of 105, bounded at `MAX_PROBES = 9`, and a family
+whose probes come back out of order is abandoned rather than trusted. Every
+probe's body is handed back through the caller's cache, so a child fetched to
+locate the window is never fetched again to read it.
+
+**2. A sitemap has no headline, and the slug is not a substitute.** `<urlset>`
+gives a URL and a date. The free prefilter — the whole reason breadth is
+affordable — has nothing to read. Three sources of text, measured:
+
+* **the slug**: free, 3.08% survival, and **zero for PR TIMES
+  (`/tv/detail/3164`) and CTech (`0,7340,L-3723664,00.html`)**. A prefilter that
+  returns zero for Japan, Korea and Israel while looking healthy in English is
+  the same silent-zero failure `tests/test_locale_rotation.py` exists to prevent
+  one layer up. So the slug **ORDERS and never rejects**, and there is a test
+  saying an unreadable slug still produces a candidate.
+* **`<news:title>`** where the sitemap carries it: 17 of 72 publishers. Free and
+  exact, used when present.
+* **the article's own `og:title` / `og:description`**: the two fields a
+  publisher writes so other people may quote the piece, which is what an RSS
+  teaser is built from. 0.17s each on a keep-alive session, and 11 of 60
+  SmartCompany URLs past the prefilter against the slug's 6. Only the first
+  `HEAD_BYTES` (200KB) of the response is read and no body text is taken.
+
+**3. Route B, the Wayback CDX API, is refused as a walk route — and the query
+shape everyone reaches for first is the one that fails.**
+
+| query | result |
+|---|---|
+| `url=<domain>/*` + a date range | **HTTP 504 after exactly 60s, every domain tried** |
+| `url=<domain>/&matchType=prefix` + dates | 200 on 6 of 8 domains, 7-29s each; 504 on the other 2 |
+| `url=<domain>` (exact) | 200, 7.3s |
+| 6-query burst with no pause at all | 5x 200, 1x 504 |
+
+**No 429 was observed at any point in ~20 queries.** archive.org's failure mode
+here is a gateway 504, not a documented throttle with `Retry-After`. The
+`ArchiveUnknown` rule covers 429, 5xx and timeouts alike, because the property
+being guarded is "did not answer", not a particular number — and a non-answer
+read as an empty result is how a throttle becomes a coverage claim nobody
+re-checks.
+
+The decisive finding is different and worse: **the CDX date range is a CAPTURE
+window, not a publication window.** Asking for captures between 2026-07-01 and
+2026-07-20 returned FINSMES articles from **2013 and 2014** and Wamda articles
+from **2012**, because a crawler visiting a site in July 2026 re-captures a
+decade of its pages. CDX cannot target a historical month at all. Combined with
+7-60s per domain and a quarter of domains answering 504, 653 publishers is
+hours of wall clock against a 50-minute slice budget. `wayback_urls()` stays in
+the collector for a named dead publisher, called by hand, and is wired into
+nothing.
+
+### The cursor walks PUBLISHERS, and that is the one structural difference
+
+A GDELT or Google News day costs a fetch. A publisher's sitemap costs the same
+fetch whether the window is one day or six months — the date is a FILTER over
+rows the document returned anyway. A date cursor would therefore "finish"
+2026-01-01..04 having downloaded every publisher's whole 2026 and thrown 99% of
+it away, then download it all again for the next four days. So the unit is
+`slices`, the same one `backfill_slices.UNITS` documents for `companies_house`,
+and **widening the window is free**: dispatching 2026-01-01..2026-07-26 costs
+exactly what one week costs.
+
+The property `tests/test_backfill_pace.py` asserts is unchanged and now asserted
+for this walker too — two runs in the same clock second walk two different
+roster slices — plus a new one: **a run that stopped on its budget after 5 of 40
+publishers finishes NO roster index**, emits an unmoved cursor, and is correctly
+refused a requeue. Advancing on "we got some of the way through" would leave 35
+publishers unvisited with the run count looking perfect.
+
+### Cost, and the refusal
+
+At the ledger's measured prices (gate $0.00003, read $0.00128, gate survival
+15%, so $0.000222 all-in per gated candidate), scaled to 653 feeds: ~271
+publishers reach an arbitrary 2026 month at ~233 URLs each, ~5.6% candidates,
+so ~3,500 candidates per month of history — about 115 per day of history against
+the Google News walker's measured 395.
+
+| | |
+|---|---|
+| one month of history, EVERY candidate gated | **$0.78** |
+| a year of 2026 the same way | **$9.42** |
+| GDELT's whole year | $4.51 |
+| the Google News walker's year | $3.02 |
+
+**A full-depth sweep is more expensive than either walker already built, so it
+is refused.** The gate is rationed instead, exactly as `backfill_gnews_2026.py`
+does and for its reason: a read-only ceiling STALLS a walker (the ceiling binds
+inside slice one, no unit finishes, the cursor never advances, and the chain
+halts behind a green exit code), whereas a ration lets a slice FINISH partially
+read. `SLICE_GATE_RATION = 75` is DERIVED from `MONTHLY_WALKER_BUDGET_USD =
+0.50` — the smallest of the three walkers, because GDELT holds $1.50 and Google
+News $1.00 and those two are already half the ~$5 product budget. A pass over
+the roster is **17 slices and $0.28**, reading 36% of a one-month window;
+everything past the cut is left UNMARKED, so a second pass costs the same and
+buys entirely different rows.
+
+### The honest coverage estimate, which is why this is not a recommendation
+
+Of the 51 `outside_our_history` misses, **11** are on a domain this collector
+sweeps at all. The other 40 are on domains in the catalogue without a feed (20)
+or not in the catalogue at all (20) — a SOURCE problem wearing a history
+problem's clothes, which no history walk can fix. Each of the 11 was then run
+through this collector for the real gold window, 2026-07-01..07-26:
+
+| publisher | misses | result | reachable |
+|---|---|---|---|
+| SmartCompany | 3 | 218 URLs, 22 of 26 days | YES |
+| THE BRIDGE | 1 | 65 URLs, 12 of 26 days | LIKELY |
+| PR TIMES | 2 | 4 URLs (root index points at /tv/; main sitemap is the 48h news one) | NO |
+| Globes | 2 | 0 URLs, news sitemap only | NO |
+| Wamda | 2 | 0 URLs, serves no sitemap at all | NO |
+| BetaKit | 1 | 0 URLs, news sitemap only | NO |
+
+**So the ceiling is 4 of 51, about 8%, before the ration cuts it further.** That
+is why this ships dispatch-only with its cost table attached rather than as
+advice to run it. The Google News walker reaches all 51 in principle
+(`widest_route` is `google_news` for every one of them) and is limited only by
+its ration; **if one walker is to be dispatched for this measured miss, it is
+that one.**
+
+### Proven, and not proven
+
+Proven: `--fetch-only` over the catalogue's first 12 publishers,
+2026-07-01..07-26, real network. 11 publishers read in 6 minutes (33s each,
+which is what sized `PUBLISHERS_PER_SLICE = 40` rather than 60), **6 of 11
+reached back into the window**, 1,833 URLs, 48 headlines at a deliberately small
+`--max-heads 8`, 14 past the free prefilter, real Cameroonian, Zimbabwean and
+Congolese leadership and jobs headlines at the gate boundary.
+`data/talent_intel.db` byte-identical before and after.
+
+NOT proven: a real `--dry-run`, which classifies and therefore costs money. No
+model has read a single item from this collector and no row has been stored.
+`data/press_archive_health.json` does not exist yet.
+
+One consequence to know before the first real run: a `press_archive` row carries
+`source_name` = the publisher's own name, which
+`source_registry.COLLECTOR_BY_SOURCE_NAME` already maps to `national_press`. The
+sources page will therefore attribute it to that collector. That is defensible —
+the SOURCE is the publisher either way and only the route differs — but it means
+the page will not show `press_archive` as a running collector, and it must not
+be "fixed" by typing a second map in PHP.
+
+`staleness.py` gets `press_archive: 2400`, the dormant/dispatch-only leash, to be
+tightened the day a pace is chosen. `drain-writers.yml` watches the new workflow,
+so a slice cannot finish without waking the drainer.
+
+---
+
+## 2026-07-30 — the canonical decides who published it, CTech has no feed to wire, and the audit that says why we miss things is finally printed
+
+Three fixes from one brief. Every figure below is measured; two of the brief's
+own premises turned out to be wrong when the code and the live hosts were read,
+and both are corrected here rather than quietly worked around.
+
+### 1. `finance.yahoo.com`: block on the CANONICAL host, not the requested one
+
+`validate._BLOCKED_SOURCE_HOSTS` matched on the EXACT host and listed
+`news.yahoo.com`, so `finance.yahoo.com` and `sg.finance.yahoo.com` were never
+compared to anything. **Three current rows** were cited to an aggregator.
+
+The part that makes this a design fault rather than a missing entry:
+`collectors/national_press.py` had ALREADY learned this and derives its
+`_AGGREGATOR_DOMAINS` from the registrable domain, with a test
+(`test_finance_yahoo_is_already_blocked_and_needs_no_second_entry`) asserting
+that `finance.yahoo.com` is covered. So one rule lived in two layers, the two
+disagreed, and **the layer deciding what may be STORED was the weaker of the
+two.** `validate` now derives its domain set the same way, from the same host
+list, so a host added to one is blocked on every subdomain of the other.
+
+**A blanket domain block would have been wrong, and the canonicals say so.**
+Checked live on 2026-07-30:
+
+| row | `rel=canonical` |
+|---|---|
+| 7-Eleven | `www.cstoredive.com/news/7-eleven-names-new-ceo/826096/` |
+| Haus Cramer Gruppe | `www.just-drinks.com/news/haus-cramer-gruppe-names-new-ceo/` |
+| HSBC (`sg.finance.yahoo.com`) | **itself** |
+
+Two of the three are a publisher's article behind a syndication URL and one is
+the aggregator all the way down. `cstoredive.com` is a publisher this corpus
+**already reads directly** — it holds Iowa 80 Group and Warrenton Oil rows from
+that outlet. Refusing all three on the host would have thrown away two
+publishers we can name, for a tidier rule.
+
+So `validate.prefer_canonical()` follows the pointer and REWRITES `source_url`
+to the publisher before anything else is judged, which is CLAUDE.md's
+"aggregators are discovery pointers" being kept rather than excepted. It never
+fetches: the canonical must be supplied by whatever read the page, because
+validate runs on every candidate before any money is spent and a network call
+there would be a per-candidate one.
+
+**Backward half: `correct_aggregator_sources.py`.** Its worklist is DERIVED — it
+asks `validate.is_aggregator_host()` the same question the write path asks — so
+it covers whatever the next edit to that function moves, and needs no new
+script. Run against a COPY of the database, because backfills were draining
+through the writer queue at the time and the committed database is theirs:
+
+```
+3 current rows cited to an aggregator
+  7-Eleven            -> C-Store Dive   revised, rev1 is_current=0, rev2 current
+  Haus Cramer Gruppe  -> Just-Drinks    revised, rev1 is_current=0, rev2 current
+  HSBC                -> LEFT ALONE (canonicalises to itself)
+repaired 2, left for a human 1
+```
+
+**It does not retract.** A row whose canonical is the aggregator itself is
+printed, named and left; an automatic retraction driven by an HTTP response
+would let a publisher's bad afternoon delete evidence, which is the reasoning
+`link_check.py` already carries.
+
+Three things measured rather than assumed:
+
+- **`content_hash` does NOT move.** `source_name` reaches it only through
+  `strip_outlet_suffix()`, and the hashed payload is
+  `company_key|pillar|published_date|normalised_headline`. Neither headline
+  carries a trailing " - Outlet", so both fingerprints are unchanged
+  (`dded0fa4b713`, `c4df895b98c8`). The script ASSERTS this and refuses rather
+  than proceeding if it ever stops being true, because a moved fingerprint means
+  the live row can never be matched again.
+- **`og:site_name` has to be read from the PUBLISHER's page.** Read off the
+  aggregator's copy, both rows came back labelled "Yahoo Finance" — the exact
+  name this pass exists to stop citing. One extra fetch gets "C-Store Dive".
+- **Blast radius of registrable-domain matching: zero.** Across 15,711 current
+  rows, `google.com` 0, `msn.com` 0, `flipboard.com` 0, `yahoo.com` 3. No
+  catalogue feed sits on any of those domains.
+
+**The part that does not reach the live page, stated plainly.**
+`tit_correctable_columns()` is `signal_direction, talent_readthrough, city,
+region, country`. `source_url` and `source_name` are in neither it nor the
+enrichable set, so this corrects the repo's memory and NOT the page. Because the
+fingerprint is stable, widening that allowlist would be enough; nothing needs a
+withdraw-and-republish.
+
+11 new tests in `tests/test_canonical_source_host.py`, including the two cases
+that matter most: a canonical pointing at ANOTHER aggregator is not followed,
+and a canonical never rescues a row that fails a different check.
+
+### 2. CTech: the brief's premise is wrong, and the empty column is a finding
+
+The brief said CTech's `rss` column is empty "and the reason is mundane", asking
+for a one-field fix. **There is no feed to put in it.** Re-verified 2026-07-30
+against the live host with the collector's own browser UA:
+
+| checked | result |
+|---|---|
+| `/ctechnews` | 200, 186,208 bytes, **no `rel=alternate`**, and no rss/feed/.xml URL anywhere in the markup |
+| 21 candidate feed and sitemap paths | **all 404** |
+| `robots.txt` | 200, 34 lines, every one a `Disallow`, **no `Sitemap:` directive** |
+| the legacy "RSS FOR CALCALISTECH" page a search surfaces | itself **404** since the `/ctechnews` relaunch |
+| Wayback CDX, **20,000** captures on the domain | **no feed URL, ever** — every hit is an article URL with a `/feed/` suffix that 404ed at capture time |
+| parent `calcalist.co.il` | **403** on every path including the legacy `GeneralRSS` one |
+
+The catalogue row already said this and it was right. It now also carries the
+21 paths and the Wayback result, dated, so **no future session repeats the
+probe.** The drift guard cannot be "armed for the host" because with no `rss`
+the row is never loaded as a `Feed` at all; `expected_domains` has nothing to
+compare.
+
+**And the outlet is not unreachable.** Measured: **2 current rows cite
+`calcalistech.com`, both found through `google_news`**, which resolves each item
+to the publisher's own article URL. Israel has **10** publisher feeds actually
+loaded by the collector (Globes x3, Geektime, NoCamels, Techtime, Haaretz, Ynet,
+Jerusalem Post, Israel Innovation Authority).
+
+The audit is more precise than "4 of 81": Israel has **9** misses — **5
+`outside_our_history`** and **4 `publisher_not_wired`**, and all four of the
+latter are CTech, while three of the five former are CTech too. So a feed, had
+one existed, would have closed 4 and not 7. The real options are an HTML
+collector against `/ctechnews`, or `google_news`, which already reaches it. The
+discovery backstop is NOT one of them: it is country-scoped by design and says
+so in its own header, and Israel already has ten direct feeds.
+
+### 3. The rejection audit is printed now, as a diagnosis
+
+`data/recall_rejection_audit.json` had been produced since 2026-07-29 and
+surfaced NOWHERE — nothing ran it on a schedule, nothing committed it, and
+`ops_status.py`, the file every session is told to run first, did not mention
+it. Three links in that chain, all three now asserted by
+`tests/test_rejection_audit_surfaced.py`, because any one breaking leaves the
+other two looking fine:
+
+1. `recall.yml` **runs** it (`--write`), after the measurement so it audits the
+   corpus that measurement just scored, `continue-on-error` so a lost diagnosis
+   can never cost the recall figure that is the point of the job.
+2. `recall.yml` **commits** it, in `paths`.
+3. `ops_status.py [3c]` **prints** it.
+
+It reads as a roadmap, not a scoreboard, and the zero is read aloud:
+
+```
+[3c] WHY WE MISS WHAT WE MISS  (the feed roadmap, from the gold set)
+    measured 2026-07-28 on gold set 2026-07-v1: held 8 of 89, missed 81
+      0   0%  fetched_then_dropped   a filter rejected it
+     51  63%  outside_our_history    older than the collector
+                                       -> BACKFILL. Not filters, not sources
+     12  15%  publisher_not_wired    researched, not connected
+     11  14%  publisher_unknown      not researched
+      7   9%  feed_read_item_missed  feed depth or run cadence
+    READ THE ZERO: no filter has ever rejected a gold event. The corpus is
+    young, not leaky.
+```
+
+Every percentage is computed from the file, and a test asserts that rather than
+trusting it. **Deliberately not an ACTION NEEDED item**: a young corpus is not a
+fault, and a permanent red on a number only time can move would train the next
+session to ignore the exit code. A test pins that too.
+
+**One thing the audit gets wrong, found while wiring it and NOT fixed here:**
+its `unwired_publishers` list names `yahoo.com` as a publisher with 1 miss. It
+is an aggregator, which fix 1 above now enforces on the write path, so that row
+is a target that cannot be wired. `businesswire.com`, `globenewswire.com` and
+`prnewswire.com` sit in the same list and are wire services rather than
+publishers, which is a different argument and a real one. Left alone because it
+is the audit's own classification and changing it changes a published number.
+
+### Not done, and it is the big one
+
+**The competitor diff (`tracker_diff` in the sibling) was NOT built.** It is the
+largest gap in this tracker's learning loop and it costs $0, and it is a whole
+collector plus a chase path plus a feedback ledger; started at the end of a long
+session it would have been a half-built source, and a source that forgets
+`raw_text` posts zero records silently. Two constraints for whoever picks it up,
+both found in this session's work rather than in the brief:
+
+- **Import `registrable_domain`, do not write a third one.** There are ALREADY
+  two in this repo — `collectors/national_press.py` and
+  `analysis/recall/rejection_audit.py` — and a third, deciding which competitor
+  events count as ours, would be the one that matters most and the likeliest to
+  go stale. `pipeline/validate.py` needed the same function this session and
+  imports it (deferred, so `pipeline` takes no module-level dependency on
+  `collectors`).
+- The sibling's substring bug the brief describes is the same class of fault as
+  the yahoo one fixed above: an exact-or-substring host test where the question
+  is really about who owns the domain.
+
+### Measured
+
+| | |
+|---|---|
+| offline tests | 2,263 pass (was 2,172 at session start; other work landed in parallel) |
+| PHP harnesses | 6 pass |
+| `ops_status.py` | exits 2 before and after, for five collectors stale on wall-clock time and nothing here |
+| model calls added | **0**. Both new paths are HTTP and string comparison |
+| rows written to `data/talent_intel.db` | **0** — corrections proved on a copy, because backfills held the real one |
+
+## 2026-07-30 — the filter sidebar is reversed into a frozen bar, and the column was what squeezed the table
+
+Plugin **1.55.0 -> 1.56.0**. **This reverses the sidebar shipped in 1.54.0.**
+That pass built a 262px sticky column of seven capped scrolling checkbox boxes,
+to my predecessor's instruction, reading the owner's "filters dont move with the
+page a like the layoff one" as a request for the sibling's layout. The owner has
+now seen it on the live page and asked for the opposite. It was not always the
+plan and this entry does not pretend it was.
+
+The owner sent two complaints, and they are one complaint:
+
+1. "the formatting do you see this? Make them more compact" — the What Happened
+   column wrapping to one word per line.
+2. "the filter so complicated with the scrolling up and down should we move
+   those to above the stuff and compact and have it frozen on top when you
+   scroll down??"
+
+**(2) causes (1), and that is measured rather than argued.** The column plus its
+20px gap took 282px. Rendered at 1280px against the real stylesheet:
+
+| | 1.55.0 | 1.56.0 |
+|---|---|---|
+| filter panel width | 264px | 0 (it is a bar) |
+| `.tit-results` width | 876px | **1,158px** |
+| table width | 994px | 1,158px |
+| **What Happened column** | **97px** | **187px** |
+| table needs a horizontal gesture at 1280px | **YES** (994 into 874) | **no** |
+| elements past the viewport edge at 1280px | 155 | **0** |
+
+The 97px is the whole of complaint (1): a cell carrying a headline AND a
+read-through, in 97px. Widening that column alone would only have taken the
+space from another one, which is why the brief's instruction to fix the layout
+first and re-measure was right.
+
+### What replaced it
+
+A compact bar above the results, `position:sticky` at `top:0`, holding every
+control as ONE LINE. Each multi-value filter is a button carrying its own name
+and a printed count; its checkboxes live in a panel that exists only while it is
+open. The checkboxes did not change — `pillify()` still renders the same
+`.tit-optrow` inputs from the same `<select multiple>`. What changed is that all
+seven groups no longer have to be on screen at once, which was the entire cost
+of the column.
+
+**The flat alternative was refused.** Seven open checkbox lists laid across the
+top is the same wall of options in a worse place, and the brief said so.
+
+**Compactness, measured at 1280px with all fourteen controls present:**
+
+| | height |
+|---|---|
+| labels stacked above controls | 280px (31% of a 900px viewport) |
+| labels inline, 10px gutter, 158px control ceiling | 193px, three wrapped rows |
+| labels inline, 8px gutter, 140px ceiling | **141px, two wrapped rows** |
+
+The last two numbers are three pixels apart in cause: at a 10px gutter the
+fourteenth cell missed the second row by 3px and wrapped alone onto a third.
+Both constants are commented in `dashboard.css` as load-bearing. Nothing breaks
+if a longer vocabulary pushes it back to three rows — it is a bar, it wraps —
+but neither number may be widened without re-measuring.
+
+Location became a dropdown too, and that trade is stated rather than hidden: its
+value stops being readable on the bar, which is a real loss for the most-used
+filter here. It buys the qualifier ("Only Countries A Source Named") travelling
+with the control it qualifies instead of sitting on the bar as a 200px sentence
+beside an unrelated control, and it is what took the bar from 193px to 141px.
+The chips bar directly below already names the chosen place in words and offers
+the way out of it.
+
+### The phone, decided rather than inherited
+
+Fourteen controls at 390px is four wrapped rows, and a sticky four-row bar pins
+most of the viewport — the same mistake rotated. Below 900px the bar is its head
+only: one **Filters** button with the chips count on it, opening the controls
+beneath it as a sheet **in normal flow**, not fixed. A fixed sheet either traps
+the page scroll or floats over the rows it filters, and the jump bar already
+holds the fixed-position budget at the bottom of this page. The bar also stops
+being sticky there, because two pinned bars fight — which is a finding from the
+sibling's own history, not a guess.
+
+Measured at 390px: **body `scrollWidth` 390 = `innerWidth` 390, 0 elements past
+the viewport edge, 0 containers needing a horizontal gesture** — collapsed, with
+the sheet open, and with a dropdown panel open. Unchanged from 1.55.0, which was
+also 0/0/0.
+
+### Three defects caught by measuring, two of which would have shipped
+
+1. **`.tit-bar` was already taken.** It is the chart bar TRACK
+   (`height:8px`), used by `places.php`, `shortcodes.php` and `dashboard.js`.
+   The new bar rendered 10px tall. Renamed `.tit-filterbar`; the rename then
+   over-matched and swallowed three chart rules, which the same measurement
+   caught on the next pass.
+2. **Converting the `<label>` wrapper to a `<div>` dropped `hidden`.** A
+   `<label>` forwards a click to its own control, so a trigger button inside one
+   also activates the select it hides; the wrapper therefore has to stop being a
+   label. Copying only `class` and `id` lost the `hidden` attribute, and **five
+   always-empty facet controls appeared on the bar** — Employer Type, Work
+   Setup, Funding Stage, Deal Type, Site Change — which is precisely the failure
+   that attribute exists to prevent. Now every attribute is copied except `for`.
+3. **The help disclosure escaped its own `<details>`.** `position:absolute` on a
+   child of a closed `<details>` defeats the UA's hiding, so the panel rendered
+   permanently, over the controls, on a disclosure reporting itself shut. It
+   showed up as two elements overflowing at 390px rather than by being looked
+   at. Now hidden explicitly, and anchored to the bar head rather than to the
+   summary — anchored to the summary it started at x=104 on a 390px screen and
+   ended 80px off the right edge.
+
+A fourth, found and fixed the same way: a panel open across a **resize** keeps
+an `is-flipped` decision made for a viewport that no longer exists. Opened at
+390px and widened to 1280px it ran 59px past the edge and put a scrollbar on the
+body. A `resize` listener closes whatever is open.
+
+### What did not move
+
+- **No new state channel.** The `<select multiple>` is still the state. The
+  querystring, chips bar, exports, quick views, click-to-filter, matrix cells
+  and facet refills read and write it exactly as before; the dropdown layer
+  hangs off `pillify()` and `dropCount()` and nothing else. Verified in a real
+  DOM: two ticks fire **exactly two** change events and select two options; an
+  untick fires one and leaves one; an **external write followed by a repaint**
+  (what a chart tap, a deep link and Reset All all do) re-renders the checkboxes
+  and the badge to match. That last case is the one that silently rots.
+- **No-JS still gets working native controls.** Verified with the script tag
+  removed: bar fully open at 305px, toggle hidden, `<select multiple size="5">`
+  rendered at 140x131 and usable, labels, date inputs, place select and basis
+  checkbox all visible. Every part of the dropdown layer is built at runtime, so
+  a page whose script never ran is missing nothing.
+- **Config still rides on `data-` attributes**, and nothing was added to
+  `wp_localize_script`. No new inline object for Autoptimize to reorder.
+- **`TIT_DASH_QUERY_BUDGET` untouched at 12 cold / 0 warm.** The N+1 tripwire
+  reports the same count. This pass added no query.
+- **Markup 166,802 -> 167,299 bytes** (+497, +0.30%), inside the budget.
+- The routine-filings disclosure, the chips bar, the honesty surfaces and every
+  control label are unchanged. Title Case is still asserted and still passes.
+
+### Accessibility, where this is deliberately better than the pattern it copies
+
+The sibling's dropdown has no Escape handler, no focus return, no
+`:focus-visible` on the trigger, sets `aria-expanded` only on first interaction,
+and claims `aria-haspopup="listbox"` over a panel containing no listbox roles.
+All five are fixed here: Escape closes and **returns focus to the trigger**
+(verified: `document.activeElement === trigger`), the trigger has a focus ring,
+`aria-expanded` is set at construction, and nothing claims a listbox — what is
+in the panel is a group of checkboxes and that is what it says. Tabbing out
+closes the panel; a click on the panel's own padding does not, because that
+reports a null `relatedTarget` and closing on it would shut the panel under the
+reader's finger.
+
+### Tests
+
+`render_dashboard.php`'s assertion that the panel is a COLUMN is replaced by one
+that the bar comes **before** the results in the document, plus three new ones:
+the phone toggle exists, ships `hidden`, and carries `aria-expanded` at
+construction. One existing assertion was also corrected rather than bumped: it
+counted `aria-controls=` across the whole page and asserted 2, which quietly
+meant "no other element on this page may ever control another" — the filter
+bar's toggle legitimately points at the panel it opens and failed a test about
+tab semantics. It now counts per tab element.
+
+The harness gained an optional `TIT_DUMP_HTML` env var that writes the rendered
+markup out for measuring in a real browser. Off by default. It exists because
+three of this page's properties cannot be asserted from a string — whether
+sticky actually pins, whether anything overflows 390px, and how wide a column
+ends up — and the sticky one fails silently.
+
+**6 PHP harnesses pass, 2,181 offline tests pass.**
+
+### NOT DEPLOYED, and the reason is the same as last time
+
+The brief asked for a deploy and a live verification. My standing instruction is
+**do not push**, and `deploy-plugin.yml` uploads from a checked-out git ref, so
+shipping this needs the branch pushed first. Publishing to the live site is also
+the owner's call to make and not an agent's. So 1.56.0 is committed and
+unshipped; the live page stays on 1.55.0. Everything in the tables above was
+measured against the real render in a real browser, not against the source. The
+one thing NOT verified is how it LOOKS: screenshots came back blank from this
+pane, so every claim here is a measurement and none of them is an eyeballing.
+
 ## 2026-07-30 — the writer queue stopped for six hours behind eleven green ticks
 
 **Root cause: one input the workflow does not declare.** At 17:42:17Z a GDELT
@@ -4240,3 +5290,223 @@ reached the classifier.
   real Danish funding headlines read as clean misses.
 
 Measured keep rates after: 19% / 11% / 16%, the band the English gate already sits in.
+
+---
+
+## robots.txt: the file that breaks without breaking
+
+Two sitemap lines had to reach `robots.txt`. It is served from disk by Apache
+before WordPress runs, so no plugin, filter or REST route can add them — it is an
+upload. And it is the `.htaccess` danger class one layer out: a truncated
+`robots.txt` still answers 200, the site renders identically, nothing goes red,
+and the domain quietly stops being crawled. The first symptom is a traffic graph
+three weeks later.
+
+So `robots_sitemaps.py` reuses the shape `includes/htaccess.php` already proved
+on this host — keep the old bytes, write, probe the live URL, restore on any
+doubt — with two additions that file does not need. The probe is **cache-busted**,
+because Cloudflare will serve the pre-write copy back and make a failed write
+look like a success. And the probe **retries a 5xx**, because this host 500s at
+random under load and a rollback triggered by somebody else's bad minute is an
+outage we caused.
+
+**The remote path is never guessed.** An FTP account here is chrooted, so a path
+from the control panel is not what the session sees, and writing to the wrong
+`robots.txt` is unrecoverable in the only sense that counts: we would not know.
+The file is fetched over HTTP first, then a candidate remote path is accepted
+only if its bytes are **identical to what that URL just served**. No match, no
+write. The root target additionally refuses any path containing `/blog/`, because
+two copies holding identical bytes would otherwise let the root target adopt the
+blog file and report two successes for one write.
+
+It is a separate workflow from `deploy-plugin.yml` on purpose. That one refuses
+to write anywhere but `WP_PLUGIN_REMOTE_DIR`, which is the guard that keeps it
+away from the live sibling product. No cron, ever: this is one edit to one file.
+
+### What was actually there
+
+The brief said two copies, each holding only the `sitemap_index.xml` line. There
+is **one**, and it holds four directives:
+
+| URL | status | bytes | type |
+|---|---|---|---|
+| `/blog/robots.txt` | 200 | 175 | `text/plain` |
+| `/robots.txt` | 200 | 13,181 | `text/html` |
+
+The apex has no `robots.txt` at all. It answers `/robots.txt`,
+`/definitely-not-here-xyz123.txt` and every other unmatched path with the same
+13,181-byte "Coming soon" landing page. The content-binding refuses it on its
+own, and the refusal says why rather than "served HTML": putting a file there is
+a **create**, not an edit, and a root `robots.txt` where none existed changes the
+crawl rules for the whole domain in one step.
+
+Which matters more than it looks. RFC 9309 has a crawler read `/robots.txt` at
+the host root **and nowhere else**, so the `Sitemap:` lines in
+`/blog/robots.txt` — the existing `sitemap_index.xml` one included — are read by
+nothing. Adding two more is correct, harmless, idempotent, and **will not on its
+own get either sitemap crawled**. That needs a real file at the apex or a Search
+Console submission, and it is a decision, not a default.
+
+### The first real dispatch refused, and that is the entry
+
+Run `30577050236`, `dry_run=false targets=blog`:
+
+```
+Refusal: blog: no remote file matched what https://asktherecruiter.com/blog/robots.txt
+serves. Tried ['/blog/robots.txt', '/public_html/blog/robots.txt',
+'blog/robots.txt', 'public_html/blog/robots.txt'].
+```
+
+The FTP session is rooted somewhere none of the four hand-written candidates
+reach. **Nothing was written and the live file is unchanged.** This is the whole
+argument for content-binding, and it is worth being explicit about the
+counterfactual: a version of this job that trusted a path from the control panel
+would have written a `robots.txt` into whatever directory the session happened to
+land in, reported success, and left the owner believing the file was updated. The
+file it created would be read by nothing, the file it was meant to update would
+be untouched, and no run, log or page would ever have said so. Silent and
+permanent, and the design is what made it a clean refusal instead.
+
+Two fixes, both required, neither of them a fifth blind guess:
+
+* **Derive from a path already proven to work.** `deploy-plugin.yml` mirrors into
+  `WP_PLUGIN_REMOTE_DIR` successfully with these same credentials, so it is a
+  real remote path for this exact account. `<wp-root>/wp-content/plugins/tit`
+  walks up three levels to the WordPress root, which is where a robots.txt
+  lives. That candidate is tried FIRST and is exempt from the name-shape filters
+  — those exist to discipline guesses, and this is not one — but it is not
+  exempt from anything that matters: it must still serve byte-identical content
+  before a byte is written. The shape of the secret is checked rather than
+  trusted, so a secret that stops being a plugin directory derives nothing at
+  all rather than a plausible wrong path.
+* **Make a refusal diagnostic.** When nothing matches, the run now prints the
+  login directory the server chose, every parent of it, the parent of every
+  candidate tried, and `/` — with the entries in each and a marker on any that
+  holds a `robots.txt`. Read only, and it runs under `dry_run` too. A server
+  that refuses a listing says so: an empty report and a forbidden one are
+  different facts, and printing nothing for both is how the next dispatch learns
+  nothing either.
+
+**One assertion changed shape, deliberately.** The test that used to say
+`secrets.WP_PLUGIN_REMOTE_DIR` never appears in `deploy-robots.yml` was a proxy
+for the thing worth protecting, and the proxy broke the day that secret turned
+out to be the only working remote path we have. Reading it to derive a candidate
+to LOOK at widens no write path. So the test now asserts the property itself:
+this job never writes inside `wp-content`, and `deploy-plugin.yml` still has no
+robots.txt write path of its own. `NEVER_WRITE_INSIDE` enforces it three times —
+in `candidate_paths`, in `process`, and last in `FtpTransport.write` — because
+one refusal is one edit from gone.
+
+### The URL and the filesystem belonged to different servers
+
+The owner listed the account, and the ground truth explains both refusals.
+
+The blog file is at **`/public_html/AskTheRecruiter.com/blog/robots.txt`**. The
+mixed-case domain directory is why all four generic candidates missed — none of
+them carried a domain segment, let alone a capitalised one. It is now a
+candidate, and `WP_PLUGIN_REMOTE_DIR` derives the same prefix, so the general
+form works for any account laid out this way. It is still content-checked before
+a write: a path that was right last month is not evidence about today.
+
+The apex refusal was more correct than it looked. `https://asktherecruiter.com/`
+is **not on this host at all** — `/robots.txt` returns a 13,181-byte "Coming
+soon" page built by Cloudflare, 25 of whose stylesheet references are
+`/cf-fonts/`, and only `/blog/` routes through to Bluehost. So the content check
+was comparing a file on Bluehost against a response from Cloudflare, and **no
+file on the one could ever have equalled the other**. There is a
+`/public_html/AskTheRecruiter.com/robots.txt` sitting on Bluehost and it is
+served to nobody.
+
+That failure mode is worth a name: **the URL and the filesystem belong to
+different servers.** Nothing in a status code, a byte count or a `server:`
+header says so — Cloudflare proxies both, so both answer 200 with
+`server: cloudflare`. The only signal was that no file matched, and a job that
+resolved paths by convention instead would have written into a real directory,
+got a 200 back from a page it had not touched, and reported success. The
+`root` refusal now names the reason and where the file would actually have to
+go, because "served HTML" cost an hour to interpret and "Cloudflare builds this
+page, not cPanel" costs none.
+
+Standing conclusion, since the two lines themselves are done: the apex file was
+added by hand and both sitemaps are submitted in Search Console, so the value
+left here is the mechanism, not the lines. What it is worth keeping is the
+property it proved twice in one afternoon — **a deploy that verifies its target
+by content refuses loudly in exactly the cases where a deploy that trusts a
+path would have succeeded silently.**
+
+---
+
+## What the tripwire costs
+
+Derived before arming it, from the prompt and the price list, because at the time
+`analysis/tripwire/results/` did not exist and
+`tests/fixtures/tripwire_reply.json` is a captured *shape* carrying no token
+counts. There was no run to read.
+
+**Model.** `perplexity/sonar` (`ask.MODEL`, overridable by `TIT_TRIPWIRE_MODEL`).
+OpenRouter's endpoint API prices it at **$1.00/M prompt, $1.00/M completion,
+$0.005 per web search**. `_call()` skips the web plugin for any model whose name
+contains `sonar`, so nothing pays OpenRouter's per-result plugin fee on top.
+
+**Queries per run.** `COUNTRIES_PER_RUN` is derived, not chosen:
+`int(1.00 / 0.02) = 50` queries a month, minus the 18-industry sweep, over 8 runs
+= **4**. So an ordinary run issues 4 queries. One run a month also carries the
+full sweep (`industries_due()` is derived from the dated result files), making it
+**22** — exactly `MAX_QUERIES_PER_RUN`.
+
+**Tokens per query.** The prompt is exact: `SYSTEM` 285 chars + `SCHEMA` 868 +
+the question ≈ **1,433 chars**, ~**410 tokens** at 3.5 chars/token (the range
+across 3.0–4.0 is 358–478). The reply is bounded by `LEADS_PER_QUERY = 8`, and
+the fixture's items serialise at 242 chars each, so a full reply is ~1,946 chars,
+~**560 tokens** (487–649).
+
+| | per query |
+|---|---|
+| search fee | $0.00500 |
+| ~410 prompt tokens | $0.00041 |
+| ~560 completion tokens | $0.00056 |
+| **total** | **$0.0060** |
+
+**The search fee is 84% of it.** Token size is nearly irrelevant here, which is
+worth knowing before anyone shortens the schema to save money.
+
+The one stated uncertainty was whether OpenRouter reports Perplexity's retrieved
+search context inside `prompt_tokens` (~3–6k), which would push a query to
+$0.008–$0.011. It does not appear to: `schedule-link-hygiene.yml` records
+**$0.0058 a query measured on a live run**, within 3% of the derivation and
+below it, so the upper regime did not materialise. That figure is a comment, not
+a committed result file — `analysis/tripwire/results/` is still empty here — so
+the first committed run is what settles it for good. `usage.include` is already
+on and `report.cost_block` already records it.
+
+**Therefore**, at the Monday+Thursday 07:00 UTC slot (8.67 runs/month, near
+enough the 8 `plan.py` is sized on — the slot now lives in
+`schedule-link-hygiene.yml` as a ticket rather than as a cron in `tripwire.yml`,
+for the eviction reason that file explains):
+
+- ordinary run, 4 queries: **$0.024**
+- monthly sweep run, 22 queries: **$0.13**
+- **month: 53 queries, ~$0.31–$0.32**
+
+against the $1.00 cap in `plan.TRIPWIRE_MONTHLY_USD`. The pessimistic
+$0.02/query the cap was sized on is **~3.4× the real price**, so the plan is
+conservative in the right direction and arming it needed no change to the cap.
+
+### What the money buys
+
+It is the only component that discovers sources nobody told us about. The
+rejection audit is unambiguous about where the misses are: of 81 recall misses,
+**0 were fetched and dropped** — no filter problem at all — while **23 are a
+source problem**, 12 at publishers we have researched but not wired
+(`calcalistech.com` 4, `businesswire.com` 2, `globenewswire.com` 2) and **11 at
+10 publishers nobody has ever heard of here**: `latamlist.com`,
+`european-biotechnology.com`, `finsmes.com`, `pv-magazine.com`, `techla.pro`.
+A wiring backlog is work; an unknown-publisher list is *not knowable* from
+inside, and that is precisely the gap a search-backed outside view closes. With
+27 countries measured at zero recall and 4 asked about per run, a month walks
+roughly a third of them. Leads are claims and die in the work list;
+`collectors/tripwire_chase.py` converts them by finding the publisher's own
+article, so the yield is measured in confirmed misses, and
+`usd_per_confirmed_miss` stays "not yet measurable" until it has stored
+something. For about $0.31 a month, the question is not whether it pays for
+itself but whether we would rather keep guessing which publishers exist.

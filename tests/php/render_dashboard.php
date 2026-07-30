@@ -536,22 +536,64 @@ check(strpos($html, 'Only Updates That Move Headcount') === false,
       'and the label that promised a headcount column is gone from the page');
 
 /*
- * THE PANEL IS A COLUMN BESIDE THE ROWS.
+ * THE CONTROLS ARE A BAR ABOVE THE ROWS.
  *
- * The owner: "filters dont move with the page a like the layoff one". A
- * full-width block cannot usefully be sticky because it is taller than the
- * viewport, so the panel had to become a column first. This asserts the
- * structure that makes the stylesheet's position:sticky possible at all; the
- * sticky itself is a media query and cannot be checked from markup.
+ * This REPLACES the assertion that they were a column beside the rows, which
+ * shipped in 1.54.0 and which the owner has since seen and rejected: "move
+ * those to above the stuff and compact and have it frozen on top when you
+ * scroll down". The column cost the table 282px of a 1340px content width and
+ * that is what wrapped the What Happened cell to one word per line.
+ *
+ * The structure is what can be checked from markup. `position:sticky` is a
+ * stylesheet rule and cannot be, which is exactly why it is verified in a real
+ * DOM instead and the measurement recorded in the TECHLOG.
  */
-foreach (array('tit-feed', 'tit-panel', 'tit-panel-head', 'tit-panel-body',
+foreach (array('tit-feed', 'tit-filterbar', 'tit-panel-head', 'tit-panel-body',
                'tit-results') as $cls) {
     check(strpos($html, 'class="' . $cls) !== false
           || strpos($html, ' ' . $cls . '"') !== false
           || strpos($html, '"' . $cls . '"') !== false,
-          "the feed layout needs .{$cls}, or the panel is a full-width block "
-          . 'again and sticky has nothing to pin');
+          "the feed layout needs .{$cls}, or the bar is not above the rows");
 }
+/*
+ * THE BAR IS BEFORE THE ROWS IN THE DOCUMENT, not merely present.
+ *
+ * A bar that renders after the table would still satisfy every class check
+ * above and would still be sticky; it would simply pin the wrong thing. Source
+ * order is also what a reader with no CSS and a reader on a screen reader get,
+ * and both should meet the controls before the rows they control.
+ */
+check(strpos($html, 'class="tit-filterbar"') < strpos($html, 'class="tit-results"'),
+      'the filter bar has to come BEFORE the results in the document, or the '
+      . 'controls are below the table for anyone without the stylesheet');
+
+/*
+ * THE PHONE AFFORDANCE SHIPS INERT.
+ *
+ * The bar collapses to one button below 900px, and that button is revealed by
+ * script. Shipped visible it would be a control that opens nothing for a reader
+ * whose JavaScript never ran, and the bar they get is already open.
+ */
+check(strpos($html, 'id="tit-bar-toggle"') !== false,
+      'the phone bar needs its Filters toggle in the markup');
+check(preg_match('/id="tit-bar-toggle"[^>]*\shidden/', $html) === 1,
+      'and it must ship `hidden`, because script is what makes it do anything. '
+      . 'A no-JS reader gets the whole bar open instead');
+check(preg_match('/id="tit-bar-toggle"[^>]*aria-expanded="false"/', $html) === 1,
+      'with aria-expanded set at construction rather than on first use: a '
+      . 'trigger that reports no state until somebody has already pressed it '
+      . 'tells a screen reader nothing at the moment it matters');
+
+/*
+ * THE DATE RANGE IS ADDRESSABLE.
+ *
+ * It is the one dropdown whose panel holds inputs rather than a checkbox group,
+ * and dashboard.js finds that cell by id. Without the id the two date inputs
+ * stay flat on the bar, which is 260px of a control that says "no dates chosen"
+ * on almost every page view.
+ */
+check(strpos($html, 'id="tit-field-daterange"') !== false,
+      'the date range cell needs its id, or script cannot make it a dropdown');
 // Reset moved to the top of the panel and kept its id, so the same handler
 // binds it. Two elements with that id would bind only the first.
 check(substr_count($html, 'id="tit-reset"') === 1,
@@ -787,8 +829,20 @@ check(strpos($html, 'role="tablist"') !== false
       && substr_count($html, 'role="tab"') === 2
       && substr_count($html, 'role="tabpanel"') === 2,
       'the tabs have to be real tabs: a tablist, two tabs and two panels');
-check(substr_count($html, 'aria-selected=') === 2 && substr_count($html, 'aria-controls=') === 2,
-      'each tab states whether it is selected and which panel it controls');
+/*
+ * Counted PER TAB, not across the page. This asserted `substr_count($html,
+ * 'aria-controls=') === 2` and so quietly meant "no other element on this page
+ * may ever control another": adding the filter bar's own phone toggle, which
+ * legitimately points at the panel it opens, failed a test about tab semantics.
+ * A test should fail for the thing it names.
+ */
+preg_match_all('/<button[^>]*\brole="tab"[^>]*>/', $html, $tab_tags);
+check(count($tab_tags[0]) === 2, 'two tab buttons');
+foreach ($tab_tags[0] as $tag) {
+    check(strpos($tag, 'aria-selected=') !== false
+          && strpos($tag, 'aria-controls=') !== false,
+          'each tab states whether it is selected and which panel it controls');
+}
 
 /*
  * NEITHER PANEL MAY BE HIDDEN IN THE MARKUP.
@@ -901,6 +955,9 @@ check(($GLOBALS['tit_enqueued']['script_data']['tit-dashboard']['strategy'] ?? '
  */
 $bytes = strlen(str_replace('TEST FIXTURE ', '', $html));
 $GLOBALS['tit_bytes'] = $bytes;
+// The full-corpus render, kept for the optional browser dump in finish(). Not
+// the trimmed one below it, which exists only to prove a suppression.
+$GLOBALS['tit_dump_html'] = $html;
 check($bytes <= TIT_DASH_BYTE_BUDGET,
       'the markup must stay inside ' . number_format(TIT_DASH_BYTE_BUDGET)
       . ' bytes and was ' . number_format($bytes)
@@ -1129,6 +1186,26 @@ function finish($phase) {
         printf("  budget ok: %d queries cold, none warm.\n", TIT_DASH_QUERY_BUDGET);
         exit(0);
     }
+    /*
+     * OPTIONAL: write the rendered markup out, for measuring in a real browser.
+     *
+     * Three of this page's properties cannot be asserted from a string and have
+     * to be measured in a layout engine: whether `position:sticky` actually
+     * pins, whether anything overflows a 390px viewport, and how many pixels
+     * wide a given table column ends up. Every one of those has shipped broken
+     * here while the markup was correct, and the sticky one fails SILENTLY.
+     *
+     * Off by default and gated on an environment variable, so the harness stays
+     * a test rather than a build step, and it writes nowhere near the repo
+     * unless asked. Nothing reads the file back: it is for a human or an agent
+     * driving a browser.
+     */
+    $dump = getenv('TIT_DUMP_HTML');
+    if ($dump) {
+        file_put_contents($dump, $GLOBALS['tit_dump_html']);
+        fwrite(STDERR, "wrote markup to {$dump}\n");
+    }
+
     // The budget needs a process where nothing has rendered yet.
     $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' budget';
     passthru($command, $status);

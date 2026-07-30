@@ -25,6 +25,31 @@ _EMPLOYMENT_TERMS = (
     # matches an endless supply of AI-strategy think pieces.
     r"leadership (?:structure|team|reshuffle|shake-?up|transition)",
     r"management team", r"executive team", r"board appoint\w*",
+    # C-suite acronyms, sitting in the ENGLISH block because they are not
+    # English -- they are untranslated in every language we query, which is
+    # exactly why they belong here rather than repeated eleven times below.
+    # Found 2026-07-30: "Governanca Brasil tem novo CRO" was rejected by the
+    # gate because its only signal was the acronym, and the line above only
+    # matches an acronym when an English verb ("names") precedes it. A Spanish
+    # "Nombran nuevo CMO" or a Japanese headline fails identically.
+    #
+    # Safe to match bare because these tokens are rare outside a corporate
+    # leadership context and a false positive costs $0.00003 at the gate, where
+    # a false negative costs the record. CEO/CFO/CTO were already reachable via
+    # the "names ... " pattern and are listed here so the set is complete and
+    # no future reader has to work out which four were missing and why.
+    # The (?!-\w) is load-bearing: without it "Cro-Magnon" matched, because a
+    # hyphen is a word boundary. No acronym here is ever the first half of a
+    # hyphenated word in the copy we read.
+    #
+    # KNOWN LIMIT, not fixed here: this whole term list is wrapped in \b...\b,
+    # and \b does not fire between a Japanese or Chinese character and a Latin
+    # one -- both are word characters -- so "新しいCEOが就任" does NOT match.
+    # That is a property of the wrapper, affects every term rather than these,
+    # and quietly weakens the gate for CJK markets. Fixing it means changing
+    # how the whole expression is anchored, which is a bigger change than this
+    # one and wants its own measurement against real Japanese and Korean feeds.
+    r"c(?:e|f|o|t|r|m|i|s|d|p)o\b(?!-\w)", r"chro\b(?!-\w)", r"cxo\b(?!-\w)",
     r"salar\w+", r"pay(?:rise|\srise)?", r"wages?", r"bonus\w*", r"compensation",
     r"remote work", r"hybrid work\w*", r"return to office", r"four-day week",
 )
@@ -114,10 +139,24 @@ _EMPLOYMENT_TERMS_INTL = (
     r"empleos?", r"empleados?", r"contrata\w*", r"plantilla", r"puestos?",
     r"consejero delegado", r"director general", r"dimit\w+", r"salarios?",
     r"ronda de financiaci\w*n",
-    # Portuguese
+    # Portuguese. The hiring side was fine; the FUNDING side had exactly one
+    # phrase, "rodada de investimento", which is the formal register and not
+    # what Brazilian business copy actually writes. Measured 2026-07-30 by
+    # re-reading the 156 items the gate rejected in one Brazilian sweep: 2 were
+    # genuine misses (~1.3%), "Governanca Brasil tem novo CRO" and "GS1
+    # Ventures faz seu primeiro aporte". The verbs below are the ones those
+    # newsrooms use -- captar, aportar, levantar -- plus the round names, which
+    # appear in Portuguese copy untranslated.
+    #
+    # Deliberately NOT added: bare "rodada" (a round of talks or fixtures),
+    # bare "levanta" (levantamento is a survey) and bare "capta" without a
+    # tense ending (captura). Each would have widened the gate far past the
+    # 1.3% it is meant to recover, and a gate that lets everything through is
+    # the read budget spent on nothing.
     r"empregos?", r"funcion\w*rios?", r"contrat\w+", r"vagas?", r"quadro de pessoal",
     r"presidente-executivo", r"diretor-?geral", r"demiss\w+", r"sal\w*rios?",
-    r"rodada de investimento",
+    r"rodada de investimento", r"aportes?", r"aportou", r"capta\w*ão", r"captou",
+    r"levantou", r"s\w*rie [a-f]\b", r"pr\w*-seed", r"investimento semente",
     # Italian
     r"posti di lavoro", r"dipendenti", r"assunzion\w+", r"assumer\w+", r"organico",
     r"amministratore delegato", r"dimission\w+", r"stipend\w+",

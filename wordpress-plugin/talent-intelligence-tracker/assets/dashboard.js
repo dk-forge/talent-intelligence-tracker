@@ -1025,6 +1025,10 @@
     if (!el || !el.multiple) return;
     var host = el.closest('label') || el.parentElement;
     if (!host) return;
+    host = asDropdown(host, el.getAttribute('aria-describedby'));
+    // Before the early return below, not after it: the option set is unchanged
+    // on most repaints and that is exactly when a value was just ticked.
+    dropCount(host, multiValues(el).length);
     var group = host.querySelector('.tit-optbox');
     if (!group) {
       group = document.createElement('div');
@@ -1034,7 +1038,7 @@
       // .tit-field-l beside it), so hand the same name to the box that has
       // replaced it rather than leaving a bare scroll container.
       if (el.id) group.setAttribute('data-for', el.id);
-      host.appendChild(group);
+      (host.querySelector('.tit-dd-panel') || host).appendChild(group);
       el.classList.add('tit-select-hidden');
       el.tabIndex = -1;
       el.setAttribute('aria-hidden', 'true');
@@ -1085,6 +1089,177 @@
     }).join('');
   }
 
+  /* --- CHECKBOX DROPDOWNS ----------------------------------------------------
+     WHY THE CHECKBOXES MOVED BEHIND A BUTTON.
+
+     They did not stop being checkboxes. Everything written above pillify() about
+     why a checkbox beats a native list box and beats a pill row still holds, and
+     the checkboxes it renders are the same checkboxes. What changed is that all
+     seven groups no longer have to be on screen AT ONCE.
+
+     That was the whole cost of the sidebar. Seven capped scrolling boxes stacked
+     in a column is 262px of width the table cannot have, and the owner read the
+     result on the live page: the What Happened column, which carries a headline
+     and a read-through, wrapped to one word per line. A group that is a button
+     until you want it costs one line of a wrapped bar.
+
+     THE NATIVE SELECT IS STILL THE STATE, and this layer adds no new state
+     channel of any kind. The querystring, the chips bar, resets, the matrix
+     cells, click-to-filter, the exports and the facet refills all read and write
+     the select exactly as before, and pillify() re-renders from it. Everything
+     here is built at RUNTIME, so a reader whose script never ran gets the bar
+     with plain native controls in it and nothing missing.
+
+     Three things the sibling tracker's version of this control does not do, each
+     one a real defect rather than a preference: Escape does not close it and
+     focus is never returned to the trigger; the trigger has no :focus-visible
+     ring; and the panel is absolutely positioned at left:0 with no flip, so the
+     rightmost control on a row pushes a scrollbar onto the body. All three are
+     handled below. Its trigger also claims aria-haspopup="listbox" over a panel
+     that contains no listbox roles at all; ours does not claim one, because what
+     is in there is a group of checkboxes and that is what it says.
+  */
+  var openDrop = null;
+
+  function closeDrop(returnFocus) {
+    if (!openDrop) return;
+    var was = openDrop;
+    openDrop = null;
+    was.panel.hidden = true;
+    was.panel.classList.remove('is-flipped');
+    was.btn.setAttribute('aria-expanded', 'false');
+    if (returnFocus) was.btn.focus();
+  }
+
+  function openDrop_(rec) {
+    closeDrop(false);
+    rec.panel.hidden = false;
+    rec.btn.setAttribute('aria-expanded', 'true');
+    openDrop = rec;
+    /* Flip only when it would actually run off, and measure rather than guess:
+       the trigger's position depends on how the bar happened to wrap, which no
+       breakpoint can know. `clientWidth` excludes the scrollbar, which is the
+       measurement that decides whether the body gets a SECOND one. */
+    var room = document.documentElement.clientWidth;
+    if (rec.panel.getBoundingClientRect().right > room - 8) {
+      rec.panel.classList.add('is-flipped');
+    }
+  }
+
+  /* Turn a filter cell into a trigger plus a panel, once. Idempotent: pillify()
+     runs on every repaint and must find the dropdown it built last time. */
+  function asDropdown(field, describedBy) {
+    if (!field) return field;
+    if (field.classList.contains('tit-dd')) return field;
+
+    /* A <label> forwards a click on itself to its own control, so a <button>
+       inside one activates the hidden select as well as the trigger. The
+       wrapper therefore stops being a label the moment it contains a button.
+       The select it labelled is display:none, tabindex -1 and aria-hidden by
+       then, so it is out of the accessibility tree and has no name to lose. */
+    if (field.tagName === 'LABEL') {
+      var div = document.createElement('div');
+      /* EVERY attribute, not a chosen few. Copying only class and id lost
+         `hidden`, and `hidden` is what keeps a facet control whose column is
+         still empty off the page: five always-empty controls -- Employer Type,
+         Work Setup, Funding Stage, Deal Type, Site Change -- appeared on the
+         bar offering nothing, which is the exact failure the hidden attribute
+         was added to prevent. `for` is dropped because it means nothing on a
+         div and would be a dangling reference. */
+      for (var a = 0; a < field.attributes.length; a++) {
+        var at = field.attributes[a];
+        if (at.name !== 'for') div.setAttribute(at.name, at.value);
+      }
+      while (field.firstChild) div.appendChild(field.firstChild);
+      field.parentNode.replaceChild(div, field);
+      field = div;
+    }
+    field.classList.add('tit-dd');
+
+    var lab = field.querySelector('.tit-field-l');
+    var name = lab ? lab.textContent.trim() : 'Filter';
+    /* The visible label is now the button's own text. Kept in the DOM rather
+       than deleted because the date range names its group through it with
+       aria-labelledby, and an aria reference resolves to a hidden element. */
+    if (lab) lab.hidden = true;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tit-dd-btn';
+    // Set at construction, not on first interaction: a trigger that reports no
+    // expanded state until somebody has already used it is telling a screen
+    // reader nothing at exactly the moment it matters.
+    btn.setAttribute('aria-expanded', 'false');
+    if (describedBy) btn.setAttribute('aria-describedby', describedBy);
+    btn.innerHTML = '<span class="tit-dd-btn-t"></span>' +
+      '<span class="tit-dd-n" hidden></span>' +
+      '<span class="tit-dd-caret" aria-hidden="true"></span>';
+    btn.querySelector('.tit-dd-btn-t').textContent = name;
+
+    var panel = document.createElement('div');
+    panel.className = 'tit-dd-panel';
+    panel.hidden = true;
+    if (field.id) {
+      panel.id = field.id + '-panel';
+      btn.setAttribute('aria-controls', panel.id);
+    }
+
+    field.appendChild(btn);
+    field.appendChild(panel);
+
+    var rec = { field: field, btn: btn, panel: panel };
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (openDrop === rec) closeDrop(false);
+      else openDrop_(rec);
+    });
+    // Ticking a checkbox must not close the panel it is in; one at a time is
+    // enforced by openDrop_ rather than by an overlay.
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+    // Tabbing out of the panel closes it. Only when there IS a new focus
+    // target: a click on the panel's own padding reports relatedTarget null,
+    // and closing on that would shut the panel under the reader's finger.
+    field.addEventListener('focusout', function (e) {
+      if (openDrop !== rec) return;
+      if (e.relatedTarget && !field.contains(e.relatedTarget)) closeDrop(false);
+    });
+    return field;
+  }
+
+  document.addEventListener('click', function () { closeDrop(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && openDrop) {
+      e.stopPropagation();
+      closeDrop(true);
+    }
+  });
+  /* A resize closes whatever is open, and this is not tidiness.
+     `is-flipped` is decided ONCE, from where the trigger stood when it opened,
+     because deciding it continuously would mean measuring on every scroll of a
+     sticky bar. So a panel that survives a resize keeps a decision made about a
+     viewport that no longer exists: measured here, a panel opened at 390px and
+     then widened to 1280px sat at left:0 of a trigger that had wrapped to the
+     right-hand end, ran 59px past the edge and put a horizontal scrollbar on
+     the BODY -- the one thing this page is not allowed to do. Closing is also
+     the honest response to the reader's viewport changing under them.
+     Orientation change fires `resize` in every engine we care about. */
+  window.addEventListener('resize', function () { closeDrop(false); });
+
+  /* The count is printed, and the trigger also changes fill and weight. Never
+     colour alone, and never the fill alone either: "3" answers "how many" where
+     a tinted button only answers "some". */
+  function dropCount(field, n) {
+    if (!field) return;
+    var btn = field.querySelector('.tit-dd-btn');
+    var badge = field.querySelector('.tit-dd-n');
+    if (!btn || !badge) return;
+    badge.textContent = String(n);
+    badge.hidden = n === 0;
+    btn.classList.toggle('is-on', n > 0);
+  }
+
   /*
     THE "HOW TO READ THIS" BLOCK STARTS CLOSED ON A PHONE, OPEN EVERYWHERE ELSE.
 
@@ -1109,8 +1284,63 @@
     if (window.matchMedia('(max-width: 860px)').matches) d.open = false;
   }
 
+  /* The one dropdown whose panel is not a checkbox group.
+
+     Two date inputs are about 260px side by side, and on a bar they would say
+     "no dates chosen" in that space on almost every page view. Behind a trigger
+     they cost one slot and still open to the same two labelled inputs, which is
+     the sibling tracker's From/To pattern unchanged. The count is a count of
+     BOUNDS set, so a reader who set only a start sees 1 and knows why the page
+     narrowed. */
+  var dateField = document.getElementById('tit-field-daterange');
+
+  function syncDateDrop() {
+    if (!dateField) return;
+    asDropdown(dateField);
+    var panel = dateField.querySelector('.tit-dd-panel');
+    var range = dateField.querySelector('.tit-daterange');
+    // The inputs are server-rendered inside the cell, so unlike the checkbox
+    // groups they are moved rather than built.
+    if (panel && range && range.parentNode !== panel) panel.appendChild(range);
+    var n = 0;
+    if (inputs.since && inputs.since.value) n++;
+    if (inputs.until && inputs.until.value) n++;
+    dropCount(dateField, n);
+  }
+
+  /* Location is a dropdown too, and it is the one where the trade is worth
+     stating. Its current value stops being readable ON the bar, which is a real
+     loss for the most-used filter here. It buys two things: the qualifier that
+     changes what the select MEANS travels with it instead of sitting on the bar
+     as a 200px sentence next to an unrelated control, and the bar drops from
+     three wrapped rows to two -- 193px of frozen chrome to 150px. The chips bar
+     directly under it already names the chosen place in words and offers the
+     way out of it, so the value is still on screen, once, where every other
+     applied filter is also named. */
+  var placeField = document.querySelector('.tit-primary-where');
+
+  function syncPlaceDrop() {
+    if (!placeField) return;
+    asDropdown(placeField);
+    var panel = placeField.querySelector('.tit-dd-panel');
+    if (!panel) return;
+    ['.tit-where-label', '.tit-basis-check'].forEach(function (sel) {
+      var el = placeField.querySelector(sel);
+      if (el && el.parentNode !== panel) panel.appendChild(el);
+    });
+    var n = 0;
+    if (placeSel && placeSel.value) n++;
+    // Counted, because it narrows the page on its own. A reader who ticked it
+    // and chose no place would otherwise see an untouched-looking control.
+    var basis = document.getElementById('tit-basis-chk');
+    if (basis && basis.checked) n++;
+    dropCount(placeField, n);
+  }
+
   function syncAllPills() {
     Object.keys(MULTI).forEach(function (k) { if (inputs[k]) pillify(inputs[k]); });
+    syncDateDrop();
+    syncPlaceDrop();
   }
 
   function optionText(el, value) {
@@ -1633,6 +1863,14 @@
       jumpN.textContent = String(chips.length);
       jumpN.hidden = chips.length === 0;
     }
+    // The collapsed bar's own count. On a phone the controls are behind this
+    // button, so without it a reader who collapsed the bar has no reading of
+    // how narrowed the page is except the chips, which scroll away.
+    var barN = document.getElementById('tit-bar-n');
+    if (barN) {
+      barN.textContent = String(chips.length);
+      barN.hidden = chips.length === 0;
+    }
   }
 
   function quickFind(list, test) {
@@ -1687,6 +1925,30 @@
     });
   }
 
+  // --- The bar's phone form: one button, one sheet --------------------------
+  //
+  // Thirteen controls at a 150px floor is four wrapped rows on a 390px screen,
+  // and a sticky four-row bar pins most of the viewport under chrome. So on a
+  // phone the bar is its head, and the controls open beneath it in normal flow.
+  //
+  // The button is revealed HERE rather than shipped visible, and the collapsing
+  // is a class this adds rather than a CSS default, so the served markup is a
+  // fully open bar: a reader whose script never ran can never end up looking at
+  // a "Filters" button that does not open anything. The stylesheet decides at
+  // which width any of it applies, so this code runs identically on a desktop
+  // and does nothing there.
+  var filterBar = document.getElementById('tit-panel');
+  var barToggle = document.getElementById('tit-bar-toggle');
+  if (filterBar && barToggle) {
+    barToggle.hidden = false;
+    barToggle.addEventListener('click', function () {
+      var open = filterBar.classList.toggle('is-open');
+      barToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      // An open dropdown belongs to a bar that is about to close under it.
+      if (!open) closeDrop(false);
+    });
+  }
+
   // --- The phone jump bar ----------------------------------------------------
   // With the charts above the machinery, a phone reader is several screens
   // from the filters by the time they reach the rows. The design proposal
@@ -1708,6 +1970,14 @@
     if (!btn) return;
     var target = root.querySelector(btn.getAttribute('data-jump'));
     if (!target) return;
+    /* Scrolling a reader to a collapsed bar and leaving them to find the button
+       is two taps for one intention. Filters OPENS the bar as well as reaching
+       it; Updates does not touch it. */
+    if (btn.getAttribute('data-jump') === '#tit-filter-sec' && filterBar
+        && barToggle && !filterBar.classList.contains('is-open')) {
+      filterBar.classList.add('is-open');
+      barToggle.setAttribute('aria-expanded', 'true');
+    }
     var still = window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     target.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });

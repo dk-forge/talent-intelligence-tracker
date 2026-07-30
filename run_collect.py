@@ -16,10 +16,10 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, bse_india, companies_house, edinet_japan,
-                        gdelt, google_news, national_press, opendart_korea,
-                        sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
-                        uk_paygap)
+from collectors import (ats_boards, bse_india, companies_house, czechia_ares,
+                        edinet_japan, estonia_ariregister, gdelt, google_news,
+                        national_press, opendart_korea, sec_edgar, sec_execcomp,
+                        sec_form_d, tripwire_chase, uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       prefilter, publish, schema, store, validate)
 
@@ -56,6 +56,21 @@ SOURCES = {
     # spends nothing. See the docstring for why the periodic-report roster
     # endpoints are refused rather than diffed into events.
     "opendart_korea": opendart_korea,
+    # Czechia's leadership spine, and the only registry in the tracker that
+    # states BOTH directions per person: `vznikClenstvi` and `zanikClenstvi` are
+    # the dates the office itself began and ended, separately from the dates the
+    # court registered either, so nothing here is diffed out of two snapshots.
+    # Keyless, so it exposes `as_classified` and spends nothing. The population
+    # is not the register: it is the companies the change feed says moved,
+    # narrowed to the 1.0% whose statistical employee band is 250 or more.
+    "czechia_ares": czechia_ares,
+    # Estonia's leadership spine, and it is HALF a spine on purpose: the daily
+    # open-data file lists current office-holders only, so `lopp_kpv` is null on
+    # all 520,895 rows and this source reports appointments and never
+    # departures. That sentence is on every row it stores. Keyless, derived,
+    # spends nothing. Filtered to employers reporting 50 full-time equivalents
+    # or more, the Commission's own small-enterprise boundary.
+    "estonia_ariregister": estonia_ariregister,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the

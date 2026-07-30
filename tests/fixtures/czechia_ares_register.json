@@ -1,0 +1,1491 @@
+{
+ "_provenance": {
+  "captured": "2026-07-30",
+  "how": "Every payload below was fetched live and keyless from https://ares.gov.cz/ekonomicke-subjekty-v-be/rest on 2026-07-30 and is unmodified in shape. The four veřejný rejstřík records are TRIMMED — see `trimming` — and the two notification batches are real batches with a hand-picked membership list, see `batches`.",
+  "trimming": "Each VR record keeps every VERSION of any membership carrying a date from 2024 on, plus every non-person member; older memberships are dropped whole. The grouping matters: dropping ONE version of a membership changes which version is authoritative, which was verified by re-running _events over the full and the trimmed record and requiring identical output for all four companies (12 events).",
+  "batches": "cisloDavky, datumUvolneniDavky and pocetZmen are the real values the feed returned for 2026-07-15 and 2026-07-25. seznamNotifikaci is narrowed to the six fixture companies, each carrying the typZmeny the real feed gave it; the four whose real batch is not one of these two are placed in the first, so the whole fixture is reachable from two batches instead of twenty-three.",
+  "the_six": "00013226 TONAK a.s. (band 330, an arrival and a departure on one day), 17774713 (band 330, the Jean-Charles Chen case: the role-end exists only on the version the register has already deleted), 27634841 (band 340, three role endings), 45534144 (band 340, a departure and an arrival), 00028177 (band 120, 1-5 employees, must be dropped by the materiality filter), 00528773 (NO RES record at all, which is 14.3% of changed companies and is not the same thing as an unstated band).",
+  "personal_data": "The fyzickaOsoba objects keep datumNarozeni, adresa and statniObcanstvi exactly as ARES publishes them, because the point of tests/test_czechia_ares.py is that none of it reaches a stored row. The Czech national open data catalogue states this dataset as `obsahuje osobní údaje`.",
+  "test_today": "2026-07-30 with a 28-day window, so 2026-07-02..2026-07-30."
+ },
+ "feed": {
+  "notifikacniDavky": [
+   {
+    "cisloDavky": 671,
+    "datovyZdroj": "vr",
+    "datumUvolneniDavky": "2026-07-15",
+    "pocetZmen": 911
+   },
+   {
+    "cisloDavky": 680,
+    "datovyZdroj": "vr",
+    "datumUvolneniDavky": "2026-07-25",
+    "pocetZmen": 782
+   }
+  ]
+ },
+ "batches": {
+  "671": {
+   "cisloDavky": 671,
+   "datovyZdroj": "vr",
+   "datumUvolneniDavky": "2026-07-15",
+   "pocetZmen": 6,
+   "seznamNotifikaci": [
+    {
+     "typZmeny": "UPD",
+     "icoId": "00013226"
+    },
+    {
+     "typZmeny": "UPD",
+     "icoId": "17774713"
+    },
+    {
+     "typZmeny": "UPD",
+     "icoId": "27634841"
+    },
+    {
+     "typZmeny": "UPD",
+     "icoId": "00028177"
+    },
+    {
+     "typZmeny": "UPD",
+     "icoId": "00528773"
+    },
+    {
+     "typZmeny": "DEL",
+     "icoId": "00528773"
+    }
+   ]
+  },
+  "680": {
+   "cisloDavky": 680,
+   "datovyZdroj": "vr",
+   "datumUvolneniDavky": "2026-07-25",
+   "pocetZmen": 2,
+   "seznamNotifikaci": [
+    {
+     "typZmeny": "UPD",
+     "icoId": "17774713"
+    },
+    {
+     "typZmeny": "UPD",
+     "icoId": "45534144"
+    }
+   ]
+  }
+ },
+ "res": {
+  "pocetCelkem": 5,
+  "ekonomickeSubjekty": [
+   {
+    "icoId": "00013226",
+    "zaznamy": [
+     {
+      "ico": "00013226",
+      "obchodniJmeno": "TONAK a.s.",
+      "sidlo": {
+       "kodStatu": "CZ",
+       "nazevStatu": "Česká republika",
+       "kodKraje": 132,
+       "nazevKraje": "Moravskoslezský kraj",
+       "kodOkresu": 3804,
+       "nazevOkresu": "Nový Jičín",
+       "kodObce": 599191,
+       "nazevObce": "Nový Jičín",
+       "kodUlice": 312797,
+       "nazevUlice": "Zborovská",
+       "cisloDomovni": 823,
+       "kodCastiObce": 413500,
+       "cisloOrientacni": 65,
+       "nazevCastiObce": "Nový Jičín",
+       "kodAdresnihoMista": 8388971,
+       "psc": 74101,
+       "textovaAdresa": "Zborovská 823/65, 74101 Nový Jičín",
+       "standardizaceAdresy": true,
+       "typCisloDomovni": 1
+      },
+      "pravniForma": "121",
+      "pravniFormaRos": "121",
+      "financniUrad": "374",
+      "datumVzniku": "1988-01-01",
+      "datumAktualizace": "2023-10-05",
+      "czNace": [
+       "461",
+       "711",
+       "15110",
+       "471",
+       "55900",
+       "36000",
+       "13100",
+       "13300",
+       "13960",
+       "171",
+       "245",
+       "68320",
+       "74",
+       "25530",
+       "142",
+       "812"
+      ],
+      "czNace2008": [
+       "13100",
+       "13300",
+       "13960",
+       "141",
+       "15110",
+       "171",
+       "245",
+       "25620",
+       "36000",
+       "461",
+       "471",
+       "5590",
+       "68320",
+       "711",
+       "74",
+       "812"
+      ],
+      "statistickeUdaje": {
+       "institucionalniSektor2010": "11003",
+       "kategoriePoctuPracovniku": "330"
+      },
+      "zakladniUzemniJednotka": "599191",
+      "primarniZaznam": true,
+      "czNacePrevazujici": "142",
+      "czNacePrevazujici2008": "141",
+      "okresNutsLau": "CZ0804"
+     }
+    ]
+   },
+   {
+    "icoId": "00028177",
+    "zaznamy": [
+     {
+      "ico": "00028177",
+      "obchodniJmeno": "ELKO Metal Parts, výrobní družstvo",
+      "sidlo": {
+       "kodStatu": "CZ",
+       "nazevStatu": "Česká republika",
+       "kodKraje": 27,
+       "nazevKraje": "Středočeský kraj",
+       "kodOkresu": 3211,
+       "nazevOkresu": "Příbram",
+       "kodObce": 540498,
+       "nazevObce": "Kosova Hora",
+       "cisloDomovni": 213,
+       "kodCastiObce": 70017,
+       "nazevCastiObce": "Kosova Hora",
+       "kodAdresnihoMista": 17264766,
+       "psc": 26291,
+       "textovaAdresa": "č.p. 213, 26291 Kosova Hora",
+       "standardizaceAdresy": true,
+       "typCisloDomovni": 1
+      },
+      "pravniForma": "205",
+      "pravniFormaRos": "205",
+      "financniUrad": "063",
+      "datumVzniku": "1951-10-24",
+      "datumAktualizace": "2026-02-04",
+      "czNace": [
+       "49410",
+       "25990",
+       "27900",
+       "256",
+       "00"
+      ],
+      "czNace2008": [
+       "00",
+       "257",
+       "25990",
+       "27900",
+       "49410"
+      ],
+      "statistickeUdaje": {
+       "institucionalniSektor2010": "11002",
+       "kategoriePoctuPracovniku": "120"
+      },
+      "zakladniUzemniJednotka": "540498",
+      "primarniZaznam": true,
+      "czNacePrevazujici": "27900",
+      "czNacePrevazujici2008": "27900",
+      "okresNutsLau": "CZ020B"
+     }
+    ]
+   },
+   {
+    "icoId": "17774713",
+    "zaznamy": [
+     {
+      "ico": "17774713",
+      "obchodniJmeno": "TESCAN GROUP, a.s.",
+      "sidlo": {
+       "kodStatu": "CZ",
+       "nazevStatu": "Česká republika",
+       "kodKraje": 116,
+       "nazevKraje": "Jihomoravský kraj",
+       "kodOkresu": 3702,
+       "nazevOkresu": "Brno-město",
+       "kodObce": 582786,
+       "nazevObce": "Brno",
+       "kodMestskeCastiObvodu": 551147,
+       "kodUlice": 27456,
+       "nazevMestskeCastiObvodu": "Brno-Kohoutovice",
+       "nazevUlice": "Libušina třída",
+       "cisloDomovni": 863,
+       "kodCastiObce": 411779,
+       "cisloOrientacni": 21,
+       "nazevCastiObce": "Kohoutovice",
+       "kodAdresnihoMista": 25121855,
+       "psc": 62300,
+       "textovaAdresa": "Libušina třída 863/21, Kohoutovice, 62300 Brno",
+       "standardizaceAdresy": true,
+       "typCisloDomovni": 1
+      },
+      "pravniForma": "121",
+      "pravniFormaRos": "121",
+      "financniUrad": "291",
+      "datumVzniku": "2022-11-25",
+      "datumAktualizace": "2025-07-05",
+      "czNace": [
+       "72",
+       "26600",
+       "28",
+       "G",
+       "K",
+       "69200",
+       "26",
+       "71120",
+       "82100",
+       "71200",
+       "77220",
+       "952",
+       "00",
+       "331"
+      ],
+      "czNace2008": [
+       "00",
+       "69200",
+       "26600",
+       "28",
+       "71209",
+       "331",
+       "77290",
+       "26",
+       "7112",
+       "82110",
+       "72",
+       "G",
+       "952",
+       "J"
+      ],
+      "statistickeUdaje": {
+       "institucionalniSektor2010": "11003",
+       "kategoriePoctuPracovniku": "340"
+      },
+      "zakladniUzemniJednotka": "551147",
+      "primarniZaznam": true,
+      "czNacePrevazujici": "26",
+      "czNacePrevazujici2008": "26",
+      "okresNutsLau": "CZ0642"
+     }
+    ]
+   },
+   {
+    "icoId": "27634841",
+    "zaznamy": [
+     {
+      "ico": "27634841",
+      "obchodniJmeno": "Lindex s.r.o.",
+      "sidlo": {
+       "kodStatu": "CZ",
+       "nazevStatu": "Česká republika",
+       "kodKraje": 19,
+       "nazevKraje": "Hlavní město Praha",
+       "kodObce": 554782,
+       "nazevObce": "Praha",
+       "kodSpravnihoObvodu": 19,
+       "nazevSpravnihoObvodu": "Praha 1",
+       "kodMestskehoObvodu": 19,
+       "nazevMestskehoObvodu": "Praha 1",
+       "kodMestskeCastiObvodu": 500054,
+       "kodUlice": 472417,
+       "nazevMestskeCastiObvodu": "Praha 1",
+       "nazevUlice": "Truhlářská",
+       "cisloDomovni": 1104,
+       "kodCastiObce": 490148,
+       "cisloOrientacni": 13,
+       "nazevCastiObce": "Nové Město",
+       "kodAdresnihoMista": 21709394,
+       "psc": 11000,
+       "textovaAdresa": "Truhlářská 1104/13, Nové Město, 11000 Praha 1",
+       "standardizaceAdresy": true,
+       "typCisloDomovni": 1
+      },
+      "pravniForma": "112",
+      "pravniFormaRos": "112",
+      "financniUrad": "001",
+      "datumVzniku": "2006-12-19",
+      "datumAktualizace": "2024-10-03",
+      "czNace": [
+       "1410",
+       "70200",
+       "731",
+       "47",
+       "74",
+       "14240",
+       "46900",
+       "14210"
+      ],
+      "czNace2008": [
+       "14130",
+       "14200",
+       "143",
+       "46900",
+       "47",
+       "702",
+       "731",
+       "74"
+      ],
+      "statistickeUdaje": {
+       "institucionalniSektor2010": "11003",
+       "kategoriePoctuPracovniku": "330"
+      },
+      "zakladniUzemniJednotka": "500054",
+      "primarniZaznam": true,
+      "czNacePrevazujici": "47",
+      "czNacePrevazujici2008": "47",
+      "okresNutsLau": "CZ0100"
+     }
+    ]
+   },
+   {
+    "icoId": "45534144",
+    "zaznamy": [
+     {
+      "ico": "45534144",
+      "obchodniJmeno": "Federal-Mogul Friction Products a.s.",
+      "sidlo": {
+       "kodStatu": "CZ",
+       "nazevStatu": "Česká republika",
+       "kodKraje": 86,
+       "nazevKraje": "Královéhradecký kraj",
+       "kodOkresu": 3607,
+       "nazevOkresu": "Rychnov nad Kněžnou",
+       "kodObce": 576361,
+       "nazevObce": "Kostelec nad Orlicí",
+       "kodUlice": 541788,
+       "nazevUlice": "Jirchářská",
+       "cisloDomovni": 233,
+       "kodCastiObce": 70190,
+       "nazevCastiObce": "Kostelec nad Orlicí",
+       "kodAdresnihoMista": 9737928,
+       "psc": 51741,
+       "textovaAdresa": "Jirchářská 233, 51741 Kostelec nad Orlicí",
+       "standardizaceAdresy": true,
+       "typCisloDomovni": 1
+      },
+      "pravniForma": "121",
+      "pravniFormaRos": "121",
+      "financniUrad": "253",
+      "datumVzniku": "1992-04-09",
+      "datumAktualizace": "2025-12-05",
+      "czNace": [
+       "239",
+       "46900",
+       "71200",
+       "24",
+       "29",
+       "22",
+       "471",
+       "23990",
+       "28",
+       "30200",
+       "38110",
+       "20",
+       "25",
+       "49410",
+       "255",
+       "00"
+      ],
+      "czNace2008": [
+       "00",
+       "20",
+       "22",
+       "239",
+       "23990",
+       "24",
+       "25",
+       "256",
+       "28",
+       "29",
+       "30200",
+       "38110",
+       "46900",
+       "471",
+       "49410",
+       "71209"
+      ],
+      "statistickeUdaje": {
+       "institucionalniSektor2010": "11003",
+       "kategoriePoctuPracovniku": "330"
+      },
+      "zakladniUzemniJednotka": "576361",
+      "primarniZaznam": true,
+      "czNacePrevazujici": "23990",
+      "czNacePrevazujici2008": "23990",
+      "okresNutsLau": "CZ0524"
+     }
+    ]
+   }
+  ]
+ },
+ "vr": {
+  "00013226": {
+   "icoId": "00013226",
+   "zaznamy": [
+    {
+     "ico": [
+      {
+       "datumZapisu": "1990-12-29",
+       "hodnota": "00013226"
+      }
+     ],
+     "obchodniJmeno": [
+      {
+       "datumZapisu": "1990-12-29",
+       "datumVymazu": "1993-04-02",
+       "hodnota": "TONAK a.s. /anglicky, německy, španělsky, italsky, rusky - viz ostatní skutečnosti/"
+      },
+      {
+       "datumZapisu": "1993-04-02",
+       "datumVymazu": "2001-12-20",
+       "hodnota": "TONAK, akciová společnost"
+      },
+      {
+       "datumZapisu": "2001-12-20",
+       "hodnota": "TONAK a.s."
+      }
+     ],
+     "pravniForma": [
+      {
+       "datumZapisu": "1990-12-29",
+       "hodnota": "121"
+      }
+     ],
+     "statutarniOrgany": [
+      {
+       "datumZapisu": "2020-04-01",
+       "nazevOrganu": "Správní rada",
+       "clenoveOrganu": [
+        {
+         "datumZapisu": "2021-04-23",
+         "datumVymazu": "2024-06-17",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2020-04-01",
+           "zanikClenstvi": "2024-05-13"
+          },
+          "funkce": {
+           "vznikFunkce": "2021-04-22",
+           "zanikFunkce": "2024-05-13",
+           "nazev": "předseda správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 27,
+           "nazevKraje": "Středočeský kraj",
+           "kodOkresu": 3209,
+           "nazevOkresu": "Praha-východ",
+           "kodObce": 538957,
+           "nazevObce": "Úvaly",
+           "kodUlice": 424528,
+           "nazevUlice": "Vítězslava Nováka",
+           "cisloDomovni": 265,
+           "kodCastiObce": 403113,
+           "nazevCastiObce": "Úvaly",
+           "kodAdresnihoMista": 14659212,
+           "psc": 25082,
+           "textovaAdresa": "Vítězslava Nováka 265, 25082 Úvaly",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1974-10-16",
+          "jmeno": "JIŘÍ",
+          "prijmeni": "TOUREK",
+          "statniObcanstvi": "CZ"
+         }
+        },
+        {
+         "datumZapisu": "2021-04-23",
+         "datumVymazu": "2021-04-23",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2020-04-01"
+          },
+          "funkce": {
+           "vznikFunkce": "2021-04-23",
+           "nazev": "člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 27,
+           "nazevKraje": "Středočeský kraj",
+           "kodOkresu": 3209,
+           "nazevOkresu": "Praha-východ",
+           "kodObce": 538957,
+           "nazevObce": "Úvaly",
+           "kodUlice": 424528,
+           "nazevUlice": "Vítězslava Nováka",
+           "cisloDomovni": 265,
+           "kodCastiObce": 403113,
+           "nazevCastiObce": "Úvaly",
+           "kodAdresnihoMista": 14659212,
+           "psc": 25082,
+           "textovaAdresa": "Vítězslava Nováka 265, 25082 Úvaly",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1974-10-16",
+          "jmeno": "JIŘÍ",
+          "prijmeni": "TOUREK",
+          "statniObcanstvi": "CZ"
+         }
+        },
+        {
+         "datumZapisu": "2024-06-17",
+         "datumVymazu": "2025-10-08",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2024-05-13"
+          },
+          "funkce": {
+           "nazev": "člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 19,
+           "nazevKraje": "Hlavní město Praha",
+           "kodObce": 554782,
+           "nazevObce": "Praha",
+           "kodSpravnihoObvodu": 60,
+           "nazevSpravnihoObvodu": "Praha 6",
+           "kodMestskehoObvodu": 60,
+           "nazevMestskehoObvodu": "Praha 6",
+           "kodMestskeCastiObvodu": 500178,
+           "kodUlice": 777951,
+           "nazevMestskeCastiObvodu": "Praha 6",
+           "nazevUlice": "Lindleyova",
+           "cisloDomovni": 2724,
+           "kodCastiObce": 400459,
+           "cisloOrientacni": 9,
+           "nazevCastiObce": "Dejvice",
+           "kodAdresnihoMista": 28121317,
+           "psc": 16000,
+           "textovaAdresa": "Lindleyova 2724/9, Dejvice, 16000 Praha 6",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1976-09-22",
+          "jmeno": "OLIVIER ANTOINE MARIE",
+          "prijmeni": "MAURICE",
+          "statniObcanstvi": "FR"
+         }
+        },
+        {
+         "datumZapisu": "2025-10-08",
+         "datumVymazu": "2026-07-09",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2024-05-13",
+           "zanikClenstvi": "2026-07-08"
+          },
+          "funkce": {
+           "nazev": "člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 19,
+           "nazevKraje": "Hlavní město Praha",
+           "kodObce": 554782,
+           "nazevObce": "Praha",
+           "kodSpravnihoObvodu": 60,
+           "nazevSpravnihoObvodu": "Praha 6",
+           "kodMestskehoObvodu": 60,
+           "nazevMestskehoObvodu": "Praha 6",
+           "kodMestskeCastiObvodu": 500178,
+           "kodUlice": 463787,
+           "nazevMestskeCastiObvodu": "Praha 6",
+           "nazevUlice": "Paťanka",
+           "cisloDomovni": 2687,
+           "kodCastiObce": 400459,
+           "cisloOrientacni": 1,
+           "cisloOrientacniPismeno": "b",
+           "nazevCastiObce": "Dejvice",
+           "kodAdresnihoMista": 26731975,
+           "psc": 16000,
+           "textovaAdresa": "Paťanka 2687/1b, Dejvice, 16000 Praha 6",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1976-09-22",
+          "jmeno": "OLIVIER ANTOINE MARIE",
+          "prijmeni": "MAURICE",
+          "statniObcanstvi": "FR"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-09",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-08"
+          },
+          "funkce": {
+           "nazev": "Člen správní rady A"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 19,
+           "nazevKraje": "Hlavní město Praha",
+           "kodObce": 554782,
+           "nazevObce": "Praha",
+           "kodSpravnihoObvodu": 51,
+           "nazevSpravnihoObvodu": "Praha 5",
+           "kodMestskehoObvodu": 51,
+           "nazevMestskehoObvodu": "Praha 5",
+           "kodMestskeCastiObvodu": 500143,
+           "kodUlice": 464023,
+           "nazevMestskeCastiObvodu": "Praha 5",
+           "nazevUlice": "Petřínská",
+           "cisloDomovni": 574,
+           "kodCastiObce": 490121,
+           "cisloOrientacni": 10,
+           "nazevCastiObce": "Malá Strana",
+           "kodAdresnihoMista": 22039244,
+           "psc": 15000,
+           "textovaAdresa": "Petřínská 574/10, Malá Strana, 15000 Praha 5",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1993-04-09",
+          "jmeno": "ADAM",
+          "prijmeni": "PÁLENÍČEK",
+          "statniObcanstvi": "CZ"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-09",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-08"
+          },
+          "funkce": {
+           "nazev": "Člen správní rady B"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 132,
+           "nazevKraje": "Moravskoslezský kraj",
+           "kodOkresu": 3804,
+           "nazevOkresu": "Nový Jičín",
+           "kodObce": 599247,
+           "nazevObce": "Bílovec",
+           "kodUlice": 308064,
+           "nazevUlice": "Nad přehradou",
+           "cisloDomovni": 207,
+           "kodCastiObce": 413534,
+           "cisloOrientacni": 3,
+           "nazevCastiObce": "Bílovec",
+           "kodAdresnihoMista": 8412685,
+           "psc": 74301,
+           "textovaAdresa": "Nad přehradou 207/3, 74301 Bílovec",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1967-09-19",
+          "jmeno": "DALIBOR",
+          "prijmeni": "ANDREE",
+          "statniObcanstvi": "CZ"
+         }
+        }
+       ]
+      }
+     ],
+     "ostatniOrgany": []
+    }
+   ]
+  },
+  "17774713": {
+   "icoId": "17774713",
+   "zaznamy": [
+    {
+     "ico": [
+      {
+       "datumZapisu": "2022-11-25",
+       "hodnota": "17774713"
+      }
+     ],
+     "obchodniJmeno": [
+      {
+       "datumZapisu": "2023-04-17",
+       "hodnota": "TESCAN GROUP, a.s."
+      },
+      {
+       "datumZapisu": "2022-12-01",
+       "datumVymazu": "2023-04-17",
+       "hodnota": "Glass BidCo a.s."
+      },
+      {
+       "datumZapisu": "2022-11-25",
+       "datumVymazu": "2022-12-01",
+       "hodnota": "Ingliston Corp a.s."
+      }
+     ],
+     "pravniForma": [
+      {
+       "datumZapisu": "2022-11-25",
+       "hodnota": "121"
+      }
+     ],
+     "statutarniOrgany": [
+      {
+       "datumZapisu": "2022-11-25",
+       "nazevOrganu": "Správní rada",
+       "clenoveOrganu": [
+        {
+         "datumZapisu": "2023-07-12",
+         "datumVymazu": "2026-07-22",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2023-07-10"
+          },
+          "funkce": {
+           "vznikFunkce": "2023-07-10",
+           "zanikFunkce": "2026-07-10",
+           "nazev": "Předseda správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "FR",
+           "nazevStatu": "Francie",
+           "nazevObce": "Trebeurden",
+           "nazevUlice": "8 Allée Quiniou",
+           "textovaAdresa": "8 Allée Quiniou, 22560 Trebeurden, Francie",
+           "standardizaceAdresy": false,
+           "pscTxt": "22560"
+          },
+          "datumNarozeni": "1963-08-23",
+          "jmeno": "JEAN-CHARLES",
+          "prijmeni": "CHEN",
+          "statniObcanstvi": "FR"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-22",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2023-07-10"
+          },
+          "funkce": {
+           "nazev": "Člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "FR",
+           "nazevStatu": "Francie",
+           "nazevObce": "Trebeurden",
+           "nazevUlice": "8 Allée Quiniou",
+           "textovaAdresa": "8 Allée Quiniou, 22560 Trebeurden, Francie",
+           "standardizaceAdresy": false,
+           "pscTxt": "22560"
+          },
+          "datumNarozeni": "1963-08-23",
+          "jmeno": "JEAN-CHARLES",
+          "prijmeni": "CHEN",
+          "statniObcanstvi": "FR"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-10",
+         "datumVymazu": "2026-07-22",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-10"
+          },
+          "funkce": {
+           "nazev": "Člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "JP",
+           "nazevStatu": "Japonsko",
+           "nazevUlice": "1002, Cosmo Shijo Nishinotoin, 746-3 Kikuya-cho, Shimogyo-ku, Kyoto",
+           "textovaAdresa": "1002, Cosmo Shijo Nishinotoin, 746-3 Kikuya-cho, Shimogyo-ku, Kyoto, Japonsko",
+           "standardizaceAdresy": false
+          },
+          "datumNarozeni": "1967-05-20",
+          "jmeno": "HARUHIKO",
+          "prijmeni": "MIYAGAWA",
+          "statniObcanstvi": "JP"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-22",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-10"
+          },
+          "funkce": {
+           "vznikFunkce": "2026-07-10",
+           "nazev": "Předseda správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "JP",
+           "nazevStatu": "Japonsko",
+           "nazevUlice": "1002, Cosmo Shijo Nishinotoin, 746-3 Kikuya-cho, Shimogyo-ku, Kyoto",
+           "textovaAdresa": "1002, Cosmo Shijo Nishinotoin, 746-3 Kikuya-cho, Shimogyo-ku, Kyoto, Japonsko",
+           "standardizaceAdresy": false
+          },
+          "datumNarozeni": "1967-05-20",
+          "jmeno": "HARUHIKO",
+          "prijmeni": "MIYAGAWA",
+          "statniObcanstvi": "JP"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-10",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-10"
+          },
+          "funkce": {
+           "nazev": "Člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "AT",
+           "nazevStatu": "Rakousko",
+           "nazevUlice": "Setzgasse 23a, 2102 Bisamberg",
+           "textovaAdresa": "Setzgasse 23a, 2102 Bisamberg, Rakousko",
+           "standardizaceAdresy": false
+          },
+          "datumNarozeni": "1961-12-18",
+          "jmeno": "ROBERT ALFRED",
+          "prijmeni": "KAUBEK",
+          "statniObcanstvi": "AT"
+         }
+        },
+        {
+         "datumZapisu": "2026-07-10",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-10"
+          },
+          "funkce": {
+           "nazev": "Člen správní rady"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "US",
+           "nazevStatu": "Spojené státy americké",
+           "nazevUlice": "2800 Plaza Del Amo No. 59, Torrance, CA 90503",
+           "textovaAdresa": "2800 Plaza Del Amo No. 59, Torrance, CA 90503, Spojené státy americké",
+           "standardizaceAdresy": false
+          },
+          "datumNarozeni": "1970-10-12",
+          "jmeno": "TOMIO",
+          "prijmeni": "KITAMURA",
+          "statniObcanstvi": "JP"
+         }
+        }
+       ]
+      }
+     ],
+     "ostatniOrgany": []
+    }
+   ]
+  },
+  "27634841": {
+   "icoId": "27634841",
+   "zaznamy": [
+    {
+     "ico": [
+      {
+       "datumZapisu": "2006-12-19",
+       "hodnota": "27634841"
+      }
+     ],
+     "obchodniJmeno": [
+      {
+       "datumZapisu": "2007-07-11",
+       "hodnota": "Lindex s.r.o."
+      },
+      {
+       "datumZapisu": "2006-12-19",
+       "datumVymazu": "2007-07-11",
+       "hodnota": "Hegedas s.r.o."
+      }
+     ],
+     "pravniForma": [
+      {
+       "datumZapisu": "2006-12-19",
+       "hodnota": "112"
+      }
+     ],
+     "statutarniOrgany": [
+      {
+       "datumZapisu": "2006-12-19",
+       "nazevOrganu": "Statutární orgán",
+       "clenoveOrganu": [
+        {
+         "datumZapisu": "2018-11-30",
+         "datumVymazu": "2026-07-14",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "funkce": {
+           "vznikFunkce": "2018-08-13",
+           "zanikFunkce": "2026-07-14",
+           "nazev": "Jednatel"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "SE",
+           "nazevStatu": "Švédsko",
+           "nazevObce": "Torslanda",
+           "nazevUlice": "Södra Fyrljusvägen 26B",
+           "textovaAdresa": "Södra Fyrljusvägen 26B, 42339 Torslanda, Švédsko",
+           "standardizaceAdresy": false,
+           "pscTxt": "42339"
+          },
+          "datumNarozeni": "1979-06-28",
+          "jmeno": "SUSANNE BIRGITTA",
+          "prijmeni": "JÄRKBRATT EHNBÅGE",
+          "statniObcanstvi": "SE"
+         }
+        },
+        {
+         "datumZapisu": "2020-10-22",
+         "datumVymazu": "2026-07-14",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "funkce": {
+           "vznikFunkce": "2020-10-22",
+           "zanikFunkce": "2026-07-14",
+           "nazev": "jednatel"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "SE",
+           "nazevStatu": "Švédsko",
+           "nazevObce": "Västra Frölunda",
+           "nazevUlice": "Strandvägen 6",
+           "textovaAdresa": "Strandvägen 6, 42679 Västra Frölunda, Švédsko",
+           "standardizaceAdresy": false,
+           "pscTxt": "42679"
+          },
+          "datumNarozeni": "1977-05-19",
+          "jmeno": "JOHAN HENRIK",
+          "prijmeni": "ENGEN",
+          "statniObcanstvi": "SE"
+         }
+        },
+        {
+         "datumZapisu": "2019-05-14",
+         "datumVymazu": "2025-01-30",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "funkce": {
+           "vznikFunkce": "2019-02-21",
+           "zanikFunkce": "2024-10-21",
+           "nazev": "Jednatel"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "SE",
+           "nazevStatu": "Švédsko",
+           "nazevObce": "Kullavik",
+           "nazevUlice": "Valåsvägen 1",
+           "textovaAdresa": "Valåsvägen 1, 42931 Kullavik, Švédsko",
+           "standardizaceAdresy": false,
+           "pscTxt": "42931"
+          },
+          "datumNarozeni": "1972-08-11",
+          "jmeno": "ANNELIE MARIA",
+          "prijmeni": "FORSBERG",
+          "statniObcanstvi": "SE"
+         }
+        },
+        {
+         "datumZapisu": "2025-01-30",
+         "datumVymazu": "2026-07-14",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "funkce": {
+           "vznikFunkce": "2024-10-21",
+           "zanikFunkce": "2026-07-14",
+           "nazev": "Jednatel"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "SE",
+           "nazevStatu": "Švédsko",
+           "nazevObce": "Trångsund",
+           "nazevUlice": "Trångsundsvägen 54",
+           "textovaAdresa": "Trångsundsvägen 54, 14264 Trångsund, Švédsko",
+           "standardizaceAdresy": false,
+           "pscTxt": "14264"
+          },
+          "datumNarozeni": "1977-07-14",
+          "jmeno": "LARS-HENRIK GÖRAN",
+          "prijmeni": "HENRIKSSON",
+          "statniObcanstvi": "SE"
+         }
+        }
+       ]
+      }
+     ],
+     "ostatniOrgany": []
+    }
+   ]
+  },
+  "45534144": {
+   "icoId": "45534144",
+   "zaznamy": [
+    {
+     "ico": [
+      {
+       "datumZapisu": "1992-04-09",
+       "hodnota": "45534144"
+      }
+     ],
+     "obchodniJmeno": [
+      {
+       "datumZapisu": "1998-10-01",
+       "hodnota": "Federal-Mogul Friction Products a.s."
+      },
+      {
+       "datumZapisu": "1998-10-01",
+       "datumVymazu": "1998-10-01",
+       "hodnota": "Federal-Mogul Fiction Products a.s."
+      },
+      {
+       "datumZapisu": "1992-04-09",
+       "datumVymazu": "1998-10-01",
+       "hodnota": "Ferodo a.s."
+      }
+     ],
+     "pravniForma": [
+      {
+       "datumZapisu": "1992-04-09",
+       "hodnota": "121"
+      }
+     ],
+     "statutarniOrgany": [
+      {
+       "datumZapisu": "1992-04-09",
+       "nazevOrganu": "Statutární orgán - představenstvo",
+       "clenoveOrganu": [
+        {
+         "datumZapisu": "2026-05-14",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-05-10"
+          },
+          "funkce": {
+           "vznikFunkce": "2026-05-10",
+           "nazev": "místopředseda představenstva"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3602,
+           "nazevOkresu": "Hradec Králové",
+           "kodObce": 569810,
+           "nazevObce": "Hradec Králové",
+           "kodUlice": 130231,
+           "nazevUlice": "Střelecká",
+           "cisloDomovni": 437,
+           "kodCastiObce": 409804,
+           "cisloOrientacni": 4,
+           "nazevCastiObce": "Hradec Králové",
+           "kodAdresnihoMista": 23867809,
+           "psc": 50002,
+           "textovaAdresa": "Střelecká 437/4, 50002 Hradec Králové",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1954-07-24",
+          "jmeno": "VLADIMÍR",
+          "prijmeni": "KRČMA",
+          "statniObcanstvi": "CZ",
+          "titulPredJmenem": "JUDr."
+         }
+        },
+        {
+         "datumZapisu": "2026-05-19",
+         "typAngazma": "STATUTARNI_ORGAN_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-05-19"
+          },
+          "funkce": {
+           "vznikFunkce": "2026-05-19",
+           "nazev": "předseda představenstva"
+          }
+         },
+         "nazevAngazma": "Člen statutárního orgánu",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3602,
+           "nazevOkresu": "Hradec Králové",
+           "kodObce": 569810,
+           "nazevObce": "Hradec Králové",
+           "kodUlice": 746908,
+           "nazevUlice": "Labská louka",
+           "cisloDomovni": 667,
+           "kodCastiObce": 409847,
+           "cisloOrientacni": 17,
+           "nazevCastiObce": "Třebeš",
+           "kodAdresnihoMista": 27455548,
+           "psc": 50011,
+           "textovaAdresa": "Labská louka 667/17, Třebeš, 50011 Hradec Králové",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1975-12-22",
+          "jmeno": "JIŘÍ",
+          "prijmeni": "HEGER",
+          "statniObcanstvi": "CZ",
+          "titulPredJmenem": "Ing.",
+          "titulZaJmenem": "MBA"
+         }
+        }
+       ]
+      }
+     ],
+     "ostatniOrgany": [
+      {
+       "datumZapisu": "1992-04-09",
+       "nazevOrganu": "Dozorčí rada",
+       "clenoveOrganu": [
+        {
+         "datumZapisu": "2021-07-28",
+         "datumVymazu": "2026-07-17",
+         "typAngazma": "DOZORCI_RADA_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2021-07-15",
+           "zanikClenstvi": "2026-07-15"
+          },
+          "funkce": {
+           "nazev": "člen dozorčí rady"
+          }
+         },
+         "nazevAngazma": "Člen dozorčí rady",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3607,
+           "nazevOkresu": "Rychnov nad Kněžnou",
+           "kodObce": 576361,
+           "nazevObce": "Kostelec nad Orlicí",
+           "kodUlice": 541869,
+           "nazevUlice": "Kotyzova",
+           "cisloDomovni": 526,
+           "kodCastiObce": 70190,
+           "nazevCastiObce": "Kostelec nad Orlicí",
+           "kodAdresnihoMista": 9740970,
+           "psc": 51741,
+           "textovaAdresa": "Kotyzova 526, 51741 Kostelec nad Orlicí",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1958-09-20",
+          "jmeno": "VILÉM",
+          "prijmeni": "DRAHORÁD",
+          "statniObcanstvi": "CZ"
+         }
+        },
+        {
+         "datumZapisu": "2020-01-03",
+         "datumVymazu": "2025-07-10",
+         "typAngazma": "DOZORCI_RADA_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2019-09-19",
+           "zanikClenstvi": "2024-09-19"
+          },
+          "funkce": {
+           "vznikFunkce": "2019-10-24",
+           "zanikFunkce": "2024-09-19",
+           "nazev": "předseda dozorčí rady"
+          }
+         },
+         "nazevAngazma": "Člen dozorčí rady",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3607,
+           "nazevOkresu": "Rychnov nad Kněžnou",
+           "kodObce": 576182,
+           "nazevObce": "Častolovice",
+           "kodUlice": 693031,
+           "nazevUlice": "Široká",
+           "cisloDomovni": 434,
+           "kodCastiObce": 18627,
+           "nazevCastiObce": "Častolovice",
+           "kodAdresnihoMista": 25171861,
+           "psc": 51750,
+           "textovaAdresa": "Široká 434, 51750 Častolovice",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1975-08-25",
+          "jmeno": "VENDULA",
+          "prijmeni": "KORCINOVÁ",
+          "statniObcanstvi": "CZ",
+          "titulPredJmenem": "Ing."
+         }
+        },
+        {
+         "datumZapisu": "2020-04-30",
+         "datumVymazu": "2025-07-10",
+         "typAngazma": "DOZORCI_RADA_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2020-03-19",
+           "zanikClenstvi": "2025-03-19"
+          },
+          "funkce": {
+           "nazev": "člen dozorčí rady"
+          }
+         },
+         "nazevAngazma": "Člen dozorčí rady",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3607,
+           "nazevOkresu": "Rychnov nad Kněžnou",
+           "kodObce": 576361,
+           "nazevObce": "Kostelec nad Orlicí",
+           "kodUlice": 541729,
+           "nazevUlice": "Havlíčkova",
+           "cisloDomovni": 683,
+           "kodCastiObce": 70190,
+           "nazevCastiObce": "Kostelec nad Orlicí",
+           "kodAdresnihoMista": 9742565,
+           "psc": 51741,
+           "textovaAdresa": "Havlíčkova 683, 51741 Kostelec nad Orlicí",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1980-03-29",
+          "jmeno": "FILIP",
+          "prijmeni": "KRTIČKA",
+          "statniObcanstvi": "CZ",
+          "titulPredJmenem": "Ing."
+         }
+        },
+        {
+         "datumZapisu": "2025-07-10",
+         "typAngazma": "DOZORCI_RADA_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2025-04-01"
+          },
+          "funkce": {
+           "vznikFunkce": "2025-07-01",
+           "nazev": "předseda dozorčí rady"
+          }
+         },
+         "nazevAngazma": "Člen dozorčí rady",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3607,
+           "nazevOkresu": "Rychnov nad Kněžnou",
+           "kodObce": 576182,
+           "nazevObce": "Častolovice",
+           "kodUlice": 693031,
+           "nazevUlice": "Široká",
+           "cisloDomovni": 434,
+           "kodCastiObce": 18627,
+           "nazevCastiObce": "Častolovice",
+           "kodAdresnihoMista": 25171861,
+           "psc": 51750,
+           "textovaAdresa": "Široká 434, 51750 Častolovice",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1975-08-25",
+          "jmeno": "VENDULA",
+          "prijmeni": "KORCINOVÁ",
+          "statniObcanstvi": "CZ",
+          "titulPredJmenem": "Ing."
+         }
+        },
+        {
+         "datumZapisu": "2025-07-10",
+         "typAngazma": "DOZORCI_RADA_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2025-04-01"
+          },
+          "funkce": {
+           "nazev": "člen dozorčí rady"
+          }
+         },
+         "nazevAngazma": "Člen dozorčí rady",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3607,
+           "nazevOkresu": "Rychnov nad Kněžnou",
+           "kodObce": 576361,
+           "nazevObce": "Kostelec nad Orlicí",
+           "kodUlice": 541729,
+           "nazevUlice": "Havlíčkova",
+           "cisloDomovni": 683,
+           "kodCastiObce": 70190,
+           "nazevCastiObce": "Kostelec nad Orlicí",
+           "kodAdresnihoMista": 9742565,
+           "psc": 51741,
+           "textovaAdresa": "Havlíčkova 683, 51741 Kostelec nad Orlicí",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1980-03-29",
+          "jmeno": "FILIP",
+          "prijmeni": "KRTIČKA",
+          "statniObcanstvi": "CZ",
+          "titulPredJmenem": "Ing."
+         }
+        },
+        {
+         "datumZapisu": "2026-07-17",
+         "typAngazma": "DOZORCI_RADA_CLEN",
+         "clenstvi": {
+          "clenstvi": {
+           "vznikClenstvi": "2026-07-16"
+          },
+          "funkce": {
+           "nazev": "člen dozorčí rady"
+          }
+         },
+         "nazevAngazma": "Člen dozorčí rady",
+         "fyzickaOsoba": {
+          "adresa": {
+           "kodStatu": "CZ",
+           "nazevStatu": "Česká republika",
+           "kodKraje": 86,
+           "nazevKraje": "Královéhradecký kraj",
+           "kodOkresu": 3607,
+           "nazevOkresu": "Rychnov nad Kněžnou",
+           "kodObce": 576361,
+           "nazevObce": "Kostelec nad Orlicí",
+           "kodUlice": 541869,
+           "nazevUlice": "Kotyzova",
+           "cisloDomovni": 526,
+           "kodCastiObce": 70190,
+           "nazevCastiObce": "Kostelec nad Orlicí",
+           "kodAdresnihoMista": 9740970,
+           "psc": 51741,
+           "textovaAdresa": "Kotyzova 526, 51741 Kostelec nad Orlicí",
+           "standardizaceAdresy": true,
+           "typCisloDomovni": 1
+          },
+          "datumNarozeni": "1958-09-20",
+          "jmeno": "VILÉM",
+          "prijmeni": "DRAHORÁD",
+          "statniObcanstvi": "CZ"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

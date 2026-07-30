@@ -151,6 +151,89 @@ _BLOCKED_SOURCE_HOSTS = frozenset({
     "www.msn.com",
 })
 
+# ...and the same names reduced to what somebody OWNS, so a subdomain cannot
+# walk past an exact-host list.
+#
+# THIS IS THE HOLE THREE LIVE ROWS CAME THROUGH. `news.yahoo.com` was listed and
+# `finance.yahoo.com` and `sg.finance.yahoo.com` were not, so both passed. The
+# feed loader in collectors/national_press.py had already learned this and
+# derives its own `_AGGREGATOR_DOMAINS` the same way -- so the two layers of one
+# rule disagreed, and the layer that decides what gets STORED was the weaker of
+# the two. Derived rather than typed for the same reason it is there: a host
+# added above is now blocked on every subdomain automatically, and the two
+# lists cannot drift apart.
+#
+# registrable_domain is IMPORTED and not reimplemented. There are already two
+# copies of it in this repo (collectors/national_press.py and
+# analysis/recall/rejection_audit.py) and a third deciding what may be cited
+# would be the one that matters most and the one most likely to go stale. The
+# import is deferred into the function below so that `pipeline` does not take a
+# module-import dependency on `collectors`, which is the wrong direction.
+_BLOCKED_SOURCE_DOMAINS_CACHE: frozenset[str] | None = None
+
+
+def _blocked_domains() -> frozenset[str]:
+    global _BLOCKED_SOURCE_DOMAINS_CACHE
+    if _BLOCKED_SOURCE_DOMAINS_CACHE is None:
+        from collectors.national_press import registrable_domain
+        _BLOCKED_SOURCE_DOMAINS_CACHE = frozenset(
+            d for d in (registrable_domain(h) for h in _BLOCKED_SOURCE_HOSTS) if d
+        )
+    return _BLOCKED_SOURCE_DOMAINS_CACHE
+
+
+def is_aggregator_host(host: str) -> bool:
+    """Whether a host is a discovery pointer rather than a publisher."""
+    from collectors.national_press import registrable_domain
+    host = (host or "").lower()
+    if not host:
+        return False
+    return host in _BLOCKED_SOURCE_HOSTS or registrable_domain(host) in _blocked_domains()
+
+
+def prefer_canonical(raw: dict) -> str:
+    """Follow the document's own rel=canonical to the publisher, and store THAT.
+
+    THE RULE IS THE CANONICAL HOST, NOT THE REQUESTED ONE, and a blanket domain
+    block would have been wrong. Measured on the three `*.yahoo.com` rows that
+    were live on 2026-07-30:
+
+        finance.yahoo.com/.../7-eleven-names-ceo    -> canonical cstoredive.com
+        finance.yahoo.com/.../haus-cramer-gruppe    -> HTTP 404, no canonical
+        sg.finance.yahoo.com/news/hsbc-plans-hire   -> canonical ITSELF
+
+    So two of the three are a real publisher's article behind a syndication URL,
+    and one is the aggregator all the way down. Refusing all three on the host
+    would throw away two publishers we can name -- and we already read
+    cstoredive.com directly. CLAUDE.md's rule is that an aggregator is a
+    DISCOVERY POINTER: following the pointer and storing what it points AT is
+    the rule being obeyed, not an exception to it.
+
+    This function never fetches. The canonical has to be supplied by whatever
+    read the page, because validate runs before any money is spent and on every
+    candidate, and a network call here would be a per-candidate one. A raw dict
+    with no `canonical_url` is judged on the URL it came with, which is the
+    behaviour that has always applied.
+
+    Returns the URL to judge and to store, and rewrites `raw["source_url"]` when
+    the canonical is a publisher, so that everything downstream -- the content
+    hash, the dedupe, the link ledger, the citation on the page -- names the
+    publisher rather than the pointer.
+    """
+    source_url = (raw.get("source_url") or "").strip()
+    canonical = (raw.get("canonical_url") or "").strip()
+    if not canonical or canonical == source_url:
+        return source_url
+    host = (urlparse(canonical).hostname or "").lower()
+    # A canonical pointing at another aggregator, or at nothing parseable, is
+    # not an improvement and is ignored rather than followed.
+    if not host or is_aggregator_host(host):
+        return source_url
+    if not urlparse(canonical).path.strip("/"):
+        return source_url
+    raw["source_url"] = canonical
+    return canonical
+
 
 def _normalize_number(token: str) -> str:
     return re.sub(r"[,\s.]", "", token.lower())
@@ -460,10 +543,15 @@ def precheck(raw: dict) -> None:
     if not source_url:
         raise Rejected("no source_url — no source, no record")
 
+    # Follow the canonical to the publisher BEFORE judging anything, because
+    # "is this an aggregator" is a question about who published the document
+    # and not about which host happened to serve it to us.
+    source_url = prefer_canonical(raw)
+
     host = (urlparse(source_url).hostname or "").lower()
     if not host:
         raise Rejected(f"unparseable source_url: {source_url!r}")
-    if host in _BLOCKED_SOURCE_HOSTS:
+    if is_aggregator_host(host):
         raise Rejected(f"aggregator stored as source: {host}")
 
     # A homepage is not a receipt. "Every record links to a primary source" is

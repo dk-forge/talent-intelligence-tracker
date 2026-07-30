@@ -55,10 +55,20 @@ There are not two robots.txt files. There is one.
     https://asktherecruiter.com/blog/robots.txt   200  175 bytes  text/plain
     https://asktherecruiter.com/robots.txt        200  13,181 bytes  text/HTML
 
-The second is not a robots.txt at all: the apex serves the same 13,181-byte
-"Coming soon" landing page for `/robots.txt`, for `/definitely-not-here.txt`,
-and for every other unmatched path. There is no file there to append to, and
-the content-binding above refuses the root target for exactly that reason.
+The second is not a robots.txt at all, and not even the same server. The apex
+serves the same 13,181-byte "Coming soon" page for `/robots.txt`, for
+`/definitely-not-here.txt` and for every other unmatched path, and that page is
+built by **Cloudflare** — 25 of its stylesheet references are `/cf-fonts/`.
+Only `/blog/` routes through to Bluehost.
+
+So the `root` target can never be satisfied over FTP, whatever path it is
+given: the content check would be comparing a Bluehost file against a
+Cloudflare response, and no file on the one can ever equal the other. There is
+a `/public_html/AskTheRecruiter.com/robots.txt` on Bluehost and it is served to
+nobody. A root robots.txt has to be added wherever that Coming Soon page is
+built. **"The URL and the filesystem belong to different servers" is a failure
+mode worth naming**, and a content check that refuses it is strictly better
+than a confident write to a file nothing reads.
 
 That matters more than it looks, because RFC 9309 is explicit that a crawler
 reads `/robots.txt` at the host root and nowhere else. A robots.txt in a
@@ -130,10 +140,16 @@ class Target:
     """
 
     def __init__(self, name, url, candidates, required_fragment="",
-                 forbidden_fragment="", absent_note=""):
+                 forbidden_fragment="", absent_note="", proven=()):
         self.name = name
         self.url = url
         self.candidates = candidates
+        # Paths derived from somewhere that has actually been written to, tried
+        # first and exempt from the name-shape filters below — those filters
+        # exist to discipline GUESSES, and a proven path is not one. It still
+        # has to serve byte-identical content, and it still cannot be inside
+        # wp-content.
+        self.proven = list(proven)
         self.required_fragment = required_fragment
         self.forbidden_fragment = forbidden_fragment
         # What a human should understand when this URL turns out not to serve a
@@ -144,8 +160,57 @@ class Target:
         return f"<Target {self.name} {self.url}>"
 
 
+# A robots.txt lives at the root of a WordPress install. It is never inside
+# wp-content, and a path that says otherwise is a path we have misunderstood.
+# This is a WRITE guard, not a preference: it is what keeps this job out of the
+# directory deploy-plugin.yml owns, whatever a secret or an override says.
+NEVER_WRITE_INSIDE = "/wp-content/"
+
+
+def derived_candidates(remote_dir: str) -> dict[str, str]:
+    """robots.txt paths derived from a remote path already PROVEN to work.
+
+    The first real dispatch refused: the FTP session is rooted somewhere none
+    of the four hand-written candidates reach, and guessing a fifth and a sixth
+    blind is how this ends up writing into whatever directory the session
+    happened to land in.
+
+    `WP_PLUGIN_REMOTE_DIR` is not a guess. deploy-plugin.yml mirrors into it
+    successfully with these same credentials, so it is a working path for this
+    exact account, and
+
+        <wp-root>/wp-content/plugins/talent-intelligence-tracker
+
+    walks up three levels to the WordPress root — which is where robots.txt is.
+
+    Reading that secret does NOT widen the plugin deploy's write path. It is
+    read to derive a candidate to LOOK at; every candidate still has to serve
+    byte-identical content before a byte is written, and NEVER_WRITE_INSIDE
+    refuses any path under wp-content outright. The shape is checked rather
+    than trusted: a secret that is not a plugin directory derives nothing.
+    """
+    remote_dir = (remote_dir or "").strip().rstrip("/")
+    if not remote_dir or NEVER_WRITE_INSIDE.strip("/") not in remote_dir:
+        return {}
+    if "/plugins/" not in remote_dir + "/":
+        return {}
+    wp_root = os.path.dirname(os.path.dirname(os.path.dirname(remote_dir)))
+    if not wp_root or wp_root == "/" or NEVER_WRITE_INSIDE in wp_root + "/":
+        return {}
+    site_root = os.path.dirname(wp_root)
+    out = {"blog": f"{wp_root}/robots.txt"}
+    if site_root and site_root != wp_root:
+        out["root"] = f"{site_root.rstrip('/')}/robots.txt" if site_root != "/" \
+            else "/robots.txt"
+    return out
+
+
 def default_targets() -> list[Target]:
     """Both copies, each with the paths an FTP session on this host might show.
+
+    Ordered proven-first: anything derived from WP_PLUGIN_REMOTE_DIR comes
+    before the hand-written guesses, because it is the only path in the list
+    that something has actually written to.
 
     Overridable per target by env var, because a control panel that moves the
     document root should not need a code change — but never DEFAULTED from one,
@@ -154,36 +219,55 @@ def default_targets() -> list[Target]:
     """
     root_override = (os.environ.get("TIT_ROBOTS_ROOT_PATH") or "").strip()
     blog_override = (os.environ.get("TIT_ROBOTS_BLOG_PATH") or "").strip()
+    derived = derived_candidates(os.environ.get("WP_PLUGIN_REMOTE_DIR") or "")
     return [
         Target(
             "root",
             f"{SITE}/robots.txt",
             [root_override] if root_override else [
+                # The account's real layout: a mixed-case domain directory
+                # under public_html. None of the generic guesses below reach it,
+                # which is exactly why the first real dispatch refused.
+                "/public_html/AskTheRecruiter.com/robots.txt",
                 "/robots.txt",
                 "/public_html/robots.txt",
                 "robots.txt",
                 "public_html/robots.txt",
             ],
+            proven=() if root_override else
+                   [p for p in (derived.get("root"),) if p],
             forbidden_fragment="/blog/",
             absent_note=(
-                "Measured 2026-07-30: the apex has NO robots.txt. It answers "
-                "/robots.txt, and every other unmatched path, with the same "
-                "13,181-byte 'Coming soon' landing page at HTTP 200. So there "
-                "is nothing here to append to, and putting one there is a "
-                "CREATE, not an edit — a root robots.txt where none existed "
-                "changes the crawl rules for the whole domain in one step. "
-                "Decide that deliberately; this workflow will not do it as a "
-                "side effect of adding two sitemap lines."),
+                "THE APEX IS NOT ON THIS HOST. Measured 2026-07-30: "
+                "https://asktherecruiter.com/robots.txt returns a 13,181-byte "
+                "'Coming soon' page built by Cloudflare — 25 of its stylesheet "
+                "references are /cf-fonts/ — and every other unmatched apex "
+                "path returns the same bytes. Only /blog/ routes through to "
+                "Bluehost. So NO FTP PATH CAN EVER SATISFY THIS TARGET, "
+                "whatever it is set to: the URL and the filesystem belong to "
+                "different servers, and the content check is comparing a "
+                "Bluehost file against a Cloudflare response. A root "
+                "robots.txt has to be added wherever that Coming Soon page is "
+                "built, not in cPanel and not over FTP. (There IS a "
+                "/public_html/AskTheRecruiter.com/robots.txt on Bluehost. It "
+                "is served to nobody.)"),
         ),
         Target(
             "blog",
             f"{SITE}/blog/robots.txt",
             [blog_override] if blog_override else [
+                # Ground truth from the owner's own listing of the account.
+                # The mixed case is not incidental: `asktherecruiter.com` is a
+                # different directory to the server, and lowercasing it here
+                # would put us back to guessing.
+                "/public_html/AskTheRecruiter.com/blog/robots.txt",
                 "/blog/robots.txt",
                 "/public_html/blog/robots.txt",
                 "blog/robots.txt",
                 "public_html/blog/robots.txt",
             ],
+            proven=() if blog_override else
+                   [p for p in (derived.get("blog"),) if p],
             required_fragment="blog/robots.txt",
         ),
     ]
@@ -360,13 +444,117 @@ class FtpTransport:
         return buffer.getvalue()
 
     def write(self, path: str, data: bytes) -> None:
+        if NEVER_WRITE_INSIDE in path:
+            # deploy-plugin.yml owns everything under wp-content/plugins, and a
+            # robots.txt is never in there anyway. Last line before the socket.
+            raise Refusal(f"refusing to write inside wp-content: {path}")
         self.ftp.storbinary(f"STOR {path}", io.BytesIO(data))
+
+    def session_report(self, paths: list[str]) -> list[str]:
+        return session_report_lines(self.ftp.pwd, self.ftp.nlst, paths)
 
     def close(self) -> None:
         try:
             self.ftp.quit()
         except Exception:
             pass
+
+
+def candidate_paths(target: Target) -> list[str]:
+    """Every path worth looking at, proven ones first, guesses filtered."""
+    out = []
+    for path in target.proven:
+        if path and path not in out and NEVER_WRITE_INSIDE not in path:
+            out.append(path)
+    for path in target.candidates:
+        if not path or path in out:
+            continue
+        if NEVER_WRITE_INSIDE in path:
+            continue
+        if target.required_fragment and target.required_fragment not in path:
+            continue
+        if target.forbidden_fragment and target.forbidden_fragment in path:
+            continue
+        out.append(path)
+    return out
+
+
+def session_report_lines(pwd, lister, paths: list[str]) -> list[str]:
+    """Where the server actually put us, and what is there. READ ONLY.
+
+    Directories in the order most likely to answer the question: the login
+    directory the server chose, every parent of it, the parent of each
+    candidate we tried, and `/`. A server that refuses a listing SAYS SO — an
+    empty report and a forbidden one are different facts, and printing nothing
+    for both is how the next dispatch learns nothing either.
+
+    Takes the two callables rather than a connection so the fakes in the test
+    suite exercise this code instead of a lookalike of it.
+    """
+    lines = []
+    try:
+        cwd = pwd()
+        lines.append(f"login directory: {cwd}")
+    except Exception as exc:
+        cwd = ""
+        lines.append(f"login directory: refused ({type(exc).__name__}: {exc})")
+
+    wanted, seen = [], set()
+
+    def add(directory):
+        directory = directory or "/"
+        if directory not in seen:
+            seen.add(directory)
+            wanted.append(directory)
+
+    add(cwd)
+    walk = cwd
+    while walk and walk not in ("/", "."):
+        parent = os.path.dirname(walk.rstrip("/")) or "/"
+        if parent == walk:
+            break
+        walk = parent
+        add(walk)
+    for path in paths:
+        add(os.path.dirname(path) or "/")
+    add("/")
+
+    for directory in wanted[:10]:
+        try:
+            entries = sorted(lister(directory))
+        except Exception as exc:
+            lines.append(f"{directory}: not listable ({type(exc).__name__}: {exc})")
+            continue
+        names = [os.path.basename(str(e).rstrip("/")) or str(e) for e in entries]
+        marker = "  <-- HAS robots.txt" if "robots.txt" in names else ""
+        lines.append(f"{directory}: {len(names)} entries{marker}")
+        shown = names[:40]
+        lines.append("    " + (", ".join(shown) if shown else "(empty)")
+                     + (f", ... +{len(names) - len(shown)} more"
+                        if len(names) > len(shown) else ""))
+    return lines
+
+
+def describe_session(ftp, paths: list[str]) -> None:
+    """What this FTP session can actually see. Read only, and printed only when
+    nothing matched.
+
+    The first real dispatch refused with a list of four paths and no way to
+    tell whether the file was somewhere else, the session was chrooted
+    elsewhere, or the account simply could not list. A refusal that does not
+    say what it looked at costs another dispatch to learn anything, which is
+    how a fifth and a sixth blind guess get added.
+    """
+    lister = getattr(ftp, "session_report", None)
+    if lister is None:
+        return
+    print("  what this FTP session can actually see:")
+    try:
+        for line in lister(paths):
+            print(f"    {line}")
+    except Exception as exc:                              # never mask the Refusal
+        print(f"    (could not describe the session: "
+              f"{type(exc).__name__}: {exc})")
 
 
 def locate(target: Target, body: str, ftp) -> str:
@@ -377,15 +565,11 @@ def locate(target: Target, body: str, ftp) -> str:
     """
     wanted = body.encode("utf-8")
     normalised = wanted.replace(b"\r\n", b"\n").strip()
-    for path in target.candidates:
-        if not path:
-            continue
-        if target.required_fragment and target.required_fragment not in path:
-            continue
-        if target.forbidden_fragment and target.forbidden_fragment in path:
-            continue
+    paths = candidate_paths(target)
+    for path in paths:
         found = ftp.read(path)
         if found is None:
+            print(f"    {path} — no such file")
             continue
         if found == wanted:
             return path
@@ -394,10 +578,14 @@ def locate(target: Target, body: str, ftp) -> str:
             return path
         print(f"    {path} exists but is NOT what {target.url} serves "
               f"({len(found)} bytes vs {len(wanted)}) — not this one")
+
+    describe_session(ftp, paths)
     raise Refusal(
         f"{target.name}: no remote file matched what {target.url} serves. "
-        f"Tried {[p for p in target.candidates if p]}. Refusing to write to a "
-        f"path we cannot prove is the right one.")
+        f"Tried {paths}. Refusing to write to a path we cannot prove is the "
+        f"right one. The listing above is what the session can see; set "
+        f"TIT_ROBOTS_{target.name.upper()}_PATH, or fix "
+        f"WP_PLUGIN_REMOTE_DIR, once the real path is visible in it.")
 
 
 # --- one target, end to end --------------------------------------------------
@@ -438,6 +626,9 @@ def process(target: Target, *, http, ftp, apply: bool,
 
     if ftp is not None:
         outcome["path"] = locate(target, body, ftp)
+        if NEVER_WRITE_INSIDE in outcome["path"]:
+            raise Refusal(f"{target.name}: {outcome['path']} is inside "
+                          f"wp-content, which deploy-plugin.yml owns")
         print(f"  remote path proven by content: {outcome['path']}")
 
     if not apply:
