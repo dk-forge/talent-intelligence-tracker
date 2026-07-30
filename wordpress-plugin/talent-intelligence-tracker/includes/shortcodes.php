@@ -8,6 +8,46 @@
 
 if (!defined('ABSPATH')) exit;
 
+/**
+ * WHAT ONE DASHBOARD RENDER IS ALLOWED TO COST.
+ *
+ * The owner asked for this page to be fast on desktop and on mobile, and the
+ * only version of that claim a test can hold is a bound on the work a render
+ * does. So it is a constant, and tests/php/render_dashboard.php asserts the
+ * EXACT figure against a real SQLite database, including after five thousand
+ * rows are added. A query added inside a loop over rows fails there instead of
+ * on the live site under a crawl.
+ *
+ *   1  every scalar the page prints, in one pass (both sides of the detail
+ *      control, employers, countries-from-filings, the two date spans, the
+ *      newest capture)
+ *   1  the at-a-glance matrix, conditional aggregation over one scan
+ *   1  what kind of update, for the first ranking
+ *   1  which way headcount is going, for the third
+ *   1  every country's count, which the region strip, the country buttons, the
+ *      place ranking and the concentration caveat's denominator all read
+ *   1  the largest single source in a single country, for the caveat
+ *   1  the top cities row
+ *   1  the money head: the total, its coverage and what each card can place
+ *   3  money by country, by city, by industry
+ *   1  the first page of rows, with a LIMIT
+ *
+ * A warm render costs NONE of them: they are cached as one bundle, because
+ * nothing on this page varies by reader or by request. Nothing here reads
+ * $_GET at all -- a filtered view is JavaScript's job, against /query.
+ */
+const TIT_DASH_QUERY_BUDGET = 12;
+
+/**
+ * How many rows the server prints before JavaScript is involved.
+ *
+ * Matches /query's own default page, so the first paint and the first repaint
+ * cannot hand the reader a different number of rows. It is also most of what
+ * this page weighs (roughly 1.2KB of markup per row), which is why it is a
+ * named number with a test on it rather than a literal inside a LIMIT.
+ */
+const TIT_DASH_ROWS = 50;
+
 function tit_dashboard_shortcode() {
     // Render ONCE per request, whatever the theme does. This block theme runs
     // the content through the shortcode pass more than once, so the whole
@@ -21,7 +61,18 @@ function tit_dashboard_shortcode() {
     static $rendered = false;
     if ($rendered) return '';
     $rendered = true;
+    return tit_dashboard_html();
+}
 
+/**
+ * The render itself, callable more than once per process.
+ *
+ * Split from the shortcode so the once-per-request guard above is the only
+ * thing that is once-per-request. A harness that can render only once can
+ * measure a cold render or a warm one but never both, and "warm costs nothing"
+ * is the half of the caching claim that actually reaches a reader.
+ */
+function tit_dashboard_html() {
     // Enqueue from INSIDE the shortcode as well as from wp_enqueue_scripts.
     // The hook's guard asks has_shortcode($post->post_content, ...), which is
     // FALSE whenever the shortcode reaches the page through a block, pattern,
@@ -168,7 +219,7 @@ function tit_dashboard_shortcode() {
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
                    COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
-          LIMIT 50",
+          LIMIT " . TIT_DASH_ROWS,
         ARRAY_A
     ) ?: array();
 
@@ -203,6 +254,36 @@ function tit_dashboard_shortcode() {
     );
     $industries = tit_industry_labels();
     $confidences = tit_confidence_labels();
+
+    /*
+      Quick views, cut back to the ones the at-a-glance matrix cannot express.
+
+      This row used to hold nine chips mixing two different axes: four time
+      periods and four signal types, side by side, with nothing saying that
+      picking "This month" and picking "Hiring up" narrow the page in completely
+      different ways. Since the signal-by-period matrix shipped, every one of
+      those eight is a cell in that matrix, done better: the matrix shows the
+      count BEFORE you click it, and it crosses time with signal instead of
+      making you apply two chips and hope.
+
+      What survives is what the matrix has no axis for. "From Official Filings"
+      is a confidence filter, and the matrix has no confidence dimension.
+      "Biggest Raises" is a SORT, which a matrix cell cannot be at all, and it
+      only became possible when funding_amount_usd gave us a number to sort on
+      (the old display string put $9M above $10B).
+
+      DEFINED HERE, three hundred lines above the strip that prints it, because
+      it was defined three hundred lines BELOW it. PHP runs a function body top
+      to bottom, so the foreach ran over an undefined variable: the live page
+      emitted two notices on every single render and shipped the quick views as
+      a label and a hint with no buttons between them. Nothing about the markup
+      looked wrong, which is why it survived several sessions.
+    */
+    $quick_views = array(
+        '' => 'Everything',
+        'confidence=verified' => 'From Official Filings',
+        'funding=1&sort=raised' => 'Biggest Raises',
+    );
     ?>
     <!--
       The config also rides on the element, not only on wp_localize_script.
@@ -905,30 +986,6 @@ function tit_dashboard_shortcode() {
       </div>
 
 
-      <?php
-      /*
-        Quick views, cut back to the ones the at-a-glance matrix cannot express.
-
-        This row used to hold nine chips mixing two different axes: four time
-        periods and four signal types, side by side, with nothing saying that
-        picking "This month" and picking "Hiring up" narrow the page in
-        completely different ways. Since the signal-by-period matrix shipped,
-        every one of those eight is a cell in that matrix, done better: the
-        matrix shows the count BEFORE you click it, and it crosses time with
-        signal instead of making you apply two chips and hope.
-
-        What survives is what the matrix has no axis for. "From Official
-        Filings" is a confidence filter, and the matrix has no confidence
-        dimension. "Biggest Raises" is a SORT, which a matrix cell cannot be at
-        all, and it only became possible when funding_amount_usd gave us a
-        number to sort on (the old display string put $9M above $10B).
-      */
-      $quick_views = array(
-          '' => 'Everything',
-          'confidence=verified' => 'From Official Filings',
-          'funding=1&sort=raised' => 'Biggest Raises',
-      );
-      ?>
       <?php /* With the charts above rather than below, this is where the
                machinery begins, and a section marker has to say so or the
                quick views read as a fourth chart. The id is the jump bar's

@@ -222,6 +222,16 @@ _AGGREGATOR_DOMAINS = frozenset(
     d for d in (registrable_domain(h) for h in _AGGREGATOR_HOSTS) if d
 )
 
+# Editorial newsrooms that happen to live on an aggregator's domain.
+#
+# The sibling tracker settled this on 2026-07-23 and wrote down why: a bylined
+# newsroom is citable even when the company behind it also runs a crowdsourced
+# database, because the reporting is the publisher's own work. The database
+# stays blocked; the newsroom does not. Matching by registrable domain alone
+# would have blocked a publisher the other product deliberately cites, which
+# would make one house hold two positions on the same URL.
+_EDITORIAL_EXCEPTIONS = frozenset({"news.crunchbase.com"})
+
 
 @dataclass(frozen=True)
 class Feed:
@@ -311,7 +321,11 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
             # ended up citing an aggregator. Every other entry had the same
             # hole (blog.dealroom.co, any-subdomain.magnitt.com). An aggregator
             # does not stop being one on a subdomain.
-            if host in _AGGREGATOR_HOSTS or registrable_domain(host) in _AGGREGATOR_DOMAINS:
+            blocked = (host in _AGGREGATOR_HOSTS
+                       or registrable_domain(host) in _AGGREGATOR_DOMAINS)
+            if blocked and host in _EDITORIAL_EXCEPTIONS:
+                blocked = False
+            if blocked:
                 STATS["blocked"] += 1
                 print(f"  [{COLLECTOR}] REFUSED aggregator feed: "
                       f"{row.get('name','?')} ({host}) — we store publishers, not compilers")
