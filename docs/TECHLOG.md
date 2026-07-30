@@ -13,6 +13,171 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the report every session reads could not see a red run
+
+The owner watched a dozen "Run failed" emails arrive across both trackers and
+asked why no session had noticed. The honest answer is structural: **nothing
+told a session about a red run.** `CLAUDE.md` sends every session to
+`ops_status.py` first, and that file reports on data, collectors, the writer
+queue, guardrails and link rot — none of which knows whether the workflow that
+produced any of it exited non-zero. So a session opened, read ALL CLEAR, and
+worked for hours beside a repo whose `tests` had been red on main, whose
+`enrich` had died on a read timeout, and whose sibling had ten red `Tests` runs
+in two hours.
+
+The constraint that shapes the fix is that `ops_status.py` must stay offline,
+dependency-free and key-free. That is not an accident of history —
+`writer_queue_runs.py` exists as a separate module *for exactly this reason*,
+and `tests/test_health_digest.py` already asserts that ops_status imports
+nothing outside the standard library, because it must run before any venv
+exists. Being offline is precisely what stops it from seeing a run. So the
+answer is a second command, not a section: **`ci_status.py`**, run beside it.
+
+```bash
+python3 ops_status.py     # the data.  offline, no deps, no keys
+python3 ci_status.py      # the runs behind the data.  needs gh + network
+```
+
+### What it reports, and why each part earns its place
+
+- **RED NOW** — for every workflow that has failed at all, the newest run on the
+  repo's default branch, asked one workflow at a time. Red *now* is the state
+  that persists and the only claim worth exiting 2 over; a failure with a green
+  run after it has already been answered by somebody. Deliberately **not**
+  bounded by the window: a dispatch-only workflow that failed a week ago and has
+  not run since is exactly the thing nobody notices.
+- **the last 24h** — every red run in the window including ones since recovered,
+  so a flapping job is visible before it becomes a permanent one. Listed, not
+  alarmed.
+- **EVICTED** — `cancelled` with **zero jobs**, the displacement signature this
+  project has been bitten by repeatedly and which is invisible in the GitHub UI.
+  `writer_queue.never_started()` is imported rather than restated, so the two
+  tools cannot drift about what an eviction looks like.
+- **the writer queue**, from `writer_queue.summary()` — printed as context and
+  explicitly **not** counted into this tool's exit code, because
+  `ops_status.py [2b]` already exits 2 on exactly those and one problem raising
+  two alarms is how an alarm stops being read.
+
+Exit codes: **0** green, **2** something needs a human (matching ops_status so
+the two compose), **3 could not check**. Three is the whole point of three. No
+`gh`, no credential, no route to github.com must never render as an all-clear —
+that is the same false-healthy failure this repo keeps finding, and it is the
+one an exit code can actually prevent. `tests/test_ci_status.py` asserts for all
+three of those cases that the output contains COULD NOT CHECK and does **not**
+contain "All green".
+
+### The naive version of this is useless, and measuring it is what showed that
+
+Written to the brief's literal shape — "any run that ended cancelled with zero
+jobs" — the first working version produced **24 evictions and a 28-item ACTION
+NEEDED list**, which is the same as no alarm at all. Reading them one by one:
+
+| | |
+|---|---|
+| evictions found in the run list | **24** |
+| already booked as orphans in `data/writer_queue.json` (all resolved, 2026-07-28/29) | **17** |
+| `drain-writers` losing its own pending slot | **6** |
+| `deploy-robots` losing its own pending slot | **1** |
+| **unrecorded evictions of a database writer** | **0** |
+
+The 17 are `ops_status [2b]`'s to raise and it does. The other 7 are **not
+losses**: neither workflow is in the `talent-collect` group, and
+`drain-writers.yml`'s own concurrency comment says why — a tick that loses its
+slot reconciles from scratch next time and costs a cycle, no data. So an
+eviction is an alarm only when it hit a member of the writer lock group, inside
+the window, and the queue has not already booked the run id. The lock-group
+membership comes from `writer_queue.lock_group_workflows()`, which already
+parses the workflow files. That took the list from 28 items to **3**, all real.
+
+For the **sibling** the lock groups are not knowable from here — the two repos
+share no code, by the owner's rule — so `lock_group=None` means every eviction
+there is reported. Silence would have been a guess in the wrong direction.
+
+### What it says today, 2026-07-30 22:49 UTC
+
+**dk-forge/talent-intelligence-tracker** — RED NOW on main: `collect national
+press` (run 30583087376), `deploy-robots` (30577050236), `enrich`
+(30586211637). 13 red runs in the last 24h across 5 workflows; `tests`,
+`collect`, `retract`, `backfill-funding-bulk`, `correct-layoff-scope` and
+`drain-writers` have all gone green since. No unrecorded writer eviction.
+
+**dk-forge/ai-layoff-tracker** — nothing red now; 10 red `Tests` runs inside two
+hours, all recovered. One eviction ("EDGAR history sweep (rotating)",
+30393987230) sits outside the 24h window.
+
+Exit 2, three items. That is the state the previous session worked beside for
+hours believing it was all clear.
+
+### The generalisation, not a fourth wrapper
+
+`writer_queue_runs._gh` was reused rather than copied — this repo already grew
+two `registrable_domain` implementations out of that habit. Three changes, all
+small, none altering the drainer's behaviour:
+
+- `run_list(...)` is the public query builder (`--status`, `-b`, `-w`, `--json`
+  fields), and `fetch()` is now `attach_job_counts(run_list(...))`. The filters
+  matter: on a repo doing forty runs an hour an unfiltered list of 100 covers
+  about four hours, so filtering server-side is the difference between seeing a
+  day and thinking a day was quiet.
+- `attach_job_counts()` split out, so a caller holding a cancelled-only list can
+  buy job counts for just the runs inside its window. Unwindowed this was 80 API
+  calls and **28 seconds** at a session-start prompt; windowed and with the
+  independent reads issued in parallel it is **~9 seconds**. A check nobody
+  waits for is a check nobody runs.
+- **`GhUnavailable(RuntimeError)`** — raised for a missing binary, a missing
+  credential or an unreachable host, so "could not check" is nameable. It
+  subclasses `RuntimeError` on purpose: every existing caller catches that and
+  keeps its behaviour, including `attach_job_counts`'s unknown-is-not-zero
+  fallback.
+
+**Where the brief was wrong when the code was read:**
+
+1. It described `_gh` as already hardened — "retries 429/5xx/timeouts, fails
+   fast on 4xx", which is accurate. But `subprocess.run(["gh", ...])` raises
+   `FileNotFoundError` when gh is not installed, and nothing caught it. The
+   no-gh case was not merely unhandled by a new tool; it was **a traceback in
+   the existing drainer**, which is exactly the "not a traceback" outcome the
+   brief asked for. Fixed at the source rather than in the caller.
+2. It warned that rebuilding `docs/TECHLOG.md` from local HEAD would drop a
+   210-line section. In this worktree HEAD is **66 commits behind origin/main**
+   and `docs/TECHLOG.md` is nevertheless **byte-identical** between them (blob
+   `9f032d8b`): the whole divergence is `data/` plus `pipeline/vocab.py` and
+   `tests/test_funding_amount_parsing.py`. Rebuilt from `origin/main` regardless
+   — being right by luck is not a procedure.
+3. The stated test baseline, 2,406, is correct. `CLAUDE.md` said **1,807**, which
+   had been stale for some time; corrected to 2,435 alongside this work
+   (+29 in `tests/test_ci_status.py`).
+
+### Where this should fire from — recommended, not built
+
+The ritual in `CLAUDE.md` is the whole delivery so far, and it is deliberately
+the only thing that always applies: it is one file, every session reads it, and
+it needs no infrastructure. Beyond that, three options were considered and none
+was added unilaterally:
+
+- **A `SessionStart` hook in `.claude/settings.json`** — *the recommendation.*
+  It fires once per session, costs the ~9 seconds already measured, and makes
+  the check impossible to skip rather than merely documented. Its real drawback
+  is honest: it only helps sessions working in this repo with that settings
+  file, and it does nothing for a session in the sibling. Nothing that fires on
+  every tool call was considered — `gh` on every call is slow, noisy, and would
+  train people to disable the hook.
+- **A scheduled workflow that opens an issue** — rejected. It needs somebody who
+  reads issues, and it has the failure mode it is meant to fix: a watcher
+  workflow that itself goes red announces nothing, and nobody notices the
+  silence.
+- **A git hook** — rejected. `pre-commit` running `gh` is slow and offline-
+  hostile, and it fires at the moment work is finished rather than at the moment
+  a session forms its picture of the repo.
+
+The sibling repo would benefit from the same tool. Per the standing rule that
+the two share no code, that is a **separate implementation in its own repo** and
+a recommendation for the owner, not something done from here. Note that
+`ci_status.py` already watches the sibling's runs from this side, which covers
+the reporting need even while the sibling has no copy of its own.
+
+---
+
 ## 2026-07-30 — the archived copy was already shipped, and no reader had ever seen one
 
 **Plugin 1.56.0 -> 1.57.0.** The brief for this session said to add an "Archived"
