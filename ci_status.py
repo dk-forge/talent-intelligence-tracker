@@ -317,6 +317,32 @@ def read_repo(repo: str, *, limit: int = LIMIT,
 # rendering
 # --------------------------------------------------------------------------
 
+def _cause_line(repo: str, run_id) -> str:
+    """The failing assertion from a red run, or "" if it cannot be read.
+
+    Best-effort by design and silent on every failure path: a cause we could not
+    fetch must never cost us the RED itself, which is the finding that matters.
+    Only ever called for runs already known to be red, so the log download is
+    paid for exactly when there is something to explain.
+    """
+    if not run_id:
+        return ""
+    try:
+        import subprocess
+
+        import ci_alert
+
+        proc = subprocess.run(
+            ["gh", "run", "view", str(run_id), "-R", repo, "--log-failed"],
+            capture_output=True, text=True, timeout=45)
+        if proc.returncode != 0:
+            return ""
+        cause, _context = ci_alert.extract_cause(proc.stdout)
+        return cause
+    except Exception:
+        return ""
+
+
 def render(report: dict, index: int, label: str, window_hours: int,
            now: datetime) -> None:
     print(f"\n[{index}] {report['repo']}  ({label})")
@@ -329,6 +355,15 @@ def render(report: dict, index: int, label: str, window_hours: int,
                   f"{run.get('conclusion'):<15} "
                   f"{_ago(run.get('createdAt'), now):>8}  "
                   f"run {run.get('databaseId')}")
+            cause = _cause_line(report["repo"], run.get("databaseId"))
+            if cause:
+                # WHAT failed, not just THAT something did. A workflow name and
+                # a run id still cost a session a tab and a scroll; the assertion
+                # itself is usually enough to know whether it matters before
+                # opening anything. The extractor is SHARED with ci_alert.py on
+                # purpose, so the email the owner receives and the line a session
+                # reads here can never describe one failure two different ways.
+                print(f"        {cause}")
             if run.get("url"):
                 print(f"        {run['url']}")
     else:

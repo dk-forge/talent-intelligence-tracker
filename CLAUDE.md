@@ -27,6 +27,25 @@ Exit 2 in either means something needs a human. `ci_status.py` also exits **3**
 for "I could not check" — no gh, no credential, no network — because that must
 never read as an all-clear.
 
+**Red CI can now EMAIL the owner** — `ci_status.py` tells a session what is red,
+this tells the owner. **The listener is DORMANT until the plugin is deployed**;
+arming it against the live 1.57.0 endpoint would mail a "RECOVERED" for every
+green run across ~30 workflows. Two steps, in order: deploy
+`deploy-plugin.yml -f dry_run=false` (ships 1.58.0 with the `dedupe_key` /
+`resolve_scope` contract), then uncomment the three `workflow_run` lines in
+`.github/workflows/ci-alert.yml`. The file says all of this at the top.
+`.github/workflows/ci-alert.yml` listens for EVERY workflow completing (one
+`workflow_run` listener, not an `if: failure()` step in each of 30 files) and
+runs `ci_alert.py`, which extracts the real failing assertion and POSTs it to the
+keyed `talent/v1/alert`. Deduped **by cause, not by run** (numbers normalised out
+before hashing; open/resolved state held in the endpoint), and it mails
+**RECOVERED once** on the next green run. `cancelled` is deliberately never
+alerted: this repo evicts runs by design, and `ci_status.py` is what tells an
+eviction from a failure. Do not "fix" the quiet on a repeat — an alarm that mails
+eight times in an afternoon is one you learn to filter, and a filtered alarm is
+the original problem in a new hat. `ci_status.py` shares `ci_alert.extract_cause`
+so the dashboard and the email can never describe one failure two ways.
+
 ## The 60-second model
 
 ```

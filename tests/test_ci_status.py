@@ -355,7 +355,31 @@ class TheRitualTests(unittest.TestCase):
             if isinstance(node, ast.ImportFrom) and node.level == 0
         }
         self.assertEqual(imported - set(sys.stdlib_module_names)
-                         - {"writer_queue", "writer_queue_runs"}, set())
+                         # Repo-local and themselves stdlib-only, so the bar
+                         # still holds transitively. ci_alert is shared so the
+                         # failing assertion a session reads here is the same
+                         # string the owner is mailed — one extractor, because
+                         # two would eventually describe one failure two ways.
+                         - {"writer_queue", "writer_queue_runs", "ci_alert"}, set())
+
+    def test_the_shared_extractor_is_itself_venv_free(self):
+        """The exemption above is only sound while ci_alert stays stdlib-only —
+        and it must anyway, so the notifier cannot be broken by a dependency
+        resolution failure, which would kill alerting exactly when the repo is
+        unhealthy."""
+        import ast
+
+        tree = ast.parse((self._root() / "ci_alert.py").read_text())
+        imported = {
+            name.name.split(".")[0]
+            for node in ast.walk(tree) if isinstance(node, ast.Import)
+            for name in node.names
+        } | {
+            (node.module or "").split(".")[0]
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.level == 0
+        }
+        self.assertEqual(imported - set(sys.stdlib_module_names), set())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,124 @@
+name: CI failure alert
+
+# A red run becomes an email. Until this existed, a failure reached GitHub
+# Actions and stopped there, and this repo has an expensive record of exactly
+# that: thirteen evicted writer runs reported as "queued", 9,572 signal rows
+# destroyed across five commits without a single red run, eleven consecutive
+# drain ticks dispatching nothing and exiting 0. Every one of those was visible
+# somewhere no person was looking.
+#
+# WHY A workflow_run LISTENER, and not the two obvious alternatives
+# -----------------------------------------------------------------
+# 1. An `if: failure()` step in each workflow — there are 30 workflow files
+#    here. Thirty edits, thirty chances to forget one, and the one you forget is
+#    the one that breaks. Worse, a step inside the failing job runs on the SAME
+#    runner as the failure, so an OOM, a timeout kill or a cancellation takes
+#    the alerting step down with it — least reliable exactly when it matters
+#    most. And every one of those edits would collide with the other sessions
+#    working in this checkout.
+# 2. A reusable workflow / composite action — better, but still needs a `jobs:`
+#    entry in all 30, so it keeps the coverage-by-diligence problem.
+#
+# This listener subscribes to EVERY workflow from one file, so a workflow added
+# tomorrow is covered the moment it exists. It fires for `schedule` runs as well
+# as push/dispatch — `workflow_run` keys off a run COMPLETING, not off how it
+# started — which is decisive here, because `collect.yml` is cron-only and the
+# drain tick that silently dispatched nothing for eleven ticks was scheduled.
+# Running in its own job on its own runner, it cannot be taken down by whatever
+# took down the run it reports on, and can never mask that original failure.
+#
+# Cost: nothing. This repo is public, so Actions minutes are free — which is
+# also why it must stay public (CLAUDE.md).
+
+# ---------------------------------------------------------------------------
+# DORMANT until the plugin carrying the new /alert contract is deployed.
+#
+# ARM IT IN TWO STEPS, IN THIS ORDER — the order is the whole point:
+#   1. gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker \
+#          --ref main -f dry_run=false        # ships 1.58.0, which has the contract
+#   2. uncomment the three `workflow_run` lines below and push.
+#
+# WHY NOT BOTH AT ONCE. The DEPLOYED endpoint is 1.57.0 and does not know
+# `dedupe_key` or `resolve_scope`. It falls through to the legacy path, which
+# suppresses by SUBJECT — and the subject carries the failing assertion INCLUDING
+# its numbers, so two runs of one broken thing read as two different alerts. Far
+# worse, every SUCCESS posts a resolve that 1.57.0 would mail as a genuine
+# "RECOVERED" email; across ~30 workflows running constantly that is a burst of
+# mail celebrating nothing. Arming this against the old endpoint would produce
+# exactly the alarm fatigue the whole feature exists to prevent.
+#
+# `ci_alert.py`, its tests, and the shared cause extractor now used by
+# `ci_status.py` are all live and useful today — only the listener waits. This
+# follows the repo's own conventions: `deploy-plugin.yml` keeps its push trigger
+# commented out for the same class of reason, and new sources ship DORMANT with
+# dry-run diagnostics rather than half-wired.
+#
+# Prove the path by hand at any time, without arming anything:
+#   python3 ci_alert.py --run-id <a real failed run id> --workflow tests \
+#       --conclusion failure --dry-run
+# ---------------------------------------------------------------------------
+
+on:
+  # workflow_run:
+  #   workflows: ['*']
+  #   types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'a completed run id to report on (manual proof of the path)'
+        required: true
+      conclusion:
+        description: 'failure or success'
+        default: failure
+
+permissions:
+  contents: read
+  actions: read          # needed to read the failed run's log
+
+jobs:
+  alert:
+    # `cancelled` is deliberately not alertable, and here that is not a style
+    # choice: this repo cancels runs BY DESIGN — the `talent-collect` lock
+    # evicts a pending run when another is dispatched past it. Alerting on those
+    # would fire constantly and bury the real failures. Evicted writer runs have
+    # their own detection in ops_status.py [2b], which can tell an eviction from
+    # a failure. This cannot, and must not pretend to.
+    #
+    # The name check is a recursion guard. GitHub does not re-trigger
+    # workflow_run for a run this token started, but a mail loop is not a
+    # failure mode worth discovering empirically.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.name != 'CI failure alert' &&
+       contains(fromJSON('["failure","timed_out","startup_failure","success"]'),
+                github.event.workflow_run.conclusion))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No pip install: ci_alert.py is stdlib-only on purpose, so the notifier
+      # cannot be broken by a dependency resolution failure — which would be an
+      # alerting path that dies exactly when the repo is unhealthy.
+      #
+      # No `continue-on-error` either: if the alert cannot be delivered this run
+      # goes RED, and ops_status.py [2f] surfaces a failing alerter at the next
+      # session start. A notifier that fails silently is worse than none, because
+      # it buys the false confidence that you would have been told.
+      - name: Alert on failure / clear on recovery
+        env:
+          WP_SITE_URL: https://asktherecruiter.com/blog
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 ci_alert.py \
+            --run-id     "${{ inputs.run_id || github.event.workflow_run.id }}" \
+            --workflow   "${{ github.event.workflow_run.name || 'manual proof' }}" \
+            --conclusion "${{ inputs.conclusion || github.event.workflow_run.conclusion }}" \
+            --branch     "${{ github.event.workflow_run.head_branch || 'main' }}" \
+            --event      "${{ github.event.workflow_run.event || 'workflow_dispatch' }}" \
+            --run-url    "${{ github.event.workflow_run.html_url }}"

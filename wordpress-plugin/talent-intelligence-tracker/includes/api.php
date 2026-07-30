@@ -817,11 +817,59 @@ function tit_alert_recipient() {
 }
 
 /**
+ * Open CI alerts, keyed on CAUSE.
+ *
+ * Deliberately an option and not a transient: a transient can be evicted by an
+ * object cache at any moment, and an evicted "we already told them" record
+ * re-sends an alert the owner has already read, while an evicted "this is open"
+ * record silently swallows the RECOVERED notice. Neither failure announces
+ * itself, which is the property this whole feature exists to stop paying for.
+ * Stored with autoload = false, so it costs nothing on a normal page request.
+ */
+function tit_alert_state() {
+    $state = get_option('tit_ci_alert_state', array());
+    return is_array($state) ? $state : array();
+}
+
+function tit_alert_state_save($state) {
+    // A caller looping on a mutating cause key could otherwise grow wp_options
+    // without bound. Keep the newest 200 and drop the rest.
+    if (count($state) > 200) {
+        uasort($state, function ($a, $b) {
+            return ((int) ($a['first'] ?? 0)) <=> ((int) ($b['first'] ?? 0));
+        });
+        $state = array_slice($state, -200, null, true);
+    }
+    update_option('tit_ci_alert_state', $state, false);
+}
+
+/**
  * Mail the owner that something needs a human.
  *
  * Health has always been recorded and never announced: a dead collector was a
  * red run and a badge on a page nobody opens, and a stopped workflow was
  * nothing at all. This is the one route that reaches a person.
+ *
+ * THREE CALLING SHAPES, and the difference is the whole point:
+ *
+ *   {subject, body}                — legacy. Suppressed by SUBJECT for 3 days.
+ *                                    health_digest.py and link_check.py.
+ *   {subject, body, dedupe_key}    — an alarm is RAISED for that cause key. The
+ *                                    same key stays quiet until it is resolved.
+ *   {subject, body, resolve_scope} — an alarm is CLEARED. Mails once if anything
+ *                                    was open under that scope, silent if not.
+ *
+ * WHY DEDUPE BY CAUSE RATHER THAN BY RUN. The sibling repo had one assertion
+ * redden CI eight consecutive times in an afternoon. Eight identical emails
+ * would teach the owner to filter this sender, which recreates the original
+ * problem — an alarm nobody reads — in a new form. `ci_alert.py` normalises
+ * run-to-run numbers out of the message before hashing it, so a count drifting
+ * while the same thing stays broken is ONE cause and mails once, and a
+ * genuinely different assertion mails immediately.
+ *
+ * AND IT CLEARS. `resolve_scope` is posted on every green run, so a fixed
+ * breakage says so exactly once. That is what lets the owner stop worrying
+ * without going and checking, which is the actual ask.
  */
 function tit_api_alert(WP_REST_Request $req) {
     $body    = $req->get_json_params();
@@ -833,9 +881,84 @@ function tit_api_alert(WP_REST_Request $req) {
                             array('status' => 400));
     }
 
+    $to      = tit_alert_recipient();
+    $dedupe  = sanitize_text_field(is_array($body) ? ($body['dedupe_key'] ?? '') : '');
+    $resolve = sanitize_text_field(is_array($body) ? ($body['resolve_scope'] ?? '') : '');
+    $safe    = '/^[a-z0-9][a-z0-9:._-]{0,159}$/';
+
+    // ---- RECOVERY -------------------------------------------------------
+    if ($resolve !== '') {
+        if (!preg_match($safe, $resolve)) {
+            return new WP_Error('tit_bad_body', 'bad resolve_scope', array('status' => 400));
+        }
+        $state = tit_alert_state();
+        $open  = array();
+        foreach ($state as $k => $v) {
+            if (strpos($k, $resolve . ':') === 0) { $open[] = $k; }
+        }
+        if (!$open) {
+            // The overwhelmingly common case: a green run of something already
+            // green. Silence here is what makes it safe to post a resolve on
+            // EVERY success without the clear becoming noise in its own right.
+            return rest_ensure_response(array(
+                'ok' => true, 'sent' => false,
+                'reason' => 'nothing was open for this scope',
+            ));
+        }
+        $extra = "\n\nThis clears " . count($open) . " open alert(s):\n";
+        foreach ($open as $k) {
+            $extra .= '  - ' . (string) ($state[$k]['subject'] ?? $k) . "\n";
+        }
+        $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
+                        wp_strip_all_tags($message . $extra));
+        // Cleared whether or not the mail landed. The flag answers "is there an
+        // unresolved failure", and the answer is now no; leaving it open would
+        // suppress the NEXT genuine alert for this cause, which is the more
+        // expensive of the two mistakes.
+        foreach ($open as $k) { unset($state[$k]); }
+        tit_alert_state_save($state);
+        return rest_ensure_response(array(
+            'ok' => (bool) $sent, 'sent' => (bool) $sent, 'cleared' => count($open),
+        ));
+    }
+
+    // ---- CAUSE-KEYED ALARM ----------------------------------------------
+    if ($dedupe !== '') {
+        if (!preg_match($safe, $dedupe)) {
+            return new WP_Error('tit_bad_body', 'bad dedupe_key', array('status' => 400));
+        }
+        $state = tit_alert_state();
+        $now   = time();
+        $first = $now;
+        if (isset($state[$dedupe])) {
+            $first = (int) ($state[$dedupe]['first'] ?? $now);
+            $last  = (int) ($state[$dedupe]['last'] ?? $first);
+            if (($now - $last) < 14 * DAY_IN_SECONDS) {
+                return rest_ensure_response(array(
+                    'ok' => true, 'sent' => false,
+                    'reason' => 'suppressed, this exact cause is already open (raised '
+                                . human_time_diff($first, $now) . ' ago)',
+                ));
+            }
+            // One reminder a fortnight, no more. Total silence until a green run
+            // would mean a breakage the owner missed once is never mentioned
+            // again; twice a month is a reminder, not alarm fatigue.
+            $subject = 'STILL FAILING: ' . $subject;
+        }
+        $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
+                        wp_strip_all_tags($message));
+        if ($sent) {
+            // Only recorded on a successful send. An alarm that was never
+            // delivered is not "already reported" — the next failure must retry.
+            $state[$dedupe] = array('first' => $first, 'last' => $now, 'subject' => $subject);
+            tit_alert_state_save($state);
+        }
+        return rest_ensure_response(array('ok' => (bool) $sent, 'sent' => (bool) $sent));
+    }
+
+    // ---- LEGACY: suppress by subject for three days ----------------------
     // A breakage that persists would otherwise mail on every run until it is
-    // fixed, and an alert that arrives weekly forever gets filtered. Repeat the
-    // same subject at most once every three days.
+    // fixed, and an alert that arrives weekly forever gets filtered.
     $seen = 'tit_alert_' . md5($subject);
     if (get_transient($seen)) {
         return rest_ensure_response(array(
@@ -844,11 +967,8 @@ function tit_api_alert(WP_REST_Request $req) {
         ));
     }
 
-    $sent = wp_mail(
-        tit_alert_recipient(),
-        '[Talent Intelligence Tracker] ' . $subject,
-        wp_strip_all_tags($message)
-    );
+    $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
+                    wp_strip_all_tags($message));
     if ($sent) {
         set_transient($seen, 1, 3 * DAY_IN_SECONDS);
     }
