@@ -183,8 +183,15 @@ gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
   -f reason='re-derive funding_amount_usd after the 43-language scale vocabulary'
 ```
 
-Order matters: the run reads the parser at the SHA it checks out, so queueing it
-before the parser lands corrects six rows and leaves six.
+**It does not have to wait for this change, and that is worth being precise
+about.** Checked by running the same derivation against `origin/main`'s parser:
+it produces the identical 12 rows and the identical +$340,148,335, because the
+narrower fix earlier the same day (`milyon`, the dot-as-thousands reading, the
+plausibility floor) already covers every defect the CURRENTLY STORED corpus
+happens to contain. The 43-language vocabulary corrects nothing that is stored
+today. It is a forward guard: what it stops is the next Latvian, Vietnamese or
+Hebrew row arriving worth two hundred dollars, and there was no reason to expect
+those to arrive as anything else.
 
 ### What is not covered, and is a decision rather than an oversight
 
