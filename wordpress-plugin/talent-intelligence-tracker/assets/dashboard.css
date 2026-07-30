@@ -1770,3 +1770,24 @@ main:has(#tit-dashboard) {
   .tit-place-grid { display:grid; gap:0 26px;
     grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); }
 }
+
+/* --- Cross-tracker pairs -------------------------------------------------
+   Hidden on the live page today: includes/cross_tracker.php ships disabled
+   because the employer matching across the two trackers is not good enough to
+   publish. The rules are here so that turning it on is a switch rather than a
+   design exercise, and so the section cannot arrive unstyled the way the
+   sources page once did. */
+.tit-cross-list { list-style: none; margin: 0; padding: 0; }
+.tit-cross-list li {
+  display: flex; flex-wrap: wrap; gap: .35rem .6rem; align-items: baseline;
+  padding: .7rem 0; border-bottom: 1px solid var(--tit-border, #e2e3e8);
+}
+.tit-cross-list li:last-child { border-bottom: 0; }
+.tit-cross-co { font-weight: 650; }
+.tit-cross-cut { color: var(--tit-secondary, #D55E00); }
+.tit-cross-hire { color: var(--tit-blue, #2a78d6); }
+/* Each part wraps as a unit rather than the row scrolling sideways: at 390px a
+   three-clause sentence has to become three lines, not a horizontal scrollbar. */
+@media (max-width: 560px) {
+  .tit-cross-list li { flex-direction: column; gap: .2rem; }
+}
