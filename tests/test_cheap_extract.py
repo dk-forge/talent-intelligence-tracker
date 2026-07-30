@@ -13,7 +13,9 @@ import re
 import pytest
 
 import run_collect
-from pipeline import cheap_extract, classify, dedupe, schema, store, validate
+from collectors import national_press
+from pipeline import (cheap_extract, classify, dedupe, schema, store, validate,
+                      vocab)
 
 
 @pytest.fixture
@@ -49,7 +51,7 @@ def test_clean_funding_headline_closes_completely():
     assert out["confidence"] == "reported"
 
 
-def test_stated_city_is_captured_only_from_based_prefix():
+def test_stated_city_is_captured_from_a_based_prefix():
     out = cheap_extract.extract(item("Boston-based Acme raised $12.5M in seed funding"))
     assert out is not None and out["city"] == "Boston"
 
@@ -408,3 +410,188 @@ def test_schema_hint_stays_at_the_head_of_the_user_message():
     call = re.search(r"_call\(\s*MODEL.*?\)", src, re.S).group(0)
     assert re.search(r'f"\{SCHEMA_HINT\}', call), \
         "the user message must START with SCHEMA_HINT for the prefix cache"
+
+
+# --- The stated city ---------------------------------------------------------
+#
+# Six phrasings, and the four tightenings that keep them honest. The decline
+# half of this table is the important half: every entry in it is a sentence
+# that names a place we must NOT store, and getting one of them wrong turns a
+# sourced claim into an invented one.
+
+CITY_STATED = (
+    # "<City>-based" and "<City>-headquartered"
+    ("Tel Aviv-based Acme raised $10M", "Tel Aviv", "IL"),
+    ("Vilnius-based Sigvi raises €1.2 million", "Vilnius", "LT"),
+    ("The Berlin-based startup raised $10M", "Berlin", "DE"),
+    ("A Lagos-based fintech raised $3M", "Lagos", "NG"),
+    ("Acme is a Sao Paulo-headquartered lender", "Sao Paulo", "BR"),
+    # multi-word cities, which is most of the interesting ones
+    ("New York-based Acme raised $10M", "New York", "US"),
+    ("San Francisco-based Acme raised $10M", "San Francisco", "US"),
+    ("Mexico City-based Acme raised $10M", "Mexico City", "MX"),
+    ("Ho Chi Minh City-based Acme raised $10M", "Ho Chi Minh City", "VN"),
+    ("Rio de Janeiro-based Acme raised $10M", "Rio de Janeiro", "BR"),
+    # a nationality in front of the city is a descriptor, not part of its name
+    ("Israeli Tel Aviv-based Acme raised $10M", "Tel Aviv", "IL"),
+    # "based in" / "headquartered in"
+    ("Acme is based in Jakarta", "Jakarta", "ID"),
+    ("Acme is headquartered in Seoul", "Seoul", "KR"),
+    ("Acme, headquartered in Nairobi, raised $3M", "Nairobi", "KE"),
+    # the source's own qualifier, agreeing
+    ("Acme is based in Dublin, Ireland", "Dublin", "IE"),
+    ("Acme is based in Austin, Texas", "Austin", "US"),
+    ("Acme is based in Melbourne, Australia", "Melbourne", "AU"),
+    ("Acme is based in Washington, DC", "Washington DC", "US"),
+    # the source's own qualifier, resolving a name that belongs to two countries
+    ("Cambridge, Massachusetts-based Acme raised $10M", "Cambridge MA", "US"),
+    ("Acme is based in London, Ontario", "London, Ontario", "CA"),
+    # aliases collapse to one market
+    ("Acme is based in Bengaluru", "Bangalore", "IN"),
+    ("Acme is based in Gurgaon", "Gurugram", "IN"),
+    ("Acme is based in Kiev", "Kyiv", "UA"),
+    ("Acme is based in Bombay", "Mumbai", "IN"),
+    # a city that is also a country is still a city, because it is a city-state
+    ("Acme is based in Singapore", "Singapore", "SG"),
+    # the office phrasings
+    ("Acme opens a Lagos office", "Lagos", "NG"),
+    ("Acme opens its new Kigali office", "Kigali", "RW"),
+    ("Acme will double its Dubai office", "Dubai", "AE"),
+    ("ACME OPENS A LAGOS OFFICE", "Lagos", "NG"),
+)
+
+CITY_DECLINES = (
+    # TIGHTENING 1: a place inside a longer name is not the place
+    "Berlin Packaging-based supplier raised $10M",
+    "Acme is based in Boston Consulting Group's building",
+    # TIGHTENING 2: "-based" is not a place frame
+    "AI-based Acme raised $10M",
+    "Cloud-based Acme raised $10M",
+    "Faith-based charity Acme raised $10M",
+    "Community-based care provider Acme raised $10M",
+    "US-based Acme raised $10M",
+    "Israeli-based Acme raised $10M",
+    # TIGHTENING 3: a qualifier that contradicts the gazetteer
+    "Acme is based in Dublin, Ohio",
+    "Acme is based in Melbourne, Florida",
+    "Acme is based in Athens, Georgia",
+    "Acme is based in Manchester, New Hampshire",
+    "Acme is headquartered in Perth, Scotland",
+    "Acme is based in Athens Georgia",
+    # TIGHTENING 4: the place belongs to somebody else, or to two places
+    "Acme raised $10M led by London-based Index Ventures",
+    "Acme raised $10M with participation from Berlin-based Foo",
+    "A Lagos-based rival raised $1M",
+    "Berlin-based investor Foo backed Acme",
+    "Acme is based in Berlin and Munich",
+    "Acme is based in Barcelona, Spain, and Madrid",
+    "Tel Aviv-based Acme opens its Munich office",
+    # a stated place the gazetteer does not curate says nothing, which is the
+    # same answer as a place it refuses to guess at
+    "Acme is based in Cambridge",
+    "Acme is based in Zenithville",
+    "Acme is based in Washington",
+    "Acme is based in Newcastle",
+    # a country is not a city
+    "Acme is based in Mexico",
+    "Acme is based in the Netherlands",
+    # nothing stated at all
+    "Acme names Jane Doe Chief Executive Officer",
+    "Acme raised $10M in Series A funding",
+    "",
+)
+
+
+@pytest.mark.parametrize("text,city,code", CITY_STATED)
+def test_a_stated_city_is_read(text, city, code):
+    hit = cheap_extract.stated_city(text)
+    assert hit is not None, text
+    assert (hit[0], hit[2]) == (city, code), text
+
+
+@pytest.mark.parametrize("text", CITY_DECLINES)
+def test_an_unstated_or_ambiguous_city_declines(text):
+    assert cheap_extract.stated_city(text) is None, text
+
+
+def test_the_publishers_own_base_is_never_the_records_city():
+    """THE RULE THAT DOES NOT BEND. national_press.dateline() folds the
+    outlet's seat into raw_text on purpose, as a HINT for the model, and it is
+    written in the exact "based in <city>, <country>" shape this scanner reads.
+    Reading it would file every story a Sofia outlet carried in Sofia.
+    """
+    hint = national_press.dateline(national_press.Feed(
+        name="The Recursive", rss="https://therecursive.com/feed/",
+        country="Bulgaria", city="Sofia", coverage="national",
+        language="en", source_type="press"))
+    assert "based in Sofia" in hint          # the shape really is that shape
+    assert cheap_extract.stated_city(f"Acme raised $5M.\n\n{hint}") is None
+    # And the story's OWN city still survives beside the hint.
+    hit = cheap_extract.stated_city(f"Tel Aviv-based Acme raised $5M.\n\n{hint}")
+    assert hit[0] == "Tel Aviv"
+
+
+def test_the_classify_outlet_line_is_never_the_records_city():
+    """classify.classify prepends "Published by: <outlet>" for the same reason
+    and with the same danger."""
+    assert cheap_extract.stated_city(
+        "Published by: Jakarta Post\n\nAcme raised $5M") is None
+
+
+def test_a_city_in_the_teaser_now_places_a_funding_round():
+    """The gap this work closed: the headline states the round, the teaser
+    states the city, and every such row was stored unplaced."""
+    out = cheap_extract.extract(item(
+        "Sigvi raises €1.2 million",
+        "The Vilnius-based company will scale its car rental platform."))
+    assert out is not None
+    assert out["city"] == "Vilnius"
+    assert out["country"] == "Lithuania"
+
+
+def test_a_city_in_the_teaser_now_places_an_appointment():
+    out = cheap_extract.extract(item(
+        "Acme Appoints Jane Doe as Chief Executive Officer",
+        "The Nairobi-based lender said the board voted unanimously."))
+    assert out is not None
+    assert out["city"] == "Nairobi"
+    assert out["country"] == "Kenya"
+
+
+def test_the_headline_prefix_still_wins_over_the_teaser():
+    """A prefix place is the SUBJECT's place. The scan fills a NULL city and
+    never overrides one, so a disagreement cannot silently re-place a record."""
+    out = cheap_extract.extract(item(
+        "Boston-based Acme raised $12.5M in seed funding",
+        "Acme is headquartered in Berlin, according to filings."))
+    assert out is not None and out["city"] == "Boston"
+
+
+def test_a_teaser_city_that_contradicts_a_sourced_country_is_not_stored():
+    """"Spain's Acme" sources Spain. A city in Germany cannot be the same
+    record's city, so the country stands and the city stays NULL."""
+    out = cheap_extract.extract(item(
+        "Spain's Acme raised $12.5M in seed funding",
+        "The Berlin-based rival was unavailable for comment."))
+    assert out is not None
+    assert out["city"] == ""
+    assert out["country"] == "Spain"
+
+
+def test_a_placed_deterministic_row_survives_the_same_validate_path(conn):
+    """No exemptions: a city the scan found still normalises through the
+    vocabulary in build_signal, exactly as a model's answer would."""
+    raw = item("Sigvi raises $1.2 million",
+               "The Vilnius-based company is scaling across Europe.")
+    signal = validate.build_signal(cheap_extract.extract(raw), raw,
+                                   "national_press")
+    assert signal.city == "Vilnius"
+    assert signal.country == "LT"
+    assert signal.region == "Europe"
+    assert store.store(conn, signal) == "stored"
+
+
+def test_the_scanner_reads_the_gazetteer_rather_than_a_second_list():
+    """A city added to vocab is readable here the same day, and there is no
+    second place for the two to drift apart."""
+    assert set(cheap_extract._ALIAS_KEYS) == set(vocab._CITY_ALIASES)

@@ -202,6 +202,296 @@ _SECTOR_DESCRIPTORS = frozenset("""
 
 _TOKEN_OK = re.compile(r"^(?:[A-Z][\w&.'’-]*|\d[\w&.'’-]*)$")
 
+
+# --- The stated city --------------------------------------------------------
+#
+# Until this section existed, the only city the cheap path could see was a
+# `-based`/possessive prefix at the very START of a headline, so 93.8% of
+# stored rows (14,742 of 15,711, measured 2026-07-29) carried no city and only
+# 25 cities existed in the whole database. The city was usually right there in
+# the sentence.
+#
+# THE RULE THAT DOES NOT BEND: a place is captured only where the SOURCE
+# STATES it. Never from the outlet's own base, never from the country, never
+# from what anyone knows about where a company is really headquartered.
+# `national_press.dateline()` deliberately folds the publisher's seat into
+# raw_text as "(Outlet: X, based in Sofia, Bulgaria — a hint, not a stated
+# fact.)", which is the exact string shape this scanner had to be taught to
+# refuse: reading it would file every Bulgarian-carried story in Sofia and
+# turn a sourced claim into an invented one. `_HINT_SPANS` is that refusal,
+# and a test pins it.
+#
+# Six phrasings, chosen because each one names a place OUTRIGHT:
+#     "<City>-based"        "based in <City>"
+#     "<City>-headquartered" "headquartered in <City>"
+#     "opens a <City> office"  "its <City> office"
+#
+# THE FOUR TIGHTENINGS, the city reading of the four the funding sweep forced
+# (docs/TECHLOG.md, "the cost levers", lever 1):
+#
+#   a name that IS a place    ->  a PLACE INSIDE A NAME. "Berlin Packaging",
+#                                 "Jakarta Post", "Austin Russell": the
+#                                 gazetteer entry must be the WHOLE compound
+#                                 touching the frame, never a fragment of a
+#                                 longer proper name, in either direction.
+#   hyphen-embedded           ->  "-based" IS NOT A PLACE FRAME. AI-based,
+#   descriptors                   cloud-based, faith-based, US-based and
+#                                 Israeli-based all clear the shape; only a
+#                                 gazetteer city yields a city, and a country
+#                                 or nationality yields nothing here (the
+#                                 country path is unchanged).
+#   Title Case blindness      ->  A CONTRADICTED QUALIFIER. Capitalisation
+#                                 cannot tell Dublin from Dublin, Ohio, so the
+#                                 source's own qualifier decides: a trailing
+#                                 place that resolves to a DIFFERENT country
+#                                 than the gazetteer's declines the item's
+#                                 city outright, and one that agrees keeps it.
+#                                 Dublin/Ohio, Melbourne/Florida,
+#                                 Perth/Scotland and Athens/Georgia are all
+#                                 real, and all would have been wrong.
+#   stage-from-previous-round ->  A CITY BELONGING TO SOMEONE ELSE. The
+#                                 stolen-detail lesson: "raises $10M led by
+#                                 London-based Index" states London about the
+#                                 INVESTOR, and "Berlin-based rival" about a
+#                                 competitor. An attributed place is skipped,
+#                                 not stored — and two DIFFERENT cities stated
+#                                 anywhere in the text decline, because
+#                                 choosing one of them is exactly the guess
+#                                 this module exists not to make.
+
+# A decline: the text stated a place this parser must not resolve. Distinct
+# from None ("no place stated"), because a contradiction has to veto a good
+# city found elsewhere in the same text.
+_DECLINE = object()
+
+# Longest alias first, so a fixed anchor yields the LONGEST match: "london,
+# ontario" must win over "london", and "cambridge, massachusetts" over nothing
+# at all. Built from the gazetteer itself, so a city added there is readable
+# here the same day.
+_ALIAS_KEYS = sorted(vocab._CITY_ALIASES, key=len, reverse=True)
+_ALIAS_AT = re.compile(
+    r"(?:" + "|".join(re.escape(k) for k in _ALIAS_KEYS) + r")(?![\w'’-])",
+    re.I)
+
+# Words that may sit in front of a city without being part of its name. Tried
+# ONLY after the full compound has failed, which is why "New York-based" is
+# never read as "York": the whole span is always attempted first.
+_CITY_LEAD_STRIP = (
+    frozenset({"the", "a", "an", "its", "their", "his", "her", "this", "that",
+               "new", "leading", "local", "global", "fellow", "rival"})
+    | _NATIONALITIES | _SECTOR_DESCRIPTORS
+)
+
+# The place belongs to somebody else in the sentence. Checked in the 40
+# characters before the match, which is long enough for "with participation
+# from" and short enough that an ordinary "from" two clauses back cannot veto
+# a real city.
+_ATTRIBUTED = re.compile(
+    r"(?:led by|co-led by|backed by|joined by|investors?|investment from|"
+    r"participation (?:from|of|by)|alongside|including|from existing|"
+    r"acquired by|sold to|bought by|merges? with|partners? with|"
+    r"partnership with|client|customer|supplier|rival|competitor|"
+    r"compares? with|according to|reports?|owner|parent|subsidiary of|"
+    r"unit of|arm of|advis\w+|counsel|law firm|underwrit\w+|"
+    r"outlet)\b[^.;:]{0,40}$",
+    re.I,
+)
+
+# The same lesson from the other side: "a Lagos-based RIVAL", "Berlin-based
+# INVESTOR Foo". The noun after the frame says whose place it is. Deliberately
+# short — "firm", "startup" and "company" are how a headline names its own
+# SUBJECT, so they are not here.
+_ATTRIBUTED_AFTER = re.compile(
+    r"^\s*(?:rival|competitor|peer|investor|investors|acquirer|buyer|bidder|"
+    r"suitor|customer|client|"
+    r"venture capital|vc\b|fund\b|underwriter|law firm|adviser|advisor)",
+    re.I,
+)
+
+# The dateline hint, verbatim in shape from national_press.dateline(). Anything
+# inside it is the PUBLISHER's seat, which places the publisher and nothing
+# else. Matched non-greedily and bounded to one parenthetical so a later, real
+# "based in" cannot be swallowed by it.
+_HINT_SPANS = re.compile(r"\(Outlet:[^)]*\)|^Published by:[^\n]*", re.I | re.M)
+
+# The frames. Each yields a position; the alias match is what decides.
+_SUFFIX_FRAME = re.compile(r"-(?:based|headquartered)(?![\w])", re.I)
+_IN_FRAME = re.compile(r"\b(?:based|headquartered|head ?quartered)\s+in\s+", re.I)
+_OPENS_OFFICE_FRAME = re.compile(
+    r"\bopen(?:s|ed|ing)?\s+(?:a|an|its|their|the)\s+"
+    r"(?:new\s+|first\s+|second\s+|third\s+)?", re.I)
+_ITS_OFFICE_FRAME = re.compile(r"\b(?:its|their|the)\s+", re.I)
+_OFFICE_NOUN = re.compile(r"\s+offices?(?![\w])", re.I)
+
+
+def _resolve_alias(span: str):
+    """The gazetteer entry for a WHOLE span, or None.
+
+    The full span is tried first, then the span with one leading non-name word
+    removed, and no further. Nothing is ever resolved from a fragment: that is
+    what keeps "Berlin Packaging" out and "New York" in.
+    """
+    span = (span or "").strip().strip("‘’'\"")
+    if not span:
+        return None
+    hit = vocab.normalize_city(span)
+    if hit:
+        return hit
+    tokens = span.split()
+    while len(tokens) > 1 and tokens[0].lower().strip(".,") in _CITY_LEAD_STRIP:
+        tokens = tokens[1:]
+        hit = vocab.normalize_city(" ".join(tokens))
+        if hit:
+            return hit
+    return None
+
+
+def _alias_ending_at(text: str, end: int):
+    """The gazetteer city whose name ends exactly at `end`, or None.
+
+    Ending EXACTLY there is the whole guard: in "Berlin Packaging-based" the
+    compound touching the hyphen is "Packaging", so nothing matches and no
+    city is invented from a name that merely contains one.
+    """
+    for key in _ALIAS_KEYS:                      # longest first
+        start = end - len(key)
+        if start < 0 or text[start:end].lower() != key:
+            continue
+        if start and (text[start - 1].isalnum() or text[start - 1] in "-'’"):
+            continue
+        if not text[start].isupper():            # a place is a proper noun
+            continue
+        if _ATTRIBUTED.search(text[max(0, start - 40):start]):
+            return None                          # somebody else's city
+        return vocab._CITY_ALIASES[key]
+    # Nothing in the gazetteer ends here. It may still be a stated place we do
+    # not curate ("Cambridge-based"), and it may equally be "AI-based" — this
+    # parser cannot tell them apart, so it says nothing rather than declining
+    # a record the paid path could not have placed either.
+    return None
+
+
+# A second place joined on: two cities, one record, and no way to choose which
+# the roles are in.
+_CONJOINED = re.compile(r"\s*(?:,\s*)?(?:and|&|or|/|as well as|plus)\s+[A-Z]")
+# ", Ohio" / ", Ireland" / ", New South Wales" — a comma-introduced qualifier is
+# how a newsroom disambiguates a city, so a comma is the shape that must be
+# read. Bounded to three words: "Dublin, Ohio, said the company" stops at Ohio.
+_COMMA_QUALIFIER = re.compile(
+    r"\s*,\s*(?P<q>[A-Z][\w.'’-]*(?:\s+[A-Z][\w.'’-]*){0,2})")
+_BARE_QUALIFIER = re.compile(r"\s+(?P<q>[A-Z][\w.'’-]*)")
+
+
+def _alias_starting_at(text: str, start: int, *, strict_tail: bool = False):
+    """The gazetteer city beginning at `start`, `_DECLINE`, or None.
+
+    A match is only kept when what FOLLOWS it agrees. "Dublin, Ohio" is not
+    Dublin, "Melbourne, Florida" is not Melbourne, and "Berlin and Munich" is
+    neither — each of those declines, because a place the source disambiguated
+    AWAY from ours is worse than no place at all.
+    """
+    m = _ALIAS_AT.match(text, start)
+    if not m:
+        return None
+    if not text[start].isupper():
+        return None
+    if _ATTRIBUTED.search(text[max(0, start - 40):start]):
+        return None
+    city, region, iso2 = vocab._CITY_ALIASES[m.group(0).lower()]
+
+    rest = text[m.end():]
+    if _CONJOINED.match(rest):
+        return _DECLINE
+
+    qual = _COMMA_QUALIFIER.match(rest)
+    if qual:
+        # A comma-introduced qualifier is a claim about WHICH city this is, so
+        # it must resolve AND agree. One that resolves to nothing is a
+        # qualifier we cannot read, which is still not agreement.
+        words = qual.group("q").split()
+        code = next((c for c in (vocab.place_qualifier_country(" ".join(words[:n]))
+                                 for n in range(len(words), 0, -1)) if c), None)
+        if code != iso2:
+            return _DECLINE
+        if _CONJOINED.match(rest[qual.end():]):
+            return _DECLINE
+        return (city, region, iso2)
+
+    # No comma, so the next capitalised word is evidence of nothing much: in
+    # "OPENS A LAGOS OFFICE" capitalisation is decoration, which is the city
+    # reading of the Title-Case lesson. A bare follower may therefore VETO but
+    # is never required to confirm — "based in Athens Georgia" resolves to the
+    # United States, contradicts Greece, and declines.
+    bare = _BARE_QUALIFIER.match(rest)
+    if bare:
+        code = vocab.place_qualifier_country(bare.group("q"))
+        if code is not None and code != iso2:
+            return _DECLINE
+        if code is None and strict_tail:
+            # In "based in <X>" the place ENDS the phrase, so a capitalised
+            # word carrying on from it means the phrase was never a place:
+            # "based in Boston Consulting Group's building" is a landlord, not
+            # a city, and this is tightening 1 read from the other direction.
+            # The office frames pass strict_tail=False because they have their
+            # own right-hand boundary — the word "office".
+            return None
+    return (city, region, iso2)
+
+
+def _scan_for_cities(text: str):
+    """Every city the text STATES, plus whether anything declined.
+
+    Returns (set of (city, region, iso2), declined: bool).
+    """
+    if not text:
+        return set(), False
+    # Blank the publisher hint before anything reads it, keeping the length so
+    # every offset below still lines up with the original string.
+    text = _HINT_SPANS.sub(lambda m: " " * len(m.group(0)), text)
+
+    found, declined = set(), False
+
+    def take(result):
+        nonlocal declined
+        if result is _DECLINE:
+            declined = True
+        elif result:
+            found.add(result)
+
+    for m in _SUFFIX_FRAME.finditer(text):
+        if _ATTRIBUTED_AFTER.match(text[m.end():m.end() + 30]):
+            continue
+        take(_alias_ending_at(text, m.start()))
+    for m in _IN_FRAME.finditer(text):
+        take(_alias_starting_at(text, m.end(), strict_tail=True))
+    for frame in (_OPENS_OFFICE_FRAME, _ITS_OFFICE_FRAME):
+        for m in frame.finditer(text):
+            hit = _ALIAS_AT.match(text, m.end())
+            # "office" must follow the place immediately: "its Berlin office"
+            # is a site, "its Berlin Packaging division" is a business unit,
+            # and "its Chief Executive Officer" is neither.
+            if not hit or not _OFFICE_NOUN.match(text, hit.end()):
+                continue
+            take(_alias_starting_at(text, m.end()))
+    return found, declined
+
+
+def stated_city(*texts: str):
+    """(city, region, iso2) the SOURCE states, or None.
+
+    None is the answer to every ambiguity: nothing stated, a place we do not
+    curate, a place the source qualified away from ours, a place belonging to
+    an investor or a rival, or two different places. Precision over recall —
+    the module's first rule, applied to geography.
+    """
+    found: set = set()
+    for text in texts:
+        hits, declined = _scan_for_cities(text or "")
+        if declined:
+            return None
+        found |= hits
+    return found.pop() if len(found) == 1 else None
+
 # Small words a headline leaves lowercase even when it title-cases the rest.
 _TITLE_STOPWORDS = frozenset(
     "a an the in on of for to and as at by with its is are".split())
@@ -423,6 +713,16 @@ def parse_funding(item: dict) -> Funding | None:
                 # at all ("Musk's xAI"). Decline; the paid path reads it.
                 return None
 
+    # The headline prefix is one phrasing out of six. "Sigvi raises €1.2M...
+    # The Vilnius-based company" states Vilnius just as plainly, and every
+    # such round was stored unplaced until this line existed. A city only
+    # overrides a NULL city, and only when it agrees with a country the prefix
+    # already sourced.
+    if city is None:
+        hit = stated_city(headline, raw_text)
+        if hit and (country is None or hit[2] == country):
+            city, _region, country = hit
+
     amount = m.group("amount").strip()
     usd = vocab.parse_funding_usd(amount)
     if usd is not None and usd < _MIN_PLAUSIBLE_USD:
@@ -564,6 +864,14 @@ def _parse_hiring(item: dict) -> dict | None:
                 return None
         if rest[: pm.start()].strip():
             return None
+
+    # "Acme to hire 500 engineers" says nothing about where in the headline,
+    # and then says "the Bengaluru-based firm" in the teaser. Same rule as
+    # funding: fills a NULL city only, never contradicts a sourced country.
+    if city is None:
+        hit = stated_city(headline, raw_text)
+        if hit and (country is None or hit[2] == country):
+            city, _region, country = hit
 
     noun = m.group("noun").lower()
     functions = [_NOUN_FUNCTION[noun]] if noun in _NOUN_FUNCTION else []
@@ -808,6 +1116,13 @@ def _parse_leadership(item: dict) -> dict | None:
             country = vocab.normalize_country(place)
             if not country:
                 return None
+
+    # "Revolut appoints Jane Doe CFO" places nowhere; "the London-based
+    # neobank" in the next sentence places it. Same rule as funding.
+    if city is None:
+        hit = stated_city(headline, raw_text)
+        if hit and (country is None or hit[2] == country):
+            city, _region, country = hit
 
     verb = m.group("verb").lower()
     past = _APPOINT_PAST[verb]
