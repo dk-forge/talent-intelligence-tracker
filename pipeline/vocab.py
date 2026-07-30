@@ -1548,7 +1548,7 @@ _USD_MARKER = re.compile(r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$")
 # have been through it.
 _AMOUNT = re.compile(
     r"(\d[\d,]*(?:[.,]\d+)?)\s*[-‐-―]?\s*"
-    r"(k|m|mm|mn|mln|mio|mil|bn|b|t|thousand"
+    r"(k|m|mm|mn|mln|mio|mil|mi|bn|b|t|thousand"
     r"|million|millions|millones|millioner|milliones|milhões|milhoes"
     r"|milione|milioni|millioni|milionu|miljoen"
     r"|billion|billions|billones|billioner|trillion)?\b\.?",
@@ -1587,7 +1587,16 @@ _MULTIPLIERS = {
 # worse than an absent figure, and the verbatim string is still on the row for
 # anyone reading it. Matched by _AMOUNT so it cannot fall through to no
 # multiplier at all, which is how 'US$22 mil' became twenty-two dollars.
-_AMBIGUOUS_SCALE = frozenset({"mil"})
+#
+# 'mi' joins it for the same reason and by the same route. Brazilian business
+# press writes 'US$ 544 mi' for milhoes, and that row sat in funding_amount_usd
+# as five hundred and forty-four dollars because 'mi' was in neither the
+# alternation nor the table, so it fell through to no multiplier -- exactly the
+# failure the 'mil' comment above describes. Reading it as a million would be
+# right in Portuguese and a guess everywhere else, and this list's own rule is
+# that a scale word whose meaning depends on which language the publisher was
+# writing refuses rather than picks. The verbatim string stays on the row.
+_AMBIGUOUS_SCALE = frozenset({"mil", "mi"})
 
 
 def _read_number(raw: str):
