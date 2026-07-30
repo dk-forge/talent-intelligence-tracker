@@ -63,6 +63,66 @@ READ_MAX_TOKENS = int(os.environ.get("TIT_READ_MAX_TOKENS", "200") or "200")
 
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 
+# --- Provider routing, pinned ------------------------------------------------
+#
+# OpenRouter serves one model slug from several providers and picks per request.
+# Extraction's prompt is ~3,100 input tokens of which ~2,476 are a byte-stable
+# prefix (MINI_SYSTEM + SCHEMA_HINT), and a prefix cache is per provider: scatter
+# the requests and the cache never warms on any of them. `provider.order` is
+# OpenRouter's documented way to state a preference (verified against
+# openrouter.ai/docs/features/provider-routing on 2026-07-29 rather than guessed:
+# the fields are `order`, `allow_fallbacks`, `only`, `ignore`,
+# `require_parameters`, `sort`, `data_collection`, `max_price`).
+#
+# WHAT THIS IS WORTH TODAY: NOTHING, AND THE COMMENT SAYS SO. OpenRouter's own
+# endpoints API for `deepseek/deepseek-chat` (checked 2026-07-29) returns exactly
+# three endpoints — streamlake, deepinfra/fp4, novita/fp8 — and NOT ONE of them
+# publishes an `input_cache_read` price. There is no cache to hit on this slug,
+# so the -$2.84/month in TECHLOG 2026-07-30 is not available by pinning and is
+# not claimed here. What IS true: `deepseek/deepseek-chat-v3.1` has four
+# endpoints that do price cache reads, at ~0.5x and not the 0.1x DeepSeek's own
+# API charges, and DeepSeek's first-party endpoint serves neither slug through
+# OpenRouter right now. So the honest saving is a model switch away, at half the
+# advertised rate, and that is a decision about extraction quality rather than a
+# routing tweak.
+#
+# It ships anyway, because the ordering itself buys three things that cost
+# nothing: the prefix stops scattering the day a caching endpoint appears (the
+# order already prefers it), `cached_tokens` becomes interpretable instead of a
+# mixture, and extraction stops being a quantisation lottery — deepinfra serves
+# this model at fp4 and novita at fp8, and today which one reads a filing is
+# decided per request.
+#
+# THE AVAILABILITY TRADEOFF, made explicitly: `allow_fallbacks` is TRUE and there
+# is no code path that sets it false. A pinned provider having an outage must
+# cost money, never a run: with fallbacks on, OpenRouter drops to the next
+# endpoint and the only loss is the cache. `only`/`ignore` would turn one
+# provider's bad afternoon into a red collect job, and a collect job that fails
+# is a day of signals nobody publishes.
+#
+# Keyed by model AUTHOR, because a provider slug means nothing for a model that
+# provider does not serve: "streamlake" in front of an anthropic/ model is noise.
+# TIT_PROVIDER_ORDER overrides the list for the extraction author; set it to
+# "off" to send no `order` at all.
+PROVIDER_ORDER = {
+    # deepseek first: the model author's own endpoint is the only one that would
+    # bill a cache read at 0.1x. It is absent from the slug today, and an absent
+    # slug in `order` is skipped, so this line is a no-op that becomes a saving
+    # by itself if DeepSeek starts serving here again.
+    "deepseek": ("deepseek", "streamlake", "novita", "deepinfra"),
+}
+
+
+def provider_order(model: str) -> tuple[str, ...]:
+    """The preferred provider slugs for `model`, or () for no preference."""
+    author = (model or "").split("/", 1)[0].lower()
+    override = (os.environ.get("TIT_PROVIDER_ORDER") or "").strip()
+    if override and author in PROVIDER_ORDER:
+        if override.lower() in ("off", "0", "none"):
+            return ()
+        return tuple(s.strip() for s in override.split(",") if s.strip())
+    return PROVIDER_ORDER.get(author, ())
+
 # Per-run visibility for the spend ledger: how many one-word gate calls, how
 # many were rejected there (cost avoided), how many full read-throughs ran.
 # The token counters come from OpenRouter's usage accounting on every call
@@ -73,6 +133,13 @@ STATS = {
     "full_chars_raw": 0,   # candidate text length before truncation
     "full_chars_sent": 0,  # what actually went to the model
     "prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0,
+    # Which endpoints actually served this run, comma-separated, from
+    # OpenRouter's own `provider` field. The only way to know whether
+    # PROVIDER_ORDER took effect, and the only way to read `cached_tokens`
+    # honestly: 60% cached across three providers means something different from
+    # 60% on one. A plain string on purpose — STATS is restored by shallow copy
+    # in the tests, so a nested dict here would leak between them.
+    "providers": "",
     "usd": 0.0,            # OpenRouter's own cost figure, summed
     # Rows that a full read-through actually bought. run_collect increments it
     # at store time (would-store on a dry run), and only for records that came
@@ -670,6 +737,7 @@ def _call(model: str, system: str, user: str, *, timeout: int,
     # its own cost figure, and prompt_tokens_details.cached_tokens — the only
     # ground truth on whether prefix caching actually fired. Costs nothing.
     body["usage"] = {"include": True}
+    provider: dict = {}
     if json_mode:
         body["response_format"] = {"type": "json_object"}
         # OpenRouter routes a model across several providers, and not all of
@@ -677,7 +745,15 @@ def _call(model: str, system: str, user: str, *, timeout: int,
         # content, which looks like a parse bug rather than a routing one —
         # 8 of the first 10 live classifications failed this way. This pins
         # routing to providers that actually support the parameters we send.
-        body["provider"] = {"require_parameters": True}
+        provider["require_parameters"] = True
+    order = provider_order(model)
+    if order:
+        provider["order"] = list(order)
+        # Always true, deliberately. See PROVIDER_ORDER: a preference may cost
+        # the cache, it may never cost the run.
+        provider["allow_fallbacks"] = True
+    if provider:
+        body["provider"] = provider
 
     # A 429 here is the upstream provider being busy, not a verdict on the
     # candidate. Treating it as one threw five real stories away in a single
@@ -730,6 +806,10 @@ def _call(model: str, system: str, user: str, *, timeout: int,
         STATS["usd"] += float(usage.get("cost") or 0.0)
     except (TypeError, ValueError):
         pass
+    served = payload.get("provider")
+    if isinstance(served, str) and served.strip():
+        seen = {p for p in STATS["providers"].split(",") if p}
+        STATS["providers"] = ",".join(sorted(seen | {served.strip()}))
 
     content = (choice.get("message", {}).get("content") or "").strip()
     if not content:
