@@ -415,6 +415,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "BSE corporate announcements (SEBI Regulation 30)": "bse_india",
     "EDINET extraordinary reports (FSA Japan)": "edinet_japan",
     "DART disclosures (Korea, FSS OpenDART)": "opendart_korea",
+    "Companies House officer appointments": "companies_house",
 }
 
 
@@ -580,9 +581,26 @@ SOURCES = (
     Source("USAspending.gov", "https://www.usaspending.gov/", "candidate",
            "Government open data", ("Federal contract", "Government contract"),
            "National", "US", notes="Free API, no key. Contract awards precede hiring."),
-    Source("UK Companies House", "https://www.gov.uk/government/organisations/companies-house",
-           "candidate", "Regulatory filings", ("Board appointment", "Incorporation"),
-           "National", "GB"),
+    Source("Companies House officer appointments",
+           "https://find-and-update.company-information.service.gov.uk/",
+           "live", "Government filings", ("Leadership change", "Board appointment"),
+           "United Kingdom", "GB",
+           notes="Every UK company must tell the registrar who its directors "
+                 "and secretaries are, so this is a register entry rather than "
+                 "a claim, and it needs no model to read. Two limits matter "
+                 "more here than on any other source. First, it is NOT the "
+                 "whole register: there are about 5.7 million UK companies, "
+                 "most of them dormant micro-companies whose director changes "
+                 "say nothing about the labour market, so this reads only the "
+                 "9,230 employers the gender pay gap duty covers, meaning 250 "
+                 "employees or more. Second, a row is the legal fact of an "
+                 "appointment and not evidence of a hire: the register does "
+                 "not say whether the person came from inside or outside the "
+                 "business, so nothing here is counted as hiring. Departures "
+                 "sit on the same records and are not collected, because the "
+                 "register never says why somebody left. The registered office "
+                 "is recorded as the employer's address and never as a job "
+                 "location."),
     Source("IDA Ireland", "https://www.idaireland.com/", "candidate",
            "Investment promotion agency", ("Hiring", "Office opening", "Job creation"),
            "National", "IE",
@@ -914,11 +932,27 @@ def sources_manifest() -> list[dict]:
 #         are the proof. Its zero was guaranteed by the taxonomy, not by the
 #         source's quality. Read it as a fact about layoffs, not appointments.
 #
+#     GB  Companies House officer appointments — BUILT 2026-07-30, once the
+#         owner created the key this triage said was the only blocker.
+#         collectors/companies_house.py. The key unblocked the ACCESS and not
+#         the design, and the design was the whole problem: the register holds
+#         about 5.7 million live companies making ~1.4 million officer
+#         appointments a year (~27,000 a week, measured on a random sample of
+#         120 of them), against a database of 15,711 signals. So the population
+#         is not the register. It is the 9,230 employers the gender pay gap
+#         duty covers — the only free primary list of UK companies keyed on
+#         EMPLOYEES rather than on filing choices — which yields ~7,354
+#         appointments a year, ~110 stored rows a week. The accounts-category
+#         filter that looks like the obvious alternative was measured and
+#         refused: 6.35% of FULL/GROUP/MEDIUM filers are 250+ employee
+#         employers. Full derivation in the collector's docstring.
+#         Note the STREAMING API is not the route, whatever it looks like:
+#         Companies House registers streaming applications separately and says
+#         the keys are not interchangeable, and a connection that must stay
+#         open to keep its timepoint cannot live in a workflow that holds one
+#         writer lock and exits.
+#
 #   BLOCKED — do not retry without the owner doing something first
-#     GB  Companies House appointments. Every route needs an API key: the REST
-#         API and the streaming API both 401 unauthenticated, and the free bulk
-#         "Company Data Product" carries no officers at all. Genuine registry
-#         volume, and the key is free — but a human must create it. NEEDS-OWNER.
 #     IL  Tel Aviv Stock Exchange (MAYA). maya.tase.co.il/robots.txt says
 #         `Disallow: /api/`, which is the disclosure feed itself, and
 #         api.tase.co.il sits behind an Imperva bot wall. The exchange's own
@@ -1009,16 +1043,27 @@ def sources_manifest() -> list[dict]:
 #     Australia (ASX does type its announcement headers, and robots.txt does
 #     permit the pages — but the terms of use do not; see the AU paragraph
 #     above, and do not re-research it on the strength of the robots file
-#     alone), and the UK once a key exists.
+#     alone), and the United Kingdom — which is now built, and is the one
+#     jurisdiction where the taxonomy was never the constraint: every UK
+#     officer appointment is typed, and the constraint was VOLUME. See the
+#     GB paragraph above.
 
 MARKETS = (
     Market("IE", "Ireland", DISCOVERY_ONLY,
            live_sources=("google_news",),
            candidate_official_sources=("IDA Ireland press releases",),
            terms=("IDA Ireland", "jobs announcement Dublin")),
-    Market("GB", "United Kingdom", DISCOVERY_ONLY,
-           live_sources=("google_news",),
-           candidate_official_sources=("RNS regulatory news", "Companies House appointments",
+    # Promoted 2026-07-30, and it should have been promoted earlier: uk_paygap
+    # has been a working GB structured connector with a health check and a
+    # passing test since 2026-07-28 and was never listed here, so the tier
+    # understated the country while the country chart was dominated by it.
+    # companies_house is what makes the promotion unarguable — a second
+    # structured source, on a different pillar, from a different statutory
+    # duty. It also fixes the concentration: 4,761 of the 4,793 GB rows came
+    # from the pay-gap return alone.
+    Market("GB", "United Kingdom", STRUCTURED_OFFICIAL,
+           live_sources=("google_news", "uk_paygap", "companies_house"),
+           candidate_official_sources=("RNS regulatory news",
                                        "Invest NI press releases")),
     Market("US", "United States", DISCOVERY_ONLY,
            live_sources=("google_news",),

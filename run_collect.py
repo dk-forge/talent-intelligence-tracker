@@ -16,9 +16,10 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, bse_india, edinet_japan, gdelt, google_news,
-                        national_press, opendart_korea, sec_edgar, sec_execcomp,
-                        sec_form_d, tripwire_chase, uk_paygap)
+from collectors import (ats_boards, bse_india, companies_house, edinet_japan,
+                        gdelt, google_news, national_press, opendart_korea,
+                        sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
+                        uk_paygap)
 from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
                       schema, store, validate)
 
@@ -33,6 +34,13 @@ SOURCES = {
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,
     "uk_paygap": uk_paygap,
+    # The UK's leadership spine. Officer appointments off the Companies House
+    # register, so it exposes `as_classified` and spends nothing. The population
+    # is NOT the register: it is the 9,230 employers the gender pay gap duty
+    # covers, which is the only free primary list of UK companies keyed on
+    # employees. Unfiltered the register offers ~28,100 appointments a week,
+    # mostly at dormant micro-companies. See the docstring for the measurement.
+    "companies_house": companies_house,
     # India's leadership spine. Derived from SEBI's mandated Regulation 30
     # category, so it exposes `as_classified` and spends nothing.
     "bse_india": bse_india,

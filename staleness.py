@@ -75,6 +75,15 @@ MAX_AGE_HOURS = {
     # any date range up to three months, so a missed week is back-fillable with
     # TIT_DART_DAYS rather than lost.
     "opendart_korea": 180,  # ~7.5 days: weekly cron plus room to notice
+    # collect-structured.yml, weekly on THURSDAYS (Monday bse_india, Tuesday
+    # edinet_japan, Wednesday opendart_korea; one writer lock, one slot each).
+    # The leash is the CADENCE and not the rotation: a run reads one of four
+    # roster slices, so the whole UK roster is swept every 4 weeks, but a run is
+    # still due every week and 4 weeks of tolerance would hide three missed
+    # ones. The rotation's own tolerance lives in the collector's window, which
+    # is derived as 4x7+14 days precisely so a missed slice is picked up on its
+    # next visit rather than becoming a hole.
+    "companies_house": 180,  # ~7.5 days: weekly cron plus room to notice
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

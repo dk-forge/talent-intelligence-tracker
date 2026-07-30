@@ -1,6 +1,7 @@
 # The structured sources: SEC executive compensation, UK gender pay gap, BSE
 # India leadership filings, EDINET Japan representative-director filings, DART
-# Korea leadership filings, and ATS job boards.
+# Korea leadership filings, Companies House UK officer appointments, and ATS
+# job boards.
 #
 # These cost NOTHING to run. Every field they store is a column in a frame, a
 # CSV or an API response, so the record is derived and no model is called. That
@@ -36,6 +37,17 @@
 # employer, so roughly 30 requests against a documented 20,000/day quota.
 # OpenDART answers arbitrary date ranges up to three months, so a missed week is
 # back-filled by widening `days` and nothing is lost permanently.
+#
+# companies_house is weekly on THURSDAY and is the one slot that is long rather
+# than cheap, because it POLLS rather than reads a list: there is no "recent
+# appointments" endpoint anywhere in the Companies House REST API, so the only
+# route is company-by-company, and the streaming API needs a different kind of
+# key and a connection that never closes. It reads ONE QUARTER of the 9,230-
+# company roster each week (a stable digest of the company number picks the
+# slice, so nothing is committed and nothing can drift), which is ~2,600
+# requests and ~23 minutes. Its window is 42 days, derived from that rotation
+# plus a fortnight of slack, so a missed week is picked up on the slice's next
+# visit rather than becoming a permanent hole; `ch_slice` replays one by hand.
 name: collect-structured
 
 on:
@@ -54,12 +66,18 @@ on:
     - cron: '0 4 * * 2'      # Tuesdays: EDINET Japan representative-director filings
     # WEDNESDAY, one day further along the same argument as the Tuesday slot.
     - cron: '0 4 * * 3'      # Wednesdays: DART Korea leadership filings
+    # THURSDAY, same argument again. This is the longest of the weekly slots:
+    # one run polls a quarter of the 9,230-company UK roster, which is ~2,600
+    # requests and ~23 minutes at the 600-per-5-minutes limit. That is why the
+    # roster is sliced rather than swept whole — a whole sweep is ~92 minutes,
+    # and writer_queue.LONG_HOLD_MINUTES is 120.
+    - cron: '0 4 * * 4'      # Thursdays: companies_house officer appointments
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -70,7 +88,15 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India, EDINET Japan and DART Korea. How many days back to read. Blank = 7. A gap is back-filled by widening this. DART caps at 90.'
+        description: 'BSE India, EDINET Japan, DART Korea and Companies House. How many days back to read. Blank = each collector default (7, or 42 for Companies House, derived from its rotation). A gap is back-filled by widening this. DART caps at 90.'
+        required: false
+        default: ''
+      ch_slice:
+        description: 'Companies House only. Which roster slice to poll, 0-3. Blank = this ISO week. Set it to replay a slice a missed run skipped.'
+        required: false
+        default: ''
+      ch_min_size:
+        description: 'Companies House only. Employer size floor: 250, 500, 1000, 5000 or 20000. Blank = 250, which IS the statutory materiality floor; raising it narrows the roster and is not a cost saving.'
         required: false
         default: ''
       dry_run:
@@ -117,6 +143,7 @@ jobs:
             '0 4 * * 1')   scheduled=bse_india ;;
             '0 4 * * 2')   scheduled=edinet_japan ;;
             '0 4 * * 3')   scheduled=opendart_korea ;;
+            '0 4 * * 4')   scheduled=companies_house ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then
@@ -153,6 +180,20 @@ jobs:
           # the collector refuses an empty or malformed key before it spends a
           # request.
           OPENDART_API_KEY_KR: ${{ secrets.OPENDART_API_KEY_KR }}
+          TIT_CH_DAYS: ${{ inputs.days }}
+          TIT_CH_SLICE: ${{ inputs.ch_slice }}
+          TIT_CH_MIN_SIZE: ${{ inputs.ch_min_size }}
+          # Companies House needs a key on every path — the REST API, the
+          # streaming API and even /robots.txt answer 401 unauthenticated. This
+          # secret DOES exist (set 2026-07-30) and it is a REST key. The
+          # empty-secret failure mode is the clean one for once: an empty
+          # Authorization header answers 401 with
+          # {"error":"Empty Authorization header"}, so there is no silent zero
+          # to fall into. The collector still refuses an empty key before it
+          # spends a request, and names the trap that IS silent-shaped: a
+          # STREAMING key is a separate registration and is not interchangeable
+          # with this one, so a perfectly valid-looking key can 401 forever.
+          COMPANIES_HOUSE_API_KEY_UK: ${{ secrets.COMPANIES_HOUSE_API_KEY_UK }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \

@@ -13,6 +13,253 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the UK register is not the source; the 250-employee roster is
+
+Build the Companies House connector, now that the key exists. It ships. The
+interesting half of the work is not the connector, it is the **refusal to point
+it at the register**, and every figure below is measured rather than argued.
+
+No authenticated call has been made from this repository — the key exists only
+as a GitHub secret — so everything here was measured against the PUBLIC register
+web pages (which need no key), the free bulk Company Data Product, the GOV.UK
+gender pay gap download, and the published API specification. What that leaves
+unproven is listed at the end, and it is a short list.
+
+### The register is 190x too big, and the excess is dormant micro-companies
+
+Part 1 of 7 of the free Company Data Product for 2026-07-01 holds **849,999
+live companies**; the seven parts are not equal sizes (part 7 is 52Mb against
+69-70Mb), so the register is **~5.7 to 5.9 million** rather than a round figure.
+A random sample of 120 of those companies, read one officers page each:
+
+| | random live register | GPG 250+ roster |
+|---|---|---|
+| companies | ~5.7M | **9,230** |
+| appointments per company per year | 0.246 | **0.867** |
+| active officers, median | 1 | 4 |
+| officers ever recorded, median / mean | 2 / 4.0 | 26 / 44.4 |
+| projected appointments a year | ~1.4M | **~7,354** |
+| projected stored rows a week | ~27,000 | **~110** |
+
+**~27,000 appointments a week against a database of 15,711 signals.** Four days
+of unfiltered collection and the tracker is a list of UK director changes with
+some other content attached. It is also mechanically impossible: 5.7M requests a
+week is 33 days of continuous polling at 600 requests per 5 minutes.
+
+And the excess is not merely large, it is empty. The random sample's median
+company has **two officers in its entire history**; the names it returned are
+`AD ASTRA BARS LTD`, `B-LEAF HEALTHCARE LTD`, `AVENIR WORKS 6 LTD`, `5374 LTD`.
+
+### The filter is a statutory employee count, and the obvious alternative fails
+
+The chosen population is the **GOV.UK gender pay gap roster**: every employer
+with 250 or more employees in Great Britain must report, the CSV carries a
+`CompanyNumber` column, and this repo already reads that file.
+
+    2025 reporting year          11,154 employers
+      well-formed CH number       9,634  (86.4%)
+      in a 250+ size band         9,230  <- the population
+
+Coverage of the biggest employers is *worse* than average and it is worth
+knowing why: 301 of 546 in the 5,000-19,999 band and 51 of 67 in the 20,000+
+band carry a company number, because the largest UK employers include NHS
+trusts, councils and government departments that are not companies at all.
+
+**The accounts-category filter the brief suggested was built as a measurement
+and refused.** `FULL` / `GROUP` / `MEDIUM` is 2.05% of the register (~120,000
+companies), and joining the roster to the same snapshot gives its precision
+directly: **1,104 of 17,378** such companies in that slice are 250+ employee
+employers — **6.35%**. So it is 13x the roster to poll, 94% of it is not what we
+are looking for, and it still misses 14% of the roster (180 of 1,284 roster
+companies in the slice file as audit-exempt subsidiaries, small, or nothing).
+The reason is structural and worth keeping: **accounts category records how a
+company chose to file, not how many people it employs.** A two-employee
+property vehicle with a large balance sheet files FULL; a 400-person business
+can file as a subsidiary. SIC code was refused for the same class of reason — it
+is a topic filter, and it cannot tell a 3,000-person software company from a
+dormant one. Nothing the register exposes as a search helps either:
+`advanced-search/companies` filters name, status, type, incorporation date,
+location and SIC, and nothing about size.
+
+Full accounts-category distribution on that 849,999-row slice, since it took a
+73MB download to get and should not need a second one: MICRO ENTITY 32.63%, NO
+ACCOUNTS FILED 25.38%, TOTAL EXEMPTION FULL 22.61%, DORMANT 12.54%, UNAUDITED
+ABRIDGED 2.82%, FULL 1.48%, SMALL 1.15%, AUDIT EXEMPTION SUBSIDIARY 0.57%,
+GROUP 0.46%, TOTAL EXEMPTION SMALL 0.16%, MEDIUM 0.11%.
+
+### Where the brief was wrong, and it was the load-bearing part
+
+**"There is a streaming API ... that is almost certainly the right primitive
+rather than polling companies one by one."** It is not, on two independent
+grounds, both checked rather than assumed.
+
+1. A REST key cannot open it. The streaming authentication guide says
+   "Applications that are to use the streaming API must be registered as such,
+   the REST API and streaming API keys are not interchangable."
+   `COMPANIES_HOUSE_API_KEY_UK` is documented as a REST key with the REST rate
+   limit, so it will 401 on the stream.
+2. Even with the right key it is the wrong shape for this repo. The stream is a
+   long-lived connection resumed by a stored `timepoint` (too old a timepoint
+   returns 416), capped at two concurrent connections per account. Every
+   database writer here shares one `talent-collect` lock and runs as a bounded
+   Actions job that commits and exits. A process that must stay connected to
+   keep its place is the opposite of that, and its missed windows would be
+   unrecoverable rather than back-fillable.
+
+Polling turns out to be the property that makes this safe rather than a
+compromise: `appointed_on` is a field on every officer record, so a window is a
+filter over data the endpoint always returns, and **this collector stores no
+state whatsoever.** A missed run loses nothing and a wider window is one
+integer.
+
+Two smaller corrections. The brief said the free bulk product has no officers
+data — true, and it is still the right thing to download, because it is the only
+free way to count the denominator and test the accounts-category filter. And
+`find-and-update.company-information.service.gov.uk` was **already** in
+`vocab.PRIMARY_SOURCE_DOMAINS` before this session, so rows reach `verified`
+with no vocabulary change.
+
+### The rotation, because a whole sweep holds the lock too long
+
+10,568 requests sweep the roster (1.145 requests per company at 100 officers a
+page — officers-ever runs median 26, mean 44.4, p90 66, max 1,992, so 98% of
+companies need exactly one page). At `REQUEST_DELAY = 0.55s` that is **97
+minutes**, and `writer_queue.LONG_HOLD_MINUTES` is 120.
+
+So the roster is sliced four ways by a **blake2b digest of the company number**
+— not `hash()`, which is salted per process and would reshuffle the rotation
+every run, leaving some companies unvisited for months while the run count
+looked perfect — and the ISO week number picks the slice. Nothing is committed
+and there is no cursor to corrupt. Measured slice sizes: **2,344 / 2,295 /
+2,321 / 2,270**, so **~2,600 requests and ~25 minutes** a run.
+
+The window is **derived** from the rotation the way `recency_window_days`
+derives Google News's: `SLICES * 7 + 14` = 42 days. Each visit therefore covers
+28 new days and 14 already seen. The overlap is the point: it costs nothing
+(exact `content_hash` duplicates, skipped before any write) and it makes a
+single missed run recoverable on the slice's next visit instead of a permanent
+hole.
+
+### Four judgements that are not obvious from the code
+
+**A body corporate is not an employee** — the `bse_india` auditor rule again,
+and the register proves it is needed: `LEGAL & GENERAL CO SEC LIMITED` is the
+sitting secretary of Legal & General Resources Limited. So the role allowlist is
+`director`, `secretary`, `llp-member`, `llp-designated-member` and nothing else;
+every `corporate-*` and `nominee-*` role is named in `EXCLUDED_ROLES` rather
+than merely absent. Measured cost: 2 of 231 appointments (0.9%) were a body
+corporate, 63 of 3,151 officers (2.0%) were nominees.
+
+**The allowlist reads `officer_role` verbatim, with no case folding, and that is
+a deliberate strictness.** The public web page renders a `corporate-secretary`
+as plain "Secretary" — which is also why the 150-company measurement that sized
+this source could not see corporate officers at all, and why its yield figure is
+about 1% high. Folding case would let the string the web page prints through the
+one check that exists to catch it. The first version did `.lower()`; a test
+caught it.
+
+**Every row is `neutral`, never `hiring`.** The register records the legal fact
+of an appointment and says nothing about where the person came from: a group
+finance manager added to a subsidiary board is filed identically to an external
+chief executive hire. Precision over recall, the same rule `bse_india` applies
+to a re-appointment.
+
+**Resignations are refused in v1**, with the number: `resigned_on` is on the
+same records and would add **80% more rows** (184 resignations against 231
+appointments in the sampled two years) that say the least of anything this
+source could produce, because the register never says why somebody left.
+
+### Identity, geography and the concentration this was meant to fix
+
+The employer name is the pay-gap file's `CurrentName` falling back to
+`EmployerName` — the **same expression `uk_paygap.parse_csv` uses**, on purpose,
+so `vocab.company_key` lands on the same employer and a company profile shows
+one employer's pay and its board rather than two near-identical employers.
+Verified against the live database: `LEGAL & GENERAL RESOURCES LIMITED` keys to
+`legal & general resources`, which already has `uk_paygap` rows; 493 of the
+9,228 distinct roster keys do (the rest because `uk_paygap` defaults to a 5,000
+employee floor).
+
+Geography follows `uk_paygap` exactly, by importing its map rather than copying
+it: the registered office postcode area fills `hq_city` and only for
+unambiguous areas, `city` is never set at all, `industry` and `employer_type`
+come from the filed SIC division. **Nothing here splits an address on a comma**,
+and a test asserts the source text does not either — `ats_boards` turning
+"Cambridge, MA" into Morocco is the reason.
+
+GB rows today are **4,801, of which `uk_paygap` is 4,761 (99.2%)**. At ~110
+rows a week the concentration falls below 90% inside five weeks.
+
+`source_url` is `/officers/{officer_id}/appointments` — the register's own page
+for that person, which names the company, the role and the appointment date, and
+which is keyed on a permanent officer id **read out of the API's
+`links.officer.appointments`, never composed** (BSE's AttachLive → AttachHis rot
+is what an invented identifier does). It is not the company officers page, which
+would be one URL for every appointment the company ever makes. Because one
+person can be appointed twice, `REVISITS_ITS_SOURCE_URL = True`, so dedup runs
+on `content_hash` and the fuzzy window rather than on URL-seen — the
+`ats_boards` lesson.
+
+### GB is promoted, and it should have been promoted before this
+
+`GB` moves `discovery_only` → `structured_official`. Two things about that.
+`uk_paygap` has been a working GB structured connector with a health check and a
+passing test since 2026-07-28 and was **never listed in the market's
+`live_sources`**, so the tier understated the country while the country chart
+was dominated by that very source. And "Companies House appointments" sat in
+`candidate_official_sources` — the roadmap — while being the thing this entry
+builds; it is removed from there.
+
+### Numbers
+
+- 9,230 companies in the population, from 11,154 pay-gap employers.
+- 4 slices, 2,344 / 2,295 / 2,321 / 2,270, ~2,600 requests and ~25 min each.
+- 42-day window, derived. ~200 candidates a run, ~133 of them new.
+- ~110 stored rows a week, ~5,600 a year, all at 250+ employee employers.
+- **$0.** `as_classified` closes the record; no model is called on this path.
+- 72 tests, offline, against a fixture of real register values.
+- Suite 1,823 → 1,996 (the two concurrent Japan and Korea connectors are in
+  that number too). `ops_status.py` exit 0, `structured_official` now `[GB, IN]`.
+
+### Access and licence, checked first
+
+- `api.company-information.service.gov.uk/robots.txt` → **401**
+  (`{"error":"Empty Authorization header"}`). Every path on the API host needs
+  auth, so there is no directive to honour and the default applies.
+- `stream.company-information.service.gov.uk/robots.txt` → **401**, same.
+- `find-and-update.company-information.service.gov.uk/robots.txt` → **404**
+  with an HTML page. No directives. This is the host the measurements read.
+- `download.companieshouse.gov.uk/robots.txt` → **200**, `User-agent: *` /
+  `Disallow:` — explicitly everything.
+- Public sector information; the OGL attribution rides in the summary of every
+  stored row, exactly as `uk_paygap` carries its own.
+
+### Unproven until the first real run, and it is a short list
+
+Everything authenticated. Specifically: that `items_per_page=100` is accepted,
+that `total_results` counts what the docs say, that HTTP Basic with an empty
+password is the accepted credential form, and the exact `officer_role` strings
+on live rows. All four are pinned by tests against the documented shape and all
+four fail loudly rather than quietly. First run:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=collect-structured.yml \
+     -f inputs_json='{"source":"companies_house","dry_run":"true"}' \
+     -f reason='first authenticated Companies House run'
+```
+
+What was verified without the key: the roster (`ch.roster()` returns 9,230 from
+the live pay-gap download), the rotation, the window arithmetic, the whole
+`collect → as_classified → build_signal` path against a stubbed session — one
+row out the far end, `verified`, `GB`, `hq_city=London`,
+`industry=professional_services`, `published_date=2026-07-01`, direction
+`neutral` — and that a keyless run fails with the message that names the
+streaming-key trap rather than storing zero quietly. The emptiness floor fired
+on that stub run before it was lifted for the demonstration, which is the guard
+working.
+
+---
+
 ## 2026-07-30 — Korea's spine is the report TITLE, because its typed codes stop one level too coarse
 
 Build the Korean equivalent of the India connector. It ships, it costs nothing,

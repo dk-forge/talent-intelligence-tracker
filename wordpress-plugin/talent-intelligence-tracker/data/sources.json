@@ -16,6 +16,22 @@
   "collector": "bse_india"
  },
  {
+  "name": "Companies House officer appointments",
+  "url": "https://find-and-update.company-information.service.gov.uk/",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Leadership change",
+   "Board appointment"
+  ],
+  "coverage": "United Kingdom",
+  "country": "GB",
+  "rss": "",
+  "free": true,
+  "notes": "Every UK company must tell the registrar who its directors and secretaries are, so this is a register entry rather than a claim, and it needs no model to read. Two limits matter more here than on any other source. First, it is NOT the whole register: there are about 5.7 million UK companies, most of them dormant micro-companies whose director changes say nothing about the labour market, so this reads only the 9,230 employers the gender pay gap duty covers, meaning 250 employees or more. Second, a row is the legal fact of an appointment and not evidence of a hire: the register does not say whether the person came from inside or outside the business, so nothing here is counted as hiring. Departures sit on the same records and are not collected, because the register never says why somebody left. The registered office is recorded as the employer's address and never as a job location.",
+  "collector": "companies_house"
+ },
+ {
   "name": "DART disclosures (Korea, FSS OpenDART)",
   "url": "https://dart.fss.or.kr/",
   "status": "live",
@@ -12394,22 +12410,6 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27.",
-  "collector": ""
- },
- {
-  "name": "UK Companies House",
-  "url": "https://www.gov.uk/government/organisations/companies-house",
-  "status": "candidate",
-  "category": "Regulatory filings",
-  "signals": [
-   "Board appointment",
-   "Incorporation"
-  ],
-  "coverage": "National",
-  "country": "GB",
-  "rss": "",
-  "free": true,
-  "notes": "",
   "collector": ""
  },
  {
