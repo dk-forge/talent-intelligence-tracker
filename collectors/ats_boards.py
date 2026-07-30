@@ -253,15 +253,44 @@ def place_key(*candidates: str) -> str:
     """
     parts: list[str] = []
     for candidate in candidates:
-        for token in _SPLIT.split(str(candidate or "")):
+        whole = str(candidate or "").strip()
+        # The WHOLE string first, before any splitting. A board writes
+        # "London, Ontario" and "Cambridge, MA" as one field, and the
+        # gazetteer holds both of those spellings precisely because the bare
+        # name belongs to two places. Splitting first threw the source's own
+        # disambiguation away and filed every London, Ontario role in England.
+        if whole:
+            hit = vocab.normalize_city(whole)
+            if hit:
+                return f"city:{hit[0]}"
+            parts.append(whole)
+        for token in _SPLIT.split(whole):
             token = token.strip()
             if token:
                 parts.append(token)
 
     for token in parts:
-        if vocab.normalize_city(token):
-            return f"city:{vocab.normalize_city(token)[0]}"
+        hit = vocab.normalize_city(token)
+        if not hit:
+            continue
+        # A qualifier beside the city that names a DIFFERENT country means this
+        # is not that city. "Paris, TX" is not Paris and "Melbourne, FL" is not
+        # Melbourne; both fall through to their country, which is the honest
+        # answer for a town we do not curate.
+        elsewhere = {code for code in
+                     (vocab.place_qualifier_country(other)
+                      for other in parts if other != token) if code}
+        if elsewhere and hit[2] not in elsewhere:
+            continue
+        return f"city:{hit[0]}"
     for token in parts:
+        # A US STATE CODE IS NOT A COUNTRY CODE, and half of them collide:
+        # "Peoria, IL" resolved to Israel, "San Jose, CA" to Canada,
+        # "Cambridge, MA" to Morocco, "Boise, ID" to Indonesia. Any two-letter
+        # token that is a US state is read as one, because a board writing two
+        # letters after a comma means the state every time.
+        if len(token) == 2 and vocab.normalize_state(token):
+            return "country:US"
         code = vocab.normalize_country(token)
         if code:
             return f"country:{code}"
