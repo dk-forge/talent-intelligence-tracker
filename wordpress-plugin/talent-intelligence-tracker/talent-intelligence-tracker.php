@@ -44,6 +44,9 @@ tit_require('includes/export.php');
 tit_require('includes/shortcodes.php');
 tit_require('includes/page.php');
 tit_require('includes/company.php');
+// After company.php: places.php uses its slug canonicaliser and its collision
+// refusal, and degrades to no pages at all rather than fatalling without them.
+tit_require('includes/places.php');
 tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
 tit_require('includes/recall.php');
