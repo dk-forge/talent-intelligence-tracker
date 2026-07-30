@@ -55,10 +55,20 @@ There are not two robots.txt files. There is one.
     https://asktherecruiter.com/blog/robots.txt   200  175 bytes  text/plain
     https://asktherecruiter.com/robots.txt        200  13,181 bytes  text/HTML
 
-The second is not a robots.txt at all: the apex serves the same 13,181-byte
-"Coming soon" landing page for `/robots.txt`, for `/definitely-not-here.txt`,
-and for every other unmatched path. There is no file there to append to, and
-the content-binding above refuses the root target for exactly that reason.
+The second is not a robots.txt at all, and not even the same server. The apex
+serves the same 13,181-byte "Coming soon" page for `/robots.txt`, for
+`/definitely-not-here.txt` and for every other unmatched path, and that page is
+built by **Cloudflare** — 25 of its stylesheet references are `/cf-fonts/`.
+Only `/blog/` routes through to Bluehost.
+
+So the `root` target can never be satisfied over FTP, whatever path it is
+given: the content check would be comparing a Bluehost file against a
+Cloudflare response, and no file on the one can ever equal the other. There is
+a `/public_html/AskTheRecruiter.com/robots.txt` on Bluehost and it is served to
+nobody. A root robots.txt has to be added wherever that Coming Soon page is
+built. **"The URL and the filesystem belong to different servers" is a failure
+mode worth naming**, and a content check that refuses it is strictly better
+than a confident write to a file nothing reads.
 
 That matters more than it looks, because RFC 9309 is explicit that a crawler
 reads `/robots.txt` at the host root and nowhere else. A robots.txt in a
@@ -215,6 +225,10 @@ def default_targets() -> list[Target]:
             "root",
             f"{SITE}/robots.txt",
             [root_override] if root_override else [
+                # The account's real layout: a mixed-case domain directory
+                # under public_html. None of the generic guesses below reach it,
+                # which is exactly why the first real dispatch refused.
+                "/public_html/AskTheRecruiter.com/robots.txt",
                 "/robots.txt",
                 "/public_html/robots.txt",
                 "robots.txt",
@@ -224,19 +238,29 @@ def default_targets() -> list[Target]:
                    [p for p in (derived.get("root"),) if p],
             forbidden_fragment="/blog/",
             absent_note=(
-                "Measured 2026-07-30: the apex has NO robots.txt. It answers "
-                "/robots.txt, and every other unmatched path, with the same "
-                "13,181-byte 'Coming soon' landing page at HTTP 200. So there "
-                "is nothing here to append to, and putting one there is a "
-                "CREATE, not an edit — a root robots.txt where none existed "
-                "changes the crawl rules for the whole domain in one step. "
-                "Decide that deliberately; this workflow will not do it as a "
-                "side effect of adding two sitemap lines."),
+                "THE APEX IS NOT ON THIS HOST. Measured 2026-07-30: "
+                "https://asktherecruiter.com/robots.txt returns a 13,181-byte "
+                "'Coming soon' page built by Cloudflare — 25 of its stylesheet "
+                "references are /cf-fonts/ — and every other unmatched apex "
+                "path returns the same bytes. Only /blog/ routes through to "
+                "Bluehost. So NO FTP PATH CAN EVER SATISFY THIS TARGET, "
+                "whatever it is set to: the URL and the filesystem belong to "
+                "different servers, and the content check is comparing a "
+                "Bluehost file against a Cloudflare response. A root "
+                "robots.txt has to be added wherever that Coming Soon page is "
+                "built, not in cPanel and not over FTP. (There IS a "
+                "/public_html/AskTheRecruiter.com/robots.txt on Bluehost. It "
+                "is served to nobody.)"),
         ),
         Target(
             "blog",
             f"{SITE}/blog/robots.txt",
             [blog_override] if blog_override else [
+                # Ground truth from the owner's own listing of the account.
+                # The mixed case is not incidental: `asktherecruiter.com` is a
+                # different directory to the server, and lowercasing it here
+                # would put us back to guessing.
+                "/public_html/AskTheRecruiter.com/blog/robots.txt",
                 "/blog/robots.txt",
                 "/public_html/blog/robots.txt",
                 "blog/robots.txt",

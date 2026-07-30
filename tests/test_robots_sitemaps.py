@@ -157,17 +157,55 @@ def test_html_served_with_200_is_refused():
                          "<!DOCTYPE html><html><body>503 backend</body></html>")
 
 
-def test_the_apex_landing_page_refusal_explains_what_it_found():
-    """Measured 2026-07-30: https://asktherecruiter.com/robots.txt does not
-    exist. The apex answers it — and every other unmatched path — with the same
-    13,181-byte 'Coming soon' page at HTTP 200. 'Served HTML' is true and
-    useless; the refusal has to say that this would be a CREATE."""
+def test_the_apex_refusal_names_the_actual_reason():
+    """The apex is not on this host. It answers /robots.txt — and every other
+    unmatched path — with a 13,181-byte 'Coming soon' page built by Cloudflare
+    (25 /cf-fonts/ references); only /blog/ reaches Bluehost.
+
+    So no FTP path can ever satisfy this target: the content check would be
+    comparing a Bluehost file against a Cloudflare response. 'Served HTML' is
+    true and cost an hour; the refusal has to say which server and where the
+    file would actually have to go."""
     with pytest.raises(rs.Refusal) as caught:
         rs.guard_fetched(target("root"), 200,
                          '<!DOCTYPE html>\n<html lang="en"><head>'
                          '<title>Ask The Recruiter</title></head></html>')
     message = str(caught.value)
-    assert "NO robots.txt" in message and "CREATE" in message
+    assert "NOT ON THIS HOST" in message
+    assert "Cloudflare" in message
+    assert "NO FTP PATH CAN EVER SATISFY" in message
+
+
+def test_the_paths_the_owner_listed_are_candidates():
+    """Ground truth beats four generic guesses. The mixed case is load-bearing:
+    the server treats `asktherecruiter.com` as a different directory."""
+    assert "/public_html/AskTheRecruiter.com/blog/robots.txt" in \
+        rs.candidate_paths(target("blog"))
+    assert "/public_html/AskTheRecruiter.com/robots.txt" in \
+        rs.candidate_paths(target("root"))
+
+
+def test_the_blog_file_is_found_where_the_owner_says_it_is():
+    ftp = FakeFtp({"/public_html/AskTheRecruiter.com/blog/robots.txt":
+                   LIVE.encode("utf-8")})
+    assert rs.locate(target("blog"), LIVE, ftp) == \
+        "/public_html/AskTheRecruiter.com/blog/robots.txt"
+
+
+def test_the_secret_derives_the_same_prefix_the_listing_showed():
+    derived = rs.derived_candidates(
+        "/public_html/AskTheRecruiter.com/blog/wp-content/plugins/talent-intelligence-tracker")
+    assert derived["blog"] == "/public_html/AskTheRecruiter.com/blog/robots.txt"
+    assert derived["root"] == "/public_html/AskTheRecruiter.com/robots.txt"
+
+
+def test_a_known_path_is_still_content_checked():
+    """A path that was right last month is not evidence about today."""
+    ftp = FakeFtp({"/public_html/AskTheRecruiter.com/blog/robots.txt":
+                   b"User-agent: *\nDisallow: /\n"})
+    with pytest.raises(rs.Refusal, match="no remote file matched"):
+        rs.locate(target("blog"), LIVE, ftp)
+    assert ftp.writes == []
 
 
 def test_the_blog_target_has_no_such_note():

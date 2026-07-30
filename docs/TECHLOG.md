@@ -4722,6 +4722,43 @@ robots.txt write path of its own. `NEVER_WRITE_INSIDE` enforces it three times �
 in `candidate_paths`, in `process`, and last in `FtpTransport.write` — because
 one refusal is one edit from gone.
 
+### The URL and the filesystem belonged to different servers
+
+The owner listed the account, and the ground truth explains both refusals.
+
+The blog file is at **`/public_html/AskTheRecruiter.com/blog/robots.txt`**. The
+mixed-case domain directory is why all four generic candidates missed — none of
+them carried a domain segment, let alone a capitalised one. It is now a
+candidate, and `WP_PLUGIN_REMOTE_DIR` derives the same prefix, so the general
+form works for any account laid out this way. It is still content-checked before
+a write: a path that was right last month is not evidence about today.
+
+The apex refusal was more correct than it looked. `https://asktherecruiter.com/`
+is **not on this host at all** — `/robots.txt` returns a 13,181-byte "Coming
+soon" page built by Cloudflare, 25 of whose stylesheet references are
+`/cf-fonts/`, and only `/blog/` routes through to Bluehost. So the content check
+was comparing a file on Bluehost against a response from Cloudflare, and **no
+file on the one could ever have equalled the other**. There is a
+`/public_html/AskTheRecruiter.com/robots.txt` sitting on Bluehost and it is
+served to nobody.
+
+That failure mode is worth a name: **the URL and the filesystem belong to
+different servers.** Nothing in a status code, a byte count or a `server:`
+header says so — Cloudflare proxies both, so both answer 200 with
+`server: cloudflare`. The only signal was that no file matched, and a job that
+resolved paths by convention instead would have written into a real directory,
+got a 200 back from a page it had not touched, and reported success. The
+`root` refusal now names the reason and where the file would actually have to
+go, because "served HTML" cost an hour to interpret and "Cloudflare builds this
+page, not cPanel" costs none.
+
+Standing conclusion, since the two lines themselves are done: the apex file was
+added by hand and both sitemaps are submitted in Search Console, so the value
+left here is the mechanism, not the lines. What it is worth keeping is the
+property it proved twice in one afternoon — **a deploy that verifies its target
+by content refuses loudly in exactly the cases where a deploy that trusts a
+path would have succeeded silently.**
+
 ---
 
 ## What the tripwire costs
