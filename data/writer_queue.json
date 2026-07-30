@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T18:32:36Z",
-  "last_tick": "2026-07-30T18:46:13Z",
+  "last_tick": "2026-07-30T19:15:30Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -228,6 +228,30 @@
       "run_id": null,
       "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-30T19:15:19Z",
+          "detail": "2026 registry backfill, $0 model spend: bse_india",
+          "event": "queued"
+        }
+      ],
+      "id": "20260730T191519Z-backfill-structured-2026",
+      "inputs": {
+        "end": "2026-07-30",
+        "source": "bse_india",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "2026 registry backfill, $0 model spend: bse_india",
+      "requested_at": "2026-07-30T19:15:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-structured-2026.yml"
     },
     {
       "attempts": 0,
