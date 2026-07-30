@@ -13,6 +13,203 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the canonical decides who published it, CTech has no feed to wire, and the audit that says why we miss things is finally printed
+
+Three fixes from one brief. Every figure below is measured; two of the brief's
+own premises turned out to be wrong when the code and the live hosts were read,
+and both are corrected here rather than quietly worked around.
+
+### 1. `finance.yahoo.com`: block on the CANONICAL host, not the requested one
+
+`validate._BLOCKED_SOURCE_HOSTS` matched on the EXACT host and listed
+`news.yahoo.com`, so `finance.yahoo.com` and `sg.finance.yahoo.com` were never
+compared to anything. **Three current rows** were cited to an aggregator.
+
+The part that makes this a design fault rather than a missing entry:
+`collectors/national_press.py` had ALREADY learned this and derives its
+`_AGGREGATOR_DOMAINS` from the registrable domain, with a test
+(`test_finance_yahoo_is_already_blocked_and_needs_no_second_entry`) asserting
+that `finance.yahoo.com` is covered. So one rule lived in two layers, the two
+disagreed, and **the layer deciding what may be STORED was the weaker of the
+two.** `validate` now derives its domain set the same way, from the same host
+list, so a host added to one is blocked on every subdomain of the other.
+
+**A blanket domain block would have been wrong, and the canonicals say so.**
+Checked live on 2026-07-30:
+
+| row | `rel=canonical` |
+|---|---|
+| 7-Eleven | `www.cstoredive.com/news/7-eleven-names-new-ceo/826096/` |
+| Haus Cramer Gruppe | `www.just-drinks.com/news/haus-cramer-gruppe-names-new-ceo/` |
+| HSBC (`sg.finance.yahoo.com`) | **itself** |
+
+Two of the three are a publisher's article behind a syndication URL and one is
+the aggregator all the way down. `cstoredive.com` is a publisher this corpus
+**already reads directly** — it holds Iowa 80 Group and Warrenton Oil rows from
+that outlet. Refusing all three on the host would have thrown away two
+publishers we can name, for a tidier rule.
+
+So `validate.prefer_canonical()` follows the pointer and REWRITES `source_url`
+to the publisher before anything else is judged, which is CLAUDE.md's
+"aggregators are discovery pointers" being kept rather than excepted. It never
+fetches: the canonical must be supplied by whatever read the page, because
+validate runs on every candidate before any money is spent and a network call
+there would be a per-candidate one.
+
+**Backward half: `correct_aggregator_sources.py`.** Its worklist is DERIVED — it
+asks `validate.is_aggregator_host()` the same question the write path asks — so
+it covers whatever the next edit to that function moves, and needs no new
+script. Run against a COPY of the database, because backfills were draining
+through the writer queue at the time and the committed database is theirs:
+
+```
+3 current rows cited to an aggregator
+  7-Eleven            -> C-Store Dive   revised, rev1 is_current=0, rev2 current
+  Haus Cramer Gruppe  -> Just-Drinks    revised, rev1 is_current=0, rev2 current
+  HSBC                -> LEFT ALONE (canonicalises to itself)
+repaired 2, left for a human 1
+```
+
+**It does not retract.** A row whose canonical is the aggregator itself is
+printed, named and left; an automatic retraction driven by an HTTP response
+would let a publisher's bad afternoon delete evidence, which is the reasoning
+`link_check.py` already carries.
+
+Three things measured rather than assumed:
+
+- **`content_hash` does NOT move.** `source_name` reaches it only through
+  `strip_outlet_suffix()`, and the hashed payload is
+  `company_key|pillar|published_date|normalised_headline`. Neither headline
+  carries a trailing " - Outlet", so both fingerprints are unchanged
+  (`dded0fa4b713`, `c4df895b98c8`). The script ASSERTS this and refuses rather
+  than proceeding if it ever stops being true, because a moved fingerprint means
+  the live row can never be matched again.
+- **`og:site_name` has to be read from the PUBLISHER's page.** Read off the
+  aggregator's copy, both rows came back labelled "Yahoo Finance" — the exact
+  name this pass exists to stop citing. One extra fetch gets "C-Store Dive".
+- **Blast radius of registrable-domain matching: zero.** Across 15,711 current
+  rows, `google.com` 0, `msn.com` 0, `flipboard.com` 0, `yahoo.com` 3. No
+  catalogue feed sits on any of those domains.
+
+**The part that does not reach the live page, stated plainly.**
+`tit_correctable_columns()` is `signal_direction, talent_readthrough, city,
+region, country`. `source_url` and `source_name` are in neither it nor the
+enrichable set, so this corrects the repo's memory and NOT the page. Because the
+fingerprint is stable, widening that allowlist would be enough; nothing needs a
+withdraw-and-republish.
+
+11 new tests in `tests/test_canonical_source_host.py`, including the two cases
+that matter most: a canonical pointing at ANOTHER aggregator is not followed,
+and a canonical never rescues a row that fails a different check.
+
+### 2. CTech: the brief's premise is wrong, and the empty column is a finding
+
+The brief said CTech's `rss` column is empty "and the reason is mundane", asking
+for a one-field fix. **There is no feed to put in it.** Re-verified 2026-07-30
+against the live host with the collector's own browser UA:
+
+| checked | result |
+|---|---|
+| `/ctechnews` | 200, 186,208 bytes, **no `rel=alternate`**, and no rss/feed/.xml URL anywhere in the markup |
+| 21 candidate feed and sitemap paths | **all 404** |
+| `robots.txt` | 200, 34 lines, every one a `Disallow`, **no `Sitemap:` directive** |
+| the legacy "RSS FOR CALCALISTECH" page a search surfaces | itself **404** since the `/ctechnews` relaunch |
+| Wayback CDX, **20,000** captures on the domain | **no feed URL, ever** — every hit is an article URL with a `/feed/` suffix that 404ed at capture time |
+| parent `calcalist.co.il` | **403** on every path including the legacy `GeneralRSS` one |
+
+The catalogue row already said this and it was right. It now also carries the
+21 paths and the Wayback result, dated, so **no future session repeats the
+probe.** The drift guard cannot be "armed for the host" because with no `rss`
+the row is never loaded as a `Feed` at all; `expected_domains` has nothing to
+compare.
+
+**And the outlet is not unreachable.** Measured: **2 current rows cite
+`calcalistech.com`, both found through `google_news`**, which resolves each item
+to the publisher's own article URL. Israel has **10** publisher feeds actually
+loaded by the collector (Globes x3, Geektime, NoCamels, Techtime, Haaretz, Ynet,
+Jerusalem Post, Israel Innovation Authority).
+
+The audit is more precise than "4 of 81": Israel has **9** misses — **5
+`outside_our_history`** and **4 `publisher_not_wired`**, and all four of the
+latter are CTech, while three of the five former are CTech too. So a feed, had
+one existed, would have closed 4 and not 7. The real options are an HTML
+collector against `/ctechnews`, or `google_news`, which already reaches it. The
+discovery backstop is NOT one of them: it is country-scoped by design and says
+so in its own header, and Israel already has ten direct feeds.
+
+### 3. The rejection audit is printed now, as a diagnosis
+
+`data/recall_rejection_audit.json` had been produced since 2026-07-29 and
+surfaced NOWHERE — nothing ran it on a schedule, nothing committed it, and
+`ops_status.py`, the file every session is told to run first, did not mention
+it. Three links in that chain, all three now asserted by
+`tests/test_rejection_audit_surfaced.py`, because any one breaking leaves the
+other two looking fine:
+
+1. `recall.yml` **runs** it (`--write`), after the measurement so it audits the
+   corpus that measurement just scored, `continue-on-error` so a lost diagnosis
+   can never cost the recall figure that is the point of the job.
+2. `recall.yml` **commits** it, in `paths`.
+3. `ops_status.py [3c]` **prints** it.
+
+It reads as a roadmap, not a scoreboard, and the zero is read aloud:
+
+```
+[3c] WHY WE MISS WHAT WE MISS  (the feed roadmap, from the gold set)
+    measured 2026-07-28 on gold set 2026-07-v1: held 8 of 89, missed 81
+      0   0%  fetched_then_dropped   a filter rejected it
+     51  63%  outside_our_history    older than the collector
+                                       -> BACKFILL. Not filters, not sources
+     12  15%  publisher_not_wired    researched, not connected
+     11  14%  publisher_unknown      not researched
+      7   9%  feed_read_item_missed  feed depth or run cadence
+    READ THE ZERO: no filter has ever rejected a gold event. The corpus is
+    young, not leaky.
+```
+
+Every percentage is computed from the file, and a test asserts that rather than
+trusting it. **Deliberately not an ACTION NEEDED item**: a young corpus is not a
+fault, and a permanent red on a number only time can move would train the next
+session to ignore the exit code. A test pins that too.
+
+**One thing the audit gets wrong, found while wiring it and NOT fixed here:**
+its `unwired_publishers` list names `yahoo.com` as a publisher with 1 miss. It
+is an aggregator, which fix 1 above now enforces on the write path, so that row
+is a target that cannot be wired. `businesswire.com`, `globenewswire.com` and
+`prnewswire.com` sit in the same list and are wire services rather than
+publishers, which is a different argument and a real one. Left alone because it
+is the audit's own classification and changing it changes a published number.
+
+### Not done, and it is the big one
+
+**The competitor diff (`tracker_diff` in the sibling) was NOT built.** It is the
+largest gap in this tracker's learning loop and it costs $0, and it is a whole
+collector plus a chase path plus a feedback ledger; started at the end of a long
+session it would have been a half-built source, and a source that forgets
+`raw_text` posts zero records silently. Two constraints for whoever picks it up,
+both found in this session's work rather than in the brief:
+
+- **Import `registrable_domain`, do not write a third one.** There are ALREADY
+  two in this repo — `collectors/national_press.py` and
+  `analysis/recall/rejection_audit.py` — and a third, deciding which competitor
+  events count as ours, would be the one that matters most and the likeliest to
+  go stale. `pipeline/validate.py` needed the same function this session and
+  imports it (deferred, so `pipeline` takes no module-level dependency on
+  `collectors`).
+- The sibling's substring bug the brief describes is the same class of fault as
+  the yahoo one fixed above: an exact-or-substring host test where the question
+  is really about who owns the domain.
+
+### Measured
+
+| | |
+|---|---|
+| offline tests | 2,263 pass (was 2,172 at session start; other work landed in parallel) |
+| PHP harnesses | 6 pass |
+| `ops_status.py` | exits 2 before and after, for five collectors stale on wall-clock time and nothing here |
+| model calls added | **0**. Both new paths are HTTP and string comparison |
+| rows written to `data/talent_intel.db` | **0** — corrections proved on a copy, because backfills held the real one |
+
 ## 2026-07-30 — the filter sidebar is reversed into a frozen bar, and the column was what squeezed the table
 
 Plugin **1.55.0 -> 1.56.0**. **This reverses the sidebar shipped in 1.54.0.**

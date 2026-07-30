@@ -56,6 +56,7 @@ def main() -> int:
     problems += _report_backfills()
     _report_coverage()
     _report_discovery()
+    _report_rejection_audit()
     _report_surfaces()
     _report_spend()
 
@@ -938,6 +939,86 @@ def _report_discovery() -> None:
     if data.get("missing_total"):
         print("    Chase them (a lead is never a record):")
         print("      python run_collect.py --source tripwire_chase --dry-run")
+
+
+def _report_rejection_audit() -> None:
+    """WHY we miss what we miss — the roadmap, not a scoreboard.
+
+    `analysis/recall/rejection_audit.py` takes every gold-set event we did not
+    hold and asks which of four things went wrong. It has been produced since
+    2026-07-29 and surfaced NOWHERE: the file sat in data/ and no session that
+    did not already know its filename would ever have opened it.
+
+    IT IS PRINTED AS A DIAGNOSIS AND NOT AS A NUMBER, because the split is the
+    whole finding and the headline count is the least useful part of it:
+
+        fetched_then_dropped = 0
+
+    Not one gold event has ever been fetched and then rejected by a filter. The
+    prefilter, the gate, the vocabularies and the guards are not what is losing
+    coverage — and "our filters are too aggressive" is the intuitive diagnosis
+    that this measurement refutes. Meanwhile the largest bucket by a distance is
+    `outside_our_history`: events that predate the collector that would have
+    caught them. That is a YOUNG CORPUS, not a leaky one, and it is fixed by
+    backfilling rather than by loosening anything.
+
+    So this section prints the four causes with what each one means you should
+    DO. It is deliberately not an ACTION NEEDED item: a young corpus is not a
+    fault, and a permanent red on a number that only time can move would train
+    the next session to ignore the exit code.
+    """
+    import json
+
+    path = ROOT / "data" / "recall_rejection_audit.json"
+    print("\n[3c] WHY WE MISS WHAT WE MISS  (the feed roadmap, from the gold set)")
+
+    if not path.exists():
+        print("    No audit yet. It is produced beside the recall measurement:")
+        print("      python -m analysis.recall.rejection_audit")
+        return
+    try:
+        data = json.loads(path.read_text())
+    except ValueError:
+        print("    Audit file is unreadable. Re-run analysis/recall/rejection_audit.py.")
+        return
+
+    stages = data.get("stages") or {}
+    misses = int(data.get("misses") or 0)
+    gold = int(data.get("gold_events") or 0)
+    held = gold - misses
+    print(f"    measured {data.get('measured_on')} on gold set "
+          f"{data.get('goldset_version')}: held {held} of {gold}, missed {misses}")
+
+    # Order is the reading order of the finding, not the file's order and not
+    # descending size: the zero comes first because it is what the reader is
+    # most likely to have assumed otherwise.
+    meaning = [
+        ("fetched_then_dropped",
+         "a filter rejected it", "LOOSEN something — this is the only bucket that means that"),
+        ("outside_our_history",
+         "older than the collector", "BACKFILL. Not filters, not sources"),
+        ("publisher_not_wired",
+         "researched, not connected", "wire the feed that is already in the catalogue"),
+        ("publisher_unknown",
+         "not researched", "find the publisher"),
+        ("feed_read_item_missed",
+         "feed depth or run cadence", "plumbing: read deeper, or read more often"),
+    ]
+    for key, means, todo in meaning:
+        n = int(stages.get(key) or 0)
+        share = f"{100.0 * n / misses:.0f}%" if misses else "n/a"
+        print(f"    {n:>3} {share:>4}  {key:<22} {means}")
+        if n:
+            print(f"                                       -> {todo}")
+
+    dropped = int(stages.get("fetched_then_dropped") or 0)
+    if dropped == 0:
+        print("    READ THE ZERO: no filter has ever rejected a gold event. The "
+              "corpus is young, not leaky.")
+
+    split = data.get("split") or {}
+    if split:
+        print("    by cause: " + ", ".join(f"{k}={v}" for k, v in split.items()))
 
 
 def _report_spend() -> None:
