@@ -1510,21 +1510,91 @@ _NON_USD = re.compile(
     re.I,
 )
 
+# A US DOLLAR HAS TO BE STATED, not merely not-contradicted.
+#
+# The rule used to be a denylist: refuse if _NON_USD matches, otherwise treat the
+# number as dollars. A denylist of currency words is guaranteed to be short by
+# exactly the currencies nobody has met yet, and absence of evidence was being
+# read as evidence of dollars. Three live rows proved it: '25 millioner kroner'
+# and '10,5 mio. kr.' are Danish (kron[ao]r? does not match "kroner", and "kr."
+# was in no list at all) and '500 millones' names no currency in the string
+# while its own summary says euros. All three sat in funding_amount_usd on a
+# page that promises amounts in other currencies are left out rather than
+# converted at a rate nobody published.
+#
+# So the test is now POSITIVE, and it is cheap to be strict: of 3,097 current
+# rows carrying a funding_amount, 3,094 name '$', 'US$' or 'USD' outright. The
+# only three that did not were these three, and all three were wrong. A currency
+# we have never seen now refuses by default instead of quietly becoming dollars.
+_USD_MARKER = re.compile(r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$")
+
+# The multiplier may be attached by a hyphen as well as by a space: BetaKit
+# writes '$20-million USD', and \s* does not match '-', so that round was stored
+# as twenty dollars. En and em dashes too, because a publisher's typographer may
+# have been through it.
 _AMOUNT = re.compile(
-    r"(\d[\d,]*(?:\.\d+)?)\s*"
-    r"(k|m|mm|mn|bn|b|t|thousand|million|millions|billion|billions|trillion)?\b",
+    r"(\d[\d,]*(?:[.,]\d+)?)\s*[-‐-―]?\s*"
+    r"(k|m|mm|mn|mln|mio|mil|bn|b|t|thousand"
+    r"|million|millions|millones|millioner|milliones|milhões|milhoes"
+    r"|milione|milioni|millioni|milionu|miljoen"
+    r"|billion|billions|billones|billioner|trillion)?\b\.?",
     re.I,
 )
 
+# Words for a million and a billion in the languages the feed catalogue actually
+# covers. These only ever apply to a string that has already stated US dollars,
+# so widening this list cannot turn a foreign amount into a dollar figure -- it
+# can only stop 'USD 53 millones' being stored as fifty-three dollars.
+#
+# 'mia'/'milliard' are deliberately ABSENT. A Scandinavian milliard is 10^9 and
+# a Spanish billón is 10^12, and no string here has ever paired either with an
+# explicit USD marker, so guessing which convention a publisher meant would be
+# inventing a figure. Such a string refuses, which is the correct answer.
 _MULTIPLIERS = {
     None: 1,
     "k": 1_000, "thousand": 1_000,
     "m": 1_000_000, "mm": 1_000_000, "mn": 1_000_000,
+    "mln": 1_000_000, "mio": 1_000_000,
     "million": 1_000_000, "millions": 1_000_000,
+    "millones": 1_000_000, "milliones": 1_000_000, "millioner": 1_000_000,
+    "milhões": 1_000_000, "milhoes": 1_000_000,
+    "milione": 1_000_000, "milioni": 1_000_000, "millioni": 1_000_000,
+    "milionu": 1_000_000, "miljoen": 1_000_000,
     "b": 1_000_000_000, "bn": 1_000_000_000,
     "billion": 1_000_000_000, "billions": 1_000_000_000,
+    "billones": 1_000_000_000, "billioner": 1_000_000_000,
     "t": 1_000_000_000_000, "trillion": 1_000_000_000_000,
 }
+
+# Scale words that mean different things in different languages, so no reading of
+# them is safe. 'mil' is a million in Singapore and Malaysian English ("US$22 mil
+# in pre-Series A", which the 2026-07-29 sweep found) and a THOUSAND in Spanish
+# and Portuguese. A thousand-fold error in either direction on the money total is
+# worse than an absent figure, and the verbatim string is still on the row for
+# anyone reading it. Matched by _AMOUNT so it cannot fall through to no
+# multiplier at all, which is how 'US$22 mil' became twenty-two dollars.
+_AMBIGUOUS_SCALE = frozenset({"mil"})
+
+
+def _read_number(raw: str):
+    """'1,450' -> 1450.0 and '10,5' -> 10.5, deciding which comma is which.
+
+    A European decimal comma had never mattered, because every such string was
+    refused for being a foreign currency before the number was read. Extending
+    the multiplier vocabulary changes that: 'USD 1,5 millones' would otherwise
+    strip the comma and store fifteen million dollars for one and a half. The
+    rule is the ordinary one -- a group of exactly three digits after the last
+    separator is a thousands group, anything else is a decimal fraction -- and a
+    string carrying both '.' and ',' is read as English thousands.
+    """
+    text = raw.strip()
+    if "." in text:
+        return float(text.replace(",", ""))
+    if "," in text:
+        head, _, tail = text.rpartition(",")
+        if len(tail) != 3 and head.replace(",", "").isdigit():
+            return float(f"{head.replace(',', '')}.{tail}")
+    return float(text.replace(",", ""))
 
 # A round larger than this is a parse failure, not news. Ten trillion dollars
 # is more than any company has ever raised, so a value above it means the
@@ -1535,13 +1605,20 @@ _MAX_PLAUSIBLE_USD = 10_000_000_000_000
 def parse_funding_usd(value: str):
     """Return the figure as whole US dollars, or None.
 
-    None means "we will not guess", and covers: no digits at all, a currency
-    that is not the US dollar, and anything that parses to an implausible
-    number. Only the FIRST number is read, so a range ('$5M to $10M') stores
-    its low end, matching how headcounts are parsed on the sibling tracker.
+    None means "we will not guess", and covers: no digits at all, NO STATED US
+    DOLLAR, a currency that is not the US dollar, and anything that parses to an
+    implausible number. Only the FIRST number is read, so a range ('$5M to
+    $10M') stores its low end, matching how headcounts are parsed on the sibling
+    tracker.
     """
     text = (str(value or "")).strip()
     if not text:
+        return None
+
+    # A dollar must be STATED. See _USD_MARKER: the old denylist read "no
+    # foreign currency word I recognise" as "dollars", and every currency it did
+    # not recognise became one.
+    if not _USD_MARKER.search(text):
         return None
 
     text = _USD_PREFIX.sub("$", text)
@@ -1555,11 +1632,13 @@ def parse_funding_usd(value: str):
         return None
 
     try:
-        number = float(m.group(1).replace(",", ""))
+        number = _read_number(m.group(1))
     except ValueError:
         return None
 
     suffix = (m.group(2) or "").lower() or None
+    if suffix in _AMBIGUOUS_SCALE:
+        return None
     amount = number * _MULTIPLIERS.get(suffix, 1)
     if amount <= 0 or amount > _MAX_PLAUSIBLE_USD:
         return None
