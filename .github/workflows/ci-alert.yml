@@ -59,9 +59,13 @@ name: CI failure alert
 # ---------------------------------------------------------------------------
 
 on:
-  # workflow_run:
-  #   workflows: ['*']
-  #   types: [completed]
+  # ARMED 2026-07-30, after the plugin reached 1.58.0 live. It was shipped
+  # disarmed on purpose: the deployed endpoint was 1.57.0, which ignores
+  # resolve_scope, so a green run would have mailed a "RECOVERED" for every one
+  # of ~30 workflows - the exact alarm fatigue this exists to prevent.
+  workflow_run:
+    workflows: ['*']
+    types: [completed]
   workflow_dispatch:
     inputs:
       run_id:
