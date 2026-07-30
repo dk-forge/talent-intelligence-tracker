@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T22:10:45Z",
-  "last_tick": "2026-07-30T22:10:45Z",
+  "last_dispatch": "2026-07-30T22:19:34Z",
+  "last_tick": "2026-07-30T22:19:34Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,12 +159,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T22:19:34Z",
       "history": [
         {
           "at": "2026-07-30T19:22:59Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-01-05)",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T22:19:34Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T192259Z-backfill-gdelt-2026",
@@ -180,7 +185,7 @@
       "requested_at": "2026-07-30T19:22:59Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -260,33 +265,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-30T22:10:45Z",
-      "history": [
-        {
-          "at": "2026-07-30T21:59:55Z",
-          "detail": "carry the 72 archive_url captures to WordPress: publish.py excludes them by design, only enrich moves them",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T22:10:45Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260730T215955Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "carry the 72 archive_url captures to WordPress: publish.py excludes them by design, only enrich moves them",
-      "requested_at": "2026-07-30T21:59:55Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
     },
     {
       "attempts": 0,
@@ -1579,6 +1557,43 @@
       "run_id": "30584878032",
       "state": "landed",
       "workflow": "correct-funding-amount.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T22:10:45Z",
+      "history": [
+        {
+          "at": "2026-07-30T21:59:55Z",
+          "detail": "carry the 72 archive_url captures to WordPress: publish.py excludes them by design, only enrich moves them",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T22:10:45Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T22:19:34Z",
+          "detail": "run 30586211637",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T22:19:34Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260730T215955Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "carry the 72 archive_url captures to WordPress: publish.py excludes them by design, only enrich moves them",
+      "requested_at": "2026-07-30T21:59:55Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30586211637",
+      "state": "failed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
