@@ -1,5 +1,22 @@
 [
  {
+  "name": "ARES Czech company register (ve\u0159ejn\u00fd rejst\u0159\u00edk)",
+  "url": "https://ares.gov.cz/ekonomicke-subjekty",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Leadership change",
+   "Board appointment",
+   "Board departure"
+  ],
+  "coverage": "Czechia",
+  "country": "CZ",
+  "rss": "",
+  "free": true,
+  "notes": "The Czech public register states, per person, the date an office actually began and the date it ended, separately from the dates a court registered either. That makes it the only registry read here that reports departures on the same footing as arrivals, and none of it is a difference between two readings. Two limits. It is NOT the whole register: the register's own change feed carries about 22,500 companies a month and this reads the 1% whose employee band in the statistical register is 250 or more, so an employer whose band was never filled in is missed rather than judged small. And a row is the legal fact of an office beginning or ending, never a hire and never a redundancy: the register does not say where the person came from or why they left. The registered office is recorded as the employer's address and never as a job location.",
+  "collector": "czechia_ares"
+ },
+ {
   "name": "BSE corporate announcements (SEBI Regulation 30)",
   "url": "https://www.bseindia.com/corporates/ann.html",
   "status": "live",
@@ -78,6 +95,22 @@
   "free": true,
   "notes": "Keyless JSON, no model, no cost: an employer's own open roles, counted once a day. Three honest limits. The count is OUR measurement of a page on two dates, so rows are reported and never verified. Nothing can be back-filled, because these APIs publish no history and no archive holds snapshots of them, so every series starts the day we began counting. And a board that shrinks is never read as job cuts: roles leave a board when they are filled, withdrawn or reposted, so only growth is published. SmartRecruiters was dropped in July 2026 because its API robots.txt disallows every agent but LinkedIn's.",
   "collector": "ats_boards"
+ },
+ {
+  "name": "Estonian business register (Ariregister open data)",
+  "url": "https://avaandmed.ariregister.rik.ee/en/downloading-open-data",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Leadership change",
+   "Board appointment"
+  ],
+  "coverage": "Estonia",
+  "country": "EE",
+  "rss": "",
+  "free": true,
+  "notes": "The register's daily open-data file states the date each person's office began, so an appointment is read rather than inferred. Read the gap as carefully as the rows: the published file lists only the people holding an office TODAY, so it carries no end date on any of its 520,895 rows and this source reports appointments and never departures. It is also not the whole register: about 202 appointments a day are published for a country of 1.3 million people, mostly at one-person companies, so this reads only employers reporting 50 full-time equivalent staff or more in their annual accounts, the point at which the European Commission's own definition stops calling a business small. A row is the legal fact of an appointment and not evidence of a hire. No city is stated, because the file carries none.",
+  "collector": "estonia_ariregister"
  },
  {
   "name": "GDELT DOC 2.0",

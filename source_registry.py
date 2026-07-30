@@ -416,6 +416,8 @@ COLLECTOR_BY_SOURCE_NAME = {
     "EDINET extraordinary reports (FSA Japan)": "edinet_japan",
     "DART disclosures (Korea, FSS OpenDART)": "opendart_korea",
     "Companies House officer appointments": "companies_house",
+    "ARES Czech company register (veřejný rejstřík)": "czechia_ares",
+    "Estonian business register (Ariregister open data)": "estonia_ariregister",
 }
 
 
@@ -601,6 +603,46 @@ SOURCES = (
                  "register never says why somebody left. The registered office "
                  "is recorded as the employer's address and never as a job "
                  "location."),
+    Source("ARES Czech company register (veřejný rejstřík)",
+           "https://ares.gov.cz/ekonomicke-subjekty",
+           "live", "Government filings",
+           ("Leadership change", "Board appointment", "Board departure"),
+           "Czechia", "CZ",
+           notes="The Czech public register states, per person, the date an "
+                 "office actually began and the date it ended, separately from "
+                 "the dates a court registered either. That makes it the only "
+                 "registry read here that reports departures on the same "
+                 "footing as arrivals, and none of it is a difference between "
+                 "two readings. Two limits. It is NOT the whole register: the "
+                 "register's own change feed carries about 22,500 companies a "
+                 "month and this reads the 1% whose employee band in the "
+                 "statistical register is 250 or more, so an employer whose "
+                 "band was never filled in is missed rather than judged small. "
+                 "And a row is the legal fact of an office beginning or "
+                 "ending, never a hire and never a redundancy: the register "
+                 "does not say where the person came from or why they left. "
+                 "The registered office is recorded as the employer's address "
+                 "and never as a job location."),
+    Source("Estonian business register (Ariregister open data)",
+           "https://avaandmed.ariregister.rik.ee/en/downloading-open-data",
+           "live", "Government filings",
+           ("Leadership change", "Board appointment"),
+           "Estonia", "EE",
+           notes="The register's daily open-data file states the date each "
+                 "person's office began, so an appointment is read rather than "
+                 "inferred. Read the gap as carefully as the rows: the "
+                 "published file lists only the people holding an office "
+                 "TODAY, so it carries no end date on any of its 520,895 rows "
+                 "and this source reports appointments and never departures. "
+                 "It is also not the whole register: about 202 appointments a "
+                 "day are published for a country of 1.3 million people, "
+                 "mostly at one-person companies, so this reads only employers "
+                 "reporting 50 full-time equivalent staff or more in their "
+                 "annual accounts, the point at which the European "
+                 "Commission's own definition stops calling a business small. "
+                 "A row is the legal fact of an appointment and not evidence "
+                 "of a hire. No city is stated, because the file carries "
+                 "none."),
     Source("IDA Ireland", "https://www.idaireland.com/", "candidate",
            "Investment promotion agency", ("Hiring", "Office opening", "Job creation"),
            "National", "IE",
@@ -951,6 +993,85 @@ def sources_manifest() -> list[dict]:
 #         the keys are not interchangeable, and a connection that must stay
 #         open to keep its timepoint cannot live in a workflow that holds one
 #         writer lock and exits.
+#
+#     CZ  ARES, the Czech Ministry of Finance's register service — BUILT
+#         2026-07-30. collectors/czechia_ares.py. Keyless, no model, and the
+#         only registry in this tracker that states BOTH directions per person:
+#         `clenstvi.clenstvi.vznikClenstvi` and `zanikClenstvi` are the dates
+#         an office actually began and ended, `funkce.vznikFunkce` /
+#         `zanikFunkce` the same for a named role, all separate from the
+#         `datumZapisu` / `datumVymazu` on which the court registered them.
+#         Nothing is diffed out of two snapshots.
+#         MEASURED live over 2026-07-02..07-29: the change feed carried 24,651
+#         notifications across 23 batches, 22,492 distinct companies, ~880 a
+#         day; 226 of them (1.0%) sit at 250 employees or more; those produced
+#         **42 office events at 20 employers in 28 days, ~550 a year** — 20
+#         arrivals, 4 departures, 9 promotions, 9 role endings.
+#         Two traps, both found by reading real records rather than the spec:
+#           * `datumVymazu` is NOT a departure. 353 of 543 member versions on
+#             ČEZ's record carry one with no `zanikClenstvi`; they are
+#             amendments. Reading them as exits reports a leaving rate about
+#             nine times the truth.
+#           * and the obvious repair, reading only the live version, loses a
+#             real change: Jean-Charles Chen stopped being chairman of ICO
+#             17774713 on 2026-07-10 and stayed on the board, and the ONLY
+#             place that fact exists is the version the register has already
+#             deleted. The collector groups the versions and reads all of them.
+#         REFUSED, with the number: legal form as a materiality proxy. Filtering
+#         to `a.s.` joint-stock companies polls 1,362 to find 117 material ones,
+#         8.6% precision — the UK accounts-category failure again (6.35%), and
+#         for the same structural reason.
+#         THE HOLE, stated because it is large: `kategoriePoctuPracovniku` is
+#         `000 Neuvedeno` on 12,624 of 19,285 RES records (65%) and on 41.6% of
+#         joint-stock companies, and 3,207 of the 22,492 have no RES record at
+#         all. A large employer whose statistical band was never populated is
+#         invisible here. That is a recall hole, not a precision one, and it is
+#         on the sources page rather than only in a docstring.
+#     EE  Ariregister, the Estonian Centre of Registers and Information
+#         Systems — BUILT 2026-07-30. collectors/estonia_ariregister.py.
+#         Keyless, no model, three static file downloads.
+#         THE LOAD-BEARING NEGATIVE: `lopp_kpv` is null on **520,895 of
+#         520,895** person rows, because the published file lists CURRENT
+#         office-holders only. Estonia yields appointments and NEVER
+#         departures, no window can change that, and the sentence is on every
+#         stored row, in the sources-page note and in the read-through.
+#         Refused rather than worked around: `arireg.ettevotjaMuudatusedTasuline_v1`,
+#         the SOAP change list, needs an account and is *tasuline* (chargeable);
+#         and diffing yesterday's file against today's, because a vanished row
+#         may be a departure, a correction, a merger or a deregistration and
+#         the file states no date for any of them.
+#         MEASURED on the whole 2026-07-30 file: 375,305 companies, 520,895
+#         person rows, **18,155 appointments in 90 days — 202 a day, ~74,000 a
+#         year** from a country of 1.3 million people, 86% of them `JUHL` at
+#         one-person `OÜ` micro-companies. So there is a threshold, drawn on the
+#         Commission's own boundary (Recommendation 2003/361: small is under
+#         50 employees) using the annual reports' own
+#         `AverageNumberOfEmployeesInFullTimeEquivalentUnits`:
+#           10+ 5,449 companies / 808 a year   50+ **825 / 235**
+#           25+ 1,878 / 384                    100+ 368 / 119
+#                                              250+ 107 / **38**
+#         250 — the line the UK and Czech connectors draw — was tried FIRST and
+#         refused with that number: under one appointment a week means most
+#         weekly runs store nothing, and a collector returning zero is
+#         `degraded` by this repo's own rule. Measured at 50 over
+#         2026-05-01..07-30: **66 appointments in 91 days, ~5 a week**.
+#
+#     NEITHER CZ NOR EE IS IN `MARKETS` BELOW, and there are two reasons rather
+#     than an oversight. First, the same one that keeps Japan and Korea at
+#     `discovery_only`: no run has yet gone through run_collect and stored a
+#     row, and a tier is a claim about the connector rather than about the
+#     source. Second, and this one is mechanical: **the segment budget is full
+#     at 56 of 56.** `build_segments()` spends one slot per market plus one per
+#     `terms` entry, and
+#     `test_the_segment_matrix_still_sweeps_inside_the_recency_window` requires
+#     ceil(segments / 4 / 2) <= the derived recency window, which is 7 days at
+#     51 locales. Two more markets make the sweep 8 days and the guard refuses
+#     it. Room comes from widening the locale rotation — which means a verified
+#     language pack, not a translation — and NOT from raising
+#     SEGMENTS_PER_RUN. Both countries are on the sources page with a live
+#     collector behind them, which is where coverage is claimed truthfully
+#     today; promoting them is one commit once a real run has landed and the
+#     budget has room.
 #
 #   BLOCKED — do not retry without the owner doing something first
 #     IL  Tel Aviv Stock Exchange (MAYA). maya.tase.co.il/robots.txt says

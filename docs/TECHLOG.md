@@ -13,6 +13,262 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — Czechia states both directions and Estonia states only one, and the window belongs on the registration date
+
+`collectors/czechia_ares.py` + `collectors/estonia_ariregister.py`, two new
+weekly slots in `collect-structured.yml` (Friday and Saturday, the two days no
+other database writer holds), 6 new fixtures, 91 new offline tests. Both are
+keyless, both expose `as_classified`, neither calls a model: **$0**. Every
+number below was fetched live on 2026-07-30 and most are from a real dry run
+rather than a projection.
+
+### The two sources, in one table
+
+| | Czechia (ARES) | Estonia (Ariregister) |
+|---|---|---|
+| shape | change feed -> employee band -> register record | three static file downloads |
+| population | 22,492 companies changed in 28 days | 375,305 companies, 520,895 person rows |
+| materiality | RES band `>= 330` = 250+ staff, **226 of 22,492 (1.0%)** | 2025 annual report `>= 50` FTE, **825 of 194,851** |
+| directions | **arrivals AND departures**, both source-dated | **arrivals only, and never anything else** |
+| measured | **108 events in 14 days, ~2,800/yr** | **16 in 21 days, ~265/yr** |
+| cost per run | 208 requests, ~2 min | 3 requests, 83MB, ~2 min |
+
+### Czechia: the window does not belong on the office date, and a live run is the only thing that could have said so
+
+The brief said: use the office dates as the event date, record the registration
+date too, never diff snapshots. All three are right, and the first one is not a
+window. `clenstvi.clenstvi.vznikClenstvi` / `zanikClenstvi` are when the office
+began and ended; `datumZapisu` / `datumVymazu` are when the court wrote it down;
+the notification feed announces the writing.
+
+Filtering on the OFFICE date therefore asks the feed which companies moved this
+week and then discards every change whose effective date was earlier than the
+window. **A real seven-day run (2026-07-23..07-30, 76 material companies)
+produced ZERO events** and tripped the emptiness floor, which is the only reason
+this was found: every unit test passed, because a fixture built from a 28-day
+window has its office dates inside it.
+
+Same 76 companies, same week, selecting on the REGISTRATION date instead:
+**41 events** — 18 arrivals, 13 departures, 8 promotions, 2 role endings — at a
+median office-to-registration lag of **25 days**. That is why a 7-day office
+window found nothing. Both dates are still source-stated and both are still on
+the record; what changed is only which of them decides an event is new.
+
+`MAX_BACKLOG_DAYS = 365` is the other half. Seven of those 41 had office dates
+**one to ten years** before their registration — a court finally writing down a
+2016 board change. There is no honest date for those: the true one puts a
+decade-old change on a dashboard of this week's market and today's is a figure
+nobody stated. Declined and counted; the shipped 14-day run declines 11.
+
+### Czechia: `datumVymazu` is not a departure, and reading only the live version is not the fix
+
+The VR record is a full version history. **353 of 543 member versions on ČEZ's
+record carry a `datumVymazu` and no `zanikClenstvi`** — they are amendments.
+Martin Novák's seat beginning 2026-05-25 appears twice, the first version
+deleted five weeks later purely because his academic titles were added; he is
+still on the board. Reading `datumVymazu` as an exit reports a leaving rate
+about nine times the truth.
+
+**And the obvious repair is wrong in the other direction.** Jean-Charles Chen's
+seat at ICO 17774713 has a live version saying `Člen správní rady` with no dates
+at all, and a superseded one carrying `zanikFunkce: 2026-07-10` for
+`Předseda správní rady`. He stopped being chairman that day and stayed on the
+board, and **the only place that fact exists is the version the register has
+already deleted.** So `memberships()` groups every version on (organ, person,
+membership start) and `_events` reads them all, deduplicating a membership event
+on (kind, date) and a role event on (kind, date, role) — because one person can
+be promoted and demoted inside one unbroken membership, while the same arrival
+restated by five amendments is one row.
+
+### Czechia: the materiality filter, and the hole in it
+
+`kategoriePoctuPracovniku` code `330` is `250 - 499 zaměstnanců`, read from the
+register's own codebook at `/ciselniky-nazevniky/vyhledat` rather than assumed.
+There is no search-by-band: `EkonomickeSubjektyRegistraceFiltr` accepts an `ico`
+array and nothing else, read from the OpenAPI document at
+`/ekonomicke-subjekty-v-be/rest/v3/api-docs`. The change feed is what makes
+per-ICO lookups affordable instead.
+
+**Legal form was refused with a number.** `a.s.` joint-stock companies would poll
+1,362 in that window to find 117 material ones — **8.6% precision**, the UK
+accounts-category failure (6.35%) again and for the same structural reason:
+legal form records how a business is owned, not how many people it employs.
+
+**The hole is large, and it is on the sources page rather than only in a
+docstring.** `000 Neuvedeno` is **12,624 of 19,285 RES records (65%)** and **567
+of the 1,362 joint-stock companies (41.6%)**; another **3,207 of 22,492 (14.3%)**
+have no RES record at all; and the band goes stale (ČEZ's `datumAktualizace` is
+2023-06-29, and 75 of the 226 material companies were last updated in 2023). A
+large employer whose statistical band was never populated is missed rather than
+judged small. That is a recall hole, not a precision one.
+
+### Czechia: the citation, because two nicer-looking URLs both fail
+
+`source_url` is the API document, `ekonomicke-subjekty-vr/{ico}`. The two
+alternatives were fetched rather than assumed:
+
+* `ares.gov.cz/ekonomicke-subjekty/{ico}` is a Vue app and answers **HTTP 200
+  with the same 912-byte shell** for ČEZ and for the invented `00000001`. That is
+  the EDINET viewer trap and Korea's "Reject" body.
+* `or.justice.cz/ias/ui/rejstrik-$firma?ico=` is the Ministry of Justice's own
+  register and the nicest page for a human, but `or.justice.cz/robots.txt` says
+  `Disallow: /ias/`, which is the whole application — citing it would make
+  `link_check.py` record every Czech row as `robots` and check none of them.
+
+A bogus ICO on the API is an unambiguous **404** with
+`{"kod":"NENALEZENO", ...}`. `ares.gov.cz/robots.txt` disallows only `/cms/`.
+The Ministry of Finance states the limit as more than **500 queries a minute**
+and reserves the right to cut off anyone probing "náhodnými údaji" — random
+values; this collector never guesses an ICO, every lookup comes from the
+register's own feed, and a run sits at about a quarter of the ceiling.
+
+### Estonia: the negative is the finding, and it is bigger than the feed
+
+**`lopp_kpv` is null in 520,895 of 520,895 person rows.** The published file
+holds current office-holders only, so Estonia yields appointments and never
+departures. That sentence is in `raw_text`, in the summary, in the read-through
+and in the sources-page note, and a test requires all four — a leadership feed
+that silently reports only arrivals reads as a country where nobody ever leaves.
+
+Refused rather than worked around: `arireg.ettevotjaMuudatusedTasuline_v1`, the
+SOAP change list, needs an account and is *tasuline* (chargeable); and diffing
+yesterday's file against today's, because a vanished row may be a departure, a
+correction, a merger or a deregistration and the file states no date for any of
+them. That is Korea's roster refusal again.
+
+### Estonia: the threshold is somebody else's definition, and 250 was tried first
+
+**18,155 appointments in the 90 days to 2026-07-30 — 202 a day, ~74,000 a year**
+— from a country of 1.3 million people. `JUHL`, board member, is 446,636 of the
+520,895 rows and most of those are one-person `OÜ` micro-companies. So there is a
+threshold, from the annual reports'
+`AverageNumberOfEmployeesInFullTimeEquivalentUnits` (3,006,385 element rows ->
+194,930 figures -> 194,851 companies, joined on `report_id`):
+
+| FTE floor | companies | appointments in 365 days |
+|---|---|---|
+| 10+ | 5,449 | 808 |
+| 25+ | 1,878 | 384 |
+| **50+** | **825** | **235** |
+| 100+ | 368 | 119 |
+| 250+ | 107 | **38** |
+
+**The floor is 50**, EU Recommendation 2003/361's own line: micro under 10,
+small under 50, medium 50-249, large 250+. **250 — what `companies_house` and
+`czechia_ares` draw — was tried first and refused with its number**: 38 a year is
+under one a week, so most weekly runs would store nothing, and a collector
+returning zero is `degraded` by this repo's own rule. The threshold matching the
+UK's letter produces a connector that is broken most weeks; 50 matches its
+intent. Measured at 50 over 2026-05-01..07-30: **66 appointments in 91 days**,
+at employers from Bondora (54 staff) to BAUHOF GROUP (492).
+
+What it costs, stated: a company with no 2025 annual report has no figure and is
+excluded, so a fast-growing new employer is invisible until it files. And the
+report files are frozen at "kuni 30.06.2026", which is why
+`discover_report_files` reads the download page for the current filenames rather
+than hard-coding that date — a hard-coded URL 404s into every company failing the
+threshold, which looks exactly like a quiet fortnight.
+
+### GDPR: taken at the boundary, never persisted
+
+The owner's ruling, and both sources needed it. The Czech national open data
+catalogue states this dataset's own conditions of use as `neobsahuje autorská
+díla`, `není autorskoprávně chráněnou databází`, `není chráněna zvláštním právem
+pořizovatele databáze` (`narrowMatch` CC0) **and `obsahuje osobní údaje`** — the
+publisher itself says it contains personal data. It does: `datumNarozeni` on
+13,834 of 15,645 person rows in the material sample and a full residential
+address on 15,619. Estonia's file carries a home address on 60,930 rows, a birth
+date on 16,099, an email on 14,360 and a national-ID hash on 485,719.
+
+`scrub_person` in each collector returns given name and surname and nothing else,
+and it is the only path from the source to a row. Everything else is dropped
+before a dict exists, so no later stage can leak what it never received. The
+tests assert it end to end — a fixture that KEEPS every one of those fields,
+through `as_classified` and `validate.build_signal`, with the stored Signal
+required to contain none of them.
+
+### `validate._NUMBER` cost twelve rows before both collectors were rebuilt around it
+
+Twelve of Estonia's first 66 rows were discarded with
+`figure(s) not present in source text: ['2026b']`. The summary read "...on 9
+June 2026. BAUHOF GROUP AS reported 492 employees..." and the body read "...on 9
+June 2026. The register names the role..." — `\d[\d,.]*` matches `2026.`
+including the full stop, `_H_SPACE*` matches the space, and `B` is read as a
+magnitude suffix. This is the case `validate.py` already names and deliberately
+leaves alone ("any word starting with b, m or k still glues INSIDE a line"), and
+the 2026-07-30 newline fix does not reach it.
+
+Not fixed here — that regex has a measured reason to stay as it is, and it is
+not this brief's lane. Both collectors now **compose the summary once in `_row`
+and return it unchanged from `as_classified`**, so the summary is a literal
+prefix of `raw_text` and every figure in it is verbatim in the source by
+construction rather than by care. BAUHOF GROUP AS is in the Estonian fixture for
+exactly this, and a test asserts the prefix property on every row.
+
+Diacritics round-trip proved on real names in both collectors: `CHALOUPKOVÁ`,
+`PÁLENÍČEK`, `Kõrve`, `Rieksts-Riekstinš`, `Möldre`, `Suislep-Peets`. Nothing is
+re-cased or normalised — the register writes some people in capitals and some in
+title case, and NFKC is not a safe blanket fix.
+
+### Where this brief was wrong about the repo
+
+* **There are no TECHLOG triage entries for Norway, Spain, Finland or Poland.**
+  The brief said to read them as the discipline to apply. The 2026-07-30 triage
+  in `source_registry.py` covers IL, GB, AU, IE, FR, DE, IN, CA, JP, SG and the
+  Form 6-K dead end; none of those four appears anywhere in `docs/TECHLOG.md`.
+  Norway and Finland are mentioned once, in the MARKETS comment, as countries
+  excluded from the 2026-07-29 twelve for having no language pack. The
+  discipline was taken from the Korea and Australia entries instead.
+* **Estonia's person-row count is 520,895, not 599,289**, and appointments run
+  **202 a day**, not ~230. The zero-end-dates finding itself is exactly right:
+  0 of 520,895.
+* **The notification-batch endpoint is not guessable.** `GET
+  /ekonomicke-subjekty-notifikace/{n}` and five other shapes all 404; the real
+  path is
+  `/ekonomicke-subjekty-notifikace/datovy-zdroj/{datovyZdroj}/cislo-davky/{cisloDavky}`,
+  found only by reading `/ekonomicke-subjekty-v-be/rest/v3/api-docs` — linked
+  from `ares.gov.cz/swagger-ui/swagger-initializer.js`, whose default `url` is
+  still the Swagger petstore.
+* The 24,651-notification count, the `330` band code, the CC0 mapping, the
+  robots position, the 500-per-minute limit, the 100-ICO ceiling on the RES
+  search and Estonia's CC BY 4.0 all checked out exactly as briefed.
+
+### Neither country is in `MARKETS`, and one of the two reasons is mechanical
+
+The first is the one that keeps Japan and Korea at `discovery_only`: no run has
+gone through `run_collect` and STORED a row, and a tier is a claim about the
+connector rather than about the source.
+
+The second is arithmetic. **The segment budget is full at 56 of 56.**
+`build_segments()` spends one slot per market plus one per `terms` entry, and
+`test_the_segment_matrix_still_sweeps_inside_the_recency_window` requires
+`ceil(segments / 4 / 2) <= recency_window_days`, which is 7 at 51 locales. Two
+more markets make the sweep 8 days and the guard refuses it. Room comes from
+widening the locale rotation — a live-verified language pack, not a translation —
+and not from raising `SEGMENTS_PER_RUN`, which is a guard that exists because
+queries once asked `when:3d` while the matrix took 6.2 days. Both countries are
+listed on the sources page with a live collector behind them, which is where
+coverage is claimed truthfully today. The whole argument is written into the
+triage comment in `source_registry.py` so nobody re-derives it.
+
+### Numbers
+
+| | |
+|---|---|
+| tests | **+91**, suite green at 2,377 with 202 subtests |
+| new collectors | 2, both keyless, both `as_classified`, **$0** |
+| Czechia, real 14-day dry run | 10,483 notifications, 10,190 companies, 92 material, **108 events**, 11 backlog declined, 0 rejected |
+| Czechia by kind | 36 arrivals, 34 departures, 13 promotions, 12 role endings |
+| Estonia, real 21-day dry run | 375,305 companies, 520,895 card entries, 388 legal persons declined, 405 roles declined, **16 appointments**, 0 rejected |
+| new schedule slots | Friday 04:00 (CZ), Saturday 04:00 (EE) — the only two days `talent-collect` was free |
+| live sources on the page | 12 -> **14** |
+
+Nothing was dispatched, and `data/talent_intel.db` was never written: both dry
+runs ran against a scratch copy in a temp directory, because a dry run still
+writes a `source_health` row.
+
+---
+
 ## 2026-07-30 — the audit's twelve and eleven: nine feeds wired, eight refusals written down, and Brazil is one day old
 
 `data/recall_rejection_audit.json` classifies 81 gold-set misses. Two of its
