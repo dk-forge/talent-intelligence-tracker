@@ -56,6 +56,16 @@ jobs:
       - name: Render the place pages and count their queries
         run: php tests/php/render_place_pages.php
 
+      # The dashboard is the page every reader lands on, and what it costs is
+      # not visible in a diff: the shortcode runs a dozen aggregates over the
+      # whole table, and what turns that into a slow page is one innocent query
+      # added inside a foreach. This renders it against real SQL, counts the
+      # queries cold and warm, and fails if either number moves. It also holds a
+      # byte budget on the markup, because the owner asked for this to be fast
+      # on a phone and a fourth ranking card is not free.
+      - name: Render the dashboard and count its queries and bytes
+        run: php tests/php/render_dashboard.php
+
       - name: Run tests
         run: python -m pytest -q
 

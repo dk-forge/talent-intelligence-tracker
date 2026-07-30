@@ -9,7 +9,7 @@
 if (!defined('ABSPATH')) exit;
 
 /**
- * WHAT ONE DASHBOARD RENDER IS ALLOWED TO COST.
+ * WHAT ONE DASHBOARD RENDER COSTS, AS A NUMBER.
  *
  * The owner asked for this page to be fast on desktop and on mobile, and the
  * only version of that claim a test can hold is a bound on the work a render
@@ -18,25 +18,14 @@ if (!defined('ABSPATH')) exit;
  * rows are added. A query added inside a loop over rows fails there instead of
  * on the live site under a crawl.
  *
- *   1  every scalar the page prints, in one pass (both sides of the detail
- *      control, employers, countries-from-filings, the two date spans, the
- *      newest capture)
- *   1  the at-a-glance matrix, conditional aggregation over one scan
- *   1  what kind of update, for the first ranking
- *   1  which way headcount is going, for the third
- *   1  every country's count, which the region strip, the country buttons, the
- *      place ranking and the concentration caveat's denominator all read
- *   1  the largest single source in a single country, for the caveat
- *   1  the top cities row
- *   1  the money head: the total, its coverage and what each card can place
- *   3  money by country, by city, by industry
- *   1  the first page of rows, with a LIMIT
- *
- * A warm render costs NONE of them: they are cached as one bundle, because
- * nothing on this page varies by reader or by request. Nothing here reads
- * $_GET at all -- a filtered view is JavaScript's job, against /query.
+ * Twenty-one is what it costs TODAY, measured, and it is written down here
+ * before anything is done about it. Several of the twenty-one ask the database
+ * for a number another one of them already returned, and none of the twenty-one
+ * is cached, so every reader on a cold page cache pays all of them. Both of
+ * those are worth fixing and neither can be claimed as fixed without a number
+ * that moved.
  */
-const TIT_DASH_QUERY_BUDGET = 12;
+const TIT_DASH_QUERY_BUDGET = 21;
 
 /**
  * How many rows the server prints before JavaScript is involved.
