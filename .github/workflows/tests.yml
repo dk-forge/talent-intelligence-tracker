@@ -66,6 +66,14 @@ jobs:
       - name: Render the dashboard and count its queries and bytes
         run: php tests/php/render_dashboard.php
 
+      # /enrich and /correct are the only routes that can change a row a reader
+      # is already looking at, and the safety of both is which branch a value
+      # takes: an absent field must erase nothing, an explicitly named clear must
+      # work and only where it is allowed, and a correction must not reach
+      # another collector's rows. None of that is readable in a diff.
+      - name: Exercise the enrich and correct write routes
+        run: php tests/php/enrich_and_correct.php
+
       - name: Run tests
         run: python -m pytest -q
 
