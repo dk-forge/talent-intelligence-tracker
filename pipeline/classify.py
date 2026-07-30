@@ -319,6 +319,24 @@ class BudgetDeferred(Throttled):
     the way a busy provider should."""
 
 
+class BudgetExhausted(BudgetDeferred):
+    """The MONTH's allowance is gone, so paid reads are off for this job.
+
+    Set by `spend.py --degrade`, which writes TIT_PAID_READS=off into the job's
+    environment instead of failing the step. A BudgetDeferred, so it lands in
+    exactly the retry-next-run path the per-run cap uses: the candidate is
+    printed as DEFER, is NOT marked seen, and is read on a later run. Nothing
+    is dropped and nothing is stored half-read.
+
+    Distinct from BudgetDeferred only so the run log can say which ceiling was
+    reached — a per-run cap is normal rationing and a monthly one is the
+    product running degraded, and those two want different reactions from a
+    human. The free collectors, the free prefilter, deterministic extraction
+    and both dedup layers are all unaffected: this raises inside `classify`,
+    which is the only function here that can spend.
+    """
+
+
 class ReadThroughUnavailable(Throttled):
     """Extraction succeeded and the interpretation did not, so the WHOLE RECORD
     is deferred to a later run.
@@ -401,6 +419,20 @@ def gate_enabled() -> bool:
 def read_enabled() -> bool:
     """Split read-through, or the fused behaviour extraction still produces."""
     return bool(READ_MODEL) and READ_MODEL.lower() not in ("off", "0", "none")
+
+
+def paid_reads_enabled() -> bool:
+    """False once the month's allowance is spent.
+
+    `spend.py --degrade` writes TIT_PAID_READS=off into the job environment
+    rather than failing the step, so the free half of the pipeline carries on.
+    Default ON: a missing variable, an unreadable one or a value nobody
+    recognises means spend, because failing closed here would silently stop
+    collection over a typo, and the OpenRouter key's own hard cap is the
+    backstop underneath this either way.
+    """
+    return (os.environ.get("TIT_PAID_READS") or "on").strip().lower() not in (
+        "off", "0", "no", "false")
 
 
 # --- The rules still bind on the new call -----------------------------------
@@ -680,6 +712,18 @@ def classify(raw: dict, *, timeout: int = 45,
         text = f"Published by: {outlet}\n\n{text}"
     if not text:
         raise ClassifyError("raw_text is empty")
+
+    # The monthly ceiling, checked before the cheapest paid call rather than
+    # after it. Raised as a BudgetDeferred, so the candidate defers UNMARKED
+    # and a later run reads it: hitting the allowance costs depth, never
+    # coverage. Everything free about this pipeline is upstream of here and
+    # keeps running.
+    if not paid_reads_enabled():
+        raise BudgetExhausted(
+            "the month's allowance is spent (TIT_PAID_READS=off, set by "
+            "spend.py --degrade) — deferring this candidate to a later run; "
+            "the free collectors and deterministic extraction are unaffected"
+        )
 
     # Stage 1: the one-word gate. A rejection here costs ~1/40th of a full
     # read-through and is the whole reason the candidate cap can be generous.

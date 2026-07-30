@@ -78,10 +78,18 @@ jobs:
 
       # A budget that only warns is a forecast. This is the hard stop, and it
       # runs before any token is spent.
+      # The ceiling DEGRADES, it does not halt. --degrade never fails this
+      # step: past 90% of the monthly allowance it sets TIT_PAID_READS=off for
+      # the rest of the job, so the free prefilter, deterministic extraction
+      # and both dedup layers keep running and every candidate that would have
+      # cost money defers UNMARKED for a later run. On 2026-07-30 --enforce
+      # took the whole job red at $9.47 of $10 and nothing at all was
+      # collected for the rest of the month; that is an outage protecting a
+      # budget most of this pipeline does not spend.
       - name: Check the spend ceiling
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: python spend.py --enforce
+        run: python spend.py --degrade
 
       # A scheduled run sweeps EVERY collector this workflow owns, because a
       # schedule that only ever names google_news is how gdelt, sec_edgar and

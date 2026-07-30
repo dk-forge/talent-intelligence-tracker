@@ -7,7 +7,30 @@ turns the budget from a forecast into a measurement — and, with --enforce, int
 something the pipeline cannot exceed.
 
     python spend.py             # report
+    python spend.py --degrade   # exit 0, but switch PAID reads off when over
     python spend.py --enforce   # exit 1 if over the monthly allowance
+
+THE CEILING DEGRADES, IT DOES NOT HALT (2026-07-30)
+---------------------------------------------------
+`--enforce` stopped the WHOLE collect job at 90% of the allowance, which is how
+2026-07 ended: $9.47 of $10 and every job red from 21:47 onward. But most of
+what this product collects costs nothing at all — the SEC, UK pay-gap, ATS,
+BSE, EDINET and DART collectors derive every field from a column and call no
+model; `pipeline/cheap_extract.py` closes records from stated text for $0; and
+the free prefilter, the story clustering and both dedup layers keep working
+whatever the balance says. Halting all of that to protect a budget none of it
+spends is a self-inflicted outage.
+
+So `--degrade` is what the collect jobs run. It never fails the job. When the
+month's spend is past the ceiling it sets `TIT_PAID_READS=off` in the job's
+environment, `pipeline/classify.py` refuses the gate and the read-through, and
+every candidate that would have cost money defers UNMARKED — so it is read next
+month rather than lost. The run keeps its free rows and says plainly, in the
+step log and in the health ledger, that it is running degraded.
+
+`--enforce` is kept for a human asking "should I be spending right now" and for
+`tripwire.yml`, whose entire purpose is a paid query: there is no degraded mode
+for a job that does nothing else.
 """
 
 from __future__ import annotations
@@ -23,10 +46,21 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 
 # The budget the owner set. Kept here rather than in a secret so it is
 # reviewable in a diff — it is a policy, not a credential.
-MONTHLY_ALLOWANCE_USD = 10.0
+#
+# RAISED 10.0 -> 25.0 on 2026-07-30, by the owner: "pulling everything worldwide
+# and everything's been done for $25 per month". $10 was not a budget for the
+# coverage being asked for — it stopped collection on 2026-07-30 at $9.47 with
+# 49 gate survivors deferred in a single press run, most of them the non-US
+# stories the coverage gap is made of. What $25 does and does not buy is
+# arithmetic, not opinion: run `python cost_projection.py`.
+MONTHLY_ALLOWANCE_USD = 25.0
 
 # Stop collecting with headroom left, so a long run cannot overshoot mid-batch.
 STOP_AT_FRACTION = 0.9
+
+# The environment variable a degraded run sets. Read by pipeline/classify.py,
+# which is the only place that can spend.
+PAID_READS_ENV = "TIT_PAID_READS"
 
 
 def fetch() -> dict:
@@ -84,10 +118,47 @@ def month_delta(lifetime_used: float) -> tuple[float, str]:
     return max(0.0, lifetime_used - float(snap["usage_at_start"])), month
 
 
+def degrade(over: bool) -> None:
+    """Switch PAID reads off for the rest of the job, and say so.
+
+    Writes to `$GITHUB_ENV` so the setting reaches every later step of the same
+    job, which is how a workflow passes a decision along. Outside Actions there
+    is no such file and this only prints — a local `--degrade` run reports the
+    verdict rather than silently changing a shell it does not own.
+    """
+    if not over:
+        print("\n  Paid reads: ON. Within the allowance.")
+        return
+
+    print("\n  DEGRADED: paid reads are OFF for the rest of this job.")
+    print("  The free collectors, the free prefilter, deterministic extraction")
+    print("  and both dedup layers keep running. Every candidate that would")
+    print("  have cost money defers UNMARKED and is read on a later run, so")
+    print("  this costs depth for the rest of the month, never coverage.")
+
+    github_env = os.environ.get("GITHUB_ENV")
+    if not github_env:
+        print(f"  (no $GITHUB_ENV here — set {PAID_READS_ENV}=off yourself to "
+              "reproduce this locally)")
+        return
+    try:
+        with open(github_env, "a") as fh:
+            fh.write(f"{PAID_READS_ENV}=off\n")
+    except OSError as exc:
+        # Loud, and still exit 0. A job that could not write the flag will
+        # spend, which is the old behaviour and the safe direction to fail:
+        # the key's own hard cap is still underneath it.
+        print(f"  COULD NOT SET {PAID_READS_ENV}: {exc} — this job will spend "
+              "as normal, and the key's hard cap is the remaining backstop")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Report and enforce LLM spend.")
     parser.add_argument("--enforce", action="store_true",
                         help="exit non-zero when the allowance is exhausted")
+    parser.add_argument("--degrade", action="store_true",
+                        help="always exit 0; switch paid reads off when over the "
+                             "allowance, leaving the free collectors running")
     args = parser.parse_args()
 
     d = fetch()
@@ -133,8 +204,16 @@ def main() -> int:
     else:
         print("  Within budget.")
 
+    # Degradation first: when both flags are given, the softer one wins, so a
+    # workflow that gains --degrade without losing --enforce cannot go red by
+    # accident.
+    if args.degrade:
+        degrade(over)
+        return 0
+
     # Enforcement is deliberately a hard stop, not a warning. A budget that only
-    # warns is a forecast; this makes it a fact.
+    # warns is a forecast; this makes it a fact. It is now used only where there
+    # IS nothing else to run — see the module docstring.
     if args.enforce and over:
         print("\nSTOPPING: spend ceiling reached. Collection will not run.",
               file=sys.stderr)

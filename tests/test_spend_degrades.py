@@ -1,0 +1,187 @@
+"""Hitting the ceiling costs depth, not everything.
+
+On 2026-07-30 `spend.py --enforce` took the collect jobs red at $9.47 of a $10
+allowance, and NOTHING was collected for the rest of the month — including the
+SEC, UK pay-gap, ATS, BSE, EDINET and DART collectors, which derive every field
+from a column and call no model, and `pipeline/cheap_extract.py`, which closes
+records from stated text for $0. Halting all of that to protect a budget none
+of it spends is a self-inflicted outage.
+
+These pin the replacement: `--degrade` never fails the step, it switches the
+PAID stages off, and a candidate it refuses defers UNMARKED so a later run
+reads it. Nothing here stubs a real module into sys.modules (CLAUDE.md, "Test
+gotcha"); the environment is patched and put back.
+"""
+
+from __future__ import annotations
+
+import inspect
+from pathlib import Path
+
+import pytest
+
+import run_collect
+import spend
+from pipeline import classify
+
+WORKFLOWS = Path(__file__).resolve().parent.parent / ".github" / "workflows"
+
+
+@pytest.fixture
+def stats():
+    before = dict(classify.STATS)
+    yield classify.STATS
+    classify.STATS.clear()
+    classify.STATS.update(before)
+
+
+# --- the allowance -----------------------------------------------------------
+
+def test_the_allowance_is_the_number_the_owner_set():
+    """$25, raised from $10 on 2026-07-30. Policy, in a diff, not a secret."""
+    assert spend.MONTHLY_ALLOWANCE_USD == 25.0
+    assert spend.STOP_AT_FRACTION == 0.9
+
+
+def test_the_allowance_is_stated_once():
+    """A budget written twice is a budget that disagrees with itself. Only
+    spend.py may hold the number; everything else imports or prints it."""
+    src = inspect.getsource(run_collect)
+    assert "25.0" not in src and "$25" not in src
+
+
+# --- the flag ----------------------------------------------------------------
+
+def test_degrade_writes_the_flag_into_the_job_environment(tmp_path, monkeypatch):
+    env_file = tmp_path / "github_env"
+    env_file.write_text("")
+    monkeypatch.setenv("GITHUB_ENV", str(env_file))
+
+    spend.degrade(True)
+
+    assert env_file.read_text().strip() == "TIT_PAID_READS=off"
+
+
+def test_degrade_writes_nothing_when_inside_the_allowance(tmp_path, monkeypatch):
+    env_file = tmp_path / "github_env"
+    env_file.write_text("")
+    monkeypatch.setenv("GITHUB_ENV", str(env_file))
+
+    spend.degrade(False)
+
+    assert env_file.read_text() == ""
+
+
+def test_degrade_outside_actions_only_reports(monkeypatch, capsys):
+    """No $GITHUB_ENV means no job to configure. It must not crash, and it must
+    not pretend it changed anything."""
+    monkeypatch.delenv("GITHUB_ENV", raising=False)
+    spend.degrade(True)
+    assert "DEGRADED" in capsys.readouterr().out
+
+
+def test_an_unwritable_env_file_is_loud_and_still_exits_zero(monkeypatch, capsys):
+    """Failing OPEN is the safe direction: the key's own hard cap is underneath
+    this, and a job that goes red over a filesystem error collects nothing."""
+    monkeypatch.setenv("GITHUB_ENV", "/proc/definitely/not/writable")
+    spend.degrade(True)
+    out = capsys.readouterr().out
+    assert "COULD NOT SET TIT_PAID_READS" in out
+
+
+def test_paid_reads_default_to_on(monkeypatch):
+    monkeypatch.delenv("TIT_PAID_READS", raising=False)
+    assert classify.paid_reads_enabled()
+
+
+@pytest.mark.parametrize("value", ["off", "OFF", "0", "no", "false", " off "])
+def test_every_spelling_of_off_is_off(monkeypatch, value):
+    monkeypatch.setenv("TIT_PAID_READS", value)
+    assert not classify.paid_reads_enabled()
+
+
+def test_an_unrecognised_value_means_on(monkeypatch):
+    """A typo must not silently stop collection."""
+    monkeypatch.setenv("TIT_PAID_READS", "maybe")
+    assert classify.paid_reads_enabled()
+
+
+# --- what a degraded run does ------------------------------------------------
+
+def test_classify_refuses_before_the_cheapest_paid_call(monkeypatch, stats):
+    """Not one token is spent, gate included."""
+    monkeypatch.setenv("TIT_PAID_READS", "off")
+
+    def never(*args, **kwargs):  # pragma: no cover - the point is it is not hit
+        raise AssertionError("a degraded run reached the wire")
+
+    monkeypatch.setattr(classify, "_call", never)
+
+    with pytest.raises(classify.BudgetExhausted):
+        classify.classify({"raw_text": "Acme raises $10M", "headline": "Acme"})
+    assert stats["gate_calls"] == 0 and stats["full_calls"] == 0
+
+
+def test_the_refusal_lands_in_the_retry_next_run_path():
+    """A BudgetDeferred, so run_collect prints DEFER and does NOT mark the URL
+    seen. A candidate refused for budget is read later, never dropped."""
+    assert issubclass(classify.BudgetExhausted, classify.BudgetDeferred)
+    assert issubclass(classify.BudgetExhausted, classify.Throttled)
+
+
+def test_the_month_arm_is_caught_before_the_per_run_arm():
+    """BudgetExhausted IS a BudgetDeferred, so the general arm would shadow it
+    and a degraded month would read as ordinary rationing."""
+    src = inspect.getsource(run_collect.run)
+    assert (src.index("except classify.BudgetExhausted")
+            < src.index("except classify.BudgetDeferred"))
+
+
+def test_a_degraded_run_is_not_reported_as_every_candidate_rejected():
+    """No guard rejected anything. Calling it that would send a human hunting a
+    broken classifier over a budget decision the owner made."""
+    src = inspect.getsource(run_collect.run)
+    assert "and not running_degraded" in src
+    assert "running_degraded" in src.split("broken = (observed == 0", 1)[1][:200]
+
+
+def test_a_degraded_run_says_so_in_the_ledger_and_the_log():
+    src = inspect.getsource(run_collect.run)
+    assert "DEGRADED: monthly allowance spent" in src
+    assert "deferred unread and unmarked" in src
+
+
+def test_the_free_half_of_the_pipeline_is_upstream_of_the_refusal():
+    """The refusal lives in classify(), which is the only function that can
+    spend. Everything free — the prefilter, precheck, the deterministic
+    closers, the known-round match, story clustering, both dedup layers —
+    happens before it in run_collect and is untouched by the flag."""
+    src = inspect.getsource(run_collect.run)
+    body = src.split("for item in kept:", 1)[1]
+    refusal = body.index("classify.classify(item, interpret_now=False)")
+    for free in ("validate.precheck(item)",
+                 "dedupe.funding_event_duplicate(",
+                 "cheap_extract.extract(item)",
+                 "store.already_seen(conn, url)"):
+        assert body.index(free) < refusal, free
+
+
+# --- the workflows -----------------------------------------------------------
+
+def test_the_collect_jobs_degrade_rather_than_halt():
+    for name in ("collect.yml", "collect-press.yml"):
+        text = (WORKFLOWS / name).read_text()
+        assert "python spend.py --degrade" in text, name
+        assert "python spend.py --enforce" not in text, name
+
+
+def test_the_tripwire_still_hard_stops():
+    """There is no degraded mode for a job whose only action is a paid query."""
+    assert "python spend.py --enforce" in (WORKFLOWS / "tripwire.yml").read_text()
+
+
+def test_the_structured_collectors_were_never_gated_by_spend():
+    """They call no model. A spend guard there would only ever be a way to
+    lose free rows."""
+    text = (WORKFLOWS / "collect-structured.yml").read_text()
+    assert "spend.py" not in text

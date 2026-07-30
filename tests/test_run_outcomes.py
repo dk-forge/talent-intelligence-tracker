@@ -110,7 +110,7 @@ def test_a_diff_shaped_collector_is_judged_on_what_it_read():
     src = inspect.getsource(run_collect.run)
     assert 'getattr(module, "LAST_RUN", None)' in src
     assert "items_found=observed" in src
-    assert "broken = observed == 0" in src
+    assert "broken = (observed == 0" in src
     # The collector's side of the contract.
     assert "read" in ats_boards.LAST_RUN
 

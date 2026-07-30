@@ -428,7 +428,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     kept = candidate_rank.rank(kept, ranking)
 
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
-    cheap_closed = known_rounds = unread_duplicates = 0
+    cheap_closed = known_rounds = unread_duplicates = month_deferred = 0
 
     def _stop_run(detail: str, exc: Exception) -> int:
         """End the run on a permanent condition, having recorded what it cost.
@@ -548,6 +548,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # The one run whose cost is least optional: a 402 means the spend
             # ceiling was reached, so this row is the evidence of what reached it.
             return _stop_run("OpenRouter credits exhausted", exc)
+        except classify.BudgetExhausted as exc:
+            # The MONTH's allowance, not this run's cap. Caught first or the
+            # BudgetDeferred arm below shadows it. Printed once and then
+            # counted silently: one line per candidate for the rest of a
+            # degraded month is noise that hides everything else in the log.
+            month_deferred += 1
+            if month_deferred == 1:
+                print(f"  DEGRADED  {exc}")
+            continue
         except classify.BudgetDeferred as exc:
             # The per-run spend ceiling, not a busy provider. Same retry-next-
             # run handling, counted apart so a run that deferred work ON
@@ -683,6 +692,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         f"duplicate={duplicates} rejected={rejected} "
         f"deferred={throttled} budget-deferred={budget_deferred} already-seen={skipped}"
     )
+    if month_deferred:
+        print(
+            f"[{collector}] DEGRADED: the month's allowance is spent, so "
+            f"{month_deferred} candidate(s) were deferred unread and unmarked. "
+            f"They are read on a later run — this costs depth, not coverage. "
+            f"Free collectors, deterministic extraction and both dedup layers "
+            f"ran as normal. Raise MONTHLY_ALLOWANCE_USD in spend.py to change it."
+        )
     # Spend visibility, cheapest stage first. Every line here is money NOT
     # spent: deterministic closes and known rounds cost nothing at all,
     # clustered rewrites never reach the gate, gate rejects never reach the
@@ -776,7 +793,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     #   - found nothing at all: the feed or the query is broken
     #   - found plenty and kept none of it, with nothing even landing as a
     #     duplicate: the classifier or a guard is broken, not the news
-    everything_rejected = len(kept) > 0 and stored == 0 and duplicates == 0
+    # A degraded month is not a broken collector. Paid reads being off is a
+    # budget decision the owner made, working exactly as designed, so a run
+    # that stored only its free rows must not read as an outage — but it must
+    # not read as "ok" either, because the depth on the page is not the depth
+    # the product normally has. It reports `degraded` with the reason named,
+    # and it does not trip `everything_rejected`: no guard rejected anything.
+    running_degraded = month_deferred > 0
+    everything_rejected = (len(kept) > 0 and stored == 0 and duplicates == 0
+                           and not running_degraded)
     # A run that mostly hit a busy provider stored little through no fault of
     # the pipeline. That is still not "ok": it means coverage has a hole that
     # only the next run can fill, and silence about it is how a throttled
@@ -792,7 +817,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # and a run that reads nothing is still degraded.
     observed = (getattr(module, "LAST_RUN", None) or {}).get("read")
     observed = found if observed is None else observed
-    broken = observed == 0 or everything_rejected or mostly_throttled
+    broken = (observed == 0 or everything_rejected or mostly_throttled
+              or running_degraded)
 
     # The health row is also the spend ledger now. Every number printed above
     # is persisted with it, so drift shows up the next time anyone runs
@@ -816,7 +842,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                    if classify.STATS["read_calls"] or classify.STATS["read_served"] else "")
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"
-                   if mostly_throttled else "")),
+                   if mostly_throttled else "")
+                + (f" | DEGRADED: monthly allowance spent, {month_deferred} "
+                   "candidate(s) deferred unread; free collectors unaffected"
+                   if running_degraded else "")),
     )
     conn.commit()
 
