@@ -184,6 +184,35 @@ function tit_notable_where() {
 }
 
 /**
+ * WHERE A ROW IS, FOR GROUPING. One authority, because a count and the filter
+ * it drives have to agree.
+ *
+ * Every place FILTER in this file unions the job location with the employer's
+ * head office: `city = %s OR (city IS NULL AND hq_city = %s)`, written in that
+ * shape rather than as a COALESCE comparison so it can use idx_geo / idx_hq
+ * (see the note on tit_place_kinds()). Every place COUNT therefore has to group
+ * by the expression that selects the same rows, which is the COALESCE form.
+ * COALESCE(a, b) = x is true precisely when a = x OR (a IS NULL AND b = x).
+ *
+ * The dashboard's "Top cities" strip grouped by bare `city` instead, and the
+ * discrepancy was not small: the London pill read 18 while clicking it returned
+ * 1,338, because nearly every London row is placed by its employer's head
+ * office. Manchester (108) and Edinburgh (49) were missing from the strip
+ * altogether while Seattle (42) and Toronto (25) sat in it. A pill that
+ * contradicts the page it links to is worse than no pill.
+ *
+ * Grouping is a full scan either way, so the COALESCE form costs nothing here.
+ */
+function tit_city_expr() {
+    return 'COALESCE(city, hq_city)';
+}
+
+/** The same rule for countries. See tit_city_expr(). */
+function tit_country_expr() {
+    return 'COALESCE(country, hq_country)';
+}
+
+/**
  * Build the WHERE clause shared by /query and /aggregate.
  *
  * country_basis=any (the default) unions job location with employer HQ, so a
@@ -322,11 +351,26 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params = array_merge($params, $stages);
     }
 
-    // "Only updates that state a headcount." About 87% of what we hold says
-    // nothing about headcount, so filtering TO that is asking for the least
-    // informative rows; the useful control is its inverse, and nothing could
-    // express it before. hiring and displacement are exactly the directions the
-    // SOURCE stated, so this narrows on a fact, never on an inference.
+    /*
+      "Only updates that move headcount", and READ THE NAME CAREFULLY, because
+      the parameter's name is the misleading part of this control.
+
+      It selects rows where the SOURCE stated a DIRECTION of headcount movement.
+      It does not select rows carrying a headcount NUMBER, and the difference is
+      not academic: measured 2026-07-30 over 15,711 current rows, `headcount` is
+      non-null on 11 of them (0.07%) while signal_direction is hiring or
+      displacement on 53 (0.34%). Exposing the number column as a filter would
+      cut the page to eleven rows, which is why this control is the direction and
+      why the label a reader sees says "move headcount" rather than "state a
+      headcount". A comment here previously said "about 87%" of rows say nothing
+      about headcount; the real figure is 99.93%, and being an order of magnitude
+      out in the comment is how the chips bar came to describe this control as
+      "Only with a stated headcount", which is a claim about a column it does not
+      read.
+
+      hiring and displacement are exactly the directions a source stated, so this
+      narrows on a fact and never on an inference.
+    */
     if (!isset($skip['stated_headcount'])
         && $req->get_param('stated_headcount') === '1') {
         $where[] = "signal_direction IN ('hiring', 'displacement')";
@@ -604,11 +648,15 @@ function tit_api_aggregate(WP_REST_Request $req) {
         // of leaving four numbers describing a set the reader is no longer
         // looking at.
         'companies'  => $scalar('COUNT(DISTINCT company_key)'),
-        'countries'  => $scalar('COUNT(DISTINCT COALESCE(country, hq_country))'),
+        'countries'  => $scalar('COUNT(DISTINCT ' . tit_country_expr() . ')'),
         'verified'   => $scalar("SUM(confidence = 'verified')"),
         'by_pillar'  => $group('pillar'),
-        'by_country' => $coalesced('COALESCE(country, hq_country)'),
-        'by_city'    => $group('city'),
+        'by_country' => $coalesced(tit_country_expr()),
+        // by_city was $group('city'), i.e. the job location alone, while the
+        // `city` filter on this same endpoint unions it with the employer's
+        // head office. So this endpoint reported a city count that its own
+        // filter contradicted. Same fix, same reason as by_country above.
+        'by_city'    => $coalesced(tit_city_expr()),
         'by_direction' => $group('signal_direction'),
         'by_industry' => $group('industry'),
         'by_state'   => $group('state'),
@@ -876,8 +924,44 @@ function tit_api_retract(WP_REST_Request $req) {
  * (is_current = 1 is required), or blank a value — an absent or empty field is
  * "no correction for this one", never an erasure.
  */
+/*
+ * WHERE THE SOURCE PLACED IT: city, region and country, added 1.53.0.
+ *
+ * The reasoning matters, because these are the one class of column that is
+ * neither derived nor quite a quotation, and one of them is explicitly refused
+ * by the OTHER write route.
+ *
+ * `country` is deliberately not ENRICHABLE (see tit_enrichable_columns())
+ * because it is the job location as a source stated it, and writing a looked-up
+ * head office into it would turn "where the source says this happened" into
+ * "where the company is from" with no way back. That argument says the column
+ * must not be filled from a lookup. It says nothing against fixing a value we
+ * read wrong, which is what a correction is, and which had no route at all: two
+ * current rows read city Toronto with country US, and five more the same at the
+ * head office. They are Canadian issuers filing with the SEC, they are the only
+ * such contradiction in the corpus, and they are why the dashboard's Toronto
+ * pill flew an American flag.
+ *
+ * Same in-place safety as the two columns above. content_hash is md5 of
+ * company_key, pillar, published_date and the normalised headline
+ * (pipeline/validate.py), so none of these three is an input to it, and
+ * correcting one cannot move a row's fingerprint or orphan the dedup. That is
+ * what makes this preferable to a withdraw-and-republish, which for a revision
+ * carrying the SAME hash would remove both rows rather than replacing one.
+ *
+ * Still scoped to the collector the caller names, still unable to blank a value,
+ * and still unable to create or revive a row. Proved by running it:
+ * tests/php/enrich_and_correct.php.
+ *
+ * NOTE FOR THE NEXT EDITOR: tests/test_form_d_correction.py reads the BODY of
+ * the function below as text and fails if a forbidden column name appears in
+ * it, so keep prose out of it. That is why this block is up here.
+ */
 function tit_correctable_columns() {
-    return array('signal_direction', 'talent_readthrough');
+    return array(
+        'signal_direction', 'talent_readthrough',
+        'city', 'region', 'country',
+    );
 }
 
 function tit_api_correct(WP_REST_Request $req) {
@@ -987,6 +1071,33 @@ function tit_enrichable_columns() {
 }
 
 /**
+ * Columns /enrich may set back to NULL, when the caller says so EXPLICITLY.
+ *
+ * /enrich ignores an absent or empty field on purpose: absent means "we still do
+ * not know", and letting a blank erase a known value is how an enrichment pass
+ * with one missing lookup wipes a column. That guarantee is kept exactly as it
+ * was. This is the other case, and it is narrow: a value we DID compute and have
+ * since established is wrong, where leaving it there publishes a false figure.
+ *
+ * It exists because there was no route at all. Five live rows carried a
+ * funding_amount_usd off by a factor of a million (a hyphenated multiplier, and
+ * Danish kroner that the currency denylist did not recognise), and three of the
+ * five have no correct dollar value to send: the round was in kroner or euros,
+ * and this page promises those are left out rather than converted at a rate
+ * nobody published. So the only true value is no value, and neither /enrich nor
+ * /correct could write it.
+ *
+ * Deliberately NOT the whole enrichable list. `hq_city` / `hq_country` are
+ * looked-up identity that a filter depends on, `archive_url` is the fallback
+ * that outlives a dead publisher, and clearing any of those loses work rather
+ * than removing a wrong claim. Add a column here only when its wrong value would
+ * be a published falsehood and no right value exists.
+ */
+function tit_clearable_columns() {
+    return array('funding_amount_usd', 'funding_stage');
+}
+
+/**
  * Update derived fields on rows that are ALREADY published.
  *
  * publish() only sends rows with published_at IS NULL, and the server treats a
@@ -1022,6 +1133,31 @@ function tit_api_enrich(WP_REST_Request $req) {
                 $data[$col] = $row[$col];
             }
         }
+
+        // An EXPLICIT clear. Named in its own array, so it can never be the
+        // result of a field being absent or empty, which is the property the
+        // loop above exists to protect. Restricted to tit_clearable_columns().
+        if (isset($row['clear']) && is_array($row['clear'])) {
+            $clearable = tit_clearable_columns();
+            foreach ($row['clear'] as $col) {
+                $col = (string) $col;
+                if (!in_array($col, $clearable, true)) {
+                    $errors[] = array('index' => $i,
+                                      'error' => 'not clearable: ' . $col);
+                    continue;
+                }
+                // A column cannot be set and cleared in one row: that is a
+                // caller bug, and picking a winner would hide it.
+                if (array_key_exists($col, $data)) {
+                    $errors[] = array('index' => $i,
+                                      'error' => 'both set and cleared: ' . $col);
+                    unset($data[$col]);
+                    continue;
+                }
+                $data[$col] = null;
+            }
+        }
+
         if (!$data) { $skipped++; continue; }
 
         $ok = $wpdb->update(

@@ -248,7 +248,27 @@ function check($condition, $message) {
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
  */
-const TIT_DASH_BYTE_BUDGET = 152000;
+const TIT_DASH_BYTE_BUDGET = 156000;
+
+/*
+ * RAISED 152,000 -> 156,000 on 2026-07-30, and here is what bought it.
+ *
+ * 2,096 bytes of it is the `data-states` attribute on #tit-dashboard: the US
+ * state filter rendered 51 bare postal codes as its option labels ("AK", "AL",
+ * "AZ") while every other control on the page spells its values out, so the
+ * name map has to reach the browser. It rides on a data- attribute AND on
+ * wp_localize_script for the reason gotcha 10 exists: Autoptimize sweeps the
+ * inline object into a bundle that loads after the script, and the attribute is
+ * the copy that cannot be moved away from the element it describes. Paying it
+ * once in markup is the price of the control working at all.
+ *
+ * The rest is the two sentences the place pages and this page needed to stop
+ * contradicting each other, and the cross-tracker section's markup, which
+ * renders nothing while that feature is disabled.
+ *
+ * The budget is not a target. It is here so the next session that adds a card
+ * has to come to this line and write down what it cost.
+ */
 
 /* ------------------------------------------------------------------------
    THE DATASET, shaped like the live distribution rather than like a fixture
@@ -349,6 +369,42 @@ $wpdb->insert_row(array('country' => 'IL', 'industry' => 'technology', 'is_curre
     'source_url' => 'https://example.test/retracted/1'));
 
 /*
+ * THE TWO SHAPES THAT BROKE THE TOP CITIES STRIP, seeded so the assertions
+ * further down have something to catch.
+ *
+ * Edinburgh is placed ONLY by its employers' head offices, which is the live
+ * shape for most of the United Kingdom: the strip counted bare `city`, so
+ * Edinburgh (49 rows live) was missing from a list that carried Toronto (25),
+ * and London read 18 against the 1,338 its own pill returned. The counts here
+ * are sized to reach the strip against this fixture's UK volume, not to match
+ * the live ones.
+ *
+ * Ottawa is held by two countries at once. `cc` was a non-aggregated column
+ * under GROUP BY city, so the flag was whichever row the engine reached first
+ * and MySQL and SQLite need not agree -- live, Toronto flew a US flag on 22
+ * Canadian rows against 2 American ones.
+ */
+for ($i = 0; $i < 120; $i++) {
+    $wpdb->insert_row(array(
+        'hq_country' => 'GB', 'hq_city' => 'Edinburgh', 'industry' => 'technology',
+        'company' => 'Edinburgh Employer ' . ($i % 20),
+        'company_key' => 'edinburgh employer ' . ($i % 20),
+        'collector' => 'national_press', 'source_name' => 'The Scotsman',
+        'source_url' => 'https://example.test/edinburgh/' . $i,
+    ));
+}
+for ($i = 0; $i < 100; $i++) {
+    $wpdb->insert_row(array(
+        'country' => $i < 92 ? 'CA' : 'US', 'city' => 'Ottawa',
+        'industry' => 'public_sector',
+        'company' => 'Ottawa Employer ' . ($i % 12),
+        'company_key' => 'ottawa employer ' . ($i % 12),
+        'collector' => 'national_press', 'source_name' => 'Ottawa Citizen',
+        'source_url' => 'https://example.test/ottawa/' . $i,
+    ));
+}
+
+/*
  * THE BUDGET PHASE RUNS HERE, and only in its own process.
  *
  * It has to be the first thing that touches the database, because company.php
@@ -407,6 +463,74 @@ check(substr_count($html, 'class="tit-region') >= 6,
 check(substr_count($html, 'class="tit-cbtn"') === 10,
       'ten country buttons, by live row count, and not a hardcoded list');
 check(strpos($html, 'tit-citybtn') !== false, 'and the top cities row below them');
+
+/* --- every city pill has to return what it promises ----------------------- */
+
+/*
+ * A PILL THAT CONTRADICTS THE PAGE IT LINKS TO IS WORSE THAN NO PILL.
+ *
+ * Clicking one writes city=<name>, which api.php resolves with the clause
+ * below. So the number printed on the pill must equal the number of rows that
+ * clause selects under the same base clause the rest of the hero uses. Three
+ * separate defects lived in the one query that builds this strip, and each of
+ * them shows up here as a pill whose count is not the count you get:
+ *
+ *   grouping by bare `city`       -- London printed 18 and returned 1,338
+ *   WHERE is_current = 1 only     -- San Francisco printed 1,800 routine
+ *                                    filings the table was not showing
+ *   a non-aggregated country      -- the flag was whichever row came first
+ *
+ * The clause is read from tit_place_kinds() rather than written here, and
+ * test_place_pages.py already asserts that string is identical to the API's.
+ */
+$city_kind   = tit_place_kinds()['city'];
+$city_clause = $city_kind['where'];
+// The clause names the same value once per geography column, so it takes as
+// many arguments as tit_place_kinds() says it does. Hardcoding one silently
+// bound the second %s to an empty string and every count came back 0.
+$city_args   = (int) $city_kind['args'];
+$base_where = 'is_current = 1 AND ' . tit_notable_where();
+
+preg_match_all(
+    '/data-city="([^"]*)".*?class="tit-cbtn-n">([\d,]+)</s',
+    $html, $pills, PREG_SET_ORDER
+);
+check(count($pills) > 0, 'the top cities strip has to carry pills to check');
+foreach ($pills as $pill) {
+    $name = html_entity_decode($pill[1], ENT_QUOTES, 'UTF-8');
+    $printed = (int) str_replace(',', '', $pill[2]);
+    $actual = (int) $wpdb->get_var(
+        "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND "
+        . $wpdb->prepare($city_clause, array_fill(0, $city_args, $name))
+    );
+    check($printed === $actual,
+          "the {$name} pill prints " . number_format($printed) . ' and clicking it '
+          . 'returns ' . number_format($actual)
+          . '. The strip has to be counted under the clause it filters by.');
+}
+
+$city_names = array_map(fn($p) => html_entity_decode($p[1], ENT_QUOTES, 'UTF-8'), $pills);
+check(in_array('Edinburgh', $city_names, true),
+      'Edinburgh is placed only by its employers\' head offices and has 120 rows '
+      . 'here, so it belongs in a strip that carries cities with fewer: '
+      . implode(', ', $city_names));
+check(!in_array('San Francisco', $city_names, true),
+      'San Francisco holds 1,800 routine officer filings and nothing else, and '
+      . 'the default view sets those aside, so it cannot lead this strip');
+
+// The flag is the MODAL country for the city, ties broken alphabetically, which
+// is deterministic and is also the answer a reader would give.
+$ottawa = null;
+foreach ($pills as $pill) {
+    if (html_entity_decode($pill[1], ENT_QUOTES, 'UTF-8') === 'Ottawa') $ottawa = $pill[0];
+}
+check($ottawa !== null, 'Ottawa (100 rows) should be in the strip: '
+      . implode(', ', $city_names));
+if ($ottawa !== null) {
+    check(strpos($ottawa, tit_flag('CA')) !== false,
+          'Ottawa holds 92 Canadian rows and 8 American ones, so it wears the '
+          . 'Canadian flag rather than whichever row the engine reached first');
+}
 
 /* --- the figures, under the same clause as the rows ---------------------- */
 

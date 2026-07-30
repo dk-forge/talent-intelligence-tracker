@@ -286,12 +286,47 @@ function tit_dashboard_facts($table) {
         ARRAY_A
     ) ?: array();
 
-    // Top Cities, only where a source actually named one, each carrying its
-    // country so the pill can wear the right flag.
+    /*
+      TOP CITIES, counted under the clause the pill actually filters by.
+
+      Three things were wrong with this one query, and each of them put a number
+      on the page that the page itself contradicted one click later.
+
+      1. It grouped by bare `city` while the pill writes `city=<name>`, which
+         api.php resolves as `city = %s OR (city IS NULL AND hq_city = %s)`. So
+         the London pill read 18 and returned 1,338: almost every London row is
+         placed by its employer's head office, and this count could not see one
+         of them. Manchester (108) and Edinburgh (49) were absent from a strip
+         that carried Seattle (42) and Toronto (25). It groups by
+         tit_city_expr() now, which is the same rule the filter uses.
+
+      2. It was the ONE strip on this page counted under a bare `is_current = 1`
+         instead of {$base}, so it silently included the routine officer filings
+         every other figure in the hero sets aside. A pill counting a set the
+         table is not showing is the same defect as the first, from the other
+         direction.
+
+      3. `cc` was a non-aggregated column under GROUP BY city, so the flag was
+         whichever row the engine happened to reach first -- and MySQL and SQLite
+         need not agree. Toronto (22 Canadian rows, 2 American) flew a US flag.
+         It is now the MODAL country for that city, ties broken alphabetically,
+         so it is deterministic and it is the answer a reader would give.
+
+      Still one query. The scalar subquery runs once per pill, ten times, on a
+      render that is cached for TIT_CACHE_TTL.
+    */
+    $city_expr    = function_exists('tit_city_expr') ? tit_city_expr() : 'COALESCE(city, hq_city)';
+    $country_expr = function_exists('tit_country_expr') ? tit_country_expr() : 'COALESCE(country, hq_country)';
     $facts['cities'] = $wpdb->get_results(
-        "SELECT city k, COALESCE(country, hq_country) cc, COUNT(*) n FROM {$table}
-          WHERE is_current = 1 AND city IS NOT NULL AND city != ''
-          GROUP BY city ORDER BY n DESC LIMIT 10", ARRAY_A) ?: array();
+        "SELECT c.k, c.n,
+                (SELECT {$country_expr} FROM {$table}
+                  WHERE {$base} AND {$city_expr} = c.k AND {$country_expr} IS NOT NULL
+                  GROUP BY {$country_expr}
+                  ORDER BY COUNT(*) DESC, {$country_expr} ASC LIMIT 1) cc
+           FROM (SELECT {$city_expr} k, COUNT(*) n FROM {$table}
+                  WHERE {$base} AND {$city_expr} IS NOT NULL AND {$city_expr} <> ''
+                  GROUP BY k ORDER BY n DESC, k ASC LIMIT 10) c
+          ORDER BY c.n DESC, c.k ASC", ARRAY_A) ?: array();
 
     set_transient($key, $facts, tit_dash_ttl());
     return $facts;
@@ -459,7 +494,8 @@ function tit_dashboard_html() {
     -->
     <div class="tit-wrap" id="tit-dashboard"
          data-api="<?php echo esc_attr(rest_url('talent/v1/')); ?>"
-         data-countries="<?php echo esc_attr(wp_json_encode(tit_country_names())); ?>">
+         data-countries="<?php echo esc_attr(wp_json_encode(tit_country_names())); ?>"
+         data-states="<?php echo esc_attr(wp_json_encode(tit_state_names())); ?>">
 
       <div class="tit-hero">
         <div class="tit-hero-top">
@@ -627,6 +663,23 @@ function tit_dashboard_html() {
            Europe counts the United Kingdom and Asia counts India. Picking a
            country replaces the region rather than narrowing inside it.</p>
       </div>
+
+      <?php
+      /*
+        THE CROSS-TRACKER PAIRS, when there are any that can be defended.
+        Renders nothing today: the module ships disabled, because a name match
+        across two identity caches produced a pair claiming a Greek bank's
+        redundancies against a US bank. The measurement is in the header of
+        includes/cross_tracker.php. Called with rows the bundle already holds,
+        so it costs no query whether it renders or not.
+      */
+      if (function_exists('tit_cross_tracker_html')) {
+          echo tit_cross_tracker_html(array_values(array_filter(
+              $facts['rows'],
+              fn($r) => ($r['signal_direction'] ?? '') === 'hiring'
+          )));
+      }
+      ?>
 
       <?php /* The market read comes BEFORE the filter machinery. These three
                charts are the ten-second answer a reader arrived for; the
@@ -1553,8 +1606,10 @@ function tit_money_aggregate($table, $where = 'is_current = 1', array $params = 
         : "((funding_amount IS NOT NULL AND funding_amount <> '')"
           . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
 
-    $country_expr  = 'COALESCE(country, hq_country)';
-    $city_expr     = 'COALESCE(city, hq_city)';
+    // One authority for both, so a money ranking and the filter a click on it
+    // writes can never select different rows. See tit_city_expr().
+    $country_expr = function_exists('tit_country_expr') ? tit_country_expr() : 'COALESCE(country, hq_country)';
+    $city_expr    = function_exists('tit_city_expr') ? tit_city_expr() : 'COALESCE(city, hq_city)';
 
     // "Placed" counts say how many of the summable rows each chart can
     // actually show, so a card can admit what it is leaving out instead of
@@ -2155,7 +2210,7 @@ function tit_regions(array $counts) {
 function tit_place_caveat($table, $where = 'is_current = 1', array $params = array(),
                          ?array $country_totals = null) {
     global $wpdb;
-    $expr = 'COALESCE(country, hq_country)';
+    $expr = function_exists('tit_country_expr') ? tit_country_expr() : 'COALESCE(country, hq_country)';
     // Two plain queries rather than one with a correlated subquery: that shape
     // re-counts the whole table once per group, and this runs on every page
     // render.
@@ -2295,6 +2350,8 @@ function tit_enqueue_dashboard_assets($with_js = true) {
         // The filtered rows are rendered in the browser, so it needs the same
         // country names the server used. Two copies of this list would drift.
         'countries' => tit_country_names(),
+        // And the same for US postal codes, which the state filter rendered raw.
+        'states' => tit_state_names(),
     ));
 }
 
