@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """One-time 2026 catch-up: world news via GDELT DOC 2.0, Jan 1 to now.
 
-Why this exists at all: **Google News RSS has no archive.** It serves a recent
-window and nothing else, so January to June 2026 is unrecoverable through it.
-GDELT DOC 2.0 takes explicit `startdatetime`/`enddatetime` and holds years, and
-it returns the publisher's own URL rather than an aggregator redirect, so a
-historical row still carries a receipt. It is the only route to 2026 news, and
-`collectors/gdelt.py:34` hardcoded a rolling 3-day window, so the capability
-had never been used.
+Why this exists at all: GDELT DOC 2.0 takes explicit
+`startdatetime`/`enddatetime` and holds years, and it returns the publisher's
+own URL rather than an aggregator redirect, so a historical row still carries a
+receipt. `collectors/gdelt.py:34` hardcoded a rolling 3-day window, so the
+capability had never been used.
+
+**CORRECTION, 2026-07-30.** This paragraph used to open "Google News RSS has no
+archive; it serves a recent window and nothing else", and called GDELT "the only
+route to 2026 news". That was never tested and it is false. The RSS endpoint
+honours `after:` and `before:`, returns pubDates inside the window, and reaches
+at least to 2016; a month query truncates at 100 items with no pagination, and
+31 one-day queries return 170 of which the month's 100 are a strict subset. See
+`backfill_gnews_2026.py` for the table and for the walker built on it. GDELT is
+still worth walking — it is much cheaper per day of history, ~$4.51 for a year
+against ~$32 for a full-breadth Google News sweep — but `registry.GDELT_QUERIES`
+is English-only by design, so it cannot reach the non-English markets the recall
+worklist says hold nothing. The two walkers are complements, not substitutes.
 
 Everything goes through the SAME pipeline as the daily collector — prefilter,
 gate, read-through, validate, store, publish — so every guard applies. Nothing

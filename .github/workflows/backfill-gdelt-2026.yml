@@ -1,7 +1,11 @@
 # One-time 2026 catch-up for world NEWS, via GDELT DOC 2.0.
 #
-# Google News RSS has no archive, so this is the only route to January-June
-# 2026 press coverage. Mirrors backfill-2026.yml (the SEC sweep) deliberately:
+# CORRECTED 2026-07-30: this line used to say "Google News RSS has no archive,
+# so this is the only route to January-June 2026 press coverage". It is false —
+# the RSS endpoint honours after:/before: back to at least 2016. See
+# backfill-gnews-2026.yml. GDELT is still much cheaper per day of history and
+# still the right walker for English-language world news; it is not the only
+# one. Mirrors backfill-2026.yml (the SEC sweep) deliberately:
 # same concurrency group, same commit-even-on-failure rule, spend reported
 # either side.
 #
