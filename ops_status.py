@@ -487,10 +487,24 @@ def _report_writer_queue() -> list[str]:
               f"since {ticket['requested_at']}  attempts={ticket['attempts']}")
         if ticket.get("inputs"):
             print(f"                inputs {ticket['inputs']}")
+        if ticket.get("unbound_count"):
+            print(f"                dispatched {ticket['unbound_count']}x with NO "
+                  f"RUN produced — the dispatch is failing, not the work")
 
     for orphan in state["orphans"]:
         print(f"    ORPHAN      {orphan['workflow']} run {orphan['run_id']} "
               f"(created {orphan.get('created_at')})")
+
+    # A LIVE tick is not a MOVING queue, and the difference is the whole of the
+    # 2026-07-30 stall: the drainer ran eleven times in seven hours, every run
+    # green, and the queue did not move once. So both facts are printed, and
+    # each has its own alarm — the heartbeat catches a drainer that has stopped,
+    # `idle_since` catches a drainer that is running and achieving nothing.
+    if state.get("last_dispatch"):
+        print(f"    last dispatch:   {state['last_dispatch']}")
+    if state.get("idle_since"):
+        print(f"    STALLED SINCE:   {state['idle_since']}  (work waiting, lock "
+              f"group empty, nothing sent)")
 
     if state["last_tick"]:
         print(f"    last drain tick: {state['last_tick']}")

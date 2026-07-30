@@ -13,6 +13,77 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the writer queue stopped for six hours behind eleven green ticks
+
+**Root cause: one input the workflow does not declare.** At 17:42:17Z a GDELT
+backfill was queued carrying `slice: "true"`. `backfill-gdelt-2026.yml` declares
+five `workflow_dispatch` inputs — `start`, `end`, `dry_run`, `fetch_only`,
+`max_readthroughs` — and `slice` is not one of them. The dispatch answered:
+
+```
+gh: Unexpected inputs provided: ["slice"] (HTTP 422)
+```
+
+**The 422 was not the outage. `set -euo pipefail` was.** That `gh api` call sat
+under `set -e` in the "Dispatch it" step, so bash killed the step *on that line*
+— before the verification loop below it, and before the `writer_queue.py
+requeue` below that. Run 30567135192 lasted **16 seconds**; the verify loop
+alone sleeps 60. The ticket was left in state `dispatched` with `run_id: null`.
+
+Every tick after that found **zero tickets in state `queued`**, so
+`tick()` returned `dispatch: None`, wrote no `plan.json`, and the workflow's
+`if: steps.tick.outputs.planned == '1'` skipped the dispatch step. **Eleven
+drain runs between 10:17Z and 18:09Z, every one green**, the queue file changing
+only its `last_tick` line (`ced0ab4..7a31ade`: one insertion, one deletion).
+
+Reproduced offline against the committed queue and a 200-run snapshot: `tick`
+exits 0, prints nothing at all, emits no plan.
+
+**Two things the diagnosis got wrong on the way in, both worth recording.**
+`WRITER_QUEUE_TOKEN` was unset and was assumed to be the cause; it was not, and
+setting it changed nothing, because the API had accepted the credential and
+rejected the payload. And the queue was read as "24 tickets stuck": it held 24
+tickets of which **22 were `landed`, 1 was `failed` and acknowledged, and
+exactly one was live**. Counting the list rather than the states inflated a
+one-ticket stall into a twenty-four-ticket one, and the 17 orphans were all
+already `resolved` — `resolve` marks in place rather than removing.
+
+### What changed
+
+| Guard | Where |
+|---|---|
+| A ticket carrying an input the workflow does not declare is refused **at enqueue time**, naming the declared ones | `writer_queue.workflow_dispatch_inputs`, `enqueue` |
+| The dispatch API call no longer runs under `set -e`; its exit code is captured and every failure path records the ticket and goes red | `drain-writers.yml` "Dispatch it" |
+| A 422 on the inputs marks the ticket `failed` (`dispatch-failed --permanent`), because retrying a deterministic refusal is an infinite silent loop | same |
+| The unbound requeue is counted (`unbound_count`) and reported; two vanished dispatches for one ticket is a `problem` | `tick`, `summary` |
+| `idle_since`: work waiting + lock group empty + nothing dispatched, recomputed every tick, red after 90 minutes | `tick`, `summary`, `ops_status [2b]` |
+| A tick that dispatches nothing says **why**, every time | `_cmd_tick` |
+| The failed-dispatch record is pushed with the retry loop, not `git push \|\| true` | `drain-writers.yml` |
+
+**90 minutes, not 15.** The `*/15` cron is throttled by GitHub to 34-60 minute
+gaps on this repo (measured across nine consecutive scheduled ticks, 10:17Z to
+17:31Z). Any stall threshold under an hour fires on a single ordinary gap.
+
+**The alarm is derived, not stored.** `idle_since` is recomputed from the run
+list on every tick and cleared only by a real dispatch, a busy group or an empty
+queue — so editing it out of the committed file buys one tick of silence and no
+more. That is the property `test_the_stall_clock_is_recomputed_from_facts_not_trusted`
+pins.
+
+**Undeclared inputs raise; missing *required* inputs only warn.** They are not
+symmetrical: an undeclared name is always a typo, whereas `enqueue` is also the
+canonical "can this workflow be queued at all" assertion, called with a token
+input and no intent to dispatch (`tests/test_backfill_slices.py:233`). The
+parser is regex-and-indentation rather than yaml because `ops_status.py` imports
+this module and must stay dependency-free; it is checked against a real
+`yaml.safe_load` for all **20** current lock members, so a formatting change
+fails the suite instead of production. It returns `None` — skip validation —
+when it cannot parse, because a parser that guesses wrong must fail open.
+
+22 tests added; suite 2,099 -> 2,121.
+
+---
+
 ## 2026-07-30 — the registry backfill: two of the four were already reachable, and India's ceiling is 32 days
 
 Brief: build the 2026 historical backfill for the structured registry

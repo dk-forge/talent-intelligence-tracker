@@ -335,6 +335,316 @@ def test_a_dispatch_that_produced_no_run_goes_back_in_the_line(members):
     assert ticket["state"] == "queued"
 
 
+# --------------------------------------------------------------------------
+# 2026-07-30: the queue stopped moving and eleven green ticks said nothing
+#
+# A GDELT ticket was queued carrying `slice: "true"`, an input
+# backfill-gdelt-2026.yml does not declare. Every dispatch answered
+#   Unexpected inputs provided: ["slice"] (HTTP 422)
+# and `set -euo pipefail` killed the dispatch step on that line, before the
+# requeue below it — so the ticket stayed in state `dispatched` with run_id
+# None. Every later tick found ZERO tickets in state `queued`, emitted no plan,
+# skipped the dispatch step, and exited 0. Measured: 11 drain runs between
+# 10:17Z and 18:09Z, all green, queue unchanged apart from `last_tick`.
+#
+# These are the properties that make that impossible to repeat quietly.
+# --------------------------------------------------------------------------
+
+def test_eligible_tickets_and_an_empty_group_always_produce_a_plan(members, tmp_path):
+    """THE property. Whatever else is in the file, if something is dispatchable
+    and nothing holds the lock, a plan is emitted — and it reaches the file the
+    workflow actually gates the dispatch step on."""
+    path = tmp_path / "q.json"
+    plan = tmp_path / "plan.json"
+    runs = tmp_path / "runs.json"
+    runs.write_text("[]")
+
+    # The CLI reconciles against the real clock, so the ticket has to be one a
+    # real tick would consider fresh.
+    now = datetime.now(timezone.utc)
+
+    queue = wq.empty_queue()
+    # History, an acknowledged failure and a resolved orphan: everything that
+    # was in the real file on the day, none of which may suppress a dispatch.
+    done = wq.enqueue(queue, "enrich.yml", {"dry_run": "true"}, members=members, now=now)
+    done["state"] = "landed"
+    dead = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"},
+                      members=members, now=now)
+    dead.update(state="failed", acknowledged=wq._iso(now))
+    queue["orphans"] = [{"run_id": "1", "workflow": "enrich", "resolved": wq._iso(now)}]
+    live = wq.enqueue(queue, "recall.yml", {"publish": "false"},
+                      members=members, now=now + timedelta(seconds=1))
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs),
+                    "--emit", str(plan), "--ref", "main"]) == 0
+
+    assert plan.exists(), (
+        "no plan.json means the workflow's 'Dispatch it' step is skipped and "
+        "the queue never moves — with a green run and an empty log")
+    assert json.loads(plan.read_text())["ticket"] == live["id"]
+    stored = {t["id"]: t for t in wq.load(path)["tickets"]}
+    assert stored[live["id"]]["state"] == "dispatched"
+
+
+def test_a_ticket_stuck_in_dispatched_still_leaves_the_group_free(members):
+    """The exact state main was left in: one ticket `dispatched`, no run behind
+    it, nothing queued. The tick has nothing it may send — and must therefore
+    record that it is stalled, because that is the only trace it leaves."""
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "backfill-gdelt-2026.yml",
+                        {"start": "2026-01-01", "end": "2026-07-26"},
+                        members=members, now=NOW)
+    ticket.update(state="dispatched", dispatched_at=wq._iso(NOW), run_id=None)
+
+    report = wq.tick(queue, [], members, now=NOW + timedelta(minutes=20))
+
+    assert report["dispatch"] is None and report["busy"] is None
+    assert queue["idle_since"] == wq._iso(NOW + timedelta(minutes=20))
+
+
+def test_a_queue_that_stops_moving_with_a_free_lock_goes_red(members):
+    """The alarm nothing in the system had. Every other check was satisfied on
+    the day: the drainer was alive, the ticket was 20 minutes old against a
+    14-hour threshold, and every orphan was resolved."""
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "backfill-gdelt-2026.yml",
+                        {"start": "2026-01-01", "end": "2026-07-26"},
+                        members=members, now=NOW)
+    ticket.update(state="dispatched", dispatched_at=wq._iso(NOW), run_id=None)
+    wq.tick(queue, [], members, now=NOW + timedelta(minutes=20))
+
+    soon = wq.summary(queue, now=NOW + timedelta(minutes=25))["problems"]
+    assert not soon, "one tick of quiet is not a stall"
+
+    later = NOW + timedelta(minutes=25 + wq.IDLE_STALL_MINUTES)
+    problems = wq.summary(queue, now=later)["problems"]
+    assert any("EMPTY with nothing dispatched" in p for p in problems)
+
+
+def test_the_stall_clock_is_recomputed_from_facts_not_trusted(members):
+    """An alarm you can turn off by editing the file it lives in is not an
+    alarm. `idle_since` is derived on every tick, so clearing it by hand buys
+    exactly one tick of silence."""
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "enrich.yml", members=members, now=NOW)
+    ticket.update(state="dispatched", dispatched_at=wq._iso(NOW), run_id=None)
+    wq.tick(queue, [], members, now=NOW + timedelta(minutes=5))
+    assert queue["idle_since"]
+
+    queue["idle_since"] = None                       # somebody "fixes" it
+    wq.tick(queue, [], members, now=NOW + timedelta(minutes=10))
+    assert queue["idle_since"] == wq._iso(NOW + timedelta(minutes=10))
+
+
+def test_a_real_dispatch_clears_the_stall_clock(members):
+    """And the only thing that clears it durably is the queue actually moving."""
+    queue = wq.empty_queue()
+    stuck = wq.enqueue(queue, "enrich.yml", members=members, now=NOW)
+    stuck.update(state="dispatched", dispatched_at=wq._iso(NOW), run_id=None)
+    wq.tick(queue, [], members, now=NOW + timedelta(minutes=5))
+    assert queue["idle_since"]
+
+    wq.enqueue(queue, "recall.yml", {"publish": "false"}, members=members,
+               now=NOW + timedelta(minutes=6))
+    report = wq.tick(queue, [], members, now=NOW + timedelta(minutes=7))
+
+    assert report["dispatch"]["workflow"] == "recall.yml"
+    assert queue["idle_since"] is None
+    assert queue["last_dispatch"] == wq._iso(NOW + timedelta(minutes=7))
+
+
+def test_a_busy_group_is_not_a_stall(members):
+    """A 90-minute backfill holding the lock is the system working. Calling that
+    a stall would make the alarm noise, and a noisy alarm is an ignored one."""
+    queue = wq.empty_queue()
+    wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"},
+               members=members, now=NOW)
+    runs = [_run(1, "backfill-gdelt-2026", status="in_progress", conclusion=None)]
+
+    wq.tick(queue, runs, members, now=NOW + timedelta(minutes=5))
+
+    assert queue.get("idle_since") is None
+    assert not wq.summary(
+        queue, now=NOW + timedelta(minutes=5 + wq.IDLE_STALL_MINUTES))["problems"]
+
+
+def test_a_dispatch_that_keeps_vanishing_is_reported_not_retried_silently(members):
+    """The unbound requeue was silent and uncounted, so a ticket the API refuses
+    every time went round that loop forever with nothing said."""
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "enrich.yml", members=members, now=NOW)
+
+    moment = NOW
+    for _ in range(wq.UNBOUND_ALARM_COUNT):
+        ticket.update(state="dispatched", dispatched_at=wq._iso(moment))
+        moment += timedelta(minutes=wq.UNBOUND_AFTER_MINUTES + 1)
+        report = wq.tick(queue, [], members, now=moment)
+        assert ticket in report["unbound"]
+
+    assert ticket["unbound_count"] == wq.UNBOUND_ALARM_COUNT
+    problems = wq.summary(queue, now=moment)["problems"]
+    assert any("produced NO RUN" in p for p in problems)
+
+
+def test_a_refused_dispatch_is_marked_failed_rather_than_retried_forever(tmp_path):
+    """A 422 on the inputs is deterministic. Requeueing it is an infinite silent
+    retry, which is what the drainer would have done for ever."""
+    path = tmp_path / "q.json"
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "enrich.yml", {"dry_run": "true"})
+    ticket["state"] = "dispatched"
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "dispatch-failed", ticket["id"],
+                    "--permanent", "--note", "Unexpected inputs provided"]) == 0
+
+    stored = wq.load(path)["tickets"][0]
+    assert stored["state"] == "failed" and stored["dispatched_at"] is None
+    assert any(ticket["id"] in p for p in wq.summary(wq.load(path))["problems"])
+
+
+def test_a_transient_dispatch_failure_goes_back_in_the_line_but_counted(tmp_path):
+    path = tmp_path / "q.json"
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "enrich.yml", {"dry_run": "true"})
+    ticket["state"] = "dispatched"
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "dispatch-failed", ticket["id"],
+                    "--note", "HTTP 503"]) == 0
+
+    stored = wq.load(path)["tickets"][0]
+    assert stored["state"] == "queued" and stored["unbound_count"] == 1
+
+
+# --------------------------------------------------------------------------
+# a ticket the dispatch API will always refuse must never be accepted
+# --------------------------------------------------------------------------
+
+def test_an_input_the_workflow_does_not_declare_is_refused_at_the_door(members):
+    """`slice` is not a backfill-gdelt-2026.yml input. Accepting the ticket put
+    a permanent 422 into a durable queue, where it stopped everything behind it
+    and said nothing for hours. The API was the only thing that knew, and it
+    only knew at dispatch time."""
+    with pytest.raises(ValueError, match="slice"):
+        wq.enqueue(wq.empty_queue(), "backfill-gdelt-2026.yml",
+                   {"start": "2026-01-01", "end": "2026-07-26", "slice": "true"},
+                   members=members, now=NOW)
+
+
+def test_a_missing_required_input_is_named_where_a_human_will_read_it(tmp_path):
+    """A warning rather than a refusal: unlike an undeclared input, a bare
+    ticket is also how other modules assert a workflow CAN be queued."""
+    assert wq.missing_required_inputs(
+        "backfill-gdelt-2026.yml", {"start": "2026-01-01"}) == ["end"]
+    assert wq.missing_required_inputs(
+        "backfill-gdelt-2026.yml", {"start": "x", "end": "y"}) == []
+
+    path = tmp_path / "q.json"
+    wq.save(wq.empty_queue(), path)
+    assert wq.main(["--file", str(path), "enqueue", "backfill-gdelt-2026.yml",
+                    "--inputs", '{"start":"2026-01-01"}']) == 0
+
+
+def test_the_real_ticket_that_stalled_the_queue_is_refused(tmp_path, members):
+    """End to end through the CLI the owner actually types."""
+    path = tmp_path / "q.json"
+    wq.save(wq.empty_queue(), path)
+    assert wq.main([
+        "--file", str(path), "enqueue", "backfill-gdelt-2026.yml",
+        "--inputs", '{"start":"2026-01-01","end":"2026-07-26","slice":"true"}',
+        "--reason", "2026 history walk"]) == 2
+    assert wq.load(path)["tickets"] == []
+
+
+def test_the_declared_inputs_are_read_the_same_way_yaml_reads_them(members):
+    """The parser is regex-and-indentation because ops_status.py imports this
+    module and it must stay dependency-free. This is what stops it drifting from
+    what GitHub will actually accept: every current lock member, checked against
+    a real YAML parse."""
+    for workflow in sorted(members):
+        parsed = yaml.safe_load((WORKFLOWS / workflow).read_text())
+        section = parsed.get("on", parsed.get(True)) or {}
+        assert "workflow_dispatch" in section, (
+            f"{workflow} holds the writer lock but cannot be dispatched, so the "
+            "queue could never drain it")
+        declared_yaml = (section["workflow_dispatch"] or {}).get("inputs") or {}
+        expected = (
+            set(declared_yaml),
+            {name for name, spec in declared_yaml.items()
+             if (spec or {}).get("required") is True},
+        )
+        assert wq.workflow_dispatch_inputs(workflow) == expected, workflow
+
+
+# --------------------------------------------------------------------------
+# the drainer's own dispatch step
+# --------------------------------------------------------------------------
+
+def _dispatch_step() -> str:
+    steps = yaml.safe_load(DRAINER.read_text())["jobs"]["drain"]["steps"]
+    hits = [s["run"] for s in steps if s.get("name") == "Dispatch it"]
+    assert len(hits) == 1, "there is no longer exactly one 'Dispatch it' step"
+    return hits[0]
+
+
+def test_a_refused_dispatch_cannot_abort_the_step_before_it_is_recorded():
+    """2026-07-30: `gh api` returned 422 under `set -euo pipefail`, so bash
+    killed the step ON THAT LINE — the verification loop and the requeue
+    underneath it never ran, and the ticket was left `dispatched` with no run
+    behind it. The API call's exit code must be CAUGHT, not fatal."""
+    body = _dispatch_step()
+    call = body.index("gh api")
+    guard = body.rfind("set +e", 0, call)
+    assert guard != -1, (
+        "the dispatch API call runs under `set -e`; a refusal will kill the "
+        "step before the ticket's fate is recorded, which is exactly how the "
+        "queue stalled silently")
+    assert body.find("set -e\n", guard, call) == -1
+    assert "RC=$?" in body, "the API's exit code is never inspected"
+
+
+def test_every_dispatch_failure_path_records_the_ticket_and_goes_red():
+    body = _dispatch_step()
+    assert body.count("writer_queue.py dispatch-failed") >= 3, (
+        "each failure shape — inputs refused, dispatch refused, no run ever "
+        "created — must record what happened to the ticket")
+    assert "--permanent" in body, (
+        "a 422 on the inputs is refused identically forever; requeueing it is "
+        "an infinite silent retry")
+    assert "writer_queue.py requeue" not in body, (
+        "bare `requeue` loses the count, and an uncounted retry is a silent one")
+
+
+def test_the_record_of_a_failed_dispatch_is_pushed_not_hoped_for():
+    """`git push || true` was how the requeue could vanish even when it ran."""
+    body = _dispatch_step()
+    assert "git push || true" not in body
+    assert "record " in body and "could not push the queue" in body
+
+
+@pytest.mark.parametrize("step", ["Read what is actually running", "Dispatch it"])
+def test_the_pat_is_preferred_and_its_absence_is_said_out_loud(step):
+    steps = yaml.safe_load(DRAINER.read_text())["jobs"]["drain"]["steps"]
+    env = [s.get("env") or {} for s in steps if s.get("name") == step][0]
+    assert "WRITER_QUEUE_TOKEN" in env["GH_TOKEN"]
+    assert "GITHUB_TOKEN" in env["GH_TOKEN"], "no fallback if the PAT is absent"
+    if step == "Dispatch it":
+        assert "HAVE_PAT" in env, (
+            "the step must be able to say which token it used; on 2026-07-30 a "
+            "422 about the INPUTS was read as a missing token for twenty minutes")
+
+
+def test_an_unparseable_workflow_fails_open_rather_than_blocking_work(tmp_path, members):
+    """A parser that guesses wrong must never be the reason a correction cannot
+    be queued. Unknown means unchecked, not rejected."""
+    assert wq.workflow_dispatch_inputs("enrich.yml", workflow_dir=tmp_path) is None
+    ticket = wq.enqueue(wq.empty_queue(), "enrich.yml", {"whatever": "1"},
+                        members=members, now=NOW, workflow_dir=tmp_path)
+    assert ticket["inputs"] == {"whatever": "1"}
+
+
 def test_work_that_never_moves_is_reported_as_starvation(members):
     queue = wq.empty_queue()
     wq.enqueue(queue, "correct-form-d.yml", {"dry_run": False}, members=members, now=NOW)

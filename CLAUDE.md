@@ -111,6 +111,18 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   **Never guess the inputs of a lost run**: `correct-form-d` and
   `correct-sec-pillar` both default to `dry_run=true`, so a re-dispatch with
   defaults is a green run that changes nothing.
+
+  **A green drain tick is not a moving queue.** On 2026-07-30 a ticket carrying
+  `slice`, an input `backfill-gdelt-2026.yml` does not declare, was refused
+  `422` by the dispatch API; `set -e` killed the step before its own requeue, so
+  the ticket sat in state `dispatched` bound to no run, nothing was ever in
+  state `queued` again, and eleven consecutive ticks dispatched nothing and
+  exited 0. Only pass inputs a workflow actually declares — `enqueue` now
+  refuses the rest outright — and read `idle_since` in `ops_status.py [2b]`,
+  which goes red after 90 minutes of work waiting on an empty lock group.
+  **Count the ticket STATES, never the list length**: that file keeps landed
+  work as history, and `resolve` marks an orphan in place rather than removing
+  it, so "24 tickets" was 22 landed, 1 acknowledged failure and one live.
 - **A dead source link is never fixed by editing the row.** The whole promise is
   that every update links to the document behind it, so a link that dies turns a
   sourced claim into an unsourced one while the page looks unchanged.
