@@ -11,12 +11,21 @@ cross-link and share a host, but share no code and no database.
 ## Start here, every session
 
 ```bash
-python3 ops_status.py
+python3 ops_status.py     # the data
+python3 ci_status.py      # the runs behind the data
 ```
 
-Read-only, no deps, no keys. Prints what is actually stored, which collectors
-are stale or degraded, and the honest coverage claim. Exit 2 means something
-needs a human.
+`ops_status.py` is read-only, no deps, no keys: what is actually stored, which
+collectors are stale or degraded, the honest coverage claim. `ci_status.py`
+needs `gh`, a credential and a network, which is why it is a separate command —
+staying offline is exactly what stops ops_status from ever seeing a red run. It
+reads Actions for **both** trackers: what is red on main right now, what failed
+in the last 24h, and any run that ended `cancelled` with zero jobs (the eviction
+signature, invisible in the GitHub UI).
+
+Exit 2 in either means something needs a human. `ci_status.py` also exits **3**
+for "I could not check" — no gh, no credential, no network — because that must
+never read as an all-clear.
 
 ## The 60-second model
 
@@ -185,7 +194,7 @@ guarantee rather than a hope.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
-.venv/bin/pytest -q                                  # 1,807 offline tests
+.venv/bin/pytest -q                                  # 2,435 offline tests
 .venv/bin/python run_collect.py --dry-run --offline  # whole pipeline, no spend
 ```
 
