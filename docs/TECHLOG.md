@@ -13,6 +13,212 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the audit's twelve and eleven: nine feeds wired, eight refusals written down, and Brazil is one day old
+
+`data/recall_rejection_audit.json` classifies 81 gold-set misses. Two of its
+buckets are a worklist rather than a statistic — `publisher_not_wired` (12
+misses across 7 publishers) and `publisher_unknown` (11 across 10) — and until
+today nobody had acted on either. All 17 publishers were attempted. **Nine
+feeds are wired, eight publishers are refused with the evidence written into
+the catalogue, and one was left alone because it was already exhaustively
+checked.** Every figure below was fetched live on 2026-07-30 through
+`collectors/national_press.py`'s own `robots_allows` / `fetch` / `parse` path,
+not through curl and not through a browser.
+
+`data/sources_catalogue.csv` 1,294 -> 1,305 rows; `data/feeds.csv` 653 -> 662
+feeds. New offline tests in `tests/test_audit_publishers.py`. No collector, no
+pipeline and no workflow changed: the catalogue IS the configuration, which is
+the whole point of that collector.
+
+### The judgement call: a press-release wire is not an aggregator
+
+Five of the seventeen are wires — Business Wire, GlobeNewswire, PR Newswire,
+Presseportal (news aktuell), and Yahoo Finance, which is not one but reads like
+one from the URL. "Aggregators are discovery pointers, never stored sources" is
+non-negotiable, so the question had to be answered from the policy that already
+exists rather than invented here.
+
+It already is answered, in three places that agree:
+
+- `national_press._AGGREGATOR_HOSTS` lists Google News, Yahoo News, Flipboard,
+  MSN, FeedBurner and the funding databases (Dealroom, Crunchbase, Tracxn,
+  StartupBlink, Harmonic, Beauhurst, Fundup, Magnitt, Startup Nation Central,
+  TechIreland). **No wire appears in it.**
+- `validate._BLOCKED_SOURCE_HOSTS` is the same five aggregator hosts. **No wire
+  appears in it either.**
+- The database already cites `prnewswire.com` on 3 current rows and
+  `businesswire.com` on 1.
+
+The distinction the existing policy draws is about WHOSE DOCUMENT it is. A
+release on a wire is the company's own announcement, published under its own
+name — the same class of thing as a company newsroom, which this catalogue
+already carries 16 of. Google News republishes somebody else's article and adds
+a redirect. That is why `news.crunchbase.com` is in `_EDITORIAL_EXCEPTIONS`
+while the rest of crunchbase.com is blocked: the test is the reporting, not the
+domain's other businesses. We have over-blocked by analogy once already, and
+this is the shape it takes.
+
+So the wires were treated as wireable and each one failed or passed on its own
+merits. Four of the five still ended up refused, and **not one of those
+refusals is a policy refusal** — three are mechanical and one is Yahoo.
+
+**Yahoo Finance is the exception, and it is a policy refusal.** `news.yahoo.com`
+is in both sets above, both of which are reduced to registrable domains, so
+`yahoo.com` is blocked on every subdomain — `finance.yahoo.com` included. A feed
+listed for it would be refused at load time and print a line in the run log
+twice a day forever. The existing answer to a syndicated release is
+`validate.prefer_canonical`, which follows the document's own `rel=canonical` to
+the publisher and stores that instead; the audit's own miss here is described as
+"Clinigen press release via Yahoo Finance", which is exactly the case that
+function was measured on.
+
+### Wired: nine feeds, all verified through the collector's own path
+
+| publisher | country / coverage | feed | items | newest |
+|---|---|---|---|---|
+| LatamList | Latin America (regional) | `/feed/` | 10 | 0d |
+| European Biotechnology Magazine | Europe (regional) | `/feed/` | 10 | 0d |
+| pv magazine | Europe (regional), Global | `/feed/` | 10 | 0d |
+| Techla Media | Spain, Regional (es) | `/feed/` | 10 | 0d |
+| Business Upturn | India | `/feed.xml` | 25 | 0d |
+| The Motley Fool Australia | Australia | `/feed/` | 20 | 0d |
+| Presseportal (Wirtschaft) | Germany | `/rss/wirtschaft.rss2` | 15 | 0d |
+| Presseportal (Finanzen) | Germany | `/rss/finanzen.rss2` | 15 | 0d |
+| TNGlobal (TechNode Global) | Singapore, Regional | `/feed/` | 25 | 0d |
+
+Run as a population through `national_press.collect(feeds=..., dry_run=True)`:
+**9 feeds live, 0 not answering, 140 items, 3 duplicate URLs, 137 returned, of
+which 21 pass the free prefilter (15%)** — against ~11% for the pipeline as a
+whole. LatamList alone keeps 7 of 10, because it publishes almost nothing except
+funding rounds.
+
+Four things worth not rediscovering:
+
+1. **Business Upturn's feed is at `/feed.xml` and nowhere else.** All fourteen
+   other candidate paths 404 and the HTML head declares no `rel="alternate"`, so
+   the only way to it is probing. A session that stops after `/feed/` and `/rss/`
+   concludes the publisher has no feed.
+2. **`technode.global` is a different publication from `technode.com`**, which
+   this catalogue already carried. Shanghai and Singapore, separate registrable
+   domains, so nothing de-duplicates them and the second is a real addition.
+3. **Presseportal's advertised feed is the firehose.** Its `rel="alternate"`
+   points at `presseportal.rss2`, which is every release including the police
+   blotter; `/rss/` lists 38 subject feeds and the two that match our pillars are
+   `wirtschaft` and `finanzen`. Both are wired; `PER_HOST_PAUSE` spaces them.
+4. **Three of the nine state no home country** (LatamList publishes no imprint,
+   European Biotechnology's imprint renders behind a form, pv magazine's
+   `/imprint/` 404s). Each is recorded with the region convention this file
+   already uses — `Latin America (regional)`, `Europe (regional)` — rather than a
+   guessed seat, and all three carry `coverage` Regional or Global, so
+   `national_press.dateline()` says "regional" and claims no country either way.
+   A guessed seat would have been worse than no seat: it is a hint fed to the
+   model.
+
+### Refused, with the numbers, so nobody probes them again
+
+| publisher | verdict | evidence |
+|---|---|---|
+| CTech (`calcalistech.com`) | no feed exists | already established on 2026-07-30: 21 paths, robots, and 20,000 Wayback captures. **Not re-probed.** 4 misses, the largest single share |
+| Business Wire | nothing fetchable | `robots.txt` itself now answers **HTTP 403** to our UA, so its terms are no longer readable, and all 15 candidate paths 403 through both Accept sets |
+| GlobeNewswire | publisher's own terms | `robots.txt` is 200 and names the feed: `Disallow: /SubscribeToRss/` and `Disallow: /newsroom/rss/`. 13 other paths 404, `/rss/news` is HTTP 500, no `rel=alternate` |
+| PR Newswire | no feed published | robots allows (only `/templates/*`, `/widget-landing-page.html`, `/multivu/`); 11 of 15 paths 404 and 4 answer 200 with 0 parseable items; no `rel=alternate` |
+| Yahoo Finance | policy | `yahoo.com` is an aggregator registrable domain in both blocklists. See above |
+| Tech.eu | publisher's own terms | re-verified: `robots_allows("https://tech.eu/feed/")` is still False. Withdrawal from 2026-07-29 stands |
+| Business Standard (Companies) | bot wall | re-verified: `/rss/companies-101.rss` still HTTP 403 through both Accept sets |
+| FinSMEs | WAF, not terms | robots is 200 and **permissive for us** (only Ahrefs, scrapy, Semrush, BLEX, Dot, MJ12, Grapeshot are disallowed), yet 13 of 15 paths answer **403**, including `/feed/`. We already hold **10 stored rows citing finsmes.com**, all via google_news, so the outlet is reachable and only its feed is closed |
+| WeAreAquaculture | thin, therefore degraded | `/feed/` is 200 and redirects to `/stories.rss`, well-formed RSS carrying **exactly one `<item>`** — an 8,401-byte body, verified twice, and undiscoverable from the HTML head. At two runs a day a one-item feed carries at most two stories a day and silently drops the rest |
+
+**A news sitemap is not a substitute, and this is measured rather than assumed.**
+Both GlobeNewswire and PR Newswire advertise `Sitemap:` lines for news sitemaps,
+which is the last resort the search order calls for. Fetched through
+`national_press.fetch()`, `sitemaps.globenewswire.com/news-en.xml` and
+`www.prnewswire.com/sitemap-news.xml` each yield **0 items**: `parse()` looks for
+RSS `<item>` or Atom `<entry>` and a sitemap has `<url>`. The same is true of the
+three `wp-json/wp/v2/posts` rows already in the catalogue (Citinewsroom,
+Techweez, Techzim) — all three read `dead` or `empty` in the last health ledger.
+**Do not catalogue a sitemap or a JSON API as an `rss` feed**; it produces a row
+that looks wired and reports `empty` forever.
+
+### Brazil, measured rather than assumed
+
+The owner asked why Brazilian startup funding is thin: 11 stored BR rows against
+13 Brazilian feeds. The three candidate explanations were dead feeds, a
+Portuguese keyword gate rejecting everything, and deferral at the read cap. It is
+none of them in any interesting sense.
+
+- **The feeds work.** Last recorded sweep: 13 BR feeds, **12 ok**, 1 dead
+  (TI Inside, HTTP 403 — transient; it returned 25 items today), **156 items,
+  every one 0–1 days old.** A live re-fetch today returned **181 items** across
+  the same 13.
+- **The prefilter is not eating them.** Of those 181, **25 pass the free
+  prefilter — 13.8%**, against the ~10.9% the pipeline averages (9,308 fetched,
+  8,290 filtered, per `run_collect`'s own recorded figures). **Brazil is above
+  the average, not below it.** Reject reasons: 155 "no employment, site or
+  work-policy term", 1 off-topic. A silent Portuguese gate would show as ~0%,
+  and this is the check that rules it out.
+- **It is a history problem, which is the audit's verdict for the corpus as a
+  whole.** `national_press` first ran on 2026-07-29 and holds **88 current rows
+  in total, across every country**. BR is **9 of those 88 — the largest
+  single-country share of the collector's output**, ahead of AU 7, IN 5, CN 5,
+  DE 4, CA 4. Brazil is not underperforming; the collector is one day old. The
+  other 2 BR rows are SEC filings from April.
+- **The read cap is a real but secondary constraint.** BR is 156 of the
+  collector's 10,723 items (**1.5%**), so at `READTHROUGH_CAP` 200 and a fair
+  share, Brazil buys roughly three reads a run.
+
+**One real finding, small and worth its own line.** Re-reading the 156 rejected
+items against a richer Portuguese vocabulary, **2 are genuine misses**:
+"Governança Brasil tem novo CRO" (a leadership appointment) and "Com a agtech
+Ecotrace, GS1 Ventures faz seu primeiro aporte" (a funding round). That is ~1.3%
+of rejects, so it is a gap and not a bug. The cause is visible in
+`prefilter._EMPLOYMENT_TERMS_INTL`: **Portuguese carries ten terms and exactly
+one funding phrase, `rodada de investimento`**, while the everyday Brazilian
+wording is `capta` / `captação` / `aporte` / `levanta R$` / `Série A`. Czech and
+Turkish each got a measured expansion after exactly this kind of read; Portuguese
+never has. Deliberately NOT changed here — `pipeline/prefilter.py` is another
+session's file this week — and recorded so it can be done as its own measured
+change. Note it is not costing us everything it looks like it might: "Einship,
+startup de IA para comércio exterior, capta R$ 5,3 milhões" IS stored, because
+the body carried a term the gate knows.
+
+### What is asserted
+
+`tests/test_audit_publishers.py`, six tests, offline, no network:
+
+- every domain the audit named in the two actionable buckets exists in the
+  catalogue;
+- each is **either wired or refused in writing** — an empty `rss` AND an empty
+  `feed_checked` fails, because that is indistinguishable from nobody having
+  looked;
+- a refusal carries **at least 200 characters of note**, so the next session
+  inherits what was tried rather than repeating it;
+- nothing from the audit was wired on an aggregator registrable domain, checked
+  against `_AGGREGATOR_DOMAINS` itself;
+- the wire precedent is pinned: no host containing `newswire`, `businesswire` or
+  `presseportal` may enter `_AGGREGATOR_HOSTS` without someone deliberately
+  changing this test and explaining the rows already in the database;
+- a wired row records **what the feed returned** (item count and newest age) in
+  `feed_checked`, because "a feed that returns nothing is degraded, not
+  coverage" has to be checkable after the fact.
+
+Matching is on the **registrable domain**, imported from
+`collectors.national_press` rather than reimplemented. There are already two
+copies in this repo (the collector and `analysis/recall/rejection_audit.py`); a
+third deciding which publishers count as handled would be the one that goes
+stale first.
+
+**+6 offline tests.** The whole suite reads **2,367 passing** in this working
+tree, which also holds two other sessions' in-flight files (`czechia_ares`,
+`estonia_ariregister`, a press-archive walker); only the six above and the two
+generated data files below belong to this change.
+
+`data/sources.json` and `data/feeds.csv` are both GENERATED —
+`build_sources_json.py` and `build_feeds_export.py`. Never hand-edit either;
+`tests/test_sources_page.py` and `tests/test_national_press.py` each fail if you
+do.
+
+---
+
 ## 2026-07-30 — historical press: a sitemap is an archive and an RSS feed is not, and the honest ceiling is four of fifty-one
 
 `collectors/press_archive.py` + `backfill_press_2026.py` +

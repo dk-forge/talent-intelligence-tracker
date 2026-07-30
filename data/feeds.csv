@@ -22,6 +22,7 @@ Australia,iTnews,https://www.itnews.com.au/RSS/rss.ashx,rss,English,National,htt
 Australia,SmartCompany,https://www.smartcompany.com.au/feed/,rss,English,National,https://www.smartcompany.com.au
 Australia,Startup Daily,https://www.startupdaily.net/feed/,rss,English,National,https://www.startupdaily.net
 Australia,The Canberra Times,https://www.canberratimes.com.au/rss.xml,rss,English,Metro,https://www.canberratimes.com.au
+Australia,The Motley Fool Australia,https://www.fool.com.au/feed/,rss,English,National,https://www.fool.com.au
 Australia,The Sydney Morning Herald,https://www.smh.com.au/rss/business.xml,rss,English,National,https://www.smh.com.au
 Austria,brutkasten,https://brutkasten.com/feed/,rss,German,National,https://brutkasten.com
 Austria,Der Standard Wirtschaft,https://www.derstandard.at/rss/wirtschaft,rss,German,National,https://www.derstandard.at
@@ -171,7 +172,9 @@ Eswatini,Eswatini Observer,https://www.eswatiniobserver.com/feed/,rss,English,Na
 Ethiopia,Addis Fortune,https://addisfortune.news/feed,rss,English,National,https://addisfortune.news
 Ethiopia,Capital Ethiopia,https://capitalethiopia.com/feed/,rss,English,National,https://capitalethiopia.com
 Ethiopia,The Reporter Ethiopia,https://www.thereporterethiopia.com/feed/,rss,English,National,https://www.thereporterethiopia.com
+Europe (regional),European Biotechnology Magazine,https://european-biotechnology.com/feed/,rss,English,Regional,https://european-biotechnology.com
 Europe (regional),European Space Agency,https://www.esa.int/rssfeed/Our_Activities/Space_News,rss,English,National,https://www.esa.int
+Europe (regional),pv magazine,https://www.pv-magazine.com/feed/,rss,English,Global,https://www.pv-magazine.com
 European Union,European Commission press corner,https://ec.europa.eu/commission/presscorner/api/rss?language=en,rss,English,Regional,https://ec.europa.eu/commission/presscorner
 Fiji,FBC News,https://www.fbcnews.com.fj/feed/,rss,English,National,https://www.fbcnews.com.fj
 Finland,Helsingin Sanomat,https://www.hs.fi/rss/tuoreimmat.xml,rss,Finnish,National,https://www.hs.fi
@@ -198,6 +201,8 @@ Germany,Frankfurter Allgemeine Zeitung,https://www.faz.net/rss/aktuell/wirtschaf
 Germany,Gruenderszene (feed),https://www.businessinsider.de/gruenderszene/feed/,rss,German,National,https://www.businessinsider.de/gruenderszene/
 Germany,Handelsblatt,https://www.handelsblatt.com/contentexport/feed/unternehmen,rss,German,National,https://www.handelsblatt.com
 Germany,heise online,https://www.heise.de/rss/heise-atom.xml,atom,German,National,https://www.heise.de
+Germany,Presseportal (Finanzen),https://www.presseportal.de/rss/finanzen.rss2,rss,German,National,https://www.presseportal.de
+Germany,Presseportal (Wirtschaft),https://www.presseportal.de/rss/wirtschaft.rss2,rss,German,National,https://www.presseportal.de
 Germany,Startbase,https://www.startbase.com/topics/feed/feed/,rss,German,National,https://www.startbase.com
 Germany,Sueddeutsche Zeitung,https://rss.sueddeutsche.de/rss/Wirtschaft,rss,German,National,https://www.sueddeutsche.de
 Germany,t3n,https://t3n.de/rss.xml,rss,German,National,https://t3n.de
@@ -233,6 +238,7 @@ Hungary,Telex,https://telex.hu/rss,rss,Hungarian,National,https://telex.hu
 Iceland,Iceland Monitor (Morgunbladid),https://icelandmonitor.mbl.is/rss/,rss,English,National,https://icelandmonitor.mbl.is
 Iceland,RUV,https://www.ruv.is/rss/frettir,rss,Icelandic,National,https://www.ruv.is
 Iceland,Visir,https://www.visir.is/rss/allt,rss,Icelandic,National,https://www.visir.is
+India,Business Upturn,https://www.businessupturn.com/feed.xml,rss,English,National,https://www.businessupturn.com
 India,Entrackr,https://entrackr.com/rss,rss,English,National,https://entrackr.com
 India,Hindustan Times,https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml,rss,English,National,https://www.hindustantimes.com
 India,Inc42,https://inc42.com/feed/,rss,English,National,https://inc42.com
@@ -312,6 +318,7 @@ Kosovo,Prishtina Insight,https://www.prishtinainsight.com/feed/,rss,English,Nati
 Laos,Laotian Times,https://laotiantimes.com/feed/,rss,English,National,https://laotiantimes.com
 Latin America (regional),Bloomberg Linea,https://www.bloomberglinea.com/arc/outboundfeeds/rss/?outputType=xml,rss,Spanish,National,https://www.bloomberglinea.com
 Latin America (regional),iupana,https://iupana.com/feed/,rss,Spanish,National,https://iupana.com
+Latin America (regional),LatamList,https://latamlist.com/feed/,rss,English,Regional,https://latamlist.com
 Latvia,Dienas Bizness,https://www.db.lv/rss,rss,Latvian,National,https://db.lv
 Latvia,LSM (Latvian Public Media),https://www.lsm.lv/rss/,rss,Latvian,National,https://www.lsm.lv
 Latvia,TVNET,https://www.tvnet.lv/rss,rss,Latvian,National,https://www.tvnet.lv
@@ -495,6 +502,7 @@ Singapore,HRM Asia,https://www.hrmasia.com/feed/,rss,English,National,https://ww
 Singapore,Tech Collective SEA,https://techcollectivesea.com/feed/,rss,English,Regional,https://techcollectivesea.com
 Singapore,The Business Times Singapore,https://www.businesstimes.com.sg/rss/companies-markets,rss,English,National,https://www.businesstimes.com.sg
 Singapore,The Straits Times Business,https://www.straitstimes.com/news/business/rss.xml,rss,English,National,https://www.straitstimes.com
+Singapore,TNGlobal (TechNode Global),https://technode.global/feed/,rss,English,Regional,https://technode.global
 Singapore,Vulcan Post,https://vulcanpost.com/feed/,rss,English,Regional,https://vulcanpost.com
 Slovakia,Dennik N,https://dennikn.sk/feed/,rss,Slovak,National,https://dennikn.sk
 Slovakia,Startitup,https://www.startitup.sk/feed/,rss,Slovak,National,https://www.startitup.sk
@@ -528,6 +536,7 @@ Spain,El Pais,https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/e
 Spain,El Referente,https://www.elreferente.es/feed/,rss,Spanish,National,https://www.elreferente.es
 Spain,Expansion (Spain),https://e00-expansion.uecdn.es/rss/portada.xml,rss,Spanish,National,https://www.expansion.com
 Spain,Novobrief,https://novobrief.com/feed/,rss,English,National,https://novobrief.com
+Spain,Techla Media,https://techla.pro/feed/,rss,Spanish,Regional,https://techla.pro
 Spain,Xataka,https://www.xataka.com/index.xml,rss,Spanish,National,https://www.xataka.com
 Sri Lanka,EconomyNext,https://economynext.com/feed,rss,English,National,https://economynext.com
 Sri Lanka,ReadMe.lk,https://www.readme.lk/feed/,rss,English,National,https://www.readme.lk

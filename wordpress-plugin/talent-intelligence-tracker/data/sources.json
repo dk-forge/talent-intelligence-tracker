@@ -1671,6 +1671,24 @@
   "collector": ""
  },
  {
+  "name": "Business Upturn",
+  "url": "https://www.businessupturn.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Earnings",
+   "Companies"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://www.businessupturn.com/feed.xml",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:oracle-financial-services-software-limited IN 2026-07-22). Verified through national_press's own path: robots.txt allows (/admin, /api/, /byline-avatar only), 25 items, newest 0d, no domain drift. The feed is at /feed.xml and NOT at /feed/ \u2014 all fourteen of the other candidate paths 404, and the HTML head declares no rel=alternate, so this one is only findable by probing. The feed mixes company news with entertainment and /brand-post/ sponsored items; the free prefilter is what drops those, at no cost.",
+  "collector": ""
+ },
+ {
   "name": "Business Wire",
   "url": "https://www.businesswire.com/",
   "status": "candidate",
@@ -4040,6 +4058,23 @@
   "rss": "https://www.eu-startups.com/feed/",
   "free": true,
   "notes": "",
+  "collector": ""
+ },
+ {
+  "name": "European Biotechnology Magazine",
+  "url": "https://european-biotechnology.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Partnership"
+  ],
+  "coverage": "Regional",
+  "country": "Europe (regional)",
+  "rss": "https://european-biotechnology.com/feed/",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: eu_funding:brenus-pharma FR 2026-07-20). Verified through national_press's own path: robots.txt allows (wp-admin/includes/plugins/themes/fileadmin only), rel=alternate declares the feed, 10 items, newest 0d, no domain drift. The imprint page renders behind a form and states no readable seat, so the region is recorded rather than a guessed one; coverage=Regional, so the dateline says regional and claims no country.",
   "collector": ""
  },
  {
@@ -6882,6 +6917,23 @@
   "collector": ""
  },
  {
+  "name": "LatamList",
+  "url": "https://latamlist.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Latin America (regional)",
+  "rss": "https://latamlist.com/feed/",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 2 misses: row_funding:ual AR 2026-07-20, row_funding:siigo CO 2026-07-24). Verified through national_press's own fetch/parse path: robots.txt allows (only /wp-login.php and /wp-admin/ disallowed), rel=alternate declares the feed, 10 items, newest 0d, no domain drift. The outlet publishes no imprint and states no home country, so the region is recorded rather than a guessed seat; coverage=Regional means the dateline says regional either way. Its comments feed was seen and refused: 10 items whose newest is 1373d old.",
+  "collector": ""
+ },
+ {
   "name": "Le Figaro",
   "url": "https://www.lefigaro.fr",
   "status": "candidate",
@@ -9157,6 +9209,41 @@
   "collector": ""
  },
  {
+  "name": "Presseportal (Finanzen)",
+  "url": "https://www.presseportal.de",
+  "status": "candidate",
+  "category": "Press Release Service",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Earnings"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.presseportal.de/rss/finanzen.rss2",
+  "free": true,
+  "notes": "Wired 2026-07-30 alongside Presseportal (Wirtschaft); see that row for the wire-versus-aggregator reasoning. Verified through national_press's own path: 15 items, newest 0d, no domain drift. Second feed on one host, so PER_HOST_PAUSE spaces the two fetches.",
+  "collector": ""
+ },
+ {
+  "name": "Presseportal (Wirtschaft)",
+  "url": "https://www.presseportal.de",
+  "status": "candidate",
+  "category": "Press Release Service",
+  "signals": [
+   "Executive Hire",
+   "Funding",
+   "Company Expansion",
+   "Partnership"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.presseportal.de/rss/wirtschaft.rss2",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:gd-towers-deutsche-funkturm DE 2026-07-24). news aktuell's release portal \u2014 the German equivalent of Business Wire, and treated the same way this repo already treats the wires: a release carried here is the company's OWN announcement, which is what separates a wire from an aggregator. Neither national_press._AGGREGATOR_HOSTS nor validate._BLOCKED_SOURCE_HOSTS lists a wire, and the database already cites prnewswire.com on 3 rows and businesswire.com on 1. Verified through national_press's own path: robots.txt carries only Sitemap lines for the Allow-all agent, rel=alternate declares the all-releases rss2 feed, 15 items, newest 0d, no domain drift. The advertised feed is the firehose (police blotter included); the two subject feeds wired instead are wirtschaft and finanzen.",
+  "collector": ""
+ },
+ {
   "name": "Primera Hora",
   "url": "https://www.primerahora.com",
   "status": "candidate",
@@ -9359,6 +9446,23 @@
   "rss": "https://www.pb.pl/rss/najnowsze.xml",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29.",
+  "collector": ""
+ },
+ {
+  "name": "pv magazine",
+  "url": "https://www.pv-magazine.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Company Expansion",
+   "New Facility"
+  ],
+  "coverage": "Global",
+  "country": "Europe (regional)",
+  "rss": "https://www.pv-magazine.com/feed/",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: us_funding_small:sofab-inks US 2026-07-21). Verified through national_press's own path: robots.txt is a Yoast block with an empty Disallow, rel=alternate declares the feed, 10 items, newest 0d, no domain drift. The global edition of a solar and storage trade title; /imprint/ 404s, so the region is recorded rather than a guessed seat, and coverage=Global means the dateline claims no country regardless.",
   "collector": ""
  },
  {
@@ -10980,6 +11084,23 @@
   "collector": ""
  },
  {
+  "name": "Techla Media",
+  "url": "https://techla.pro",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Spain",
+  "rss": "https://techla.pro/feed/",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: eu_funding:kintai ES 2026-07-22). Verified through national_press's own path: robots.txt is a Yoast block with an empty Disallow, rel=alternate declares the feed, 10 items, newest 0d, no domain drift. Spanish-language; its own schema says inLanguage es, and a live read carries both Spanish (Costa Blanca) and Latin American (Angel Ventures) rounds, so coverage is Regional and the dateline claims no country. prefilter.py already carries the Spanish term set.",
+  "collector": ""
+ },
+ {
   "name": "Techlabari",
   "url": "https://techlabari.com",
   "status": "candidate",
@@ -11729,6 +11850,23 @@
   "collector": ""
  },
  {
+  "name": "The Motley Fool Australia",
+  "url": "https://www.fool.com.au",
+  "status": "candidate",
+  "category": "Financial News",
+  "signals": [
+   "Executive Hire",
+   "Earnings",
+   "Companies"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.fool.com.au/feed/",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:corporate-travel-management-limited AU 2026-07-23). Verified through national_press's own path: robots.txt allows (/wp-admin/, /wp-login.php*, /search/*), rel=alternate declares the feed, 20 items, newest 0d, no domain drift. ASX commentary, so most items are opinion the free prefilter drops; it is wired for the board and executive changes it reports alongside them.",
+  "collector": ""
+ },
+ {
   "name": "The Namibian",
   "url": "https://www.namibian.com.na",
   "status": "candidate",
@@ -12186,6 +12324,23 @@
   "rss": "https://tn.com.ar/feed/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live",
+  "collector": ""
+ },
+ {
+  "name": "TNGlobal (TechNode Global)",
+  "url": "https://technode.global",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Singapore",
+  "rss": "https://technode.global/feed/",
+  "free": true,
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: apac_funding:ropedia SG 2026-07-24). A DIFFERENT publication from the TechNode row already in this file: technode.com is the Shanghai title, technode.global is the Singapore one, and they are separate registrable domains, so nothing de-duplicates them. Verified through national_press's own path: robots.txt is a Yoast block with an empty Disallow, rel=alternate declares the feed, 25 items, newest 0d, no domain drift.",
   "collector": ""
  },
  {
