@@ -13,6 +13,184 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the filter sidebar is reversed into a frozen bar, and the column was what squeezed the table
+
+Plugin **1.55.0 -> 1.56.0**. **This reverses the sidebar shipped in 1.54.0.**
+That pass built a 262px sticky column of seven capped scrolling checkbox boxes,
+to my predecessor's instruction, reading the owner's "filters dont move with the
+page a like the layoff one" as a request for the sibling's layout. The owner has
+now seen it on the live page and asked for the opposite. It was not always the
+plan and this entry does not pretend it was.
+
+The owner sent two complaints, and they are one complaint:
+
+1. "the formatting do you see this? Make them more compact" — the What Happened
+   column wrapping to one word per line.
+2. "the filter so complicated with the scrolling up and down should we move
+   those to above the stuff and compact and have it frozen on top when you
+   scroll down??"
+
+**(2) causes (1), and that is measured rather than argued.** The column plus its
+20px gap took 282px. Rendered at 1280px against the real stylesheet:
+
+| | 1.55.0 | 1.56.0 |
+|---|---|---|
+| filter panel width | 264px | 0 (it is a bar) |
+| `.tit-results` width | 876px | **1,158px** |
+| table width | 994px | 1,158px |
+| **What Happened column** | **97px** | **187px** |
+| table needs a horizontal gesture at 1280px | **YES** (994 into 874) | **no** |
+| elements past the viewport edge at 1280px | 155 | **0** |
+
+The 97px is the whole of complaint (1): a cell carrying a headline AND a
+read-through, in 97px. Widening that column alone would only have taken the
+space from another one, which is why the brief's instruction to fix the layout
+first and re-measure was right.
+
+### What replaced it
+
+A compact bar above the results, `position:sticky` at `top:0`, holding every
+control as ONE LINE. Each multi-value filter is a button carrying its own name
+and a printed count; its checkboxes live in a panel that exists only while it is
+open. The checkboxes did not change — `pillify()` still renders the same
+`.tit-optrow` inputs from the same `<select multiple>`. What changed is that all
+seven groups no longer have to be on screen at once, which was the entire cost
+of the column.
+
+**The flat alternative was refused.** Seven open checkbox lists laid across the
+top is the same wall of options in a worse place, and the brief said so.
+
+**Compactness, measured at 1280px with all fourteen controls present:**
+
+| | height |
+|---|---|
+| labels stacked above controls | 280px (31% of a 900px viewport) |
+| labels inline, 10px gutter, 158px control ceiling | 193px, three wrapped rows |
+| labels inline, 8px gutter, 140px ceiling | **141px, two wrapped rows** |
+
+The last two numbers are three pixels apart in cause: at a 10px gutter the
+fourteenth cell missed the second row by 3px and wrapped alone onto a third.
+Both constants are commented in `dashboard.css` as load-bearing. Nothing breaks
+if a longer vocabulary pushes it back to three rows — it is a bar, it wraps —
+but neither number may be widened without re-measuring.
+
+Location became a dropdown too, and that trade is stated rather than hidden: its
+value stops being readable on the bar, which is a real loss for the most-used
+filter here. It buys the qualifier ("Only Countries A Source Named") travelling
+with the control it qualifies instead of sitting on the bar as a 200px sentence
+beside an unrelated control, and it is what took the bar from 193px to 141px.
+The chips bar directly below already names the chosen place in words and offers
+the way out of it.
+
+### The phone, decided rather than inherited
+
+Fourteen controls at 390px is four wrapped rows, and a sticky four-row bar pins
+most of the viewport — the same mistake rotated. Below 900px the bar is its head
+only: one **Filters** button with the chips count on it, opening the controls
+beneath it as a sheet **in normal flow**, not fixed. A fixed sheet either traps
+the page scroll or floats over the rows it filters, and the jump bar already
+holds the fixed-position budget at the bottom of this page. The bar also stops
+being sticky there, because two pinned bars fight — which is a finding from the
+sibling's own history, not a guess.
+
+Measured at 390px: **body `scrollWidth` 390 = `innerWidth` 390, 0 elements past
+the viewport edge, 0 containers needing a horizontal gesture** — collapsed, with
+the sheet open, and with a dropdown panel open. Unchanged from 1.55.0, which was
+also 0/0/0.
+
+### Three defects caught by measuring, two of which would have shipped
+
+1. **`.tit-bar` was already taken.** It is the chart bar TRACK
+   (`height:8px`), used by `places.php`, `shortcodes.php` and `dashboard.js`.
+   The new bar rendered 10px tall. Renamed `.tit-filterbar`; the rename then
+   over-matched and swallowed three chart rules, which the same measurement
+   caught on the next pass.
+2. **Converting the `<label>` wrapper to a `<div>` dropped `hidden`.** A
+   `<label>` forwards a click to its own control, so a trigger button inside one
+   also activates the select it hides; the wrapper therefore has to stop being a
+   label. Copying only `class` and `id` lost the `hidden` attribute, and **five
+   always-empty facet controls appeared on the bar** — Employer Type, Work
+   Setup, Funding Stage, Deal Type, Site Change — which is precisely the failure
+   that attribute exists to prevent. Now every attribute is copied except `for`.
+3. **The help disclosure escaped its own `<details>`.** `position:absolute` on a
+   child of a closed `<details>` defeats the UA's hiding, so the panel rendered
+   permanently, over the controls, on a disclosure reporting itself shut. It
+   showed up as two elements overflowing at 390px rather than by being looked
+   at. Now hidden explicitly, and anchored to the bar head rather than to the
+   summary — anchored to the summary it started at x=104 on a 390px screen and
+   ended 80px off the right edge.
+
+A fourth, found and fixed the same way: a panel open across a **resize** keeps
+an `is-flipped` decision made for a viewport that no longer exists. Opened at
+390px and widened to 1280px it ran 59px past the edge and put a scrollbar on the
+body. A `resize` listener closes whatever is open.
+
+### What did not move
+
+- **No new state channel.** The `<select multiple>` is still the state. The
+  querystring, chips bar, exports, quick views, click-to-filter, matrix cells
+  and facet refills read and write it exactly as before; the dropdown layer
+  hangs off `pillify()` and `dropCount()` and nothing else. Verified in a real
+  DOM: two ticks fire **exactly two** change events and select two options; an
+  untick fires one and leaves one; an **external write followed by a repaint**
+  (what a chart tap, a deep link and Reset All all do) re-renders the checkboxes
+  and the badge to match. That last case is the one that silently rots.
+- **No-JS still gets working native controls.** Verified with the script tag
+  removed: bar fully open at 305px, toggle hidden, `<select multiple size="5">`
+  rendered at 140x131 and usable, labels, date inputs, place select and basis
+  checkbox all visible. Every part of the dropdown layer is built at runtime, so
+  a page whose script never ran is missing nothing.
+- **Config still rides on `data-` attributes**, and nothing was added to
+  `wp_localize_script`. No new inline object for Autoptimize to reorder.
+- **`TIT_DASH_QUERY_BUDGET` untouched at 12 cold / 0 warm.** The N+1 tripwire
+  reports the same count. This pass added no query.
+- **Markup 166,802 -> 167,299 bytes** (+497, +0.30%), inside the budget.
+- The routine-filings disclosure, the chips bar, the honesty surfaces and every
+  control label are unchanged. Title Case is still asserted and still passes.
+
+### Accessibility, where this is deliberately better than the pattern it copies
+
+The sibling's dropdown has no Escape handler, no focus return, no
+`:focus-visible` on the trigger, sets `aria-expanded` only on first interaction,
+and claims `aria-haspopup="listbox"` over a panel containing no listbox roles.
+All five are fixed here: Escape closes and **returns focus to the trigger**
+(verified: `document.activeElement === trigger`), the trigger has a focus ring,
+`aria-expanded` is set at construction, and nothing claims a listbox — what is
+in the panel is a group of checkboxes and that is what it says. Tabbing out
+closes the panel; a click on the panel's own padding does not, because that
+reports a null `relatedTarget` and closing on it would shut the panel under the
+reader's finger.
+
+### Tests
+
+`render_dashboard.php`'s assertion that the panel is a COLUMN is replaced by one
+that the bar comes **before** the results in the document, plus three new ones:
+the phone toggle exists, ships `hidden`, and carries `aria-expanded` at
+construction. One existing assertion was also corrected rather than bumped: it
+counted `aria-controls=` across the whole page and asserted 2, which quietly
+meant "no other element on this page may ever control another" — the filter
+bar's toggle legitimately points at the panel it opens and failed a test about
+tab semantics. It now counts per tab element.
+
+The harness gained an optional `TIT_DUMP_HTML` env var that writes the rendered
+markup out for measuring in a real browser. Off by default. It exists because
+three of this page's properties cannot be asserted from a string — whether
+sticky actually pins, whether anything overflows 390px, and how wide a column
+ends up — and the sticky one fails silently.
+
+**6 PHP harnesses pass, 2,181 offline tests pass.**
+
+### NOT DEPLOYED, and the reason is the same as last time
+
+The brief asked for a deploy and a live verification. My standing instruction is
+**do not push**, and `deploy-plugin.yml` uploads from a checked-out git ref, so
+shipping this needs the branch pushed first. Publishing to the live site is also
+the owner's call to make and not an agent's. So 1.56.0 is committed and
+unshipped; the live page stays on 1.55.0. Everything in the tables above was
+measured against the real render in a real browser, not against the source. The
+one thing NOT verified is how it LOOKS: screenshots came back blank from this
+pane, so every claim here is a measurement and none of them is an eyeballing.
+
 ## 2026-07-30 — the writer queue stopped for six hours behind eleven green ticks
 
 **Root cause: one input the workflow does not declare.** At 17:42:17Z a GDELT
