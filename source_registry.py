@@ -770,6 +770,54 @@ def sources_manifest() -> list[dict]:
 #         an auth token, and data.fca.org.uk/robots.txt names ClaudeBot under
 #         `Disallow: /`. Refused on the robots file alone. NEEDS-OWNER.
 #
+#     AU  ASX market announcements. The ONE candidate blocked by a LICENCE
+#         rather than by a robots file or a missing taxonomy, which is why it
+#         gets its own paragraph: everything technical about it works.
+#         Measured live 2026-07-30 over the whole window the API exposes
+#         (2026-06-30 to 2026-07-30, 10,000 announcements, 400 pages of 25 at
+#         asx.api.markitdigital.com/asx-research/1.0/markets/announcements):
+#         142 distinct MANDATED announcement types, of which the board and
+#         officer ones are `Director Appointment/Resignation` 105,
+#         `Company Secretary Appointment/Resignation` 48,
+#         `CEO/Managing Director - Appointment Resignation` 46 and
+#         `Chair Appointment/Resignation` 33 — 192 announcements in 30 days,
+#         about 45 a week, ~2,300 a year. That is the same kind of machine-
+#         readable label Item 5.02 and SEBI Regulation 30 give, so the
+#         taxonomy problem that kills Form 6-K does not exist here.
+#         www.asx.com.au/robots.txt permits it: the whole file is
+#         `Disallow: /search*`, and neither asx.api.markitdigital.com nor
+#         announcements.asx.com.au serves a robots.txt at all.
+#         WHAT BLOCKS IT is www.asx.com.au/legals/terms-of-use, which says in
+#         two independent places that this use needs ASX's permission:
+#         "Market Announcements are freely available for investors' private and
+#         personal use only, and cannot be used for any commercial purpose
+#         without the express written authority of ASX. A commercial purpose is
+#         any use other than accessing and using the content for your own
+#         personal and private decision making"; and, under Prohibited uses,
+#         "use any spider, screen scraper, robot ... to use or access the Site
+#         in any way whatsoever, including monitoring, downloading or copying
+#         any content on the Site (except ... with ASX's prior written
+#         consent)". The legacy interstitial at
+#         /asx/v2/statistics/displayAnnouncement.do makes the reader confirm it
+#         by hand: "I confirm that any content I access will not be used for any
+#         commercial purpose". ASX sells this use as ComNews / ComNews Direct.
+#         So this is the SmartRecruiters decision again (see
+#         collectors/ats_watchlist.json): the endpoints answer 200 and the terms
+#         still say no, which is exactly why it is written down here instead of
+#         being discovered by whether a request works. NEEDS-OWNER — one email
+#         to ASX Information Services, and the connector is a day's work with
+#         the measurements above already done.
+#         Two traps recorded so the next attempt does not re-find them: the
+#         API's `url` field is empty on all 10,000 rows, and the PDF is reached
+#         from `documentKey` at asx.api.markitdigital.com/asx-research/1.0/file/
+#         {documentKey}, on the vendor's host rather than asx.com.au. And
+#         `Change of Director's Interest Notice` (Appendix 3Y, 589 in the same
+#         30 days — the largest of any leadership-looking type) is NOT an
+#         appointment: it is a SITTING director's shareholding moving under
+#         Listing Rule 3.19A. Collecting it because it looks like the spine
+#         would treble the volume with rows that are not talent signals at all.
+#         The appointments themselves sit under Listing Rule 3.16.1.
+#
 #   REAL BUT TOO THIN TO BE WORTH A CONNECTOR
 #     A connector yielding a handful of rows a month is worse than none, because
 #     it renders on the sources page as coverage. Investment promotion agencies
@@ -796,8 +844,10 @@ def sources_manifest() -> list[dict]:
 #     boilerplate at about one useful hit in eight. THAT is why the US has 7,620
 #     documents and Israel has 24, and it is why the jurisdictions worth
 #     building next are the ones that mandate a category: India (built),
-#     Australia (ASX types its announcement headers, and www.asx.com.au's own
-#     todayAnns page is robots-permitted), and the UK once a key exists.
+#     Australia (ASX does type its announcement headers, and robots.txt does
+#     permit the pages — but the terms of use do not; see the AU paragraph
+#     above, and do not re-research it on the strength of the robots file
+#     alone), and the UK once a key exists.
 
 MARKETS = (
     Market("IE", "Ireland", DISCOVERY_ONLY,

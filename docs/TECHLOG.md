@@ -13,6 +13,203 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — Australia has the spine and not the licence; sixty publishers instead
+
+Two jobs. Build the Australian equivalent of the India connector, and widen the
+publisher net from research the house already owns. The first ends in a
+**refusal**, and the refusal is the more useful result.
+
+### ASX: the taxonomy is there, the permission is not
+
+The India unlock was a jurisdiction's MANDATED disclosure category. Australia
+has one, and it is as good as SEBI's. Measured live over the whole window the
+API exposes — 2026-06-30 to 2026-07-30, **10,000 announcements**, 400 pages of
+25 from
+`asx.api.markitdigital.com/asx-research/1.0/markets/announcements?count=25&page=N`
+— ASX types every announcement, **142 distinct types**, and the board and
+officer ones are:
+
+| type | 30 days |
+|---|---|
+| `Director Appointment/Resignation` | 105 |
+| `Company Secretary Appointment/Resignation` | 48 |
+| `CEO/Managing Director - Appointment Resignation` | 46 |
+| `Chair Appointment/Resignation` | 33 |
+| **distinct announcements across those four** | **192** |
+
+That is ~45 a week, ~2,300 a year, from a market of roughly 2,200 listed
+entities. Not thin. Nothing about it is technically hard: the company name, the
+ticker, the sector, the type and the date are all fields in the response, so it
+would have been an `as_classified` collector spending nothing, exactly like
+`bse_india`.
+
+**www.asx.com.au/robots.txt permits it.** The entire file is `User-agent: *` /
+`Disallow: /search*` plus a sitemap line, and neither
+`asx.api.markitdigital.com` nor `announcements.asx.com.au` serves a robots.txt
+at all. That was checked first, as instructed, and it is a green light.
+
+**The terms of use are a red one, twice.** `www.asx.com.au/legals/terms-of-use`:
+
+> Market Announcements are freely available for investors' private and personal
+> use only, and cannot be used for any commercial purpose without the express
+> written authority of ASX. A commercial purpose is any use other than accessing
+> and using the content for your own personal and private decision making.
+
+and, under Prohibited uses, "use any spider, screen scraper, robot, other
+similar software or device, or other similar process, to use or access the Site
+in any way whatsoever, including monitoring, downloading or copying any content
+on the Site (except ... with ASX's prior written consent)". The legacy
+interstitial at `/asx/v2/statistics/displayAnnouncement.do` makes a human click
+it: "I confirm that any content I access will not be used for any commercial
+purpose in the context as explained above". ASX sells this use as ComNews and
+ComNews Direct.
+
+This tracker aggregates the information and republishes it on a public
+dashboard. That is the licensed use, and we do not hold the licence. **This is
+the SmartRecruiters decision again** (`collectors/ats_watchlist.json`): every
+endpoint answers 200, and the terms still say no, which is precisely why it is
+recorded in code and in the registry rather than being settled by whether a
+request works. **NEEDS-OWNER**: one email to ASX Information Services turns
+2,300 sourced Australian leadership rows a year into a day's work, with the
+measurement above already done.
+
+**The trap the next attempt would otherwise re-find twice.**
+
+1. *There is no announcement page and no `asx.com.au` document URL.* The API's
+   `url` field is empty on all 10,000 rows. The PDF is reached from
+   `documentKey` at `asx.api.markitdigital.com/asx-research/1.0/file/{key}` — the
+   vendor's host, not the exchange's. The legacy `todayAnns.do` page does carry
+   an `idsId` per announcement, but only for the current day, and its `idsId` is
+   NOT the middle segment of `documentKey` (TERRACOM's Final Director's Interest
+   Notice: `idsId=03119949`, `documentKey=2924-03115930-2A1686673`). Today those
+   two counters happen to sit 4,019 apart. Deriving one from the other would be
+   a guessed identifier inside a stored source URL, which is the AttachLive /
+   AttachHis mistake with extra steps.
+2. *`Change of Director's Interest Notice` is not an appointment.* It is
+   Appendix 3Y under Listing Rule 3.19A — a SITTING director's shareholding
+   moving — and at **589 in the same 30 days** it is the largest
+   leadership-looking type by a factor of three. The brief named 3X/3Y/3Z as the
+   likely spine; 3Y in particular would have trebled the volume with rows that
+   are not talent signals at all. The appointments themselves sit under Listing
+   Rule 3.16.1, which is what the four types above report.
+3. *Appendix 3X and 3Z are duplicates as often as not.* `Initial Director's
+   Interest Notice` (120) and `Final Director's Interest Notice` (81) are filed
+   BECAUSE of an appointment or a cessation, so on 35 of 152 same-day
+   (ticker, date) groups they sit beside the change announcement for the same
+   person — TERRACOM filed "Final Director's Interest Notice (M Chadwick)" and
+   "Director Resignation (M Chadwick)" 30 minutes apart. Including them would
+   have taken the headline count from 385 to look like coverage while storing
+   one event twice. 82 groups in 30 days ARE notice-only with no change
+   announcement within four days, so excluding them costs real recall; that is
+   the honest price of the cleaner unit, and it is written down rather than
+   hidden. Moot while the licence stands.
+
+`source_registry.py`'s triage block now carries all of this, and
+`tests/test_source_widening.py` asserts the paragraph keeps BOTH halves. A
+refusal that keeps the measurement and loses the licence reads to the next
+session as a rich source nobody got round to.
+
+Australia stays `discovery_only`. Nothing was added to `collect-structured.yml`,
+because there is nothing to schedule.
+
+### Sixty publishers, from research rather than from code
+
+The sibling AI Layoff Tracker's `TRUSTED_DOMAINS` holds **705 distinct domains
+(698 registrable)**. It was read READ-ONLY as research: no import, no file
+copied, no database touched. An outlet list is a fact about the world; the
+no-shared-code ruling is untouched.
+
+**372 of those registrable domains are not swept here.** 116 were taken forward
+and probed through `collectors/national_press.py`'s OWN `robots_allows` ->
+`fetch` -> `parse` path, so nothing was admitted that the live run cannot read:
+robots must permit, >=3 items must parse, the newest must be <=45 days old, and
+the drift guard must land on the recorded registrable domain. **63 verified.
+60 added. 3 refused, measured.**
+
+| | before | after |
+|---|---|---|
+| feeds in `data/sources_catalogue.csv` | 593 | **653** |
+| country buckets with at least one feed | 139 | **164** |
+
+Twenty-three of the twenty-five new buckets are countries this catalogue could
+not reach at all: DR Congo, Republic of the Congo, Gabon, Chad, Burundi,
+Central African Republic, South Sudan, Sudan, Kosovo, Lesotho, Eswatini,
+Malawi, Madagascar, Cape Verde, Sierra Leone, Guinea, Mali, Benin, Afghanistan,
+Tonga, Cook Islands, New Caledonia, Bermuda. The other two are
+`Pacific (regional)` (Islands Business) and `East Africa (regional)` (The
+EastAfrican), filed at coverage `Regional` on purpose so `dateline()` tells the
+model the outlet's base does not place the story rather than filing a Fiji round
+under Tonga.
+
+Depth went where the 2026-07-28 recall measured zero: **United Kingdom 3 -> 10**
+(it had three feeds for the whole country), Canada 7 -> 15, Germany 8 -> 12,
+France 10 -> 12, India 9 -> 11, Ireland 4 -> 7, Spain 4 -> 6, Australia 6 -> 8,
+Singapore 5 -> 6, Switzerland 4 -> 5.
+
+### Four things that are less good than the headline number
+
+1. **Not one recall zero-coverage country was newly REACHED.** All 27 of them
+   already had at least one feed before today. The recall zeros are not a
+   feed-existence problem, so this widening is depth against them and nothing
+   more; whether depth is what was missing is unmeasured until the next gold
+   set runs.
+2. **A feed is not coverage.** None of the 23 new countries is covered in the
+   sense `CLAUDE.md` means. They have a connector that fetches and a health
+   row; they have produced nothing, and several of them realistically never
+   will. They are on the sources page as catalogue CANDIDATES, which is the tier
+   that says exactly that, and none of them touched `MARKETS`.
+3. **This widens a funnel that is already saturated.** The last real run bought
+   all its read-throughs and still deferred 95 gate survivors, so the immediate
+   effect of 60 more feeds is more deferrals, not more spend and not
+   immediately more rows. The value lands when the read cap or the free
+   deterministic close rate rises, not today.
+4. **The four countries with no feed at all are still Aruba, Curacao, Kuwait and
+   Saint Kitts and Nevis.** The sibling's list reaches none of them either.
+
+### What was refused, with the measurement
+
+- **theage.com.au, brisbanetimes.com.au, watoday.com.au.** All three verified
+  green. All three serve the SAME Nine business feed as smh.com.au: measured
+  2026-07-30, The Age and Brisbane Times share **20 of 20** headlines with the
+  Herald and WAtoday shares **15 of 20**. `national_press` de-duplicates on
+  `title_key`, so they would have added nothing to the corpus and three lines to
+  the public sources page. Only the Herald is listed, plus The Canberra Times,
+  which shares **0 of 20** because ACM is a different owner. Pinned by
+  `test_no_syndicated_nine_masthead_was_listed_beside_the_herald`. FAZ, Spiegel,
+  Sueddeutsche and Welt were checked the same way and share 0 with each other,
+  so all four are listed.
+- **53 of the 116 candidates found no readable feed** at all under the paths
+  tried (Georgia, Armenia, Belarus, Somalia, Liberia, Seychelles, Comoros,
+  Angola, Togo, Burkina Faso, Niger, Gambia, Vanuatu, Solomon Islands, Samoa,
+  Guam, Northern Mariana Islands and French Polynesia among them, plus
+  news24.com, businesslive.co.za, uol.com.br, corriere.it, publico.pt,
+  caixin.com, zawya.com, aleqt.com, swissinfo.ch and interest.co.nz). Those are
+  "not found by this pass", not "no feed exists" — a hand-found feed URL for any
+  of them is a one-line catalogue addition.
+
+### Two items in the brief that were already done
+
+- **`finance.yahoo.com` needs no blocklist entry.** `_AGGREGATOR_DOMAINS` is
+  DERIVED from `_AGGREGATOR_HOSTS` by registrable domain, so `news.yahoo.com`
+  already blocks `finance.yahoo.com`, `uk.finance.yahoo.com` and every other
+  Yahoo host. Adding it by name would imply the domain rule does not work.
+  Checked first: the sibling allows no Yahoo host as editorial either. Asserted
+  now rather than re-argued.
+- **`news.crunchbase.com` is still in `_EDITORIAL_EXCEPTIONS`** and stays there.
+  Asserted.
+
+### One place the brief was wrong about this repo
+
+Feeds are not added to `data/feeds.csv`. That file is a GENERATED export, built
+by `build_feeds_export.py` from `data/sources_catalogue.csv`, and its intended
+consumer is the sibling tracker — a test fails if it is hand-edited. So the 60
+rows went into the catalogue and `feeds.csv` was regenerated, which is also why
+the reciprocity here is neat: the sibling's outlet research came in as research,
+and 60 more verified feeds go back out to it through a file that already
+existed for that purpose.
+
+---
+
 ## 2026-07-30 — link hygiene is armed, and the cron is not where it looks like it goes
 
 The ask was to uncomment two crons: `40 3 * * *` in `archive-sources.yml` and
