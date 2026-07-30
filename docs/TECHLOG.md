@@ -13,6 +13,132 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the parser was fixed and the rows were not: funding_amount_usd is re-derived by a queued pass, not by a list of twelve
+
+`correct_funding_amount.py`, `.github/workflows/correct-funding-amount.yml`, one
+line added to `drain-writers.yml`, and `tests/test_funding_amount_correction.py`
+(27 tests). Suite **2,377 -> 2,406** (+27 mine, +2 from the workflow tests that
+are parametrised per workflow file). **$0**: no model is called, and the whole
+job is one pure function over strings we already hold.
+
+### The defect, measured against `main` at 7e22619
+
+`funding_amount` is the publisher's own wording and never changes.
+`funding_amount_usd` is what `vocab.parse_funding_usd` made of it **at the moment
+the row was written** — and that function was improved twice this week
+(2026-07-29: the hyphenated multiplier and the stated-dollar rule; 2026-07-30:
+`milyon`, `mi`, dot-as-thousands, `_MIN_PLAUSIBLE_USD`). Every improvement leaves
+the rows collected before it holding a figure the parser would no longer produce.
+
+| | |
+|---|---|
+| live rows carrying a funding string | 3,254 |
+| of those, holding a dollar figure | 3,196 |
+| disagree with the current parser | **12 (0.37%)** |
+| of those, published to the live site | **12 (all of them)** |
+| would be re-derived to a figure | 7 |
+| would be **cleared** to no figure | 5 (0.16% of the 3,196) |
+| money total on the tracker | $133,405,633,262 -> **$133,745,781,597** |
+| net change | **+$340,148,335** |
+
+Every one of the twelve is stored as a two- or three-digit dollar amount standing
+for a round of millions: `USD 53 millones` as $53, `$20-million USD` as $20,
+`$190 Milyon Dolar` as $190, `$150.000` as $150. The page's money charts, the
+`raised` sort and the `funding_amount_usd >= N` filter all read that column.
+
+### Two shapes, and the second one is the point
+
+Seven now parse to a correct figure. Five now **refuse** — `500 millones` (no
+currency stated), `25 millioner kroner` and `10,5 mio. kr.` (Danish), `US$ 544 mi`
+(ambiguous scale word), `$1` (a headline the publisher truncated mid-figure) —
+and a row whose amount refuses must end with **no `funding_amount_usd` at all**.
+The page states that an amount it cannot read is left out rather than converted
+at a rate nobody published, and a stale wrong number sitting exactly where the
+parser now says "I will not guess" is the falsehood that promise exists to
+prevent.
+
+That second shape is why `/enrich` grew `tit_clearable_columns()`. Its ordinary
+rule is that an absent or empty field NEVER erases a stored value — that is what
+stops one failed lookup wiping a column — so erasing has to be asked for by name,
+in `{"clear": ["funding_amount_usd"]}`, and only for the two columns on that
+list. A deployed plugin without it answers `not clearable` and the run fails
+loudly rather than leaving five wrong figures on the page.
+
+### Three shape decisions, each of which could have been the damaging one
+
+**In place on the site, never withdraw-and-republish.** `funding_amount_usd` is
+not an input to `content_hash`, so the corrected revision carries the SAME hash
+as the row it replaces, and `tit_insert_signal()` refuses any hash it has seen at
+ANY revision. Republishing would have taken twelve real records OFF the live page
+and reported `retracted` when it tried to put them back — twelve silent
+deletions, logged as duplicates. Same reasoning as `correct-city-country`, and
+the opposite of `correct-company-key`, which moves the hash and therefore must
+republish.
+
+**Merge, not rebase — the opposite of `correct-form-d`.** That one rebases
+because it edits rows in place: a merge has no new `(content_hash, revision)`
+pair to carry, so it would turn a loud rerun into a silent no-op. This pass
+APPENDS a revision through `store.revise()`, so every corrected row is a new
+`(content_hash, revision + 1)` — exactly the key `merge_db.py` merges on. Rebasing
+a 34MB binary instead would conflict every time a backfill lands mid-run, which
+right now is most of the time.
+
+**The whole column, not twelve row ids.** A hand-typed worklist would be stale
+the next time somebody adds a scale word, and would not have found these twelve
+in the first place. Two ceilings guard the generalisation, both needing a `--force`
+a person types after reading the printed table: 5% of rows may move, and only 1%
+of rows holding a figure may be **cleared**. The second is tighter on purpose — a
+wrong value is fixed by the next run, a cleared one is not, because `/enrich`
+ignores absent values by design.
+
+### What could not have done this job, and why that is correct
+
+`schema.backfill_funding_usd()` already runs on every `connect()` and already
+picks up parser improvements — but only `WHERE funding_amount_usd IS NULL`. It
+reaches a row that never had a figure and none of these twelve, every one of
+which holds a wrong one. That asymmetry is right rather than an oversight:
+filling a NULL invents nothing and owes no revision; replacing a stored value is
+a correction and owes one. It is also what makes a cleared row STAY cleared — the
+backfill re-examines it every run and asks the identical function, the one that
+refused the string in the first place. Asserted, not assumed
+(`test_a_cleared_row_is_not_refilled_by_the_connect_time_backfill`).
+
+`publish.enrich_published()` cannot do it either. It carries a new VALUE happily;
+it can never carry an absent one.
+
+### Where the brief was wrong
+
+It said `test_no_stored_amount_parses_to_an_absurdly_small_figure` is RED on
+`main` and that CI stays red until the correction runs. It is not, and it does
+not. That test was deliberately rewritten to read **what the parser says about
+the strings we hold**, not the stored column — its own docstring says "so the
+test passes as soon as the parser is right and does not wait on the correction
+run" — and the parser fix at `1d636c8` is what turned it green. Run
+`30581357181` (20:56Z) was the last red one and named six strings, not twelve;
+run `30581763245` on `7e22619` (21:02Z) is green. **CI on `main` was already
+green before this work started and stays green after it.**
+
+The brief also listed twelve rows as present in the committed database. Seven of
+them are only in `origin/main`'s copy; the worktree's `data/talent_intel.db` is a
+32.9MB file predating those collections and disagreeing on five rows, not twelve.
+Every figure in this entry was measured against `origin/main`'s blob, never the
+dirty working copy, and nothing here commits a database.
+
+### Queue it, never dispatch it
+
+```
+gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
+  -f inputs_json='{"dry_run":"false"}' \
+  -f reason='re-derive funding_amount_usd after the milyon/mi/dot parser fixes'
+```
+
+`dry_run` defaults to true, so a dispatch that says nothing writes nothing. The
+workflow is in `talent-collect` and is now in `drain-writers.yml`'s
+`workflow_run` list, which `tests/test_workflows.py` derives and compares rather
+than trusting.
+
+---
+
 ## 2026-07-30 — Czechia states both directions and Estonia states only one, and the window belongs on the registration date
 
 `collectors/czechia_ares.py` + `collectors/estonia_ariregister.py`, two new
