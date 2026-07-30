@@ -54,6 +54,7 @@ on:
       - correct-city-country
       - correct-company-key
       - correct-form-d
+      - correct-funding-amount
       - correct-layoff-scope
       - correct-sec-pillar
       - enrich

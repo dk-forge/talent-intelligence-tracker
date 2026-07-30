@@ -1,0 +1,153 @@
+name: correct-funding-amount
+
+# Re-derive funding_amount_usd from the funding string each row already holds.
+#
+# funding_amount is the publisher's wording and never changes;
+# funding_amount_usd is what vocab.parse_funding_usd made of it AT THE MOMENT
+# THE ROW WAS WRITTEN. Every improvement to that function therefore leaves the
+# rows collected before it holding a figure the parser would no longer produce.
+# Measured 2026-07-30 against main: 12 of 3,254 live rows with a funding string,
+# all 12 published, all 12 stored as a two- or three-digit dollar amount for a
+# round of millions. See correct_funding_amount.py.
+#
+# This takes NO list of row ids. It re-derives the whole column, so the next
+# time somebody widens the multiplier vocabulary the follow-up is one queued run
+# of this rather than a fourteenth bespoke correction workflow.
+#
+# ---------------------------------------------------------------------------
+# WHY IN PLACE ON THE SITE, AND NOT WITHDRAW-AND-REPUBLISH
+# ---------------------------------------------------------------------------
+# funding_amount_usd is not an input to content_hash — md5(company_key|pillar|
+# published_date|normalised headline|source_name) — so the corrected revision
+# carries the SAME hash as the row it replaces, and tit_insert_signal() in
+# includes/db.php refuses any hash it has already seen at ANY revision. A
+# withdraw-then-republish, which correct-company-key.yml and
+# correct-sec-pillar.yml both do, would take these rows OFF the live page and
+# get 'retracted' back when it tried to put them there again: twelve real
+# records deleted from a live page, reported as duplicates. So this is the
+# correct-city-country.yml shape — the site is corrected IN PLACE, through
+# /enrich, and the revision is still appended locally.
+#
+# The rows whose amount now REFUSES are the reason /enrich grew a `clear` list.
+# Its ordinary rule is that an absent or empty field never erases a stored
+# value; erasing has to be asked for by name, and only for the columns in
+# tit_clearable_columns(). A plugin without it answers 'not clearable' and this
+# run fails loudly rather than leaving five wrong figures on the page.
+#
+# ---------------------------------------------------------------------------
+# WHY IT MERGES RATHER THAN REBASES, WHICH IS THE OPPOSITE OF correct-form-d
+# ---------------------------------------------------------------------------
+# correct-form-d.yml rebases and goes red on a conflict because it edits rows IN
+# PLACE: a merge has no new (content_hash, revision) pair to carry, so it would
+# turn a loud rerun into a silent no-op. This pass APPENDS a revision through
+# store.revise(), so every corrected row is a new (content_hash, revision + 1)
+# — exactly the key merge_db.py merges on, and exactly what a rebase of a 34MB
+# binary would instead turn into a conflict every time a backfill lands while
+# this runs. So it takes the collect/backfill shape: reset to origin/main and
+# merge our rows back in, never copy our file over the top of it.
+#
+# Queue it, never dispatch it:
+#   gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
+#     -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+      limit:
+        description: 'Stop after N rows (blank for all)'
+        type: string
+        default: ''
+      force:
+        description: 'Proceed past the share ceilings, having read the table'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # correct-city-country.yml, correct-company-key.yml, correct-sec-pillar.yml,
+  # retract.yml and the backfills.
+  group: talent-collect
+  # It updates the live site and then appends the revision that records it. A
+  # run cancelled between those two steps is resumed cleanly by the next one —
+  # but only if it is allowed to finish rather than being killed by a dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # Twelve rows, one request each. The budget is for the shared host's retry
+    # pauses, not for the work.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          # The script writes ONLY with --apply, and this is the only place it
+          # can be passed: the input defaults to true, so a dispatch that says
+          # nothing is a dry run rather than a live edit of published figures.
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
+          [ "${{ inputs.force }}" = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
+          # No `|| true`: a plugin that cannot clear the column, or a refused
+          # share, must fail the run rather than pass quietly.
+          python correct_funding_amount.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our revisions into the remote's database, never copy our file
+          # over the top of it — a copy destroys every row anyone else pushed
+          # while this run was correcting. See merge_db.py, and the header
+          # above for why this one may merge where correct-form-d may not.
+          cp data/talent_intel.db "$RUNNER_TEMP/corrected.db"
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/corrected.db" data/talent_intel.db
+            git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "No data change."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "data: re-derive funding_amount_usd from the stored strings $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" = "1" ]; then
+            exit 0
+          fi
+          # The site was updated BEFORE the database on purpose, so a run that
+          # cannot push has corrected the live figures and lost only the record
+          # of having done so. The worklist is derived from what is stored, so
+          # re-queueing finds exactly the same rows and re-sends values the site
+          # already holds. Loud, because nothing else would say so.
+          echo "::error::could not push the corrected database after 5 attempts."
+          echo "::error::The live site is already corrected; the revisions are not"
+          echo "::error::committed. Re-queue this workflow — it is idempotent."
+          exit 1
