@@ -13,6 +13,312 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — four coverage levers at $0 and one priced walker, and three of the four briefs were wrong about the code
+
+Five items, briefed as "close the coverage gap as cheaply as possible". Four had
+to cost nothing in model spend and the fifth had to be paced rather than funded.
+All five landed. **Model spend this session: $0.00.** No model call was made by
+any code written here and none was made while measuring it.
+
+Tests **1,996 -> 2,040** (+44, four new files). `ops_status.py` exits 2 before and
+after with the *identical* five items — five collectors reading stale against a
+checkout six commits behind origin. Verified by running `git show
+HEAD:ops_status.py` against the same database: same exit, same list. Nothing
+written here adds a problem.
+
+**Three of the five briefs described code that is not there.** Each is recorded
+below beside what is, because the wrong belief is the reusable part.
+
+### 1. The archive queue: the sibling's bug is absent, and the mirror of it was not
+
+**Brief:** 3,965 URLs sit `pending` on the sibling and never re-enter its
+candidate list; this repo has the mirror problem, and records already pushed to a
+terminal state by a blinded 429 probe need resetting. Count them.
+
+**Count: ZERO, and neither premise held.**
+
+| measured, `data/talent_intel.db`, 263 ledger rows | |
+|---|---|
+| `archive_state = 'unavailable'` | **0** |
+| max `archive_attempts` on any row | **1** (of `MAX_ARCHIVE_ATTEMPTS` = 5) |
+| archived / pending / no archive row yet | 72 / 69 / 122 |
+| coverage | 72 of 12,970 distinct source URLs (0.6%) |
+
+Nothing has ever reached the terminal state, so there was nothing to reset.
+`archive_sources.py --recheck-terminal` says so and exits 0; it is kept because
+both routes into that state shipped as green runs and a third would need it
+again.
+
+And **`pending` already re-entered the candidate list.**
+`source_links.archive_candidates` excluded only `archived` and `unavailable`. The
+sibling's defect is not in this function and never was.
+
+**What WAS real, and it is the same bug in the second of the two places it can
+happen.** The availability-API 429 was fixed on 2026-07-30. Save Page Now's 429
+was not: `archive_attempts` was incremented unconditionally after a capture
+attempt, so a *refused* capture spent one of the five. Five throttled nights —
+which for an anonymous Save Page Now caller is an ordinary fortnight, not an
+outlier — would have retired a perfectly capturable document to the terminal
+state having never once been told it was uncapturable, out of five green runs.
+`archive_candidates` drops it forever and only a hand-written UPDATE brings it
+back.
+
+**Second real defect: `pending` was re-examined but could not be REACHED.** The
+candidate list was a strict newest-capture-first head slice under `limit`. At
+12,970 distinct URLs and a 600-URL window, a URL nobody has ever had an answer
+about sinks further every time a collect run stores something newer. That is the
+sibling's outcome by a slower route, and it is invisible because the percentage
+still climbs.
+
+Both fixed structurally rather than by patching the symptom:
+
+* **Terminal requires EVIDENCE.** `classify_archive_outcome` now takes `probes`
+  and will not record `unavailable` until archive.org has answered at least once
+  and said it holds nothing (`MIN_PROBES_BEFORE_TERMINAL`). A throttle can no
+  longer retire a document, by construction, whatever the next caller does.
+* **Blind rounds are counted apart from attempts.** Three new columns
+  (`archive_probes`, `archive_blind_rounds`, `archive_detail`), appended to
+  `MIGRATIONS`. NULL reads as "never probed", which is the honest reading of every
+  row written before they existed.
+* **The gap is reported SPLIT.** `source_links.archive_gap()` and
+  `ops_status [2c]`: **12,898 never answered about, 0 confirmed absent from
+  Wayback.** A percentage climbing slowly because Save Page Now is rate-limited
+  (the design) and one climbing slowly because nothing can get an answer (a
+  fault) are indistinguishable until those two numbers are printed apart. Today
+  every un-archived URL is in the first bucket, which is a statement about what we
+  know rather than about Wayback.
+* **Two tiers in the candidate order**: never-probed first, then probed-and-absent.
+  Every brand-new URL has zero probes, so the ingest-time property the module
+  docstring defends is preserved exactly — within tier 1 the order is still
+  newest-first. What changes is that the never-answered tail rides *with* the new
+  rows instead of behind every one of them.
+* **Real pacing.** Consecutive non-answers back the availability gap off
+  geometrically to 30s, one answer resets it, and 12 unbroken non-answers end the
+  free pass with the remainder unexamined and a `::warning::`. The old behaviour
+  walked all 600 candidates at 2/s learning nothing and spent the deadline
+  proving archive.org was still refusing.
+* `ops_status [2c]` goes RED on any terminal-while-blind row and names the repair
+  command. It must always be zero.
+
+Cost: **$0**. No model is called by `archive_sources.py` or `link_check.py`, ever.
+
+One existing assertion changed and it is worth naming.
+`test_an_unanswered_url_never_spends_a_capture_or_an_attempt` asserted
+`COUNT(*) == 0` on the ledger after a blind round. That proxy stopped being the
+property: a blind round is now written down, because "nothing has answered about
+this URL for six nights" is otherwise unknowable. The test now asserts the
+substance — state `pending`, attempts 0, probes 0, blind_rounds 1 — and says why
+the proxy was replaced.
+
+### 2. Ranking the read budget: measured on a real candidate set, and it moves
+
+**The brief's figure was stale.** `READTHROUGH_CAP` is already 200; the
+95-deferral measurement was taken at 60, before the owner's 2026-07-30 raise.
+The lever is still real, because a full `national_press` sweep produces ~1,018
+gate survivors and 200 binds hard on that.
+
+`pipeline/candidate_rank.py`. Ranks `kept` immediately before the classify loop,
+which is where `BudgetDeferred` is thrown. Four free signals: country need (from
+our own `signals.country` GROUP BY, not from a stale worklist file), employer
+novelty, keyword force (reusing `cheap_extract`'s own reading), source tier.
+
+**The property that makes it safe is that it is a permutation.** `rank()` returns
+the same objects, asserted by identity rather than equality, so nothing was
+rebuilt, normalised or quietly edited on the way through. It cannot reject,
+filter or promote; `precheck`, the gate, `validate` and `store` are untouched and
+unaware of it. A deferred candidate is still left unmarked and still returns next
+run, so the ordering decides *when* a story is read and never *whether*.
+
+**Measured, live, on a real candidate set** — 90 catalogue feeds one per country
+in turn, 1,514 items, 162 past the free prefilter, which is exactly the population
+a run hands the gate. `python3 -m analysis.ranking.measure --live --feeds 90`:
+
+| cap 60 | US/GB | countries reached | from countries holding ZERO rows | no country hint |
+|---|---|---|---|---|
+| arrival order | 0 | 20 | **19** | 4 |
+| ranked | 0 | **29** | **60** | 0 |
+
+**3.2x the zero-row candidates read, +45% country breadth, at identical spend.**
+At cap 200 the 162-candidate sample does not bind and the two orders are
+identical — correct, and the honest shape of the result: ordering only matters
+when the cap binds.
+
+On the 226 stored news rows (`--stored`), at cap 60: 2 countries -> 23.
+
+Three limits printed with the result rather than left to be discovered:
+
+* **No real candidate set was ever captured, so none can be replayed.**
+  `raw_text` is not persisted and a rejected candidate leaves a bare URL in
+  `seen_urls` with no text and no reason — the same wall the rejection audit hit,
+  and it printed a zero rather than an estimate for the same reason.
+* The stored population is rows that *stored*, so the "holds zero" signal is
+  circular on it by construction. That column is omitted there, not fudged.
+* The live sample was breadth-first, one feed per country, which **flatters**
+  arrival order — a real run reads 43 US feeds among 575. The true effect is
+  likely larger, not smaller.
+
+Cost: **$0**. One GROUP BY, one DISTINCT scan, and regexes already compiled. A
+ranking signal that needed a fetch would cost more than the read it was trying to
+prioritise.
+
+### 3. MARKETS: 15 not 14, Korea already in it, and it drives neither of the two things it is believed to
+
+**Brief:** MARKETS has 14 entries; Korea is in the Google News rotation without
+being in MARKETS; more editions cost gate time; more candidates into a saturated
+read cap produce more deferrals.
+
+Actual: **15 entries, and KR was added on 2026-07-29** with the OpenDART work.
+And the caution does not apply, because of what MARKETS actually controls —
+traced through the code rather than assumed:
+
+* It does **NOT** drive the Google News locale rotation. `GOOGLE_NEWS_LOCALES` is
+  an independent tuple and `build_locales` reads only it. Every country added
+  below has been swept twice a day for days while the coverage manifest said
+  nothing about it — the same gap Korea had.
+* It does **NOT** widen the prefilter's geography gate. The comment above
+  `_geography_terms` claimed it "grows automatically as source_registry.MARKETS
+  grows"; the function reads `vocab.COUNTRY_NAMES`, `vocab._CITY_ALIASES`,
+  `vocab._COUNTRY_ALIASES` and a hardcoded short-code list, and has never
+  referenced MARKETS. **Corrected in place**, because that belief is exactly what
+  would make someone add a market expecting its stories to start surviving the
+  free filter.
+* `build_segments()` **does** read it, and `build_queries()` puts the result in
+  the query list for every source that is not gdelt, google_news or
+  tripwire_chase — which is every structured source, and **every one of them
+  accepts `queries` and ignores it** (`national_press` says so in its docstring;
+  the SEC pair search by form and item; a derived source has no search vocabulary
+  at all). So a segment added here reaches no fetch today.
+
+**Therefore expanding MARKETS costs $0 AND adds zero candidates AND zero gate
+time.** It is a correction to a public claim, not a widening of collection. The
+brief's caution (a) is true of widening `GOOGLE_NEWS_LOCALES`, which is a
+different edit and was not made.
+
+**The binding constraint is the segment sweep budget, and it is 56.**
+`test_the_segment_matrix_still_sweeps_inside_the_recency_window` requires
+`ceil(segments / 4 / 2) <= 7`. The 15 existing markets spend 44 (name + one per
+`terms` entry). Twelve name-only markets spend the remaining twelve exactly.
+**That is why none of the twelve carries `terms`** — one three-phrase pack costs
+four slots and buys one market instead of four.
+
+Added, **MARKETS 15 -> 27**: BR, ES, IT, MX, AR, CO, PT, CH, SE, AE, ZA, NZ.
+Every gold-set zero-country that already has a swept Google News edition and at
+least two wired publisher feeds. Both conditions were load-bearing:
+
+* **No edition** -> a `discovery_only` market cannot honestly claim
+  `live_sources=("google_news",)`, and adding an edition means adding a
+  live-verified LANGUAGE PACK, not a translation. That excludes **CN** (7 feeds,
+  no `zh` pack), **NO** (5, no pack) and **FI** (4, no pack).
+* **One wired feed** is the single point of failure the catalogue refuses
+  elsewhere. That excludes **SA**; its ar:SA edition keeps sweeping, simply
+  unclaimed.
+
+`tests/test_market_claims.py` pins all of it, including a test that fails if a
+zero-scoring country with an edition and feeds is left unclaimed without being
+named in `BUDGET_DEFERRED` with a reason. That dict is empty today: the twelve
+spent the budget exactly, and every remaining zero-country is excluded for one of
+the two reasons above.
+
+### 4. The historical walker already existed. What did not exist was a price on it
+
+**Brief:** build a cursor-based walker equivalent to the sibling's; read the
+sibling read-only for the pattern.
+
+**It has been here since 2026-07-29.** `backfill_gdelt_2026.py` +
+`backfill_slices.py`: monotonic cursor committed to `data/backfill_state.json`,
+one slice per run, server-side windows (GDELT DOC 2.0 takes explicit
+`startdatetime`/`enddatetime`; Google News RSS has no archive, which is why GDELT
+is the route), seen-URL skipping before any spend, `--fetch-only` for a free
+rehearsal, `MAX_SLICES_PER_JOB`, and a `halt` path that records the slice and
+declines to requeue into a wall. **The sibling was not read: there was nothing to
+pattern-match, the pattern was already here.**
+
+**The sibling's date-ordinal trap is structurally absent.** `record()` moves the
+cursor from the ticket the run emitted and reads no clock, so two runs in one hour
+advance twice and a run that finished nothing advances not at all — which it
+catches, marks `stalled`, and refuses to requeue.
+
+**It has never run.** `data/backfill_state.json` holds one job and it is
+`backfill-funding-bulk`.
+
+**What was NOT cheap by construction was the read ceiling — and the number that
+actually applied was in the workflow, not the script.** Script default 1200; the
+`max_readthroughs` workflow input default **also '1200'**, which is what a
+dispatch uses. At the measured $0.00128 a read that is ~$1.54 a slice, and a year
+of 2026 history is 92 slices: **the input default alone authorised ~$142 against a
+~$5/month product budget.** A ceiling only `spend.py` can stop is not a ceiling,
+it is a plan to be interrupted.
+
+Now derived rather than typed:
+
+```
+MONTHLY_WALKER_BUDGET_USD = 1.50
+USD_PER_READ_ALL_IN       = 0.00128 + 4 x 0.00003   # the read AND the gates that found it
+DEFAULT_MAX_READTHROUGHS  = 1.50 / 30 / 0.0014 = 35
+```
+
+Deriving it from the read price alone overshot by 9% — small, and exactly the
+arithmetic that makes a stated ceiling quietly untrue. The workflow default is now
+blank, meaning "use the derived value", so the budget and the ceiling cannot
+disagree.
+
+`python3 backfill_gdelt_2026.py --plan-cost` (fetches nothing, calls nothing):
+
+| pace | wall clock | $/month | $ total |
+|---|---|---|---|
+| 1 slice/day | 92 days | **1.47** | 4.51 |
+| 2 slices/day | 46 days | 2.94 | 4.51 |
+| 4 slices/day | 23 days | 5.88 | 4.51 |
+
+**A year of 2026 history costs $4.51 at any pace.** The pace only decides how long
+it takes and how much lands inside one month — and 4/day exceeds the whole product
+budget on its own. **Not armed**: there is no cron, and arming one is the owner's
+spend decision. `ops_status [2e]` now says so with the queue command beside it,
+because the walker addresses **51 of the 81 recall misses** (`outside_our_history`
+— the news collectors first ran 2026-07-27 and `national_press` on 2026-07-29,
+against a gold window of 2026-07-01..28; the 9% is a two-day-old tracker measured
+against a four-week window).
+
+`tests/test_backfill_pace.py` asserts **the property and not the symptom**: two
+`record` calls at the identical clock second advance the cursor twice; the cursor
+is monotonic across a 30-slice chain; a budget stop resumes on the first window it
+did not do; a stalled job yields no inputs; no sliced backfill workflow may carry
+a cron faster than daily (with a cron-expression parser tested against the shapes
+that actually appear here, including the sibling's `0 * * * *`); and the walker
+carries no cron at all.
+
+**Not measured, and it does not change the projection:** candidate volume per
+day-window. Two `--fetch-only` probes were started and neither finished — GDELT
+paces at 12s a query and 9 queries a window — and the session ended before they
+did. It is not load-bearing: the gate term is a fortieth of the read term, so the
+slice cost is a read-count projection with rounding, and the read ceiling is what
+binds. Anyone wanting the number can have it for free:
+`python3 backfill_gdelt_2026.py --start 2026-03-10 --end 2026-03-10 --fetch-only`.
+
+### What was refused
+
+* **Rebuilding the walker.** It exists; rebuilding it would have been a second
+  implementation of a cursor, which is how two sources of truth start.
+* **Arming any cron.** None was added. The walker, the tripwire and the plugin
+  deploy all stay as they were.
+* **`spend.py`.** Untouched. The $10 monthly allowance and the OpenRouter key cap
+  are the enforcement; everything above is sizing.
+* **Raising `SEGMENTS_PER_RUN`** to fit a thirteenth market. It would have relaxed
+  a guard that exists because queries once asked `when:3d` while the matrix took
+  6.2 days, and it would have bought a market by weakening the thing that keeps
+  markets honest.
+* **Mapping the catalogue's `source_type` column into a ranking signal.** The
+  recall worklist's under-delivering types are `trade_press` (4% held),
+  `press_release` (16%), `national_news` (0%), `filing` (40%); the catalogue's
+  column is 66 freeform values from "News Organization" (888 rows) to "Patent
+  Office". Mapping one onto the other invents a vocabulary to rank by, and a wrong
+  mapping would be invisible — it would simply rank the wrong things first.
+* **A registry connector**, `collectors/companies_house.py`,
+  `data/sources_catalogue.csv` (read only) and everything under
+  `wordpress-plugin/`. Other lanes.
+
+---
+
 ## 2026-07-29 — the filter panel is a column of scrolling checkboxes, and the page has one vocabulary
 
 Plugin **1.53.0 -> 1.54.0**. Owner-driven pass on the dashboard. Everything

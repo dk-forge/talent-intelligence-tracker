@@ -1153,6 +1153,82 @@ MARKETS = (
                "DART disclosures (Korea, FSS OpenDART) — connector built, "
                "awaiting its first authenticated run",),
            terms=("hiring in Seoul", "서울 사무소", "경력 채용")),
+    # --- 2026-07-29 widening, twelve markets ---------------------------------
+    #
+    # READ THIS BEFORE ADDING THE THIRTEENTH. What follows is what MARKETS
+    # actually controls, traced through the code rather than assumed, because two
+    # widely-believed things about it are false.
+    #
+    # It controls the PUBLIC COVERAGE CLAIM and, today, nothing else.
+    # `coverage_manifest()` renders straight onto the sources page and into
+    # `ops_status [3]`. That is the whole of its live effect, which is why these
+    # twelve cost exactly $0 and add exactly zero candidates:
+    #
+    #   * MARKETS does NOT drive the Google News locale rotation.
+    #     `GOOGLE_NEWS_LOCALES` is an independent tuple and `build_locales` reads
+    #     only it. Every country below has been in that rotation for days — some
+    #     since 2026-07-28 — and has been swept twice a day while the coverage
+    #     manifest said nothing about it at all. This is the same gap Korea had:
+    #     ("ko","KR") swept for its whole life with KR absent from this list.
+    #   * MARKETS does NOT drive the prefilter's geography gate either. The
+    #     comment above `prefilter._geography_terms` claimed it grew with this
+    #     tuple; the function reads `vocab.COUNTRY_NAMES`, `vocab._CITY_ALIASES`
+    #     and a hardcoded short-code list, and never touches MARKETS. That
+    #     comment has been corrected.
+    #   * `build_segments()` DOES read this tuple, and `build_queries()` puts its
+    #     output in the query list for every source that is not gdelt,
+    #     google_news or tripwire_chase — which is every STRUCTURED source, and
+    #     each one of those accepts `queries` and ignores it (`national_press`
+    #     says so in its docstring; the SEC pair search by form and item; a
+    #     derived source has no search vocabulary at all). So a segment added here
+    #     reaches no fetch today. It still costs, and the cost is the SWEEP
+    #     BUDGET below.
+    #
+    # THE SEGMENT BUDGET IS THE BINDING CONSTRAINT, and it is 56.
+    # `test_the_segment_matrix_still_sweeps_inside_the_recency_window` requires
+    # ceil(segments / SEGMENTS_PER_RUN / RUNS_PER_DAY) <= the derived recency
+    # window: 4 x 2 x 7d = 56 segments. Each market contributes its name plus one
+    # per `terms` entry. The fifteen above spend 44, so twelve name-only markets
+    # spend the remaining twelve exactly. **That is why none of these carries
+    # `terms`** — one term pack of three would cost four slots and buy one
+    # market instead of four. The ceiling rises only when the locale rotation
+    # grows enough to widen the derived window (72 at 71 locales).
+    #
+    # ADDING A THIRTEENTH therefore means one of: giving a market local-language
+    # `terms` and dropping three others; or widening the locale rotation. It does
+    # NOT mean raising SEGMENTS_PER_RUN, which would relax a guard that exists
+    # because queries once asked `when:3d` while the matrix took 6.2 days.
+    #
+    # HOW THESE TWELVE WERE CHOSEN, from data/recall_worklist.json:
+    # they are the countries the sealed gold set scored us ZERO on that already
+    # have a Google News edition in the rotation and at least two wired publisher
+    # feeds in the catalogue. Both conditions matter. Without an edition, a
+    # discovery_only market cannot honestly say `live_sources=("google_news",)` —
+    # which is what the tier test requires — and adding an edition means adding a
+    # LANGUAGE PACK, which is a live-verified measurement and not a translation.
+    # That is what excludes China (7 feeds, no edition), Norway (5, none) and
+    # Finland (4, none): there is no `zh`, `no` or `fi` pack, and inventing one
+    # unverified is the silent-zero failure this file opens by describing.
+    # Saudi Arabia is excluded on the second condition — ONE wired feed, which is
+    # the single point of failure the catalogue refuses elsewhere. Its ar:SA
+    # edition keeps sweeping; it is simply not claimed.
+    #
+    # Every one starts at discovery_only. Coverage is earned, and what these
+    # twelve earn is the right to be LISTED for the sweep that was already
+    # happening — not a connector, and not a promotion.
+    Market("BR", "Brazil", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("ES", "Spain", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("IT", "Italy", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("MX", "Mexico", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("AR", "Argentina", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("CO", "Colombia", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("PT", "Portugal", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("CH", "Switzerland", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("SE", "Sweden", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("AE", "United Arab Emirates", DISCOVERY_ONLY,
+           live_sources=("google_news",)),
+    Market("ZA", "South Africa", DISCOVERY_ONLY, live_sources=("google_news",)),
+    Market("NZ", "New Zealand", DISCOVERY_ONLY, live_sources=("google_news",)),
 )
 
 # Spec 14.2: adding a local-language term without that country's papers of

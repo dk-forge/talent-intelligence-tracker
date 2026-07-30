@@ -13,8 +13,16 @@ Everything goes through the SAME pipeline as the daily collector — prefilter,
 gate, read-through, validate, store, publish — so every guard applies. Nothing
 is written directly.
 
+    python backfill_gdelt_2026.py --plan-cost      # what each pace costs; no requests
     python backfill_gdelt_2026.py --start 2026-01-01 --end 2026-01-31
     python backfill_gdelt_2026.py --start 2026-01-01 --end 2026-01-31 --dry-run
+
+PACE IS THE OWNER'S DECISION AND IT IS NOT ARMED. Cost scales with slices, so the
+cron would BE the budget; there is no cron. `--plan-cost` prints the table to
+decide from, `tests/test_backfill_pace.py` refuses to let a schedule appear
+unnoticed, and the cursor advances per RUN rather than per date — which is the
+sibling's ~$3.80/day-for-six-days mistake, and the reason that test asserts the
+property rather than the symptom.
 
 COST. This is news, so unlike the SEC backfill it is not free of noise and the
 two-stage design in pipeline/classify.py is what makes it affordable:
@@ -37,6 +45,7 @@ window has to get smaller, not the query broader.
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -66,6 +75,130 @@ WORKFLOW = "backfill-gdelt-2026.yml"
 SLICE_DAYS = 4
 
 
+# --------------------------------------------------------------------------
+# COST, PER WINDOW, SO THE PACE IS A DECISION AND NOT A DISCOVERY
+# --------------------------------------------------------------------------
+#
+# This walker is the biggest coverage lever available and the only one in its
+# session that touches the budget. 51 of the 81 gold-set misses are
+# `outside_our_history`: the news collectors first ran on 2026-07-27 and
+# `national_press` on 2026-07-29, against a gold window of 2026-07-01..28. Nothing
+# is broken; we simply did not exist yet. Walking history is the only fix.
+#
+# But cost scales with SLICES, so the CRON IS THE BUDGET. That makes the pace an
+# owner decision rather than an implementation detail, and a decision needs a
+# number beside it. `--plan-cost` prints these:
+#
+#   * a gate call is ~$0.00003 (141 tokens in / 35 out, measured)
+#   * a full read-through is ~$0.00128 (3,100 in / 400 out, measured)
+#   * so cost per slice ~= candidates x 0.00003 + reads x 0.00128, and the read
+#     term is ~40x the gate term. What bounds a slice is therefore the READ
+#     ceiling and nothing else.
+#
+# The default read ceiling was 1200, which is ~$1.54 a slice: a year of history at
+# four days a slice is 92 slices and up to ~$142. That is not a pace the owner can
+# choose from, it is a number spend.py would have to stop, and a ceiling only
+# spend.py can stop is a ceiling that reads as a plan. So the default is sized
+# against the product's own monthly allowance instead — see DEFAULT_MAX_READTHROUGHS
+# — and the CLI still takes any value for a session somebody is watching.
+
+#: What this walker may spend in a month, all-in. A slice of the ~$5/month
+#: product budget, chosen so a year of history can be closed without the walker
+#: ever being the reason a collect run finds the allowance gone. It is a SIZING
+#: input, not an enforcement point: enforcement is spend.py, which runs first on
+#: every job and hard-stops at 90% of the allowance, and the OpenRouter key's own
+#: cap behind that.
+MONTHLY_WALKER_BUDGET_USD = 1.50
+
+#: Measured per-item prices. Both from the ledger's own accounting, not a rate
+#: card: see docs/TECHLOG.md "cost levers, second pass".
+GATE_USD_PER_ITEM = 0.00003
+READ_USD_PER_ITEM = 0.00128
+
+#: Gate survivors screened per read bought. The measured pipeline is far kinder
+#: than this — the last real run screened ~1,050 and bought 60 — but the
+#: derivation below has to be pessimistic or the ceiling it produces is one the
+#: budget cannot actually pay for, which is the whole failure mode being avoided.
+CANDIDATES_PER_READ = 4
+
+#: The all-in price of one read: the read itself plus the gate calls it took to
+#: find. Deriving the ceiling from READ_USD_PER_ITEM alone overshot the budget by
+#: 9% — small, and exactly the kind of arithmetic that makes a stated ceiling
+#: quietly untrue.
+USD_PER_READ_ALL_IN = READ_USD_PER_ITEM + CANDIDATES_PER_READ * GATE_USD_PER_ITEM
+
+#: Read-throughs one slice may buy. DERIVED from the budget above at one slice a
+#: day (30 slices a month), so changing the budget changes this and the two can
+#: never disagree, and it is derived from the ALL-IN price of a read rather than
+#: from the read alone. Printed by --plan-cost: about $0.05 a slice, $1.50 a
+#: month at one slice a day, and a year of 2026 history in 92 slices for about
+#: $4.60 all in — one tracker's monthly budget, spent once, for everything from
+#: 1 January to the day collection started.
+DEFAULT_MAX_READTHROUGHS = max(
+    1, int(MONTHLY_WALKER_BUDGET_USD / 30 / USD_PER_READ_ALL_IN))
+
+
+def window_cost(*, candidates: int, reads: int) -> dict:
+    """What one slice costs at the measured prices. Pure; no network, no model."""
+    gate = candidates * GATE_USD_PER_ITEM
+    read = reads * READ_USD_PER_ITEM
+    return {"gate_usd": gate, "read_usd": read, "usd": gate + read}
+
+
+def year_projection(*, windows_per_run: int = SLICE_DAYS,
+                    reads_per_run: int | None = None,
+                    candidates_per_read: int = CANDIDATES_PER_READ) -> dict:
+    """Closing a year of history: how many slices, how long, how much.
+
+    `candidates_per_read` is the gate-survivors-per-read ratio, and it is
+    deliberately pessimistic — see CANDIDATES_PER_READ. It barely moves the total,
+    because a gate call is a fortieth of a read, but it is carried through rather
+    than dropped: an "about" in a budget is how a ceiling stops being one.
+    """
+    reads = reads_per_run if reads_per_run is not None else DEFAULT_MAX_READTHROUGHS
+    slices = math.ceil(366 / max(windows_per_run, 1))
+    per_slice = window_cost(candidates=reads * candidates_per_read, reads=reads)
+    return {
+        "slices": slices,
+        "reads_per_slice": reads,
+        "usd_per_slice": per_slice["usd"],
+        "usd_total": per_slice["usd"] * slices,
+        "days_at_one_slice_per_day": slices,
+        "days_at_two_slices_per_day": math.ceil(slices / 2),
+        "days_at_four_slices_per_day": math.ceil(slices / 4),
+    }
+
+
+def print_cost_plan() -> None:
+    """The table the owner needs to choose a cadence. Calls nothing."""
+    print("HISTORICAL WALKER — what a pace costs, at measured per-item prices")
+    print(f"  gate  ${GATE_USD_PER_ITEM:.5f}/item      "
+          f"read  ${READ_USD_PER_ITEM:.5f}/item")
+    print(f"  slice = {SLICE_DAYS} day-windows, ceiling "
+          f"{DEFAULT_MAX_READTHROUGHS} read-throughs "
+          f"(derived from ${MONTHLY_WALKER_BUDGET_USD:.2f}/month at 1 slice/day)")
+    print()
+    print(f"  {'pace':<22} {'wall clock':>12} {'$/month':>9} {'$ total':>9}")
+    year = year_projection()
+    for label, per_day in (("1 slice/day", 1), ("2 slices/day", 2),
+                           ("4 slices/day", 4)):
+        days = math.ceil(year["slices"] / per_day)
+        monthly = year["usd_per_slice"] * per_day * 30
+        print(f"  {label:<22} {days:>9} days {monthly:>8.2f} "
+              f"{year['usd_total']:>9.2f}")
+    print()
+    print(f"  A year of 2026 history is {year['slices']} slices and "
+          f"${year['usd_total']:.2f} at ANY pace — the pace only decides how long "
+          f"it takes and how much lands in one month.")
+    print("  It is NOT armed. Arming means a cron in "
+          ".github/workflows/backfill-gdelt-2026.yml,")
+    print("  which is a spend decision. Queue a slice by hand instead:")
+    print("    gh workflow run drain-writers.yml -f enqueue=backfill-gdelt-2026.yml \\")
+    print("         -f inputs_json='{\"start\":\"2026-01-01\",\"end\":\"2026-07-26\","
+          "\"slice\":\"true\"}' \\")
+    print("         -f reason='history walk, slice 1'")
+
+
 def iter_windows(start: date, end: date):
     """Half-open [lo, hi) day windows as GDELT stamps."""
     lo = datetime(start.year, start.month, start.day)
@@ -78,11 +211,21 @@ def iter_windows(start: date, end: date):
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--start", required=True)
-    ap.add_argument("--end", required=True)
+    # Not `required`: --plan-cost answers a question about the pace and
+    # needs no window to answer it.
+    ap.add_argument("--start", default="2026-01-01")
+    ap.add_argument("--end", default="2026-12-31")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--max-readthroughs", type=int, default=1200,
-                    help="hard stop on FULL classifications for the whole run")
+    ap.add_argument("--max-readthroughs", type=int,
+                    default=DEFAULT_MAX_READTHROUGHS,
+                    help=f"hard stop on FULL classifications for the whole run "
+                         f"(default {DEFAULT_MAX_READTHROUGHS}, DERIVED from "
+                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month at one slice a "
+                         f"day; was 1200, which is ~$1.54 a slice and ~$142 for a "
+                         f"year of history). See --plan-cost.")
+    ap.add_argument("--plan-cost", action="store_true",
+                    help="print what each pace costs and exit. Fetches nothing, "
+                         "calls nothing, writes nothing.")
     ap.add_argument("--fetch-only", action="store_true",
                     help="fetch and prefilter, call no model, store nothing — "
                          "proves the collector without spending anything")
@@ -100,6 +243,10 @@ def main() -> int:
                                         "backfill_slices.py record")
     ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
+
+    if args.plan_cost:
+        print_cost_plan()
+        return 0
 
     requested_start = date.fromisoformat(args.start)
     requested_end = min(date.fromisoformat(args.end), date.today())

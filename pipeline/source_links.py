@@ -74,6 +74,27 @@ ARCHIVE_STATES = frozenset({"archived", "pending", "unavailable"})
 # walls, login gates), and a queue that never drains hides the ones it could.
 MAX_ARCHIVE_ATTEMPTS = 5
 
+# 'unavailable' is TERMINAL: archive_candidates drops the URL and only a
+# hand-written UPDATE puts it back. So it may only ever be reached from
+# EVIDENCE, and this is the whole of that rule: at least one round in which
+# archive.org actually answered us and said it holds no snapshot.
+#
+# The bug this constant exists to make impossible has now shipped twice in this
+# family, in two different guises, and both times the run stayed green:
+#
+#   1. A 429 from the availability API was read as "no snapshot exists", so a
+#      throttled afternoon manufactured a gap and then spent the capture budget
+#      on it. Fixed in check_availability on 2026-07-30.
+#   2. A 429 from Save Page Now still SPENT one of the five attempts, so five
+#      throttled nights walked a perfectly capturable document to terminal
+#      'unavailable' having never once been told it was uncapturable. Fixed
+#      2026-07-29 (this file) by counting blind rounds apart from attempts.
+#
+# Both are the same error: treating "we did not learn anything" as a finding.
+# One probe is a low bar deliberately — it is a floor against blindness, not a
+# confidence threshold. The attempts ceiling above is what bounds the retries.
+MIN_PROBES_BEFORE_TERMINAL = 1
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -165,27 +186,125 @@ def check_candidates(conn: sqlite3.Connection, *, limit: int,
 
 def archive_candidates(conn: sqlite3.Connection, *, limit: int,
                        collector: str | None = None) -> list[dict]:
-    """URLs with no usable snapshot yet, newest capture first.
+    """URLs with no usable snapshot yet, NEVER-ANSWERED first, then newest.
 
     Resumable by construction: a URL drops out of this list the moment it is
     'archived' or 'unavailable', and a brand new row's URL appears in it
     automatically. Running the job daily therefore guarantees forward coverage
     with no bookkeeping of its own.
+
+    THE ORDERING, which is the part that decides whether coverage can climb
+    -----------------------------------------------------------------------
+    Two tiers, and the tiering is what keeps `pending` from becoming terminal by
+    accident. `pending` has always been re-examined — the sibling's defect, where
+    a pending URL never re-entered its candidate list and 3,965 of them sat
+    unreachable, does not exist in this function. But re-examined is not the same
+    as REACHED: `limit` truncates this list, and a strict newest-first order
+    means a URL that has never had an answer from archive.org sinks a little
+    further every time a collect run stores something newer. At 12,970 distinct
+    URLs and a 600-row window that is the same outcome by a slower route.
+
+    So a URL with no definitive probe sorts ahead of one that has had a real
+    answer and is merely awaiting a capture. Every brand-new URL has zero
+    probes, so the ingest-time property the module docstring defends is
+    preserved exactly: within tier 1 the order is still newest-capture first.
+    What changes is that the never-answered tail rides in the same tier as the
+    new rows instead of behind every one of them.
+
+    `archive_probes` is NULL for every row written before the column existed,
+    and NULL reads as 0 here on purpose: those rows genuinely predate any record
+    of what we were told, so treating them as never-answered is the honest
+    reading and costs one free availability call each.
     """
     rows = distinct_source_urls(conn, collector=collector)
     known = {r["source_url"]: dict(r) for r in conn.execute(
-        "SELECT source_url, archive_state, archive_attempts FROM source_links")}
-    out = []
+        "SELECT source_url, archive_state, archive_attempts, archive_probes, "
+        "       archive_blind_rounds FROM source_links")}
+    tier_unprobed, tier_probed = [], []
     for row in rows:
         seen = known.get(row["source_url"]) or {}
         state = seen.get("archive_state")
         if state == "archived" or state == "unavailable":
             continue
         row["archive_attempts"] = int(seen.get("archive_attempts") or 0)
-        out.append(row)
-        if len(out) >= limit:
-            break
-    return out
+        row["archive_probes"] = int(seen.get("archive_probes") or 0)
+        row["archive_blind_rounds"] = int(seen.get("archive_blind_rounds") or 0)
+        (tier_unprobed if row["archive_probes"] == 0 else tier_probed).append(row)
+    return (tier_unprobed + tier_probed)[:limit]
+
+
+def archive_gap(conn: sqlite3.Connection) -> dict:
+    """How the un-archived population splits, which the percentage cannot say.
+
+    `archive_pct` climbing slowly is the design (Save Page Now is rate-limited
+    and a backfill takes about a week). `archive_pct` climbing slowly because
+    nothing can get an answer out of archive.org looks identical from outside,
+    and that is what these counts separate:
+
+      never_probed   we have never once been told anything about this URL. Not
+                     a gap in Wayback: a gap in what we know.
+      probed_absent  archive.org answered and said it holds no snapshot. THIS is
+                     the real capture queue and the only population a capture
+                     budget should be sized against.
+      blind_recently at least one round on this URL learned nothing.
+      terminal_blind recorded 'unavailable' without a single definitive probe —
+                     a document dropped from the queue forever on the strength
+                     of a throttle. Must always be zero; reset_blinded_terminal
+                     is how it gets there.
+    """
+    def count(where: str) -> int:
+        return conn.execute(
+            f"SELECT COUNT(*) FROM source_links WHERE {where}").fetchone()[0]
+
+    unarchived = ("IFNULL(archive_state, 'pending') != 'archived' "
+                  "AND IFNULL(archive_state, 'pending') != 'unavailable'")
+    total = conn.execute(
+        "SELECT COUNT(DISTINCT source_url) FROM signals WHERE is_current = 1"
+    ).fetchone()[0]
+    ledger = count("1=1")
+    return {
+        # URLs on a current signal that have no ledger row at all have never
+        # been probed either, so they belong in the same bucket as a pending row
+        # with no probe. Counting only the ledger would understate it by 12,700.
+        "never_probed": (total - ledger) + count(
+            f"{unarchived} AND IFNULL(archive_probes, 0) = 0"),
+        "probed_absent": count(f"{unarchived} AND IFNULL(archive_probes, 0) > 0"),
+        "blind_recently": count(
+            f"{unarchived} AND IFNULL(archive_blind_rounds, 0) > 0"),
+        "terminal_blind": count(
+            "archive_state = 'unavailable' AND IFNULL(archive_probes, 0) < ?"
+            .replace("?", str(MIN_PROBES_BEFORE_TERMINAL))),
+    }
+
+
+def reset_blinded_terminal(conn: sqlite3.Connection, *,
+                           dry_run: bool = False) -> list[str]:
+    """Put back every URL that reached 'unavailable' without a real negative.
+
+    A one-time repair by intent and an idempotent one by construction: after the
+    guard in `classify_archive_outcome` no new row can qualify, so a later run
+    finds nothing and says so. It is kept rather than deleted because the two
+    ways into this state (the availability 429, the Save Page Now 429) both
+    shipped as green runs, and a third route would need exactly this again.
+
+    Returns the URLs it moved (or would move). Never touches `signals`, never
+    touches a snapshot we already hold, and cannot reach a claim.
+    """
+    urls = [r[0] for r in conn.execute(
+        "SELECT source_url FROM source_links "
+        " WHERE archive_state = 'unavailable' "
+        "   AND IFNULL(archive_probes, 0) < ? "
+        "   AND IFNULL(archive_url, '') = ''",
+        (MIN_PROBES_BEFORE_TERMINAL,))]
+    if urls and not dry_run:
+        conn.executemany(
+            "UPDATE source_links "
+            "   SET archive_state = 'pending', archive_attempts = 0, "
+            "       archive_detail = 'reset: went terminal with no definitive "
+            "probe', updated_at = ? "
+            " WHERE source_url = ?",
+            [(_now(), url) for url in urls])
+    return urls
 
 
 # --- writing ---------------------------------------------------------------
@@ -235,8 +354,16 @@ def record_check(conn: sqlite3.Connection, url: str, *, state: str,
 
 def record_archive(conn: sqlite3.Connection, url: str, *, state: str,
                    archive_url: str = "", attempts: int = 0,
-                   source_name: str = "", host: str = "") -> None:
-    """Record the outcome of one archiving round for one URL."""
+                   source_name: str = "", host: str = "",
+                   probes: int | None = None, blind_rounds: int | None = None,
+                   detail: str = "") -> None:
+    """Record the outcome of one archiving round for one URL.
+
+    `probes` and `blind_rounds` are the round's running totals for this URL, not
+    increments, so a caller that recomputes them from the row it read stays
+    correct under the merge (merge_db keeps the later write wholesale) and a
+    caller that does not pass them leaves the counters alone.
+    """
     if state not in ARCHIVE_STATES:
         raise ValueError(f"unknown archive state {state!r}")
     values = {
@@ -247,6 +374,12 @@ def record_archive(conn: sqlite3.Connection, url: str, *, state: str,
         "source_name": source_name or None,
         "host": host or None,
     }
+    if probes is not None:
+        values["archive_probes"] = int(probes)
+    if blind_rounds is not None:
+        values["archive_blind_rounds"] = int(blind_rounds)
+    if detail:
+        values["archive_detail"] = detail[:400]
     if state != "archived":
         # Never blank a permalink we already hold because a later round failed.
         values.pop("archive_url")
@@ -255,18 +388,23 @@ def record_archive(conn: sqlite3.Connection, url: str, *, state: str,
 
 
 def classify_archive_outcome(availability_url: str | None, save_url: str | None,
-                             attempts: int) -> tuple[str, str]:
+                             attempts: int, probes: int = 1) -> tuple[str, str]:
     """The status to record for one URL from one round's results.
 
     Pure, so the decision is tested without a network. 'archived' when either
-    pass found a snapshot; 'unavailable' once the attempts are spent, so a page
-    Wayback genuinely cannot capture stops being retried and starts being
-    reported; 'pending' otherwise, which is a retry on a later run.
+    pass found a snapshot; 'unavailable' once the attempts are spent AND
+    archive.org has actually told us at least once that it holds nothing;
+    'pending' otherwise, which is a retry on a later run.
+
+    `probes` defaults to 1 so an existing caller keeps the old behaviour rather
+    than silently never going terminal — a queue that can never drain is the
+    other failure this function sits between. Every caller in this repo passes
+    it; the default exists for the reader, and the test table pins both ends.
     """
     for candidate in (availability_url, save_url):
         if candidate and str(candidate).lower().startswith("http"):
             return "archived", str(candidate)
-    if attempts >= MAX_ARCHIVE_ATTEMPTS:
+    if attempts >= MAX_ARCHIVE_ATTEMPTS and probes >= MIN_PROBES_BEFORE_TERMINAL:
         return "unavailable", ""
     return "pending", ""
 

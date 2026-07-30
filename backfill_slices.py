@@ -96,6 +96,36 @@ MAX_SLICES_PER_JOB = 200
 UNITS = ("days", "quarters")
 
 
+# --------------------------------------------------------------------------
+# THE CURSOR ADVANCES PER RUN, NOT PER DAY, AND THAT IS A PROPERTY NOT A DETAIL
+# --------------------------------------------------------------------------
+#
+# `record()` moves the cursor from the TICKET a run emitted — `next_cursor`,
+# derived from the last window that run actually finished. It reads no clock. Two
+# runs in one hour therefore advance twice, and a run that does nothing advances
+# not at all (which `record` catches and refuses to requeue).
+#
+# The sibling tracker got this wrong in the most expensive way available. Its
+# `edgar-history-sweep` keyed its cursor on `now.toordinal()` — a DATE ordinal —
+# and ran HOURLY. Every run in a day therefore computed the identical window,
+# re-fetched the identical filings and re-extracted them at full prompt: about
+# $3.80 a day of pure waste for six days, and every one of those runs was green,
+# because from outside a run that re-does yesterday's work looks exactly like a
+# run that did work.
+#
+# So the pairing is what is dangerous, not either half. A date-keyed cursor with a
+# daily cron is fine. A run-keyed cursor with an hourly cron is fine. A date-keyed
+# cursor with a sub-daily cron silently multiplies spend by the runs per day.
+# `tests/test_backfill_pace.py` asserts the property directly — that a second
+# `record` in the same clock second still advances — rather than asserting the
+# symptom, and it also refuses to let a sliced workflow grow a cron faster than
+# daily while any cursor in this module is date-shaped.
+#
+#: Runs per day above which a date-keyed cursor becomes a spend multiplier. One:
+#: any second run in the same day repeats the first.
+DATE_CURSOR_SAFE_RUNS_PER_DAY = 1
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 

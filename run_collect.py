@@ -20,8 +20,8 @@ from collectors import (ats_boards, bse_india, companies_house, edinet_japan,
                         gdelt, google_news, national_press, opendart_korea,
                         sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
                         uk_paygap)
-from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
-                      schema, store, validate)
+from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
+                      prefilter, publish, schema, store, validate)
 
 # Registration. A collector that exposes `as_classified` derives its own
 # record from structured fields and never calls the model, so it skips the
@@ -396,10 +396,28 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         kept, away_strict, away_loose, clusters_formed = cluster_stories(kept)
     clustered_away = away_strict + away_loose
 
+    # Cost lever 4: spend the read budget in a DELIBERATE order (2026-07-29).
+    #
+    # classify.READTHROUGH_CAP bounds full read-throughs per run, and when it
+    # binds every later candidate defers unmarked and returns next run. Which
+    # candidates got read first was arrival order — feed order, edition order —
+    # and nothing about that was ever chosen. The last run before the cap was
+    # raised bought all 60 of its reads and deferred 95 gate survivors on it.
+    #
+    # This is an ORDER and not a filter: `rank` returns a permutation, so the
+    # same candidates are eligible, the same guards apply to each, and no score
+    # can make or unmake a record. It costs no model call and no network call.
+    ranking = candidate_rank.Context.for_conn(conn)
+    note = candidate_rank.explain(kept, ranking,
+                                  top=classify.READTHROUGH_CAP)
+    kept = candidate_rank.rank(kept, ranking)
+
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
     cheap_closed = known_rounds = 0
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
+    if note:
+        print(f"[{collector}] {note}\n")
     if clusters_formed:
         print(f"[{collector}] clustering: {clusters_formed} stories seen from "
               f"multiple outlets, {len(clustered_away)} rewrites will not be "

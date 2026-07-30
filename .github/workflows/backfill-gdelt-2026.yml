@@ -54,9 +54,18 @@ on:
         required: false
         default: 'false'
       max_readthroughs:
-        description: 'Hard stop on FULL classifications for the whole run'
+        description: 'Hard stop on FULL classifications for the whole run. Blank uses the budget-derived default in backfill_gdelt_2026.py (35, ~$0.05 a slice).'
         required: false
-        default: '1200'
+        # LOWERED from 1200 on 2026-07-29, and the old value is why. 1200 reads
+        # is ~$1.54 a slice; a year of 2026 history is 92 slices, so this input's
+        # default alone authorised ~$142 against a ~$5/month product budget. A
+        # ceiling only spend.py can stop is not a ceiling, it is a plan to be
+        # interrupted. Blank now means "the derived default", which is computed
+        # from MONTHLY_WALKER_BUDGET_USD at one slice a day, so the budget and
+        # the ceiling cannot disagree. Type a number here for a session somebody
+        # is watching; do not raise this default without raising the budget
+        # constant beside it.
+        default: ''
 
 # One DB writer at a time, in the same group as the other backfills and enrich.
 # Slicing changes how LONG this holds the lock; it does not change how many
@@ -110,7 +119,7 @@ jobs:
           python backfill_gdelt_2026.py \
             --start "${{ inputs.start }}" \
             --end "${{ inputs.end }}" \
-            --max-readthroughs "${{ inputs.max_readthroughs }}" \
+            ${{ inputs.max_readthroughs != '' && format('--max-readthroughs {0}', inputs.max_readthroughs) || '' }} \
             --slice \
             --emit-next "$RUNNER_TEMP/slice.json" \
             ${{ inputs.dry_run == 'true' && '--dry-run' || '' }} \
