@@ -13,6 +13,219 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the page stops disagreeing with itself: sources, city pills, five amounts
+
+Launch-blocker pass over `wordpress-plugin/`. The theme running through all of
+it is a page stating a number that the same page contradicts one click later.
+Every figure below is reproducible from a command in this repo or a curl against
+the live site, and where the brief that started this work was wrong about the
+code, it says so.
+
+### The sources page named five of its nine live collectors
+
+`/sources/` printed "not yet reported" for `national_press`, `sec_execcomp` and
+`uk_paygap` (confirmed live before the fix: `grep -c "not yet reported"` on the
+served page returned 3). Between them those three are most of the database:
+`national_press` found 9,305 items on its last run, and `uk_paygap` supplies
+4,761 of the United Kingdom's 4,793 rows. The cause was a five-entry
+`$by_collector` map typed by hand in `includes/sources.php` beside a nine-entry
+`COLLECTOR_BY_SOURCE_NAME` in `source_registry.py`.
+
+Fixed by deriving it. `sources_manifest()` writes a `collector` key onto every
+row of `data/sources.json`; `tit_sources_collector_map()` builds the join from
+that. A source added to the registry now arrives on the page with its collector
+attached.
+
+The four collectors that report health and are NOT sources stay absent, with the
+reason recorded in `_NOT_SOURCES` rather than implied by omission:
+`archive_sources` and `link_check` maintain the ledger behind the links, `recall`
+measures what we miss, `sec_form_d_bulk` backfills a source already listed. That
+set is asserted disjoint from the manifest, so it cannot become a hiding place
+for a real source nobody wants to write a row for.
+
+### Every city pill returned a different number from the one printed on it
+
+`SELECT city k, COALESCE(country, hq_country) cc ...` in `shortcodes.php` had
+three defects at once. Measured against the committed database:
+
+| city | pill printed | click returned | after |
+|---|---|---|---|
+| London | 19 | 1,339 | 1,339 |
+| Manchester | absent | 106 | 106 |
+| Edinburgh | absent | 49 | 49 |
+| Toronto | 25, US flag | 27 | 27, CA flag |
+
+1. **It grouped by bare `city`** while the pill writes `city=<name>`, which
+   `api.php` resolves as `city = %s OR (city IS NULL AND hq_city = %s)`. Almost
+   every London row is placed by its employer's head office, and this count
+   could not see one of them. Manchester and Edinburgh were missing from a strip
+   carrying Seattle (43) and Toronto (27).
+2. **It was counted under a bare `is_current = 1`** rather than `{$base}`, the
+   only strip on the page that was, so it included the 3,143 routine officer
+   filings the table sets aside.
+3. **`cc` was non-aggregated under `GROUP BY city`**, so the flag was whichever
+   row the engine reached first and MySQL and SQLite need not agree. Toronto
+   holds 24 Canadian rows, 2 American and 1 from Hong Kong, and flew a US flag.
+   It is the modal country now, ties broken alphabetically.
+
+`tit_city_expr()` and `tit_country_expr()` join the other shared predicates in
+`api.php` so the grouping rule has one authority; `/aggregate`'s own `by_city`
+had defect 1 and got the same fix. The index-friendly `OR` form stays in the
+WHERE clauses for the reason `tit_place_kinds()` already documents.
+
+Still ONE query and still **12 cold, 0 warm**. `tests/php/render_dashboard.php`
+now parses every pill out of the rendered markup and asserts its printed count
+against the clause `tit_place_kinds()` declares, with two new fixtures for the
+shapes that caused the bugs.
+
+### Five funding amounts off by a factor of a million, and the rule behind them
+
+| employer | stored | was | now |
+|---|---|---|---|
+| Terminal | `$20-million USD` | 20 | 20,000,000 |
+| Abaco Technologies | `USD 53 millones` | 53 | 53,000,000 |
+| Visibuilt | `25 millioner kroner` | 25 | NULL |
+| Serpier | `10,5 mio. kr.` | 105 | NULL |
+| Multiverse | `500 millones` | 500 | NULL |
+
+The multiplier vocabulary was English-only, and `\s*` does not match the hyphen
+in `$20-million`. But the deeper rule was the denylist: `parse_funding_usd`
+refused a currency only when `_NON_USD` recognised the word, so "no foreign
+currency I know" read as "US dollars". `kron[ao]r?` does not match "kroner" and
+"kr." was in no list at all, so two Danish rounds sat in a column the page
+promises holds only amounts a source stated in dollars.
+
+**The test is positive now**: no `$`, `US$` or `USD` in the string, no number. It
+costs nothing to be strict. Of 3,097 current rows carrying an amount, **3,094**
+name one of the three outright, and the only three that did not were exactly
+these three. Verified across the whole corpus: those five rows change and
+nothing else moves.
+
+Widening the vocabulary opened a trap that is closed in the same commit.
+`USD 1,5 millones` would strip the comma and store fifteen million for one and a
+half, because every comma-decimal string used to be refused as foreign before
+its number was read. `_read_number()` decides which comma is which by the
+ordinary rule. And `mil` now REFUSES rather than falling through to no
+multiplier: it is a million in Singapore English (`US$22 mil`, in the 2026-07-29
+sweep) and a thousand in Spanish, and twenty-two dollars was wrong under both.
+
+**The five stored rows are NOT corrected.** Three of them need their live
+`funding_amount_usd` set to NULL, and until this session no route on the plugin
+could write that: `/enrich` ignores an empty field by design, `/correct` cannot
+blank a value, and a withdraw-and-republish would remove both rows because a
+revision carries the same `content_hash`. `/enrich` now takes an explicit
+`clear` array restricted to `tit_clearable_columns()`. Applying it is a queued
+writer run and belongs to the owner.
+
+### Four pages had no description, and og:description existed nowhere
+
+The dashboard, `/sources/`, `/recall/` and `/corrections/` shipped with no
+`meta[name=description]` (confirmed live: `grep -c` returned 0 on all four). The
+brief said the mechanism existed and had merely not been applied; half true. The
+`description` mechanism existed on the company and place pages.
+**`og:description` existed on none of the six**, so no link to any page of this
+product had share-card text. `tit_head_description()` prints both from one
+string, truncating at a sentence rather than mid-figure.
+
+### Three more places the copy contradicted the data
+
+- **`tracked since` on all 715 indexable profiles said July 2026**, because it
+  was `MIN(captured_at)` and every row was captured when the backfills ran,
+  while the same page said "last update 3 months ago". Now
+  `MIN(COALESCE(published_date, DATE(captured_at)))`, matching the span note.
+- **`/corrections/` captioned a table with `date_i18n('j F Y')`** — today's
+  date, whatever today was — over figures measured on 29 July, while a later
+  correction had taken the money total from **$124.0bn to $101.4bn** (live
+  `/aggregate`, 2026-07-30). The caption prints the date measured; the fall is a
+  note with its own dates rather than an overwritten cell.
+- **One filter had three names.** Checkbox "Only Updates That Move Headcount",
+  chip "Only with a stated headcount", SQL `signal_direction IN (...)`. Only the
+  checkbox was right: `headcount` is non-null on **11 of 15,711** rows (0.07%)
+  and the control does not read that column. The comment claiming "about 87%"
+  said 99.93%. Chip and comment fixed.
+- **`/places/` counted 15,711 while the dashboard counted 12,568**, and only the
+  dashboard explained itself. One sentence each side.
+- **`tit-f-state` rendered 51 bare postal codes.** `tit_state_names()` carries
+  all 50 states, DC and the five territories on day one, for the reason
+  `tit_country_names()` once failed with 52 of ~200 codes. It rides on a `data-`
+  attribute as well as `wp_localize_script` per gotcha 10, costs **2,096 bytes**
+  of markup, and that is why the harness byte budget moved 152,000 to 156,000
+  with the note saying what bought it.
+
+### The cross-tracker pairing: built, measured, switched off
+
+An employer cutting in one place while hiring in another is the signal only
+somebody holding both halves can produce. `includes/cross_tracker.php` reads the
+sibling's PUBLIC HTTP API at render time, caches it in a `tit_` transient keyed
+on `TIT_VERSION`, retries once on a 5xx, times out at four seconds and caches a
+miss short so a sibling that is down cannot make every render wait. No file
+imported, no database joined.
+
+It ships DISABLED, and that is a count:
+
+```
+our employers                                    7,377
+sibling names on /layoffs/v1/companies          20,000 -> 18,648 keys
+keys present in both                               559
+of those, with a hiring-direction row here           6
+```
+
+Reading the six is what settles it. The sibling's own `?company=US Bank` answers
+with **Piraeus Bank** for three of its four most recent rows, so a loose rule
+publishes a Greek redundancy against a named American bank. Tesla matches
+"TRIGO (Tesla)", a contractor. Saint-Gobain matches two subsidiaries. Infosys
+and SouthState pair 2024-2025 cuts against July 2026 hires, and the claim is
+concurrency. Exactly one pair is near defensible — HSBC, 20,000 cut in the UK on
+2026-03-19 against 200 hired in wealth management in July — and that hiring
+row's own geography is wrong here (`city=London, country=SG`).
+
+**Zero pairs defensible, one fabricated claim available.** What would change it,
+in order: a shared ticker or CIK instead of a name match; a decided subsidiary
+rule; a recency window binding both sides; and more than 49 hiring rows in
+15,711.
+
+### Where the brief was wrong
+
+- **`finance.yahoo.com` is NOT already blocked.** The brief was corrected
+  mid-session to say `_AGGREGATOR_DOMAINS` blocks it by registrable domain.
+  There is no `_AGGREGATOR_DOMAINS` in `pipeline/validate.py`. The guard is
+  `host in _BLOCKED_SOURCE_HOSTS`, an exact-host `frozenset`, at line 466.
+  Proved by running `validate.build_signal` on all three hosts:
+  `news.yahoo.com` is rejected by name, `finance.yahoo.com` and
+  `sg.finance.yahoo.com` pass the host check.
+- **It is three rows, not two**, and blocking the domain would be WRONG for one
+  of them. Fetching each URL's `rel=canonical` settles which is which:
+  `finance.yahoo.com/small-business/articles/7-eleven-...` canonicalises to
+  `cstoredive.com` and `...warsteiner-owner-haus-cramer...` to `just-drinks.com`
+  — syndication, and we already read cstoredive.com directly for two other rows.
+  But `sg.finance.yahoo.com/news/hsbc-plans-hire-100-ai-...` canonicalises to
+  ITSELF: Yahoo Finance Singapore is the publisher of record. A registrable-domain
+  block would drop it, which is the `news.crunchbase.com` over-block again. Also
+  `finance.yahoo.com` is a registered candidate source in `source_registry.py`
+  and appears in the recall gold set. The right rule is the canonical host, not
+  the requested one. NOT IMPLEMENTED: `validate.py` was held by another agent.
+- **There IS a `php` binary on this machine** (8.5.8). `docs/HANDOVER.md` said
+  there was not, so the five harnesses under `tests/php/` had been treated as
+  CI-only. They run locally in under two seconds.
+- The audit's counts drifted with the data by a row or two throughout (12,566 vs
+  12,568 notable; Manchester 108 vs 106). Its diagnoses were otherwise accurate.
+
+### Deliberately not done
+
+- **Not deployed.** The session was told not to push, and `deploy-plugin.yml`
+  checks out a ref on GitHub, so a deploy of local commits is impossible without
+  one. Version bumped to **1.53.0** in both places; live still serves 1.52.0.
+- **The five funding rows are not corrected**, per above.
+- **The Toronto city/region/country correction is not run.** `/correct` accepts
+  those columns now, which was the blocker; the run itself is a writer and must
+  be queued through `drain-writers.yml`, never dispatched.
+- **Nothing was armed.** No cron uncommented.
+- **Nothing submitted to Search Console.** Neither tracker's sitemap is in
+  `robots.txt` or `sitemap_index.xml`, so 748 indexable pages are reachable only
+  by internal links. Owner action.
+
+---
+
 ## 2026-07-30 — a figure guard that ate records, a cache that does not exist, and the 81 misses
 
 Three jobs, and two of the three briefs turned out to be wrong about the code.

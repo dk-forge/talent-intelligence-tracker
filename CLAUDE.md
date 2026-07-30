@@ -29,8 +29,9 @@ analysis/     measurement, never collection: recall/ grades what we hold,
               tripwire/ finds what we are missing (run_tripwire.py, DORMANT)
 ```
 
-GitHub Actions cron collects 2x/day, commits the database back, and (once the
-plugin exists) POSTs to a keyed WordPress endpoint that renders the dashboard.
+GitHub Actions cron collects 2x/day, commits the database back, and POSTs to a
+keyed WordPress endpoint that renders the dashboard. The plugin exists and is
+deployed; `wordpress-plugin/` is it.
 
 **Collection is ARMED.** `collect.yml` runs at 06:00 and 18:00 UTC. Disarm by
 commenting the two schedule lines out again; nothing else changes. `ops_status.py`
@@ -172,7 +173,7 @@ guarantee rather than a hope.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
-.venv/bin/pytest -q                                  # 40 offline tests
+.venv/bin/pytest -q                                  # 1,807 offline tests
 .venv/bin/python run_collect.py --dry-run --offline  # whole pipeline, no spend
 ```
 
@@ -186,7 +187,7 @@ Never stub a real module into `sys.modules`. The fake persists and shadows the
 real module for every test loaded afterwards, so tests pass alone and fail in
 the suite. Stub only third-party network libraries.
 
-## Bluehost / Cloudflare gotchas (for when the plugin exists)
+## Bluehost / Cloudflare gotchas
 
 Every one of these shipped as a bug on the sibling:
 

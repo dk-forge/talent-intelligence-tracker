@@ -4,15 +4,19 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-07-29**. Plugin **1.47.0** live, **15,650** current signals
-stored and **15,650** published, company profiles shipped, cron firing on
-schedule but not reliably green, **1,265 offline tests passing** (measured after
-the key correction below; the earlier "1,168 of 1,174" predates it). Also this
-day: every stale `company_key` corrected and the three double-spelled employers
-merged, the $86bn Form D overstatement corrected, 575 national press feeds
-across 139 countries wired, a 9% recall measurement published, fifteen silently
-destroyed data-writing runs found, and the 2026-07-28 render section below
-re-checked against live.
+Last updated: **2026-07-30**. Plugin **1.53.0**, **15,711** current signals
+stored, company profiles shipped, cron firing on schedule but not reliably
+green, **1,807 offline tests passing** plus five PHP render harnesses. Figures
+below dated 2026-07-29 are left as they were measured that day; where one has
+moved it says so beside it.
+
+Also 2026-07-30: the sources page's collector map derived rather than typed (it
+named five of nine live collectors), the dashboard's Top Cities strip counted
+under the clause its own pills filter by (London read 18 and returned 1,339),
+five funding amounts off by a factor of a million corrected in the parser, meta
+and og descriptions added to the dashboard and the three trust pages, and the
+cross-tracker pairing built and shipped disabled with the measurement that says
+why. Detail in [TECHLOG.md](TECHLOG.md).
 
 **Chronological detail lives in [TECHLOG.md](TECHLOG.md)** — that file is what
 happened and why; this one is current state and next actions. Both are for the
@@ -23,15 +27,22 @@ TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 
 ## Where things stand (2026-07-29)
 
-**Verified by curl, not by a green tick:** plugin **1.47.0** (deployed
-2026-07-29 ~21:00Z, over 1.46.0); dashboard, `/recall/`, `/corrections/`,
-`/sources/` all 200; **money raised $99B** (was $124B, then $200.3bn, both
-before the stale-`company_key` correction); sources page lists all 8 live
-collectors; writer queue empty, zero orphans; **714 of 714** sitemap URLs clean.
+**Verified by curl, not by a green tick:** plugin **1.53.0**; dashboard,
+`/recall/`, `/corrections/`, `/sources/` all 200; **money raised $101.4B** (was
+$124B, then $200.3bn, both before the stale-`company_key` correction); sources
+page lists all **9** live collectors and reports a last run for every one of
+them; writer queue holds one failed ticket and zero unresolved orphans;
+**715 of 715** sitemap URLs clean.
 
-**Nine registered collectors:** `google_news`, `gdelt`, `national_press`,
-`sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`, and
-`tripwire_chase` (dormant, correctly absent from the sources page).
+**Ten registered collectors:** `google_news`, `gdelt`, `national_press`,
+`sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`,
+`bse_india`, and `tripwire_chase` (dormant, correctly absent from the sources
+page). The sources page joins a collector to a source name through the
+`collector` field on each row of `data/sources.json`, written by
+`build_sources_json.py` from `source_registry.COLLECTOR_BY_SOURCE_NAME`. **Do
+not re-type that map in PHP.** It was typed there with five of nine entries, so
+`national_press`, `sec_execcomp` and `uk_paygap` all read "not yet reported"
+while running twice a day.
 
 ### Discovery widened (2026-07-29, late) — schedule, staleness, markets, feeds
 
@@ -324,9 +335,18 @@ That version must be the `TIT_VERSION` you just shipped, with an mtime suffix.
 Grepping for `dashboard.css` will find nothing even when everything is fine —
 see gotcha 0.
 
-There is no `php` binary on this machine. The deploy workflow lints every PHP
-file with `php -l` before it uploads, so a syntax error fails the deploy rather
-than the site. Do not skip the workflow to "save time".
+**There IS a `php` binary on this machine** (8.5.8 via Homebrew), and this file
+said there was not. That matters, because it means the five harnesses under
+`tests/php/` can be run locally before a deploy rather than only in CI:
+
+```bash
+for f in render_recall route_company_slugs render_place_pages \
+         render_dashboard enrich_and_correct; do php tests/php/$f.php || break; done
+```
+
+The deploy workflow still lints every PHP file with `php -l` before it uploads,
+so a syntax error fails the deploy rather than the site. Do not skip the
+workflow to "save time".
 
 ---
 
