@@ -412,6 +412,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "UK gender pay gap service": "uk_paygap",
     "SEC executive compensation disclosures": "sec_execcomp",
     "National and regional tech press": "national_press",
+    "BSE corporate announcements (SEBI Regulation 30)": "bse_india",
 }
 
 
@@ -502,6 +503,20 @@ SOURCES = (
            notes="Read straight from the filing, with no model in the path. Pay "
                  "figures are as disclosed and are never converted, estimated or "
                  "annualised by us."),
+    Source("BSE corporate announcements (SEBI Regulation 30)",
+           "https://www.bseindia.com/corporates/ann.html", "live",
+           "Regulatory filings", ("Leadership change", "Board appointment"),
+           "National", "IN",
+           notes="Every company listed in India must tell the exchange when its "
+                 "directors or key managerial personnel change, and must file it "
+                 "under a category SEBI defines rather than a description it "
+                 "chooses. That mandated category is what this reads, so no "
+                 "model is involved and there is no cost. It is the first "
+                 "structured source here for any country other than the United "
+                 "States and the United Kingdom. Two limits worth knowing: it "
+                 "carries no city, so Indian rows place at country level only, "
+                 "and audit-firm appointments are excluded because an auditor is "
+                 "a firm rather than an employee."),
     Source("National and regional tech press",
            "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
            "live", "News publishers",
@@ -723,6 +738,66 @@ def sources_manifest() -> list[dict]:
 #
 # Every market starts at discovery_only. Promote one ONLY when its official
 # connector runs, reports health, and has a passing test.
+#
+# --- THE 2026-07-30 TRIAGE, so nobody researches these twice ----------------
+#
+# Ten candidates named below were each fetched and checked for a machine-readable
+# mechanism, for robots permission, and for whether they are a PRIMARY source.
+# One was built. The findings, because a candidate that is impossible should not
+# sit on the roadmap looking merely unstarted:
+#
+#   BUILT
+#     IN  BSE Regulation 30 announcements — 354 leadership filings in a live
+#         7-day window, ~18,500/year, mandated category, keyless, no LLM cost.
+#         collectors/bse_india.py. Note this is BSE only: NSE runs the same SEBI
+#         regime, so adding it would double-count the same filings.
+#
+#   BLOCKED — do not retry without the owner doing something first
+#     GB  Companies House appointments. Every route needs an API key: the REST
+#         API and the streaming API both 401 unauthenticated, and the free bulk
+#         "Company Data Product" carries no officers at all. Genuine registry
+#         volume, and the key is free — but a human must create it. NEEDS-OWNER.
+#     IL  Tel Aviv Stock Exchange (MAYA). maya.tase.co.il/robots.txt says
+#         `Disallow: /api/`, which is the disclosure feed itself, and
+#         api.tase.co.il sits behind an Imperva bot wall. The exchange's own
+#         terms are the answer here, so this is closed unless the owner takes a
+#         TASE API subscription. NEEDS-OWNER.
+#     IL  Israel Innovation Authority. Cloudflare returns 403 to every path
+#         including /sitemap.xml, so there is nothing to parse without defeating
+#         bot protection. Closed.
+#     GB  RNS via the FCA National Storage Mechanism, the obvious registry-grade
+#         route once Companies House was blocked: the portal 403s, its API wants
+#         an auth token, and data.fca.org.uk/robots.txt names ClaudeBot under
+#         `Disallow: /`. Refused on the robots file alone. NEEDS-OWNER.
+#
+#   REAL BUT TOO THIN TO BE WORTH A CONNECTOR
+#     A connector yielding a handful of rows a month is worse than none, because
+#     it renders on the sources page as coverage. Investment promotion agencies
+#     are legitimate primary sources about their own announcements, but they are
+#     press offices, not registries, and the volume shows it:
+#     GB  Invest NI — the only one of the eight with a working RSS feed. Ten
+#         items covering three weeks, and most are staff profiles and business
+#         features rather than employer job announcements.
+#     IE  IDA Ireland (403 on every RSS path), FR Business France (503),
+#         DE Germany Trade & Invest (301, no feed), IN Invest India (403),
+#         CA Invest in Canada (403), AU Austrade (no feed), JP JETRO (no feed),
+#         SG Singapore EDB (403 on robots.txt itself).
+#
+#   WRONG SHAPE, measured rather than assumed
+#     Foreign private issuers on SEC EDGAR looked like the big unlock: the
+#     `locationCodes` parameter on efts.sec.gov filters by the filer's own
+#     registered country (L3 Israel, L2 Ireland, 2M Germany, I0 France, K7
+#     India, C3 Australia, U0 Singapore, M0 Japan, X0 United Kingdom, A0-B0 the
+#     Canadian provinces), and Israel alone has 1,952 6-K/20-F/40-F filings YTD.
+#     It does not work, for a structural reason worth remembering: Form 6-K has
+#     NO item taxonomy. Foreign issuers file no Item 5.02 equivalent, so there
+#     is nothing to search but prose, and sampling "appointed as" against
+#     Israeli filers returned resellers, distributors and Companies Law
+#     boilerplate at about one useful hit in eight. THAT is why the US has 7,620
+#     documents and Israel has 24, and it is why the jurisdictions worth
+#     building next are the ones that mandate a category: India (built),
+#     Australia (ASX types its announcement headers, and www.asx.com.au's own
+#     todayAnns page is robots-permitted), and the UK once a key exists.
 
 MARKETS = (
     Market("IE", "Ireland", DISCOVERY_ONLY,
@@ -770,8 +845,15 @@ MARKETS = (
                                        "announcements",),
            terms=("גיוס הון", "מגייסת עובדים", "מנכ״ל חדש",
                   "Israeli startup raises", "opens Tel Aviv office")),
-    Market("IN", "India", DISCOVERY_ONLY,
-           live_sources=("google_news",),
+    # The first market outside the US and the UK to earn structured_official.
+    # It is earned in the sense this file means: collectors/bse_india.py runs,
+    # reports health, and has a passing offline test. What earned it is not
+    # Indian exceptionalism but SEBI Regulation 30's MANDATED disclosure
+    # category — the same kind of machine-readable label that Item 5.02 gives
+    # US officer changes, and the thing nine other researched candidates turned
+    # out to lack. See the triage note above candidate_official_sources below.
+    Market("IN", "India", STRUCTURED_OFFICIAL,
+           live_sources=("google_news", "bse_india"),
            candidate_official_sources=("Invest India press releases",),
            # Indian business press is English-first; the segment that earns
            # its keep is the GCC wave, phrased to avoid colliding with the

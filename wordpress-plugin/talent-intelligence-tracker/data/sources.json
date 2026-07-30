@@ -1,5 +1,20 @@
 [
  {
+  "name": "BSE corporate announcements (SEBI Regulation 30)",
+  "url": "https://www.bseindia.com/corporates/ann.html",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Leadership change",
+   "Board appointment"
+  ],
+  "coverage": "National",
+  "country": "IN",
+  "rss": "",
+  "free": true,
+  "notes": "Every company listed in India must tell the exchange when its directors or key managerial personnel change, and must file it under a category SEBI defines rather than a description it chooses. That mandated category is what this reads, so no model is involved and there is no cost. It is the first structured source here for any country other than the United States and the United Kingdom. Two limits worth knowing: it carries no city, so Indian rows place at country level only, and audit-firm appointments are excluded because an auditor is a firm rather than an employee."
+ },
+ {
   "name": "Employer job boards (Greenhouse, Lever, Ashby)",
   "url": "https://boards-api.greenhouse.io/",
   "status": "live",

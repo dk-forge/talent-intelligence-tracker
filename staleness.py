@@ -50,6 +50,13 @@ MAX_AGE_HOURS = {
     "ats_boards": 48,
     "sec_execcomp": 840,   # ~35 days: monthly cron plus room to notice
     "uk_paygap": 840,
+    # collect-structured.yml, weekly on Mondays. India files leadership
+    # disclosures every business day, so the window is 7 days and the leash is
+    # one missed run plus slack rather than a month: unlike the two annual
+    # returns above, a fortnight of silence here is a fortnight of a working
+    # daily feed going uncollected. Not perishable though — the API answers
+    # arbitrary date ranges, so a gap can be back-filled with TIT_BSE_DAYS.
+    "bse_india": 180,      # ~7.5 days: weekly cron plus room to notice
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

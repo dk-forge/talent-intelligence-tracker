@@ -1,5 +1,5 @@
-# The structured sources: SEC executive compensation, UK gender pay gap, and
-# ATS job boards.
+# The structured sources: SEC executive compensation, UK gender pay gap, BSE
+# India leadership filings, and ATS job boards.
 #
 # These cost NOTHING to run. Every field they store is a column in a frame, a
 # CSV or an API response, so the record is derived and no model is called. That
@@ -14,8 +14,13 @@
 #
 # The daily schedule is for ats_boards and for nothing else. Those APIs have no
 # history anywhere (the Wayback Machine holds zero snapshots of them) and no
-# closed-on date, so a day that is not collected is gone permanently. The other
-# two are annual disclosures and only need a monthly look for late filers.
+# closed-on date, so a day that is not collected is gone permanently. The two
+# SEC/UK ones are annual disclosures and only need a monthly look for late
+# filers. bse_india sits between the two: India files leadership disclosures
+# every business day, so monthly would be far too slow, but the API answers
+# arbitrary date ranges so nothing is lost permanently and daily is wasteful.
+# Weekly, with a 7-day window, means consecutive runs overlap by a day and a
+# skipped week is recoverable with the days input.
 name: collect-structured
 
 on:
@@ -23,12 +28,13 @@ on:
     - cron: '0 9 * * *'      # every day: ATS boards, the perishable one
     - cron: '30 9 5 * *'     # 5th of the month: SEC exec comp, for late proxies
     - cron: '30 10 6 * *'    # 6th of the month: UK gender pay gap
+    - cron: '0 4 * * 1'      # Mondays: BSE India leadership filings
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -38,6 +44,10 @@ on:
         description: 'Pay gap only. Employer size floor: 250, 500, 1000, 5000 or 20000.'
         required: false
         default: '5000'
+      days:
+        description: 'BSE India only. How many days back to read. Blank = 7. A gap is back-filled by widening this.'
+        required: false
+        default: ''
       dry_run:
         description: 'Show what would be stored, write nothing'
         type: boolean
@@ -79,6 +89,7 @@ jobs:
           case "${{ github.event.schedule }}" in
             '30 9 5 * *')  scheduled=sec_execcomp ;;
             '30 10 6 * *') scheduled=uk_paygap ;;
+            '0 4 * * 1')   scheduled=bse_india ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then
@@ -94,6 +105,7 @@ jobs:
           TIT_EXECCOMP_YEARS: ${{ inputs.years }}
           TIT_PAYGAP_YEARS: ${{ inputs.years }}
           TIT_PAYGAP_MIN_SIZE: ${{ inputs.min_size || '5000' }}
+          TIT_BSE_DAYS: ${{ inputs.days }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \

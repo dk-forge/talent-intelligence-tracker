@@ -16,9 +16,9 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, gdelt, google_news, national_press,
-                        sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
-                        uk_paygap)
+from collectors import (ats_boards, bse_india, gdelt, google_news,
+                        national_press, sec_edgar, sec_execcomp, sec_form_d,
+                        tripwire_chase, uk_paygap)
 from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
                       schema, store, validate)
 
@@ -33,6 +33,9 @@ SOURCES = {
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,
     "uk_paygap": uk_paygap,
+    # India's leadership spine. Derived from SEBI's mandated Regulation 30
+    # category, so it exposes `as_classified` and spends nothing.
+    "bse_india": bse_india,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the
@@ -279,9 +282,6 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         print(f"[{collector}] batch read-through: {harvested} answer(s) collected")
         for note in notes:
             print(f"[{collector}]   {note}")
-    # Structured source: the fields are columns, so the `classified` half is
-    # derived instead of generated. No model is called anywhere on this path.
-    derive = getattr(module, "as_classified", None)
     # Structured source: the fields are columns, so the `classified` half is
     # derived instead of generated. No model is called anywhere on this path.
     derive = getattr(module, "as_classified", None)
