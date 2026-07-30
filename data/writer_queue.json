@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T21:49:43Z",
-  "last_tick": "2026-07-30T22:08:18Z",
+  "last_dispatch": "2026-07-30T22:10:45Z",
+  "last_tick": "2026-07-30T22:10:45Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,39 +159,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-30T21:49:43Z",
-      "history": [
-        {
-          "at": "2026-07-30T19:16:04Z",
-          "detail": "2026 Google News history walk, $3.02 total, multilingual reach GDELT cannot give",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T21:49:43Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-30T22:00:02Z",
-          "detail": "run 30584918665",
-          "event": "bound"
-        }
-      ],
-      "id": "20260730T191604Z-backfill-gnews-2026",
-      "inputs": {
-        "end": "2026-07-26",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "2026 Google News history walk, $3.02 total, multilingual reach GDELT cannot give",
-      "requested_at": "2026-07-30T19:16:04Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30584918665",
-      "state": "dispatched",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -296,12 +263,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T22:10:45Z",
       "history": [
         {
           "at": "2026-07-30T21:59:55Z",
           "detail": "carry the 72 archive_url captures to WordPress: publish.py excludes them by design, only enrich moves them",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T22:10:45Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T215955Z-enrich",
@@ -313,7 +285,7 @@
       "requested_at": "2026-07-30T21:59:55Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
     },
     {
@@ -1453,6 +1425,45 @@
       "run_id": "30583000986",
       "state": "landed",
       "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T21:49:43Z",
+      "history": [
+        {
+          "at": "2026-07-30T19:16:04Z",
+          "detail": "2026 Google News history walk, $3.02 total, multilingual reach GDELT cannot give",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T22:00:02Z",
+          "detail": "run 30584918665",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T22:10:45Z",
+          "detail": "run 30584918665",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T191604Z-backfill-gnews-2026",
+      "inputs": {
+        "end": "2026-07-26",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-07-30T22:10:45Z",
+      "priority": 10,
+      "reason": "2026 Google News history walk, $3.02 total, multilingual reach GDELT cannot give",
+      "requested_at": "2026-07-30T19:16:04Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30584918665",
+      "state": "landed",
+      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
