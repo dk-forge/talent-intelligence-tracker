@@ -413,6 +413,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "SEC executive compensation disclosures": "sec_execcomp",
     "National and regional tech press": "national_press",
     "BSE corporate announcements (SEBI Regulation 30)": "bse_india",
+    "EDINET extraordinary reports (FSA Japan)": "edinet_japan",
 }
 
 
@@ -517,6 +518,24 @@ SOURCES = (
                  "carries no city, so Indian rows place at country level only, "
                  "and audit-firm appointments are excluded because an auditor is "
                  "a firm rather than an employee."),
+    Source("EDINET extraordinary reports (FSA Japan)",
+           "https://disclosure2.edinet-fsa.go.jp/", "live",
+           "Regulatory filings", ("Leadership change",),
+           "National", "JP",
+           notes="Japan's Financial Services Agency types the statutory REASON "
+                 "for every extraordinary report as a clause number in its API "
+                 "metadata, so no model is involved and there is no cost. Read "
+                 "the scope narrowly, because it is much narrower than the "
+                 "Indian equivalent: the only officer clause Japan types is a "
+                 "change of REPRESENTATIVE DIRECTOR, the chief executive, and "
+                 "not the wider board or senior management. The clause covers "
+                 "arrivals and departures together, so rows carry no direction "
+                 "and name no person; both are in the filing, which is linked. "
+                 "It also exempts a change already described in the annual "
+                 "report, and Japanese shareholder meetings cluster in the same "
+                 "weeks as those reports, so this is a floor on Japanese "
+                 "leadership change rather than a count of it. No city is "
+                 "carried, so Japanese rows place at country level only."),
     Source("National and regional tech press",
            "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
            "live", "News publishers",
@@ -762,6 +781,48 @@ def sources_manifest() -> list[dict]:
 #         7-day window, ~18,500/year, mandated category, keyless, no LLM cost.
 #         collectors/bse_india.py. Note this is BSE only: NSE runs the same SEBI
 #         regime, so adding it would double-count the same filings.
+#     JP  EDINET extraordinary reports. The FSA's v2 API types the statutory
+#         reason for every 臨時報告書 as a CLAUSE NUMBER in the document-list
+#         metadata (`currentReportReason`, spec Version 2 page 47 footnote *4),
+#         so it is the same class of machine-readable label as Item 5.02 and
+#         SEBI Regulation 30, and it needs no document download and no model.
+#         collectors/edinet_japan.py. THE SCOPE IS MUCH NARROWER THAN INDIA'S
+#         and must not be described as "officer changes": read from the
+#         ordinance itself (e-gov 348M50000040005), 企業内容等の開示に関する
+#         内閣府令 第19条第2項 has 44 items and EXACTLY ONE is an officer
+#         change — item 9, 代表取締役の異動, the representative director alone.
+#         Three consequences a later session would otherwise re-derive:
+#           * `第19条第2項第9号の2/の3/の4` all have that clause as a string
+#             PREFIX and are shareholder resolutions, a rejected AGM resolution
+#             and a change of ACCOUNTING AUDITOR. A substring match files audit
+#             firms as leadership changes, which is the bse_india auditor bug
+#             again. `第29条第2項第9号` belongs to the specified-securities
+#             ordinance (405M50000040022) and is a FUND MERGER; that ordinance
+#             has no officer clause at all, so REITs are out by law, not taste.
+#           * item 9 exempts a change already described in the annual report,
+#             and Japanese AGMs cluster in the same weeks as those reports, so
+#             the commonest timing of a Japanese succession can produce no
+#             report at all. This source is a FLOOR, not a census.
+#           * the clause covers arrivals and departures together, so no row can
+#             carry a direction and no person is named. Recovering either means
+#             reading the document body, which is an LLM call per document and
+#             was declined.
+#         VOLUME IS UNMEASURED. No authenticated call has ever been made from
+#         this repo, so unlike India's 354-in-7-days and Australia's 192-in-30
+#         there is no live count here, only a bound: 3,829 listed filers on the
+#         official code list (2026-07-30) against a published Japanese
+#         president-turnover rate of 3.84% for 2025, which puts the order of
+#         magnitude at a few hundred a year — roughly 1-3% of India's. That is
+#         thin but not zero, and it is the highest-value leadership row there
+#         is. JAPAN THEREFORE STAYS discovery_only: the first real run measures
+#         it, and promotion is one commit after that.
+#         The sibling AI Layoff Tracker built an EDINET client and RETIRED it on
+#         2026-07-24 for "0 layoff rows ever". That result does NOT transfer and
+#         is not evidence against this: it never read `currentReportReason`, it
+#         scanned document bodies for layoff vocabulary, and NONE of the 44
+#         clauses in Article 19(2) contains any workforce-reduction word, so its
+#         zero was guaranteed by the ordinance rather than by the source's
+#         quality. Read it as a fact about layoffs, not about appointments.
 #
 #   BLOCKED — do not retry without the owner doing something first
 #     GB  Companies House appointments. Every route needs an API key: the REST

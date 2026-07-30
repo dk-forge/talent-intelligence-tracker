@@ -16,7 +16,7 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, bse_india, gdelt, google_news,
+from collectors import (ats_boards, bse_india, edinet_japan, gdelt, google_news,
                         national_press, sec_edgar, sec_execcomp, sec_form_d,
                         tripwire_chase, uk_paygap)
 from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
@@ -36,6 +36,11 @@ SOURCES = {
     # India's leadership spine. Derived from SEBI's mandated Regulation 30
     # category, so it exposes `as_classified` and spends nothing.
     "bse_india": bse_india,
+    # Japan's chief-executive spine. Derived from the typed statutory reason on
+    # an EDINET extraordinary report (第19条第2項第9号, change of representative
+    # director), so it exposes `as_classified` and spends nothing. Narrower than
+    # bse_india on purpose: that clause is the only officer clause Japan types.
+    "edinet_japan": edinet_japan,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the

@@ -13,6 +13,280 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — Japan has a typed CEO clause; the sibling's EDINET zero was the ordinance, not the source
+
+Build the Japanese equivalent of the India connector. It ships, it costs nothing,
+and it is **much narrower than the brief assumed** — narrow enough that Japan
+stays `discovery_only`. Every number below is reproducible from a command; the
+one thing that is NOT measured is the only thing that matters for promotion, and
+it says so.
+
+### The sibling had already built and retired this. That result does not transfer
+
+`/Users/dakotta/Projects/atr-layoff-tracker/railway/sources/edinet.py`, wired to
+`foreign-filings.yml`, retired in commit `aead15e` on 2026-07-24: *"0 layoff rows
+ever came from EDINET(JP)/OpenDART(KR)/CVM(BR). Those regulatory filings
+essentially never announce layoffs"*. Read read-only; nothing imported, nothing
+copied.
+
+**That zero was guaranteed by the ordinance, not earned by the source.** Read the
+law and count:
+
+```
+python3 -c  # against e-gov lawdata 348M50000040005, parsed with ElementTree
+  Article 19(2) has 44 items.
+  Items containing ANY workforce-reduction word (解雇/人員/削減/希望退職/
+    早期退職/整理解雇/リストラ/雇用/従業員数/退職): NONE
+  Items mentioning 代表取締役: ['9']
+```
+
+An extraordinary report **cannot** announce a layoff, because no clause requires
+one: the 44 triggers are disasters, lawsuits, mergers, divestitures, subsidiary
+and shareholder changes, bankruptcy, debt covenants, auditor changes and one
+officer clause. A layoff tracker pointed at this was structurally certain to
+return zero on day one. So the retirement is a fact about layoffs and says
+nothing about appointments.
+
+Two further things the sibling's code shows, both load-bearing here:
+
+* **It never read `currentReportReason`.** `grep` for it in that file returns
+  nothing, as does `臨時`, `180` and `reason`. It fetched every document type,
+  then downloaded ZIP archives and scanned bodies for layoff vocabulary — the
+  expensive path, and it skipped the typed field entirely.
+* **Its `source_url` does not resolve.** `viewer_url()` returns
+  `disclosure2.edinet-fsa.go.jp/WEEK0010.aspx?docID=<id>`. Measured 2026-07-29:
+  that URL returns the **same 82,145 bytes** for a real id (`S100VV88`) and a
+  nonsense one (`S100ZZZZ`), and `docID` appears nowhere in the HTML. It is the
+  search screen. See the source-URL section below.
+
+### The clause: verified, typed, and only one of them
+
+`currentReportReason` (臨報提出事由) is a document-list **metadata** field, and the
+EDINET API specification (Version 2, 2026-06, page 47 item 29 + footnote *4)
+defines it as a clause number, comma-joined for multiple reasons:
+
+> 「臨報提出事由は、『第19条第2項第1号』、『第29条第2項第1号』のように記載され…」
+
+So the reason is a closed machine-readable label of the same class as Item 5.02
+and a SEBI Regulation 30 category. **The brief's STOP condition — "if it is only
+free prose, stop" — does not fire.** No document is downloaded and no model is
+called; `as_classified` closes the record and spend is zero.
+
+`docTypeCode` 180 = 臨時報告書, 190 = 訂正臨時報告書 (spec page 88).
+
+**The scope is the representative director alone.** Article 19(2)(ix) is the only
+officer clause in 44, and it reads 提出会社の代表取締役…の異動 — the chief
+executive and co-representatives, not the wider board and not senior management.
+India's Regulation 30 covers every director and every key managerial person;
+Item 5.02 covers directors and principal officers. **Do not describe this as
+"officer changes".** It is a CEO-change feed.
+
+### Four traps, each of which would have shipped silently
+
+1. **A substring match files audit firms as leadership changes.**
+   `第19条第2項第9号の2`, `の3` and `の4` all have the accepted clause as a
+   string PREFIX, and they are shareholder-meeting resolutions, a rejected AGM
+   resolution, and **a change of accounting auditor**. That last is the
+   `bse_india` auditor exclusion arriving in a different disguise: an audit firm
+   is an appointed firm, not an employee. Worse, `第29条第2項第9号` belongs to a
+   DIFFERENT ordinance (405M50000040022, specified securities) where item 9 is
+   ファンドの併合 — a **fund merger**. Read from that ordinance, Article 29(2)
+   has no officer clause at all, so REITs are excluded by law rather than by
+   taste. Matching is therefore whole-element equality, never `in`.
+
+2. **HTTP 200 on every error, in two different body shapes.** Verified live
+   against the real host on 2026-07-29, and documented at spec pages 82-84:
+
+   | condition | HTTP | body |
+   |---|---|---|
+   | no key / bad key | **200** | `{"StatusCode": 401, "message": "Access denied due to invalid subscription key…"}` |
+   | throttled | **200** | `{"StatusCode": 429, …}` |
+   | bad parameter / not found / server error | **200** | `{"metadata": {"status": "404", "message": "Not Found"}}` |
+
+   A `resp.status_code != 200` check sees success, finds no `results`, and
+   reports a healthy empty day — so an expired key and a throttled run would
+   both look like "Japan filed nothing", forever. `_status_of` reads both shapes
+   and anything but 200 raises. The sibling's client checked `status_code` only.
+
+3. **Full-width digits eat correct records.** `currentReportReason` is typed
+   全半角 in the spec, so the clause can arrive as `第１９条第２項第９号`.
+   Python's `\d` matches full-width digits, so `validate._NUMBER` tokenises a
+   half-width summary as `{19,2,9}` against a full-width `raw_text` as
+   `{19,２,９}`, and `assert_figures_are_sourced` discards the whole record for
+   "inventing" 2 and 9. Demonstrated before the fix was written:
+
+   ```
+   assert_figures_are_sourced("filed under 第19条第2項第9号",
+                              "…内閣府令第19条第２項第９号の規定に基づき…")
+   -> Rejected: figure(s) not present in source text: ['2', '9']
+   ```
+
+   The collector normalises the clause once and writes that SAME string into
+   both the summary and `raw_text`, so the two cannot diverge. This is the third
+   instance of this bug class in three days (the `sec_execcomp` newline glue and
+   the missing thousands separator were the first two), and the pattern is
+   always the same: two renderings of one figure that were never compared.
+   Pinned by `test_a_full_width_clause_still_round_trips` and by a test that
+   asserts the un-normalised pairing really is rejected.
+
+4. **A Japanese company name produces an EMPTY slug.** `vocab.company_key`
+   passes non-ASCII through untouched, so `株式会社オプトラン` becomes
+   `株式会社オプトラン` and the company-profile slug
+   (`[^a-z0-9]+ -> -`) is `""`. Every Japanese employer would collide on the
+   empty slug and the profile route would break. **The fix is not a
+   transliteration rule of ours.** The official EDINET code list publishes each
+   filer's own English name, and a filer without one is DECLINED and counted.
+   Measured on the real list, 2026-07-30: **3,428 of 3,829 listed filers carry
+   one (89.5%)**, so ~10% of Japanese filings are refused by design.
+
+### The source URL is the document, because the viewer is not
+
+| candidate | real id | bogus id | verdict |
+|---|---|---|---|
+| `disclosure2dl…/searchdocument/pdf/{docID}.pdf` | 200 `application/pdf` | **404** | stored |
+| `disclosure2…/WEEK0010.aspx?docID=` | 200, 82,145 B | 200, **82,145 B** | refused |
+
+The BSE lesson was link ROT (AttachLive → AttachHis). Japan's trap is the
+opposite and worse: a URL that can never rot **because it never resolves**, so
+`link_check.py` would report it healthy forever while every Japanese row cited a
+search box. The PDF permalink needs no API key, so a reader can open it.
+
+### Licence: a green light, and it constrains the design
+
+EDINET's terms (`WZEK0030.html`) put the content under the Japanese **Public Data
+License 1.0** — commercial reuse and redistribution permitted — and require
+attribution (carried in `source_name`). Unlike ASX, nothing here forbids
+aggregating and republishing. But they prohibit scraping the website while
+explicitly exempting the API:
+
+> 「スクレイピング等を利用して本ウェブサイトからコンテンツを機械的に取得すること
+> は禁止します。ただし、API機能を利用する場合はこの限りではありません。」
+
+That is why every FACT comes from the API. The one non-API fetch is the code
+list, which the spec itself publishes as a 固定リンク for API users (page 86), so
+it is the sanctioned path rather than a scrape. It also closed off measuring
+volume by crawling the viewer: a refusal to measure by a prohibited method.
+
+### What it refuses to claim
+
+* **Every row is `neutral`, never `hiring`.** Item 9 covers a person becoming a
+  representative director and ceasing to be one under ONE clause, so the typed
+  metadata cannot tell an arrival from a departure. Guessing would make half the
+  rows wrong. Recovering the direction means reading the body — an LLM call per
+  document — and that trade was declined, because zero-cost is the premise.
+* **No person is named**, for the same reason. The filing is linked and says so.
+* **No city, ever.** The code list's address is ward-level with full-width digits
+  and, for the Tokyo wards holding most large filers,
+  `新宿区西新宿六丁目５番１号` never says Tokyo. A city would need a ~1,900-entry
+  municipality vocabulary, and guessing is how `ats_boards` turned
+  "Cambridge, MA" into Morocco. `country` is Japan by construction.
+* **No figure at all.** The metadata carries no amount and no headcount, so the
+  only numerals reaching a summary are the clause and the filing date.
+* **Corrections (190) are skipped, not stored.** Storing one would double-count
+  an event, and this repo appends revisions rather than overwriting. The hook a
+  future session needs is `parentDocID`, and it is on the row.
+
+### THE RECALL HOLE, which is large and invisible
+
+Item 9 exempts a change occurring between the annual shareholders' meeting and
+the filing of the annual report when the annual report already describes it.
+Japanese AGMs cluster in late June and 有価証券報告書 are filed in the same
+weeks, so **the commonest timing of a Japanese presidential succession can
+produce no extraordinary report at all.** This source is a floor on Japanese
+leadership change, not a count of it. Said in the read-through, the registry note
+and the sources page, and asserted by a test.
+
+### Measured, and the one thing that is not
+
+Offline, whole `run_collect` path, stubbed transport, nothing written:
+
+| | |
+|---|---|
+| list API calls | 7 (one per calendar day; the endpoint takes one date) |
+| code-list downloads | 1 |
+| documents read | 12 |
+| extraordinary reports (180) | 10 |
+| reporting `第19条第2項第9号` | 6 |
+| stored | 3 |
+| declined (no English name / withdrawn / viewing expired) | 3 |
+| corrections skipped | 1 |
+| **rejected by validate** | **0** |
+| **deferred** | **0** |
+| cost | **$0.00** — no model, no document fetch |
+
+Tests **1,823 → 1,876** (+53), all green. `ops_status.py` exits 2 before and
+after, on the same three pre-existing stale collectors (gdelt 54h, sec_edgar 52h,
+sec_form_d 60h); nothing here added an item. Two `source_health` error rows
+written by keyless local dry runs were deleted afterwards, so the committed
+database carries no false alarm — the database itself is NOT staged by this work.
+
+**VOLUME IS UNMEASURED, and that is the whole reason Japan stays
+`discovery_only`.** No authenticated call has ever been made from this repo: the
+key exists as a GitHub secret and was deliberately not available locally, so
+unlike India's 354-in-7-days and Australia's 192-in-30 there is no live count
+here. The bound, stated as an estimate and not a measurement: **3,829 listed
+filers** on the official code list against a published Japanese president-turnover
+rate of **3.84% for 2025** (Teikoku Databank) puts the order of magnitude at a
+**few hundred a year, roughly 1-3% of India's ~13,000** — before the AGM
+exemption above removes more. Thin, but a CEO change is the highest-value
+leadership row there is.
+
+**Also unproven until the first real run**, and listed so nobody mistakes the
+green suite for verification: the fixture's `currentReportReason` VALUES are
+constructed to the published spec rather than captured, so the exact string form
+(half-width vs full-width, spacing, and whether multi-reason joining uses `,`
+without a space) is spec-derived; and the real ratio of 180s to item-9s is
+unknown.
+
+### Promotion gate, so it is one commit and not a judgement call
+
+Japan becomes `structured_official` when a real run has measured it. Exactly:
+dispatch `collect-structured.yml` with `source=edinet_japan`, `dry_run=true`;
+read the printed line `N documents read, M extraordinary reports, K reporting
+第19条第2項第9号, S usable`; then in ONE commit flip `MARKETS`'s JP entry to
+`STRUCTURED_OFFICIAL`, add `edinet_japan` to its `live_sources`, and update
+`test_japan_stays_discovery_only_until_a_real_run_measures_it`. If K is
+implausibly zero over 7 days, the clause strings differ from the spec and the
+matcher is what to fix — not the floor.
+
+**Scheduled, on Tuesday.** `collect-structured.yml` gains `0 4 * * 2`, and the
+day is deliberate: Monday already carries BSE at 04:00, the link-hygiene ticket
+at 05:30 and the digest at 13:00, and every writer shares the one
+`talent-collect` lock in which GitHub keeps a single pending run that a second
+scheduled writer can evict. There is deliberately **no minimum-rows floor** of
+the kind `bse_india` carries: India's 250-a-week makes a zero provably a
+breakage, whereas one clause covering one role across 3,829 filers can genuinely
+be quiet, so health is judged on `LAST_RUN["read"]` instead. The honest floor
+cannot be set until the first real run measures the rate.
+
+### Where the brief was wrong
+
+* **"Documents are Japanese, often Shift-JIS or in XBRL."** The API's JSON
+  metadata is UTF-8, and this collector never touches a document body, so the
+  encoding trap does not arise on the stored path at all. Where encoding DOES
+  bite is the code list, and there the specific claim is wrong in a way that
+  matters: both lists are **cp932, not `shift_jis`** — `shift_jis` raises on
+  byte `0xfb` at offset 35,244 of the Japanese list, because cp932 carries the
+  NEC/IBM extended characters Japanese company names actually use. Naming the
+  narrower codec would crash the run on such a filer. (The sibling decoded
+  bodies as `utf-8` with `errors="replace"`, which would have mojibaked them
+  silently; it never mattered because it found nothing.)
+* **"万/億 magnitude characters."** Real, but not reachable here: no figure is
+  stored, so there is nothing for a magnitude character to corrupt. The
+  full-width DIGIT problem was the live one, and it was in the clause reference
+  rather than in any amount.
+* **"Extraordinary reports are the likely home for officer changes — confirm
+  it."** Confirmed, but the brief's framing implied a category comparable to
+  SEBI's. It is one clause covering one role, with an exemption that removes the
+  commonest timing. The honest headline is "Japan types the CEO change", not
+  "Japan types officer changes".
+* **"MEASURE and report honestly: documents seen in a real recent window."** Not
+  possible: the key is a GitHub secret and no authenticated call could be made,
+  and the alternative — crawling the viewer — is prohibited by the terms. Stated
+  as unmeasured rather than estimated into looking measured.
+
+---
+
 ## 2026-07-30 — the page stops disagreeing with itself: sources, city pills, five amounts
 
 Launch-blocker pass over `wordpress-plugin/`. The theme running through all of

@@ -1,10 +1,13 @@
 # The structured sources: SEC executive compensation, UK gender pay gap, BSE
-# India leadership filings, and ATS job boards.
+# India leadership filings, EDINET Japan representative-director filings, and
+# ATS job boards.
 #
 # These cost NOTHING to run. Every field they store is a column in a frame, a
 # CSV or an API response, so the record is derived and no model is called. That
 # is why there is no OPENROUTER_API_KEY, no spend guard and no spend report in
-# this file: there is no spend to guard.
+# this file: there is no spend to guard. `edinet_japan` needs a SECRET but still
+# costs nothing — an API key is not spend, and that collector never downloads a
+# document or calls a model.
 #
 # There is deliberately NO EDGAR_USER_AGENT mapping. That secret does not exist
 # in this repo, and mapping a missing secret sets the environment variable to
@@ -21,6 +24,11 @@
 # arbitrary date ranges so nothing is lost permanently and daily is wasteful.
 # Weekly, with a 7-day window, means consecutive runs overlap by a day and a
 # skipped week is recoverable with the days input.
+#
+# edinet_japan is weekly for the same reason and is cheaper still: EDINET's list
+# endpoint takes ONE calendar day per call, so a 7-day window is 7 calls plus
+# one code-list download. It is on Tuesday rather than Monday to keep the single
+# database-writer lock uncontended; see the cron comment below.
 name: collect-structured
 
 on:
@@ -29,12 +37,20 @@ on:
     - cron: '30 9 5 * *'     # 5th of the month: SEC exec comp, for late proxies
     - cron: '30 10 6 * *'    # 6th of the month: UK gender pay gap
     - cron: '0 4 * * 1'      # Mondays: BSE India leadership filings
+    # TUESDAY, not Monday, and the day matters. Monday already carries the BSE
+    # slot at 04:00, the link-hygiene ticket at 05:30 and the weekly digest at
+    # 13:00, and every database writer shares the single `talent-collect` lock
+    # in which GitHub keeps exactly ONE pending run — a second scheduled writer
+    # queued behind the first can evict a waiting run, which ends `cancelled`
+    # with no jobs and no logs. Moving a weekly job one day sideways costs
+    # nothing and removes that contention entirely.
+    - cron: '0 4 * * 2'      # Tuesdays: EDINET Japan representative-director filings
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -45,7 +61,7 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India only. How many days back to read. Blank = 7. A gap is back-filled by widening this.'
+        description: 'BSE India and EDINET Japan. How many days back to read. Blank = 7. A gap is back-filled by widening this.'
         required: false
         default: ''
       dry_run:
@@ -90,6 +106,7 @@ jobs:
             '30 9 5 * *')  scheduled=sec_execcomp ;;
             '30 10 6 * *') scheduled=uk_paygap ;;
             '0 4 * * 1')   scheduled=bse_india ;;
+            '0 4 * * 2')   scheduled=edinet_japan ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then
@@ -106,6 +123,15 @@ jobs:
           TIT_PAYGAP_YEARS: ${{ inputs.years }}
           TIT_PAYGAP_MIN_SIZE: ${{ inputs.min_size || '5000' }}
           TIT_BSE_DAYS: ${{ inputs.days }}
+          TIT_EDINET_DAYS: ${{ inputs.days }}
+          # EDINET's v2 API requires a subscription key on every request. This
+          # secret DOES exist (set 2026-07-30), which is what separates it from
+          # the EDGAR_USER_AGENT case in the header comment above: mapping a
+          # secret that does not exist sets the variable to empty string, and
+          # EDINET answers an empty key with HTTP 200 carrying
+          # {"StatusCode": 401} in the body — a silent zero. The collector
+          # refuses an empty key at its first line for exactly that reason.
+          EDINET_API_KEY_JP: ${{ secrets.EDINET_API_KEY_JP }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \

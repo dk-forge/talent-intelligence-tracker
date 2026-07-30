@@ -16,6 +16,21 @@
   "collector": "bse_india"
  },
  {
+  "name": "EDINET extraordinary reports (FSA Japan)",
+  "url": "https://disclosure2.edinet-fsa.go.jp/",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Leadership change"
+  ],
+  "coverage": "National",
+  "country": "JP",
+  "rss": "",
+  "free": true,
+  "notes": "Japan's Financial Services Agency types the statutory REASON for every extraordinary report as a clause number in its API metadata, so no model is involved and there is no cost. Read the scope narrowly, because it is much narrower than the Indian equivalent: the only officer clause Japan types is a change of REPRESENTATIVE DIRECTOR, the chief executive, and not the wider board or senior management. The clause covers arrivals and departures together, so rows carry no direction and name no person; both are in the filing, which is linked. It also exempts a change already described in the annual report, and Japanese shareholder meetings cluster in the same weeks as those reports, so this is a floor on Japanese leadership change rather than a count of it. No city is carried, so Japanese rows place at country level only.",
+  "collector": "edinet_japan"
+ },
+ {
   "name": "Employer job boards (Greenhouse, Lever, Ashby)",
   "url": "https://boards-api.greenhouse.io/",
   "status": "live",

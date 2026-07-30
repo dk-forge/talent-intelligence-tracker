@@ -57,6 +57,15 @@ MAX_AGE_HOURS = {
     # daily feed going uncollected. Not perishable though — the API answers
     # arbitrary date ranges, so a gap can be back-filled with TIT_BSE_DAYS.
     "bse_india": 180,      # ~7.5 days: weekly cron plus room to notice
+    # collect-structured.yml, weekly on Mondays, same shape as bse_india: the
+    # window is 7 days and the API answers any calendar date, so a missed week
+    # is back-fillable with TIT_EDINET_DAYS rather than lost. Not perishable.
+    # Deliberately the same leash and NOT a longer one just because Japan's
+    # clause is thin: the leash measures whether the COLLECTOR ran, not whether
+    # Japan filed anything, and those are different questions. A week where the
+    # clause genuinely fires for nobody is reported through the read count
+    # (edinet_japan.LAST_RUN["read"]), not by letting the run go quiet.
+    "edinet_japan": 180,   # ~7.5 days: weekly cron plus room to notice
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

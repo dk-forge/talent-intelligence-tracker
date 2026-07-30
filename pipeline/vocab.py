@@ -58,6 +58,12 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # India's whole structured spine understates what it is.
     "bseindia.com",
     "www.bseindia.com",
+    # EDINET is the Financial Services Agency's own disclosure system, and this
+    # host serves the filing itself rather than a report of it, so it is the
+    # same class as sec.gov: the venue a Japanese issuer files WITH. Without
+    # this line collectors/edinet_japan.py caps at 'reported' and a statutory
+    # filing reads as a news story.
+    "disclosure2dl.edinet-fsa.go.jp",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",
