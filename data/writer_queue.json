@@ -140,8 +140,8 @@
       "created_at": "2026-07-29T07:18:22Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T09:51:29Z",
-      "resolved": "2026-07-29T10:54:16Z",
-      "resolved_note": "Both were direct (cron) dispatches evicted while the GDELT backfill held the lock. enrich already re-ran successfully from the queue at 10:51; collect national press is being re-queued through drain-writers so it cannot be evicted again. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:39:49Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
       "run_id": "30431169359",
       "workflow": "enrich"
     },
