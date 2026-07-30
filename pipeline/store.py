@@ -77,6 +77,42 @@ def revise(conn: sqlite3.Connection, signal_id: str, new_signal, note: str) -> N
     )
 
 
+# What a run's model accounting is stored under, in the order a reader wants
+# it. Named here rather than spelled out in the INSERT because report_health
+# writes only the ones the database in front of it actually has: this file also
+# runs against checkouts and read-only copies that predate the columns, and a
+# health row is the last thing that should fail to land over a cost figure.
+USAGE_COLUMNS = (
+    "model", "gate_model", "prompt_tokens", "cached_tokens",
+    "completion_tokens", "cost_usd", "reads_bought", "rows_from_reads",
+)
+
+
+def health_has_cost_columns(conn: sqlite3.Connection) -> bool:
+    """Whether this database can hold per-run cost yet.
+
+    Read by the tools that REPORT cost. They open the database directly rather
+    than through schema.connect(), so they can be looking at a file the
+    migration has not reached.
+    """
+    present = {row[1] for row in conn.execute("PRAGMA table_info(source_health)")}
+    return set(USAGE_COLUMNS) <= present
+
+
+def reads_to_rows_pct(reads_bought: int | None, rows_from_reads: int | None) -> int | None:
+    """The waste ratio, computed in ONE place.
+
+    A full read-through that stores nothing is money spent on a row the page
+    never got — a model NO after the gate said yes, a validate rejection the
+    precheck could not see, a post-read duplicate. The run log prints this and
+    so does ops_status, and they must not be able to disagree, which is the
+    whole reason it is a function rather than two format strings.
+    """
+    if not reads_bought:
+        return None
+    return int(rows_from_reads or 0) * 100 // int(reads_bought)
+
+
 def report_health(
     conn: sqlite3.Connection,
     collector: str,
@@ -85,24 +121,37 @@ def report_health(
     items_found: int = 0,
     items_stored: int = 0,
     detail: str = "",
+    usage: dict | None = None,
 ) -> None:
-    """Spec 6 rule 4: a collector returning zero is degraded, never ok."""
+    """Spec 6 rule 4: a collector returning zero is degraded, never ok.
+
+    `usage` is what the model charged this run (classify.usage_snapshot()).
+    Omitted — or None, which is what a run that called no model reports — the
+    cost columns stay NULL, so a free run reads as unmeasured rather than as a
+    measured zero.
+    """
     if items_found == 0 and status == "ok":
         status = "degraded"
         detail = (detail + " | zero items found").strip(" |")
 
+    row: dict = {
+        "collector": collector,
+        "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "status": status,
+        "items_found": items_found,
+        "items_stored": items_stored,
+        "detail": detail,
+    }
+
+    if usage:
+        present = {r[1] for r in conn.execute("PRAGMA table_info(source_health)")}
+        for name in USAGE_COLUMNS:
+            if name in present and name in usage:
+                row[name] = usage[name]
+
+    columns = ", ".join(row)
+    placeholders = ", ".join("?" for _ in row)
     conn.execute(
-        """
-        INSERT OR REPLACE INTO source_health
-            (collector, run_at, status, items_found, items_stored, detail)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (
-            collector,
-            datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            status,
-            items_found,
-            items_stored,
-            detail,
-        ),
+        f"INSERT OR REPLACE INTO source_health ({columns}) VALUES ({placeholders})",
+        tuple(row.values()),
     )

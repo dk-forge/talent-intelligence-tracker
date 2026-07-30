@@ -135,6 +135,10 @@ class TestStalenessBoundary(unittest.TestCase):
                 "sqlite3", "sys", "datetime", "pathlib", "annotations",
                 "__future__", "re", "unicodedata", "json", "subprocess",
                 "csv", "dataclasses", "math",
+                # ops_status reads spend.py's monthly allowance by PARSING it
+                # rather than importing it, because spend.py imports requests
+                # and this promise is the reason it may not.
+                "ast",
                 # Repo-local, themselves dependency-free at import time.
                 "source_registry", "staleness", "writer_queue",
                 "backfill_slices", "pipeline",

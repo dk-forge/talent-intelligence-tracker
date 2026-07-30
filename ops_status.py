@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import source_registry as registry
@@ -49,6 +49,7 @@ def main() -> int:
     problems += _report_data(conn)
     problems += _report_employer_keys(conn)
     problems += _report_health(conn)
+    problems += _report_run_cost(conn)
     problems += _report_writer_queue()
     problems += _report_link_rot(conn)
     problems += _report_guardrails(conn)
@@ -265,6 +266,148 @@ def _report_health(conn) -> list[str]:
         if row["status"] != "ok":
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
+    return problems
+
+
+#: How much of the health ledger the cost window looks at. Collection runs
+#: twice a day, so seven days is fourteen scheduled runs plus whatever was
+#: dispatched — enough that one expensive backfill does not decide the number,
+#: short enough that a change made this week is visible this week.
+COST_WINDOW_DAYS = 7
+
+
+def _monthly_allowance() -> float | None:
+    """The monthly budget, read out of spend.py without importing it.
+
+    spend.py owns that number — it is a policy, deliberately in a diffable file
+    rather than a secret — but it imports `requests` at module scope, and this
+    file's whole promise is stdlib only, no deps, no network, no keys. So the
+    assignment is parsed instead of executed. Copying the figure here was the
+    alternative, and a duplicated budget is a budget that goes stale silently.
+
+    None when it cannot be read, which prints as "no policy figure" rather than
+    quietly comparing against a default nobody set.
+    """
+    import ast
+
+    try:
+        tree = ast.parse((ROOT / "spend.py").read_text())
+    except (OSError, SyntaxError):
+        return None
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == "MONTHLY_ALLOWANCE_USD":
+                try:
+                    return float(ast.literal_eval(node.value))
+                except (ValueError, TypeError):
+                    return None
+    return None
+
+
+def _report_run_cost(conn) -> list[str]:
+    """What the model charged, per run, from the health ledger.
+
+    classify.STATS has counted tokens and the provider's own cost figure since
+    the gate was added, printed them at the end of every run, and then lost them
+    when the process exited. The consequence was specific: spend drift could
+    only be seen in a month-end total, and cost per stored row — the number that
+    says whether a prompt change, a cap change or a model switch paid for itself
+    — could not be plotted at all, because nothing had ever written it down.
+
+    Cost is recorded on the health row the run already files, so this reads the
+    same rows section [2] does. Rows that predate the columns are NULL and are
+    skipped rather than counted as free.
+    """
+    from pipeline import store
+
+    print("\n[2a] RUN COST  (what the model charged, per run)")
+
+    if not store.health_has_cost_columns(conn):
+        print("    This database predates per-run cost accounting. The next")
+        print("    collect run adds the columns and starts recording.")
+        return []
+
+    rows = conn.execute(
+        f"""SELECT collector, run_at, status, items_stored, model, gate_model,
+                   prompt_tokens, cached_tokens, completion_tokens, cost_usd,
+                   reads_bought, rows_from_reads
+              FROM source_health
+             WHERE cost_usd IS NOT NULL
+             ORDER BY run_at DESC LIMIT {2 * COST_WINDOW_DAYS + 12}"""
+    ).fetchall()
+
+    if not rows:
+        print("    No run has recorded a cost yet. Every run that calls a model")
+        print("    records one from now on; a structured source records none")
+        print("    because it spends nothing.")
+        return []
+
+    for row in rows[:5]:
+        ratio = store.reads_to_rows_pct(row["reads_bought"], row["rows_from_reads"])
+        rows_bought = row["rows_from_reads"] or 0
+        share = "" if ratio is None else (
+            f"  {row['reads_bought']} reads -> {rows_bought} "
+            f"row{'' if rows_bought == 1 else 's'} ({ratio}%)")
+        print(f"    {row['run_at'][:16]}  {row['collector']:<16} "
+              f"${row['cost_usd']:.4f}{share}")
+        prompt = row["prompt_tokens"] or 0
+        if prompt:
+            cached = row["cached_tokens"] or 0
+            print(f"                      {prompt:,} prompt tokens "
+                  f"({cached * 100 // prompt}% served from cache), "
+                  f"{row['completion_tokens'] or 0:,} completion")
+
+    cutoff = (datetime.now(timezone.utc)
+              - timedelta(days=COST_WINDOW_DAYS)).isoformat(timespec="seconds")
+    window = [r for r in rows if (r["run_at"] or "") >= cutoff]
+
+    problems: list[str] = []
+    if not window:
+        print(f"    Nothing in the last {COST_WINDOW_DAYS} days. The newest cost "
+              f"row is {rows[0]['run_at'][:16]}.")
+        return problems
+
+    spend = sum(float(r["cost_usd"] or 0) for r in window)
+    reads = sum(int(r["reads_bought"] or 0) for r in window)
+    from_reads = sum(int(r["rows_from_reads"] or 0) for r in window)
+    stored = sum(int(r["items_stored"] or 0) for r in window)
+
+    print(f"    last {COST_WINDOW_DAYS}d: ${spend:.4f} over {len(window)} run(s), "
+          f"{reads} reads -> {from_reads} rows"
+          + ("" if store.reads_to_rows_pct(reads, from_reads) is None
+             else f" ({store.reads_to_rows_pct(reads, from_reads)}%)"))
+    if stored:
+        print(f"             ${spend / stored:.5f} per stored row")
+
+    models = {(r["model"], r["gate_model"]) for r in window if r["model"]}
+    for model, gate_model in sorted(models):
+        print(f"             {model} read-through, "
+              + (f"{gate_model} gate" if gate_model else "no gate (single-stage)"))
+    if len(models) > 1:
+        print("             (two model configurations in one window, so the "
+              "cost per row above mixes them)")
+
+    # The whole point of persisting this: drift is visible in a day rather than
+    # at a month end. Projected, not extrapolated from one run — a window of
+    # fewer than three runs is too easy for a single dispatched backfill to
+    # dominate, and a false alarm here costs the tool its authority.
+    allowance = _monthly_allowance()
+    projected = spend / COST_WINDOW_DAYS * 30
+    if allowance is None:
+        print("             (spend.py's monthly allowance could not be read, "
+              "so nothing is compared against it)")
+    else:
+        print(f"             projects to ${projected:.2f}/30d against a "
+              f"${allowance:.2f} allowance (spend.py)")
+        if len(window) >= 3 and projected > allowance:
+            problems.append(
+                f"the last {COST_WINDOW_DAYS} days of model spend project to "
+                f"${projected:.2f} over 30 days, past the ${allowance:.2f} "
+                f"allowance in spend.py: check the read-through cap and the "
+                f"reads-to-rows ratio above before the key's own cap stops "
+                f"collection with a 402")
     return problems
 
 

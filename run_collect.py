@@ -450,16 +450,24 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # A bad key is permanent for this run. The first live run printed
             # the same 401 twenty-five times before anyone learned anything.
             print(f"\nSTOPPING: {exc}", file=sys.stderr)
+            # usage even here: a run that dies on a bad key may already have
+            # paid for the candidates it read before the key was rotated, and a
+            # cost that is only recorded on the happy path is a cost that
+            # disappears exactly when someone is looking for it.
             store.report_health(conn, collector, status="error",
                                 items_found=found, items_stored=stored,
-                                detail=f"auth failed: {str(exc)[:200]}")
+                                detail=f"auth failed: {str(exc)[:200]}",
+                                usage=classify.usage_snapshot())
             conn.commit()
             return 1
         except classify.CreditsExhausted as exc:
             print(f"\nSTOPPING: {exc}", file=sys.stderr)
+            # The one run whose cost is least optional: a 402 means the spend
+            # ceiling was reached, so this row is the evidence of what reached it.
             store.report_health(conn, collector, status="error",
                                 items_found=found, items_stored=stored,
-                                detail="OpenRouter credits exhausted")
+                                detail="OpenRouter credits exhausted",
+                                usage=classify.usage_snapshot())
             conn.commit()
             return 1
         except classify.BudgetDeferred as exc:
@@ -589,7 +597,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         kept_rows = classify.STATS["read_stored"]
         print(
             f"[{collector}] reads bought vs rows stored: {n} read-throughs, "
-            f"{kept_rows} rows ({kept_rows * 100 // n}% of reads became rows)"
+            f"{kept_rows} rows "
+            f"({store.reads_to_rows_pct(n, kept_rows)}% of reads became rows)"
         )
     if classify.STATS["prompt_tokens"]:
         cached = classify.STATS["cached_tokens"]
@@ -629,10 +638,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     observed = found if observed is None else observed
     broken = observed == 0 or everything_rejected or mostly_throttled
 
+    # The health row is also the spend ledger now. Every number printed above
+    # is persisted with it, so drift shows up the next time anyone runs
+    # ops_status instead of in a month-end total, and cost per stored row is
+    # something you can plot rather than something you can remember.
     store.report_health(
         conn, collector,
         status="degraded" if broken else "ok",
         items_found=observed, items_stored=stored,
+        usage=classify.usage_snapshot(),
         detail=(f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"

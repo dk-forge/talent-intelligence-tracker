@@ -258,6 +258,39 @@ def _api_key() -> str:
     return api_key
 
 
+def gate_enabled() -> bool:
+    """Two-stage or single-stage. Read in two places, so it is read once."""
+    return bool(GATE_MODEL) and GATE_MODEL.lower() not in ("off", "0", "none")
+
+
+def usage_snapshot() -> dict | None:
+    """What this run charged, in the shape store.report_health persists.
+
+    Returns None when no model was called at all — a structured source, an
+    offline dry run, a sweep that closed everything deterministically. That is
+    reported as NULL rather than as zeros, because a genuinely free run and a
+    run whose accounting went missing must not look the same in the ledger.
+
+    `cost_usd` is the PROVIDER's own figure summed across both stages, never
+    arithmetic from a published price list. Every cost claim in this repo used
+    to be the latter, and a rate card is a forecast.
+    """
+    if not (STATS["gate_calls"] or STATS["full_calls"]):
+        return None
+    return {
+        "model": MODEL,
+        "gate_model": GATE_MODEL if gate_enabled() else "",
+        "prompt_tokens": STATS["prompt_tokens"],
+        "cached_tokens": STATS["cached_tokens"],
+        "completion_tokens": STATS["completion_tokens"],
+        # Rounded at the sixth decimal: a single gate call costs ~$0.000004, so
+        # anything coarser records a real charge as free.
+        "cost_usd": round(float(STATS["usd"]), 6),
+        "reads_bought": STATS["full_calls"],
+        "rows_from_reads": STATS["read_stored"],
+    }
+
+
 def gate(text: str, *, timeout: int = 30) -> bool:
     """One-word KEEP/DROP from the cheap model. Fails OPEN: if the gate itself
     errors or is throttled, the candidate goes through to the full model, so a
@@ -300,7 +333,7 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
 
     # Stage 1: the one-word gate. A rejection here costs ~1/40th of a full
     # read-through and is the whole reason the candidate cap can be generous.
-    if GATE_MODEL and GATE_MODEL.lower() not in ("off", "0", "none"):
+    if gate_enabled():
         if not gate(text, timeout=min(timeout, 30)):
             return None
 

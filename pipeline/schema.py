@@ -172,6 +172,38 @@ CREATE TABLE IF NOT EXISTS source_health (
     items_found  INTEGER NOT NULL DEFAULT 0,
     items_stored INTEGER NOT NULL DEFAULT 0,
     detail       TEXT,
+
+    -- WHAT THE RUN COST. classify.STATS has accumulated the provider's own
+    -- usage accounting since the day the gate was added, and printed it, and
+    -- then thrown it away when the process exited. So spend drift was only
+    -- visible in a month-end total, and "cost per stored row" — the one number
+    -- that says whether a change to the prompt, the cap or the model paid for
+    -- itself — could not be plotted at all.
+    --
+    -- It belongs HERE and not in a new table: a run already files exactly one
+    -- health row, the ledger is already append-only on (collector, run_at),
+    -- already merges cleanly (merge_db.py unions it), and already reaches the
+    -- weekly digest and ops_status. A parallel cost table would need its own
+    -- merge rule and its own join to answer any question worth asking.
+    --
+    -- NULL means "no model accounting was recorded" and 0 means "measured
+    -- zero", and the difference matters: a structured collector and a
+    -- retraction sweep call no model at all, and writing zeros for them would
+    -- make a genuinely free run indistinguishable from a run whose accounting
+    -- went missing.
+    model             TEXT,     -- the read-through model, as configured
+    gate_model        TEXT,     -- the one-word gate, '' when single-stage
+    prompt_tokens     INTEGER,
+    cached_tokens     INTEGER,  -- of prompt_tokens; the prefix cache's receipt
+    completion_tokens INTEGER,
+    cost_usd          REAL,     -- the PROVIDER's own figure, never arithmetic
+    reads_bought      INTEGER,  -- full read-throughs paid for this run
+    -- Rows that those read-throughs actually bought. Beside reads_bought this
+    -- IS the reads-vs-rows ratio, which is deliberately not stored as a third
+    -- number: a percentage rounded at write time can disagree with the two
+    -- integers it came from, and then nobody knows which to believe.
+    -- store.reads_to_rows_pct() is the one place it is computed.
+    rows_from_reads   INTEGER,
     PRIMARY KEY (collector, run_at)
 );
 
@@ -330,6 +362,19 @@ MIGRATIONS = (
     ("signals", "materiality", "TEXT"),
     ("signals", "deal_type", "TEXT"),
     ("signals", "site_event", "TEXT"),
+    # Per-run cost accounting on the health ledger. The committed database has
+    # thousands of health rows already, and they stay NULL here forever: no
+    # model is going to re-read a run that finished in July. That is the honest
+    # shape of a column added after the fact, and the reason this went in the
+    # same week the accounting was being printed rather than a month later.
+    ("source_health", "model", "TEXT"),
+    ("source_health", "gate_model", "TEXT"),
+    ("source_health", "prompt_tokens", "INTEGER"),
+    ("source_health", "cached_tokens", "INTEGER"),
+    ("source_health", "completion_tokens", "INTEGER"),
+    ("source_health", "cost_usd", "REAL"),
+    ("source_health", "reads_bought", "INTEGER"),
+    ("source_health", "rows_from_reads", "INTEGER"),
 )
 
 
