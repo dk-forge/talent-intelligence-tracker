@@ -65,24 +65,48 @@ function tit_dashboard_shortcode() {
 }
 
 /**
- * The render itself, callable more than once per process.
+ * EVERYTHING THE DASHBOARD ASKS THE DATABASE, ONCE, AS ONE CACHED BUNDLE.
  *
- * Split from the shortcode so the once-per-request guard above is the only
- * thing that is once-per-request. A harness that can render only once can
- * measure a cold render or a warm one but never both, and "warm costs nothing"
- * is the half of the caching claim that actually reaches a reader.
+ * WHY THIS IS SAFE TO CACHE AT ALL, which is the only question that matters
+ * about a cache on a page with nine filters on it.
+ *
+ * Nothing here reads the request. Not $_GET, not a cookie, not a user. The
+ * server always renders the SAME default view, and a filtered view is
+ * JavaScript's job against /query, which does its own caching keyed on its own
+ * parameters. So there is exactly one bundle, it is identical for every reader,
+ * and there is no shape of this cache that can hand one reader another's view.
+ * If a future session ever makes this render read a filter, it has to split the
+ * key or delete the cache, and the comment above the key says so.
+ *
+ * THE KEY carries TIT_VERSION, so a deploy that changes what the page prints
+ * cannot serve the previous version's numbers, and the current DATE, because the
+ * at-a-glance matrix derives "this week", "this month", "this quarter" and YTD
+ * from today. It reads that date from current_time() -- the same call the matrix
+ * itself uses -- so the bundle expires exactly when its own columns move rather
+ * than at some UTC boundary the matrix does not observe.
+ *
+ * THE TTL matches the REST endpoints' (TIT_CACHE_TTL, 5 minutes), because both
+ * layers publish the same figures and a page that disagreed with /aggregate for
+ * half an hour would be a dashboard arguing with itself. It is also only ever a
+ * backstop: every write route calls tit_flush_caches(), which drops every tit_
+ * transient, so a correction or a fresh run appears immediately.
+ *
+ * WHAT IT IS WORTH. Twelve aggregate scans of the whole table, on shared
+ * hosting, on the page every reader lands on. Cold origin renders were measured
+ * at 2.5 to 4.0 seconds; warm ones now ask the database nothing at all, which
+ * tests/php/render_dashboard.php asserts as a zero.
  */
-function tit_dashboard_html() {
-    // Enqueue from INSIDE the shortcode as well as from wp_enqueue_scripts.
-    // The hook's guard asks has_shortcode($post->post_content, ...), which is
-    // FALSE whenever the shortcode reaches the page through a block, pattern,
-    // template part or reusable block rather than sitting raw in post_content.
-    // The dashboard then rendered with no stylesheet at all -- every tit- class
-    // inert, the page raw HTML (observed live 2026-07-28). Enqueuing where the
-    // markup is actually produced cannot drift from where it is used.
-    if (function_exists('tit_enqueue_dashboard_assets')) tit_enqueue_dashboard_assets();
+function tit_dashboard_facts($table) {
+    /*
+      One key, no request state in it. See the note above before adding any:
+      a key that varies by filter is a cache that can serve one reader another
+      reader's page, and this render has no business knowing about filters.
+    */
+    $key = 'tit_dash_' . md5(TIT_VERSION . '|' . current_time('Y-m-d'));
+    $cached = get_transient($key);
+    if (is_array($cached) && isset($cached['total_all'])) return $cached;
+
     global $wpdb;
-    $table = tit_table_name();
 
     /*
       EVERY SCALAR THE PAGE PRINTS, IN ONE PASS.
@@ -95,8 +119,9 @@ function tit_dashboard_html() {
 
       Conditional aggregation instead: the CASE expressions carry the notable
       clause where a WHERE used to, so the whole hero comes back on one pass.
-      Same shape places.php uses, and the same reason — a figure that shares its
-      scan with the figure beside it cannot end up describing a different set.
+      Same shape places.php uses, and the same reason beyond the count -- a
+      figure that shares its scan with the figure beside it cannot end up
+      describing a different set of rows.
 
       The date bounds are deliberately TWO pairs from the one row. The note
       describes the set the page is showing, so it agrees with every other
@@ -122,6 +147,187 @@ function tit_dashboard_html() {
            FROM {$table} WHERE is_current = 1", ARRAY_A) ?: array();
 
     $total_all = (int) ($head['total_all'] ?? 0);
+    $span_lo = $head['lo_all'] ?? '';
+    $span_hi = $head['hi_all'] ?? '';
+
+    $facts = array(
+        'total_all' => $total_all,
+        'routine'   => (int) ($head['routine'] ?? 0),
+        'notable'   => (int) ($head['notable'] ?? $total_all),
+        'verified'  => (int) ($head['verified'] ?? 0),
+        'companies' => (int) ($head['companies'] ?? 0),
+        // Bounds for the date inputs. The sibling can offer years, quarters and
+        // months because it holds years; we hold days. Letting the control ask
+        // for a period we have nothing in is a control that manufactures empty
+        // states and makes thin coverage look like a broken filter.
+        'span_lo'   => $span_lo,
+        'span_hi'   => $span_hi,
+        'view_lo'   => $head['lo'] ?? $span_lo,
+        'view_hi'   => $head['hi'] ?? $span_hi,
+        'newest_run' => $head['newest_run'] ?? '',
+        'stated'    => 0,
+        'by_pillar' => array(),
+        'by_direction' => array(),
+        'counts_by_country' => array(),
+        'countries' => 0,
+        'by_country' => array(),
+        'glance'    => array(),
+        'money'     => array('total' => 0, 'coverage' => array('with' => 0, 'all' => 0),
+                             'placed' => array(), 'by_country' => array(),
+                             'by_city' => array(), 'by_industry' => array()),
+        'place_caveat' => '',
+        'rows'      => array(),
+        'cities'    => array(),
+    );
+
+    // An empty table gets the empty-state panel and nothing else, so none of
+    // the eleven scans below is worth paying for. Cached all the same: this is
+    // the state before collection is armed, and it is dropped the moment the
+    // first row lands, because storing one calls tit_flush_caches().
+    if ($total_all === 0) {
+        set_transient($key, $facts, tit_dash_ttl());
+        return $facts;
+    }
+
+    $facts['by_pillar'] = $wpdb->get_results(
+        "SELECT pillar, COUNT(*) n FROM {$table} WHERE {$base} GROUP BY pillar ORDER BY n DESC",
+        ARRAY_A
+    ) ?: array();
+
+    $facts['by_direction'] = $wpdb->get_results(
+        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE {$base}
+          GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
+
+    /*
+      How many updates in the default view actually state a headcount. Printed
+      beside the toggle, so a reader sees what it would do before using it.
+
+      Summed from the direction ranking rather than counted again. It was its own
+      COUNT(*) with `signal_direction IN ('hiring', 'displacement')`, which is
+      the same two buckets the query above has just returned with their counts.
+      One clause, one place: if the definition of "moves headcount" ever changes,
+      it changes here and the ranking cannot disagree with the toggle beside it.
+    */
+    $stated_dirs = array('hiring' => true, 'displacement' => true);
+    foreach ($facts['by_direction'] as $d) {
+        if (isset($stated_dirs[$d['k']])) $facts['stated'] += (int) $d['n'];
+    }
+
+    $facts['glance'] = tit_glance_matrix($table, $base);
+    // The money views and the matrix's money row share one coverage figure, so
+    // a dollar total can never sit next to a sentence describing a different
+    // set of rows.
+    $facts['money'] = tit_money_aggregate($table, $base);
+    $facts['glance']['coverage'] = $facts['money']['coverage'];
+
+    /*
+      EVERY COUNTRY'S COUNT, ONCE.
+
+      Four things read this: the region strip (which sums the codes inside each
+      region), the top-country buttons, the place ranking, and the concentration
+      caveat's denominator. Three of them used to ask the database for it
+      separately -- the same GROUP BY twice, once whole and once ordered with a
+      LIMIT, plus a third COUNT(DISTINCT) for how many countries there are.
+
+      They are all the same map, so it is fetched once and the rest is array
+      work. COUNT(DISTINCT COALESCE(country, hq_country)) is exactly the number
+      of keys in it, because COUNT(DISTINCT) skips NULLs and so does the WHERE
+      here. That equality is the whole reason the query could go, and it is why
+      the two must stay in one place: a filter added to one and not the other
+      would put a country count next to a country chart that disagreed with it.
+    */
+    $counts = array_column($wpdb->get_results(
+        "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
+          WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
+          GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
+    $counts = array_map('intval', $counts);
+    $facts['counts_by_country'] = $counts;
+    $facts['countries'] = count($counts);
+
+    // 40, matching /aggregate, not 6. The chart scrolls and expands, so a short
+    // list is no longer what keeps the card small -- and a hard six meant the
+    // World view could not show two of the eight countries we actually hold.
+    arsort($counts);
+    $top = array_slice($counts, 0, 40, true);
+    $facts['by_country'] = array_map(
+        function ($k, $n) { return array('k' => $k, 'n' => $n); },
+        array_keys($top), $top
+    );
+
+    /*
+      When ONE collector accounts for most of a country, say so.
+
+      The United Kingdom shows 4,804 rows, of which 4,761 come from the gender
+      pay gap filing. That is not a parser bug and not UK business activity: it
+      is one mandatory annual return that every large employer files, and a
+      reader scanning the country chart would take that bar as a measure of how
+      much is happening there. Computed, never written down, so it names
+      whichever country is currently dominated and disappears when none is.
+
+      The country totals it needs to divide by are the map above, handed over
+      rather than counted a second time.
+    */
+    $facts['place_caveat'] = tit_place_caveat($table, $base, array(),
+                                              $facts['counts_by_country']);
+
+    // Materiality first, recency inside it, matching /query's default sort so
+    // the first paint and the first repaint cannot put the rows in a different
+    // order. A stated headcount or a real funding amount outranks a bare
+    // officer change; an unjudged row outranks a judged-routine one.
+    $facts['rows'] = $wpdb->get_results(
+        "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
+                city, country, hq_city, hq_country, confidence, source_url, source_name,
+                archive_url, published_date
+           FROM {$table} WHERE {$base}
+          ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
+                                    WHEN 'routine' THEN 3 ELSE 2 END ASC,
+                   {$date_expr} DESC, row_id DESC
+          LIMIT " . TIT_DASH_ROWS,
+        ARRAY_A
+    ) ?: array();
+
+    // Top Cities, only where a source actually named one, each carrying its
+    // country so the pill can wear the right flag.
+    $facts['cities'] = $wpdb->get_results(
+        "SELECT city k, COALESCE(country, hq_country) cc, COUNT(*) n FROM {$table}
+          WHERE is_current = 1 AND city IS NOT NULL AND city != ''
+          GROUP BY city ORDER BY n DESC LIMIT 10", ARRAY_A) ?: array();
+
+    set_transient($key, $facts, tit_dash_ttl());
+    return $facts;
+}
+
+/**
+ * The bundle's lifetime, asked of api.php rather than written down twice.
+ *
+ * Read through defined() because a partial FTP upload can leave api.php missing
+ * for a few seconds, and a dashboard that fatals on a missing constant during a
+ * deploy is worse than one that caches for the default five minutes.
+ */
+function tit_dash_ttl() {
+    return defined('TIT_CACHE_TTL') ? TIT_CACHE_TTL : 300;
+}
+
+/**
+ * The render itself, callable more than once per process.
+ *
+ * Split from the shortcode so the once-per-request guard above is the only
+ * thing that is once-per-request. A harness that can render only once can
+ * measure a cold render or a warm one but never both, and "warm costs nothing"
+ * is the half of the caching claim that actually reaches a reader.
+ */
+function tit_dashboard_html() {
+    // Enqueue from INSIDE the shortcode as well as from wp_enqueue_scripts.
+    // The hook's guard asks has_shortcode($post->post_content, ...), which is
+    // FALSE whenever the shortcode reaches the page through a block, pattern,
+    // template part or reusable block rather than sitting raw in post_content.
+    // The dashboard then rendered with no stylesheet at all -- every tit- class
+    // inert, the page raw HTML (observed live 2026-07-28). Enqueuing where the
+    // markup is actually produced cannot drift from where it is used.
+    if (function_exists('tit_enqueue_dashboard_assets')) tit_enqueue_dashboard_assets();
+    $facts = tit_dashboard_facts(tit_table_name());
+
+    $total_all = (int) $facts['total_all'];
 
     ob_start();
 
@@ -157,121 +363,27 @@ function tit_dashboard_html() {
       figure below sits under the SAME clause the table does, or the hero would
       describe a set the rows do not belong to.
     */
-    // Both sides of the detail control, and the hero's own figures, all off the
-    // one pass above.
-    $n_routine = (int) ($head['routine'] ?? 0);
-    $n_notable = (int) ($head['notable'] ?? $total_all);
-    $total = $n_notable;
-    $companies = (int) ($head['companies'] ?? 0);
-    $verified = (int) ($head['verified'] ?? 0);
-
-    // Bounds for the date inputs. The sibling can offer years, quarters and
-    // months because it holds years; we hold days. Letting the control ask for
-    // a period we have nothing in is a control that manufactures empty states
-    // and makes thin coverage look like a broken filter.
-    $span_lo = $head['lo_all'] ?? '';
-    $span_hi = $head['hi_all'] ?? '';
-    $view_lo = $head['lo'] ?? $span_lo;
-    $view_hi = $head['hi'] ?? $span_hi;
-    $newest_run = $head['newest_run'] ?? '';
-
-    $by_pillar = $wpdb->get_results(
-        "SELECT pillar, COUNT(*) n FROM {$table} WHERE {$base} GROUP BY pillar ORDER BY n DESC",
-        ARRAY_A
-    ) ?: array();
-
-    $by_direction = $wpdb->get_results(
-        "SELECT signal_direction k, COUNT(*) n FROM {$table} WHERE {$base}
-          GROUP BY signal_direction ORDER BY n DESC", ARRAY_A) ?: array();
-
-    /*
-      How many updates in the default view actually state a headcount. Printed
-      beside the toggle, so a reader sees what it would do before using it.
-
-      Summed from the direction ranking rather than counted again. It was its own
-      COUNT(*) with `signal_direction IN ('hiring', 'displacement')`, which is
-      the same two buckets the query above has just returned with their counts.
-      One clause, one place: if the definition of "moves headcount" ever changes,
-      it changes here and the ranking cannot disagree with the toggle beside it.
-    */
-    $stated_dirs = array('hiring' => true, 'displacement' => true);
-    $n_stated = 0;
-    foreach ($by_direction as $d) {
-        if (isset($stated_dirs[$d['k']])) $n_stated += (int) $d['n'];
-    }
-
-    $glance = tit_glance_matrix($table, $base);
-    // The money views and the matrix's money row share one coverage figure, so
-    // a dollar total can never sit next to a sentence describing a different
-    // set of rows.
-    $money = tit_money_aggregate($table, $base);
-    $glance['coverage'] = $money['coverage'];
-
-    /*
-      EVERY COUNTRY'S COUNT, ONCE.
-
-      Four things read this: the region strip (which sums the codes inside each
-      region), the top-country buttons, the place ranking, and the concentration
-      caveat's denominator. Three of them used to ask the database for it
-      separately -- the same GROUP BY twice, once whole and once ordered with a
-      LIMIT, plus a third COUNT(DISTINCT) for how many countries there are.
-
-      They are all the same map, so it is fetched once and the rest is array
-      work. COUNT(DISTINCT COALESCE(country, hq_country)) is exactly the number
-      of keys in it, because COUNT(DISTINCT) skips NULLs and so does the WHERE
-      here. That equality is the whole reason the query could go, and it is why
-      the two must stay in one place: a filter added to one and not the other
-      would put a country count next to a country chart that disagreed with it.
-    */
-    $counts_by_country = array_column($wpdb->get_results(
-        "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
-          WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
-          GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
-    $counts_by_country = array_map('intval', $counts_by_country);
-    $countries = count($counts_by_country);
-
-    // 40, matching /aggregate, not 6. The chart scrolls and expands, so a short
-    // list is no longer what keeps the card small -- and a hard six meant the
-    // World view could not show two of the eight countries we actually hold.
-    $by_country = $counts_by_country;
-    arsort($by_country);
-    $by_country = array_map(
-        function ($k, $n) { return array('k' => $k, 'n' => $n); },
-        array_keys(array_slice($by_country, 0, 40, true)),
-        array_slice($by_country, 0, 40, true)
-    );
-
-    /*
-      When ONE collector accounts for most of a country, say so.
-
-      The United Kingdom shows 4,804 rows, of which 4,761 come from the gender
-      pay gap filing. That is not a parser bug and not UK business activity: it
-      is one mandatory annual return that every large employer files, and a
-      reader scanning the country chart would take that bar as a measure of how
-      much is happening there. Computed, never written down, so it names
-      whichever country is currently dominated and disappears when none is.
-
-      The country totals it needs to divide by are the map above, handed over
-      rather than counted a second time.
-    */
-    $place_caveat = tit_place_caveat($table, $base, array(), $counts_by_country);
-
-    // Materiality first, recency inside it, matching /query's default sort so
-    // the first paint and the first repaint cannot put the rows in a different
-    // order. A stated headcount or a real funding amount outranks a bare
-    // officer change; an unjudged row outranks a judged-routine one.
-    $rows = $wpdb->get_results(
-        "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
-                city, country, hq_city, hq_country, confidence, source_url, source_name,
-                archive_url, published_date
-           FROM {$table} WHERE {$base}
-          ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
-                                    WHEN 'routine' THEN 3 ELSE 2 END ASC,
-                   COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
-          LIMIT " . TIT_DASH_ROWS,
-        ARRAY_A
-    ) ?: array();
-
+    $n_routine        = (int) $facts['routine'];
+    $n_notable        = (int) $facts['notable'];
+    $total            = $n_notable;
+    $companies        = (int) $facts['companies'];
+    $verified         = (int) $facts['verified'];
+    $span_lo          = $facts['span_lo'];
+    $span_hi          = $facts['span_hi'];
+    $view_lo          = $facts['view_lo'];
+    $view_hi          = $facts['view_hi'];
+    $newest_run       = $facts['newest_run'];
+    $n_stated         = (int) $facts['stated'];
+    $by_pillar        = $facts['by_pillar'];
+    $by_direction     = $facts['by_direction'];
+    $counts_by_country = $facts['counts_by_country'];
+    $countries        = (int) $facts['countries'];
+    $by_country       = $facts['by_country'];
+    $glance           = $facts['glance'];
+    $money            = $facts['money'];
+    $place_caveat     = $facts['place_caveat'];
+    $rows             = $facts['rows'];
+    $tit_cities       = $facts['cities'];
     // Recruiter language, not ours. "Pillar" and "signal direction" are
     // internal vocabulary and never appear on the page.
     $labels = array(
@@ -471,12 +583,6 @@ function tit_dashboard_html() {
       */
       $tit_regions = tit_regions($counts_by_country);
       $tit_top = tit_top_countries($counts_by_country);
-      // Top Cities, only where a source actually named one, each carrying its
-      // country so the pill can wear the right flag.
-      $tit_cities = $wpdb->get_results(
-          "SELECT city k, COALESCE(country, hq_country) cc, COUNT(*) n FROM {$table}
-            WHERE is_current = 1 AND city IS NOT NULL AND city != ''
-            GROUP BY city ORDER BY n DESC LIMIT 10", ARRAY_A) ?: array();
       ?>
       <div class="tit-places">
         <div class="tit-regions" role="group" aria-label="Filter by region">
