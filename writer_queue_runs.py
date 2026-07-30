@@ -14,17 +14,47 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
+import time
 
 FIELDS = "databaseId,workflowName,status,conclusion,createdAt,updatedAt,event"
 
+# GitHub's own API 502s and 503s under load, and one of those took the whole
+# drainer down on 2026-07-30 with `HTTP 502: Server Error` on page 2 of the run
+# list -- a queue that had just started moving stopped again for somebody else's
+# bad minute. Retrying is only safe because these calls are READS; nothing here
+# dispatches or writes, so a repeat costs a request and nothing else.
+#
+# Only TRANSIENT failures retry. A 401, 404 or 422 is deterministic and means
+# the call is wrong, and retrying a deterministic refusal is the infinite silent
+# loop this queue already learned about the hard way -- it fails immediately and
+# loudly instead.
+_TRANSIENT = re.compile(
+    r"HTTP (?:429|5\d\d)|timed? ?out|timeout|connection (?:reset|refused|aborted)"
+    r"|EOF occurred|TLS handshake|temporary failure|try again",
+    re.I,
+)
+_ATTEMPTS = 4
+_BACKOFF_SECONDS = (2, 5, 11)
 
-def _gh(args: list[str]) -> str:
-    result = subprocess.run(["gh", *args], capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"gh {' '.join(args)} failed: {result.stderr.strip()}")
-    return result.stdout
+
+def _gh(args: list[str], *, attempts: int = _ATTEMPTS) -> str:
+    last = ""
+    for attempt in range(attempts):
+        result = subprocess.run(["gh", *args], capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout
+        last = result.stderr.strip()
+        if not _TRANSIENT.search(last) or attempt == attempts - 1:
+            break
+        pause = _BACKOFF_SECONDS[min(attempt, len(_BACKOFF_SECONDS) - 1)]
+        print(f"::warning::gh {' '.join(args[:2])} failed transiently "
+              f"(attempt {attempt + 1}/{attempts}), retrying in {pause}s: {last}",
+              file=sys.stderr)
+        time.sleep(pause)
+    raise RuntimeError(f"gh {' '.join(args)} failed: {last}")
 
 
 def fetch(limit: int = 100, repo: str | None = None) -> list[dict]:
