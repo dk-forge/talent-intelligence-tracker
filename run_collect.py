@@ -266,6 +266,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     conn = schema.connect()
     module = SOURCES.get(source, google_news)
     collector = module.COLLECTOR
+
+    # The batch read-through path, off unless TIT_READ_BATCH is set. Two calls,
+    # both outside the candidate loop, because that is all the flag needs:
+    # collect finished answers before anything is read, submit whatever this run
+    # queued after everything has been. The control flow inside the loop is
+    # unchanged — a queued interpretation raises the same ReadThroughUnavailable
+    # a failed one does, so the record defers and the next run finds its answer.
+    classify.set_dry_run(dry_run)
+    if classify.read_batch_enabled():
+        harvested, notes = classify.harvest_batches()
+        print(f"[{collector}] batch read-through: {harvested} answer(s) collected")
+        for note in notes:
+            print(f"[{collector}]   {note}")
+    # Structured source: the fields are columns, so the `classified` half is
+    # derived instead of generated. No model is called anywhere on this path.
+    derive = getattr(module, "as_classified", None)
     # Structured source: the fields are columns, so the `classified` half is
     # derived instead of generated. No model is called anywhere on this path.
     derive = getattr(module, "as_classified", None)
@@ -635,6 +651,17 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         print("\nDRY RUN — nothing was written.")
         conn.rollback()
         return 0
+
+    # Everything this run queued goes as one batch. Deliberately after the dry
+    # run returns: a rehearsal must not spend, and must not leave a queue behind
+    # for a real run to submit on its behalf.
+    if classify.read_batch_enabled():
+        sent, note = classify.submit_pending()
+        if note:
+            print(f"[{collector}] {note}")
+        if sent:
+            print(f"[{collector}] those {sent} record(s) publish on a LATER run: "
+                  "the batch window is 24h, which is what batching costs")
 
     # Fail loud (spec 6 rule 4). Two distinct breakages, both of which look
     # like a quiet day if you only count stored rows:

@@ -463,6 +463,20 @@ def interpret(classified: dict, raw: dict, *, timeout: int = 30) -> str:
     whichever stage meets it.
     """
     prompt = prompts.build(classified, raw)
+
+    # Off by default. When on, the interpretation is not bought now: it is
+    # spooled for the batch API at half price and a LATER run publishes the
+    # record. See the batch section at the foot of this module for the latency
+    # this costs and why the synchronous path stays the default.
+    if read_batch_enabled():
+        served = batch_take(prompt)
+        if served is None:
+            raise ReadThroughUnavailable(
+                "queued for the batch API (TIT_READ_BATCH=1) — a later run "
+                "publishes this record, nothing is stored now")
+        STATS["read_served"] += 1
+        return _accept(served, classified, raw)
+
     STATS["read_calls"] += 1
     try:
         content = _call(
@@ -726,6 +740,222 @@ def _call(model: str, system: str, user: str, *, timeout: int,
             f"{choice.get('finish_reason')!r}, provider={resp.json().get('provider')!r})"
         )
     return content
+
+
+# --- The batch API, behind a flag, DEFAULT OFF -------------------------------
+#
+# OpenRouter exposes an asynchronous batch API (POST /api/beta/batches, GET
+# /api/beta/batches/{id}) and prices the batch variant of a model at exactly
+# half the synchronous rate — measured from its own /models endpoint on
+# 2026-07-30: anthropic/claude-sonnet-5 is $2.00/$10.00 per M tokens and
+# anthropic/claude-sonnet-5:batch is $1.00/$5.00. Going through OpenRouter
+# rather than Anthropic directly is the whole reason this is affordable to
+# maintain: same key, same 402 handling, same usage accounting, so spend.py and
+# the health ledger keep working. An Anthropic-direct implementation would need
+# a second secret and would spend money that spend.py cannot see.
+#
+# WHAT IT COSTS, plainly: the completion window is 24 hours, so BATCHING BREAKS
+# SAME-RUN PUBLISHING. A record's interpretation is submitted on one run and
+# collected by a later one; twice-daily collection means a story typically
+# appears 12-24h after it was read, and up to 24h later than that in the worst
+# case. Nothing is lost — the candidate's URL is never marked seen, so the next
+# run re-reads it and finds its own answer waiting — but freshness is the price,
+# and freshness is what a talent-signal tracker sells. That is why the flag is
+# off and the synchronous path is the default.
+#
+# The spool is a file, not the database. `store` is not involved: a queued
+# interpretation is not a record, and a half-written record must never exist.
+READ_BATCH_URL = "https://openrouter.ai/api/beta/batches"
+READ_BATCH_DIR = os.environ.get("TIT_READ_BATCH_DIR") or os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "read_batch")
+
+# A run that is rehearsing must not queue, submit or harvest anything.
+DRY_RUN = False
+
+
+def set_dry_run(value: bool) -> None:
+    """Module state, like STATS, and read only by the batch spool."""
+    global DRY_RUN
+    DRY_RUN = bool(value)
+
+
+def read_batch_enabled() -> bool:
+    return (os.environ.get("TIT_READ_BATCH") or "").strip().lower() in (
+        "1", "true", "yes", "on")
+
+
+def _batch_path(name: str) -> str:
+    return os.path.join(READ_BATCH_DIR, name)
+
+
+def _batch_load(name: str, default):
+    try:
+        with open(_batch_path(name)) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return default
+
+
+def _batch_save(name: str, payload) -> None:
+    if DRY_RUN:
+        return
+    os.makedirs(READ_BATCH_DIR, exist_ok=True)
+    with open(_batch_path(name), "w") as fh:
+        json.dump(payload, fh)
+
+
+def batch_key(prompt: str) -> str:
+    """The custom_id for one interpretation.
+
+    A hash of the prompt, so the answer belongs to the exact question: if the
+    teaser is re-fetched slightly differently, or a fact changes, the key
+    changes and the stale answer is never applied to the new record. Prompt
+    text is the whole input, so nothing else identifies it as precisely.
+    """
+    return "read-" + hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:40]
+
+
+def batch_take(prompt: str) -> str | None:
+    """A harvested answer for this prompt, or None having queued it."""
+    key = batch_key(prompt)
+    results = _batch_load("results.json", {})
+    if key in results:
+        answer = results.pop(key)
+        _batch_save("results.json", results)
+        return answer
+
+    pending = _batch_load("pending.json", {})
+    if key not in pending:
+        pending[key] = prompt
+        _batch_save("pending.json", pending)
+        STATS["read_queued"] += 1
+    return None
+
+
+def harvest_batches(*, timeout: int = 60) -> tuple[int, list[str]]:
+    """Collect finished batches. Returns (answers harvested, notes to print).
+
+    Runs FIRST on a collect job, so the answers this run's candidates need are
+    already on disk by the time they are re-read. A batch that failed, expired
+    or was cancelled is dropped and says so: its candidates were never marked
+    seen, so they come round again and re-queue themselves.
+    """
+    if DRY_RUN:
+        return 0, ["batch harvest skipped on a dry run"]
+    submitted = _batch_load("submitted.json", [])
+    if not submitted:
+        return 0, []
+
+    results = _batch_load("results.json", {})
+    still_running, notes, harvested = [], [], 0
+    for batch_id in submitted:
+        try:
+            resp = requests.get(
+                f"{READ_BATCH_URL}/{batch_id}",
+                headers={"Authorization": f"Bearer {_api_key()}",
+                         "User-Agent": USER_AGENT},
+                timeout=timeout,
+            )
+        except requests.RequestException as exc:
+            notes.append(f"batch {batch_id}: not reachable ({exc}), will retry")
+            still_running.append(batch_id)
+            continue
+        if resp.status_code >= 400:
+            notes.append(f"batch {batch_id}: HTTP {resp.status_code}, will retry")
+            still_running.append(batch_id)
+            continue
+
+        payload = resp.json() or {}
+        status = payload.get("status")
+        if status not in ("completed", "failed", "expired", "cancelled"):
+            notes.append(f"batch {batch_id}: {status}, nothing to collect yet")
+            still_running.append(batch_id)
+            continue
+        if status != "completed":
+            notes.append(f"batch {batch_id}: {status} — its candidates will be "
+                         "read again and re-queued")
+            continue
+
+        for item in payload.get("results") or []:
+            body = ((item.get("response") or {}).get("body") or {})
+            content = (((body.get("choices") or [{}])[0].get("message") or {})
+                       .get("content") or "").strip()
+            if item.get("custom_id") and content:
+                results[item["custom_id"]] = content
+                harvested += 1
+        # The batch's own usage figure, so a batched month is still measured
+        # rather than estimated. It lands on the health row of the run that
+        # HARVESTED it, not the one that submitted it — an unavoidable
+        # consequence of asynchrony, and another reason the default is sync.
+        usage = payload.get("usage") or {}
+        STATS["prompt_tokens"] += int(usage.get("prompt_tokens") or 0)
+        STATS["completion_tokens"] += int(usage.get("completion_tokens") or 0)
+        try:
+            STATS["usd"] += float(usage.get("cost") or 0.0)
+        except (TypeError, ValueError):
+            pass
+        counts = payload.get("request_counts") or {}
+        notes.append(f"batch {batch_id}: completed, {counts.get('completed', '?')} "
+                     f"of {counts.get('total', '?')} answers, "
+                     f"${float(usage.get('cost') or 0):.4f}")
+
+    _batch_save("results.json", results)
+    _batch_save("submitted.json", still_running)
+    return harvested, notes
+
+
+def submit_pending(*, timeout: int = 120) -> tuple[int, str]:
+    """Send everything queued this run. Returns (requests sent, note).
+
+    Runs LAST, so one run submits one batch however many candidates it read.
+    """
+    if DRY_RUN:
+        return 0, "batch submit skipped on a dry run"
+    pending = _batch_load("pending.json", {})
+    if not pending:
+        return 0, ""
+
+    # `endpoint` and `model` MUST be serialised before `requests`: OpenRouter
+    # stream-parses the body so it can accept very large arrays, and returns
+    # 400 if `requests` comes first. Insertion order is the contract here.
+    body = {
+        "endpoint": "/v1/chat/completions",
+        "model": READ_MODEL,
+        "requests": [
+            {"custom_id": key,
+             "body": {"temperature": 0, "max_tokens": READ_MAX_TOKENS,
+                      "messages": [
+                          {"role": "system", "content": prompts.READ_SYSTEM},
+                          {"role": "user", "content": prompt},
+                      ]}}
+            for key, prompt in sorted(pending.items())
+        ],
+    }
+    try:
+        resp = requests.post(
+            READ_BATCH_URL,
+            headers={"Authorization": f"Bearer {_api_key()}",
+                     "Content-Type": "application/json",
+                     "User-Agent": USER_AGENT},
+            data=json.dumps(body),
+            timeout=timeout,
+        )
+    except requests.RequestException as exc:
+        return 0, f"batch submit failed ({exc}) — {len(pending)} still queued"
+    if resp.status_code >= 400:
+        return 0, (f"batch submit refused (HTTP {resp.status_code}: "
+                   f"{resp.text[:160]}) — {len(pending)} still queued")
+
+    batch_id = ((resp.json() or {}).get("id") or "").strip()
+    if not batch_id:
+        return 0, f"batch submit returned no id — {len(pending)} still queued"
+
+    submitted = _batch_load("submitted.json", [])
+    submitted.append(batch_id)
+    _batch_save("submitted.json", submitted)
+    _batch_save("pending.json", {})
+    return len(pending), (f"batch {batch_id} submitted with {len(pending)} "
+                          "read-through(s); a later run will publish them")
 
 
 def _strip_fences(content: str) -> str:
