@@ -828,7 +828,12 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         conn, collector,
         status="degraded" if broken else "ok",
         items_found=observed, items_stored=stored,
-        usage=classify.usage_snapshot(),
+        # The funnel goes into the ledger with the cost, so the coverage gap
+        # (what the gate KEPT and the budget would not read) survives the step
+        # log it used to live in. cost_projection.py reads exactly this.
+        usage=classify.usage_snapshot(
+            candidates=len(kept),
+            budget_deferred=budget_deferred + month_deferred),
         # The read-through model rides in `detail` rather than a column of its
         # own: source_health has `model` and `gate_model`, adding a third would
         # be a migration, and a health row that cannot say WHICH model wrote the

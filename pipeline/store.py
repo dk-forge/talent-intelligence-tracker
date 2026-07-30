@@ -106,6 +106,10 @@ def revise(conn: sqlite3.Connection, signal_id: str, new_signal, note: str) -> N
 USAGE_COLUMNS = (
     "model", "gate_model", "prompt_tokens", "cached_tokens",
     "completion_tokens", "cost_usd", "reads_bought", "rows_from_reads",
+    # The funnel. What was screened, what the screen threw away, and what it
+    # KEPT and the budget would not pay to read — the last of which is the
+    # coverage gap, and used to exist only in a step log.
+    "candidates", "gate_calls", "gate_rejects", "budget_deferred",
 )
 
 

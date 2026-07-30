@@ -628,7 +628,8 @@ def _accept(content: str, classified: dict, raw: dict) -> str:
     return sentence
 
 
-def usage_snapshot() -> dict | None:
+def usage_snapshot(*, candidates: int | None = None,
+                   budget_deferred: int | None = None) -> dict | None:
     """What this run charged, in the shape store.report_health persists.
 
     Returns None when no model was called at all — a structured source, an
@@ -653,6 +654,15 @@ def usage_snapshot() -> dict | None:
         "cost_usd": round(float(STATS["usd"]), 6),
         "reads_bought": STATS["full_calls"],
         "rows_from_reads": STATS["read_stored"],
+        # The funnel. `budget_deferred` and `candidates` belong to the run
+        # rather than to this module, so they are passed in; passing neither
+        # leaves both NULL, which is what a caller that does not know them
+        # should record rather than a zero that reads as "none deferred".
+        "gate_calls": STATS["gate_calls"],
+        "gate_rejects": STATS["gate_rejects"],
+        **({"candidates": int(candidates)} if candidates is not None else {}),
+        **({"budget_deferred": int(budget_deferred)}
+           if budget_deferred is not None else {}),
     }
 
 

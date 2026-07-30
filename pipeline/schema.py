@@ -204,6 +204,14 @@ CREATE TABLE IF NOT EXISTS source_health (
     -- integers it came from, and then nobody knows which to believe.
     -- store.reads_to_rows_pct() is the one place it is computed.
     rows_from_reads   INTEGER,
+
+    -- THE FUNNEL. reads_bought says what was bought; these say what was
+    -- SCREENED and what was refused for budget, which is the coverage
+    -- question rather than the cost one. See MIGRATIONS for why.
+    candidates        INTEGER,  -- reached the classifier
+    gate_calls        INTEGER,  -- one-word screens paid for
+    gate_rejects      INTEGER,  -- dropped there, at ~1/40th of a read
+    budget_deferred   INTEGER,  -- kept by the gate and NOT read: the gap
     PRIMARY KEY (collector, run_at)
 );
 
@@ -399,6 +407,20 @@ MIGRATIONS = (
     ("source_links", "archive_probes", "INTEGER"),
     ("source_links", "archive_blind_rounds", "INTEGER"),
     ("source_links", "archive_detail", "TEXT"),
+
+    # THE FUNNEL, so the cost of coverage stays measured instead of being
+    # re-derived from a workflow log somebody happened to still have.
+    #
+    # `reads_bought` answers "what did we buy" and not "what did we DECLINE to
+    # buy", and the second number is the whole coverage question. A press run
+    # on 2026-07-30 gated 627 candidates, kept 249 and could read only 200, so
+    # 49 stories — Hebrew, German, Serbian, Vietnamese, Korean — went unread
+    # for the budget rather than for a verdict. That fact lived only in the
+    # step log, and step logs expire. cost_projection.py reads these four.
+    ("source_health", "candidates", "INTEGER"),       # reached the classifier
+    ("source_health", "gate_calls", "INTEGER"),       # one-word screens paid for
+    ("source_health", "gate_rejects", "INTEGER"),     # dropped there, cheap
+    ("source_health", "budget_deferred", "INTEGER"),  # kept and NOT read: the gap
 )
 
 
