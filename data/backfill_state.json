@@ -99,6 +99,48 @@
       "unit": "days",
       "updated_at": "2026-07-30T21:17:23Z",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    "backfill-structured-2026:bse_india:2026-01-01..2026-07-30": {
+      "cursor": "2026-01-29",
+      "end": "2026-07-30",
+      "history": [
+        {
+          "at": "2026-07-30T21:20:09Z",
+          "run": "",
+          "slice": "2026-01-01..2026-01-28",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 282,
+            "fetched": 898,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 616
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "bse_india",
+        "start": "2026-01-01"
+      },
+      "label": "bse_india",
+      "opened_at": "2026-07-30T21:20:09Z",
+      "slice_size": 28,
+      "slices": 1,
+      "start": "2026-01-01",
+      "state": "running",
+      "totals": {
+        "duplicates": 282,
+        "fetched": 898,
+        "rejected": 0,
+        "skipped": 0,
+        "stored": 616
+      },
+      "unit": "days",
+      "updated_at": "2026-07-30T21:20:09Z",
+      "workflow": "backfill-structured-2026.yml"
     }
   },
   "version": 1
