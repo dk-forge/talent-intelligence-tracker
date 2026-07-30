@@ -123,6 +123,24 @@ REQUEST_DELAY = 0.25    # a public API on shared infrastructure; do not hammer i
 # before anything is stored, which makes overlap free.
 DEFAULT_DAYS = 7
 
+# The widest window this API will answer, MEASURED live on 2026-07-30 by binary
+# search from 2026-01-01: 30, 31 and 32 days accepted; 33, 34, 35, 36, 40, 45,
+# 90, 151 and 211 refused. It is undocumented, and the refusal is the dangerous
+# part — HTTP **200** with a body of
+#
+#     {"Status": "False", "Message": "Date range exceeded threshold."}
+#
+# and no `Table` key at all. Before this constant existed, that landed in the
+# "the response shape has changed" branch below, which sends a reader to look
+# for a redesigned API instead of at the width of the window they asked for.
+#
+# This is why a backfill of India cannot be "a longer window through the same
+# path": the docstring above and the `days` input on collect-structured.yml both
+# said a gap is closed by widening TIT_BSE_DAYS, and that is false above 32.
+# Seven months of history is walked in 28-day slices by
+# backfill_structured_2026.py instead.
+WINDOW_CAP_DAYS = 32
+
 # Across roughly 5,000 listed companies, a week with fewer than this many
 # leadership filings has not happened and cannot: the measured rate is about 250
 # a week. Below the floor, the category names have moved, the Referer check has
@@ -188,8 +206,13 @@ def _headers() -> dict:
 
 
 def days_from_env(default_days: int | None = None) -> int:
-    """How many days back to read. Set by the workflow, so a backfill is a
-    longer window through the same path rather than a script of its own."""
+    """How many days back to read. Set by the workflow.
+
+    A SHORT gap is closed by widening this. A long one is not: BSE caps the
+    window at WINDOW_CAP_DAYS and refuses anything wider inside an HTTP 200, so
+    seven months of history is a chain of slices rather than one large number
+    here. That is `backfill_structured_2026.py`.
+    """
     raw = (os.environ.get("TIT_BSE_DAYS") or "").strip()
     if not raw:
         return default_days if default_days is not None else DEFAULT_DAYS
@@ -198,6 +221,13 @@ def days_from_env(default_days: int | None = None) -> int:
     days = int(raw)
     if days < 1:
         raise BseError("TIT_BSE_DAYS must be at least 1 day")
+    if days > WINDOW_CAP_DAYS:
+        raise BseError(
+            f"TIT_BSE_DAYS is {days}. BSE refuses a window wider than "
+            f"{WINDOW_CAP_DAYS} days with HTTP 200 and no 'Table' key "
+            f"(measured 2026-07-30), so this run would fail reporting a changed "
+            f"response shape. Walk history in slices instead: "
+            f"backfill_structured_2026.py --source bse_india.")
     return days
 
 
@@ -243,6 +273,17 @@ def fetch_page(subcategory: str, start: str, end: str, page: int,
         raise BseError(
             f"{subcategory!r} did not return JSON: {resp.text[:160]!r}") from exc
     if "Table" not in payload:
+        # The window-too-wide refusal, which arrives as HTTP 200 and looks
+        # exactly like a redesigned response. Named before the generic branch
+        # so the message points at the window rather than at the API. See
+        # WINDOW_CAP_DAYS for the measurement.
+        message = str(payload.get("Message") or "")
+        if "date range" in message.lower():
+            raise BseError(
+                f"BSE refused {start}..{end} for {subcategory!r}: {message!r}. "
+                f"The undocumented ceiling on strToDate - strPrevDate is "
+                f"{WINDOW_CAP_DAYS} days (measured 2026-07-30). This is a "
+                f"window that is too wide, not a changed API.")
         raise BseError(
             f"{subcategory!r} returned a payload with no 'Table' key "
             f"(keys: {sorted(payload)[:8]}). The response shape has changed.")

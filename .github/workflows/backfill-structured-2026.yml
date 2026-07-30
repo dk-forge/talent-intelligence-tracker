@@ -1,0 +1,193 @@
+# 2026 catch-up for the STRUCTURED registry collectors. Costs $0 in model spend.
+#
+# Every source this dispatches exposes `as_classified`, so the record is derived
+# from typed fields and no model is ever called. That is why there is no
+# OPENROUTER_API_KEY here, no `spend.py` step either side, and no
+# TIT_READTHROUGH_CAP: there is no spend to guard. It mirrors
+# backfill-gdelt-2026.yml in every other respect — same lock, same slice, same
+# merge-never-copy commit, same requeue after the reset.
+#
+# WHAT IT COVERS AND WHY NOT THE FOURTH ONE
+# -----------------------------------------
+# bse_india, opendart_korea and companies_house. `edinet_japan` is deliberately
+# NOT here: its list endpoint takes one calendar day per call and its own
+# MAX_DAYS is 366, so the whole of 2026 is a single dispatch of the workflow
+# that already exists, with `days=211`. A walker for that would be a second
+# implementation of a cursor for 211 requests and about two minutes.
+#
+# India needed this and could not be reached without it. BSE enforces an
+# UNDOCUMENTED 32-day ceiling on strToDate - strPrevDate and refuses a wider
+# window with HTTP 200 and no `Table` key, so the `days` input on
+# collect-structured.yml — documented as the way to back-fill a gap — fails
+# above 32 days and blames the response shape. Korea is capped at 90 days AND
+# anchored on today, which put January to April out of reach entirely.
+#
+# NO CRON, AND IT MUST STAY THAT WAY
+# ----------------------------------
+# Not for cost — this is free. Because every source here writes the database and
+# therefore holds the single `talent-collect` lock, in which GitHub keeps
+# exactly ONE pending run. A `schedule:` in a lock-group workflow enters that
+# group uncoordinated and either evicts the waiting run (which ends `cancelled`
+# with no jobs, no logs and inputs GitHub will not disclose) or is itself
+# evicted and becomes an unreplayable orphan. Queue a slice instead:
+#
+#   gh workflow run drain-writers.yml -f enqueue=backfill-structured-2026.yml \
+#        -f inputs_json='{"source":"bse_india","start":"2026-01-01",
+#                         "end":"2026-07-30","dry_run":"false"}' \
+#        -f reason='India 2026 catch-up'
+#
+# tests/test_backfill_pace.py refuses to let a cron appear here unnoticed.
+#
+# IT RUNS IN BOUNDED SLICES AND REQUEUES ITSELF
+# ---------------------------------------------
+# One run does ONE slice, commits it, and appends the next slice's ticket to
+# data/writer_queue.json in the SAME commit. Progress lives in the committed
+# data/backfill_state.json, so a run that dies loses at most its own slice and
+# the next run works out where to resume by itself. Dispatch the WHOLE window
+# you want; the cursor, not the input, decides where a run actually begins —
+# which is also why a re-dispatch after a requeue (the state the queue is in
+# today, with WRITER_QUEUE_TOKEN unset) repeats no work: a slice already
+# recorded is skipped by the cursor, and a slice re-run before it was recorded
+# skips every row it already stored on `already_seen` before any work.
+#
+# The job ids carry the SOURCE, so three sources walking the same 2026 window
+# keep three separate cursors. See backfill_slices.job_id.
+name: backfill-structured-2026
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Which registry collector to walk'
+        type: choice
+        options: [bse_india, opendart_korea, companies_house]
+        default: bse_india
+      start:
+        description: 'Start date of the WHOLE backfill (YYYY-MM-DD)'
+        required: false
+        default: '2026-01-01'
+      end:
+        description: 'End date inclusive of the WHOLE backfill (YYYY-MM-DD)'
+        required: false
+        default: '2026-07-30'
+      slice_size:
+        description: 'Windows (or roster slices) per run. Blank uses the source default, derived from its measured API ceiling: bse_india 28 days (cap 32), opendart_korea 60 days (cap 90), companies_house 1 roster slice of 8.'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Set to true to store nothing. A dry run does NOT advance the cursor or requeue.'
+        required: false
+        default: 'false'
+      fetch_only:
+        description: 'Set to true to fetch and skip-check only — stores nothing and derives nothing'
+        required: false
+        default: 'false'
+
+# ONE lock for every workflow that writes data/talent_intel.db. Slicing changes
+# how LONG this holds it, never how many writers may hold it, and this group
+# must not be split or weakened
+# (tests/test_workflows.py::test_every_database_writer_shares_one_lock).
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    # A SLICE ceiling, not a backfill ceiling, and it sits below
+    # writer_queue.LONG_HOLD_MINUTES (120) so this can never be the thing that
+    # starves the queue. The longest slice here is a companies_house roster
+    # eighth: ~1,320 requests at the API's 600-per-5-minutes limit, which is
+    # ~12 minutes of fetching.
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      # `--plan` is free — it fetches nothing and calls nothing — and it runs in
+      # the SAME step as the slice on purpose. As its own step it would be a
+      # `backfill_*` invocation without `--slice`, which is exactly the shape
+      # tests/test_workflows.py refuses, and a test that has to special-case a
+      # harmless step is a test that will one day wave through a harmful one.
+      - name: Plan, then backfill one slice
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # bse_india needs no credential. The other two do, and both secrets
+          # exist (set 2026-07-30). Mapping a secret that does NOT exist sets
+          # the variable to empty string, which is how the first SEC leadership
+          # dispatch went green having stored nothing; both collectors refuse an
+          # empty key at their first line for exactly that reason.
+          OPENDART_API_KEY_KR: ${{ secrets.OPENDART_API_KEY_KR }}
+          COMPANIES_HOUSE_API_KEY_UK: ${{ secrets.COMPANIES_HOUSE_API_KEY_UK }}
+        run: |
+          python backfill_structured_2026.py --plan \
+            --start "${{ inputs.start }}" --end "${{ inputs.end }}"
+          python backfill_structured_2026.py \
+            --source "${{ inputs.source }}" \
+            --start "${{ inputs.start }}" \
+            --end "${{ inputs.end }}" \
+            ${{ inputs.slice_size != '' && format('--slice-size {0}', inputs.slice_size) || '' }} \
+            --slice \
+            --emit-next "$RUNNER_TEMP/slice.json" \
+            ${{ inputs.dry_run == 'true' && '--dry-run' || '' }} \
+            ${{ inputs.fetch_only == 'true' && '--fetch-only' || '' }}
+
+      # Same memory rule as every other writer: a failed run that already
+      # stored and published rows still holds the only local record of them.
+      - name: Commit the slice, and queue the next one
+        if: ${{ inputs.dry_run != 'true' && inputs.fetch_only != 'true' && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our rows into the remote's database, never copy our file over
+          # the top of it — a copy destroys every row anyone else pushed while
+          # this run was collecting. See merge_db.py.
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          RECORD_RC=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            # Applied AFTER the reset, for the same reason the database is
+            # merged rather than copied: anything written before the reset is
+            # thrown away by it. `record` merges this slice into whatever main
+            # holds now and --queue appends the next slice's ticket, so the
+            # chain and the data land in ONE commit. Its exit code is carried
+            # past the push rather than allowed to abort the step, because a
+            # chain that cannot advance must still not cost us the rows.
+            RECORD_RC=0
+            if [ -f "$RUNNER_TEMP/slice.json" ]; then
+              python backfill_slices.py record --from "$RUNNER_TEMP/slice.json" \
+                --queue || RECORD_RC=$?
+            fi
+            git add data/talent_intel.db
+            git add data/backfill_state.json data/writer_queue.json || true
+            if git diff --staged --quiet; then
+              echo "Nothing to commit."
+              break
+            fi
+            git commit -q -m "data: ${{ inputs.source }} 2026 backfill slice"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              break
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "::error::could not push the database after 5 attempts"
+              exit 1
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$RECORD_RC" = "0" ]; then
+            exit 0
+          fi
+          echo "::error::the slice was committed but the backfill chain did not"
+          echo "::error::advance, so nothing was requeued. Read the record step"
+          echo "::error::above, then: python backfill_slices.py status"
+          exit 1

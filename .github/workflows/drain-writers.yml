@@ -45,6 +45,7 @@ on:
       - backfill-funding-2026
       - backfill-funding-bulk
       - backfill-gdelt-2026
+      - backfill-structured-2026
       - collect
       - collect national press
       - collect-structured

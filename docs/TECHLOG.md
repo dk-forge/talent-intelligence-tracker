@@ -13,6 +13,260 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the registry backfill: two of the four were already reachable, and India's ceiling is 32 days
+
+Brief: build the 2026 historical backfill for the structured registry
+collectors, on the premise that they all expose `as_classified`, so their spend
+is $0 and back-filling them is the cheapest coverage win available. **The
+premise is exactly right and the model spend for this session was $0.00.** What
+the brief was wrong about is which of them needed anything built.
+
+### What is actually held, measured first
+
+`data/talent_intel.db`, 2026 rows by collector, current revisions only:
+
+| collector | rows, all time | rows in 2026 | verdict |
+|---|---|---|---|
+| `sec_edgar` | 3,797 | **3,797**, every week of 2026-W01..W30 | **complete, no-op** |
+| `sec_form_d_bulk` | 2,998 | 2,998, Jan..Jun | complete to the last published quarter |
+| `uk_paygap` | 4,761 | 537 | **complete** — 2017..2025 run 403 to 595 a year |
+| `sec_execcomp` | 3,910 | 133 | **complete for its shape.** `published_date` is the fiscal PERIOD END, so a CY2026 row needs a fiscal year that has ended in 2026. 2022..2025 hold 574 / 1,010 / 1,091 / 1,102 and 2026 fills as proxies land |
+| `bse_india` | **0** | **0** | never run |
+| `companies_house` | **0** | **0** | never run |
+| `edinet_japan` | **0** | **0** | never run |
+| `opendart_korea` | **0** | **0** | never run |
+
+So "is 2026 already held" is **yes for all three SEC/UK sources and zero for
+every registry collector**. The brief's guess that "some of this may be a no-op"
+was right about which sources and right about why: the ~7,700 rows the dashboard
+shows for 2026 are SEC plus the pay gap, and `backfill_sec_2026.py` already
+walked them.
+
+### Then: can each API even express a historical window? Two of four could
+
+This is the question that decided what got built, and the answer is not the same
+for any two of them.
+
+| source | window it can express | reachable through `collect-structured.yml` today | built |
+|---|---|---|---|
+| `edinet_japan` | a LIST of calendar days; `MAX_DAYS` 366 | **yes.** `days=211` is one run of 211 calls at 0.5s — about two minutes | **nothing** |
+| `companies_house` | `appointed_on` filter, any width, no state at all | partly: `days=211` + `ch_slice=0..3`, four dispatches, no cursor | walker |
+| `bse_india` | **32 days.** Server-enforced, undocumented | **no** | walker |
+| `opendart_korea` | 90 days, AND anchored on today | **no** — Jan..Apr unreachable | walker |
+
+**`edinet_japan` needed nothing and gets nothing.** Its collector docstring
+already says "a backfill widens the window; it does not become a script", its
+own cap is a year, and one dispatch closes 2026:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=collect-structured.yml \
+     -f inputs_json='{"source":"edinet_japan","days":"211","dry_run":"false"}' \
+     -f reason='Japan 2026 catch-up'
+```
+
+A walker for that would be a second implementation of a cursor for 211 requests.
+`test_edinet_is_absent_and_the_refusal_says_why` asserts the omission AND
+asserts `edinet_japan.MAX_DAYS >= 366`, so if Japan's window ever shrinks the
+omission stops being silently stale.
+
+### THE FINDING: BSE refuses a window wider than 32 days, inside an HTTP 200
+
+`collectors/bse_india.py` said a backfill is "a longer window through the same
+path", and `collect-structured.yml`'s `days` input said "a gap is back-filled by
+widening this". Measured live against `api.bseindia.com` on 2026-07-30, that is
+**false above 32 days**:
+
+```
+strPrevDate=20260101, strToDate=20260131 (30d)  ->  200 {"Table": [50 rows]}
+                                20260201 (31d)  ->  200 {"Table": [50 rows]}
+                                20260202 (32d)  ->  200 {"Table": [50 rows]}
+                                20260203 (33d)  ->  200 {"Status":"False",
+                                                        "Message":"Date range
+                                                         exceeded threshold."}
+```
+
+Binary-searched: 30/31/32 accepted; 33, 34, 35, 36, 40, 45, 90, 151 and 211 all
+refused. The threshold is published nowhere. **The refusal is HTTP 200 with no
+`Table` key**, so it landed in the collector's "the response shape has changed"
+branch — a message that sends a reader looking for a redesigned API instead of
+at a number in a workflow input. So India's history was not merely slow to
+reach, it was unreachable through the documented route, and the error blamed the
+wrong thing.
+
+Three changes, all additive:
+
+* `bse_india.WINDOW_CAP_DAYS = 32`, with the measurement beside it.
+* `fetch_page` names the width refusal before the generic branch: *"BSE refused
+  20260101..20260730 ... The undocumented ceiling ... is 32 days. This is a
+  window that is too wide, not a changed API."*
+* `days_from_env` refuses `TIT_BSE_DAYS > 32` rather than spending a run on a
+  request that cannot succeed, and points at the walker.
+
+Korea's ceiling is the quieter kind and was already documented: OpenDART limits
+a `corp_code`-less search to three months and returns a **shorter window**
+rather than an error, so a walker asking for 120 days would collect 90 and
+record 120 as done. `window()` is also anchored on `datetime.now()`, which on
+2026-07-30 put the earliest reachable day at 2026-05-01. January to April was
+not a wide window away; it was unreachable. An explicit `--start` is the whole
+fix.
+
+### What was built
+
+`backfill_structured_2026.py` + `.github/workflows/backfill-structured-2026.yml`.
+One walker, three sources, `backfill_gdelt_2026.py`'s shape — monotonic
+committed cursor, one slice a run, seen-URL skipping before any work, a `--plan`
+summary, `--fetch-only`, `--dry-run`, and a `halt` path that records the slice
+and declines to requeue into a wall.
+
+**It is deliberately NOT a second priced walker.** GDELT walks news, so its
+constraint is money and `--plan-cost` prices a pace. Every source here derives
+its record from typed fields, so the constraints are the API ceiling and the
+writer lock, and `--plan` prints **requests, wall clock and rate-limit
+headroom** instead of dollars. There is no `--max-readthroughs`, no spend guard,
+no gate — and `tests/test_backfill_structured.py` walks the module's AST to
+assert `classify` is never imported, because a cap can be raised and an absent
+import cannot.
+
+Slice sizes, each derived from the API's own ceiling rather than picked:
+
+| source | unit | slice | why that size |
+|---|---|---|---|
+| `bse_india` | days | **28** | four weeks, four days inside the measured 32-day ceiling, and it keeps the busiest sub-category at ~13 pages against the collector's `MAX_PAGES` of 40 — so a slice can neither be refused for width nor silently truncated for depth |
+| `opendart_korea` | days | **60** | inside the documented 90, and ~56 list pages plus one `company.json` per filer |
+| `companies_house` | **slices** | 1 of 8 | its cost is per COMPANY and nothing per day, so the ROSTER is what is walked |
+
+**The roster cursor is a new unit in `backfill_slices.py`,** and it exists
+because a date cursor for Companies House would be a lie: widening its window
+from 42 days to 211 costs nothing (`appointed_on` is a filter over data the
+endpoint returns anyway), while sweeping the 9,230-employer roster is 10,568
+requests. So the job's `start`/`end` are slice indices `0..7` and the date
+window rides on the job's committed `inputs`. `next_inputs` has an explicit
+branch refusing to overwrite them — without it the next run would read a
+one-day window and store nothing, silently, for seven of the eight slices.
+
+**Eight backfill slices, not the rotation's four**, because the weekly job's
+only work is the fetch while a backfill slice then puts ~590 rows through
+validate/store/publish. `slice_of` is a blake2b digest, so any count partitions
+the roster exactly once and the two do not have to agree; asserted over 4,000
+numbers for both counts.
+
+`backfill_slices.job_id` also gained an optional `label`. Three sources walking
+the same 2026 window through one workflow would otherwise share one key and each
+would resume where another stopped — a hole in one and a re-collection in the
+other. It defaults to empty, so every cursor already committed keeps its id.
+
+### Measured: two real slices, live, into a scratch database
+
+`bse_india`, through the walker, 2026-07-30. Nothing was written to the
+committed database at any point: `schema.DB_PATH` was pointed at a copy.
+
+| slice | rows read | usable | stored | duplicate | wall |
+|---|---|---|---|---|---|
+| 2026-01-01..01-28 | — | **898** | **616** | 282 | **52s** |
+| 2026-01-29..02-25 | 1,427 | **1,368** | **866** | 502 | **108s** |
+
+The ~35% duplicate rate is `dedupe.fuzzy_duplicate` collapsing one employer's
+leadership filings inside 14 days into one development, which is the intended
+behaviour and the same factor `companies_house` was sized with. The chain was
+driven end to end: slice 1 emitted a ticket with `next_cursor 2026-01-29`,
+`record` advanced, slice 2 opened at exactly that day, `next_inputs` carried the
+date window forward.
+
+**A full 2026 walk, at a rate-limit-respecting pace** (`--plan`, which fetches
+nothing):
+
+| source | slices | req/slice | min/slice | rows/slice | rows total | req total |
+|---|---|---|---|---|---|---|
+| `bse_india` | 8 | 37 | **1.8** (measured) | 1,130 | ~9,000 fetched, ~6,000 stored | 296 |
+| `companies_house` | 8 | 1,320 | 12.1 (paced) | 590 | ~4,700 | 10,560 |
+| `opendart_korea` | 4 | 190 | 0.6 (paced) | 175 | ~700 | 760 |
+
+So the whole 2026 registry catch-up is **20 queued runs, under two hours of
+compute in total, ~11,600 requests and $0.00 of model spend**, for roughly
+**11,000 rows** against a database that holds 15,711. India alone is more rows
+than the tracker currently has from anywhere outside SEC and the UK pay gap.
+
+Wall clock is printed **measured where a slice has actually been run and marked
+`*` where it is arithmetic**, because the paced projection is only the time
+spent waiting on the API: for `companies_house` that is almost the whole run,
+for `bse_india` it is a twentieth of it (37 requests carrying 1,368 rows), and
+projecting BSE from its pacing alone understates it by 20x. Two of the three are
+unmeasured because `OPENDART_API_KEY_KR` and `COMPANIES_HOUSE_API_KEY_UK` are
+GitHub secrets and are not set locally; every such figure says so in its own
+`evidence` line, and a test fails if a projection is ever printed unmarked.
+
+### Not armed, and the reason is different from the GDELT walker's
+
+No cron, and `test_the_structured_walker_is_not_armed` refuses one. The reason
+is written down because it is NOT the usual one: this walker is free, so a
+reader looking for the cost argument will not find one and might conclude a cron
+is harmless. It is not. Every source here writes the database and therefore
+holds the single `talent-collect` lock, in which GitHub keeps exactly one
+pending run, so a scheduled run enters that group uncoordinated and either
+evicts the waiting run or becomes an unreplayable orphan.
+
+The queue is currently blocked (`WRITER_QUEUE_TOKEN` unset, so a dispatch
+produces no run and the ticket requeues), which makes **a slice being re-run the
+ordinary case rather than the exception**. That is why the seen-URL skip is
+before everything else and is measured: a repeated `bse_india` slice costs one
+fetch and stores nothing, asserted by
+`test_a_slice_stores_and_the_second_run_of_it_stores_nothing`. `companies_house`
+is exempt from the skip and must be — its `source_url` is one PERSON's
+appointments page and a person can be appointed twice, so skipping it on sight
+would make the first appointment the last one that source ever reported. The
+flag is read off `companies_house.REVISITS_ITS_SOURCE_URL` rather than restated.
+
+### Figures round-trip, proved through the walker and not at the regex
+
+Four silent data-loss bugs in three days came from the verbatim-figure guard
+meeting non-Latin scripts and typographic separators, so both non-Latin sources
+here are driven end to end rather than unit-tested:
+
+* **India**: a filed description ending in `28.07.2026` at a company whose name
+  begins with K — the exact newline-spanning `\s*` collision that read
+  `28.07.2026\n\nK` as `28072026k` — stores, and
+  `validate.assert_figures_are_sourced` agrees on the stored strings.
+* **Korea**: full-width digits in the filer's Korean and English names survive
+  the whole path, fold to ASCII, and the summary's figures are all present in
+  `raw_text`. A companion test asserts that **NFKC is still not used**, because
+  it rewrites the U+318D in `독립이사의선임ㆍ해임또는중도퇴임에관한신고` to
+  U+119E and the report-name allowlist stops matching — the obvious blanket fix
+  that would break the source.
+
+### `staleness.py`: nothing changed, and that is the decision
+
+The walker deliberately writes **no `source_health` row**, asserted by
+`test_the_walker_writes_no_health_row`. Each of these collectors is leashed to
+its WEEKLY cron (180h). If a backfill reported health it would reset that leash,
+and a broken weekly run would be masked by a backfill that happened to succeed —
+the leash measures whether the COLLECTOR ran, and a backfill is not that. The
+backfill's own failure is a red run.
+
+### Numbers
+
+- Suite **2,044 -> 2,082, +38**, measured by running HEAD and the staged tree
+  side by side rather than by counting the diff. 36 are written here — 30 in
+  `tests/test_backfill_structured.py` and 6 in `tests/test_backfill_pace.py`
+  (the not-armed test, the roster cursor's per-run property, a whole roster
+  walk, the three-cursor property, the backward-compatible job id, and one more
+  parametrized workflow) — and 2 are `tests/test_workflows.py` parametrizing
+  over the new workflow file by itself.
+- **$0.00** model spend, in the walker and in measuring it.
+- 2 live slices, 898 + 1,368 rows fetched, 616 + 866 stored, 160s total.
+- 1 undocumented API ceiling found, binary-searched and named in code.
+- 0 rows written to `data/talent_intel.db`.
+
+### What was refused
+
+* **A walker for `edinet_japan`.** It is one dispatch of an existing workflow.
+* **Arming anything.** No cron was added anywhere.
+* **Re-fetching SEC or the UK pay gap.** 2026 is complete for all three; the
+  counts are in the first table rather than an assurance.
+* **A second cursor implementation.** `backfill_slices` gained a unit and an
+  optional label, both additive and both defaulted so every committed cursor
+  still resolves.
+* **`run_collect.py` and `source_registry.py`.** Untouched — other lanes.
+
 ## 2026-07-30 — the page is dated now, the font question is answered with numbers, and the press page's links are checked against the code that reads them
 
 Plugin **1.54.0 -> 1.55.0**. Second design pass, taking the four items the

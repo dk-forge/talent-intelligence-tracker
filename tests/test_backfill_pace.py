@@ -158,7 +158,8 @@ def _runs_per_day(expression: str) -> float:
 
 
 SLICED_WORKFLOWS = ("backfill-2026.yml", "backfill-funding-2026.yml",
-                    "backfill-funding-bulk.yml", "backfill-gdelt-2026.yml")
+                    "backfill-funding-bulk.yml", "backfill-gdelt-2026.yml",
+                    "backfill-structured-2026.yml")
 
 
 @pytest.mark.parametrize("name", SLICED_WORKFLOWS)
@@ -196,6 +197,98 @@ def test_the_historical_walker_is_not_armed():
         "the historical walker has grown a schedule. Its per-slice cost is real "
         "money, so this is the owner's decision and it must be recorded in "
         "TECHLOG with the chosen pace and the projected month.")
+
+
+def test_the_structured_walker_is_not_armed():
+    """Same refusal, a different reason, and the reason has to be written down.
+
+    The GDELT walker is unarmed because a slice costs money. This one costs
+    $0.00 — every source it walks exposes `as_classified` and no model is ever
+    called — so a reader looking for the cost argument will not find one and
+    might conclude a cron is harmless. It is not. Every source here WRITES the
+    database, so a scheduled run enters the single `talent-collect` group
+    uncoordinated and either evicts the pending run (which ends `cancelled`
+    with no jobs, no logs and inputs GitHub will not disclose) or is itself
+    evicted and becomes an unreplayable orphan. Fifteen of those are on file
+    from 2026-07-29. Queue it through drain-writers.yml instead.
+    """
+    path = WORKFLOWS / "backfill-structured-2026.yml"
+    assert path.exists()
+    assert _crons(path) == [], (
+        "the structured walker has grown a schedule. It is free, so this is "
+        "NOT a spend decision — it is the writer lock. A cron in a "
+        "talent-collect workflow evicts a pending run or becomes an orphan.")
+
+
+# --- the roster cursor: same property, a population instead of a calendar ----
+
+def _roster_job(state, *, size=1, end="7"):
+    return backfill_slices.open_job(
+        state, workflow="backfill-structured-2026.yml", unit="slices",
+        start="0", end=end, slice_size=size, label="companies_house")
+
+
+def test_a_roster_cursor_also_advances_per_run_not_per_date():
+    """`companies_house` costs one request per COMPANY and nothing per day.
+
+    Its cursor therefore walks the roster rather than the calendar — but the
+    property that made the sibling's sweep expensive is the same one, so it is
+    asserted the same way: two runs in one clock second must advance twice.
+    """
+    state = backfill_slices.empty_state()
+    job = _roster_job(state)
+
+    first = backfill_slices.next_slice(job["cursor"], job["end"], "slices", 1)
+    assert first == ("0", "0")
+    _finish(state, job, *first, now=FIXED)
+
+    second = backfill_slices.next_slice(job["cursor"], job["end"], "slices", 1)
+    assert second == ("1", "1"), (
+        "the second run of the same second repeated roster slice 0 — a whole "
+        "eighth of the 9,230-employer roster would go unvisited while the run "
+        "count looked perfect")
+    _finish(state, job, *second, now=FIXED)
+    assert job["cursor"] == "2"
+    assert job["slices"] == 2
+
+
+def test_a_roster_walk_visits_every_slice_exactly_once_and_completes():
+    state = backfill_slices.empty_state()
+    job = _roster_job(state)
+    seen = []
+    for _ in range(20):
+        window = backfill_slices.next_slice(job["cursor"], job["end"], "slices", 1)
+        if window is None:
+            break
+        seen.append(window[0])
+        _finish(state, job, *window)
+    assert seen == [str(i) for i in range(8)]
+    assert job["state"] == "done"
+
+
+def test_one_workflow_walking_three_sources_keeps_three_cursors():
+    """Without the label they share a key, and each resumes where another
+    stopped: a hole in one source and a re-collection in the other."""
+    state = backfill_slices.empty_state()
+    india = backfill_slices.open_job(
+        state, workflow="backfill-structured-2026.yml", unit="days",
+        start="2026-01-01", end="2026-07-30", slice_size=28, label="bse_india")
+    korea = backfill_slices.open_job(
+        state, workflow="backfill-structured-2026.yml", unit="days",
+        start="2026-01-01", end="2026-07-30", slice_size=60,
+        label="opendart_korea")
+    assert india is not korea
+    _finish(state, india, "2026-01-01", "2026-01-28")
+    assert india["cursor"] == "2026-01-29"
+    assert korea["cursor"] == "2026-01-01", (
+        "India's slice moved Korea's cursor — the two share a job id")
+
+
+def test_a_job_written_before_labels_existed_keeps_its_id():
+    """The label defaults to empty, so every committed cursor still resolves."""
+    assert backfill_slices.job_id("backfill-gdelt-2026.yml", "2026-01-01",
+                                  "2026-12-31") == \
+        "backfill-gdelt-2026:2026-01-01..2026-12-31"
 
 
 def test_the_cron_parser_reads_the_shapes_that_actually_appear():

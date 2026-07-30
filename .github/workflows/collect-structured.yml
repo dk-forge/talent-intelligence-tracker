@@ -88,7 +88,7 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India, EDINET Japan, DART Korea and Companies House. How many days back to read. Blank = each collector default (7, or 42 for Companies House, derived from its rotation). A gap is back-filled by widening this. DART caps at 90.'
+        description: 'BSE India, EDINET Japan, DART Korea and Companies House. How many days back to read. Blank = each collector default (7, or 42 for Companies House, derived from its rotation). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30 — it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, Companies House none. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
         required: false
         default: ''
       ch_slice:

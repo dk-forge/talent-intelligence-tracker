@@ -93,7 +93,14 @@ SLICE_TIMEOUT_MINUTES = 90
 #: ever being reached by real work.
 MAX_SLICES_PER_JOB = 200
 
-UNITS = ("days", "quarters")
+#: `days` and `quarters` walk a calendar. `slices` walks a POPULATION: its
+#: cursor is an integer index into a deterministic partition of a roster, and
+#: the date window is a fixed input carried on the job rather than the thing
+#: being advanced. That exists because `companies_house` costs one request per
+#: COMPANY and nothing per day — its window is a filter over data the endpoint
+#: returns anyway, so widening it is free and sweeping the roster is not. A
+#: date cursor there would advance over work that had never been done.
+UNITS = ("days", "quarters", "slices")
 
 
 # --------------------------------------------------------------------------
@@ -160,6 +167,13 @@ def _quarter_index(value: str) -> int:
     return year * 4 + (quarter - 1)
 
 
+def _slice_index(value: str) -> int:
+    text = str(value).strip()
+    if not text.isdigit():
+        raise ValueError(f"not a roster slice index: {value!r} (expected e.g. 0)")
+    return int(text)
+
+
 def next_slice(cursor: str | None, end: str, unit: str, size: int) -> tuple[str, str] | None:
     """The next slice as an INCLUSIVE (lo, hi), or None when the job is done.
 
@@ -185,6 +199,12 @@ def next_slice(cursor: str | None, end: str, unit: str, size: int) -> tuple[str,
             out.append(current)
             current = _next_quarter(current)
         return (out[0], out[-1]) if out else None
+    if unit == "slices":
+        lo = _slice_index(cursor)
+        stop = _slice_index(end)
+        if lo > stop:
+            return None
+        return str(lo), str(min(lo + size - 1, stop))
     raise ValueError(f"unknown slice unit {unit!r}")
 
 
@@ -194,6 +214,8 @@ def advance(hi: str, unit: str) -> str:
         return (date.fromisoformat(hi) + timedelta(days=1)).isoformat()
     if unit == "quarters":
         return _next_quarter(hi)
+    if unit == "slices":
+        return str(_slice_index(hi) + 1)
     raise ValueError(f"unknown slice unit {unit!r}")
 
 
@@ -202,6 +224,8 @@ def past_end(cursor: str | None, end: str, unit: str) -> bool:
         return True
     if unit == "days":
         return date.fromisoformat(cursor) > date.fromisoformat(end)
+    if unit == "slices":
+        return _slice_index(cursor) > _slice_index(end)
     return _quarter_index(cursor) > _quarter_index(end)
 
 
@@ -213,6 +237,8 @@ def slice_members(lo: str, hi: str, unit: str) -> list[str]:
             out.append(current)
             current = _next_quarter(current)
         return out
+    if unit == "slices":
+        return [str(i) for i in range(_slice_index(lo), _slice_index(hi) + 1)]
     out, day = [], date.fromisoformat(lo)
     stop = date.fromisoformat(hi)
     while day <= stop:
@@ -248,13 +274,22 @@ def save(state: dict, path: Path | None = None) -> None:
     target.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
 
 
-def job_id(workflow: str, start: str, end: str) -> str:
-    """Stable across every slice of one backfill, so the chain finds itself."""
-    return f"{workflow.removesuffix('.yml')}:{start}..{end}"
+def job_id(workflow: str, start: str, end: str, label: str = "") -> str:
+    """Stable across every slice of one backfill, so the chain finds itself.
+
+    `label` exists because one workflow may walk more than one population.
+    `backfill-structured-2026.yml` takes a `source` input and runs three
+    registry collectors over the SAME 2026 window, so without it India's cursor
+    and Korea's would be the same key and each would resume where the other
+    stopped — a hole and a double-collection in one. It defaults to empty, so
+    every job written before it existed keeps its id.
+    """
+    stem = workflow.removesuffix(".yml")
+    return f"{stem}:{label}:{start}..{end}" if label else f"{stem}:{start}..{end}"
 
 
 def open_job(state: dict, *, workflow: str, unit: str, start: str, end: str,
-             slice_size: int, inputs: dict | None = None) -> dict:
+             slice_size: int, inputs: dict | None = None, label: str = "") -> dict:
     """Find this backfill's record, creating it at `start` the first time.
 
     Creating it here rather than at dispatch is what makes the FIRST run of a
@@ -264,11 +299,12 @@ def open_job(state: dict, *, workflow: str, unit: str, start: str, end: str,
     """
     if unit not in UNITS:
         raise ValueError(f"unknown slice unit {unit!r}, expected one of {UNITS}")
-    key = job_id(workflow, start, end)
+    key = job_id(workflow, start, end, label)
     job = state.setdefault("jobs", {}).get(key)
     if job is None:
         job = {
             "workflow": workflow,
+            "label": label,
             "unit": unit,
             "start": start,
             "end": end,
@@ -293,10 +329,11 @@ def open_job(state: dict, *, workflow: str, unit: str, start: str, end: str,
 
 
 def plan(state: dict, *, workflow: str, unit: str, start: str, end: str,
-         slice_size: int, inputs: dict | None = None) -> tuple[dict, tuple[str, str] | None]:
+         slice_size: int, inputs: dict | None = None,
+         label: str = "") -> tuple[dict, tuple[str, str] | None]:
     """(job, next slice) — the whole "where do I resume" question, answered."""
     job = open_job(state, workflow=workflow, unit=unit, start=start, end=end,
-                   slice_size=slice_size, inputs=inputs)
+                   slice_size=slice_size, inputs=inputs, label=label)
     return job, next_slice(job.get("cursor"), end, unit, slice_size)
 
 
@@ -314,7 +351,8 @@ def record(state: dict, ticket: dict, now: datetime | None = None) -> dict:
     if job is None:
         job = open_job(state, workflow=ticket["workflow"], unit=ticket["unit"],
                        start=ticket["start"], end=ticket["end"],
-                       slice_size=ticket["slice_size"], inputs=ticket.get("inputs"))
+                       slice_size=ticket["slice_size"], inputs=ticket.get("inputs"),
+                       label=ticket.get("label", ""))
 
     unit = job["unit"]
     was = job.get("cursor")
@@ -383,6 +421,12 @@ def next_inputs(job: dict, unit: str | None = None) -> dict | None:
     if job.get("state") != "running" or not job.get("cursor"):
         return None
     inputs = dict(job.get("inputs") or {})
+    if job.get("unit") == "slices":
+        # The job's start/end are ROSTER SLICE INDICES, not dates. The date
+        # window is a fixed dispatch input carried on `inputs`, so injecting
+        # start/end here would overwrite "2026-01-01".."2026-07-30" with "0"
+        # and "7" and the next run would read a one-day window.
+        return inputs
     inputs.update({"start": job["start"], "end": job["end"]})
     if job.get("unit") == "quarters":
         inputs.pop("start", None)
@@ -425,12 +469,13 @@ class Budget:
 
 
 def open_slice(*, workflow: str, unit: str, start: str, end: str, slice_size: int,
-               inputs: dict | None = None, state_path: str | Path | None = None):
+               inputs: dict | None = None, state_path: str | Path | None = None,
+               label: str = ""):
     """(job, (lo, hi) or None) for the run that is starting right now."""
     path = Path(state_path) if state_path else None
     state = load(path)
     return plan(state, workflow=workflow, unit=unit, start=start, end=end,
-                slice_size=slice_size, inputs=inputs)
+                slice_size=slice_size, inputs=inputs, label=label)
 
 
 def slice_ticket(job: dict, lo: str, hi: str, *, next_cursor: str | None = None,
@@ -452,8 +497,10 @@ def slice_ticket(job: dict, lo: str, hi: str, *, next_cursor: str | None = None,
     from the cursor.
     """
     return {
-        "job_id": job_id(job["workflow"], job["start"], job["end"]),
+        "job_id": job_id(job["workflow"], job["start"], job["end"],
+                         job.get("label", "")),
         "workflow": job["workflow"],
+        "label": job.get("label", ""),
         "unit": job["unit"],
         "start": job["start"],
         "end": job["end"],
