@@ -1566,7 +1566,7 @@ _AMOUNT = re.compile(
     r"(\d[\d,]*(?:[.,]\d+)?)\s*[-‐-―]?\s*"
     r"(k|m|mm|mn|mln|mio|mil|mi|bn|b|t|thousand"
     r"|million|millions|millones|millioner|milliones|milhões|milhoes"
-    r"|milione|milioni|millioni|milionu|miljoen"
+    r"|milione|milioni|millioni|milionu|miljoen|milyon"
     r"|billion|billions|billones|billioner|trillion)?\b\.?",
     re.I,
 )
@@ -1590,6 +1590,13 @@ _MULTIPLIERS = {
     "milhões": 1_000_000, "milhoes": 1_000_000,
     "milione": 1_000_000, "milioni": 1_000_000, "millioni": 1_000_000,
     "milionu": 1_000_000, "miljoen": 1_000_000,
+    # Turkish. Unambiguous -- 'milyon' is 10^6 in Turkish and is not a scale
+    # word in any other language we read, so it needs no ambiguity guard.
+    # Four live rows sat at 190, 35, 30 and 12 dollars for rounds of 190, 35,
+    # 30 and 12 MILLION. 'milyar' (10^9) is deliberately NOT added: no string
+    # here has paired it with an explicit USD marker, and the rule above for
+    # milliard/mia applies.
+    "milyon": 1_000_000,
     "b": 1_000_000_000, "bn": 1_000_000_000,
     "billion": 1_000_000_000, "billions": 1_000_000_000,
     "billones": 1_000_000_000, "billioner": 1_000_000_000,
@@ -1627,7 +1634,19 @@ def _read_number(raw: str):
     string carrying both '.' and ',' is read as English thousands.
     """
     text = raw.strip()
+    if "." in text and "," in text:
+        # Both separators present: English thousands, as the docstring says.
+        return float(text.replace(",", ""))
     if "." in text:
+        # The three-digit rule was written for the comma and applied only to
+        # the comma, so a DOT was always read as a decimal point. Indonesian
+        # and most of Europe write thousands with a dot, and 'Global Clean
+        # Energy amankan pendanaan awal senilai $150.000' was stored as one
+        # hundred and fifty dollars -- while the row's own English summary,
+        # written from the same source, said $150,000.
+        head, _, tail = text.rpartition(".")
+        if len(tail) == 3 and head.replace(".", "").isdigit():
+            return float(text.replace(".", ""))
         return float(text.replace(",", ""))
     if "," in text:
         head, _, tail = text.rpartition(",")
@@ -1639,6 +1658,18 @@ def _read_number(raw: str):
 # is more than any company has ever raised, so a value above it means the
 # string was something other than a funding figure.
 _MAX_PLAUSIBLE_USD = 10_000_000_000_000
+
+# And a round SMALLER than this is a parse failure too, which had no guard at
+# all. Nobody announces raising nine hundred dollars, so a sub-thousand figure
+# means the string was cut short, the multiplier was in a word we do not know,
+# or a thousands separator was read as a decimal point. The live case was
+# '$1' -- from a headline that literally reads 'pendanaan non-dilutif $1...',
+# truncated mid-figure by the source we quoted.
+#
+# This floor is the same threshold tests/test_funding_amount_parsing.py has
+# always used to detect the failure after the fact. Enforcing it here turns a
+# post-hoc alarm into a refusal, which is the house rule: we do not guess.
+_MIN_PLAUSIBLE_USD = 1_000
 
 
 def parse_funding_usd(value: str):
@@ -1680,6 +1711,8 @@ def parse_funding_usd(value: str):
         return None
     amount = number * _MULTIPLIERS.get(suffix, 1)
     if amount <= 0 or amount > _MAX_PLAUSIBLE_USD:
+        return None
+    if amount < _MIN_PLAUSIBLE_USD:
         return None
     return int(round(amount))
 
