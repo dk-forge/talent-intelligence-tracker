@@ -13,6 +13,201 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the archived copy was already shipped, and no reader had ever seen one
+
+**Plugin 1.56.0 -> 1.57.0.** The brief for this session said to add an "Archived"
+link to the record cards. It was already there. `shortcodes.php` and
+`dashboard.js` have both printed one since 1.43.0, conditional on
+`archive_url`, and `.tit-archived` has had a rule in the stylesheet the whole
+time. What was missing is that **nothing renders it**, and the reason is two
+layers down from the markup.
+
+Measured before touching anything, on the live page and the live API:
+
+| | |
+|---|---|
+| `tit-archived` spans on the live dashboard (1.56.0) | **0** |
+| rows on page 1 of `/query` carrying `archive_url` | **0 of 50** |
+| a 200-row sample of live `reported` rows carrying one | **0** |
+| six named employers whose LOCAL row has a snapshot, checked one by one on the live API | 6 rows found, **0 with `archive_url`** |
+| pipeline database, current signals with a snapshot | **71** |
+| `source_links` ledger, distinct URLs with a snapshot | **72** |
+
+So the 72 captures from the 2026-07-29 archive runs are in the pipeline database
+and have never reached WordPress. They cannot arrive with the row:
+`pipeline/publish.py` deliberately keeps `archive_url` out of `FIELDS`, because a
+row is built at classification time and its snapshot is taken afterwards, so at
+publish time the column is always empty. It travels in `ENRICHABLE` instead, via
+`enrich_published()` and the `/enrich` route. That path exists, is allowlisted at
+both ends (`tit_enrichable_columns()` names it), and has evidently not carried
+these values yet. **That is the actual blocker on this feature, and it is a
+pipeline run rather than a plugin change.** Nothing in this commit can fix it.
+
+### What the card footer says now
+
+`29 Jul 2026 · Reuters` becomes `29 Jul 2026 · Reuters · Archived`. The owner's
+decisions, applied:
+
+- The word is **Archived**, one word, Title Case. It was lowercase `archived`.
+  Not "Wayback": a brand name a recruiter has no reason to know, on a card that
+  is already dense.
+- `title="Archived copy at the Internet Archive"`. It was a 15-word sentence.
+- **Subordinate to the source, at the same size.** It was 12.5px against the
+  cell's 14.5px, which is smaller doing the job colour should do; a footnote to
+  the row rather than a second link anyone would click. Now `font-size:inherit`,
+  measured at 14.5px desktop and 13px in the card, in `--tit-mut` (#4a4d55,
+  8.6:1) against the source link's #1a5fb4, with the underline dropped to
+  `--tit-faint`.
+- **"Lighter weight" is carried by colour, not by a numeral, and that is a
+  deliberate refusal.** The source link is already weight 400. A sub-400 value
+  resolves to Light on a variable system-ui face and snaps back to 400 on
+  everything else, so the same word would be two different greys on two phones.
+  `font-weight:400` is set explicitly all the same, because the Employer cell
+  next door is 650 and an inherited weight is a bug waiting for a refactor.
+- **Printed only where a snapshot exists**, which the markup already did. Kept,
+  and now asserted in both directions rather than assumed.
+
+### The separator, which is three characters and one measurement
+
+The middot was a text node in the markup: `<span class="tit-archived"> · <a>`.
+Below 860px each row is a card and this cell shares one wrapping line with the
+rest of the meta, where the standing rule is that spacing separates items and
+punctuation does not, written down in `dashboard.css` because a middot rendered
+as a `::before` once landed at the start of a wrapped line and read as a bullet
+list that had lost its text.
+
+Two things came out of fixing it that are worth writing down.
+
+**The first attempt did nothing, and looked like it worked.** The override went
+into the `@media (max-width:860px)` block at line 486; the base `.tit-archived`
+rules are at line 1034. Equal specificity, later wins, so `content:none` lost to
+the `content` declaration 550 lines below it. The tell was that the sibling
+declaration in the same block (`margin-left:10px`) DID apply, because nothing
+competed with it. Measured in the browser: `getComputedStyle(span,'::before')`
+still returned `"·"` at a 390px viewport. The rules are now all in one place with
+the media block directly after them.
+
+**The desktop cell wraps too, and the fix is a no-break space.** The Source
+column is ~170px, so `Business Standard · Archived` does not fit on one line
+either. `content:"\00A0\00B7 "` with `white-space:pre-wrap`: the no-break space
+glues the middot to the publisher's name so it can never lead a line, and the
+ordinary space after it is the only break opportunity, so the line divides as
+`Business Standard ·` / `Archived`. Swept 72 synthetic source-name widths (3 to
+26 characters, three glyph widths) against the real stylesheet in a browser:
+**the separator led a line 0 times.** Six real outlet names (Inc42, Reuters,
+TechCrunch, Business Standard, Ottawa Citizen, TheJournal) all place it between
+50 and 92px into the line.
+
+### What it costs
+
+| | before | after |
+|---|---|---|
+| dashboard queries, cold | 12 | **12** |
+| dashboard queries, warm | 0 | **0** |
+| dashboard markup | 167,299 B | **167,760 B** (budget 168,000) |
+| sources page queries, cold | 0 | **1** |
+| sources page queries, warm | 0 | **0** |
+| horizontal overflow at 390px, dashboard | 0 | **0** (`scrollWidth` 375 against a 390 viewport) |
+| containers needing a horizontal gesture | 0 | **0** |
+| elements past the right edge | 0 | **0** |
+
+`TIT_DASH_QUERY_BUDGET` is untouched and did not need to move: `archive_url` is
+already in the row `SELECT` the shortcode runs, so the link costs no lookup at
+all. The N+1 tripwire (re-render after inserting 5,000 rows) still reports the
+same 12.
+
+The 461 markup bytes are almost entirely FIXTURE. Before this, the whole
+dashboard render carried zero archived spans while 1,800 rows in the harness held
+an `archive_url`, because every one of those is `materiality=routine` and the
+default view sets them aside, so neither half of the conditional was being
+tested. Six rows were added, dated today and inserted last so the sort
+(materiality bucket, date, `row_id DESC`) puts them on page one deterministically.
+Production pays about 110 bytes per row that actually has a copy. Headroom on the
+byte budget is now 240 bytes, which is not room for anything.
+
+### The sources page, and the number that has to keep reading correctly
+
+72 of 12,970 cited documents is 0.6%. Shown beside a sparse link and no
+explanation, that reads as a hole: 99% of the page apparently missing something
+the other 1% has. It is not a hole. **12,735 of those 12,970 are SEC and GOV.UK
+filings whose publishers keep them indefinitely**, and copying one of those to a
+third party preserves nothing that is not already preserved. The perishable tail
+is 235 URLs, which is what `archive-sources.yml` is pointed at and what
+`ops_status [2c]` already calls this schedule's ceiling rather than a stall.
+
+There were **no existing archive figures on the sources page** to put a sentence
+next to. The brief said there were. The page had never mentioned the archive at
+all, so the figures had to be built as well as explained.
+
+The split is DERIVED, not typed. `data/sources.json` already carries a category
+per collector, written by `build_sources_json.py` from the registry, and the
+filing systems are exactly the categories ending in "filings" (Regulatory
+filings, Government filings). A collector with no catalogue entry counts as
+perishable, because that direction overstates what needs preserving and never
+claims somebody else is keeping a document on our behalf. The alternative is the
+mistake the collector map already shipped on this same page: a hand-typed list
+with five of nine entries, which left three collectors running twice a day
+rendering as "not yet reported".
+
+Two things the paragraph refuses to say:
+
+- **It does not claim an absence.** The ledger knows three states (archived,
+  pending, confirmed to have no copy) and only the first reaches WordPress. So
+  the page says what it holds and stops: "We record a copy we hold, never an
+  absence we have checked for." `ops_status [2c]` separates "12,898 never
+  answered about" from "0 confirmed absent"; flattening that into "99.4% have no
+  copy" would be the page contradicting the status tool.
+- **It does not print a coverage figure of zero.** The split is always said,
+  because "most of what we cite needs no copy" is true of this corpus whether or
+  not a capture has landed. The figure is printed only when there is one, because
+  "0 of 12,970 (0.0%)" is a paragraph explaining a link that is nowhere on the
+  site. Which is exactly today's state, and is why that branch exists.
+
+Rendered against a corpus shaped like production it reads: *"Of the 12,970
+documents cited on this tracker, 12,735 are filings held by regulators and
+government registers... The other 235 come from news publishers and employer
+sites, which unpublish stories, change their URL schemes and let domains lapse,
+and those are the ones worth saving. 72 of all cited documents (0.6%) carry a
+copy at the Internet Archive..."* The same sentences at 55 of 1,261 read
+*"55 of all cited documents (4.4%)"*, which is the point: the archiver is running
+again and the figure climbs on its own. Both are asserted.
+
+### Tests
+
+`tests/php/render_sources.php` is new and wired into `tests.yml`, which brings
+the PHP harnesses to **7**. It renders the real page against three corpora
+(sparse, caught-up, nothing captured) and one empty table, checks the arithmetic
+adds up rather than trusting it (filings + perishable == corpus), and holds the
+page to 1 query cold and 0 warm, because `COUNT(DISTINCT source_url)` over 15,711
+rows is not free and this page cost nothing before.
+
+`render_dashboard.php` gained a row-by-row walk of the first page rather than a
+count of spans: a count passes on a render that prints the link everywhere and on
+one that prints it nowhere. Both halves are the assertion, and the half that
+matters is the rows WITHOUT a copy printing nothing at all.
+
+Offline suite **2,406 passed**, unchanged. All 7 PHP harnesses green.
+
+`tests/php/render_press.php` has never been in `tests.yml` and still is not; that
+is a pre-existing gap and is filed separately rather than folded in here.
+
+### Where this stops
+
+**Not deployed.** The worktree branch is 40 commits behind `origin/main` and the
+brief said not to push, so there is no ref carrying this change for
+`deploy-plugin.yml` to check out. Live is still 1.56.0. The verification that
+matters here is DOM measurement in a browser against the real stylesheet, not an
+eyeballing: the browser pane returned blank screenshots all session, so nothing
+in this entry rests on having looked at it.
+
+And when it does deploy, **the dashboard will look identical**, because no live
+row carries an `archive_url` yet. The sources page will print the split and say
+"None of them carries a saved copy on this site yet". The link appears when
+`enrich_published()` carries the 72 snapshots across, which is a writer-queue
+action and not this commit's to take.
+
+---
+
 ## 2026-07-30 — a million in forty-three languages, and the separator that goes with it
 
 `$190 Milyon Dolar` was stored as **one hundred and ninety dollars**. Turkish

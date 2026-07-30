@@ -1433,7 +1433,19 @@ function tit_dashboard_html() {
                   // unsourced one. A neutral third-party snapshot keeps the
                   // evidence reachable. The publisher's own copy is the
                   // citation and stays the citation; this never replaces it.
-                  if (!empty($r['archive_url'])): ?><span class="tit-archived"> · <a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank" title="A copy saved by the Internet Archive, for when the publisher's own page has moved or gone">archived</a></span><?php endif; ?></td>
+                  //
+                  // Printed ONLY where a snapshot exists. Never a placeholder
+                  // and never a disabled control: on a page whose whole claim
+                  // is that every figure still links to its document, a link
+                  // offered and then not there is worse than no link.
+                  //
+                  // The separator is not in this markup. It is a CSS ::before,
+                  // because below 860px each row is a card and this cell shares
+                  // one wrapping line with the rest of the meta; a literal
+                  // middot that wraps lands at the START of the new line and
+                  // reads as a bullet whose text went missing. See the
+                  // .tit-archived rules in dashboard.css.
+                  if (!empty($r['archive_url'])): ?><span class="tit-archived"><a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank" title="Archived copy at the Internet Archive">Archived</a></span><?php endif; ?></td>
               </tr>
             <?php endforeach; ?>
           </tbody>

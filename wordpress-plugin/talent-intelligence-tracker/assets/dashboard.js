@@ -280,11 +280,15 @@
   // snapshot keeps the evidence reachable without ever replacing the citation.
   // Must render identically to shortcodes.php, or a filtered row would differ
   // from the row it replaced.
+  // Only where a snapshot exists. A placeholder or a dead "Archived" would be
+  // the one thing this page cannot afford: a link that is offered and is not
+  // there. The middot before it is a CSS ::before rather than a text node here,
+  // so it cannot wrap to the start of a line in the card layout.
   function archivedLink(r) {
     if (!r.archive_url) return '';
-    return '<span class="tit-archived"> · <a href="' + esc(r.archive_url) +
-      '" rel="nofollow noopener" target="_blank" title="A copy saved by the ' +
-      'Internet Archive, for when the publisher\'s own page has moved or gone">archived</a></span>';
+    return '<span class="tit-archived"><a href="' + esc(r.archive_url) +
+      '" rel="nofollow noopener" target="_blank" ' +
+      'title="Archived copy at the Internet Archive">Archived</a></span>';
   }
 
   function renderRow(r) {
