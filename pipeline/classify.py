@@ -645,8 +645,25 @@ def gate(text: str, *, timeout: int = 30) -> bool:
     return keep
 
 
-def classify(raw: dict, *, timeout: int = 45) -> dict | None:
-    """Classify one candidate. Returns None if it is not a talent signal."""
+def classify(raw: dict, *, timeout: int = 45,
+             interpret_now: bool = True) -> dict | None:
+    """Classify one candidate. Returns None if it is not a talent signal.
+
+    `interpret_now=False` returns the EXTRACTION ONLY, leaving extraction's own
+    `talent_readthrough` in the dict. The caller then runs the free guards —
+    `validate.build_signal`, then the two dedup layers — and buys the
+    interpretation from `interpret()` only for a record that is actually going
+    to be stored. Measured over the nine runs in the ledger to 2026-07-30:
+    477 interpretations were bought and 320 rows stored, so **32.9% of the
+    most expensive call in the pipeline was spent on records the page never
+    got**. Nothing about the interpretation depends on when it is bought — it
+    reads the extracted facts and the teaser, both unchanged by validation —
+    so this is a pure saving with no effect on what is stored or how it reads.
+
+    The default stays True so a caller that has no database (ab_models.py, the
+    backfills' probe paths, every test that predates this) behaves exactly as
+    it did. `run_collect` is the one caller that passes False.
+    """
     text = (raw.get("raw_text") or "").strip()
 
     # The publisher is the single best geography hint we were throwing away.
@@ -714,9 +731,35 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
     # A failure here raises ReadThroughUnavailable (a Throttled), so the record
     # is deferred whole rather than stored with a blank differentiator. Read the
     # class docstring before changing that.
-    if read_enabled():
+    #
+    # `interpret_now=False` postpones it to `interpret_late()` instead, once
+    # the free guards have said the record will store. Nothing else changes.
+    if read_enabled() and interpret_now:
         parsed["talent_readthrough"] = interpret(parsed, raw, timeout=timeout)
     return parsed
+
+
+def interpret_late(signal, classified: dict, raw: dict, *,
+                   timeout: int = 45) -> None:
+    """Buy the interpretation for a record that has already cleared every free
+    guard, and write it onto the built signal in place.
+
+    Called by `run_collect` after `validate.build_signal` and after both dedup
+    layers have returned "this will store". Raises the same
+    `ReadThroughUnavailable` the inline call does, so the caller's existing
+    Throttled handling defers the record whole and the next run retries it.
+
+    Safe to write onto a built signal because `content_hash` is computed from
+    the employer, pillar, date, headline and outlet — never from the
+    read-through — so the fingerprint the dedup layers just agreed on does not
+    move underneath them. `validate.build_signal` requires the read-through to
+    be non-empty and never checks its figures (that is `_accept`'s job, and it
+    runs on whatever sentence comes back here), so the guard set is identical
+    whichever order the two calls happen in. A test pins both properties.
+    """
+    if not read_enabled():
+        return
+    signal.talent_readthrough = interpret(classified, raw, timeout=timeout)
 
 
 def _call(model: str, system: str, user: str, *, timeout: int,

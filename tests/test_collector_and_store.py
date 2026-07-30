@@ -295,3 +295,20 @@ def test_the_publisher_reaches_the_classifier():
     src = inspect.getsource(classify.classify)
     assert 'raw.get("source_name")' in src
     assert "Published by:" in src
+
+
+def test_duplicate_verdict_and_store_cannot_disagree(conn, signal):
+    """`run_collect` asks the dedup layers BEFORE buying the read-through, and
+    `store()` asks them again on the way in. Two implementations of "is this
+    already held" would eventually answer differently and either double-store a
+    record or charge for one that never lands, so there is exactly one."""
+    import inspect
+
+    assert "duplicate_verdict(conn, signal)" in inspect.getsource(store.store)
+
+    assert store.duplicate_verdict(conn, signal) is None
+    assert store.store(conn, signal) == "stored"
+    conn.commit()
+
+    assert store.duplicate_verdict(conn, signal) == "duplicate"
+    assert store.store(conn, signal) == "duplicate"

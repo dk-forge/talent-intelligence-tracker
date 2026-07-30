@@ -434,3 +434,109 @@ def test_the_record_level_rule_is_untouched():
             {**EXTRACTED, "summary": "Enigma has raised $250M in seed funding."},
             RAW, "google_news")
     assert validate.build_signal(dict(EXTRACTED), RAW, "google_news")
+
+
+# --- the read-through is bought LAST -----------------------------------------
+#
+# Measured over the nine runs in the ledger to 2026-07-30: 477 interpretations
+# bought, 320 rows stored. A third of the priciest call in the pipeline went to
+# records that a validate rejection or one of the two dedup layers settled a
+# moment later — all three of which are free. So `run_collect` extracts, builds
+# the signal, asks both dedup layers, and only then buys the sentence.
+#
+# The safety of that reordering rests on two properties, and these pin both:
+# `content_hash` does not read the read-through (so the fingerprint the dedup
+# layers just agreed on cannot move underneath them), and `build_signal` checks
+# the read-through only for emptiness (so no guard is skipped by filling it in
+# afterwards).
+
+def test_extraction_alone_calls_only_the_extraction_model(monkeypatch, stats):
+    calls = []
+
+    def fake_call(model, system, user, **kwargs):
+        calls.append(model)
+        return json.dumps(EXTRACTED)
+
+    monkeypatch.setattr(classify, "_call", fake_call)
+    monkeypatch.setattr(classify, "gate_enabled", lambda: False)
+    monkeypatch.setattr(classify, "READTHROUGH_CAP", 10)
+
+    out = classify.classify(dict(RAW), interpret_now=False)
+
+    assert calls == [classify.MODEL], "the interpretation was bought too early"
+    # Extraction's own sentence survives, so build_signal has something
+    # non-empty to validate before the real one is bought.
+    assert out["talent_readthrough"] == EXTRACTED["talent_readthrough"]
+    assert stats["read_calls"] == 0
+
+
+def test_the_default_is_still_to_interpret_inline(monkeypatch, stats):
+    """Every caller that predates the split — ab_models, the backfill probes,
+    every test above — must behave exactly as it did."""
+    import inspect
+
+    signature = inspect.signature(classify.classify)
+    assert signature.parameters["interpret_now"].default is True
+
+
+def test_interpret_late_writes_the_sentence_onto_the_built_signal(
+        monkeypatch, stats):
+    reply(monkeypatch, answer(GOOD))
+    signal = validate.build_signal(dict(EXTRACTED), RAW, "google_news")
+    before = signal.content_hash
+    assert signal.talent_readthrough == EXTRACTED["talent_readthrough"]
+
+    classify.interpret_late(signal, dict(EXTRACTED), dict(RAW))
+
+    assert signal.talent_readthrough == GOOD
+    assert signal.content_hash == before, (
+        "the fingerprint moved after the dedup layers had already agreed on it")
+
+
+def test_the_content_hash_never_reads_the_read_through():
+    """The property the reordering rests on, asserted directly rather than
+    inferred from one example."""
+    a = validate.build_signal(dict(EXTRACTED), RAW, "google_news")
+    b = validate.build_signal(
+        {**EXTRACTED, "talent_readthrough": "Something else entirely, in Boston."},
+        RAW, "google_news")
+    assert a.content_hash == b.content_hash
+
+
+def test_build_signal_checks_the_read_through_only_for_emptiness():
+    """So filling it in afterwards skips no guard. An invented FIGURE is still
+    refused — by `_accept`, on whatever sentence comes back."""
+    ungrounded = "Enigma raised $250M and will hire 400 people in Reykjavik."
+    # build_signal is happy with it: the read-through is our interpretation and
+    # is allowed to reason past the text, so its figures are not its business.
+    assert validate.build_signal(
+        {**EXTRACTED, "talent_readthrough": ungrounded}, RAW, "google_news")
+    # The interpretation guard is not.
+    assert classify.ungrounded_reason(ungrounded, EXTRACTED, RAW["raw_text"])
+
+
+def test_interpret_late_is_off_when_the_read_model_is(monkeypatch, stats):
+    monkeypatch.setattr(classify, "READ_MODEL", "off")
+    signal = validate.build_signal(dict(EXTRACTED), RAW, "google_news")
+    classify.interpret_late(signal, dict(EXTRACTED), dict(RAW))
+    assert signal.talent_readthrough == EXTRACTED["talent_readthrough"]
+    assert stats["read_calls"] == 0
+
+
+def test_run_collect_buys_it_after_both_free_guards():
+    """Order is the whole saving, so it is asserted on the source rather than
+    left to a comment."""
+    import inspect
+
+    src = inspect.getsource(run_collect.run)
+    extract = src.index("interpret_now=False")
+    built = src.index("validate.build_signal(")
+    deduped = src.index("store.duplicate_verdict(")
+    bought = src.index("classify.interpret_late(")
+    assert extract < built < deduped < bought, (
+        "the interpretation must be the last thing bought, after extraction, "
+        "after build_signal and after both dedup layers")
+    # And a duplicate settled that way is never charged for a sentence.
+    arm = src[deduped:bought]
+    assert "unread_duplicates += 1" in arm
+    assert "continue" in arm

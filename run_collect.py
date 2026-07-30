@@ -428,7 +428,25 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     kept = candidate_rank.rank(kept, ranking)
 
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
-    cheap_closed = known_rounds = 0
+    cheap_closed = known_rounds = unread_duplicates = 0
+
+    def _stop_run(detail: str, exc: Exception) -> int:
+        """End the run on a permanent condition, having recorded what it cost.
+
+        A bad key and an exhausted balance both end the run whichever stage
+        meets them, and both may have already paid for the candidates read
+        before it happened. A cost that is only recorded on the happy path is
+        a cost that disappears exactly when somebody is looking for it, so the
+        health row with the usage snapshot lands either way.
+        """
+        print(f"\nSTOPPING: {exc}", file=sys.stderr)
+        store.report_health(conn, collector, status="error",
+                            items_found=found, items_stored=stored,
+                            detail=detail,
+                            usage=classify.usage_snapshot())
+        conn.commit()
+        return 1
+
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
     if note:
@@ -514,31 +532,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             elif derive:
                 classified = derive(item)
             else:
-                classified = _stub_classify(item) if offline else classify.classify(item)
+                # interpret_now=False: extraction only. The interpretation is
+                # bought below, after build_signal and both dedup layers have
+                # said this record will actually store. Cost lever, measured:
+                # 477 interpretations bought against 320 rows over the nine
+                # runs in the ledger to 2026-07-30, so a third of the priciest
+                # call in the pipeline went to records the page never got.
+                classified = (_stub_classify(item) if offline
+                              else classify.classify(item, interpret_now=False))
         except classify.AuthFailed as exc:
             # A bad key is permanent for this run. The first live run printed
             # the same 401 twenty-five times before anyone learned anything.
-            print(f"\nSTOPPING: {exc}", file=sys.stderr)
-            # usage even here: a run that dies on a bad key may already have
-            # paid for the candidates it read before the key was rotated, and a
-            # cost that is only recorded on the happy path is a cost that
-            # disappears exactly when someone is looking for it.
-            store.report_health(conn, collector, status="error",
-                                items_found=found, items_stored=stored,
-                                detail=f"auth failed: {str(exc)[:200]}",
-                                usage=classify.usage_snapshot())
-            conn.commit()
-            return 1
+            return _stop_run(f"auth failed: {str(exc)[:200]}", exc)
         except classify.CreditsExhausted as exc:
-            print(f"\nSTOPPING: {exc}", file=sys.stderr)
             # The one run whose cost is least optional: a 402 means the spend
             # ceiling was reached, so this row is the evidence of what reached it.
-            store.report_health(conn, collector, status="error",
-                                items_found=found, items_stored=stored,
-                                detail="OpenRouter credits exhausted",
-                                usage=classify.usage_snapshot())
-            conn.commit()
-            return 1
+            return _stop_run("OpenRouter credits exhausted", exc)
         except classify.BudgetDeferred as exc:
             # The per-run spend ceiling, not a busy provider. Same retry-next-
             # run handling, counted apart so a run that deferred work ON
@@ -604,6 +613,46 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # as credible either way and stays capped at "reported".
             signal.notes = cheap_extract.EVIDENCE_NOTE
 
+        # Cost lever: the read-through is bought LAST.
+        #
+        # Both dedup layers are indexed reads over a database we already hold,
+        # so asking them BEFORE the priciest call in the pipeline costs nothing
+        # and settles a third of the candidates for free. Measured over the
+        # nine runs in the ledger to 2026-07-30: 477 interpretations bought,
+        # 320 rows stored. `store.store` asks the same question again through
+        # the same function, so the two can never disagree.
+        verdict = store.duplicate_verdict(conn, signal)
+        if verdict:
+            duplicates += 1
+            unread_duplicates += 1
+            if verdict == "retracted":
+                print(f"  SKIP    {signal.headline[:66]}\n"
+                      f"          previously retracted, not re-stored "
+                      f"(before the read-through was bought)")
+            else:
+                print(f"  SKIP    {signal.headline[:66]}\n"
+                      f"          already stored, matched before the "
+                      f"read-through was bought")
+            if url and not dry_run:
+                store.mark_seen(conn, url, collector, verdict)
+            continue
+
+        if paid_read:
+            # Only now is the interpretation worth its price. A failure here
+            # raises ReadThroughUnavailable — a Throttled — exactly as it did
+            # when the call lived inside classify(), so the record defers whole
+            # and the next run retries it un-marked.
+            try:
+                classify.interpret_late(signal, classified, item)
+            except classify.AuthFailed as exc:
+                return _stop_run(f"auth failed: {str(exc)[:200]}", exc)
+            except classify.CreditsExhausted as exc:
+                return _stop_run("OpenRouter credits exhausted", exc)
+            except classify.Throttled as exc:
+                throttled += 1
+                print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
+                continue
+
         if dry_run:
             stored += 1
             if paid_read:
@@ -643,6 +692,12 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"[{collector}] deterministic: {cheap_closed} closed with no "
             f"model call, {known_rounds} known rounds skipped pre-read, "
             f"{len(clustered_away)} outlet rewrites clustered away"
+        )
+    if unread_duplicates:
+        print(
+            f"[{collector}] dedup before the read-through: {unread_duplicates} "
+            f"record(s) extracted, found already held, and settled without "
+            f"buying an interpretation"
         )
     if classify.STATS["gate_calls"]:
         print(

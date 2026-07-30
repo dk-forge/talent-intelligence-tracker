@@ -24,17 +24,38 @@ def mark_seen(conn: sqlite3.Connection, url: str, collector: str, outcome: str) 
     )
 
 
-def store(conn: sqlite3.Connection, signal) -> str:
-    """Insert a signal. Returns 'stored', 'duplicate' or 'retracted'.
+def duplicate_verdict(conn: sqlite3.Connection, signal) -> str | None:
+    """'duplicate', 'retracted', or None when this signal would be inserted.
 
-    'retracted' is reported separately so a withdrawn record resurfacing is
-    visible in the run output rather than looking like ordinary dedup.
+    Both dedup layers and nothing else: no write, no model, no network, two
+    indexed reads. Split out of `store()` so a caller can ask "will this
+    store?" BEFORE buying the read-through, which is the most expensive call
+    in the pipeline. Measured over the nine runs in the ledger to 2026-07-30,
+    477 interpretations were bought against 320 rows stored — a third of them
+    went to records that met one of these two layers, or a validate rejection,
+    a moment later.
+
+    `store()` still asks the same question through this same function, so a
+    caller that does not call it first is unaffected and the two answers
+    cannot drift apart.
     """
     known = dedupe.exact_duplicate(conn, signal.content_hash)
     if known:
         return known
     if dedupe.fuzzy_duplicate(conn, signal):
         return "duplicate"
+    return None
+
+
+def store(conn: sqlite3.Connection, signal) -> str:
+    """Insert a signal. Returns 'stored', 'duplicate' or 'retracted'.
+
+    'retracted' is reported separately so a withdrawn record resurfacing is
+    visible in the run output rather than looking like ordinary dedup.
+    """
+    verdict = duplicate_verdict(conn, signal)
+    if verdict:
+        return verdict
 
     data = asdict(signal)
     columns = ", ".join(data)

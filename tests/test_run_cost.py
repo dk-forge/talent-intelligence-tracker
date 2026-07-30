@@ -168,9 +168,37 @@ def test_the_run_records_it(stats):
 
     src = inspect.getsource(run_collect.run)
     assert "usage=classify.usage_snapshot()" in src
-    # Including the two paths that stop the run: a 402 or a rotated key can
-    # arrive after money has already been spent.
-    assert src.count("usage=classify.usage_snapshot()") >= 3
+
+
+def test_every_stop_path_records_the_usage(stats):
+    """A 402 or a rotated key can arrive after money has already been spent.
+
+    This used to count occurrences of the snapshot call, and broke the day the
+    stop paths were folded into one helper — a refactor that made the property
+    MORE true, not less. So it asserts the property instead: every early
+    `return` inside the candidate loop goes through `_stop_run`, and
+    `_stop_run` is what records the usage. There are four such sites since the
+    read-late split (401 and 402, from extraction and from interpretation);
+    adding a fifth that forgets is the mistake this catches.
+    """
+    import inspect
+    import re
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    stop = src.split("def _stop_run", 1)[1].split("\n    print(f\"\\n[", 1)[0]
+    assert "usage=classify.usage_snapshot()" in stop
+    assert 'status="error"' in stop
+
+    # The candidate loop only. Everything after it is the run's own summary
+    # and its ordinary exit codes, which are not stop paths.
+    body = src.split("for item in kept:", 1)[1].split('f"\\n[{collector}] found=', 1)[0]
+    stray = re.findall(r"^\s+return (?!_stop_run)\S.*$", body, re.M)
+    assert not stray, (
+        "a stop path inside the candidate loop bypasses _stop_run, so the "
+        f"run's spend would go unrecorded: {stray}")
+    assert body.count("return _stop_run(") >= 4
 
 
 # --- old databases -----------------------------------------------------------
