@@ -13,6 +13,197 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — a million in forty-three languages, and the separator that goes with it
+
+`$190 Milyon Dolar` was stored as **one hundred and ninety dollars**. Turkish
+for a million was in no list the amount parser held, the token fell through to
+no multiplier at all, and a nine-figure round landed on the money chart as
+pocket change. Four rows went that way in a single collection, and the mechanism
+is not Turkish: **575 national press feeds across 139 countries and 43 languages
+had been wired into a parser whose scale vocabulary was English with a handful
+of Romance words bolted on.**
+
+`funding_amount_usd` is the only ARITHMETIC figure here. Every other number on
+the page is a count of rows; this one is summed into a headline total and read
+by the implausible-amount guardrail. So the failure does not look like a missing
+row. It looks like a total that is wrong by a factor of a million on a page that
+renders perfectly.
+
+### What was wrong, in two halves
+
+| | |
+|---|---|
+| scale word in any language but English | ignored — `$190 Milyon` -> 190 |
+| `.` as a thousands separator | read as a decimal point — `$150.000` -> 150 |
+
+The second is the mirror-image risk of fixing the first: `1,5 milyon` is one and
+a half million, and an English-tuned reader makes it fifteen.
+
+### The vocabulary is declared per language, and the test reads the catalogue
+
+Not a word list that grows by whichever string last broke. `SCALE_WORDS_BY_LANGUAGE`
+is keyed by the language name `data/sources_catalogue.csv` uses, and
+`tests/test_funding_amount_parsing.py` reads that CSV at test time: a **wired**
+language that is neither covered nor named in `UNCOVERED_LANGUAGES` with a
+reason is a red build. **43 wired languages covered, one named as a gap** —
+Oshiwambo, whose single masthead (New Era, Namibia) writes its money copy in the
+English half of an English/Oshiwambo title. Six further catalogue languages are
+covered though nothing is wired for them yet (Bengali, Dhivehi, Kinyarwanda,
+Kurdish, Maltese, Uzbek), so wiring those feeds costs nothing here.
+
+That structure exists because of the measurement two entries below: a partial
+magnitude vocabulary **fails silently and looks like sparse data**, which is why
+the figure-guard work costed a 43-language fold and declined to guess at one.
+This is the shape that makes the gap visible instead of guessing.
+
+Forms are **enumerated, not stemmed**. Latvian carried `miljonus`, `miljonu`,
+`miljoni` and `miljoniem` in ONE fetch of `db.lv`; a stem with a loose tail
+would also catch `milionário`, and bare `investice` already cost nine false
+positives in fifteen when the prefilter learned this. Every form is off a live
+feed fetch on 2026-07-30 (one request per publisher in `data/feeds.csv`, titles
+only, no model, no storage) or off a stored row.
+
+### Three things carried over from the Hebrew/Czech/Danish prefilter work
+
+They shaped the CODE and not only the word lists, which is the part worth
+keeping:
+
+1. **`\b` is meaningless in Chinese, Japanese, Korean and Thai.** Those write
+   the number, the scale word and the currency as one unbroken run — `1亿美元`,
+   `ล้านบาท` — so a pattern ending in `亿\b` can never match, because 美 is a word
+   character too. And Thai scale words carry combining marks, which `\w` does
+   not match at all, so no `\w`-based boundary exists anywhere in `ล้าน`. Those
+   go through `_GLUED_SCALE` as plain prefixes, longest first so `百万` is not
+   read as `万`. Their units are not translations either: 亿 is 10^8 and 万 is
+   10^4, so reading 亿 as a billion is wrong by a factor of ten.
+2. **Hebrew and Arabic glue clitics onto the FRONT of a word**, and they are
+   word characters, so `מיליון` is written `כמיליון` as often as not. A short
+   prefix list is stripped, and only when the remainder is a word already in the
+   table — the narrow form of the rule, because a loose substring match is what
+   puts *salary* inside *a rental*.
+3. **An alternation whose alternative ends in a magnitude word can silently
+   never match.** That IS the Turkish bug, exactly: inside
+   `(k|m|...|mil|mi|...)?\b`, `mil` matched the front of `milyon`, the boundary
+   then failed, and an OPTIONAL group settled for no multiplier at all. There is
+   no alternation any more. The letter run after the number is read once and
+   looked up in a dict, which is a boundary that cannot be got wrong and which
+   removes the ordering trap entirely.
+
+### Conflicts are detected, not ordered — and that found two entries that were WRONG
+
+A token two languages claim with different multipliers joins the refusal set
+unless `RESOLVED_SCALE_COLLISIONS` names the winner and the reason. Running that
+over the new tables immediately surfaced two entries the old table had wrong
+rather than merely missing:
+
+* **`billones` and `billioner` were mapped to 10^9.** A Spanish *billón* and a
+  Danish *billion* are **10^12**. That is the same thousand-fold error this
+  whole pass exists to remove, pointing the other way, and it was waiting for
+  its first row. Both refuse now, along with `billión`, `Billionen` (German
+  10^12, spelled almost exactly like the English 10^9), `bilião`/`biliões`
+  (European Portuguese 10^12, against Brazilian `bilhão` at 10^9) and `trillón`.
+
+Which is why **milliard is now read rather than refused**, reversing the note
+that excluded it. There is no long-scale disagreement about milliard anywhere:
+`milliard`, `miliard`, `milyar`, `miljard`, `Milliarde`, `mia`, `mld`, `mrd`,
+`млрд`, `مليار` and `מיליארד` are 10^9 in **every** language that has the word.
+The earlier note excluded it in the same breath as `billón`, whose ambiguity is
+real, and it inherited a refusal by association. `mil` and `mi` keep refusing,
+from the sweeps that found them.
+
+### Separators: shape first, locale only to REFUSE
+
+The rule is shape, and it holds under **both** conventions rather than assuming
+one. Spanish writes `1,5 millones` and `1.500 millones` and never `1,500
+millones` for one and a half, so **a lone separator with exactly three digits
+after it is a thousands group** — no locale needed, and that is what makes the
+Indonesian `$150.000` a hundred and fifty thousand. Anything other than a
+three-digit tail is a decimal fraction, again in both conventions, because a
+thousands separator always leaves exactly three digits behind it.
+
+Locale is consulted only where it CONTRADICTS that: a three-digit group written
+with the separator the scale word's own language uses for decimals. Then the two
+readings are a thousand apart and nothing in the string chooses, so `US$ 1,500
+milhões` **refuses**. That is the standing rule — `$150.000` read as 150 is
+worse than NULL, because NULL is visibly missing while 150 looks like data — and
+it applies to the tie the shape rule cannot break, not to the ones it can.
+
+Two other separator fixes rode along: **two separators now mean the LAST one is
+the decimal**, which is true either way and stops `1.000,50` reading as 1.0005;
+and space-grouped numbers (`1 500 000`, French and Polish, NBSP and U+202F
+included) read.
+
+### `_MIN_PLAUSIBLE_USD` had BLINDED the guard that found all of this
+
+The sub-thousand floor added earlier the same day is right — a sub-thousand
+figure means the string was cut short, the scale word was one we do not know, or
+a separator was misread, and refusing beats guessing. But
+`test_no_stored_amount_parses_to_an_absurdly_small_figure` reads *what the parser
+says about the strings we hold*, so a parser that cannot produce a sub-thousand
+figure makes that test **unfailable**. The property anyone wanted checked was
+never the parser's output range; it was that no string we HOLD is being read
+that way.
+
+So `read_funding_figure()` returns the figure BEFORE the plausibility bounds,
+and a companion test names every string the floor is swallowing with a reason
+each (`FLOOR_REFUSALS`, one entry today: Pluang's `$1`, from a headline the
+publisher truncated mid-figure — the article slug says 15 juta USD). It is an
+allowlist rather than an exact set, so correcting a row keeps the build green
+while a NEW one turns it red. The six Turkish and Indonesian rows would have
+arrived there as six unexplained entries rather than as silence.
+
+### Measured
+
+`python3 correct_funding_amount.py` (dry run) against the committed database,
+3,254 live rows carrying an amount string:
+
+| | |
+|---|---|
+| rows whose stored figure disagrees with the parser | **12** (0.37%), all published |
+| of those, corrected to a figure | 7 |
+| of those, cleared to no figure at all | 5 |
+| money total | $133,405,633,262 -> **$133,745,781,597** |
+| net | **+$340,148,335** |
+
+The seven corrected are four Turkish `Milyon` rows (ThreatLocker $190M, Mate
+Güvenlik $35M, Hush Güvenlik $30M, UNIT AI $12M), Infobae's `USD 53 millones`,
+BetaKit's hyphenated `$20-million USD` and Investing.com Indonesia's `$150.000`.
+The five cleared are three foreign-currency amounts this page promises to leave
+out rather than convert at a rate nobody published (`500 millones`, `25
+millioner kroner`, `10,5 mio. kr.`), one ambiguous scale word (`US$ 544 mi`) and
+one truncated headline (`$1`).
+
+**The rows are not touched by this change.** `correct_funding_amount.py` already
+exists for exactly this and re-derives the WHOLE column rather than taking a list
+of twelve ids; it needs one queued run once this parser is on `main`:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
+  -f inputs_json='{"dry_run":"false"}' \
+  -f reason='re-derive funding_amount_usd after the 43-language scale vocabulary'
+```
+
+Order matters: the run reads the parser at the SHA it checks out, so queueing it
+before the parser lands corrects six rows and leaves six.
+
+### What is not covered, and is a decision rather than an oversight
+
+**A dollar still has to be stated in English.** `_USD_MARKER` accepts `$`, `US$`
+and `USD` and nothing else, so a Turkish `20 Milyon Dolar`, a Brazilian `33
+milhões de dólares` or a Chinese `1亿美元` refuses for naming no currency the
+parser recognises, even though every one of them says "dollar" in its own
+language. **Six such rows are stored today** — five Turkish `dolar` and one
+Brazilian `dolares` — each holding NULL where a real figure exists. Widening the MARKER is a different
+and riskier decision from widening the scale vocabulary — a Turkish *dolar* is
+usually a US dollar and not always, while `美元` is unambiguous — and the scale
+vocabulary cannot turn a foreign amount into a dollar figure precisely because
+the marker gates it. Left alone deliberately, and written down here so the next
+session meets the choice rather than the gap.
+
+2,402 tests pass.
+
+---
+
 ## 2026-07-30 — the parser was fixed and the rows were not: funding_amount_usd is re-derived by a queued pass, not by a list of twelve
 
 `correct_funding_amount.py`, `.github/workflows/correct-funding-amount.yml`, one
