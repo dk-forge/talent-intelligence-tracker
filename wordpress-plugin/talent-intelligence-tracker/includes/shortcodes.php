@@ -2262,6 +2262,34 @@ function tit_enqueue_dashboard_assets($with_js = true) {
     if (!$with_js) return;
     wp_enqueue_script('tit-dashboard', TIT_URL . 'assets/dashboard.js', array(),
         tit_asset_version('assets/dashboard.js'), true);
+    /*
+      DEFER, which our script was the only one on the page not doing.
+
+      Measured live: every other <script src> in that document carries defer --
+      jQuery, the theme's modules, the cookie banner, the host's own performance
+      module -- and ours did not. In the footer it is not blocking a first paint,
+      but a parser-blocking script still stops the parser where it sits until it
+      has downloaded and run, which on shared hosting over a phone connection
+      holds up the end of the document for no reason. There is nothing here that
+      needs to run before parsing finishes: the whole file starts by looking up
+      #tit-dashboard, which is already in the document above it.
+
+      wp_script_add_data() rather than the array form of wp_enqueue_script(),
+      because 'strategy' arrived in WordPress 6.3 and this way an older WordPress
+      ignores one unknown data key instead of receiving an array where it expects
+      a boolean.
+
+      It is also SAFE with the Autoptimize hazard this file already guards
+      against. wp_localize_script prints `var TIT` inline, immediately above, and
+      an inline script is never deferred, so it still runs first. If Autoptimize
+      sweeps that inline object into a bundle loading after us -- which is the
+      bug that once made every control on the live page inert -- deferring only
+      gives that bundle MORE time to land, and the data-attribute fallback at the
+      top of dashboard.js covers it either way.
+    */
+    if (function_exists('wp_script_add_data')) {
+        wp_script_add_data('tit-dashboard', 'strategy', 'defer');
+    }
     wp_localize_script('tit-dashboard', 'TIT', array(
         'api' => esc_url_raw(rest_url('talent/v1/')),
         // The filtered rows are rendered in the browser, so it needs the same

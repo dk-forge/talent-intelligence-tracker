@@ -444,6 +444,10 @@ check(count($GLOBALS['tit_enqueued']['style']) === 1,
       'and it stays ONE file: a second stylesheet is a second blocking request in the head');
 check(($GLOBALS['tit_enqueued']['script']['tit-dashboard']['footer'] ?? false) === true,
       'dashboard.js loads in the footer, never in the head');
+check(($GLOBALS['tit_enqueued']['script_data']['tit-dashboard']['strategy'] ?? '') === 'defer',
+      'and it is deferred. Every other script on the live page carries defer; a '
+      . 'parser-blocking one in the footer holds up the end of the document for '
+      . 'no reason, because nothing in that file needs to run before parsing ends');
 /* --- the byte budget ---------------------------------------------------- */
 
 $bytes = strlen($html);
@@ -452,6 +456,20 @@ check($bytes <= TIT_DASH_BYTE_BUDGET,
       'the markup must stay inside ' . number_format(TIT_DASH_BYTE_BUDGET)
       . ' bytes and was ' . number_format($bytes)
       . '. This page is read on phones; a new card is not free.');
+
+/* --- the pill groups have to swap into a box the same size -------------- */
+
+/*
+ * dashboard.js replaces each multiple select with a row of pills AFTER the page
+ * has painted, because it loads in the footer. If the two boxes are not the same
+ * height the reader watches the filter panel resize and everything below it
+ * move, which is the definition of a layout shift. The stylesheet fixes both to
+ * one height; this asserts the markup still hands it two boxes to fix, since a
+ * select that lost its `multiple` would never be pillified at all.
+ */
+check(substr_count($html, 'multiple size="5"') === 7,
+      'seven multiple selects become pill groups, and the stylesheet reserves the '
+      . 'height of each: found ' . substr_count($html, 'multiple size="5"'));
 
 /* --- nothing that scrolls the body sideways ----------------------------- */
 

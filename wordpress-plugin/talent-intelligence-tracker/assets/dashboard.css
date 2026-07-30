@@ -1426,7 +1426,13 @@ main:has(#tit-dashboard) {
 /* Multi-selects scroll in place. A native list box is keyboard reachable with
    no code of ours, and each choice becomes its own chip in the filtering bar,
    so a reader can drop one of three without clearing all three. */
-.tit-wrap .tit-filters select[multiple] { height:auto; min-height:96px;
+/* A FIXED height, matched by .tit-pillgroup below, because dashboard.js loads in
+   the footer and then swaps each of these list boxes for a row of pills. Any
+   difference between the two boxes is a jump the reader watches after the page
+   has painted, and Industry's twenty options wrap to nearly twice a five-row
+   list box. One height for both; the pills scroll in place as the list box did.
+   Change one of the two and you have to change the other. */
+.tit-wrap .tit-filters select[multiple] { height:96px; min-height:96px;
   padding:4px; font-size:13.5px; font-weight:500; overflow-y:auto; }
 .tit-wrap .tit-filters select[multiple] option { padding:4px 7px;
   border-radius:5px; }
@@ -1463,7 +1469,11 @@ main:has(#tit-dashboard) {
 /* Seven stacked list boxes is a lot of height on a phone, and each one still
    shows five rows before it scrolls in place. */
 @media (max-width:560px){
-  .tit-wrap .tit-filters select[multiple] { min-height:84px; }
+  /* And the pill group with it. Two classes deep deliberately: the base
+     .tit-pillgroup rule is several hundred lines BELOW this one, so at equal
+     specificity source order would hand a phone the desktop height. */
+  .tit-wrap .tit-filters select[multiple] { height:84px; min-height:84px; }
+  .tit-wrap .tit-pillgroup { height:84px; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1636,7 +1646,10 @@ main:has(#tit-dashboard) {
    group remains the state, and remains a working control without JavaScript.
    --------------------------------------------------------------------------- */
 .tit-wrap .tit-select-hidden { display:none; }
-.tit-pillgroup { display:flex; flex-wrap:wrap; gap:6px; }
+/* The same 96px the list box it replaces occupies, so the swap moves nothing.
+   align-content keeps one row of pills at the top rather than centred. */
+.tit-pillgroup { display:flex; flex-wrap:wrap; align-content:flex-start; gap:6px;
+  height:96px; overflow-y:auto; }
 .tit-wrap .tit-pill { padding:5px 11px; border:1px solid var(--tit-line);
   border-radius:99px; background:#fff; color:var(--tit-fg); font-size:13px;
   font-weight:550; font-family:inherit; cursor:pointer; line-height:1.3; }
