@@ -13,6 +13,172 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — a figure guard that ate records, a cache that does not exist, and the 81 misses
+
+Three jobs, and two of the three briefs turned out to be wrong about the code.
+Every number below is reproducible from a command in this repo.
+
+### 1. `validate._NUMBER` glued a magnitude across a line break
+
+`\s` matches a newline, and the magnitude suffix sat behind a bare `\s*` with
+nothing after it, so `"28.07.2026\n\nK M Sugar Mills"` tokenised as
+`28072026k`. Since `assert_figures_are_sourced` compares two SETS, and every
+collector joins its fields with a blank line, the glue lands on the SOURCE side
+and a figure that IS verbatim in the source reads as invented — the whole record
+discarded, silently. Fixed: the suffix now sits behind horizontal whitespace
+only (`_H_SPACE`, every character `\s` matches except the ones that end a line,
+so NBSP still counts and CR/LF/FF/VT/U+2028/U+2029 do not).
+
+Measured, `python3 -m analysis.figures.replay`, 15,711 current rows:
+
+| | |
+|---|---|
+| newline junctions rebuildable exactly | 11,678 |
+| junctions where the glue FIRED | **465**, all `sec_execcomp` |
+| records those 465 cost | 0 — that body repeats the filing date, so the clean token survives |
+| rejections on record, attributable to this rule | **0 of 1,368**, and that is the honest answer |
+
+`raw_text` is not persisted (`measure_city_placement.py` documents the same
+limitation) and a rejected candidate leaves a URL in `seen_urls` with no text
+and no reason. So the cost on the sources whose bodies we no longer hold is not
+knowable, by this script or any other, and the script prints that as a zero
+rather than an estimate.
+
+**The brief said this affects `sec_edgar` and `national_press`. It affects
+neither.** `sec_edgar.fetch_text` ends with `re.sub(r"\s+", " ", text)` and its
+synthetic headline ends in the word "change"; `national_press._plain` collapses
+whitespace too and its dateline opens with "(". The only collector whose
+`headline\n\nbody` junction can put a digit next to a B, M or K is
+`sec_execcomp` — headline ending in a filing date, body opening with the company
+name — which is the 465 above. `bse_india` hit the bug first and worked around
+it by quoting its filed description; that comment asked for this fix.
+
+### What did NOT ship, because it was built and then measured
+
+The same glue happens INSIDE a line — `"hire 300 by 2027"` -> `300b` — and it is
+commoner: 261 sites over 163 stored rows. The obvious fix is `\b` after the
+suffix. **It is a regression, and the measurement is why we know.**
+
+| variant | frees | BREAKS |
+|---|---|---|
+| horizontal space only (shipped) | 0 | **0** |
+| + word boundary | 5 | 23 |
+| + word boundary + English magnitude fold | 5 | 14 |
+
+The missing boundary is doing multilingual magnitude folding by accident:
+`millones`, `millions`, `Millionen`, `miliona`, `millioner` and `millions` all
+truncate to `m`, which is exactly what makes them compare equal to the model's
+English "million". The 14 rows it breaks are every one a foreign-language
+funding round — Multiverse's 500 millones, Proxima Fusion's 411 millions, 5U
+AI's 3,2 Millionen. The feed set spans **43 languages** (`data/feeds.csv`), so
+doing this on purpose means a magnitude vocabulary in 43 languages, and a
+partial vocabulary fails silently and looks like sparse data. Left alone,
+pinned by `tests/test_figure_guard.py` so the next person meets the reason
+instead of the trap. (Adjacent, unfixed, same class: `£1bn` in a headline does
+not match `$1 billion` in a summary, because `bn` matches whole and `billion`
+truncates to `b`.)
+
+### 2. The DeepSeek cache the routing was going to hit does not exist
+
+TECHLOG's own "smallest further lever" priced pinned routing at **-$2.84/month
+at zero cost to coverage**. Checked against OpenRouter's endpoints API on
+2026-07-29:
+
+* `deepseek/deepseek-chat`, the configured `TIT_MODEL`, has three endpoints —
+  streamlake, deepinfra/fp4, novita/fp8 — and **not one publishes an
+  `input_cache_read` price**. There is no cache on this slug to route to.
+* `deepseek/deepseek-chat-v3.1` has four that do, at **~0.5x** (deepinfra
+  0.00000013 against 0.00000025 prompt), not the 0.1x DeepSeek's own API
+  charges. DeepSeek's first-party endpoint serves neither slug through
+  OpenRouter.
+* So the saving is a model switch away and worth about half the advertised
+  figure. That is a decision about extraction quality, not a routing tweak.
+* **The 60% cache rate (131k of 216k) that motivated the lever is not
+  reproducible here.** `source_health` holds zero rows with a non-null
+  `prompt_tokens`, and `ops_status [2a]` agrees: "No run has recorded a cost
+  yet". Wherever it came from, it was not this ledger — and it would have mixed
+  both stages anyway, since Gemini's implicit cache on the gate lands in the
+  same counter.
+
+Pinned anyway, because it costs nothing and buys three things: the prefix stops
+scattering the day a caching endpoint appears, `cached_tokens` becomes
+interpretable, and extraction stops being a lottery between an fp4 and an fp8
+host. `provider.order = ["deepseek", "streamlake", "novita", "deepinfra"]`,
+keyed by model author so no slug is sent to a model that provider does not
+serve. **`allow_fallbacks` is true on every request and no code path sets it
+false; `only` and `ignore` are never sent** — a pinned provider's outage must
+cost the cache, never the run. Field names read from the docs, not guessed; a
+misspelled key inside `provider` is accepted and silently ignored, so
+`tests/test_provider_routing.py` asserts every key we send is one the schema
+documents. No live call was possible (no `OPENROUTER_API_KEY` here), so
+`STATS["providers"]` now records which endpoint OpenRouter says served each
+call and the first real run settles it. `TIT_PROVIDER_ORDER=off` reverts.
+
+### 3. The rejection audit: none of the 81 misses was ever fetched
+
+`python3 -m analysis.recall.rejection_audit --write`, read-only, writes
+`data/recall_rejection_audit.json` beside `data/recall_worklist.json`.
+
+| stage | n | what it means |
+|---|---|---|
+| `outside_our_history` | **51** | backfill |
+| `publisher_not_wired` | 12 | source, researched but not connected |
+| `publisher_unknown` | 11 | source, not researched |
+| `feed_read_item_missed` | 7 | filter/plumbing |
+| `fetched_then_dropped` | **0** | filter |
+| `stored_unmatched` | 0 | matcher defect |
+
+**Zero.** An exact-URL lookup against `seen_urls`: no filter in this pipeline has
+ever rejected a gold event, so tuning filters would have moved nothing. The
+dominant bucket is a third answer nobody asked for — the gold window is
+2026-07-01..28, the earliest run of any collector is 2026-07-27, and
+`national_press` first ran on **2026-07-29, the day after the measurement it is
+being judged by**. The furthest any route reached backwards on the 28th was
+2026-07-20 (Google News, `when:7d`). The 9% is a two-day-old tracker measured
+against a four-week window.
+
+The actionable part is the 23 sourcing misses, and the sharpest is that **CTech
+is still unreadable**: `national_press` exists because CTech broke four Israeli
+rounds we missed, and its catalogue row's `rss` column is still empty. Four of
+the 81 are CTech articles. Twelve sit on catalogued publishers with no feed
+(calcalistech 4, businesswire 2, globenewswire 2, tech.eu, prnewswire, yahoo
+finance — three of those are wire services, one connector each for a lot of
+coverage); eleven on publishers not in the catalogue (latamlist 2, finsmes,
+european-biotechnology, techla.pro, pv-magazine); seven are inside a live route
+and a swept publisher, and four of those seven domains have already delivered us
+other articles (betakit 6, entrackr 5, wamda 3, exame 2).
+
+VERDICT: a HISTORY problem, not a filter problem and not yet mainly a source
+problem. HIGH confidence on the zero (exact-URL lookup), MEDIUM on the split
+between the rest, which rests on publication dates and route reach rather than
+on a record of what each run saw. Limits printed with the result: no rejection
+reason is persisted anywhere, and nothing records the items a feed carried that
+a run did not reach — both can only UNDERSTATE the filter side. The one
+judgement call (days of RSS backlog) is a parameter, and the report prints 1, 3,
+7 and 14 days: at 14 the counts move (history 34, feed-read 14), the ordering
+never does, and the zero never does.
+
+Not done here, both in the owner's lane: adding
+`data/recall_rejection_audit.json` to `recall.yml`'s committed `paths`, and a
+block in `ops_status.py` to surface it.
+
+### What was tried and thrown away
+
+* The first glue measurement joined `headline + summary` with a space and
+  reported 189 hits of `"31 B"` — an artefact of a junction the pipeline never
+  builds. Glue is now measured one stored field at a time, and the docstring
+  says why.
+* Counting glue sites "across a newline" over stored fields returns 0 and always
+  will: no stored field contains a newline. The number is printed with that
+  caveat rather than quietly dropped, and the real newline exposure is measured
+  by REBUILDING the `headline\n\nbody` junction for the collectors whose body
+  opening is a template over a stored column.
+* The backstop route's countries are catalogue country NAMES and the gold set
+  uses ISO-2, so the first version never matched. Fixed, and it changes nothing:
+  none of the gold set's 29 countries is one of the 21 backstop countries.
+
+---
+
 ## 2026-07-30 — Australia has the spine and not the licence; sixty publishers instead
 
 Two jobs. Build the Australian equivalent of the India connector, and widen the
