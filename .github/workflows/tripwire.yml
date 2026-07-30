@@ -13,8 +13,27 @@
 name: tripwire
 
 on:
-  # schedule:
-  #   - cron: '0 7 * * 1,4'    # Mondays and Thursdays 07:00 UTC
+  # NO `schedule:` HERE, AND THAT IS THE ARMED STATE, NOT THE DORMANT ONE.
+  #
+  # A non-dry run files its result in source_health, so this is a database
+  # writer and it sits in the `talent-collect` group. GitHub keeps exactly one
+  # pending run per group, so a cron in this file would be an uncoordinated
+  # third body entering that group on a timer: it would either evict whatever
+  # was pending, or be evicted itself and end `cancelled` with zero jobs and
+  # inputs GitHub will not disclose, which is an orphan a human has to close by
+  # hand. There are 15 of those from 2026-07-29.
+  #
+  # The Monday+Thursday 07:00 UTC slot therefore lives in
+  # schedule-link-hygiene.yml, which is not a writer. It enqueues a TICKET and
+  # drain-writers.yml dispatches it into an EMPTY group, so this run can never
+  # be evicted and, if it somehow is, its inputs are on file and it is
+  # re-dispatched automatically.
+  #
+  # The commented-out cron that used to sit here was deleted rather than
+  # uncommented, for the same reason the link-hygiene pair's were: a `# cron:`
+  # block is an invitation to uncomment it, and uncommenting it here is the bug.
+  # tests/test_link_hygiene_schedule.py fails on either a live or a commented
+  # cron in this file.
   workflow_dispatch:
     inputs:
       dry_run:
