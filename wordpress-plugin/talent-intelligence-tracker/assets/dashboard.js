@@ -91,17 +91,32 @@
   // switched on (by a matrix cell, or by a shared link).
   var QV_LABEL = { 'funding=1': 'Funding updates' };
 
+  // "Educational Institution", not "Education". The bare word also names an
+  // INDUSTRY in the panel above, so the same string appeared in two groups
+  // meaning two different things: the sector an employer trades in, and the
+  // kind of organisation it is. A university filing a pay-gap return is an
+  // educational institution; an ed-tech startup is in the education industry
+  // and is a Startup. The stored value (`education` in
+  // pipeline/vocab.EMPLOYER_TYPES) is untouched.
   var EMPLOYER_TYPE_LABEL = {
     'public': 'Public Company', 'private': 'Private Company', startup: 'Startup',
-    government: 'Government', nonprofit: 'Nonprofit', education: 'Education'
+    government: 'Government', nonprofit: 'Nonprofit',
+    education: 'Educational Institution'
   };
   var WORK_MODE_LABEL = {
     remote: 'Remote', hybrid: 'Hybrid', onsite: 'Onsite',
     rto_mandate: 'Return To Office', flexible: 'Flexible'
   };
+  // "Initial Public Offering" spelled out, because "IPO" is ALSO a funding
+  // stage in the panel above and the two groups sat one above the other
+  // offering the identical three letters. They are genuinely different
+  // questions -- Funding Stage asks what round this was, Deal Type asks what
+  // kind of transaction it was -- so the fix is to say the deal one at length
+  // rather than to drop either. Stored value (`ipo`) unchanged.
   var DEAL_TYPE_LABEL = {
     acquisition: 'Acquisition', acquired: 'Acquired', merger: 'Merger',
-    divestiture: 'Divestiture', joint_venture: 'Joint Venture', ipo: 'IPO'
+    divestiture: 'Divestiture', joint_venture: 'Joint Venture',
+    ipo: 'Initial Public Offering'
   };
 
   // What an employer did with a place of work. "Announced" is its own value
@@ -114,9 +129,9 @@
 
   // Round names as a reader says them. Mirrors tit_funding_stage_labels().
   var STAGE_LABEL = {
-    pre_seed: 'Pre-seed', seed: 'Seed', series_a: 'Series A',
+    pre_seed: 'Pre-Seed', seed: 'Seed', series_a: 'Series A',
     series_b: 'Series B', series_c: 'Series C',
-    series_d_plus: 'Series D or later', growth: 'Growth', debt: 'Debt',
+    series_d_plus: 'Series D or Later', growth: 'Growth', debt: 'Debt',
     grant: 'Grant', ipo: 'IPO', other: 'Other'
   };
 
@@ -124,8 +139,8 @@
   // reported, rumored) are our vocabulary: "verified" reads as a badge we
   // awarded rather than a statement about the source.
   var CONFIDENCE_LABEL = {
-    verified: 'Official filing',
-    reported: 'News report',
+    verified: 'Official Filing',
+    reported: 'News Report',
     rumored: 'Unconfirmed'
   };
 
@@ -137,15 +152,20 @@
 
   // Recruiter language. Colour never carries the meaning on its own, so the
   // words have to be right.
+  // MIRRORS $directions IN shortcodes.php AND MUST STAY IDENTICAL TO IT. The
+  // server prints these on the first paint and this map reprints them on every
+  // repaint, so a divergence shows up as a label that changes the first time a
+  // reader touches a filter. See the one-vocabulary note beside $labels there
+  // for why "Adding Roles" replaced "Hiring up".
   var DIRECTION_LABEL = {
-    hiring: 'Hiring up',
-    displacement: 'Cutting back',
-    comp_shift: 'Pay change',
+    hiring: 'Adding Roles',
+    displacement: 'Cutting Roles',
+    comp_shift: 'Pay Change',
     // Matches the PHP label. This bucket is "the source says nothing about
     // headcount" (a funding round with no hiring plan, a CEO succession), not
     // a vague other-category, and naming it that way is truer to the rule that
     // we never infer a direction the source did not state.
-    neutral: 'Headcount not stated'
+    neutral: 'Headcount Not Stated'
   };
 
   function esc(value) {
@@ -305,25 +325,27 @@
   // showed one region. The page implied the filter applied to everything, and
   // that implication is exactly what a dashboard must not get wrong.
 
+  // Mirrors $labels in shortcodes.php. Keep identical: see the one-vocabulary
+  // note there. Display only -- every chart row carries its key on data-k.
   var PILLAR_LABEL = {
-    company_development: 'Growing and expanding',
-    leadership_change: 'Leadership moves',
-    rewards_comp: 'Pay and benefits',
-    how_we_work: 'Ways of working'
+    company_development: 'Growing and Expanding',
+    leadership_change: 'Leadership Moves',
+    rewards_comp: 'Pay and Benefits',
+    how_we_work: 'Ways of Working'
   };
 
   var INDUSTRY_LABEL = {
-    technology: 'Technology', financial_services: 'Financial services',
-    healthcare: 'Healthcare', pharma_biotech: 'Pharma & biotech',
-    retail_ecommerce: 'Retail & e-commerce', manufacturing: 'Manufacturing',
-    energy_utilities: 'Energy & utilities', telecom: 'Telecom',
-    media_entertainment: 'Media & entertainment',
-    transport_logistics: 'Transport & logistics',
-    professional_services: 'Professional services',
-    public_sector: 'Public sector', hospitality_travel: 'Hospitality & travel',
-    education: 'Education', food_beverage: 'Food & beverage',
-    automotive: 'Automotive', aerospace_defence: 'Aerospace & defence',
-    real_estate_construction: 'Real estate & construction'
+    technology: 'Technology', financial_services: 'Financial Services',
+    healthcare: 'Healthcare', pharma_biotech: 'Pharma & Biotech',
+    retail_ecommerce: 'Retail & E-commerce', manufacturing: 'Manufacturing',
+    energy_utilities: 'Energy & Utilities', telecom: 'Telecom',
+    media_entertainment: 'Media & Entertainment',
+    transport_logistics: 'Transport & Logistics',
+    professional_services: 'Professional Services',
+    public_sector: 'Public Sector', hospitality_travel: 'Hospitality & Travel',
+    education: 'Education', food_beverage: 'Food & Beverage',
+    automotive: 'Automotive', aerospace_defence: 'Aerospace & Defence',
+    real_estate_construction: 'Real Estate & Construction'
   };
 
   function nfmt(n) { return Number(n || 0).toLocaleString(); }
@@ -454,6 +476,10 @@
     var glance = root.querySelector('.tit-glance');
     if (glance && data.glance && data.glance.rows) {
       glance.innerHTML = matrixHtml(data.glance);
+      // matrixHtml() emits <details open>, so a repaint would hand a phone the
+      // open wall of prose again. Re-collapse it the same way the first paint
+      // did, or every filter change undoes the mobile fix.
+      collapseMatrixNoteOnPhone();
     }
 
     // Cards are found by id, never by position. They used to be indexed out of
@@ -608,9 +634,15 @@
   // Mirrors tit_detail_note(). Both counts, always, plus what routine means:
   // that sentence is the reason the default is allowed to hold rows back at
   // all. A reader can see exactly how many and change it in one click.
-  // Definition FIRST, then the numbers, and all three of them, so a reader can
-  // check that hidden plus shown equals total instead of taking our word.
-  var ROUTINE_MEANS = 'Some SEC filings record only an officer or director' +
+  //
+  // COUNT FIRST NOW, definition trailing. The owner could not parse this note
+  // where it sat, and the cause was that the reader met a 17-word definition
+  // before any number. The three figures are unchanged and still all printed,
+  // so hidden plus shown still visibly equals total. Keep this wording IDENTICAL
+  // to tit_detail_note() in shortcodes.php: the server prints one of these
+  // sentences on the first paint and this function reprints it on every filter
+  // change, so a divergence shows up as the sentence rewriting itself.
+  var ROUTINE_MEANS = ' A routine filing records only an officer or director' +
     ' change, with no headcount, no money and no location.';
 
   function detailNote(mode, notable, routine) {
@@ -618,15 +650,16 @@
     routine = Number(routine) || 0;
     var total = notable + routine;
     if (!routine) {
-      return ROUTINE_MEANS + ' None of the ' + nfmt(total) +
-        (total === 1 ? ' update here is one of those.' : ' updates here are one of those.');
+      return 'None of the ' + nfmt(total) +
+        (total === 1 ? ' update here is a routine filing.'
+                     : ' updates here are routine filings.') + ROUTINE_MEANS;
     }
     if (mode === 'all') {
-      return ROUTINE_MEANS + ' All ' + nfmt(routine) +
-        ' of those are included, so you are seeing all ' + nfmt(total) + ' updates.';
+      return 'You are seeing all ' + nfmt(total) + ' updates, including the ' +
+        nfmt(routine) + ' routine ones.' + ROUTINE_MEANS;
     }
-    return ROUTINE_MEANS + ' ' + nfmt(routine) + ' of those are hidden, so you are' +
-      ' seeing ' + nfmt(notable) + ' of ' + nfmt(total) + ' updates.';
+    return 'You are seeing ' + nfmt(notable) + ' of ' + nfmt(total) +
+      ' updates. ' + nfmt(routine) + ' routine filings are hidden.' + ROUTINE_MEANS;
   }
 
   // Mirrors tit_money_chart() in shortcodes.php: same classes, same
@@ -686,18 +719,49 @@
           '" data-since="' + esc(m.starts[i]) + '"' +
           (money ? ' title="' + esc(full) + '"' : '') +
           ' aria-pressed="false" aria-label="' + esc(spoken) + '">' +
+          // Mirrors the .tit-cell-p span in tit_glance_matrix_html(). Below
+          // 860px the table is laid out as one card per row, which drops the
+          // implicit table roles and with them the column header; this is the
+          // real text that replaces it. Hidden by CSS on desktop.
+          '<span class="tit-cell-p">' + esc(m.periods[i]) + '</span>' +
           esc(text) + '</button></td>';
       });
       h += '</tr>';
     });
+    /*
+      ONE IDEA PER LINE, AND THE SAME LINES THE SERVER PRINTS.
+
+      The owner's verdict on the old block was "this make s not sentds". Two
+      paragraphs carried seven separate ideas between them, and the reader had to
+      unpack a clause at a time to find the one they needed. A list is the right
+      shape for a list, so it is a list now.
+
+      NOT ONE FACT IS CUT. What the columns count, why the figures above are
+      bigger, what the colour means, that the rows overlap so the columns do not
+      sum, that a number is tappable, and that one row sums dollars while the
+      rest count updates: all still here, all still computed.
+
+      TWO DIVERGENCES FIXED. This function used to omit the "each column counts"
+      paragraph entirely, so the first filter change silently deleted an
+      explanation the server had rendered. And it is now a <details>, matching
+      tit_glance_matrix_html(), or a repaint would revert the phone disclosure to
+      an open wall of prose. Keep the two in step: the server paints these once
+      and this function repaints them on every filter change, so any difference
+      shows up as the block rewriting itself while a reader watches.
+    */
     h += '</tbody></table></div>' +
-      '<div class="tit-matrix-note">' +
-      '<p>Colour shows how much activity, scaled within each row. Rows can ' +
-      'overlap: a funded employer may also be hiring, so the columns do not ' +
-      'add up. <strong>Click any number to filter the page.</strong></p>' +
-      '<p class="tit-matrix-money-note">Money raised is the exception. It sums ' +
-      'dollars while every other row counts updates. ' +
-      esc(coverageNote({ coverage: m.coverage }, '')) + '</p></div>';
+      '<details class="tit-matrix-note" open><summary>How To Read This</summary>' +
+      '<ul class="tit-matrix-points">' +
+      '<li>Each column counts updates whose source dated them inside that window.</li>' +
+      '<li>The figures above the table count everything in this view, over the ' +
+      'whole period we hold, which is why they are larger.</li>' +
+      '<li>Colour shows relative activity within each row.</li>' +
+      '<li>Rows overlap, so the columns do not add up. A funded employer may ' +
+      'also be hiring.</li>' +
+      '<li><strong>Tap any number to filter the page.</strong></li>' +
+      '<li class="tit-matrix-money-note">Total Raised sums dollars. Every other ' +
+      'row counts updates. ' + esc(coverageNote({ coverage: m.coverage }, '')) +
+      '</li></ul></details>';
     return h;
   }
 
@@ -848,50 +912,121 @@
     });
   }
 
-  // --- Pills over the multi selects ----------------------------------------
-  // The native list boxes were the loudest thing on the panel: five-row
-  // scroll windows whose heights never matched, with most options hidden
-  // behind a scrollbar. Each multi select is now presentation-hidden and
-  // driven by a group of toggle pills built from its own options. The select
-  // stays the STATE: the querystring, the chips bar, resets, the matrix and
-  // the facet refills keep reading and writing it, and the pills re-render
-  // from it after every change. With JavaScript off the native select simply
-  // remains, so nothing is lost.
+  // --- Checkboxes over the multi selects ------------------------------------
+  //
+  // WHY CHECKBOXES AND NOT PILLS, AND NOT A NATIVE LIST BOX.
+  //
+  // This control has now been three things. It shipped as a native
+  // <select multiple size="5">: keyboard reachable for free, but a five-row
+  // scroll window that hides fifteen of Industry's twenty options behind a
+  // scrollbar with no affordance saying so, and one that needs ctrl-click to
+  // add a second value -- an interaction most readers do not know exists.
+  // It then became a row of toggle pills, which solved the discoverability
+  // and lost the thing that made the list box worth keeping: a pill row is
+  // not a list, so seven of them wrapping into a panel read as one
+  // undifferentiated wall of options with no boundary between groups. That is
+  // the exact complaint this rewrite answers.
+  //
+  // So: a real checkbox per option, one per line, inside a box with a capped
+  // height that SCROLLS. A checkbox is the only control in HTML that says
+  // "several of these, independently" without being taught, it is hit-target
+  // sized on a phone, it announces its own state to a screen reader with no
+  // aria of ours, and a capped scrolling box gives the group a visible edge so
+  // one group cannot run into the next.
+  //
+  // The <select multiple> IS STILL THE STATE and nothing about that moved.
+  // The querystring, the chips bar, resets, the matrix cells, click-to-filter,
+  // the exports and the facet refills all read and write the select exactly as
+  // before; this function re-renders from it after every change. The select is
+  // presentation-hidden rather than removed, which is also what keeps a
+  // JavaScript-off visitor with a native control (see the <noscript> rule in
+  // dashboard.css).
   function pillify(el) {
     if (!el || !el.multiple) return;
     var host = el.closest('label') || el.parentElement;
     if (!host) return;
-    var group = host.querySelector('.tit-pillgroup');
+    var group = host.querySelector('.tit-optbox');
     if (!group) {
       group = document.createElement('div');
-      group.className = 'tit-pillgroup';
+      group.className = 'tit-optbox';
       group.setAttribute('role', 'group');
+      // The select carries the group's accessible name (the visible
+      // .tit-field-l beside it), so hand the same name to the box that has
+      // replaced it rather than leaving a bare scroll container.
+      if (el.id) group.setAttribute('data-for', el.id);
       host.appendChild(group);
       el.classList.add('tit-select-hidden');
       el.tabIndex = -1;
       el.setAttribute('aria-hidden', 'true');
-      group.addEventListener('click', function (e) {
-        var btn = e.target && e.target.closest ? e.target.closest('button[data-value]') : null;
-        if (!btn) return;
-        // Inside a <label>, a button click would also re-target the labelled
-        // control; the pills are the control now, so stop that.
-        e.preventDefault();
+      // `change`, not `click`: a checkbox toggled with the spacebar fires
+      // change and not click in every engine, and a keyboard user is exactly
+      // who the native control was protecting.
+      group.addEventListener('change', function (e) {
+        var box = e.target;
+        if (!box || box.type !== 'checkbox') return;
         var opt = quickFind(Array.prototype.slice.call(el.options), function (o) {
-          return o.value === btn.getAttribute('data-value');
+          return o.value === box.value;
         });
         if (!opt) return;
-        opt.selected = !opt.selected;
+        opt.selected = box.checked;
         el.dispatchEvent(new Event('change', { bubbles: false }));
+        // Re-render from the select, so the boxes can never disagree with the
+        // state they drive.
         pillify(el);
       });
     }
-    group.innerHTML = Array.prototype.map.call(el.options, function (o) {
-      if (!o.value) return '';
-      return '<button type="button" data-value="' + esc(o.value) + '"' +
-        ' aria-pressed="' + (o.selected ? 'true' : 'false') + '"' +
-        ' class="tit-pill' + (o.selected ? ' is-on' : '') + '">' +
-        esc(o.textContent) + '</button>';
+    /*
+      Re-rendering the whole box would throw away focus mid-keyboard-run, so
+      when the option set has not changed only the checked flags are updated.
+      The option set DOES change on a facet refill, which is the case the
+      rebuild is for.
+    */
+    var values = Array.prototype.filter.call(el.options, function (o) { return o.value; });
+    var existing = group.querySelectorAll('input[type=checkbox]');
+    if (existing.length === values.length) {
+      var same = true;
+      for (var i = 0; i < values.length; i++) {
+        if (existing[i].value !== values[i].value) { same = false; break; }
+      }
+      if (same) {
+        for (var j = 0; j < values.length; j++) {
+          existing[j].checked = values[j].selected;
+          var row = existing[j].closest('.tit-optrow');
+          if (row) row.classList.toggle('is-on', values[j].selected);
+        }
+        return;
+      }
+    }
+    group.innerHTML = values.map(function (o) {
+      return '<label class="tit-optrow' + (o.selected ? ' is-on' : '') + '">' +
+        '<input type="checkbox" value="' + esc(o.value) + '"' +
+        (o.selected ? ' checked' : '') + '>' +
+        '<span class="tit-optrow-t">' + esc(o.textContent) + '</span></label>';
     }).join('');
+  }
+
+  /*
+    THE "HOW TO READ THIS" BLOCK STARTS CLOSED ON A PHONE, OPEN EVERYWHERE ELSE.
+
+    The three explanations under the matrix are honesty surfaces and not one word
+    of them is cut, but at 390px they were about fifteen lines of prose between
+    the reader and any content. So the markup ships <details open> -- which is
+    what a crawler, a desktop reader and a reader with no JavaScript or no CSS
+    all get, every word in the initial HTML, nothing fetched -- and this is the
+    only thing that closes it, on a narrow viewport, once.
+
+    It has to be script rather than CSS because `open` is an ATTRIBUTE and a
+    stylesheet cannot remove one. Hiding the panel's contents with CSS instead
+    would leave a summary that says "open me" over content the browser believes
+    is already open, so the first tap would close it and the second reopen it.
+
+    Once, on load, and never on resize: re-closing a panel a reader has just
+    opened because they rotated the phone is worse than either state.
+  */
+  function collapseMatrixNoteOnPhone() {
+    var d = document.querySelector('details.tit-matrix-note');
+    if (!d || !window.matchMedia) return;
+    if (window.matchMedia('(max-width: 860px)').matches) d.open = false;
   }
 
   function syncAllPills() {
@@ -1782,6 +1917,7 @@
   });
 
   syncAllPills();
+  collapseMatrixNoteOnPhone();
   populateFacets();
 
   // Last, because it needs the inputs, the region tabs and refresh() to exist.

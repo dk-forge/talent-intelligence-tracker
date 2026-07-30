@@ -13,6 +13,271 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-29 — the filter panel is a column of scrolling checkboxes, and the page has one vocabulary
+
+Plugin **1.53.0 -> 1.54.0**. Owner-driven pass on the dashboard. Everything
+below is measured; the numbers are from `data/talent_intel.db` at 15,711 current
+signals and from `tests/php/render_dashboard.php` before and after.
+
+### Measurements, before -> after
+
+| | before | after |
+|---|---|---|
+| cold render queries | 12 | **12** (budget unchanged, constant untouched) |
+| warm render queries | 0 | **0** |
+| markup bytes (synthetic corpus, fixture prefixes excluded) | 151,801 | **153,670** |
+| body sideways scroll at 390px | none | **none** (`scrollWidth` 390 = `innerWidth` 390) |
+| containers needing a horizontal gesture at 390px | **3** (matrix, country strip, city strip) | **0** |
+| offline tests | 1,924 | **2,006** |
+| PHP harnesses | 5 pass | 5 pass |
+
+Verified in a real DOM at 390x844 and 1280x860, not by reading the CSS:
+`position: sticky` computed on `#tit-panel` and held at `top: 16px` after a
+2,000px scroll; `.tit-matrix` computed `display: block` with `min-width: 0px`
+and its scroller `overflow-x: visible`; every matrix cell still carrying
+`data-filter` and `data-since`.
+
+### The filter panel
+
+The owner's words were "Fix the sapce all this" and "it's still not designed
+well", and the diagnosis was that **there was no visual object called "a
+group"**. Seven option groups sat in a three-column grid with 8px row gaps and
+no boundary of any kind, so each group's options ran into the next group's
+heading at the same weight and colour. A gap only reads as separation when it
+exceeds the gap *inside* a group, and 8px never did.
+
+- **Each group is now a bounded box**: heading, then its options inside a box
+  with its own border, background and capped height. One column, 18px between
+  groups, a hairline rule at each boundary.
+- **Options are real checkboxes, one per line, and the box scrolls** — the owner
+  asked for exactly that ("I like scrolling and check boxes"). This is the third
+  shape this control has had: a native `select multiple size="5"` (keyboard-free
+  for us, but a five-row window hiding fifteen of Industry's eighteen options,
+  needing ctrl-click most readers do not know about), then a pill row (fixed
+  discoverability, lost the list, and seven wrapping pill rows *were* the wall
+  the owner complained about), now checkboxes. Measured: Industry renders 18 rows
+  in a 162px box over 612px of scroll height.
+- **The panel is a column beside the rows and sticks** at 1000px and up
+  ("filters dont move with the page a like the layoff one"). It had to become a
+  column first: a full-width block is taller than the viewport, so there is
+  nothing to pin. Below 1000px it wraps to a normal stacked block, and
+  `prefers-reduced-motion` forces `position: static`.
+- Reset moved to the top of the panel, same `id`, so the same handler binds it.
+
+**The state architecture did not move.** Each `<select multiple>` is still the
+state and still what the querystring, chips bar, exports, quick views,
+click-to-filter and share links read. `pillify()` in dashboard.js re-renders the
+checkboxes *from* the select after every change. It also still hides the select
+with a class it applies **at runtime**, which is what leaves a JavaScript-off
+visitor a working native control; that is why the hiding must never move to the
+server.
+
+Two numbers that had to be kept in step by hand are gone: the list box was
+pinned to 96px and the pill row to 96px because the swap happened after paint
+and any difference was a layout shift. The select is `display:none` the moment
+the script runs, so there is no swap and no pair.
+
+### The three defects the owner named
+
+1. **"remove exact locaiton only doens't make nses?"** — read `api.php` first.
+   `country_basis=location` is real: it changes the country clause from
+   `(country IN (..) OR (country IS NULL AND hq_country IN (..)))` to
+   `country IN (..)`, dropping rows placed only by a substituted head office.
+   So it was kept and renamed **"Only Countries A Source Named"**, which is the
+   sentence the (i) panel was already using while the control called itself
+   something else. **Stated limit rather than papered over:** it narrows the
+   country clause only. The city clause in `tit_build_where()` is
+   unconditionally the union form, so a city pick still admits a head-office
+   match. Closing that is an `api.php` change and was out of this pass's lane,
+   so the label says country and does not claim the city.
+
+2. **"Only Updates That Move Headcount (54)" — "What does this mean?"** It
+   filters `signal_direction IN ('hiring','displacement')` and reads nothing
+   from the `headcount` column. Measured: `headcount` non-null on **11 of
+   15,711** rows (0.07%); the direction test true on **53** (0.34%) — 51 hiring,
+   2 displacement. So the label promised a column it does not touch, and the set
+   is a third of one percent. **Decision: kept, relocated, relabelled** as the
+   quick view **"Moves Headcount"** with its computed count printed on it.
+   Removing it would have broken `/query` links already in the wild; leaving it
+   in the panel gave a 0.34% control the same weight as Industry. A quick view is
+   explicitly a narrow named cut, and the count means a reader sees the size
+   *before* clicking. The checkbox survives in `.tit-state` as the state the
+   button drives.
+
+3. **The UK concentration note and the hidden-rows disclosure.** Both facts kept
+   in full, both re-ordered so the reader meets the point before the arithmetic.
+   The caveat now opens "Read United Kingdom as filing volume rather than as how
+   much is happening there:" and the evidence follows. The detail note opens
+   "You are seeing 12,568 of 15,711 updates. 3,143 routine filings are hidden."
+   and defines "routine" in a trailing clause. The control itself was three
+   stacked labels ("Officer and director filings" / "Hide the routine ones" /
+   prose) and is now one setting and its value: **Routine Filings: Hidden /
+   Shown**. Every figure still computed and still moves with the filters.
+
+### Where I was told something that turned out to be wrong
+
+- **"Funding Stage stops at Series B", "Work Setup has no Hybrid", "Site Change
+  has no closure" — all three are neither render bugs nor vocabulary gaps.**
+  `pipeline/vocab.py` already holds `series_c`, `series_d_plus`, `hybrid`,
+  `closed` and `relocated`. `/facets` is deliberately **data-driven**: it lists
+  only values actually present, because a control returning nothing reads as
+  broken rather than as thin coverage. The real finding is coverage, and it is
+  worse than the labels suggested. Across 15,711 current rows: `work_mode` is
+  set on **4** (onsite 3, remote 1), `site_event` on **19**, `deal_type` on
+  **23**, `funding_stage` on **33**. Five facet controls between them describe
+  about **80 rows**. They hide themselves when a column is *empty*; they do not
+  hide themselves when it is nearly empty, which is the same defect class as the
+  headcount control. **Owner decision, not taken here:** raise a minimum-rows
+  threshold before a facet control appears at all.
+- **"Remove Where The Money Went entirely."** There is exactly one money surface,
+  it is the one the owner pasted, and the owner separately said they loved the
+  card format. Confirmed against the live page by curl (1.53.0): "Where The Money
+  Went" appears once, and the three-card panel the endorsement described does not
+  exist in this codebase at all. **So only the section HEADING went**, which is
+  what the owner actually pasted and which repeated "Click a row to narrow the
+  page" eight lines under "Click any row to narrow the whole page to it". The
+  cards stay; the city card takes the wording "Where the Money Went".
+- **"Manufacturing / Education / IPO appear in two groups each" — all three
+  true.** Fixed as wording, never as vocabulary: `Production & Manufacturing`
+  for the function (Industry keeps `Manufacturing`), `Educational Institution`
+  for the employer type (Industry keeps `Education`), `Initial Public Offering`
+  for the deal type (Funding Stage keeps `IPO`). Stored values untouched.
+- **A "Why you can trust this" panel with numbered SOURCED / UNCONVERTED /
+  UNGUESSED / CORRECTABLE items does not exist** in this repo, in the sibling, or
+  on the live page. Not built: authoring it from a description of a screenshot
+  would have meant inventing both a design and its copy.
+
+### Title Case and one vocabulary
+
+The owner asked for Title Case three times, so it is now **a test** rather than
+a habit: `render_dashboard.php` reads the matrix row labels and the card
+headings out of the rendered markup and asserts conventional Title Case (short
+conjunctions and prepositions lowercase inside a label, first word always
+capitalised, all-caps acronyms allowed). It regressed twice because a convention
+nobody can check makes a wrong label look exactly as correct as a right one.
+
+The deeper problem was **two vocabularies for one set of facts**. The charts said
+`Pay and benefits` and `Growing and expanding`; the matrix beside them said
+`Pay news` and `Funding raised` for the same rows. One list now, and the retired
+phrases are asserted absent so a second vocabulary cannot creep back:
+
+| was | is | why |
+|---|---|---|
+| Hiring up | **Adding Roles** | "up" was doing the work of "the source says headcount is rising" |
+| Cutting back | **Cutting Roles** | "back" could have meant costs, hours or investment |
+| Pay news | **Pay and Benefits** | the charts' phrase, which was already the better one |
+| Funding raised | **Funding Rounds** | it counts updates |
+| Money raised | **Total Raised** | it sums dollars, and "Total" says so |
+| All updates | **Everything in This View** | a reader could not tell whether the 3,143 hidden filings were in it. They are not |
+
+**Checked before renaming, because the sibling was bitten here:** on the layoff
+tracker this same edit was a two-file data join, because an aggregate keyed its
+rows *by label* and a cached response spanning the deploy window would have
+silently killed click-to-filter. **That coupling does not exist here** — every
+chart row carries its key on `data-k`, every matrix row on `data-signal`, the
+filter a click applies is a separate `filter` field, and `tit_glance_matrix()`
+keys its cells `c_{di}_{pi}` by index. Nothing reads a label. The test now pins
+that it stays that way.
+
+Renaming `Money raised` to `Total Raised` also **shortened a paragraph instead of
+hiding it**: the block needed a sentence beginning "Money raised is the
+exception" only because one row was lying about its unit.
+
+### Mobile
+
+Three separate containers required a horizontal gesture at 390px. All three are
+gone.
+
+- **The matrix stacks.** Five columns cannot fit 390px, so it had
+  `min-width:560px` inside `overflow-x:auto` — which does stop the *body*
+  scrolling, and was still wrong: the header rendered "THIS WEEK | THIS M..."
+  under a scrollbar, on the first thing on the page, whose own copy says "Tap any
+  number to filter the page". Below 860px each row is a card. **The period label
+  is real markup** (`.tit-cell-p`, rendered by both `shortcodes.php` and
+  `matrixHtml()`), not a CSS `::after` on a data attribute: `display:block` drops
+  the implicit table roles and generated content is not reliably in the
+  accessibility tree, is not selectable and is not findable. Nothing is keyed to
+  `nth-child`. Every cell keeps its `data-filter` and `data-since`.
+- **The geo strips wrap.** A previous pass had deliberately set
+  `flex-wrap:nowrap; overflow-x:auto` on them below 560px, reasoning that a
+  container scrolling beats the body scrolling. Both halves true, conclusion
+  wrong: it put two stacked horizontal scrollbars on the first phone screen with
+  "Glasgo" cut mid-word. The sibling reached the same verdict about its own pill
+  strips — hiding options behind a swipe is the failure pills exist to fix.
+- **The three explanations under the matrix are one disclosure**, collapsed on a
+  phone, open on desktop, **not one word cut**. `open` is in the markup, so a
+  crawler, a desktop reader, and a reader with no CSS or no JavaScript all get
+  every word in the initial HTML with nothing fetched; a four-line function is
+  the only thing that closes it, once, on a narrow viewport. It has to be script
+  because `open` is an attribute and CSS cannot remove one. Re-collapsed after a
+  repaint, or every filter change would undo it. The two paragraphs also became
+  six single-idea lines ("this make s not sentds").
+- **Dark scheme.** The stylesheet's existing note explains why there is no
+  `prefers-color-scheme` block (the theme paints white regardless, so honouring
+  the preference produced light text on white) and that reasoning stands. What was
+  missing is that we never *told* the browser: without `color-scheme`, a UA in
+  dark mode repaints controls, scrollbars and any background we did not set, which
+  is exactly the mixed result in the owner's screenshot. `color-scheme: only
+  light` plus explicit backgrounds and ink on our own headings. **Supported
+  schemes are now stated: light.**
+
+### Page order
+
+Geo strips moved above the matrix ("Should we move this ... Aboe"): picking a
+place is how most readers start. That invalidated a **pointer** — the quick-views
+hint said "click a number in the matrix at the top" and the matrix is no longer
+at the top. Grepped for others; that was the only one. A stale direction is worse
+than none, because a reader follows it.
+
+The chart cards also gained one bar pattern instead of two. "What Is Moving"
+stacked its label above a full-width bar while the two cards beside it were
+inline; the fix is `display:contents` on `.tit-pillar-head` so the button's own
+grid takes over, **in CSS and not in markup**, because `.tit-pillar` is the
+click-to-filter handler's selector and restructuring it would have risked a
+working control to fix a visual inconsistency. Cards size to content
+(`align-items:start`) rather than stretching a four-category card to match a
+51-country one, the scroll edge fades rather than bisecting a row, and the
+"Click a row to filter" that all six subtitles ended with is gone — the panel
+header says it once.
+
+### The harness now announces itself
+
+The owner twice read a screenshot of `tests/php/render_dashboard.php`'s output as
+the live site and concluded the data had broken. It renders the **real** dashboard
+against a synthetic corpus, so it is byte-for-byte the shape of production with
+different numbers, and the only tell was that its UK count outranks its US count.
+Every fixture employer is now prefixed `TEST FIXTURE` and the placeholder headline
+says so. The byte budget subtracts the prefix (~2.1KB of test-only content) before
+measuring, or a legitimate change would eventually fail the budget for a reason
+nobody could find.
+
+### Held for a second pass, deliberately
+
+- **The full Claude Design re-skin.** The mock is a 965-line React preview styled
+  entirely with inline `style` attributes and **zero `@media` rules**, so it is a
+  desktop specification only. Porting it means extracting every inline style into
+  classes and authoring all responsive behaviour, and its character depends on
+  three Google webfonts (`Source Serif 4`, `Public Sans`, `IBM Plex Mono`) on a
+  page whose cold TTFB is already 2.5-4.0s and whose assets are deliberately
+  CDN-free. **No font was substituted and none was added**; this pass changed
+  layout and wording inside the existing token set. The mock's own decisions that
+  cost nothing were adopted: the sidebar filter column, the checkbox rows, the
+  place-basis wording, the headcount cut as a quick view, and the city money card
+  as "Where the Money Went".
+- **The dated four-bucket glance panel** replacing the hero figure line, with the
+  week-over-week comparison suppressed until real history exists. Not started.
+  The suppression rule is the load-bearing part: news collectors first ran on
+  27 July, `national_press` on 29 July, so "this week vs last week" would compare
+  a populated week against an empty one and print something like "up 4,000%".
+- **The FAQ tab and the trust panel** (does not exist to move; see above).
+- **The sibling port.** Not touched, and not only for budget: `CLAUDE.md` names
+  the sibling "do not touch", it is outside the lane I was given, and that repo
+  auto-deploys on push. It needs its own session in its own repo.
+- **A minimum-rows threshold for facet controls** (the ~80-row finding above).
+  That is an owner decision about what a nearly-empty control should do.
+
+---
+
 ## 2026-07-30 — the UK register is not the source; the 250-employee roster is
 
 Build the Companies House connector, now that the key exists. It ships. The
