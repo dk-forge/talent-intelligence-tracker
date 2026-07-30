@@ -670,3 +670,21 @@ def test_only_an_encoding_we_can_decode_is_advertised():
     accept_encoding = press._headers(press._ACCEPT_RSS)["Accept-Encoding"]
     if "br" in accept_encoding.split(", "):
         assert press._HAVE_BROTLI
+
+
+def test_an_aggregator_is_blocked_on_every_subdomain():
+    """One record ended up citing news.crunchbase.com because the blocklist
+    named exact hosts: it listed crunchbase.com and www.crunchbase.com, and a
+    third subdomain walked straight through a set that mentions the company
+    twice. Every other entry had the same hole. Matching what someone OWNS
+    closes it for names already listed and for any name added later."""
+    from collectors.national_press import _AGGREGATOR_DOMAINS, registrable_domain
+
+    for host in ("news.crunchbase.com", "blog.dealroom.co", "app.magnitt.com",
+                 "data.tracxn.com", "www.startupnationcentral.org"):
+        assert registrable_domain(host) in _AGGREGATOR_DOMAINS, host
+
+    # Publishers we legitimately read must stay readable.
+    for host in ("www.geektime.co.il", "globes.co.il", "techcrunch.com",
+                 "www.geekwire.com"):
+        assert registrable_domain(host) not in _AGGREGATOR_DOMAINS, host

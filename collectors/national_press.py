@@ -161,6 +161,7 @@ _AGGREGATOR_HOSTS = frozenset({
     "techireland.org", "www.techireland.org",
 })
 
+
 ATOM = "{http://www.w3.org/2005/Atom}"
 CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
 DC = "{http://purl.org/dc/elements/1.1/}"
@@ -214,6 +215,12 @@ def registrable_domain(url_or_host: str) -> str:
     if len(labels) >= 3 and ".".join(labels[-2:]) in _MULTI_SUFFIXES:
         return ".".join(labels[-3:])
     return ".".join(labels[-2:])
+# The same names reduced to what someone owns, so a subdomain cannot slip past
+# an exact-host list. Derived rather than typed twice: a name added above is
+# blocked on every subdomain automatically.
+_AGGREGATOR_DOMAINS = frozenset(
+    d for d in (registrable_domain(h) for h in _AGGREGATOR_HOSTS) if d
+)
 
 
 @dataclass(frozen=True)
@@ -298,7 +305,13 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
             if not rss.startswith("http"):
                 continue
             host = (urlparse(rss).hostname or "").lower()
-            if host in _AGGREGATOR_HOSTS:
+            # Match on the registrable domain, not the exact host. The set
+            # listed bare and www hosts, so news.crunchbase.com walked straight
+            # through a list that names crunchbase.com twice, and one record
+            # ended up citing an aggregator. Every other entry had the same
+            # hole (blog.dealroom.co, any-subdomain.magnitt.com). An aggregator
+            # does not stop being one on a subdomain.
+            if host in _AGGREGATOR_HOSTS or registrable_domain(host) in _AGGREGATOR_DOMAINS:
                 STATS["blocked"] += 1
                 print(f"  [{COLLECTOR}] REFUSED aggregator feed: "
                       f"{row.get('name','?')} ({host}) — we store publishers, not compilers")
