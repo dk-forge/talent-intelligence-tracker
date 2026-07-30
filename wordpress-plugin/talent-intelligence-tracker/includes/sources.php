@@ -46,24 +46,46 @@ function tit_sources_template() {
 add_action('template_redirect', 'tit_sources_template');
 
 /**
- * Last run per collector, keyed by the name used in source_registry.
+ * The registry names a source for a reader; the pipeline names its collector
+ * for a machine. This is the join between them, and it is DERIVED from the
+ * generated catalogue rather than typed here.
+ *
+ * It used to be a hand-written five-entry map beside nine live collectors, so
+ * `national_press` (the largest source by items found), `sec_execcomp` and
+ * `uk_paygap` — which between them supply most of the rows in the database, and
+ * 4,761 of the UK's 4,793 — each rendered "not yet reported" on a page whose
+ * whole job is saying what actually runs. A source added to the registry now
+ * arrives here with its collector attached; a hand-typed copy could not.
+ *
+ * Collectors deliberately absent stay absent, because they are not sources:
+ * `archive_sources` and `link_check` maintain the ledger behind the links,
+ * `recall` measures what we miss, and `sec_form_d_bulk` is a backfill of a
+ * source already listed. None of them reads a new document, so none of them
+ * belongs in a table of where the data comes from.
+ */
+function tit_sources_collector_map($sources) {
+    $out = array();
+    foreach ($sources as $s) {
+        $collector = trim((string) ($s['collector'] ?? ''));
+        if ($collector !== '' && ($s['status'] ?? '') === 'live') {
+            $out[$collector] = $s['name'];
+        }
+    }
+    return $out;
+}
+
+/**
+ * Last run per collector, keyed by the name shown on the page.
  *
  * Only running sources have one. A researched source has never run, and
  * inventing a dash for it would imply it was tried and returned nothing.
  */
-function tit_sources_health_map() {
+function tit_sources_health_map($sources = null) {
     $health = get_option('tit_source_health', array());
     if (!is_array($health)) return array();
 
-    // The registry names a source for a reader; the pipeline names its
-    // collector for a machine. This is the join between them.
-    $by_collector = array(
-        'google_news' => 'Google News RSS',
-        'gdelt'       => 'GDELT DOC 2.0',
-        'sec_edgar'   => 'SEC EDGAR 8-K (Item 5.02)',
-        'sec_form_d'  => 'SEC EDGAR Form D',
-        'ats_boards'  => 'Employer job boards (Greenhouse, Lever, Ashby)',
-    );
+    if ($sources === null) $sources = tit_sources_data();
+    $by_collector = tit_sources_collector_map($sources);
 
     $out = array();
     foreach ($health as $key => $row) {
@@ -101,7 +123,7 @@ function tit_sources_render($sources) {
     }
     unset($s);
 
-    $health = tit_sources_health_map();
+    $health = tit_sources_health_map($sources);
     $live = array_values(array_filter($sources, fn($s) => ($s['status'] ?? '') === 'live'));
     // Counted apart from "researched" on purpose. A backstop country IS
     // collected twice a day, so calling it research understates it; but there
@@ -186,9 +208,9 @@ function tit_sources_render($sources) {
         annuity products where the "amount sold" is premium collected from
         policyholders. All three are excluded. Form D filings in the
         real-estate industry group are excluded outright, because the
-        overwhelming majority of them are single-asset vehicles &mdash; this
-        does drop a small number of genuine real-estate employers along with
-        them, and the dataset offers no field that separates the two. Funding
+        overwhelming majority of them are single-asset vehicles. This does drop
+        a small number of genuine real-estate employers along with them, and the
+        dataset offers no field that separates the two. Funding
         records also carry no hiring badge, because a filing states an amount
         and says nothing about headcount.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">See the corrections log</a>.
@@ -363,8 +385,41 @@ function tit_sources_render($sources) {
 }
 
 function tit_sources_title($title) {
+    // A middot, not an em dash. docs/HANDOVER.md bans em dashes in UI copy and a
+    // document title is UI copy; five routes had FOUR different separators
+    // between them (em dash here and on /corrections/, a pipe on /recall/, a
+    // middot on /places/, a colon on the company and place pages).
     return get_query_var('tit_sources')
-        ? 'Sources — Talent Intelligence Tracker'
+        ? 'Sources · Talent Intelligence Tracker'
         : $title;
 }
 add_filter('pre_get_document_title', 'tit_sources_title');
+
+/**
+ * What this page is, for a crawler and for a share card.
+ *
+ * Counted from the catalogue the table renders from, never typed: the whole
+ * argument of this page is that it cannot drift from what actually runs, and a
+ * description claiming a source count somebody wrote down would be the one part
+ * of it that could.
+ */
+function tit_sources_head() {
+    if (!get_query_var('tit_sources')) return;
+    if (!function_exists('tit_head_description')) return;
+
+    $sources = tit_sources_data();
+    $live = 0; $cand = 0; $countries = array();
+    foreach ($sources as $s) {
+        if (($s['status'] ?? '') === 'live') $live++;
+        elseif (($s['status'] ?? '') !== 'backstop') $cand++;
+        if (!empty($s['country'])) $countries[$s['country']] = true;
+    }
+    tit_head_description(sprintf(
+        'The %d %s the Talent Intelligence Tracker reads today, and the %s more '
+        . 'that are researched and not yet read. A source counts as running only '
+        . 'when a collector reads it, reports its health and has a passing test.',
+        $live, $live === 1 ? 'source' : 'sources', number_format_i18n($cand)
+    ));
+    echo '<link rel="canonical" href="' . esc_url(tit_sources_url()) . '" />' . "\n";
+}
+add_action('wp_head', 'tit_sources_head', 1);

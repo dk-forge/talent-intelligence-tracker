@@ -708,6 +708,10 @@ def _catalogue() -> list[dict]:
                 "rss": row.get("rss") or "",
                 "free": (row.get("free") or "").lower() != "paid",
                 "notes": row.get("notes") or "",
+                # A catalogue row is research and a backstop row is a country
+                # search, so neither has a named collector. The key is still
+                # present so the page can read one shape for every row.
+                "collector": "",
             })
     return out
 
@@ -718,6 +722,12 @@ def sources_manifest() -> list[dict]:
     Hand-written entries win on a name clash: they are the ones that know
     whether a collector exists, and that is the only field the page must never
     get wrong.
+
+    Each live row carries its `collector` key. That is what lets the page join a
+    source to its health row without a second, hand-typed copy of this map: the
+    PHP side had five of the nine entries, so `national_press` (the largest
+    source by items found), `sec_execcomp` and `uk_paygap` all rendered as "not
+    yet reported" while running twice a day. Derived, not typed.
     """
     hand = [
         {
@@ -725,6 +735,7 @@ def sources_manifest() -> list[dict]:
             "category": s.category, "signals": list(s.signals),
             "coverage": s.coverage, "country": s.country,
             "rss": s.rss, "free": s.free, "notes": s.notes,
+            "collector": COLLECTOR_BY_SOURCE_NAME.get(s.name, ""),
         }
         for s in SOURCES
     ]

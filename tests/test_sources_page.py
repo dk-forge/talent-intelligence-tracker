@@ -1,12 +1,37 @@
 """The sources page is generated, so it cannot drift from what actually runs."""
 
 import json
+import sqlite3
 from pathlib import Path
 
 import source_registry as registry
 
-MANIFEST = (Path(__file__).parent.parent / "wordpress-plugin" /
-            "talent-intelligence-tracker" / "data" / "sources.json")
+ROOT = Path(__file__).parent.parent
+MANIFEST = (ROOT / "wordpress-plugin" / "talent-intelligence-tracker" /
+            "data" / "sources.json")
+SOURCES_PHP = (ROOT / "wordpress-plugin" / "talent-intelligence-tracker" /
+               "includes" / "sources.php")
+DB = ROOT / "data" / "talent_intel.db"
+
+# Collectors that report health and are NOT sources, each with the reason it is
+# not one. A source is a place documents come FROM; these four read nothing new:
+#
+#   archive_sources   captures a Wayback fallback for URLs we already cite
+#   link_check        re-checks those same URLs and records whether they still live
+#   recall            grades what we hold against a sealed gold set
+#   sec_form_d_bulk   backfills a source that IS listed (SEC EDGAR Form D), so
+#                     listing it again would double-count one source as two
+#
+# Listing any of them would inflate "running now" with work that produces no
+# document, which is the exact overstatement this page exists to avoid. The set
+# is asserted to be disjoint from the manifest below, so it cannot quietly become
+# a place to hide a real source that nobody wants to write a row for.
+_NOT_SOURCES = {
+    "archive_sources": "archives URLs we already cite",
+    "link_check": "re-checks URLs we already cite",
+    "recall": "measures what we miss",
+    "sec_form_d_bulk": "backfills SEC EDGAR Form D, which is listed",
+}
 
 
 def test_manifest_is_in_sync_with_the_registry():
@@ -150,3 +175,82 @@ def test_gdelt_is_live_because_it_finally_stored_something():
     # And the reason it earns its place, which the note used not to mention:
     # it is the only news source we read that has an archive at all.
     assert "archive" in gdelt.notes.lower()
+
+
+# --- the join between a health row and a name on the page -------------------
+#
+# The page said "not yet reported" for three of the nine live collectors,
+# including `national_press` (9,305 items found on its last run) and
+# `uk_paygap` (4,761 of the United Kingdom's 4,793 rows). The cause was a
+# five-entry map hand-typed in PHP beside a nine-entry one in Python. There is
+# now one map, in the registry, and it rides into the plugin on each row of
+# sources.json. These tests assert the property in both directions.
+
+def test_every_live_source_carries_its_collector_in_the_manifest():
+    """The page cannot join a source to its health row without this field."""
+    for s in json.loads(MANIFEST.read_text()):
+        assert "collector" in s, f"{s['name']}: no collector key at all"
+        if s["status"] == "live":
+            assert s["collector"], f"{s['name']} is live with no collector named"
+        else:
+            assert s["collector"] == "", (
+                f"{s['name']} is {s['status']} and names collector "
+                f"{s['collector']!r}; only a live source has one"
+            )
+
+
+def test_every_collector_that_is_a_source_resolves_to_a_name():
+    """Read the health ledger the page actually renders from, not a fixture.
+
+    Every collector that has ever reported health either resolves to a source
+    name or is one of the four that is not a source. A new collector lands in
+    neither bucket and fails here, which is the point: the alternative is it
+    rendering as "not yet reported" for months while running twice a day.
+    """
+    if not DB.exists():
+        return  # nothing to check against; the manifest tests still hold
+
+    with sqlite3.connect(f"file:{DB}?mode=ro", uri=True) as conn:
+        reporting = {r[0] for r in conn.execute("SELECT collector FROM source_health")}
+    assert reporting, "fixture check: the health ledger should not be empty"
+
+    by_collector = {s["collector"]: s["name"]
+                    for s in json.loads(MANIFEST.read_text())
+                    if s["status"] == "live" and s["collector"]}
+
+    unresolved = reporting - set(by_collector) - set(_NOT_SOURCES) - _DORMANT_COLLECTORS
+    assert not unresolved, (
+        "collector(s) reporting health that resolve to no name on the sources "
+        f"page: {sorted(unresolved)}. Either add a Source() for it in "
+        "source_registry.SOURCES and rerun build_sources_json.py, or add it to "
+        "_NOT_SOURCES here WITH the reason it is not a source."
+    )
+
+
+def test_the_non_sources_stay_off_the_page():
+    """_NOT_SOURCES must never overlap the manifest, or it becomes a hiding place."""
+    listed = {s["collector"] for s in json.loads(MANIFEST.read_text()) if s["collector"]}
+    overlap = listed & set(_NOT_SOURCES)
+    assert not overlap, (
+        f"{sorted(overlap)} is listed as a source AND excused as a non-source; "
+        "one of the two is wrong"
+    )
+
+
+def test_the_php_derives_the_map_and_does_not_retype_it():
+    """A second copy of this map is the defect, not the fix.
+
+    Asserted as text because there is no php binary here. If the join ever moves
+    back into a literal array of collector keys, this fails.
+    """
+    php = SOURCES_PHP.read_text()
+    assert "tit_sources_collector_map" in php, (
+        "the sources page no longer derives its collector map from the manifest"
+    )
+    assert "$s['collector']" in php, "the derived map is not reading the collector field"
+    for collector in ("google_news", "sec_edgar", "national_press", "uk_paygap"):
+        assert f"'{collector}'" not in php, (
+            f"{collector} is hand-typed in sources.php again; the map is derived "
+            "from data/sources.json, so a collector name has no business being "
+            "written here"
+        )
