@@ -77,14 +77,19 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install requests
+      - run: pip install -r requirements.txt pytest
 
       # The pure guard logic, offline, before any credential is read. These are
       # the refusals that stand between a two-line append and a deindexed
       # domain, and a run that cannot prove them has no business connecting.
+      #
+      # The `import yaml` is not decoration. Half this file's assertions are
+      # about the workflow YAML and open with `pytest.importorskip("yaml")`, so
+      # a missing PyYAML would SKIP the whole module and exit 0 — a green gate
+      # that checked nothing, immediately before a write to the live site.
       - name: Prove the guards still hold
         run: |
-          pip install pytest
+          python -c "import yaml, requests"
           python -m pytest tests/test_robots_sitemaps.py -q
 
       - name: Append the sitemap lines
