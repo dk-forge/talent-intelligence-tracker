@@ -158,40 +158,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T23:02:55Z",
-      "history": [
-        {
-          "at": "2026-07-29T23:02:46Z",
-          "detail": "2026 news backfill price sheet: fetch and free-filter only, zero model spend, owner requested 2026-07-30",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T23:02:55Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T23:21:08Z",
-          "detail": "run 30498232185",
-          "event": "bound"
-        }
-      ],
-      "id": "20260729T230246Z-backfill-gdelt-2026",
-      "inputs": {
-        "end": "2026-07-21",
-        "fetch_only": "true",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "2026 news backfill price sheet: fetch and free-filter only, zero model spend, owner requested 2026-07-30",
-      "requested_at": "2026-07-29T23:02:46Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30498232185",
-      "state": "dispatched",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
@@ -1041,6 +1007,46 @@
       "run_id": "30490704433",
       "state": "landed",
       "workflow": "correct-company-key.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-29T23:02:55Z",
+      "history": [
+        {
+          "at": "2026-07-29T23:02:46Z",
+          "detail": "2026 news backfill price sheet: fetch and free-filter only, zero model spend, owner requested 2026-07-30",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-29T23:02:55Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-29T23:21:08Z",
+          "detail": "run 30498232185",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T00:28:46Z",
+          "detail": "run 30498232185",
+          "event": "landed"
+        }
+      ],
+      "id": "20260729T230246Z-backfill-gdelt-2026",
+      "inputs": {
+        "end": "2026-07-21",
+        "fetch_only": "true",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-07-30T00:28:46Z",
+      "priority": 10,
+      "reason": "2026 news backfill price sheet: fetch and free-filter only, zero model spend, owner requested 2026-07-30",
+      "requested_at": "2026-07-29T23:02:46Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30498232185",
+      "state": "landed",
+      "workflow": "backfill-gdelt-2026.yml"
     }
   ],
   "version": 1
