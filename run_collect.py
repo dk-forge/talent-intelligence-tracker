@@ -582,6 +582,27 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"{classify.STATS['full_calls']} full read-throughs "
             f"(cap {classify.READTHROUGH_CAP}/run)"
         )
+    # Stage 3, printed even when it wrote nothing — especially then. A run whose
+    # extraction worked and whose interpretation failed stores no rows and must
+    # say why in the step log, not leave a reader to infer it from a row count.
+    # Every deferral here cost an extraction call that bought nothing.
+    if classify.STATS["read_calls"] or classify.STATS["read_served"]:
+        print(
+            f"[{collector}] read-through ({classify.READ_MODEL}): "
+            f"{classify.STATS['read_written']} written, "
+            f"{classify.STATS['read_unavailable']} unavailable, "
+            f"{classify.STATS['read_ungrounded']} refused as ungrounded, "
+            f"{classify.STATS['read_hedged']} hedged"
+        )
+        deferred_reads = (classify.STATS["read_unavailable"]
+                          + classify.STATS["read_ungrounded"])
+        if deferred_reads:
+            print(
+                f"[{collector}] {deferred_reads} record(s) deferred whole: "
+                "extraction was paid for and no read-through could be written. "
+                "Nothing was stored with a blank differentiator; the next run "
+                "retries them (TIT_READ_MODEL=off reverts to the fused call)"
+            )
     if classify.STATS["full_calls"]:
         n = classify.STATS["full_calls"]
         print(
@@ -647,7 +668,17 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         status="degraded" if broken else "ok",
         items_found=observed, items_stored=stored,
         usage=classify.usage_snapshot(),
+        # The read-through model rides in `detail` rather than a column of its
+        # own: source_health has `model` and `gate_model`, adding a third would
+        # be a migration, and a health row that cannot say WHICH model wrote the
+        # prose is a ledger that cannot answer "when did the read-throughs
+        # change" later.
         detail=(f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
+                + (f" | read-through {classify.READ_MODEL}: "
+                   f"{classify.STATS['read_written']} written, "
+                   f"{classify.STATS['read_unavailable'] + classify.STATS['read_ungrounded']}"
+                   " deferred"
+                   if classify.STATS["read_calls"] or classify.STATS["read_served"] else "")
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"
                    if mostly_throttled else "")),

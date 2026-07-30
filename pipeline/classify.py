@@ -7,12 +7,16 @@ than burning a batch of failures.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 
 import time
 
 import requests
+
+from . import cheap_extract, prompts, validate, vocab
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
@@ -29,11 +33,33 @@ MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
 # rounds ("Enigma Raises $71M in Seed Funding"). The challenger was not
 # disagreeing with the incumbent, it was CORRECTING it, which is why the
 # sibling's "reject below 90% agreement" rule would have picked the wrong
-# model here. The read-through stays on MODEL (deepseek/deepseek-chat): its
-# prose is the product, and switching IT is gated behind a quality A/B
-# (ab_models.py --readthrough) that has not been run. Set TIT_GATE_MODEL=off
-# to run single-stage.
+# model here. Set TIT_GATE_MODEL=off to run single-stage.
 GATE_MODEL = os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")
+
+# Stage 3: the READ-THROUGH, on its own model and its own small prompt.
+#
+# MODEL still does extraction with SCHEMA_HINT untouched, because extraction is
+# pattern-matching and deepseek does it well at $0.00128 a call. Interpretation
+# is judgement, and the quality A/B this comment used to say had not been run
+# (ab_models.py --readthrough) has now been run: deepseek RESTATED the headline
+# where the Claude models produced a read-through a recruiter could act on.
+#
+# The reason this is a SECOND CALL rather than a better model on the first one:
+# the fused prompt is ~3,100 input tokens and ~2,476 of them are SCHEMA_HINT,
+# which interpretation does not need. Upgrading the fused call pays a frontier
+# rate on the extraction schema — ~$0.0102/record. The split pays it only on
+# the ~450 tokens the judgement actually reads. See pipeline/prompts.py for
+# what the small prompt carries and, more importantly, what it refuses to.
+#
+# TIT_READ_MODEL=off falls back to the fused behaviour: extraction's own
+# talent_readthrough ships, exactly as it did before this split. That is the
+# one-line revert if the interpretation model is unavailable for a whole run.
+READ_MODEL = os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5")
+
+# ~60 tokens of sentence, with headroom for a second sentence and for a model
+# that opens with a brace and a key. Low enough that a runaway generation is
+# bounded; high enough that a truncated sentence is not the failure mode.
+READ_MAX_TOKENS = int(os.environ.get("TIT_READ_MAX_TOKENS", "200") or "200")
 
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 
@@ -54,6 +80,20 @@ STATS = {
     # full_calls it is the waste ratio: the last real run bought 60 reads and
     # stored 34 rows, and until this counter existed that gap was invisible.
     "read_stored": 0,
+    # --- stage 3, the read-through call -----------------------------------
+    # written: interpretations that came back and passed the grounding check.
+    # unavailable: the provider was busy or the response was unparseable.
+    # ungrounded: it came back and named a figure or a place that is in
+    #   neither the source text nor the extracted fields — a refusal, counted
+    #   apart from a transport failure because retrying it is pointless.
+    # hedged: it came back grounded but hedged. NOT a rejection: hedging is a
+    #   quality flaw, not an invented claim, and a run that quietly stopped
+    #   storing rows over an adverb would be worse than a hedge on the page.
+    #   Counted so the A/B's verdict stays measurable in production.
+    # queued/served: the batch path only, both zero on the default sync path.
+    "read_calls": 0, "read_written": 0, "read_unavailable": 0,
+    "read_ungrounded": 0, "read_hedged": 0,
+    "read_queued": 0, "read_served": 0,
 }
 
 # --- Read sizes, named because they are the cost levers ---------------------
@@ -212,6 +252,34 @@ class BudgetDeferred(Throttled):
     the way a busy provider should."""
 
 
+class ReadThroughUnavailable(Throttled):
+    """Extraction succeeded and the interpretation did not, so the WHOLE RECORD
+    is deferred to a later run.
+
+    THE DECISION, written down because the alternative is the worst outcome in
+    this pipeline. Storing the record with an empty read-through would mean
+    weakening `validate.build_signal`, which requires a non-empty
+    talent_readthrough, and the thing that guard exists to prevent is exactly a
+    blank differentiator reaching the page. Writing a placeholder would be
+    inventing the interpretation. So the record is deferred:
+
+      * it is NOT lost — this is a Throttled, so run_collect prints DEFER and
+        deliberately does not mark the URL seen, and the next run (12h later,
+        inside a recency window measured in days) picks the candidate up again;
+      * it is NOT silent — the DEFER line names the reason, STATS counts it,
+        and because deferrals feed run_collect's `mostly_throttled` check, a
+        run where interpretation is broken for every candidate reports the
+        collector `degraded` and ops_status exits 2 for a human;
+      * it is NOT free — the extraction call was already paid for (~$0.0013),
+        and that is the honest cost of the decision. `read_unavailable` beside
+        `full_calls` is where that waste shows up.
+
+    Deliberately a subclass of Throttled and NOT of BudgetDeferred: a run that
+    defers work on purpose must not trip the breakage alarm, and this IS
+    breakage. TIT_READ_MODEL=off is the revert if it stays broken.
+    """
+
+
 class CreditsExhausted(RuntimeError):
     """Raised on a 402 so the caller stops cleanly (spec 4 rule 4)."""
 
@@ -261,6 +329,190 @@ def _api_key() -> str:
 def gate_enabled() -> bool:
     """Two-stage or single-stage. Read in two places, so it is read once."""
     return bool(GATE_MODEL) and GATE_MODEL.lower() not in ("off", "0", "none")
+
+
+def read_enabled() -> bool:
+    """Split read-through, or the fused behaviour extraction still produces."""
+    return bool(READ_MODEL) and READ_MODEL.lower() not in ("off", "0", "none")
+
+
+# --- The rules still bind on the new call -----------------------------------
+#
+# The read-through may not introduce a figure, a place, an employer or a claim
+# that is not already in the source text or in the extracted fields. Three
+# things enforce that, in order of how much they can actually be relied on:
+#
+# 1. STRUCTURE. The interpretation call is given the headline, 500 characters
+#    of source text and the extracted facts — and nothing else. It never sees
+#    headquarters_city/country (the model's own knowledge of where a company
+#    is), and never sees the publisher line. It has no material to invent a
+#    place FROM except its own memory, which is what 2 checks.
+# 2. DETERMINISM. Figures and gazetteer places in the returned sentence are
+#    checked against the source text and the extracted fields, below. A miss
+#    is a refusal, not a repair.
+# 3. THE PROMPT. Claim-level grounding ("this raise means hiring") cannot be
+#    checked by a regex, so it is prompt-enforced and honestly labelled as
+#    such. What backs it up is that the sentence is one or two clauses long
+#    and every figure and place in it is machine-checked.
+#
+# Confidence needs no new guard at all: the interpretation call returns exactly
+# one key, `talent_readthrough`. It cannot promote a record's tier because it is
+# never asked for one, and infer_confidence still caps on the source host.
+
+# Same rule as validate.assert_figures_are_sourced, with one addition: the word
+# multiplier is folded to a letter, so "$71M" in the source and "71 million" in
+# the sentence are the same figure. Without that fold, a model restating the
+# amount in words would be rejected as an invention — a false refusal, which
+# for a deferred record means a story quietly lost.
+_MULTIPLIER = {"billion": "b", "bn": "b", "b": "b", "million": "m", "mn": "m",
+               "m": "m", "thousand": "k", "k": "k"}
+_MULTIPLIER_TAIL = re.compile(r"(billion|thousand|million|bn|mn|[bmk])$", re.I)
+_YEAR = re.compile(r"(19|20)\d\d")
+_HEDGE = re.compile(
+    r"\b(suggests?|may|might|could|possibly|potentially|indicates?|likely)\b", re.I)
+
+
+def _figures(text: str) -> set[str]:
+    """Every numeric token in `text`, canonicalised so the two sides compare."""
+    found = set()
+    for match in validate._NUMBER.finditer(text or ""):
+        token = re.sub(r"[,\s.]", "", match.group(0).lower())
+        found.add(_MULTIPLIER_TAIL.sub(
+            lambda m: _MULTIPLIER[m.group(0).lower()], token))
+    return found
+
+
+# Where a read-through puts a place: "hiring in Dublin", "adds roles to the
+# Dublin market", "engineers across Bengaluru". The frame scanner below reads
+# the six phrasings that state a company's SEAT; this reads the ones that state
+# where the WORK is, which is what a read-through sentence is actually about.
+#
+# Frames, not a bare name sweep, in both cases. A sweep over 422 gazetteer
+# aliases flags "Reading the announcement" and "Florence" the person, and a
+# false positive here defers a real record. The two lookaheads are the cheap
+# fixes for the two real collisions: a following capital is a surname ("reports
+# to Charlotte Jones"), and a word character means it was never the alias.
+#
+# The surname lookahead is scoped `(?-i:...)` deliberately: under re.I a bare
+# `[A-Z]` matches lowercase too, so the check silently inverted and every
+# "in the Dublin market" walked through it. Case is the whole signal here.
+_PREPOSITION_PLACE = re.compile(
+    r"\b(?:in|to|at|across|near|for|around|throughout)\s+(?:the\s+)?"
+    r"(" + cheap_extract._ALIAS_AT.pattern + r")(?!\s+(?-i:[A-Z]))",
+    re.I)
+
+
+def _places(text: str) -> set[str]:
+    """Cities the text NAMES, by the frames English uses to name one.
+
+    Two scanners, unioned: the deterministic extractor's own seat frames
+    ("X-based", "based in X", "its X office") and the preposition frames above.
+    Both resolve through the curated gazetteer, so the comparison in
+    `ungrounded_reason` is city-to-city and not string-to-string.
+    """
+    found, _declined = cheap_extract._scan_for_cities(text or "")
+    places = {city for city, _region, _iso2 in found}
+    for match in _PREPOSITION_PLACE.finditer(text or ""):
+        hit = cheap_extract._resolve_alias(match.group(1))
+        if hit:
+            places.add(hit[0])
+    return places
+
+
+def ungrounded_reason(sentence: str, classified: dict, raw_text: str) -> str:
+    """"" if the sentence is grounded, else why it is not."""
+    sourced = f"{raw_text}\n{classified.get('headline') or ''}"
+    for key in ("funding_amount", "headcount", "effective_date"):
+        value = classified.get(key)
+        if value:
+            sourced += f"\n{value}"
+
+    invented = _figures(sentence) - _figures(sourced)
+    invented = {n for n in invented if not _YEAR.fullmatch(n)}
+    if invented:
+        return f"figure(s) in neither the source text nor the extracted fields: {sorted(invented)}"
+
+    allowed = _places(sourced)
+    stated = vocab_city(classified.get("city"))
+    if stated:
+        allowed.add(stated)
+    elsewhere = _places(sentence) - allowed
+    if elsewhere:
+        return f"place(s) the source never stated: {sorted(elsewhere)}"
+
+    # A storage code in English prose. prompts._readable strips underscores from
+    # every value the writer is shown, so an underscore in the answer is the
+    # model's own invention, not a leak from the prompt.
+    if "_" in sentence:
+        return "contains a storage code (underscore) rather than English"
+    return ""
+
+
+def vocab_city(value) -> str:
+    """The curated city name for a stated city, or "". Thin on purpose: the
+    gazetteer is the authority and this only unwraps its tuple."""
+    hit = vocab.normalize_city((value or "").strip())
+    return hit[0] if hit else ""
+
+
+def interpret(classified: dict, raw: dict, *, timeout: int = 30) -> str:
+    """The read-through, from READ_MODEL, on ~450 input tokens.
+
+    Raises ReadThroughUnavailable rather than returning anything doubtful. 401
+    and 402 still propagate: a bad key or an exhausted balance ends the run
+    whichever stage meets it.
+    """
+    prompt = prompts.build(classified, raw)
+    STATS["read_calls"] += 1
+    try:
+        content = _call(
+            READ_MODEL, prompts.READ_SYSTEM, prompt,
+            timeout=timeout, max_tokens=READ_MAX_TOKENS,
+            # Anthropic endpoints on OpenRouter do not advertise
+            # response_format, and require_parameters then filters every
+            # provider out and the request 404s with "No endpoints found".
+            # Claude follows a JSON-only instruction; _strip_fences handles the
+            # rest. ab_models.py learned this the same way.
+            json_mode=not READ_MODEL.startswith("anthropic/"),
+        )
+    except (AuthFailed, CreditsExhausted):
+        raise
+    except (Throttled, ClassifyError) as exc:
+        STATS["read_unavailable"] += 1
+        raise ReadThroughUnavailable(
+            f"read-through model {READ_MODEL} did not answer ({exc}) — "
+            "deferring the whole record, nothing stored") from exc
+
+    return _accept(content, classified, raw)
+
+
+def _accept(content: str, classified: dict, raw: dict) -> str:
+    """Parse one interpretation and hold it to the rules, or refuse it."""
+    try:
+        sentence = (json.loads(_strip_fences(content)).get("talent_readthrough")
+                    or "").strip()
+    except (ValueError, AttributeError):
+        STATS["read_unavailable"] += 1
+        raise ReadThroughUnavailable(
+            f"read-through was unreadable ({content[:120]!r}) — deferring the "
+            "whole record rather than storing a blank differentiator")
+    if not sentence:
+        STATS["read_unavailable"] += 1
+        raise ReadThroughUnavailable(
+            "read-through came back empty — deferring the whole record rather "
+            "than storing a blank differentiator")
+
+    problem = ungrounded_reason(sentence, classified, raw.get("raw_text") or "")
+    if problem:
+        STATS["read_ungrounded"] += 1
+        raise ReadThroughUnavailable(
+            f"read-through refused, {problem} — deferring the whole record "
+            "rather than storing an invented claim")
+
+    if _HEDGE.search(sentence):
+        STATS["read_hedged"] += 1
+    STATS["read_written"] += 1
+    return sentence
 
 
 def usage_snapshot() -> dict | None:
@@ -371,6 +623,18 @@ def classify(raw: dict, *, timeout: int = 45) -> dict | None:
 
     if not parsed.get("is_talent_signal"):
         return None
+
+    # Stage 3. Extraction's own talent_readthrough is overwritten, never merged
+    # — a sentence half-written by each model is neither model's judgement. The
+    # ORIGINAL raw dict is passed, not the `text` built above: that one carries
+    # the "Published by:" geography hint, and a writer handed the outlet writes
+    # the outlet's home town into the sentence.
+    #
+    # A failure here raises ReadThroughUnavailable (a Throttled), so the record
+    # is deferred whole rather than stored with a blank differentiator. Read the
+    # class docstring before changing that.
+    if read_enabled():
+        parsed["talent_readthrough"] = interpret(parsed, raw, timeout=timeout)
     return parsed
 
 
