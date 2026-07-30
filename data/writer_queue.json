@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T21:47:57Z",
-  "last_tick": "2026-07-30T21:47:57Z",
+  "last_tick": "2026-07-30T21:48:32Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -271,6 +271,11 @@
           "at": "2026-07-30T21:47:57Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T21:48:32Z",
+          "detail": "run 30584803623",
+          "event": "bound"
         }
       ],
       "id": "20260730T213107Z-correct-funding-amount",
@@ -281,7 +286,7 @@
       "reason": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
       "requested_at": "2026-07-30T21:31:07Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30584803623",
       "state": "dispatched",
       "workflow": "correct-funding-amount.yml"
     },
