@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T20:13:53Z",
-  "last_tick": "2026-07-30T20:13:53Z",
+  "last_dispatch": "2026-07-30T20:18:59Z",
+  "last_tick": "2026-07-30T20:18:59Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,7 +159,7 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T20:18:59Z",
       "history": [
         {
           "at": "2026-07-30T18:30:34Z",
@@ -175,6 +175,11 @@
           "at": "2026-07-30T19:31:02Z",
           "detail": "dispatch produced no run (x1); back in the line",
           "event": "unbound"
+        },
+        {
+          "at": "2026-07-30T20:18:59Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T183034Z-backfill-gdelt-2026",
@@ -187,7 +192,7 @@
       "requested_at": "2026-07-30T18:30:34Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "unbound_count": 1,
       "workflow": "backfill-gdelt-2026.yml"
     },
@@ -261,34 +266,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-30T20:13:53Z",
-      "history": [
-        {
-          "at": "2026-07-30T19:16:36Z",
-          "detail": "Japan 2026 in one pass: EDINET ceiling is 366 days, so no walker needed",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T20:13:53Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260730T191636Z-collect-structured",
-      "inputs": {
-        "days": "211",
-        "source": "edinet_japan"
-      },
-      "priority": 0,
-      "reason": "Japan 2026 in one pass: EDINET ceiling is 366 days, so no walker needed",
-      "requested_at": "2026-07-30T19:16:36Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
     },
     {
       "attempts": 0,
@@ -1297,6 +1274,45 @@
       "run_id": "30570864405",
       "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T20:13:53Z",
+      "history": [
+        {
+          "at": "2026-07-30T19:16:36Z",
+          "detail": "Japan 2026 in one pass: EDINET ceiling is 366 days, so no walker needed",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T20:13:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T20:18:59Z",
+          "detail": "run 30578267966",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T20:18:59Z",
+          "detail": "run 30578267966",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T191636Z-collect-structured",
+      "inputs": {
+        "days": "211",
+        "source": "edinet_japan"
+      },
+      "landed_at": "2026-07-30T20:18:59Z",
+      "priority": 0,
+      "reason": "Japan 2026 in one pass: EDINET ceiling is 366 days, so no walker needed",
+      "requested_at": "2026-07-30T19:16:36Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30578267966",
+      "state": "landed",
+      "workflow": "collect-structured.yml"
     }
   ],
   "version": 1
