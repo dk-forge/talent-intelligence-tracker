@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T21:20:35Z",
-  "last_tick": "2026-07-30T21:31:18Z",
+  "last_tick": "2026-07-30T21:38:48Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -309,6 +309,28 @@
       "priority": 0,
       "reason": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
       "requested_at": "2026-07-30T21:31:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "correct-funding-amount.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-30T21:38:37Z",
+          "detail": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260730T213837Z-correct-funding-amount",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
+      "requested_at": "2026-07-30T21:38:37Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
