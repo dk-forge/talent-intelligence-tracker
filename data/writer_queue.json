@@ -1,5 +1,6 @@
 {
-  "last_tick": "2026-07-30T18:30:46Z",
+  "last_dispatch": "2026-07-30T18:32:36Z",
+  "last_tick": "2026-07-30T18:32:36Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -197,12 +198,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T18:32:36Z",
       "history": [
         {
           "at": "2026-07-30T18:30:34Z",
           "detail": "2026 history walk, owner approved at $4.51 total",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T18:32:36Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T183034Z-backfill-gdelt-2026",
@@ -215,7 +221,7 @@
       "requested_at": "2026-07-30T18:30:34Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
