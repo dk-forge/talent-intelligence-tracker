@@ -121,8 +121,15 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   domain**: a cited URL that now answers 200 from somebody else's site
   (`botswanaguardian.co.bw` became a betting site), which is why the checker
   reuses the collector's domain-drift guard rather than trusting status codes.
-  Both jobs ship **DORMANT** (dispatch only) and cost nothing: no model is
-  called. **Do not replace either with a WordPress broken-link-checker plugin** —
+  Both cost nothing: no model is called. Both are **scheduled since 2026-07-30 —
+  from `schedule-link-hygiene.yml`, never from a cron of their own.** They are
+  database writers, so a `schedule:` in their own files would enter the
+  `talent-collect` lock uncoordinated and either evict the pending run or be
+  evicted and become an unreplayable orphan; the scheduler writes a *ticket*
+  instead and `drain-writers.yml` dispatches it into an empty group.
+  `ops_status.py [2c]` is the authority on this, not this line, and it goes red
+  if either workflow ever grows a cron. **Do not replace either with a WordPress
+  broken-link-checker plugin** —
   those crawl post content, our source links live in `wp_tit_signals`, and it
   would paint a green badge over an entirely unchecked corpus.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value

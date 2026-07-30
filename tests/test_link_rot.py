@@ -500,17 +500,26 @@ def test_the_ledger_merges_instead_of_being_overwritten(tmp_path, stocked):
     assert urls == {"https://theirs.example/x", "https://ours.example/y"}
 
 
-def test_both_jobs_ship_dormant():
-    """Nothing schedules them yet, on purpose: a few real runs first, then a
-    cron. ops_status and the digest both read this state, so a session cannot
-    mistake a dormant job for a healthy one."""
+def test_neither_job_schedules_itself():
+    """Both are armed since 2026-07-30 — but from schedule-link-hygiene.yml,
+    which writes a ticket, never from a cron in these files.
+
+    They write the database, so they hold the single `talent-collect` lock, and
+    GitHub keeps exactly ONE pending run per lock. A cron here would be a direct
+    dispatch on a timer: it evicts the pending run, or it is evicted and ends
+    `cancelled` with zero jobs and inputs GitHub will not disclose, so it cannot
+    be replayed. The full argument, and the scheduler's own shape, are in
+    tests/test_link_hygiene_schedule.py.
+    """
     import yaml
 
     for name in ("link-check.yml", "archive-sources.yml"):
         text = (ROOT / ".github" / "workflows" / name).read_text()
         parsed = yaml.safe_load(text)
         triggers = parsed.get("on") or parsed.get(True)
-        assert "schedule" not in triggers, f"{name} is armed but should be dormant"
+        assert "schedule" not in triggers, (
+            f"{name} schedules itself into the writer lock — see "
+            "tests/test_link_hygiene_schedule.py for why that loses runs")
         assert "workflow_dispatch" in triggers
         assert parsed["concurrency"]["group"] == "talent-collect", name
         assert parsed["concurrency"]["cancel-in-progress"] is False, name

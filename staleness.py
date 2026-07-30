@@ -65,13 +65,24 @@ MAX_AGE_HOURS = {
     # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
     # schedule in .github/workflows/tripwire.yml is uncommented.
     "tripwire": 2400,
-    # Link rot and archiving. Both ship DORMANT (no cron in their workflows),
-    # so a manual run followed by weeks of silence is the expected state
-    # rather than an incident. Tighten both to 200 the day their schedules
-    # are uncommented: link-check is weekly and archive-sources is daily, so
-    # two missed runs is what should start a conversation.
-    "link_check": 2400,
-    "archive_sources": 2400,
+    # Link rot and archiving, both scheduled since 2026-07-30 — but by
+    # schedule-link-hygiene.yml writing a TICKET rather than by a cron in their
+    # own workflows, because both are database writers and a cron in a
+    # lock-group workflow gets evicted or evicts something else. So each leash
+    # is the cadence plus the queue's worst-case wait, not just GitHub's start
+    # delay: a ticket written while a long backfill holds the writer lock waits
+    # for it, and a 350-minute slice is entitled to its 350 minutes.
+    #
+    # archive_sources: nightly (24h). Two missed nights (48h) plus ~6h of
+    # worst-case queue wait. A single skipped night is not worth a page: the
+    # candidate list is the GAP, so tomorrow's run simply picks up what
+    # yesterday's did not.
+    "archive_sources": 54,
+    # link_check: weekly on Mondays (168h). One missed Monday is a fortnight of
+    # not knowing whether anything we cite has rotted, which is too long, so
+    # this is the weekly-cron shape bse_india already uses — cadence plus slack,
+    # flagging part-way into the second week rather than after two full misses.
+    "link_check": 180,
 }
 
 # A collector nobody has written a schedule-derived leash for. Two weeks: long

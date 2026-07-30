@@ -10,16 +10,24 @@ name: archive-sources
 # spn_max DOES NOT SPEED THIS UP — it gets us throttled and the run captures
 # less. A slow coverage climb is the design working.
 #
-# DORMANT. No `schedule:` below on purpose. Arming the daily cron is what turns
-# this into an ingest-time job: candidates are ordered newest-capture first, so
-# a run after a collect archives what that collect just stored while everything
-# older backfills from behind it, with no change to the ingest write path. When
-# you arm it, tighten archive_sources in health_digest.py MAX_AGE_HOURS to 200
-# in the same change.
+# ARMED NIGHTLY, THROUGH THE QUEUE — see .github/workflows/schedule-link-hygiene.yml,
+# which writes a ticket at 03:40 UTC that drain-writers.yml then dispatches into
+# an empty lock group. This IS the ingest-time job: candidates are ordered
+# newest-capture first, so a run after a collect archives what that collect just
+# stored while everything older backfills from behind it, with no change to the
+# ingest write path.
 #
-# NEVER DISPATCH THIS DIRECTLY. It writes data/talent_intel.db and shares the
-# single `talent-collect` lock; a direct dispatch past a waiting run evicts that
-# run silently. Queue it:
+# DO NOT ADD A `schedule:` TO THIS FILE. There is no commented-out cron here to
+# uncomment, on purpose. This workflow writes data/talent_intel.db, so it sits in
+# the single `talent-collect` group, and GitHub keeps exactly ONE pending run per
+# group: a cron here is a direct dispatch on a timer, and it either evicts
+# whatever was pending or is itself evicted — ending `cancelled` with zero jobs,
+# no logs and no annotation, unreplayable because GitHub does not expose a
+# dispatched run's inputs. A ticket cannot be evicted; that is the whole point of
+# the queue. `ops_status.py [2c]` reports the arming state, derived from these
+# files rather than from this comment.
+#
+# NEVER DISPATCH THIS DIRECTLY either, for the same reason. Queue it:
 #
 #   gh workflow run drain-writers.yml \
 #     -f enqueue=archive-sources.yml -f inputs_json='{"dry_run":"false"}' \
@@ -53,8 +61,8 @@ on:
         # the tail is fully covered and the budget has somewhere better to go.
         default: 'national_press,google_news,gdelt,ats_boards'
 
-  # schedule:
-  #   - cron: '40 3 * * *'   # nightly, well clear of the collect windows
+  # No `schedule:`. The nightly slot lives in schedule-link-hygiene.yml and
+  # arrives here as a queued ticket. See the header before adding one.
 
 concurrency:
   group: talent-collect

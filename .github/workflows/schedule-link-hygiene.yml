@@ -1,0 +1,169 @@
+name: schedule-link-hygiene
+
+# The cron for the two link-hygiene writers lives HERE, in a workflow that is
+# not a database writer, and that is a safety property rather than a filing
+# preference.
+#
+# WHY NOT A `schedule:` IN archive-sources.yml AND link-check.yml
+# ---------------------------------------------------------------
+# Both of those write the database, so both sit in the `talent-collect`
+# concurrency group, and GitHub keeps exactly ONE pending run per group. A cron
+# in those files would make each of them an uncoordinated third body entering
+# that group on a timer, which has two outcomes and no third:
+#
+#   * it evicts whatever was pending. If that was a queued ticket the drainer
+#     re-dispatches it, so the work survives — but nothing else in the group is
+#     ticketed, and a scheduled `collect` run has already been evicted this way
+#     once.
+#   * it IS the thing evicted. Then it ends `cancelled` with zero jobs, no
+#     steps, no logs and no annotation. The drainer notices and goes red, but
+#     GitHub does not expose a dispatched run's inputs, so it cannot be
+#     replayed: it becomes an ORPHAN that a human has to resolve by hand. There
+#     are 15 of those in data/writer_queue.json from 2026-07-29, all closed with
+#     one hand-written triage note.
+#
+# So a cron on those files is a job that silently skips a night and leaves a red
+# run nobody can fix by re-running. Both files say "NEVER DISPATCH THIS
+# DIRECTLY", and a `schedule:` trigger is a direct dispatch with a timer
+# attached.
+#
+# WHAT THIS DOES INSTEAD
+# ----------------------
+# It writes a TICKET to data/writer_queue.json. drain-writers.yml dispatches the
+# next ticket only into an EMPTY group, so the run this asks for can never be
+# evicted, and if it somehow is, its inputs are on file and it is re-dispatched
+# automatically. The ticket is durable and committed, so a slot that fires while
+# a six-hour backfill holds the lock waits instead of vanishing.
+#
+# This workflow is therefore deliberately NOT in `talent-collect`: it must be
+# able to run while the lock is held, exactly like the drainer. It writes one
+# JSON file and touches no collected data, so it needs no lock of its own.
+#
+# COST: zero. No model is called here or in either job it queues.
+on:
+  schedule:
+    - cron: '40 3 * * *'   # nightly: a Wayback pass over the newest citations
+    - cron: '30 5 * * 1'   # Mondays: a rot sweep, before the 13:00 health digest
+
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which pass to ask for'
+        type: choice
+        options:
+          - both
+          - archive
+          - link-check
+        default: both
+
+permissions:
+  contents: write   # commit the ticket
+
+concurrency:
+  # Its own group, NOT the writers' one. See the header.
+  group: schedule-link-hygiene
+  cancel-in-progress: false
+
+jobs:
+  enqueue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Which pass this run is for. On a schedule the answer comes from the slot
+      # that fired; on a dispatch it comes from the input. An unrecognised slot
+      # goes RED rather than enqueuing nothing: the failure mode to design
+      # against is somebody editing a cron above and this mapping quietly
+      # answering "no work tonight" forever.
+      - name: Decide what to ask for
+        id: want
+        env:
+          SLOT: ${{ github.event.schedule }}
+          JOB: ${{ inputs.job }}
+        run: |
+          set -euo pipefail
+          if [ -n "${SLOT:-}" ]; then
+            case "$SLOT" in
+              '40 3 * * *') WANT='archive-sources.yml' ;;
+              '30 5 * * 1') WANT='link-check.yml' ;;
+              *)
+                echo "::error::schedule slot '$SLOT' has no mapping in this"
+                echo "::error::workflow. A cron was changed above and this step"
+                echo "::error::was not, so this slot would silently queue"
+                echo "::error::nothing every time it fired."
+                exit 1 ;;
+            esac
+          else
+            case "${JOB:-both}" in
+              archive)    WANT='archive-sources.yml' ;;
+              link-check) WANT='link-check.yml' ;;
+              both)       WANT='archive-sources.yml link-check.yml' ;;
+              *) echo "::error::unknown job '${JOB:-}'"; exit 1 ;;
+            esac
+          fi
+          echo "Asking for: $WANT"
+          echo "want=$WANT" >> "$GITHUB_OUTPUT"
+
+      # Enqueue and commit in ONE step, because a rejected push has to be
+      # answered by RE-DERIVING the ticket on top of the current main rather
+      # than by replaying a diff. Same lesson as merge_db.py one file along: a
+      # rebase of a hand-edited JSON diff can conflict, and `--if-absent`
+      # re-evaluated against the freshly fetched queue is conflict-free by
+      # construction and idempotent.
+      #
+      # `--if-absent` is what stops a nightly slot stacking a ticket per night
+      # behind a long backfill, each one separately aging into "the lock is
+      # starved" and each one reporting the same single fact.
+      - name: Write the ticket
+        env:
+          WANT: ${{ steps.want.outputs.want }}
+          SLOT: ${{ github.event.schedule }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            for wf in $WANT; do
+              python writer_queue.py enqueue "$wf" \
+                --inputs '{"dry_run":"false"}' \
+                --reason "scheduled link hygiene (${SLOT:-manual})" \
+                --by "${ACTOR:-schedule}" \
+                --if-absent
+            done
+
+            git add data/writer_queue.json
+            if git diff --staged --quiet; then
+              echo "Nothing to add: the queue already holds a ticket for each."
+              exit 0
+            fi
+            git commit -q -m "queue: link hygiene $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Ticket committed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::could not commit the ticket after 5 attempts, so the"
+          echo "::error::pass this slot asked for will NOT happen. Queue it by"
+          echo "::error::hand: gh workflow run drain-writers.yml -f"
+          echo "::error::enqueue=archive-sources.yml -f"
+          echo "::error::inputs_json='{\"dry_run\":\"false\"}' -f reason='...'"
+          exit 1
+
+      - name: Show the queue
+        if: ${{ always() }}
+        run: python writer_queue.py status || true

@@ -513,6 +513,22 @@ def _cmd_enqueue(args) -> int:
     if not isinstance(inputs, dict):
         print("::error::--inputs must be a JSON object")
         return 2
+
+    # For a RECURRING request, "there is already one waiting" is the answer, not
+    # a reason to write a second ticket. A nightly cron behind a long backfill
+    # would otherwise leave a ticket per night, each one aging past
+    # STUCK_AFTER_HOURS and reporting the lock as starved once per night for the
+    # same single fact. Deliberately opt-in: two retractions of two different
+    # rows are two pieces of work and must never collapse into one.
+    if getattr(args, "if_absent", False):
+        waiting = [t for t in queue.get("tickets", [])
+                   if t["workflow"] == args.workflow
+                   and t["state"] not in TERMINAL_STATES]
+        if waiting:
+            print(f"{args.workflow} is already in the queue as "
+                  f"{waiting[0]['id']} ({waiting[0]['state']}) — not adding a "
+                  f"second ticket for the same recurring pass.")
+            return 0
     try:
         ticket = enqueue(queue, args.workflow, inputs, args.reason, args.by,
                          args.priority)
@@ -686,6 +702,9 @@ def main(argv: list[str] | None = None) -> int:
     add.add_argument("--reason", default="")
     add.add_argument("--by", default="")
     add.add_argument("--priority", type=int, default=None)
+    add.add_argument("--if-absent", action="store_true",
+                     help="do nothing if a ticket for this workflow is already "
+                          "waiting. For recurring passes only.")
     add.set_defaults(func=_cmd_enqueue)
 
     run = sub.add_parser("tick", help="reconcile, then pick at most one thing to dispatch")

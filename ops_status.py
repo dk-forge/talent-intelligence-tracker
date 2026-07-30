@@ -545,6 +545,91 @@ def _report_backfills() -> list[str]:
     return state["problems"]
 
 
+def _crons(workflow: str) -> list[str]:
+    """The UNCOMMENTED cron expressions in one workflow file.
+
+    A commented `#   - cron:` line starts with `#` once stripped, so prose about
+    a schedule can never be mistaken for one. Same test `_report_collection_armed`
+    uses, and the reason both read the file instead of a constant: CLAUDE.md
+    makes this script the authority on arming state, and a script that reports
+    its own comments is not an authority.
+    """
+    path = ROOT / ".github" / "workflows" / workflow
+    if not path.exists():
+        return []
+    out = []
+    for line in path.read_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- cron:"):
+            # Trailing comment off FIRST, then the quotes: the other order
+            # leaves the closing quote glued to the expression.
+            value = stripped.split(":", 1)[1].split("#")[0].strip()
+            out.append(value.strip("'\""))
+    return out
+
+
+#: The two link-hygiene writers, and the workflow that is allowed to schedule
+#: them. Both write the database, so both sit in the single `talent-collect`
+#: lock, so NEITHER may carry a cron of its own: a scheduled run enters that
+#: group as an uncoordinated third body and either evicts the pending run or is
+#: evicted itself, ending cancelled with zero jobs and unreplayable inputs.
+#: The schedule lives one level out, in a workflow that writes a ticket.
+LINK_JOBS = {"archive-sources.yml": "nightly Wayback pass",
+             "link-check.yml": "weekly rot sweep"}
+LINK_SCHEDULER = "schedule-link-hygiene.yml"
+
+
+def _report_link_schedule() -> list[str]:
+    """Whether the link-hygiene jobs actually run, and by which route."""
+    problems = []
+    scheduler = _crons(LINK_SCHEDULER)
+    self_scheduled = {name: _crons(name) for name in LINK_JOBS}
+    offenders = {n: c for n, c in self_scheduled.items() if c}
+
+    if offenders:
+        print("    schedule  MISWIRED — see below")
+        for name, crons in offenders.items():
+            problems.append(
+                f"{name} carries its own cron ({', '.join(crons)}). It is a "
+                f"database writer, so a scheduled run enters the talent-collect "
+                f"lock uncoordinated: it either evicts the pending run or is "
+                f"evicted itself, and an evicted run cannot be replayed because "
+                f"GitHub does not expose a dispatched run's inputs. Move the "
+                f"slot to {LINK_SCHEDULER}, which writes a ticket instead.")
+    elif scheduler:
+        print(f"    schedule  ARMED via the writer queue — {LINK_SCHEDULER}")
+        print(f"              writes a ticket ({'; '.join(sorted(scheduler))}) and")
+        print("              drain-writers dispatches it into an empty lock, so a")
+        print("              slot that fires during a backfill waits instead of")
+        print("              being evicted. Neither job is on its own cron.")
+    else:
+        print("    schedule  DORMANT — dispatch only. Nothing runs these on a")
+        print("              timer, so silence here is expected, not an incident.")
+        print(f"              Arm by restoring the crons in {LINK_SCHEDULER};")
+        print("              never by adding one to the two writers themselves.")
+    return problems
+
+
+def _archive_scope() -> list[str]:
+    """The collectors a SCHEDULED archive run actually covers.
+
+    Read from the shell fallback in the workflow rather than the input default,
+    because a queued ticket carries only `dry_run` and the fallback is what
+    applies. Printed next to the coverage percentage because that percentage is
+    over the WHOLE corpus while the run is deliberately restricted to the
+    publisher tail — so the number has a ceiling well under 100%, and a reader
+    who does not know that reads a working job as a stalled one.
+    """
+    path = ROOT / ".github" / "workflows" / "archive-sources.yml"
+    if not path.exists():
+        return []
+    for line in path.read_text().splitlines():
+        if "COLLECTOR:-" in line:
+            names = line.split("COLLECTOR:-", 1)[1].split("}", 1)[0]
+            return [n.strip() for n in names.split(",") if n.strip()]
+    return []
+
+
 def _report_link_rot(conn) -> list[str]:
     """Are the documents we cite still there, and still themselves?
 
@@ -561,20 +646,22 @@ def _report_link_rot(conn) -> list[str]:
 
     print("\n[2c] SOURCE LINKS  (every figure has to still link to its document)")
 
+    problems = _report_link_schedule()
+
     try:
         summary = source_links.rot_summary(conn)
     except sqlite3.OperationalError:
         print("    No link ledger yet. Prove the checker with:")
         print("      python3 link_check.py --dry-run --limit 40")
-        return []
+        return problems
 
     total = summary["distinct_source_urls"]
     if not summary["checked"]:
         print(f"    {total} distinct source URLs, NONE checked yet.")
-        print("    The checker ships DORMANT. Measure a sample with:")
+        print("    Measure a sample before trusting any rate here:")
         print("      python3 link_check.py --random --limit 200")
         print("      python3 archive_sources.py --dry-run --limit 200")
-        return []
+        return problems
 
     print(f"    checked   {summary['checked']}/{total} distinct source URLs, "
           f"{summary['rot']} rotted ({summary['rot_pct']}%)")
@@ -585,7 +672,24 @@ def _report_link_rot(conn) -> list[str]:
           f"{summary['archive_pending']} pending, "
           f"{summary['archive_unavailable']} unavailable")
 
-    problems = []
+    # What the capture cap costs, said where the percentage is printed.
+    scope = _archive_scope()
+    if scope and total:
+        placeholders = ", ".join("?" for _ in scope)
+        in_scope = conn.execute(
+            f"SELECT COUNT(DISTINCT source_url) FROM signals "
+            f" WHERE is_current = 1 AND collector IN ({placeholders})",
+            tuple(scope)).fetchone()[0]
+        print(f"              the scheduled pass covers {len(scope)} collector(s) "
+              f"— {in_scope:,} of {total:,} URLs ({round(100.0 * in_scope / total, 1)}%).")
+        print("              The rest are SEC and GOV.UK filings whose publishers "
+              "keep them")
+        print("              indefinitely, so that share is this schedule's "
+              "ceiling rather")
+        print("              than a stall. Widen it by editing the collector "
+              "default in")
+        print("              .github/workflows/archive-sources.yml.")
+
     drifted = summary["states"].get("drifted", 0)
     if drifted:
         rows = conn.execute(

@@ -13,6 +13,151 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — link hygiene is armed, and the cron is not where it looks like it goes
+
+The ask was to uncomment two crons: `40 3 * * *` in `archive-sources.yml` and
+`30 5 * * 1` in `link-check.yml`. **Both jobs are now scheduled on exactly those
+times, and neither of those crons exists.** The schedule lives in a new
+`schedule-link-hygiene.yml`, which is not a database writer, and it writes a
+queue *ticket* instead of starting a run.
+
+### Why a cron in those two files is a job that skips nights silently
+
+Both write `data/talent_intel.db`, so both sit in `talent-collect`, and GitHub
+keeps exactly ONE pending run per group. A `schedule:` in a lock-group workflow
+is a direct dispatch with a timer on it, and it has two outcomes:
+
+* it evicts whatever was pending — recoverable if that was a ticket, because
+  `writer_queue.tick` re-dispatches a displaced ticket with its inputs intact;
+* it IS evicted, and then it is not recoverable. It ends `cancelled` with zero
+  jobs — no steps, no logs, no annotation — and the dispatch API does not expose
+  a run's inputs, so nothing can replay it. `data/writer_queue.json` still holds
+  **15 orphans from 2026-07-29**, all closed by one hand-written triage note.
+
+Both workflow headers already said "NEVER DISPATCH THIS DIRECTLY". A cron is a
+direct dispatch that fires 365 times a year. So the commented crons were not
+uncommented, they were **deleted**, and the headers now explain the refusal —
+a `# schedule:` block left in place is an invitation to uncomment it, which is
+the wrong fix arrived at by the most natural route available.
+`tests/test_link_hygiene_schedule.py` fails if either file grows a cron, or a
+commented-out one.
+
+### What the description got wrong, on reading the code
+
+1. **"Both were hand-dispatched and SUCCEEDED under supervision at 02:00Z
+   today."** Green, yes — as **dry runs that recorded nothing**. Run
+   30507215991: `DRY RUN: 24 of 164 already in Wayback, 140 would need a
+   capture. Nothing recorded, nothing captured.` Run 30507217495:
+   `##[warning]DRY RUN... dry run: nothing recorded`. Both workflows default
+   `dry_run` to true, which is the trap `link-check.yml`'s own header warns
+   about, and it caught the owner. The runs that actually prove the write path
+   are the **17:0x pair on 2026-07-29** — 30473757174 and 30474293718 — which
+   recorded, merged and pushed as `f56164e` and `c18288e`. That matters: it
+   means the merge-and-push step is exercised, so arming is not a first
+   unattended execution of untested code. It just isn't the pair cited.
+2. **The cron-collision list omitted `0 4 * * 1`** — `collect-structured.yml`
+   grew a Monday 04:00 BSE India slot in 95e6df1. A 03:40 archive run with
+   `timeout-minutes: 60` can still hold the lock at 04:00 on a Monday. Under the
+   queue this is latency, not loss, which is the point of moving it there.
+3. **"Confirm both workflows follow the merge path, not a copy."** They do, and
+   the `cp` in each is the *safe* direction: `cp data/…db "$RUNNER_TEMP/x.db"`
+   saves the run's work before the reset, and `merge_db.py` brings it back
+   after. `tests/test_workflows.py` already distinguishes these by destination.
+   No launch blocker here.
+4. **"Send a browser-ish User-Agent to the WP host."** Neither job touches the
+   WP host at all — no `wp-json`, no POST, nothing. They talk to publishers and
+   to archive.org, both with `national_press.USER_AGENT`, which is browser-ish
+   and names us. The ModSecurity/`no-store`/Cloudflare rules do not apply.
+
+### The launch blocker that was real: a 429 read as "not archived"
+
+`check_availability` returned `None` for anything that was not a 200. Measured
+2026-07-30 from this machine: `archive.org/wayback/available` answered **429 to
+the first request**, and again 20 seconds later. Every consequence points the
+same way:
+
+* pass 1 invents a gap that does not exist;
+* the phantom misses go to pass 2, spending a bounded capture budget
+  re-archiving documents Wayback already holds;
+* each attempt increments `archive_attempts`, and at `MAX_ARCHIVE_ATTEMPTS` (5)
+  the URL is recorded `unavailable` — which `archive_candidates` treats as
+  **terminal**. Five throttled nights would retire capturable documents forever,
+  recoverable only by a hand-written UPDATE;
+* and it is invisible: `throttled_out` only fired when Save Page Now was
+  throttled *too*, so a run blinded in pass 1 reported `ok` next to a healthy
+  capture count. The false-healthy shape again.
+
+Fixed: 429/5xx/timeout now return `RATE_LIMITED`, which is neither a hit nor a
+miss. Such a URL is skipped for the night, spends no capture, touches no attempt
+counter, and stays in the gap. A run whose free pass went mostly unanswered is
+`degraded` with a named warning. The free pass is also paced at
+`DEFAULT_AVAIL_GAP = 0.5s` — it costs no money, which is not the same as being
+welcome at any rate we like — and a test pins that 600 × (0.5 + 1.0s latency)
+plus the 40 × 6s capture budget still fits inside the 1500s deadline, because an
+over-long pass 1 would starve pass 2 of every capture while staying green.
+
+`link_check.probe` now retries **once** on a transport failure or a 5xx. Not for
+the rot rate — neither state is rot — but for the recheck window: one
+observation costs that URL its whole 30-day rotation, so a publisher's bad
+afternoon buys a month of not knowing. Never for a 4xx: a 429 is in
+`WALLED_CODES` and retrying it would be answering "slow down" with "no".
+
+### Numbers
+
+| | |
+|---|---|
+| distinct source URLs | 12,970 |
+| in the nightly pass's scope (4 publisher collectors) | 235 — **1.8%** |
+| the other 98.2% | SEC (3,797 + 2,998 + 1,170 + 9) and GOV.UK (4,761), kept by their own publishers |
+| archived now | 72 (48 free + 24 captured), 69 pending, 0 unavailable |
+| free-pass hit rate, publisher tail | 48/141 = **34%** (17:12Z), 24/164 = **15%** (02:02Z) |
+| checked now | 150/12,970, 0 rotted, 1 `error` (a 454 from techsavvy.media) |
+| publisher-tail growth | 34 -> 78 -> 123 distinct URLs/day |
+| model spend added | **$0.00** — asserted in two test files |
+
+**What the cap costs, stated where the number is printed.** `1.8%` is the
+ceiling this schedule can reach, so the `[2c]` coverage percentage will climb to
+roughly there and stop. That is not a stall, and `ops_status.py` now says so on
+the line below the percentage, with the scope read out of the workflow rather
+than hard-coded. Separately: at 40 captures/night against ~123 new tail URLs/day
+the nightly budget does **not** keep up with ingest, and raising `spn_max` makes
+it worse, not better. Widening the collector default is the lever; the budget
+is not.
+
+`link_check` at 150 URLs/week is a **sample, not a sweep** — 7,800 checks/year
+against a corpus that grew 9,347 URLs on 2026-07-28 alone. Left as measured
+rather than retuned; `[2c]` prints `checked N/12,970` so the honesty is on the
+page.
+
+### Also
+
+* `writer_queue.py enqueue --if-absent` (opt-in, so two retractions of two rows
+  never collapse into one). Without it a nightly slot behind a long backfill
+  leaves a ticket per night, each aging past `STUCK_AFTER_HOURS` and reporting
+  the same single fact as "the lock is starved" once a night.
+* The scheduler re-derives its ticket on top of `origin/main` after a rejected
+  push rather than rebasing a JSON diff — the `merge_db` lesson one file along.
+  `--if-absent` re-evaluated against the fresh queue makes that idempotent.
+* It must never contain the string `talent_intel.db`: `test_every_database_writer_shares_one_lock`
+  finds writers by raw-text search and would then demand this workflow join the
+  very group it has to stay out of. Asserted.
+* `staleness.py` leashes: `archive_sources` 2400 -> **54** (two nights plus the
+  queue's worst-case wait), `link_check` 2400 -> **180** (the weekly shape
+  `bse_india` already uses). The 200 both files suggested is eight missed nights
+  for a daily job and only one missed Monday for a weekly one — one number could
+  not be right for both.
+* `ops_status.py [2c]` now derives and prints the arming state, and goes **red**
+  if either writer ever grows a cron.
+
+Suite 1,714 -> 1,782 (+68). One unrelated failure,
+`test_form_d_correction.py::test_the_correction_route_writes_those_two_columns_and_nothing_else`,
+is another agent's uncommitted edit to `wordpress-plugin/.../includes/api.php`:
+a new doc comment containing `normalised_headline` trips that test's substring
+allowlist check on the bare word `headline`. Passes against the committed file;
+left alone, as that file is not this change's.
+
+---
+
 ## 2026-07-30 — the read-through gets its own model, and $5 does not cover it
 
 The owner asked for a frontier model on every read-through inside ~$5/month.

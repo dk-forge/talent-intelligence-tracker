@@ -264,7 +264,7 @@ input. Full detail in TECHLOG "the cost levers" and its 2026-07-30 sequel.
 |---|---|---|
 | 1 | ~~Bounded backfill slices~~ **BUILT 2026-07-29** | `backfill_slices.py`. All four backfills take one measured slice, commit it, and queue the next in the same commit; `timeout-minutes` 350 -> 90, below `LONG_HOLD_MINUTES`. Progress in a committed `data/backfill_state.json`, shown at `ops_status.py [2e]`. Proven live by run 30481065108, which also found the publish-failure gap now fixed. |
 | 2 | ~~Scope breach: layoff 8-Ks stored here~~ **FIXED 2026-07-29** | It was **seven** rows, not four: + Elastic (7% of its workforce), Commerce.com, and Verizon — the row the guard was originally written for. Forward fix is a third arm, `prefilter.filing_reduction_plan`, reading the filing BODY. Backward fix is `correct_layoff_scope.py`. Measured: 3,784 filings re-read, 0 unreadable, 6 announcing a reduction (0.16%). |
-| 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, both DORMANT** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Measured on real stored URLs below. Next step is to arm them, not to build them. |
+| 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, ARMED 2026-07-30** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Scheduled from `schedule-link-hygiene.yml`, which writes a queue ticket — never from a cron in the two writers themselves, which would be evictable. Next step is deploying plugin 1.43.0 so a reader can see a fallback link. |
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
 | 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.47.0** | `/company/{slug}`, measured threshold gate, **714 indexable pages**, every URL verified. Employer keys corrected and the three collisions merged the same day; a moved key's old URL 301s. See the sections below and TECHLOG. Next step is Search Console, not code. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
@@ -388,7 +388,7 @@ is why `collect-structured.yml` commits `data/ats_board_state.json` on
 
 ---
 
-## Link rot and archiving (built 2026-07-29, both DORMANT)
+## Link rot and archiving (built 2026-07-29, armed 2026-07-30)
 
 `link_check.py`, `archive_sources.py`, and the `source_links` table they share.
 Zero cost: no model is called by either, ever.
@@ -459,27 +459,58 @@ European cookie banners. The case it is really for is
 perfectly green. A cited article that quietly becomes a casino is worse than a
 404, because a 404 announces itself.
 
-### Arming them
+### They are armed — from outside their own files (2026-07-30)
 
-Both are dispatch-only with `dry_run` defaulting to true, and both write the
-database, so **queue them, never dispatch them**:
+Both write the database, so both hold the single `talent-collect` lock, so
+**neither may carry a cron of its own.** A scheduled run enters that group as an
+uncoordinated third body and either evicts the pending run or is itself evicted,
+ending `cancelled` with zero jobs, no logs, no annotation, and inputs GitHub
+will not disclose — an orphan a human has to close by hand. There are 15 of
+those in `data/writer_queue.json` from 2026-07-29.
+
+So the schedule lives in **`.github/workflows/schedule-link-hygiene.yml`**, which
+is not a writer and holds no lock. It writes a *ticket*:
+
+| slot | ticket | run |
+|---|---|---|
+| `40 3 * * *` | `archive-sources.yml`, `dry_run=false` | nightly Wayback pass |
+| `30 5 * * 1` | `link-check.yml`, `dry_run=false` | weekly rot sweep, before the 13:00 Monday digest |
+
+`drain-writers.yml` dispatches each ticket only into an EMPTY group, so it cannot
+be evicted; if one somehow is, its inputs are on file and it is re-dispatched
+automatically. The enqueue is `--if-absent`, so a slot firing while a six-hour
+backfill holds the lock waits rather than stacking a ticket per night.
+
+To run one by hand, queue it — never dispatch it:
 
 ```bash
 gh workflow run drain-writers.yml -f enqueue=link-check.yml \
      -f inputs_json='{"dry_run":"false","random":"true","limit":"200"}' \
-     -f reason='first recorded rot measurement'
+     -f reason='ad-hoc rot measurement'
 ```
 
-Arming means uncommenting the cron in the workflow AND tightening
-`link_check` / `archive_sources` in `health_digest.py` `MAX_AGE_HOURS` from 2400
-to 200 in the same commit. A checker that stops running otherwise looks exactly
-like a checker with nothing to report.
+The leashes in `staleness.py` were tightened in the same change (2400h ->
+`archive_sources` 54, `link_check` 180), or a checker that stopped running would
+look exactly like a checker with nothing to report. `ops_status.py [2c]` prints
+the arming state, derived from the workflow files, and goes red if either writer
+ever grows a cron.
 
-**Not yet verified:** the reader-facing fallback link. `archive_url` is now
+**Coverage the schedule can actually reach.** The nightly pass is pointed at the
+publisher tail (`national_press,google_news,gdelt,ats_boards`), which is 235 of
+12,970 distinct source URLs — 1.8%. The other 98.2% are SEC and GOV.UK filings
+whose publishers keep them indefinitely, so 1.8% is this schedule's ceiling and
+not a stall; `[2c]` says so next to the percentage. Widen it by editing the
+collector default in `archive-sources.yml`.
+
+**Verified:** the recording path. Runs 30473757174 (link-check, 17:05Z) and
+30474293718 (archive-sources, 17:12Z) on 2026-07-29 both recorded, merged and
+pushed — commits `f56164e` and `c18288e`. 72 rows now carry an `archive_url`.
+
+**Not yet verified:** the reader-facing fallback link. `archive_url` is
 enrichable end to end (`pipeline/publish.py` -> `tit_enrichable_columns()`) and
 rendered beside the publisher's link in both `shortcodes.php` and
-`dashboard.js`, but plugin **1.43.0 has not been deployed**, and no row carries
-an `archive_url` yet because every archiving run so far was a dry run.
+`dashboard.js`, but plugin **1.43.0 has not been deployed**, so no reader has
+seen one yet.
 
 ---
 
