@@ -194,3 +194,95 @@ def test_run_collect_ranks_without_changing_what_it_stores(monkeypatch):
     assert run_collect.run(dry_run=True, offline=True, run_index=0,
                            limit=None) == 0
     assert seen and seen[0] > 0
+
+
+# --- one country's best story before any country's second --------------------
+#
+# Scoring alone could not do this. It is per-candidate and the shortage is
+# per-COUNTRY: a busy day in one thin country produces forty candidates that all
+# score W_COUNTRY_EMPTY, and forty identical scores in arrival order is forty
+# reads spent on one place while thirty others with one story each wait behind
+# them. Measured shape of the corpus: of the 55 countries that are neither US
+# nor GB the median holds ONE row, so what is scarce is the FIRST row about a
+# place. The round robin says a country's second story never outranks another
+# country's first, reserves nothing, and wastes nothing on a country that is
+# silent today.
+
+def _codes(rows):
+    return [candidate_rank.candidate_country(r) for r in rows]
+
+
+def test_the_round_robin_is_still_only_a_permutation():
+    items = ([item("Acme raises $5M", locale="DE:de") for _ in range(30)]
+             + [item("Beta raises $6M", locale="BR:pt") for _ in range(2)]
+             + [item("Gamma raises $7M", locale="US:en") for _ in range(50)])
+    out = candidate_rank.rank(items, CONTEXT)
+    assert len(out) == len(items)
+    assert sorted(map(id, out)) == sorted(map(id, items))
+
+
+def test_a_busy_country_cannot_take_the_whole_budget():
+    """The measured failure: one country's forty identical scores ate the run."""
+    thirty_de = [item(f"Acme{i} raises ${i}M", locale="DE:de") for i in range(30)]
+    one_each = [item("Beta raises $6M", locale="BR:pt"),
+                item("Gamma raises $7M", locale="KE:en"),
+                item("Delta raises $8M", locale="NL:nl")]
+    out = candidate_rank.rank(thirty_de + one_each, CONTEXT)
+
+    # Every country present is represented inside the first four reads.
+    assert set(_codes(out[:4])) == {"DE", "BR", "KE", "NL"}
+    # And no country appears twice before every country has appeared once.
+    first_four = _codes(out[:4])
+    assert len(set(first_four)) == len(first_four)
+
+
+def test_merit_still_decides_who_goes_first_within_a_pass():
+    """The round robin visits countries in the order their BEST candidate
+    scored, so it reorders the budget without discarding the ranking."""
+    weak = item("Some company said something", locale="US:en")
+    strong = item("Acme Corp raises $71M in Series B", locale="KE:en")
+    out = candidate_rank.rank([weak, strong], CONTEXT)
+    assert out[0] is strong
+
+
+def test_one_country_in_the_whole_run_is_returned_unchanged():
+    items = [item(f"Acme{i} raises ${i}M", locale="US:en") for i in range(10)]
+    ranked = sorted(items, key=lambda i: -candidate_rank.score(i, CONTEXT))
+    assert candidate_rank.rank(items, CONTEXT) == ranked
+
+
+def test_unplaced_candidates_share_one_bucket_and_go_last_in_a_pass():
+    """A story we cannot place is the one least able to answer 'which countries
+    do we cover'. Giving each unplaced candidate its own bucket would hand them
+    a whole pass; giving them none would starve them."""
+    unplaced = [item(f"Acme{i} raises ${i}M") for i in range(5)]
+    placed = [item("Beta raises $6M", locale="KE:en"),
+              item("Gamma raises $7M", locale="BR:pt")]
+    out = candidate_rank.rank(placed + unplaced, CONTEXT)
+
+    assert _codes(out[:3]) == ["KE", "BR", None]
+    assert len([c for c in _codes(out) if c is None]) == 5
+
+
+def test_the_run_log_reports_what_the_round_robin_moved():
+    """A reordering nobody can measure is a reordering that survives achieving
+    nothing."""
+    items = ([item(f"Acme{i} raises ${i}M", locale="DE:de") for i in range(30)]
+             + [item("Beta raises $6M", locale="BR:pt"),
+                item("Gamma raises $7M", locale="KE:en")])
+    note = candidate_rank.explain(items, CONTEXT, top=6)
+    assert "busiest country" in note
+    # Before: the first six reads are six German stories, 100% of the head.
+    # After: Germany takes four of six, because only three countries have
+    # anything today and a round robin reserves nothing for the absent. That
+    # is the honest ceiling on this lever and the number says so out loud.
+    before = int(note.split("(was ")[-1].rstrip("%)"))
+    after = int(note.split("busiest country ")[1].split("%")[0])
+    assert before == 100
+    assert after == 66
+
+
+def test_an_empty_run_and_a_single_candidate_are_safe():
+    assert candidate_rank.rank([], CONTEXT) == []
+    only = [item("Acme raises $5M", locale="DE:de")]
+    assert candidate_rank.rank(only, CONTEXT) == only

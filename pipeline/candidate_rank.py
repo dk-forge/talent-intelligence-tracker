@@ -216,13 +216,67 @@ def score(item: dict, context: Context) -> float:
 def rank(items: list[dict], context: Context) -> list[dict]:
     """The same candidates, in the order the budget should meet them.
 
-    A stable sort on the negated score, so equal candidates keep the order the
-    collector produced and a run where nothing scores behaves precisely as it did
-    before this existed. The return value is a permutation of the input — same
-    objects, same count — and a test asserts it, because the one thing this must
-    never do is change what is eligible.
+    A stable sort on the negated score, then one country's best story before any
+    country's second (see `interleave_by_country`). The return value is a
+    permutation of the input — same objects, same count — and a test asserts it,
+    because the one thing this must never do is change what is eligible.
     """
-    return sorted(items, key=lambda item: -score(item, context))
+    return interleave_by_country(
+        sorted(items, key=lambda item: -score(item, context)), context)
+
+
+def interleave_by_country(ranked: list[dict], context: Context) -> list[dict]:
+    """Every country's best candidate before any country's second.
+
+    WHY A ROUND ROBIN AND NOT A QUOTA OR A FLOOR. The scores above already push
+    thin and empty countries up, and that was not enough, because scoring is
+    per-candidate and the shortage is per-country: a busy news day in one thin
+    country produces forty candidates that all score `W_COUNTRY_EMPTY`, and
+    forty identical scores in arrival order is forty reads spent on one country
+    while thirty others with one story each wait behind them. The measured shape
+    of the corpus is exactly that — of the 55 countries that are neither US nor
+    GB the MEDIAN holds one row — so what is scarce is the FIRST row about a
+    place, and each additional row about the same place is worth much less.
+
+    A quota (n reads reserved per country) was refused: most countries have
+    nothing on most days, so a quota spends the budget on absence. A floor has
+    the same problem in a politer form. A round robin reserves nothing, wastes
+    nothing when a country is silent, and needs no number to tune: it simply
+    says that a country's second story never outranks another country's first.
+
+    Countries are visited in the order their best candidate scored, so merit
+    still decides who goes first within each pass and a run where every
+    candidate shares one country is returned unchanged.
+
+    Candidates carrying no country hint at all share one bucket rather than
+    getting a bucket each, which would hand them a whole pass to themselves.
+    That bucket goes last within a pass: a story we cannot place is exactly the
+    one least able to answer "which countries do we cover".
+
+    A PERMUTATION, like everything else here. It changes when a candidate is
+    read, never whether — a candidate pushed past the cap defers unmarked and
+    comes back on the next run.
+    """
+    if len(ranked) < 2:
+        return list(ranked)
+
+    buckets: dict[str, list[dict]] = {}
+    for item in ranked:
+        buckets.setdefault(candidate_country(item) or "", []).append(item)
+    if len(buckets) < 2:
+        return list(ranked)
+
+    # `ranked` is already sorted, so first-seen order IS best-score order, and
+    # dicts preserve it. The unplaced bucket is moved to the end of the cycle.
+    order = [key for key in buckets if key] + ([""] if "" in buckets else [])
+
+    out: list[dict] = []
+    for round_index in range(max(len(b) for b in buckets.values())):
+        for key in order:
+            bucket = buckets[key]
+            if round_index < len(bucket):
+                out.append(bucket[round_index])
+    return out
 
 
 def explain(items: list[dict], context: Context, *, top: int = 0) -> str:
@@ -245,8 +299,22 @@ def explain(items: list[dict], context: Context, *, top: int = 0) -> str:
     def distinct_countries(rows: list[dict]) -> int:
         return len({candidate_country(row) for row in rows[:cut]} - {None})
 
+    def busiest_share(rows: list[dict]) -> int:
+        """How much of the read budget the single most represented country takes.
+
+        The number the round robin exists to move, and the one the score alone
+        could not: a run can hold candidates from thirty countries and still
+        spend most of its reads on one of them.
+        """
+        head = [candidate_country(row) for row in rows[:cut]]
+        head = [c for c in head if c]
+        if not head:
+            return 0
+        return 100 * max(head.count(c) for c in set(head)) // len(head)
+
     return (f"ranked {len(items)} candidate(s); the first {min(cut, len(items))} "
             f"now hold {empty_countries(ordered)} from countries with no stored "
             f"rows (was {empty_countries(items)}) across "
             f"{distinct_countries(ordered)} countries (was "
-            f"{distinct_countries(items)})")
+            f"{distinct_countries(items)}), busiest country "
+            f"{busiest_share(ordered)}% of them (was {busiest_share(items)}%)")
