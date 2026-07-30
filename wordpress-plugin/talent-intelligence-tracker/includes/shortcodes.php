@@ -394,142 +394,9 @@ function tit_dashboard_shortcode() {
                means. The heading is the design proposal's, kept because it
                names what the reader gets rather than what the section is
                made of. */ ?>
-      <div class="tit-sec">
-        <h3><span class="tit-sec-eyebrow">The Market</span>What the data says</h3>
-        <p>The signals we are seeing, ranked. Click any row to narrow the
-           whole page to it.</p>
-      </div>
-
-      <div class="tit-charts">
-      <div class="tit-chart" id="chart-kind">
-        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
-                 not what the chart is made of. "What kind of update" described
-                 the axis; "What is moving" answers the question they opened the
-                 page with. The rows are buttons because they ARE filters:
-                 dashboard.js routes a click through the same state as the
-                 dropdowns, so the subtitle may promise it. Buttons hold span
-                 children only (phrasing content), never divs. */ ?>
-        <?php tit_chart_head('What is moving', 'Hiring, funding, leadership changes and pay news, ranked by how much of it we are seeing. Click a row to filter.', 'kind'); ?>
-      <div class="tit-pillars">
-        <?php foreach ($by_pillar as $p) :
-            $key = $p['pillar'];
-            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
-          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
-            <span class="tit-pillar-head">
-              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
-              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
-            </span>
-            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
-          </button>
-        <?php endforeach; ?>
-      </div>
-      </div>
-        <div class="tit-chart" id="chart-place">
-          <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in. Click a row to filter.", 'place'); ?>
-          <p class="tit-chart-caveat" id="tit-place-caveat"<?php
-            echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
-            echo esc_html($place_caveat); ?></p>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
-            <?php
-            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
-            foreach ($by_country as $c) : ?>
-              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($c['k']); ?>" aria-pressed="false">
-                <span class="tit-rank-name"><?php echo tit_country_label_html($c['k']); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        </div>
-
-        <div class="tit-chart" id="chart-direction">
-          <?php tit_chart_head('Which way headcount is going', 'What the source itself says: roles being added, roles being cut, or a pay action. Most updates say nothing about headcount, and those are counted as such rather than guessed. Click a row to filter.', 'direction'); ?>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
-            <?php
-            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
-            foreach ($by_direction as $d) : ?>
-              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($d['k']); ?>"
-                      data-dir="<?php echo esc_attr($d['k']); ?>" aria-pressed="false">
-                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
-
-      <!--
-        Money. Three rankings of summed US dollars, built from the same chart
-        card as everything above them, and each one printing what its totals
-        are based on. The coverage line is not decoration: only some rows carry
-        a dollar figure, so a total shown without it would read as the whole
-        market when it is a floor.
-      -->
-      <div class="tit-sec tit-sec--money">
-        <h3><span class="tit-sec-eyebrow">Funding</span>How much money is being raised</h3>
-        <p>Funding rounds added up, in US dollars. Click a row to narrow the
-           whole page to that place or industry.</p>
-      </div>
-
-      <div class="tit-charts tit-charts-money">
-        <?php
-        tit_money_chart(
-            'country', 'Money raised by country',
-            "Totalled where the work sits. When a source names no place, the employer's head office stands in. Click a row to filter.",
-            $money['by_country'], $money, 'country',
-            function ($k) { return tit_country_label_html($k); }, true
-        );
-        tit_money_chart(
-            'city', 'Money raised by city',
-            "The cities where funded employers are hiring. Head office stands in when a source names no city. Click a row to filter.",
-            $money['by_city'], $money, 'city',
-            function ($k) { return $k; }
-        );
-        tit_money_chart(
-            'industry', 'Money raised by industry',
-            'Which industries the money is going into. Click a row to filter.',
-            $money['by_industry'], $money, 'industry',
-            function ($k) use ($industries) { return $industries[$k] ?? $k; }
-        );
-        ?>
-      </div>
-
-
-      <?php
-      /*
-        Quick views, cut back to the ones the at-a-glance matrix cannot express.
-
-        This row used to hold nine chips mixing two different axes: four time
-        periods and four signal types, side by side, with nothing saying that
-        picking "This month" and picking "Hiring up" narrow the page in
-        completely different ways. Since the signal-by-period matrix shipped,
-        every one of those eight is a cell in that matrix, done better: the
-        matrix shows the count BEFORE you click it, and it crosses time with
-        signal instead of making you apply two chips and hope.
-
-        What survives is what the matrix has no axis for. "From Official
-        Filings" is a confidence filter, and the matrix has no confidence
-        dimension. "Biggest Raises" is a SORT, which a matrix cell cannot be at
-        all, and it only became possible when funding_amount_usd gave us a
-        number to sort on (the old display string put $9M above $10B).
-      */
-      $quick_views = array(
-          '' => 'Everything',
-          'confidence=verified' => 'From Official Filings',
-          'funding=1&sort=raised' => 'Biggest Raises',
-      );
-      ?>
-      <?php /* With the charts above rather than below, this is where the
-               machinery begins, and a section marker has to say so or the
-               quick views read as a fourth chart. The id is the jump bar's
-               scroll target on phones. */ ?>
       <div class="tit-sec" id="tit-filter-sec">
-        <h3><span class="tit-sec-eyebrow">Every Update</span>Narrow it down</h3>
-        <p>Everything below here follows the filters, and so do the charts
-           and figures above.</p>
+        <h3>Narrow It Down</h3>
+        <p>Everything below follows these filters, including the charts.</p>
       </div>
 
       <div class="tit-quick" role="group" aria-label="Quick views">
@@ -930,6 +797,136 @@ function tit_dashboard_shortcode() {
         </label>
       </div>
 
+      <div class="tit-sec">
+        <h3>What The Data Says</h3>
+        <p>Click any row to narrow the whole page to it.</p>
+      </div>
+
+      <div class="tit-charts">
+      <div class="tit-chart" id="chart-kind">
+        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
+                 not what the chart is made of. "What kind of update" described
+                 the axis; "What is moving" answers the question they opened the
+                 page with. The rows are buttons because they ARE filters:
+                 dashboard.js routes a click through the same state as the
+                 dropdowns, so the subtitle may promise it. Buttons hold span
+                 children only (phrasing content), never divs. */ ?>
+        <?php tit_chart_head('What is moving', 'Hiring, funding, leadership changes and pay news, ranked by how much of it we are seeing. Click a row to filter.', 'kind'); ?>
+      <div class="tit-pillars">
+        <?php foreach ($by_pillar as $p) :
+            $key = $p['pillar'];
+            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
+          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
+            <span class="tit-pillar-head">
+              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
+              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
+            </span>
+            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
+          </button>
+        <?php endforeach; ?>
+      </div>
+      </div>
+        <div class="tit-chart" id="chart-place">
+          <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in. Click a row to filter.", 'place'); ?>
+          <p class="tit-chart-caveat" id="tit-place-caveat"<?php
+            echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
+            echo esc_html($place_caveat); ?></p>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
+            <?php
+            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
+            foreach ($by_country as $c) : ?>
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($c['k']); ?>" aria-pressed="false">
+                <span class="tit-rank-name"><?php echo tit_country_label_html($c['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <div class="tit-chart" id="chart-direction">
+          <?php tit_chart_head('Which way headcount is going', 'What the source itself says: roles being added, roles being cut, or a pay action. Most updates say nothing about headcount, and those are counted as such rather than guessed. Click a row to filter.', 'direction'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
+            <?php
+            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
+            foreach ($by_direction as $d) : ?>
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($d['k']); ?>"
+                      data-dir="<?php echo esc_attr($d['k']); ?>" aria-pressed="false">
+                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+
+      <!--
+        Money. Three rankings of summed US dollars, built from the same chart
+        card as everything above them, and each one printing what its totals
+        are based on. The coverage line is not decoration: only some rows carry
+        a dollar figure, so a total shown without it would read as the whole
+        market when it is a floor.
+      -->
+      <div class="tit-sec tit-sec--money">
+        <h3>Where The Money Went</h3>
+        <p>Funding rounds added up in US dollars. Click a row to narrow the page.</p>
+      </div>
+
+      <div class="tit-charts tit-charts-money">
+        <?php
+        tit_money_chart(
+            'country', 'Money raised by country',
+            "Totalled where the work sits. When a source names no place, the employer's head office stands in. Click a row to filter.",
+            $money['by_country'], $money, 'country',
+            function ($k) { return tit_country_label_html($k); }, true
+        );
+        tit_money_chart(
+            'city', 'Money raised by city',
+            "The cities where funded employers are hiring. Head office stands in when a source names no city. Click a row to filter.",
+            $money['by_city'], $money, 'city',
+            function ($k) { return $k; }
+        );
+        tit_money_chart(
+            'industry', 'Money raised by industry',
+            'Which industries the money is going into. Click a row to filter.',
+            $money['by_industry'], $money, 'industry',
+            function ($k) use ($industries) { return $industries[$k] ?? $k; }
+        );
+        ?>
+      </div>
+
+
+      <?php
+      /*
+        Quick views, cut back to the ones the at-a-glance matrix cannot express.
+
+        This row used to hold nine chips mixing two different axes: four time
+        periods and four signal types, side by side, with nothing saying that
+        picking "This month" and picking "Hiring up" narrow the page in
+        completely different ways. Since the signal-by-period matrix shipped,
+        every one of those eight is a cell in that matrix, done better: the
+        matrix shows the count BEFORE you click it, and it crosses time with
+        signal instead of making you apply two chips and hope.
+
+        What survives is what the matrix has no axis for. "From Official
+        Filings" is a confidence filter, and the matrix has no confidence
+        dimension. "Biggest Raises" is a SORT, which a matrix cell cannot be at
+        all, and it only became possible when funding_amount_usd gave us a
+        number to sort on (the old display string put $9M above $10B).
+      */
+      $quick_views = array(
+          '' => 'Everything',
+          'confidence=verified' => 'From Official Filings',
+          'funding=1&sort=raised' => 'Biggest Raises',
+      );
+      ?>
+      <?php /* With the charts above rather than below, this is where the
+               machinery begins, and a section marker has to say so or the
+               quick views read as a fourth chart. The id is the jump bar's
+               scroll target on phones. */ ?>
       <div class="tit-table-scroll">
         <table class="tit-table">
           <?php
