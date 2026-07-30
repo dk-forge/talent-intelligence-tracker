@@ -13,6 +13,187 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the read-through gets its own model, and $5 does not cover it
+
+The owner asked for a frontier model on every read-through inside ~$5/month.
+The plumbing is now built for it. **The budget is not met, and the number is
+below** — say $13.61/month, not "about five".
+
+### The diagnosis, which is the whole design
+
+One model call was doing two jobs on ~3,100 input / ~400 output tokens.
+EXTRACTION is pattern-matching: the employer, the amount, the stage, the place
+and the role are all IN the text, and `deepseek/deepseek-chat` lifts them at the
+measured $0.00128 a call. The READ-THROUGH is judgement: what a signal means for
+hiring in a named place is NOT in the text. The quality A/B that `classify.py`
+said had not been run has now been run (`ab_models.py --readthrough`, workflow
+run 30506952969) and deepseek RESTATED the headline where the Claude models
+wrote something a recruiter could act on.
+
+Upgrading the fused call was the obvious move and the expensive one: ~2,476 of
+its ~3,100 input tokens are `SCHEMA_HINT`, so a frontier rate gets paid on the
+storage vocabulary the judgement never reads — **$0.0102 a record, $36.72/month
+at 3,600 records.** So the call is split. Extraction keeps its model and its
+prompt byte for byte; the read-through moves to `TIT_READ_MODEL` (default
+`anthropic/claude-sonnet-5`) with its own small prompt in `pipeline/prompts.py`.
+Per record that is **5.2x cheaper than the naive upgrade**.
+
+`TIT_MODEL` and `TIT_GATE_MODEL` mean exactly what they meant.
+`TIT_READ_MODEL=off` restores the fused behaviour in one line.
+
+### The small prompt, and what it refuses to carry
+
+Measured over all 4,023 current rows from model-path collectors: **median 1,739
+characters, p90 1,819, max 2,028**, of which 1,193 is the stable prefix. The
+teaser is capped at 500 characters because extraction already lifted every field
+we store, so a longer window buys tokens rather than judgement.
+
+Absent on purpose, each for a reason somebody already paid for: `SCHEMA_HINT`
+(the whole saving); `headquarters_city`/`headquarters_country`, which are the
+model's own knowledge of where a company sits and would place an unplaced
+record; and the publisher line, because a writer handed the outlet files every
+story in the outlet's home town.
+
+### The rules still bind, three ways
+
+STRUCTURALLY — the writer sees the headline, a teaser and the extracted facts, so
+it has nothing to invent a place from but its own memory. DETERMINISTICALLY —
+every figure and every gazetteer place in the returned sentence is checked
+against the source text and the extracted fields, with word multipliers folded
+so "$71M" and "71 million" are one figure rather than a false refusal, and with
+place frames read rather than bare names so "Reading the announcement" and
+"reports to Charlotte Jones" are not place claims. BY PROMPT for claim-level
+grounding, which no regex can check and which is labelled as prompt-enforced
+rather than claimed as verified. Confidence needs no new guard: the call returns
+exactly one key, so there is no tier for it to promote, and `infer_confidence`
+still caps on the source host. `validate` is untouched — it still discards any
+record whose figures are not verbatim in `raw_text`.
+
+### Failure handling: the whole record defers
+
+Extraction succeeding while interpretation fails **defers the whole record**
+(`ReadThroughUnavailable`, a `Throttled`). Storing a blank was refused because
+the guard that would have to be weakened — `validate` requiring a non-empty
+`talent_readthrough` — is precisely the one keeping blank differentiators off
+the page.
+
+A deferred record is not lost (its URL is deliberately not marked seen, so the
+next run retries it inside a recency window measured in days), not silent (the
+DEFER line names the reason, `STATS` counts `read_unavailable` and
+`read_ungrounded` apart, the run log prints both beside the model that wrote the
+prose, and the health row's `detail` carries them), and not free — the extraction
+call was already paid for, and `read_unavailable` beside `full_calls` is where
+that waste shows up. Because these deferrals feed `mostly_throttled`, a run
+where interpretation is broken throughout reports `degraded` and `ops_status`
+exits 2 for a human.
+
+### The batch API: half price, a day late, flag off
+
+OpenRouter runs an asynchronous batch API (`POST /api/beta/batches`) and prices
+the batch variant at exactly half the sync rate — read off its own `/models`
+endpoint, not assumed: `anthropic/claude-sonnet-5` is $2.00/$10.00 per M today
+and `anthropic/claude-sonnet-5:batch` is $1.00/$5.00. Going through OpenRouter
+rather than Anthropic directly is what makes it maintainable: same key, same 402
+handling, same usage accounting, so `spend.py` still sees every cent.
+
+The completion window is 24h, so **batching breaks same-run publishing**: one run
+submits, a later run collects, and at twice-daily collection a story reaches the
+page 12-24h after it was read. Nothing is lost; freshness is the price, and
+freshness is what this product sells. Hence `TIT_READ_BATCH` defaults to off.
+The flag adds two calls outside the candidate loop and changes nothing inside it.
+One asymmetry worth knowing: a batch's cost lands on the health row of the run
+that HARVESTED it, not the one that submitted it.
+
+### Caching: nothing is claimed
+
+The stable prefix is 1,193 characters, ~272 tokens. Sonnet 5's minimum cacheable
+prefix is 1,024 tokens and Haiku 4.5's is 4,096, so **this prompt does not cache
+and no saving is claimed for it.** A prefix under the floor does not error, it
+silently does not cache — which is exactly how a saving gets claimed that was
+never possible. The item text still goes last so the shape is right if the
+prompt ever grows past the floor.
+
+### The measurement table
+
+Prices are live from OpenRouter's `/models` endpoint (2026-07-30). Token counts
+are **derived, not provider-reported**: there is no `OPENROUTER_API_KEY` in the
+session that built this, so no call was made and no `usage` block was read. The
+character counts are exact; tokens come from this repo's own calibration
+(`SCHEMA_HINT` = 10,877 chars = 2,476 tokens = 4.393 chars/token) with a 1.3x
+pessimistic multiplier for Claude's heavier tokenizer. **538 in / 90 out** is
+therefore a conservative projection of a p90 prompt, and the conclusion below
+does not change at the un-multiplied 414 tokens either.
+
+| read-through | $/read | $/month @3,600 | all-in @1,800 | all-in @3,600 |
+|---|---|---|---|---|
+| `deepseek/deepseek-chat` (fused, today) | — | — | $4.19 | $6.50 |
+| `claude-sonnet-5` sync **(shipped default)** | $0.001976 | $7.11 | $7.75 | **$13.61** |
+| `claude-sonnet-5:batch` | $0.000988 | $3.56 | $5.97 | $10.05 |
+| `claude-haiku-4.5` sync | $0.000988 | $3.56 | $5.97 | $10.05 |
+| `claude-haiku-4.5:batch` | $0.000494 | $1.78 | $5.08 | $8.28 |
+
+All-in = gate + extraction + read-through, on the repo's own measured per-item
+figures (gate $0.00003 x 1,050 screened/run x 60 runs = $1.89/month; extraction
+$0.00128 x reads). Sonnet 5 is on introductory pricing until 2026-08-31; at the
+standard $3/$15 the shipped default becomes $0.002964/read, $10.67/month at
+3,600.
+
+### $5 is not reached, and the honest number
+
+**At 3,600 reads/month nothing lands under $5 — not even the read-through we
+already had.** Gate plus extraction alone are $6.50 before a single
+interpretation is bought. The frontier read-through is not what breaks the
+budget; the budget was already broken at that read volume.
+
+What $5 all-in actually buys, holding gate and extraction at their measured
+prices:
+
+| read-through | reads/month within $5 | per run |
+|---|---|---|
+| `deepseek` (fused, today) | 2,430 | 40 |
+| `claude-sonnet-5` sync | 955 | 16 |
+| `claude-sonnet-5:batch` | 1,371 | 23 |
+| `claude-haiku-4.5:batch` | 1,753 | 29 |
+
+Measured steady demand is 30-60 reads/run. So the shipped default fits $5 at
+roughly half the low end of demand.
+
+**The smallest further lever, and it is not the model.** Extraction is the
+largest single line ($4.61/month at 3,600) and 2,476 of its 3,100 input tokens
+are a byte-stable prefix that DeepSeek bills at 0.1x on a cache hit. The last
+real run measured only 60% of prompt tokens served from cache (131k of 216k),
+because OpenRouter routes a model across providers and a prefix scattered across
+providers does not hit. Pinning that routing takes extraction from $0.00128 to
+~$0.00049 a call — **-$2.84/month at 3,600 reads, at zero cost to coverage or
+quality.** It still does not reach $5 with a frontier read-through; it is simply
+the cheapest $2.84 available, and it should be spent before read volume is cut.
+
+### `spend.py`: the allowance the owner would need
+
+`MONTHLY_ALLOWANCE_USD` is left at 10.0 and `STOP_AT_FRACTION` at 0.9 — the
+budget is policy and belongs to the owner. What the number would need to be:
+
+| configuration | projected | allowance to set |
+|---|---|---|
+| shipped default, 30 reads/run | $7.75 | **$9** |
+| shipped default, 60 reads/run | $13.61 | **$16** |
+| `TIT_READ_BATCH=1`, 60 reads/run | $10.05 | **$12** |
+| Haiku 4.5 batched, 60 reads/run | $8.28 | **$10** |
+
+The allowance has to exceed the projection by 1/0.9, because the guard stops
+collection at 90% of it. At today's $10 the shipped default would hard-stop
+mid-month at 60 reads/run — which is the guard working, not failing.
+
+### What was refused
+
+The extraction prompt was not touched. The read-through was not allowed to see
+the employer's headquarters or the publisher. No saving was claimed for prompt
+caching. The batch path was not made the default, and its 24-hour latency is
+printed by the run rather than buried in a comment. And $5 was not reported as
+met by rounding a $13.61 projection down to a target.
+
+---
+
 ## 2026-07-30 — the city gap: 93.8% of rows had no place, and the vocabulary was why
 
 Measured, read-only, before anything was written: 969 of 15,711 current rows
