@@ -13,6 +13,121 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the city gap: 93.8% of rows had no place, and the vocabulary was why
+
+Measured, read-only, before anything was written: 969 of 15,711 current rows
+carried a city, in 25 distinct cities. The assumption going in was that the
+extractor was not lifting the city out of the text. The measurement says the
+ceiling was one layer lower.
+
+### What was actually broken
+
+`normalize_city` knew 45 aliases across 26 markets. The house rule is
+"normalise through a fixed vocabulary or be dropped", so Tel Aviv, Dubai, Sao
+Paulo, Seoul, Lagos, Nairobi and Jakarta were places the product could not
+report **even when a source stated them plainly**. Nothing errored; the column
+came out NULL and the page said "location not stated". The gazetteer now holds
+418 aliases -> 338 cities across 105 countries, with three invariants pinned by
+tests: one region per country (`validate._region_for_country` scans the table,
+so a disagreement is a dictionary-order accident), every country code nameable,
+and no city name in two countries.
+
+That last rule is the interesting one. Cambridge, Birmingham, Newcastle and San
+Jose are **deliberately absent bare** and reachable only as "Cambridge, MA" /
+"Cambridge, UK", because a bare "Cambridge-based" cannot be placed without
+inventing a country. Same-country collisions (Portland OR/ME, Columbus OH/GA)
+are in — the country is right either way — and stay out of `_CITY_STATE`, where
+guessing between them would be visibly wrong. `vocab.place_qualifier_country`
+reads the source's own qualifier, which is what makes "London, Ontario" stop
+being London.
+
+### The scanner, and the rule it had to be taught first
+
+`cheap_extract.stated_city()` reads six phrasings that name a place outright:
+`<City>-based`, `based in <City>`, `headquartered in <City>`,
+`<City>-headquartered`, `opens a <City> office`, `its <City> office`. It fills a
+NULL city on the funding, hiring and leadership closers, never overrides one,
+and never overrides a country the prefix already sourced.
+
+`national_press.dateline()` folds the PUBLISHER's seat into `raw_text` on
+purpose, in the exact shape `(Outlet: The Recursive, based in Sofia, Bulgaria —
+a hint, not a stated fact.)`. A scanner reading that would file every story a
+Sofia outlet carried in Sofia and turn a sourced claim into an invented one.
+Hint spans are blanked before anything reads them, offsets preserved so the
+story's own "based in" still lines up. Same for `classify`'s "Published by:"
+line. Both pinned.
+
+The funding sweep's four tightenings, translated: a place INSIDE a name
+declines ("Berlin Packaging-based" resolves to nothing because "Packaging" is
+what touches the hyphen); `-based` is not a place frame (AI-based, cloud-based,
+faith-based, US-based, Israeli-based); a contradicted qualifier declines
+(Dublin/Ohio, Melbourne/Florida, Athens/Georgia, Manchester/New Hampshire,
+Perth/Scotland are all real and all would have been wrong); and a city
+belonging to someone else is skipped, not stored ("led by London-based Index"
+states London about the INVESTOR), while two different cities decline outright.
+
+### The read-through prompt
+
+The `city` field now states the no-inference rule explicitly and names
+`headquarters_city` as the place for anything the model merely knows.
+SCHEMA_HINT goes 2,436 -> 2,476 tokens, **+40 (1.6%)**, prefix shape untouched
+(byte-stable prefix, item text last — lever 4 below). At the measured
+$0.00128 / 3,100-token read that is +$0.0000165 per read: +$0.06/month at 60
+reads a run, +$0.20/month at the 200 cap.
+
+### The backfill number, and why it is small
+
+`measure_city_placement.py` runs the scanner over the committed database
+read-only. **7 rows**, adding Munich, Palo Alto, Rome, Sao Paulo and Vilnius.
+Not 3,000.
+
+The reason is worth writing down because it changes what a backfill can be:
+**`raw_text` is not persisted.** The pipeline reads headline + teaser,
+classifies, and stores the RESULT. What survives is `headline`, `summary` and
+`talent_readthrough`, so the sentence that carried the place is usually gone.
+And the 14,742 unplaced rows are not news: 4,761 uk_paygap, 3,910
+sec_execcomp, 3,476 sec_edgar, 2,363 sec_form_d_bulk, against 226 from every
+news collector combined. Those filings never contained an English "X-based"
+sentence to lift.
+
+A third pass including `talent_readthrough` finds 17 rows and is **printed with
+a refusal beside it**. Its matches read "the Houston-based food and beverage
+giant" and "a real estate firm based in San Francisco" — the model's own
+knowledge of where Sysco and Prologis are, not anything the 8-K said. Storing
+those would be exactly the inference this product may not make, so the script
+labels the pass NOT SOURCED and excludes it from the total.
+
+Precision check against the 969 rows a model already placed: 1 agreement, 1
+disagreement, 967 declines. The disagreement is instructive — "Ramp fully
+launches in Canada alongside new Toronto office" stored Toronto (where the
+roles are) while the scanner read "New York-based Ramp" (where the company is).
+`extract()` already declines any item `prefilter.site_event_term` fires on, so
+that class cannot reach storage through the cheap path; the standalone helper
+says so in its docstring.
+
+### The bug the measurement found on the way
+
+`ats_boards.place_key` split a location on commas and tried every part as a
+country, so a two-letter US state code resolved to whichever country shares it:
+"Peoria, IL" -> Israel, "San Jose, CA" -> Canada, "Cambridge, MA" -> Morocco,
+"Boise, ID" -> Indonesia, "Wilmington, DE" -> Germany. Fixed by trying the
+WHOLE string before splitting (so the board's own "London, Ontario" survives),
+by reading a two-letter state as a state, and by falling back to the country
+when a qualifier contradicts the city ("Paris, TX" is not Paris). 10,357 of the
+17,956 postings in the committed board state currently carry a country key
+rather than a city; the next boards run is where that becomes visible.
+
+### What was refused
+
+Nothing infers a place. The outlet's base is never written to a record; a
+country never implies a city; a company's known headquarters stays in the
+separate `hq_*` columns and is never merged into `city`. The read-through pass
+above was measured and left unstored for that reason, and the two legacy
+Toronto/US rows were left alone — a correction is `store.revise()` work the
+owner queues, not something a vocabulary change should do silently.
+
+---
+
 ## 2026-07-30 — cost levers, second pass: every qualified candidate gets read
 
 The first pass (below, "the cost levers") made looking cheap; this one makes
