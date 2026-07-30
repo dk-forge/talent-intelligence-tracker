@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T21:20:35Z",
-  "last_tick": "2026-07-30T21:40:13Z",
+  "last_dispatch": "2026-07-30T21:49:43Z",
+  "last_tick": "2026-07-30T21:49:43Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,46 +159,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-30T21:20:35Z",
-      "history": [
-        {
-          "at": "2026-07-30T19:15:40Z",
-          "detail": "2026 registry backfill, $0 model spend: companies_house",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T21:20:35Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-30T21:31:18Z",
-          "detail": "run 30583000986",
-          "event": "bound"
-        }
-      ],
-      "id": "20260730T191540Z-backfill-structured-2026",
-      "inputs": {
-        "end": "2026-07-30",
-        "source": "companies_house",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "2026 registry backfill, $0 model spend: companies_house",
-      "requested_at": "2026-07-30T19:15:40Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30583000986",
-      "state": "dispatched",
-      "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T21:49:43Z",
       "history": [
         {
           "at": "2026-07-30T19:16:04Z",
           "detail": "2026 Google News history walk, $3.02 total, multilingual reach GDELT cannot give",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T191604Z-backfill-gnews-2026",
@@ -211,7 +182,7 @@
       "requested_at": "2026-07-30T19:16:04Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -297,44 +268,26 @@
       "dispatched_at": null,
       "history": [
         {
-          "at": "2026-07-30T21:31:07Z",
-          "detail": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
+          "at": "2026-07-30T21:47:25Z",
+          "detail": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 1)",
           "event": "queued"
         }
       ],
-      "id": "20260730T213107Z-correct-funding-amount",
+      "id": "20260730T214725Z-backfill-structured-2026",
       "inputs": {
-        "dry_run": "false"
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "companies_house",
+        "start": "2026-01-01"
       },
-      "priority": 0,
-      "reason": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
-      "requested_at": "2026-07-30T21:31:07Z",
-      "requested_by": "dakotta-labs",
+      "priority": 10,
+      "reason": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 1)",
+      "requested_at": "2026-07-30T21:47:25Z",
+      "requested_by": "backfill-slices",
       "run_id": null,
       "state": "queued",
-      "workflow": "correct-funding-amount.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
-      "history": [
-        {
-          "at": "2026-07-30T21:38:37Z",
-          "detail": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
-          "event": "queued"
-        }
-      ],
-      "id": "20260730T213837Z-correct-funding-amount",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
-      "requested_at": "2026-07-30T21:38:37Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "queued",
-      "workflow": "correct-funding-amount.yml"
+      "workflow": "backfill-structured-2026.yml"
     },
     {
       "attempts": 0,
@@ -1410,6 +1363,46 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": "2026-07-30T21:20:35Z",
+      "history": [
+        {
+          "at": "2026-07-30T19:15:40Z",
+          "detail": "2026 registry backfill, $0 model spend: companies_house",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:20:35Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T21:31:18Z",
+          "detail": "run 30583000986",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T21:47:57Z",
+          "detail": "run 30583000986",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T191540Z-backfill-structured-2026",
+      "inputs": {
+        "end": "2026-07-30",
+        "source": "companies_house",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-07-30T21:47:57Z",
+      "priority": 10,
+      "reason": "2026 registry backfill, $0 model spend: companies_house",
+      "requested_at": "2026-07-30T19:15:40Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30583000986",
+      "state": "landed",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-30T20:13:53Z",
       "history": [
         {
@@ -1446,6 +1439,82 @@
       "run_id": "30578267966",
       "state": "landed",
       "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T21:47:57Z",
+      "history": [
+        {
+          "at": "2026-07-30T21:31:07Z",
+          "detail": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:47:57Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T21:48:32Z",
+          "detail": "run 30584803623",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T21:49:06Z",
+          "detail": "run 30584803623",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T213107Z-correct-funding-amount",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-30T21:49:06Z",
+      "priority": 0,
+      "reason": "re-derive funding_amount_usd after the milyon/mi/dot parser fixes",
+      "requested_at": "2026-07-30T21:31:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30584803623",
+      "state": "landed",
+      "workflow": "correct-funding-amount.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T21:49:06Z",
+      "history": [
+        {
+          "at": "2026-07-30T21:38:37Z",
+          "detail": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:49:06Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "run 30584878032",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T21:49:43Z",
+          "detail": "run 30584878032",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T213837Z-correct-funding-amount",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-30T21:49:43Z",
+      "priority": 0,
+      "reason": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
+      "requested_at": "2026-07-30T21:38:37Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30584878032",
+      "state": "landed",
+      "workflow": "correct-funding-amount.yml"
     }
   ],
   "version": 1
