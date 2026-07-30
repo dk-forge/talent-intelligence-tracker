@@ -262,9 +262,32 @@ US_STATES = {
 
 # Cities we already curate that imply a state, so a US signal naming only the
 # city still lands in the state filter.
+#
+# One city, one state, or it does not belong here. Portland (Oregon and Maine),
+# Columbus (Ohio and Georgia) and Kansas City (Missouri and Kansas) are in the
+# city gazetteer — their COUNTRY is unambiguous — and deliberately absent from
+# this table, because the state facet is the one place where guessing between
+# them would be visibly wrong.
 _CITY_STATE = {
     "San Francisco": "CA", "New York": "NY", "Seattle": "WA",
     "Austin": "TX", "Boston": "MA",
+    "Los Angeles": "CA", "San Diego": "CA", "Palo Alto": "CA",
+    "Mountain View": "CA", "Menlo Park": "CA", "Sunnyvale": "CA",
+    "Santa Clara": "CA", "Cupertino": "CA", "Oakland": "CA",
+    "San Jose CA": "CA", "Sacramento": "CA",
+    "Redmond": "WA", "Bellevue": "WA",
+    "Chicago": "IL", "Denver": "CO", "Boulder": "CO",
+    "Atlanta": "GA", "Miami": "FL", "Tampa": "FL", "Orlando": "FL",
+    "Dallas": "TX", "Fort Worth": "TX", "Houston": "TX", "San Antonio": "TX",
+    "Phoenix": "AZ", "Tempe": "AZ",
+    "Philadelphia": "PA", "Pittsburgh": "PA",
+    "Minneapolis": "MN", "Detroit": "MI", "Ann Arbor": "MI",
+    "Nashville": "TN", "Raleigh": "NC", "Durham": "NC", "Charlotte": "NC",
+    "Cleveland": "OH", "Cincinnati": "OH", "Indianapolis": "IN",
+    "Milwaukee": "WI", "Madison": "WI",
+    "St. Louis": "MO", "Salt Lake City": "UT", "Provo": "UT",
+    "Las Vegas": "NV", "Baltimore": "MD", "New Orleans": "LA",
+    "Cambridge MA": "MA", "Birmingham AL": "AL", "Washington DC": "DC",
 }
 
 
@@ -372,6 +395,475 @@ _CITY_ALIASES.update({
     "bengaluru urban": ("Bangalore", "Asia", "IN"),
     "city of toronto": ("Toronto", "North America", "CA"),
 })
+
+# --- The hub gazetteer -------------------------------------------------------
+#
+# WHY THIS BLOCK EXISTS. Measured 2026-07-29: 969 of 15,711 current rows
+# carried a city, in 25 distinct cities, and the world's other startup hubs —
+# Tel Aviv, Dubai, Sao Paulo, Seoul, Lagos, Nairobi, Jakarta — could not be
+# stored at all, because "normalise through a fixed vocabulary or be dropped"
+# means a place absent from THIS table is a place the product cannot report
+# even when a source states it plainly. The 45 entries above were the ceiling
+# on city coverage, not the extractor.
+#
+# It is still a fixed vocabulary and it still refuses everything not in it.
+# What changed is the defensible extent: the hubs a hiring-side reader expects
+# to filter by, each with the country a story about it belongs to.
+#
+# THREE RULES THIS TABLE KEEPS, and a test pins each:
+#
+# 1. ONE REGION PER COUNTRY. `validate._region_for_country` finds a region by
+#    scanning these values for the first city with a matching code, so two
+#    cities in one country disagreeing about their region would make the
+#    region a dictionary-order accident.
+# 2. EVERY CODE IS A COUNTRY WE CAN NAME. A code missing from COUNTRY_NAMES
+#    stores a city whose country label renders empty.
+# 3. NO CITY NAME BELONGS TO TWO COUNTRIES. This is why Cambridge (England and
+#    Massachusetts), Birmingham (England and Alabama), Newcastle (England and
+#    New South Wales) and San Jose (California and Costa Rica) are deliberately
+#    ABSENT: a bare "Cambridge-based" cannot be placed without guessing, and
+#    guessing a country is the one thing this product may never do. They are
+#    reachable only in their qualified spellings below, where the source itself
+#    resolved the ambiguity. Same-country collisions (Portland OR/ME,
+#    Columbus OH/GA) are fine — the country is right either way — so those
+#    cities are here but deliberately not in _CITY_STATE.
+#
+# Also deliberately absent: city names that are ordinary English words a
+# headline uses as words (Reading, Bath, Mobile, Nice, Orange). The cost of
+# admitting one is a company called Reading declining as "that is a place" in
+# cheap_extract._valid_name, for a market we have never had a row from.
+_CITY_ALIASES.update({
+    # -- North America ------------------------------------------------------
+    "chicago": ("Chicago", "North America", "US"),
+    "los angeles": ("Los Angeles", "North America", "US"),
+    # No bare "LA". Two letters is not enough to be a place: "La Jolla", "la
+    # ciudad" and "La Poste" all start with it, and the gazetteer is read by a
+    # scanner that only knows what it matched.
+    "san diego": ("San Diego", "North America", "US"),
+    "palo alto": ("Palo Alto", "North America", "US"),
+    "mountain view": ("Mountain View", "North America", "US"),
+    "menlo park": ("Menlo Park", "North America", "US"),
+    "sunnyvale": ("Sunnyvale", "North America", "US"),
+    "santa clara": ("Santa Clara", "North America", "US"),
+    "cupertino": ("Cupertino", "North America", "US"),
+    "oakland": ("Oakland", "North America", "US"),
+    "redmond": ("Redmond", "North America", "US"),
+    "bellevue": ("Bellevue", "North America", "US"),
+    "denver": ("Denver", "North America", "US"),
+    "boulder": ("Boulder", "North America", "US"),
+    "atlanta": ("Atlanta", "North America", "US"),
+    "miami": ("Miami", "North America", "US"),
+    "dallas": ("Dallas", "North America", "US"),
+    "fort worth": ("Fort Worth", "North America", "US"),
+    "houston": ("Houston", "North America", "US"),
+    "san antonio": ("San Antonio", "North America", "US"),
+    "phoenix": ("Phoenix", "North America", "US"),
+    "tempe": ("Tempe", "North America", "US"),
+    "philadelphia": ("Philadelphia", "North America", "US"),
+    "pittsburgh": ("Pittsburgh", "North America", "US"),
+    "portland": ("Portland", "North America", "US"),
+    "minneapolis": ("Minneapolis", "North America", "US"),
+    "detroit": ("Detroit", "North America", "US"),
+    "ann arbor": ("Ann Arbor", "North America", "US"),
+    "nashville": ("Nashville", "North America", "US"),
+    "raleigh": ("Raleigh", "North America", "US"),
+    "durham": ("Durham", "North America", "US"),
+    "charlotte": ("Charlotte", "North America", "US"),
+    "columbus": ("Columbus", "North America", "US"),
+    "cleveland": ("Cleveland", "North America", "US"),
+    "cincinnati": ("Cincinnati", "North America", "US"),
+    "indianapolis": ("Indianapolis", "North America", "US"),
+    "milwaukee": ("Milwaukee", "North America", "US"),
+    "madison": ("Madison", "North America", "US"),
+    "kansas city": ("Kansas City", "North America", "US"),
+    "st. louis": ("St. Louis", "North America", "US"),
+    "st louis": ("St. Louis", "North America", "US"),
+    "saint louis": ("St. Louis", "North America", "US"),
+    "salt lake city": ("Salt Lake City", "North America", "US"),
+    "provo": ("Provo", "North America", "US"),
+    "las vegas": ("Las Vegas", "North America", "US"),
+    "sacramento": ("Sacramento", "North America", "US"),
+    "baltimore": ("Baltimore", "North America", "US"),
+    "tampa": ("Tampa", "North America", "US"),
+    "orlando": ("Orlando", "North America", "US"),
+    "new orleans": ("New Orleans", "North America", "US"),
+    "san juan": ("San Juan", "North America", "US"),
+    # Washington DC only in its qualified spellings: a bare "Washington" is as
+    # often the state as the capital, and the state is not a city.
+    "washington dc": ("Washington DC", "North America", "US"),
+    "washington d.c.": ("Washington DC", "North America", "US"),
+    "washington, dc": ("Washington DC", "North America", "US"),
+    "washington, d.c.": ("Washington DC", "North America", "US"),
+    # The four names that belong to two countries, admitted ONLY where the
+    # source spelled out which one it meant (rule 3 above).
+    # Their display names are qualified too, and are alias keys in their own
+    # right: a value we STORE has to read back as itself, or the column cannot
+    # be re-normalised and `identity` cannot resolve an HQ it already wrote.
+    # That is also why the US San Jose displays as "San Jose CA" — a bare "San
+    # Jose" must keep meaning "we will not guess which one".
+    "cambridge, ma": ("Cambridge MA", "North America", "US"),
+    "cambridge ma": ("Cambridge MA", "North America", "US"),
+    "cambridge, massachusetts": ("Cambridge MA", "North America", "US"),
+    "cambridge, uk": ("Cambridge UK", "Europe", "GB"),
+    "cambridge uk": ("Cambridge UK", "Europe", "GB"),
+    "cambridge, england": ("Cambridge UK", "Europe", "GB"),
+    "birmingham, al": ("Birmingham AL", "North America", "US"),
+    "birmingham al": ("Birmingham AL", "North America", "US"),
+    "birmingham, alabama": ("Birmingham AL", "North America", "US"),
+    "birmingham, uk": ("Birmingham UK", "Europe", "GB"),
+    "birmingham uk": ("Birmingham UK", "Europe", "GB"),
+    "birmingham, england": ("Birmingham UK", "Europe", "GB"),
+    "san jose, ca": ("San Jose CA", "North America", "US"),
+    "san jose ca": ("San Jose CA", "North America", "US"),
+    "san jose, california": ("San Jose CA", "North America", "US"),
+    "london, ontario": ("London, Ontario", "North America", "CA"),
+    "vancouver": ("Vancouver", "North America", "CA"),
+    "montreal": ("Montreal", "North America", "CA"),
+    "montréal": ("Montreal", "North America", "CA"),
+    "ottawa": ("Ottawa", "North America", "CA"),
+    "calgary": ("Calgary", "North America", "CA"),
+    "edmonton": ("Edmonton", "North America", "CA"),
+    "waterloo": ("Waterloo", "North America", "CA"),
+    "kitchener": ("Kitchener", "North America", "CA"),
+    "halifax": ("Halifax", "North America", "CA"),
+    "quebec city": ("Quebec City", "North America", "CA"),
+    "winnipeg": ("Winnipeg", "North America", "CA"),
+    # -- Latin America ------------------------------------------------------
+    "mexico city": ("Mexico City", "Latin America", "MX"),
+    "ciudad de méxico": ("Mexico City", "Latin America", "MX"),
+    "ciudad de mexico": ("Mexico City", "Latin America", "MX"),
+    "cdmx": ("Mexico City", "Latin America", "MX"),
+    "guadalajara": ("Guadalajara", "Latin America", "MX"),
+    "monterrey": ("Monterrey", "Latin America", "MX"),
+    "sao paulo": ("Sao Paulo", "Latin America", "BR"),
+    "são paulo": ("Sao Paulo", "Latin America", "BR"),
+    "rio de janeiro": ("Rio de Janeiro", "Latin America", "BR"),
+    "belo horizonte": ("Belo Horizonte", "Latin America", "BR"),
+    "florianopolis": ("Florianopolis", "Latin America", "BR"),
+    "florianópolis": ("Florianopolis", "Latin America", "BR"),
+    "buenos aires": ("Buenos Aires", "Latin America", "AR"),
+    "cordoba": ("Cordoba", "Latin America", "AR"),
+    "córdoba": ("Cordoba", "Latin America", "AR"),
+    "santiago": ("Santiago", "Latin America", "CL"),
+    "bogota": ("Bogota", "Latin America", "CO"),
+    "bogotá": ("Bogota", "Latin America", "CO"),
+    "medellin": ("Medellin", "Latin America", "CO"),
+    "medellín": ("Medellin", "Latin America", "CO"),
+    "lima": ("Lima", "Latin America", "PE"),
+    "montevideo": ("Montevideo", "Latin America", "UY"),
+    "san jose, costa rica": ("San Jose, Costa Rica", "Latin America", "CR"),
+    "panama city": ("Panama City", "Latin America", "PA"),
+    "quito": ("Quito", "Latin America", "EC"),
+    "guayaquil": ("Guayaquil", "Latin America", "EC"),
+    "santo domingo": ("Santo Domingo", "Latin America", "DO"),
+    "guatemala city": ("Guatemala City", "Latin America", "GT"),
+    # -- Europe -------------------------------------------------------------
+    "bristol": ("Bristol", "Europe", "GB"),
+    "leeds": ("Leeds", "Europe", "GB"),
+    "glasgow": ("Glasgow", "Europe", "GB"),
+    "cardiff": ("Cardiff", "Europe", "GB"),
+    "sheffield": ("Sheffield", "Europe", "GB"),
+    "nottingham": ("Nottingham", "Europe", "GB"),
+    "liverpool": ("Liverpool", "Europe", "GB"),
+    "oxford": ("Oxford", "Europe", "GB"),
+    "brighton": ("Brighton", "Europe", "GB"),
+    "bologna": ("Bologna", "Europe", "IT"),
+    "rome": ("Rome", "Europe", "IT"),
+    "roma": ("Rome", "Europe", "IT"),
+    "turin": ("Turin", "Europe", "IT"),
+    "torino": ("Turin", "Europe", "IT"),
+    "naples": ("Naples", "Europe", "IT"),
+    "florence": ("Florence", "Europe", "IT"),
+    "firenze": ("Florence", "Europe", "IT"),
+    "cologne": ("Cologne", "Europe", "DE"),
+    "köln": ("Cologne", "Europe", "DE"),
+    "koln": ("Cologne", "Europe", "DE"),
+    "dusseldorf": ("Dusseldorf", "Europe", "DE"),
+    "düsseldorf": ("Dusseldorf", "Europe", "DE"),
+    "stuttgart": ("Stuttgart", "Europe", "DE"),
+    "leipzig": ("Leipzig", "Europe", "DE"),
+    "dresden": ("Dresden", "Europe", "DE"),
+    "karlsruhe": ("Karlsruhe", "Europe", "DE"),
+    "nuremberg": ("Nuremberg", "Europe", "DE"),
+    "nürnberg": ("Nuremberg", "Europe", "DE"),
+    "bonn": ("Bonn", "Europe", "DE"),
+    "hanover": ("Hanover", "Europe", "DE"),
+    "hannover": ("Hanover", "Europe", "DE"),
+    "bremen": ("Bremen", "Europe", "DE"),
+    "vienna": ("Vienna", "Europe", "AT"),
+    "wien": ("Vienna", "Europe", "AT"),
+    "graz": ("Graz", "Europe", "AT"),
+    "linz": ("Linz", "Europe", "AT"),
+    "geneva": ("Geneva", "Europe", "CH"),
+    "genève": ("Geneva", "Europe", "CH"),
+    "basel": ("Basel", "Europe", "CH"),
+    "lausanne": ("Lausanne", "Europe", "CH"),
+    "bern": ("Bern", "Europe", "CH"),
+    "the hague": ("The Hague", "Europe", "NL"),
+    "den haag": ("The Hague", "Europe", "NL"),
+    "utrecht": ("Utrecht", "Europe", "NL"),
+    "delft": ("Delft", "Europe", "NL"),
+    "groningen": ("Groningen", "Europe", "NL"),
+    "ghent": ("Ghent", "Europe", "BE"),
+    "gent": ("Ghent", "Europe", "BE"),
+    "leuven": ("Leuven", "Europe", "BE"),
+    "liege": ("Liege", "Europe", "BE"),
+    "liège": ("Liege", "Europe", "BE"),
+    "lyon": ("Lyon", "Europe", "FR"),
+    "marseille": ("Marseille", "Europe", "FR"),
+    "toulouse": ("Toulouse", "Europe", "FR"),
+    "bordeaux": ("Bordeaux", "Europe", "FR"),
+    "lille": ("Lille", "Europe", "FR"),
+    "nantes": ("Nantes", "Europe", "FR"),
+    "grenoble": ("Grenoble", "Europe", "FR"),
+    "montpellier": ("Montpellier", "Europe", "FR"),
+    "sophia antipolis": ("Sophia Antipolis", "Europe", "FR"),
+    "valencia": ("Valencia", "Europe", "ES"),
+    "bilbao": ("Bilbao", "Europe", "ES"),
+    "seville": ("Seville", "Europe", "ES"),
+    "sevilla": ("Seville", "Europe", "ES"),
+    "malaga": ("Malaga", "Europe", "ES"),
+    "málaga": ("Malaga", "Europe", "ES"),
+    "zaragoza": ("Zaragoza", "Europe", "ES"),
+    "porto": ("Porto", "Europe", "PT"),
+    "braga": ("Braga", "Europe", "PT"),
+    "gothenburg": ("Gothenburg", "Europe", "SE"),
+    "göteborg": ("Gothenburg", "Europe", "SE"),
+    "malmo": ("Malmo", "Europe", "SE"),
+    "malmö": ("Malmo", "Europe", "SE"),
+    "uppsala": ("Uppsala", "Europe", "SE"),
+    "aarhus": ("Aarhus", "Europe", "DK"),
+    "århus": ("Aarhus", "Europe", "DK"),
+    "odense": ("Odense", "Europe", "DK"),
+    "bergen": ("Bergen", "Europe", "NO"),
+    "trondheim": ("Trondheim", "Europe", "NO"),
+    "espoo": ("Espoo", "Europe", "FI"),
+    "tampere": ("Tampere", "Europe", "FI"),
+    "oulu": ("Oulu", "Europe", "FI"),
+    "reykjavik": ("Reykjavik", "Europe", "IS"),
+    "reykjavík": ("Reykjavik", "Europe", "IS"),
+    "wroclaw": ("Wroclaw", "Europe", "PL"),
+    "wrocław": ("Wroclaw", "Europe", "PL"),
+    "poznan": ("Poznan", "Europe", "PL"),
+    "poznań": ("Poznan", "Europe", "PL"),
+    "gdansk": ("Gdansk", "Europe", "PL"),
+    "gdańsk": ("Gdansk", "Europe", "PL"),
+    "lodz": ("Lodz", "Europe", "PL"),
+    "łódź": ("Lodz", "Europe", "PL"),
+    "brno": ("Brno", "Europe", "CZ"),
+    "bratislava": ("Bratislava", "Europe", "SK"),
+    "budapest": ("Budapest", "Europe", "HU"),
+    "cluj-napoca": ("Cluj-Napoca", "Europe", "RO"),
+    "cluj": ("Cluj-Napoca", "Europe", "RO"),
+    "timisoara": ("Timisoara", "Europe", "RO"),
+    "timișoara": ("Timisoara", "Europe", "RO"),
+    "iasi": ("Iasi", "Europe", "RO"),
+    "iași": ("Iasi", "Europe", "RO"),
+    "sofia": ("Sofia", "Europe", "BG"),
+    "plovdiv": ("Plovdiv", "Europe", "BG"),
+    "belgrade": ("Belgrade", "Europe", "RS"),
+    "novi sad": ("Novi Sad", "Europe", "RS"),
+    "zagreb": ("Zagreb", "Europe", "HR"),
+    "ljubljana": ("Ljubljana", "Europe", "SI"),
+    "athens": ("Athens", "Europe", "GR"),
+    "thessaloniki": ("Thessaloniki", "Europe", "GR"),
+    "tallinn": ("Tallinn", "Europe", "EE"),
+    "tartu": ("Tartu", "Europe", "EE"),
+    "riga": ("Riga", "Europe", "LV"),
+    "vilnius": ("Vilnius", "Europe", "LT"),
+    "kaunas": ("Kaunas", "Europe", "LT"),
+    "kyiv": ("Kyiv", "Europe", "UA"),
+    "kiev": ("Kyiv", "Europe", "UA"),
+    "lviv": ("Lviv", "Europe", "UA"),
+    "minsk": ("Minsk", "Europe", "BY"),
+    "chisinau": ("Chisinau", "Europe", "MD"),
+    "chișinău": ("Chisinau", "Europe", "MD"),
+    "nicosia": ("Nicosia", "Europe", "CY"),
+    "valletta": ("Valletta", "Europe", "MT"),
+    "skopje": ("Skopje", "Europe", "MK"),
+    "tirana": ("Tirana", "Europe", "AL"),
+    "sarajevo": ("Sarajevo", "Europe", "BA"),
+    # -- Middle East --------------------------------------------------------
+    "tel aviv": ("Tel Aviv", "Middle East", "IL"),
+    "tel aviv-yafo": ("Tel Aviv", "Middle East", "IL"),
+    "tel aviv-jaffa": ("Tel Aviv", "Middle East", "IL"),
+    "jerusalem": ("Jerusalem", "Middle East", "IL"),
+    "haifa": ("Haifa", "Middle East", "IL"),
+    "herzliya": ("Herzliya", "Middle East", "IL"),
+    "be'er sheva": ("Beersheba", "Middle East", "IL"),
+    "beersheba": ("Beersheba", "Middle East", "IL"),
+    "dubai": ("Dubai", "Middle East", "AE"),
+    "abu dhabi": ("Abu Dhabi", "Middle East", "AE"),
+    "sharjah": ("Sharjah", "Middle East", "AE"),
+    "riyadh": ("Riyadh", "Middle East", "SA"),
+    "jeddah": ("Jeddah", "Middle East", "SA"),
+    "dammam": ("Dammam", "Middle East", "SA"),
+    "neom": ("Neom", "Middle East", "SA"),
+    "doha": ("Doha", "Middle East", "QA"),
+    "kuwait city": ("Kuwait City", "Middle East", "KW"),
+    "manama": ("Manama", "Middle East", "BH"),
+    "muscat": ("Muscat", "Middle East", "OM"),
+    "amman": ("Amman", "Middle East", "JO"),
+    "beirut": ("Beirut", "Middle East", "LB"),
+    "istanbul": ("Istanbul", "Middle East", "TR"),
+    "ankara": ("Ankara", "Middle East", "TR"),
+    "izmir": ("Izmir", "Middle East", "TR"),
+    # -- Africa -------------------------------------------------------------
+    "lagos": ("Lagos", "Africa", "NG"),
+    "abuja": ("Abuja", "Africa", "NG"),
+    "nairobi": ("Nairobi", "Africa", "KE"),
+    "mombasa": ("Mombasa", "Africa", "KE"),
+    "cape town": ("Cape Town", "Africa", "ZA"),
+    "johannesburg": ("Johannesburg", "Africa", "ZA"),
+    "pretoria": ("Pretoria", "Africa", "ZA"),
+    "durban": ("Durban", "Africa", "ZA"),
+    "cairo": ("Cairo", "Africa", "EG"),
+    "alexandria": ("Alexandria", "Africa", "EG"),
+    "giza": ("Giza", "Africa", "EG"),
+    "accra": ("Accra", "Africa", "GH"),
+    "kigali": ("Kigali", "Africa", "RW"),
+    "kampala": ("Kampala", "Africa", "UG"),
+    "dar es salaam": ("Dar es Salaam", "Africa", "TZ"),
+    "addis ababa": ("Addis Ababa", "Africa", "ET"),
+    "dakar": ("Dakar", "Africa", "SN"),
+    "abidjan": ("Abidjan", "Africa", "CI"),
+    "casablanca": ("Casablanca", "Africa", "MA"),
+    "rabat": ("Rabat", "Africa", "MA"),
+    "tunis": ("Tunis", "Africa", "TN"),
+    "algiers": ("Algiers", "Africa", "DZ"),
+    "lusaka": ("Lusaka", "Africa", "ZM"),
+    "harare": ("Harare", "Africa", "ZW"),
+    "gaborone": ("Gaborone", "Africa", "BW"),
+    "port louis": ("Port Louis", "Africa", "MU"),
+    # -- Asia ---------------------------------------------------------------
+    "mumbai": ("Mumbai", "Asia", "IN"),
+    "bombay": ("Mumbai", "Asia", "IN"),
+    "new delhi": ("New Delhi", "Asia", "IN"),
+    "delhi": ("New Delhi", "Asia", "IN"),
+    "gurugram": ("Gurugram", "Asia", "IN"),
+    "gurgaon": ("Gurugram", "Asia", "IN"),
+    "noida": ("Noida", "Asia", "IN"),
+    "chennai": ("Chennai", "Asia", "IN"),
+    "kolkata": ("Kolkata", "Asia", "IN"),
+    "calcutta": ("Kolkata", "Asia", "IN"),
+    "ahmedabad": ("Ahmedabad", "Asia", "IN"),
+    "jaipur": ("Jaipur", "Asia", "IN"),
+    "chandigarh": ("Chandigarh", "Asia", "IN"),
+    "kochi": ("Kochi", "Asia", "IN"),
+    "coimbatore": ("Coimbatore", "Asia", "IN"),
+    "indore": ("Indore", "Asia", "IN"),
+    "thiruvananthapuram": ("Thiruvananthapuram", "Asia", "IN"),
+    "karachi": ("Karachi", "Asia", "PK"),
+    "lahore": ("Lahore", "Asia", "PK"),
+    "islamabad": ("Islamabad", "Asia", "PK"),
+    "dhaka": ("Dhaka", "Asia", "BD"),
+    "colombo": ("Colombo", "Asia", "LK"),
+    "kathmandu": ("Kathmandu", "Asia", "NP"),
+    "seoul": ("Seoul", "Asia", "KR"),
+    "busan": ("Busan", "Asia", "KR"),
+    "beijing": ("Beijing", "Asia", "CN"),
+    "shanghai": ("Shanghai", "Asia", "CN"),
+    "shenzhen": ("Shenzhen", "Asia", "CN"),
+    "hangzhou": ("Hangzhou", "Asia", "CN"),
+    "guangzhou": ("Guangzhou", "Asia", "CN"),
+    "chengdu": ("Chengdu", "Asia", "CN"),
+    "hong kong": ("Hong Kong", "Asia", "HK"),
+    "taipei": ("Taipei", "Asia", "TW"),
+    "hsinchu": ("Hsinchu", "Asia", "TW"),
+    "osaka": ("Osaka", "Asia", "JP"),
+    "kyoto": ("Kyoto", "Asia", "JP"),
+    "fukuoka": ("Fukuoka", "Asia", "JP"),
+    "yokohama": ("Yokohama", "Asia", "JP"),
+    "jakarta": ("Jakarta", "Asia", "ID"),
+    "bandung": ("Bandung", "Asia", "ID"),
+    "surabaya": ("Surabaya", "Asia", "ID"),
+    "kuala lumpur": ("Kuala Lumpur", "Asia", "MY"),
+    "penang": ("Penang", "Asia", "MY"),
+    "cyberjaya": ("Cyberjaya", "Asia", "MY"),
+    "bangkok": ("Bangkok", "Asia", "TH"),
+    "chiang mai": ("Chiang Mai", "Asia", "TH"),
+    "manila": ("Manila", "Asia", "PH"),
+    "cebu": ("Cebu", "Asia", "PH"),
+    "taguig": ("Taguig", "Asia", "PH"),
+    "ho chi minh city": ("Ho Chi Minh City", "Asia", "VN"),
+    "saigon": ("Ho Chi Minh City", "Asia", "VN"),
+    "hanoi": ("Hanoi", "Asia", "VN"),
+    "da nang": ("Da Nang", "Asia", "VN"),
+    "phnom penh": ("Phnom Penh", "Asia", "KH"),
+    "almaty": ("Almaty", "Asia", "KZ"),
+    "astana": ("Astana", "Asia", "KZ"),
+    "tashkent": ("Tashkent", "Asia", "UZ"),
+    "tbilisi": ("Tbilisi", "Asia", "GE"),
+    "yerevan": ("Yerevan", "Asia", "AM"),
+    "baku": ("Baku", "Asia", "AZ"),
+    # -- Oceania ------------------------------------------------------------
+    "brisbane": ("Brisbane", "Oceania", "AU"),
+    "perth": ("Perth", "Oceania", "AU"),
+    "adelaide": ("Adelaide", "Oceania", "AU"),
+    "canberra": ("Canberra", "Oceania", "AU"),
+    "auckland": ("Auckland", "Oceania", "NZ"),
+    "wellington": ("Wellington", "Oceania", "NZ"),
+    "christchurch": ("Christchurch", "Oceania", "NZ"),
+    "suva": ("Suva", "Oceania", "FJ"),
+})
+
+# Cities whose bare name belongs to two countries, so the vocabulary refuses
+# the bare form on purpose (rule 3 above). Named rather than merely omitted so
+# a future contributor adding "cambridge" has to delete a line that says why
+# not, and so the extractor can tell "a place we will not guess at" apart from
+# "not a place at all".
+AMBIGUOUS_CITY_NAMES = frozenset({
+    "cambridge", "birmingham", "san jose", "washington", "newcastle",
+    "hamilton", "richmond", "victoria", "santa cruz", "valencia city",
+    "sydney nova scotia", "st petersburg", "santiago de compostela",
+})
+
+# Sub-national names that DO fix a country, for reading a source's own
+# disambiguation: "London, Ontario" is not London, and "Cambridge,
+# Massachusetts" is not Cambridge. Only the qualifiers a newsroom actually
+# appends; US states come from US_STATES, which is already exhaustive.
+_PROVINCE_COUNTRY = {
+    # Canada
+    "ontario": "CA", "on": "CA", "quebec": "CA", "québec": "CA", "qc": "CA",
+    "british columbia": "CA", "bc": "CA", "alberta": "CA", "ab": "CA",
+    "manitoba": "CA", "saskatchewan": "CA", "nova scotia": "CA",
+    "new brunswick": "CA", "newfoundland": "CA", "newfoundland and labrador": "CA",
+    # United Kingdom
+    "england": "GB", "scotland": "GB", "wales": "GB",
+    "northern ireland": "GB", "uk": "GB", "u.k.": "GB", "britain": "GB",
+    # Australia
+    "new south wales": "AU", "nsw": "AU", "victoria state": "AU", "vic": "AU",
+    "queensland": "AU", "qld": "AU", "western australia": "AU", "wa state": "AU",
+    "south australia": "AU", "tasmania": "AU",
+    # India, Germany, Spain — the states a dateline names beside a city
+    "maharashtra": "IN", "karnataka": "IN", "tamil nadu": "IN",
+    "telangana": "IN", "gujarat": "IN", "haryana": "IN", "kerala": "IN",
+    "uttar pradesh": "IN", "west bengal": "IN", "rajasthan": "IN",
+    "bavaria": "DE", "bayern": "DE", "hesse": "DE", "saxony": "DE",
+    "north rhine-westphalia": "DE", "baden-württemberg": "DE",
+    "catalonia": "ES", "catalunya": "ES", "andalusia": "ES",
+    "basque country": "ES", "madrid region": "ES",
+}
+
+
+def place_qualifier_country(value: str):
+    """ISO2 for a trailing place qualifier — a country, a US state, or one of
+    the provinces above — or None.
+
+    This is how "London, Ontario" stops being London: the qualifier resolves to
+    CA, the gazetteer says London is GB, and a contradiction is a place the
+    source disambiguated AWAY from the one we would have stored.
+    """
+    k = _key(value)
+    if not k:
+        return None
+    hit = _PROVINCE_COUNTRY.get(k)
+    if hit:
+        return hit
+    if normalize_state(k):
+        return "US"
+    return normalize_country(k)
+
 
 REGIONS = ("North America", "Europe", "Asia", "Oceania", "Latin America", "Africa", "Middle East")
 

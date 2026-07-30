@@ -394,7 +394,12 @@ class SourcedBeatsDerived(unittest.TestCase):
         self.assertEqual(signal.cik, "9999999")
         self.assertEqual(signal.ticker, "AAPL")
         self.assertEqual(signal.hq_country, "US")
-        self.assertEqual(set(filled), {"ticker", "hq_country", "employer_type"})
+        # hq_city joined this set when the gazetteer learned Cupertino. Apple's
+        # Wikidata chain always said Cupertino; the vocabulary is what could
+        # not receive it.
+        self.assertEqual(signal.hq_city, "Cupertino")
+        self.assertEqual(set(filled),
+                         {"ticker", "hq_city", "hq_country", "employer_type"})
 
     def test_with_no_connection_it_does_nothing_at_all(self):
         """build_signal must stay a pure function of two dicts. An earlier
@@ -618,8 +623,12 @@ class HeadquartersPlacement(unittest.TestCase):
         self.assertIsNone(city)
 
     def test_a_city_outside_the_vocabulary_is_left_blank_not_invented(self):
+        # This used to use Cupertino, which the hub gazetteer now covers. The
+        # example has to be a place we do not curate, and the rule under test
+        # is unchanged: an uncurated chain fills nothing rather than storing
+        # the string Wikidata happened to hand back.
         city, iso2 = identity._first_vocabulary_city(
-            ["Cupertino", "Santa Clara County", "California"], "US")
+            ["Mahwah", "Bergen County", "New Jersey"], "US")
         self.assertIsNone(city)
         self.assertIsNone(iso2)
 
