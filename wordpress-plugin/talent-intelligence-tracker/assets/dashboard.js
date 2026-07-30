@@ -166,7 +166,6 @@
         fillFacetControl('deal_type', data.deal_types, DEAL_TYPE_LABEL);
         fillFacetControl('site_event', data.site_events, SITE_EVENT_LABEL);
         fillPlaces(data);
-        syncMore();
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
@@ -1042,48 +1041,14 @@
     });
   }
 
-  // --- More filters ---------------------------------------------------------
-  // Native <details>, so it collapses with no JavaScript at all. What JS adds
-  // is the count, and opening the panel when something inside it is already on:
-  // a shared link must never narrow the page with the control that did it
-  // folded out of sight.
-  var moreBox = document.getElementById('tit-more');
-  var moreLabel = document.getElementById('tit-more-label');
-  // `direction` is NOT here any more. It was rendering as a second control also
-  // labelled "Headcount", beside the primary-row checkbox, with different
-  // behaviour: one label, two controls, which is worse than either alone.
-  var MORE_KEYS = ['function', 'industry', 'employer_type', 'work_mode',
-                   'min_funding_usd', 'funding_stage', 'deal_type', 'site_event',
-                   'confidence', 'q', 'since', 'until'];
-
-  // The NAMES of what is on, not a count of it. "More filters (1)" tells a
-  // reader that something is narrowing the page and refuses to say what, which
-  // is the one thing they needed to know.
-  function moreActive() {
-    var on = [];
-    MORE_KEYS.forEach(function (k) {
-      var el = inputs[k];
-      if (!el) return;
-      if (MULTI[k]) {
-        if (multiValues(el).length) on.push(FILTER_LABEL[k] || k);
-        return;
-      }
-      var v = (el.value || '').trim();
-      if (v && v !== NEUTRAL[k]) on.push(FILTER_LABEL[k] || k);
-    });
-    return on;
-  }
-
-  // $open is passed only when restoring a shared link. Opening on every
-  // refresh would throw the panel open each time a matrix cell set a date,
-  // which is a panel fighting the reader rather than serving them.
-  // The panel is always open now, so there is nothing to disclose and nothing
-  // to count. Naming the active filters here was standing in for showing them;
-  // the controls themselves are the better answer, and the chips bar already
-  // says what is applied. Kept as a function so every call site stays valid.
-  function syncMore() {
-    if (moreBox && !moreBox.open) moreBox.open = true;
-  }
+  // --- The filter panel -----------------------------------------------------
+  // Nothing to do here any more, deliberately. It shipped as a <details> whose
+  // summary read "More filters (1)"; the owner asked three times for that
+  // wording to go, so it became a plain <div> that is always open. What was left
+  // behind was a syncMore() setting .open on an element that has no .open, a
+  // moreActive() nothing called, and a lookup for an id no markup carries. The
+  // panel discloses nothing, and the chips bar above the table names what is
+  // applied, which is what the summary was standing in for.
 
   // The CSV and JSON links under the table download exactly what is on screen:
   // the current filters ride along as query params, and the scope word says
@@ -1150,7 +1115,6 @@
     syncCountryButtons();
     syncCityButtons();
     syncBasis();
-    syncMore();
     syncSortHeads();
 
     paintActive();
@@ -1795,10 +1759,6 @@
   // Only fetches when the link actually carried a view; the plain page is
   // already rendered by the server.
   applyUrlState();
-  // A link that narrows the page with a control folded out of sight is a link
-  // whose recipient cannot see why they are looking at what they are looking
-  // at. Open the panel once, here, and never again on its own.
-  syncMore(true);
   syncLooking();
   syncPlace();
   syncCountryButtons();

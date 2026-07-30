@@ -789,14 +789,16 @@ function tit_dashboard_html() {
                "More filters (1)" summary; the owner asked three times for that
                wording to go. Keeping <details open> still rendered the summary,
                so the words stayed on the page while the behaviour changed
-               underneath - the label was also dead by then, since syncMore()
+               underneath - the label was also dead by then, since the sync
                had stopped writing to it and only forced the panel open.
 
                A permanently-open disclosure is not a disclosure, so this is a
                plain container. The controls inside carry their own labels and
                the chips bar already names what is applied, which is what the
                summary was standing in for. Classes and id are unchanged so the
-               existing CSS and the syncMore() guard keep working. */ ?>
+               existing CSS keeps working. The JavaScript that used to force it
+               open, count what was inside it and write that label is gone: it
+               was setting .open on an element that has no .open. */ ?>
       <div class="tit-more tit-more--open" id="tit-more">
         <div class="tit-filters">
           <?php

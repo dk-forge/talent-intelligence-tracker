@@ -217,9 +217,13 @@ def test_the_gazetteer_agrees_with_every_city_already_stored():
 
     The one accepted disagreement is the Toronto/US legacy: two rows written
     before the table was corrected (the correction is recorded in vocab.py and
-    in tests/test_identity.py). Those rows are wrong, this table is right, and
-    a backfill is the owner's call — so the exception is named here rather
-    than hidden by a loose assertion.
+    in tests/test_identity.py). Those rows are wrong and this table is right.
+
+    Named as an allowance rather than pinned as an equality, because
+    correct_city_country.py exists to remove it: pinned, the correction landing
+    would turn this green test red and read as a regression. The allowance can
+    only ever SHRINK — anything not in it still fails — so a third city
+    contradicting the table is as loud as it ever was.
     """
     conn = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
     try:
@@ -238,4 +242,4 @@ def test_the_gazetteer_agrees_with_every_city_already_stored():
         elif hit[2] != country:
             contradicted.append((city, country, hit[2]))
     assert not unreadable, f"stored cities the vocabulary cannot read: {unreadable}"
-    assert contradicted == [("Toronto", "US", "CA")], contradicted
+    assert set(contradicted) <= {("Toronto", "US", "CA")}, contradicted

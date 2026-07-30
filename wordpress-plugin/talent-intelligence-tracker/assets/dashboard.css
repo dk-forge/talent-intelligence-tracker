@@ -201,7 +201,6 @@
 
 /* --- Sources page ------------------------------------------------------ */
 .tit-sources h1 { font-size:32px; margin:6px 0 10px; color:var(--tit-fg); }
-.tit-src-cat { font-size:19px; margin:28px 0 10px; color:var(--tit-fg); }
 .tit-callout { border:1px solid var(--tit-line); border-left:4px solid var(--tit-hiring);
   background:var(--tit-surface); border-radius:10px; padding:14px 16px;
   margin:6px 0 22px; font-size:14.5px; color:var(--tit-mut); max-width:78ch; }
@@ -280,11 +279,6 @@
   border:1px solid #b9e6d3; border-radius:99px; padding:4px 11px; margin:0 0 12px; }
 .tit-live-dot { width:8px; height:8px; border-radius:50%; background:var(--tit-teal);
   box-shadow:0 0 0 3px rgba(27,175,122,.22); }
-.tit-hero-figs { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
-.tit-hero-fig { background:#fff; border:1px solid var(--tit-line); border-radius:10px;
-  padding:9px 13px; font-size:14px; color:var(--tit-mut); }
-.tit-hero-fig strong { color:var(--tit-fg); font-size:17px; margin-right:5px;
-  font-variant-numeric:tabular-nums; }
 
 /* --- Stat tiles get their own accent ---------------------------------- */
 /* An absolutely positioned bar cannot follow a rounded corner: clipping it with
@@ -418,11 +412,8 @@
    our own figures opt out. */
 .tit-wrap .tit-n, .tit-rank-n, .tit-region-n { letter-spacing:0; }
 
-.tit-chart-wide { grid-column:1 / -1; }
-.tit-chart-wide .tit-pillars { margin:0; }
 
 @media (min-width:560px){ .tit-rank-row { grid-template-columns:170px 1fr auto; } }
-.tit-wrap .tit-chart-wide { margin:0 0 16px; }
 
 /* ---------------------------------------------------------------------------
    Narrow screens: the table becomes cards.
@@ -1189,19 +1180,10 @@ body.admin-bar .tit-active { top:32px; }
   background:var(--tit-blue-tint); border-radius:99px; padding:2px 8px; }
 
 
-/* More filters. Native details, so it collapses with no JavaScript at all. */
+/* The filter panel. A plain container: it stopped being a <details> when the
+   owner asked for the "More filters" wording to go, so nothing here styles a
+   summary or an [open] state any more. */
 .tit-more { margin:0 0 12px; }
-.tit-wrap .tit-more > summary { display:inline-flex; align-items:center; gap:7px;
-  width:auto; padding:7px 13px; border:1px solid var(--tit-line);
-  border-radius:9px; background:#fff; color:var(--tit-fg); font-size:13.5px;
-  font-weight:650; cursor:pointer; list-style:none; }
-.tit-wrap .tit-more > summary::-webkit-details-marker { display:none; }
-.tit-wrap .tit-more > summary::before { content:"+"; font-weight:700;
-  color:var(--tit-mut); line-height:1; }
-.tit-wrap .tit-more[open] > summary::before { content:"\2212"; }
-.tit-wrap .tit-more > summary:hover { border-color:var(--tit-blue); }
-.tit-wrap .tit-more > summary:focus-visible { outline:2px solid var(--tit-blue);
-  outline-offset:2px; }
 .tit-more .tit-filters { margin-top:8px; }
 
 /* The hidden state the two front controls drive. Not focusable, not read: the
@@ -1374,9 +1356,6 @@ main:has(#tit-dashboard) {
   border-radius:2px; }
 .tit-sec--money { --sec:var(--tit-violet); }
 .tit-wrap .tit-sec h3 { color:var(--tit-fg); }
-.tit-sec-eyebrow { display:block; font-size:11px; font-weight:800;
-  letter-spacing:.09em; text-transform:uppercase; color:var(--sec);
-  margin-bottom:1px; }
 
 /* Chart cards get the same anchor at card scale: a swatch on the heading, in
    the hue that card's own bars already use. */
@@ -1613,14 +1592,6 @@ main:has(#tit-dashboard) {
     overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 }
 
-/* The filter panel no longer discloses, so its summary is a plain caption
-   rather than a control: no chevron, no hover affordance, nothing suggesting
-   there is a second state to find. */
-.tit-wrap .tit-more--open > summary { cursor:default; border:0; padding:0 0 6px;
-  background:none; font-size:11px; font-weight:800; letter-spacing:.07em;
-  text-transform:uppercase; color:var(--tit-faint); }
-.tit-wrap .tit-more--open > summary::before { content:none; }
-.tit-wrap .tit-more--open > summary:hover { border-color:transparent; }
 .tit-more--open .tit-filters { margin-top:0; }
 
 /* A caveat printed where the chart is read, not in a footnote. Muted but AA at

@@ -1,0 +1,89 @@
+name: correct-city-country
+
+# Re-file the rows whose stored country contradicts the city gazetteer.
+# `vocab._CITY_ALIASES` mapped Toronto to the United States until it was
+# corrected, and `validate.build_signal` takes the country FROM that table on
+# purpose, so two live sec_edgar rows sit under the US country filter and one of
+# them is in the US state facet. See correct_city_country.py.
+#
+# country is NOT an input to content_hash, so this is the opposite of
+# correct-sec-pillar: the corrected revision carries the SAME hash, and
+# tit_insert_signal() refuses any hash it has already seen at any revision. A
+# withdraw-and-republish would therefore take both rows off the site and get
+# 'retracted' back when it tried to put them there again. The site is corrected
+# IN PLACE through /correct instead, and the revision is still appended locally.
+#
+# PREREQUISITE. tit_correctable_columns() in includes/api.php allows only
+# signal_direction and talent_readthrough today, so a real run REFUSES and
+# writes nothing until 'city', 'region' and 'country' are added to it and the
+# plugin is deployed. The dry run works regardless and says so.
+#
+# Queue it, never dispatch it:
+#   gh workflow run drain-writers.yml -f enqueue=correct-city-country.yml \
+#     -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # correct-company-key.yml, correct-sec-pillar.yml, retract.yml and the
+  # backfills.
+  group: talent-collect
+  # It corrects the live site and then appends the revision that records it. A
+  # run cancelled between those two steps is resumed cleanly by the next one —
+  # but only if it is allowed to finish rather than being killed by a dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # Two rows, one request each. The budget is for the shared host's retry
+    # pauses, not for the work.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          # The script writes ONLY with --apply, and this is the only place it
+          # can be passed: the input defaults to true, so a dispatch that says
+          # nothing is a dry run rather than a live edit of published rows.
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
+          # No `|| true`: a refused shape or a plugin that cannot accept the
+          # fields must fail the run, not pass quietly.
+          python correct_city_country.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: file the Toronto rows under Canada $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Rebase rather than reset-and-merge, matching the other correction
+          # workflows: this appends revisions to two rows and rebasing keeps both
+          # sides, while a force push would discard whatever landed meanwhile.
+          git pull --rebase --autostash origin main
+          git push
