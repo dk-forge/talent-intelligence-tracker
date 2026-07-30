@@ -66,6 +66,15 @@ MAX_AGE_HOURS = {
     # clause genuinely fires for nobody is reported through the read count
     # (edinet_japan.LAST_RUN["read"]), not by letting the run go quiet.
     "edinet_japan": 180,   # ~7.5 days: weekly cron plus room to notice
+    # collect-structured.yml, weekly on WEDNESDAYS (Monday is bse_india and
+    # Tuesday is edinet_japan; one writer lock, one slot each). Same shape as
+    # both of those otherwise, and the leash is the cadence plus slack. Korea's
+    # allowlisted leadership items ran 12 to 49 a week over the twelve weeks to
+    # 2026-07-29, so a week that produces none has not gone quiet — it has
+    # broken, and the collector already refuses below its floor. The API answers
+    # any date range up to three months, so a missed week is back-fillable with
+    # TIT_DART_DAYS rather than lost.
+    "opendart_korea": 180,  # ~7.5 days: weekly cron plus room to notice
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

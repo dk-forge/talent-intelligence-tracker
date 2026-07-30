@@ -17,8 +17,8 @@ from datetime import date
 
 import source_registry as registry
 from collectors import (ats_boards, bse_india, edinet_japan, gdelt, google_news,
-                        national_press, sec_edgar, sec_execcomp, sec_form_d,
-                        tripwire_chase, uk_paygap)
+                        national_press, opendart_korea, sec_edgar, sec_execcomp,
+                        sec_form_d, tripwire_chase, uk_paygap)
 from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
                       schema, store, validate)
 
@@ -41,6 +41,13 @@ SOURCES = {
     # director), so it exposes `as_classified` and spends nothing. Narrower than
     # bse_india on purpose: that clause is the only officer clause Japan types.
     "edinet_japan": edinet_japan,
+    # Korea's leadership spine. Derived from the Korea Exchange's own report
+    # TITLE — a change of representative director, or the appointment,
+    # dismissal or early retirement of an independent director — because DART's
+    # typed detail codes stop one level too coarse. Exposes `as_classified` and
+    # spends nothing. See the docstring for why the periodic-report roster
+    # endpoints are refused rather than diffed into events.
+    "opendart_korea": opendart_korea,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the

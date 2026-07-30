@@ -414,6 +414,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "National and regional tech press": "national_press",
     "BSE corporate announcements (SEBI Regulation 30)": "bse_india",
     "EDINET extraordinary reports (FSA Japan)": "edinet_japan",
+    "DART disclosures (Korea, FSS OpenDART)": "opendart_korea",
 }
 
 
@@ -536,6 +537,28 @@ SOURCES = (
                  "weeks as those reports, so this is a floor on Japanese "
                  "leadership change rather than a count of it. No city is "
                  "carried, so Japanese rows place at country level only."),
+    Source("DART disclosures (Korea, FSS OpenDART)",
+           "https://dart.fss.or.kr/", "live",
+           "Regulatory filings", ("Leadership change", "Board appointment"),
+           "National", "KR",
+           notes="Korea's Financial Supervisory Service runs the mandatory "
+                 "disclosure registry, and the Korea Exchange's own filing "
+                 "system assigns the report title, so no model is involved and "
+                 "there is no cost. Read the scope narrowly. Korea types its "
+                 "disclosures one level coarser than India does: every timely "
+                 "disclosure shares one code, so what selects a row is the "
+                 "exchange's own report title, and only two kinds of change "
+                 "have one. A change of representative director, which is the "
+                 "chief executive, and the appointment, dismissal or early "
+                 "retirement of an independent director. Ordinary inside "
+                 "directors are elected at a shareholder meeting and do not "
+                 "appear. The title records that the change happened without "
+                 "recording which direction it went, so rows carry no "
+                 "direction and name no person; both are in the filing, which "
+                 "is linked. No city is carried, so Korean rows place at "
+                 "country level only. A filing a listed parent makes about a "
+                 "subsidiary it does not name is excluded, because the change "
+                 "is not the parent's."),
     Source("National and regional tech press",
            "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
            "live", "News publishers",
@@ -823,6 +846,73 @@ def sources_manifest() -> list[dict]:
 #         clauses in Article 19(2) contains any workforce-reduction word, so its
 #         zero was guaranteed by the ordinance rather than by the source's
 #         quality. Read it as a fact about layoffs, not about appointments.
+#     KR  OpenDART (Financial Supervisory Service). collectors/opendart_korea.py.
+#         Korea's typed taxonomy STOPS ONE LEVEL TOO COARSE, and that is the
+#         finding worth keeping. All 84 endpoints across the six published API
+#         groups were read on 2026-07-29. `pblntf_detail_ty` has ~60 values and
+#         every Korea Exchange timely disclosure — supply contracts, dividends,
+#         buybacks, CEO changes, litigation — shares ONE of them, `I001`. There
+#         is no Item 5.02 equivalent to ask for. Two things rescue it:
+#           * `E005` is a detail code of its own whose every row (150 of 150 in
+#             90 days) carries one report name, 독립이사의선임ㆍ해임또는중도퇴임
+#             에관한신고 — the appointment, dismissal or early retirement of an
+#             independent director. Typed, and typed as the event.
+#           * inside `I001`, the exchange's own report TITLE is a fixed
+#             vocabulary. 8,211 I001 filings over 2026-05-01..2026-07-29 carry
+#             360 DISTINCT titles, and the leadership ones recur identically:
+#             대표이사변경 79, 대표이사(대표집행임원)변경(안내공시) 28,
+#             대표집행임원변경 4. That is KRX's form title, not a sentence a
+#             company composed, so matching it is the same act as matching BSE's
+#             SUBCATNAME — and it is the ONLY thing that makes I001 usable,
+#             because reading the code alone would store the whole feed.
+#         MEASURED: 261 allowlisted filings in 90 days, ~1,060/year, from
+#         DART's own public search unauthenticated (dart.fss.or.kr/dsab007/,
+#         which robots.txt permits). Per ISO week over twelve full weeks: 12 to
+#         49, median 19. That is ~8% of India's volume, and the reason is
+#         scope: Regulation 30 covers every director and key managerial person,
+#         while Korea's mandated item covers the representative director and,
+#         separately, independent directors. Ordinary inside directors are
+#         elected at a shareholder meeting whose result is untyped prose.
+#         REFUSED, with the numbers, so nobody re-derives them:
+#           * the 36 주요사항보고서 endpoints (group DS005) contain NO officer
+#             item at all — insolvency, capital raises, buybacks, mergers,
+#             asset transfers. The brief that commissioned this named that
+#             family as a candidate; it is a dead end.
+#           * 임원현황 (exctvSttus.json) and 직원현황 (empSttus.json) are
+#             point-in-time SNAPSHOTS: a roster as of stlm_dt with tenure as
+#             free text, and a headcount by division. Neither states an
+#             appointment and neither carries an appointment date. An event out
+#             of them means diffing year N against N-1 and stamping a date the
+#             source never stated, which is what "no source URL, no record" and
+#             "the model never invents a number" both forbid.
+#           * 독립(사외)이사 및 그 변동현황 is the one endpoint with change
+#             FIELDS (apnt / rlsofc / mdstrm_resig) and they are period COUNTS
+#             with no person and no date.
+#           * 임원ㆍ주요주주 소유보고 (elestock.json) is event-driven and
+#             carries rcept_dt, but the API exposes no 보고사유, so an
+#             appointment cannot be told from a share purchase.
+#           * 대표이사변경 (자회사의 주요경영사항), 2 of 261: a listed PARENT
+#             reporting a change at a subsidiary it does not name in the title.
+#             The chaebol trap, refused rather than collapsed.
+#         The English viewer at englishdart.fss.or.kr/dsbh001/main.do looked
+#         like the ideal citation and is NOT usable: on 20 real filings sampled
+#         2026-07-29 it answered 200 with a body of the single word "Reject" for
+#         4 of them, Kia and Korea Gas Corporation among them. source_url is
+#         therefore dart.fss.or.kr/dsaf001/main.do?rcpNo=, the form OpenDART's
+#         own field documentation gives — and that path IS disallowed by
+#         dart.fss.or.kr/robots.txt, so link_check.py records these as `robots`
+#         rather than checking them. Nothing fetches it; the collector talks
+#         only to opendart.fss.or.kr/api/, which serves no robots.txt.
+#         KOREA THEREFORE STAYS discovery_only. The source is measured; the
+#         connector has never made an authenticated call, and a tier is a claim
+#         about the connector. Promotion is one commit after the first real run.
+#         The sibling AI Layoff Tracker built an OpenDART client and RETIRED it
+#         on 2026-07-24 for "0 layoff rows ever". That result does NOT transfer:
+#         it read the disclosure list for DISCOVERY and then scanned document
+#         BODIES for Korean layoff vocabulary, and Korean statutory disclosure
+#         has no workforce-reduction item — the 36 major-report endpoints above
+#         are the proof. Its zero was guaranteed by the taxonomy, not by the
+#         source's quality. Read it as a fact about layoffs, not appointments.
 #
 #   BLOCKED — do not retry without the owner doing something first
 #     GB  Companies House appointments. Every route needs an API key: the REST
@@ -997,6 +1087,27 @@ MARKETS = (
            live_sources=("google_news",),
            candidate_official_sources=("JETRO investment announcements",),
            terms=("採用拡大", "新拠点", "社長に就任")),
+    # Korea was NOT in this list until 2026-07-29, which is a gap rather than a
+    # decision: ("ko", "KR") has been in GOOGLE_NEWS_LOCALES with its own query
+    # pack the whole time, and the catalogue carries five Korean publisher
+    # feeds, so the country was being swept while the coverage manifest said
+    # nothing about it at all.
+    #
+    # It stays discovery_only even though collectors/opendart_korea.py exists
+    # and its leadership items are MEASURED (261 allowlisted filings over
+    # 2026-05-01..2026-07-29, read from DART's own public search). The
+    # measurement is of the source; what is unproven is the CONNECTOR, because
+    # no authenticated OpenDART call has ever been made from this repo. A tier
+    # here is a public claim, and "coverage is earned" means the connector has
+    # run, not that the filings are known to exist. Promotion is one commit
+    # after the first real run: add "opendart_korea" to live_sources and move
+    # the status, in the same change that records what the run returned.
+    Market("KR", "South Korea", DISCOVERY_ONLY,
+           live_sources=("google_news",),
+           candidate_official_sources=(
+               "DART disclosures (Korea, FSS OpenDART) — connector built, "
+               "awaiting its first authenticated run",),
+           terms=("hiring in Seoul", "서울 사무소", "경력 채용")),
 )
 
 # Spec 14.2: adding a local-language term without that country's papers of

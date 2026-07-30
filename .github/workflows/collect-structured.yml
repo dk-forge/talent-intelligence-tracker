@@ -1,13 +1,13 @@
 # The structured sources: SEC executive compensation, UK gender pay gap, BSE
-# India leadership filings, EDINET Japan representative-director filings, and
-# ATS job boards.
+# India leadership filings, EDINET Japan representative-director filings, DART
+# Korea leadership filings, and ATS job boards.
 #
 # These cost NOTHING to run. Every field they store is a column in a frame, a
 # CSV or an API response, so the record is derived and no model is called. That
 # is why there is no OPENROUTER_API_KEY, no spend guard and no spend report in
-# this file: there is no spend to guard. `edinet_japan` needs a SECRET but still
-# costs nothing — an API key is not spend, and that collector never downloads a
-# document or calls a model.
+# this file: there is no spend to guard. `edinet_japan` and `opendart_korea` need
+# a SECRET but still cost nothing — an API key is not spend, and neither
+# collector downloads a document or calls a model.
 #
 # There is deliberately NO EDGAR_USER_AGENT mapping. That secret does not exist
 # in this repo, and mapping a missing secret sets the environment variable to
@@ -29,6 +29,13 @@
 # endpoint takes ONE calendar day per call, so a 7-day window is 7 calls plus
 # one code-list download. It is on Tuesday rather than Monday to keep the single
 # database-writer lock uncontended; see the cron comment below.
+#
+# opendart_korea is weekly for the same reason and lands on WEDNESDAY, one day
+# further along, for the same lock argument. A 7-day window is about 8 list
+# pages (100 rows each, two detail types) plus one company.json per distinct
+# employer, so roughly 30 requests against a documented 20,000/day quota.
+# OpenDART answers arbitrary date ranges up to three months, so a missed week is
+# back-filled by widening `days` and nothing is lost permanently.
 name: collect-structured
 
 on:
@@ -45,12 +52,14 @@ on:
     # with no jobs and no logs. Moving a weekly job one day sideways costs
     # nothing and removes that contention entirely.
     - cron: '0 4 * * 2'      # Tuesdays: EDINET Japan representative-director filings
+    # WEDNESDAY, one day further along the same argument as the Tuesday slot.
+    - cron: '0 4 * * 3'      # Wednesdays: DART Korea leadership filings
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -61,7 +70,7 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India and EDINET Japan. How many days back to read. Blank = 7. A gap is back-filled by widening this.'
+        description: 'BSE India, EDINET Japan and DART Korea. How many days back to read. Blank = 7. A gap is back-filled by widening this. DART caps at 90.'
         required: false
         default: ''
       dry_run:
@@ -107,6 +116,7 @@ jobs:
             '30 10 6 * *') scheduled=uk_paygap ;;
             '0 4 * * 1')   scheduled=bse_india ;;
             '0 4 * * 2')   scheduled=edinet_japan ;;
+            '0 4 * * 3')   scheduled=opendart_korea ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then
@@ -132,6 +142,17 @@ jobs:
           # {"StatusCode": 401} in the body — a silent zero. The collector
           # refuses an empty key at its first line for exactly that reason.
           EDINET_API_KEY_JP: ${{ secrets.EDINET_API_KEY_JP }}
+          TIT_DART_DAYS: ${{ inputs.days }}
+          # OpenDART requires crtfc_key on every request. This secret DOES
+          # exist (set 2026-07-30). The empty-secret failure mode here is
+          # different from EDINET's and worse: a request with no crtfc_key at
+          # all answers HTTP 302 and an HTML error page, while a syntactically
+          # valid but unregistered key answers HTTP 200 with
+          # {"status":"010"}. Verified live and keyless on 2026-07-29. So
+          # neither the status code nor "it parsed as JSON" means success, and
+          # the collector refuses an empty or malformed key before it spends a
+          # request.
+          OPENDART_API_KEY_KR: ${{ secrets.OPENDART_API_KEY_KR }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \

@@ -34,15 +34,49 @@ page lists all **9** live collectors and reports a last run for every one of
 them; writer queue holds one failed ticket and zero unresolved orphans;
 **715 of 715** sitemap URLs clean.
 
-**Ten registered collectors:** `google_news`, `gdelt`, `national_press`,
+**Twelve registered collectors:** `google_news`, `gdelt`, `national_press`,
 `sec_edgar`, `sec_form_d`, `sec_execcomp`, `uk_paygap`, `ats_boards`,
-`bse_india`, and `tripwire_chase` (dormant, correctly absent from the sources
-page). The sources page joins a collector to a source name through the
+`bse_india`, `edinet_japan`, `opendart_korea`, and `tripwire_chase` (dormant,
+correctly absent from the sources page). The last two were built on 2026-07-30
+and **neither has made an authenticated call yet**, so Japan and Korea both stay
+`discovery_only`; see the TECHLOG entries for what each one measured and what it
+refused. The sources page joins a collector to a source name through the
 `collector` field on each row of `data/sources.json`, written by
 `build_sources_json.py` from `source_registry.COLLECTOR_BY_SOURCE_NAME`. **Do
 not re-type that map in PHP.** It was typed there with five of nine entries, so
 `national_press`, `sec_execcomp` and `uk_paygap` all read "not yet reported"
 while running twice a day.
+
+### Korea (2026-07-30) — built, measured, deliberately not promoted
+
+`collectors/opendart_korea.py`. Zero cost, no model. **Read the scope before you
+describe it to anybody**: DART's typed detail codes stop one level coarser than
+SEBI's, so what selects a row is the Korea Exchange's own report TITLE, and only
+two kinds of change have one.
+
+| | |
+|---|---|
+| what it reads | `opendart.fss.or.kr/api/list.json`, detail types `E005` and `I001` |
+| what it keeps | 4 exchange report titles: a change of representative director (3 spellings) and the appointment/dismissal/early retirement of an independent director |
+| measured | 261 of 8,363 rows over 2026-05-01..07-29 (3.1%), ~1,060/year, 12 to 49 a week |
+| direction | always `neutral`. The title never says which way the change went |
+| `source_url` | `dart.fss.or.kr/dsaf001/main.do?rcpNo=` — and robots.txt disallows that path, so `link_check.py` records it as `robots`. Nothing fetches it |
+| tier | KR added to `MARKETS` at `discovery_only`. It was **not in MARKETS at all** before this |
+
+**Three things not to redo.** The English viewer
+(`englishdart.fss.or.kr/dsbh001/main.do`) answers HTTP 200 with a body of the
+single word "Reject" for 4 of 20 real filings, Kia and Korea Gas Corporation
+among them — do not cite it. The periodic-report endpoints (`exctvSttus.json`,
+`empSttus.json`) are point-in-time rosters with no appointment date and are
+refused rather than diffed. And a missing `crtfc_key` is an HTTP **302** to an
+HTML page while a bad key is an HTTP **200** with `{"status":"010"}`, so neither
+the status code nor "it parsed as JSON" means success.
+
+**To promote it:** run it once for real
+(`gh workflow run collect-structured.yml -f source=opendart_korea -f dry_run=true`
+first), read what `corp_name_eng` coverage actually is — a blank declines the row,
+and that is the number that decides real yield — then add `opendart_korea` to
+`KR.live_sources` and move the status in one commit.
 
 ### Discovery widened (2026-07-29, late) — schedule, staleness, markets, feeds
 

@@ -64,6 +64,14 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # this line collectors/edinet_japan.py caps at 'reported' and a statutory
     # filing reads as a news story.
     "disclosure2dl.edinet-fsa.go.jp",
+    # DART is the Financial Supervisory Service's own disclosure registry: a
+    # Korean listed company files WITH it and this host serves the filing
+    # itself. Same class as sec.gov. Without this line
+    # collectors/opendart_korea.py caps at 'reported'. Note the collector never
+    # FETCHES this host — it reads opendart.fss.or.kr/api/ — which is why
+    # robots.txt disallowing /dsaf001/main.do is a fact about link checking
+    # rather than a reason to cite something else.
+    "dart.fss.or.kr",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",
