@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T18:32:36Z",
-  "last_tick": "2026-07-30T20:10:46Z",
+  "last_dispatch": "2026-07-30T20:13:53Z",
+  "last_tick": "2026-07-30T20:13:53Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -264,12 +264,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T20:13:53Z",
       "history": [
         {
           "at": "2026-07-30T19:16:36Z",
           "detail": "Japan 2026 in one pass: EDINET ceiling is 366 days, so no walker needed",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T20:13:53Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T191636Z-collect-structured",
@@ -282,7 +287,7 @@
       "requested_at": "2026-07-30T19:16:36Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "collect-structured.yml"
     },
     {
