@@ -51,6 +51,13 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     "efts.sec.gov",
     "www.sec.gov",
     "find-and-update.company-information.service.gov.uk",
+    # BSE is the exchange a company listed in India files its Regulation 30
+    # disclosures WITH, and it publishes that filing rather than a report of it,
+    # so it is the same class of host as sec.gov: the filing venue, not an
+    # outlet. Without this line collectors/bse_india.py caps at 'reported' and
+    # India's whole structured spine understates what it is.
+    "bseindia.com",
+    "www.bseindia.com",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",
