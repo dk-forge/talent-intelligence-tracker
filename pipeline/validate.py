@@ -73,7 +73,57 @@ class Signal:
 
 # A figure the model returns must appear in the source text. Matches 1,200 /
 # 1200 / 1.2bn / €5B / 5 billion.
-_NUMBER = re.compile(r"\d[\d,.]*\s*(?:bn|b|m|k|billion|million|thousand)?", re.I)
+#
+# THE MAGNITUDE MAY NOT BE ON THE NEXT LINE. The suffix used to sit behind a bare
+# `\s*`, and `\s` matches a newline, so the pattern swallowed a line break and
+# took the first letter of the next line as if it were a magnitude:
+#
+#   "28.07.2026\n\nK M Sugar Mills" -> '28072026k'
+#
+# That is silent record loss, because `assert_figures_are_sourced` compares the
+# model's numbers against the source's as SETS. Every collector joins its fields
+# with a blank line, so the glue lands on the SOURCE side, whose layout the model
+# does not reproduce: a figure that IS verbatim in the source then reads as
+# invented, and the whole record is discarded rather than repaired. `_sourced_int`
+# and `_sourced_figure` read the same token set, so the quieter version of the
+# same bug drops a stated headcount or funding amount off a record that still
+# stores. collectors/bse_india.py quotes its own filed description to dodge this;
+# that workaround can stay, it is belt and braces now.
+#
+# MEASURED, before and after (analysis/figures/replay.py over 15,711 current
+# rows): the glue FIRED on 465 sec_execcomp raw_texts — headline ending in a
+# filing date, body opening with a company name beginning B, M or K — and cost
+# nothing there, because that body repeats the date and the clean token survives
+# elsewhere in the text. What it cost on the sources whose bodies we no longer
+# hold is NOT KNOWABLE: a rejected candidate leaves a URL in `seen_urls` with no
+# text and no reason, so nobody can attribute those rejections, to this rule or
+# any other.
+#
+# WHAT WAS DELIBERATELY NOT CHANGED, having been tried and measured. There is no
+# `\b` after the suffix, so any word starting with b, m or k still glues INSIDE a
+# line: "hire 300 by 2027" -> '300b'. That is the same defect and it is commoner
+# (261 sites over 163 stored rows), but the obvious fix — `(?:...)\b` — is a
+# REGRESSION here: it newly rejects 14 of the 15,711 stored rows, every one a
+# foreign-language funding round. The missing boundary is doing multilingual
+# magnitude folding by accident. "500 millones", "3 millions d'euros",
+# "3,2 Millionen", "150 miliona", "25 millioner" and "411 millions" all truncate
+# to 'm', and that is what makes them compare equal to the model's English
+# "500 million". The feed set spans 43 languages (data/feeds.csv), so replacing
+# the accident on purpose means a magnitude vocabulary in 43 languages — and a
+# partial vocabulary fails silently and looks like sparse data, which is a trap
+# this repo has already paid for once. Adding `\b` alone also breaks '$4.5M' in a
+# headline against '$4.5 million' in a summary (23 rows), which is the same
+# accident in English. Both need a fold written down before a boundary can land.
+#
+# The class below is every character `\s` matches EXCEPT the ones that end a
+# line. Written out because the point of it is exactly what it excludes: NBSP and
+# the typographic spaces stay IN (scraped prose is full of them, and "5 million"
+# with an NBSP is still five million), CR/LF/FF/VT and the Unicode line and
+# paragraph separators go OUT.
+_H_SPACE = r"[^\S\r\n\f\v\x1c\x1d\x1e\x85\u2028\u2029]"
+_NUMBER = re.compile(
+    r"\d[\d,.]*" + rf"(?:{_H_SPACE}*(?:bn|b|m|k|billion|million|thousand))?",
+    re.I)
 
 # A single job advert is not market intelligence. GDELT surfaces job boards
 # freely, and one live run stored "Claims Strategy Manager - Remote at Allstate"
