@@ -39,11 +39,16 @@ name: schedule-link-hygiene
 # able to run while the lock is held, exactly like the drainer. It writes one
 # JSON file and touches no collected data, so it needs no lock of its own.
 #
-# COST: zero. No model is called here or in either job it queues.
+# COST: zero here. The two link-hygiene jobs call no model. The tripwire slot
+# below DOES spend, and its price is measured rather than assumed: $0.0058 a
+# query on 2026-07-29's live run, ~53 queries a month, so about $0.31 against
+# the $1.00 cap in analysis/tripwire/plan.TRIPWIRE_MONTHLY_USD. The pessimistic
+# $0.02/query estimate that cap was sized on is 3.4x the real price.
 on:
   schedule:
     - cron: '40 3 * * *'   # nightly: a Wayback pass over the newest citations
     - cron: '30 5 * * 1'   # Mondays: a rot sweep, before the 13:00 health digest
+    - cron: '0 7 * * 1,4'  # Mon+Thu: ask an outside view what we are missing
 
   workflow_dispatch:
     inputs:
@@ -54,6 +59,7 @@ on:
           - both
           - archive
           - link-check
+          - tripwire
         default: both
 
 permissions:
@@ -91,8 +97,9 @@ jobs:
           set -euo pipefail
           if [ -n "${SLOT:-}" ]; then
             case "$SLOT" in
-              '40 3 * * *') WANT='archive-sources.yml' ;;
-              '30 5 * * 1') WANT='link-check.yml' ;;
+              '40 3 * * *')  WANT='archive-sources.yml' ;;
+              '30 5 * * 1')  WANT='link-check.yml' ;;
+              '0 7 * * 1,4') WANT='tripwire.yml' ;;
               *)
                 echo "::error::schedule slot '$SLOT' has no mapping in this"
                 echo "::error::workflow. A cron was changed above and this step"
@@ -104,6 +111,11 @@ jobs:
             case "${JOB:-both}" in
               archive)    WANT='archive-sources.yml' ;;
               link-check) WANT='link-check.yml' ;;
+              tripwire)   WANT='tripwire.yml' ;;
+              # 'both' predates the tripwire and still means the two free
+              # link-hygiene passes. It deliberately does NOT include the
+              # tripwire: that one spends, and a hand dispatch of "both"
+              # should never quietly become a hand dispatch of "and bill me".
               both)       WANT='archive-sources.yml link-check.yml' ;;
               *) echo "::error::unknown job '${JOB:-}'"; exit 1 ;;
             esac

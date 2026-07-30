@@ -31,7 +31,12 @@ yaml = pytest.importorskip("yaml")
 ROOT = Path(__file__).resolve().parent.parent
 WORKFLOWS = ROOT / ".github" / "workflows"
 
-WRITERS = ("archive-sources.yml", "link-check.yml")
+# tripwire.yml joined on 2026-07-30 when it was armed. It is the same shape of
+# thing as the other two -- a database writer whose schedule must not be a cron
+# in its own file -- and it is the one that spends, so it is the one where an
+# eviction is most expensive: a run that dies with zero jobs still cost nothing,
+# but a slot that silently skips is a week of discovery lost with no red run.
+WRITERS = ("archive-sources.yml", "link-check.yml", "tripwire.yml")
 SCHEDULER = "schedule-link-hygiene.yml"
 
 
