@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T18:32:36Z",
-  "last_tick": "2026-07-30T19:15:30Z",
+  "last_tick": "2026-07-30T19:15:46Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -248,6 +248,30 @@
       "priority": 10,
       "reason": "2026 registry backfill, $0 model spend: bse_india",
       "requested_at": "2026-07-30T19:15:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-30T19:15:40Z",
+          "detail": "2026 registry backfill, $0 model spend: companies_house",
+          "event": "queued"
+        }
+      ],
+      "id": "20260730T191540Z-backfill-structured-2026",
+      "inputs": {
+        "end": "2026-07-30",
+        "source": "companies_house",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "2026 registry backfill, $0 model spend: companies_house",
+      "requested_at": "2026-07-30T19:15:40Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
