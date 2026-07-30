@@ -85,7 +85,20 @@ DEFAULT_SPN_MAX = 40         # Save Page Now captures per run
 DEFAULT_SPN_GAP = 6.0        # seconds between captures
 DEFAULT_DEADLINE = 1500      # stop cleanly between URLs, never mid-capture
 
+# Pass 1 is "free" in money and not in politeness. Measured 2026-07-30: the
+# availability API answered 429 to the FIRST request from a residential IP and
+# was still answering 429 twenty seconds later, so being cheap is not the same
+# as being welcome. One call every half second caps the free pass at 2/s; with
+# the observed 0.2-1.0s of latency per call the real rate is lower still, and a
+# 600-URL pass costs about twelve minutes of the deadline rather than all of it.
+DEFAULT_AVAIL_GAP = 0.5
+
 RATE_LIMITED = "__rate_limited__"
+
+#: Codes that mean "archive.org would not answer", never "there is no snapshot".
+#: Reading a 429 as a miss is how a throttled run invents a gap it then spends
+#: its capture budget on. See check_availability.
+AVAILABILITY_UNKNOWN_CODES = frozenset({429, 500, 502, 503, 504})
 
 
 # --- pure helpers (tested offline) -----------------------------------------
@@ -127,15 +140,44 @@ def parse_save_response(status_code: int, headers, final_url: str) -> str | None
 # --- network (fail-open) ---------------------------------------------------
 
 def check_availability(url: str, session) -> str | None:
-    """Free existence check. Never raises: a failure just means 'not found yet'."""
+    """Free existence check: a permalink, RATE_LIMITED, or None.
+
+    Never raises. But it distinguishes THREE outcomes rather than two, and that
+    distinction is the whole reason this function has a docstring this long.
+
+    This used to return None for anything that was not a 200, so a 429 — which
+    archive.org hands out freely and which it handed to the first request of a
+    measurement on 2026-07-30 — was recorded as "Wayback has no snapshot of
+    this". Every consequence of that is wrong in the same direction:
+
+      * pass 1 reports a gap that does not exist, so the run looks like it has
+        more work than it has;
+      * the phantom misses go to pass 2, which spends a bounded capture budget
+        re-archiving documents Wayback already holds;
+      * each attempt increments `archive_attempts`, and at
+        MAX_ARCHIVE_ATTEMPTS the URL is recorded `unavailable` — which
+        `archive_candidates` treats as TERMINAL. A capturable document would be
+        dropped from the queue forever on the strength of archive.org having a
+        bad afternoon, and only a hand-written UPDATE could put it back.
+      * and none of it is visible: `throttled_out` only fires when Save Page
+        Now was throttled too, so a run blinded in pass 1 reports `ok`.
+
+    RATE_LIMITED means "we did not learn anything", which is not a miss and is
+    not a hit. The caller neither captures nor records on the back of it.
+    """
     try:
         resp = session.get(AVAILABILITY, params={"url": url},
                            headers={"User-Agent": USER_AGENT}, timeout=30)
+        if resp.status_code in AVAILABILITY_UNKNOWN_CODES:
+            return RATE_LIMITED
         if resp.status_code != 200:
             return None
         return parse_availability(resp.json())
     except Exception:
-        return None
+        # A timeout or a dropped connection is also "we do not know". Calling it
+        # a miss would burn the capture budget on the strength of our own
+        # network, which is the same error as above with a different cause.
+        return RATE_LIMITED
 
 
 def save_page_now(url: str, session) -> str | None:
@@ -153,6 +195,7 @@ def save_page_now(url: str, session) -> str | None:
 
 def run(conn, *, limit: int, collector: str | None, dry_run: bool,
         spn_max: int, spn_gap: float, deadline: float,
+        avail_gap: float = DEFAULT_AVAIL_GAP,
         session=None, sleep=time.sleep, clock=time.monotonic) -> dict:
     import requests
 
@@ -163,26 +206,36 @@ def run(conn, *, limit: int, collector: str | None, dry_run: bool,
         print("Every cited document already has a snapshot or is recorded "
               "unavailable. Nothing to do.")
         return {"archived": 0, "pending": 0, "checked": 0, "saves": 0,
-                "throttled": 0, "unavailable": 0}
+                "throttled": 0, "unavailable": 0, "unknown": 0, "free_hits": 0}
 
     print(f"{len(candidates)} URL(s) without a snapshot; pass 1 asks Wayback "
           f"whether it already has them (free), pass 2 captures at most "
           f"{0 if dry_run else spn_max}.")
 
     started = clock()
-    archived = pending = unavailable = saves = throttled = 0
+    archived = pending = unavailable = saves = throttled = unknown = 0
     misses: list[dict] = []
 
     # PASS 1 — free availability checks over EVERY candidate first. Most of what
     # we cite has been crawled by somebody, so this lands the bulk of the links
     # fast and independently of ordering. A miss is queued for the slow pass
     # rather than blocking the quick wins behind a 90-second capture.
-    for row in candidates:
+    for i, row in enumerate(candidates):
         if clock() - started >= deadline:
             print(f"  deadline ({deadline:.0f}s) reached during the free pass")
             break
         url = row["source_url"]
+        if i:
+            sleep(avail_gap)
         snapshot = check_availability(url, session)
+        if snapshot is RATE_LIMITED:
+            # We learned nothing about this URL. It is NOT a miss, so it does
+            # not go to pass 2, does not spend a capture and does not touch
+            # archive_attempts — which is what stops a throttled night walking
+            # a capturable document to the terminal 'unavailable' state. It is
+            # simply still in the gap, and tomorrow's run asks again.
+            unknown += 1
+            continue
         if snapshot:
             archived += 1
             print(f"  [have]  {url}\n          -> {snapshot}")
@@ -197,7 +250,9 @@ def run(conn, *, limit: int, collector: str | None, dry_run: bool,
 
     free_hits = archived
     print(f"\npass 1: {free_hits}/{free_hits + len(misses)} already in Wayback "
-          f"at no cost.")
+          f"at no cost."
+          + (f" {unknown} URL(s) went UNANSWERED (throttled or unreachable) and "
+             f"were left in the gap rather than guessed at." if unknown else ""))
 
     # PASS 2 — the bounded, rate-limited captures. Over budget, past the
     # deadline, or in a dry run, the URL is recorded 'pending' and retried on a
@@ -242,7 +297,7 @@ def run(conn, *, limit: int, collector: str | None, dry_run: bool,
 
     return {"archived": archived, "pending": pending, "checked": len(candidates),
             "saves": saves, "throttled": throttled, "unavailable": unavailable,
-            "free_hits": free_hits}
+            "unknown": unknown, "free_hits": free_hits}
 
 
 def main(argv=None) -> int:
@@ -258,6 +313,10 @@ def main(argv=None) -> int:
                         help="Save Page Now captures this run. Raising it does "
                              "NOT speed the backfill up; it gets us throttled.")
     parser.add_argument("--spn-gap", type=float, default=DEFAULT_SPN_GAP)
+    parser.add_argument("--avail-gap", type=float, default=DEFAULT_AVAIL_GAP,
+                        help="seconds between free availability calls. The free "
+                             "pass costs no money and is not therefore welcome "
+                             "at any rate we like.")
     parser.add_argument("--deadline", type=float, default=DEFAULT_DEADLINE)
     parser.add_argument("--db", type=Path, default=None)
     args = parser.parse_args(argv)
@@ -281,34 +340,47 @@ def main(argv=None) -> int:
 
         result = run(conn, limit=args.limit, collector=args.collector,
                      dry_run=args.dry_run, spn_max=args.spn_max,
-                     spn_gap=args.spn_gap, deadline=args.deadline)
+                     spn_gap=args.spn_gap, avail_gap=args.avail_gap,
+                     deadline=args.deadline)
 
         if args.dry_run:
             print(f"\nDRY RUN: {result['archived']} of {result['checked']} "
                   f"already in Wayback, {result['pending']} would need a "
-                  f"capture. Nothing recorded, nothing captured.")
+                  f"capture, {result.get('unknown', 0)} went unanswered. "
+                  f"Nothing recorded, nothing captured.")
             return 0
 
         projected = source_links.project_archive_urls(conn)
         summary = source_links.rot_summary(conn)
+        unknown = result.get("unknown", 0)
         detail = (f"{result['archived']} archived this run "
                   f"({result['free_hits']} free, {result['saves']} captures, "
                   f"{result['throttled']} throttled), {result['pending']} pending, "
-                  f"{result['unavailable']} unavailable; coverage "
+                  f"{result['unavailable']} unavailable, {unknown} unanswered; "
+                  f"coverage "
                   f"{summary['archived']}/{summary['distinct_source_urls']} "
                   f"distinct source URLs ({summary['archive_pct']}%); "
                   f"{projected} signal row(s) given a fallback link")
 
-        # Degraded ONLY when every capture attempted was throttled and nothing
-        # was found free. That is Wayback rate-limiting us, which is expected
-        # often enough that it must not be a red run, and visible enough that it
-        # must not be silent either. Ordinary slow progress is 'ok': a week-long
-        # backfill is the design, not a fault.
+        # Degraded when Wayback would not talk to us, in either pass.
+        #
+        # throttled_out: every capture attempted was refused and nothing was
+        # found free. Expected often enough that it must not be a red run, and
+        # consequential enough that it must not be silent.
+        #
+        # blinded: the free pass could not get an answer for a large share of
+        # the candidates. This one is new, and it is the more dangerous of the
+        # two, because before check_availability distinguished "unanswered" from
+        # "absent" a fully throttled free pass reported `ok` with a healthy
+        # capture count next to it. Ordinary slow progress is still 'ok': a
+        # week-long backfill is the design, not a fault.
         throttled_out = (result["archived"] == 0 and result["saves"] > 0
                          and result["throttled"] == result["saves"])
+        answered = result["free_hits"] + result["pending"] + unknown
+        blinded = bool(unknown) and unknown * 2 >= (answered or 1)
         store.report_health(
             conn, "archive_sources",
-            status="degraded" if throttled_out else "ok",
+            status="degraded" if (throttled_out or blinded) else "ok",
             items_found=result["checked"] or summary["archived"],
             items_stored=result["archived"], detail=detail)
         conn.commit()
@@ -317,6 +389,14 @@ def main(argv=None) -> int:
             print("::warning::every capture this run was rate-limited by "
                   "Wayback. This is expected periodically; the queue is "
                   "resumable and the next run picks it up.")
+        if blinded:
+            print(f"::warning::the availability API left {unknown} of "
+                  f"{answered} URL(s) unanswered this run, so most of the free "
+                  f"pass learned nothing. Nothing was captured or recorded on "
+                  f"the strength of a non-answer, and none of those URLs spent "
+                  f"an attempt — they are still in the gap. If this repeats for "
+                  f"several runs, archive.org is refusing this IP range rather "
+                  f"than having an afternoon.")
         return 0
     finally:
         conn.close()

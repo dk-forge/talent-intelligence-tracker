@@ -96,6 +96,21 @@ TIMEOUT = 25
 WALLED_CODES = frozenset({401, 402, 403, 405, 406, 429})
 DEAD_CODES = frozenset({404, 410})
 
+# One retry, then move on, on a transport failure or a 5xx.
+#
+# Neither state is counted as rot, so this is not about the rot rate. It is
+# about the RECHECK WINDOW: a single observation costs the URL its whole
+# `--recheck-days` (30 by default) before anything looks at it again, so a
+# publisher's bad afternoon buys a month of not knowing whether their article
+# is still there. Shared hosting has bad afternoons on purpose; so does a
+# GitHub runner's DNS.
+#
+# Exactly one retry, and never for a 4xx. A 429 is in WALLED_CODES and
+# retrying it would be answering "slow down" with "no"; a 404 is an answer, not
+# a failure. Two retries would double this job's request count against every
+# flaky host in the catalogue to refine a state that is not rot either way.
+RETRY_PAUSE = 3.0
+
 
 def classify(status: int, final_url: str, source_url: str) -> tuple[str, str]:
     """(state, detail) for one observation. Pure: tested without a network.
@@ -139,8 +154,8 @@ def classify(status: int, final_url: str, source_url: str) -> tuple[str, str]:
     return "error", f"HTTP {status}: unexpected"
 
 
-def probe(url: str, session, timeout: int = TIMEOUT) -> tuple[int, str]:
-    """(status, final_url). Returns 0 on a transport failure and never raises.
+def _probe_once(url: str, session, timeout: int = TIMEOUT) -> tuple[int, str]:
+    """One request. (status, final_url), 0 on a transport failure, never raises.
 
     A monitoring job that can crash on the thing it monitors is a monitoring job
     that reports "healthy" by dying quietly in a workflow nobody reads.
@@ -158,6 +173,24 @@ def probe(url: str, session, timeout: int = TIMEOUT) -> tuple[int, str]:
         return status, final
     except Exception:
         return 0, ""
+
+
+def transient(status: int) -> bool:
+    """Worth one more try: nothing answered, or the server admitted a fault."""
+    return status == 0 or status >= 500
+
+
+def probe(url: str, session, timeout: int = TIMEOUT, *, retries: int = 1,
+          sleep=time.sleep, pause: float = RETRY_PAUSE) -> tuple[int, str]:
+    """(status, final_url), retrying a transient failure. See RETRY_PAUSE."""
+    status, final = 0, ""
+    for attempt in range(retries + 1):
+        status, final = _probe_once(url, session, timeout)
+        if not transient(status):
+            return status, final
+        if attempt < retries:
+            sleep(pause)
+    return status, final
 
 
 def run(conn, *, limit: int, collector: str | None, dry_run: bool,
@@ -198,7 +231,7 @@ def run(conn, *, limit: int, collector: str | None, dry_run: bool,
                     "robots.txt disallows this path: the publisher's own terms",
                     None, "")
             else:
-                status, final = probe(url, session)
+                status, final = probe(url, session, sleep=sleep)
                 state, detail = classify(status, final, url)
 
             checked += 1
