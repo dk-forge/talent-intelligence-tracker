@@ -4615,3 +4615,186 @@ reached the classifier.
   real Danish funding headlines read as clean misses.
 
 Measured keep rates after: 19% / 11% / 16%, the band the English gate already sits in.
+
+---
+
+## robots.txt: the file that breaks without breaking
+
+Two sitemap lines had to reach `robots.txt`. It is served from disk by Apache
+before WordPress runs, so no plugin, filter or REST route can add them — it is an
+upload. And it is the `.htaccess` danger class one layer out: a truncated
+`robots.txt` still answers 200, the site renders identically, nothing goes red,
+and the domain quietly stops being crawled. The first symptom is a traffic graph
+three weeks later.
+
+So `robots_sitemaps.py` reuses the shape `includes/htaccess.php` already proved
+on this host — keep the old bytes, write, probe the live URL, restore on any
+doubt — with two additions that file does not need. The probe is **cache-busted**,
+because Cloudflare will serve the pre-write copy back and make a failed write
+look like a success. And the probe **retries a 5xx**, because this host 500s at
+random under load and a rollback triggered by somebody else's bad minute is an
+outage we caused.
+
+**The remote path is never guessed.** An FTP account here is chrooted, so a path
+from the control panel is not what the session sees, and writing to the wrong
+`robots.txt` is unrecoverable in the only sense that counts: we would not know.
+The file is fetched over HTTP first, then a candidate remote path is accepted
+only if its bytes are **identical to what that URL just served**. No match, no
+write. The root target additionally refuses any path containing `/blog/`, because
+two copies holding identical bytes would otherwise let the root target adopt the
+blog file and report two successes for one write.
+
+It is a separate workflow from `deploy-plugin.yml` on purpose. That one refuses
+to write anywhere but `WP_PLUGIN_REMOTE_DIR`, which is the guard that keeps it
+away from the live sibling product. No cron, ever: this is one edit to one file.
+
+### What was actually there
+
+The brief said two copies, each holding only the `sitemap_index.xml` line. There
+is **one**, and it holds four directives:
+
+| URL | status | bytes | type |
+|---|---|---|---|
+| `/blog/robots.txt` | 200 | 175 | `text/plain` |
+| `/robots.txt` | 200 | 13,181 | `text/html` |
+
+The apex has no `robots.txt` at all. It answers `/robots.txt`,
+`/definitely-not-here-xyz123.txt` and every other unmatched path with the same
+13,181-byte "Coming soon" landing page. The content-binding refuses it on its
+own, and the refusal says why rather than "served HTML": putting a file there is
+a **create**, not an edit, and a root `robots.txt` where none existed changes the
+crawl rules for the whole domain in one step.
+
+Which matters more than it looks. RFC 9309 has a crawler read `/robots.txt` at
+the host root **and nowhere else**, so the `Sitemap:` lines in
+`/blog/robots.txt` — the existing `sitemap_index.xml` one included — are read by
+nothing. Adding two more is correct, harmless, idempotent, and **will not on its
+own get either sitemap crawled**. That needs a real file at the apex or a Search
+Console submission, and it is a decision, not a default.
+
+### The first real dispatch refused, and that is the entry
+
+Run `30577050236`, `dry_run=false targets=blog`:
+
+```
+Refusal: blog: no remote file matched what https://asktherecruiter.com/blog/robots.txt
+serves. Tried ['/blog/robots.txt', '/public_html/blog/robots.txt',
+'blog/robots.txt', 'public_html/blog/robots.txt'].
+```
+
+The FTP session is rooted somewhere none of the four hand-written candidates
+reach. **Nothing was written and the live file is unchanged.** This is the whole
+argument for content-binding, and it is worth being explicit about the
+counterfactual: a version of this job that trusted a path from the control panel
+would have written a `robots.txt` into whatever directory the session happened to
+land in, reported success, and left the owner believing the file was updated. The
+file it created would be read by nothing, the file it was meant to update would
+be untouched, and no run, log or page would ever have said so. Silent and
+permanent, and the design is what made it a clean refusal instead.
+
+Two fixes, both required, neither of them a fifth blind guess:
+
+* **Derive from a path already proven to work.** `deploy-plugin.yml` mirrors into
+  `WP_PLUGIN_REMOTE_DIR` successfully with these same credentials, so it is a
+  real remote path for this exact account. `<wp-root>/wp-content/plugins/tit`
+  walks up three levels to the WordPress root, which is where a robots.txt
+  lives. That candidate is tried FIRST and is exempt from the name-shape filters
+  — those exist to discipline guesses, and this is not one — but it is not
+  exempt from anything that matters: it must still serve byte-identical content
+  before a byte is written. The shape of the secret is checked rather than
+  trusted, so a secret that stops being a plugin directory derives nothing at
+  all rather than a plausible wrong path.
+* **Make a refusal diagnostic.** When nothing matches, the run now prints the
+  login directory the server chose, every parent of it, the parent of every
+  candidate tried, and `/` — with the entries in each and a marker on any that
+  holds a `robots.txt`. Read only, and it runs under `dry_run` too. A server
+  that refuses a listing says so: an empty report and a forbidden one are
+  different facts, and printing nothing for both is how the next dispatch learns
+  nothing either.
+
+**One assertion changed shape, deliberately.** The test that used to say
+`secrets.WP_PLUGIN_REMOTE_DIR` never appears in `deploy-robots.yml` was a proxy
+for the thing worth protecting, and the proxy broke the day that secret turned
+out to be the only working remote path we have. Reading it to derive a candidate
+to LOOK at widens no write path. So the test now asserts the property itself:
+this job never writes inside `wp-content`, and `deploy-plugin.yml` still has no
+robots.txt write path of its own. `NEVER_WRITE_INSIDE` enforces it three times —
+in `candidate_paths`, in `process`, and last in `FtpTransport.write` — because
+one refusal is one edit from gone.
+
+---
+
+## What the tripwire costs
+
+Derived before arming it, from the prompt and the price list, because at the time
+`analysis/tripwire/results/` did not exist and
+`tests/fixtures/tripwire_reply.json` is a captured *shape* carrying no token
+counts. There was no run to read.
+
+**Model.** `perplexity/sonar` (`ask.MODEL`, overridable by `TIT_TRIPWIRE_MODEL`).
+OpenRouter's endpoint API prices it at **$1.00/M prompt, $1.00/M completion,
+$0.005 per web search**. `_call()` skips the web plugin for any model whose name
+contains `sonar`, so nothing pays OpenRouter's per-result plugin fee on top.
+
+**Queries per run.** `COUNTRIES_PER_RUN` is derived, not chosen:
+`int(1.00 / 0.02) = 50` queries a month, minus the 18-industry sweep, over 8 runs
+= **4**. So an ordinary run issues 4 queries. One run a month also carries the
+full sweep (`industries_due()` is derived from the dated result files), making it
+**22** — exactly `MAX_QUERIES_PER_RUN`.
+
+**Tokens per query.** The prompt is exact: `SYSTEM` 285 chars + `SCHEMA` 868 +
+the question ≈ **1,433 chars**, ~**410 tokens** at 3.5 chars/token (the range
+across 3.0–4.0 is 358–478). The reply is bounded by `LEADS_PER_QUERY = 8`, and
+the fixture's items serialise at 242 chars each, so a full reply is ~1,946 chars,
+~**560 tokens** (487–649).
+
+| | per query |
+|---|---|
+| search fee | $0.00500 |
+| ~410 prompt tokens | $0.00041 |
+| ~560 completion tokens | $0.00056 |
+| **total** | **$0.0060** |
+
+**The search fee is 84% of it.** Token size is nearly irrelevant here, which is
+worth knowing before anyone shortens the schema to save money.
+
+The one stated uncertainty was whether OpenRouter reports Perplexity's retrieved
+search context inside `prompt_tokens` (~3–6k), which would push a query to
+$0.008–$0.011. It does not appear to: `schedule-link-hygiene.yml` records
+**$0.0058 a query measured on a live run**, within 3% of the derivation and
+below it, so the upper regime did not materialise. That figure is a comment, not
+a committed result file — `analysis/tripwire/results/` is still empty here — so
+the first committed run is what settles it for good. `usage.include` is already
+on and `report.cost_block` already records it.
+
+**Therefore**, at the Monday+Thursday 07:00 UTC slot (8.67 runs/month, near
+enough the 8 `plan.py` is sized on — the slot now lives in
+`schedule-link-hygiene.yml` as a ticket rather than as a cron in `tripwire.yml`,
+for the eviction reason that file explains):
+
+- ordinary run, 4 queries: **$0.024**
+- monthly sweep run, 22 queries: **$0.13**
+- **month: 53 queries, ~$0.31–$0.32**
+
+against the $1.00 cap in `plan.TRIPWIRE_MONTHLY_USD`. The pessimistic
+$0.02/query the cap was sized on is **~3.4× the real price**, so the plan is
+conservative in the right direction and arming it needed no change to the cap.
+
+### What the money buys
+
+It is the only component that discovers sources nobody told us about. The
+rejection audit is unambiguous about where the misses are: of 81 recall misses,
+**0 were fetched and dropped** — no filter problem at all — while **23 are a
+source problem**, 12 at publishers we have researched but not wired
+(`calcalistech.com` 4, `businesswire.com` 2, `globenewswire.com` 2) and **11 at
+10 publishers nobody has ever heard of here**: `latamlist.com`,
+`european-biotechnology.com`, `finsmes.com`, `pv-magazine.com`, `techla.pro`.
+A wiring backlog is work; an unknown-publisher list is *not knowable* from
+inside, and that is precisely the gap a search-backed outside view closes. With
+27 countries measured at zero recall and 4 asked about per run, a month walks
+roughly a third of them. Leads are claims and die in the work list;
+`collectors/tripwire_chase.py` converts them by finding the publisher's own
+article, so the yield is measured in confirmed misses, and
+`usd_per_confirmed_miss` stays "not yet measurable" until it has stored
+something. For about $0.31 a month, the question is not whether it pays for
+itself but whether we would rather keep guessing which publishers exist.

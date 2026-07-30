@@ -92,12 +92,25 @@ jobs:
           python -c "import yaml, requests"
           python -m pytest tests/test_robots_sitemaps.py -q
 
+      # WP_PLUGIN_REMOTE_DIR is READ here, and only to derive a path to LOOK
+      # at. Run 30577050236 refused because the session is rooted somewhere
+      # none of the four hand-written candidates reach, and that secret is the
+      # one remote path known to work for these credentials — deploy-plugin.yml
+      # mirrors into it. Three levels up from it is the WordPress root, which
+      # is where a robots.txt lives.
+      #
+      # This does not widen that workflow's write path. The derived path is a
+      # candidate like any other: it must serve byte-identical content before a
+      # byte is written, and NEVER_WRITE_INSIDE refuses anything under
+      # wp-content outright, in candidate_paths, in process, and again in
+      # FtpTransport.write.
       - name: Append the sitemap lines
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_PORT: ${{ secrets.FTP_PORT }}
+          WP_PLUGIN_REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
         run: |
           python robots_sitemaps.py \
             --targets '${{ inputs.targets }}' \
