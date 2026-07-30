@@ -75,8 +75,17 @@ function tit_corrections_entries() {
                  quarters". That sentence appears in no filing. It was a
                  generalisation printed identically on thousands of records,
                  presented as though it had been read off the document.',
+                /* The badge name is quoted here so a reader can go and find it,
+                   which is the whole point of a corrections log. It was
+                   "Headcount not stated" and is now Title Cased with the rest of
+                   the page's labels (see the one-vocabulary note in
+                   shortcodes.php). tests/test_corrections_page.py reads the live
+                   label out of shortcodes.php and fails if this quote drifts
+                   from it, which is what caught the rename: a log describing a
+                   badge that no longer exists sends a reader looking for
+                   something they cannot find. */
                 '3,005 records were corrected on 29 July 2026. The badge is now
-                 "Headcount not stated", and each read-through says only what its
+                 "Headcount Not Stated", and each read-through says only what its
                  filing records: who raised how much, when, and the address on the
                  filing, followed by the gap named plainly. For example: "The
                  filing records the money only; it names no roles and no hiring

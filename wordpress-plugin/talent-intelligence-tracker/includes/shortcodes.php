@@ -421,32 +421,82 @@ function tit_dashboard_html() {
     $tit_cities       = $facts['cities'];
     // Recruiter language, not ours. "Pillar" and "signal direction" are
     // internal vocabulary and never appear on the page.
+    /*
+      ONE VOCABULARY FOR THE WHOLE PAGE, IN TITLE CASE.
+
+      The owner asked twice: "What happend to title case on everything" and
+      "What is hiring up mean? use a differne word, What is pay news what is all
+      updates. See these aren't human".
+
+      Both complaints had the same root. The page carried TWO sets of words for
+      the same facts. The charts said "Pay and benefits" and "Growing and
+      expanding"; the matrix beside them said "Pay news" and "Funding raised"
+      for the same rows. A reader had to work out that "Pay news" and "Pay and
+      benefits" were one thing. So there is now one list, these are it, and
+      every other surface reads from it or mirrors it.
+
+      SAFE TO RENAME, checked before touching anything. These are DISPLAY
+      strings only. Every chart row carries its key on `data-k`, every matrix row
+      on `data-signal`, and the filter a click applies is a separate `filter`
+      field; tit_glance_matrix() keys its cells `c_{$di}_{$pi}` by index and
+      never by label. So no query, cache key or handler reads any of these. (On
+      the sibling this same edit was a two-file data join because an aggregate
+      keyed its rows BY LABEL and a cached response spanning the deploy would
+      have killed click-to-filter. That coupling does not exist here, and the
+      assertions in tests/php/render_dashboard.php now pin that it stays absent.)
+
+      Title Case here is conventional Title Case, not every-word-capitalised:
+      short conjunctions and prepositions stay lowercase ("Pay and Benefits",
+      "Ways of Working"), because "Pay And Benefits" is not how a person writes
+      and the owner's other complaint was that these did not read as if a person
+      had. tit_title_case_ok() is the shared rule and the test uses it.
+    */
     $labels = array(
-        'company_development' => 'Growing and expanding',
-        'leadership_change'   => 'Leadership moves',
-        'rewards_comp'        => 'Pay and benefits',
-        'how_we_work'         => 'Ways of working',
+        'company_development' => 'Growing and Expanding',
+        'leadership_change'   => 'Leadership Moves',
+        'rewards_comp'        => 'Pay and Benefits',
+        'how_we_work'         => 'Ways of Working',
     );
     $directions = array(
-        'hiring'       => 'Hiring up',
-        'displacement' => 'Cutting back',
-        'comp_shift'   => 'Pay change',
+        /*
+          "Adding Roles", not "Hiring up". The owner asked what "hiring up"
+          meant, and it is a fair question about a phrase nobody says: "up"
+          is doing the work of "the source told us headcount is going up",
+          which a reader has to reverse-engineer. "Adding Roles" is the thing
+          itself. "Cutting Roles" is its opposite in the same shape, where
+          "Cutting back" could have meant costs, hours or investment.
+          Stored values (hiring, displacement, comp_shift, neutral) unchanged.
+        */
+        'hiring'       => 'Adding Roles',
+        'displacement' => 'Cutting Roles',
+        'comp_shift'   => 'Pay Change',
         // "Other change" told the reader nothing: it is the bucket for updates
         // whose source says nothing about headcount at all (a funding round
         // with no hiring plan, a CEO succession). Naming that plainly is both
         // clearer and truer to the rule that we never infer a direction the
         // source did not state.
-        'neutral'      => 'Headcount not stated',
+        'neutral'      => 'Headcount Not Stated',
     );
     $functions = array(
         'engineering' => 'Engineering', 'data_ai' => 'Data & AI',
-        'it_infrastructure' => 'IT & infrastructure', 'product' => 'Product',
-        'design' => 'Design', 'finance' => 'Finance', 'hr_people' => 'HR & people',
+        'it_infrastructure' => 'IT & Infrastructure', 'product' => 'Product',
+        'design' => 'Design', 'finance' => 'Finance', 'hr_people' => 'HR & People',
         'sales' => 'Sales', 'marketing' => 'Marketing',
-        'customer_support' => 'Customer support', 'operations' => 'Operations',
-        'supply_chain' => 'Supply chain', 'manufacturing' => 'Manufacturing',
-        'legal_compliance' => 'Legal & compliance', 'research' => 'Research',
-        'clinical_healthcare' => 'Clinical & healthcare', 'executive' => 'Executive',
+        'customer_support' => 'Customer Support', 'operations' => 'Operations',
+        /*
+          "Production & manufacturing", not "Manufacturing", and the reason is
+          that the word appeared TWICE in this panel: once here, as the team a
+          job sits in, and once in Industry, as the sector the employer trades
+          in. Two groups, one word, two meanings, and nothing on the page
+          telling a reader which was which. The stored vocabulary value is
+          untouched (`manufacturing` in pipeline/vocab.FUNCTIONS); only the
+          words a reader sees are disambiguated, because a vocabulary is fixed
+          and a label is ours.
+        */
+        'supply_chain' => 'Supply Chain',
+        'manufacturing' => 'Production & Manufacturing',
+        'legal_compliance' => 'Legal & Compliance', 'research' => 'Research',
+        'clinical_healthcare' => 'Clinical & Healthcare', 'executive' => 'Executive',
     );
     $industries = tit_industry_labels();
     $confidences = tit_confidence_labels();
@@ -479,6 +529,38 @@ function tit_dashboard_html() {
         '' => 'Everything',
         'confidence=verified' => 'From Official Filings',
         'funding=1&sort=raised' => 'Biggest Raises',
+        /*
+          MOVED HERE OUT OF THE FILTER PANEL, and relabelled, and this is the
+          one control on the page whose own name was the defect.
+
+          It shipped in the primary filter row as a checkbox reading "Only
+          Updates That Move Headcount (54)", and the owner asked what it meant.
+          It filters `signal_direction IN ('hiring','displacement')`, which is
+          "the source said which way headcount is going". It does NOT read the
+          `headcount` column, and the difference is not academic: measured
+          2026-07-29 over 15,711 current rows, `headcount` is non-null on 11
+          (0.07%) while hiring-or-displacement is true on 53 (0.34%), of which
+          51 are hiring and 2 are displacement.
+
+          So it was doing something real and rare under a name that promised
+          something else. Three options were on the table. Removing it loses a
+          filter that /query still accepts and that existing share links carry.
+          Leaving it in the panel keeps a control returning 0.3% at the same
+          visual weight as Industry, which returns thousands. Making it a QUICK
+          VIEW is what the design mock does and what the numbers support: a
+          quick view is explicitly a narrow, named cut of the page rather than a
+          general-purpose filter, it sits beside the other two narrow cuts, and
+          it carries its own count so a reader sees the size of what they are
+          asking for BEFORE clicking rather than after.
+
+          The count is printed and computed, never typed, and it is the count
+          under the current filters, so it moves with them.
+
+          The checkbox itself survives in .tit-state as the hidden state this
+          button drives, which is what keeps the querystring, the chips bar and
+          the exports working unchanged.
+        */
+        'stated_headcount=1' => 'Moves Headcount',
     );
     ?>
     <!--
@@ -539,6 +621,100 @@ function tit_dashboard_html() {
 
         <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
 
+        <?php
+        /*
+          PLACE FIRST, THEN THE CROSS-TAB. The owner asked for the geographic
+          strips to move above the matrix, and the sequence is better for it:
+          picking a place is how most readers start, and a time-by-signal
+          cross-tab means more once a place is chosen than it does cold.
+
+          Moving it invalidated a POINTER, which is the part worth remembering.
+          The quick-views hint read "For a period, click a number in the matrix
+          at the top", and the matrix is not at the top any more. A stale
+          direction is worse than none, because a reader follows it and finds
+          nothing. Grepped for the others; this was the only one.
+        */
+        ?>
+      <?php /* No heading here. "The market right now" over "Pick a region to
+                 narrow the updates below" said nothing the strip beneath it did
+                 not already say with its own labels and counts, and a heading
+                 that only restates its contents is a row of dead pixels between
+                 the reader and the control. */ ?>
+        <?php
+        /*
+          Two tiers, visually distinct, because they are two granularities and
+          showing them at one weight was the bug. Regions cover the world once
+          each and CONTAIN their countries; the country row is derived from live
+          counts and is clearly subordinate.
+
+          Picking a country replaces a region rather than stacking with it. They
+          answer the same question, "where", so ANDing them would let a reader
+          select Europe and then the United States and get an empty page that
+          looks broken. Replacing always narrows, never contradicts, and the
+          chips bar names whichever one is applied.
+        */
+        $tit_regions = tit_regions($counts_by_country);
+        $tit_top = tit_top_countries($counts_by_country);
+        ?>
+        <div class="tit-places">
+          <div class="tit-regions" role="group" aria-label="Filter by region">
+            <?php foreach ($tit_regions as $r) : ?>
+              <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
+                      data-codes="<?php echo esc_attr($r['codes']); ?>">
+                <span class="tit-region-flag" aria-hidden="true"><?php echo tit_region_emoji($r['name']); ?></span>
+                <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
+                <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+          <?php if ($tit_top) : ?>
+            <div class="tit-countries" role="group" aria-label="Filter by country">
+              <span class="tit-countries-label">Top Countries</span>
+              <?php foreach ($tit_top as $c) : ?>
+                <button type="button" class="tit-cbtn" data-code="<?php echo esc_attr($c['code']); ?>"
+                        aria-pressed="false">
+                  <?php /* Flag is decoration and aria-hidden; the NAME is always
+                           printed, because a platform with no font for a flag
+                           draws two letters or a blank box. */ ?>
+                  <?php echo tit_country_label_html($c['code']); ?>
+                  <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
+                </button>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+          <?php if ($tit_cities) : ?>
+            <div class="tit-countries" role="group" aria-label="Filter by city">
+              <span class="tit-countries-label">Top Cities</span>
+              <?php foreach ($tit_cities as $c) : ?>
+                <button type="button" class="tit-cbtn tit-citybtn" data-city="<?php echo esc_attr($c['k']); ?>"
+                        aria-pressed="false">
+                  <span aria-hidden="true"><?php echo tit_flag($c['cc'] ?? ''); ?></span>
+                  <span><?php echo esc_html($c['k']); ?></span>
+                  <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
+                </button>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+          <p class="tit-places-note">Regions include every country inside them, so
+             Europe counts the United Kingdom and Asia counts India. Picking a
+             country replaces the region rather than narrowing inside it.</p>
+        </div>
+
+        <?php
+        /*
+          THE DATED PANEL SITS ABOVE THE CROSS-TAB, and the two are the same
+          facts at two resolutions. The panel answers "what moved, and when",
+          which is the question somebody opens a tracker with; the matrix
+          answers "what kind, and is it accelerating", which is the question
+          they have once the first is answered. Week, month and year share their
+          boundaries with the matrix rows below, so a reader who checks one
+          against the other finds them equal.
+        */
+        ?>
+        <div class="tit-dg-box" id="tit-dg-box">
+          <?php echo tit_dated_glance_html($glance['dated'] ?? array(), $money['coverage'] ?? null); ?>
+        </div>
+
         <div class="tit-glance" id="tit-glance">
           <?php echo tit_glance_matrix_html($glance); ?>
         </div>
@@ -548,6 +724,24 @@ function tit_dashboard_html() {
         <?php endif; ?>
 
         <p class="tit-hero-fine">
+          <?php
+          /*
+            THE WIDEST RUNG OF THE SAME LADDER, and it is labelled now.
+
+            This line is the old undated lump. It was not deleted, because it
+            answers a real question — how much is in here altogether — and the
+            meta description is built from the same three figures. What was
+            wrong is that it answered that question in the position where a
+            reader expects "what has moved", with nothing saying which of the
+            two it was. Labelled and placed under the dated rows it is the
+            bottom rung: today, this week, this month, this year, everything.
+
+            The label is OUTSIDE .tit-fine-figures on purpose. dashboard.js
+            rewrites that span's innerHTML on every filter change, so a label
+            inside it would survive exactly until the reader touched a control.
+          */
+          ?>
+          <span class="tit-dg-label tit-dg-label-static">Everything We Hold</span>
           <span class="tit-fine-figures"><?php
             /* Money sits WITH the other headline figures, not trailing after
                the sentence. It is still a link, because it is a sum of dollars
@@ -599,71 +793,6 @@ function tit_dashboard_html() {
         </p>
       </div>
 
-      <?php /* No heading here. "The market right now" over "Pick a region to
-               narrow the updates below" said nothing the strip beneath it did
-               not already say with its own labels and counts, and a heading
-               that only restates its contents is a row of dead pixels between
-               the reader and the control. */ ?>
-      <?php
-      /*
-        Two tiers, visually distinct, because they are two granularities and
-        showing them at one weight was the bug. Regions cover the world once
-        each and CONTAIN their countries; the country row is derived from live
-        counts and is clearly subordinate.
-
-        Picking a country replaces a region rather than stacking with it. They
-        answer the same question, "where", so ANDing them would let a reader
-        select Europe and then the United States and get an empty page that
-        looks broken. Replacing always narrows, never contradicts, and the
-        chips bar names whichever one is applied.
-      */
-      $tit_regions = tit_regions($counts_by_country);
-      $tit_top = tit_top_countries($counts_by_country);
-      ?>
-      <div class="tit-places">
-        <div class="tit-regions" role="group" aria-label="Filter by region">
-          <?php foreach ($tit_regions as $r) : ?>
-            <button type="button" class="tit-region<?php echo $r['codes'] === '' ? ' is-on' : ''; ?>"
-                    data-codes="<?php echo esc_attr($r['codes']); ?>">
-              <span class="tit-region-flag" aria-hidden="true"><?php echo tit_region_emoji($r['name']); ?></span>
-              <span class="tit-region-name"><?php echo esc_html($r['name']); ?></span>
-              <span class="tit-region-n"><?php echo esc_html(number_format_i18n($r['n'])); ?></span>
-            </button>
-          <?php endforeach; ?>
-        </div>
-        <?php if ($tit_top) : ?>
-          <div class="tit-countries" role="group" aria-label="Filter by country">
-            <span class="tit-countries-label">Top countries</span>
-            <?php foreach ($tit_top as $c) : ?>
-              <button type="button" class="tit-cbtn" data-code="<?php echo esc_attr($c['code']); ?>"
-                      aria-pressed="false">
-                <?php /* Flag is decoration and aria-hidden; the NAME is always
-                         printed, because a platform with no font for a flag
-                         draws two letters or a blank box. */ ?>
-                <?php echo tit_country_label_html($c['code']); ?>
-                <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-        <?php if ($tit_cities) : ?>
-          <div class="tit-countries" role="group" aria-label="Filter by city">
-            <span class="tit-countries-label">Top cities</span>
-            <?php foreach ($tit_cities as $c) : ?>
-              <button type="button" class="tit-cbtn tit-citybtn" data-city="<?php echo esc_attr($c['k']); ?>"
-                      aria-pressed="false">
-                <span aria-hidden="true"><?php echo tit_flag($c['cc'] ?? ''); ?></span>
-                <span><?php echo esc_html($c['k']); ?></span>
-                <span class="tit-cbtn-n"><?php echo esc_html(number_format_i18n($c['n'])); ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-        <p class="tit-places-note">Regions include every country inside them, so
-           Europe counts the United Kingdom and Asia counts India. Picking a
-           country replaces the region rather than narrowing inside it.</p>
-      </div>
-
       <?php
       /*
         THE CROSS-TRACKER PAIRS, when there are any that can be defended.
@@ -695,12 +824,17 @@ function tit_dashboard_html() {
       </div>
 
       <div class="tit-quick" role="group" aria-label="Quick views">
-        <span class="tit-quick-label">Quick views</span>
+        <span class="tit-quick-label">Quick Views</span>
         <?php foreach ($quick_views as $spec => $label) : ?>
           <button type="button" class="tit-qv" data-qv="<?php echo esc_attr($spec); ?>"><?php
-            echo esc_html($label); ?></button>
+            echo esc_html($label);
+            /* The one quick view whose set is small enough that its size is
+               part of what it means. See the note beside $quick_views. */
+            if ($spec === 'stated_headcount=1') : ?><span class="tit-qv-n"
+              id="tit-stated-n"><?php echo esc_html('(' . number_format_i18n($n_stated) . ')');
+            ?></span><?php endif; ?></button>
         <?php endforeach; ?>
-        <span class="tit-quick-hint">For a period, click a number in the matrix at the top.</span>
+        <span class="tit-quick-hint">For a time period, tap a number in the signal table above.</span>
       </div>
 
       <?php
@@ -733,6 +867,43 @@ function tit_dashboard_html() {
       ?>
       <?php
       /*
+        THE FEED: the controls beside the rows they control, not three screens
+        above them.
+
+        The owner's words were "filters dont move with the page a like the layoff
+        one". The sibling tracker keeps its controls in a column next to the
+        results, so a reader who scrolls into the rows still has the filters in
+        view; ours sat in a full-width block that scrolled away and left a reader
+        with no way back to it except upward.
+
+        A full-width block cannot be made sticky in any useful way -- it is
+        taller than the viewport, so there is nothing to pin. So the panel
+        becomes a COLUMN, which is what makes sticky possible at all, and it is
+        sticky only where there is room for it to be: at 900px and up. Below
+        that the flex row wraps and it is an ordinary stacked block, because a
+        sticky sidebar on a phone either covers the content or traps the scroll,
+        and both are worse than scrolling past a panel once.
+
+        Sticky is CANCELLED OUTRIGHT by any scrollable ancestor, and this
+        stylesheet already carries the rules that keep html and body from
+        becoming one (see the overflow-x:clip note in dashboard.css). Nothing
+        between #tit-dashboard and this element may set overflow, which is why
+        the panel is a direct child of the flex row and the row sets none.
+      */
+      ?>
+      <div class="tit-feed">
+        <aside class="tit-panel" id="tit-panel" aria-labelledby="tit-panel-t">
+          <div class="tit-panel-head">
+            <span class="tit-panel-t" id="tit-panel-t">Filters</span>
+            <?php /* Reset lives at the top of the panel now. It was the last
+                     cell of the filter grid, below seven scrolling boxes, which
+                     is the one place a reader who wants to start over will not
+                     look. Same id, so the same handler binds it. */ ?>
+            <button type="button" class="tit-panel-reset" id="tit-reset">Reset All</button>
+          </div>
+          <div class="tit-panel-body">
+      <?php
+      /*
         ONE affordance where there were eight blocks of instruction.
 
         The panel shouted "CHOOSE MORE THAN ONE IF YOU LIKE" under every one of
@@ -755,7 +926,7 @@ function tit_dashboard_html() {
       <details class="tit-help" id="tit-help">
         <summary class="tit-help-s">
           <span class="tit-help-i" aria-hidden="true">i</span>
-          <span class="tit-help-w">How these filters work</span>
+          <span class="tit-help-w">How These Filters Work</span>
         </summary>
         <div class="tit-help-b">
           <p id="tit-help-multi"><strong>Filters that take more than one.</strong>
@@ -765,7 +936,7 @@ function tit_dashboard_html() {
           <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
             source named. When a source names no place we use the employer's head
             office instead, so a company known only by its headquarters still
-            appears. Tick "Only places a source named" to leave those out.</p>
+            appears. Tick "Only Countries A Source Named" to leave those out.</p>
         </div>
       </details>
 
@@ -805,10 +976,39 @@ function tit_dashboard_html() {
               <option value="">All Locations</option>
             </select>
           </label>
+          <?php
+          /*
+            "Only Places A Source Named", not "Exact Locations Only".
+
+            The owner read the old label and said it did not make sense, which
+            was fair: "exact" invites a reader to think about precision -- a city
+            rather than a region, a street rather than a city -- and this control
+            has nothing to do with precision.
+
+            WHAT IT ACTUALLY DOES, read out of tit_build_where() in api.php
+            before touching it. Ticked, it sends country_basis=location, and the
+            country clause changes from
+              (country IN (..) OR (country IS NULL AND hq_country IN (..)))
+            to
+              country IN (..)
+            So it drops rows that are only in a country because we substituted
+            the employer's head office when the source named no place. That is a
+            real and meaningful thing to ask for, and it is exactly the sentence
+            already sitting in the (i) panel, which called it "Only places a
+            source named" while the control called itself something else. One
+            name now, in both places.
+
+            KNOWN LIMIT, stated rather than papered over: it narrows the COUNTRY
+            clause only. The city clause in tit_build_where() is unconditionally
+            the union form, so a city pick still admits a head-office match.
+            Closing that is an api.php change and api.php is not this pass's
+            lane, so the label says country and does not claim the city.
+          */
+          ?>
           <label class="tit-check tit-check--slim tit-basis-check">
             <input type="checkbox" id="tit-basis-chk" value="1"
                    aria-describedby="tit-help-basis">
-            <span class="tit-check-t">Exact Locations Only</span>
+            <span class="tit-check-t">Only Countries A Source Named</span>
           </label>
         </div>
 
@@ -818,24 +1018,10 @@ function tit_dashboard_html() {
                  aria-label="Employer">
         </label>
 
-        <?php /* One control that explains itself, with the number INSIDE its own
-                 label. It used to render as three stacked lines, "Headcount",
-                 "Only updates that state a headcount", "4,018", with nothing
-                 saying whether the number was the current count, the count if
-                 applied, or something else. It is the count you WOULD see, under
-                 the filters in force, and it moves with them.
-
-                 Most of what we hold states no headcount at all, so filtering TO
-                 that is asking for the least informative rows. This is the
-                 inverse, and nothing could express it before. */ ?>
-        <div class="tit-field tit-primary-toggle">
-          <label class="tit-check">
-            <input type="checkbox" id="tit-f-stated_headcount" value="1">
-            <span class="tit-check-t">Only Updates That Move Headcount
-              <span class="tit-check-n" id="tit-stated-n"><?php
-                echo esc_html('(' . number_format_i18n($n_stated) . ')'); ?></span></span>
-          </label>
-        </div>
+        <?php /* The headcount control used to be a fourth cell in this row. It
+                 is a quick view now, beside the other two narrow cuts, with its
+                 count on it; the checkbox it drives moved to .tit-state. The
+                 whole argument is written out beside $quick_views above. */ ?>
       </div>
 
       <?php /* Not a disclosure at all any more. It shipped as <details> with a
@@ -993,14 +1179,13 @@ function tit_dashboard_html() {
               </label>
             </div>
           </div>
-          <?php /* Reset sits with the controls it resets, not alone in a bar
-                   where it read as a faint link. */ ?>
-          <div class="tit-field tit-reset-field">
-            <button type="button" class="tit-reset-btn" id="tit-reset">Reset all filters</button>
-          </div>
         </div>
       </div>
 
+          </div>
+        </aside>
+
+        <div class="tit-results">
       <?php /* The state the visible controls drive. Hidden, never focusable,
                and deliberately still real select elements: every existing
                mechanism (the querystring, the chips bar, the exports, the
@@ -1033,6 +1218,12 @@ function tit_dashboard_html() {
           <option value="any"></option>
           <option value="location"></option>
         </select>
+        <?php /* Driven by the "Moves Headcount" quick view now rather than by a
+                 checkbox in the panel. It stays a real input in the same place
+                 as the rest of the state, so applyUrlState(), the chips bar, the
+                 exports and every share link already in the wild keep reading
+                 and writing it with nothing changed. */ ?>
+        <input type="checkbox" id="tit-f-stated_headcount" value="1" tabindex="-1">
       </div>
 
       <!--
@@ -1062,11 +1253,17 @@ function tit_dashboard_html() {
                  job it does. "Show: Notable updates" told a reader neither what
                  was being hidden nor why, and made them hold three numbers in
                  their head to work out what they were looking at. */ ?>
+        <?php /* ONE name for the control, and options that read as values of
+                 that name rather than as two more labels. It was
+                 "Officer and director filings" over "Hide the routine ones",
+                 which is a noun phrase over an imperative: neither one told a
+                 reader what state the control was IN. "Routine filings: Hidden /
+                 Shown" is a setting and its value, which is what this is. */ ?>
         <label class="tit-detail-pick">
-          <span class="tit-detail-l">Officer and director filings</span>
-          <select id="tit-f-detail" aria-label="Officer and director filings">
-            <option value="notable">Hide the routine ones</option>
-            <option value="all">Include them</option>
+          <span class="tit-detail-l">Routine Filings</span>
+          <select id="tit-f-detail" aria-label="Routine filings">
+            <option value="notable">Hidden</option>
+            <option value="all">Shown</option>
           </select>
         </label>
         <p class="tit-detail-note" id="tit-detail-note"><?php
@@ -1083,118 +1280,16 @@ function tit_dashboard_html() {
             <?php /* Its own option, never a silent tweak to "Newest first": a
                      control labelled newest that does not put the newest row
                      first is a control that lies. */ ?>
-            <option value="notable">Most useful first</option>
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
+            <option value="notable">Most Useful First</option>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
             <option value="employer">Employer A to Z</option>
             <?php /* Sorting on money only works because funding_amount_usd is
                      a number; the display string beside it cannot be ordered. */ ?>
-            <option value="raised">Biggest raises first</option>
+            <option value="raised">Biggest Raises First</option>
           </select>
         </label>
       </div>
-
-      <div class="tit-sec">
-        <h3>What The Data Says</h3>
-        <p>Click any row to narrow the whole page to it.</p>
-      </div>
-
-      <div class="tit-charts">
-      <div class="tit-chart" id="chart-kind">
-        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
-                 not what the chart is made of. "What kind of update" described
-                 the axis; "What is moving" answers the question they opened the
-                 page with. The rows are buttons because they ARE filters:
-                 dashboard.js routes a click through the same state as the
-                 dropdowns, so the subtitle may promise it. Buttons hold span
-                 children only (phrasing content), never divs. */ ?>
-        <?php tit_chart_head('What is moving', 'Hiring, funding, leadership changes and pay news, ranked by how much of it we are seeing. Click a row to filter.', 'kind'); ?>
-      <div class="tit-pillars">
-        <?php foreach ($by_pillar as $p) :
-            $key = $p['pillar'];
-            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
-          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
-            <span class="tit-pillar-head">
-              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
-              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
-            </span>
-            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
-          </button>
-        <?php endforeach; ?>
-      </div>
-      </div>
-        <div class="tit-chart" id="chart-place">
-          <?php tit_chart_head('Where the jobs are', "Counted where the work sits. When a source does not name a place, the employer's head office stands in. Click a row to filter.", 'place'); ?>
-          <p class="tit-chart-caveat" id="tit-place-caveat"<?php
-            echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
-            echo esc_html($place_caveat); ?></p>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
-            <?php
-            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
-            foreach ($by_country as $c) : ?>
-              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($c['k']); ?>" aria-pressed="false">
-                <span class="tit-rank-name"><?php echo tit_country_label_html($c['k']); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        </div>
-
-        <div class="tit-chart" id="chart-direction">
-          <?php tit_chart_head('Which way headcount is going', 'What the source itself says: roles being added, roles being cut, or a pay action. Most updates say nothing about headcount, and those are counted as such rather than guessed. Click a row to filter.', 'direction'); ?>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
-            <?php
-            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
-            foreach ($by_direction as $d) : ?>
-              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($d['k']); ?>"
-                      data-dir="<?php echo esc_attr($d['k']); ?>" aria-pressed="false">
-                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
-
-      <!--
-        Money. Three rankings of summed US dollars, built from the same chart
-        card as everything above them, and each one printing what its totals
-        are based on. The coverage line is not decoration: only some rows carry
-        a dollar figure, so a total shown without it would read as the whole
-        market when it is a floor.
-      -->
-      <div class="tit-sec tit-sec--money">
-        <h3>Where The Money Went</h3>
-        <p>Funding rounds added up in US dollars. Click a row to narrow the page.</p>
-      </div>
-
-      <div class="tit-charts tit-charts-money">
-        <?php
-        tit_money_chart(
-            'country', 'Money raised by country',
-            "Totalled where the work sits. When a source names no place, the employer's head office stands in. Click a row to filter.",
-            $money['by_country'], $money, 'country',
-            function ($k) { return tit_country_label_html($k); }, true
-        );
-        tit_money_chart(
-            'city', 'Money raised by city',
-            "The cities where funded employers are hiring. Head office stands in when a source names no city. Click a row to filter.",
-            $money['by_city'], $money, 'city',
-            function ($k) { return $k; }
-        );
-        tit_money_chart(
-            'industry', 'Money raised by industry',
-            'Which industries the money is going into. Click a row to filter.',
-            $money['by_industry'], $money, 'industry',
-            function ($k) use ($industries) { return $industries[$k] ?? $k; }
-        );
-        ?>
-      </div>
-
 
       <?php /* With the charts above rather than below, this is where the
                machinery begins, and a section marker has to say so or the
@@ -1296,7 +1391,7 @@ function tit_dashboard_html() {
         "all" and "filtered" so the link says which set it hands over.
       -->
       <div class="tit-export">
-        <span class="tit-export-label">Download this view</span>
+        <span class="tit-export-label">Download This View</span>
         <a class="tit-export-link" id="tit-export-csv"
            data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>"
            href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>">
@@ -1313,6 +1408,135 @@ function tit_dashboard_html() {
           Free to reuse, CC BY 4.0.</span>
       </div>
 
+        </div><!-- /.tit-results -->
+      </div><!-- /.tit-feed -->
+
+      <?php /* The charts read the SAME filtered set as the rows above them and
+               are still click-to-filter, so they belong after the feed rather
+               than wedged between the controls and the table they describe.
+               That is also where the design mock puts them. Nothing about what
+               a click means has changed: every row still writes the same
+               hidden select. */ ?>
+      <div class="tit-sec">
+        <h3>What The Data Says</h3>
+        <p>Click any row to narrow the whole page to it.</p>
+      </div>
+
+      <div class="tit-charts">
+      <div class="tit-chart" id="chart-kind">
+        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
+                 not what the chart is made of. "What kind of update" described
+                 the axis; "What is moving" answers the question they opened the
+                 page with. The rows are buttons because they ARE filters:
+                 dashboard.js routes a click through the same state as the
+                 dropdowns, so the subtitle may promise it. Buttons hold span
+                 children only (phrasing content), never divs. */ ?>
+        <?php tit_chart_head('What Is Moving', 'Ranked by how much of it we are seeing.', 'kind'); ?>
+      <div class="tit-pillars">
+        <?php foreach ($by_pillar as $p) :
+            $key = $p['pillar'];
+            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
+          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
+            <span class="tit-pillar-head">
+              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
+              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
+            </span>
+            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
+          </button>
+        <?php endforeach; ?>
+      </div>
+      </div>
+        <div class="tit-chart" id="chart-place">
+          <?php tit_chart_head('Where the Jobs Are', "Counted where the work sits; head office stands in when no place is named.", 'place'); ?>
+          <p class="tit-chart-caveat" id="tit-place-caveat"<?php
+            echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
+            echo esc_html($place_caveat); ?></p>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
+            <?php
+            $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
+            foreach ($by_country as $c) : ?>
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($c['k']); ?>" aria-pressed="false">
+                <span class="tit-rank-name"><?php echo tit_country_label_html($c['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $c['n'] / $cmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $c['n']; ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <div class="tit-chart" id="chart-direction">
+          <?php tit_chart_head('Which Way Headcount Is Going', 'What the source itself says. Most updates say nothing about headcount, and those are counted as such rather than guessed.', 'direction'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
+            <?php
+            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
+            foreach ($by_direction as $d) : ?>
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($d['k']); ?>"
+                      data-dir="<?php echo esc_attr($d['k']); ?>" aria-pressed="false">
+                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+
+      <?php
+      /*
+        THE MONEY CARDS LOST THEIR SECTION HEADING, AND ONLY THEIR HEADING.
+
+        The owner pasted this exact text and said "remove this":
+
+          Where The Money Went
+          Funding rounds added up in US dollars. Click a row to narrow the page.
+
+        That is the standalone heading block, and it earned the complaint: it sat
+        eight lines under "What The Data Says / Click any row to narrow the whole
+        page to it" and repeated the second half of it word for word, so the page
+        gave the same instruction twice and split one grid of cards into two
+        sections for no reason a reader could see.
+
+        The CARDS are not the heading and they stay. The owner separately said of
+        this panel "love this format for both sites", and the design mock keeps a
+        money card inside the same grid, so deleting the cards would have removed
+        the thing that was praised because it happened to sit under the words that
+        were not. Three rankings of summed US dollars, each still printing what
+        its total is based on, now reading as a continuation of the grid above
+        rather than as a second section.
+      */
+      ?>
+      <div class="tit-charts tit-charts-money">
+        <?php
+        tit_money_chart(
+            'country', 'Money Raised by Country',
+            "Funding rounds added up, in US dollars, by country.",
+            $money['by_country'], $money, 'country',
+            function ($k) { return tit_country_label_html($k); }, true
+        );
+        tit_money_chart(
+            /* The mock's own wording for this card, which is the one the owner
+               named. "Where the money went" is what the deleted section heading
+               used to say, so the phrase survives ON the card it describes
+               instead of over a section that did not need one. */
+            'city', 'Where the Money Went',
+            "Funding rounds added up, in US dollars, by city.",
+            $money['by_city'], $money, 'city',
+            function ($k) { return $k; }
+        );
+        tit_money_chart(
+            'industry', 'Money Raised by Industry',
+            'Funding rounds added up, in US dollars, by industry.',
+            $money['by_industry'], $money, 'industry',
+            function ($k) use ($industries) { return $industries[$k] ?? $k; }
+        );
+        ?>
+      </div>
+
+
+      <?php echo tit_trust_panel_html($facts); ?>
+
       <p class="tit-cite">
         Data licensed CC BY 4.0. Cite as: Talent Intelligence Tracker,
         asktherecruiter.com. Layoff and redundancy data is not collected here;
@@ -1323,12 +1547,266 @@ function tit_dashboard_html() {
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
         &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Sources</a>
+        &middot;
+        <?php /* These routes are in no theme menu, so a page linked from
+                 nowhere is a page a crawler finds slowly through the sitemap
+                 and trusts less. The press page is the one addressed to
+                 somebody about to quote us, which makes it the worst one to
+                 leave unreachable. */ ?>
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/press/')); ?>">Press</a>
       </p>
     </div>
     <?php
     return ob_get_clean();
 }
 add_shortcode('talent_intelligence_dashboard', 'tit_dashboard_shortcode');
+
+/**
+ * "WHY YOU CAN TRUST THIS", AND THE FAQ, AS TWO TABS OVER ONE PANEL.
+ *
+ * The trust half is the design mock's, and it did not exist anywhere before
+ * this: not in this repo, not in the sibling, not on the live page. The first
+ * design pass declined to author it from a description of a screenshot, which
+ * was right; the mock itself is on disk now, so this is built from it.
+ *
+ * TWO FIXES TO THE MOCK, both structural.
+ *
+ * The mock lays the four numbered items out in a `repeat(auto-fit, minmax(210px,
+ * 1fr))` grid inside a `flex: 999 1 420px` column, which at most desktop widths
+ * resolves to three columns and drops the fourth item alone onto a second row.
+ * Four items in a three-column grid is an orphan at every width where it fits
+ * three. It is 2x2 and then four-across here, and stacks at 390px.
+ *
+ * And the mock has no FAQ at all. The owner asked for one tucked into a tab
+ * here, and there was no existing FAQ anywhere in this product to move — checked
+ * before writing, because two FAQs that drift apart is worse than one. The only
+ * FAQ-shaped thing in the codebase is a WARNING: company.php and places.php both
+ * record that the sibling earned a manual-action risk emitting identical
+ * FAQPage structured data across ~1,830 URLs where the answers were not visible
+ * in the document.
+ *
+ * WHICH IS WHY EVERY PANEL IS IN THE INITIAL HTML AND NOTHING IS FETCHED.
+ *
+ * A tab that loads its content on click hides that content from a crawler, and
+ * an FAQ is among the most valuable blocks on a page for search. So both panels
+ * are rendered server-side, always, in full. JavaScript's entire job here is to
+ * put a class on the container; the stylesheet does the hiding, and only once
+ * that class is present. With JavaScript off — or before it runs, or if
+ * Autoptimize swallows it — a reader gets both panels stacked with their own
+ * headings, which is a slightly longer page and not a broken one. The tab strip
+ * itself is hidden until the class lands, so nobody is offered a control that
+ * cannot work.
+ *
+ * EVERY NUMBER IN THE COPY IS COMPUTED. The sibling's press page still carries
+ * a hardcoded "51 of the most significant layoffs ... we currently carry every
+ * one of them" with no query behind it, and corrections.php here once shipped a
+ * typed "$124.0bn" captioned "Measured now" against a live figure of $101B. A
+ * panel whose entire subject is trustworthiness is the last place on the site
+ * that can afford a stale figure, so the ones here come off the same bundle the
+ * hero does and move with it.
+ */
+function tit_trust_panel_html(array $facts) {
+    $notable  = (int) ($facts['notable'] ?? 0);
+    $routine  = (int) ($facts['routine'] ?? 0);
+    $verified = (int) ($facts['verified'] ?? 0);
+    $total_all = (int) ($facts['total_all'] ?? 0);
+    $companies = (int) ($facts['companies'] ?? 0);
+    $countries = (int) ($facts['countries'] ?? 0);
+    $newest    = (string) ($facts['newest_run'] ?? '');
+    $money     = $facts['money'] ?? array();
+    $cov_with  = (int) ($money['coverage']['with'] ?? 0);
+    $cov_all   = (int) ($money['coverage']['all'] ?? 0);
+
+    // How many updates state which way headcount is going, and how many do not.
+    // Both computed: "most say nothing" is a claim, and this is the arithmetic
+    // behind it.
+    $stated = (int) ($facts['stated'] ?? 0);
+    $unstated = max(0, $notable - $stated);
+
+    $n = function ($v) { return number_format_i18n((int) $v); };
+
+    /*
+      THE FOUR ITEMS. Numbered because the mock numbers them, and the numbers
+      are ordinals rather than data, so they are written here rather than
+      computed. Everything inside the prose is not.
+    */
+    $items = array(
+        array('Sourced', sprintf(
+            'Every line links to the filing or report behind it, and a record '
+            . 'with no source URL is rejected rather than published. %s of the '
+            . '%s updates in this view come straight from an official filing.',
+            $n($verified), $n($notable))),
+        array('Unconverted', sprintf(
+            'Amounts stated in another currency are left out of the totals '
+            . 'rather than converted at a rate nobody published. The money '
+            . 'figures cover the %s of %s funding updates that state a US '
+            . 'dollar amount, and every total says so beside itself.',
+            $n($cov_with), $n($cov_all))),
+        array('Unguessed', sprintf(
+            'Most updates say nothing about headcount. %s of %s are labelled '
+            . 'as not stated rather than inferred, and no figure appears in a '
+            . 'summary unless the source states it in those words.',
+            $n($unstated), $n($notable))),
+        array('Correctable', sprintf(
+            'A correction appends a revision and never overwrites the record, '
+            . 'so what we said on an earlier date stays answerable. Every one '
+            . 'is logged in public with its date, the fields it touched and '
+            . 'the number of records it reached.')),
+    );
+
+    /*
+      THE FAQ. Written for this project rather than adapted from anywhere, and
+      deliberately answering the questions this page actually raises: why some
+      rows are missing, what the evidence labels mean, and what we know we do
+      not hold. Nothing here claims more than the project can support — there is
+      no "comprehensive", no "real time", and the automation claim names the
+      human sliver rather than rounding it to 100%.
+    */
+    $faqs = array(
+        array('How often does this update?',
+              sprintf('Collection runs twice a day, at 06:00 and 18:00 UTC. '
+                    . 'The most recent capture was %s. Figures on this page are '
+                    . 'computed on request and cached for five minutes, so a '
+                    . 'correction or a fresh run appears immediately rather '
+                    . 'than on a schedule.',
+                    $newest ? tit_local_datetime($newest) : 'not recorded yet')),
+        array('What do the evidence labels mean?',
+              'Verified means the claim was read from a primary document, '
+              . 'usually a regulatory filing or an employer\'s own statement. '
+              . 'Reported means a publication made the claim. Rumoured means '
+              . 'the source itself hedged it. A label is capped by the kind of '
+              . 'source it came from: a news article cannot become verified '
+              . 'however confident it sounds, and nothing is promoted quietly.'),
+        array('Why are layoffs not on this tracker?',
+              'They are collected by the AI Layoff Tracker instead, and read '
+              . 'from it rather than duplicated here, so there is one source of '
+              . 'truth per fact. This tracker is the hiring side: who is '
+              . 'adding roles, raising money, changing leadership or moving '
+              . 'site.'),
+        array('What does "headcount not stated" mean?',
+              sprintf('It means the source said nothing about which way '
+                    . 'headcount is going, which is true of %s of the %s '
+                    . 'updates in this view. A funding round with no hiring '
+                    . 'plan and a chief executive succession are both real '
+                    . 'signals that state no direction, and guessing one from '
+                    . 'them would be our claim rather than the document\'s.',
+                    $n($unstated), $n($notable))),
+        array('Why are some updates hidden by default?',
+              sprintf('%s of the %s records we hold are routine officer and '
+                    . 'director filings: accurate, verified, and in such volume '
+                    . 'that they bury everything else. The default view sets '
+                    . 'them aside and the control above the table turns them '
+                    . 'back on, states both counts, and says what we mean by '
+                    . 'routine. Nothing is deleted.',
+                    $n($routine), $n($total_all))),
+        array('What do you know you are missing?',
+              'We measure it rather than assert it. Every week the collectors '
+              . 'are graded against a fixed set of real events assembled from '
+              . 'public sources without ever looking at our own database, and '
+              . 'the result is published including the countries and document '
+              . 'types where we come off badly. The countries scoring zero are '
+              . 'the roadmap.'),
+        array('How much of this is automated?',
+              'About 99%. Collection, classification, validation, deduplication '
+              . 'and publishing all run without a human. Repairing a scraper '
+              . 'when a site changes, judging whether a novel source is worth '
+              . 'reading, and assembling each new recall test set are human, '
+              . 'and the last of those is human by design: a test set built '
+              . 'out of what is easy to find measures memory rather than reach.'),
+        array('Can I reuse the data?',
+              sprintf('Yes, under CC BY 4.0, citing the Talent Intelligence '
+                    . 'Tracker. The export links above take the current view '
+                    . 'with its filters applied, and the press page carries the '
+                    . 'headline figures with a link behind each one. There are '
+                    . '%s updates across %s employers and %s countries in this '
+                    . 'view right now.',
+                    $n($notable), $n($companies), $n($countries))),
+    );
+
+    ob_start(); ?>
+    <div class="tit-trust" id="tit-trust">
+      <div class="tit-trust-lede">
+        <h3>Why You Can Trust This</h3>
+        <p>We publish the gaps as loudly as the numbers. If a source did not
+           state something, we say so rather than fill it in.</p>
+        <p class="tit-trust-btns">
+          <a class="tit-btn tit-btn-solid"
+             href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Read the Method</a>
+          <a class="tit-btn"
+             href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What We Miss, Measured</a>
+        </p>
+      </div>
+
+      <div class="tit-trust-main">
+        <?php /* Hidden by the stylesheet until dashboard.js marks the panel as
+                 tabbed, so a reader with no JavaScript is never shown a control
+                 that cannot do anything. */ ?>
+        <div class="tit-tabs" role="tablist" aria-label="How this tracker works">
+          <button type="button" class="tit-tab" id="tit-tab-how" role="tab"
+                  aria-controls="tit-panel-how" aria-selected="true">How It Works</button>
+          <button type="button" class="tit-tab" id="tit-tab-faq" role="tab"
+                  aria-controls="tit-panel-faq" aria-selected="false" tabindex="-1">Questions</button>
+        </div>
+
+        <section class="tit-tabpanel" id="tit-panel-how" role="tabpanel"
+                 aria-labelledby="tit-tab-how" tabindex="0">
+          <?php /* This heading is the no-JavaScript label for the panel. Once
+                   the tab strip is live the tab is the label, so the stylesheet
+                   hides it there rather than the markup omitting it. */ ?>
+          <h4 class="tit-tabpanel-h">How It Works</h4>
+          <ol class="tit-trust-items">
+            <?php foreach ($items as $i => $it) : ?>
+              <li>
+                <span class="tit-trust-k"><?php
+                  echo esc_html(sprintf('%02d', $i + 1)); ?> <?php
+                  echo esc_html($it[0]); ?></span>
+                <span class="tit-trust-t"><?php echo esc_html($it[1]); ?></span>
+              </li>
+            <?php endforeach; ?>
+          </ol>
+        </section>
+
+        <section class="tit-tabpanel" id="tit-panel-faq" role="tabpanel"
+                 aria-labelledby="tit-tab-faq" tabindex="0">
+          <h4 class="tit-tabpanel-h">Questions</h4>
+          <div class="tit-faq">
+            <?php foreach ($faqs as $q) : ?>
+              <h5 class="tit-faq-q"><?php echo esc_html($q[0]); ?></h5>
+              <p class="tit-faq-a"><?php echo esc_html($q[1]); ?></p>
+            <?php endforeach; ?>
+          </div>
+        </section>
+      </div>
+    </div>
+    <?php
+    /*
+      FAQPage structured data, describing ONLY what is rendered above it.
+
+      company.php and places.php both carry the warning this obeys: the sibling
+      earned a manual-action risk emitting identical FAQPage markup across
+      roughly 1,830 URLs where the answers were not visible anywhere in the
+      document. Every question and answer below is in the initial HTML of this
+      one page, in full, visible to a reader with no JavaScript — which is the
+      condition that makes the markup honest, and is the same reason the panels
+      are not lazy-loaded. One page, one block, answers on screen.
+    */
+    ?>
+    <script type="application/ld+json"><?php
+      echo wp_json_encode(array(
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'mainEntity' => array_map(function ($q) {
+            return array(
+                '@type' => 'Question',
+                'name'  => $q[0],
+                'acceptedAnswer' => array('@type' => 'Answer', 'text' => $q[1]),
+            );
+        }, $faqs),
+      ), JSON_UNESCAPED_SLASHES);
+    ?></script>
+    <?php
+    return ob_get_clean();
+}
 
 /**
  * The at-a-glance matrix: signals down the side, periods across the top.
@@ -1395,13 +1873,31 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         : "((funding_amount IS NOT NULL AND funding_amount <> '')"
           . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
 
+    /*
+      THE ROW LABELS ARE THE PAGE'S ONE VOCABULARY. See the note beside
+      $labels in tit_dashboard_html(); these five are the same words the charts
+      use, which they were not before.
+
+      Two of them earned more than a case change.
+
+      "Total Raised" was "Money raised", sitting in a column of rows that count
+      updates while it alone sums dollars. That mismatch is why the block below
+      needs a paragraph to explain itself, and a label that forces an
+      explanation is the wrong label. "Total" says sum, and the unit rides on
+      the row as it always did.
+
+      "Everything in This View" was "All updates", which a reader could not tell
+      included the 3,143 routine filings the page hides by default. It does not:
+      every figure in this table sits under the same notable clause as the rows,
+      and "in this view" is the only phrase that says so without a footnote.
+    */
     $defs = array(
-        array('hiring',     'Hiring up',        'direction=hiring',         "signal_direction = 'hiring'", 'count'),
-        array('funded',     'Funding raised',   'funding=1',                $funding,                      'count'),
-        array('money',      'Money raised',     'funding=1',                '',                            'money'),
-        array('leadership', 'Leadership moves', 'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
-        array('pay',        'Pay news',         'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
-        array('total',      'All updates',      '',                         '1 = 1',                       'count'),
+        array('hiring',     'Adding Roles',      'direction=hiring',         "signal_direction = 'hiring'", 'count'),
+        array('funded',     'Funding Rounds',    'funding=1',                $funding,                      'count'),
+        array('money',      'Total Raised',      'funding=1',                '',                            'money'),
+        array('leadership', 'Leadership Moves',  'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
+        array('pay',        'Pay and Benefits',  'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
+        array('total',      'Everything in This View', '',                    '1 = 1',                      'count'),
     );
 
     $date_expr = 'COALESCE(published_date, DATE(captured_at))';
@@ -1418,6 +1914,114 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
             $select_params[] = $p[1];
         }
     }
+    /*
+      THE DATED GLANCE PANEL RIDES ON THIS SAME SCAN, and that is a correctness
+      decision before it is a budget one.
+
+      The panel and the matrix describe the SAME four windows over the SAME
+      rows. Computed separately they could disagree — a panel saying "this week,
+      1,204 updates" above a matrix cell saying 1,198 for the same week is the
+      exact failure the hero figures were consolidated to prevent, and it is
+      invisible until a reader adds them up. Sharing one statement makes
+      disagreement impossible rather than unlikely.
+
+      It is also what keeps TIT_DASH_QUERY_BUDGET at 12. Four time buckets are
+      four SETS OF COLUMNS here, never four round trips; the N+1 tripwire in
+      tests/php/render_dashboard.php re-checks the count after five thousand more
+      rows land, so a future session that gives one bucket its own query fails
+      there rather than on the live site under a crawl.
+
+      THE BUCKETS ARE NOT THE MATRIX'S. The matrix runs week / month / quarter /
+      YTD; the panel runs today / week / month / year, which is the ladder a
+      reader reads down. Week, month and year share their boundary expressions
+      with the matrix, so those three rows equal the matrix's own "Everything in
+      This View" cells exactly.
+
+      TODAY IS COMPUTED AND USUALLY ABSENT, deliberately. This tracker measured
+      it once already: every row carries the SOURCE's reporting date rather than
+      our capture time, and collection runs twice a day, so "today" reads zero
+      for most of most days. A permanent zero row does not report a quiet day, it
+      teaches a reader the tracker is dead — which is why the matrix has no Today
+      column at all. The panel computes it and prints the row ONLY when it holds
+      something, so it is the freshest line on the page on a day with news and
+      simply is not there on a day without.
+    */
+    $dg_year   = date('Y', strtotime($today));
+    $dg_week   = date('Y-m-d', strtotime($today . ' -6 days'));
+    $dg_prev   = date('Y-m-d', strtotime($today . ' -13 days'));
+    $dg_periods = array(
+        array('today', 'Today',                 $today),
+        array('week',  'This week',             $dg_week),
+        array('month', 'This month',            date('Y-m-01', strtotime($today))),
+        // The year label is DERIVED, so this becomes "2027 so far" on 1 January
+        // without anybody remembering to change it. corrections.php once shipped
+        // a typed "$124.0bn" labelled "measured now"; a typed year is the same
+        // mistake with a slower fuse.
+        array('year',  $dg_year . ' so far',    date('Y-01-01', strtotime($today))),
+    );
+
+    foreach ($dg_periods as $gi => $g) {
+        $select[] = "SUM({$date_expr} >= %s) AS g_n_{$gi}";
+        $select_params[] = $g[2];
+        $select[] = "COUNT(DISTINCT CASE WHEN {$date_expr} >= %s THEN company_key END) AS g_e_{$gi}";
+        $select_params[] = $g[2];
+        $select[] = "SUM(confidence = 'verified' AND {$date_expr} >= %s) AS g_v_{$gi}";
+        $select_params[] = $g[2];
+        $select[] = "COALESCE(SUM(CASE WHEN {$date_expr} >= %s THEN funding_amount_usd END), 0) AS g_m_{$gi}";
+        $select_params[] = $g[2];
+    }
+
+    /*
+      THE LARGEST RAISE IN EACH WINDOW, as two scalar subqueries per bucket.
+
+      An aggregate can return the largest AMOUNT in one expression; it cannot
+      return the employer that raised it, and SQL has no portable argmax. The
+      tricks that fake one (bare columns beside MAX(), packing the amount and the
+      name into a sortable string) are engine-specific: SQLite defines the first,
+      MySQL does not, and the string form needs a different concat operator in
+      each. This harness runs SQLite and production runs MySQL, so anything that
+      behaves differently between them is a bug that ships green.
+
+      Scalar subqueries are standard in both, they are constant with respect to
+      the outer aggregate, and they stay inside ONE statement. The same shape the
+      top-cities strip above already uses, for the same reason. Each one is
+      narrowed to `funding_amount_usd IS NOT NULL`, which on the live table is a
+      small minority of rows.
+
+      row_id ASC breaks a tie deterministically. Two rounds of the same size
+      would otherwise be resolved by whichever the engine reached first, and
+      MySQL and SQLite need not agree — the same defect the city flags had.
+    */
+    foreach ($dg_periods as $gi => $g) {
+        foreach (array('company' => "g_lc_{$gi}", 'funding_amount_usd' => "g_la_{$gi}") as $col => $alias) {
+            $select[] = "(SELECT {$col} FROM {$table} WHERE {$where}"
+                      . " AND funding_amount_usd IS NOT NULL AND {$date_expr} >= %s"
+                      . " ORDER BY funding_amount_usd DESC, row_id ASC LIMIT 1) AS {$alias}";
+            // Placeholder order inside the subquery is the WHERE clause's own
+            // params first, then this bucket's start date. Getting this pair the
+            // wrong way round binds a date into a country clause and the whole
+            // panel silently reads zero, so it is built in emission order rather
+            // than assembled at the end.
+            $select_params = array_merge($select_params, $params);
+            $select_params[] = $g[2];
+        }
+    }
+
+    /*
+      THE WEEK BEFORE, AND HOW FAR BACK THIS VIEW ACTUALLY GOES.
+
+      Both exist to decide whether a week-over-week comparison may be printed at
+      all. See tit_dated_glance_html(): the news collectors here first ran on
+      27 July 2026, so a comparison drawn today would divide a populated week by
+      an almost empty one and print a percentage in the thousands. g_lo is the
+      earliest date IN THIS VIEW rather than in the table, so the rule holds
+      under a filter that narrows to a young collector too.
+    */
+    $select[] = "SUM({$date_expr} >= %s AND {$date_expr} < %s) AS g_prev_n";
+    $select_params[] = $dg_prev;
+    $select_params[] = $dg_week;
+    $select[] = "MIN({$date_expr}) AS g_lo";
+
     // SELECT placeholders precede WHERE placeholders in statement order, so
     // the select params go first.
     $sql = 'SELECT ' . implode(', ', $select) . " FROM {$table} WHERE {$where}";
@@ -1436,11 +2040,188 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
                         'kind' => $d[4], 'cells' => $cells);
     }
 
+    $dated = array('rows' => array(), 'prev_n' => (int) ($row['g_prev_n'] ?? 0),
+                   'week_start' => $dg_week, 'prev_start' => $dg_prev,
+                   'history_lo' => (string) ($row['g_lo'] ?? ''),
+                   'today' => $today,
+                   // Formatted server-side and carried, so the panel's heading
+                   // says the same date whether the server or dashboard.js
+                   // painted it. Formatting it again in the browser would read
+                   // the READER's clock, and a reader in Auckland would be shown
+                   // a heading a day ahead of the buckets underneath it.
+                   'today_label' => date_i18n('M j', strtotime($today . ' 00:00:00 UTC')));
+    foreach ($dg_periods as $gi => $g) {
+        $dated['rows'][] = array(
+            'key'    => $g[0],
+            'label'  => $g[1],
+            'since'  => $g[2],
+            'n'      => (int) ($row["g_n_{$gi}"] ?? 0),
+            'e'      => (int) ($row["g_e_{$gi}"] ?? 0),
+            'v'      => (int) ($row["g_v_{$gi}"] ?? 0),
+            'money'  => (float) ($row["g_m_{$gi}"] ?? 0),
+            'top'    => (string) ($row["g_lc_{$gi}"] ?? ''),
+            'top_usd' => (float) ($row["g_la_{$gi}"] ?? 0),
+        );
+    }
+
     return array(
         'periods' => array_column($periods, 0),
         'starts'  => array_column($periods, 1),
         'rows'    => $rows,
+        'dated'   => $dated,
     );
+}
+
+/**
+ * THE DATED GLANCE PANEL: what happened today, this week, this month, this year.
+ *
+ * The hero used to open with one undated lump — "12,566 updates · 5,542
+ * employers · 51 countries · $101B raised · 7,573 from official filings" — which
+ * answers "how big is this dataset" and never answers "what has moved". A reader
+ * arriving at a tracker wants the second question, and every figure in that line
+ * is as true in March as it is today, so nothing on the first screen told anyone
+ * whether the thing was still running.
+ *
+ * The shape is the sibling AI Layoff Tracker's, and the FACTS ARE NOT. Layoffs
+ * are not collected here — they are read from the sibling's public API at render
+ * time, one source of truth per fact — so "workers" and "verified layoffs" have
+ * no meaning on this page. The equivalents are what this tracker actually holds:
+ * updates, the employers behind them, dollars raised, and how many came straight
+ * from an official filing. "Largest" is the largest single raise, which is the
+ * only superlative this dataset can support without inventing a ranking.
+ *
+ * NO FIGURE HERE IS TYPED. Every number comes off tit_glance_matrix()'s single
+ * scan, the year label is derived from the current date, and the money row
+ * carries the same coverage sentence the money charts do. corrections.php once
+ * shipped a hardcoded "$124.0bn" under the caption "Measured now" while the live
+ * figure was $101B; a panel of headline numbers is the worst possible place to
+ * repeat that.
+ */
+function tit_dated_glance_html(array $dated, $coverage = null) {
+    $rows = $dated['rows'] ?? array();
+    if (!$rows) return '';
+
+    /*
+      THE WEEK-OVER-WEEK COMPARISON, AND WHY IT IS USUALLY ABSENT.
+
+      The sibling prints "down 25% vs the week before" because it holds years.
+      This tracker's news collectors first ran on 2026-07-27 and national_press
+      on 2026-07-29, so the week before the current one is not a quiet week — it
+      is a week that mostly predates the collector. Dividing by it yields
+      something like "up 4,000%", which is not an exaggeration of a real change;
+      it is an artefact of the corpus start date wearing a statistic's clothes,
+      and it would be the single most quotable number on the page.
+
+      The rule is therefore about HISTORY and not about size: the comparison is
+      printed only when this view holds data from on or before the start of the
+      period being compared against. That is measured per view, so it also holds
+      when a filter narrows the page to a collector younger than the tracker, and
+      it turns itself on — with no code change and no deploy — on the first day
+      the corpus genuinely spans both weeks.
+
+      When it is absent the panel SAYS SO in a few words. Silently omitting it
+      would leave a reader unable to tell "flat" from "we cannot say yet", and
+      the second is the honest answer.
+    */
+    $lo   = (string) ($dated['history_lo'] ?? '');
+    $prev = (int) ($dated['prev_n'] ?? 0);
+    $prev_start = (string) ($dated['prev_start'] ?? '');
+    $have_history = ($lo !== '' && $prev_start !== '' && $lo <= $prev_start);
+
+    ob_start(); ?>
+    <div class="tit-dg" id="tit-dg">
+      <div class="tit-dg-head">
+        <?php /* The date is the panel's subject, so it leads. Computed from the
+                 same clock the buckets are, or the heading could name a day the
+                 rows below it do not describe. */ ?>
+        <h3 class="tit-dg-title">Today, <?php
+          echo esc_html((string) ($dated['today_label'] ?? ''));
+        ?> <span aria-hidden="true">·</span> Sourced Talent Signals Worldwide</h3>
+        <?php
+        /*
+          COPY AS POST, and it copies WHAT IS ON SCREEN.
+
+          The sibling's version of this button is scoped only by the region tab
+          and ignores every other filter, so a reader who had narrowed the page
+          to one country could copy a worldwide total under it. That is a
+          figure-out-of-context bug with our own byline on it, and it is the one
+          reason this button was nearly not built at all.
+
+          It is honest here because it reads the rendered rows out of the DOM at
+          click time rather than rebuilding them from an unfiltered aggregate,
+          and because this panel repaints from /aggregate under the active
+          filters like every other figure on the page. It also appends the active
+          filters by name and a link back, so a pasted summary carries the view
+          it describes. See the handler in dashboard.js.
+
+          Rendered with `hidden`, and dashboard.js removes that. A button whose
+          whole function is navigator.clipboard is a dead control with no
+          JavaScript, and a dead control is worse than an absent one.
+        */
+        ?>
+        <button type="button" class="tit-dg-copy" id="tit-dg-copy" hidden>Copy as Post</button>
+      </div>
+      <?php foreach ($rows as $r) :
+        // TODAY IS PRINTED ONLY WHEN IT HOLDS SOMETHING. See the note in
+        // tit_glance_matrix(): a row that reads zero for most of most days
+        // teaches a reader the tracker is dead rather than that the day is quiet.
+        if ($r['key'] === 'today' && (int) $r['n'] === 0) continue;
+        $bits = array();
+        $bits[] = '<b>' . esc_html(number_format_i18n((int) $r['n'])) . '</b> '
+                . esc_html($r['n'] == 1 ? 'update' : 'updates');
+        if ((int) $r['e'] > 0) {
+            $bits[] = '<b>' . esc_html(number_format_i18n((int) $r['e'])) . '</b> '
+                    . esc_html($r['e'] == 1 ? 'employer' : 'employers');
+        }
+        if ((float) $r['money'] > 0) {
+            $bits[] = '<b>' . esc_html(tit_money_short($r['money'])) . '</b> raised';
+        }
+        if ((int) $r['v'] > 0) {
+            $bits[] = '<b>' . esc_html(number_format_i18n((int) $r['v'])) . '</b> from official filings';
+        }
+        // The largest raise names its employer, because "largest: $8.6B" with no
+        // name is a number a reader cannot check and this page's whole promise
+        // is that they can.
+        if ($r['top'] !== '' && (float) $r['top_usd'] > 0) {
+            $bits[] = 'largest: <b>' . esc_html($r['top']) . '</b> ('
+                    . esc_html(tit_money_short($r['top_usd'])) . ')';
+        }
+        $note = '';
+        if ($r['key'] === 'week') {
+            if ($have_history && $prev > 0 && (int) $r['n'] > 0) {
+                $delta = (int) round(100 * ((int) $r['n'] - $prev) / $prev);
+                $note = ($delta >= 0 ? 'up ' : 'down ') . '<b>' . abs($delta)
+                      . '%</b> vs the week before';
+            } else {
+                // Named plainly, and the reason is the corpus rather than the
+                // week. A reader who is told "no comparison yet" learns nothing;
+                // one who is told we do not hold the earlier week can judge it.
+                $note = '<span class="tit-dg-nocmp">no week-on-week change yet: '
+                      . 'we do not hold a full week before this one</span>';
+            }
+        }
+        if ($note !== '') $bits[] = $note;
+        ?>
+        <div class="tit-dg-row" data-dg="<?php echo esc_attr($r['key']); ?>">
+          <?php /* A period label is a filter this page can apply, so it is a
+                   button and not a caption. data-since is the same attribute the
+                   matrix cells carry, so one handler drives both. */ ?>
+          <button type="button" class="tit-dg-label" data-since="<?php echo esc_attr($r['since']); ?>"
+                  aria-pressed="false"><?php echo esc_html($r['label']); ?></button>
+          <span class="tit-dg-body"><?php echo implode(' <span aria-hidden="true">·</span> ', $bits); ?></span>
+        </div>
+      <?php endforeach; ?>
+      <?php
+      // The money coverage sentence travels with any dollar figure on this page,
+      // without exception. A total presented as though it covered every round is
+      // the plausible-but-wrong number this product cannot carry.
+      $cov = tit_money_coverage_sentence($coverage);
+      if ($cov !== '') : ?>
+        <p class="tit-dg-cov"><?php echo esc_html($cov); ?></p>
+      <?php endif; ?>
+    </div>
+    <?php
+    return ob_get_clean();
 }
 
 /**
@@ -1508,6 +2289,18 @@ function tit_glance_matrix_html(array $m) {
                     <?php if ($money) : ?>title="<?php echo esc_attr($full); ?>"<?php endif; ?>
                     aria-pressed="false"
                     aria-label="<?php echo esc_attr($spoken); ?>"><?php
+                    /* THE PERIOD, AS REAL TEXT, in every cell.
+                       Below 860px the table is laid out as one card per row and
+                       `display:block` drops the implicit table roles, so the
+                       column header a reader was getting from the grid stops
+                       being announced. A CSS ::after on a data attribute would
+                       not fix that: generated content is not reliably in the
+                       accessibility tree, is not selectable and is not
+                       findable. So the label is markup, printed here and
+                       mirrored in matrixHtml(), and hidden by the stylesheet on
+                       desktop where the real <th> is doing the job. */
+                    ?><span class="tit-cell-p"><?php
+                      echo esc_html($m['periods'][$i]); ?></span><?php
                     echo esc_html($text);
                 ?></button></td>
               <?php endforeach; ?>
@@ -1516,24 +2309,58 @@ function tit_glance_matrix_html(array $m) {
         </tbody>
       </table>
     </div>
-    <div class="tit-matrix-note">
-      <?php /* The page carries three different totals for three different
-               questions, and every one of them was correct while none of them
-               said what it counted. The figures above this table count
-               EVERYTHING in the current view, over the whole period we hold;
-               these columns count only what a source dated inside that window.
-               Saying so is cheaper than reconciling three numbers in your head,
-               and stops a reader concluding one of them must be wrong. */ ?>
-      <p>Each column counts updates whose source dated them inside that window.
-         The figures above the table count everything in this view, over the
-         whole period we hold, which is why they are larger.</p>
-      <p>Colour shows how much activity, scaled within each row. Rows can
-         overlap: a funded employer may also be hiring, so the columns do not
-         add up. <strong>Click any number to filter the page.</strong></p>
-      <p class="tit-matrix-money-note">Money raised is the exception. It sums
-         dollars while every other row counts updates.
-         <?php echo esc_html(tit_money_coverage_sentence($m['coverage'] ?? null)); ?></p>
-    </div>
+    <?php
+    /*
+      ONE DISCLOSURE, OPEN BY DEFAULT, AND NOT A WORD CUT.
+
+      These three paragraphs are honesty surfaces: what the columns actually
+      count, that the rows overlap so the columns do not add up, and that one row
+      sums dollars while every other counts updates. On a 390px screen they were
+      about fifteen lines of prose sitting between the reader and any content,
+      which is how a true statement ends up unread. The owner said the phone
+      experience was bad, and this was most of the reason.
+
+      `open` is in the MARKUP, and the stylesheet is the only thing that takes it
+      away, below 860px. So desktop needs no script, a crawler sees every word in
+      the initial HTML, and a reader with CSS or JavaScript disabled gets three
+      open paragraphs rather than a collapsed control they cannot open. Nothing
+      here is fetched or injected.
+    */
+    ?>
+    <details class="tit-matrix-note" open>
+      <summary>How To Read This</summary>
+      <?php
+      /*
+        ONE IDEA PER LINE. The owner read the old two paragraphs and said
+        "this make s not sentds", and they were right: seven separate ideas were
+        packed into two blocks of prose, so finding the one you needed meant
+        parsing all of them. A list of facts is a list, and now looks like one.
+
+        NOT ONE FACT IS CUT, and every figure is still computed. The page carries
+        three different totals for three different questions and each was
+        correct while none said what it counted; that is why the first two lines
+        exist and they are unchanged in substance.
+
+        The money line got SHORTER because the LABEL got better. It used to open
+        "Money raised is the exception", which is a sentence a table needs only
+        when one of its rows is lying about its unit. The row is called
+        "Total Raised" now and carries "sum of dollars" on itself, so the line
+        states the contrast once and hands the rest to the coverage sentence.
+      */
+      ?>
+      <ul class="tit-matrix-points">
+        <li>Each column counts updates whose source dated them inside that window.</li>
+        <li>The figures above the table count everything in this view, over the
+            whole period we hold, which is why they are larger.</li>
+        <li>Colour shows relative activity within each row.</li>
+        <li>Rows overlap, so the columns do not add up. A funded employer may
+            also be hiring.</li>
+        <li><strong>Tap any number to filter the page.</strong></li>
+        <li class="tit-matrix-money-note">Total Raised sums dollars. Every other
+            row counts updates.
+            <?php echo esc_html(tit_money_coverage_sentence($m['coverage'] ?? null)); ?></li>
+      </ul>
+    </details>
     <?php
     return ob_get_clean();
 }
@@ -1728,29 +2555,56 @@ function tit_detail_note($mode, $notable, $routine) {
       sentence and prints hidden, shown and total together, which means the
       reader can check that they add up instead of taking our word for it.
     */
-    $what = 'Some SEC filings record only an officer or director change, with'
+    /*
+      COUNT FIRST, IN PLAIN WORDS, AND ONE SENTENCE.
+
+      The owner's words: "Don't understand this or how it's placed". What they
+      were looking at was three stacked headings -- "Officer and director
+      filings", then "Hide the routine ones" as the select's own option text,
+      then a sentence opening "Some SEC filings record only an officer or
+      director change, with no headcount, no money and no location" -- before
+      any number appeared, all of it sitting beside the Sort control. Three
+      labels for one control is why it did not parse: a reader could not tell
+      which words were the control's name, which were its current value, and
+      which were prose.
+
+      Two things changed and neither is a fact.
+
+      The CONTROL is now named once, by what it does, and its two options say
+      what they do (see the .tit-detail markup). The SENTENCE now leads with the
+      number it is there to disclose and defines "routine" in a trailing clause
+      rather than a leading one, so the first thing a reader gets is the size of
+      what is being held back.
+
+      Every figure is still computed from the current view and still moves with
+      the filters, all three still appear so the arithmetic can be checked, and
+      the sentence is still printed unconditionally. A default that sets
+      thousands of rows aside has to say so where the reader is about to look at
+      rows, and that has not moved.
+    */
+    $what = ' A routine filing records only an officer or director change, with'
           . ' no headcount, no money and no location.';
 
     if ($routine === 0) {
-        return $what . sprintf(
-            _n(' None of the %s update here is one of those.',
-               ' None of the %s updates here are one of those.', $total, 'tit'),
+        return sprintf(
+            _n('None of the %s update here is a routine filing.',
+               'None of the %s updates here are routine filings.', $total, 'tit'),
             number_format_i18n($total)
-        );
+        ) . $what;
     }
 
     if ($mode === 'all') {
-        return $what . sprintf(
-            ' All %1$s of those are included, so you are seeing all %2$s updates.',
-            number_format_i18n($routine), number_format_i18n($total)
-        );
+        return sprintf(
+            'You are seeing all %1$s updates, including the %2$s routine ones.',
+            number_format_i18n($total), number_format_i18n($routine)
+        ) . $what;
     }
 
-    return $what . sprintf(
-        ' %1$s of those are hidden, so you are seeing %2$s of %3$s updates.',
-        number_format_i18n($routine), number_format_i18n($notable),
-        number_format_i18n($total)
-    );
+    return sprintf(
+        'You are seeing %1$s of %2$s updates. %3$s routine filings are hidden.',
+        number_format_i18n($notable), number_format_i18n($total),
+        number_format_i18n($routine)
+    ) . $what;
 }
 
 /**
@@ -1779,8 +2633,8 @@ function tit_funding_bands() {
  */
 function tit_confidence_labels() {
     return array(
-        'verified' => 'Official filing',
-        'reported' => 'News report',
+        'verified' => 'Official Filing',
+        'reported' => 'News Report',
         'rumored'  => 'Unconfirmed',
     );
 }
@@ -1788,9 +2642,9 @@ function tit_confidence_labels() {
 /** Round names as a reader would say them, matching the pipeline's vocabulary. */
 function tit_funding_stage_labels() {
     return array(
-        'pre_seed' => 'Pre-seed', 'seed' => 'Seed',
+        'pre_seed' => 'Pre-Seed', 'seed' => 'Seed',
         'series_a' => 'Series A', 'series_b' => 'Series B',
-        'series_c' => 'Series C', 'series_d_plus' => 'Series D or later',
+        'series_c' => 'Series C', 'series_d_plus' => 'Series D or Later',
         'growth' => 'Growth', 'debt' => 'Debt', 'grant' => 'Grant',
         'ipo' => 'IPO', 'other' => 'Other',
     );
@@ -1811,10 +2665,10 @@ function tit_funding_stage_labels() {
 function tit_looking_options() {
     return array(
         ''                           => 'All Updates',
-        'direction=hiring'           => 'Hiring',
+        'direction=hiring'           => 'Adding Roles',
         'funding=1'                  => 'Raised Money',
         'pillar=leadership_change'   => 'Leadership Moves',
-        'pillar=rewards_comp'        => 'Pay & Benefits',
+        'pillar=rewards_comp'        => 'Pay and Benefits',
         'pillar=how_we_work'         => 'Ways of Working',
     );
 }
@@ -1830,8 +2684,8 @@ function tit_looking_options() {
  */
 function tit_direction_filter_options() {
     return array(
-        'hiring'  => 'Hiring up',
-        'neutral' => 'Not stated',
+        'hiring'  => 'Adding Roles',
+        'neutral' => 'Not Stated',
     );
 }
 
@@ -1853,17 +2707,17 @@ function tit_direction_filter_options() {
 /** Reader-facing industry names, in one place so the page and the money charts agree. */
 function tit_industry_labels() {
     return array(
-        'technology' => 'Technology', 'financial_services' => 'Financial services',
-        'healthcare' => 'Healthcare', 'pharma_biotech' => 'Pharma & biotech',
-        'retail_ecommerce' => 'Retail & e-commerce', 'manufacturing' => 'Manufacturing',
-        'energy_utilities' => 'Energy & utilities', 'telecom' => 'Telecom',
-        'media_entertainment' => 'Media & entertainment',
-        'transport_logistics' => 'Transport & logistics',
-        'professional_services' => 'Professional services',
-        'public_sector' => 'Public sector', 'hospitality_travel' => 'Hospitality & travel',
-        'education' => 'Education', 'food_beverage' => 'Food & beverage',
-        'automotive' => 'Automotive', 'aerospace_defence' => 'Aerospace & defence',
-        'real_estate_construction' => 'Real estate & construction',
+        'technology' => 'Technology', 'financial_services' => 'Financial Services',
+        'healthcare' => 'Healthcare', 'pharma_biotech' => 'Pharma & Biotech',
+        'retail_ecommerce' => 'Retail & E-commerce', 'manufacturing' => 'Manufacturing',
+        'energy_utilities' => 'Energy & Utilities', 'telecom' => 'Telecom',
+        'media_entertainment' => 'Media & Entertainment',
+        'transport_logistics' => 'Transport & Logistics',
+        'professional_services' => 'Professional Services',
+        'public_sector' => 'Public Sector', 'hospitality_travel' => 'Hospitality & Travel',
+        'education' => 'Education', 'food_beverage' => 'Food & Beverage',
+        'automotive' => 'Automotive', 'aerospace_defence' => 'Aerospace & Defence',
+        'real_estate_construction' => 'Real Estate & Construction',
     );
 }
 
@@ -2245,9 +3099,30 @@ function tit_place_caveat($table, $where = 'is_current = 1', array $params = arr
 
     $row['total'] = $total;
     $share = (int) round(100 * (int) $row['n'] / max(1, $total));
+    /*
+      THE VERDICT FIRST, THEN THE ARITHMETIC.
+
+      The owner read this note beside the chart and asked "why is this here?",
+      which is the right question to ask of a sentence that spends twenty words
+      on a ratio before saying what the ratio means. It opened with
+      "4,761 of the 4,793 rows for United Kingdom (99%) come from one source,
+      the UK gender pay gap filing, so read that bar as filing volume rather
+      than as how much is happening there" -- so a reader met four numbers and a
+      collector name before reaching the only clause that told them what to DO
+      with any of it.
+
+      Inverted, and shortened to one sentence: the instruction is the subject,
+      the evidence is the subordinate clause. Every figure is still here and
+      still computed, because the whole value of the caveat is that it is
+      checkable; what changed is the order, which is free.
+
+      Placement is unchanged and deliberate. It renders inside #chart-place, in
+      a tinted note directly under the ranking it qualifies, so a reader meets
+      it while looking at the UK bar rather than before or after.
+    */
     return sprintf(
-        '%1$s of the %2$s rows for %3$s (%4$s%%) come from one source, %5$s, so read'
-        . ' that bar as filing volume rather than as how much is happening there.',
+        'Read %3$s as filing volume rather than as how much is happening there:'
+        . ' %1$s of its %2$s rows (%4$s%%) come from one source, %5$s.',
         number_format_i18n((int) $row['n']),
         number_format_i18n((int) $row['total']),
         tit_country_name($row['cc']),

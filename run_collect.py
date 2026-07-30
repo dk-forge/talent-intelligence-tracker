@@ -16,11 +16,12 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, bse_india, gdelt, google_news,
-                        national_press, sec_edgar, sec_execcomp, sec_form_d,
-                        tripwire_chase, uk_paygap)
-from pipeline import (cheap_extract, classify, dedupe, prefilter, publish,
-                      schema, store, validate)
+from collectors import (ats_boards, bse_india, companies_house, edinet_japan,
+                        gdelt, google_news, national_press, opendart_korea,
+                        sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
+                        uk_paygap)
+from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
+                      prefilter, publish, schema, store, validate)
 
 # Registration. A collector that exposes `as_classified` derives its own
 # record from structured fields and never calls the model, so it skips the
@@ -33,9 +34,28 @@ SOURCES = {
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,
     "uk_paygap": uk_paygap,
+    # The UK's leadership spine. Officer appointments off the Companies House
+    # register, so it exposes `as_classified` and spends nothing. The population
+    # is NOT the register: it is the 9,230 employers the gender pay gap duty
+    # covers, which is the only free primary list of UK companies keyed on
+    # employees. Unfiltered the register offers ~28,100 appointments a week,
+    # mostly at dormant micro-companies. See the docstring for the measurement.
+    "companies_house": companies_house,
     # India's leadership spine. Derived from SEBI's mandated Regulation 30
     # category, so it exposes `as_classified` and spends nothing.
     "bse_india": bse_india,
+    # Japan's chief-executive spine. Derived from the typed statutory reason on
+    # an EDINET extraordinary report (第19条第2項第9号, change of representative
+    # director), so it exposes `as_classified` and spends nothing. Narrower than
+    # bse_india on purpose: that clause is the only officer clause Japan types.
+    "edinet_japan": edinet_japan,
+    # Korea's leadership spine. Derived from the Korea Exchange's own report
+    # TITLE — a change of representative director, or the appointment,
+    # dismissal or early retirement of an independent director — because DART's
+    # typed detail codes stop one level too coarse. Exposes `as_classified` and
+    # spends nothing. See the docstring for why the periodic-report roster
+    # endpoints are refused rather than diffed into events.
+    "opendart_korea": opendart_korea,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the
@@ -376,10 +396,28 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         kept, away_strict, away_loose, clusters_formed = cluster_stories(kept)
     clustered_away = away_strict + away_loose
 
+    # Cost lever 4: spend the read budget in a DELIBERATE order (2026-07-29).
+    #
+    # classify.READTHROUGH_CAP bounds full read-throughs per run, and when it
+    # binds every later candidate defers unmarked and returns next run. Which
+    # candidates got read first was arrival order — feed order, edition order —
+    # and nothing about that was ever chosen. The last run before the cap was
+    # raised bought all 60 of its reads and deferred 95 gate survivors on it.
+    #
+    # This is an ORDER and not a filter: `rank` returns a permutation, so the
+    # same candidates are eligible, the same guards apply to each, and no score
+    # can make or unmake a record. It costs no model call and no network call.
+    ranking = candidate_rank.Context.for_conn(conn)
+    note = candidate_rank.explain(kept, ranking,
+                                  top=classify.READTHROUGH_CAP)
+    kept = candidate_rank.rank(kept, ranking)
+
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
     cheap_closed = known_rounds = 0
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
+    if note:
+        print(f"[{collector}] {note}\n")
     if clusters_formed:
         print(f"[{collector}] clustering: {clusters_formed} stories seen from "
               f"multiple outlets, {len(clustered_away)} rewrites will not be "

@@ -847,7 +847,16 @@ def filing_reduction_plan(text: str) -> str | None:
 # the first successful live run paid for exactly that on Uzbekistan, Somalia,
 # Ohio and Anglesey. Checking here costs nothing.
 #
-# Grows automatically as source_registry.MARKETS grows: nothing to hand-edit.
+# CORRECTION 2026-07-29: this line used to read "grows automatically as
+# source_registry.MARKETS grows: nothing to hand-edit", and that was never true.
+# The function below reads `vocab.COUNTRY_NAMES`, `vocab._CITY_ALIASES`,
+# `vocab._COUNTRY_ALIASES` and the hardcoded short-code list further down. It has
+# never referenced MARKETS. The claim mattered, because it is the reason somebody
+# would believe that adding a market widens this gate — it does not, and a market
+# added on the strength of that belief would be swept by an edition whose
+# candidates this gate could still drop. What actually widens it is the country
+# and city VOCABULARY, which carries the whole world (see the 2026-07-28 lesson
+# about tit_country_names holding 52 of ~200 codes).
 
 def _geography_terms() -> tuple[re.Pattern, re.Pattern]:
     from . import vocab

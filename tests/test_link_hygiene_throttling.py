@@ -129,9 +129,24 @@ def test_an_unanswered_url_never_spends_a_capture_or_an_attempt(stocked):
     assert result["archived"] == 0
     assert session.save_calls == 0, (
         "a capture was spent on a URL we learned nothing about")
-    # Nothing recorded means nothing to un-record, and the gap is unchanged: the
-    # next run simply asks again.
-    assert stocked.execute("SELECT COUNT(*) FROM source_links").fetchone()[0] == 0
+    # The gap is unchanged: the next run simply asks again.
+    #
+    # This used to assert `COUNT(*) == 0` on the ledger, and that proxy stopped
+    # being the property on 2026-07-29. A blind round IS now written down — state
+    # stays 'pending', `archive_attempts` and `archive_probes` stay put, and
+    # `archive_blind_rounds` goes up — because "nothing has answered about this
+    # URL for six nights" is otherwise unknowable, and a persistent block and a
+    # slow backfill look identical without it. What must not happen is any
+    # VERDICT being recorded, which is what the three assertions below pin.
+    rows = [dict(r) for r in stocked.execute(
+        "SELECT archive_state, archive_attempts, archive_probes, "
+        "       archive_blind_rounds FROM source_links")]
+    assert len(rows) == 3
+    for row in rows:
+        assert row["archive_state"] == "pending"
+        assert row["archive_attempts"] == 0
+        assert (row["archive_probes"] or 0) == 0
+        assert row["archive_blind_rounds"] == 1
     assert len(source_links.archive_candidates(stocked, limit=10)) == 3
 
 

@@ -33,6 +33,67 @@
   --tit-pay:#4a3aa7;        /* violet, third series */
   --tit-neutral:#52607a;
   --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
+
+  /* =======================================================================
+     THE FONT DECISION, SETTLED, WITH THE MEASUREMENT THAT SETTLED IT.
+
+     The Claude Design mock's character rests on three Google webfonts:
+     Source Serif 4 for display, Public Sans for body, IBM Plex Mono for
+     labels and figures. The first design pass held the whole re-skin on
+     this question and substituted nothing rather than guess. Measured
+     2026-07-30, rather than argued:
+
+       stylesheet from fonts.googleapis.com          17,959 bytes
+       latin woff2 from fonts.gstatic.com           179,036 bytes
+         Source Serif 4  122,168   (68% of it, headings only)
+         Public Sans      26,636
+         IBM Plex Mono    30,232   (three static faces, 400/500/600)
+       ----------------------------------------------------------
+       total added to first paint                  ~196,995 bytes
+
+     Against: a live origin TTFB of 2.72s measured on the deployed page the
+     same day, and a whole-markup budget of 156KB. The fonts would weigh
+     more than the page they set.
+
+     They also arrive on a SERIALISED two-origin path. The gstatic requests
+     cannot begin until the googleapis stylesheet has been fetched and
+     parsed, so it is DNS + TCP + TLS to one new host, then DNS + TCP + TLS
+     to a second, before the first glyph is asked for. That is the shape
+     that hurts on a phone, and it is not visible in a byte count.
+
+     And the site runs Complianz (`cmplz-manage-consent` is in the live
+     markup). Google Fonts is one of the third-party services a consent
+     layer blocks before consent, so the design's character would be
+     delivered to some readers and not others, decided by a cookie banner.
+     Turning that block off is the owner's privacy call, not a design one.
+
+     SELF-HOSTING FROM THE PLUGIN IS THE RIGHT LONG-TERM ANSWER and is NOT
+     done here. It removes the CDN objection, both extra origins and the
+     consent problem outright, and this plugin's assets are already excluded
+     from Autoptimize's CSS aggregation, so relative url() paths in an
+     @font-face would resolve rather than break — the one thing that would
+     have made it unsafe is already handled. What it needs is 179KB of
+     third-party font binaries plus their OFL licence downloaded and
+     committed into a public repository that deploys to the owner's
+     production site. That is the owner's decision to make, and it is a
+     one-line yes: the five latin woff2 files are named in the tech log.
+
+     WHAT SHIPS INSTEAD is the mock's typographic STRUCTURE at zero bytes
+     and zero requests: a serif for display against a grotesque for body
+     against a mono for labels and figures. That contrast is what carries
+     the character; the specific cut of the serif is what it does not get,
+     and Source Serif's personality at 54px is a real loss honestly stated
+     rather than a substitution pretended to be equivalent.
+
+     The body face needed no change at all, which is worth writing down: the
+     stack below was already here, and Public Sans is a neo-grotesque close
+     enough to system-ui on both platforms that the mock's body text and
+     this page's are hard to tell apart.
+     ======================================================================= */
+  --tit-serif:ui-serif,"New York",Georgia,"Iowan Old Style","Times New Roman",serif;
+  --tit-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Cascadia Mono",
+             "Segoe UI Mono","Roboto Mono","Liberation Mono",monospace;
+
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;
   color:var(--tit-fg); font-size:16px; line-height:1.6; max-width:100%;
@@ -606,6 +667,219 @@
 .tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
   max-width:none; line-height:1.5; }
 
+/* --- The dated glance panel --------------------------------------------
+   Four rungs of one ladder: today, this week, this month, this year, with
+   the all-time figures on .tit-hero-fine directly below as the fifth. The
+   left rail is a fixed column so the five labels line up and the eye can
+   run down them; below 560px it becomes a stacked block, because a 102px
+   rail beside a five-fact sentence on a 390px screen leaves the sentence
+   about eighteen characters wide.
+
+   Nothing here scrolls sideways. The body wraps, which is the whole reason
+   it is a flowing span of phrases rather than a table: a table of five
+   columns by five rows cannot be made to fit a phone without either a
+   horizontal gesture or a font size nobody can read, and this page has
+   already been through that with the matrix. */
+.tit-dg-box { margin:0 0 12px; }
+.tit-dg { border:1px solid var(--tit-line); border-left:3px solid var(--tit-hiring);
+  border-radius:10px; background:#fff; padding:12px 14px; }
+.tit-dg-head { display:flex; flex-wrap:wrap; align-items:baseline;
+  justify-content:space-between; gap:6px 12px; margin:0 0 8px;
+  padding-bottom:8px; border-bottom:1px solid var(--tit-grid); }
+/* The display serif, which is where the mock's character actually lives.
+   See the font note at the top of this file for what it is and is not. */
+.tit-wrap .tit-dg-title { font-family:var(--tit-serif); font-size:16px;
+  font-weight:600; margin:0; color:var(--tit-fg); letter-spacing:-.2px; }
+.tit-dg-copy { flex:none; font:inherit; font-size:12.5px; font-weight:600;
+  padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
+  background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }
+.tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:#b9d3f2; }
+.tit-dg-copy:focus-visible { outline:2px solid var(--tit-hiring); outline-offset:1px; }
+
+.tit-dg-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px;
+  padding:4px 0; font-size:13.5px; line-height:1.55; }
+.tit-dg-row + .tit-dg-row { border-top:1px solid var(--tit-grid); }
+
+/* The period label is a filter, so it is a button; it is styled as a label
+   because it has to read as one down the rail. The mono face is the mock's
+   own treatment for this kind of eyebrow, and here it also makes the five
+   labels the same width class so the rail looks like a rail. */
+.tit-wrap .tit-dg-label { flex:none; min-width:102px; text-align:left;
+  font-family:var(--tit-mono); font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--tit-mut);
+  background:none; border:0; padding:0; cursor:pointer; }
+.tit-wrap .tit-dg-label-static { cursor:default; }
+.tit-wrap .tit-dg-label:not(.tit-dg-label-static):hover { color:var(--tit-hiring); }
+.tit-wrap .tit-dg-label:focus-visible { outline:2px solid var(--tit-hiring);
+  outline-offset:2px; border-radius:3px; }
+.tit-wrap .tit-dg-label[aria-pressed="true"] { color:var(--tit-hiring); }
+
+.tit-dg-body { flex:1 1 260px; min-width:0; color:var(--tit-mut); }
+/* Figures are the thing being read. Tabular numerals so a column of them
+   does not jitter, and the same mono the rail uses. */
+.tit-wrap .tit-dg-body b { font-family:var(--tit-mono); font-weight:600;
+  font-size:13px; color:var(--tit-fg); font-variant-numeric:tabular-nums; }
+/* The absent comparison is quieter than the figures but still readable:
+   --tit-faint is decorative-only by this file's own rule, so this is
+   --tit-mut in italic instead. */
+.tit-dg-nocmp { font-style:italic; }
+.tit-dg-cov { margin:8px 0 0 !important; font-size:12px; color:var(--tit-mut);
+  line-height:1.45; }
+
+/* The all-time line joins the ladder as its bottom rung. */
+.tit-wrap .tit-hero-fine { display:flex; flex-wrap:wrap; align-items:baseline;
+  gap:2px 10px; }
+.tit-wrap .tit-hero-fine .tit-fine-figures { flex:1 1 260px; min-width:0; }
+.tit-wrap .tit-hero-fine .tit-fine-say { flex:1 0 100%; }
+
+@media (max-width:559px){
+  /* Stacked, so neither the rail nor the sentence is squeezed. */
+  .tit-dg-row { display:block; }
+  .tit-wrap .tit-dg-label { min-width:0; display:block; margin-bottom:1px; }
+  .tit-dg-body { display:block; }
+  .tit-wrap .tit-hero-fine { display:block; }
+  .tit-wrap .tit-hero-fine .tit-dg-label { margin-bottom:1px; }
+}
+
+/* --- "Why you can trust this", with the FAQ as its second tab -----------
+   PROGRESSIVE ENHANCEMENT, AND IT IS THE LOAD-BEARING PART.
+
+   Both panels are in the initial HTML in full, and this file hides one of
+   them ONLY under `.is-tabbed`, which dashboard.js adds. So the default
+   state — no JavaScript, JavaScript not yet run, or Autoptimize having
+   swallowed the file, which has happened here before — is both panels
+   stacked with their own headings. Nothing an FAQ says is ever behind a
+   click for a crawler, which is the whole reason this is not a fetch.
+
+   The tab strip is hidden by the same rule in reverse: a row of buttons
+   that cannot switch anything is worse than no buttons, so it appears only
+   once the thing that makes it work has arrived. */
+.tit-trust { margin:24px 0 0; padding:18px; border:1px solid var(--tit-line);
+  border-radius:14px; background:var(--tit-ground);
+  display:grid; gap:18px; }
+@media (min-width:900px){
+  .tit-trust { grid-template-columns:minmax(240px,1fr) minmax(0,2fr); gap:28px; }
+}
+.tit-wrap .tit-trust h3 { font-family:var(--tit-serif); font-size:20px;
+  font-weight:600; margin:0 0 8px; letter-spacing:-.3px; color:var(--tit-fg); }
+.tit-wrap .tit-trust-lede p { margin:0 0 12px; font-size:14px;
+  color:var(--tit-mut); max-width:46ch; }
+.tit-trust-btns { display:flex; flex-wrap:wrap; gap:8px; margin:0 !important; }
+.tit-wrap .tit-btn { display:inline-block; font-size:13px; font-weight:600;
+  padding:9px 14px; border-radius:8px; border:1px solid var(--tit-line);
+  background:#fff; color:var(--tit-fg); text-decoration:none; }
+.tit-wrap .tit-btn-solid { background:var(--tit-fg); border-color:var(--tit-fg); color:#fff; }
+.tit-wrap .tit-btn:hover { border-color:var(--tit-hiring); }
+.tit-wrap .tit-btn-solid:hover { background:#000; border-color:#000; }
+.tit-wrap .tit-btn:focus-visible { outline:2px solid var(--tit-hiring); outline-offset:2px; }
+
+.tit-tabs { display:none; gap:4px; margin:0 0 14px;
+  border-bottom:1px solid var(--tit-line); }
+.tit-trust.is-tabbed .tit-tabs { display:flex; }
+.tit-wrap .tit-tab { font:inherit; font-size:13px; font-weight:600;
+  padding:8px 13px; border:0; background:none; color:var(--tit-mut);
+  cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+.tit-wrap .tit-tab[aria-selected="true"] { color:var(--tit-fg);
+  border-bottom-color:var(--tit-hiring); }
+.tit-wrap .tit-tab:hover { color:var(--tit-fg); }
+/* Visible focus, and it must not be the selected-tab underline doing double
+   duty: a keyboard reader arrowing across tabs needs to see where they are
+   even when that tab is not the selected one. */
+.tit-wrap .tit-tab:focus-visible { outline:2px solid var(--tit-hiring);
+  outline-offset:-2px; border-radius:6px 6px 0 0; }
+
+.tit-tabpanel + .tit-tabpanel { margin-top:18px; }
+.tit-trust.is-tabbed .tit-tabpanel { margin-top:0; }
+.tit-trust.is-tabbed .tit-tabpanel[hidden] { display:none !important; }
+/* Once a tab labels the panel, the panel's own heading is a duplicate. It
+   stays in the markup because it is what labels the panel with no
+   JavaScript at all. */
+.tit-wrap .tit-tabpanel-h { font-size:15px; margin:0 0 10px; color:var(--tit-fg); }
+.tit-trust.is-tabbed .tit-tabpanel-h { position:absolute; width:1px; height:1px;
+  overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+.tit-wrap .tit-tabpanel:focus-visible { outline:2px solid var(--tit-hiring);
+  outline-offset:3px; border-radius:8px; }
+
+/* FOUR ITEMS, NEVER THREE-PLUS-ONE.
+   The mock puts them in `repeat(auto-fit, minmax(210px, 1fr))`, which at most
+   desktop widths resolves to three columns and strands the fourth alone on a
+   second row. Explicit counts instead: one column on a phone, two from 560px,
+   four from 1100px. There is no width at which one item sits by itself. */
+.tit-trust-items { list-style:none; margin:0; padding:0;
+  display:grid; grid-template-columns:1fr; gap:16px; }
+@media (min-width:560px){ .tit-trust-items { grid-template-columns:repeat(2,1fr); } }
+@media (min-width:1100px){ .tit-trust-items { grid-template-columns:repeat(4,1fr); } }
+.tit-trust-items li { min-width:0; }
+.tit-wrap .tit-trust-k { display:block; font-family:var(--tit-mono);
+  font-size:10.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+  color:#17624a; margin-bottom:6px; }
+.tit-wrap .tit-trust-t { display:block; font-size:13.5px; line-height:1.55;
+  color:var(--tit-mut); }
+
+/* --- The press page ------------------------------------------------------
+   Its own table class rather than .tit-table, and the reason is the same one
+   corrections.php gives for .tit-projection: below 860px .tit-table hides its
+   thead and relies on each cell carrying a data-label, so a six-column table
+   of numbers borrowed from it would render as a stack of unlabelled figures
+   on the one page whose entire job is to be quotable.
+
+   These cells DO carry data-labels, so the same stacking is safe here, and it
+   is used below 760px rather than a horizontal scroller: a container that
+   scrolls sideways beats the body scrolling and still hides half the columns
+   behind a gesture, which is the verdict the matrix already reached. */
+.tit-press-scroll { border:1px solid var(--tit-line); border-radius:12px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 18px; }
+.tit-press-table { width:100%; border-collapse:collapse; font-size:14.5px;
+  min-width:640px; }
+.tit-press-table th, .tit-press-table td { padding:11px 14px; text-align:left;
+  vertical-align:top; border-bottom:1px solid var(--tit-line); }
+.tit-wrap .tit-press-table thead th { font-size:12px; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--tit-mut); background:var(--tit-surface);
+  font-weight:600; white-space:nowrap; }
+.tit-press-table th[scope="row"] { font-weight:650; color:var(--tit-fg);
+  white-space:nowrap; }
+.tit-press-table td { font-variant-numeric:tabular-nums; }
+.tit-press-table tbody tr:last-child th,
+.tit-press-table tbody tr:last-child td { border-bottom:0; }
+
+@media (max-width:759px){
+  /* One card per row, every figure keeping its column name. Nothing is behind
+     a swipe and nothing is an unlabelled number. */
+  .tit-press-scroll { overflow-x:visible; border:0; border-radius:0; }
+  .tit-wrap .tit-press-table { min-width:0; display:block; }
+  .tit-press-table thead { position:absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+  .tit-press-table tbody, .tit-press-table tr { display:block; }
+  .tit-press-table tr { border:1px solid var(--tit-line); border-radius:10px;
+    padding:11px 13px; margin:0 0 9px; background:#fff; }
+  .tit-wrap .tit-press-table th[scope="row"] { display:block; border:0; padding:0 0 6px;
+    font-size:15px; white-space:normal; }
+  .tit-wrap .tit-press-table td { display:flex; justify-content:space-between;
+    gap:12px; border:0; padding:3px 0; }
+  .tit-press-table td::before { content:attr(data-label); color:var(--tit-mut);
+    font-size:12.5px; }
+}
+
+.tit-press-facts { margin:0 0 18px; padding-left:20px; max-width:78ch; }
+.tit-press-facts li { margin:0 0 12px; font-size:14px; line-height:1.6;
+  color:var(--tit-mut); }
+.tit-wrap .tit-press-facts strong { color:var(--tit-fg); }
+/* `.tit-wrap.tit-press`, NOT `.tit-wrap .tit-press`. The press page's root
+   element carries BOTH classes, so the descendant form matches nothing and the
+   headings quietly kept the body stack. Caught by reading the computed
+   font-family in a browser rather than by reading the selector, which is the
+   only way this kind of miss is ever caught. */
+.tit-wrap.tit-press h2 { font-family:var(--tit-serif); font-size:20px;
+  font-weight:600; letter-spacing:-.3px; margin:26px 0 8px; color:var(--tit-fg); }
+.tit-wrap.tit-press h1 { font-family:var(--tit-serif); letter-spacing:-.6px; }
+
+.tit-faq { max-width:78ch; }
+.tit-wrap .tit-faq-q { font-size:14px; font-weight:650; margin:14px 0 4px;
+  color:var(--tit-fg); }
+.tit-wrap .tit-faq .tit-faq-q:first-child { margin-top:0; }
+.tit-wrap .tit-faq-a { font-size:13.5px; line-height:1.6; margin:0;
+  color:var(--tit-mut); }
+
 /* --- Section headers: one line, no rule, no dead space ------------------- */
 .tit-sec { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px;
   margin:20px 0 10px; padding-top:0; border-top:0; }
@@ -1042,6 +1316,8 @@ body.admin-bar .tit-active { top:32px; }
    The table scrolls inside its own container on phones; the page body never
    scrolls sideways.
    =========================================================================== */
+/* The scroller stays for the band between "stacked" and "comfortable": it is
+   the fallback, not the mobile design. See the stacked rules below. */
 .tit-matrix-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .tit-matrix { width:100%; border-collapse:collapse; min-width:560px; font-size:13.5px; }
 .tit-matrix th, .tit-matrix td { border-bottom:1px solid var(--tit-grid); }
@@ -1305,19 +1581,6 @@ main:has(#tit-dashboard) {
 
 .tit-when { font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; }
 
-/* Reset, with the affordance the action deserves: clearly a button, clearly
-   not the loudest thing on the page. It sits at the end of the filter block
-   with the date range rather than alone in a bar of its own. */
-.tit-reset-field { display:flex; align-items:flex-end; }
-.tit-wrap .tit-reset-btn { width:100%; padding:9px 12px; border:1px solid #d7c0b4;
-  border-radius:9px; background:#fff; color:var(--tit-ink-orange);
-  font-family:inherit; font-size:13.5px; font-weight:650; cursor:pointer;
-  line-height:1.25; }
-.tit-wrap .tit-reset-btn:hover { border-color:var(--tit-orange);
-  background:var(--tit-red-tint); }
-.tit-wrap .tit-reset-btn:focus-visible { outline:2px solid var(--tit-orange);
-  outline-offset:2px; }
-
 /* The money figure in the summary line. A link, because the total is only
    honest next to the coverage sentence the money section prints. */
 .tit-wrap .tit-fine-money { color:var(--tit-ink-violet); font-weight:700;
@@ -1394,10 +1657,6 @@ main:has(#tit-dashboard) {
    beside it. The offset is written as the label's own metrics rather than as a
    number, so it stays right if the label size changes, and it only applies
    where the row actually has more than one column. */
-.tit-primary-toggle { display:flex; align-items:flex-start; }
-@media (min-width:640px){
-  .tit-primary-toggle { padding-top:calc((12px * 1.35) + 3px); }
-}
 .tit-check { display:flex; align-items:flex-start; gap:9px; width:100%;
   min-height:42px; padding:10px 12px; border:1px solid var(--tit-line);
   border-radius:9px; background:#fff; cursor:pointer; }
@@ -1426,14 +1685,15 @@ main:has(#tit-dashboard) {
 /* Multi-selects scroll in place. A native list box is keyboard reachable with
    no code of ours, and each choice becomes its own chip in the filtering bar,
    so a reader can drop one of three without clearing all three. */
-/* A FIXED height, matched by .tit-pillgroup below, because dashboard.js loads in
-   the footer and then swaps each of these list boxes for a row of pills. Any
-   difference between the two boxes is a jump the reader watches after the page
-   has painted, and Industry's twenty options wrap to nearly twice a five-row
-   list box. One height for both; the pills scroll in place as the list box did.
-   Change one of the two and you have to change the other. */
-.tit-wrap .tit-filters select[multiple] { height:96px; min-height:96px;
-  padding:4px; font-size:13.5px; font-weight:500; overflow-y:auto; }
+/* Height is NOT pinned here any more, and that is the point.
+   It was 96px, kept in step BY HAND with a pill row of the same height, because
+   dashboard.js swapped one for the other after paint and any difference was a
+   layout shift the reader watched. The select is display:none the moment the
+   script runs now, and the checkbox box that replaces it has its own capped
+   height, so there is no swap to match and no pair of numbers to keep in step.
+   A visitor with no JavaScript keeps the native list box at its own height. */
+.tit-wrap .tit-filters select[multiple] { padding:4px; font-size:13.5px;
+  font-weight:500; overflow-y:auto; }
 .tit-wrap .tit-filters select[multiple] option { padding:4px 7px;
   border-radius:5px; }
 .tit-wrap .tit-filters select[multiple] option:checked {
@@ -1454,9 +1714,6 @@ main:has(#tit-dashboard) {
   color:var(--tit-mut); line-height:1.3; }
 .tit-wrap .tit-daterange input { width:100%; min-width:0; }
 
-.tit-reset-field { grid-column:1 / -1; justify-content:flex-start; }
-.tit-wrap .tit-reset-btn { width:auto; min-width:180px; }
-
 /* At 375px the two date inputs are the tightest thing in the panel. Trimming
    their padding keeps them on ONE row, which is the whole point of the control:
    a range split over two rows reads as two unrelated dates. Dropping the "to"
@@ -1465,15 +1722,6 @@ main:has(#tit-dashboard) {
   .tit-daterange { gap:7px; }
   .tit-wrap .tit-daterange input { padding:7px 6px; font-size:13px; }
   .tit-wrap .tit-daterange-l { font-size:11px; }
-}
-/* Seven stacked list boxes is a lot of height on a phone, and each one still
-   shows five rows before it scrolls in place. */
-@media (max-width:560px){
-  /* And the pill group with it. Two classes deep deliberately: the base
-     .tit-pillgroup rule is several hundred lines BELOW this one, so at equal
-     specificity source order would hand a phone the desktop height. */
-  .tit-wrap .tit-filters select[multiple] { height:84px; min-height:84px; }
-  .tit-wrap .tit-pillgroup { height:84px; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1592,14 +1840,26 @@ main:has(#tit-dashboard) {
    share the cell rather than the flag pushing the name out of it. */
 .tit-rank-name { display:flex; align-items:center; gap:6px; }
 
+/* THE GEO STRIPS WRAP. THEY USED TO SIDE-SCROLL, AND THAT WAS WRONG.
+   This block previously set flex-wrap:nowrap with overflow-x:auto on the
+   country and city rows below 560px, on the reasoning that a container
+   scrolling is better than the body scrolling. Both parts of that are true and
+   the conclusion still did not follow: it put TWO horizontal scrollbars,
+   stacked, on the first screen of a phone, with "Glasgo" and "Birmingha" cut
+   mid-word and no affordance saying anything was there. The owner's words were
+   "not a good mobile experience", and the sibling reached the same conclusion
+   about its own pill strips: hiding options behind a swipe is the failure that
+   pills exist to fix.
+
+   So they wrap. Three or four rows of pills is more vertical space than one
+   scrolling row and it needs no gesture, every option is reachable by tapping,
+   and the strip label stays visible instead of being clipped away to make room
+   for the scroll. The counts are already the cue for which ones matter, and the
+   Location select below lists every place we hold for anyone who wants one that
+   is not in the strip. */
 @media (max-width:560px){
-  /* Scroll the country row in its own box rather than stacking it four deep.
-     The page body never scrolls sideways; this container does. */
-  .tit-countries { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
-    padding-bottom:2px; }
-  .tit-wrap .tit-cbtn { flex:none; }
-  .tit-countries-label { position:absolute; width:1px; height:1px;
-    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .tit-countries { flex-wrap:wrap; }
+  .tit-wrap .tit-cbtn { flex:0 1 auto; }
 }
 
 .tit-more--open .tit-filters { margin-top:0; }
@@ -1636,33 +1896,180 @@ main:has(#tit-dashboard) {
 .tit-recall-history th, .tit-recall-history td { white-space:nowrap; }
 .tit-recall-history td:first-child, .tit-recall-history th:first-child { white-space:normal; }
 
-/* ---------------------------------------------------------------------------
-   Toggle pills over the multi selects.
-   The native list boxes were five-row scroll windows whose heights never
-   matched and whose contents mostly hid behind a scrollbar; the owner called
-   the result what it was. Pills show every option at once, wrap to their own
-   height, and use the same visual language as the region strip and the quick
-   views, so the panel reads as one system. The hidden select behind each
-   group remains the state, and remains a working control without JavaScript.
-   --------------------------------------------------------------------------- */
-.tit-wrap .tit-select-hidden { display:none; }
-/* The same 96px the list box it replaces occupies, so the swap moves nothing.
-   align-content keeps one row of pills at the top rather than centred. */
-.tit-pillgroup { display:flex; flex-wrap:wrap; align-content:flex-start; gap:6px;
-  height:96px; overflow-y:auto; }
-.tit-wrap .tit-pill { padding:5px 11px; border:1px solid var(--tit-line);
-  border-radius:99px; background:#fff; color:var(--tit-fg); font-size:13px;
-  font-weight:550; font-family:inherit; cursor:pointer; line-height:1.3; }
-.tit-wrap .tit-pill:hover { border-color:var(--tit-blue); }
-.tit-wrap .tit-pill:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
-/* Selection is fill plus weight, never colour alone. */
-.tit-wrap .tit-pill.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; font-weight:650; }
+/* ===========================================================================
+   THE FILTER PANEL.
 
-/* With the scroll boxes gone the grid rows are all natural height; keep the
-   columns breathing instead of packing. */
-.tit-filters { row-gap:16px; }
-.tit-wrap .tit-field--stack { gap:6px; }
+   The owner's two sentences about it were "Fix the sapce all this" and "it's
+   still not designed well", and both were fair. Seven groups of options sat in
+   a three-column grid with 8px between rows and no boundary of any kind between
+   one group and the next, so every group's options ran straight into the
+   following group's heading. There was no visual unit called "a group" at all:
+   only a heading, then some options, then another heading, at the same weight,
+   in the same colour, in one continuous field. That is why it read as dumped
+   rather than designed.
+
+   Three changes, in the order they matter.
+
+   1. EACH GROUP IS A BOUNDED THING. A heading, then its options inside a box
+      with its own border, its own background and a capped height. A box has an
+      edge, and an edge is the cheapest possible way to say "these options
+      belong to that heading and not to the next one".
+
+   2. THE OPTIONS ARE CHECKBOXES, ONE PER LINE, AND THE BOX SCROLLS. The owner
+      asked for exactly this: "I like scrolling and check boxes." A checkbox is
+      the only control in HTML that means "several of these, independently"
+      without having to be taught, and a capped scrolling box is what lets seven
+      groups fit in a column at all. See the note above pillify() in
+      dashboard.js for why this replaced both a native list box and a pill row.
+
+   3. THE PANEL IS A COLUMN BESIDE THE ROWS, AND IT STICKS. The owner: "filters
+      dont move with the page a like the layoff one."
+
+   The aesthetic is taken from the record cards, which the owner endorsed: the
+   same paper (--tit-surface on the ground, #fff for anything interactive), the
+   same 12px card radius with 8px on the parts inside it, the same small-caps
+   mono-ish eyebrow, the same 8.6:1 muted ink for supporting text.
+   =========================================================================== */
+
+/* The two-column feed. Plain flex-wrap rather than a grid with a breakpoint,
+   so the panel drops below the rows at whatever width it stops fitting instead
+   of at a width we guessed. `min-width:0` on both children is what stops a long
+   employer name or a wide table forcing the row wider than the viewport. */
+.tit-feed { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start;
+  margin:0 0 24px; }
+.tit-panel { flex:1 1 262px; min-width:0; border:1px solid var(--tit-line);
+  border-radius:12px; background:var(--tit-surface);
+  box-shadow:var(--tit-shadow); overflow:hidden; }
+.tit-results { flex:999 1 560px; min-width:0; }
+
+/* STICKY, and only where sticky is an improvement.
+   Below 1000px the flex row has wrapped, so the panel is a full-width block
+   above the rows; pinning that would cover the rows it filters. On a phone it
+   would also sit under the thumb and fight the page scroll. So the rule is
+   opt-in at a width where a real sidebar exists, and `max-height` plus its own
+   scroller means a panel taller than the viewport scrolls INSIDE itself rather
+   than clipping its last group off the bottom.
+
+   Note `overflow:hidden` above is on the panel, which is the sticky element
+   itself and therefore harmless. A scrollable ANCESTOR is what kills sticky;
+   this stylesheet already forces html and body to overflow-x:clip for that
+   reason, and .tit-feed deliberately sets no overflow at all. Verify in the
+   live DOM after any theme change: sticky fails silently. */
+@media (min-width:1000px){
+  .tit-panel { position:sticky; top:16px; max-height:calc(100vh - 32px);
+    display:flex; flex-direction:column; }
+  .tit-panel-body { overflow-y:auto; }
+}
+/* Anyone who asked for less motion gets a panel that simply sits still. A
+   sticky element is not an animation, but it is unrequested movement relative
+   to the page, which is the thing the preference is about. */
+@media (prefers-reduced-motion: reduce){
+  .tit-panel { position:static !important; max-height:none !important; }
+}
+
+.tit-panel-head { display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:12px 14px; border-bottom:1px solid var(--tit-line);
+  background:#fff; }
+/* The card eyebrow, same treatment the record cards use for their tag row. */
+.tit-panel-t { font-size:11px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--tit-mut); }
+.tit-wrap .tit-panel-reset { padding:4px 0; border:0; background:none;
+  color:var(--tit-ink-blue); font-family:inherit; font-size:12.5px;
+  font-weight:650; cursor:pointer; }
+.tit-wrap .tit-panel-reset:hover { color:var(--tit-blue); text-decoration:underline;
+  text-underline-offset:2px; }
+.tit-wrap .tit-panel-reset:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; border-radius:4px; }
+.tit-panel-body { padding:14px; }
+
+/* ONE COLUMN INSIDE THE PANEL, and the space the owner asked for.
+   These two rules are the fix for "fix the space all this": the grid stops
+   being three columns of 8px-separated rows and becomes one column with 18px
+   between groups and a hairline rule at each boundary. A rule is worth more
+   than the gap it replaces, because a gap only reads as separation once it is
+   bigger than the gap INSIDE a group, and here it never was. */
+.tit-panel .tit-primary,
+.tit-panel .tit-filters { display:block; margin:0; }
+.tit-panel .tit-field,
+.tit-panel .tit-primary > .tit-field {
+  display:block; width:100%; margin:0; padding:14px 0;
+  border-top:1px solid var(--tit-grid); }
+/* No rule above the first group in each block: it would double the panel head's
+   own border and read as an empty row. */
+.tit-panel .tit-primary > .tit-field:first-child { border-top:0; padding-top:0; }
+.tit-panel .tit-field[hidden] { display:none !important; }
+.tit-panel .tit-field-l { display:block; margin-bottom:7px; font-size:12px;
+  font-weight:700; color:var(--tit-fg); }
+.tit-panel .tit-field--wide { grid-column:auto; }
+.tit-panel select, .tit-panel input[type=search], .tit-panel input[type=date] {
+  width:100%; min-width:0; }
+
+/* --- A GROUP'S OPTIONS: real checkboxes, in a box that scrolls -------------
+   The height is capped rather than fitted so that seven groups are navigable in
+   a column: 168px is five rows plus a visible sliver of the sixth, which is how
+   a reader knows there is more without needing a scrollbar to be drawn for
+   them. The select it replaces is display:none, so there is no swap-in jump to
+   match a height to any more (the old pill row had to be pinned to 96px for
+   exactly that reason, and both numbers had to be kept in step by hand). */
+.tit-wrap .tit-select-hidden { display:none; }
+.tit-optbox { max-height:168px; overflow-y:auto; overscroll-behavior:contain;
+  border:1px solid var(--tit-line); border-radius:8px; background:#fff;
+  padding:4px; }
+.tit-optbox:focus-within { border-color:var(--tit-blue); }
+.tit-wrap .tit-optrow { display:flex; align-items:flex-start; gap:9px;
+  padding:7px 8px; border-radius:6px; font-size:13.5px; line-height:1.35;
+  color:var(--tit-fg); cursor:pointer; }
+.tit-wrap .tit-optrow:hover { background:var(--tit-surface); }
+.tit-wrap .tit-optrow input { flex:none; width:16px; height:16px; margin:1px 0 0;
+  accent-color:var(--tit-blue); cursor:pointer; }
+.tit-wrap .tit-optrow input:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* Selection is fill AND weight, never colour alone, and the checkbox itself is
+   the primary signal in any case. */
+.tit-wrap .tit-optrow.is-on { background:var(--tit-blue-tint); }
+.tit-wrap .tit-optrow.is-on .tit-optrow-t { font-weight:650;
+  color:var(--tit-ink-blue); }
+.tit-optrow-t { min-width:0; }
+
+/* WITHOUT JAVASCRIPT the native select IS the control, and it already is one:
+   .tit-select-hidden is applied by pillify() at RUNTIME, so a page whose script
+   never ran never gets the class and keeps a working native multiple select.
+   That is precisely why the select is hidden by a JS-applied class rather than
+   by an attribute or a server-rendered class. Do not move this to the server. */
+.tit-wrap .tit-filters select[multiple] { width:100%; }
+
+/* The place-basis checkbox sits under the Location select it qualifies. */
+.tit-panel .tit-basis-check { margin-top:8px; }
+.tit-panel .tit-where-label { display:block; }
+
+/* The date range keeps both inputs on one row inside a 262px column. */
+.tit-panel .tit-daterange { gap:8px; }
+
+/* The (i) is a panel-width affordance now, not a pill floating above a grid. */
+.tit-panel .tit-help { margin:0 0 12px; }
+.tit-panel .tit-help-b { max-width:none; }
+
+/* At the width where the panel is a full-width block again, its groups are
+   allowed two columns: the boxes are the same height, so a two-up grid reads as
+   a grid rather than as a ragged stack, and it halves the scrolling a phone
+   reader does to get past the panel. */
+@media (min-width:620px) and (max-width:999px){
+  .tit-panel .tit-filters { display:grid; grid-template-columns:1fr 1fr;
+    column-gap:20px; }
+  .tit-panel .tit-filters .tit-field--wide { grid-column:1 / -1; }
+}
+/* 390px: nothing here may scroll the body sideways, so every box is width-100%
+   and the option text wraps rather than the row scrolling. */
+@media (max-width:430px){
+  .tit-optbox { max-height:152px; }
+  .tit-wrap .tit-optrow { font-size:13px; padding:8px; }
+}
+
+/* The quick views carry one count, on the one view narrow enough that its size
+   is part of what it means. See the $quick_views note in shortcodes.php. */
+.tit-qv-n { margin-left:5px; font-variant-numeric:tabular-nums; letter-spacing:0;
+  font-weight:700; color:var(--tit-mut); }
+.tit-wrap .tit-qv.is-on .tit-qv-n { color:inherit; }
 
 /* ===========================================================================
    From the design proposal, translated into the family's own palette.
@@ -1791,3 +2198,219 @@ main:has(#tit-dashboard) {
 @media (max-width: 560px) {
   .tit-cross-list li { flex-direction: column; gap: .2rem; }
 }
+
+
+/* ===========================================================================
+   THE MATRIX ON A PHONE: one card per signal, no horizontal gesture.
+
+   Five columns (a label plus four periods) cannot fit 390px, so the table had
+   a `min-width:560px` inside an `overflow-x:auto` box. That stops the BODY
+   scrolling sideways, which is why it was done, and it is still the wrong
+   answer: the header rendered as "THIS WEEK | THIS M..." with a scrollbar under
+   it, and the matrix is the first thing on the page and the thing whose own
+   copy says "Click any number to filter the page". A promise you have to swipe
+   to reach is not one a reader will act on.
+
+   So below 860px each row becomes a card: the signal name as its heading, then
+   its four periods as label-and-number lines. Every cell is still the same
+   <button> with the same data-filter and data-since, so click-to-filter is
+   untouched -- this is a display change and nothing else.
+
+   TWO TRAPS, both of which the sibling documented and both of which are avoided
+   here rather than worked around:
+
+   1. The period label is REAL TEXT in the markup (.tit-cell-p, rendered by both
+      shortcodes.php and matrixHtml() in dashboard.js), not a CSS ::after
+      carrying a data attribute. `display:block` on a table drops the implicit
+      table roles, so the column header a sighted reader was getting from the
+      grid stops being announced at all; generated content cannot replace it,
+      because it is not in the accessibility tree in every engine and it is not
+      selectable or findable. On desktop the same span is hidden, where the
+      real <th> is doing the job.
+   2. Nothing here is keyed to nth-child. Column order is a property of the
+      periods array and would silently reassign every label the day a period is
+      added or reordered.
+   =========================================================================== */
+@media (max-width:860px){
+  /* No scroller, because there is nothing left to scroll. */
+  .tit-wrap .tit-matrix-scroll { overflow-x:visible; }
+  .tit-wrap .tit-matrix { min-width:0; display:block; }
+  /* The header row is redundant once each cell carries its own period label,
+     and it cannot be laid out as a row of a block table anyway. */
+  .tit-wrap .tit-matrix thead { display:none; }
+  .tit-wrap .tit-matrix tbody { display:block; }
+  .tit-wrap .tit-matrix-row { display:block; margin:0 0 10px;
+    border:1px solid var(--tit-line); border-radius:10px; background:#fff;
+    overflow:hidden; }
+  .tit-wrap .tit-matrix-row > th[scope="row"] { display:block; width:auto;
+    padding:10px 12px; border:0; border-bottom:1px solid var(--tit-grid);
+    background:var(--tit-surface); font-size:14px; text-align:left; }
+  .tit-wrap .tit-matrix-row > td { display:block; padding:0; border:0;
+    border-top:1px solid var(--tit-grid); }
+  .tit-wrap .tit-matrix-row > td:first-of-type { border-top:0; }
+  /* The cell fills its line and states which period it is. The heat tint still
+     applies, so the visual read survives the reflow. */
+  .tit-wrap .tit-matrix .tit-cell { display:flex; align-items:center;
+    justify-content:space-between; gap:12px; width:100%; padding:9px 12px;
+    text-align:left; border-radius:0; }
+  .tit-wrap .tit-cell-p { display:inline; font-size:12px; font-weight:600;
+    color:var(--tit-mut); }
+}
+/* Desktop: the real <th> is the column header, so the in-cell label would be a
+   second copy of it in every cell. */
+.tit-cell-p { display:none; }
+
+/* ===========================================================================
+   THE THREE PARAGRAPHS UNDER THE MATRIX: one disclosure on a phone, open on
+   desktop.
+
+   All three are honesty surfaces and not one word of them is cut. They explain
+   what the columns count, that the rows overlap so the columns do not add up,
+   and that one row sums dollars while the rest count updates. On a 390px screen
+   they were roughly fifteen lines of prose between the reader and any content,
+   which is how a true statement ends up unread.
+
+   A native <details>, and the content is in the initial HTML either way: the
+   panels are rendered server-side and hidden with CSS, never fetched, so a
+   crawler and a reader with no JavaScript both get every word. `open` is set in
+   the markup and only REMOVED by the stylesheet below the breakpoint, which
+   means the desktop behaviour needs no script and the phone behaviour degrades
+   to an ordinary open block if the attribute rule ever fails.
+   =========================================================================== */
+.tit-matrix-note > summary { display:none; }
+@media (max-width:860px){
+  .tit-wrap .tit-matrix-note > summary { display:flex; align-items:center;
+    gap:7px; padding:9px 12px; font-size:12.5px; font-weight:650;
+    color:var(--tit-ink-blue); cursor:pointer; list-style:none; }
+  .tit-wrap .tit-matrix-note > summary::-webkit-details-marker { display:none; }
+  .tit-wrap .tit-matrix-note > summary::after { content:"+"; margin-left:auto;
+    font-weight:700; }
+  .tit-wrap .tit-matrix-note[open] > summary::after { content:"\2212"; }
+  .tit-wrap .tit-matrix-note > summary:focus-visible {
+    outline:2px solid var(--tit-blue); outline-offset:-2px; }
+  /* Closed on a phone. The attribute is in the markup so desktop and no-CSS
+     both get it open; this is the only place it is taken away. */
+  .tit-wrap .tit-matrix-note[open] > summary + * { }
+}
+@media (min-width:861px){
+  /* Nothing to click, nothing to collapse. */
+  .tit-matrix-note > summary { display:none; }
+}
+
+/* ===========================================================================
+   COLOUR SCHEME: this page is light, and now says so to the browser.
+
+   The owner's dark screenshot showed "Narrow It Down" almost invisible and the
+   region note dark grey on near black. The note further up this file explains
+   why there is no prefers-color-scheme block -- the theme paints a white page
+   whatever the OS says, so honouring the preference made light text on white.
+   That reasoning holds and is unchanged; what was missing is that we never TOLD
+   the browser. Without `color-scheme`, a user agent in dark mode is free to
+   re-paint form controls, scrollbars and any background we did not set
+   ourselves, which is exactly the mixed result in those screenshots: our own
+   inked text on surfaces the UA had darkened underneath us.
+
+   `color-scheme:only light` on the wrapper opts this subtree out of that, and
+   every container that holds text now states its own background rather than
+   inheriting one it cannot see. Supported schemes are stated rather than
+   implied: light. If the theme ever gains a real dark mode this is the one
+   place to revisit, and the tokens at the top of the file are the only thing
+   that has to change.
+   =========================================================================== */
+.tit-wrap, .tit-sources, .tit-company, .tit-corrections, .tit-recall {
+  color-scheme: only light;
+  background:#fff;
+  color:var(--tit-fg);
+}
+/* Headings inside our subtree take the ink explicitly. .tit-sec h3 was styled
+   only for colour via a single-class rule and lost to a theme heading rule in
+   the dark scheme, which is why "Narrow It Down" went nearly invisible. */
+.tit-wrap .tit-sec h3, .tit-wrap .tit-chart-head h3, .tit-wrap .tit-hero h2 {
+  color:var(--tit-fg) !important;
+}
+.tit-wrap .tit-places-note, .tit-wrap .tit-matrix-note p,
+.tit-wrap .tit-quick-hint, .tit-wrap .tit-span {
+  color:var(--tit-mut) !important;
+}
+
+
+/* ===========================================================================
+   THE THREE-CARD PANEL: one bar pattern, and cards that end where their
+   content does.
+
+   The owner's verdict was "bad spacing", and the screenshot showed why.
+
+   1. TWO BAR LAYOUTS IN ONE PANEL. "What Is Moving" put the label and the
+      figure on a line ABOVE a full-width bar; the two cards beside it put
+      label, bar and figure on one line. Same panel, same data shape, two
+      components. The inline form is the better of the two and is what the design
+      mock uses, so the odd one out is converted -- IN CSS, not in markup.
+      `display:contents` on .tit-pillar-head promotes its two children into the
+      button's own grid, so name / bar / figure become three columns without
+      touching a single element or attribute. That matters because .tit-pillar is
+      the click-to-filter handler's selector: restructuring the markup would have
+      put a working control at risk to fix a visual inconsistency.
+
+   2. UNEQUAL DEAD SPACE. The grid stretched every card to the tallest, so a card
+      with four categories (and there are only ever four) carried ~200px of empty
+      paper. `align-items:start` lets each card end where its content does. A
+      short card is not a broken card; a short card padded out to match a long
+      one is.
+
+   3. INTROS OF THREE, FOUR AND FIVE LINES meant the bars began at a different
+      height in each card and nothing lined up across the panel. All six are one
+      line now, and the "Click a row to filter" every one of them ended with is
+      gone: the panel header already says "Click any row to narrow the whole page
+      to it", so it was printed seven times on one screen.
+
+   4. A HALF ROW AT THE SCROLL EDGE read as a rendering fault ("India" sliced
+      horizontally). The list still scrolls, because the owner asked for that and
+      a country list is long, but the edge now fades so a clipped row says "more
+      below" instead of looking broken.
+
+   5. THE TOOLBAR ICONS were heavier than the heading they sat beside and sat at
+      three different heights across the three cards. Aligned to the heading's
+      first line and quieted.
+   =========================================================================== */
+
+/* 1. One bar pattern. */
+.tit-wrap .tit-pillars { display:grid; gap:9px; }
+.tit-wrap .tit-pillar { display:grid; align-items:center; gap:4px 10px;
+  grid-template-columns:minmax(0,1fr) minmax(56px,90px) auto; }
+.tit-wrap .tit-pillar-head { display:contents; }
+.tit-wrap .tit-pillar-name { grid-column:1; margin:0; }
+.tit-wrap .tit-pillar .tit-bar { grid-column:2; margin:0; }
+.tit-wrap .tit-pillar-n { grid-column:3; text-align:right; }
+/* Where `display:contents` is unavailable the old stacked form is still legible,
+   so this degrades rather than breaks. */
+
+/* 2. Cards end where their content ends. */
+.tit-charts { align-items:start; }
+
+/* 3. One line of intro, capped rather than trusted, so a longer sentence added
+      later cannot silently reintroduce the misalignment. */
+.tit-wrap .tit-chart-head .tit-sub { display:-webkit-box; -webkit-line-clamp:2;
+  -webkit-box-orient:vertical; overflow:hidden; }
+
+/* 4. A fade at the scroll edge instead of a bisected row. */
+.tit-chart .tit-rank, .tit-chart .tit-pillars {
+  -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+          mask-image:linear-gradient(to bottom, #000 calc(100% - 18px), transparent); }
+/* No fade when there is nothing hidden: a list shorter than its box would get a
+   faded last row for no reason. :has() scopes it to the scrolling case only. */
+.tit-chart .tit-rank:not(:has(> :nth-child(6))),
+.tit-chart .tit-pillars:not(:has(> :nth-child(6))) {
+  -webkit-mask-image:none; mask-image:none; }
+
+/* 5. Quieter tools, aligned to the heading's first line. */
+.tit-chart-head { align-items:flex-start; }
+.tit-wrap .tit-chart-tools { align-items:flex-start; }
+.tit-wrap .tit-ctl { opacity:.55; }
+.tit-wrap .tit-ctl:hover, .tit-wrap .tit-ctl:focus-visible { opacity:1; }
+
+/* The single-idea list under the matrix. A list of facts, set as one. */
+.tit-wrap .tit-matrix-points { margin:0; padding:0 0 0 16px; list-style:disc; }
+.tit-wrap .tit-matrix-points li { margin:0 0 3px; font-size:12px; line-height:1.5;
+  color:var(--tit-mut); }
+.tit-wrap .tit-matrix-points li:last-child { margin-bottom:0; }
+.tit-wrap li.tit-matrix-money-note { color:var(--tit-ink-violet); }

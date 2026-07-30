@@ -487,10 +487,24 @@ def _report_writer_queue() -> list[str]:
               f"since {ticket['requested_at']}  attempts={ticket['attempts']}")
         if ticket.get("inputs"):
             print(f"                inputs {ticket['inputs']}")
+        if ticket.get("unbound_count"):
+            print(f"                dispatched {ticket['unbound_count']}x with NO "
+                  f"RUN produced — the dispatch is failing, not the work")
 
     for orphan in state["orphans"]:
         print(f"    ORPHAN      {orphan['workflow']} run {orphan['run_id']} "
               f"(created {orphan.get('created_at')})")
+
+    # A LIVE tick is not a MOVING queue, and the difference is the whole of the
+    # 2026-07-30 stall: the drainer ran eleven times in seven hours, every run
+    # green, and the queue did not move once. So both facts are printed, and
+    # each has its own alarm — the heartbeat catches a drainer that has stopped,
+    # `idle_since` catches a drainer that is running and achieving nothing.
+    if state.get("last_dispatch"):
+        print(f"    last dispatch:   {state['last_dispatch']}")
+    if state.get("idle_since"):
+        print(f"    STALLED SINCE:   {state['idle_since']}  (work waiting, lock "
+              f"group empty, nothing sent)")
 
     if state["last_tick"]:
         print(f"    last drain tick: {state['last_tick']}")
@@ -530,8 +544,34 @@ def _report_backfills() -> list[str]:
         print(f"    (stale: {behind} commit(s) behind origin/main — `git pull --ff-only`)")
 
     state = backfill_slices.summary(backfill_slices.load(state_file))
+
+    # The one decision this section exists to prompt. 51 of the 81 gold-set
+    # misses are `outside_our_history` — the news collectors first ran on
+    # 2026-07-27 and national_press on 2026-07-29, against a gold window of
+    # 2026-07-01..28 — so the recall number is substantially a measurement of a
+    # tracker younger than the window judging it. The walker that fixes it is
+    # built and has never run. It stays dispatch-only because its cost scales
+    # with slices, which makes the cron the budget and the pace the owner's call.
+    walker = "backfill-gdelt-2026:2026-01-01..2026-07-26"
+    walked = any(job["id"].startswith("backfill-gdelt-2026")
+                 for job in state["jobs"])
+    if not walked and not _crons("backfill-gdelt-2026.yml"):
+        print("    HISTORY  the 2026 news walker has never run, and 51 of the 81 "
+              "recall misses")
+        print("             are simply from before we existed. It is "
+              "dispatch-only on purpose:")
+        print("             python3 backfill_gdelt_2026.py --plan-cost   "
+              "# what each pace costs")
+        print(f"             then queue slice one (the cursor, not the input, "
+              f"decides where it resumes):")
+        print(f"             gh workflow run drain-writers.yml "
+              f"-f enqueue=backfill-gdelt-2026.yml \\")
+        print(f"                  -f inputs_json='{{\"start\":\"2026-01-01\","
+              f"\"end\":\"2026-07-26\",\"slice\":\"true\"}}' \\")
+        print(f"                  -f reason='{walker}, slice 1'")
+
     if not state["jobs"]:
-        print("    Nothing in flight.")
+        print("    Nothing else in flight.")
         return []
 
     for job in state["jobs"]:
@@ -655,6 +695,27 @@ def _report_link_rot(conn) -> list[str]:
         print("      python3 link_check.py --dry-run --limit 40")
         return problems
 
+    # Read BEFORE the "nothing checked yet" branch below, because the archiving
+    # half of this ledger is not downstream of the rot checker: a URL wrongly
+    # retired from the capture queue is just as retired on a database where
+    # link_check has never run, and gating the escalation on an unrelated job
+    # having run is exactly the coupling that hides things here.
+    try:
+        split = source_links.archive_gap(conn)
+    except sqlite3.OperationalError:
+        split = None
+    if split and split["terminal_blind"]:
+        # This must always be zero. classify_archive_outcome refuses to record
+        # terminal without a definitive negative, so a non-zero here is either
+        # pre-fix history or a new route into the same bug.
+        problems.append(
+            f"{split['terminal_blind']} URL(s) sit at the TERMINAL "
+            f"'unavailable' state without archive.org ever having said it holds "
+            f"no snapshot of them. They have dropped out of the capture queue "
+            f"for good on the strength of a throttle. Put them back: "
+            f"python3 archive_sources.py --recheck-terminal --dry-run  (then "
+            f"without --dry-run, queued as a writer).")
+
     total = summary["distinct_source_urls"]
     if not summary["checked"]:
         print(f"    {total} distinct source URLs, NONE checked yet.")
@@ -671,6 +732,20 @@ def _report_link_rot(conn) -> list[str]:
           f"({summary['archive_pct']}%) have a Wayback fallback, "
           f"{summary['archive_pending']} pending, "
           f"{summary['archive_unavailable']} unavailable")
+
+    # The percentage cannot answer the question that matters about it. A slow
+    # climb is the design — Save Page Now is rate-limited and a backfill takes
+    # about a week — and a climb stalled because archive.org will not answer
+    # looks exactly the same from outside. So the un-archived population is
+    # printed split, and the split is the difference between a queue and a wall.
+    if split:
+        print(f"    the gap   {split['never_probed']:,} never answered about, "
+              f"{split['probed_absent']:,} confirmed absent from Wayback "
+              f"(the real capture queue)")
+        if split["blind_recently"]:
+            print(f"              {split['blind_recently']:,} carry a blind "
+                  f"round: archive.org would not answer, and no state, attempt "
+                  f"or verdict was recorded on the strength of that.")
 
     # What the capture cap costs, said where the percentage is printed.
     scope = _archive_scope()

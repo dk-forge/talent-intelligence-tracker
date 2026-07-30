@@ -13,6 +13,1925 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — the writer queue stopped for six hours behind eleven green ticks
+
+**Root cause: one input the workflow does not declare.** At 17:42:17Z a GDELT
+backfill was queued carrying `slice: "true"`. `backfill-gdelt-2026.yml` declares
+five `workflow_dispatch` inputs — `start`, `end`, `dry_run`, `fetch_only`,
+`max_readthroughs` — and `slice` is not one of them. The dispatch answered:
+
+```
+gh: Unexpected inputs provided: ["slice"] (HTTP 422)
+```
+
+**The 422 was not the outage. `set -euo pipefail` was.** That `gh api` call sat
+under `set -e` in the "Dispatch it" step, so bash killed the step *on that line*
+— before the verification loop below it, and before the `writer_queue.py
+requeue` below that. Run 30567135192 lasted **16 seconds**; the verify loop
+alone sleeps 60. The ticket was left in state `dispatched` with `run_id: null`.
+
+Every tick after that found **zero tickets in state `queued`**, so
+`tick()` returned `dispatch: None`, wrote no `plan.json`, and the workflow's
+`if: steps.tick.outputs.planned == '1'` skipped the dispatch step. **Eleven
+drain runs between 10:17Z and 18:09Z, every one green**, the queue file changing
+only its `last_tick` line (`ced0ab4..7a31ade`: one insertion, one deletion).
+
+Reproduced offline against the committed queue and a 200-run snapshot: `tick`
+exits 0, prints nothing at all, emits no plan.
+
+**Two things the diagnosis got wrong on the way in, both worth recording.**
+`WRITER_QUEUE_TOKEN` was unset and was assumed to be the cause; it was not, and
+setting it changed nothing, because the API had accepted the credential and
+rejected the payload. And the queue was read as "24 tickets stuck": it held 24
+tickets of which **22 were `landed`, 1 was `failed` and acknowledged, and
+exactly one was live**. Counting the list rather than the states inflated a
+one-ticket stall into a twenty-four-ticket one, and the 17 orphans were all
+already `resolved` — `resolve` marks in place rather than removing.
+
+### What changed
+
+| Guard | Where |
+|---|---|
+| A ticket carrying an input the workflow does not declare is refused **at enqueue time**, naming the declared ones | `writer_queue.workflow_dispatch_inputs`, `enqueue` |
+| The dispatch API call no longer runs under `set -e`; its exit code is captured and every failure path records the ticket and goes red | `drain-writers.yml` "Dispatch it" |
+| A 422 on the inputs marks the ticket `failed` (`dispatch-failed --permanent`), because retrying a deterministic refusal is an infinite silent loop | same |
+| The unbound requeue is counted (`unbound_count`) and reported; two vanished dispatches for one ticket is a `problem` | `tick`, `summary` |
+| `idle_since`: work waiting + lock group empty + nothing dispatched, recomputed every tick, red after 90 minutes | `tick`, `summary`, `ops_status [2b]` |
+| A tick that dispatches nothing says **why**, every time | `_cmd_tick` |
+| The failed-dispatch record is pushed with the retry loop, not `git push \|\| true` | `drain-writers.yml` |
+
+**90 minutes, not 15.** The `*/15` cron is throttled by GitHub to 34-60 minute
+gaps on this repo (measured across nine consecutive scheduled ticks, 10:17Z to
+17:31Z). Any stall threshold under an hour fires on a single ordinary gap.
+
+**The alarm is derived, not stored.** `idle_since` is recomputed from the run
+list on every tick and cleared only by a real dispatch, a busy group or an empty
+queue — so editing it out of the committed file buys one tick of silence and no
+more. That is the property `test_the_stall_clock_is_recomputed_from_facts_not_trusted`
+pins.
+
+**Undeclared inputs raise; missing *required* inputs only warn.** They are not
+symmetrical: an undeclared name is always a typo, whereas `enqueue` is also the
+canonical "can this workflow be queued at all" assertion, called with a token
+input and no intent to dispatch (`tests/test_backfill_slices.py:233`). The
+parser is regex-and-indentation rather than yaml because `ops_status.py` imports
+this module and must stay dependency-free; it is checked against a real
+`yaml.safe_load` for all **20** current lock members, so a formatting change
+fails the suite instead of production. It returns `None` — skip validation —
+when it cannot parse, because a parser that guesses wrong must fail open.
+
+22 tests added; suite 2,099 -> 2,121.
+
+---
+
+## 2026-07-30 — the registry backfill: two of the four were already reachable, and India's ceiling is 32 days
+
+Brief: build the 2026 historical backfill for the structured registry
+collectors, on the premise that they all expose `as_classified`, so their spend
+is $0 and back-filling them is the cheapest coverage win available. **The
+premise is exactly right and the model spend for this session was $0.00.** What
+the brief was wrong about is which of them needed anything built.
+
+### What is actually held, measured first
+
+`data/talent_intel.db`, 2026 rows by collector, current revisions only:
+
+| collector | rows, all time | rows in 2026 | verdict |
+|---|---|---|---|
+| `sec_edgar` | 3,797 | **3,797**, every week of 2026-W01..W30 | **complete, no-op** |
+| `sec_form_d_bulk` | 2,998 | 2,998, Jan..Jun | complete to the last published quarter |
+| `uk_paygap` | 4,761 | 537 | **complete** — 2017..2025 run 403 to 595 a year |
+| `sec_execcomp` | 3,910 | 133 | **complete for its shape.** `published_date` is the fiscal PERIOD END, so a CY2026 row needs a fiscal year that has ended in 2026. 2022..2025 hold 574 / 1,010 / 1,091 / 1,102 and 2026 fills as proxies land |
+| `bse_india` | **0** | **0** | never run |
+| `companies_house` | **0** | **0** | never run |
+| `edinet_japan` | **0** | **0** | never run |
+| `opendart_korea` | **0** | **0** | never run |
+
+So "is 2026 already held" is **yes for all three SEC/UK sources and zero for
+every registry collector**. The brief's guess that "some of this may be a no-op"
+was right about which sources and right about why: the ~7,700 rows the dashboard
+shows for 2026 are SEC plus the pay gap, and `backfill_sec_2026.py` already
+walked them.
+
+### Then: can each API even express a historical window? Two of four could
+
+This is the question that decided what got built, and the answer is not the same
+for any two of them.
+
+| source | window it can express | reachable through `collect-structured.yml` today | built |
+|---|---|---|---|
+| `edinet_japan` | a LIST of calendar days; `MAX_DAYS` 366 | **yes.** `days=211` is one run of 211 calls at 0.5s — about two minutes | **nothing** |
+| `companies_house` | `appointed_on` filter, any width, no state at all | partly: `days=211` + `ch_slice=0..3`, four dispatches, no cursor | walker |
+| `bse_india` | **32 days.** Server-enforced, undocumented | **no** | walker |
+| `opendart_korea` | 90 days, AND anchored on today | **no** — Jan..Apr unreachable | walker |
+
+**`edinet_japan` needed nothing and gets nothing.** Its collector docstring
+already says "a backfill widens the window; it does not become a script", its
+own cap is a year, and one dispatch closes 2026:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=collect-structured.yml \
+     -f inputs_json='{"source":"edinet_japan","days":"211","dry_run":"false"}' \
+     -f reason='Japan 2026 catch-up'
+```
+
+A walker for that would be a second implementation of a cursor for 211 requests.
+`test_edinet_is_absent_and_the_refusal_says_why` asserts the omission AND
+asserts `edinet_japan.MAX_DAYS >= 366`, so if Japan's window ever shrinks the
+omission stops being silently stale.
+
+### THE FINDING: BSE refuses a window wider than 32 days, inside an HTTP 200
+
+`collectors/bse_india.py` said a backfill is "a longer window through the same
+path", and `collect-structured.yml`'s `days` input said "a gap is back-filled by
+widening this". Measured live against `api.bseindia.com` on 2026-07-30, that is
+**false above 32 days**:
+
+```
+strPrevDate=20260101, strToDate=20260131 (30d)  ->  200 {"Table": [50 rows]}
+                                20260201 (31d)  ->  200 {"Table": [50 rows]}
+                                20260202 (32d)  ->  200 {"Table": [50 rows]}
+                                20260203 (33d)  ->  200 {"Status":"False",
+                                                        "Message":"Date range
+                                                         exceeded threshold."}
+```
+
+Binary-searched: 30/31/32 accepted; 33, 34, 35, 36, 40, 45, 90, 151 and 211 all
+refused. The threshold is published nowhere. **The refusal is HTTP 200 with no
+`Table` key**, so it landed in the collector's "the response shape has changed"
+branch — a message that sends a reader looking for a redesigned API instead of
+at a number in a workflow input. So India's history was not merely slow to
+reach, it was unreachable through the documented route, and the error blamed the
+wrong thing.
+
+Three changes, all additive:
+
+* `bse_india.WINDOW_CAP_DAYS = 32`, with the measurement beside it.
+* `fetch_page` names the width refusal before the generic branch: *"BSE refused
+  20260101..20260730 ... The undocumented ceiling ... is 32 days. This is a
+  window that is too wide, not a changed API."*
+* `days_from_env` refuses `TIT_BSE_DAYS > 32` rather than spending a run on a
+  request that cannot succeed, and points at the walker.
+
+Korea's ceiling is the quieter kind and was already documented: OpenDART limits
+a `corp_code`-less search to three months and returns a **shorter window**
+rather than an error, so a walker asking for 120 days would collect 90 and
+record 120 as done. `window()` is also anchored on `datetime.now()`, which on
+2026-07-30 put the earliest reachable day at 2026-05-01. January to April was
+not a wide window away; it was unreachable. An explicit `--start` is the whole
+fix.
+
+### What was built
+
+`backfill_structured_2026.py` + `.github/workflows/backfill-structured-2026.yml`.
+One walker, three sources, `backfill_gdelt_2026.py`'s shape — monotonic
+committed cursor, one slice a run, seen-URL skipping before any work, a `--plan`
+summary, `--fetch-only`, `--dry-run`, and a `halt` path that records the slice
+and declines to requeue into a wall.
+
+**It is deliberately NOT a second priced walker.** GDELT walks news, so its
+constraint is money and `--plan-cost` prices a pace. Every source here derives
+its record from typed fields, so the constraints are the API ceiling and the
+writer lock, and `--plan` prints **requests, wall clock and rate-limit
+headroom** instead of dollars. There is no `--max-readthroughs`, no spend guard,
+no gate — and `tests/test_backfill_structured.py` walks the module's AST to
+assert `classify` is never imported, because a cap can be raised and an absent
+import cannot.
+
+Slice sizes, each derived from the API's own ceiling rather than picked:
+
+| source | unit | slice | why that size |
+|---|---|---|---|
+| `bse_india` | days | **28** | four weeks, four days inside the measured 32-day ceiling, and it keeps the busiest sub-category at ~13 pages against the collector's `MAX_PAGES` of 40 — so a slice can neither be refused for width nor silently truncated for depth |
+| `opendart_korea` | days | **60** | inside the documented 90, and ~56 list pages plus one `company.json` per filer |
+| `companies_house` | **slices** | 1 of 8 | its cost is per COMPANY and nothing per day, so the ROSTER is what is walked |
+
+**The roster cursor is a new unit in `backfill_slices.py`,** and it exists
+because a date cursor for Companies House would be a lie: widening its window
+from 42 days to 211 costs nothing (`appointed_on` is a filter over data the
+endpoint returns anyway), while sweeping the 9,230-employer roster is 10,568
+requests. So the job's `start`/`end` are slice indices `0..7` and the date
+window rides on the job's committed `inputs`. `next_inputs` has an explicit
+branch refusing to overwrite them — without it the next run would read a
+one-day window and store nothing, silently, for seven of the eight slices.
+
+**Eight backfill slices, not the rotation's four**, because the weekly job's
+only work is the fetch while a backfill slice then puts ~590 rows through
+validate/store/publish. `slice_of` is a blake2b digest, so any count partitions
+the roster exactly once and the two do not have to agree; asserted over 4,000
+numbers for both counts.
+
+`backfill_slices.job_id` also gained an optional `label`. Three sources walking
+the same 2026 window through one workflow would otherwise share one key and each
+would resume where another stopped — a hole in one and a re-collection in the
+other. It defaults to empty, so every cursor already committed keeps its id.
+
+### Measured: two real slices, live, into a scratch database
+
+`bse_india`, through the walker, 2026-07-30. Nothing was written to the
+committed database at any point: `schema.DB_PATH` was pointed at a copy.
+
+| slice | rows read | usable | stored | duplicate | wall |
+|---|---|---|---|---|---|
+| 2026-01-01..01-28 | — | **898** | **616** | 282 | **52s** |
+| 2026-01-29..02-25 | 1,427 | **1,368** | **866** | 502 | **108s** |
+
+The ~35% duplicate rate is `dedupe.fuzzy_duplicate` collapsing one employer's
+leadership filings inside 14 days into one development, which is the intended
+behaviour and the same factor `companies_house` was sized with. The chain was
+driven end to end: slice 1 emitted a ticket with `next_cursor 2026-01-29`,
+`record` advanced, slice 2 opened at exactly that day, `next_inputs` carried the
+date window forward.
+
+**A full 2026 walk, at a rate-limit-respecting pace** (`--plan`, which fetches
+nothing):
+
+| source | slices | req/slice | min/slice | rows/slice | rows total | req total |
+|---|---|---|---|---|---|---|
+| `bse_india` | 8 | 37 | **1.8** (measured) | 1,130 | ~9,000 fetched, ~6,000 stored | 296 |
+| `companies_house` | 8 | 1,320 | 12.1 (paced) | 590 | ~4,700 | 10,560 |
+| `opendart_korea` | 4 | 190 | 0.6 (paced) | 175 | ~700 | 760 |
+
+So the whole 2026 registry catch-up is **20 queued runs, under two hours of
+compute in total, ~11,600 requests and $0.00 of model spend**, for roughly
+**11,000 rows** against a database that holds 15,711. India alone is more rows
+than the tracker currently has from anywhere outside SEC and the UK pay gap.
+
+Wall clock is printed **measured where a slice has actually been run and marked
+`*` where it is arithmetic**, because the paced projection is only the time
+spent waiting on the API: for `companies_house` that is almost the whole run,
+for `bse_india` it is a twentieth of it (37 requests carrying 1,368 rows), and
+projecting BSE from its pacing alone understates it by 20x. Two of the three are
+unmeasured because `OPENDART_API_KEY_KR` and `COMPANIES_HOUSE_API_KEY_UK` are
+GitHub secrets and are not set locally; every such figure says so in its own
+`evidence` line, and a test fails if a projection is ever printed unmarked.
+
+### Not armed, and the reason is different from the GDELT walker's
+
+No cron, and `test_the_structured_walker_is_not_armed` refuses one. The reason
+is written down because it is NOT the usual one: this walker is free, so a
+reader looking for the cost argument will not find one and might conclude a cron
+is harmless. It is not. Every source here writes the database and therefore
+holds the single `talent-collect` lock, in which GitHub keeps exactly one
+pending run, so a scheduled run enters that group uncoordinated and either
+evicts the waiting run or becomes an unreplayable orphan.
+
+The queue is currently blocked (`WRITER_QUEUE_TOKEN` unset, so a dispatch
+produces no run and the ticket requeues), which makes **a slice being re-run the
+ordinary case rather than the exception**. That is why the seen-URL skip is
+before everything else and is measured: a repeated `bse_india` slice costs one
+fetch and stores nothing, asserted by
+`test_a_slice_stores_and_the_second_run_of_it_stores_nothing`. `companies_house`
+is exempt from the skip and must be — its `source_url` is one PERSON's
+appointments page and a person can be appointed twice, so skipping it on sight
+would make the first appointment the last one that source ever reported. The
+flag is read off `companies_house.REVISITS_ITS_SOURCE_URL` rather than restated.
+
+### Figures round-trip, proved through the walker and not at the regex
+
+Four silent data-loss bugs in three days came from the verbatim-figure guard
+meeting non-Latin scripts and typographic separators, so both non-Latin sources
+here are driven end to end rather than unit-tested:
+
+* **India**: a filed description ending in `28.07.2026` at a company whose name
+  begins with K — the exact newline-spanning `\s*` collision that read
+  `28.07.2026\n\nK` as `28072026k` — stores, and
+  `validate.assert_figures_are_sourced` agrees on the stored strings.
+* **Korea**: full-width digits in the filer's Korean and English names survive
+  the whole path, fold to ASCII, and the summary's figures are all present in
+  `raw_text`. A companion test asserts that **NFKC is still not used**, because
+  it rewrites the U+318D in `독립이사의선임ㆍ해임또는중도퇴임에관한신고` to
+  U+119E and the report-name allowlist stops matching — the obvious blanket fix
+  that would break the source.
+
+### `staleness.py`: nothing changed, and that is the decision
+
+The walker deliberately writes **no `source_health` row**, asserted by
+`test_the_walker_writes_no_health_row`. Each of these collectors is leashed to
+its WEEKLY cron (180h). If a backfill reported health it would reset that leash,
+and a broken weekly run would be masked by a backfill that happened to succeed —
+the leash measures whether the COLLECTOR ran, and a backfill is not that. The
+backfill's own failure is a red run.
+
+### Numbers
+
+- Suite **2,044 -> 2,082, +38**, measured by running HEAD and the staged tree
+  side by side rather than by counting the diff. 36 are written here — 30 in
+  `tests/test_backfill_structured.py` and 6 in `tests/test_backfill_pace.py`
+  (the not-armed test, the roster cursor's per-run property, a whole roster
+  walk, the three-cursor property, the backward-compatible job id, and one more
+  parametrized workflow) — and 2 are `tests/test_workflows.py` parametrizing
+  over the new workflow file by itself.
+- **$0.00** model spend, in the walker and in measuring it.
+- 2 live slices, 898 + 1,368 rows fetched, 616 + 866 stored, 160s total.
+- 1 undocumented API ceiling found, binary-searched and named in code.
+- 0 rows written to `data/talent_intel.db`.
+
+### What was refused
+
+* **A walker for `edinet_japan`.** It is one dispatch of an existing workflow.
+* **Arming anything.** No cron was added anywhere.
+* **Re-fetching SEC or the UK pay gap.** 2026 is complete for all three; the
+  counts are in the first table rather than an assurance.
+* **A second cursor implementation.** `backfill_slices` gained a unit and an
+  optional label, both additive and both defaulted so every committed cursor
+  still resolves.
+* **`run_collect.py` and `source_registry.py`.** Untouched — other lanes.
+
+## 2026-07-30 — the page is dated now, the font question is answered with numbers, and the press page's links are checked against the code that reads them
+
+Plugin **1.54.0 -> 1.55.0**. Second design pass, taking the four items the
+first pass explicitly HELD. Every figure below is measured.
+
+**NOT DEPLOYED.** The brief asked for a deploy and a live check, and also said
+do not push. `deploy-plugin.yml` uploads from a checked-out git ref, so shipping
+this needs the branch pushed first. The prohibition won. What was verified
+instead is in the "Measured" table below, all of it against the real render in a
+real browser rather than against the source. The live page was left on 1.54.0
+and confirmed unharmed (HTTP 200, TTFB 2.72s, `dashboard.css?ver=1.54.0`).
+
+### Measured, before -> after
+
+| | before | after |
+|---|---|---|
+| cold render queries | 12 | **12** (constant untouched) |
+| warm render queries | 0 | **0** |
+| N+1 tripwire (+5,000 rows) | same count | **same count** |
+| markup bytes (synthetic corpus, fixture prefixes excluded) | 153,670 | **166,802** |
+| body sideways scroll at 390px | none | **none** (`scrollWidth` 390 = `innerWidth` 390) |
+| elements overflowing the viewport at 390px | 0 | **0** |
+| containers needing a horizontal gesture at 390px | 0 | **0** |
+| offline tests | 2,040 | **2,044** |
+| PHP harnesses | 5 pass | **6 pass** (`render_press.php` is new) |
+| press page cold / warm queries | n/a | **5 / 0** |
+| webfont bytes added | 0 | **0** |
+
+`ops_status.py` exits 2 both before and after, and not because of anything here:
+five collectors are stale on wall-clock time. It reads neither
+`wordpress-plugin/` nor `tests/php/` (grep: zero references), so nothing in this
+pass can move it.
+
+### 1. The dated glance panel, and the four buckets that cost nothing
+
+The hero opened with one undated lump — "12,566 updates · 5,542 employers ·
+51 countries · $101B raised · 7,573 from official filings" — which answers "how
+big is this dataset" in the position where a reader is asking "what has moved".
+Every figure in it is as true in March as today, so nothing on the first screen
+said whether the thing was still running.
+
+It is now a ladder: **Today / This week / This month / 2026 so far**, each with
+updates, employers, dollars raised, updates from official filings, and the
+largest single raise named. The old line survives as the bottom rung, labelled
+**Everything We Hold**, because it answers a real question and the meta
+description is built from the same three figures.
+
+- **Translated, not ported.** The sibling's row reads "1,864 workers · 3
+  verified layoffs · largest: Damen Mangalia (1,000)". Layoffs are not collected
+  here, so "workers" and "layoffs" have no meaning on this page. The equivalents
+  are what this tracker holds.
+- **Zero extra queries, and that is a correctness decision first.** The panel
+  rides on `tit_glance_matrix()`'s existing single scan. The two describe the
+  same windows over the same rows, so computing them separately could have put
+  "this week, 1,204 updates" above a matrix cell reading 1,198 — invisible until
+  a reader adds them up. Sharing one statement makes disagreement impossible
+  rather than unlikely, and it is why the budget is still 12. Verified on screen:
+  the panel's "This week 638" and the matrix's "Everything in This View / This
+  week 638" are the same number because they are the same expression.
+- **Largest raise: two scalar subqueries per bucket, not an argmax.** An
+  aggregate returns the largest AMOUNT; it cannot return who raised it, and SQL
+  has no portable argmax. The tricks that fake one are engine-specific — SQLite
+  defines bare columns beside `MAX()`, MySQL does not; the string-packing form
+  needs a different concat operator in each — and the harness is SQLite while
+  production is MySQL, so anything that differs between them is a bug that ships
+  green. Scalar subqueries are standard in both and stay inside one statement,
+  the same shape the top-cities strip already uses. `row_id ASC` breaks ties, or
+  two equal rounds resolve to whichever row the engine reached first, which is
+  the defect the city flags had.
+- **Today is computed and usually absent.** This repo already measured that
+  "today" reads zero for most of most days (source dates, not capture dates;
+  collection twice daily) and removed the column from the matrix for exactly
+  that reason. Reintroducing it as a permanent zero would repeat a mistake that
+  is written down. It is computed every render and the row is printed only when
+  it holds something.
+
+**The week-over-week comparison is suppressed, and the rule is about history
+rather than size.** The sibling can say "down 25% vs the week before" because it
+holds years. Here the news collectors first ran 2026-07-27 and `national_press`
+on 07-29, so the prior week is not a quiet week, it is a week that mostly
+predates the collector; dividing by it prints something like "up 4,000%", which
+would be the most quotable number on the page and is an artefact of the corpus
+start date. The comparison prints only when the view holds data from on or
+before the start of the period being compared against, measured **per view** so
+it also holds under a filter that narrows to a young collector. When it is
+absent the panel says why in a few words, because a reader who sees nothing
+cannot tell "flat" from "we cannot say yet".
+
+`render_dashboard.php` pins **both directions**, which matters: a rule that only
+ever suppresses is indistinguishable from a feature that never worked. The
+40-day fixture prints the comparison; the same corpus with everything older than
+9 days deleted must not, must emit no percentage of any kind, and must state the
+reason.
+
+**Copy as Post is honest or it is not shipped.** The sibling's version is scoped
+only by its region tab and ignores the rest of its filter bar, so a reader
+looking at one country can copy a worldwide total. This one reads the RENDERED
+rows out of the DOM at click time and appends the active filters read from the
+chips bar the page already maintains, and says "unfiltered" explicitly when
+there are none. The panel repaints from `/aggregate` under those filters, so the
+two halves cannot drift. The button is rendered `hidden` and revealed by script,
+because its whole function is `navigator.clipboard` and a control that visibly
+does nothing is worse than an absent one.
+
+### 2. The font decision, settled with a measurement
+
+Held last pass because the mock loads three Google webfonts on a page with a
+2.5-4.0s cold TTFB against a deliberate no-CDN rule, and substituting by guess
+was refused. Measured 2026-07-30 rather than argued:
+
+| | bytes |
+|---|---|
+| stylesheet, fonts.googleapis.com | 17,959 |
+| Source Serif 4, latin woff2 | 122,168 |
+| IBM Plex Mono, latin woff2 (three static faces) | 30,232 |
+| Public Sans, latin woff2 | 26,636 |
+| **total added to first paint** | **~196,995** |
+
+Against a live origin TTFB measured the same day at **2.72s** and a whole-markup
+budget of 156KB. The fonts weigh more than the page they set, and Source Serif
+alone is 68% of it for headings only. They also arrive on a **serialised
+two-origin path**: the gstatic requests cannot start until the googleapis
+stylesheet has been fetched and parsed, so it is DNS + TCP + TLS to one new host
+and then to a second before a glyph is asked for, which a byte count does not
+show.
+
+And the site runs **Complianz** (`cmplz-manage-consent` is in the live markup,
+confirmed by curl). Google Fonts is a named blockable third-party service in a
+consent layer, so the design's character would reach some readers and not
+others, decided by a cookie banner. Turning that off is a privacy decision that
+belongs to the owner.
+
+**Decision: no webfonts. Ship the mock's typographic STRUCTURE at zero bytes** —
+a serif for display, a grotesque for body, a mono for labels and figures. That
+contrast is what carries the character. What it does not get is Source Serif's
+personality at 54px, which is a real loss and is stated rather than papered
+over. Worth writing down: **the body face needed no change at all.** The stack
+was already `system-ui, -apple-system, "Segoe UI", Roboto`, and Public Sans is a
+neo-grotesque close enough to system-ui on both platforms that the two are hard
+to tell apart.
+
+**Self-hosting from the plugin is the right long-term answer and is NOT done
+here.** It removes the CDN objection, both extra origins and the consent problem
+outright, and the one thing that would have made it unsafe is already handled:
+this plugin's assets are excluded from Autoptimize's CSS aggregation, so
+relative `url()` paths in an `@font-face` resolve rather than break. What it
+needs is 179KB of third-party font binaries plus their OFL licence downloaded
+and committed into a public repository that deploys to production, which is the
+owner's call and not an agent's. **The five latin woff2 files, so it is a
+one-line yes:**
+
+```
+122,168  fonts.gstatic.com/s/sourceserif4/v14/vEFI2_tTDB4M7-auWDN0ahZJW1gb8te1Xb7G.woff2
+ 26,636  fonts.gstatic.com/s/publicsans/v21/ijwRs572Xtc6ZYQws9YVwnNGfJ7QwOk1.woff2
+ 10,052  fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1i8q131nj-o.woff2       (400)
+ 10,060  fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlBFgsAXHNk.woff2   (500)
+ 10,120  fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlBFgsAXHNk.woff2   (600)
+```
+
+Subsetting to the glyphs this product actually uses would cut Source Serif hard,
+since 122KB is a variable font carrying the full 8..60 optical-size axis and
+200..900 weight range for a page that needs three weights.
+
+### 3. "Why you can trust this", with the FAQ as its second tab
+
+Did not exist anywhere: not in this repo, not in the sibling, not live. Built
+from the mock now that the mock is on disk.
+
+**Two fixes to the mock.** Its four numbered items sit in
+`repeat(auto-fit, minmax(210px, 1fr))`, which resolves to three columns at most
+desktop widths and strands the fourth alone on a second row. Explicit counts
+instead — 1 / 2 / 4, all divisors of four — so there is no width at which one
+item sits by itself. Verified in a browser: 4-across at 1280px, 2+2 at 900px,
+stacked at 390px. And the mock has no FAQ; there was none anywhere in this
+product to move, checked before writing, because two FAQs that drift apart is
+worse than one.
+
+**Every panel is in the initial HTML and nothing is fetched.** A tab that loads
+on click hides its content from a crawler, and an FAQ is among the most
+SEO-valuable blocks on a page. Both panels are rendered server-side in full;
+JavaScript's entire job is to add `is-tabbed`, and the stylesheet does the hiding
+only once that class is present. Verified in a real DOM with the script removed:
+both panels `display:block` with 909 and 2,762 characters of text, all eight
+questions visible, both panel headings visible, the tab strip `display:none` and
+the copy button hidden — so nobody is offered a control that cannot work. With
+the script, arrow keys move selection and focus, roving tabindex makes the strip
+one stop, and `aria-selected` follows.
+
+**Every number in the copy is computed**, checked by recomputing it from the
+database in the harness. corrections.php here once shipped a typed "$124.0bn"
+captioned "Measured now" against a live figure of $101B, and the sibling's press
+page still carries a hardcoded "51 ... we currently carry every one of them"
+with no query behind it. A panel whose subject is trustworthiness is the last
+place on the site that can afford either.
+
+FAQPage structured data is emitted, and it is the one line worth arguing about:
+3,450 bytes duplicating visible prose. It earns them only because the answers
+ARE visible — company.php and places.php both record that the sibling earned a
+manual-action risk emitting identical FAQPage markup across ~1,830 URLs where
+the answers appeared nowhere in the document. The harness asserts the two
+together: every question the schema names must also be rendered as text, so if a
+future session moves an answer behind a fetch the schema fails with it.
+
+### 4. The press page, and a test that closes the sibling's silent-link bug
+
+`/talent-intelligence-tracker/press/`. The owner assumed one existed. Sections:
+numbers you can use right now (four windows, each with a preset view), context
+for this year, the archive, **what this tracker does not do**, how to cite, press
+contact. The sibling's page was read for shape only; nothing imported, nothing
+copied.
+
+**The archive is a live query and not a snapshot, deliberately.** Corrections
+here append a revision rather than overwriting, so the current rows are what we
+now believe; a frozen copy would preserve a figure we have since corrected and
+present it as though it still stood. What makes an older number answerable is
+the corrections log, and the page says so. Months with nothing in them are
+skipped rather than rendered as zeroes, because every month before July 2026
+would read as "nothing happened" rather than "we were not there".
+
+**The link check is the point of the whole file.** The sibling shipped press-page
+evidence links built on `ai_primary=1` — a parameter its REST API accepts and its
+dashboard JavaScript ignores — so every "see the rows behind this number" link
+advertised a filtered view and served the entire corpus, silently, in a way no
+reader could detect. Its own ARCHITECTURE.md now cites it as the canonical
+example: a bad parameter NAME over-reports, a bad VALUE under-reports, neither
+raises.
+
+A hand-maintained whitelist does not fix that, because the defect IS the
+whitelist drifting from the front end. So `render_press.php` **parses the
+`inputs` map out of `assets/dashboard.js`** and requires every parameter this
+page emits to be in it, plus proves by string match that `applyUrlState()` still
+reads `funding` and `stated_headcount` by name. Values are checked too: a
+`country` must be an ISO code this product recognises, a `since`/`until` must be
+a date the control accepts. Proved to work by temporarily emitting
+`ai_primary=1` — the harness failed with the exact sentence describing the
+sibling's bug — then reverted.
+
+Also asserted: no superlatives (eight phrases), no em-dashes, Title Case
+headings, no withdrawn record reaching any figure, the year label derived from
+the clock, and a 5-query cold / 0-query warm budget so a per-row lookup inside
+the archive loop fails here rather than under a crawl.
+
+### Where the brief proved wrong about the code
+
+- **"Query budget: `TIT_DASH_QUERY_BUDGET` is 12 cold / 0 warm ... Do not raise
+  the constant to pass."** Correct, and the panel cost zero — but the reason it
+  could is that the buckets it wanted were **not** the matrix's. The matrix runs
+  week / month / quarter / YTD and the panel needed today / week / month / year.
+  Three boundaries are shared and two are not, so this is a genuine extension of
+  the scan rather than a re-use of existing columns.
+- **The brief's model includes a "Today" row unconditionally.** This repo's own
+  TECHLOG had already measured Today as structurally near-empty and removed it
+  from the matrix. Shipping it as a permanent zero would have re-introduced a
+  documented mistake; it self-suppresses instead.
+- **"Self-hosting subset woff2 from the plugin is probably the right answer."**
+  Right about the destination and wrong about who can take the step: it means
+  downloading third-party binaries into a public repo that deploys to
+  production. The Autoptimize question the brief asked about turned out already
+  answered — our assets are excluded from CSS aggregation, so relative
+  `@font-face` URLs would resolve. The blocker the brief did not anticipate is
+  **Complianz**, which is installed and would gate a CDN font behind consent.
+- **"Check whether FAQ content already exists somewhere before writing new."**
+  Checked; none exists. The only FAQ-shaped thing in the codebase is the warning
+  in company.php and places.php about the sibling's FAQPage manual-action risk,
+  which shaped the design rather than supplying content.
+- **A CSS miss worth recording.** `.tit-wrap .tit-press h2` matched nothing: the
+  press page's root carries **both** classes, so it needed `.tit-wrap.tit-press`.
+  The selector read as correct and the headings quietly kept the body stack. Only
+  caught by reading `getComputedStyle().fontFamily` in a browser, which is the
+  same lesson as gotcha 11 at a smaller scale.
+
+---
+
+## 2026-07-29 — four coverage levers at $0 and one priced walker, and three of the four briefs were wrong about the code
+
+Five items, briefed as "close the coverage gap as cheaply as possible". Four had
+to cost nothing in model spend and the fifth had to be paced rather than funded.
+All five landed. **Model spend this session: $0.00.** No model call was made by
+any code written here and none was made while measuring it.
+
+Tests **1,996 -> 2,040** (+44, four new files). `ops_status.py` exits 2 before and
+after with the *identical* five items — five collectors reading stale against a
+checkout six commits behind origin. Verified by running `git show
+HEAD:ops_status.py` against the same database: same exit, same list. Nothing
+written here adds a problem.
+
+**Three of the five briefs described code that is not there.** Each is recorded
+below beside what is, because the wrong belief is the reusable part.
+
+### 1. The archive queue: the sibling's bug is absent, and the mirror of it was not
+
+**Brief:** 3,965 URLs sit `pending` on the sibling and never re-enter its
+candidate list; this repo has the mirror problem, and records already pushed to a
+terminal state by a blinded 429 probe need resetting. Count them.
+
+**Count: ZERO, and neither premise held.**
+
+| measured, `data/talent_intel.db`, 263 ledger rows | |
+|---|---|
+| `archive_state = 'unavailable'` | **0** |
+| max `archive_attempts` on any row | **1** (of `MAX_ARCHIVE_ATTEMPTS` = 5) |
+| archived / pending / no archive row yet | 72 / 69 / 122 |
+| coverage | 72 of 12,970 distinct source URLs (0.6%) |
+
+Nothing has ever reached the terminal state, so there was nothing to reset.
+`archive_sources.py --recheck-terminal` says so and exits 0; it is kept because
+both routes into that state shipped as green runs and a third would need it
+again.
+
+And **`pending` already re-entered the candidate list.**
+`source_links.archive_candidates` excluded only `archived` and `unavailable`. The
+sibling's defect is not in this function and never was.
+
+**What WAS real, and it is the same bug in the second of the two places it can
+happen.** The availability-API 429 was fixed on 2026-07-30. Save Page Now's 429
+was not: `archive_attempts` was incremented unconditionally after a capture
+attempt, so a *refused* capture spent one of the five. Five throttled nights —
+which for an anonymous Save Page Now caller is an ordinary fortnight, not an
+outlier — would have retired a perfectly capturable document to the terminal
+state having never once been told it was uncapturable, out of five green runs.
+`archive_candidates` drops it forever and only a hand-written UPDATE brings it
+back.
+
+**Second real defect: `pending` was re-examined but could not be REACHED.** The
+candidate list was a strict newest-capture-first head slice under `limit`. At
+12,970 distinct URLs and a 600-URL window, a URL nobody has ever had an answer
+about sinks further every time a collect run stores something newer. That is the
+sibling's outcome by a slower route, and it is invisible because the percentage
+still climbs.
+
+Both fixed structurally rather than by patching the symptom:
+
+* **Terminal requires EVIDENCE.** `classify_archive_outcome` now takes `probes`
+  and will not record `unavailable` until archive.org has answered at least once
+  and said it holds nothing (`MIN_PROBES_BEFORE_TERMINAL`). A throttle can no
+  longer retire a document, by construction, whatever the next caller does.
+* **Blind rounds are counted apart from attempts.** Three new columns
+  (`archive_probes`, `archive_blind_rounds`, `archive_detail`), appended to
+  `MIGRATIONS`. NULL reads as "never probed", which is the honest reading of every
+  row written before they existed.
+* **The gap is reported SPLIT.** `source_links.archive_gap()` and
+  `ops_status [2c]`: **12,898 never answered about, 0 confirmed absent from
+  Wayback.** A percentage climbing slowly because Save Page Now is rate-limited
+  (the design) and one climbing slowly because nothing can get an answer (a
+  fault) are indistinguishable until those two numbers are printed apart. Today
+  every un-archived URL is in the first bucket, which is a statement about what we
+  know rather than about Wayback.
+* **Two tiers in the candidate order**: never-probed first, then probed-and-absent.
+  Every brand-new URL has zero probes, so the ingest-time property the module
+  docstring defends is preserved exactly — within tier 1 the order is still
+  newest-first. What changes is that the never-answered tail rides *with* the new
+  rows instead of behind every one of them.
+* **Real pacing.** Consecutive non-answers back the availability gap off
+  geometrically to 30s, one answer resets it, and 12 unbroken non-answers end the
+  free pass with the remainder unexamined and a `::warning::`. The old behaviour
+  walked all 600 candidates at 2/s learning nothing and spent the deadline
+  proving archive.org was still refusing.
+* `ops_status [2c]` goes RED on any terminal-while-blind row and names the repair
+  command. It must always be zero.
+
+Cost: **$0**. No model is called by `archive_sources.py` or `link_check.py`, ever.
+
+One existing assertion changed and it is worth naming.
+`test_an_unanswered_url_never_spends_a_capture_or_an_attempt` asserted
+`COUNT(*) == 0` on the ledger after a blind round. That proxy stopped being the
+property: a blind round is now written down, because "nothing has answered about
+this URL for six nights" is otherwise unknowable. The test now asserts the
+substance — state `pending`, attempts 0, probes 0, blind_rounds 1 — and says why
+the proxy was replaced.
+
+### 2. Ranking the read budget: measured on a real candidate set, and it moves
+
+**The brief's figure was stale.** `READTHROUGH_CAP` is already 200; the
+95-deferral measurement was taken at 60, before the owner's 2026-07-30 raise.
+The lever is still real, because a full `national_press` sweep produces ~1,018
+gate survivors and 200 binds hard on that.
+
+`pipeline/candidate_rank.py`. Ranks `kept` immediately before the classify loop,
+which is where `BudgetDeferred` is thrown. Four free signals: country need (from
+our own `signals.country` GROUP BY, not from a stale worklist file), employer
+novelty, keyword force (reusing `cheap_extract`'s own reading), source tier.
+
+**The property that makes it safe is that it is a permutation.** `rank()` returns
+the same objects, asserted by identity rather than equality, so nothing was
+rebuilt, normalised or quietly edited on the way through. It cannot reject,
+filter or promote; `precheck`, the gate, `validate` and `store` are untouched and
+unaware of it. A deferred candidate is still left unmarked and still returns next
+run, so the ordering decides *when* a story is read and never *whether*.
+
+**Measured, live, on a real candidate set** — 90 catalogue feeds one per country
+in turn, 1,514 items, 162 past the free prefilter, which is exactly the population
+a run hands the gate. `python3 -m analysis.ranking.measure --live --feeds 90`:
+
+| cap 60 | US/GB | countries reached | from countries holding ZERO rows | no country hint |
+|---|---|---|---|---|
+| arrival order | 0 | 20 | **19** | 4 |
+| ranked | 0 | **29** | **60** | 0 |
+
+**3.2x the zero-row candidates read, +45% country breadth, at identical spend.**
+At cap 200 the 162-candidate sample does not bind and the two orders are
+identical — correct, and the honest shape of the result: ordering only matters
+when the cap binds.
+
+On the 226 stored news rows (`--stored`), at cap 60: 2 countries -> 23.
+
+Three limits printed with the result rather than left to be discovered:
+
+* **No real candidate set was ever captured, so none can be replayed.**
+  `raw_text` is not persisted and a rejected candidate leaves a bare URL in
+  `seen_urls` with no text and no reason — the same wall the rejection audit hit,
+  and it printed a zero rather than an estimate for the same reason.
+* The stored population is rows that *stored*, so the "holds zero" signal is
+  circular on it by construction. That column is omitted there, not fudged.
+* The live sample was breadth-first, one feed per country, which **flatters**
+  arrival order — a real run reads 43 US feeds among 575. The true effect is
+  likely larger, not smaller.
+
+Cost: **$0**. One GROUP BY, one DISTINCT scan, and regexes already compiled. A
+ranking signal that needed a fetch would cost more than the read it was trying to
+prioritise.
+
+### 3. MARKETS: 15 not 14, Korea already in it, and it drives neither of the two things it is believed to
+
+**Brief:** MARKETS has 14 entries; Korea is in the Google News rotation without
+being in MARKETS; more editions cost gate time; more candidates into a saturated
+read cap produce more deferrals.
+
+Actual: **15 entries, and KR was added on 2026-07-29** with the OpenDART work.
+And the caution does not apply, because of what MARKETS actually controls —
+traced through the code rather than assumed:
+
+* It does **NOT** drive the Google News locale rotation. `GOOGLE_NEWS_LOCALES` is
+  an independent tuple and `build_locales` reads only it. Every country added
+  below has been swept twice a day for days while the coverage manifest said
+  nothing about it — the same gap Korea had.
+* It does **NOT** widen the prefilter's geography gate. The comment above
+  `_geography_terms` claimed it "grows automatically as source_registry.MARKETS
+  grows"; the function reads `vocab.COUNTRY_NAMES`, `vocab._CITY_ALIASES`,
+  `vocab._COUNTRY_ALIASES` and a hardcoded short-code list, and has never
+  referenced MARKETS. **Corrected in place**, because that belief is exactly what
+  would make someone add a market expecting its stories to start surviving the
+  free filter.
+* `build_segments()` **does** read it, and `build_queries()` puts the result in
+  the query list for every source that is not gdelt, google_news or
+  tripwire_chase — which is every structured source, and **every one of them
+  accepts `queries` and ignores it** (`national_press` says so in its docstring;
+  the SEC pair search by form and item; a derived source has no search vocabulary
+  at all). So a segment added here reaches no fetch today.
+
+**Therefore expanding MARKETS costs $0 AND adds zero candidates AND zero gate
+time.** It is a correction to a public claim, not a widening of collection. The
+brief's caution (a) is true of widening `GOOGLE_NEWS_LOCALES`, which is a
+different edit and was not made.
+
+**The binding constraint is the segment sweep budget, and it is 56.**
+`test_the_segment_matrix_still_sweeps_inside_the_recency_window` requires
+`ceil(segments / 4 / 2) <= 7`. The 15 existing markets spend 44 (name + one per
+`terms` entry). Twelve name-only markets spend the remaining twelve exactly.
+**That is why none of the twelve carries `terms`** — one three-phrase pack costs
+four slots and buys one market instead of four.
+
+Added, **MARKETS 15 -> 27**: BR, ES, IT, MX, AR, CO, PT, CH, SE, AE, ZA, NZ.
+Every gold-set zero-country that already has a swept Google News edition and at
+least two wired publisher feeds. Both conditions were load-bearing:
+
+* **No edition** -> a `discovery_only` market cannot honestly claim
+  `live_sources=("google_news",)`, and adding an edition means adding a
+  live-verified LANGUAGE PACK, not a translation. That excludes **CN** (7 feeds,
+  no `zh` pack), **NO** (5, no pack) and **FI** (4, no pack).
+* **One wired feed** is the single point of failure the catalogue refuses
+  elsewhere. That excludes **SA**; its ar:SA edition keeps sweeping, simply
+  unclaimed.
+
+`tests/test_market_claims.py` pins all of it, including a test that fails if a
+zero-scoring country with an edition and feeds is left unclaimed without being
+named in `BUDGET_DEFERRED` with a reason. That dict is empty today: the twelve
+spent the budget exactly, and every remaining zero-country is excluded for one of
+the two reasons above.
+
+### 4. The historical walker already existed. What did not exist was a price on it
+
+**Brief:** build a cursor-based walker equivalent to the sibling's; read the
+sibling read-only for the pattern.
+
+**It has been here since 2026-07-29.** `backfill_gdelt_2026.py` +
+`backfill_slices.py`: monotonic cursor committed to `data/backfill_state.json`,
+one slice per run, server-side windows (GDELT DOC 2.0 takes explicit
+`startdatetime`/`enddatetime`; Google News RSS has no archive, which is why GDELT
+is the route), seen-URL skipping before any spend, `--fetch-only` for a free
+rehearsal, `MAX_SLICES_PER_JOB`, and a `halt` path that records the slice and
+declines to requeue into a wall. **The sibling was not read: there was nothing to
+pattern-match, the pattern was already here.**
+
+**The sibling's date-ordinal trap is structurally absent.** `record()` moves the
+cursor from the ticket the run emitted and reads no clock, so two runs in one hour
+advance twice and a run that finished nothing advances not at all — which it
+catches, marks `stalled`, and refuses to requeue.
+
+**It has never run.** `data/backfill_state.json` holds one job and it is
+`backfill-funding-bulk`.
+
+**What was NOT cheap by construction was the read ceiling — and the number that
+actually applied was in the workflow, not the script.** Script default 1200; the
+`max_readthroughs` workflow input default **also '1200'**, which is what a
+dispatch uses. At the measured $0.00128 a read that is ~$1.54 a slice, and a year
+of 2026 history is 92 slices: **the input default alone authorised ~$142 against a
+~$5/month product budget.** A ceiling only `spend.py` can stop is not a ceiling,
+it is a plan to be interrupted.
+
+Now derived rather than typed:
+
+```
+MONTHLY_WALKER_BUDGET_USD = 1.50
+USD_PER_READ_ALL_IN       = 0.00128 + 4 x 0.00003   # the read AND the gates that found it
+DEFAULT_MAX_READTHROUGHS  = 1.50 / 30 / 0.0014 = 35
+```
+
+Deriving it from the read price alone overshot by 9% — small, and exactly the
+arithmetic that makes a stated ceiling quietly untrue. The workflow default is now
+blank, meaning "use the derived value", so the budget and the ceiling cannot
+disagree.
+
+`python3 backfill_gdelt_2026.py --plan-cost` (fetches nothing, calls nothing):
+
+| pace | wall clock | $/month | $ total |
+|---|---|---|---|
+| 1 slice/day | 92 days | **1.47** | 4.51 |
+| 2 slices/day | 46 days | 2.94 | 4.51 |
+| 4 slices/day | 23 days | 5.88 | 4.51 |
+
+**A year of 2026 history costs $4.51 at any pace.** The pace only decides how long
+it takes and how much lands inside one month — and 4/day exceeds the whole product
+budget on its own. **Not armed**: there is no cron, and arming one is the owner's
+spend decision. `ops_status [2e]` now says so with the queue command beside it,
+because the walker addresses **51 of the 81 recall misses** (`outside_our_history`
+— the news collectors first ran 2026-07-27 and `national_press` on 2026-07-29,
+against a gold window of 2026-07-01..28; the 9% is a two-day-old tracker measured
+against a four-week window).
+
+`tests/test_backfill_pace.py` asserts **the property and not the symptom**: two
+`record` calls at the identical clock second advance the cursor twice; the cursor
+is monotonic across a 30-slice chain; a budget stop resumes on the first window it
+did not do; a stalled job yields no inputs; no sliced backfill workflow may carry
+a cron faster than daily (with a cron-expression parser tested against the shapes
+that actually appear here, including the sibling's `0 * * * *`); and the walker
+carries no cron at all.
+
+**Not measured, and it does not change the projection:** candidate volume per
+day-window. Two `--fetch-only` probes were started and neither finished — GDELT
+paces at 12s a query and 9 queries a window — and the session ended before they
+did. It is not load-bearing: the gate term is a fortieth of the read term, so the
+slice cost is a read-count projection with rounding, and the read ceiling is what
+binds. Anyone wanting the number can have it for free:
+`python3 backfill_gdelt_2026.py --start 2026-03-10 --end 2026-03-10 --fetch-only`.
+
+### What was refused
+
+* **Rebuilding the walker.** It exists; rebuilding it would have been a second
+  implementation of a cursor, which is how two sources of truth start.
+* **Arming any cron.** None was added. The walker, the tripwire and the plugin
+  deploy all stay as they were.
+* **`spend.py`.** Untouched. The $10 monthly allowance and the OpenRouter key cap
+  are the enforcement; everything above is sizing.
+* **Raising `SEGMENTS_PER_RUN`** to fit a thirteenth market. It would have relaxed
+  a guard that exists because queries once asked `when:3d` while the matrix took
+  6.2 days, and it would have bought a market by weakening the thing that keeps
+  markets honest.
+* **Mapping the catalogue's `source_type` column into a ranking signal.** The
+  recall worklist's under-delivering types are `trade_press` (4% held),
+  `press_release` (16%), `national_news` (0%), `filing` (40%); the catalogue's
+  column is 66 freeform values from "News Organization" (888 rows) to "Patent
+  Office". Mapping one onto the other invents a vocabulary to rank by, and a wrong
+  mapping would be invisible — it would simply rank the wrong things first.
+* **A registry connector**, `collectors/companies_house.py`,
+  `data/sources_catalogue.csv` (read only) and everything under
+  `wordpress-plugin/`. Other lanes.
+
+---
+
+## 2026-07-29 — the filter panel is a column of scrolling checkboxes, and the page has one vocabulary
+
+Plugin **1.53.0 -> 1.54.0**. Owner-driven pass on the dashboard. Everything
+below is measured; the numbers are from `data/talent_intel.db` at 15,711 current
+signals and from `tests/php/render_dashboard.php` before and after.
+
+### Measurements, before -> after
+
+| | before | after |
+|---|---|---|
+| cold render queries | 12 | **12** (budget unchanged, constant untouched) |
+| warm render queries | 0 | **0** |
+| markup bytes (synthetic corpus, fixture prefixes excluded) | 151,801 | **153,670** |
+| body sideways scroll at 390px | none | **none** (`scrollWidth` 390 = `innerWidth` 390) |
+| containers needing a horizontal gesture at 390px | **3** (matrix, country strip, city strip) | **0** |
+| offline tests | 1,924 | **2,006** |
+| PHP harnesses | 5 pass | 5 pass |
+
+Verified in a real DOM at 390x844 and 1280x860, not by reading the CSS:
+`position: sticky` computed on `#tit-panel` and held at `top: 16px` after a
+2,000px scroll; `.tit-matrix` computed `display: block` with `min-width: 0px`
+and its scroller `overflow-x: visible`; every matrix cell still carrying
+`data-filter` and `data-since`.
+
+### The filter panel
+
+The owner's words were "Fix the sapce all this" and "it's still not designed
+well", and the diagnosis was that **there was no visual object called "a
+group"**. Seven option groups sat in a three-column grid with 8px row gaps and
+no boundary of any kind, so each group's options ran into the next group's
+heading at the same weight and colour. A gap only reads as separation when it
+exceeds the gap *inside* a group, and 8px never did.
+
+- **Each group is now a bounded box**: heading, then its options inside a box
+  with its own border, background and capped height. One column, 18px between
+  groups, a hairline rule at each boundary.
+- **Options are real checkboxes, one per line, and the box scrolls** — the owner
+  asked for exactly that ("I like scrolling and check boxes"). This is the third
+  shape this control has had: a native `select multiple size="5"` (keyboard-free
+  for us, but a five-row window hiding fifteen of Industry's eighteen options,
+  needing ctrl-click most readers do not know about), then a pill row (fixed
+  discoverability, lost the list, and seven wrapping pill rows *were* the wall
+  the owner complained about), now checkboxes. Measured: Industry renders 18 rows
+  in a 162px box over 612px of scroll height.
+- **The panel is a column beside the rows and sticks** at 1000px and up
+  ("filters dont move with the page a like the layoff one"). It had to become a
+  column first: a full-width block is taller than the viewport, so there is
+  nothing to pin. Below 1000px it wraps to a normal stacked block, and
+  `prefers-reduced-motion` forces `position: static`.
+- Reset moved to the top of the panel, same `id`, so the same handler binds it.
+
+**The state architecture did not move.** Each `<select multiple>` is still the
+state and still what the querystring, chips bar, exports, quick views,
+click-to-filter and share links read. `pillify()` in dashboard.js re-renders the
+checkboxes *from* the select after every change. It also still hides the select
+with a class it applies **at runtime**, which is what leaves a JavaScript-off
+visitor a working native control; that is why the hiding must never move to the
+server.
+
+Two numbers that had to be kept in step by hand are gone: the list box was
+pinned to 96px and the pill row to 96px because the swap happened after paint
+and any difference was a layout shift. The select is `display:none` the moment
+the script runs, so there is no swap and no pair.
+
+### The three defects the owner named
+
+1. **"remove exact locaiton only doens't make nses?"** — read `api.php` first.
+   `country_basis=location` is real: it changes the country clause from
+   `(country IN (..) OR (country IS NULL AND hq_country IN (..)))` to
+   `country IN (..)`, dropping rows placed only by a substituted head office.
+   So it was kept and renamed **"Only Countries A Source Named"**, which is the
+   sentence the (i) panel was already using while the control called itself
+   something else. **Stated limit rather than papered over:** it narrows the
+   country clause only. The city clause in `tit_build_where()` is
+   unconditionally the union form, so a city pick still admits a head-office
+   match. Closing that is an `api.php` change and was out of this pass's lane,
+   so the label says country and does not claim the city.
+
+2. **"Only Updates That Move Headcount (54)" — "What does this mean?"** It
+   filters `signal_direction IN ('hiring','displacement')` and reads nothing
+   from the `headcount` column. Measured: `headcount` non-null on **11 of
+   15,711** rows (0.07%); the direction test true on **53** (0.34%) — 51 hiring,
+   2 displacement. So the label promised a column it does not touch, and the set
+   is a third of one percent. **Decision: kept, relocated, relabelled** as the
+   quick view **"Moves Headcount"** with its computed count printed on it.
+   Removing it would have broken `/query` links already in the wild; leaving it
+   in the panel gave a 0.34% control the same weight as Industry. A quick view is
+   explicitly a narrow named cut, and the count means a reader sees the size
+   *before* clicking. The checkbox survives in `.tit-state` as the state the
+   button drives.
+
+3. **The UK concentration note and the hidden-rows disclosure.** Both facts kept
+   in full, both re-ordered so the reader meets the point before the arithmetic.
+   The caveat now opens "Read United Kingdom as filing volume rather than as how
+   much is happening there:" and the evidence follows. The detail note opens
+   "You are seeing 12,568 of 15,711 updates. 3,143 routine filings are hidden."
+   and defines "routine" in a trailing clause. The control itself was three
+   stacked labels ("Officer and director filings" / "Hide the routine ones" /
+   prose) and is now one setting and its value: **Routine Filings: Hidden /
+   Shown**. Every figure still computed and still moves with the filters.
+
+### Where I was told something that turned out to be wrong
+
+- **"Funding Stage stops at Series B", "Work Setup has no Hybrid", "Site Change
+  has no closure" — all three are neither render bugs nor vocabulary gaps.**
+  `pipeline/vocab.py` already holds `series_c`, `series_d_plus`, `hybrid`,
+  `closed` and `relocated`. `/facets` is deliberately **data-driven**: it lists
+  only values actually present, because a control returning nothing reads as
+  broken rather than as thin coverage. The real finding is coverage, and it is
+  worse than the labels suggested. Across 15,711 current rows: `work_mode` is
+  set on **4** (onsite 3, remote 1), `site_event` on **19**, `deal_type` on
+  **23**, `funding_stage` on **33**. Five facet controls between them describe
+  about **80 rows**. They hide themselves when a column is *empty*; they do not
+  hide themselves when it is nearly empty, which is the same defect class as the
+  headcount control. **Owner decision, not taken here:** raise a minimum-rows
+  threshold before a facet control appears at all.
+- **"Remove Where The Money Went entirely."** There is exactly one money surface,
+  it is the one the owner pasted, and the owner separately said they loved the
+  card format. Confirmed against the live page by curl (1.53.0): "Where The Money
+  Went" appears once, and the three-card panel the endorsement described does not
+  exist in this codebase at all. **So only the section HEADING went**, which is
+  what the owner actually pasted and which repeated "Click a row to narrow the
+  page" eight lines under "Click any row to narrow the whole page to it". The
+  cards stay; the city card takes the wording "Where the Money Went".
+- **"Manufacturing / Education / IPO appear in two groups each" — all three
+  true.** Fixed as wording, never as vocabulary: `Production & Manufacturing`
+  for the function (Industry keeps `Manufacturing`), `Educational Institution`
+  for the employer type (Industry keeps `Education`), `Initial Public Offering`
+  for the deal type (Funding Stage keeps `IPO`). Stored values untouched.
+- **A "Why you can trust this" panel with numbered SOURCED / UNCONVERTED /
+  UNGUESSED / CORRECTABLE items does not exist** in this repo, in the sibling, or
+  on the live page. Not built: authoring it from a description of a screenshot
+  would have meant inventing both a design and its copy.
+
+### Title Case and one vocabulary
+
+The owner asked for Title Case three times, so it is now **a test** rather than
+a habit: `render_dashboard.php` reads the matrix row labels and the card
+headings out of the rendered markup and asserts conventional Title Case (short
+conjunctions and prepositions lowercase inside a label, first word always
+capitalised, all-caps acronyms allowed). It regressed twice because a convention
+nobody can check makes a wrong label look exactly as correct as a right one.
+
+The deeper problem was **two vocabularies for one set of facts**. The charts said
+`Pay and benefits` and `Growing and expanding`; the matrix beside them said
+`Pay news` and `Funding raised` for the same rows. One list now, and the retired
+phrases are asserted absent so a second vocabulary cannot creep back:
+
+| was | is | why |
+|---|---|---|
+| Hiring up | **Adding Roles** | "up" was doing the work of "the source says headcount is rising" |
+| Cutting back | **Cutting Roles** | "back" could have meant costs, hours or investment |
+| Pay news | **Pay and Benefits** | the charts' phrase, which was already the better one |
+| Funding raised | **Funding Rounds** | it counts updates |
+| Money raised | **Total Raised** | it sums dollars, and "Total" says so |
+| All updates | **Everything in This View** | a reader could not tell whether the 3,143 hidden filings were in it. They are not |
+
+**Checked before renaming, because the sibling was bitten here:** on the layoff
+tracker this same edit was a two-file data join, because an aggregate keyed its
+rows *by label* and a cached response spanning the deploy window would have
+silently killed click-to-filter. **That coupling does not exist here** — every
+chart row carries its key on `data-k`, every matrix row on `data-signal`, the
+filter a click applies is a separate `filter` field, and `tit_glance_matrix()`
+keys its cells `c_{di}_{pi}` by index. Nothing reads a label. The test now pins
+that it stays that way.
+
+Renaming `Money raised` to `Total Raised` also **shortened a paragraph instead of
+hiding it**: the block needed a sentence beginning "Money raised is the
+exception" only because one row was lying about its unit.
+
+### Mobile
+
+Three separate containers required a horizontal gesture at 390px. All three are
+gone.
+
+- **The matrix stacks.** Five columns cannot fit 390px, so it had
+  `min-width:560px` inside `overflow-x:auto` — which does stop the *body*
+  scrolling, and was still wrong: the header rendered "THIS WEEK | THIS M..."
+  under a scrollbar, on the first thing on the page, whose own copy says "Tap any
+  number to filter the page". Below 860px each row is a card. **The period label
+  is real markup** (`.tit-cell-p`, rendered by both `shortcodes.php` and
+  `matrixHtml()`), not a CSS `::after` on a data attribute: `display:block` drops
+  the implicit table roles and generated content is not reliably in the
+  accessibility tree, is not selectable and is not findable. Nothing is keyed to
+  `nth-child`. Every cell keeps its `data-filter` and `data-since`.
+- **The geo strips wrap.** A previous pass had deliberately set
+  `flex-wrap:nowrap; overflow-x:auto` on them below 560px, reasoning that a
+  container scrolling beats the body scrolling. Both halves true, conclusion
+  wrong: it put two stacked horizontal scrollbars on the first phone screen with
+  "Glasgo" cut mid-word. The sibling reached the same verdict about its own pill
+  strips — hiding options behind a swipe is the failure pills exist to fix.
+- **The three explanations under the matrix are one disclosure**, collapsed on a
+  phone, open on desktop, **not one word cut**. `open` is in the markup, so a
+  crawler, a desktop reader, and a reader with no CSS or no JavaScript all get
+  every word in the initial HTML with nothing fetched; a four-line function is
+  the only thing that closes it, once, on a narrow viewport. It has to be script
+  because `open` is an attribute and CSS cannot remove one. Re-collapsed after a
+  repaint, or every filter change would undo it. The two paragraphs also became
+  six single-idea lines ("this make s not sentds").
+- **Dark scheme.** The stylesheet's existing note explains why there is no
+  `prefers-color-scheme` block (the theme paints white regardless, so honouring
+  the preference produced light text on white) and that reasoning stands. What was
+  missing is that we never *told* the browser: without `color-scheme`, a UA in
+  dark mode repaints controls, scrollbars and any background we did not set, which
+  is exactly the mixed result in the owner's screenshot. `color-scheme: only
+  light` plus explicit backgrounds and ink on our own headings. **Supported
+  schemes are now stated: light.**
+
+### Page order
+
+Geo strips moved above the matrix ("Should we move this ... Aboe"): picking a
+place is how most readers start. That invalidated a **pointer** — the quick-views
+hint said "click a number in the matrix at the top" and the matrix is no longer
+at the top. Grepped for others; that was the only one. A stale direction is worse
+than none, because a reader follows it.
+
+The chart cards also gained one bar pattern instead of two. "What Is Moving"
+stacked its label above a full-width bar while the two cards beside it were
+inline; the fix is `display:contents` on `.tit-pillar-head` so the button's own
+grid takes over, **in CSS and not in markup**, because `.tit-pillar` is the
+click-to-filter handler's selector and restructuring it would have risked a
+working control to fix a visual inconsistency. Cards size to content
+(`align-items:start`) rather than stretching a four-category card to match a
+51-country one, the scroll edge fades rather than bisecting a row, and the
+"Click a row to filter" that all six subtitles ended with is gone — the panel
+header says it once.
+
+### The harness now announces itself
+
+The owner twice read a screenshot of `tests/php/render_dashboard.php`'s output as
+the live site and concluded the data had broken. It renders the **real** dashboard
+against a synthetic corpus, so it is byte-for-byte the shape of production with
+different numbers, and the only tell was that its UK count outranks its US count.
+Every fixture employer is now prefixed `TEST FIXTURE` and the placeholder headline
+says so. The byte budget subtracts the prefix (~2.1KB of test-only content) before
+measuring, or a legitimate change would eventually fail the budget for a reason
+nobody could find.
+
+### Held for a second pass, deliberately
+
+- **The full Claude Design re-skin.** The mock is a 965-line React preview styled
+  entirely with inline `style` attributes and **zero `@media` rules**, so it is a
+  desktop specification only. Porting it means extracting every inline style into
+  classes and authoring all responsive behaviour, and its character depends on
+  three Google webfonts (`Source Serif 4`, `Public Sans`, `IBM Plex Mono`) on a
+  page whose cold TTFB is already 2.5-4.0s and whose assets are deliberately
+  CDN-free. **No font was substituted and none was added**; this pass changed
+  layout and wording inside the existing token set. The mock's own decisions that
+  cost nothing were adopted: the sidebar filter column, the checkbox rows, the
+  place-basis wording, the headcount cut as a quick view, and the city money card
+  as "Where the Money Went".
+- **The dated four-bucket glance panel** replacing the hero figure line, with the
+  week-over-week comparison suppressed until real history exists. Not started.
+  The suppression rule is the load-bearing part: news collectors first ran on
+  27 July, `national_press` on 29 July, so "this week vs last week" would compare
+  a populated week against an empty one and print something like "up 4,000%".
+- **The FAQ tab and the trust panel** (does not exist to move; see above).
+- **The sibling port.** Not touched, and not only for budget: `CLAUDE.md` names
+  the sibling "do not touch", it is outside the lane I was given, and that repo
+  auto-deploys on push. It needs its own session in its own repo.
+- **A minimum-rows threshold for facet controls** (the ~80-row finding above).
+  That is an owner decision about what a nearly-empty control should do.
+
+---
+
+## 2026-07-30 — the UK register is not the source; the 250-employee roster is
+
+Build the Companies House connector, now that the key exists. It ships. The
+interesting half of the work is not the connector, it is the **refusal to point
+it at the register**, and every figure below is measured rather than argued.
+
+No authenticated call has been made from this repository — the key exists only
+as a GitHub secret — so everything here was measured against the PUBLIC register
+web pages (which need no key), the free bulk Company Data Product, the GOV.UK
+gender pay gap download, and the published API specification. What that leaves
+unproven is listed at the end, and it is a short list.
+
+### The register is 190x too big, and the excess is dormant micro-companies
+
+Part 1 of 7 of the free Company Data Product for 2026-07-01 holds **849,999
+live companies**; the seven parts are not equal sizes (part 7 is 52Mb against
+69-70Mb), so the register is **~5.7 to 5.9 million** rather than a round figure.
+A random sample of 120 of those companies, read one officers page each:
+
+| | random live register | GPG 250+ roster |
+|---|---|---|
+| companies | ~5.7M | **9,230** |
+| appointments per company per year | 0.246 | **0.867** |
+| active officers, median | 1 | 4 |
+| officers ever recorded, median / mean | 2 / 4.0 | 26 / 44.4 |
+| projected appointments a year | ~1.4M | **~7,354** |
+| projected stored rows a week | ~27,000 | **~110** |
+
+**~27,000 appointments a week against a database of 15,711 signals.** Four days
+of unfiltered collection and the tracker is a list of UK director changes with
+some other content attached. It is also mechanically impossible: 5.7M requests a
+week is 33 days of continuous polling at 600 requests per 5 minutes.
+
+And the excess is not merely large, it is empty. The random sample's median
+company has **two officers in its entire history**; the names it returned are
+`AD ASTRA BARS LTD`, `B-LEAF HEALTHCARE LTD`, `AVENIR WORKS 6 LTD`, `5374 LTD`.
+
+### The filter is a statutory employee count, and the obvious alternative fails
+
+The chosen population is the **GOV.UK gender pay gap roster**: every employer
+with 250 or more employees in Great Britain must report, the CSV carries a
+`CompanyNumber` column, and this repo already reads that file.
+
+    2025 reporting year          11,154 employers
+      well-formed CH number       9,634  (86.4%)
+      in a 250+ size band         9,230  <- the population
+
+Coverage of the biggest employers is *worse* than average and it is worth
+knowing why: 301 of 546 in the 5,000-19,999 band and 51 of 67 in the 20,000+
+band carry a company number, because the largest UK employers include NHS
+trusts, councils and government departments that are not companies at all.
+
+**The accounts-category filter the brief suggested was built as a measurement
+and refused.** `FULL` / `GROUP` / `MEDIUM` is 2.05% of the register (~120,000
+companies), and joining the roster to the same snapshot gives its precision
+directly: **1,104 of 17,378** such companies in that slice are 250+ employee
+employers — **6.35%**. So it is 13x the roster to poll, 94% of it is not what we
+are looking for, and it still misses 14% of the roster (180 of 1,284 roster
+companies in the slice file as audit-exempt subsidiaries, small, or nothing).
+The reason is structural and worth keeping: **accounts category records how a
+company chose to file, not how many people it employs.** A two-employee
+property vehicle with a large balance sheet files FULL; a 400-person business
+can file as a subsidiary. SIC code was refused for the same class of reason — it
+is a topic filter, and it cannot tell a 3,000-person software company from a
+dormant one. Nothing the register exposes as a search helps either:
+`advanced-search/companies` filters name, status, type, incorporation date,
+location and SIC, and nothing about size.
+
+Full accounts-category distribution on that 849,999-row slice, since it took a
+73MB download to get and should not need a second one: MICRO ENTITY 32.63%, NO
+ACCOUNTS FILED 25.38%, TOTAL EXEMPTION FULL 22.61%, DORMANT 12.54%, UNAUDITED
+ABRIDGED 2.82%, FULL 1.48%, SMALL 1.15%, AUDIT EXEMPTION SUBSIDIARY 0.57%,
+GROUP 0.46%, TOTAL EXEMPTION SMALL 0.16%, MEDIUM 0.11%.
+
+### Where the brief was wrong, and it was the load-bearing part
+
+**"There is a streaming API ... that is almost certainly the right primitive
+rather than polling companies one by one."** It is not, on two independent
+grounds, both checked rather than assumed.
+
+1. A REST key cannot open it. The streaming authentication guide says
+   "Applications that are to use the streaming API must be registered as such,
+   the REST API and streaming API keys are not interchangable."
+   `COMPANIES_HOUSE_API_KEY_UK` is documented as a REST key with the REST rate
+   limit, so it will 401 on the stream.
+2. Even with the right key it is the wrong shape for this repo. The stream is a
+   long-lived connection resumed by a stored `timepoint` (too old a timepoint
+   returns 416), capped at two concurrent connections per account. Every
+   database writer here shares one `talent-collect` lock and runs as a bounded
+   Actions job that commits and exits. A process that must stay connected to
+   keep its place is the opposite of that, and its missed windows would be
+   unrecoverable rather than back-fillable.
+
+Polling turns out to be the property that makes this safe rather than a
+compromise: `appointed_on` is a field on every officer record, so a window is a
+filter over data the endpoint always returns, and **this collector stores no
+state whatsoever.** A missed run loses nothing and a wider window is one
+integer.
+
+Two smaller corrections. The brief said the free bulk product has no officers
+data — true, and it is still the right thing to download, because it is the only
+free way to count the denominator and test the accounts-category filter. And
+`find-and-update.company-information.service.gov.uk` was **already** in
+`vocab.PRIMARY_SOURCE_DOMAINS` before this session, so rows reach `verified`
+with no vocabulary change.
+
+### The rotation, because a whole sweep holds the lock too long
+
+10,568 requests sweep the roster (1.145 requests per company at 100 officers a
+page — officers-ever runs median 26, mean 44.4, p90 66, max 1,992, so 98% of
+companies need exactly one page). At `REQUEST_DELAY = 0.55s` that is **97
+minutes**, and `writer_queue.LONG_HOLD_MINUTES` is 120.
+
+So the roster is sliced four ways by a **blake2b digest of the company number**
+— not `hash()`, which is salted per process and would reshuffle the rotation
+every run, leaving some companies unvisited for months while the run count
+looked perfect — and the ISO week number picks the slice. Nothing is committed
+and there is no cursor to corrupt. Measured slice sizes: **2,344 / 2,295 /
+2,321 / 2,270**, so **~2,600 requests and ~25 minutes** a run.
+
+The window is **derived** from the rotation the way `recency_window_days`
+derives Google News's: `SLICES * 7 + 14` = 42 days. Each visit therefore covers
+28 new days and 14 already seen. The overlap is the point: it costs nothing
+(exact `content_hash` duplicates, skipped before any write) and it makes a
+single missed run recoverable on the slice's next visit instead of a permanent
+hole.
+
+### Four judgements that are not obvious from the code
+
+**A body corporate is not an employee** — the `bse_india` auditor rule again,
+and the register proves it is needed: `LEGAL & GENERAL CO SEC LIMITED` is the
+sitting secretary of Legal & General Resources Limited. So the role allowlist is
+`director`, `secretary`, `llp-member`, `llp-designated-member` and nothing else;
+every `corporate-*` and `nominee-*` role is named in `EXCLUDED_ROLES` rather
+than merely absent. Measured cost: 2 of 231 appointments (0.9%) were a body
+corporate, 63 of 3,151 officers (2.0%) were nominees.
+
+**The allowlist reads `officer_role` verbatim, with no case folding, and that is
+a deliberate strictness.** The public web page renders a `corporate-secretary`
+as plain "Secretary" — which is also why the 150-company measurement that sized
+this source could not see corporate officers at all, and why its yield figure is
+about 1% high. Folding case would let the string the web page prints through the
+one check that exists to catch it. The first version did `.lower()`; a test
+caught it.
+
+**Every row is `neutral`, never `hiring`.** The register records the legal fact
+of an appointment and says nothing about where the person came from: a group
+finance manager added to a subsidiary board is filed identically to an external
+chief executive hire. Precision over recall, the same rule `bse_india` applies
+to a re-appointment.
+
+**Resignations are refused in v1**, with the number: `resigned_on` is on the
+same records and would add **80% more rows** (184 resignations against 231
+appointments in the sampled two years) that say the least of anything this
+source could produce, because the register never says why somebody left.
+
+### Identity, geography and the concentration this was meant to fix
+
+The employer name is the pay-gap file's `CurrentName` falling back to
+`EmployerName` — the **same expression `uk_paygap.parse_csv` uses**, on purpose,
+so `vocab.company_key` lands on the same employer and a company profile shows
+one employer's pay and its board rather than two near-identical employers.
+Verified against the live database: `LEGAL & GENERAL RESOURCES LIMITED` keys to
+`legal & general resources`, which already has `uk_paygap` rows; 493 of the
+9,228 distinct roster keys do (the rest because `uk_paygap` defaults to a 5,000
+employee floor).
+
+Geography follows `uk_paygap` exactly, by importing its map rather than copying
+it: the registered office postcode area fills `hq_city` and only for
+unambiguous areas, `city` is never set at all, `industry` and `employer_type`
+come from the filed SIC division. **Nothing here splits an address on a comma**,
+and a test asserts the source text does not either — `ats_boards` turning
+"Cambridge, MA" into Morocco is the reason.
+
+GB rows today are **4,801, of which `uk_paygap` is 4,761 (99.2%)**. At ~110
+rows a week the concentration falls below 90% inside five weeks.
+
+`source_url` is `/officers/{officer_id}/appointments` — the register's own page
+for that person, which names the company, the role and the appointment date, and
+which is keyed on a permanent officer id **read out of the API's
+`links.officer.appointments`, never composed** (BSE's AttachLive → AttachHis rot
+is what an invented identifier does). It is not the company officers page, which
+would be one URL for every appointment the company ever makes. Because one
+person can be appointed twice, `REVISITS_ITS_SOURCE_URL = True`, so dedup runs
+on `content_hash` and the fuzzy window rather than on URL-seen — the
+`ats_boards` lesson.
+
+### GB is promoted, and it should have been promoted before this
+
+`GB` moves `discovery_only` → `structured_official`. Two things about that.
+`uk_paygap` has been a working GB structured connector with a health check and a
+passing test since 2026-07-28 and was **never listed in the market's
+`live_sources`**, so the tier understated the country while the country chart
+was dominated by that very source. And "Companies House appointments" sat in
+`candidate_official_sources` — the roadmap — while being the thing this entry
+builds; it is removed from there.
+
+### Numbers
+
+- 9,230 companies in the population, from 11,154 pay-gap employers.
+- 4 slices, 2,344 / 2,295 / 2,321 / 2,270, ~2,600 requests and ~25 min each.
+- 42-day window, derived. ~200 candidates a run, ~133 of them new.
+- ~110 stored rows a week, ~5,600 a year, all at 250+ employee employers.
+- **$0.** `as_classified` closes the record; no model is called on this path.
+- 72 tests, offline, against a fixture of real register values.
+- Suite 1,823 → 1,996 (the two concurrent Japan and Korea connectors are in
+  that number too). `ops_status.py` exit 0, `structured_official` now `[GB, IN]`.
+
+### Access and licence, checked first
+
+- `api.company-information.service.gov.uk/robots.txt` → **401**
+  (`{"error":"Empty Authorization header"}`). Every path on the API host needs
+  auth, so there is no directive to honour and the default applies.
+- `stream.company-information.service.gov.uk/robots.txt` → **401**, same.
+- `find-and-update.company-information.service.gov.uk/robots.txt` → **404**
+  with an HTML page. No directives. This is the host the measurements read.
+- `download.companieshouse.gov.uk/robots.txt` → **200**, `User-agent: *` /
+  `Disallow:` — explicitly everything.
+- Public sector information; the OGL attribution rides in the summary of every
+  stored row, exactly as `uk_paygap` carries its own.
+
+### Unproven until the first real run, and it is a short list
+
+Everything authenticated. Specifically: that `items_per_page=100` is accepted,
+that `total_results` counts what the docs say, that HTTP Basic with an empty
+password is the accepted credential form, and the exact `officer_role` strings
+on live rows. All four are pinned by tests against the documented shape and all
+four fail loudly rather than quietly. First run:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=collect-structured.yml \
+     -f inputs_json='{"source":"companies_house","dry_run":"true"}' \
+     -f reason='first authenticated Companies House run'
+```
+
+What was verified without the key: the roster (`ch.roster()` returns 9,230 from
+the live pay-gap download), the rotation, the window arithmetic, the whole
+`collect → as_classified → build_signal` path against a stubbed session — one
+row out the far end, `verified`, `GB`, `hq_city=London`,
+`industry=professional_services`, `published_date=2026-07-01`, direction
+`neutral` — and that a keyless run fails with the message that names the
+streaming-key trap rather than storing zero quietly. The emptiness floor fired
+on that stub run before it was lifted for the demonstration, which is the guard
+working.
+
+---
+
+## 2026-07-30 — Korea's spine is the report TITLE, because its typed codes stop one level too coarse
+
+Build the Korean equivalent of the India connector. It ships, it costs nothing,
+and Korea stays `discovery_only` because the SOURCE is measured and the
+CONNECTOR has never made an authenticated call. Every number below came from a
+command in this repo; no OpenDART credential was used at any point.
+
+### The endpoint list was walked before a line was written
+
+All six published API groups, 84 endpoints, read from
+`https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS001..DS006` on 2026-07-29.
+There is no Item 5.02 equivalent to ask for, and the reason is precise:
+**`pblntf_detail_ty` has about 60 values and every Korea Exchange timely
+disclosure shares ONE of them, `I001`** — supply contracts, dividends, buybacks,
+CEO changes and litigation all arrive under the same code. That is the Form 6-K
+problem again: a filing type with no item taxonomy inside it.
+
+**Two things rescue it, and one of them is a measurement rather than a document.**
+
+`E005` (독립사외이사에관한신고) is a detail code of its own, and every row it
+returns carries one report name. Inside `I001`, the exchange's own report TITLE
+turns out to be a fixed vocabulary: **8,211 `I001` filings over 2026-05-01 to
+2026-07-29 collapse into 360 DISTINCT titles**, and the leadership ones recur
+character-for-character. Those are KRX's form titles, generated by the filing
+system, not sentences a company composed — the same class of value as BSE's
+`SUBCATNAME`, and the only thing that makes `I001` usable at all.
+
+Measured unauthenticated through DART's own public search
+(`dart.fss.or.kr/dsab007/detailSearch.ax`, which robots.txt permits — it
+disallows six paths and that is not one of them), and then re-counted by running
+the shipped collector's own `is_wanted` / `strip_amendment` / `REFUSED_REPORT_NAMES`
+over the captured rows:
+
+| window | rows read | stored-eligible | refused by name | amendments skipped | not leadership |
+|---|---|---|---|---|---|
+| 2026-05-01..07-29 (90d) | 8,363 | **261 (3.1%)** | 4 | 4 | 8,094 |
+| 2026-07-01..07-29 (29d) | 2,561 | **88 (3.4%)** | 4 | 0 | 2,469 |
+
+The 261, by title:
+
+| report title | FSS's own English | 90d |
+|---|---|---|
+| 독립이사의선임ㆍ해임또는중도퇴임에관한신고 | Report on the Appointment, Dismissal or Early Retirement of Independent Directors | 150 |
+| 대표이사변경 | Change of CEO | 79 |
+| 대표이사(대표집행임원)변경(안내공시) | Notice on Change of CEO | 28 |
+| 대표집행임원변경 | Change of Representative Executive Director | 4 |
+
+Per ISO week over twelve full weeks: **12 to 49, median 19**, across KOSPI (29),
+KOSDAQ (74) and KONEX (6) on the CEO items alone. `MIN_ROWS_PER_WINDOW = 5` sits
+below the observed floor, so a run that returns fewer has broken rather than gone
+quiet. March is Korea's shareholder-meeting season and runs higher, so a summer
+measurement is the conservative one.
+
+**~1,060 a year, which is about 8% of India's ~13,000, and the gap is scope not
+diligence.** SEBI Regulation 30 covers every director and every key managerial
+person. Korea's mandated item covers the representative director, and separately
+independent directors. Ordinary inside directors are elected at a shareholder
+meeting whose result is untyped prose, so they cannot be reached from here.
+
+### What was refused, with the numbers
+
+**The periodic-report endpoints are snapshots, exactly as the brief feared, and
+diffing them was declined.** `exctvSttus.json` (임원현황) returns every sitting
+officer as of `stlm_dt` — name, position, `hffc_pd` tenure as free text
+("3년 6개월"), term expiry. `empSttus.json` (직원현황) returns headcount by
+division and gender. Neither states that anybody was appointed and neither
+carries an appointment DATE, so an event out of them means diffing year N against
+N-1 and stamping the difference with a date the source never stated. Both are
+also **per-`corp_code` only**: there is no date-ranged form, so even a snapshot
+sweep is one request per filer per report code.
+
+**The 주요사항보고서 family has no officer item at all.** All 36 endpoints in
+group DS005 were read: insolvency, capital raises, buybacks, mergers, divisions,
+asset transfers, business suspension. Not one is an appointment or a departure.
+**The brief that commissioned this named that family as a candidate; it is a dead
+end**, and that is now written into `source_registry.py` so nobody researches it
+twice.
+
+**`독립(사외)이사 및 그 변동현황` is the one endpoint with change FIELDS and they
+are still not events.** `apnt` (선임), `rlsofc` (해임) and `mdstrm_resig`
+(중도퇴임) are period COUNTS with no person and no date. An aggregate is not a
+record about anybody.
+
+**`elestock.json` (임원ㆍ주요주주 소유보고) was the near miss.** It is
+event-driven, it carries a real `rcept_dt`, and it names the officer and their
+position. But the API exposes **no 보고사유 field**, so an appointment cannot be
+told from a share purchase, and reading one as the other would invent the event
+type rather than the number.
+
+**`대표이사변경 (자회사의 주요경영사항)` — the chaebol trap, 2 of 261.** A listed
+PARENT reports a change at a subsidiary it does not name in the title, and
+`corp_name` is the parent. Miwon Holdings and MAEIL HOLDINGS each filed one.
+Refused by name. `기업인수목적회사의임원선임결정` (2 more) is a SPAC appointing
+its own formation officers, which is a company being incorporated rather than
+anybody being hired.
+
+**Amendments are not second events.** `[기재정정]`-prefixed rows are skipped:
+this tracker corrects a record with `store.revise()`, never with a second row.
+That costs the amendments whose original fell outside the window — 4 of 265 over
+90 days — and the price is written down rather than hidden.
+
+### Four traps, each found by fetching something
+
+**1. The English viewer answers 200 with the single word "Reject".**
+`englishdart.fss.or.kr/dsbh001/main.do?rcpNo=` looked like the ideal
+`source_url`: the same document with FSS's own English labels, on a host that
+serves no robots.txt. Sampled on 20 real filings from the allowlist, **16
+rendered and 4 returned a page whose entire body is the word "Reject"** — among
+them Kia and Korea Gas Corporation, so it is not an obscurity effect. A citation
+that answers 200 with one word is worse than a 404, because a link checker calls
+it live. `source_url` is therefore `dart.fss.or.kr/dsaf001/main.do?rcpNo=`, the
+form OpenDART's own field documentation gives for every `rcept_no`.
+
+**Said plainly, because it is a real cost: `dart.fss.or.kr/robots.txt` disallows
+`/dsaf001/main.do`.** Nothing here fetches it — the collector talks only to
+`opendart.fss.or.kr/api/`, which serves no robots.txt at all — so `link_check.py`
+will record these URLs as `robots` rather than checking them. That is the correct
+outcome rather than a defect to route around, and Wayback already holds
+`dsaf001/main.do` snapshots going back to 2009, so archiving is not blocked.
+
+**2. A missing key is a 302; a bad key is a 200.** Verified live and keyless on
+2026-07-29: `list.json` with no `crtfc_key` returns **HTTP 302** and an HTML
+error page, while a syntactically valid but unregistered key returns
+**HTTP 200 `{"status":"010"}`**. So neither the status code nor "the body parsed
+as JSON" means success — `status` is the only authority. This matters more than
+usual here because CLAUDE.md already records that mapping a MISSING GitHub secret
+sets the variable to empty string, which is how a leadership dispatch once went
+green having stored nothing. `api_key()` refuses an empty or non-40-character key
+before a request is spent, and names the 302 in the message.
+
+**3. Full-width digits break the verbatim-figure guard.** `validate._numbers_in`
+tokenises with `\d`, which matches U+FF10..FF19, and `_normalize_number` does not
+fold them, so `１２３` in a summary and `123` in `raw_text` compare unequal and a
+correct record is discarded silently. `_squeeze` folds them to ASCII on the way
+in. **NFKC would be the obvious fix and is WRONG here**: it rewrites U+318D — the
+ㆍ inside 독립이사의선임ㆍ해임또는중도퇴임에관한신고 — to U+119E, so the
+allowlist would stop matching the report name the API sends. Both halves are
+pinned by tests. Belt and braces on top: every figure in the summary is a
+substring of the same string quoted into `raw_text`, following `bse_india`.
+
+**4. A Korean company_key produces a URL that 404s.** `vocab.company_key` passes
+Hangul straight through (verified: `company_key("한울앤제주") == "한울앤제주"`),
+and `tit_company_slug()` is `[^a-z0-9]+ -> '-'` with a `rawurlencode` fallback
+when the result is empty — and HANDOVER.md records that percent-encoded slugs 404
+on this host. So the stored employer is **`corp_name_eng` from `company.json`,
+the company's OWN registered English name**, fetched once per company per run and
+cached in memory. A filer whose `corp_name_eng` is blank is DECLINED and counted:
+this file invents no transliteration. The Korean `corp_name` is still quoted into
+`raw_text`, because it is the filer's own name and the record should carry it.
+
+### Two things deliberately not stored
+
+`stock_code` is not written to `ticker`. That column is SEC-authoritative
+everywhere else in this tracker (`pipeline/identity.py` resolves it from
+`company_tickers.json`), and a 6-digit KRX code beside `AAPL` is two vocabularies
+in one filter. `adres` from `company.json` is not read either: a registered legal
+seat is not where an appointment happened, and `identity.py` is already the single
+authority for `hq_city`. No city is guessed, so Korean rows place at country level
+only, as Indian ones do.
+
+### Direction is never inferred, and that is the honest weakness
+
+`대표이사변경` says a change happened. `독립이사의선임ㆍ해임또는중도퇴임에관한신고`
+names all three possibilities in one title. Neither separates a joiner from a
+leaver, so **every row here is `neutral`**, as India's departures already are.
+`displacement` is never used: one officer leaving is a change of leadership, not a
+workforce reduction, and workforce reductions are the sibling's scope. Recovering
+the direction means downloading and parsing the filing body, which is document
+parsing at best and an LLM call at worst, and zero cost is the premise.
+
+One consequence worth stating: **`prefilter.filing_reduction_plan` returns None
+on Korean text** (checked: `구조조정 인원 감축` -> None). The scope guard is
+English-only, so on this source the report-title allowlist IS the scope guard —
+and a CEO change cannot be a workforce reduction, which is why that is sufficient
+here and would not be for a prose source.
+
+### The sibling's OpenDART retirement does not transfer
+
+`/Users/dakotta/Projects/atr-layoff-tracker` holds `railway/sources/opendart.py`,
+retired on 2026-07-24 in commit `aead15e` with the reason "**0 layoff rows ever**
+came from EDINET(JP)/OpenDART(KR)/CVM(BR)". Read read-only; nothing imported,
+nothing copied. **That is outcome 2 of the three the coordinator named, and it is
+outcome 2 for a reason that is now proved rather than assumed.** The sibling read
+the disclosure list for discovery and then scanned document BODIES for Korean
+layoff vocabulary. Korean statutory disclosure has no workforce-reduction item —
+the 36 major-report endpoints above are the proof — so its zero was guaranteed by
+the taxonomy, not by the source's quality. Read it as a fact about layoffs, not
+about appointments. Two things from that codebase were genuinely useful as
+RESEARCH and are re-derived here rather than borrowed: the `status` code
+semantics, which are on FSS's own message table, and the fact that somebody
+already tried the English viewer as a citation, which is what prompted measuring
+it and finding the "Reject" page.
+
+### Where this brief was wrong about the repo
+
+1. **"Promote KR from `discovery_only`" — KR was not in `MARKETS` at all.**
+   `("ko", "KR")` has been in `GOOGLE_NEWS_LOCALES` with its own Korean query
+   pack the whole time, and `data/sources_catalogue.csv` carries five Korean
+   publisher feeds, so the country was being swept while the coverage manifest
+   said nothing about it. KR is added now, at `discovery_only`.
+2. **"the major-report or 사업보고서 family"** carries no officer change. All 36
+   endpoints checked; see above.
+3. **`data/sources_catalogue.csv` needed no edit.** That file is the publisher
+   FEED catalogue; a structured connector is registered in
+   `source_registry.SOURCES` and `COLLECTOR_BY_SOURCE_NAME`, and
+   `build_sources_json.py` derives the page from those.
+
+### Korea stays discovery_only, on purpose
+
+The rule is that coverage is earned by a working connector, a health check and a
+passing test. There are 48 passing offline tests and the whole
+`_row -> as_classified -> build_signal -> store` path runs against a throwaway
+database (4 stored, 0 rejected, 3 declined for the three stated reasons). What
+does not exist is a single authenticated call. **What the source holds is
+measured; what the connector does is not**, and a tier is a public claim about
+the connector. Promotion is one commit after the first real run: add
+`opendart_korea` to `KR.live_sources` and move the status, recording what the run
+returned.
+
+Unproven until then, listed so the first run knows what to look at: the exact
+`list.json` row shape (taken from FSS's published response spec rather than from
+a response), **whether `corp_name_eng` is populated for every listed filer** —
+which is the one that decides real yield, because a blank declines the row — and
+the real request cost of one window (estimated at ~8 list pages plus one
+`company.json` per distinct employer, so roughly 30 requests against a documented
+20,000/day quota).
+
+---
+
+## 2026-07-30 — Japan has a typed CEO clause; the sibling's EDINET zero was the ordinance, not the source
+
+Build the Japanese equivalent of the India connector. It ships, it costs nothing,
+and it is **much narrower than the brief assumed** — narrow enough that Japan
+stays `discovery_only`. Every number below is reproducible from a command; the
+one thing that is NOT measured is the only thing that matters for promotion, and
+it says so.
+
+### The sibling had already built and retired this. That result does not transfer
+
+`/Users/dakotta/Projects/atr-layoff-tracker/railway/sources/edinet.py`, wired to
+`foreign-filings.yml`, retired in commit `aead15e` on 2026-07-24: *"0 layoff rows
+ever came from EDINET(JP)/OpenDART(KR)/CVM(BR). Those regulatory filings
+essentially never announce layoffs"*. Read read-only; nothing imported, nothing
+copied.
+
+**That zero was guaranteed by the ordinance, not earned by the source.** Read the
+law and count:
+
+```
+python3 -c  # against e-gov lawdata 348M50000040005, parsed with ElementTree
+  Article 19(2) has 44 items.
+  Items containing ANY workforce-reduction word (解雇/人員/削減/希望退職/
+    早期退職/整理解雇/リストラ/雇用/従業員数/退職): NONE
+  Items mentioning 代表取締役: ['9']
+```
+
+An extraordinary report **cannot** announce a layoff, because no clause requires
+one: the 44 triggers are disasters, lawsuits, mergers, divestitures, subsidiary
+and shareholder changes, bankruptcy, debt covenants, auditor changes and one
+officer clause. A layoff tracker pointed at this was structurally certain to
+return zero on day one. So the retirement is a fact about layoffs and says
+nothing about appointments.
+
+Two further things the sibling's code shows, both load-bearing here:
+
+* **It never read `currentReportReason`.** `grep` for it in that file returns
+  nothing, as does `臨時`, `180` and `reason`. It fetched every document type,
+  then downloaded ZIP archives and scanned bodies for layoff vocabulary — the
+  expensive path, and it skipped the typed field entirely.
+* **Its `source_url` does not resolve.** `viewer_url()` returns
+  `disclosure2.edinet-fsa.go.jp/WEEK0010.aspx?docID=<id>`. Measured 2026-07-29:
+  that URL returns the **same 82,145 bytes** for a real id (`S100VV88`) and a
+  nonsense one (`S100ZZZZ`), and `docID` appears nowhere in the HTML. It is the
+  search screen. See the source-URL section below.
+
+### The clause: verified, typed, and only one of them
+
+`currentReportReason` (臨報提出事由) is a document-list **metadata** field, and the
+EDINET API specification (Version 2, 2026-06, page 47 item 29 + footnote *4)
+defines it as a clause number, comma-joined for multiple reasons:
+
+> 「臨報提出事由は、『第19条第2項第1号』、『第29条第2項第1号』のように記載され…」
+
+So the reason is a closed machine-readable label of the same class as Item 5.02
+and a SEBI Regulation 30 category. **The brief's STOP condition — "if it is only
+free prose, stop" — does not fire.** No document is downloaded and no model is
+called; `as_classified` closes the record and spend is zero.
+
+`docTypeCode` 180 = 臨時報告書, 190 = 訂正臨時報告書 (spec page 88).
+
+**The scope is the representative director alone.** Article 19(2)(ix) is the only
+officer clause in 44, and it reads 提出会社の代表取締役…の異動 — the chief
+executive and co-representatives, not the wider board and not senior management.
+India's Regulation 30 covers every director and every key managerial person;
+Item 5.02 covers directors and principal officers. **Do not describe this as
+"officer changes".** It is a CEO-change feed.
+
+### Four traps, each of which would have shipped silently
+
+1. **A substring match files audit firms as leadership changes.**
+   `第19条第2項第9号の2`, `の3` and `の4` all have the accepted clause as a
+   string PREFIX, and they are shareholder-meeting resolutions, a rejected AGM
+   resolution, and **a change of accounting auditor**. That last is the
+   `bse_india` auditor exclusion arriving in a different disguise: an audit firm
+   is an appointed firm, not an employee. Worse, `第29条第2項第9号` belongs to a
+   DIFFERENT ordinance (405M50000040022, specified securities) where item 9 is
+   ファンドの併合 — a **fund merger**. Read from that ordinance, Article 29(2)
+   has no officer clause at all, so REITs are excluded by law rather than by
+   taste. Matching is therefore whole-element equality, never `in`.
+
+2. **HTTP 200 on every error, in two different body shapes.** Verified live
+   against the real host on 2026-07-29, and documented at spec pages 82-84:
+
+   | condition | HTTP | body |
+   |---|---|---|
+   | no key / bad key | **200** | `{"StatusCode": 401, "message": "Access denied due to invalid subscription key…"}` |
+   | throttled | **200** | `{"StatusCode": 429, …}` |
+   | bad parameter / not found / server error | **200** | `{"metadata": {"status": "404", "message": "Not Found"}}` |
+
+   A `resp.status_code != 200` check sees success, finds no `results`, and
+   reports a healthy empty day — so an expired key and a throttled run would
+   both look like "Japan filed nothing", forever. `_status_of` reads both shapes
+   and anything but 200 raises. The sibling's client checked `status_code` only.
+
+3. **Full-width digits eat correct records.** `currentReportReason` is typed
+   全半角 in the spec, so the clause can arrive as `第１９条第２項第９号`.
+   Python's `\d` matches full-width digits, so `validate._NUMBER` tokenises a
+   half-width summary as `{19,2,9}` against a full-width `raw_text` as
+   `{19,２,９}`, and `assert_figures_are_sourced` discards the whole record for
+   "inventing" 2 and 9. Demonstrated before the fix was written:
+
+   ```
+   assert_figures_are_sourced("filed under 第19条第2項第9号",
+                              "…内閣府令第19条第２項第９号の規定に基づき…")
+   -> Rejected: figure(s) not present in source text: ['2', '9']
+   ```
+
+   The collector normalises the clause once and writes that SAME string into
+   both the summary and `raw_text`, so the two cannot diverge. This is the third
+   instance of this bug class in three days (the `sec_execcomp` newline glue and
+   the missing thousands separator were the first two), and the pattern is
+   always the same: two renderings of one figure that were never compared.
+   Pinned by `test_a_full_width_clause_still_round_trips` and by a test that
+   asserts the un-normalised pairing really is rejected.
+
+4. **A Japanese company name produces an EMPTY slug.** `vocab.company_key`
+   passes non-ASCII through untouched, so `株式会社オプトラン` becomes
+   `株式会社オプトラン` and the company-profile slug
+   (`[^a-z0-9]+ -> -`) is `""`. Every Japanese employer would collide on the
+   empty slug and the profile route would break. **The fix is not a
+   transliteration rule of ours.** The official EDINET code list publishes each
+   filer's own English name, and a filer without one is DECLINED and counted.
+   Measured on the real list, 2026-07-30: **3,428 of 3,829 listed filers carry
+   one (89.5%)**, so ~10% of Japanese filings are refused by design.
+
+### The source URL is the document, because the viewer is not
+
+| candidate | real id | bogus id | verdict |
+|---|---|---|---|
+| `disclosure2dl…/searchdocument/pdf/{docID}.pdf` | 200 `application/pdf` | **404** | stored |
+| `disclosure2…/WEEK0010.aspx?docID=` | 200, 82,145 B | 200, **82,145 B** | refused |
+
+The BSE lesson was link ROT (AttachLive → AttachHis). Japan's trap is the
+opposite and worse: a URL that can never rot **because it never resolves**, so
+`link_check.py` would report it healthy forever while every Japanese row cited a
+search box. The PDF permalink needs no API key, so a reader can open it.
+
+### Licence: a green light, and it constrains the design
+
+EDINET's terms (`WZEK0030.html`) put the content under the Japanese **Public Data
+License 1.0** — commercial reuse and redistribution permitted — and require
+attribution (carried in `source_name`). Unlike ASX, nothing here forbids
+aggregating and republishing. But they prohibit scraping the website while
+explicitly exempting the API:
+
+> 「スクレイピング等を利用して本ウェブサイトからコンテンツを機械的に取得すること
+> は禁止します。ただし、API機能を利用する場合はこの限りではありません。」
+
+That is why every FACT comes from the API. The one non-API fetch is the code
+list, which the spec itself publishes as a 固定リンク for API users (page 86), so
+it is the sanctioned path rather than a scrape. It also closed off measuring
+volume by crawling the viewer: a refusal to measure by a prohibited method.
+
+### What it refuses to claim
+
+* **Every row is `neutral`, never `hiring`.** Item 9 covers a person becoming a
+  representative director and ceasing to be one under ONE clause, so the typed
+  metadata cannot tell an arrival from a departure. Guessing would make half the
+  rows wrong. Recovering the direction means reading the body — an LLM call per
+  document — and that trade was declined, because zero-cost is the premise.
+* **No person is named**, for the same reason. The filing is linked and says so.
+* **No city, ever.** The code list's address is ward-level with full-width digits
+  and, for the Tokyo wards holding most large filers,
+  `新宿区西新宿六丁目５番１号` never says Tokyo. A city would need a ~1,900-entry
+  municipality vocabulary, and guessing is how `ats_boards` turned
+  "Cambridge, MA" into Morocco. `country` is Japan by construction.
+* **No figure at all.** The metadata carries no amount and no headcount, so the
+  only numerals reaching a summary are the clause and the filing date.
+* **Corrections (190) are skipped, not stored.** Storing one would double-count
+  an event, and this repo appends revisions rather than overwriting. The hook a
+  future session needs is `parentDocID`, and it is on the row.
+
+### THE RECALL HOLE, which is large and invisible
+
+Item 9 exempts a change occurring between the annual shareholders' meeting and
+the filing of the annual report when the annual report already describes it.
+Japanese AGMs cluster in late June and 有価証券報告書 are filed in the same
+weeks, so **the commonest timing of a Japanese presidential succession can
+produce no extraordinary report at all.** This source is a floor on Japanese
+leadership change, not a count of it. Said in the read-through, the registry note
+and the sources page, and asserted by a test.
+
+### Measured, and the one thing that is not
+
+Offline, whole `run_collect` path, stubbed transport, nothing written:
+
+| | |
+|---|---|
+| list API calls | 7 (one per calendar day; the endpoint takes one date) |
+| code-list downloads | 1 |
+| documents read | 12 |
+| extraordinary reports (180) | 10 |
+| reporting `第19条第2項第9号` | 6 |
+| stored | 3 |
+| declined (no English name / withdrawn / viewing expired) | 3 |
+| corrections skipped | 1 |
+| **rejected by validate** | **0** |
+| **deferred** | **0** |
+| cost | **$0.00** — no model, no document fetch |
+
+Tests **1,823 → 1,876** (+53), all green. `ops_status.py` exits 2 before and
+after, on the same three pre-existing stale collectors (gdelt 54h, sec_edgar 52h,
+sec_form_d 60h); nothing here added an item. Two `source_health` error rows
+written by keyless local dry runs were deleted afterwards, so the committed
+database carries no false alarm — the database itself is NOT staged by this work.
+
+**VOLUME IS UNMEASURED, and that is the whole reason Japan stays
+`discovery_only`.** No authenticated call has ever been made from this repo: the
+key exists as a GitHub secret and was deliberately not available locally, so
+unlike India's 354-in-7-days and Australia's 192-in-30 there is no live count
+here. The bound, stated as an estimate and not a measurement: **3,829 listed
+filers** on the official code list against a published Japanese president-turnover
+rate of **3.84% for 2025** (Teikoku Databank) puts the order of magnitude at a
+**few hundred a year, roughly 1-3% of India's ~13,000** — before the AGM
+exemption above removes more. Thin, but a CEO change is the highest-value
+leadership row there is.
+
+**Also unproven until the first real run**, and listed so nobody mistakes the
+green suite for verification: the fixture's `currentReportReason` VALUES are
+constructed to the published spec rather than captured, so the exact string form
+(half-width vs full-width, spacing, and whether multi-reason joining uses `,`
+without a space) is spec-derived; and the real ratio of 180s to item-9s is
+unknown.
+
+### Promotion gate, so it is one commit and not a judgement call
+
+Japan becomes `structured_official` when a real run has measured it. Exactly:
+dispatch `collect-structured.yml` with `source=edinet_japan`, `dry_run=true`;
+read the printed line `N documents read, M extraordinary reports, K reporting
+第19条第2項第9号, S usable`; then in ONE commit flip `MARKETS`'s JP entry to
+`STRUCTURED_OFFICIAL`, add `edinet_japan` to its `live_sources`, and update
+`test_japan_stays_discovery_only_until_a_real_run_measures_it`. If K is
+implausibly zero over 7 days, the clause strings differ from the spec and the
+matcher is what to fix — not the floor.
+
+**Scheduled, on Tuesday.** `collect-structured.yml` gains `0 4 * * 2`, and the
+day is deliberate: Monday already carries BSE at 04:00, the link-hygiene ticket
+at 05:30 and the digest at 13:00, and every writer shares the one
+`talent-collect` lock in which GitHub keeps a single pending run that a second
+scheduled writer can evict. There is deliberately **no minimum-rows floor** of
+the kind `bse_india` carries: India's 250-a-week makes a zero provably a
+breakage, whereas one clause covering one role across 3,829 filers can genuinely
+be quiet, so health is judged on `LAST_RUN["read"]` instead. The honest floor
+cannot be set until the first real run measures the rate.
+
+### Where the brief was wrong
+
+* **"Documents are Japanese, often Shift-JIS or in XBRL."** The API's JSON
+  metadata is UTF-8, and this collector never touches a document body, so the
+  encoding trap does not arise on the stored path at all. Where encoding DOES
+  bite is the code list, and there the specific claim is wrong in a way that
+  matters: both lists are **cp932, not `shift_jis`** — `shift_jis` raises on
+  byte `0xfb` at offset 35,244 of the Japanese list, because cp932 carries the
+  NEC/IBM extended characters Japanese company names actually use. Naming the
+  narrower codec would crash the run on such a filer. (The sibling decoded
+  bodies as `utf-8` with `errors="replace"`, which would have mojibaked them
+  silently; it never mattered because it found nothing.)
+* **"万/億 magnitude characters."** Real, but not reachable here: no figure is
+  stored, so there is nothing for a magnitude character to corrupt. The
+  full-width DIGIT problem was the live one, and it was in the clause reference
+  rather than in any amount.
+* **"Extraordinary reports are the likely home for officer changes — confirm
+  it."** Confirmed, but the brief's framing implied a category comparable to
+  SEBI's. It is one clause covering one role, with an exemption that removes the
+  commonest timing. The honest headline is "Japan types the CEO change", not
+  "Japan types officer changes".
+* **"MEASURE and report honestly: documents seen in a real recent window."** Not
+  possible: the key is a GitHub secret and no authenticated call could be made,
+  and the alternative — crawling the viewer — is prohibited by the terms. Stated
+  as unmeasured rather than estimated into looking measured.
+
+---
+
 ## 2026-07-30 — the page stops disagreeing with itself: sources, city pills, five amounts
 
 Launch-blocker pass over `wordpress-plugin/`. The theme running through all of

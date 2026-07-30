@@ -1,0 +1,171 @@
+{
+  "_provenance": {
+    "captured": "2026-07-29",
+    "how": "Every row below is a real DART filing. The receipt numbers, corporation codes, Korean company names, report titles and receipt dates were read from DART's own public disclosure search (dart.fss.or.kr/dsab007/detailSearch.ax, which robots.txt permits) over 2026-05-01 to 2026-07-29. Each `_corp_name_eng` is the company's own English name as the Financial Supervisory Service publishes it, read off englishdart.fss.or.kr/dsbh001/main.do?rcpNo=<the same receipt number>. No authenticated OpenDART call was made: the rows are shaped to the published list.json response spec (opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019001), and `stock_code` is left blank rather than guessed because the public search does not publish it.",
+    "unproven": "The exact list.json row shape and the population rate of corp_name_eng are unverified until the first authenticated run."
+  },
+  "ceo_change": {
+    "detail_type": "I001",
+    "_corp_name_eng": "HanWool & Jeju",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "K",
+        "corp_name": "한울앤제주",
+        "corp_code": "01230255",
+        "stock_code": "",
+        "report_nm": "대표이사변경",
+        "rcept_no": "20260728900814",
+        "flr_nm": "한울앤제주",
+        "rcept_dt": "20260728",
+        "rm": "코"
+      }
+    ]
+  },
+  "ceo_change_notice": {
+    "detail_type": "I001",
+    "_corp_name_eng": "JOOYONTECH",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "Y",
+        "corp_name": "주연테크",
+        "corp_code": "00269241",
+        "stock_code": "",
+        "report_nm": "대표이사(대표집행임원)변경(안내공시)",
+        "rcept_no": "20260727800578",
+        "flr_nm": "주연테크",
+        "rcept_dt": "20260727",
+        "rm": "유"
+      }
+    ]
+  },
+  "executive_director_change": {
+    "detail_type": "I001",
+    "_corp_name_eng": "MOBILE APPLIANCE",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "K",
+        "corp_name": "모바일어플라이언스",
+        "corp_code": "00556615",
+        "stock_code": "",
+        "report_nm": "대표집행임원변경",
+        "rcept_no": "20260612900609",
+        "flr_nm": "모바일어플라이언스",
+        "rcept_dt": "20260612",
+        "rm": "코"
+      }
+    ]
+  },
+  "independent_director": {
+    "detail_type": "E005",
+    "_corp_name_eng": "FreeT",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "Y",
+        "corp_name": "프리티",
+        "corp_code": "00122825",
+        "stock_code": "",
+        "report_nm": "독립이사의선임ㆍ해임또는중도퇴임에관한신고",
+        "rcept_no": "20260728000385",
+        "flr_nm": "프리티",
+        "rcept_dt": "20260728",
+        "rm": "유"
+      }
+    ]
+  },
+  "subsidiary_change": {
+    "detail_type": "I001",
+    "_corp_name_eng": "Miwon Holdings",
+    "_why_refused": "The listed PARENT reports a change at a subsidiary it does not name in the title, so storing it attributes the subsidiary's change to the parent.",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "Y",
+        "corp_name": "미원홀딩스",
+        "corp_code": "00706715",
+        "stock_code": "",
+        "report_nm": "대표이사변경 (자회사의 주요경영사항)",
+        "rcept_no": "20260707800407",
+        "flr_nm": "미원홀딩스",
+        "rcept_dt": "20260707",
+        "rm": "유"
+      }
+    ]
+  },
+  "amendment": {
+    "detail_type": "I001",
+    "_corp_name_eng": "YulChon",
+    "_why_refused": "An amendment is a correction to a filing already recorded, not a second leadership change. Corrections here append a revision through store.revise().",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "K",
+        "corp_name": "율촌",
+        "corp_code": "00495633",
+        "stock_code": "",
+        "report_nm": "[기재정정] 대표이사변경",
+        "rcept_no": "20260616900255",
+        "flr_nm": "율촌",
+        "rcept_dt": "20260616",
+        "rm": "코"
+      }
+    ]
+  },
+  "unrelated_timely_disclosure": {
+    "detail_type": "I001",
+    "_corp_name_eng": "StradVision",
+    "_why_refused": "The commonest I001 report name of all (285 of 2,509 in July 2026). It shares the detail code with the CEO items, which is exactly why the allowlist and not the code is what selects a row.",
+    "status": "000",
+    "message": "정상",
+    "page_no": 1,
+    "page_count": 100,
+    "total_count": 1,
+    "total_page": 1,
+    "list": [
+      {
+        "corp_cls": "K",
+        "corp_name": "스트라드비젼",
+        "corp_code": "01370517",
+        "stock_code": "",
+        "report_nm": "단일판매ㆍ공급계약체결",
+        "rcept_no": "20260728900719",
+        "flr_nm": "스트라드비젼",
+        "rcept_dt": "20260728",
+        "rm": "코"
+      }
+    ]
+  }
+}

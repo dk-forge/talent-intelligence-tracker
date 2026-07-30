@@ -1,4 +1,16 @@
 <?php
+/*
+ * EVERY EMPLOYER NAME IN THIS FILE IS PREFIXED "TEST FIXTURE" ON PURPOSE.
+ *
+ * This harness renders the REAL dashboard against a synthetic corpus, so its
+ * output is byte-for-byte the shape of the live page with different numbers in
+ * it. The owner twice read a screenshot of this render as the live site and
+ * concluded the data had broken -- its UK count outranks its US count, which is
+ * inverted from production, and that was the only clue. A test render
+ * indistinguishable from production is a trap for a human and for the next
+ * session, so the fixtures announce themselves in the one field a reader looks
+ * at first. Do not "tidy" the prefix away.
+ */
 /**
  * Render the dashboard shortcode and PUT A NUMBER ON WHAT IT COSTS.
  *
@@ -199,9 +211,9 @@ class DashHarnessDb {
         $row = array_merge(array(
             'signal_id' => 'sig' . $n,
             'revision' => 1, 'is_current' => 1,
-            'headline' => 'An update numbered ' . $n . ' with a headline about as long as a real one',
+            'headline' => 'TEST FIXTURE NOT REAL DATA: synthetic update ' . $n . ', padded to about the length of a real headline',
             'talent_readthrough' => 'What this means for anyone hiring into that team right now.',
-            'company' => 'Employer ' . $n,
+            'company' => 'TEST FIXTURE Employer ' . $n,
             'company_key' => 'employer ' . $n,
             'pillar' => 'company_development',
             'signal_direction' => 'hiring',
@@ -248,7 +260,44 @@ function check($condition, $message) {
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
  */
-const TIT_DASH_BYTE_BUDGET = 156000;
+const TIT_DASH_BYTE_BUDGET = 168000;
+
+/*
+ * RAISED 156,000 -> 168,000 on 2026-07-30 (second design pass), and here is the
+ * itemised bill. Measured on this fixture with the "TEST FIXTURE " prefix
+ * stripped, so these are bytes production actually ships.
+ *
+ *   2,824  the dated glance panel: today / this week / this month / this year,
+ *          each with updates, employers, dollars raised, official filings and
+ *          the largest single raise. It replaces nothing — the all-time
+ *          figures line stays as the panel's bottom rung — so it is new markup
+ *          in full. It is also the owner's most-wanted item and the first
+ *          thing on the page that carries a date, which is what a reader opens
+ *          a tracker to find out.
+ *
+ *   6,673  the "Why you can trust this" panel and the FAQ, both rendered
+ *          server-side in full. This is the expensive half and it is
+ *          deliberate: the constraint on the FAQ is that every answer is in
+ *          the INITIAL HTML rather than fetched on click, because an FAQ
+ *          behind a click is an FAQ no crawler and no answer engine ever
+ *          reads, and it is among the most valuable blocks on the page. Paying
+ *          for it in markup is the whole point rather than an oversight.
+ *
+ *   3,450  the FAQPage structured data, which is that same FAQ a second time.
+ *          Kept, and it is the one line here worth arguing about. It is a
+ *          straight duplicate of visible prose, and it earns its bytes only
+ *          because the answers ARE visible: company.php and places.php both
+ *          record that the sibling earned a manual-action risk emitting
+ *          identical FAQPage markup across ~1,830 URLs where the answers were
+ *          nowhere in the document. If a future session ever moves an answer
+ *          behind a fetch, this block has to go with it.
+ *  ------
+ *  12,947  measured 153,670 -> 166,688 on this fixture.
+ *
+ * The headroom is 1,312 bytes and that is on purpose. The budget is not a
+ * target and it is not a ceiling to grow into: it is here so the next session
+ * that adds a card has to come to this line and write down what it cost.
+ */
 
 /*
  * RAISED 152,000 -> 156,000 on 2026-07-30, and here is what bought it.
@@ -288,7 +337,7 @@ for ($i = 0; $i < 2400; $i++) {
     $wpdb->insert_row(array(
         'country' => 'GB', 'city' => $UK_CITIES[$i % count($UK_CITIES)],
         'industry' => $INDUSTRIES[$i % count($INDUSTRIES)],
-        'company' => 'UK Employer ' . ($i % 900), 'company_key' => 'uk employer ' . ($i % 900),
+        'company' => 'TEST FIXTURE UK Employer ' . ($i % 900), 'company_key' => 'uk employer ' . ($i % 900),
         'pillar' => 'rewards_comp', 'signal_direction' => 'comp_shift',
         'collector' => 'uk_paygap', 'source_name' => 'GOV.UK gender pay gap service',
         'source_url' => 'https://example.test/paygap/' . $i,
@@ -297,7 +346,7 @@ for ($i = 0; $i < 2400; $i++) {
 for ($i = 0; $i < 60; $i++) {
     $wpdb->insert_row(array(
         'country' => 'GB', 'city' => 'London', 'industry' => 'technology',
-        'company' => 'UK News Employer ' . ($i % 30), 'company_key' => 'uk news employer ' . ($i % 30),
+        'company' => 'TEST FIXTURE UK News Employer ' . ($i % 30), 'company_key' => 'uk news employer ' . ($i % 30),
         'collector' => 'national_press', 'source_name' => 'Reuters', 'confidence' => 'reported',
         'source_url' => 'https://example.test/uknews/' . $i,
     ));
@@ -309,7 +358,7 @@ for ($i = 0; $i < 1800; $i++) {
     $wpdb->insert_row(array(
         'country' => 'US', 'state' => 'CA', 'city' => 'San Francisco',
         'industry' => 'financial_services',
-        'company' => 'Filer ' . ($i % 700), 'company_key' => 'filer ' . ($i % 700),
+        'company' => 'TEST FIXTURE Filer ' . ($i % 700), 'company_key' => 'filer ' . ($i % 700),
         'pillar' => 'leadership_change', 'signal_direction' => 'neutral',
         'materiality' => 'routine', 'collector' => 'sec_edgar',
         'source_name' => 'SEC EDGAR', 'source_url' => 'https://example.test/8k/' . $i,
@@ -335,7 +384,7 @@ foreach ($WORLD as $cc => $n) {
         $row = array(
             'country' => $cc, 'city' => $CITY_OF[$cc],
             'industry' => $INDUSTRIES[$k % count($INDUSTRIES)],
-            'company' => $cc . ' Employer ' . ($i % max(1, intdiv($n, 2))),
+            'company' => 'TEST FIXTURE ' . $cc . ' Employer ' . ($i % max(1, intdiv($n, 2))),
             'company_key' => strtolower($cc) . ' employer ' . ($i % max(1, intdiv($n, 2))),
             'pillar' => $PILLARS[$k % 4], 'signal_direction' => $DIRECTIONS[$k % 4],
             'collector' => $k % 3 ? 'sec_form_d' : 'gdelt',
@@ -356,16 +405,16 @@ foreach ($WORLD as $cc => $n) {
 
 // A row placed only by its employer's head office, so the HQ badge renders.
 $wpdb->insert_row(array('hq_country' => 'US', 'hq_city' => 'Seattle',
-    'industry' => 'technology', 'company' => 'HQ Only Employer',
+    'industry' => 'technology', 'company' => 'TEST FIXTURE HQ Only Employer',
     'company_key' => 'hq only employer', 'published_date' => gmdate('Y-m-d'),
     'source_url' => 'https://example.test/hqonly/1'));
 // A row with no place at all, and no date: both print their own words.
-$wpdb->insert_row(array('industry' => 'technology', 'company' => 'Placeless Employer',
+$wpdb->insert_row(array('industry' => 'technology', 'company' => 'TEST FIXTURE Placeless Employer',
     'company_key' => 'placeless employer', 'published_date' => null,
     'source_url' => 'https://example.test/placeless/1'));
 // A withdrawn row must not count towards any figure.
 $wpdb->insert_row(array('country' => 'IL', 'industry' => 'technology', 'is_current' => 0,
-    'company' => 'Retracted Employer', 'company_key' => 'retracted employer',
+    'company' => 'TEST FIXTURE Retracted Employer', 'company_key' => 'retracted employer',
     'source_url' => 'https://example.test/retracted/1'));
 
 /*
@@ -387,7 +436,7 @@ $wpdb->insert_row(array('country' => 'IL', 'industry' => 'technology', 'is_curre
 for ($i = 0; $i < 120; $i++) {
     $wpdb->insert_row(array(
         'hq_country' => 'GB', 'hq_city' => 'Edinburgh', 'industry' => 'technology',
-        'company' => 'Edinburgh Employer ' . ($i % 20),
+        'company' => 'TEST FIXTURE Edinburgh Employer ' . ($i % 20),
         'company_key' => 'edinburgh employer ' . ($i % 20),
         'collector' => 'national_press', 'source_name' => 'The Scotsman',
         'source_url' => 'https://example.test/edinburgh/' . $i,
@@ -397,7 +446,7 @@ for ($i = 0; $i < 100; $i++) {
     $wpdb->insert_row(array(
         'country' => $i < 92 ? 'CA' : 'US', 'city' => 'Ottawa',
         'industry' => 'public_sector',
-        'company' => 'Ottawa Employer ' . ($i % 12),
+        'company' => 'TEST FIXTURE Ottawa Employer ' . ($i % 12),
         'company_key' => 'ottawa employer ' . ($i % 12),
         'collector' => 'national_press', 'source_name' => 'Ottawa Citizen',
         'source_url' => 'https://example.test/ottawa/' . $i,
@@ -452,11 +501,84 @@ foreach (array('tit-f-pillar', 'tit-f-direction', 'tit-f-country', 'tit-f-state'
 // the strip shipped as a label and a hint with no buttons between them and the
 // live page emitted an undefined-variable notice on every render. A control
 // group with nothing in it is the one thing a byte budget cannot see.
-check(substr_count($html, 'class="tit-qv"') === 3,
-      'the quick views strip has to carry its three buttons and carried '
+check(substr_count($html, 'class="tit-qv"') === 4,
+      'the quick views strip has to carry its four buttons and carried '
       . substr_count($html, 'class="tit-qv"'));
 check(strpos($html, 'data-qv="confidence=verified"') !== false,
       'and one of them has to be the official-filings view');
+
+/*
+ * THE HEADCOUNT CONTROL, WHICH IS A QUICK VIEW NOW AND NOT A PANEL FILTER.
+ *
+ * It shipped in the primary filter row reading "Only Updates That Move
+ * Headcount", and the owner asked what that meant. It filters
+ * signal_direction IN ('hiring','displacement') and reads nothing at all from
+ * the `headcount` column: measured 2026-07-29 over 15,711 current rows,
+ * headcount is non-null on 11 while that direction test is true on 53. So the
+ * old label promised a column it does not touch, and the set it does return is
+ * a third of one percent of the page.
+ *
+ * Both halves of the fix are pinned here, because either one alone regresses.
+ * The BUTTON has to exist and has to carry its count, or the control is gone and
+ * an existing share link has nothing to drive it. The CHECKBOX has to still
+ * exist somewhere in the markup, or applyUrlState(), the chips bar and both
+ * exports lose the parameter without anything visible breaking.
+ */
+check(strpos($html, 'data-qv="stated_headcount=1"') !== false,
+      'the headcount cut is a quick view, beside the other two narrow cuts');
+check(strpos($html, 'id="tit-stated-n"') !== false,
+      'and it prints its own count, so a reader sees how small the set is '
+      . 'before clicking rather than after');
+check(strpos($html, 'id="tit-f-stated_headcount"') !== false,
+      'while the checkbox it drives survives as state, or the querystring, the '
+      . 'chips bar and the exports quietly lose the parameter');
+check(strpos($html, 'Only Updates That Move Headcount') === false,
+      'and the label that promised a headcount column is gone from the page');
+
+/*
+ * THE PANEL IS A COLUMN BESIDE THE ROWS.
+ *
+ * The owner: "filters dont move with the page a like the layoff one". A
+ * full-width block cannot usefully be sticky because it is taller than the
+ * viewport, so the panel had to become a column first. This asserts the
+ * structure that makes the stylesheet's position:sticky possible at all; the
+ * sticky itself is a media query and cannot be checked from markup.
+ */
+foreach (array('tit-feed', 'tit-panel', 'tit-panel-head', 'tit-panel-body',
+               'tit-results') as $cls) {
+    check(strpos($html, 'class="' . $cls) !== false
+          || strpos($html, ' ' . $cls . '"') !== false
+          || strpos($html, '"' . $cls . '"') !== false,
+          "the feed layout needs .{$cls}, or the panel is a full-width block "
+          . 'again and sticky has nothing to pin');
+}
+// Reset moved to the top of the panel and kept its id, so the same handler
+// binds it. Two elements with that id would bind only the first.
+check(substr_count($html, 'id="tit-reset"') === 1,
+      'exactly one reset control, at the top of the panel where somebody '
+      . 'starting over will look for it');
+
+/*
+ * NO WORD MAY NAME TWO DIFFERENT GROUPS IN ONE PANEL.
+ *
+ * Three did. "Manufacturing" was both a Team or Function and an Industry,
+ * "Education" was both an Industry and an Employer Type, and "IPO" was both a
+ * Funding Stage and a Deal Type. Each pair is a genuinely different question, so
+ * the fix is wording and never the vocabulary: pipeline/vocab.py is fixed and a
+ * value that will not normalise is a rejected record, not a new category. Only
+ * the two server-rendered groups can be checked here; the other three are filled
+ * from /facets and their labels live in dashboard.js.
+ */
+$fn_block = substr($html, strpos($html, 'id="tit-f-function"'));
+$fn_block = substr($fn_block, 0, strpos($fn_block, '</select>'));
+$ind_block = substr($html, strpos($html, 'id="tit-f-industry"'));
+$ind_block = substr($ind_block, 0, strpos($ind_block, '</select>'));
+check(strpos($fn_block, '>Manufacturing<') === false,
+      'the Team or Function group may not offer the bare word "Manufacturing": '
+      . 'the Industry group beside it already means something else by it');
+check(strpos($ind_block, '>Manufacturing<') !== false,
+      'while Industry keeps it, because that is the sector reading a reader '
+      . 'expects');
 
 check(substr_count($html, 'class="tit-region') >= 6,
       'the region strip drops a region with nothing in it and keeps the rest');
@@ -559,6 +681,201 @@ check(strpos($html, 'Location not stated') !== false && strpos($html, 'Date not 
       'and a row with no place or no date says that too, rather than showing a blank cell');
 check(strpos($html, '/company/') !== false, 'every employer name links to that employer\'s page');
 
+/* --- the dated glance panel ---------------------------------------------- */
+
+/*
+ * THE PANEL THE OWNER ASKED FOR, AND THE ONE RULE IT MUST NOT BREAK.
+ *
+ * The hero used to open with an undated lump of totals, which answers "how big
+ * is this dataset" in the position where a reader is asking "what has moved".
+ * The panel answers the second question on four rungs, and every figure on it is
+ * computed on the matrix's existing scan.
+ */
+check(strpos($html, 'id="tit-dg"') !== false,
+      'the dated glance panel has to render, and it is the first thing on the '
+      . 'page that carries a date');
+foreach (array('week', 'month', 'year') as $bucket) {
+    check(strpos($html, 'data-dg="' . $bucket . '"') !== false,
+          "the {$bucket} rung of the dated panel is missing");
+}
+// The year label is DERIVED from the clock. A typed "2026 so far" is a line that
+// becomes wrong at midnight on 31 December and stays wrong until somebody reads
+// it carefully, which is the same failure as corrections.php's hardcoded
+// "$124.0bn" under a caption reading "Measured now".
+check(strpos($html, '>' . date('Y') . ' so far<') !== false,
+      'the year rung has to name the CURRENT year, derived rather than typed, '
+      . 'so it becomes "' . (date('Y') + 1) . ' so far" by itself');
+
+/*
+ * EVERY FIGURE ON THE PANEL IS THE ONE THE DATABASE HOLDS.
+ *
+ * Read back out of the rendered markup and recomputed here from the same clause
+ * the render used. A panel of headline numbers is the worst place on the site
+ * for a figure that drifted from its source, and "computed, never typed" is only
+ * a claim until something checks the arithmetic.
+ */
+$dg_date = 'COALESCE(published_date, DATE(captured_at))';
+foreach (array('week'  => gmdate('Y-m-d', strtotime(gmdate('Y-m-d') . ' -6 days')),
+               'month' => gmdate('Y-m-01'),
+               'year'  => gmdate('Y-01-01')) as $bucket => $since) {
+    $expect = (int) $wpdb->get_var(
+        "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND {$dg_date} >= '{$since}'");
+    if (preg_match('/data-dg="' . $bucket . '".*?<b>([\d,]+)<\/b> updates/s', $html, $m)) {
+        check((int) str_replace(',', '', $m[1]) === $expect,
+              "the {$bucket} rung prints {$m[1]} updates and the database holds "
+              . number_format($expect) . '. Every figure on this panel is computed.');
+    } else {
+        check(false, "the {$bucket} rung has to print an update count");
+    }
+    // And it has to agree with the matrix cell for the same window, which is the
+    // reason the two share one query rather than running two.
+    check(strpos($html, 'data-since="' . $since . '"') !== false,
+          "the {$bucket} rung and the matrix column for the same window have to "
+          . 'carry the same data-since, or one handler cannot drive both');
+}
+
+/*
+ * THE COMPARISON THAT MUST NOT BE INVENTED.
+ *
+ * The sibling can print "down 25% vs the week before" because it holds years.
+ * This tracker's news collectors first ran on 2026-07-27 and national_press on
+ * 2026-07-29, so a week-over-week figure drawn today divides a populated week by
+ * one that mostly predates the collector, and prints something in the thousands
+ * of percent. That is not an exaggerated trend, it is an artefact of the corpus
+ * start date wearing a statistic's clothes, and it would be the most quotable
+ * number on the page.
+ *
+ * Both directions are pinned, because a rule that only ever suppresses is
+ * indistinguishable from a feature that never worked:
+ *  - this fixture spans forty days, so the comparison IS printed;
+ *  - with every older row deleted it must NOT be, and must say why.
+ */
+check(preg_match('/vs the week before/', $html) === 1,
+      'this fixture holds forty days, so the week-over-week comparison should '
+      . 'be printed: the rule has to switch itself ON once real history exists, '
+      . 'or it is not a rule, it is a permanent suppression');
+
+/* --- "Why you can trust this", and the FAQ tucked into it ---------------- */
+
+/*
+ * THE CONTRACT THIS PANEL LIVES OR DIES BY: EVERY WORD IS IN THE INITIAL HTML.
+ *
+ * A tab that fetches its content on click hides that content from a crawler,
+ * and an FAQ is among the most SEO-valuable blocks on a page. So both panels
+ * are rendered server-side, always, in full, and JavaScript's whole job is to
+ * add a class that lets the stylesheet hide one of them.
+ *
+ * The assertions below are made against markup produced with NO JavaScript
+ * running at all, which is exactly the state a crawler sees. If a future
+ * session ever moves a panel behind a fetch, every one of these fails.
+ */
+check(strpos($html, 'id="tit-trust"') !== false,
+      'the "Why you can trust this" panel has to render; it existed nowhere in '
+      . 'this product before, so its absence is not a regression, it is a '
+      . 'deletion');
+foreach (array('Sourced', 'Unconverted', 'Unguessed', 'Correctable') as $item) {
+    check(strpos($html, $item) !== false,
+          "the {$item} item is missing from the trust panel");
+}
+check(substr_count($html, 'class="tit-trust-k"') === 4,
+      'four numbered items, and the stylesheet lays them out 1 / 2 / 4 across '
+      . 'so there is no width at which the fourth is stranded alone on a second '
+      . 'row, which is what the mock\'s auto-fit grid does');
+
+// Real tab semantics, not two divs and a click handler.
+check(strpos($html, 'role="tablist"') !== false
+      && substr_count($html, 'role="tab"') === 2
+      && substr_count($html, 'role="tabpanel"') === 2,
+      'the tabs have to be real tabs: a tablist, two tabs and two panels');
+check(substr_count($html, 'aria-selected=') === 2 && substr_count($html, 'aria-controls=') === 2,
+      'each tab states whether it is selected and which panel it controls');
+
+/*
+ * NEITHER PANEL MAY BE HIDDEN IN THE MARKUP.
+ *
+ * `hidden` is applied by dashboard.js, never by the server. If the server ever
+ * ships one panel hidden, a reader with no JavaScript loses it completely and a
+ * crawler reads a page with half its content marked away — which is the failure
+ * this whole design exists to avoid.
+ */
+$trust_block = substr($html, strpos($html, 'id="tit-trust"'));
+$trust_block = substr($trust_block, 0, strpos($trust_block, '</script>') + 9);
+check(strpos($trust_block, 'role="tabpanel" hidden') === false
+      && strpos($trust_block, 'hidden role="tabpanel"') === false,
+      'no panel may be server-rendered hidden. With JavaScript off both stack, '
+      . 'and that is the state a crawler reads');
+// And each panel keeps a heading of its own, which is what labels it when the
+// tab strip is not there to.
+check(substr_count($html, 'class="tit-tabpanel-h"') === 2,
+      'each panel carries its own heading, so with no JavaScript the two '
+      . 'degrade to stacked headings and answers rather than to unlabelled prose');
+
+/*
+ * EVERY NUMBER IN THE COPY IS COMPUTED.
+ *
+ * A panel whose subject is trustworthiness is the last place on this site that
+ * can carry a stale figure. corrections.php once shipped a typed "$124.0bn"
+ * captioned "Measured now" against a live figure of $101B; the sibling's press
+ * page still carries a hardcoded "51 ... we currently carry every one of them"
+ * with no query behind it. This asserts the panel's figures move with the data
+ * by checking them against the database rather than against a string.
+ */
+$trust_verified = (int) $wpdb->get_var(
+    "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND confidence = 'verified'");
+check(strpos($html, number_format_i18n($trust_verified) . ' of the ') !== false,
+      'the Sourced item states the official-filings count from the database ('
+      . number_format_i18n($trust_verified) . ')');
+$trust_routine = (int) $wpdb->get_var(
+    "SELECT COUNT(*) FROM wp_tit_signals WHERE is_current = 1 AND materiality = 'routine'");
+check(strpos($html, number_format_i18n($trust_routine) . ' of the ') !== false,
+      'and the FAQ states the hidden-rows count from the database ('
+      . number_format_i18n($trust_routine) . ')');
+
+/*
+ * THE FAQ ITSELF, AND ITS STRUCTURED DATA.
+ *
+ * The FAQPage block is a straight duplicate of visible prose and is only
+ * defensible because the prose IS visible: company.php and places.php both
+ * record the sibling's manual-action risk from emitting identical FAQPage
+ * markup across ~1,830 URLs where the answers appeared nowhere in the document.
+ * So this checks the two together — the schema may exist only while every
+ * question it names is also rendered as text.
+ */
+check(substr_count($html, 'class="tit-faq-q"') >= 6,
+      'the FAQ has to carry its questions as real headings in the markup');
+check(strpos($html, '"@type":"FAQPage"') !== false,
+      'and the FAQPage structured data, which is worth its bytes only because '
+      . 'the answers are on the page');
+if (preg_match('/"@type":"FAQPage".*?<\/script>/s', $html, $ld)) {
+    $decoded = json_decode(substr($ld[0], 0, strrpos($ld[0], '}') + 1), true);
+    foreach (($decoded['mainEntity'] ?? array()) as $q) {
+        check(strpos($html, esc_html($q['name'])) !== false,
+              'the schema names a question that is not rendered on the page: "'
+              . $q['name'] . '". Structured data may only describe what a reader '
+              . 'can read, or this is the sibling\'s manual action again');
+    }
+}
+// The project cannot support these, so its own FAQ may not claim them.
+foreach (array('100% automated', 'real time', 'comprehensive', 'most advanced') as $overclaim) {
+    check(stripos($html, $overclaim) === false,
+          'the page claims "' . $overclaim . '", which this project cannot '
+          . 'support. The automation figure is ~99% and names the human sliver');
+}
+
+$wpdb->pdo->exec("DELETE FROM wp_tit_signals WHERE {$dg_date} < '"
+                 . gmdate('Y-m-d', strtotime(gmdate('Y-m-d') . ' -9 days')) . "'");
+$young = cold_render();
+check(strpos($young, 'vs the week before') === false,
+      'a corpus whose history starts INSIDE the comparison window must not emit '
+      . 'a percentage. This is the "up 4,000%" case and it is a fabrication, not '
+      . 'a large number.');
+check(preg_match('/\bup <b>\d+%|\bdown <b>\d+%/', $young) === 0,
+      'and no percentage of any kind reaches the week rung while the prior week '
+      . 'is outside what we hold');
+check(strpos($young, 'we do not hold a full week before this one') !== false,
+      'the absence has to be STATED. A reader who sees nothing cannot tell '
+      . '"flat" from "we cannot say yet", and the second is the honest answer');
+
 /* --- the assets ---------------------------------------------------------- */
 
 check(isset($GLOBALS['tit_enqueued']['style']['tit-dashboard']),
@@ -574,12 +891,116 @@ check(($GLOBALS['tit_enqueued']['script_data']['tit-dashboard']['strategy'] ?? '
       . 'no reason, because nothing in that file needs to run before parsing ends');
 /* --- the byte budget ---------------------------------------------------- */
 
-$bytes = strlen($html);
+/*
+ * MEASURED WITH THE FIXTURE PREFIX STRIPPED, and that is not a way of gaming the
+ * budget. "TEST FIXTURE " exists so no human mistakes this render for the live
+ * page, it appears once per row plus once per employer link, and it is about
+ * 2.1KB that PRODUCTION NEVER SHIPS. Counting it would spend real headroom on a
+ * test artefact and would eventually fail a legitimate change for a reason
+ * nobody could find. The budget has to measure the page.
+ */
+$bytes = strlen(str_replace('TEST FIXTURE ', '', $html));
 $GLOBALS['tit_bytes'] = $bytes;
 check($bytes <= TIT_DASH_BYTE_BUDGET,
       'the markup must stay inside ' . number_format(TIT_DASH_BYTE_BUDGET)
       . ' bytes and was ' . number_format($bytes)
-      . '. This page is read on phones; a new card is not free.');
+      . ' (fixture prefixes excluded). This page is read on phones; a new card '
+      . 'is not free.');
+
+/* --- Title Case on control labels, as an assertion ----------------------- */
+
+/*
+ * THE OWNER HAS ASKED FOR THIS THREE TIMES, so it stops being a habit and
+ * becomes a test. It regressed twice because Title Case was a convention nobody
+ * could check: a new label written in sentence case looked exactly as correct as
+ * a right one.
+ *
+ * CONVENTIONAL Title Case, not every-word-capitalised. Short conjunctions,
+ * articles and prepositions stay lowercase inside a label, because "Pay And
+ * Benefits" and "Ways Of Working" are not how a person writes and the owner's
+ * other complaint about these strings was that they did not read as if a person
+ * had. First word always capitalises.
+ *
+ * SCOPE, deliberately narrow: the matrix row labels, the chart card headings and
+ * the section headings. NOT the option lists inside a control -- eighteen
+ * industries and seventeen functions are a vocabulary being listed, not labels,
+ * and shouting them would make the panel louder rather than clearer. Where that
+ * line falls is a judgement; what matters is that it is written down here rather
+ * than rediscovered.
+ */
+$tit_small = array('a','an','and','as','at','but','by','for','in','of','on','or',
+                   'the','to','vs','with');
+$title_case_ok = function ($label) use ($tit_small) {
+    $words = preg_split('/\s+/', trim($label));
+    foreach ($words as $i => $w) {
+        // Strip surrounding punctuation; leave the word itself alone.
+        $bare = preg_replace('/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/u', '', $w);
+        if ($bare === '') continue;
+        if ($i > 0 && in_array(mb_strtolower($bare), $tit_small, true)) continue;
+        // An all-caps acronym (IPO, HR, IT, CSV) is already fine.
+        if ($bare === mb_strtoupper($bare)) continue;
+        if (mb_substr($bare, 0, 1) !== mb_strtoupper(mb_substr($bare, 0, 1))) {
+            return false;
+        }
+    }
+    return true;
+};
+
+// The matrix row labels, read out of the markup rather than out of the source,
+// so this checks what a reader actually gets.
+preg_match_all('/<th scope="row">([^<]+)/', $html, $mrows);
+check(count($mrows[1]) >= 5,
+      'the matrix has to render its signal rows for this to mean anything, and '
+      . 'rendered ' . count($mrows[1]));
+foreach ($mrows[1] as $label) {
+    check($title_case_ok($label),
+          'matrix row label "' . $label . '" is not Title Case. The owner has '
+          . 'asked for Title Case three times; see $labels in shortcodes.php');
+}
+
+// Chart card headings and section headings.
+preg_match_all('/<h3>([^<]+)<\/h3>/', $html, $heads);
+check(count($heads[1]) >= 4, 'the chart cards have to render their headings');
+foreach ($heads[1] as $label) {
+    check($title_case_ok($label),
+          'heading "' . $label . '" is not Title Case');
+}
+
+/* --- ONE vocabulary, not two -------------------------------------------- */
+
+/*
+ * The charts said "Pay and benefits" while the matrix beside them said "Pay
+ * news" for the same rows, and "Growing and expanding" against "Funding raised".
+ * A reader had to work out that two phrases meant one thing. These assert the
+ * words that were retired, so a future edit cannot quietly bring a second
+ * vocabulary back.
+ */
+foreach (array('Hiring up', 'Pay news', 'All updates', 'Funding raised',
+               'Money raised is the exception', 'Cutting back') as $retired) {
+    check(strpos($html, $retired) === false,
+          'the retired phrase "' . $retired . '" is back on the page. The page '
+          . 'has ONE vocabulary; see the note beside $labels in shortcodes.php');
+}
+check(strpos($html, 'Adding Roles') !== false,
+      'and the replacement for "Hiring up" is on the page, so this is a rename '
+      . 'and not a deletion');
+
+/* --- the stacked matrix needs its period labels as REAL TEXT ------------- */
+
+/*
+ * Below 860px the matrix is laid out one card per row, which drops the implicit
+ * table roles and with them the column header. A CSS ::after on a data attribute
+ * cannot replace it: generated content is not reliably in the accessibility
+ * tree, is not selectable and is not findable. So the period is markup, and
+ * there has to be one per cell.
+ */
+// Matched on the word boundary, not on the prefix: 'class="tit-cell' also
+// matches the period label's own class and would count every cell twice.
+$cells = preg_match_all('/class="tit-cell[ "]/', $html);
+$periods = substr_count($html, 'class="tit-cell-p"');
+check($cells > 0 && $periods === $cells,
+      'every matrix cell needs its period printed as real text for the stacked '
+      . "phone layout: {$cells} cells, {$periods} period labels");
 
 /* --- the pill groups have to swap into a box the same size -------------- */
 
@@ -675,7 +1096,7 @@ function budget_phase() {
     for ($i = 0; $i < 5000; $i++) {
         $wpdb->insert_row(array(
             'country' => 'GB', 'city' => 'London', 'industry' => 'technology',
-            'company' => 'Grown Employer ' . ($i % 2000),
+            'company' => 'TEST FIXTURE Grown Employer ' . ($i % 2000),
             'company_key' => 'grown employer ' . ($i % 2000),
             'collector' => 'uk_paygap', 'source_name' => 'GOV.UK gender pay gap service',
             'source_url' => 'https://example.test/grown/' . $i,

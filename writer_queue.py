@@ -88,6 +88,21 @@ UNBOUND_AFTER_MINUTES = 45
 #: for most of a day, so this is set past that.
 STUCK_AFTER_HOURS = 14
 
+#: Two dispatches in a row that produced no run is not bad luck, it is broken.
+#: One is re-dispatched with a warning; the second makes the drain run red.
+UNBOUND_ALARM_COUNT = 2
+
+#: The queue has work waiting, the lock group is EMPTY, and still nothing has
+#: been dispatched. That combination is never legitimate for long, and on
+#: 2026-07-30 it persisted for hours behind a string of GREEN drain ticks.
+#:
+#: Sized against the tick interval that actually happens rather than the one
+#: the cron asks for: `*/15` is throttled by GitHub to roughly 45-60 minutes on
+#: this repo (measured across 2026-07-30 10:17Z-17:31Z, gaps 34-60 min). So a
+#: single tick can straddle an hour, and anything under that would fire on a
+#: transient. Two real intervals is the smallest honest threshold.
+IDLE_STALL_MINUTES = 90
+
 #: Backfills are hours; corrections are seconds. They share the lock (they must
 #: — one writer at a time is not negotiable), but they do not have to share a
 #: place in the line. Lower number leaves first.
@@ -148,6 +163,116 @@ def lock_group_workflows(workflow_dir: Path | None = None) -> dict[str, str]:
     return members
 
 
+def _block(lines: list[str], start: int, indent: int) -> list[str]:
+    """Lines belonging to the mapping that opened at `start` with `indent`.
+
+    Blank and comment lines carry no indentation meaning in YAML, so they never
+    end a block.
+    """
+    out: list[str] = []
+    for line in lines[start + 1:]:
+        if not line.strip() or line.lstrip().startswith("#"):
+            out.append(line)
+            continue
+        if len(line) - len(line.lstrip()) <= indent:
+            break
+        out.append(line)
+    return out
+
+
+def workflow_dispatch_inputs(workflow: str,
+                             workflow_dir: Path | None = None
+                             ) -> tuple[set[str], set[str]] | None:
+    """(declared, required) input names for a workflow, or None if unreadable.
+
+    THE BUG THIS EXISTS TO KILL
+    ---------------------------
+    `enqueue` checked that the workflow holds the lock and checked nothing about
+    the inputs, so a ticket could be accepted that the dispatch API will always
+    refuse. On 2026-07-30 a GDELT backfill was queued with `slice: "true"`, an
+    input backfill-gdelt-2026.yml does not declare; every dispatch answered
+    `Unexpected inputs provided: ["slice"] (HTTP 422)` and the ticket could
+    never leave the queue. The API is the only thing that knew, and it only
+    knew at dispatch time, which is minutes-to-hours after the human who
+    mistyped it has gone. So the check moves to the moment of typing.
+
+    Deliberately regex-and-indentation rather than yaml: ops_status.py imports
+    this module and must take no dependencies. Returning None means "could not
+    determine", which skips validation rather than blocking a legitimate
+    ticket — a parser that guesses wrong must fail open. tests/test_writer_queue
+    pins the parse of every current lock member so a formatting change is
+    caught by the suite instead of in production.
+    """
+    path = (workflow_dir or WORKFLOW_DIR) / workflow
+    if not path.exists():
+        return None
+    lines = path.read_text().splitlines()
+
+    opened = None
+    for index, line in enumerate(lines):
+        match = re.match(r"^(\s*)workflow_dispatch:\s*(\S*)\s*$", line)
+        if match:
+            opened = (index, len(match.group(1)), match.group(2))
+            break
+    if opened is None:
+        return None
+    at, indent, inline = opened
+    if inline and inline != "{}":
+        return None            # some inline form we are not going to guess at
+    body = _block(lines, at, indent)
+    if inline == "{}" or not body:
+        return set(), set()    # dispatchable, and it takes no inputs
+
+    inputs_at = None
+    for index, line in enumerate(body):
+        match = re.match(r"^(\s*)inputs:\s*$", line)
+        if match:
+            inputs_at = (index, len(match.group(1)))
+            break
+    if inputs_at is None:
+        return set(), set()
+    at, indent = inputs_at
+    body = _block(body, at, indent)
+
+    real = [line for line in body if line.strip() and not line.lstrip().startswith("#")]
+    if not real:
+        return set(), set()
+    child = min(len(line) - len(line.lstrip()) for line in real)
+
+    declared: set[str] = set()
+    required: set[str] = set()
+    name: str | None = None
+    for line in body:
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        depth = len(line) - len(line.lstrip())
+        match = re.match(r"^\s*([A-Za-z_][\w-]*):\s*(.*)$", line)
+        if depth == child and match:
+            name = match.group(1)
+            declared.add(name)
+        elif depth > child and name and re.match(r"^\s*required:\s*true\s*(#.*)?$", line):
+            required.add(name)
+    return declared, required
+
+
+def missing_required_inputs(workflow: str, inputs: dict,
+                            workflow_dir: Path | None = None) -> list[str]:
+    """Declared-required inputs this ticket does not carry.
+
+    A warning rather than a refusal, unlike an UNDECLARED input. The two are
+    not symmetrical: an input the workflow does not declare is always a typo
+    and the API will always refuse it, whereas `enqueue` is also used as the
+    canonical "can this workflow be queued at all" assertion (see
+    tests/test_backfill_slices.py) with a token input and no intent to
+    dispatch. So this is surfaced where a human is reading — the CLI — and the
+    dispatch step catches the 422 for real if one ever gets through.
+    """
+    schema = workflow_dispatch_inputs(workflow, workflow_dir)
+    if schema is None:
+        return []
+    return sorted(schema[1] - set(inputs or {}))
+
+
 # --------------------------------------------------------------------------
 # the queue file
 # --------------------------------------------------------------------------
@@ -186,13 +311,21 @@ def default_priority(workflow: str) -> int:
 
 def enqueue(queue: dict, workflow: str, inputs: dict | None = None,
             reason: str = "", requested_by: str = "", priority: int | None = None,
-            members: dict[str, str] | None = None, now: datetime | None = None) -> dict:
-    """Add a ticket. Raises on a workflow that does not hold the lock.
+            members: dict[str, str] | None = None, now: datetime | None = None,
+            workflow_dir: Path | None = None) -> dict:
+    """Add a ticket. Raises on a workflow that does not hold the lock, and on
+    inputs the workflow does not declare.
 
     Inputs are coerced to strings because that is what the dispatch API takes,
     and a boolean `False` silently becoming the string "False" (which is truthy
     to a shell `[ "$x" = "true" ]` test... and to nothing else) is the kind of
     detail that turns a correction into a no-op.
+
+    The input NAMES are checked here rather than left to the dispatch API,
+    because the API's refusal arrives at dispatch time — which on 2026-07-30
+    was twenty minutes after the human typed the ticket, in a step whose
+    failure was then read as a token problem. A ticket the API will always
+    refuse is a typo, and a typo belongs in front of the person who made it.
     """
     known = members if members is not None else lock_group_workflows()
     if workflow not in known:
@@ -206,6 +339,17 @@ def enqueue(queue: dict, workflow: str, inputs: dict | None = None,
             clean[key] = "true" if value else "false"
         else:
             clean[key] = str(value)
+
+    schema = workflow_dispatch_inputs(workflow, workflow_dir)
+    if schema is not None:
+        unknown = sorted(set(clean) - schema[0])
+        if unknown:
+            raise ValueError(
+                f"{workflow} does not declare the input(s) "
+                f"{', '.join(unknown)}. The dispatch API answers 422 "
+                f"'Unexpected inputs provided' and the ticket could never "
+                f"leave the queue. It declares: "
+                f"{', '.join(sorted(schema[0])) or '(none)'}")
 
     moment = now or _now()
     ticket = {
@@ -318,10 +462,20 @@ def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
             _log(ticket, "bound", f"run {run_id}")
         elif (moment - sent) > timedelta(minutes=UNBOUND_AFTER_MINUTES):
             # We recorded a dispatch that produced no run. Waiting on it forever
-            # is the silent stall this whole file exists to prevent.
+            # is the silent stall this whole file exists to prevent — but so is
+            # requeueing it forever without saying anything, which is what this
+            # branch used to do: it was not counted, not reported by _cmd_tick,
+            # and not a `problem`, so a ticket whose dispatch the API refuses
+            # every single time went round this loop in complete silence.
+            # Counted separately from `attempts` because displacement (someone
+            # else's dispatch evicted us) and a dispatch that vanished are
+            # different faults with different tolerances.
             ticket["state"] = "queued"
             ticket["dispatched_at"] = None
-            _log(ticket, "unbound", "dispatch produced no run; back in the line")
+            ticket["unbound_count"] = int(ticket.get("unbound_count", 0)) + 1
+            _log(ticket, "unbound",
+                 f"dispatch produced no run (x{ticket['unbound_count']}); "
+                 "back in the line")
             report.setdefault("unbound", []).append(ticket)
 
     # 2. Resolve dispatched tickets whose run has finished.
@@ -425,6 +579,33 @@ def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
         if waiting:
             report["dispatch"] = waiting[0]
 
+    # 6. The silence detector.
+    #
+    # On 2026-07-30 one ticket sat in state `dispatched` with no run behind it
+    # while the lock group stood empty and eleven consecutive drain ticks
+    # reported SUCCESS, dispatched nothing, and printed not one line about it.
+    # Every existing alarm was satisfied: the drainer was alive (last_tick
+    # fresh), the ticket was young (STUCK_AFTER_HOURS is 14), the orphans were
+    # all resolved. Nothing in the system was watching for "there is work, the
+    # lock is free, and still nothing left".
+    #
+    # So that exact conjunction is recorded here, in the committed file, with
+    # the moment it began. It is RECOMPUTED FROM LIVE FACTS on every tick —
+    # cleared only by a real dispatch, a busy group or an empty queue — so
+    # editing it out of the file buys silence until the next tick and no
+    # longer. That is what stops the alarm being quietly satisfiable.
+    live = [t for t in tickets if t["state"] in ("queued", "dispatched")]
+    stalled = bool(live) and not report["busy"] and report["dispatch"] is None
+    if stalled:
+        if not queue.get("idle_since"):
+            queue["idle_since"] = _iso(moment)
+    elif queue.get("idle_since"):
+        queue["idle_since"] = None
+    report["idle_since"] = queue.get("idle_since")
+
+    if report["dispatch"] is not None:
+        queue["last_dispatch"] = _iso(moment)
+
     queue["last_tick"] = _iso(moment)
     return report
 
@@ -483,6 +664,25 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
                 problems.append(
                     f"{ticket['workflow']} has been waiting {hours:.0f}h "
                     f"({ticket['id']}) — the lock is starved")
+            if int(ticket.get("unbound_count", 0)) >= UNBOUND_ALARM_COUNT:
+                problems.append(
+                    f"{ticket['workflow']} has been dispatched "
+                    f"{ticket['unbound_count']}x and produced NO RUN either "
+                    f"time ({ticket['id']}) — the dispatch itself is failing, "
+                    "not the work. Read the 'Dispatch it' step of the last red "
+                    "drain-writers run; check the ticket's inputs against the "
+                    "workflow's declared ones and the WRITER_QUEUE_TOKEN secret")
+
+    waiting = [t for t in tickets if t["state"] in ("queued", "dispatched")]
+    idle = _parse(data.get("idle_since"))
+    if idle and waiting and (moment - idle) > timedelta(minutes=IDLE_STALL_MINUTES):
+        minutes = round((moment - idle).total_seconds() / 60)
+        problems.append(
+            f"the writer queue has {len(waiting)} ticket(s) waiting and the "
+            f"{LOCK_GROUP} lock group has been EMPTY with nothing dispatched "
+            f"for {minutes} minutes. The drainer is ticking and the queue is "
+            "not moving — that is the shape of the 2026-07-30 stall, where "
+            "eleven green ticks in a row said nothing")
 
     for orphan in data.get("orphans", []):
         if not orphan.get("resolved"):
@@ -492,9 +692,11 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
 
     return {
         "counts": counts,
-        "waiting": [t for t in tickets if t["state"] in ("queued", "dispatched")],
+        "waiting": waiting,
         "orphans": [o for o in data.get("orphans", []) if not o.get("resolved")],
         "last_tick": data.get("last_tick"),
+        "last_dispatch": data.get("last_dispatch"),
+        "idle_since": data.get("idle_since"),
         "problems": problems,
     }
 
@@ -535,6 +737,12 @@ def _cmd_enqueue(args) -> int:
     except ValueError as exc:
         print(f"::error::{exc}")
         return 2
+    missing = missing_required_inputs(args.workflow, ticket["inputs"])
+    if missing:
+        print(f"::warning::{args.workflow} declares {', '.join(missing)} as "
+              "required and this ticket does not carry them. The dispatch API "
+              "will refuse it, and the drainer will mark it failed rather than "
+              "retry it. Re-queue it with those inputs.")
     prune(queue)
     save(queue, Path(args.file) if args.file else None)
     print(f"queued {ticket['id']}  inputs={ticket['inputs']}")
@@ -552,6 +760,13 @@ def _cmd_tick(args) -> int:
 
     for ticket in report["landed"]:
         print(f"landed    {ticket['id']}")
+    for ticket in report.get("unbound", []):
+        print(f"::warning::{ticket['workflow']} ({ticket['id']}) was marked "
+              f"dispatched {UNBOUND_AFTER_MINUTES}+ minutes ago and NO RUN ever "
+              f"appeared for it (occurrence {ticket.get('unbound_count')}). Back "
+              "in the line. A dispatch that creates nothing is the failure this "
+              "queue exists to make audible, so read the 'Dispatch it' step of "
+              "the run that sent it.")
     for ticket in report["displaced"]:
         print(f"::warning::DISPLACED and re-queued: {ticket['workflow']} "
               f"({ticket['id']}, attempt {ticket['attempts']}). It was evicted from "
@@ -590,6 +805,24 @@ def _cmd_tick(args) -> int:
             Path(args.emit).write_text(json.dumps(
                 {"workflow": plan["workflow"], "ticket": plan["id"],
                  "body": {"ref": args.ref, "inputs": plan["inputs"]}}, indent=2) + "\n")
+    else:
+        # Say why, every time. A tick that dispatches nothing used to print
+        # NOTHING AT ALL unless the group was busy, so eleven consecutive runs
+        # on 2026-07-30 each showed a green step with an empty log and a queue
+        # that never moved. "Nothing to do" and "cannot do it" have to look
+        # different from each other in the log.
+        live = [t for t in queue.get("tickets", [])
+                if t["state"] in ("queued", "dispatched")]
+        if not live:
+            print("nothing dispatched: the queue is empty.")
+        elif report["busy"]:
+            print(f"nothing dispatched: {len(live)} ticket(s) waiting on a busy group.")
+        else:
+            waiting = ", ".join(f"{t['id']} [{t['state']}]" for t in live)
+            print(f"::warning::nothing dispatched, and the {LOCK_GROUP} group is "
+                  f"EMPTY, yet {len(live)} ticket(s) are live: {waiting}. Nothing "
+                  "is in state 'queued', so there is nothing this tick may send. "
+                  f"Idle since {report.get('idle_since')}.")
 
     prune(queue)
 
@@ -632,6 +865,43 @@ def _cmd_requeue(args) -> int:
         _log(ticket, "requeued", args.note)
     save(queue, path)
     print(f"requeued {args.ticket}")
+    return 0
+
+
+def _cmd_dispatch_failed(args) -> int:
+    """The dispatch API refused, or produced nothing. Record which, then shout.
+
+    `requeue` alone was the wrong tool for both halves of this. A dispatch the
+    API REFUSES will be refused identically forever — putting the ticket back in
+    the line just hides a permanent fault behind an infinite retry, which is
+    exactly what happened to the GDELT ticket on 2026-07-30: every dispatch
+    answered 422 and the queue reported success. `--permanent` marks it failed
+    instead, which `summary()` reports as needing a human and which
+    `resolve` is the way out of.
+
+    A transient failure (a token that cannot create runs, a 5xx) does belong
+    back in the line, but it must still be COUNTED, so the second occurrence is
+    red rather than the eight-thousandth.
+    """
+    path = Path(args.file) if args.file else None
+    queue = load(path)
+    hits = [t for t in queue.get("tickets", []) if t["id"] == args.ticket]
+    if not hits:
+        print(f"::error::no ticket {args.ticket}")
+        return 2
+    for ticket in hits:
+        ticket["run_id"] = None
+        ticket["dispatched_at"] = None
+        ticket["unbound_count"] = int(ticket.get("unbound_count", 0)) + 1
+        if args.permanent:
+            ticket["state"] = "failed"
+            _log(ticket, "dispatch-refused", args.note)
+        else:
+            ticket["state"] = "queued"
+            _log(ticket, "dispatch-failed", args.note)
+    save(queue, path)
+    verb = "refused permanently" if args.permanent else "failed; back in the line"
+    print(f"::error::dispatch of {args.ticket} {verb}: {args.note}")
     return 0
 
 
@@ -717,6 +987,17 @@ def main(argv: list[str] | None = None) -> int:
     back.add_argument("ticket")
     back.add_argument("--note", default="")
     back.set_defaults(func=_cmd_requeue)
+
+    dead = sub.add_parser(
+        "dispatch-failed",
+        help="the dispatch API refused this ticket, or created no run")
+    dead.add_argument("ticket")
+    dead.add_argument("--note", default="")
+    dead.add_argument("--permanent", action="store_true",
+                      help="the API refused it and always will (a 422 on the "
+                           "inputs). Marks it failed rather than retrying it "
+                           "forever.")
+    dead.set_defaults(func=_cmd_dispatch_failed)
 
     show = sub.add_parser("status", help="queue state as JSON")
     show.set_defaults(func=_cmd_status)

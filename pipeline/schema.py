@@ -241,6 +241,18 @@ CREATE TABLE IF NOT EXISTS source_links (
     archive_state    TEXT,        -- archived | pending | unavailable
     archive_attempts INTEGER NOT NULL DEFAULT 0,
     archived_at      TEXT,
+    -- Probe accounting. `archive_attempts` counts CAPTURES tried; these two
+    -- count what we LEARNED, and the difference is what stops a throttled
+    -- fortnight from walking a capturable document to the terminal state:
+    --   archive_probes       definitive answers from the availability API
+    --                        (a hit, or an explicit "no snapshot"). 0 means we
+    --                        have never once been told anything about this URL.
+    --   archive_blind_rounds rounds that learned nothing at all — a 429, a
+    --                        timeout, a Save Page Now refusal. Never rot, never
+    --                        evidence, and never grounds for going terminal.
+    archive_probes       INTEGER NOT NULL DEFAULT 0,
+    archive_blind_rounds INTEGER NOT NULL DEFAULT 0,
+    archive_detail       TEXT,
 
     -- Reporting only. A rot rate that rises for ONE publisher means that
     -- publisher changed its URL scheme, which is actionable in a way that an
@@ -375,6 +387,18 @@ MIGRATIONS = (
     ("source_health", "cost_usd", "REAL"),
     ("source_health", "reads_bought", "INTEGER"),
     ("source_health", "rows_from_reads", "INTEGER"),
+    # Archive PROBE accounting, added 2026-07-29. `archive_state` alone cannot
+    # answer the question that decides whether a URL may ever go terminal:
+    # "have we ever had a real answer about this document?" A `pending` row with
+    # no definitive probe and a `pending` row Wayback has explicitly said it does
+    # not hold look identical, and only the second one is a real gap. Without the
+    # distinction a stretch of 429s reads as a growing backlog and the capture
+    # budget is spent on documents archive.org already has. NULL on every row
+    # stored before this column existed, which is why the reset below reads NULL
+    # as "never probed" rather than as zero probes.
+    ("source_links", "archive_probes", "INTEGER"),
+    ("source_links", "archive_blind_rounds", "INTEGER"),
+    ("source_links", "archive_detail", "TEXT"),
 )
 
 
