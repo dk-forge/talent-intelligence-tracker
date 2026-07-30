@@ -92,6 +92,14 @@ MAX_AGE_HOURS = {
     # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
     # schedule in .github/workflows/tripwire.yml is uncommented.
     "tripwire": 2400,
+    # The historical press walker ships DISPATCH-ONLY: there is no cron in
+    # .github/workflows/backfill-press-2026.yml and adding one is both a spend
+    # decision and a writer-lock decision. So a run followed by weeks of silence
+    # is the expected state and not an incident, the same shape as `tripwire`
+    # above. It also reads HISTORY rather than today's news, so "when did it
+    # last run" is a question about the owner's pace and not about coverage
+    # going quiet. Tighten this the day a schedule is chosen.
+    "press_archive": 2400,
     # Link rot and archiving, both scheduled since 2026-07-30 — but by
     # schedule-link-hygiene.yml writing a TICKET rather than by a cron in their
     # own workflows, because both are database writers and a cron in a

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="//www.smartcompany.com.au/main-sitemap.xsl"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<url>
+		<loc>https://www.smartcompany.com.au/uncategorized/brendan-mckeegan/</loc>
+		<lastmod>2006-12-17T23:55:58+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/Keegan-38f09f90-86ff-40ab-bb8f-e4f2b5581d37.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/uncategorized/the-scrutineer/</loc>
+		<lastmod>2006-12-19T01:26:40+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/JLS070110002001-c71721fd-cdd1-42cf-bfe8-cf03fb7b2970.JPG</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/business-advice/how-to-deal-with-redundant-staff/</loc>
+		<lastmod>2007-08-06T05:18:34+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/ExitInside-ea07c57f-c9e5-45ad-a206-36ff9721847d.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/people-human-resources/eve-ash/</loc>
+		<lastmod>2007-08-06T06:00:26+00:00</lastmod>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/people-human-resources/purposeful-leadership/</loc>
+		<lastmod>2007-08-06T06:09:51+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/Griffin-bb79de63-f55f-4aa7-bca4-caab2ec70b4a.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/finance/a-steady-hand-on-the-helm/</loc>
+		<lastmod>2007-08-06T06:15:26+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/RivieraWes-35270096-61b4-46d1-9e9e-4065955e7475.png</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/YBS-Button-6ec7b6a8-a4c8-4f25-a74d-44be5749a04b.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/business-advice/responsibility-doesnt-end-at-the-door-step/</loc>
+		<lastmod>2007-08-06T06:40:40+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/harassment-8bcb02e6-c9ab-4e27-8db6-748cb8d81b98.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://www.smartcompany.com.au/uncategorized/marketing-by-the-book/</loc>
+		<lastmod>2007-08-06T23:51:01+00:00</lastmod>
+		<image:image>
+			<image:loc>https://www.smartcompany.com.au/Media/images/Sean-Adams-6e8f75ee-c48e-44b3-9bce-883837c96b0c.jpg</image:loc>
+		</image:image>
+	</url>
+</urlset>

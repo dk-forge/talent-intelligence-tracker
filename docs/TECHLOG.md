@@ -13,6 +13,219 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — historical press: a sitemap is an archive and an RSS feed is not, and the honest ceiling is four of fifty-one
+
+`collectors/press_archive.py` + `backfill_press_2026.py` +
+`.github/workflows/backfill-press-2026.yml`, dispatch-only, 41 new offline
+tests. Every figure below was fetched from live publishers on 2026-07-30, and
+three of the premises this started from turned out to be wrong when the real
+sources answered. Those are recorded here rather than quietly worked around,
+because each one is the kind of mistake that produces a confident number.
+
+### Why anything was built at all
+
+`data/recall_rejection_audit.json`: of 81 gold-set misses, **zero were fetched
+and rejected**. There is no filter defect anywhere in this product. **51 are
+`outside_our_history`**, every one published between **2026-07-01 and
+2026-07-17**, against news collectors that first ran on 2026-07-27 and a
+`national_press` that first ran on 2026-07-29. We did not miss them; we did not
+exist.
+
+`national_press` reads 653 publisher feeds and can never help: **an RSS feed is
+a window, not an archive.** It serves the last few dozen items and
+`MAX_ITEMS_PER_FEED` takes 25 of them, which on a daily is two or three days.
+Nothing in the RSS route reaches 2026-07-01 at any price. A publisher's XML
+sitemap is a different document with a different promise, written for crawlers
+that want the whole site.
+
+### Route A: publisher sitemaps. Measured with the shipping code, 82 publishers
+
+Against **2026-03** — a month that predates us AND is out of reach of a
+48-hour news sitemap, which is the only kind of test month that cannot be faked.
+
+| | |
+|---|---|
+| serve a discoverable sitemap | 72 / 82 (88%) |
+| reach 2026-03 with a dated article URL | **34 / 82 (41%)** |
+| ... with 50 URLs or more | 25 / 82 |
+| ... with 100 or more | 23 / 82 |
+| URLs per reaching publisher, one month | median 163, mean 233 |
+| past the free prefilter on the SLUG | 244 / 7,910 (**3.08%**) |
+| past it on the real title+teaser | ~5.6% (11 of 60 against the slug's 6) |
+| wall clock | 980s for all 82, median 5.3s each |
+| robots.txt refusals | 0 |
+
+### Where the brief and the first pass were both wrong
+
+**1. `<lastmod>` does not locate a month, and counting it overstates reach by
+half.** A first probe counted lastmod months and reported **54 of 72 publishers
+"reaching 2026-07"**. That is nonsense twice over. A section page's `<lastmod>`
+moves to today whenever a story is added to it, so WirtschaftsWoche's
+`sitemapExternal` index (a list of TOPICS: "cisco", "chiphersteller") and
+Baguete's seven URLs of site furniture both scored. And a 48-hour news sitemap
+read on 30 July trivially "reaches July": **PR TIMES scored 942 July URLs that
+way and actually reaches four.**
+
+Worse, the obvious selection — "fetch every child whose lastmod is not older
+than the window" — is wrong on a real index. SmartCompany's `sitemap_index.xml`
+lists 105 children:
+
+    post-sitemap.xml            lastmod 2026-07-29   contents 2006-12..2007-08
+    post-sitemap45.xml          lastmod 2013-08-29   contents 2013-07..2013-08
+    post-sitemap89.xml          lastmod 2026-07-29   contents 2026-04..2026-07
+    site-post-tag-sitemap5..9   lastmod 2026-07-30   contents TAG PAGES
+    news-sitemap.xml            lastmod 2026-07-29   contents the last 48 hours
+
+Page ONE of a chronologically paginated set carries the whole site's newest
+modification date while holding posts from 2006. What IS reliable is the
+ordering, so `locate_children()` **bisects the largest paginated family**:
+July 2026 is one fetch instead of 105, bounded at `MAX_PROBES = 9`, and a family
+whose probes come back out of order is abandoned rather than trusted. Every
+probe's body is handed back through the caller's cache, so a child fetched to
+locate the window is never fetched again to read it.
+
+**2. A sitemap has no headline, and the slug is not a substitute.** `<urlset>`
+gives a URL and a date. The free prefilter — the whole reason breadth is
+affordable — has nothing to read. Three sources of text, measured:
+
+* **the slug**: free, 3.08% survival, and **zero for PR TIMES
+  (`/tv/detail/3164`) and CTech (`0,7340,L-3723664,00.html`)**. A prefilter that
+  returns zero for Japan, Korea and Israel while looking healthy in English is
+  the same silent-zero failure `tests/test_locale_rotation.py` exists to prevent
+  one layer up. So the slug **ORDERS and never rejects**, and there is a test
+  saying an unreadable slug still produces a candidate.
+* **`<news:title>`** where the sitemap carries it: 17 of 72 publishers. Free and
+  exact, used when present.
+* **the article's own `og:title` / `og:description`**: the two fields a
+  publisher writes so other people may quote the piece, which is what an RSS
+  teaser is built from. 0.17s each on a keep-alive session, and 11 of 60
+  SmartCompany URLs past the prefilter against the slug's 6. Only the first
+  `HEAD_BYTES` (200KB) of the response is read and no body text is taken.
+
+**3. Route B, the Wayback CDX API, is refused as a walk route — and the query
+shape everyone reaches for first is the one that fails.**
+
+| query | result |
+|---|---|
+| `url=<domain>/*` + a date range | **HTTP 504 after exactly 60s, every domain tried** |
+| `url=<domain>/&matchType=prefix` + dates | 200 on 6 of 8 domains, 7-29s each; 504 on the other 2 |
+| `url=<domain>` (exact) | 200, 7.3s |
+| 6-query burst with no pause at all | 5x 200, 1x 504 |
+
+**No 429 was observed at any point in ~20 queries.** archive.org's failure mode
+here is a gateway 504, not a documented throttle with `Retry-After`. The
+`ArchiveUnknown` rule covers 429, 5xx and timeouts alike, because the property
+being guarded is "did not answer", not a particular number — and a non-answer
+read as an empty result is how a throttle becomes a coverage claim nobody
+re-checks.
+
+The decisive finding is different and worse: **the CDX date range is a CAPTURE
+window, not a publication window.** Asking for captures between 2026-07-01 and
+2026-07-20 returned FINSMES articles from **2013 and 2014** and Wamda articles
+from **2012**, because a crawler visiting a site in July 2026 re-captures a
+decade of its pages. CDX cannot target a historical month at all. Combined with
+7-60s per domain and a quarter of domains answering 504, 653 publishers is
+hours of wall clock against a 50-minute slice budget. `wayback_urls()` stays in
+the collector for a named dead publisher, called by hand, and is wired into
+nothing.
+
+### The cursor walks PUBLISHERS, and that is the one structural difference
+
+A GDELT or Google News day costs a fetch. A publisher's sitemap costs the same
+fetch whether the window is one day or six months — the date is a FILTER over
+rows the document returned anyway. A date cursor would therefore "finish"
+2026-01-01..04 having downloaded every publisher's whole 2026 and thrown 99% of
+it away, then download it all again for the next four days. So the unit is
+`slices`, the same one `backfill_slices.UNITS` documents for `companies_house`,
+and **widening the window is free**: dispatching 2026-01-01..2026-07-26 costs
+exactly what one week costs.
+
+The property `tests/test_backfill_pace.py` asserts is unchanged and now asserted
+for this walker too — two runs in the same clock second walk two different
+roster slices — plus a new one: **a run that stopped on its budget after 5 of 40
+publishers finishes NO roster index**, emits an unmoved cursor, and is correctly
+refused a requeue. Advancing on "we got some of the way through" would leave 35
+publishers unvisited with the run count looking perfect.
+
+### Cost, and the refusal
+
+At the ledger's measured prices (gate $0.00003, read $0.00128, gate survival
+15%, so $0.000222 all-in per gated candidate), scaled to 653 feeds: ~271
+publishers reach an arbitrary 2026 month at ~233 URLs each, ~5.6% candidates,
+so ~3,500 candidates per month of history — about 115 per day of history against
+the Google News walker's measured 395.
+
+| | |
+|---|---|
+| one month of history, EVERY candidate gated | **$0.78** |
+| a year of 2026 the same way | **$9.42** |
+| GDELT's whole year | $4.51 |
+| the Google News walker's year | $3.02 |
+
+**A full-depth sweep is more expensive than either walker already built, so it
+is refused.** The gate is rationed instead, exactly as `backfill_gnews_2026.py`
+does and for its reason: a read-only ceiling STALLS a walker (the ceiling binds
+inside slice one, no unit finishes, the cursor never advances, and the chain
+halts behind a green exit code), whereas a ration lets a slice FINISH partially
+read. `SLICE_GATE_RATION = 75` is DERIVED from `MONTHLY_WALKER_BUDGET_USD =
+0.50` — the smallest of the three walkers, because GDELT holds $1.50 and Google
+News $1.00 and those two are already half the ~$5 product budget. A pass over
+the roster is **17 slices and $0.28**, reading 36% of a one-month window;
+everything past the cut is left UNMARKED, so a second pass costs the same and
+buys entirely different rows.
+
+### The honest coverage estimate, which is why this is not a recommendation
+
+Of the 51 `outside_our_history` misses, **11** are on a domain this collector
+sweeps at all. The other 40 are on domains in the catalogue without a feed (20)
+or not in the catalogue at all (20) — a SOURCE problem wearing a history
+problem's clothes, which no history walk can fix. Each of the 11 was then run
+through this collector for the real gold window, 2026-07-01..07-26:
+
+| publisher | misses | result | reachable |
+|---|---|---|---|
+| SmartCompany | 3 | 218 URLs, 22 of 26 days | YES |
+| THE BRIDGE | 1 | 65 URLs, 12 of 26 days | LIKELY |
+| PR TIMES | 2 | 4 URLs (root index points at /tv/; main sitemap is the 48h news one) | NO |
+| Globes | 2 | 0 URLs, news sitemap only | NO |
+| Wamda | 2 | 0 URLs, serves no sitemap at all | NO |
+| BetaKit | 1 | 0 URLs, news sitemap only | NO |
+
+**So the ceiling is 4 of 51, about 8%, before the ration cuts it further.** That
+is why this ships dispatch-only with its cost table attached rather than as
+advice to run it. The Google News walker reaches all 51 in principle
+(`widest_route` is `google_news` for every one of them) and is limited only by
+its ration; **if one walker is to be dispatched for this measured miss, it is
+that one.**
+
+### Proven, and not proven
+
+Proven: `--fetch-only` over the catalogue's first 12 publishers,
+2026-07-01..07-26, real network. 11 publishers read in 6 minutes (33s each,
+which is what sized `PUBLISHERS_PER_SLICE = 40` rather than 60), **6 of 11
+reached back into the window**, 1,833 URLs, 48 headlines at a deliberately small
+`--max-heads 8`, 14 past the free prefilter, real Cameroonian, Zimbabwean and
+Congolese leadership and jobs headlines at the gate boundary.
+`data/talent_intel.db` byte-identical before and after.
+
+NOT proven: a real `--dry-run`, which classifies and therefore costs money. No
+model has read a single item from this collector and no row has been stored.
+`data/press_archive_health.json` does not exist yet.
+
+One consequence to know before the first real run: a `press_archive` row carries
+`source_name` = the publisher's own name, which
+`source_registry.COLLECTOR_BY_SOURCE_NAME` already maps to `national_press`. The
+sources page will therefore attribute it to that collector. That is defensible —
+the SOURCE is the publisher either way and only the route differs — but it means
+the page will not show `press_archive` as a running collector, and it must not
+be "fixed" by typing a second map in PHP.
+
+`staleness.py` gets `press_archive: 2400`, the dormant/dispatch-only leash, to be
+tightened the day a pace is chosen. `drain-writers.yml` watches the new workflow,
+so a slice cannot finish without waking the drainer.
+
+---
+
 ## 2026-07-30 — the canonical decides who published it, CTech has no feed to wire, and the audit that says why we miss things is finally printed
 
 Three fixes from one brief. Every figure below is measured; two of the brief's
