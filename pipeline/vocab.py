@@ -1558,101 +1558,547 @@ _NON_USD = re.compile(
 # we have never seen now refuses by default instead of quietly becoming dollars.
 _USD_MARKER = re.compile(r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$")
 
-# The multiplier may be attached by a hyphen as well as by a space: BetaKit
-# writes '$20-million USD', and \s* does not match '-', so that round was stored
-# as twenty dollars. En and em dashes too, because a publisher's typographer may
-# have been through it.
-_AMOUNT = re.compile(
-    r"(\d[\d,]*(?:[.,]\d+)?)\s*[-‐-―]?\s*"
-    r"(k|m|mm|mn|mln|mio|mil|mi|bn|b|t|thousand"
-    r"|million|millions|millones|millioner|milliones|milhões|milhoes"
-    r"|milione|milioni|millioni|milionu|miljoen|milyon"
-    r"|billion|billions|billones|billioner|trillion)?\b\.?",
-    re.I,
-)
-
-# Words for a million and a billion in the languages the feed catalogue actually
-# covers. These only ever apply to a string that has already stated US dollars,
-# so widening this list cannot turn a foreign amount into a dollar figure -- it
-# can only stop 'USD 53 millones' being stored as fifty-three dollars.
+# --- The scale word, in every language the catalogue wires -------------------
 #
-# 'mia'/'milliard' are deliberately ABSENT. A Scandinavian milliard is 10^9 and
-# a Spanish billón is 10^12, and no string here has ever paired either with an
-# explicit USD marker, so guessing which convention a publisher meant would be
-# inventing a figure. Such a string refuses, which is the correct answer.
-_MULTIPLIERS = {
-    None: 1,
-    "k": 1_000, "thousand": 1_000,
-    "m": 1_000_000, "mm": 1_000_000, "mn": 1_000_000,
-    "mln": 1_000_000, "mio": 1_000_000,
-    "million": 1_000_000, "millions": 1_000_000,
-    "millones": 1_000_000, "milliones": 1_000_000, "millioner": 1_000_000,
-    "milhões": 1_000_000, "milhoes": 1_000_000,
-    "milione": 1_000_000, "milioni": 1_000_000, "millioni": 1_000_000,
-    "milionu": 1_000_000, "miljoen": 1_000_000,
-    # Turkish. Unambiguous -- 'milyon' is 10^6 in Turkish and is not a scale
-    # word in any other language we read, so it needs no ambiguity guard.
-    # Four live rows sat at 190, 35, 30 and 12 dollars for rounds of 190, 35,
-    # 30 and 12 MILLION. 'milyar' (10^9) is deliberately NOT added: no string
-    # here has paired it with an explicit USD marker, and the rule above for
-    # milliard/mia applies.
-    "milyon": 1_000_000,
-    "b": 1_000_000_000, "bn": 1_000_000_000,
-    "billion": 1_000_000_000, "billions": 1_000_000_000,
-    "billones": 1_000_000_000, "billioner": 1_000_000_000,
-    "t": 1_000_000_000_000, "trillion": 1_000_000_000_000,
+# `$190 Milyon Dolar` was stored as ONE HUNDRED AND NINETY DOLLARS. Turkish for
+# a million was not in the table, the token fell through to no multiplier at
+# all, and a nine-figure round landed on the money chart as pocket change. Four
+# rows went that way in one collection, and the mechanism is not Turkish: 575
+# national press feeds across 139 countries were wired into a parser whose scale
+# vocabulary was English with a handful of Romance words bolted on.
+#
+# So the vocabulary is now declared PER LANGUAGE, derived from the language
+# column of data/sources_catalogue.csv rather than from whichever string last
+# broke. tests/test_funding_amount_parsing.py reads that CSV and fails if a
+# wired language is neither covered here nor named in UNCOVERED_LANGUAGES with
+# a reason. A partial vocabulary fails silently and looks like sparse data —
+# that is the lesson the figure-guard measurement wrote down on 2026-07-30, and
+# this is the structure that makes the gap visible instead.
+#
+# Three things carried over from the Hebrew/Czech/Danish prefilter work, and all
+# three shaped the code below rather than only the word lists:
+#
+#   1. Word boundaries are not universal. `\b` is meaningless in Chinese,
+#      Japanese, Korean and Thai, which put no space between the number, the
+#      scale word and the currency: `1亿美元` is one token to a regex engine, and
+#      `亿\b` can never match it because 美 is a word character. Those scripts get
+#      GLUED_SCALE, matched as a prefix with no boundary assertion at all. The
+#      space-delimited scripts are matched by taking the WHOLE letter run after
+#      the number and looking it up, which is a boundary that cannot be got
+#      wrong and which also kills the ordering trap below.
+#   2. Hebrew and Arabic glue clitics onto the FRONT of a word, and they are
+#      word characters, so `מיליון` is often written `כמיליון`. A short list of
+#      those prefixes is stripped before lookup, and only when what is left is a
+#      word we know.
+#   3. A regex alternative ending in a magnitude word can silently never match —
+#      `mil` shadowing `milyon` inside one alternation is exactly how the
+#      Turkish rows were lost, since `mil` matched, the boundary failed, and the
+#      optional group settled for nothing. There is no alternation here any
+#      more. The letter run is read once and looked up in a dict.
+#
+# A widened vocabulary CANNOT turn a foreign amount into a dollar figure: every
+# path below runs only after _USD_MARKER has already found '$', 'US$' or 'USD'
+# in the string. It can only stop 'USD 53 millones' being stored as fifty-three
+# dollars.
+
+_THOUSAND = 1_000
+_MILLION = 1_000_000
+_MILLIARD = 1_000_000_000
+_TRILLION = 1_000_000_000_000
+
+# Which separator a language writes a DECIMAL with. '.' means the English
+# convention (dot decimal, comma thousands); ',' means the continental one
+# (comma decimal, dot thousands); None means we do not claim to know, and the
+# number falls back to the shape heuristic in _read_number.
+#
+# This is the second half of the same defect. `$150.000` from an Indonesian
+# publisher is one hundred and fifty THOUSAND dollars, and an English-tuned
+# reader stored 150. The mirror-image error is just as available: `1,5 milyon`
+# is one and a half million, and stripping the comma makes it fifteen.
+_DOT_DECIMAL = "."
+_COMMA_DECIMAL = ","
+
+_LANGUAGE_DECIMAL = {
+    "Albanian": _COMMA_DECIMAL, "Arabic": None, "Bengali": _DOT_DECIMAL,
+    "Bosnian": _COMMA_DECIMAL, "Bulgarian": _COMMA_DECIMAL,
+    "Chinese": _DOT_DECIMAL, "Croatian": _COMMA_DECIMAL,
+    "Czech": _COMMA_DECIMAL, "Danish": _COMMA_DECIMAL, "Dutch": _COMMA_DECIMAL,
+    "English": _DOT_DECIMAL, "Estonian": _COMMA_DECIMAL,
+    "Finnish": _COMMA_DECIMAL, "French": _COMMA_DECIMAL,
+    "German": _COMMA_DECIMAL, "Greek": _COMMA_DECIMAL, "Hebrew": _DOT_DECIMAL,
+    "Hungarian": _COMMA_DECIMAL, "Icelandic": _COMMA_DECIMAL,
+    "Indonesian": _COMMA_DECIMAL, "Italian": _COMMA_DECIMAL,
+    "Japanese": _DOT_DECIMAL, "Kinyarwanda": None, "Korean": _DOT_DECIMAL,
+    "Kurdish": _COMMA_DECIMAL, "Latvian": _COMMA_DECIMAL,
+    "Lithuanian": _COMMA_DECIMAL, "Macedonian": _COMMA_DECIMAL,
+    "Maltese": _DOT_DECIMAL, "Montenegrin": _COMMA_DECIMAL,
+    "Nepali": _DOT_DECIMAL, "Norwegian": _COMMA_DECIMAL,
+    "Polish": _COMMA_DECIMAL, "Portuguese": _COMMA_DECIMAL,
+    "Romanian": _COMMA_DECIMAL, "Russian": _COMMA_DECIMAL,
+    "Serbian": _COMMA_DECIMAL, "Slovak": _COMMA_DECIMAL,
+    "Slovenian": _COMMA_DECIMAL, "Spanish": _COMMA_DECIMAL,
+    "Swahili": _DOT_DECIMAL, "Swedish": _COMMA_DECIMAL, "Thai": _DOT_DECIMAL,
+    "Turkish": _COMMA_DECIMAL, "Ukrainian": _COMMA_DECIMAL,
+    "Uzbek": _COMMA_DECIMAL, "Vietnamese": _COMMA_DECIMAL,
 }
 
-# Scale words that mean different things in different languages, so no reading of
-# them is safe. 'mil' is a million in Singapore and Malaysian English ("US$22 mil
-# in pre-Series A", which the 2026-07-29 sweep found) and a THOUSAND in Spanish
-# and Portuguese. A thousand-fold error in either direction on the money total is
-# worse than an absent figure, and the verbatim string is still on the row for
-# anyone reading it. Matched by _AMOUNT so it cannot fall through to no
-# multiplier at all, which is how 'US$22 mil' became twenty-two dollars.
+# The scale words themselves, keyed by the language name the catalogue uses.
 #
-# 'mi' joins it for the same reason and by the same route. Brazilian business
-# press writes 'US$ 544 mi' for milhoes, and that row sat in funding_amount_usd
-# as five hundred and forty-four dollars because 'mi' was in neither the
-# alternation nor the table, so it fell through to no multiplier -- exactly the
-# failure the 'mil' comment above describes. Reading it as a million would be
-# right in Portuguese and a guess everywhere else, and this list's own rule is
-# that a scale word whose meaning depends on which language the publisher was
-# writing refuses rather than picks. The verbatim string stays on the row.
-_AMBIGUOUS_SCALE = frozenset({"mil", "mi"})
+# Inflection is why these are lists rather than stems: Latvian alone writes
+# miljons / miljoni / miljonu / miljonus / miljoniem, and all five came off the
+# live Latvian feed in one fetch. A stem match with a loose tail would also
+# catch `milionário`, and the prefilter work already paid for that lesson once
+# (bare `investice` gave nine false positives in fifteen). Every form below was
+# either read off a wired feed on 2026-07-30 or is the dictionary citation form
+# of one that was.
+SCALE_WORDS_BY_LANGUAGE = {
+    "Albanian": {"milion": _MILLION, "milionë": _MILLION,
+                 "milionesh": _MILLION, "milionësh": _MILLION,
+                 "miliard": _MILLIARD, "miliardë": _MILLIARD,
+                 "mije": _THOUSAND, "mijë": _THOUSAND},
+    # Arabic plurals are broken rather than suffixed, so both stems are listed.
+    "Arabic": {"مليون": _MILLION, "ملايين": _MILLION,
+               "مليار": _MILLIARD, "مليارات": _MILLIARD,
+               "تريليون": _TRILLION, "ألف": _THOUSAND, "الف": _THOUSAND},
+    "Bengali": {"মিলিয়ন": _MILLION, "বিলিয়ন": _MILLIARD},
+    "Bosnian": {"milion": _MILLION, "miliona": _MILLION, "milione": _MILLION,
+                "milijun": _MILLION, "milijuna": _MILLION,
+                "milijarda": _MILLIARD, "milijardi": _MILLIARD,
+                "milijarde": _MILLIARD, "hiljada": _THOUSAND},
+    "Bulgarian": {"милион": _MILLION, "милиона": _MILLION, "млн": _MILLION,
+                  "милиард": _MILLIARD, "милиарда": _MILLIARD,
+                  "млрд": _MILLIARD, "хиляди": _THOUSAND},
+    # Chinese counts in ten-thousands, which is the whole reason GLUED_SCALE
+    # exists: 亿 is 10^8, not a billion, and `1亿美元` has no space anywhere in it.
+    "Chinese": {"万": 10_000, "萬": 10_000, "千万": 10_000_000,
+                "百万": _MILLION, "亿": 100_000_000, "億": 100_000_000,
+                "十亿": _MILLIARD, "兆": _TRILLION, "千": _THOUSAND},
+    "Croatian": {"milijun": _MILLION, "milijuna": _MILLION,
+                 "milijuni": _MILLION, "milijarda": _MILLIARD,
+                 "milijardi": _MILLIARD, "tisuća": _THOUSAND},
+    "Czech": {"milion": _MILLION, "milionu": _MILLION, "milionů": _MILLION,
+              "miliony": _MILLION, "miliónů": _MILLION,
+              "miliarda": _MILLIARD, "miliardy": _MILLIARD,
+              "miliard": _MILLIARD, "tisíc": _THOUSAND},
+    "Danish": {"million": _MILLION, "millioner": _MILLION, "mio": _MILLION,
+               "milliard": _MILLIARD, "milliarder": _MILLIARD,
+               "mia": _MILLIARD, "tusinde": _THOUSAND},
+    "Dhivehi": {"މިލިއަން": _MILLION},
+    "Dutch": {"miljoen": _MILLION, "mln": _MILLION, "miljard": _MILLIARD,
+              "mld": _MILLIARD, "duizend": _THOUSAND},
+    "English": {"thousand": _THOUSAND, "k": _THOUSAND,
+                "m": _MILLION, "mm": _MILLION, "mn": _MILLION,
+                "million": _MILLION, "millions": _MILLION,
+                "b": _MILLIARD, "bn": _MILLIARD,
+                "billion": _MILLIARD, "billions": _MILLIARD,
+                "t": _TRILLION, "tn": _TRILLION, "trillion": _TRILLION},
+    "Estonian": {"miljon": _MILLION, "miljonit": _MILLION,
+                 "miljardit": _MILLIARD, "miljard": _MILLIARD,
+                 "tuhat": _THOUSAND},
+    "Finnish": {"miljoona": _MILLION, "miljoonaa": _MILLION,
+                "miljoonan": _MILLION, "miljardi": _MILLIARD,
+                "miljardia": _MILLIARD, "tuhatta": _THOUSAND},
+    "French": {"million": _MILLION, "millions": _MILLION,
+               "milliard": _MILLIARD, "milliards": _MILLIARD,
+               "mille": _THOUSAND},
+    "German": {"million": _MILLION, "millionen": _MILLION, "mio": _MILLION,
+               "milliarde": _MILLIARD, "milliarden": _MILLIARD,
+               "mrd": _MILLIARD, "mia": _MILLIARD, "tausend": _THOUSAND},
+    "Greek": {"εκατομμύριο": _MILLION, "εκατομμύρια": _MILLION,
+              "εκατομμυρίων": _MILLION, "εκατ": _MILLION,
+              "δισεκατομμύριο": _MILLIARD, "δισεκατομμύρια": _MILLIARD,
+              "δισεκατομμυρίων": _MILLIARD, "δισ": _MILLIARD,
+              "χιλιάδες": _THOUSAND},
+    "Hebrew": {"מיליון": _MILLION, "מיליוני": _MILLION,
+               "מיליארד": _MILLIARD, "מיליארדי": _MILLIARD,
+               "טריליון": _TRILLION, "אלף": _THOUSAND, "אלפי": _THOUSAND},
+    "Hungarian": {"millió": _MILLION, "milliót": _MILLION,
+                  "millióval": _MILLION, "milliárd": _MILLIARD,
+                  "milliárdot": _MILLIARD, "ezer": _THOUSAND},
+    "Icelandic": {"milljón": _MILLION, "milljónir": _MILLION,
+                  "milljóna": _MILLION, "milljarður": _MILLIARD,
+                  "milljarðar": _MILLIARD, "milljarða": _MILLIARD,
+                  "þúsund": _THOUSAND},
+    "Indonesian": {"juta": _MILLION, "jt": _MILLION, "miliar": _MILLIARD,
+                   "milyar": _MILLIARD, "triliun": _TRILLION,
+                   "ribu": _THOUSAND},
+    "Italian": {"milione": _MILLION, "milioni": _MILLION, "mln": _MILLION,
+                "miliardo": _MILLIARD, "miliardi": _MILLIARD,
+                "mld": _MILLIARD, "mila": _THOUSAND},
+    "Japanese": {"万": 10_000, "百万": _MILLION, "千万": 10_000_000,
+                 "億": 100_000_000, "十億": _MILLIARD, "兆": _TRILLION,
+                 "千": _THOUSAND},
+    "Kinyarwanda": {"miliyoni": _MILLION, "miliyari": _MILLIARD},
+    "Korean": {"만": 10_000, "백만": _MILLION, "억": 100_000_000,
+               "십억": _MILLIARD, "조": _TRILLION, "천": _THOUSAND},
+    "Kurdish": {"milyon": _MILLION, "milyar": _MILLIARD},
+    "Latvian": {"miljons": _MILLION, "miljoni": _MILLION, "miljonu": _MILLION,
+                "miljonus": _MILLION, "miljoniem": _MILLION,
+                "miljards": _MILLIARD, "miljardi": _MILLIARD,
+                "miljardu": _MILLIARD, "miljardus": _MILLIARD,
+                "tūkstoši": _THOUSAND},
+    "Lithuanian": {"milijonas": _MILLION, "milijono": _MILLION,
+                   "milijonų": _MILLION, "mln": _MILLION,
+                   "milijardas": _MILLIARD, "milijardų": _MILLIARD,
+                   "mlrd": _MILLIARD, "tūkst": _THOUSAND},
+    "Macedonian": {"милион": _MILLION, "милиони": _MILLION,
+                   "милиона": _MILLION, "милијарда": _MILLIARD,
+                   "милијарди": _MILLIARD, "илјади": _THOUSAND},
+    "Maltese": {"miljun": _MILLION, "miljuni": _MILLION, "elf": _THOUSAND},
+    "Montenegrin": {"milion": _MILLION, "miliona": _MILLION,
+                    "milijarda": _MILLIARD, "milijardi": _MILLIARD,
+                    "hiljada": _THOUSAND},
+    "Nepali": {"मिलियन": _MILLION, "बिलियन": _MILLIARD},
+    "Norwegian": {"million": _MILLION, "millioner": _MILLION,
+                  "mill": _MILLION, "milliard": _MILLIARD,
+                  "milliarder": _MILLIARD, "mrd": _MILLIARD,
+                  "tusen": _THOUSAND},
+    "Polish": {"milion": _MILLION, "miliona": _MILLION, "milionów": _MILLION,
+               "mln": _MILLION, "miliard": _MILLIARD,
+               "miliardów": _MILLIARD, "mld": _MILLIARD,
+               "tysięcy": _THOUSAND, "tys": _THOUSAND},
+    # Brazilian spellings only. Portugal writes `bilião` for 10^12 and `mil
+    # milhões` for 10^9, so `bilião`/`biliões` are refused rather than read —
+    # see AMBIGUOUS_SCALE_WORDS. The wired Portuguese feeds are 15 Brazilian to
+    # 3 Portuguese, and `bi` off BitNotícias and EuQueroInvestir is Brazilian.
+    "Portuguese": {"milhão": _MILLION, "milhões": _MILLION,
+                   "milhao": _MILLION, "milhoes": _MILLION,
+                   "bilhão": _MILLIARD, "bilhões": _MILLIARD,
+                   "bilhao": _MILLIARD, "bilhoes": _MILLIARD,
+                   "bi": _MILLIARD, "trilhão": _TRILLION,
+                   "trilhões": _TRILLION},
+    "Romanian": {"milion": _MILLION, "milioane": _MILLION,
+                 "miliard": _MILLIARD, "miliarde": _MILLIARD,
+                 "mii": _THOUSAND},
+    "Russian": {"миллион": _MILLION, "миллиона": _MILLION,
+                "миллионов": _MILLION, "млн": _MILLION,
+                "миллиард": _MILLIARD, "миллиарда": _MILLIARD,
+                "миллиардов": _MILLIARD, "млрд": _MILLIARD,
+                "триллион": _TRILLION, "трлн": _TRILLION,
+                "тысяч": _THOUSAND},
+    "Serbian": {"milion": _MILLION, "miliona": _MILLION, "милион": _MILLION,
+                "милиона": _MILLION, "milijarda": _MILLIARD,
+                "milijardi": _MILLIARD, "милијарда": _MILLIARD,
+                "милијарди": _MILLIARD, "hiljada": _THOUSAND,
+                "хиљада": _THOUSAND},
+    "Slovak": {"milión": _MILLION, "milióna": _MILLION,
+               "miliónov": _MILLION, "miliarda": _MILLIARD,
+               "miliardy": _MILLIARD, "miliárd": _MILLIARD,
+               "tisíc": _THOUSAND},
+    "Slovenian": {"milijon": _MILLION, "milijona": _MILLION,
+                  "milijonov": _MILLION, "milijarda": _MILLIARD,
+                  "milijard": _MILLIARD, "tisoč": _THOUSAND},
+    # `billón`/`billones` are 10^12 in Spanish and are NOT here; see
+    # AMBIGUOUS_SCALE_WORDS for why they refuse rather than pick.
+    "Spanish": {"millón": _MILLION, "millon": _MILLION,
+                "millones": _MILLION, "milliones": _MILLION,
+                "millardo": _MILLIARD, "millardos": _MILLIARD},
+    "Swahili": {"milioni": _MILLION, "bilioni": _MILLIARD, "elfu": _THOUSAND},
+    "Swedish": {"miljon": _MILLION, "miljoner": _MILLION,
+                "miljard": _MILLIARD, "miljarder": _MILLIARD,
+                "mdr": _MILLIARD, "tusen": _THOUSAND},
+    # Thai writes no spaces and its scale words carry combining marks, which
+    # \w does not match, so \b cannot be used at any point in ล้าน. GLUED_SCALE.
+    "Thai": {"ล้าน": _MILLION, "พันล้าน": _MILLIARD,
+             "ล้านล้าน": _TRILLION, "หมื่น": 10_000, "แสน": 100_000,
+             "พัน": _THOUSAND},
+    "Turkish": {"milyon": _MILLION, "milyar": _MILLIARD,
+                "trilyon": _TRILLION, "bin": _THOUSAND},
+    "Ukrainian": {"мільйон": _MILLION, "мільйона": _MILLION,
+                  "мільйонів": _MILLION, "млн": _MILLION,
+                  "мільярд": _MILLIARD, "мільярда": _MILLIARD,
+                  "мільярдів": _MILLIARD, "млрд": _MILLIARD,
+                  "тисяч": _THOUSAND},
+    "Uzbek": {"million": _MILLION, "milliard": _MILLIARD, "ming": _THOUSAND},
+    "Vietnamese": {"triệu": _MILLION, "tỷ": _MILLIARD, "tỉ": _MILLIARD,
+                   "nghìn": _THOUSAND, "ngàn": _THOUSAND},
+}
+
+#: Languages in data/sources_catalogue.csv that have NO scale vocabulary here,
+#: and why. Named rather than omitted, because an unlisted language is
+#: indistinguishable from an oversight and the whole point of deriving the list
+#: from the catalogue is that a gap has to be visible.
+UNCOVERED_LANGUAGES = {
+    "Oshiwambo": "one feed, New Era (Namibia), whose money copy is the English "
+                 "half of an English/Oshiwambo masthead; no Oshiwambo scale "
+                 "word has ever appeared in a fetched headline",
+}
+
+#: A scale word whose meaning depends on which language the publisher was
+#: writing. No reading is safe, so the parser REFUSES and leaves the verbatim
+#: string on the row. This is the standing rule of the file: a figure only
+#: exists if the source states it, and a thousand-fold error on a summed total
+#: is worse than an absent figure.
+#:
+#: Two of these are here from earlier sweeps and stay:
+#:   `mil`  a million in Singapore and Malaysian English ('US$22 mil in
+#:          pre-Series A') and a THOUSAND in Spanish and Portuguese.
+#:   `mi`   milhões in Brazilian business press ('US$ 544 mi'), and a guess
+#:          anywhere else.
+#:
+#: The rest are the long-scale trap, and two of them were WRONG in the table
+#: this replaces rather than merely missing. `billones` and `billioner` were
+#: mapped to 10^9. A Spanish billón and a Danish billion are 10^12, so those two
+#: entries were a thousand-fold understatement waiting for its first row —
+#: exactly the defect this whole pass is about, pointing the other way. The
+#: comment that put them there had the diagnosis right and the conclusion
+#: backwards: it is `billion`, not `milliard`, that means different things in
+#: different languages.
+#:
+#: Which is why the milliard family is now READ rather than refused. `milliard`,
+#: `miliard`, `milyar`, `miljard`, `Milliarde`, `mia`, `mld`, `mrd`, `млрд`,
+#: `مليار` and `מיליארד` are 10^9 in every language that has the word — there is
+#: no long-scale/short-scale disagreement about milliard anywhere, and there
+#: never was. The earlier note excluded it alongside `billón`, whose ambiguity
+#: is real, and inherited the refusal by association. `$190 Milyar Dolar` is a
+#: hundred and ninety billion dollars in Turkish and in Turkish only, and
+#: refusing it left the same hole `milyon` left.
+AMBIGUOUS_SCALE_WORDS = {
+    "mil": "a million in Singapore and Malaysian English, a thousand in "
+           "Spanish and Portuguese",
+    "mi": "milhões in Brazilian Portuguese, and a guess in any other language",
+    "billón": "10^12 in Spanish, though Latin American copy calques the "
+              "English 10^9 often enough that neither reading is safe",
+    "billon": "unaccented billón, same problem",
+    "billones": "as billón; it was mapped to 10^9 here, which is the same "
+                "thousand-fold error this pass exists to remove",
+    "billioner": "10^12 in Danish and Swedish; also previously mapped to 10^9",
+    "billionen": "10^12 in German, and spelled almost exactly like the English "
+                 "10^9",
+    "bilião": "10^12 in European Portuguese, against bilhão at 10^9 in Brazil",
+    "biliões": "as bilião",
+    "trillón": "10^18 in Spanish long scale, against the English 10^12",
+    "billiard": "10^15 where it is used at all, and read as a typo for "
+                "milliard everywhere else",
+}
+
+#: Collisions between two languages that are resolved rather than refused, and
+#: the reason each is safe. Everything else that two languages disagree about is
+#: added to the refusal set automatically at import; see _build_scale_table.
+#:
+#: `m` and `t` are the two that matter. Indonesian writes `Rp5 M` for five
+#: miliar (10^9) and `Rp2,35 T` for triliun, so both collide with the English
+#: 10^6 and 10^12. They resolve to English because the string has already had to
+#: state US DOLLARS to get this far, and an Indonesian desk writing a dollar
+#: figure writes `US$5 juta`, never `US$5 M` — the M and T abbreviations belong
+#: to rupiah. Both are listed here rather than silently, so a future Indonesian
+#: dollar row in that shape has somewhere to be argued about.
+RESOLVED_SCALE_COLLISIONS = {
+    "m": (_MILLION, "English 10^6 over Indonesian miliar; the rupiah "
+                    "abbreviation never carries a dollar sign"),
+    "t": (_TRILLION, "English 10^12 over Indonesian triliun, which is also "
+                     "10^12 — the collision is nominal"),
+    "mia": (_MILLIARD, "Danish and German abbreviation for milliard; no other "
+                       "wired language uses the token"),
+    "mln": (_MILLION, "Dutch, Italian, Lithuanian and Polish all write 10^6"),
+    "mld": (_MILLIARD, "Dutch and Italian both write 10^9"),
+    "mrd": (_MILLIARD, "German and Norwegian both write 10^9"),
+}
 
 
-def _read_number(raw: str):
-    """'1,450' -> 1450.0 and '10,5' -> 10.5, deciding which comma is which.
+def _build_scale_table():
+    """Flatten the per-language vocabulary into one lookup, refusing conflicts.
 
-    A European decimal comma had never mattered, because every such string was
-    refused for being a foreign currency before the number was read. Extending
-    the multiplier vocabulary changes that: 'USD 1,5 millones' would otherwise
-    strip the comma and store fifteen million dollars for one and a half. The
-    rule is the ordinary one -- a group of exactly three digits after the last
-    separator is a thousands group, anything else is a decimal fraction -- and a
-    string carrying both '.' and ',' is read as English thousands.
+    Two languages that disagree about a token do not get to have the argument
+    settled by dict ordering. A token claimed with two different multipliers is
+    added to the refusal set unless RESOLVED_SCALE_COLLISIONS says which reading
+    wins and why. That is the mechanism that would have caught `billones` on the
+    day Spanish was wired, and it is the reason adding a language cannot quietly
+    change what an existing token means.
+
+    Returns (scale, decimal, ambiguous, glued):
+      scale     token -> multiplier
+      decimal   token -> '.' | ',' | None, the writer's decimal separator
+      ambiguous tokens that refuse
+      glued     [(token, multiplier, decimal)], longest first, for the scripts
+                that put no space between the number and the word
+    """
+    claims = {}
+    for language, words in SCALE_WORDS_BY_LANGUAGE.items():
+        for token, multiplier in words.items():
+            claims.setdefault(token.lower(), {}).setdefault(multiplier, set()
+                                                            ).add(language)
+
+    scale, decimal, ambiguous = {}, {}, set(AMBIGUOUS_SCALE_WORDS)
+    for token, readings in claims.items():
+        if token in ambiguous:
+            continue
+        if len(readings) > 1:
+            resolved = RESOLVED_SCALE_COLLISIONS.get(token)
+            if resolved is None:
+                ambiguous.add(token)
+                continue
+            multiplier = resolved[0]
+            languages = readings.get(multiplier, set())
+        else:
+            (multiplier, languages), = readings.items()
+        scale[token] = multiplier
+        # The decimal convention only carries when every language claiming the
+        # token agrees. 'million' is English and also Danish, French, German
+        # and Norwegian, and those write the decimal separator differently, so
+        # the token says nothing about it and _read_number falls back to shape.
+        conventions = {_LANGUAGE_DECIMAL.get(lang) for lang in languages}
+        decimal[token] = conventions.pop() if len(conventions) == 1 else None
+
+    glued = []
+    for language in _GLUED_SCRIPT_LANGUAGES:
+        for token in SCALE_WORDS_BY_LANGUAGE[language]:
+            key = token.lower()
+            if key in scale:
+                glued.append((token, scale[key], decimal[key]))
+    # Longest first, so 百万 is not read as 万 and พันล้าน is not read as พัน.
+    glued.sort(key=lambda item: -len(item[0]))
+    return scale, decimal, ambiguous, glued
+
+
+#: The scripts that write a number, its scale word and its currency as one
+#: unbroken run of word characters. `\b` cannot separate them and neither can a
+#: letter-run, so these are matched as plain prefixes with no boundary at all.
+_GLUED_SCRIPT_LANGUAGES = ("Chinese", "Japanese", "Korean", "Thai")
+
+_SCALE, _SCALE_DECIMAL, _AMBIGUOUS_SCALE, _GLUED_SCALE = _build_scale_table()
+
+#: Single-letter prefixes that Hebrew glues onto the front of a noun (and, the,
+#: in, to, from, that, about), plus the Arabic definite article. Stripped only
+#: when what remains is a scale word we already know, which is the narrow form
+#: of the rule the prefilter work landed on: a bare substring match puts
+#: `salary` inside `a rental`, and this does not.
+_CLITIC_PREFIXES = ("ו", "ה", "ב", "ל", "מ", "כ", "ש", "ال")
+
+#: The first number in the string, in any script's decimal digits. Groups may be
+#: separated by a dot, a comma or a space — French and Polish write 1 500 000,
+#: and NBSP and the narrow no-break space are what a CMS actually emits.
+_NUMBER = re.compile(r"\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?"
+                     r"|\d[\d.,]*\d"
+                     r"|\d")
+
+#: What may sit between the number and its scale word. The multiplier may be
+#: attached by a hyphen as well as by a space: BetaKit writes '$20-million USD',
+#: and \s* does not match '-', so that round was stored as twenty dollars. En
+#: and em dashes too, because a publisher's typographer may have been through it.
+_SCALE_GAP = re.compile(r"[\s ]*[-‐-―]?[\s ]*")
+
+#: A run of letters in any script, optionally closed by the abbreviation dot
+#: that `mio.`, `mln.`, `млн.` and `εκατ.` are usually written with.
+_LETTER_RUN = re.compile(r"[^\W\d_]+", re.UNICODE)
+
+
+def _scale_after(tail: str):
+    """Read the scale word sitting immediately after a number.
+
+    Returns (multiplier, decimal separator) or None for "no scale word here",
+    and raises _Refuse for a word we know we cannot read.
+
+    Taking the WHOLE letter run and looking it up is the boundary. It cannot be
+    got wrong the way `\\b` can, and it removes the ordering trap that lost the
+    Turkish rows: in an alternation, `mil` matches the front of `milyon`, the
+    boundary then fails, and an optional group settles for no multiplier at all.
+    A dict lookup of `milyon` has no such failure mode.
+    """
+    rest = _SCALE_GAP.sub("", tail, count=1) if tail else ""
+    if not rest:
+        return None
+
+    # Glued scripts first: their tokens sit inside a letter run that would
+    # otherwise swallow the currency word with them (`亿美元`, `ล้านบาท`).
+    for token, multiplier, convention in _GLUED_SCALE:
+        if rest.startswith(token):
+            return multiplier, convention
+
+    match = _LETTER_RUN.match(rest)
+    if not match:
+        return None
+    word = match.group(0).lower()
+
+    if word in _AMBIGUOUS_SCALE:
+        raise _Refuse(word)
+    if word in _SCALE:
+        return _SCALE[word], _SCALE_DECIMAL[word]
+
+    # Hebrew and Arabic clitics, and only when the remainder is a known word.
+    for prefix in _CLITIC_PREFIXES:
+        if word.startswith(prefix):
+            stem = word[len(prefix):]
+            if stem in _AMBIGUOUS_SCALE:
+                raise _Refuse(stem)
+            if stem in _SCALE:
+                return _SCALE[stem], _SCALE_DECIMAL[stem]
+    return None
+
+
+class _Refuse(Exception):
+    """A scale word we can see and deliberately will not read."""
+
+
+#: A number whose separators can be read as thousands GROUPS: a leading run of
+#: one to three digits, then groups of exactly three. '1.500.000' qualifies and
+#: '1234,567' does not, which is what stops a four-digit head being read as a
+#: thousands group it cannot be.
+_THOUSAND_GROUPS = {
+    ".": re.compile(r"\d{1,3}(?:\.\d{3})+$"),
+    ",": re.compile(r"\d{1,3}(?:,\d{3})+$"),
+}
+
+
+def _read_number(raw: str, convention: str | None):
+    """'1,450' -> 1450.0 and '10,5' -> 10.5, deciding which separator is which.
+
+    Two rules, and the ORDER of them is the whole design.
+
+    The first is shape, and it holds under BOTH conventions rather than
+    assuming one. A lone separator followed by exactly three digits is a
+    thousands group: that is what it means in English, and continental copy does
+    not pad a decimal fraction to three places either -- Spanish writes '1,5
+    millones' and '1.500 millones', never '1,500 millones' for one and a half.
+    Anything other than a three-digit tail is a decimal fraction, again in both
+    conventions, because a thousands separator always leaves exactly three
+    digits behind it. This is what makes an Indonesian '$150.000' a hundred and
+    fifty THOUSAND rather than a hundred and fifty, and it needs no locale.
+
+    The second is `convention`: the decimal separator written by the language of
+    the scale word beside the number, where that word named one language. It is
+    consulted only where the first rule and it DISAGREE -- a three-digit group
+    under the separator that this publisher's language writes decimals with --
+    and the answer there is not to pick. 'US$ 1,500 milhoes' is one and a half
+    million to a Brazilian desk and fifteen hundred million to an English one,
+    the two readings are a thousand-fold apart, and the string holds nothing
+    that settles it. It raises _Refuse, and the row keeps its verbatim amount
+    and no dollar figure. That is this project's standing rule: a figure only
+    exists if the source states it, and $150.000 read as 150 is worse than NULL
+    because NULL is visibly missing while 150 looks like data.
     """
     text = raw.strip()
-    if "." in text and "," in text:
-        # Both separators present: English thousands, as the docstring says.
-        return float(text.replace(",", ""))
-    if "." in text:
-        # The three-digit rule was written for the comma and applied only to
-        # the comma, so a DOT was always read as a decimal point. Indonesian
-        # and most of Europe write thousands with a dot, and 'Global Clean
-        # Energy amankan pendanaan awal senilai $150.000' was stored as one
-        # hundred and fifty dollars -- while the row's own English summary,
-        # written from the same source, said $150,000.
-        head, _, tail = text.rpartition(".")
-        if len(tail) == 3 and head.replace(".", "").isdigit():
-            return float(text.replace(".", ""))
-        return float(text.replace(",", ""))
-    if "," in text:
-        head, _, tail = text.rpartition(",")
-        if len(tail) != 3 and head.replace(",", "").isdigit():
-            return float(f"{head.replace(',', '')}.{tail}")
-    return float(text.replace(",", ""))
+    for space in ("\u0020", "\u00a0", "\u202f"):
+        # A space is only ever a thousands separator. No locale writes a
+        # decimal fraction after one.
+        text = text.replace(space, "")
+
+    has_dot, has_comma = "." in text, "," in text
+    if not has_dot and not has_comma:
+        return float(text)
+
+    if has_dot and has_comma:
+        # Both present: whichever comes LAST is the decimal separator, under
+        # either convention. '1,000.0' is a thousand; '1.000,50' is a thousand
+        # and fifty cents. Reading it as English thousands, which is what this
+        # did before, turned the second into 1.0005.
+        decimal_sep = "." if text.rindex(".") > text.rindex(",") else ","
+    else:
+        sep = "." if has_dot else ","
+        if _THOUSAND_GROUPS[sep].fullmatch(text):
+            if convention == sep:
+                raise _Refuse("%s under a '%s' decimal convention" % (text, sep))
+            decimal_sep = ""
+        else:
+            decimal_sep = sep
+
+    if decimal_sep:
+        thousands_sep = "." if decimal_sep == "," else ","
+        text = text.replace(thousands_sep, "").replace(decimal_sep, ".")
+    else:
+        text = text.replace(".", "").replace(",", "")
+    return float(text)
+
 
 # A round larger than this is a parse failure, not news. Ten trillion dollars
 # is more than any company has ever raised, so a value above it means the
@@ -1669,17 +2115,25 @@ _MAX_PLAUSIBLE_USD = 10_000_000_000_000
 # This floor is the same threshold tests/test_funding_amount_parsing.py has
 # always used to detect the failure after the fact. Enforcing it here turns a
 # post-hoc alarm into a refusal, which is the house rule: we do not guess.
+#
+# It also BLINDS that test, and that is why read_funding_figure exists. A guard
+# whose subject can no longer reach it always passes, and "the parser cannot
+# produce a sub-thousand figure" is not the property anyone wanted checked —
+# "no string we hold parses to one" is. The test reads the unclamped figure and
+# pins the strings this floor is currently swallowing, so the next language
+# whose scale word we do not know arrives as a red build rather than as six
+# rows quietly worth a hundred and ninety dollars.
 _MIN_PLAUSIBLE_USD = 1_000
 
 
-def parse_funding_usd(value: str):
-    """Return the figure as whole US dollars, or None.
+def read_funding_figure(value: str):
+    """The figure a funding string states, in US dollars, BEFORE plausibility.
 
-    None means "we will not guess", and covers: no digits at all, NO STATED US
-    DOLLAR, a currency that is not the US dollar, and anything that parses to an
-    implausible number. Only the FIRST number is read, so a range ('$5M to
-    $10M') stores its low end, matching how headcounts are parsed on the sibling
-    tracker.
+    Split out from parse_funding_usd so the plausibility bounds are the only
+    difference between them, and so a test can see what the floor is refusing.
+    Returns None where the string states no figure we are willing to read at
+    all: no digits, no stated US dollar, a currency that is not the US dollar,
+    or a scale word whose meaning depends on the publisher's language.
     """
     text = (str(value or "")).strip()
     if not text:
@@ -1697,22 +2151,36 @@ def parse_funding_usd(value: str):
     if _NON_USD.search(text):
         return None
 
-    m = _AMOUNT.search(text)
+    m = _NUMBER.search(text)
     if not m:
         return None
 
     try:
-        number = _read_number(m.group(1))
-    except ValueError:
+        multiplier, convention = _scale_after(text[m.end():]) or (1, None)
+    except _Refuse:
         return None
 
-    suffix = (m.group(2) or "").lower() or None
-    if suffix in _AMBIGUOUS_SCALE:
+    try:
+        number = _read_number(m.group(0), convention)
+    except (ValueError, _Refuse):
         return None
-    amount = number * _MULTIPLIERS.get(suffix, 1)
-    if amount <= 0 or amount > _MAX_PLAUSIBLE_USD:
+    return number * multiplier
+
+
+def parse_funding_usd(value: str):
+    """Return the figure as whole US dollars, or None.
+
+    None means "we will not guess", and covers: no digits at all, NO STATED US
+    DOLLAR, a currency that is not the US dollar, a scale word that means
+    different things in different languages, and anything that parses to an
+    implausible number. Only the FIRST number is read, so a range ('$5M to
+    $10M') stores its low end, matching how headcounts are parsed on the sibling
+    tracker.
+    """
+    amount = read_funding_figure(value)
+    if amount is None:
         return None
-    if amount < _MIN_PLAUSIBLE_USD:
+    if amount < _MIN_PLAUSIBLE_USD or amount > _MAX_PLAUSIBLE_USD:
         return None
     return int(round(amount))
 
