@@ -96,8 +96,8 @@ def test_no_commented_out_cron_is_left_lying_around(name):
 def test_the_scheduler_exists_and_is_armed():
     triggers = _triggers(SCHEDULER)
     crons = [entry["cron"] for entry in triggers["schedule"]]
-    assert "40 3 * * *" in crons, "the nightly Wayback slot is gone"
-    assert "30 5 * * 1" in crons, "the weekly rot sweep slot is gone"
+    assert "20 */3 * * *" in crons, "the three-hourly Wayback slot is gone"
+    assert "30 5 * * *" in crons, "the daily rot sweep slot is gone"
 
 
 def test_the_scheduler_is_not_in_the_writer_lock():
@@ -193,15 +193,61 @@ def test_the_scheduler_does_not_wake_the_drainer_because_it_is_not_a_writer():
 
 def test_the_staleness_leash_matches_the_new_cadence():
     """A checker that stops running looks exactly like a checker with nothing to
-    report. The 2400-hour leash both jobs carried while dormant would have hidden
-    a fortnight of silence from an armed weekly job."""
+    report, so the leash has to be derived from the cron rather than left where
+    the last cadence put it.
+
+    Both bounds matter and they fail in opposite directions. Too LONG and a dead
+    job stays invisible for days while the digest reads its silence as good
+    news; that is what the 180-hour weekly leash did. Too SHORT and the queue
+    working correctly becomes an alarm: a ticket written while a 350-minute
+    backfill holds the writer lock is entitled to those 350 minutes.
+    """
     import staleness
 
-    assert staleness.MAX_AGE_HOURS["archive_sources"] < 24 * 4, (
-        "a nightly job may not carry a multi-day leash")
-    assert staleness.MAX_AGE_HOURS["archive_sources"] > 24, (
-        "one skipped night is not an incident: the candidate list is the gap, "
-        "so tomorrow's run picks up what last night's missed")
-    assert 168 < staleness.MAX_AGE_HOURS["link_check"] < 168 * 2, (
-        "a weekly job's leash should flag inside the second week, not after two "
-        "full misses (a fortnight of unchecked citations)")
+    for collector, workflow in (("archive_sources", "archive-sources.yml"),
+                                ("link_check", "link-check.yml")):
+        cadence = min(24.0 / _runs_per_day(cron)
+                      for cron in _crons_that_queue(workflow))
+        leash = staleness.MAX_AGE_HOURS[collector]
+        assert leash >= cadence + 6, (
+            f"{collector}'s leash ({leash}h) leaves no room for a ticket to "
+            f"wait behind a long backfill, so the queue working as designed "
+            f"would page")
+        assert leash <= max(cadence * 2, 24) + 12, (
+            f"{collector} runs every {cadence:.0f}h but is allowed to go "
+            f"silent for {leash}h. A leash that long is how a stopped job goes "
+            f"on looking like a healthy one")
+
+
+def _runs_per_day(cron: str) -> float:
+    """Enough of a cron parser for the shapes this scheduler actually uses."""
+    minute, hour = cron.split()[0], cron.split()[1]
+    day_of_week = cron.split()[4]
+    per_hour = len(minute.split(",")) if not minute.startswith("*") else 1
+    if hour == "*":
+        hours = 24
+    elif hour.startswith("*/"):
+        hours = len(range(0, 24, int(hour[2:])))
+    else:
+        hours = len(hour.split(","))
+    days = 7 if day_of_week == "*" else len(day_of_week.split(","))
+    return per_hour * hours * days / 7
+
+
+def _crons_that_queue(workflow: str) -> list[str]:
+    """The scheduler's slots that ask for `workflow`, read from the mapping.
+
+    Read from the shell `case` rather than from the cron comments, because the
+    mapping is what actually decides, and a slot the mapping does not know is
+    already a hard failure in that step.
+    """
+    body = "\n".join(s.get("run") or "" for s in _steps(SCHEDULER))
+    found = [line.split("'")[1] for line in body.splitlines()
+             if line.strip().startswith("'") and workflow in line]
+    assert found, f"no schedule slot in {SCHEDULER} asks for {workflow}"
+    crons = [entry["cron"] for entry in _triggers(SCHEDULER)["schedule"]]
+    for cron in found:
+        assert cron in crons, (
+            f"{SCHEDULER} maps the slot {cron!r} to {workflow} but no such cron "
+            f"is armed, so {workflow} is scheduled only in prose")
+    return found
