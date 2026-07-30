@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-30T20:18:59Z",
-  "last_tick": "2026-07-30T21:09:02Z",
+  "last_dispatch": "2026-07-30T21:17:49Z",
+  "last_tick": "2026-07-30T21:17:49Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,56 +159,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-30T20:18:59Z",
-      "history": [
-        {
-          "at": "2026-07-30T18:30:34Z",
-          "detail": "2026 history walk, owner approved at $4.51 total",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T18:32:36Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-30T19:31:02Z",
-          "detail": "dispatch produced no run (x1); back in the line",
-          "event": "unbound"
-        },
-        {
-          "at": "2026-07-30T20:18:59Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-30T20:40:38Z",
-          "detail": "run 30578636691",
-          "event": "bound"
-        }
-      ],
-      "id": "20260730T183034Z-backfill-gdelt-2026",
-      "inputs": {
-        "end": "2026-07-26",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "2026 history walk, owner approved at $4.51 total",
-      "requested_at": "2026-07-30T18:30:34Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30578636691",
-      "state": "dispatched",
-      "unbound_count": 1,
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-30T21:17:49Z",
       "history": [
         {
           "at": "2026-07-30T19:15:19Z",
           "detail": "2026 registry backfill, $0 model spend: bse_india",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-30T21:17:49Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T191519Z-backfill-structured-2026",
@@ -222,7 +183,7 @@
       "requested_at": "2026-07-30T19:15:19Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
     {
@@ -1304,6 +1265,56 @@
       "requested_by": "dakotta-labs",
       "run_id": "30570864405",
       "state": "landed",
+      "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-30T20:18:59Z",
+      "history": [
+        {
+          "at": "2026-07-30T18:30:34Z",
+          "detail": "2026 history walk, owner approved at $4.51 total",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-30T18:32:36Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T19:31:02Z",
+          "detail": "dispatch produced no run (x1); back in the line",
+          "event": "unbound"
+        },
+        {
+          "at": "2026-07-30T20:18:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-30T20:40:38Z",
+          "detail": "run 30578636691",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-30T21:17:49Z",
+          "detail": "run 30578636691",
+          "event": "landed"
+        }
+      ],
+      "id": "20260730T183034Z-backfill-gdelt-2026",
+      "inputs": {
+        "end": "2026-07-26",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-07-30T21:17:49Z",
+      "priority": 10,
+      "reason": "2026 history walk, owner approved at $4.51 total",
+      "requested_at": "2026-07-30T18:30:34Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30578636691",
+      "state": "landed",
+      "unbound_count": 1,
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
