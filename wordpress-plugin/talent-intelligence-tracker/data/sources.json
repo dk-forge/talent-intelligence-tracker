@@ -302,6 +302,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. General national news; 20 items."
  },
  {
+  "name": "Actualite.cd",
+  "url": "https://www.actualite.cd",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Democratic Republic of the Congo",
+  "rss": "https://www.actualite.cd/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Democratic Republic of the Congo with."
+ },
+ {
   "name": "Addis Fortune",
   "url": "https://addisfortune.news",
   "status": "candidate",
@@ -1433,6 +1449,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. Joomla obRSS component path. English edition of the Investir au Cameroun publisher."
  },
  {
+  "name": "Business in Vancouver",
+  "url": "https://www.biv.com",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Metro",
+  "country": "Canada",
+  "rss": "https://www.biv.com/rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Business Insider",
   "url": "https://www.businessinsider.com",
   "status": "candidate",
@@ -1463,6 +1495,22 @@
   "rss": "https://www.businessnewsaustralia.com/rss.xml",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "Business Plus",
+  "url": "https://www.businessplus.ie",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://www.businessplus.ie/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "Business Recorder",
@@ -1512,6 +1560,22 @@
   "rss": "https://businessday.ng/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "BusinessLive",
+  "url": "https://www.business-live.co.uk",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.business-live.co.uk/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "BusinessNow.mt",
@@ -1627,6 +1691,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "Canadian Manufacturing",
+  "url": "https://www.canadianmanufacturing.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.canadianmanufacturing.com/feed",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "Canary Media",
@@ -1817,6 +1897,22 @@
   "rss": "https://www.citinewsroom.com/wp-json/wp/v2/posts?per_page=20",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. NO RSS - /feed/ returns HTML on both apex and www. The WordPress REST endpoint IS open and current (numbers here are from it); bare JSON array, needs a JSON reader."
+ },
+ {
+  "name": "City AM",
+  "url": "https://www.cityam.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.cityam.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "City of Austin Economic Development",
@@ -2111,6 +2207,22 @@
   "rss": "https://www.convergenciadigital.com.br/rss/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Cook Islands News",
+  "url": "https://www.cookislandsnews.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cook Islands",
+  "rss": "https://www.cookislandsnews.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Cook Islands with."
  },
  {
   "name": "Coral Capital",
@@ -2611,6 +2723,22 @@
   "notes": "Official source URL verified on 2026-07-27."
  },
  {
+  "name": "Der Spiegel",
+  "url": "https://www.spiegel.de",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.spiegel.de/wirtschaft/index.rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Der Standard Wirtschaft",
   "url": "https://www.derstandard.at",
   "status": "candidate",
@@ -2705,6 +2833,22 @@
   "rss": "https://www.diepresse.com/rss/Wirtschaft",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. National daily, business."
+ },
+ {
+  "name": "Die Welt",
+  "url": "https://www.welt.de",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.welt.de/feeds/section/wirtschaft.rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "Dienas Bizness",
@@ -3346,6 +3490,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "El Pais",
+  "url": "https://elpais.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Spain",
+  "rss": "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/economia/portada",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "El Referente",
   "url": "https://www.elreferente.es",
   "status": "candidate",
@@ -3556,6 +3716,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Public broadcaster."
  },
  {
+  "name": "Eswatini Observer",
+  "url": "https://www.eswatiniobserver.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Eswatini",
+  "rss": "https://www.eswatiniobserver.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Eswatini with."
+ },
+ {
   "name": "ETNews",
   "url": "https://www.etnews.com",
   "status": "candidate",
@@ -3667,6 +3843,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "Expansion (Spain)",
+  "url": "https://www.expansion.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Spain",
+  "rss": "https://e00-expansion.uecdn.es/rss/portada.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Export-Import Bank of the United States",
   "url": "https://www.exim.gov",
   "status": "candidate",
@@ -3699,6 +3891,22 @@
   "rss": "https://www.expreso.ec/rss",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Expresso das Ilhas",
+  "url": "https://expressodasilhas.cv",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Cape Verde",
+  "rss": "https://expressodasilhas.cv/rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Cape Verde with."
  },
  {
   "name": "Eyewitness News",
@@ -4093,6 +4301,22 @@
   "notes": ""
  },
  {
+  "name": "Frankfurter Allgemeine Zeitung",
+  "url": "https://www.faz.net",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://www.faz.net/rss/aktuell/wirtschaft/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "FreightWaves",
   "url": "https://www.freightwaves.com",
   "status": "candidate",
@@ -4138,6 +4362,22 @@
   "rss": "https://futurestartup.com/feed/",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Bangladesh startup publisher"
+ },
+ {
+  "name": "Gabon Review",
+  "url": "https://www.gabonreview.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Gabon",
+  "rss": "https://www.gabonreview.com/rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Gabon with."
  },
  {
   "name": "Gato Encerrado",
@@ -4433,6 +4673,22 @@
   "notes": "Feed fetched and parsed 2026-07-29. The catalogue's Gruenderszene row has no feed of its own; this is the working one."
  },
  {
+  "name": "Guineenews",
+  "url": "https://www.guineenews.org",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Guinea",
+  "rss": "https://www.guineenews.org/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Guinea with."
+ },
+ {
   "name": "Gulf Insider",
   "url": "https://www.gulf-insider.com",
   "status": "candidate",
@@ -4646,6 +4902,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. National daily, economy."
  },
  {
+  "name": "Hindustan Times",
+  "url": "https://www.hindustantimes.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Hong Kong Free Press",
   "url": "https://hongkongfp.com",
   "status": "candidate",
@@ -4694,6 +4966,22 @@
   "rss": "https://www.hrdive.com/feeds/news/",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 10 items on the verification fetch."
+ },
+ {
+  "name": "HRM Asia",
+  "url": "https://www.hrmasia.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Singapore",
+  "rss": "https://www.hrmasia.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "Hurriyet Ekonomi",
@@ -5162,6 +5450,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. French sister title, same publisher and feed shape."
  },
  {
+  "name": "Investment Executive",
+  "url": "https://www.investmentexecutive.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.investmentexecutive.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "IO+ (Innovation Origins)",
   "url": "https://ioplus.nl",
   "status": "candidate",
@@ -5292,6 +5596,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. State agency, English edition."
  },
  {
+  "name": "Islands Business",
+  "url": "https://islandsbusiness.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Pacific (regional)",
+  "rss": "https://islandsbusiness.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening. Coverage is Regional on purpose: national_press.dateline() then tells the model the outlet's base does not place the story, rather than filing a Fiji round under Tonga."
+ },
+ {
   "name": "ISNA",
   "url": "https://en.isna.ir",
   "status": "candidate",
@@ -5417,6 +5737,22 @@
   "rss": "https://iupana.com/feed/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "Iwacu",
+  "url": "https://www.iwacu-burundi.org",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Burundi",
+  "rss": "https://www.iwacu-burundi.org/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Burundi with."
  },
  {
   "name": "iWitness News",
@@ -5546,6 +5882,22 @@
   "rss": "https://www.jornaldenegocios.pt/rss",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business daily."
+ },
+ {
+  "name": "Journal du Mali",
+  "url": "https://www.journaldumali.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Mali",
+  "rss": "https://www.journaldumali.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Mali with."
  },
  {
   "name": "Journal du Net",
@@ -5793,6 +6145,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. STALE - parses but newest item is 2025-12-23. Include only if a tolerant staleness policy is acceptable."
  },
  {
+  "name": "L'Express de Madagascar",
+  "url": "https://www.lexpress.mg",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Madagascar",
+  "rss": "https://www.lexpress.mg/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Madagascar with."
+ },
+ {
   "name": "L'Usine Digitale",
   "url": "https://www.usine-digitale.fr",
   "status": "candidate",
@@ -5907,6 +6275,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "La Nouvelle Tribune",
+  "url": "https://www.lanouvelletribune.info",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Benin",
+  "rss": "https://www.lanouvelletribune.info/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Benin with."
+ },
+ {
   "name": "La Prensa",
   "url": "https://www.prensa.com",
   "status": "candidate",
@@ -5921,6 +6305,22 @@
   "rss": "https://www.prensa.com/arc/outboundfeeds/rss/?outputType=xml",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
+ },
+ {
+  "name": "La Presse",
+  "url": "https://www.lapresse.ca",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.lapresse.ca/affaires/rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "La Razon",
@@ -6036,6 +6436,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. English publisher"
  },
  {
+  "name": "Le Figaro",
+  "url": "https://www.lefigaro.fr",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.lefigaro.fr/rss/figaro_economie.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Le Mauricien",
   "url": "https://www.lemauricien.com",
   "status": "candidate",
@@ -6050,6 +6466,22 @@
   "rss": "https://www.lemauricien.com/feed/",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "Le Monde",
+  "url": "https://www.lemonde.fr",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "France",
+  "rss": "https://www.lemonde.fr/economie/rss_full.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "Le Nouvelliste",
@@ -6084,6 +6516,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. National daily; 24 items."
  },
  {
+  "name": "Le Temps",
+  "url": "https://www.letemps.ch",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Switzerland",
+  "rss": "https://www.letemps.ch/articles.rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Leiphone",
   "url": "https://www.leiphone.com",
   "status": "candidate",
@@ -6098,6 +6546,70 @@
   "rss": "https://www.leiphone.com/feed",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Chinese AI/tech publisher"
+ },
+ {
+  "name": "Les Affaires",
+  "url": "https://www.lesaffaires.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.lesaffaires.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
+  "name": "Les Depeches de Brazzaville",
+  "url": "https://www.adiac-congo.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Republic of the Congo",
+  "rss": "https://www.adiac-congo.com/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Republic of the Congo with."
+ },
+ {
+  "name": "Les Nouvelles Caledoniennes",
+  "url": "https://www.lnc.nc",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "New Caledonia",
+  "rss": "https://www.lnc.nc/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached New Caledonia with."
+ },
+ {
+  "name": "Lesotho Times",
+  "url": "https://www.lestimes.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Lesotho",
+  "rss": "https://www.lestimes.com/?feed=rss2",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Lesotho with."
  },
  {
   "name": "Libya (discovery backstop)",
@@ -6528,6 +7040,22 @@
   "notes": ""
  },
  {
+  "name": "Matangi Tonga",
+  "url": "https://matangitonga.to",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Tonga",
+  "rss": "https://matangitonga.to/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Tonga with."
+ },
+ {
   "name": "MedCity News",
   "url": "https://medcitynews.com",
   "status": "candidate",
@@ -6672,6 +7200,22 @@
   "rss": "https://mia.mk/feed/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. State news agency; broad national coverage."
+ },
+ {
+  "name": "Midi Madagasikara",
+  "url": "https://www.midi-madagasikara.mg",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Madagascar",
+  "rss": "https://www.midi-madagasikara.mg/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: a second outlet for Madagascar, so the country is not a single point of failure."
  },
  {
   "name": "Mint",
@@ -7013,6 +7557,22 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27."
+ },
+ {
+  "name": "National Post",
+  "url": "https://www.nationalpost.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.nationalpost.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "NeoFeed",
@@ -7521,6 +8081,22 @@
   "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 20 items on the verification fetch. Employer's own newsroom."
  },
  {
+  "name": "Nyasa Times",
+  "url": "https://www.nyasatimes.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malawi",
+  "rss": "https://www.nyasatimes.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: a second outlet for Malawi, so the country is not a single point of failure."
+ },
+ {
   "name": "NZ Herald (Business)",
   "url": "https://www.nzherald.co.nz",
   "status": "candidate",
@@ -7665,6 +8241,22 @@
   "rss": "https://www.oslobodjenje.ba/rss.xml",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Oldest daily. ONLY /rss.xml works; /feed, /rss, /feed/ all 404."
+ },
+ {
+  "name": "Ottawa Business Journal",
+  "url": "https://www.obj.ca",
+  "status": "candidate",
+  "category": "Business Journal",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Metro",
+  "country": "Canada",
+  "rss": "https://www.obj.ca/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "PC Tech Magazine",
@@ -8034,6 +8626,22 @@
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live"
  },
  {
+  "name": "Prishtina Insight",
+  "url": "https://www.prishtinainsight.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Kosovo",
+  "rss": "https://www.prishtinainsight.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Kosovo with."
+ },
+ {
   "name": "Proceso Digital",
   "url": "https://proceso.hn",
   "status": "candidate",
@@ -8228,6 +8836,70 @@
   "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 13 items on the verification fetch."
  },
  {
+  "name": "Radio Dabanga",
+  "url": "https://www.dabangasudan.org",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sudan",
+  "rss": "https://www.dabangasudan.org/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Sudan with."
+ },
+ {
+  "name": "Radio Ndeke Luka",
+  "url": "https://www.radiondekeluka.org",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Central African Republic",
+  "rss": "https://www.radiondekeluka.org/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Central African Republic with."
+ },
+ {
+  "name": "Radio Okapi",
+  "url": "https://www.radiookapi.net",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Democratic Republic of the Congo",
+  "rss": "https://www.radiookapi.net/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Democratic Republic of the Congo with."
+ },
+ {
+  "name": "Radio Tamazuj",
+  "url": "https://www.radiotamazuj.org",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "South Sudan",
+  "rss": "https://www.radiotamazuj.org/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached South Sudan with."
+ },
+ {
   "name": "Rappler",
   "url": "https://www.rappler.com",
   "status": "candidate",
@@ -8365,6 +9037,22 @@
   "rss": "https://www.retaildive.com/feeds/news/",
   "free": true,
   "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector."
+ },
+ {
+  "name": "Retail Gazette",
+  "url": "https://www.retailgazette.co.uk",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.retailgazette.co.uk/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "Reuters",
@@ -9304,6 +9992,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. Consumer-tech title."
  },
  {
+  "name": "Sueddeutsche Zeitung",
+  "url": "https://www.sueddeutsche.de",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Germany",
+  "rss": "https://rss.sueddeutsche.de/rss/Wirtschaft",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "Sunday Standard",
   "url": "https://www.sundaystandard.info",
   "status": "candidate",
@@ -9445,6 +10149,22 @@
   "rss": "https://www.talouselama.fi/rss.xml",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business weekly."
+ },
+ {
+  "name": "Tchadinfos",
+  "url": "https://www.tchadinfos.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Chad",
+  "rss": "https://www.tchadinfos.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Chad with."
  },
  {
   "name": "Tech Collective SEA",
@@ -9988,6 +10708,22 @@
   "notes": "Feed fetched and parsed 2026-07-29."
  },
  {
+  "name": "The Canberra Times",
+  "url": "https://www.canberratimes.com.au",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Metro",
+  "country": "Australia",
+  "rss": "https://www.canberratimes.com.au/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "The Chanzo",
   "url": "https://www.thechanzo.com",
   "status": "candidate",
@@ -10004,6 +10740,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. Independent Tanzanian title; stable feed. Use this as Tanzania's primary - Daily News is flaky (see its row)."
  },
  {
+  "name": "The Currency",
+  "url": "https://thecurrency.news",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://thecurrency.news/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "The Daily Star (Business)",
   "url": "https://www.thedailystar.net",
   "status": "candidate",
@@ -10018,6 +10770,22 @@
   "rss": "https://www.thedailystar.net/business/rss.xml",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
+ },
+ {
+  "name": "The EastAfrican",
+  "url": "https://www.theeastafrican.co.ke",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "East Africa (regional)",
+  "rss": "https://www.theeastafrican.co.ke/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening. Coverage is Regional on purpose: national_press.dateline() then tells the model the outlet's base does not place the story, rather than filing a Fiji round under Tonga."
  },
  {
   "name": "The Economic Times",
@@ -10052,6 +10820,38 @@
   "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk"
  },
  {
+  "name": "The Globe and Mail",
+  "url": "https://www.theglobeandmail.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Canada",
+  "rss": "https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/business/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
+  "name": "The Guardian",
+  "url": "https://www.theguardian.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.theguardian.com/uk/business/rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "The Hindu (Business)",
   "url": "https://www.thehindu.com",
   "status": "candidate",
@@ -10083,6 +10883,38 @@
   "rss": "https://www.thehindubusinessline.com/companies/feeder/default.rss",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "The Indian Express",
+  "url": "https://indianexpress.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "India",
+  "rss": "https://indianexpress.com/section/business/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
+  "name": "The Irish Times",
+  "url": "https://www.irishtimes.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ireland",
+  "rss": "https://www.irishtimes.com/arc/outboundfeeds/rss/?outputType=xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "The Japan Times",
@@ -10150,6 +10982,22 @@
   "notes": "Verified by the apac region audit, 2026-07-29. English daily"
  },
  {
+  "name": "The London Standard",
+  "url": "https://www.standard.co.uk",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.standard.co.uk/business/rss",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
   "name": "The Namibian",
   "url": "https://www.namibian.com.na",
   "status": "candidate",
@@ -10180,6 +11028,22 @@
   "rss": "https://thenassauguardian.com/search/?f=rss&t=article&l=50&s=start_time&sd=desc",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. TownNews-style search feed (site-wide, newest first) IMPORTANT: this host content-negotiates - send Accept: application/rss+xml or it returns HTML."
+ },
+ {
+  "name": "The Nation (Malawi)",
+  "url": "https://www.mwnation.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malawi",
+  "rss": "https://www.mwnation.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Malawi with."
  },
  {
   "name": "The National",
@@ -10262,6 +11126,22 @@
   "notes": "Verified by the mea region audit, 2026-07-29. Largest private English weekly."
  },
  {
+  "name": "The Royal Gazette",
+  "url": "https://www.royalgazette.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bermuda",
+  "rss": "https://www.royalgazette.com/rssfeeds/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Bermuda with."
+ },
+ {
   "name": "The San Francisco Standard",
   "url": "https://sfstandard.com",
   "status": "candidate",
@@ -10311,6 +11191,22 @@
   "notes": "Verified by the europe region audit, 2026-07-29. Investigative outlet."
  },
  {
+  "name": "The Sierra Leone Telegraph",
+  "url": "https://www.thesierraleonetelegraph.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sierra Leone",
+  "rss": "https://www.thesierraleonetelegraph.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Sierra Leone with."
+ },
+ {
   "name": "The Standard (business)",
   "url": "https://www.standardmedia.co.ke",
   "status": "candidate",
@@ -10342,6 +11238,38 @@
   "rss": "https://www.straitstimes.com/news/business/rss.xml",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29."
+ },
+ {
+  "name": "The Sydney Morning Herald",
+  "url": "https://www.smh.com.au",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://www.smh.com.au/rss/business.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
+ },
+ {
+  "name": "The Telegraph",
+  "url": "https://www.telegraph.co.uk",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.telegraph.co.uk/business/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "The Tico Times",
@@ -10389,6 +11317,22 @@
   "rss": "",
   "free": false,
   "notes": ""
+ },
+ {
+  "name": "TheBusinessDesk",
+  "url": "https://www.thebusinessdesk.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "United Kingdom",
+  "rss": "https://www.thebusinessdesk.com/feed/",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero."
  },
  {
   "name": "TI Inside",
@@ -10501,6 +11445,22 @@
   "rss": "https://www.tovima.gr/feed/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. National daily."
+ },
+ {
+  "name": "TOLOnews",
+  "url": "https://tolonews.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Afghanistan",
+  "rss": "https://tolonews.com/rss.xml",
+  "free": true,
+  "notes": "Verified by the 2026-07-30 publisher widening: read the sibling AI Layoff Tracker's vetted outlet list as RESEARCH (no code, no data shared) and fetched every candidate through this collector's own path. First feed this catalogue has reached Afghanistan with."
  },
  {
   "name": "TOUCHIT",
