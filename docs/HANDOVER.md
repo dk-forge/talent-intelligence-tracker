@@ -6,7 +6,7 @@ you go: it is the only thing that survives a crashed session.
 
 Last updated: **2026-07-31**. Plugin **1.58.0**, **17,539** current signals
 stored, company profiles shipped, cron firing on schedule but not reliably
-green, **2,526 offline tests passing** plus five PHP render harnesses. Spain
+green, **2,576 offline tests passing** plus five PHP render harnesses. Spain
 joined on 2026-07-31 as the fifteenth live collector and the second that
 reports a departure; it is DORMANT, and the section below says how to arm it. Figures
 below dated 2026-07-29 are left as they were measured that day; where one has

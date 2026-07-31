@@ -223,7 +223,7 @@ the summary API answers any past date, so a missed week is recovered by widening
 
 | | |
 |---|---|
-| tests | **+45**, suite green at **2,526** with 202 subtests |
+| tests | **+45**, suite green at **2,576** with 202 subtests (2,526 at the moment this branch was written; another session landed 50 more before it merged) |
 | new collectors | 1, keyless, `as_classified`, **$0** |
 | live collectors on the sources page | 14 → **15** |
 | Spain, real 7-day dry run | 340 events, 141 arrivals, 199 departures, 0 rejected by validate |
