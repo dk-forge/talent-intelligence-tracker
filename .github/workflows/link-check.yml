@@ -8,11 +8,18 @@ name: link-check
 # checking. With 575 publisher feeds across 139 countries in the catalogue, rot
 # is a certainty rather than a risk.
 #
-# ARMED WEEKLY, THROUGH THE QUEUE — see .github/workflows/schedule-link-hygiene.yml,
-# which writes a ticket on Mondays at 05:30 UTC that drain-writers.yml then
+# ARMED DAILY, THROUGH THE QUEUE — see .github/workflows/schedule-link-hygiene.yml,
+# which writes a ticket every day at 05:30 UTC that drain-writers.yml then
 # dispatches into an empty lock group, well before the 13:00 Monday health digest
 # reads the ledger. The leash in staleness.py is tightened to match, or a checker
 # that stops running would look exactly like a checker with nothing to report.
+#
+# It was weekly until 2026-07-30 and daily is not an arbitrary tightening: a
+# weekly sweep of 150 URLs against 14,796 distinct cited documents revisits a
+# given link roughly twice a decade, which is not a rot check, it is a rumour.
+# Daily is the cheapest cadence that makes the recheck window in
+# source_links.check_candidates mean anything. This job calls no model and no
+# paid API; its only cost is HTTP and a slice of the write lock.
 #
 # DO NOT ADD A `schedule:` TO THIS FILE. There is no commented-out cron here to
 # uncomment, on purpose. This workflow writes data/talent_intel.db, so it shares
@@ -28,7 +35,7 @@ name: link-check
 #
 #   gh workflow run drain-writers.yml \
 #     -f enqueue=link-check.yml -f inputs_json='{"dry_run":"false"}' \
-#     -f reason='weekly link rot sweep'
+#     -f reason='link rot sweep, out of cycle'
 #
 # COST: zero. No model is called. This is HTTP and a SQLite write.
 on:
@@ -51,7 +58,7 @@ on:
         type: string
         default: ''
 
-  # No `schedule:`. The weekly slot lives in schedule-link-hygiene.yml and
+  # No `schedule:`. The daily slot lives in schedule-link-hygiene.yml and
   # arrives here as a queued ticket. See the header before adding one.
 
 concurrency:

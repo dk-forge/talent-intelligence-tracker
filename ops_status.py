@@ -615,8 +615,8 @@ def _crons(workflow: str) -> list[str]:
 #: group as an uncoordinated third body and either evicts the pending run or is
 #: evicted itself, ending cancelled with zero jobs and unreplayable inputs.
 #: The schedule lives one level out, in a workflow that writes a ticket.
-LINK_JOBS = {"archive-sources.yml": "nightly Wayback pass",
-             "link-check.yml": "weekly rot sweep"}
+LINK_JOBS = {"archive-sources.yml": "three-hourly Wayback pass",
+             "link-check.yml": "daily rot sweep"}
 LINK_SCHEDULER = "schedule-link-hygiene.yml"
 
 
@@ -649,26 +649,6 @@ def _report_link_schedule() -> list[str]:
         print(f"              Arm by restoring the crons in {LINK_SCHEDULER};")
         print("              never by adding one to the two writers themselves.")
     return problems
-
-
-def _archive_scope() -> list[str]:
-    """The collectors a SCHEDULED archive run actually covers.
-
-    Read from the shell fallback in the workflow rather than the input default,
-    because a queued ticket carries only `dry_run` and the fallback is what
-    applies. Printed next to the coverage percentage because that percentage is
-    over the WHOLE corpus while the run is deliberately restricted to the
-    publisher tail — so the number has a ceiling well under 100%, and a reader
-    who does not know that reads a working job as a stalled one.
-    """
-    path = ROOT / ".github" / "workflows" / "archive-sources.yml"
-    if not path.exists():
-        return []
-    for line in path.read_text().splitlines():
-        if "COLLECTOR:-" in line:
-            names = line.split("COLLECTOR:-", 1)[1].split("}", 1)[0]
-            return [n.strip() for n in names.split(",") if n.strip()]
-    return []
 
 
 def _report_link_rot(conn) -> list[str]:
@@ -748,22 +728,29 @@ def _report_link_rot(conn) -> list[str]:
                   f"round: archive.org would not answer, and no state, attempt "
                   f"or verdict was recorded on the strength of that.")
 
-    # What the capture cap costs, said where the percentage is printed.
-    scope = _archive_scope()
-    if scope and total:
-        placeholders = ", ".join("?" for _ in scope)
-        in_scope = conn.execute(
-            f"SELECT COUNT(DISTINCT source_url) FROM signals "
-            f" WHERE is_current = 1 AND collector IN ({placeholders})",
-            tuple(scope)).fetchone()[0]
-        print(f"              the scheduled pass covers {len(scope)} collector(s) "
-              f"— {in_scope:,} of {total:,} URLs ({round(100.0 * in_scope / total, 1)}%).")
-        print("              The rest are SEC and GOV.UK filings whose publishers "
-              "keep them")
-        print("              indefinitely, so that share is this schedule's "
-              "ceiling rather")
-        print("              than a stall. Widen it by editing the collector "
-              "default in")
+    # What the capture cap costs, said where the percentage is printed. The
+    # percentage above is over the WHOLE corpus, so it has a ceiling near 4%:
+    # ~96% of that corpus is SEC and GOV.UK filings the schedule deliberately
+    # skips. This is the same measure over the population the schedule can
+    # actually reach, which is the one that moves when the job runs. The weekly
+    # digest calls the identical function, so the dashboard and the email can
+    # never quote two different coverage figures for the same day.
+    cover = source_links.archive_coverage(conn)
+    if cover["in_scope"] and total:
+        share = round(100.0 * cover["in_scope"] / total, 1)
+        print(f"    in scope  {cover['archived']:,}/{cover['in_scope']:,} "
+              f"({cover['pct']}%) archived across the "
+              f"{len(cover['collectors'])} collector(s) the schedule covers")
+        print(f"              {cover['capture_queue']:,} waiting on a capture, "
+              f"{cover['never_probed']:,} never answered about")
+        print(f"              newest snapshot: {cover['newest_snapshot'] or 'never'}")
+        print(f"              That scope is {cover['in_scope']:,} of {total:,} "
+              f"URLs ({share}%). The rest are SEC and")
+        print("              GOV.UK filings whose publishers keep them "
+              "indefinitely, so the")
+        print("              corpus percentage above has its ceiling there "
+              "rather than a stall.")
+        print("              Widen it by editing the collector default in")
         print("              .github/workflows/archive-sources.yml.")
 
     drifted = summary["states"].get("drifted", 0)

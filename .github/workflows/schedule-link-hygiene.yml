@@ -44,11 +44,50 @@ name: schedule-link-hygiene
 # query on 2026-07-29's live run, ~53 queries a month, so about $0.31 against
 # the $1.00 cap in analysis/tripwire/plan.TRIPWIRE_MONTHLY_USD. The pessimistic
 # $0.02/query estimate that cap was sized on is 3.4x the real price.
+#
+# THE ARCHIVE CADENCE, AND WHY IT IS EIGHT TIMES A DAY RATHER THAN ONCE
+# ---------------------------------------------------------------------
+# Measured 2026-07-30 against origin/main: the collectors a scheduled archive
+# run covers hold 656 distinct source URLs, 71 of them archived and 585 never
+# once answered about. A run resolves roughly 15-30% of what it examines from
+# the free availability API and then captures at most 40, of which about half
+# land on the first attempt, so a run is worth on the order of twenty new
+# snapshots. Nightly, that backlog takes about three and a half WEEKS. Every
+# three hours it takes three days, after which each run finds only what the
+# last collect stored and exits in seconds.
+#
+# It is not hourly, and the sibling tracker is the reason: its own hourly
+# archive sprint was audited and REVERTED on 2026-07-30 because three
+# consecutive runs were handed 0, 2 and 7 candidates. Raising the rate does not
+# raise the yield once the queue is short, and here every run holds the single
+# `talent-collect` write lock for up to 25 minutes (DEFAULT_DEADLINE in
+# archive_sources.py), so hourly would spend half the day holding the lock away
+# from collection. Three-hourly is the frequent-and-bounded point: it clears the
+# backlog in days and costs the lock at most a fifth of a day while it does.
+#
+# `--if-absent` below is what makes a frequent slot safe. A slot that fires
+# while the previous ticket is still waiting adds nothing, so a long backfill
+# holding the lock cannot leave eight tickets a day stacked behind it.
+#
+# WHY ENRICH IS SCHEDULED HERE TOO
+# --------------------------------
+# `archive_url` is not a field of Signal and never could be: a row is built at
+# classification time and its snapshot is captured afterwards, so at publish
+# time it is always empty. It reaches the site through `/enrich`, which
+# `enrich.yml` runs — and `enrich.yml` had no schedule at all. So an archiver
+# firing eight times a day would fill the local ledger while every reader went
+# on seeing the publisher's link alone, and the surface that carries this
+# product's promise would be the one thing the whole loop never updated.
+#
+# Daily rather than per-archive-run: /enrich pushes the whole derived allowlist,
+# it is idempotent, and there is nothing to gain from pushing the same values
+# eight times. 07:40 UTC, after the 06:20 archive slot has had its 25 minutes.
 on:
   schedule:
-    - cron: '40 3 * * *'   # nightly: a Wayback pass over the newest citations
-    - cron: '30 5 * * 1'   # Mondays: a rot sweep, before the 13:00 health digest
-    - cron: '0 7 * * 1,4'  # Mon+Thu: ask an outside view what we are missing
+    - cron: '20 */3 * * *'  # every 3h: a Wayback pass over the newest citations
+    - cron: '30 5 * * *'    # daily: a rot sweep, before the 13:00 Monday digest
+    - cron: '40 7 * * *'    # daily: carry the new snapshots to the live rows
+    - cron: '0 7 * * 1,4'   # Mon+Thu: ask an outside view what we are missing
 
   workflow_dispatch:
     inputs:
@@ -59,6 +98,7 @@ on:
           - both
           - archive
           - link-check
+          - enrich
           - tripwire
         default: both
 
@@ -97,9 +137,10 @@ jobs:
           set -euo pipefail
           if [ -n "${SLOT:-}" ]; then
             case "$SLOT" in
-              '40 3 * * *')  WANT='archive-sources.yml' ;;
-              '30 5 * * 1')  WANT='link-check.yml' ;;
-              '0 7 * * 1,4') WANT='tripwire.yml' ;;
+              '20 */3 * * *') WANT='archive-sources.yml' ;;
+              '30 5 * * *')   WANT='link-check.yml' ;;
+              '40 7 * * *')   WANT='enrich.yml' ;;
+              '0 7 * * 1,4')  WANT='tripwire.yml' ;;
               *)
                 echo "::error::schedule slot '$SLOT' has no mapping in this"
                 echo "::error::workflow. A cron was changed above and this step"
@@ -111,6 +152,7 @@ jobs:
             case "${JOB:-both}" in
               archive)    WANT='archive-sources.yml' ;;
               link-check) WANT='link-check.yml' ;;
+              enrich)     WANT='enrich.yml' ;;
               tripwire)   WANT='tripwire.yml' ;;
               # 'both' predates the tripwire and still means the two free
               # link-hygiene passes. It deliberately does NOT include the

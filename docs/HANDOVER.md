@@ -445,7 +445,7 @@ coverage priced honestly".
 |---|---|---|
 | 1 | ~~Bounded backfill slices~~ **BUILT 2026-07-29** | `backfill_slices.py`. All four backfills take one measured slice, commit it, and queue the next in the same commit; `timeout-minutes` 350 -> 90, below `LONG_HOLD_MINUTES`. Progress in a committed `data/backfill_state.json`, shown at `ops_status.py [2e]`. Proven live by run 30481065108, which also found the publish-failure gap now fixed. |
 | 2 | ~~Scope breach: layoff 8-Ks stored here~~ **FIXED 2026-07-29** | It was **seven** rows, not four: + Elastic (7% of its workforce), Commerce.com, and Verizon — the row the guard was originally written for. Forward fix is a third arm, `prefilter.filing_reduction_plan`, reading the filing BODY. Backward fix is `correct_layoff_scope.py`. Measured: 3,784 filings re-read, 0 unreadable, 6 announcing a reduction (0.16%). |
-| 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, ARMED 2026-07-30** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Scheduled from `schedule-link-hygiene.yml`, which writes a queue ticket — never from a cron in the two writers themselves, which would be evictable. Next step is deploying plugin 1.43.0 so a reader can see a fallback link. |
+| 3 | ~~Link checker + Wayback~~ **BUILT 2026-07-29, ARMED 2026-07-30, PROVEN END TO END 2026-07-30** | `link_check.py` + `archive_sources.py` + the `source_links` ledger. Scheduled from `schedule-link-hygiene.yml`, which writes a queue ticket — never from a cron in the two writers themselves, which would be evictable. Archiving every 3h, rot sweep daily. A reader filtering the live dashboard to `Marvell` sees the `Archived` link. What is left is coverage: 71 of 656 in-scope URLs, reported scoped by `ops_status.py [2c]` and mailed weekly. |
 | 4 | **Re-file 12 split office rows** | They sit across two pillars, plus a 4Life duplicate filed both ways. Needs a queued `store.revise()` pass. |
 | 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.47.0** | `/company/{slug}`, measured threshold gate, **714 indexable pages**, every URL verified. Employer keys corrected and the three collisions merged the same day; a moved key's old URL 301s. See the sections below and TECHLOG. Next step is Search Console, not code. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
@@ -634,9 +634,9 @@ and is where the 139-country catalogue lands.
 **Wayback coverage already held, before we capture anything:**
 publisher URLs **38/131 (29%)**, SEC and GOV.UK URLs **4/150 (3%)**.
 
-That gap decided the nightly default. EDGAR and the GOV.UK pay-gap service keep
+That gap decided the collector default. EDGAR and the GOV.UK pay-gap service keep
 their own documents indefinitely; the small-outlet tail does not. Spending a
-40-capture nightly budget on 12,700 SEC index pages would take most of a year to
+40-capture per-run budget on 12,700 SEC index pages would take most of a year to
 preserve documents a government already preserves, so `archive-sources.yml`
 defaults to `--collector national_press,google_news,gdelt,ats_boards`. Blank it
 once the tail is covered.
@@ -668,8 +668,25 @@ is not a writer and holds no lock. It writes a *ticket*:
 
 | slot | ticket | run |
 |---|---|---|
-| `40 3 * * *` | `archive-sources.yml`, `dry_run=false` | nightly Wayback pass |
-| `30 5 * * 1` | `link-check.yml`, `dry_run=false` | weekly rot sweep, before the 13:00 Monday digest |
+| `20 */3 * * *` | `archive-sources.yml`, `dry_run=false` | Wayback pass, eight times a day |
+| `30 5 * * *` | `link-check.yml`, `dry_run=false` | daily rot sweep, before the 13:00 Monday digest |
+
+**The cadence was retuned on 2026-07-30, and the arithmetic is the argument.**
+The scheduled scope holds 656 distinct source URLs, 71 archived and 585 never
+once answered about. A run resolves 15-30% of what it examines from the free
+availability API and captures at most 40 more, roughly half of which land first
+try, so a run is worth about twenty snapshots. Nightly, that backlog is three
+and a half WEEKS; every three hours it is three days, after which each run finds
+only what the last collect stored and exits in seconds.
+
+Not hourly. The sibling tracker's own hourly archive sprint was audited and
+REVERTED on 2026-07-30 after three consecutive runs were handed 0, 2 and 7
+candidates: rate does not buy yield once the queue is short. And every run here
+holds the `talent-collect` write lock for up to 25 minutes
+(`DEFAULT_DEADLINE`), so hourly would spend half the day holding the lock away
+from collection. The rot sweep went weekly to daily for a plainer reason: 150
+URLs a week against 14,796 cited documents revisits a given link about twice a
+decade, which is not a check.
 
 `drain-writers.yml` dispatches each ticket only into an EMPTY group, so it cannot
 be evicted; if one somehow is, its inputs are on file and it is re-dispatched
@@ -684,28 +701,65 @@ gh workflow run drain-writers.yml -f enqueue=link-check.yml \
      -f reason='ad-hoc rot measurement'
 ```
 
-The leashes in `staleness.py` were tightened in the same change (2400h ->
-`archive_sources` 54, `link_check` 180), or a checker that stopped running would
-look exactly like a checker with nothing to report. `ops_status.py [2c]` prints
-the arming state, derived from the workflow files, and goes red if either writer
-ever grows a cron.
+The leashes in `staleness.py` move with the cadence (2400h -> 54/180 when they
+were armed -> **`archive_sources` 26, `link_check` 36** at the current one), or a
+checker that stopped running would look exactly like a checker with nothing to
+report. The test now DERIVES the bound from the cron rather than pinning a
+number, so the next cadence change cannot leave a dead job looking healthy for a
+fortnight. `ops_status.py [2c]` prints the arming state, derived from the
+workflow files, and goes red if either writer ever grows a cron.
 
-**Coverage the schedule can actually reach.** The nightly pass is pointed at the
-publisher tail (`national_press,google_news,gdelt,ats_boards`), which is 235 of
-12,970 distinct source URLs — 1.8%. The other 98.2% are SEC and GOV.UK filings
-whose publishers keep them indefinitely, so 1.8% is this schedule's ceiling and
-not a stall; `[2c]` says so next to the percentage. Widen it by editing the
+**A dry run cannot refresh that clock**, which is the other half of the guard: a
+hand dispatch carrying the `dry_run=true` default records nothing to
+`source_health`, so a schedule that quietly went dry still ages into STALE.
+
+**Coverage the schedule can actually reach.** The pass is pointed at the
+publisher tail (`national_press,google_news,gdelt,ats_boards`), which is 656 of
+14,796 distinct source URLs — 4.4%. The other 95.6% are SEC and GOV.UK filings
+whose publishers keep them indefinitely, so that share is this schedule's ceiling
+and not a stall; `[2c]` says so next to the percentage. Widen it by editing the
 collector default in `archive-sources.yml`.
+
+Which is why coverage is now reported SCOPED as well.
+`source_links.archive_coverage()` measures archived-over-in-scope (71/656,
+10.8%), a ratio with a ceiling of 100% that moves when the job runs, rather than
+archived-over-corpus (0.5%), which reads a healthy archiver as a stalled one.
+`ops_status.py [2c]` and the weekly digest call the SAME function, for the reason
+the staleness leashes live in one module: a dashboard and an email disagreeing
+about this number would leave a session no way to tell which was lying.
+
+**And the silence now has an alarm of its own.** `health_digest.archiving_stalled()`
+fires when work is outstanding AND no snapshot has landed in seven days, and it
+is in `needs_human`, so it mails. Nothing else here can see that failure: a job
+that runs green every three hours and records nothing is not stale, not degraded
+and costs nothing. It happened on 2026-07-30 — run **30507215991** went out by
+direct dispatch, took the `dry_run=true` default, examined 164 URLs, found 24
+already in Wayback and recorded NONE of them — and went unnoticed for a day
+because no number anybody reads described it. The digest reports SOURCE LINKS
+every week now, findings or none: a metric that appears only once it is bad
+cannot show a slow slide.
 
 **Verified:** the recording path. Runs 30473757174 (link-check, 17:05Z) and
 30474293718 (archive-sources, 17:12Z) on 2026-07-29 both recorded, merged and
 pushed — commits `f56164e` and `c18288e`. 72 rows now carry an `archive_url`.
 
-**Not yet verified:** the reader-facing fallback link. `archive_url` is
-enrichable end to end (`pipeline/publish.py` -> `tit_enrichable_columns()`) and
-rendered beside the publisher's link in both `shortcodes.php` and
-`dashboard.js`, but plugin **1.43.0 has not been deployed**, so no reader has
-seen one yet.
+**Verified 2026-07-30:** the reader-facing fallback link, which this document
+previously recorded as unverified. Plugin **1.58.0 is live**, and filtering the
+dashboard to Employer = `Marvell` renders
+
+```html
+<span class="tit-archived"><a href="https://web.archive.org/web/20260729172104/https://inc42.com/buzz/semiconductor-major-marvell-to-invest-250-mn-in-india-double-headcount/"
+   rel="nofollow noopener" target="_blank"
+   title="Archived copy at the Internet Archive">Archived</a></span>
+```
+
+beside the publisher's own link. The whole path holds: `archive_sources.py` ->
+`source_links` -> `project_archive_urls()` -> `/enrich` -> `wp_tit_signals` ->
+`dashboard.js`. Note that the default `detail=notable` filter hides most rows, so
+a row with a snapshot is easiest to find by employer.
+
+**Still unverified:** nothing on this path. What remains is coverage, and
+coverage is now a number rather than a hope.
 
 ---
 

@@ -10,12 +10,16 @@ name: archive-sources
 # spn_max DOES NOT SPEED THIS UP — it gets us throttled and the run captures
 # less. A slow coverage climb is the design working.
 #
-# ARMED NIGHTLY, THROUGH THE QUEUE — see .github/workflows/schedule-link-hygiene.yml,
-# which writes a ticket at 03:40 UTC that drain-writers.yml then dispatches into
-# an empty lock group. This IS the ingest-time job: candidates are ordered
-# newest-capture first, so a run after a collect archives what that collect just
-# stored while everything older backfills from behind it, with no change to the
-# ingest write path.
+# ARMED EVERY THREE HOURS, THROUGH THE QUEUE — see
+# .github/workflows/schedule-link-hygiene.yml, which writes a ticket at :20 past
+# every third hour that drain-writers.yml then dispatches into an empty lock
+# group. That file carries the arithmetic behind the cadence: the scheduled
+# scope is 656 URLs and a run is worth about twenty snapshots, so nightly would
+# take three and a half weeks to do what three-hourly does in three days.
+#
+# This IS the ingest-time job: candidates are ordered newest-capture first, so a
+# run after a collect archives what that collect just stored while everything
+# older backfills from behind it, with no change to the ingest write path.
 #
 # DO NOT ADD A `schedule:` TO THIS FILE. There is no commented-out cron here to
 # uncomment, on purpose. This workflow writes data/talent_intel.db, so it sits in
@@ -31,7 +35,7 @@ name: archive-sources
 #
 #   gh workflow run drain-writers.yml \
 #     -f enqueue=archive-sources.yml -f inputs_json='{"dry_run":"false"}' \
-#     -f reason='nightly archive backfill'
+#     -f reason='archive backfill, out of cycle'
 #
 # COST: zero. No model is called.
 on:
@@ -55,13 +59,13 @@ on:
         # The publisher long tail, on purpose. Measured 2026-07-29: 29% of
         # publisher URLs were already in Wayback against 3% of the SEC and
         # GOV.UK ones, and it is the publisher tail that rots while EDGAR keeps
-        # its filings indefinitely. Spending a 40-capture nightly budget on
+        # its filings indefinitely. Spending a 40-capture per-run budget on
         # 12,700 SEC index pages would take the better part of a year and
         # preserve documents a government already preserves. Blank this when
         # the tail is fully covered and the budget has somewhere better to go.
         default: 'national_press,google_news,gdelt,ats_boards'
 
-  # No `schedule:`. The nightly slot lives in schedule-link-hygiene.yml and
+  # No `schedule:`. The three-hourly slot lives in schedule-link-hygiene.yml and
   # arrives here as a queued ticket. See the header before adding one.
 
 concurrency:

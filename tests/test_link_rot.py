@@ -545,3 +545,53 @@ def test_no_model_is_called_by_either_job():
         body = path.read_text()
         for forbidden in ("openrouter", "OPENROUTER_API_KEY", "classify_signal"):
             assert forbidden not in body, f"{path.name} reaches for a model"
+
+
+# --- coverage, scoped the way the schedule actually runs -------------------
+
+def test_the_scheduled_scope_is_read_from_the_workflow_not_guessed():
+    """Two tools now report archive coverage and both must scope it the same.
+
+    ops_status.py used to carry its own copy of this reader. That is the shape
+    the staleness leashes were in when the dashboard and the digest disagreed
+    about every collector off the 2x/day cron, and a session reading "0.5%
+    archived" here and "11% archived" in the weekly email would have no way to
+    tell which one was lying.
+    """
+    scope = source_links.scheduled_archive_scope(ROOT)
+    text = (ROOT / ".github" / "workflows" / "archive-sources.yml").read_text()
+    assert scope, "no collector scope could be read from the workflow"
+    for name in scope:
+        assert name in text
+    assert "ops_status.py" not in text or "_archive_scope" not in \
+        (ROOT / "ops_status.py").read_text(), (
+            "ops_status.py has grown a second copy of the scope reader")
+
+
+def test_coverage_is_measured_over_the_scope_the_schedule_can_reach(stocked):
+    """The corpus percentage has a ceiling near 4% and cannot move much.
+
+    ~96% of what we cite is SEC and GOV.UK filings the schedule deliberately
+    skips, so a corpus-wide percentage reads a healthy archiver as a stalled one.
+    This ratio has a ceiling of 100% and moves when the job does.
+    """
+    cover = source_links.archive_coverage(stocked, ["national_press"])
+    assert cover["in_scope"] == 3
+    assert cover["archived"] == 0
+    assert cover["never_probed"] == 3, (
+        "a URL nothing has ever asked about is not a gap in Wayback, it is a "
+        "gap in what we know, and the two size a capture budget differently")
+
+    source_links.record_archive(
+        stocked, "https://www.irishtimes.com/business/one/", state="archived",
+        archive_url="https://web.archive.org/web/2026/x", attempts=1, probes=1)
+    stocked.commit()
+    cover = source_links.archive_coverage(stocked, ["national_press"])
+    assert cover["archived"] == 1
+    assert cover["pct"] == 33.3
+    assert cover["newest_snapshot"]
+
+
+def test_a_collector_outside_the_scope_is_not_counted_against_it(stocked):
+    """Widening the scope is an edit to the workflow, never an accident here."""
+    assert source_links.archive_coverage(stocked, ["sec_edgar"])["in_scope"] == 0

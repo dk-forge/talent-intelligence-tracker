@@ -134,16 +134,26 @@ MAX_AGE_HOURS = {
     # delay: a ticket written while a long backfill holds the writer lock waits
     # for it, and a 350-minute slice is entitled to its 350 minutes.
     #
-    # archive_sources: nightly (24h). Two missed nights (48h) plus ~6h of
-    # worst-case queue wait. A single skipped night is not worth a page: the
-    # candidate list is the GAP, so tomorrow's run simply picks up what
-    # yesterday's did not.
-    "archive_sources": 54,
-    # link_check: weekly on Mondays (168h). One missed Monday is a fortnight of
-    # not knowing whether anything we cite has rotted, which is too long, so
-    # this is the weekly-cron shape bse_india already uses — cadence plus slack,
-    # flagging part-way into the second week rather than after two full misses.
-    "link_check": 180,
+    # archive_sources: every three hours since 2026-07-30 (was nightly). A
+    # single skipped slot is not worth a page — the candidate list IS the gap,
+    # so the next run simply picks up what the last one did not — but eight
+    # slots in a row producing nothing is a job that has stopped. 26h is a full
+    # day of missed slots plus queue slack, and it is deliberately not 3h+slack:
+    # a ticket written while a 350-minute backfill holds the writer lock is
+    # entitled to those 350 minutes, and a leash that pages for that would be an
+    # alarm for the queue working as designed.
+    #
+    # Note what this leash does NOT catch, and what does: a run dispatched by
+    # hand with the default dry_run=true records nothing to source_health, so it
+    # cannot refresh this clock. A schedule that quietly went dry therefore
+    # still ages into STALE. That is on purpose (it happened on 2026-07-30, run
+    # 30507215991, and went unnoticed for a day).
+    "archive_sources": 26,
+    # link_check: daily at 05:30 UTC since 2026-07-30 (was weekly on Mondays).
+    # One missed day plus queue slack. Weekly plus slack used to be 180h, which
+    # meant a checker could be dead for a week and a half before anything said
+    # so, while the Monday digest read its silence as "nothing has rotted".
+    "link_check": 36,
 }
 
 # A collector nobody has written a schedule-derived leash for. Two weeks: long

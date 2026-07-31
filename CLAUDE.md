@@ -169,8 +169,13 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   evicted and become an unreplayable orphan; the scheduler writes a *ticket*
   instead and `drain-writers.yml` dispatches it into an empty group.
   `ops_status.py [2c]` is the authority on this, not this line, and it goes red
-  if either workflow ever grows a cron. **Do not replace either with a WordPress
-  broken-link-checker plugin** —
+  if either workflow ever grows a cron. **A captured snapshot reaches a reader
+  only through `/enrich`**: `archive_url` is not a field of Signal (the row is
+  built at classification time, the snapshot is taken afterwards), so it travels
+  on the ENRICHABLE path, and `enrich.yml` is scheduled from the same file for
+  that reason — without it the archiver fills the local ledger while every
+  reader still sees the publisher's link alone. **Do not replace either with a
+  WordPress broken-link-checker plugin** —
   those crawl post content, our source links live in `wp_tit_signals`, and it
   would paint a green badge over an entirely unchecked corpus.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
