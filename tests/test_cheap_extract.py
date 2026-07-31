@@ -373,13 +373,13 @@ def test_run_collect_prechecks_before_the_model():
 
 def test_the_cost_knobs_are_env_configurable_with_the_agreed_defaults():
     """The three model/cap decisions, pinned where they were made. The gate
-    default is the A/B winner; the read cap default is the owner's 2026-07-30
-    authorization; and the read-through model is deliberately NOT switched -
-    that change is gated behind ab_models.py --readthrough."""
+    default is the A/B winner; the read cap default is what $25 a month buys
+    (cost_projection.py section [5]); and the extraction model is deliberately
+    NOT switched - that change is gated behind its own A/B."""
     import pipeline.classify as classify_module
     src = inspect.getsource(classify_module)
     assert 'os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")' in src
-    assert 'os.environ.get("TIT_READTHROUGH_CAP", "200")' in src
+    assert 'os.environ.get("TIT_READTHROUGH_CAP", "75")' in src
     assert 'os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")' in src, \
         "the read-through model must stay on the incumbent until its own A/B runs"
 

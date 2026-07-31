@@ -185,17 +185,44 @@ FULL_READ_CHARS = 4000
 # defers the candidate un-seen and the next run picks it up: a capped day
 # spreads over runs instead of being silently dropped.
 #
-# RAISED 60 -> 200, authorized by the owner on 2026-07-30, so that every
-# candidate the gate keeps can actually be read instead of queueing behind a
-# ceiling sized for the single-stage era: the last real run bought all 60 of
-# its reads and still budget-deferred 95 gate survivors to the next run. At
-# the measured ~$0.00128 per read this bounds ONE RUN at ~$0.26; it was never
-# the monthly guarantee and still is not. The enforced ceiling remains
-# spend.py, which runs first on every collect job and hard-stops at 90% of
-# the monthly allowance, backstopped by the hard cap on the OpenRouter key
-# itself. The deterministic closers, story clustering and pre-read known-round
-# matching are what keep real demand under this number.
-READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "200") or "200")
+# 60 -> 200 on 2026-07-30 (the cap was starving coverage), then 200 -> 75 the
+# same day, and the second move is the one that needs explaining, because it
+# looks like a retreat and is not.
+#
+# WHAT CHANGED IS WHICH CEILING BINDS. At 60 the per-run cap was the constraint:
+# a run bought all 60 of its reads and deferred 95 gate survivors. At 200 the
+# per-run cap stopped binding almost everywhere and the MONTH became the
+# constraint instead. Measured, at cap 200 and full cadence:
+#
+#   $2.52/day charged across collect.yml and collect-press.yml
+#     = $75.60/month against a $25 allowance          (run cost_projection.py)
+#
+# A cap of 200 does not spend $75; a cap of 200 lets DEMAND spend $75, and
+# demand is 862 reads a day. So a run at 200 would spend the month's whole
+# allowance in the first ten days, `spend.py --degrade` would switch paid reads
+# off, and the last twenty days of every month would collect nothing but the
+# free sources. Ten good days and twenty thin ones is worse coverage than
+# thirty even ones, and much worse for a tracker whose promise is that it is
+# current.
+#
+# So the cap is sized to the MONTH. 75 is national_press's share of what $25
+# buys after the gate's own $4.15: the arithmetic is in cost_projection.py
+# section [5] and it is re-derived from the ledger rather than typed here.
+# collect.yml sets its own per-source values for the collectors whose demand
+# differs (google_news 45, gdelt 8, the SEC pair 40, where 40 is headroom on a
+# demand of one or two).
+#
+# THIS IS RATIONING, AND THE RATION IS SPENT DELIBERATELY. What makes a cap of
+# 75 acceptable is `pipeline/candidate_rank.py`: the reads go to the countries
+# holding least, and every country's best story is placed before any country's
+# second. A capped run is not a random 75 of 249, it is the 75 that buy the
+# most coverage. A candidate past the cap defers UNMARKED and returns on the
+# next run, so the cap decides when a story is read, never whether.
+#
+# RAISE IT when the money per read falls, and not before. cost_projection.py
+# prices the two swaps that would move it most, and both are model decisions
+# for the owner rather than routing tweaks.
+READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "75") or "75")
 
 # Spec 4 rule 1: a narrow classification does not need a 1,400-token prompt.
 MINI_SYSTEM = (

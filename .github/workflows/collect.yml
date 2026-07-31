@@ -101,11 +101,21 @@ jobs:
       # run_collect takes exactly one --source per invocation, so the sweep is
       # a loop, and each invocation is a fresh process with its own read-
       # through cap. The per-source TIT_READTHROUGH_CAP is the cost control
-      # that makes the sweep affordable: caps are ceilings, not spends — the
-      # SEC collectors found 6 and 3 items on their last real runs, so their
-      # 40 is headroom, while google_news keeps the production default (60).
-      # The spend guard above and the OpenRouter key's own hard cap still
-      # bind before any of this.
+      # that makes the sweep affordable, and since 2026-07-30 each number is
+      # that collector's share of what the monthly allowance buys rather than
+      # a round number: measured demand is 153 reads/run for google_news and
+      # 26 for gdelt, and $25 a month pays for about 28% of the total. The SEC
+      # pair keep 40, which is headroom on a demand of one or two — rationing
+      # a collector that finds two filings saves nothing and would one day
+      # bind on the run that finds fifty.
+      #
+      #     python3 cost_projection.py     # re-derives all four from the ledger
+      #
+      # Caps are ceilings, not spends. Which stories fit inside one is decided
+      # by pipeline/candidate_rank.py, which puts the countries holding least
+      # first and gives every country's best story a place before any
+      # country's second. The spend guard above and the OpenRouter key's own
+      # hard cap still bind before any of this.
       #
       # One source failing must not silence the ones behind it in the loop —
       # a dead GDELT costing us the SEC filings would be a new bug wearing a
@@ -121,8 +131,9 @@ jobs:
             overall=0
             for source in google_news gdelt sec_edgar sec_form_d; do
               case "$source" in
-                gdelt)                export TIT_READTHROUGH_CAP=100 ;;
+                gdelt)                export TIT_READTHROUGH_CAP=8 ;;
                 sec_edgar|sec_form_d) export TIT_READTHROUGH_CAP=40 ;;
+                google_news)          export TIT_READTHROUGH_CAP=45 ;;
                 *)                    unset TIT_READTHROUGH_CAP ;;
               esac
               echo "::group::collect $source"

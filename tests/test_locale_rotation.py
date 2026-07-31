@@ -116,14 +116,26 @@ def test_the_run_caps_itself_without_being_told_to():
     # run_collect.py describing the superseded single-stage era. On the live
     # page it showed as 97% of rows being US or GB, with Israel on 15.
     assert 10 <= DEFAULT_CANDIDATE_CAP <= 2000
-    # Read-through bound raised 100 -> 200 on 2026-07-30, with the owner's
-    # explicit authorization, so every gate survivor gets read (the last real
-    # run bought its 60 and still deferred 95). Pinned AT the new default on
-    # purpose: one run at the ceiling is ~$0.26 of reads, and any further
-    # raise should trip this assertion and be argued for, exactly as this one
-    # was. The monthly guarantee stays spend.py's hard stop plus the
-    # OpenRouter key's own cap - a per-run ceiling was never it.
-    assert 10 <= READTHROUGH_CAP <= 200
+    # Read-through bound: 60 -> 200 on 2026-07-30 because the cap was starving
+    # coverage, then 200 -> 75 the same day because the ceiling that binds
+    # moved from the RUN to the MONTH. Measured at cap 200 and full cadence:
+    # $2.52/day across collect.yml and collect-press.yml, which is $75.60 a
+    # month against a $25 allowance. A cap of 200 does not spend $75; it lets
+    # demand (862 reads/day) spend $75, so the month's money would be gone in
+    # ten days and spend.py --degrade would switch paid reads off for the other
+    # twenty. Ten good days and twenty thin ones is worse coverage than thirty
+    # even ones.
+    #
+    # 75 is national_press's share of what $25 buys after the gate's own
+    # $4.15/month. Re-derive it rather than trusting this comment:
+    #
+    #     python3 cost_projection.py        # section [5]
+    #
+    # RAISE IT when the money per read falls and not before, and raise the
+    # allowance in spend.py and this bound together or not at all. The upper
+    # bound here is the one at which a single run could spend a fifth of the
+    # month, which is the shape of failure this assertion exists to catch.
+    assert 10 <= READTHROUGH_CAP <= 100
     # The gate exists precisely so the run can look at more than it classifies;
     # if the read-through ceiling ever exceeds the candidate cap, the gate is
     # dead code and every candidate is billed at the full rate again.
