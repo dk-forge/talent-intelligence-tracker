@@ -11,6 +11,7 @@ Nothing is stored until a dry run looks right (spec 11 step 2).
 from __future__ import annotations
 
 import argparse
+import functools
 import sys
 from dataclasses import asdict
 from datetime import date
@@ -21,7 +22,7 @@ from collectors import (ats_boards, bse_india, companies_house, czechia_ares,
                         national_press, opendart_korea, sec_edgar, sec_execcomp,
                         sec_form_d, spain_borme, tripwire_chase, uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
-                      prefilter, publish, schema, store, validate)
+                      gate_ledger, prefilter, publish, schema, store, validate)
 
 # Registration. A collector that exposes `as_classified` derives its own
 # record from structured fields and never calls the model, so it skips the
@@ -310,6 +311,40 @@ def cluster_stories(items: list[dict]) -> tuple[list[dict], list[dict], int]:
     return kept, removed_strict, removed_loose, clusters
 
 
+def _with_gate_labels(fn):
+    """Open and close the gate-label ledger around a whole collect run.
+
+    A DECORATOR rather than five calls inside `run`, because `run` has five
+    exits — a fetch failure, a bad key, exhausted credits, a dry run and the
+    normal end — plus an unhandled exception as a sixth, and a flush at each is
+    five chances to forget one. `finally` is none.
+
+    It is also a decorator rather than a rename-and-wrap so that `run` stays ONE
+    function: several tests in this repo read `inspect.getsource(run_collect.run)`
+    to assert that an ordering rule is still in the code, and splitting the body
+    into a private `_run` would quietly make every one of those assertions
+    inspect the wrong function. `functools.wraps` sets `__wrapped__`, which
+    `inspect.getsource` follows, so those tests keep reading the real body.
+
+    Nothing here can fail a run: every gate_ledger entry point swallows its own
+    exceptions (see pipeline/gate_ledger).
+    """
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        gate_ledger.reset()
+        gate_ledger.set_dry_run(bool(kwargs.get("dry_run")))
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            written = gate_ledger.flush()
+            if written:
+                print(f"[{kwargs.get('source', 'collect')}] gate labels: "
+                      f"{written} decision(s) recorded for the classifier "
+                      f"training set (data/gate_labels/)")
+    return wrapper
+
+
+@_with_gate_labels
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
@@ -573,6 +608,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # run handling, counted apart so a run that deferred work ON
             # PURPOSE cannot trip the mostly-throttled breakage alarm below.
             budget_deferred += 1
+            gate_ledger.outcome(item, "deferred")
             print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
             continue
         except classify.Throttled as exc:
@@ -581,15 +617,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # up instead of losing it. A busy provider must never look like a
             # quiet news day.
             throttled += 1
+            gate_ledger.outcome(item, "deferred")
             print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
             continue
         except classify.ClassifyError as exc:
             rejected += 1
+            gate_ledger.outcome(item, "error")
             print(f"  REJECT  {item.get('headline','')[:70]}\n          classify: {exc}")
             continue
 
         if classified is None:
             rejected += 1
+            # Two different rejections arrive here — the gate's NO and
+            # extraction's `is_talent_signal: false` — and this branch cannot
+            # tell them apart. gate_ledger can: it already wrote `gate_reject`
+            # for a gate NO and refuses to let a later stage relabel it.
+            gate_ledger.outcome(item, "model_reject")
             # Never reject silently. A run that stores nothing must say why for
             # every candidate — this exact silence hid three funding filings
             # being discarded because the prompt did not list funding.
@@ -622,6 +665,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             signal = validate.build_signal(classified, item, collector, conn=conn)
         except validate.Rejected as exc:
             rejected += 1
+            gate_ledger.outcome(item, "validate_reject")
             print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")
             if url and not dry_run:
                 store.mark_seen(conn, url, collector, "rejected")
@@ -645,6 +689,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         if verdict:
             duplicates += 1
             unread_duplicates += 1
+            gate_ledger.outcome(item, verdict)
             if verdict == "retracted":
                 print(f"  SKIP    {signal.headline[:66]}\n"
                       f"          previously retracted, not re-stored "
@@ -670,11 +715,13 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 return _stop_run("OpenRouter credits exhausted", exc)
             except classify.Throttled as exc:
                 throttled += 1
+                gate_ledger.outcome(item, "deferred")
                 print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
                 continue
 
         if dry_run:
             stored += 1
+            gate_ledger.outcome(item, "would_store")
             if paid_read:
                 classify.STATS["read_stored"] += 1
             if _should_print(stored):
@@ -682,6 +729,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             continue
 
         outcome = store.store(conn, signal)
+        gate_ledger.outcome(item, outcome)
         store.mark_seen(conn, url, collector, outcome)
         if outcome == "stored":
             stored += 1

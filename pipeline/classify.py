@@ -16,7 +16,7 @@ import time
 
 import requests
 
-from . import cheap_extract, prompts, validate, vocab
+from . import cheap_extract, gate_ledger, prompts, validate, vocab
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
@@ -722,11 +722,19 @@ def usage_snapshot(*, candidates: int | None = None,
     }
 
 
-def gate(text: str, *, timeout: int = 30) -> bool:
-    """One-word KEEP/DROP from the cheap model. Fails OPEN: if the gate itself
-    errors or is throttled, the candidate goes through to the full model, so a
-    flaky gate can cost money but can never cost coverage. 401/402 still
-    propagate — those end the run whichever stage sees them."""
+def gate_verdict(text: str, *, timeout: int = 30) -> str:
+    """The gate's answer as one of YES, NO or ERROR.
+
+    ERROR is the third value and it is the whole reason this function exists
+    beside `gate()`. The gate FAILS OPEN — a throttled or erroring gate lets the
+    candidate through — and the boolean cannot tell "the model said yes" from
+    "the model never answered". Recording the second as a YES would teach the
+    classifier being trained on these labels that provider outages are talent
+    signals, so the two are separated here and `gate()` folds them back for
+    every caller that only wants the routing decision.
+
+    401/402 still propagate: those end the run whichever stage sees them.
+    """
     STATS["gate_calls"] += 1
     try:
         content = _call(
@@ -736,11 +744,19 @@ def gate(text: str, *, timeout: int = 30) -> bool:
     except (AuthFailed, CreditsExhausted):
         raise
     except (Throttled, ClassifyError):
-        return True
-    keep = "YES" in content.upper()
-    if not keep:
-        STATS["gate_rejects"] += 1
-    return keep
+        return gate_ledger.ERROR
+    if "YES" in content.upper():
+        return gate_ledger.YES
+    STATS["gate_rejects"] += 1
+    return gate_ledger.NO
+
+
+def gate(text: str, *, timeout: int = 30) -> bool:
+    """One-word KEEP/DROP from the cheap model. Fails OPEN: if the gate itself
+    errors or is throttled, the candidate goes through to the full model, so a
+    flaky gate can cost money but can never cost coverage. 401/402 still
+    propagate — those end the run whichever stage sees them."""
+    return gate_verdict(text[:GATE_CHARS], timeout=timeout) != gate_ledger.NO
 
 
 def classify(raw: dict, *, timeout: int = 45,
@@ -793,9 +809,23 @@ def classify(raw: dict, *, timeout: int = 45,
 
     # Stage 1: the one-word gate. A rejection here costs ~1/40th of a full
     # read-through and is the whole reason the candidate cap can be generous.
+    #
+    # Every verdict is also written to the label ledger. That is bookkeeping
+    # around a call that already happened — no extra model call, no change to
+    # what is kept — and it is the training set for the classifier that
+    # replaces most of this gate (docs/PLAN-gate-to-five-dollars.md, step 1).
+    # `gate_ledger` swallows its own failures, so it cannot cost a run.
+    collector = (raw.get("collector") or "").strip()
     if gate_enabled():
-        if not gate(text, timeout=min(timeout, 30)):
+        verdict = gate_verdict(text, timeout=min(timeout, 30))
+        gate_ledger.record(raw, collector, verdict)
+        if verdict == gate_ledger.NO:
             return None
+    else:
+        # Single-stage runs have no verdict to record, but the candidate and
+        # its eventual outcome are still worth a line: "did this become a
+        # stored row" is the target the classifier is actually trained on.
+        gate_ledger.record(raw, collector, gate_ledger.OFF)
 
     # Stage 2 is the expensive call, so it carries the per-run ceiling.
     # Raised as Throttled because that is already the "not now, retry next
