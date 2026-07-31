@@ -177,6 +177,182 @@ red until somebody finishes.
 
 ---
 
+## 2026-07-31 — a Form D "amount sold" is not money raised, and 318 published rows said it was
+
+`correct_form_d_overcount.py`, `.github/workflows/correct-form-d-overcount.yml`,
+`tests/test_form_d_overcount_correction.py`, a pending corrections-log entry,
+plugin **1.60.0**. **This is the BACKWARD half only.** The collector fixes are
+owned elsewhere and nothing under `collectors/` was touched.
+
+A Form D reports an **amount sold**. That is not the same fact as money raised,
+and three kinds of filing were being published as funding rounds when the
+document never said a company raised anything.
+
+### The four that were retracted by hand, and what they had in common
+
+| | what the filing says | published as |
+|---|---|---|
+| Masimo | Danaher is ACQUIRING Masimo at $180/share, "total consideration of $9.9 billion" | a $9.90bn raise |
+| Dillard's | "Merger of W.D. Company, Inc. with and into Dillard's, Inc.", amount estimated off a closing share price, zero cash | $2.39bn |
+| Madison Air | a reorganisation of entities under common control: 402,614,670 shares x $27.00 = $10,870,596,090 exactly. The only cash in the prospectus is $100.0m | $10.87bn |
+| OPTCAPITAL LLC | a D/A, the fourteenth annual amendment to a continuous offering first sold 2012-07-22, offering amount "Indefinite" | a $1.77bn round |
+
+None of the four is an extraction error. Every figure is exactly what the filing
+prints. What is wrong is the **claim wrapped around it**, which is why none of
+them could be fixed by re-reading the document.
+
+### The three shapes, measured against the live API on 2026-07-31
+
+3,312 live funding rows, **$118.416bn**. 3,013 come from Form D and 3,004 of
+those join a cached quarter archive (2026q1, 2026q2). The nine that do not are
+July filings: the quarterly data set is only published once a quarter has ended.
+
+| | rows | money | withdrawn |
+|---|---|---|---|
+| `ISBUSINESSCOMBINATIONTRANS` = true | 177 | $8.535bn | 170 / $7.788bn |
+| `TOTALOFFERINGAMOUNT` = "Indefinite" | 214 | $7.181bn | 75 / $5.472bn |
+| an offering already published (same CIK + SEC file number) | 143 | — | 73 / $0.990bn |
+| **union** | | | **318 / $14.250bn** |
+
+**`ISBUSINESSCOMBINATIONTRANS` has been in the data set the whole time and no
+code path had ever read it.** It is the issuer's own yes-or-no answer to whether
+the offering is part of a business combination.
+
+### What each rule costs, because a rule that deletes true records is not free
+
+The publish guardrails rejected two candidate patterns on exactly this basis;
+the same accounting is done here and the same kind of answer came out.
+
+**Rule 1, business combinations — the one with a cost we cannot measure away.**
+62 of the 177 filings write a clarification. 7 of those 62 say the proceeds were
+cash that was then spent: *"a portion of the proceeds of the sale of securities
+to investors was used to acquire"*, *"funds are being used to acquire a
+hospital"*, *"the private placement (PIPE) financing closed concurrently with a
+Merger"*. Those 7 (**$0.747bn**) are real raises and are kept, matched on
+phrasing quoted from the filings themselves. The remaining **115 answer yes and
+explain nothing**, and nothing in the data set separates them: EDGAR shows Sensei
+Biotherapeutics now filing as **Faeth Therapeutics** (a reverse merger) and
+Infleqtion's CIK resolving to **AltEnergy Acquisition Corp** (a SPAC), so the box
+is being answered correctly — but a de-SPAC PIPE is also cash. On the rate of the
+62 that do explain, **roughly a dozen of the 115 are real raises and go with the
+rest**. That is stated on the corrections page rather than buried.
+
+*Rejected candidate: sales commission as a rescue.* A merger does not pay a
+broker to sell shares, so `SALESCOMM_DOLLARAMOUNT > 0` looks like it should mark
+a cash placement. Measured: it rescues 8 of the 115 silent rows, and **wrongly
+keeps 5 filings that state in words that the shares were merger consideration** —
+four of them bank mergers where the "commission" is the adviser's fee. Fewer
+rescued than wrongly kept. Not used.
+
+*Rejected candidate: `ISSECURITYTOBEACQUIREDTYPE`.* 417 published rows tick
+"security to be acquired in a business combination" and only 17 of them also
+answer yes to the business-combination question. The checkbox is mis-ticked at
+scale; using it would cost 400 rows.
+
+**Rule 2, uncapped continuous offerings — where the naive version costs 138.**
+"Indefinite" alone would take **138 more rows, $1.697bn**, including Harvey AI's
+$200m: an uncapped offering that opened this quarter is a round, not a running
+total. So the rule also requires the issuer to say the offering runs more than a
+year AND the first sale to be at least 365 days before this filing. Every one of
+the 75 it takes is a D/A whose first sale is 1.6 to 12 years earlier — Brown
+Advisory Group Holdings at 10.1 years, GREAT-WEST LIFECO at 12.0.
+
+**Rule 3, an offering already published — cost zero, and one trap.**
+The offering is keyed on **(CIK, SEC file number)**, never on the issuer.
+Fluidstack is why: a January D at $450m and a May D/A at $842m are one offering
+(same file number, same first-sale date 2026-01-10), and its **June D at $730m is
+a genuinely separate offering under a new file number**. Grouping by company
+would have deleted a real $730m raise. Every one of the 66 groups the rule
+touches shares a file number and a first-sale date, so nothing legitimate is
+lost.
+
+**Keeping the LATEST, not the first and not the sum.** A Form D amendment
+restates the running total for the whole offering, so the last filing is the
+entire raise and every earlier one is that same money again. In **65 of the 66**
+groups the latest figure is also the largest; the single exception is Global
+Gardens LLC revising its own total from $4.985m down to $4.335m, and the filer's
+latest answer is still the right one to show. Keeping the largest would
+republish a figure the issuer has withdrawn; summing would be the double-count
+the rule exists to remove.
+
+### The number that is smaller than it looks, and why
+
+The brief that started this measured **554 amendment rows carrying $16.73bn** of
+cumulative totals across 152 CIKs. Both figures are right and neither is the
+double-count. 556 amendments are published; what is double-counted is only the
+subset whose **earlier filing for the same offering is ALSO published**, which is
+77 rows and $1.09bn before rules 1 and 2 take their share, 73 and $0.990bn after.
+The rest of the amendments are the only row we hold for their offering, so their
+cumulative total is the whole raise and withdrawing them would delete it. The
+population that carries the risk is not the population that realises it.
+
+### Flagged and NOT acted on: industry group "Investing"
+
+91 rows, $1.564bn, absent from `EXCLUDED_INDUSTRIES`. Excluding the group would
+be the real-estate rule again with a worse ratio: **0 of the 91 match the
+collector's existing vehicle-name patterns**, and the list holds obvious
+operating employers — Farther Finance $145.6m, GeoWealth $42.5m, AdvisorNet
+Financial $32.5m, SecurCapital — beside obvious vehicles (Dorado 2024-1,
+Solvanta Funding 2025-1, Cypress Point Funding, Madison Avenue Funding). 11 of
+the 91 are already withdrawn by rules 1-3. **This is a name-vocabulary gap, not
+an industry one**, and it belongs to whoever owns the collector: the missing
+shapes are `... Funding LLC`, a `YYYY-N` serial, and `Blocker Corp`.
+
+### Projected effect
+
+| | before | after |
+|---|---|---|
+| funding records | 3,312 | 2,994 |
+| money raised | $118.4bn | $104.2bn |
+| records drawn from Form D | 3,013 | 2,695 |
+| business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn |
+| employers with a funding record | 3,127 | 2,906 |
+
+221 employers lose every funding record they had. That is the correct outcome —
+each was on the tracker for a takeover it was on the receiving end of — but it is
+a visible change, which is why the employer count is on the page.
+
+### Withdrawn, not revised
+
+The stored figure is what the filing prints. What is wrong is that it is money
+raised at all, and there is no smaller true number to revise it to; inventing one
+is the thing this tracker exists not to do. `retract.py` marks the row
+not-current with a reason per rule, so nothing is deleted and the corrections
+page can still count them.
+
+### Two things about the machinery
+
+**The share that stops the run is 30%.** Measured withdrawal is 11% of the
+published Form D rows. A truncated or wrong-quarter archive reads as "none of it
+qualifies", which is indistinguishable from a result — `correct_form_d.py` learnt
+this first and the same guard is here.
+
+**A run of failures stops the pass.** The host fell over twice on 2026-07-30
+(~6 min and ~21 min). Withdrawals go one at a time with a pause,
+`retract.retract_remote` retries 5xx on its own, and five consecutive failures
+end the run rather than turning one outage into 300 failed requests. Re-queueing
+is safe: an already-withdrawn row is skipped.
+
+### The tense test was scoped wrong and would have made a true sentence vaguer
+
+`tests/test_corrections_page.py` read every entry as ONE string. That was
+harmless only while all the entries shared a status. The moment a **pending**
+entry joined two applied ones, `'The badge is now "Headcount Not Stated"'` — a
+true past-tense sentence in a correction that ran on 29 July — failed the
+never-write-a-pending-correction-in-the-past-tense check, and the only route to a
+green suite was to make a true sentence vaguer. **That is the page rotting to
+satisfy its own guard.** Both tense tests are now per entry, both phrase lists
+gained the wordings this correction reaches for, and a new test refuses any
+status that is neither `scheduled` nor `applied` — a third value would fall out
+of both checks and be the one way this page can disagree with the data in
+silence.
+
+One smaller trap in the same place: the TENSE markers must be `//` comments and
+never `/* */`. The tests strip the first and read the second as page copy, so a
+block comment quoting the future past-tense wording fails the build.
+
+---
+
 ## 2026-07-31 — Spain states both directions, and a board renewal states both about the same person
 
 `collectors/spain_borme.py`, one new dormant Sunday slot in
