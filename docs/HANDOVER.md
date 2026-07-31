@@ -27,6 +27,60 @@ TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 
 ---
 
+## The Form D overcount correction (2026-07-31) — PENDING, and the page says so
+
+**318 published funding records, $14.25bn, are queued for withdrawal.** A Form D
+reports an *amount sold*, and three kinds of filing report an amount that is not
+money any company raised: a takeover paid for in shares
+(`ISBUSINESSCOMBINATIONTRANS` = true, a field in the data set that no code path
+had ever read), an uncapped continuous offering whose total is years of
+cumulative sales, and an amendment restating an offering already published.
+Derivation, every measurement and both rejected rules are in
+[TECHLOG.md](TECHLOG.md).
+
+| | before | after (projected) |
+|---|---|---|
+| funding records | 3,312 | 2,994 |
+| money raised | $118.4bn | $104.2bn |
+| business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn |
+
+**State, and the two things left.**
+
+1. **The corrections-log entry is published as `scheduled`** and is the first
+   entry this page has ever carried that has not run. It needs plugin **1.60.0**
+   on the site to be visible: `gh workflow run deploy-plugin.yml -R
+   dk-forge/talent-intelligence-tracker --ref main -f dry_run=false`, then curl
+   the live `ver=`. **Not yet dispatched by the session that wrote it.**
+2. **The withdrawal is QUEUED, not dispatched** —
+   `correct-form-d-overcount.yml`, `dry_run=false`, ticket lodged 2026-07-31 via
+   `drain-writers.yml`. Watch it in `ops_status.py [2b]`.
+
+**When it lands, flip the entry — it is a small edit and the file says where.**
+`'status' => 'applied'` plus `'applied_on'`; `'projection'` becomes `'measured'`
+with the projected column KEPT and a third appended; and the sentences marked
+`// TENSE:` in `includes/corrections.php` are rewritten. Everything else — the
+badge, the standing notice, the extra stat, the table caption — derives from
+`status`. **The measured figures must be re-read off the live API, not copied
+from the projection**: the corpus moved from $99bn to $118.4bn between the first
+measurement of this defect and this one, and a projection that missed is kept
+beside the result rather than quietly corrected.
+
+**Do not re-litigate three settled findings.** Sales commission as a cash-raise
+rescue (rescues 8, wrongly keeps 5), `ISSECURITYTOBEACQUIREDTYPE` (mis-ticked on
+400 rows), and industry group "Investing" (91 rows, $1.56bn, zero of them matched
+by the collector's vehicle-name patterns and several of them real employers) were
+all measured and rejected. "Investing" is a NAME-vocabulary gap for whoever owns
+the collector — the missing shapes are `... Funding LLC`, a `YYYY-N` serial and
+`Blocker Corp` — and not an industry to exclude.
+
+**The honest ceiling.** 115 of the 177 takeover filings answer yes and explain
+nothing, so on the rate of the 62 that do explain, roughly a dozen real raises
+are withdrawn with them. And the current quarter has no bulk data set until it
+ends, so 9 July filings worth $0.09bn are untouched and get checked when 2026q3
+publishes. Both are on the corrections page in words.
+
+---
+
 ## Where things stand (2026-07-29)
 
 **Verified by curl, not by a green tick:** plugin **1.53.0**; dashboard,
