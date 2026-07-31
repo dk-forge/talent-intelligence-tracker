@@ -340,7 +340,53 @@ function check($condition, $message) {
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
  */
-const TIT_DASH_BYTE_BUDGET = 169000;
+const TIT_DASH_BYTE_BUDGET = 174000;
+
+/*
+ * RAISED 169,000 -> 174,000 on 2026-07-31, when the chart grid went to nine
+ * cards and every card's prose moved behind an (i). Measured on this fixture
+ * with the prefix stripped, 163,511 -> 173,637, and here is the itemised bill.
+ *
+ *   4,394  WHICH INDUSTRIES ARE MOVING, a sixth ranking card. Counted by
+ *          updates rather than by dollars, which is the thing the money card
+ *          of nearly the same name cannot show: that one only sees rows
+ *          carrying a figure, so a sector hiring hard and raising nothing is
+ *          invisible in it. SEVEN rows on this fixture and eighteen in
+ *          production, so budget roughly 2,200 more there.
+ *
+ *   3,459  THE (i) BUTTON, nine times, carrying aria-controls AND
+ *          aria-describedby. This is the honest cost of not deleting the
+ *          caveats: the panels ship OPEN and this button ships hidden, so a
+ *          reader whose script never ran gets the prose rather than a control
+ *          that opens nothing, and that means both are in the markup. A title=
+ *          attribute would have been free and would have been reachable by
+ *          neither a keyboard nor a screen reader.
+ *
+ *   2,562  HOW SOLID THE EVIDENCE IS, the ninth card, and the only one that
+ *          counts how we know rather than what happened. Two bars, because
+ *          nothing here is stored as rumored and a bucket drawn at zero is a
+ *          category invented to fill a box. It costs NO query: three CASE
+ *          expressions joined the head scan that was already counting the
+ *          verified rows for the hero.
+ *
+ *   1,385  THE TREND, as a card in the grid rather than a panel above it. It
+ *          gained a card wrapper and the same four controls every other card
+ *          has; it lost its own heading, its own border and its five SVG axis
+ *          labels, whose values are now HTML beside the plot. READ THIS ONE
+ *          WITH THE SAME CAVEAT THE 2026-07-30 ENTRY BELOW ATTACHES: this
+ *          fixture's rows all sit within days of the render date, so the
+ *          chart's continuity gate refuses every signal and 1,385 is the price
+ *          of the card SAYING NOTHING, not the price of the chart.
+ *
+ *     339  net of everything else: nine note panels, which are mostly the
+ *          subtitles MOVED out of the card heads rather than added, less about
+ *          2,600 saved by building tit_chart_head() as a string. Four indented
+ *          buttons printed nine times was two kilobytes of leading whitespace
+ *          no reader ever sees.
+ *
+ * The headroom is 363 bytes, which is not room for anything. Same rule as every
+ * raise below: the next addition raises this number and writes down why.
+ */
 
 /*
  * RAISED 168,000 -> 169,000 on 2026-07-30 for the trend chart, and the bill has

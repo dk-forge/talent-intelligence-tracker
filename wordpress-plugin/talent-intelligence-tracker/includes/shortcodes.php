@@ -35,9 +35,16 @@ if (!defined('ABSPATH')) exit;
  *   1  the daily rollup behind the trend chart, every signal in one GROUP BY
  *   1  the money head: the total, its coverage, and what each card can place
  *   3  money by country, by city and by industry
+ *   1  which industry, by count, for the sixth ranking
  *   1  the first page of rows, with a LIMIT
+ *
+ * RAISED 13 -> 14 when the grid went to nine cards. Two cards were added and
+ * only one of them cost a query: how solid the evidence is rides the head scan
+ * above as three more CASE expressions over rows it was already counting, so a
+ * ranking of two buckets costs nothing. Which industry cannot: it is a GROUP BY
+ * over a column nothing else on the page groups on.
  */
-const TIT_DASH_QUERY_BUDGET = 13;
+const TIT_DASH_QUERY_BUDGET = 14;
 
 /**
  * How many rows the server prints before JavaScript is involved.
@@ -139,6 +146,8 @@ function tit_dashboard_facts($table) {
                 SUM(materiality = 'routine') routine,
                 SUM({$notable_sql}) notable,
                 SUM(({$notable_sql}) AND confidence = 'verified') verified,
+                SUM(({$notable_sql}) AND confidence = 'reported') reported,
+                SUM(({$notable_sql}) AND confidence = 'rumored') rumored,
                 COUNT(DISTINCT CASE WHEN {$notable_sql} THEN company_key END) companies,
                 MIN({$date_expr}) lo_all,
                 MAX({$date_expr}) hi_all,
@@ -169,6 +178,8 @@ function tit_dashboard_facts($table) {
         'stated'    => 0,
         'by_pillar' => array(),
         'by_direction' => array(),
+        'by_confidence' => array(),
+        'by_industry' => array(),
         'counts_by_country' => array(),
         'countries' => 0,
         'by_country' => array(),
@@ -214,6 +225,36 @@ function tit_dashboard_facts($table) {
     foreach ($facts['by_direction'] as $d) {
         if (isset($stated_dirs[$d['k']])) $facts['stated'] += (int) $d['n'];
     }
+
+    /*
+      WHAT THE EVIDENCE IS, RANKED, AND IT COSTS NO QUERY.
+
+      Confidence is a closed vocabulary of three, and the head scan above
+      already counts one of them because the hero prints it. Counting the other
+      two there as well is two more CASE expressions on a pass the page was
+      paying for anyway, so a whole card arrives for nothing. A GROUP BY here
+      would have been a fifteenth scan of the table to return three numbers.
+
+      Buckets holding nothing are dropped rather than drawn at zero, the same
+      rule the region strip follows: a bar at zero reads as a filter that broke.
+      Order is the vocabulary's own -- strongest evidence first -- not by size,
+      because this is a ladder and a reader reads it as one.
+    */
+    foreach (array_keys(tit_confidence_labels()) as $conf) {
+        $n = (int) ($head[$conf] ?? 0);
+        if ($n > 0) $facts['by_confidence'][] = array('k' => $conf, 'n' => $n);
+    }
+
+    /*
+      WHICH INDUSTRY, BY COUNT, and it is not the money card by another name.
+      That one ranks summed dollars and can only see the rows carrying a
+      figure; this counts every update, so an industry that is hiring hard and
+      raising nothing appears here and nowhere else on the page.
+    */
+    $facts['by_industry'] = $wpdb->get_results(
+        "SELECT industry k, COUNT(*) n FROM {$table} WHERE {$base}
+          AND industry IS NOT NULL AND industry != ''
+          GROUP BY industry ORDER BY n DESC LIMIT 40", ARRAY_A) ?: array();
 
     $facts['glance'] = tit_glance_matrix($table, $base);
     // The trajectory behind the matrix's columns, under the same clause, so the
@@ -421,6 +462,8 @@ function tit_dashboard_html() {
     $n_stated         = (int) $facts['stated'];
     $by_pillar        = $facts['by_pillar'];
     $by_direction     = $facts['by_direction'];
+    $by_confidence    = $facts['by_confidence'] ?? array();
+    $by_industry_n    = $facts['by_industry'] ?? array();
     $counts_by_country = $facts['counts_by_country'];
     $countries        = (int) $facts['countries'];
     $by_country       = $facts['by_country'];
@@ -712,21 +755,17 @@ function tit_dashboard_html() {
 
         <?php
         /*
-          THE TREND LEADS THE MATRIX RATHER THAN REPLACING IT.
-
-          The matrix answers "how many, of what kind, in which period" and every
-          cell of it is a control: a click filters the page to that signal in
-          that window, and the quick views point at it. A chart cannot carry
-          that, so replacing the columns would trade a working filter for a
-          picture. Leading it is the honest division of labour, because the one
-          thing the matrix genuinely cannot answer is the shape between its
-          columns, which is exactly what a reader means by "accelerating".
+          THE TREND USED TO LEAD THE MATRIX FROM HERE, full width, above
+          everything. It is a card in the chart grid now, after the country
+          card, at the owner's ask. The division of labour it was written for
+          is unchanged and is the reason it is still on the page at all: the
+          matrix answers "how many, of what kind, in which period" and every
+          cell of it is a control, while the one thing it genuinely cannot
+          answer is the shape BETWEEN its columns, which is what a reader means
+          by "accelerating". What changed is only how much of the first screen
+          that argument is allowed to take.
         */
         ?>
-        <div class="tit-trend-box" id="tit-trend-box">
-          <?php echo tit_signal_trend_html($trend); ?>
-        </div>
-
         <div class="tit-glance" id="tit-glance">
           <?php echo tit_glance_matrix_html($glance); ?>
         </div>
@@ -1451,7 +1490,8 @@ function tit_dashboard_html() {
                  dropdowns, so the subtitle may promise it. Buttons hold span
                  children only (phrasing content), never divs. */ ?>
         <?php tit_chart_head('What Is Moving', 'Ranked by how much of it we are seeing.', 'kind'); ?>
-      <div class="tit-pillars">
+      <div class="tit-pillars" role="group" aria-label="Activity by kind"
+           aria-describedby="<?php echo esc_attr(tit_chart_note_id('kind')); ?>">
         <?php foreach ($by_pillar as $p) :
             $key = $p['pillar'];
             $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
@@ -1466,11 +1506,21 @@ function tit_dashboard_html() {
       </div>
       </div>
         <div class="tit-chart" id="chart-place">
-          <?php tit_chart_head('Where the Jobs Are', "Counted where the work sits; head office stands in when no place is named.", 'place'); ?>
+          <?php
+          /* The one-collector caveat goes into the (i) with the rest of the
+             prose, and it is still the same element with the same id, so
+             dashboard.js keeps rewriting and hiding it under the filters in
+             force. It never becomes unreachable: the panel ships open, the
+             card points at it with aria-describedby, and the (i) is a
+             keyboard control. */
+          ob_start(); ?>
           <p class="tit-chart-caveat" id="tit-place-caveat"<?php
             echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
             echo esc_html($place_caveat); ?></p>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place">
+          <?php $place_note = ob_get_clean();
+          tit_chart_head('Where the Jobs Are', "Counted where the work sits; head office stands in when no place is named.", 'place', $place_note); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place"
+               aria-describedby="<?php echo esc_attr(tit_chart_note_id('place')); ?>">
             <?php
             $cmax = $by_country ? max(array_map('intval', array_column($by_country, 'n'))) : 1;
             foreach ($by_country as $c) : ?>
@@ -1484,9 +1534,39 @@ function tit_dashboard_html() {
           </div>
         </div>
 
+        <?php
+        /*
+          THE TREND IS A CARD IN THE GRID NOW, AND IT SITS AFTER THE COUNTRIES.
+
+          It was a full-width panel above the hero's matrix carrying six lines
+          of prose and a five-line "some signals are not drawn" box, which made
+          one chart louder than the eight that answer the questions a reader
+          arrives with. The owner asked for it small and inside the grid, after
+          the country card. Every line it drew survives the smaller box: the
+          plot is redrawn to its own width rather than scaled down (see
+          tit_trend_svg), its axis and date labels are HTML beside the SVG so
+          they never shrink with it, and the endpoint dot on each line is still
+          there. What it loses is the prose, which is in the (i) with
+          everything else.
+
+          The BOX is what dashboard.js replaces on every filter change, and it
+          holds both the plot and the note panel, because both of them move with
+          the filters: a narrower view redraws the lines AND changes which
+          signals could honestly be drawn at all. The head above it is static,
+          so the four controls stay wired through a repaint.
+        */
+        ?>
+        <div class="tit-chart tit-chart-trend" id="chart-trend">
+          <?php tit_chart_head('Updates a Day', '', 'trend', '', true); ?>
+          <div class="tit-trend-box" id="tit-trend-box">
+            <?php echo tit_signal_trend_html($trend); ?>
+          </div>
+        </div>
+
         <div class="tit-chart" id="chart-direction">
           <?php tit_chart_head('Which Way Headcount Is Going', 'What the source itself says. Most updates say nothing about headcount, and those are counted as such rather than guessed.', 'direction'); ?>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction">
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction"
+               aria-describedby="<?php echo esc_attr(tit_chart_note_id('direction')); ?>">
             <?php
             $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
             foreach ($by_direction as $d) : ?>
@@ -1496,6 +1576,70 @@ function tit_dashboard_html() {
                 <span class="tit-rank-track"><span class="tit-rank-fill"
                   style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
                 <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <?php
+        /*
+          HOW SOLID THE EVIDENCE IS. The credibility claim, drawn.
+
+          Every other card on this page counts what happened. This one counts
+          how we know, and it is the only card that answers the question a
+          reader should be asking of a tracker. The vocabulary is the shared
+          one (docs/card-contract.json: Official Filing, News Report,
+          Unconfirmed), it is the same word the badge on every result card
+          carries, and clicking a bar sets the Evidence control, so a reader can
+          go from "how much of this is filed" to reading only the filed rows in
+          one click.
+
+          It is TWO bars on a live view rather than three, because nothing here
+          is stored as rumored. That is the honest shape of the data and not a
+          thin card: a ranking that shows a bucket at zero would be inventing a
+          category to fill a box.
+        */
+        ?>
+        <div class="tit-chart" id="chart-confidence">
+          <?php tit_chart_head('How Solid the Evidence Is', 'What each update is based on. A news report is never promoted to a filing.', 'confidence'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by evidence"
+               aria-describedby="<?php echo esc_attr(tit_chart_note_id('confidence')); ?>">
+            <?php
+            $conf_labels = tit_confidence_labels();
+            $fmax = $by_confidence ? max(array_map('intval', array_column($by_confidence, 'n'))) : 1;
+            foreach ($by_confidence as $f) : ?>
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($f['k']); ?>" aria-pressed="false">
+                <span class="tit-rank-name"><?php echo esc_html($conf_labels[$f['k']] ?? $f['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $f['n'] / $fmax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $f['n']; ?></span>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <?php
+        /*
+          WHICH INDUSTRIES ARE MOVING, BY COUNT, and it is not the money card
+          with different numbers. That one ranks summed dollars and can only see
+          the rows that carry a figure; a sector hiring hard and raising nothing
+          is invisible there and is here. For a job seeker choosing where to
+          look, the count is the more useful of the two, which is why both are
+          on the page rather than one standing in for the other.
+        */
+        ?>
+        <div class="tit-chart" id="chart-industry">
+          <?php tit_chart_head('Which Industries Are Moving', 'Counted by updates, not by dollars.', 'industry'); ?>
+          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by industry"
+               aria-describedby="<?php echo esc_attr(tit_chart_note_id('industry')); ?>">
+            <?php
+            $imax = $by_industry_n ? max(array_map('intval', array_column($by_industry_n, 'n'))) : 1;
+            foreach ($by_industry_n as $i) : ?>
+              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($i['k']); ?>" aria-pressed="false">
+                <span class="tit-rank-name"><?php echo esc_html($industries[$i['k']] ?? $i['k']); ?></span>
+                <span class="tit-rank-track"><span class="tit-rank-fill"
+                  style="width:<?php echo esc_attr(max(4, round(100 * $i['n'] / $imax))); ?>%"></span></span>
+                <span class="tit-rank-n"><?php echo (int) $i['n']; ?></span>
               </button>
             <?php endforeach; ?>
           </div>
@@ -2414,23 +2558,24 @@ function tit_signal_trend_html(array $trend) {
       to one sentence carrying the number that decides it, and the panel says
       what would have to change for a line to appear.
     */
+    $note_id = tit_chart_note_id('trend');
+
     if (!$series) {
         $worst = 0;
         foreach ($refused as $r) $worst = max($worst, (int) ($r['gap'] ?? 0));
         ob_start(); ?>
-        <section class="tit-trend tit-trend-empty" id="tit-trend" aria-labelledby="tit-trend-h">
-          <h3 class="tit-trend-title" id="tit-trend-h">Updates a day, averaged over <?php
-            echo $avg; ?> days</h3>
-          <p class="tit-trend-sub">Not drawn for this view yet.<?php if ($worst >= $avg) : ?>
+        <div class="tit-chart-note" id="<?php echo esc_attr($note_id); ?>">
+          <p class="tit-sub">Not drawn for this view yet.<?php if ($worst >= $avg) : ?>
             The longest run of days holding nothing here is <?php echo (int) $worst; ?>,
             longer than the <?php echo $avg; ?> days the average covers, so every line would
             pass through a stretch that shows a gap in our collection rather than the market.
             <?php else : ?>
             We hold too few updates across the window to average them.
             <?php endif; ?>
-            The counts are in the table below, where a count of what we hold is exactly
+            The counts are in the updates above, where a count of what we hold is exactly
             what is claimed.</p>
-        </section>
+        </div>
+        <p class="tit-trend-none">Not drawn for this view yet.</p>
         <?php
         return ob_get_clean();
     }
@@ -2438,23 +2583,28 @@ function tit_signal_trend_html(array $trend) {
     $s_first = (int) ($trend['sources_first'] ?? 0);
     $s_last  = (int) ($trend['sources_last'] ?? 0);
 
+    $then = array();
+    foreach ($series as $s) {
+        $then[] = $s['label'] . ' ' . tit_trend_rate($s['first']);
+    }
+
     ob_start(); ?>
-    <section class="tit-trend" id="tit-trend" aria-labelledby="tit-trend-h">
-      <h3 class="tit-trend-title" id="tit-trend-h">Updates a day, averaged over <?php
-        echo $avg; ?> days</h3>
-      <p class="tit-trend-sub">Each line is that signal's daily count, smoothed over the
+    <div class="tit-chart-note" id="<?php echo esc_attr($note_id); ?>">
+      <p class="tit-sub">Each line is that signal's daily count, smoothed over the
         <?php echo $avg; ?> days ending on the day it is plotted, from
         <?php echo esc_html((string) ($trend['start'] ?? '')); ?>
         to <?php echo esc_html((string) ($trend['end'] ?? '')); ?>.</p>
-      <?php echo tit_trend_svg($trend); // phpcs:ignore — built and escaped in that function ?>
-      <p class="tit-trend-legend">
-        <?php foreach ($series as $s) : ?>
-          <span class="tit-trend-key"><span class="tit-trend-swatch"
-            style="background:<?php echo esc_attr($s['colour']); ?>"></span><?php
-            echo esc_html($s['label']); ?>: <b><?php echo esc_html(tit_trend_rate($s['last'])); ?></b> a day now,
-            <?php echo esc_html(tit_trend_rate($s['first'])); ?> at the start of the window</span>
-        <?php endforeach; ?>
-      </p>
+      <?php
+      /*
+        THE COMPARISON THE LEGEND USED TO CARRY. Each key read "Leadership
+        Moves: 12 a day now, 9 at the start of the window", which is two
+        numbers and eleven words per signal inside a card that is now a third
+        of the page wide. The legend keeps the figure that answers "what is it
+        doing now"; the one it started at is here, once, for every line.
+      */
+      ?>
+      <p class="tit-trend-then">A day at the start of the window:
+        <?php echo esc_html(implode(', ', $then)); ?>.</p>
       <?php
       /*
         THE SENTENCE THAT STOPS THE CHART OVERCLAIMING, and it is measured
@@ -2462,6 +2612,11 @@ function tit_signal_trend_html(array $trend) {
         the market moves and it moves when we start reading another source, and
         no chart can tell a reader which. Naming how many collectors fed each end
         of the window lets them tell.
+
+        IT IS IN THE (i) AND IT IS NOT OPTIONAL. The panel ships open, the card
+        points at it with aria-describedby and the (i) is a keyboard control, so
+        moving it here changed how much of the first screen it takes and nothing
+        about whether a reader can get to it.
       */
       if ($s_first > 0 && $s_last > 0) : ?>
         <p class="tit-trend-basis"><?php if ($s_last !== $s_first) : ?>
@@ -2493,19 +2648,48 @@ function tit_signal_trend_html(array $trend) {
             <span class="tit-trend-nodraw"><b><?php echo esc_html($r['label']); ?></b>:
               <?php echo esc_html($r['why']); ?>.</span>
           <?php endforeach; ?>
-          They stay in the table below, where a count of what we hold is exactly what is claimed.</p>
+          They stay in the updates above, where a count of what we hold is exactly what is claimed.</p>
       <?php endif; ?>
-    </section>
+    </div>
+    <?php echo tit_trend_svg($trend); // phpcs:ignore — built and escaped in that function ?>
+    <p class="tit-trend-legend">
+      <?php foreach ($series as $s) : ?>
+        <span class="tit-trend-key"><span class="tit-trend-swatch"
+          style="background:<?php echo esc_attr($s['colour']); ?>"></span><?php
+          echo esc_html($s['label']); ?> <b><?php echo esc_html(tit_trend_rate($s['last'])); ?></b></span>
+      <?php endforeach; ?>
+    </p>
     <?php
     return ob_get_clean();
 }
 
 /**
- * The plot itself.
+ * The plot itself, and it is drawn to survive a card a third of the page wide.
  *
- * Sized in a viewBox and given a min-width in CSS, so on a 375px phone it
- * scrolls inside its own container with its labels still legible rather than
- * shrinking them to nothing or bleeding the page sideways.
+ * IT USED TO BE 720 UNITS WIDE WITH A 520px MIN-WIDTH AND ITS LABELS INSIDE IT.
+ * That was right for a full-width panel: the SVG scrolled sideways inside its
+ * own container on a phone and its 12px axis text stayed 12px. Inside a card
+ * one of nine, the same markup is a permanent horizontal scrollbar on a desktop
+ * as well, and simply letting it shrink to fit would render that 12px text at
+ * about five. Neither is a chart anybody can read.
+ *
+ * SO THE TEXT CAME OUT OF THE DRAWING. The five axis values and the two dates
+ * are HTML beside the SVG, positioned against the plot rather than drawn into
+ * it, so they are set in CSS pixels and are the same size in the small card, in
+ * the expanded card and on a phone. What is left inside the SVG is geometry
+ * only, which scales cleanly to any width:
+ *
+ *   - the grid and the lines carry vector-effect="non-scaling-stroke", so a
+ *     2px line is 2px whether the box is 300 or 760 wide. Without it the
+ *     expanded card gets fat lines and the phone gets hairlines.
+ *   - the endpoint dot is the one thing that SHOULD grow with the box, and it
+ *     is in user units for exactly that reason.
+ *   - the grid is five evenly spaced lines, which is what lets the HTML labels
+ *     be placed at 0, 25, 50, 75 and 100 percent and land on them.
+ *
+ * The y axis still starts at zero, always. A truncated axis turns a rise from
+ * 18 a day to 20 into a cliff, and this page's whole argument is that its
+ * numbers can be checked.
  */
 function tit_trend_svg(array $trend) {
     $series = $trend['series'] ?? array();
@@ -2513,7 +2697,9 @@ function tit_trend_svg(array $trend) {
     $n = count($series[0]['avg']);
     if ($n < 2) return '';
 
-    $w = 720; $h = 240; $pad_l = 44; $pad_r = 14; $pad_t = 14; $pad_b = 32;
+    // No padding at all: the labels are outside now, so the drawing is the plot
+    // and every coordinate is the value's own position in it.
+    $w = 300; $h = 116; $pad_l = 0; $pad_r = 0; $pad_t = 2; $pad_b = 2;
     $plot_w = $w - $pad_l - $pad_r;
     $plot_h = $h - $pad_t - $pad_b;
 
@@ -2539,9 +2725,10 @@ function tit_trend_svg(array $trend) {
       COORDINATES ARE WHOLE UNITS, and that is a byte decision with a measured
       cost. Ninety points times one path per drawn signal is most of what this
       chart weighs, and a decimal place on each is about a fifth of it. The
-      viewBox is 720 wide against a card of roughly the same width, so one unit
-      is about one pixel and the rounding error is under half of that, on a line
-      drawn 2.5px thick. It is not visible and the bytes are.
+      viewBox is 300 wide and the small card renders it at roughly that, so one
+      unit is about one pixel and the rounding error is under half of that, on a
+      line the browser draws 2px thick whatever the box does. It is not visible
+      and the bytes are.
     */
     $x = function ($i) use ($pad_l, $plot_w, $n) {
         return (int) round($pad_l + ($plot_w * $i / ($n - 1)));
@@ -2557,42 +2744,74 @@ function tit_trend_svg(array $trend) {
             tit_trend_rate($s['last']), $trend['end']);
     }
 
+    // The axis is formatted once for the whole scale, not per label. Running
+    // each through the rate formatter gave "0.0 9.0 18 27 36", four labels in
+    // two different shapes on one axis.
+    $whole = (fmod($max, 4) == 0.0) && ($max / 4 >= 1);
+
     ob_start(); ?>
-    <div class="tit-table-scroll">
-    <svg class="tit-trend-chart" viewBox="0 0 <?php echo $w; ?> <?php echo $h; ?>"
-         role="img" preserveAspectRatio="xMidYMid meet"
-         aria-label="<?php echo esc_attr('Updates a day, averaged over '
-             . (int) $trend['avg'] . ' days. ' . $described); ?>">
-      <?php
-      // The axis is formatted once for the whole scale, not per label. Running
-      // each through the rate formatter gave "0.0 9.0 18 27 36", four labels in
-      // two different shapes on one axis.
-      $whole = (fmod($max, 4) == 0.0) && ($max / 4 >= 1);
-      for ($g = 0; $g <= 4; $g++) :
-        $value = $max * $g / 4; $gy = $y($value); ?>
-        <line x1="<?php echo $pad_l; ?>" x2="<?php echo $w - $pad_r; ?>"
-              y1="<?php echo $gy; ?>" y2="<?php echo $gy; ?>" class="tit-tc-grid"/>
-        <text x="<?php echo $pad_l - 8; ?>" y="<?php echo $gy + 4; ?>"
-              class="tit-tc-axis" text-anchor="end"><?php
-          echo esc_html($whole ? number_format_i18n($value)
-                               : number_format_i18n(round($value, 1), 1)); ?></text>
-      <?php endfor; ?>
+    <div class="tit-tc">
+      <?php /* Top value first, zero last: the column reads down the axis it
+               labels. Placed in flow rather than at percentages so the column
+               sizes itself to its widest value and pins no width at any
+               viewport; the negative margin in the stylesheet is half a line,
+               which is what centres the first and last labels on the lines they
+               name. aria-hidden because the SVG's own label already states both
+               ends of every series in words. */ ?>
+      <div class="tit-tc-ys" aria-hidden="true">
+        <?php for ($g = 4; $g >= 0; $g--) :
+          $value = $max * $g / 4; ?>
+          <span><?php echo esc_html($whole ? number_format_i18n($value)
+                                           : number_format_i18n(round($value, 1), 1)); ?></span>
+        <?php endfor; ?>
+      </div>
+      <div class="tit-tc-box">
+        <svg class="tit-trend-chart" viewBox="0 0 <?php echo $w; ?> <?php echo $h; ?>"
+             role="img" preserveAspectRatio="none"
+             aria-label="<?php echo esc_attr('Updates a day, averaged over '
+                 . (int) $trend['avg'] . ' days. ' . $described); ?>">
+          <?php for ($g = 0; $g <= 4; $g++) :
+            $gy = $y($max * $g / 4); ?>
+            <line x1="0" x2="<?php echo $w; ?>"
+                  y1="<?php echo $gy; ?>" y2="<?php echo $gy; ?>"
+                  class="tit-tc-grid" vector-effect="non-scaling-stroke"/>
+          <?php endfor; ?>
 
-      <?php foreach ($series as $s) :
-        $parts = array();
-        foreach ($s['avg'] as $i => $v) $parts[] = ($i ? 'L' : 'M') . $x($i) . ' ' . $y($v); ?>
-        <path d="<?php echo esc_attr(implode(' ', $parts)); ?>" fill="none"
-              stroke="<?php echo esc_attr($s['colour']); ?>" class="tit-tc-line"/>
-        <circle cx="<?php echo $x($n - 1); ?>" cy="<?php echo $y($s['avg'][$n - 1]); ?>"
-                r="3.5" fill="<?php echo esc_attr($s['colour']); ?>"/>
-      <?php endforeach; ?>
+          <?php foreach ($series as $s) :
+            $parts = array();
+            foreach ($s['avg'] as $i => $v) $parts[] = ($i ? 'L' : 'M') . $x($i) . ' ' . $y($v); ?>
+            <path d="<?php echo esc_attr(implode(' ', $parts)); ?>" fill="none"
+                  stroke="<?php echo esc_attr($s['colour']); ?>" class="tit-tc-line"
+                  vector-effect="non-scaling-stroke"/>
+          <?php endforeach; ?>
+        </svg>
+        <?php
+        /*
+          THE ENDPOINT DOTS ARE THEIR OWN SVG, laid over the plot, and that is
+          not fussiness. The plot is stretched to whatever box the card gives it
+          (preserveAspectRatio none, a height in the stylesheet) so the ninety
+          points always fill the width and the chart is never letterboxed. A
+          circle inside a stretched box is an ellipse.
 
+          This one carries NO viewBox, so its user unit IS a CSS pixel: the
+          radius is 3.5px in the small card, in the expanded card and on a
+          phone, exactly like the line weights beside it, and the position is a
+          percentage of the same box the plot fills, so the dot sits on the end
+          of its own line at every width. overflow is visible because the last
+          point is at 100% and half of the dot is outside it.
+        */
+        ?>
+        <svg class="tit-tc-dots" aria-hidden="true" focusable="false">
+          <?php foreach ($series as $s) : ?>
+            <circle cx="100%" cy="<?php echo esc_attr(round(100 * $y($s['avg'][$n - 1]) / $h, 1)); ?>%"
+                    r="3.5" fill="<?php echo esc_attr($s['colour']); ?>"/>
+          <?php endforeach; ?>
+        </svg>
+      </div>
       <?php // Only the ends are dated. A label per point is a smear. ?>
-      <text x="<?php echo $pad_l; ?>" y="<?php echo $h - 9; ?>" class="tit-tc-axis"
-            text-anchor="start"><?php echo esc_html((string) $trend['start']); ?></text>
-      <text x="<?php echo $w - $pad_r; ?>" y="<?php echo $h - 9; ?>" class="tit-tc-axis"
-            text-anchor="end"><?php echo esc_html((string) $trend['end']); ?></text>
-    </svg>
+      <p class="tit-tc-xs" aria-hidden="true"><span><?php
+        echo esc_html((string) $trend['start']); ?></span><span><?php
+        echo esc_html((string) $trend['end']); ?></span></p>
     </div>
     <?php
     return ob_get_clean();
@@ -3418,8 +3637,22 @@ function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimensio
     foreach ($rows as $r) { $max = max($max, (float) $r['v']); }
     ?>
     <div class="tit-chart tit-chart-money" id="chart-money-<?php echo esc_attr($id); ?>">
-      <?php tit_chart_head($title, $sub, 'money-' . $id); ?>
-      <div class="tit-rank" tabindex="0" role="group" aria-label="<?php echo esc_attr($title); ?>">
+      <?php
+      /*
+        THE COVERAGE SENTENCE MOVED INTO THE (i), AND IT WAS PRINTED THREE
+        TIMES. It is one sentence about the currency and what share of updates
+        carry a figure at all, and it was identical on all three money cards, so
+        the grid carried nine lines saying one thing. It is per-card and not
+        per-section because dashboard.js recomputes it for each card under the
+        filters in force, and a card can place a different share of the money
+        than its neighbour. dashboard.js still finds it by .tit-money-note.
+      */
+      ob_start(); ?>
+      <p class="tit-money-note"><?php echo esc_html(tit_money_coverage_note($money, $dimension)); ?></p>
+      <?php $note = ob_get_clean();
+      tit_chart_head($title, $sub, 'money-' . $id, $note); ?>
+      <div class="tit-rank" tabindex="0" role="group" aria-label="<?php echo esc_attr($title); ?>"
+           aria-describedby="<?php echo esc_attr(tit_chart_note_id('money-' . $id)); ?>">
         <?php if (!$rows) : ?>
           <p class="tit-rank-empty">No US dollar amounts in this view yet.</p>
         <?php else : foreach ($rows as $r) :
@@ -3440,7 +3673,6 @@ function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimensio
           </button>
         <?php endforeach; endif; ?>
       </div>
-      <p class="tit-money-note"><?php echo esc_html(tit_money_coverage_note($money, $dimension)); ?></p>
     </div>
     <?php
 }
@@ -3593,38 +3825,116 @@ function tit_roo($newest_run) {
     <?php
 }
 
+/** The id of the note panel belonging to a chart card. One rule, two files. */
+function tit_chart_note_id($id) {
+    return 'tit-note-' . $id;
+}
+
 /**
- * The heading block every chart card shares, plus its expand control.
+ * The heading block every chart card shares: its title, its controls, and the
+ * prose that used to sit under the title.
  *
- * The button ships `hidden` and dashboard.js reveals it. A control that only
- * works with JavaScript should not be visible without it, and rendering it
- * server-side (rather than injecting it) keeps its label and markup in one
- * place with the heading it belongs to.
+ * WHY THE PROSE MOVED BEHIND AN (i), AND WHY IT IS STILL THERE.
+ *
+ * Nine cards in a grid each carrying two to six lines of explanation is a page
+ * a reader scrolls past to reach the bars. The three money cards printed the
+ * SAME currency sentence three times. So the sentence moves behind an info
+ * button on the card it belongs to.
+ *
+ * IT IS MOVED, NEVER DROPPED, and the difference is the whole point. What sits
+ * in here is what stops each chart overclaiming: how many collectors fed the
+ * trend window, which signals are not drawn and why, which country one
+ * collector dominates, what share of updates carry a dollar figure. This
+ * project does not hide those, so:
+ *
+ *   1. The panel ships OPEN in the served markup and the (i) ships hidden.
+ *      dashboard.js closes the panel and reveals the button, in that order, so
+ *      a reader whose script never ran gets every caveat as plain prose rather
+ *      than a button that opens nothing. Same rule the collapsing filter bar
+ *      follows.
+ *   2. The button is a real <button> carrying aria-expanded, so it is reachable
+ *      by keyboard.
+ *   3. The chart's own group element points at the panel with aria-describedby,
+ *      so a screen reader reads the caveat as the chart's description whether
+ *      the panel is open or shut. A title= attribute would have been reachable
+ *      by neither a keyboard nor a screen reader, which is why it is not one.
+ *
+ * NO aria-label ON ANYTHING THAT HAS ITS OWN WORDS. An aria-label REPLACES the
+ * text under it, and this product shipped invisible labels over visible ones
+ * once already. The two icon-only buttons keep theirs because they have no text
+ * at all; the expand button lost its, because it carries a visually hidden
+ * label that dashboard.js rewrites between "Expand" and "Collapse" and the
+ * aria-label was silently winning over both.
  */
-function tit_chart_head($title, $sub, $id = '') {
-    ?>
-    <div class="tit-chart-head">
-      <div class="tit-chart-titles">
-        <h3><?php echo esc_html($title); ?></h3>
-        <p class="tit-sub"><?php echo esc_html($sub); ?></p>
-      </div>
-      <div class="tit-chart-tools">
-        <button type="button" class="tit-ctl tit-chart-share" data-chart="<?php echo esc_attr($id); ?>"
-                title="Copy a link to this view" aria-label="Copy a link to this view" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4"/></svg>
-        </button>
-        <button type="button" class="tit-ctl tit-chart-dl" data-chart="<?php echo esc_attr($id); ?>"
-                title="Download this chart as CSV" aria-label="Download this chart as CSV" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
-        </button>
-        <button type="button" class="tit-ctl tit-expand" aria-expanded="false"
-                title="Expand this chart" aria-label="Expand this chart" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>
-          <span class="tit-sr tit-expand-t">Expand</span>
-        </button>
-      </div>
-    </div>
-    <?php
+function tit_chart_head($title, $sub, $id = '', $note_html = '', $defer_note = false) {
+    $note_id = tit_chart_note_id($id);
+    $esc_id  = esc_attr($id);
+
+    /*
+      BUILT AS A STRING RATHER THAN AS A TEMPLATE, and only this one function,
+      because it is printed nine times. Four controls laid out as indented
+      markup cost about sixty bytes of leading whitespace per button that no
+      reader ever sees; nine cards times four buttons is two kilobytes of it on
+      a page that is read on phones and has a measured byte budget
+      (TIT_DASH_BYTE_BUDGET in tests/php/render_dashboard.php). Nothing else on
+      this page is written this way and nothing else should be: the trade is
+      only worth making where the markup repeats.
+    */
+    $btn = function ($class, $svg, $label, $attrs) {
+        return '<button type="button" class="tit-ctl ' . $class . '" ' . $attrs
+             . ' title="' . esc_attr($label) . '" hidden>'
+             . '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' . $svg . '</svg>';
+    };
+
+    echo '<div class="tit-chart-head"><div class="tit-chart-titles"><h3>'
+       . esc_html($title) . '</h3></div><div class="tit-chart-tools">'
+       /*
+         Its accessible name is the visually hidden text inside it and NOT an
+         aria-label, which would replace that text rather than add to it.
+
+         It is DESCRIBED BY the panel it opens, as well as controlling it, so a
+         screen reader announces the caveat on reaching the button whether the
+         panel is open or shut. Every card's data group carries the same
+         reference, which covers a reader who lands on the bars instead; the
+         trend card has no such group in one of its two states, and this is
+         what makes it uniform across all nine.
+       */
+       . $btn('tit-chart-info',
+              '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6v.9"/>',
+              'What this chart counts',
+              'aria-expanded="true" aria-controls="' . esc_attr($note_id) . '"'
+              . ' aria-describedby="' . esc_attr($note_id) . '"')
+       . '<span class="tit-sr">What this chart counts</span></button>'
+       // These two are icon only, so an aria-label is their only possible name.
+       . $btn('tit-chart-share',
+              '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4"/>',
+              'Copy a link to this view',
+              'data-chart="' . $esc_id . '" aria-label="Copy a link to this view"')
+       . '</button>'
+       . $btn('tit-chart-dl',
+              '<path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/>',
+              'Download this chart as CSV',
+              'data-chart="' . $esc_id . '" aria-label="Download this chart as CSV"')
+       . '</button>'
+       . $btn('tit-expand',
+              '<path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/>',
+              'Expand this chart', 'aria-expanded="false"')
+       . '<span class="tit-sr tit-expand-t">Expand</span></button>'
+       . '</div></div>';
+
+    /*
+      ONE card defers its panel: the trend's whole note moves with the filters
+      (which signals could honestly be drawn changes when the view narrows), so
+      it is rebuilt by the body renderer under the same id rather than printed
+      here and left stale. Two panels with one id would be invalid markup and
+      the (i) would open whichever one the browser found first.
+    */
+    if ($defer_note) return;
+
+    echo '<div class="tit-chart-note" id="' . esc_attr($note_id) . '">'
+       . '<p class="tit-sub">' . esc_html($sub) . '</p>'
+       // Every caller escapes its own.
+       . $note_html . '</div>';
 }
 
 /**
