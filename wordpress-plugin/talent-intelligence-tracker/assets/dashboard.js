@@ -486,6 +486,20 @@
     }).join('');
   }
 
+  // Strongest evidence first, always, whatever order the endpoint returned.
+  // CONFIDENCE_LABEL is declared in the vocabulary's own order and mirrors
+  // tit_confidence_labels(), so one list decides it on both sides.
+  function confidenceOrder(rows) {
+    var rank = Object.keys(CONFIDENCE_LABEL);
+    var at = function (k) {
+      var i = rank.indexOf(k);
+      // A value the vocabulary does not know goes last rather than first, which
+      // is where -1 would have put it.
+      return i < 0 ? rank.length : i;
+    };
+    return rows.slice().sort(function (a, b) { return at(a.k) - at(b.k); });
+  }
+
   function paintAggregate(data) {
     var total = +data.total || 0;
 
@@ -543,9 +557,15 @@
     // and a second copy of that decision written here could disagree with the
     // server's. A blank string is a real answer (nothing in this view clears
     // the gate), so it is assigned rather than skipped.
+    // The box carries the card's (i) panel as well as the plot, because both
+    // move with the filters: a narrower view redraws the lines AND changes
+    // which signals could honestly be drawn at all. Its panel arrives open
+    // (the server always ships them open, see tit_chart_head), so the (i) is
+    // told to reassert itself or every filter change would reopen it.
     var trendBox = document.getElementById('tit-trend-box');
     if (trendBox && typeof data.trend_html === 'string') {
       trendBox.innerHTML = data.trend_html;
+      syncChartNotes();
     }
 
     var glance = root.querySelector('.tit-glance');
@@ -581,6 +601,20 @@
     paintRank(document.getElementById('chart-direction'), data.by_direction || [], function (k) {
       return DIRECTION_LABEL[k] || k;
     }, true);
+    // How solid the evidence is, in the vocabulary's own order rather than by
+    // size. /aggregate returns it biggest-first like every other group, and a
+    // ladder whose rungs reorder themselves under a filter is a ladder nobody
+    // can read twice. The server's first paint orders it the same way.
+    paintRank(document.getElementById('chart-confidence'),
+      confidenceOrder(data.by_confidence || []), function (k) {
+        return CONFIDENCE_LABEL[k] || k;
+      });
+    // By count, and deliberately not the same numbers as the money card of
+    // nearly the same name: that one can only see rows carrying a dollar
+    // figure.
+    paintRank(document.getElementById('chart-industry'), data.by_industry || [], function (k) {
+      return INDUSTRY_LABEL[k] || k;
+    });
 
     // The money cards move with the filters like everything else, coverage
     // sentence included: the sentence describes the filtered set, so it has to
@@ -1655,11 +1689,10 @@
     // idea what they were meant to be looking at. replaceState, not pushState,
     // so typing in the search box does not bury the back button under a history
     // entry per keystroke.
+    // Through writeUrl(), which is also where the expanded card is added, so
+    // narrowing the page cannot silently drop the card a link was sent to open.
     lastQuery = shareQuery(params);
-    try {
-      history.replaceState(null, '',
-        location.pathname + (lastQuery ? '?' + lastQuery : '') + location.hash);
-    } catch (e) { /* a URL we cannot write is not worth failing the render for */ }
+    writeUrl();
 
     updateExportLinks();
 
@@ -2107,19 +2140,128 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
+  /*
+    THE (i), AND WHY IT IS NOT A title= ATTRIBUTE.
+
+    Every chart card's explanatory prose is in a panel of its own now: what it
+    counts, what it cannot say, and which figure is based on how much. Nine
+    cards each printing two to six lines of that was a page a reader scrolled
+    past to reach the bars, and the three money cards printed one identical
+    currency sentence three times.
+
+    NONE OF IT BECAME UNREACHABLE, which is the part that matters, because the
+    lines in there are the ones that stop each chart overclaiming. Four things
+    hold that open:
+
+      1. The panel ships OPEN from the server and the button ships hidden. This
+         closes the panel and reveals the button, in that order. A reader whose
+         script never ran gets every caveat as plain prose rather than a button
+         that opens nothing.
+      2. It is a real <button> with aria-expanded, so it is a keyboard control.
+      3. The chart's own group carries aria-describedby pointing at the panel,
+         so a screen reader reads the caveat as the chart's description whether
+         the panel is open or shut. That is the whole reason it is not a title=
+         attribute, which is reachable by neither a keyboard nor a screen
+         reader and which this repo's card contract already forbids as the only
+         home for anything a reader needs.
+      4. The button carries no aria-label. Its name is the visually hidden text
+         inside it, so the two cannot say different things.
+  */
+  function noteOf(chart) {
+    var btn = chart.querySelector('.tit-chart-info');
+    var id = btn && btn.getAttribute('aria-controls');
+    // Looked up by id at call time, never cached: the trend card's panel is
+    // replaced wholesale on every filter change.
+    return id ? document.getElementById(id) : null;
+  }
+
+  function setNote(chart, open) {
+    var btn = chart.querySelector('.tit-chart-info');
+    var note = noteOf(chart);
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (note) note.hidden = !open;
+  }
+
+  // Re-assert every panel's state after a repaint has handed us a fresh one.
+  function syncChartNotes() {
+    Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
+      var btn = chart.querySelector('.tit-chart-info');
+      if (!btn || btn.hidden) return;
+      setNote(chart, btn.getAttribute('aria-expanded') === 'true');
+    });
+  }
+
+  /*
+    EXPANDING IS PART OF THE VIEW, SO IT IS PART OF THE LINK.
+
+    The address bar already carries every filter (see refresh()), and the share
+    button already carried the card as a hash. What it could not carry was the
+    card being OPEN, so a link sent to show somebody a chart landed them on the
+    small version of it and left them to find the control.
+
+    `card` is that state, and it is deliberately NOT one of the API parameters:
+    shareQuery() builds what /query and /aggregate are asked, and expansion is
+    a property of the page rather than of the query. So it is appended here, in
+    one place, and every writer of the address bar goes through pageUrl().
+  */
+  // Read HERE, at wiring time, and not inside openCardFromUrl() below. The
+  // first refresh() rewrites the address bar from the filters alone, and this
+  // is what stops that rewrite dropping the very parameter the link was sent
+  // to carry. A card id we do not have is cleared when it is looked up.
+  var expandedCard = new URLSearchParams(location.search).get('card') || '';
+
+  function pageUrl(cardId) {
+    var qs = lastQuery;
+    if (cardId) qs += (qs ? '&' : '') + 'card=' + encodeURIComponent(cardId);
+    return location.pathname + (qs ? '?' + qs : '') + (cardId ? '#' + cardId : '');
+  }
+
+  function writeUrl() {
+    try {
+      // replaceState, not pushState: expanding a card is not a page a reader
+      // wants the back button to walk through.
+      history.replaceState(null, '', pageUrl(expandedCard) +
+        (expandedCard ? '' : location.hash));
+    } catch (e) { /* a URL we cannot write is not worth failing the render for */ }
+  }
+
+  function setExpanded(chart, on) {
+    var expand = chart.querySelector('.tit-expand');
+    var label = expand && expand.querySelector('.tit-expand-t');
+    chart.classList.toggle('is-expanded', on);
+    if (expand) {
+      expand.setAttribute('aria-expanded', on ? 'true' : 'false');
+      expand.title = on ? 'Collapse this chart' : 'Expand this chart';
+    }
+    if (label) label.textContent = on ? 'Collapse' : 'Expand';
+    // One card at a time. Two expanded cards in a three-column grid is a
+    // layout, not a view, and it could not be described by one `card` value.
+    if (on) {
+      Array.prototype.slice.call(root.querySelectorAll('.tit-chart.is-expanded'))
+        .forEach(function (other) { if (other !== chart) setExpanded(other, false); });
+    }
+    expandedCard = on ? chart.id : (expandedCard === chart.id ? '' : expandedCard);
+  }
+
   Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
     var expand = chart.querySelector('.tit-expand');
     var share = chart.querySelector('.tit-chart-share');
     var dl = chart.querySelector('.tit-chart-dl');
+    var info = chart.querySelector('.tit-chart-info');
+
+    if (info) {
+      info.hidden = false;
+      setNote(chart, false);
+      info.addEventListener('click', function () {
+        setNote(chart, info.getAttribute('aria-expanded') !== 'true');
+      });
+    }
 
     if (expand) {
       expand.hidden = false;
-      var label = expand.querySelector('.tit-expand-t');
       expand.addEventListener('click', function () {
-        var on = chart.classList.toggle('is-expanded');
-        expand.setAttribute('aria-expanded', on ? 'true' : 'false');
-        expand.title = on ? 'Collapse this chart' : 'Expand this chart';
-        if (label) label.textContent = on ? 'Collapse' : 'Expand';
+        setExpanded(chart, !chart.classList.contains('is-expanded'));
+        writeUrl();
       });
     }
 
@@ -2127,14 +2269,25 @@
       share.hidden = false;
       share.addEventListener('click', function () {
         // The filters live in the querystring, so the link reproduces the view
-        // rather than just the page, and the hash lands on this card.
-        var url = location.origin + location.pathname +
-          (lastQuery ? '?' + lastQuery : '') + (chart.id ? '#' + chart.id : '');
+        // rather than just the page; the hash lands on this card; and `card`
+        // carries it open when it is open. Read off the class rather than off
+        // expandedCard, so the link describes THIS card whichever one is open.
+        var open = chart.classList.contains('is-expanded');
+        var url = location.origin +
+          (open ? pageUrl(chart.id)
+                : location.pathname + (lastQuery ? '?' + lastQuery : '') +
+                  (chart.id ? '#' + chart.id : ''));
         copyText(url, function () { flash(share); });
       });
     }
 
-    if (dl) {
+    // The trend keeps its download HIDDEN, and that is the honest answer
+    // rather than an omission. chartCsv() reads the rendered bar rows, and the
+    // trend has none: it would hand over a file containing a header and
+    // nothing else, which is worse than no button. The whole page's numbers,
+    // including every row behind these lines, are the CSV and JSON under
+    // Download This View.
+    if (dl && !chart.classList.contains('tit-chart-trend')) {
       dl.hidden = false;
       dl.addEventListener('click', function () {
         download('talent-' + (dl.dataset.chart || 'chart') + '.csv', chartCsv(chart));
@@ -2142,6 +2295,27 @@
       });
     }
   });
+
+  // A shared link that named a card opens it, and scrolls to it, once the
+  // controls above are wired. Called after applyUrlState() so it sees the same
+  // querystring the filters were restored from.
+  function openCardFromUrl() {
+    var want = expandedCard;
+    if (!want) return;
+    var chart = document.getElementById(want);
+    // An id we do not have is dropped rather than guessed at, the same rule
+    // applyUrlState() follows for every other parameter. Dropped from the
+    // address bar too, so a stale link does not keep rewriting itself.
+    if (!chart || !chart.classList.contains('tit-chart')) {
+      expandedCard = '';
+      writeUrl();
+      return;
+    }
+    setExpanded(chart, true);
+    var still = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    chart.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  }
 
   // --- Clickable chart rows -------------------------------------------------
   // Each bar row is a filter. A click routes through the SAME state the
@@ -2160,6 +2334,13 @@
     { el: document.getElementById('chart-money-country'), key: 'country' },
     { el: document.getElementById('chart-money-city'), key: 'city' },
     { el: document.getElementById('chart-money-industry'), key: 'industry',
+      label: function (k) { return INDUSTRY_LABEL[k] || k; } },
+    // The two cards that took the grid to nine. Same wiring as the rest, so a
+    // click on "Official Filing" narrows the table, the chips bar, the address
+    // bar, the other eight charts and both export links in one pass.
+    { el: document.getElementById('chart-confidence'), key: 'confidence',
+      label: function (k) { return CONFIDENCE_LABEL[k] || k; } },
+    { el: document.getElementById('chart-industry'), key: 'industry',
       label: function (k) { return INDUSTRY_LABEL[k] || k; } }
   ];
 
@@ -2470,4 +2651,8 @@
     syncCityButtons();
   syncBasis();
   if (location.search) refresh();
+  // AFTER refresh(), because refresh() rewrites the address bar from the
+  // filters alone and would drop the `card` this is about to read if it ran
+  // first. It sets expandedCard, so every later write keeps it.
+  openCardFromUrl();
 })();

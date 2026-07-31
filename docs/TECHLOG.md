@@ -177,6 +177,81 @@ red until somebody finishes.
 
 ---
 
+## 2026-07-31 — nine chart cards, the trend demoted into the grid, and the prose behind an (i) (1.62.0)
+
+`wordpress-plugin/talent-intelligence-tracker/includes/shortcodes.php`,
+`assets/dashboard.js`, `assets/dashboard.css`,
+`tests/php/render_dashboard.php`.
+
+**What the owner asked for:** the trend chart small and inside the grid rather
+than full width above it, positioned after the country card; the wording on the
+cards minimised and moved behind an (i); two more cards so the grid is three
+rows of three; every card expandable, and an expanded view shareable as a link.
+
+**The grid is nine, in this order:** What Is Moving, Where the Jobs Are, Updates
+a Day, Which Way Headcount Is Going, How Solid the Evidence Is, Which Industries
+Are Moving, then the three money cards. Two `.tit-charts` grids of six and three,
+each `repeat(3,1fr)` above 900px, which is three rows of three without merging
+the money section that a previous pass deliberately kept as its own block.
+
+**The two new cards, and why these two of the three on offer.**
+
+* **How Solid the Evidence Is** (`by_confidence`). The only card on the page
+  that counts how we know rather than what happened, in the shared card-contract
+  vocabulary, and clicking a bar sets the Evidence filter. It costs **no query**:
+  three CASE expressions joined the head scan that already counted the verified
+  rows for the hero.
+* **Which Industries Are Moving** (`by_industry`, by count). Distinct from the
+  money-by-industry card, which can only see rows carrying a dollar figure, so a
+  sector hiring hard and raising nothing is invisible there and visible here.
+
+`by_state` was **declined**, and the reason is the same one the region strip
+already follows. It holds 5,991 of 18,069 rows and every one of them is American,
+so on the default worldwide view it is a card about a third of the data, and
+under any non-US filter it is an empty card. An empty card reads as a filter that
+broke. The industry ranking is populated under every filter the page offers.
+
+Cold render is **14 queries, up from 13**: only the industry card cost one.
+
+**The (i) preserves the caveats rather than hiding them.** The panels ship
+**open** in the served markup and the button ships hidden; dashboard.js closes
+the panel and reveals the button, in that order, so a reader whose script never
+ran gets the prose. The button is a real `<button>` with `aria-expanded`, and
+both it and each card's data group carry `aria-describedby` pointing at the
+panel, so a screen reader gets the caveat whether the panel is open or shut. Not
+a `title=`, which is reachable by neither a keyboard nor a screen reader. The
+button carries **no `aria-label`** — its name is the visually hidden text inside
+it. The expand button LOST an `aria-label` it should never have had: it was
+silently replacing the "Expand"/"Collapse" text that the script rewrites.
+
+What moved in: the trend's collector-count sentence and its "some signals are not
+drawn" reasons, the one-collector place caveat, every card's subtitle, and the
+money coverage sentence that was **printed three times, identically**.
+
+**The trend survives the smaller box because the text came out of the drawing.**
+It was 720 units wide with a 520px min-width and its labels inside it, which
+inside a card is either a permanent horizontal scrollbar or 12px axis text
+rendered at about five. The five axis values and the two dates are HTML beside
+the SVG now, so they are CSS pixels at every size; the grid and both lines carry
+`vector-effect="non-scaling-stroke"`; and the endpoint dots are a second SVG with
+**no viewBox**, so `r="3.5"` is 3.5px whether the card is 300 or 780 wide. Both
+series and both dots are still drawn. Measured: the drawn panel was 5,321 bytes
+and is 5,132.
+
+**An expanded card is part of the link.** `card=<chart-id>` joins the querystring
+the page already syncs, `applyUrlState()`'s neighbour `openCardFromUrl()` restores
+it, and every writer of the address bar goes through one `writeUrl()` so a filter
+change cannot drop it. One card expands at a time, because two could not be
+described by one value. Share copies the filters, the card and, when it is open,
+the expansion. The trend's CSV button stays hidden: `chartCsv()` reads bar rows
+and the trend has none, so it would have handed over a header and nothing else.
+
+**Byte budget 169,000 -> 174,000**, itemised in the harness beside the constant.
+The head is built as a string rather than a template because it prints nine times
+and four indented buttons were two kilobytes of leading whitespace.
+
+---
+
 ## 2026-07-31 — a Form D "amount sold" is not money raised, and 318 published rows said it was
 
 `correct_form_d_overcount.py`, `.github/workflows/correct-form-d-overcount.yml`,
