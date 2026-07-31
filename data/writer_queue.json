@@ -242,6 +242,28 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-31T09:21:09Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260731T092109Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-07-31T09:21:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-29T10:51:16Z",
       "history": [
         {
