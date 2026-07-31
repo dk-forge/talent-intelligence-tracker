@@ -351,6 +351,64 @@ def test_the_regions_come_from_the_projects_own_vocabulary():
         "Oceania", "Europe"}
 
 
+def test_a_new_set_may_not_be_narrower_than_the_widest_one_already_on_disk():
+    """The ratchet. The failure it prevents is not malice: an ordinary month
+    where only the easy countries answer, the next set quietly comes back at 30
+    of them, and the published figure rises because the world got smaller."""
+    wide = goldset.breadth(goldset.counts(goldset.load(goldset.latest_path())))
+    narrow = _shaped()
+    problems = goldset._ratchet_problems(narrow, [wide])
+    assert any("not supposed to be reversible" in p for p in problems), problems
+
+
+def test_the_ratchet_never_reaches_backwards():
+    """A ratchet comparing against LATER sets would invalidate the history it
+    exists to protect: the day the 169-event set landed, the 89-event set it
+    superseded would have stopped validating and its published 9.0% would have
+    become underivable."""
+    paths = goldset.all_paths()
+    if len(paths) < 2:
+        pytest.skip("needs two sets on disk")
+    oldest = goldset.load(paths[0])
+    peers = goldset.peer_breadths(paths[0], assembled_on=oldest["assembled_on"])
+    assert peers == []
+    assert goldset.validate(oldest) == []
+
+
+def test_a_set_built_in_memory_is_judged_on_the_fixed_bars_only():
+    """Unit tests must not be graded against whatever happens to be in the
+    repository that week."""
+    assert goldset.validate(_shaped()) == []
+
+
+def test_an_undisclosed_round_must_say_so_rather_than_just_omit_the_number():
+    """A set that cannot admit an undisclosed round measures only the events
+    that came with a number, and that bias points straight at the markets this
+    benchmark exists to cover."""
+    silent = _shaped()
+    for item in silent["items"]:
+        if item["signal_type"] == "funding":
+            item["amount_usd"] = None
+    assert any("amount_disclosed=false" in p for p in goldset.validate(silent))
+
+    declared = _shaped()
+    funding = [i for i in declared["items"] if i["signal_type"] == "funding"]
+    for item in funding[:2]:
+        item["amount_usd"] = None
+        item["amount_disclosed"] = False
+    assert goldset.validate(declared) == []
+
+
+def test_undisclosed_cannot_become_the_easy_way_in():
+    declared = _shaped()
+    for item in declared["items"]:
+        if item["signal_type"] == "funding":
+            item["amount_usd"] = None
+            item["amount_disclosed"] = False
+    assert any("cannot be checked on the number" in p
+               for p in goldset.validate(declared))
+
+
 def test_every_gold_set_on_disk_is_valid():
     """Historical sets are kept so any past figure can be re-derived. A kept set
     that no longer validates would make its figure unreproducible."""

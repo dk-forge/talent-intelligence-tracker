@@ -64,14 +64,16 @@ DEFAULT_PATH = latest_path()
 # reach, so recall against it answers only "how well do we read the places we
 # already read".
 #
-# Each geographic bar is set at the shape of the NARROWEST set ever actually
-# used (2026-07-v1: 29 countries, 12 of them carrying more than one event, the
-# largest country 38% of the set, six of the project's seven regions carrying at
-# least two events). Deliberate on two counts. Every published figure stays
-# re-derivable, because no set already on disk is retroactively invalidated. And
-# it makes the guard a RATCHET: the next set may be wider than the last and
-# never narrower. Raise these when a wider set has actually been assembled,
-# never in advance of one.
+# Each geographic bar here is set at the shape of the NARROWEST set ever
+# actually used (2026-07-v1: 29 countries, 12 of them carrying more than one
+# event, the largest country 38% of the set, six of the project's seven regions
+# carrying at least two events), so that no set already on disk is retroactively
+# invalidated and every published figure stays re-derivable.
+#
+# The RATCHET is separate and automatic: `_ratchet_problems` measures the widest
+# set already on disk and requires a new one to be within RATCHET_FLOOR of it.
+# Nobody has to remember to raise a constant after assembling a wider set, and
+# nothing here has to be edited when they do.
 REQUIRED_SHAPE = {
     "min_items": 40,
     "min_countries": 20,
@@ -103,7 +105,19 @@ REQUIRED_SHAPE = {
     # with a single token event.
     "min_regions": 6,
     "min_per_region": 2,
+
+    # `amount_disclosed: false` is a declared escape hatch, not a general one.
+    # Past this share the set stops being checkable on amounts at all, and
+    # "undisclosed" becomes the easy way to admit an event nobody pinned down.
+    "max_undisclosed_amount_share": 0.15,
 }
+
+# How much narrower than the widest set already on disk a new one may be.
+# Not 1.0: a fresh window genuinely yields a different number of reachable
+# events, and a bar that demanded a strict improvement every month would be met
+# by padding rather than by research. Not 0.5 either, or the ratchet ratchets
+# nothing. Eight tenths lets a lean month through and refuses a retreat.
+RATCHET_FLOOR = 0.8
 
 REQUIRED_ITEM_FIELDS = (
     "id", "company", "signal_type", "event_date", "country", "size_band",
@@ -129,15 +143,27 @@ def load(path: str = DEFAULT_PATH) -> dict:
     return data
 
 
-def validate(data: dict) -> list:
+def validate(data: dict, peers: list | None = None) -> list:
     """Every rule the gold set must satisfy. Returns a list of problems.
 
     Empty list means the file is fit to measure against. This runs in the test
     suite, so a gold set edited into an invalid state fails CI rather than
     silently producing a wrong denominator.
+
+    `peers` is the breadth of the other sets on disk, for the ratchet. It is
+    found automatically for a set that was LOADED from a file and left empty for
+    one built in memory, so a unit test constructing a set by hand is judged
+    against the fixed bars only and never against whatever happens to be in the
+    repository that week.
     """
     problems = []
     items = data.get("items", [])
+
+    if peers is None and data.get("_path"):
+        peers = peer_breadths(data["_path"],
+                              assembled_on=data.get("assembled_on"))
+    if items and peers:
+        problems.extend(_ratchet_problems(data, peers))
 
     if not items:
         return ["gold set is empty"]
@@ -188,7 +214,18 @@ def validate(data: dict) -> list:
                 problems.append(f"{label}: event_date {when} is outside the declared window")
 
         if item.get("signal_type") == "funding" and not item.get("amount_usd"):
-            problems.append(f"{label}: a funding item needs amount_usd")
+            # An undisclosed round is a real event, and a set that cannot admit
+            # one measures only the events that came with a number. That bias
+            # points straight at the markets this benchmark exists to cover: a
+            # seed round in Ghana or Kazakhstan is routinely reported with no
+            # figure at all. So the omission has to be DECLARED rather than
+            # silently allowed — `amount_disclosed: false` is the assembler
+            # saying the publisher did not state one, which is a different fact
+            # from having forgotten to write it down.
+            if item.get("amount_disclosed") is not False:
+                problems.append(
+                    f"{label}: a funding item needs amount_usd, or "
+                    f"amount_disclosed=false if the publisher stated none")
 
         if item.get("id") in seen_ids:
             problems.append(f"{label}: duplicate id")
@@ -235,8 +272,108 @@ def _shape_problems(items: list) -> list:
             f"({shape['source_type']}): a set of one document type measures one "
             "collector, not the tracker")
 
+    funding = [i for i in items if i.get("signal_type") == "funding"]
+    undisclosed = [i for i in funding if not i.get("amount_usd")]
+    ceiling = REQUIRED_SHAPE["max_undisclosed_amount_share"]
+    if funding and len(undisclosed) / len(funding) > ceiling:
+        problems.append(
+            f"{len(undisclosed)}/{len(funding)} funding events have no amount "
+            f"({len(undisclosed) / len(funding):.0%}): above the {ceiling:.0%} "
+            "ceiling, so most of the set cannot be checked on the number")
+
     problems.extend(_geography_problems(shape, total))
     return problems
+
+
+def breadth(shape: dict) -> dict:
+    """The four numbers the ratchet compares, in one place so that the guard and
+    the message can never describe a set two ways."""
+    by_country = shape["country"]
+    total = shape["total"] or 1
+    return {
+        "events": shape["total"],
+        "countries": len(by_country),
+        "countries_with_repeats": sum(
+            1 for n in by_country.values()
+            if n >= REQUIRED_SHAPE["repeat_country_events"]),
+        "regions": sum(1 for key, n in regions(shape).items()
+                       if key and n >= REQUIRED_SHAPE["min_per_region"]),
+        "largest_country_share": (max(by_country.values()) / total
+                                  if by_country else 0.0),
+    }
+
+
+def _ratchet_problems(data: dict, peers: list) -> list:
+    """A new set may not be narrower than the widest one already on disk.
+
+    This is what makes the geographic guard a ratchet rather than a note asking
+    somebody to raise a constant. The failure it prevents is not malice: it is
+    an ordinary month where the easy countries are the ones that answer, the
+    next set quietly comes back at 30 countries, and the published figure rises
+    because the world got smaller. Compared against the widest PEER rather than
+    the previous one, so a single lean month cannot lower the bar for good.
+    """
+    if not peers:
+        return []
+    mine = breadth(counts(data))
+    best = {key: max(p[key] for p in peers)
+            for key in ("events", "countries", "countries_with_repeats", "regions")}
+    tightest = min(p["largest_country_share"] for p in peers)
+
+    problems = []
+    labels = {
+        "events": "events",
+        "countries": "countries",
+        "countries_with_repeats": f"countries carrying "
+                                  f"{REQUIRED_SHAPE['repeat_country_events']}+ events",
+        "regions": "regions",
+    }
+    for key, was in best.items():
+        floor = RATCHET_FLOOR * was
+        if mine[key] < floor:
+            problems.append(
+                f"{mine[key]} {labels[key]}: a set already on disk reached {was}, "
+                f"and a new set may not fall below {RATCHET_FLOOR:.0%} of the "
+                f"widest one ({floor:.0f}). Widening is not supposed to be "
+                f"reversible")
+    if mine["largest_country_share"] > tightest + (1 - RATCHET_FLOOR):
+        problems.append(
+            f"the largest country is {mine['largest_country_share']:.0%} of this "
+            f"set against {tightest:.0%} in the most evenly spread set on disk: "
+            f"a concentration the ratchet does not allow back")
+    return problems
+
+
+def peer_breadths(path: str, directory: str | None = None,
+                  assembled_on: str | None = None) -> list:
+    """The breadth of every set on disk assembled BEFORE this one.
+
+    Strictly earlier, because a ratchet that looked at later sets would reach
+    backwards and invalidate the very history it exists to protect: the day the
+    widened 169-event set landed, the 89-event set it superseded would have
+    stopped validating and its published 9.0% would have become underivable.
+
+    Separated from `validate` so a caller with no filesystem — every unit test
+    that builds a set in memory — is unaffected.
+    """
+    directory = directory or os.path.dirname(os.path.abspath(path))
+    out = []
+    for other in all_paths(directory):
+        if os.path.abspath(other) == os.path.abspath(path):
+            continue
+        try:
+            with open(other, encoding="utf-8") as handle:
+                peer = json.load(handle)
+        except (OSError, ValueError):
+            continue
+        when = str(peer.get("assembled_on") or "")
+        if assembled_on and not (when and when < assembled_on):
+            continue
+        try:
+            out.append(breadth(counts(peer)))
+        except KeyError:
+            continue
+    return out
 
 
 def regions(shape: dict) -> dict:
