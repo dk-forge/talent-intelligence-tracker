@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T20:19:59Z",
-  "last_tick": "2026-07-31T22:21:23Z",
+  "last_dispatch": "2026-07-31T22:22:20Z",
+  "last_tick": "2026-07-31T22:22:20Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -220,12 +220,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T22:22:20Z",
       "history": [
         {
           "at": "2026-07-31T21:33:05Z",
           "detail": "Carry the 228 Wayback captures to WordPress; both prior attempts died in the Bluehost outage",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T22:22:20Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T213305Z-enrich",
@@ -235,7 +240,7 @@
       "requested_at": "2026-07-31T21:33:05Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
     },
     {
