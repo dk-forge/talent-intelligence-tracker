@@ -185,3 +185,17 @@ def test_the_structured_collectors_were_never_gated_by_spend():
     lose free rows."""
     text = (WORKFLOWS / "collect-structured.yml").read_text()
     assert "spend.py" not in text
+
+
+def test_the_degraded_marker_survives_the_health_line_truncation():
+    """ops_status prints `detail[:70]` per collector, so a marker appended at
+    the end of the detail is exactly the marker nobody sees. The one thing a
+    reader must not have to scroll for is 'this run was rationed'."""
+    src = inspect.getsource(run_collect.run)
+    detail = src.split("detail=(", 1)[1][:400]
+    assert detail.index("DEGRADED") < detail.index("dup, ")
+
+    ops = (Path(__file__).resolve().parent.parent / "ops_status.py").read_text()
+    assert "detail'][:70]" in ops, (
+        "the truncation this ordering is defending against has moved; "
+        "re-check that DEGRADED still fits inside it")

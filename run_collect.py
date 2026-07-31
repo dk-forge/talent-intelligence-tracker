@@ -839,7 +839,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         # be a migration, and a health row that cannot say WHICH model wrote the
         # prose is a ledger that cannot answer "when did the read-throughs
         # change" later.
-        detail=(f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
+        # DEGRADED goes FIRST, and that is not cosmetic: ops_status prints
+        # `detail[:70]` per collector, so a marker appended at the end is
+        # exactly the marker nobody sees. The one thing a reader must not have
+        # to scroll for is "this run was rationed, the page is shallower than
+        # usual".
+        detail=((f"DEGRADED: monthly allowance spent, {month_deferred} "
+                 "candidate(s) deferred unread; free collectors unaffected | "
+                 if running_degraded else "")
+                + f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
                 + (f" | read-through {classify.READ_MODEL}: "
                    f"{classify.STATS['read_written']} written, "
                    f"{classify.STATS['read_unavailable'] + classify.STATS['read_ungrounded']}"
@@ -847,10 +855,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                    if classify.STATS["read_calls"] or classify.STATS["read_served"] else "")
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"
-                   if mostly_throttled else "")
-                + (f" | DEGRADED: monthly allowance spent, {month_deferred} "
-                   "candidate(s) deferred unread; free collectors unaffected"
-                   if running_degraded else "")),
+                   if mostly_throttled else "")),
     )
     conn.commit()
 
