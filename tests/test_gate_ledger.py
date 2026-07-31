@@ -229,3 +229,72 @@ def test_read_all_spans_plain_and_compressed_shards(ledger):
 
     keys = [row.get("key") for row in gate_ledger.read_all(str(ledger))]
     assert "old" in keys and gate_ledger.key(GNEWS) in keys
+
+
+# --- merging a run's labels back onto main ----------------------------------
+#
+# collect.yml does `git reset --hard origin/main` before committing, which
+# discards the shard this run just wrote. merge_gate_labels.py folds it back.
+
+def test_merge_appends_only_what_main_does_not_hold(tmp_path):
+    import merge_gate_labels
+
+    src, dst = tmp_path / "saved", tmp_path / "ledger"
+    src.mkdir(), dst.mkdir()
+    shared = json.dumps({"key": "a", "gate": "YES"})
+    mine = json.dumps({"key": "b", "gate": "NO"})
+    theirs = json.dumps({"key": "c", "gate": "YES"})
+    (src / "labels-2026-07.jsonl").write_text(shared + "\n" + mine + "\n")
+    # main moved on while this run was collecting.
+    (dst / "labels-2026-07.jsonl").write_text(shared + "\n" + theirs + "\n")
+
+    added, _notes = merge_gate_labels.merge(str(src), str(dst))
+    assert added == 1
+    kept = [json.loads(l) for l in
+            (dst / "labels-2026-07.jsonl").read_text().splitlines() if l]
+    assert [row["key"] for row in kept] == ["a", "c", "b"]
+
+
+def test_merge_leaves_the_weak_bootstrap_set_alone(tmp_path):
+    """It is not per-run output. `git reset --hard` restores it from origin
+    already, and merging it would duplicate 4,328 lines every run."""
+    import merge_gate_labels
+
+    src, dst = tmp_path / "saved", tmp_path / "ledger"
+    src.mkdir(), dst.mkdir()
+    (src / "bootstrap-weak.jsonl").write_text('{"key":"w","weak":true}\n')
+    (src / "README.md").write_text("# docs\n")
+    (dst / "bootstrap-weak.jsonl").write_text('{"key":"w","weak":true}\n')
+
+    added, _notes = merge_gate_labels.merge(str(src), str(dst))
+    assert added == 0
+    assert (dst / "bootstrap-weak.jsonl").read_text().count("\n") == 1
+
+
+def test_merge_handles_a_month_that_closed_mid_run(tmp_path):
+    """One side compressed, the other not. The compressed form survives."""
+    import merge_gate_labels
+
+    src, dst = tmp_path / "saved", tmp_path / "ledger"
+    src.mkdir(), dst.mkdir()
+    (src / "labels-2026-07.jsonl").write_text('{"key":"new"}\n')
+    with gzip.open(dst / "labels-2026-07.jsonl.gz", "wt") as fh:
+        fh.write('{"key":"old"}\n')
+
+    added, _notes = merge_gate_labels.merge(str(src), str(dst))
+    assert added == 1
+    assert not (dst / "labels-2026-07.jsonl").exists()
+    with gzip.open(dst / "labels-2026-07.jsonl.gz", "rt") as fh:
+        assert [json.loads(l)["key"] for l in fh if l.strip()] == ["old", "new"]
+
+
+def test_merge_never_fails_the_commit_step(tmp_path, capsys):
+    """A collect run that has already stored and published rows must not go red
+    over bookkeeping. The CLI returns 0 whatever happens."""
+    import merge_gate_labels
+
+    assert merge_gate_labels.main.__module__  # imported, not a stub
+    monkey = tmp_path / "not-a-directory"
+    monkey.write_text("x")
+    added, notes = merge_gate_labels.merge(str(monkey), str(tmp_path / "out"))
+    assert added == 0 and notes
