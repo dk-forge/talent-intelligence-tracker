@@ -149,7 +149,7 @@
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
-      "cursor": "2026-01-07",
+      "cursor": "2026-01-10",
       "end": "2026-07-26",
       "history": [
         {
@@ -177,6 +177,19 @@
             "stored": 64,
             "windows": 4
           }
+        },
+        {
+          "at": "2026-07-31T04:02:22Z",
+          "run": "",
+          "slice": "2026-01-07..2026-01-10",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-10",
+          "totals": {
+            "duplicates": 11,
+            "left_for_later": 1107,
+            "rejected": 48,
+            "stored": 54,
+            "windows": 4
+          }
         }
       ],
       "inputs": {
@@ -187,18 +200,18 @@
       "label": "",
       "opened_at": "2026-07-30T22:10:09Z",
       "slice_size": 4,
-      "slices": 2,
+      "slices": 3,
       "start": "2026-01-01",
       "state": "running",
       "totals": {
-        "duplicates": 13,
-        "left_for_later": 1769,
-        "rejected": 138,
-        "stored": 114,
-        "windows": 8
+        "duplicates": 24,
+        "left_for_later": 2876,
+        "rejected": 186,
+        "stored": 168,
+        "windows": 12
       },
       "unit": "days",
-      "updated_at": "2026-07-31T01:27:28Z",
+      "updated_at": "2026-07-31T04:02:22Z",
       "workflow": "backfill-gnews-2026.yml"
     },
     "backfill-structured-2026:bse_india:2026-01-01..2026-07-30": {
