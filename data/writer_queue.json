@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T08:19:49Z",
-  "last_tick": "2026-07-31T08:19:49Z",
+  "last_dispatch": "2026-07-31T08:27:26Z",
+  "last_tick": "2026-07-31T08:27:26Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,12 +159,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T08:27:26Z",
       "history": [
         {
           "at": "2026-07-31T04:02:22Z",
           "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-10)",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T08:27:26Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T040222Z-backfill-gnews-2026",
@@ -180,7 +185,7 @@
       "requested_at": "2026-07-31T04:02:22Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -208,33 +213,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T08:19:49Z",
-      "history": [
-        {
-          "at": "2026-07-31T06:29:50Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T08:19:49Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260731T062950Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-07-31T06:29:50Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
     },
     {
       "attempts": 0,
@@ -2287,6 +2265,44 @@
       "run_id": "30605363355",
       "state": "landed",
       "workflow": "correct-form-d-overcount.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T08:19:49Z",
+      "history": [
+        {
+          "at": "2026-07-31T06:29:50Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T08:19:49Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T08:27:26Z",
+          "detail": "run 30615916688",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T08:27:26Z",
+          "detail": "run 30615916688",
+          "event": "landed"
+        }
+      ],
+      "id": "20260731T062950Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-31T08:27:26Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-07-31T06:29:50Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30615916688",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
