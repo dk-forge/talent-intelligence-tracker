@@ -36,7 +36,12 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 # in its own file -- and it is the one that spends, so it is the one where an
 # eviction is most expensive: a run that dies with zero jobs still cost nothing,
 # but a slot that silently skips is a week of discovery lost with no red run.
-WRITERS = ("archive-sources.yml", "link-check.yml", "tripwire.yml")
+# enrich.yml joined this list on 2026-07-30. It is what carries a captured
+# snapshot to the live rows, and it had no schedule of its own, so an
+# archiver running eight times a day filled the local ledger while every
+# reader went on seeing the publisher's link alone.
+WRITERS = ("archive-sources.yml", "link-check.yml", "tripwire.yml",
+           "enrich.yml")
 SCHEDULER = "schedule-link-hygiene.yml"
 
 

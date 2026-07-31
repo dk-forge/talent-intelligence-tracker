@@ -68,10 +68,25 @@ name: schedule-link-hygiene
 # `--if-absent` below is what makes a frequent slot safe. A slot that fires
 # while the previous ticket is still waiting adds nothing, so a long backfill
 # holding the lock cannot leave eight tickets a day stacked behind it.
+#
+# WHY ENRICH IS SCHEDULED HERE TOO
+# --------------------------------
+# `archive_url` is not a field of Signal and never could be: a row is built at
+# classification time and its snapshot is captured afterwards, so at publish
+# time it is always empty. It reaches the site through `/enrich`, which
+# `enrich.yml` runs — and `enrich.yml` had no schedule at all. So an archiver
+# firing eight times a day would fill the local ledger while every reader went
+# on seeing the publisher's link alone, and the surface that carries this
+# product's promise would be the one thing the whole loop never updated.
+#
+# Daily rather than per-archive-run: /enrich pushes the whole derived allowlist,
+# it is idempotent, and there is nothing to gain from pushing the same values
+# eight times. 07:40 UTC, after the 06:20 archive slot has had its 25 minutes.
 on:
   schedule:
     - cron: '20 */3 * * *'  # every 3h: a Wayback pass over the newest citations
     - cron: '30 5 * * *'    # daily: a rot sweep, before the 13:00 Monday digest
+    - cron: '40 7 * * *'    # daily: carry the new snapshots to the live rows
     - cron: '0 7 * * 1,4'   # Mon+Thu: ask an outside view what we are missing
 
   workflow_dispatch:
@@ -83,6 +98,7 @@ on:
           - both
           - archive
           - link-check
+          - enrich
           - tripwire
         default: both
 
@@ -123,6 +139,7 @@ jobs:
             case "$SLOT" in
               '20 */3 * * *') WANT='archive-sources.yml' ;;
               '30 5 * * *')   WANT='link-check.yml' ;;
+              '40 7 * * *')   WANT='enrich.yml' ;;
               '0 7 * * 1,4')  WANT='tripwire.yml' ;;
               *)
                 echo "::error::schedule slot '$SLOT' has no mapping in this"
@@ -135,6 +152,7 @@ jobs:
             case "${JOB:-both}" in
               archive)    WANT='archive-sources.yml' ;;
               link-check) WANT='link-check.yml' ;;
+              enrich)     WANT='enrich.yml' ;;
               tripwire)   WANT='tripwire.yml' ;;
               # 'both' predates the tripwire and still means the two free
               # link-hygiene passes. It deliberately does NOT include the
