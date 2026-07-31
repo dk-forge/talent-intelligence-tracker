@@ -298,15 +298,15 @@ the 91 are already withdrawn by rules 1-3. **This is a name-vocabulary gap, not
 an industry one**, and it belongs to whoever owns the collector: the missing
 shapes are `... Funding LLC`, a `YYYY-N` serial, and `Blocker Corp`.
 
-### Projected effect
+### Applied 2026-07-31, run 30605363355 — projected, then measured
 
-| | before | after |
-|---|---|---|
-| funding records | 3,344 | 3,026 |
-| money raised | $122.0bn | $107.7bn |
-| records drawn from Form D | 3,013 | 2,695 |
-| business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn |
-| employers with a funding record | 3,127 | 2,906 |
+| | before | projected | measured |
+|---|---|---|---|
+| funding records | 3,344 | 3,026 | **3,026** |
+| money raised | $122.0bn | $107.7bn | **$107.713bn** |
+| records drawn from Form D | 3,013 | 2,695 | **2,695** |
+| business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn | **7 / $0.7bn** |
+| employers with a funding record | 3,127 | 2,906 | **2,937** |
 
 The before column is the dashboard's own aggregate (`money.total`,
 `money.coverage`), not a query of our own. `funding=1` over `/query` returns
@@ -319,6 +319,23 @@ and not a discrepancy.
 221 employers lose every funding record they had. That is the correct outcome —
 each was on the tracker for a takeover it was on the receiving end of — but it is
 a visible change, which is why the employer count is on the page.
+
+### What landed, and the one row that missed
+
+Run **30605363355**, 04:54-05:10Z, 318 withdrawals, **zero failures**. Verified
+by re-fetching every planned signal id from the live API afterwards: **0 of 318
+still published**. Form D records 3,013 -> 2,695 and Form D money $87.375bn ->
+$73.125bn, exactly the 318 rows and $14.250bn planned.
+
+**The employer row missed by 31 and stays on the page.** 32 funding records worth
+**$3.55bn** landed between the projection and the run — a historical gnews/gdelt
+backfill slice plus a night of collection, while the ticket sat behind
+`enrich` and `correct-layoff-scope` in the writer queue. Same cause as the 998-row
+correction's $10bn gap in July, and the same handling: the projection stays
+visible beside the result. It is also why the `funding=1` view fell only
+$10.70bn ($118.416bn -> $107.713bn) while the aggregate the dashboard prints fell
+the full $14.25bn: the aggregate snapshot was taken after those 32 had landed and
+the `funding=1` snapshot before.
 
 ### Withdrawn, not revised
 

@@ -27,9 +27,9 @@ TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 
 ---
 
-## The Form D overcount correction (2026-07-31) — PENDING, and the page says so
+## The Form D overcount correction (2026-07-31) — APPLIED, and measured
 
-**318 published funding records, $14.25bn, are queued for withdrawal.** A Form D
+**318 published funding records, $14.25bn, withdrawn on 2026-07-31 (run 30605363355, zero failures).** A Form D
 reports an *amount sold*, and three kinds of filing report an amount that is not
 money any company raised: a takeover paid for in shares
 (`ISBUSINESSCOMBINATIONTRANS` = true, a field in the data set that no code path
@@ -38,32 +38,24 @@ cumulative sales, and an amendment restating an offering already published.
 Derivation, every measurement and both rejected rules are in
 [TECHLOG.md](TECHLOG.md).
 
-| | before | after (projected) |
-|---|---|---|
-| funding records | 3,344 | 3,026 |
-| money raised | $122.0bn | $107.7bn |
-| business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn |
+| | before | projected | measured |
+|---|---|---|---|
+| funding records | 3,344 | 3,026 | **3,026** |
+| money raised | $122.0bn | $107.7bn | **$107.7bn** |
+| business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn | **7 / $0.7bn** |
+| employers with a funding record | 3,127 | 2,906 | **2,937** |
 
-**State, and the two things left.**
+**State: done, deployed, verified.** The corrections-log entry is `applied` with
+its projected column kept beside the measured one, live on plugin **1.61.0**.
+Every planned signal id was re-fetched from the live API afterwards and none of
+them is still published.
 
-1. **The corrections-log entry is published as `scheduled`** and is the first
-   entry this page has ever carried that has not run. It needs plugin **1.60.0**
-   on the site to be visible: `gh workflow run deploy-plugin.yml -R
-   dk-forge/talent-intelligence-tracker --ref main -f dry_run=false`, then curl
-   the live `ver=`. **Not yet dispatched by the session that wrote it.**
-2. **The withdrawal is QUEUED, not dispatched** —
-   `correct-form-d-overcount.yml`, `dry_run=false`, ticket lodged 2026-07-31 via
-   `drain-writers.yml`. Watch it in `ops_status.py [2b]`.
-
-**When it lands, flip the entry — it is a small edit and the file says where.**
-`'status' => 'applied'` plus `'applied_on'`; `'projection'` becomes `'measured'`
-with the projected column KEPT and a third appended; and the sentences marked
-`// TENSE:` in `includes/corrections.php` are rewritten. Everything else — the
-badge, the standing notice, the extra stat, the table caption — derives from
-`status`. **The measured figures must be re-read off the live API, not copied
-from the projection**: the corpus moved from $99bn to $118.4bn between the first
-measurement of this defect and this one, and a projection that missed is kept
-beside the result rather than quietly corrected.
+**The one row of the projection that missed, and why it is left visible.** We
+said 2,906 employers would keep a funding record; the answer is 2,937. The 31 are
+employers that ARRIVED between the projection and the run — 32 funding records
+worth $3.55bn from a backfill slice and a night of collection, while the ticket
+waited behind two other writers. Same cause as the 998-row correction's $10bn gap
+on 29 July.
 
 **Do not re-litigate three settled findings.** Sales commission as a cash-raise
 rescue (rescues 8, wrongly keeps 5), `ISSECURITYTOBEACQUIREDTYPE` (mis-ticked on
