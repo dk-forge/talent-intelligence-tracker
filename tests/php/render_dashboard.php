@@ -56,6 +56,77 @@ define('HOUR_IN_SECONDS', 3600);
 define('DAY_IN_SECONDS', 86400);
 define('ARRAY_A', 'ARRAY_A');
 
+/*
+ * THE ONE CLOCK. Every date in this file, in the fixture and in the assertions
+ * and inside the render, is read from here and from nowhere else.
+ *
+ * IT IS HERE BECAUSE THIS HARNESS WENT RED FOR AN HOUR A DAY AND NOBODY COULD
+ * SEE WHY. The fixture used to read the clock in two different resolutions: rows
+ * were dated `gmdate('Y-m-d', time() - n days)`, whole UTC days, while
+ * `captured_at` was `time() - 3600`, an instant. The first page is ordered by
+ * COALESCE(published_date, DATE(captured_at)) DESC, and the row that carries the
+ * whole "Location not stated" / "Date not stated" assertion is the ONLY row with
+ * no published_date, so its sort key is DATE(captured_at) alone. Between 00:00
+ * and 01:00 UTC that subtraction lands on YESTERDAY while ninety-odd sibling rows
+ * are dated today, the row is pushed off a fifty-row first page, and an assertion
+ * about a blank cell fails for a reason that has nothing to do with blank cells.
+ * Runs before 23:25Z were green, runs after 00:11Z were red, and the same commit
+ * was both.
+ *
+ * A test whose answer depends on what time it is run is a defect on its own
+ * terms, worse than the one it is meant to catch, because it teaches whoever
+ * reads CI to discount a red. So the clock is read ONCE, snapped to midday UTC,
+ * and handed to the fixture, to the assertions, and to the WordPress stubs the
+ * render itself reads its "today" through (`current_time()` is what shortcodes.php
+ * asks). Midday is the point: every offset from it is whole days, so no
+ * subtraction of hours can cross a date boundary, and 23:59 and 00:01 build the
+ * same corpus, render the same page and reach the same verdict.
+ *
+ * It still tracks the real date rather than freezing on one, because two
+ * assertions below are about the page moving WITH the calendar: the year rung has
+ * to say the current year because it derived it, and the week-over-week
+ * comparison has to appear once forty days of history exist. A frozen date would
+ * let a typed year pass.
+ *
+ * ONE READ OF THE REAL CLOCK SURVIVES INSIDE THE RENDER, and it is named here
+ * rather than left for somebody to find. tit_roo() asks PHP's own time() whether
+ * the newest capture is less than fifteen minutes old, and draws a working mascot
+ * if it is. Pinning that means changing the plugin, not this harness. Its whole
+ * effect is two bytes of Roo's status line for the quarter hour after the
+ * fixture's capture time each day; measured both ways, every assertion here
+ * passes in both, and the byte budget has two hundred bytes of room. It is a
+ * difference in the markup, never in the verdict.
+ *
+ * AND IT CAN BE MOVED, which is the other half of the lesson.
+ *
+ * The reason this defect survived four commits is that nobody could run the
+ * suite at the hour it broke. A red that reproduces only between 00:00 and 01:00
+ * UTC is a red that gets re-run, comes back green, and is filed as flaky.
+ *
+ *   TIT_FIXTURE_CLOCK='2026-12-31 23:59:59 UTC' php tests/php/render_dashboard.php
+ *
+ * runs the harness exactly as it would run at that instant: this is now the only
+ * place any part of the fixture, the assertions or the render reads the wall
+ * clock, so overriding it here is not a simulation of a late-night run, it IS
+ * one. It is how the fix below was checked on both sides of a date boundary, and
+ * anything that reintroduces a second clock read makes that stop being true.
+ *
+ * It announces itself on STDERR, because a knob that silently changes what a
+ * test means is worse than no knob.
+ */
+$tit_clock = getenv('TIT_FIXTURE_CLOCK');
+if ($tit_clock !== false && $tit_clock !== '') {
+    $tit_at = strtotime($tit_clock);
+    if ($tit_at === false) {
+        fwrite(STDERR, "TIT_FIXTURE_CLOCK is not a date this can read: {$tit_clock}\n");
+        exit(1);
+    }
+    fwrite(STDERR, 'clock overridden: running as if ' . gmdate('Y-m-d H:i:s', $tit_at) . " UTC\n");
+} else {
+    $tit_at = time();
+}
+define('TIT_FIXTURE_NOW', strtotime(gmdate('Y-m-d', $tit_at) . ' 12:00:00 UTC'));
+
 /* --- the WordPress surface these files touch ----------------------------- */
 
 $GLOBALS['tit_query_vars'] = array();
@@ -82,8 +153,8 @@ function esc_url_raw($s) { return (string) $s; }
 function esc_js($s) { return (string) $s; }
 function wp_json_encode($v, $flags = 0) { return json_encode($v, $flags); }
 function number_format_i18n($n, $d = 0) { return number_format((float) $n, (int) $d); }
-function date_i18n($f, $t = null) { return gmdate($f, $t === null ? time() : $t); }
-function wp_date($f, $t = null) { return gmdate($f, $t === null ? time() : $t); }
+function date_i18n($f, $t = null) { return gmdate($f, $t === null ? TIT_FIXTURE_NOW : $t); }
+function wp_date($f, $t = null) { return gmdate($f, $t === null ? TIT_FIXTURE_NOW : $t); }
 function human_time_diff($a, $b = null) { return '1 hour'; }
 function sanitize_text_field($s) { return trim((string) $s); }
 function _n($single, $plural, $count, $domain = '') { return $count == 1 ? $single : $plural; }
@@ -100,7 +171,12 @@ function wp_enqueue_script($h, $src = '', $deps = array(), $ver = false, $footer
 }
 function wp_localize_script($h, $name, $data) { $GLOBALS['tit_localized'][$name] = $data; }
 function wp_script_add_data($h, $key, $value) { $GLOBALS['tit_enqueued']['script_data'][$h][$key] = $value; }
-function current_time($t, $gmt = 0) { return $t === 'timestamp' ? time() : gmdate($t); }
+// The render's own "today". shortcodes.php builds every window on the dated
+// glance panel and the matrix from this call, so pinning it here is what makes
+// the PAGE agree with the fixture rather than merely agreeing with itself.
+function current_time($t, $gmt = 0) {
+    return $t === 'timestamp' ? TIT_FIXTURE_NOW : gmdate($t, TIT_FIXTURE_NOW);
+}
 function get_option($k, $d = false) { return $d; }
 function update_option($k, $v, $a = null) { return true; }
 function delete_transient($k) { unset($GLOBALS['tit_transients'][$k]); return true; }
@@ -220,8 +296,12 @@ class DashHarnessDb {
             'confidence' => 'verified',
             'source_url' => 'https://example.test/doc/' . $n,
             'source_name' => 'SEC EDGAR',
-            'published_date' => gmdate('Y-m-d', time() - ($n % 40) * DAY_IN_SECONDS),
-            'captured_at' => gmdate('Y-m-d H:i:s', time() - 3600),
+            'published_date' => gmdate('Y-m-d', TIT_FIXTURE_NOW - ($n % 40) * DAY_IN_SECONDS),
+            // An hour before the fixture's midday, so DATE(captured_at) is the
+            // SAME UTC day as a row dated "today" however late the suite runs.
+            // This one subtraction, taken from the real clock, is what put the
+            // placeless row on yesterday between 00:00 and 01:00 UTC.
+            'captured_at' => gmdate('Y-m-d H:i:s', TIT_FIXTURE_NOW - 3600),
         ), $opts);
         $columns = implode(', ', array_keys($row));
         $marks = implode(', ', array_fill(0, count($row), '?'));
@@ -458,9 +538,11 @@ foreach ($WORLD as $cc => $n) {
 // A row placed only by its employer's head office, so the HQ badge renders.
 $wpdb->insert_row(array('hq_country' => 'US', 'hq_city' => 'Seattle',
     'industry' => 'technology', 'company' => 'TEST FIXTURE HQ Only Employer',
-    'company_key' => 'hq only employer', 'published_date' => gmdate('Y-m-d'),
+    'company_key' => 'hq only employer', 'published_date' => gmdate('Y-m-d', TIT_FIXTURE_NOW),
     'source_url' => 'https://example.test/hqonly/1'));
-// A row with no place at all, and no date: both print their own words.
+// A row with no place at all, and no date: both print their own words. It is the
+// ONLY row in the corpus with a null published_date, so it is the only one whose
+// place on the first page is decided by DATE(captured_at) — see TIT_FIXTURE_NOW.
 $wpdb->insert_row(array('industry' => 'technology', 'company' => 'TEST FIXTURE Placeless Employer',
     'company_key' => 'placeless employer', 'published_date' => null,
     'source_url' => 'https://example.test/placeless/1'));
@@ -528,7 +610,7 @@ for ($i = 0; $i < 3; $i++) {
         'company' => 'TEST FIXTURE Archived Employer ' . $i,
         'company_key' => 'archived employer ' . $i,
         'collector' => 'national_press', 'source_name' => 'TEST FIXTURE Archived Outlet',
-        'confidence' => 'reported', 'published_date' => gmdate('Y-m-d'),
+        'confidence' => 'reported', 'published_date' => gmdate('Y-m-d', TIT_FIXTURE_NOW),
         'source_url' => 'https://example.test/archived/' . $i,
         'archive_url' => 'https://web.archive.test/save/' . $i,
     ));
@@ -537,7 +619,7 @@ for ($i = 0; $i < 3; $i++) {
         'company' => 'TEST FIXTURE Unarchived Employer ' . $i,
         'company_key' => 'unarchived employer ' . $i,
         'collector' => 'national_press', 'source_name' => 'TEST FIXTURE Unarchived Outlet',
-        'confidence' => 'reported', 'published_date' => gmdate('Y-m-d'),
+        'confidence' => 'reported', 'published_date' => gmdate('Y-m-d', TIT_FIXTURE_NOW),
         'source_url' => 'https://example.test/unarchived/' . $i,
     ));
 }
@@ -808,7 +890,27 @@ check(strpos($tbody, 'materiality') === false && strpos($tbody, 'routine') === f
       'and none of them is a routine officer filing, because the default view sets those aside');
 check(strpos($html, '>HQ<') !== false,
       'a row placed only by its employer\'s head office says so');
-check(strpos($html, 'Location not stated') !== false && strpos($html, 'Date not stated') !== false,
+/*
+ * A ROW WITH NOTHING TO SAY HAS TO SAY SO, and the check is in two halves
+ * because for four days it failed on the wrong one.
+ *
+ * The property is the second half: no cell on this table is ever blank. The
+ * first half is the fixture keeping its promise — exactly one row in the corpus
+ * has neither a place nor a date, and it only demonstrates anything while it is
+ * among the fifty rows the server renders. When it slid off page one the suite
+ * reported "a row with no place or no date says that too" as broken, which sent
+ * a reader to the renderer, where nothing was wrong. So the precondition gets
+ * its own line and its own message, and it names the fix.
+ */
+check(strpos($tbody, 'TEST FIXTURE Placeless Employer') !== false,
+      'the placeless row has to be ON the first page for the next check to mean '
+      . 'anything. It is not, so this is a FIXTURE problem and not a rendering '
+      . 'one: the row sorts by DATE(captured_at) because it has no '
+      . 'published_date, and something above it now outranks it. Give it a later '
+      . 'row_id by moving its insert further down, or thin out the rows dated '
+      . 'TIT_FIXTURE_NOW — do not relax the check below.');
+check(strpos($tbody, 'Location not stated') !== false
+      && strpos($tbody, 'Date not stated') !== false,
       'and a row with no place or no date says that too, rather than showing a blank cell');
 check(strpos($html, '/company/') !== false, 'every employer name links to that employer\'s page');
 
@@ -879,9 +981,13 @@ foreach (array('week', 'month', 'year') as $bucket) {
 // becomes wrong at midnight on 31 December and stays wrong until somebody reads
 // it carefully, which is the same failure as corrections.php's hardcoded
 // "$124.0bn" under a caption reading "Measured now".
-check(strpos($html, '>' . date('Y') . ' so far<') !== false,
+// gmdate, not date: date() reads the process timezone and gmdate() reads UTC, so
+// for the hours either side of New Year in any negative offset the two disagree
+// about which year it is and this compared a local year against a page built
+// from a UTC one.
+check(strpos($html, '>' . gmdate('Y', TIT_FIXTURE_NOW) . ' so far<') !== false,
       'the year rung has to name the CURRENT year, derived rather than typed, '
-      . 'so it becomes "' . (date('Y') + 1) . ' so far" by itself');
+      . 'so it becomes "' . (gmdate('Y', TIT_FIXTURE_NOW) + 1) . ' so far" by itself');
 
 /*
  * EVERY FIGURE ON THE PANEL IS THE ONE THE DATABASE HOLDS.
@@ -892,9 +998,9 @@ check(strpos($html, '>' . date('Y') . ' so far<') !== false,
  * a claim until something checks the arithmetic.
  */
 $dg_date = 'COALESCE(published_date, DATE(captured_at))';
-foreach (array('week'  => gmdate('Y-m-d', strtotime(gmdate('Y-m-d') . ' -6 days')),
-               'month' => gmdate('Y-m-01'),
-               'year'  => gmdate('Y-01-01')) as $bucket => $since) {
+foreach (array('week'  => gmdate('Y-m-d', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS),
+               'month' => gmdate('Y-m-01', TIT_FIXTURE_NOW),
+               'year'  => gmdate('Y-01-01', TIT_FIXTURE_NOW)) as $bucket => $since) {
     $expect = (int) $wpdb->get_var(
         "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND {$dg_date} >= '{$since}'");
     if (preg_match('/data-dg="' . $bucket . '".*?<b>([\d,]+)<\/b> updates/s', $html, $m)) {
@@ -1052,7 +1158,7 @@ foreach (array('100% automated', 'real time', 'comprehensive', 'most advanced') 
 }
 
 $wpdb->pdo->exec("DELETE FROM wp_tit_signals WHERE {$dg_date} < '"
-                 . gmdate('Y-m-d', strtotime(gmdate('Y-m-d') . ' -9 days')) . "'");
+                 . gmdate('Y-m-d', TIT_FIXTURE_NOW - 9 * DAY_IN_SECONDS) . "'");
 $young = cold_render();
 check(strpos($young, 'vs the week before') === false,
       'a corpus whose history starts INSIDE the comparison window must not emit '
