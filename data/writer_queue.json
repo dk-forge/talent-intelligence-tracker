@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T23:58:49Z",
-  "last_tick": "2026-07-31T00:07:41Z",
+  "last_tick": "2026-07-31T00:13:17Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -318,6 +318,29 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-31T00:13:09Z",
+          "detail": "verify the $25 allowance and degrade-not-halt unblocked collection after the 2026-07-30 $9.47 stop",
+          "event": "queued"
+        }
+      ],
+      "id": "20260731T001309Z-collect",
+      "inputs": {
+        "dry_run": "false",
+        "source": "google_news"
+      },
+      "priority": 0,
+      "reason": "verify the $25 allowance and degrade-not-halt unblocked collection after the 2026-07-30 $9.47 stop",
+      "requested_at": "2026-07-31T00:13:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect.yml"
     },
     {
       "attempts": 0,
