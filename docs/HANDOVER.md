@@ -280,28 +280,92 @@ again.
    or `stalled` in `ops_status.py [2e]` — and never requeues itself out of it.
    Fix the cause, then re-queue the backfill; it resumes at the cursor.
 
-### Cost levers (built 2026-07-29) — the cap raise stays affordable
+### Cost and coverage (2026-07-30) — worldwide costs $75.99/month, and $25 is the allowance
 
-`pipeline/cheap_extract.py` closes funding/hiring headlines that state every
-field, deterministically and for $0 — same `validate -> store` path, confidence
-still `reported`, `notes` carries the evidence marker. Measured on two real
-sweeps: ~25 closes per ~1,000 survivors, 31/31 correct on a full hand-check.
-`run_collect.cluster_stories` reads ONE representative per (employer, amount)
-cluster, and `dedupe.funding_event_duplicate` skips already-stored rounds
-before any model call. **READTHROUGH_CAP raised 60 → 200 on 2026-07-30, by
-the owner's explicit authorization** — the last real run bought all 60 reads
-and still deferred 95 gate survivors, so the old cap was the coverage
-constraint again. 200 is a per-run ceiling (~$0.26 of reads), not the monthly
-guarantee: that remains spend.py's hard stop plus the OpenRouter key's own
-cap. Since 2026-07-30 the free verdicts also fire BEFORE the read
-(`validate.precheck`), leadership appointments close deterministically
-alongside funding, and every run prints "reads bought vs rows stored" so the
-waste ratio (60 bought / 34 stored on the last real run) is measured, not
-audited after the fact. Prompt caching: request shape is
-already cache-optimal and usage accounting now prints per run, but the
-providers serving `deepseek/deepseek-chat` today expose no cache pricing, so
-no saving is claimed; the planned v3.1 switch would earn ~0.5x on cached
-input. Full detail in TECHLOG "the cost levers" and its 2026-07-30 sequel.
+**Run the program, do not trust this paragraph:**
+
+```bash
+python3 cost_projection.py          # live prices; --offline uses the snapshot
+```
+
+It reads the health ledger and OpenRouter's price list and prints what
+worldwide coverage costs, labelling every number MEASURED (what the provider
+charged), COUNTED (the funnel) or MODELLED (a price list times a token count).
+It exits **2** when full coverage does not fit the allowance, which today it
+does not.
+
+**The headline: full coverage is $75.99/month against a $25 allowance.** Where
+the money is, and the two surprises in it:
+
+| stage | model | $/month at full coverage |
+|---|---|---|
+| gate | gemini-2.5-flash-lite | $4.15 |
+| extraction | deepseek/deepseek-chat | **$31.69** |
+| read-through | claude-sonnet-5 | $40.14 |
+
+- **The gate is 5% of the bill.** Batching it saves ~$1.66/month, not the
+  order of magnitude it looks like: `GATE_SYSTEM` is 217 tokens against ~287 of
+  item text, so the shared prefix is 43% of a gate call, not the 86% it is for
+  extraction. Not built; it needs the candidate loop split into a free pass and
+  a paid pass, and $1.66 does not buy that risk.
+- **Prompt caching is worth exactly $0** on `deepseek/deepseek-chat`: no
+  endpoint serving that slug publishes an `input_cache_read` price. Re-checked
+  2026-07-30. `deepseek-chat-v3.1` does, at ~0.5x, which is a **model** decision.
+
+**What shipped.**
+
+1. **The read-through is bought LAST.** 477 interpretations were bought against
+   320 rows stored, so a third went to records a `validate` rejection or one of
+   the two dedup layers settled a moment later — all free.
+   `classify(interpret_now=False)` + `store.duplicate_verdict()` + 
+   `classify.interpret_late()`. Safe because `content_hash` never reads the
+   read-through and `build_signal` checks it only for emptiness; both asserted.
+2. **The ceiling degrades, it does not halt.** `spend.py --degrade` on both
+   collect jobs. Past 90% of the allowance it sets `TIT_PAID_READS=off`,
+   `classify()` refuses before the gate, and the candidate defers UNMARKED.
+   Free collectors, the free prefilter, deterministic extraction and both dedup
+   layers keep running. The health row says `DEGRADED: monthly allowance spent`.
+   `MONTHLY_ALLOWANCE_USD` 10 -> 25.
+3. **`READTHROUGH_CAP` 200 -> 75, and the direction is deliberate.** The
+   binding ceiling moved from the run to the MONTH: a cap of 200 does not spend
+   $75, it lets demand (862 reads/day, measured) spend $75, so the allowance
+   would be gone in ten days and paid reads off for twenty. Ten good days and
+   twenty thin ones is worse coverage than thirty even ones. `collect.yml` sets
+   google_news 45, gdelt 8, the SEC pair 40 (headroom on a demand of two).
+4. **A country's second story never outranks another country's first.**
+   `candidate_rank.interleave_by_country`. Scoring alone could not do it —
+   forty candidates from one thin country all score `W_COUNTRY_EMPTY` and eat
+   the run in arrival order. A quota was refused (most countries have nothing
+   most days, so a quota spends the budget on absence). **This is what makes a
+   cap of 75 acceptable: a capped run is not a random 75 of 249, it is the 75
+   that buy the most countries.**
+5. **The funnel is in the ledger**: `source_health.candidates / gate_calls /
+   gate_rejects / budget_deferred`. `budget_deferred` is the coverage gap and
+   used to exist only in a step log.
+6. **`ab_models.py --extraction`** sends the production `SCHEMA_HINT` and scores
+   agreement field by field on the six that decide what a record IS. Built
+   because extraction is the largest line and the two swaps that would move it
+   ($20.52 or $4.90) are quality decisions nobody should take on arithmetic.
+
+**Where Germany's twelve rows come from.** Not a missing feed and not a filter.
+The press run on 2026-07-30 gated 627 candidates, kept 249 and could read 200;
+the 49 it refused were in Chinese, Hebrew, Serbian, German, Vietnamese and
+Korean. And the "10.8% non-US" figure is about the FREE collectors — `uk_paygap`,
+`sec_execcomp`, `sec_edgar`, `companies_house` are US/UK filing regimes by
+construction. The paid news path is already 90%+ not-US/GB (google_news 362 of
+388, national_press 180 of 205). More worldwide coverage means more paid reads
+spread across more countries, which is exactly what 3 and 4 above trade off.
+
+**Not attempted: 43-language free extraction.** `cheap_extract`'s English
+restriction is not one gate but six vocabularies plus a capitalisation
+heuristic, and **there is no non-English corpus here to hand-check against** —
+`signals` stores headlines, not the `raw_text` a parser reads. The existing bar
+is 31/31 correct. Worth ~$0.0032 per record closed (both stages, since a free
+close skips the read-through too), so it stays on the list behind a captured
+corpus.
+
+Full derivation, including what was refused, in TECHLOG 2026-07-30 "worldwide
+coverage priced honestly".
 
 ### Open, in priority order
 
@@ -327,8 +391,13 @@ input. Full detail in TECHLOG "the cost levers" and its 2026-07-30 sequel.
 - **An LLM claim is a lead, never a record.** The tripwire prefixes model-asserted
   fields with `claimed_`; the chase takes the employer name and nothing else.
 - **No em-dashes in UI copy. No superlatives** on page, meta or structured data.
-- **Cost ceiling ~$5/month.** Dedup before the LLM, gate on headline+teaser only,
-  per-language prefilters, earned cadence. Feeds are free; only stories cost.
+- **Cost ceiling $25/month** (`spend.MONTHLY_ALLOWANCE_USD`, raised from $10 on
+  2026-07-30). It holds by rationing, not by luck: dedup before the LLM, gate on
+  headline+teaser only, per-language prefilters, earned cadence, deterministic
+  closes, and a per-run read cap sized to the MONTH rather than the run. Feeds
+  are free; only stories cost. Full worldwide coverage would be $75.99/month, so
+  the cap is a real trade and `pipeline/candidate_rank.py` is what decides which
+  stories fit inside it. `python3 cost_projection.py` re-derives all of it.
 
 ---
 

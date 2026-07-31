@@ -13,6 +13,205 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-30 — worldwide coverage priced honestly: $75.99, and the cap goes down
+
+The brief was "pull all the countries in the world, pull the missing sources,
+run it for $5"; the allowance was then raised to $25 mid-session. Neither
+number is met by full coverage today. **Full worldwide coverage costs $75.99 a
+month at current models. That is the finding, it is measured, and the rest of
+this entry is what closes the gap and what does not.**
+
+Re-derive all of it rather than trusting this entry:
+
+```bash
+python3 cost_projection.py            # live prices; --offline for the snapshot
+```
+
+### First, the thing that was actually broken
+
+`spend.py --enforce` had taken every collect job red at $9.47 of a $10
+allowance, and NOTHING had been collected since 21:47 — including the SEC, UK
+pay-gap, ATS, BSE, EDINET and DART collectors, which derive every field from a
+column and call no model, and `cheap_extract`, which closes records from stated
+text for $0. Halting all of that to protect a budget none of it spends is a
+self-inflicted outage.
+
+`spend.py --degrade` replaces it on `collect.yml` and `collect-press.yml`. It
+never fails the step. Past the ceiling it writes `TIT_PAID_READS=off` into the
+job environment; `classify()` refuses **before the gate**, so not one token is
+spent, and raises `BudgetExhausted` — a `BudgetDeferred`, so the candidate
+defers UNMARKED and a later run reads it. Hitting the allowance costs depth,
+never coverage. The run says so twice: a summary line, and `DEGRADED: monthly
+allowance spent` in the health ledger where `ops_status` and the health page
+already read it. A degraded run reports `degraded` (the page is shallower than
+usual), not `ok`, and deliberately not `every candidate rejected` — no guard
+rejected anything, and sending a human to hunt a broken classifier over a
+budget decision is worse than saying nothing. `--enforce` stays for
+`tripwire.yml`, whose only action is a paid query.
+
+`MONTHLY_ALLOWANCE_USD` 10 -> 25, the owner's number.
+
+### The measurement the whole session rests on
+
+The funnel, from two real runs (`30571205733` collect, `30532073727` press):
+
+| collector | to classifier | gated | kept by the gate | read | UNREAD |
+|---|---|---|---|---|---|
+| national_press | 1,148 | 627 | 249 | 200 | **49** |
+| google_news | 640 | 498 | 153 | 153 | 0 |
+| gdelt | 74 | 40 | 26 | 26 | 0 |
+| SEC pair | 17 | 3 | 3 | 3 | 0 |
+
+**The 49 are the coverage gap, and reading their headlines is the whole
+argument**: Chinese, Hebrew, Serbian, German, Vietnamese, Korean. Germany does
+not have twelve rows because a German feed is missing or because a filter
+rejects German stories. It has twelve rows because German stories fetch fine,
+pass the free prefilter, survive the gate, and then queue behind a per-run
+ceiling. Those four numbers now land in `source_health`
+(`candidates`, `gate_calls`, `gate_rejects`, `budget_deferred`) so the next
+session measures this instead of finding a workflow log before it expires.
+
+Full coverage means reading every gate survivor: **862/day, 25,860/month.**
+
+### What it costs, and where the money actually is
+
+Unit prices live from OpenRouter, token counts from exact character counts,
+calibrated ×1.16 against what the provider really charged over nine runs:
+
+| stage | model | $/call | $/month at full coverage |
+|---|---|---|---|
+| gate | gemini-2.5-flash-lite | $0.000051 | $4.15 |
+| extraction | deepseek/deepseek-chat | $0.001059 | **$31.69** |
+| read-through | claude-sonnet-5 | $0.002000 | $40.14 |
+| | | | **$75.99** |
+
+Two things in that table were not what the brief expected.
+
+**The gate is 5% of the bill, not the lever.** Batching it was briefed as "the
+thing that makes screening everything affordable", on the reasoning that the
+per-candidate cost falls by roughly N. It does not, and the reason is
+arithmetic: `GATE_SYSTEM` is 217 tokens and the item text averages ~287, so the
+shared prefix is 43% of a gate call rather than the 86% it is for extraction.
+Batching ten candidates saves ~40% of $4.15, which is **$1.66 a month**. It is
+worth doing eventually and it was not done here, because it needs the candidate
+loop restructured into a free pass and a paid pass, and $1.66 does not buy that
+risk in the same session that touched the write path twice.
+
+**Extraction is the largest single line — larger than the frontier
+read-through.** 2,754 of its 3,100 input tokens are the byte-stable
+`SCHEMA_HINT`, and *no endpoint serving `deepseek/deepseek-chat` publishes an
+`input_cache_read` price*, checked again today. So prompt caching — briefed as
+"likely the single biggest win" — is worth **exactly $0** on the current slug.
+That finding was already in the repo and it still holds.
+
+### The levers, measured
+
+| | $/month | note |
+|---|---|---|
+| full coverage, today | 75.99 | |
+| read-late **(shipped)** | -5.79 | on today's caps; -~12 at full coverage |
+| extraction -> deepseek-chat-v3.1 | -11.17 | its prefix DOES price a cache read, ~0.5x |
+| extraction -> gemini-2.5-flash-lite | -26.79 | the model we already trust as the gate |
+| read-through -> claude-haiku-4.5 | -20.07 | |
+| read-through -> haiku-4.5:batch | -30.10 | 24h latency; freshness is what this sells |
+| both cheapest together | **19.09** | under $25, and both are unverified swaps |
+| leadership pillar offloaded | 52.30 | 67% of reads remain |
+| that, plus both cheapest | **14.16** | |
+
+**read-late shipped and is the one saving that cost nothing.** Measured over
+the nine priced runs: **477 interpretations bought, 320 rows stored** — a third
+of the most expensive call in the pipeline went to records that a `validate`
+rejection or one of the two dedup layers settled a moment later, all three of
+which are free. So `classify(interpret_now=False)` returns extraction only,
+`store.duplicate_verdict()` asks both dedup layers without writing, and
+`run_collect` buys the sentence last. Safe because `content_hash` never reads
+the read-through (the fingerprint the dedup layers agreed on cannot move
+underneath them) and `build_signal` checks that field only for emptiness — the
+figure and place grounding is `_accept`'s job and runs on whatever sentence
+comes back, whenever it is bought. Both properties are asserted, not reasoned
+about.
+
+### The cap goes DOWN, 200 -> 75, and that is not a retreat
+
+The ceiling that binds moved from the RUN to the MONTH. A cap of 200 does not
+spend $75; it lets demand — 862 reads a day — spend $75. The allowance would be
+gone in ten days and `--degrade` would switch paid reads off for the other
+twenty. **Ten good days and twenty thin ones is worse coverage than thirty even
+ones**, and much worse for a tracker whose promise is that it is current.
+
+75 is `national_press`'s share of what $25 buys after the gate's own $4.15.
+`collect.yml` gets google_news 45 and gdelt 8 by the same split; the SEC pair
+keep 40, because rationing a collector that finds two filings saves nothing and
+would one day bind on the run that finds fifty. The bound in
+`tests/test_locale_rotation.py` now carries this arithmetic and points at the
+program that re-derives it.
+
+### What makes rationing acceptable: a country's second story never outranks another country's first
+
+`candidate_rank` already scored thin and empty countries up, and it was not
+enough, because scoring is per-candidate and the shortage is per-COUNTRY. A busy
+day in one thin country produces forty candidates that all score
+`W_COUNTRY_EMPTY`, and forty identical scores in arrival order is forty reads
+spent on one place while thirty others with a single story each wait behind.
+Of the 55 countries that are neither US nor GB the **median holds one row**, so
+what is scarce is the FIRST row about a place.
+
+So ranking ends in a round robin over the candidate's country hint. A quota was
+refused — most countries have nothing on most days, so a quota spends the budget
+on absence — and a floor is the same problem in a politer form. A round robin
+reserves nothing, wastes nothing when a country is silent, and needs no number
+to tune. Countries are visited in the order their best candidate scored, so
+merit still decides who goes first within a pass. Still only a permutation. The
+run log gains the number it exists to move: what share of the read budget the
+busiest country takes, before and after.
+
+**A capped run is therefore not a random 75 of 249. It is the 75 that buy the
+most countries.**
+
+### What the non-US share actually is, and why the headline number misleads
+
+10.8% of stored rows are neither US nor GB — and that number is about the FREE
+collectors, not the paid path. `uk_paygap` (4,761 GB), `sec_execcomp` (3,910
+US), `sec_edgar` (3,801), `sec_form_d_bulk` (2,998) and `companies_house` (437
+GB) are US/UK filing regimes by construction. The paid news path is already
+overwhelmingly not-US:
+
+| collector | rows | US/GB | elsewhere |
+|---|---|---|---|
+| google_news | 388 | 26 | **362** |
+| national_press | 205 | 25 | **180** |
+| gdelt | 53 | 20 | 33 |
+
+So the answer to "make it worldwide" is not a filter change and not a feed: it
+is more paid reads, spread across more countries. That is what the cap and the
+round robin decide between them.
+
+### 43-language free extraction: not attempted, and why
+
+`SCALE_WORDS_BY_LANGUAGE` solved amounts, but `cheap_extract`'s English
+restriction is not one gate — it is `_RAISE_VERB`, `_UNCERTAIN`, `_DEAL_WORDS`,
+`_NATIONALITIES`, `_SECTOR_DESCRIPTORS` and a capitalisation heuristic, each of
+which would need a per-language pack held to the same precision bar. The
+existing bar is 31/31 correct on a hand-check, and **there is no non-English
+corpus in this repo to hand-check against** — `signals` stores headlines, not
+the `raw_text` a parser reads. Shipping a multilingual extractor with no way to
+measure its precision would be the exact mistake this project keeps writing
+down: a saving claimed that was never verified. It is worth roughly $0.0032 per
+record closed (both stages now, since a free close skips the read-through too),
+so it stays on the list, behind a captured non-English corpus.
+
+### What was refused
+
+No saving was claimed for prompt caching on a slug that prices none. No
+extraction model was switched — `ab_models.py --extraction` was built instead,
+sending the production `SCHEMA_HINT` and scoring agreement field by field on
+the six that decide what a record IS, because a cheaper model that quietly
+loses `country` on a fifth of records reads as a saving now and a coverage
+regression later. The read-through model was not switched. The gate was not
+batched for $1.66. And $25 was not reported as met by rounding $75.99 down.
+
+---
+
 ## 2026-07-30 — the report every session reads could not see a red run
 
 The owner watched a dozen "Run failed" emails arrive across both trackers and

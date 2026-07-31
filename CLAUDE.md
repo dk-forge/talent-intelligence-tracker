@@ -202,12 +202,31 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Cost discipline
 
-Budget is ~$3-5/month (measured; see spend.py), all LLM. It holds because: candidates are keyword-gated
-before the model sees them; already-seen URLs are skipped *before* any spend;
-the classification prompt is deliberately tiny; and a `402` raises
-`CreditsExhausted` and stops the run instead of burning a batch. There is a
-hard spend cap on the OpenRouter key itself — that is what makes it a
-guarantee rather than a hope.
+Budget is **$25/month** (`spend.MONTHLY_ALLOWANCE_USD`, the owner's number,
+raised from $10 on 2026-07-30), all LLM. It holds because: candidates are
+keyword-gated before the model sees them; already-seen URLs are skipped *before*
+any spend; the classification prompt is deliberately tiny; the read-through is
+bought LAST, only for a record both dedup layers have already agreed will store;
+and a `402` raises `CreditsExhausted` and stops the run instead of burning a
+batch. There is a hard spend cap on the OpenRouter key itself — that is what
+makes it a guarantee rather than a hope.
+
+**The budget is a RATION, and saying so is the honest part.** Reading every
+story that survives the gate — full worldwide coverage — costs **$75.99/month**
+at current models, measured. So a per-run cap decides how much gets read and
+`pipeline/candidate_rank.py` decides WHICH, giving every country's best story a
+place before any country's second. Do not quote a cost figure from memory:
+
+```bash
+python3 cost_projection.py     # exits 2 when full coverage does not fit
+```
+
+**Hitting the ceiling degrades, it does not halt.** `spend.py --degrade` sets
+`TIT_PAID_READS=off`; the free collectors, the free prefilter, deterministic
+extraction and both dedup layers carry on, and every candidate that would have
+cost money defers UNMARKED for a later run. `--enforce` (a hard stop) is only
+for `tripwire.yml`, whose sole action is a paid query — it once took every
+collect job red at $9.47 of $10 and stopped a month of free collection with it.
 
 ## Before you touch it
 
