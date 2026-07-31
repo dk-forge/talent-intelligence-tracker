@@ -51,6 +51,7 @@ def main() -> int:
     problems += _report_health(conn)
     problems += _report_run_cost(conn)
     problems += _report_writer_queue()
+    problems += _report_host()
     problems += _report_link_rot(conn)
     problems += _report_guardrails(conn)
     problems += _report_backfills()
@@ -522,6 +523,110 @@ def _report_writer_queue() -> list[str]:
                     f"{idle:.0f}h — the drainer itself is down"]
 
     return state["problems"]
+
+
+def _report_host() -> list[str]:
+    """Is the host that serves all of this answering, and did anything we tried
+    to say about it get through?
+
+    Read from a committed ledger rather than probed here, and that is the same
+    property this whole file rests on: no network, no keys, no hang. The probe
+    lives in host-watch.yml, which runs every 15 minutes and writes
+    data/host_status.json only when the answer changes or a heartbeat is due.
+
+    This section exists because on 2026-07-31 nothing did. Two Bluehost 504
+    windows in one day, both found by the owner in a browser, while every ops
+    tool in both repos went on reporting confidently about a site none of them
+    had checked was up.
+    """
+    import json as _json
+
+    print("\n[2f] HOST  (the site that serves every number above)")
+
+    armed = _crons("host-watch.yml")
+    ledger_path = ROOT / "data" / "host_status.json"
+    outbox_path = ROOT / "data" / "alert_outbox.json"
+    problems: list[str] = []
+
+    if not armed:
+        print("    watchdog  DORMANT — nothing probes the host on a timer, so an")
+        print("              outage is found by a person in a browser, which is")
+        print("              exactly how both 2026-07-31 outages were found.")
+        return ["host-watch.yml has no cron: nothing is watching whether the "
+                "site is reachable"]
+
+    try:
+        ledger = _json.loads(ledger_path.read_text())
+    except (OSError, ValueError):
+        print(f"    watchdog  ARMED ({', '.join(armed)}) but has never recorded")
+        print("              an answer. Prove it: gh workflow run host-watch.yml")
+        return []
+
+    state = ledger.get("state", "unknown")
+    last_probe = _parse_iso(ledger.get("last_probe_at"))
+    age_h = (_utcnow() - last_probe).total_seconds() / 3600 if last_probe else None
+
+    if state == "up":
+        print(f"    reachable UP since {ledger.get('since', '?')} "
+              f"— {ledger.get('last_detail', '')}")
+    else:
+        fails = ledger.get("consecutive_failures", 0)
+        print(f"    reachable {state.upper()} since {ledger.get('since', '?')} "
+              f"— {fails} consecutive failed probe(s)")
+        print(f"              {ledger.get('last_detail', '')}")
+        problems.append(
+            f"the WordPress host has been unreachable since "
+            f"{ledger.get('since')} ({fails} failed probes). Nothing in this "
+            f"repo can fix it; alerts raised meanwhile are held, not lost.")
+
+    if age_h is not None and age_h > 24:
+        print(f"    watchdog  STALE — last probe recorded {age_h:.0f}h ago")
+        problems.append(
+            "host-watch has not recorded a probe in over 24h, so 'the host is "
+            "up' is a memory rather than a measurement. Check the workflow.")
+
+    # A host that wobbles four times a week is worth seeing even when no single
+    # wobble was long enough to email about. This is that record.
+    recent = [h for h in ledger.get("history", [])
+              if h.get("state") == "down"
+              and (_parse_iso(h.get("at")) or _utcnow()) > _utcnow() - timedelta(days=14)]
+    if recent:
+        print(f"    wobbles   {len(recent)} outage(s) recorded in the last 14 days")
+        for h in recent[-3:]:
+            print(f"              {h.get('at')}  {h.get('detail', '')[:56]}")
+
+    try:
+        outbox = _json.loads(outbox_path.read_text())
+    except (OSError, ValueError):
+        outbox = {"entries": []}
+    held = [e for e in outbox.get("entries", []) if e.get("state") == "pending"]
+    if held:
+        worst = max(e.get("attempts", 0) for e in held)
+        print(f"    alerts    {len(held)} HELD — raised but not yet delivered "
+              f"(most-tried: x{worst})")
+        for e in held[:3]:
+            print(f"              {e.get('raised_at')}  "
+                  f"{(e.get('payload') or {}).get('subject', e.get('key', ''))[:60]}")
+        if worst >= 12:  # alert_outbox.FAIL_LOUD_ATTEMPTS
+            problems.append(
+                f"{len(held)} alert(s) have failed delivery 12+ times. With the "
+                f"host up that is a settled refusal, not an outage: check "
+                f"WP_API_KEY and that the plugin carrying /alert is deployed.")
+    else:
+        print("    alerts    nothing held — every alert raised has reached the owner")
+
+    return problems
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _parse_iso(value) -> datetime | None:
+    try:
+        return datetime.fromisoformat(value) if value else None
+    except (TypeError, ValueError):
+        return None
 
 
 def _report_backfills() -> list[str]:
