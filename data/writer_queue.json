@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-31T03:32:33Z",
-  "last_tick": "2026-07-31T03:32:33Z",
+  "last_tick": "2026-07-31T03:51:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -170,6 +170,11 @@
           "at": "2026-07-31T03:32:33Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T03:51:44Z",
+          "detail": "run 30601839280",
+          "event": "bound"
         }
       ],
       "id": "20260731T012728Z-backfill-gnews-2026",
@@ -184,7 +189,7 @@
       "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-07)",
       "requested_at": "2026-07-31T01:27:28Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30601839280",
       "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
@@ -239,6 +244,26 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-07-31T03:51:36Z",
+          "detail": "Failed during the 00:48-01:09 Bluehost outage; host verified healthy at 2.0s",
+          "event": "queued"
+        }
+      ],
+      "id": "20260731T035136Z-collect",
+      "inputs": {},
+      "priority": 0,
+      "reason": "Failed during the 00:48-01:09 Bluehost outage; host verified healthy at 2.0s",
+      "requested_at": "2026-07-31T03:51:36Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect.yml"
     },
     {
       "attempts": 0,
