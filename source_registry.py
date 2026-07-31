@@ -418,6 +418,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "Companies House officer appointments": "companies_house",
     "ARES Czech company register (veřejný rejstřík)": "czechia_ares",
     "Estonian business register (Ariregister open data)": "estonia_ariregister",
+    "BORME Section A (Registro Mercantil, Spain)": "spain_borme",
 }
 
 
@@ -643,6 +644,27 @@ SOURCES = (
                  "A row is the legal fact of an appointment and not evidence "
                  "of a hire. No city is stated, because the file carries "
                  "none."),
+    Source("BORME Section A (Registro Mercantil, Spain)",
+           "https://www.boe.es/diario_borme/", "live", "Government filings",
+           ("Leadership change", "Executive hire", "Executive departure"),
+           "Spain", "ES",
+           notes="Every act inscribed in a Spanish commercial register is "
+                 "published by law in the Boletín Oficial del Registro "
+                 "Mercantil, under the register's own fixed act heading and "
+                 "with the office as a fixed abbreviation, so an appointment "
+                 "and a removal are told apart by the bulletin's words rather "
+                 "than by reading its prose. This is one of only two sources "
+                 "here that report a DEPARTURE. The bulletin publishes no "
+                 "headcount, and the accounts that would are sold rather than "
+                 "published, so there is no employee threshold to draw and the "
+                 "filter is the office instead: this reads the consejero "
+                 "delegado, the director the board has delegated its powers to "
+                 "under article 249 of the Ley de Sociedades de Capital, and "
+                 "not a seat on the board. Everything board-grade would be "
+                 "about 494 acts a day; this is about 49. The date on a row is "
+                 "the day the registrar inscribed the act, which the bulletin "
+                 "publishes about a week later, so a Spanish row is a week old "
+                 "by construction."),
     Source("IDA Ireland", "https://www.idaireland.com/", "candidate",
            "Investment promotion agency", ("Hiring", "Office opening", "Job creation"),
            "National", "IE",

@@ -19,7 +19,7 @@ import source_registry as registry
 from collectors import (ats_boards, bse_india, companies_house, czechia_ares,
                         edinet_japan, estonia_ariregister, gdelt, google_news,
                         national_press, opendart_korea, sec_edgar, sec_execcomp,
-                        sec_form_d, tripwire_chase, uk_paygap)
+                        sec_form_d, spain_borme, tripwire_chase, uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       prefilter, publish, schema, store, validate)
 
@@ -71,6 +71,17 @@ SOURCES = {
     # spends nothing. Filtered to employers reporting 50 full-time equivalents
     # or more, the Commission's own small-enterprise boundary.
     "estonia_ariregister": estonia_ariregister,
+    # Spain's chief-executive spine, and the second source here that reports a
+    # DEPARTURE. Every act inscribed in a Spanish commercial register is
+    # published in BORME Section A under a fixed heading, with the office as a
+    # fixed abbreviation, so the direction and the office are the bulletin's own
+    # words. Keyless, derived, spends nothing. The population is not the
+    # bulletin: Spain publishes no headcount to threshold on, so the filter is
+    # the OFFICE — the consejero delegado, the director the board has delegated
+    # its powers to — for the same reason edinet_japan reads one clause of 44
+    # and opendart_korea reads the representative director alone. Everything
+    # board-grade is 123,455 rows a year; this is ~12,700.
+    "spain_borme": spain_borme,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the
