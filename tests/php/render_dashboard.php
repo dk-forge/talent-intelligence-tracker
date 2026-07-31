@@ -260,7 +260,49 @@ function check($condition, $message) {
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
  */
-const TIT_DASH_BYTE_BUDGET = 168000;
+const TIT_DASH_BYTE_BUDGET = 169000;
+
+/*
+ * RAISED 168,000 -> 169,000 on 2026-07-30 for the trend chart, and the bill has
+ * a hole in it that this note exists to name rather than to paper over.
+ *
+ *   738  measured here, 167,713 -> 168,451.
+ *
+ * READ THAT NUMBER WITH THE CAVEAT ATTACHED. This fixture's rows all sit within
+ * a few days of the render date, so every signal fails the chart's continuity
+ * gate and the panel collapses to its one-sentence "not drawn for this view yet"
+ * form. 738 bytes is the price of the panel SAYING NOTHING. It is not the price
+ * of the chart.
+ *
+ * The drawn case was measured separately, by calling tit_signal_trend_html()
+ * with two ninety-point series and three refusals, which is what the live
+ * default view produces: 5,321 bytes. Roughly a third of that is the two SVG
+ * paths, a third the prose and the legend, and a third indentation. So a session
+ * changing this page should budget about 5,300 for this panel in production and
+ * about 1,300 more for each further line the data earns.
+ *
+ * THE GAP IS REAL AND IT IS THE FIXTURE'S. A harness whose data cannot reach a
+ * branch cannot cost it, and the honest fix is a fixture seeded across a
+ * ninety-day window rather than a number typed here as though it had been
+ * measured. That is a bigger change to this file than a chart deserved on the
+ * day it shipped, and it is written down as the next thing rather than done
+ * quietly or forgotten.
+ *
+ * WHY THE PANEL IS WORTH ITS BYTES EITHER WAY. Every other figure on this page
+ * is a snapshot. The matrix hands a reader four columns and leaves them to do
+ * arithmetic across the four to guess at a direction, which is the question a
+ * talent tracker is opened with. Nothing else on the page can show the shape
+ * between those columns.
+ *
+ * WHY IT IS NOT MORE. No library and no script: the SVG is drawn in PHP and
+ * arrives in the initial HTML, so the whole feature costs its markup and not one
+ * request. A charting dependency would have cost many times this over the wire
+ * before it drew anything, and this page's sibling had a render-blocking CDN
+ * stylesheet taken off it last week.
+ *
+ * The headroom is 549 bytes, which is not room for anything. Same rule as every
+ * raise above: the next addition raises this number and writes down why.
+ */
 
 /*
  * RAISED 156,000 -> 168,000 on 2026-07-30 (second design pass), and here is the

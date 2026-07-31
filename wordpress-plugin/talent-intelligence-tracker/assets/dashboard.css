@@ -667,6 +667,53 @@
 .tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
   max-width:none; line-height:1.5; }
 
+/* --- The trend chart ----------------------------------------------------
+   It leads the matrix, in the same card treatment, so the two read as one
+   block: the shape, then the numbers that shape is made of.
+
+   The SVG carries a min-width and lives inside .tit-table-scroll, exactly as
+   the recall page's chart does. A chart that shrinks to the viewport keeps its
+   axis labels in user units, so at 375px a 12px label renders at about six and
+   the chart is present but unreadable. Scrolling INSIDE the card keeps the
+   labels at their real size and keeps the page itself from ever moving
+   sideways, which is the rule everywhere here. */
+.tit-trend-box { margin:0 0 12px; }
+.tit-trend { border:1px solid var(--tit-line); border-radius:10px; background:#fff;
+  padding:12px 14px; box-shadow:var(--tit-shadow); }
+.tit-trend-title { margin:0 0 2px; font-size:15px; font-weight:800;
+  letter-spacing:.02em; text-transform:uppercase; color:var(--tit-mut); }
+.tit-trend-sub { margin:0 0 8px; font-size:13px; line-height:1.5; color:var(--tit-mut); }
+.tit-trend .tit-table-scroll { border:0; border-radius:0; box-shadow:none;
+  margin:0; background:transparent; }
+.tit-trend-chart { display:block; width:100%; min-width:520px; height:auto; }
+.tit-tc-grid { stroke:var(--tit-line); stroke-width:1; }
+.tit-tc-axis { fill:var(--tit-mut); font-size:12px; font-variant-numeric:tabular-nums; }
+.tit-tc-line { stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+
+/* One line of the legend per signal, each wrapping as a unit: a swatch that
+   wraps away from the label it names is a legend that names nothing. */
+.tit-trend-legend { margin:6px 0 0; font-size:13px; line-height:1.6;
+  color:var(--tit-mut); display:flex; flex-wrap:wrap; gap:2px 18px; }
+.tit-trend-key { display:inline-block; white-space:normal; }
+.tit-trend-swatch { display:inline-block; width:14px; height:3px; margin:0 6px 3px 0;
+  vertical-align:middle; border-radius:2px; }
+.tit-trend-legend b { color:var(--tit-fg); font-variant-numeric:tabular-nums; }
+
+/* The signals that could not honestly be drawn, and why. Set apart from the
+   legend, because it is the opposite claim: the legend says what a line means
+   and this says what the absence of one means. */
+.tit-trend-refused { margin:8px 0 0; padding:8px 10px; font-size:12.5px;
+  line-height:1.55; color:var(--tit-mut); background:var(--tit-surface);
+  border-left:3px solid var(--tit-line); border-radius:6px; }
+.tit-trend-nodraw { display:block; margin-top:3px; }
+
+/* What the line counts, which is updates WE HOLD. Set as body text and not as
+   a footnote: it is the sentence that stops the chart being read as a claim
+   about the market on its own. */
+.tit-trend-basis { margin:6px 0 0; font-size:12.5px; line-height:1.55;
+  color:var(--tit-mut); }
+.tit-trend-empty .tit-trend-sub { margin-bottom:0; }
+
 /* --- The dated glance panel --------------------------------------------
    Four rungs of one ladder: today, this week, this month, this year, with
    the all-time figures on .tit-hero-fine directly below as the fifth. The

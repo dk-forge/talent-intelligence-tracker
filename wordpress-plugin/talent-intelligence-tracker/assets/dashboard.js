@@ -490,6 +490,17 @@
       showDatedCopy();
     }
 
+    // The trend chart moves with the filters too, and it arrives as markup
+    // rather than as a series. See tit_aggregate_trend() in api.php: the chart
+    // carries a continuity gate that decides which lines may honestly be drawn,
+    // and a second copy of that decision written here could disagree with the
+    // server's. A blank string is a real answer (nothing in this view clears
+    // the gate), so it is assigned rather than skipped.
+    var trendBox = document.getElementById('tit-trend-box');
+    if (trendBox && typeof data.trend_html === 'string') {
+      trendBox.innerHTML = data.trend_html;
+    }
+
     var glance = root.querySelector('.tit-glance');
     if (glance && data.glance && data.glance.rows) {
       glance.innerHTML = matrixHtml(data.glance);

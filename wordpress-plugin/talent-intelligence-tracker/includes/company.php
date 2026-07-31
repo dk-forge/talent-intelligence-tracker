@@ -107,20 +107,31 @@ function tit_company_gate_having() {
     );
 }
 
+/**
+ * The two routes this file owns, as pattern => target.
+ *
+ * Returned as data rather than only registered, because tit_verify_routes() in
+ * the bootstrap has to be able to ask "is this rule actually in the rewrite
+ * rules WordPress stored" and a second copy of the patterns over there is how
+ * the two would come to disagree. A routing table that disagrees with itself
+ * 404s pages the rest of the plugin believes exist, which is exactly what
+ * 1.58.0 shipped: see the note on tit_verify_routes().
+ */
+function tit_company_rewrites() {
+    return array(
+        '^' . TIT_COMPANY_BASE . '/([^/]+)/?$' => 'index.php?tit_company=$matches[1]',
+        // The sitemap is a sibling route rather than a child of /company/, so the
+        // profile rule above cannot swallow it. Only the dot needs escaping, and it
+        // is escaped rather than left as "any character" so nothing else can match.
+        '^' . str_replace('.', '\.', TIT_COMPANY_SITEMAP_PATH) . '$'
+            => 'index.php?tit_company_sitemap=1',
+    );
+}
+
 function tit_company_rewrite() {
-    add_rewrite_rule(
-        '^' . TIT_COMPANY_BASE . '/([^/]+)/?$',
-        'index.php?tit_company=$matches[1]',
-        'top'
-    );
-    // The sitemap is a sibling route rather than a child of /company/, so the
-    // profile rule above cannot swallow it. Only the dot needs escaping, and it
-    // is escaped rather than left as "any character" so nothing else can match.
-    add_rewrite_rule(
-        '^' . str_replace('.', '\.', TIT_COMPANY_SITEMAP_PATH) . '$',
-        'index.php?tit_company_sitemap=1',
-        'top'
-    );
+    foreach (tit_company_rewrites() as $pattern => $target) {
+        add_rewrite_rule($pattern, $target, 'top');
+    }
 }
 add_action('init', 'tit_company_rewrite');
 
@@ -134,6 +145,12 @@ add_filter('query_vars', 'tit_company_query_var');
 /**
  * Rewrite rules live in the database, and an FTP deploy runs no activation
  * hook. Flush once per version, driven by the same bump that migrates tables.
+ *
+ * THIS IS THE FAST PATH AND NOT THE GUARANTEE. A version-gated one-shot cannot
+ * survive a racy transport, for the same reason tit_verify_schema() exists
+ * beside tit_maybe_upgrade(): the option can end up current while the result it
+ * was supposed to produce is not. tit_verify_routes() is what proves the rules
+ * are actually there.
  */
 function tit_company_maybe_flush() {
     if (get_option('tit_rewrites_version') === TIT_VERSION) return;

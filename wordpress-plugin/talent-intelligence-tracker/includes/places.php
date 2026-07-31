@@ -695,23 +695,32 @@ function tit_place_cross_links($kind, array $rows) {
  * ROUTING
  * ---------------------------------------------------------------------------
  */
-function tit_places_rewrite() {
+/**
+ * The five routes this file owns, as pattern => target.
+ *
+ * Data rather than only registration, for the reason tit_company_rewrites()
+ * gives: tit_verify_routes() checks these patterns against the rewrite rules
+ * WordPress actually stored, and it must not hold a second copy of them.
+ */
+function tit_places_rewrites() {
+    $rules = array();
     foreach (tit_place_kinds() as $kind => $spec) {
-        add_rewrite_rule(
-            '^' . $spec['path'] . '/([^/]+)/?$',
-            'index.php?tit_place_kind=' . $kind . '&tit_place=$matches[1]',
-            'top'
-        );
+        $rules['^' . $spec['path'] . '/([^/]+)/?$'] =
+            'index.php?tit_place_kind=' . $kind . '&tit_place=$matches[1]';
     }
-    add_rewrite_rule('^' . TIT_PLACES_PATH . '/?$', 'index.php?tit_places=1', 'top');
+    $rules['^' . TIT_PLACES_PATH . '/?$'] = 'index.php?tit_places=1';
     // A sibling route rather than a child of any of the three, so no cell rule
     // can swallow it. Only the dot needs escaping, and it is escaped rather
     // than left as "any character" so nothing else can match.
-    add_rewrite_rule(
-        '^' . str_replace('.', '\.', TIT_PLACES_SITEMAP_PATH) . '$',
-        'index.php?tit_places_sitemap=1',
-        'top'
-    );
+    $rules['^' . str_replace('.', '\.', TIT_PLACES_SITEMAP_PATH) . '$'] =
+        'index.php?tit_places_sitemap=1';
+    return $rules;
+}
+
+function tit_places_rewrite() {
+    foreach (tit_places_rewrites() as $pattern => $target) {
+        add_rewrite_rule($pattern, $target, 'top');
+    }
 }
 add_action('init', 'tit_places_rewrite');
 
@@ -752,6 +761,28 @@ add_filter('query_vars', 'tit_places_query_vars');
  * there is nothing to do here. This exists only for the deploy window where
  * company.php has not uploaded yet: without it these routes would 404 until it
  * did, and the version option would already have been written.
+ *
+ * AND THAT WINDOW IS WHERE THIS FUNCTION TOOK THE COMPANY PAGES DOWN. Measured
+ * on the live site at 1.58.0, 2026-07-30: every /company/{slug}/ URL and
+ * /company-sitemap.xml answered 404 while ?tit_company={slug} answered 200, so
+ * the handlers were loaded and only the stored rules were missing. The sequence
+ * is the one an FTP deploy makes ordinary:
+ *
+ *   request 1  both files land, company.php flushes, writes tit_rewrites_version
+ *   request 2  company.php is mid-upload so tit_require() skips it. This
+ *              function sees no tit_company_maybe_flush, flushes with only the
+ *              place rules registered, and WIPES the company rules
+ *   request 3  both loaded again. company's flush is gated on an option that
+ *              already says 1.58.0, this one on an option that now says the
+ *              same, so neither ever runs again
+ *
+ * Both gates read "done" and 714 indexable pages stayed 404 with no error
+ * anywhere. So this flush now drops company's OWN gate on its way past: the
+ * next request that has company.php will re-flush with every rule registered.
+ * That makes the damage self-correcting rather than permanent, and
+ * tit_verify_routes() in the bootstrap is the belt to this braces, checking the
+ * stored rules against what the loaded modules declare instead of trusting any
+ * version option at all.
  */
 function tit_places_maybe_flush() {
     if (function_exists('tit_company_maybe_flush')) return;
@@ -759,6 +790,10 @@ function tit_places_maybe_flush() {
     tit_places_rewrite();
     flush_rewrite_rules(false);
     update_option('tit_places_rewrites_version', TIT_VERSION, false);
+    // We have just regenerated the rules WITHOUT company.php's, because it is
+    // not here. Whatever that option says, the flush it stands for has been
+    // undone, so it must not be believed again.
+    delete_option('tit_rewrites_version');
 }
 add_action('init', 'tit_places_maybe_flush', 99);
 

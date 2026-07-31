@@ -560,6 +560,27 @@ function tit_aggregate_glance($table, $where, array $params) {
 }
 
 /**
+ * The trend chart under the caller's own filters, ALREADY RENDERED.
+ *
+ * This is the one place this endpoint returns markup, and the reason is the
+ * same one that made the matrix a single implementation. A chart is geometry:
+ * paths, a zero-based scale, a continuity gate that decides which lines may be
+ * drawn at all. Shipping the series as data means writing that geometry a
+ * second time in JavaScript, and two implementations of a gate that decides
+ * whether a line is honest is two answers to the question this page exists to
+ * answer once. So the server draws it, here and on first paint, from the same
+ * function, and the browser swaps the element's contents.
+ *
+ * Everything inside is escaped where it is built; see tit_trend_svg().
+ */
+function tit_aggregate_trend($table, $where, array $params) {
+    if (!function_exists('tit_signal_trend') || !function_exists('tit_signal_trend_html')) {
+        return '';
+    }
+    return tit_signal_trend_html(tit_signal_trend($table, $where, $params));
+}
+
+/**
  * The money views under the caller's own filters. Same guard, same reason.
  */
 function tit_aggregate_money($table, $where, array $params) {
@@ -667,6 +688,9 @@ function tit_api_aggregate(WP_REST_Request $req) {
         // its own summary. A dashboard that disagrees with itself is worse
         // than one that shows less.
         'glance'     => $glance,
+        // The trajectory behind those columns, rendered server-side under the
+        // same clause. See tit_aggregate_trend() for why this one is markup.
+        'trend_html' => tit_aggregate_trend($table, $where, $params),
         // Summed US dollars by place and by industry, plus the coverage the
         // page must print beside them. Never a bare total: only some rows
         // carry a dollar figure, and a total shown as if it covered

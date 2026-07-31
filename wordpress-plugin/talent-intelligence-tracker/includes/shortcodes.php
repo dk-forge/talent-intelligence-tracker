@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) exit;
  * on the live site under a crawl.
  *
  * It was 21, measured. Nine of those asked the database for a number another one
- * of them had already returned. What is left is twelve scans that each fetch
+ * of them had already returned. What is left is thirteen scans that each fetch
  * something nothing else does:
  *
  *   1  every scalar the page prints, in one pass (the total, both sides of the
@@ -32,11 +32,12 @@ if (!defined('ABSPATH')) exit;
  *   1  the largest single source inside one country, for the caveat
  *   1  the top cities row
  *   1  the at-a-glance matrix, conditional aggregation over one scan
+ *   1  the daily rollup behind the trend chart, every signal in one GROUP BY
  *   1  the money head: the total, its coverage, and what each card can place
  *   3  money by country, by city and by industry
  *   1  the first page of rows, with a LIMIT
  */
-const TIT_DASH_QUERY_BUDGET = 12;
+const TIT_DASH_QUERY_BUDGET = 13;
 
 /**
  * How many rows the server prints before JavaScript is involved.
@@ -172,6 +173,7 @@ function tit_dashboard_facts($table) {
         'countries' => 0,
         'by_country' => array(),
         'glance'    => array(),
+        'trend'     => array(),
         'money'     => array('total' => 0, 'coverage' => array('with' => 0, 'all' => 0),
                              'placed' => array(), 'by_country' => array(),
                              'by_city' => array(), 'by_industry' => array()),
@@ -214,6 +216,9 @@ function tit_dashboard_facts($table) {
     }
 
     $facts['glance'] = tit_glance_matrix($table, $base);
+    // The trajectory behind the matrix's columns, under the same clause, so the
+    // line and the cell above it can only ever be the same rows counted twice.
+    $facts['trend'] = tit_signal_trend($table, $base);
     // The money views and the matrix's money row share one coverage figure, so
     // a dollar total can never sit next to a sentence describing a different
     // set of rows.
@@ -415,6 +420,7 @@ function tit_dashboard_html() {
     $countries        = (int) $facts['countries'];
     $by_country       = $facts['by_country'];
     $glance           = $facts['glance'];
+    $trend            = is_array($facts['trend'] ?? null) ? $facts['trend'] : array();
     $money            = $facts['money'];
     $place_caveat     = $facts['place_caveat'];
     $rows             = $facts['rows'];
@@ -713,6 +719,23 @@ function tit_dashboard_html() {
         ?>
         <div class="tit-dg-box" id="tit-dg-box">
           <?php echo tit_dated_glance_html($glance['dated'] ?? array(), $money['coverage'] ?? null); ?>
+        </div>
+
+        <?php
+        /*
+          THE TREND LEADS THE MATRIX RATHER THAN REPLACING IT.
+
+          The matrix answers "how many, of what kind, in which period" and every
+          cell of it is a control: a click filters the page to that signal in
+          that window, and the quick views point at it. A chart cannot carry
+          that, so replacing the columns would trade a working filter for a
+          picture. Leading it is the honest division of labour, because the one
+          thing the matrix genuinely cannot answer is the shape between its
+          columns, which is exactly what a reader means by "accelerating".
+        */
+        ?>
+        <div class="tit-trend-box" id="tit-trend-box">
+          <?php echo tit_signal_trend_html($trend); ?>
         </div>
 
         <div class="tit-glance" id="tit-glance">
@@ -1877,6 +1900,73 @@ function tit_trust_panel_html(array $facts) {
 }
 
 /**
+ * The date a row counts as happening on: the source's own reporting date, and
+ * our capture date only when the source carried none.
+ *
+ * One expression, because the matrix, the dated panel and the trend chart all
+ * bucket by it and a page whose three time views disagreed about what day a row
+ * belongs to would be wrong in a way no reader could ever diagnose.
+ */
+function tit_signal_date_expr() {
+    return 'COALESCE(published_date, DATE(captured_at))';
+}
+
+/**
+ * THE SIGNAL ROWS: key, reader-facing label, the filter a click applies, the
+ * SQL condition, and what the figures are (a COUNT of updates or a SUM of
+ * dollars).
+ *
+ * Extracted from tit_glance_matrix() when the trend chart arrived, because the
+ * chart plots the same signals the matrix counts and the two must not be able
+ * to mean different things by "Adding Roles". They OVERLAP by design (a funded
+ * employer can also be hiring), which the note under the matrix says out loud
+ * so the rows are not read as a partition:
+ *   Adding Roles       signal_direction = 'hiring'
+ *   Funding Rounds     a funding amount or stage is present
+ *   Total Raised       the dollars behind those rounds
+ *   Leadership Moves   pillar = 'leadership_change'
+ *   Pay and Benefits   pillar = 'rewards_comp'
+ *   Everything in This View   every row, under the view's own clause
+ *
+ * "Money raised" is the one row that is not a count, which is exactly why it is
+ * labelled, prefixed and coloured as money everywhere it appears. A reader who
+ * mistakes a dollar sum for a number of updates has been misled by the table,
+ * not by their own carelessness.
+ *
+ * THE LABELS ARE THE PAGE'S ONE VOCABULARY. See the note beside $labels in
+ * tit_dashboard_html(); these are the same words the charts use, which they
+ * were not before.
+ *
+ * Two of them earned more than a case change.
+ *
+ * "Total Raised" was "Money raised", sitting in a column of rows that count
+ * updates while it alone sums dollars. That mismatch is why the block under the
+ * matrix needs a paragraph to explain itself, and a label that forces an
+ * explanation is the wrong label. "Total" says sum, and the unit rides on the
+ * row as it always did.
+ *
+ * "Everything in This View" was "All updates", which a reader could not tell
+ * included the 3,143 routine filings the page hides by default. It does not:
+ * every figure sits under the same notable clause as the rows, and "in this
+ * view" is the only phrase that says so without a footnote.
+ */
+function tit_signal_defs() {
+    $funding = function_exists('tit_funding_where')
+        ? tit_funding_where()
+        : "((funding_amount IS NOT NULL AND funding_amount <> '')"
+          . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
+
+    return array(
+        array('hiring',     'Adding Roles',      'direction=hiring',         "signal_direction = 'hiring'", 'count'),
+        array('funded',     'Funding Rounds',    'funding=1',                $funding,                      'count'),
+        array('money',      'Total Raised',      'funding=1',                '',                            'money'),
+        array('leadership', 'Leadership Moves',  'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
+        array('pay',        'Pay and Benefits',  'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
+        array('total',      'Everything in This View', '',                    '1 = 1',                      'count'),
+    );
+}
+
+/**
  * The at-a-glance matrix: signals down the side, periods across the top.
  *
  * This replaced five period tiles that each printed the same sentence shape.
@@ -1929,46 +2019,10 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         array(date('Y', strtotime($today)) . ' YTD', date('Y-01-01', strtotime($today))),
     );
 
-    // key, reader-facing label, the filter a cell click applies, SQL condition,
-    // and what the cells hold: a COUNT of updates, or a SUM of dollars.
-    //
-    // "Money raised" is the one row that is not a count, which is exactly why
-    // it is labelled, prefixed and coloured as money everywhere it appears. A
-    // reader who mistakes a dollar sum for a number of updates has been misled
-    // by the table, not by their own carelessness.
-    $funding = function_exists('tit_funding_where')
-        ? tit_funding_where()
-        : "((funding_amount IS NOT NULL AND funding_amount <> '')"
-          . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
+    // The rows, their labels and their SQL, from the one place that holds them.
+    $defs = tit_signal_defs();
 
-    /*
-      THE ROW LABELS ARE THE PAGE'S ONE VOCABULARY. See the note beside
-      $labels in tit_dashboard_html(); these five are the same words the charts
-      use, which they were not before.
-
-      Two of them earned more than a case change.
-
-      "Total Raised" was "Money raised", sitting in a column of rows that count
-      updates while it alone sums dollars. That mismatch is why the block below
-      needs a paragraph to explain itself, and a label that forces an
-      explanation is the wrong label. "Total" says sum, and the unit rides on
-      the row as it always did.
-
-      "Everything in This View" was "All updates", which a reader could not tell
-      included the 3,143 routine filings the page hides by default. It does not:
-      every figure in this table sits under the same notable clause as the rows,
-      and "in this view" is the only phrase that says so without a footnote.
-    */
-    $defs = array(
-        array('hiring',     'Adding Roles',      'direction=hiring',         "signal_direction = 'hiring'", 'count'),
-        array('funded',     'Funding Rounds',    'funding=1',                $funding,                      'count'),
-        array('money',      'Total Raised',      'funding=1',                '',                            'money'),
-        array('leadership', 'Leadership Moves',  'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
-        array('pay',        'Pay and Benefits',  'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
-        array('total',      'Everything in This View', '',                    '1 = 1',                      'count'),
-    );
-
-    $date_expr = 'COALESCE(published_date, DATE(captured_at))';
+    $date_expr = tit_signal_date_expr();
     $select = array();
     $select_params = array();
     foreach ($periods as $pi => $p) {
@@ -2138,6 +2192,466 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         'rows'    => $rows,
         'dated'   => $dated,
     );
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE TREND CHART
+ * ---------------------------------------------------------------------------
+ *
+ * Every other figure on this page is a snapshot. The matrix answers "how many
+ * this week, this month, this quarter" and a reader who wants to know whether
+ * hiring is picking up has to do arithmetic across four columns and guess at
+ * the shape in between. This draws the shape.
+ *
+ * WHY A TRAILING AVERAGE AND NOT THE DAILY COUNT. Measured against
+ * data/talent_intel.db on 2026-07-30, 17,539 current rows: the last 90 days
+ * hold data on 72 of them and the missing 18 are weekends and public holidays.
+ * Filings are a working-week activity, so a raw daily line is a comb, and every
+ * reader's eye would be drawn to the teeth rather than the direction. Seven days
+ * is the smallest window that contains exactly one of each weekday, so it
+ * removes the week's own shape without removing anything else.
+ *
+ * WHY THE WINDOW IS 90 DAYS. It is the horizon the matrix already names ("this
+ * quarter"), so the chart leads the table in the table's own vocabulary. It is
+ * also as far back as this corpus can be trusted day by day: further out the
+ * rows come from backfill slices that were run over particular date ranges
+ * rather than from continuous collection, and the boundary between a slice that
+ * was run and one that was not looks exactly like a market that moved.
+ *
+ * WHICH IS THE HAZARD THE GATE BELOW EXISTS FOR, and it is not hypothetical.
+ * Distinct rows per signal in the 90 days to 2026-07-30, with the longest run of
+ * consecutive days holding nothing:
+ *
+ *   Leadership Moves   1,771 rows · 70 of 90 days ·  3-day longest gap
+ *   Everything         3,157 rows · 72 of 90 days ·  3-day longest gap
+ *   Funding Rounds     1,123 rows · 51 of 90 days · 14-day longest gap
+ *   Pay and Benefits      49 rows · 27 of 90 days · 10-day longest gap
+ *   Adding Roles         119 rows · 11 of 90 days · 76-day longest gap
+ *
+ * Adding Roles reads 223 in January, zero from February to June, and 119 in
+ * July. That is not a hiring market that stopped and restarted, it is a news
+ * backfill that covered January and a live collector that started on 17 July.
+ * Funding's 14-day hole is the same thing in miniature: Form D is collected
+ * through June and July has not been walked yet. Drawn, either line would read
+ * as a collapse and a recovery, and it would be the most quotable thing on the
+ * page.
+ *
+ * So THE GATE IS ON CONTINUITY, NOT ON VOLUME: a signal is drawn only when no
+ * averaging window inside the chart is empty, which is to say its longest run of
+ * silent days is shorter than the average itself. A zero on a drawn line then
+ * means a quiet week. A zero on a refused line would have meant a collector that
+ * was not running, and those two are indistinguishable once the line is drawn.
+ *
+ * This is the same rule the week-over-week comparison in tit_dated_glance_html()
+ * already applies to itself, generalised per signal: print the comparison only
+ * where the corpus can carry it, and say plainly where it cannot. Both turn
+ * themselves on with no code change and no deploy on the day the coverage
+ * arrives, and both name what is missing rather than leaving a gap a reader
+ * cannot tell from a flat line.
+ */
+
+/** Days plotted. A quarter, which is the horizon the matrix already names. */
+const TIT_TREND_DAYS = 90;
+
+/** The trailing average, in days. One of each weekday, and no more. */
+const TIT_TREND_AVG = 7;
+
+/**
+ * The volume floor, which excludes NOTHING today and is said so out loud.
+ *
+ * Continuity is what refuses every refused line above. This is the guard for the
+ * other shape: a signal that lands one row most days and nothing else would pass
+ * the continuity gate and draw a line hovering under 1, where a single extra row
+ * doubles it. Thirty rows over ninety days is a third of a row a day, which is
+ * the least that can average to anything a reader should read a direction off.
+ */
+const TIT_TREND_MIN_ROWS = 30;
+
+/**
+ * One colour per signal, so a colour means the same thing wherever it appears.
+ * Taken from the palette already in dashboard.css rather than a new one.
+ */
+function tit_trend_colours() {
+    return array(
+        'hiring'     => '#1f7a4d',
+        'funded'     => '#a8560f',
+        'leadership' => '#7a3fa8',
+        'pay'        => '#c2417e',
+        'total'      => '#1c5cab',
+    );
+}
+
+/**
+ * The daily rollup and its trailing average, in ONE query.
+ *
+ * One GROUP BY over a 96-day slice: the 90 plotted plus the 6 the first point's
+ * average needs behind it. Every signal is a conditional SUM in the same scan,
+ * for the reason tit_glance_matrix() gives about its own — five round trips
+ * would be five chances for the lines to describe different sets of rows.
+ *
+ * $where/$params are the caller's, so the chart under a filtered page is that
+ * filter's chart and not the world's.
+ */
+function tit_signal_trend($table, $where = 'is_current = 1', array $params = array()) {
+    global $wpdb;
+
+    $today = current_time('Y-m-d');
+    $start = date('Y-m-d', strtotime($today . ' -' . (TIT_TREND_DAYS - 1) . ' days'));
+    $warm  = date('Y-m-d', strtotime($start . ' -' . (TIT_TREND_AVG - 1) . ' days'));
+
+    $defs = array();
+    foreach (tit_signal_defs() as $d) {
+        if ($d[4] === 'count') $defs[] = $d;   // the money row is a sum, not a series
+    }
+
+    $date_expr = tit_signal_date_expr();
+    $select = array("{$date_expr} AS d");
+    foreach ($defs as $i => $d) {
+        $select[] = "SUM({$d[3]}) AS s{$i}";
+    }
+    /*
+      WHICH COLLECTORS WERE READING, PER DAY, in the same scan.
+
+      The continuity gate refuses a line with a hole in it. It cannot see the
+      other way this corpus can move a line on its own: a source that starts
+      part-way through the window raises every count after it without anything
+      happening in the market. This tracker's national press and news collectors
+      first ran on 27 July, four days before the right-hand edge of a 90-day
+      chart, and "Everything in This View" reads 26 a day at the start of the
+      window and 71 at the end largely because of it.
+
+      There is no gate that can honestly separate those two causes, so the panel
+      states the measurement instead of hiding it: how many collectors were
+      feeding this view at each end of the window. GROUP_CONCAT(DISTINCT) is
+      standard in both MySQL and SQLite and the value is a dozen short names, far
+      inside either engine's length cap.
+    */
+    $select[] = 'GROUP_CONCAT(DISTINCT collector) AS cols';
+    $sql = 'SELECT ' . implode(', ', $select) . " FROM {$table} WHERE {$where}"
+         . " AND {$date_expr} >= %s AND {$date_expr} <= %s GROUP BY d";
+    $raw = $wpdb->get_results(
+        $wpdb->prepare($sql, array_merge($params, array($warm, $today))), ARRAY_A) ?: array();
+
+    $by_day = array();
+    foreach ($raw as $r) $by_day[(string) $r['d']] = $r;
+
+    // Every day in the span, present or not. A day the table has no row for is a
+    // zero and not a hole: the average has to divide by seven days either way.
+    $span = array();
+    $cursor = $warm;
+    while ($cursor <= $today) {
+        $span[] = $cursor;
+        $cursor = date('Y-m-d', strtotime($cursor . ' +1 day'));
+    }
+    $plot_from = count($span) - TIT_TREND_DAYS;
+    if ($plot_from < 0) $plot_from = 0;
+
+    $colours = tit_trend_colours();
+    $series = array();
+    $refused = array();
+    $max = 0.0;
+
+    foreach ($defs as $i => $d) {
+        $daily = array();
+        foreach ($span as $day) {
+            $daily[] = (int) ($by_day[$day]["s{$i}"] ?? 0);
+        }
+
+        // The longest run of consecutive silent days, and the rows inside the
+        // plotted window. The gap is measured across the WHOLE span, warm-up
+        // included, because the first plotted point averages over those days too.
+        $gap = 0; $run = 0;
+        foreach ($daily as $n) {
+            if ($n > 0) { $run = 0; continue; }
+            $run++;
+            if ($run > $gap) $gap = $run;
+        }
+        $rows_in_window = array_sum(array_slice($daily, $plot_from));
+
+        if ($gap >= TIT_TREND_AVG) {
+            $refused[] = array(
+                'label' => $d[1],
+                'gap'   => $gap,
+                'why'   => sprintf(
+                    'we hold nothing at all across %d days in a row inside this window, '
+                    . 'so a line would show a gap in our collection rather than the market',
+                    $gap),
+            );
+            continue;
+        }
+        if ($rows_in_window < TIT_TREND_MIN_ROWS) {
+            $refused[] = array(
+                'label' => $d[1],
+                'gap'   => $gap,
+                'why'   => sprintf(
+                    'we hold %s update%s across the whole window, too few to average',
+                    number_format_i18n($rows_in_window), $rows_in_window == 1 ? '' : 's'),
+            );
+            continue;
+        }
+
+        $avg = array();
+        for ($p = $plot_from; $p < count($daily); $p++) {
+            $sum = 0;
+            for ($k = $p - (TIT_TREND_AVG - 1); $k <= $p; $k++) {
+                $sum += $daily[$k] ?? 0;
+            }
+            $value = $sum / TIT_TREND_AVG;
+            $avg[] = $value;
+            if ($value > $max) $max = $value;
+        }
+
+        $series[] = array(
+            'key'    => $d[0],
+            'label'  => $d[1],
+            'filter' => $d[2],
+            'colour' => $colours[$d[0]] ?? '#1c5cab',
+            'avg'    => $avg,
+            'rows'   => $rows_in_window,
+            'gap'    => $gap,
+            'first'  => $avg ? $avg[0] : 0,
+            'last'   => $avg ? $avg[count($avg) - 1] : 0,
+        );
+    }
+
+    // How many collectors were feeding this view at each end of the window.
+    // Sets rather than per-day counts, so a source that reports every third day
+    // counts once for the week rather than dropping out of it.
+    $breadth = function ($from, $to) use ($span, $by_day) {
+        $seen = array();
+        for ($i = $from; $i < $to && $i < count($span); $i++) {
+            $names = (string) ($by_day[$span[$i]]['cols'] ?? '');
+            if ($names === '') continue;
+            foreach (explode(',', $names) as $name) {
+                $name = trim($name);
+                if ($name !== '') $seen[$name] = true;
+            }
+        }
+        return count($seen);
+    };
+    $end_i = count($span);
+
+    return array(
+        'start'   => $span[$plot_from] ?? $start,
+        'end'     => $today,
+        'days'    => count($span) - $plot_from,
+        'avg'     => TIT_TREND_AVG,
+        'series'  => $series,
+        'refused' => $refused,
+        'max'     => $max,
+        'sources_first' => $breadth($plot_from, $plot_from + TIT_TREND_AVG),
+        'sources_last'  => $breadth($end_i - TIT_TREND_AVG, $end_i),
+    );
+}
+
+/** A trailing average reads as a rate, so it keeps a decimal while it is small. */
+function tit_trend_rate($value) {
+    return $value >= 10
+        ? number_format_i18n(round($value))
+        : number_format_i18n(round($value, 1), 1);
+}
+
+/**
+ * The chart, as inline SVG.
+ *
+ * No library and no script, the same decision the recall page's chart and the
+ * job-board sparkline both made: a trend that only appears once a chart library
+ * has loaded is a trend nobody can rely on seeing, and this page had a
+ * render-blocking stylesheet taken off its sibling last week.
+ *
+ * The y axis starts at zero, always. A truncated axis turns a rise from 18 a day
+ * to 20 into a cliff, and this page's whole argument is that its numbers can be
+ * checked.
+ */
+function tit_signal_trend_html(array $trend) {
+    $series  = $trend['series'] ?? array();
+    $refused = $trend['refused'] ?? array();
+    if (!$series && !$refused) return '';
+    $avg = (int) ($trend['avg'] ?? TIT_TREND_AVG);
+
+    /*
+      NOTHING DRAWN IS A STATE THIS PANEL HAS TO HANDLE WELL, not an edge case.
+
+      A narrow filter reaches it easily: pick a country outside the two we hold
+      most of and no signal in that view has continuous enough coverage to
+      average. Printed as the full panel it would be a heading and a sentence
+      promising lines, followed by five near-identical apologies. So it collapses
+      to one sentence carrying the number that decides it, and the panel says
+      what would have to change for a line to appear.
+    */
+    if (!$series) {
+        $worst = 0;
+        foreach ($refused as $r) $worst = max($worst, (int) ($r['gap'] ?? 0));
+        ob_start(); ?>
+        <section class="tit-trend tit-trend-empty" id="tit-trend" aria-labelledby="tit-trend-h">
+          <h3 class="tit-trend-title" id="tit-trend-h">Updates a day, averaged over <?php
+            echo $avg; ?> days</h3>
+          <p class="tit-trend-sub">Not drawn for this view yet.<?php if ($worst >= $avg) : ?>
+            The longest run of days holding nothing here is <?php echo (int) $worst; ?>,
+            longer than the <?php echo $avg; ?> days the average covers, so every line would
+            pass through a stretch that shows a gap in our collection rather than the market.
+            <?php else : ?>
+            We hold too few updates across the window to average them.
+            <?php endif; ?>
+            The counts are in the table below, where a count of what we hold is exactly
+            what is claimed.</p>
+        </section>
+        <?php
+        return ob_get_clean();
+    }
+
+    $s_first = (int) ($trend['sources_first'] ?? 0);
+    $s_last  = (int) ($trend['sources_last'] ?? 0);
+
+    ob_start(); ?>
+    <section class="tit-trend" id="tit-trend" aria-labelledby="tit-trend-h">
+      <h3 class="tit-trend-title" id="tit-trend-h">Updates a day, averaged over <?php
+        echo $avg; ?> days</h3>
+      <p class="tit-trend-sub">Each line is that signal's daily count, smoothed over the
+        <?php echo $avg; ?> days ending on the day it is plotted, from
+        <?php echo esc_html((string) ($trend['start'] ?? '')); ?>
+        to <?php echo esc_html((string) ($trend['end'] ?? '')); ?>.</p>
+      <?php echo tit_trend_svg($trend); // phpcs:ignore — built and escaped in that function ?>
+      <p class="tit-trend-legend">
+        <?php foreach ($series as $s) : ?>
+          <span class="tit-trend-key"><span class="tit-trend-swatch"
+            style="background:<?php echo esc_attr($s['colour']); ?>"></span><?php
+            echo esc_html($s['label']); ?>: <b><?php echo esc_html(tit_trend_rate($s['last'])); ?></b> a day now,
+            <?php echo esc_html(tit_trend_rate($s['first'])); ?> at the start of the window</span>
+        <?php endforeach; ?>
+      </p>
+      <?php
+      /*
+        THE SENTENCE THAT STOPS THE CHART OVERCLAIMING, and it is measured
+        rather than hedged. A line here counts updates WE HOLD, so it moves when
+        the market moves and it moves when we start reading another source, and
+        no chart can tell a reader which. Naming how many collectors fed each end
+        of the window lets them tell.
+      */
+      if ($s_first > 0 && $s_last > 0) : ?>
+        <p class="tit-trend-basis"><?php if ($s_last > $s_first) : ?>
+          <?php echo (int) $s_first; ?> collectors were feeding this view in the first week of
+          the window and <?php echo (int) $s_last; ?> in the last, so part of any rise here is
+          us reading more rather than the market moving.
+        <?php else : ?>
+          The same <?php echo (int) $s_last; ?> collectors fed the first and the last week of
+          this window, so the movement here is not us reading more sources.
+        <?php endif; ?></p>
+      <?php endif; ?>
+      <?php if ($refused) : ?>
+        <p class="tit-trend-refused"><?php
+          // Named, and with the reason, because a signal silently missing from a
+          // chart of signals reads as a signal with nothing happening in it.
+          echo esc_html(count($refused) === 1 ? 'One signal is not drawn.' : 'Some signals are not drawn.');
+          ?>
+          <?php foreach ($refused as $r) : ?>
+            <span class="tit-trend-nodraw"><b><?php echo esc_html($r['label']); ?></b>:
+              <?php echo esc_html($r['why']); ?>.</span>
+          <?php endforeach; ?>
+          They stay in the table below, where a count of what we hold is exactly what is claimed.</p>
+      <?php endif; ?>
+    </section>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * The plot itself.
+ *
+ * Sized in a viewBox and given a min-width in CSS, so on a 375px phone it
+ * scrolls inside its own container with its labels still legible rather than
+ * shrinking them to nothing or bleeding the page sideways.
+ */
+function tit_trend_svg(array $trend) {
+    $series = $trend['series'] ?? array();
+    if (!$series) return '';
+    $n = count($series[0]['avg']);
+    if ($n < 2) return '';
+
+    $w = 720; $h = 240; $pad_l = 44; $pad_r = 14; $pad_t = 14; $pad_b = 32;
+    $plot_w = $w - $pad_l - $pad_r;
+    $plot_h = $h - $pad_t - $pad_b;
+
+    /*
+      Zero-based, and topped out at four steps of a round number.
+
+      The step is chosen from 1, 2, 2.5 or 5 times a power of ten rather than
+      computed, because an axis is read and 0/10/20/30/40 is read instantly
+      while 0/9/18/27/36 is not. It has to work at both ends of this data: a
+      busy view averages tens of updates a day and a narrow one averages under
+      one, and the same rule gives 0..40 for the first and 0..2 in halves for
+      the second.
+    */
+    $max = max(0.001, (float) ($trend['max'] ?? 1));
+    $q = $max / 4;
+    $mag = pow(10, floor(log10($q)));
+    foreach (array(1, 2, 2.5, 5, 10) as $mult) {
+        if ($q <= $mag * $mult + 1e-9) { $q = $mag * $mult; break; }
+    }
+    $max = 4 * $q;
+
+    /*
+      COORDINATES ARE WHOLE UNITS, and that is a byte decision with a measured
+      cost. Ninety points times one path per drawn signal is most of what this
+      chart weighs, and a decimal place on each is about a fifth of it. The
+      viewBox is 720 wide against a card of roughly the same width, so one unit
+      is about one pixel and the rounding error is under half of that, on a line
+      drawn 2.5px thick. It is not visible and the bytes are.
+    */
+    $x = function ($i) use ($pad_l, $plot_w, $n) {
+        return (int) round($pad_l + ($plot_w * $i / ($n - 1)));
+    };
+    $y = function ($v) use ($pad_t, $plot_h, $max) {
+        return (int) round($pad_t + $plot_h - ($plot_h * min($v, $max) / $max));
+    };
+
+    $described = '';
+    foreach ($series as $s) {
+        $described .= sprintf('%s: %s a day on %s, %s a day on %s. ',
+            $s['label'], tit_trend_rate($s['first']), $trend['start'],
+            tit_trend_rate($s['last']), $trend['end']);
+    }
+
+    ob_start(); ?>
+    <div class="tit-table-scroll">
+    <svg class="tit-trend-chart" viewBox="0 0 <?php echo $w; ?> <?php echo $h; ?>"
+         role="img" preserveAspectRatio="xMidYMid meet"
+         aria-label="<?php echo esc_attr('Updates a day, averaged over '
+             . (int) $trend['avg'] . ' days. ' . $described); ?>">
+      <?php
+      // The axis is formatted once for the whole scale, not per label. Running
+      // each through the rate formatter gave "0.0 9.0 18 27 36", four labels in
+      // two different shapes on one axis.
+      $whole = (fmod($max, 4) == 0.0) && ($max / 4 >= 1);
+      for ($g = 0; $g <= 4; $g++) :
+        $value = $max * $g / 4; $gy = $y($value); ?>
+        <line x1="<?php echo $pad_l; ?>" x2="<?php echo $w - $pad_r; ?>"
+              y1="<?php echo $gy; ?>" y2="<?php echo $gy; ?>" class="tit-tc-grid"/>
+        <text x="<?php echo $pad_l - 8; ?>" y="<?php echo $gy + 4; ?>"
+              class="tit-tc-axis" text-anchor="end"><?php
+          echo esc_html($whole ? number_format_i18n($value)
+                               : number_format_i18n(round($value, 1), 1)); ?></text>
+      <?php endfor; ?>
+
+      <?php foreach ($series as $s) :
+        $parts = array();
+        foreach ($s['avg'] as $i => $v) $parts[] = ($i ? 'L' : 'M') . $x($i) . ' ' . $y($v); ?>
+        <path d="<?php echo esc_attr(implode(' ', $parts)); ?>" fill="none"
+              stroke="<?php echo esc_attr($s['colour']); ?>" class="tit-tc-line"/>
+        <circle cx="<?php echo $x($n - 1); ?>" cy="<?php echo $y($s['avg'][$n - 1]); ?>"
+                r="3.5" fill="<?php echo esc_attr($s['colour']); ?>"/>
+      <?php endforeach; ?>
+
+      <?php // Only the ends are dated. A label per point is a smear. ?>
+      <text x="<?php echo $pad_l; ?>" y="<?php echo $h - 9; ?>" class="tit-tc-axis"
+            text-anchor="start"><?php echo esc_html((string) $trend['start']); ?></text>
+      <text x="<?php echo $w - $pad_r; ?>" y="<?php echo $h - 9; ?>" class="tit-tc-axis"
+            text-anchor="end"><?php echo esc_html((string) $trend['end']); ?></text>
+    </svg>
+    </div>
+    <?php
+    return ob_get_clean();
 }
 
 /**
