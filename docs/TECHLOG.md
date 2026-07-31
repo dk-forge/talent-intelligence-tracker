@@ -6627,3 +6627,166 @@ article, so the yield is measured in confirmed misses, and
 `usd_per_confirmed_miss` stays "not yet measurable" until it has stored
 something. For about $0.31 a month, the question is not whether it pays for
 itself but whether we would rather keep guessing which publishers exist.
+
+---
+
+## The recall loop, made to turn (2026-07-30)
+
+Three things were true at once: the measurement could not fail, the reference
+set covered 29 countries, and the tripwire's price was arithmetic.
+
+### 1. The one script whose job is quality exited 0 whatever it found
+
+`measure_recall.py` computed recall and returned 0 on every path, so a 9% week
+and a 95% week were the same event to every scheduler, alert and health check
+downstream. `analysis/recall/thresholds.py` adds five gates, and the design
+constraint that shaped all of them is that **no bar is a round number**. 90%
+would be red forever and 5% green forever, and neither has anything to do with
+what this tracker has been observed to do. Each floor is the **Wilson 95% bound
+on the best rate ever recorded against the same reference set** — Wilson rather
+than the normal approximation because at 8/89 the naive interval reaches below
+zero, and a floor below zero is not a floor. On the 2026-07-28 measurement that
+puts the floor at **4.63%**.
+
+| gate | what it catches | bar |
+|---|---|---|
+| `instrument` | the API answered nothing anywhere | exit **4**, not 3 |
+| `retraction` | events we were MEASURED as holding and no longer hold | `max(1, 10% of held)` |
+| `held_floor` | overall rate vs the best on this digest | Wilson-95 low |
+| `defect_ceiling` | defects per held event vs the worst on this digest | Wilson-95 high |
+| `cell_collapse` | a cell that held 3+ and now holds 0 | a dead collector |
+
+Two decisions worth keeping. **A rate cannot be compared across reference
+sets** — a widened set deliberately samples harder countries, so recall falling
+after a widening is the set working, and gating on it would teach everyone to
+ignore the gate the first time it was right. So the first run against a new
+digest reports **BASELINE**, not PASS. Exactly one quantity survives a change of
+set: an individual gold event, by id. That is why `retraction` is the gate that
+is always on, and why this repository, which has twice destroyed rows with no
+red run, now has an instrument that would have gone red.
+
+The gates run **last**, after the result is written and pushed, so a failing
+gate reports a bad measurement instead of suppressing the evidence. A failed
+gate also files the health entry as `degraded`: an exit code lives in one job
+log, and the health page is what the digest reads.
+
+**The sibling has the same defect and it is worse there.**
+`atr-layoff-tracker/railway/recall_precision.py` returns 0 on every path *and*
+posts `report_source_health("recall_precision", "ok", ...)` unconditionally — so
+a collapse in precision or recall is filed as healthy, not merely unnoticed.
+Reported, not fixed: that repo is read-only from here.
+
+### 2. The gold set was 29 countries, so the miss list was a map of where we had already thought to look
+
+`goldset-2026-07b.json` is v1 carried over **verbatim** plus 80 events from six
+further independent research passes, one per world region, each run in isolation
+and forbidden from consulting this tracker, its database, its repository or the
+site. Same window, deliberately, so the result stays comparable with the
+published 9.0% on the countries the two share.
+
+| | v1 | v2 |
+|---|---|---|
+| events | 89 | 169 |
+| countries | 29 | 79 |
+| Africa | 1 event | 20 |
+| eastern Europe + Baltics | 0 | 17 |
+| Latin America | 5 | 13 |
+| non-US share | 62% | 80% |
+
+One item was dropped, for a 403, recorded in `dropped_unreachable`. Nothing was
+dropped on any other ground and nothing changed after matching began.
+**Assembly stayed manual**, which was the point.
+
+Two rules the assembly earned. An **undisclosed round** is a real event, and a
+set that cannot admit one measures only the events that came with a number — a
+bias aimed straight at the markets the widening exists to cover.
+`amount_disclosed: false` declares the omission rather than hiding it, capped at
+15% of funding events. And the geographic guard now **ratchets**:
+`_ratchet_problems` measures the widest set already on disk and refuses a new
+one below 80% of it, comparing only against sets assembled EARLIER — a ratchet
+that reached forwards would have invalidated v1 the moment v2 landed and made
+its published 9.0% underivable.
+
+**Measured against it: 24/169 held (14.2%), up from 8/89 (9.0%).** The
+retraction gate is what makes that readable — all 8 events held on 07-28 are
+still held, so the movement is backfill landing, not churn under a changed
+denominator. Non-US went 1/55 to 14/135, and **66 countries still hold nothing**
+against 27 before. The worst cell in the set is `national_news` at **2/33
+(6.1%)**, which is the document type the entire non-English press route exists
+to read.
+
+Two guards fired on the widening and both were right to. `test_market_claims`
+found seventeen new zero-countries that have a swept edition and 2+ wired feeds,
+so reach is no longer their excuse; they went to `BUDGET_DEFERRED` with the real
+reason rather than being claimed, because a market claim here is earned.
+`test_backfill_gnews` asserted a literal 3 queries per edition and is now
+derived from the phrase pack.
+
+### 3. The tripwire's cost is a measurement now
+
+First live queries: **run 30506967802, 2026-07-30, 17 search-backed queries,
+$0.0977 billed** off OpenRouter's own `usage.cost`.
+
+| | |
+|---|---|
+| measured | **$0.0057/query**, spread $0.0054–$0.0060 across the 17 |
+| the estimate the cap was sized on | $0.0200 — **3.5x** the real price |
+| Israel, the country checkable by eye | $0.0059, 8 leads |
+
+`USD_PER_QUERY_MEASURED` is recorded and deliberately **not** substituted for the
+estimate: feeding the real price into the sizing arithmetic takes
+`COUNTRIES_PER_RUN` from 4 to 19 and quadruples the bill. The estimate sizes the
+plan, the measurement says what the plan costs, and the gap is the safety
+margin. Both are printed on every run.
+
+Still outstanding: `analysis/tripwire/results/` remains empty, because the only
+live run so far was a dry run. The cadence is armed (Mon+Thu 07:00 UTC, as a
+ticket from `schedule-link-hygiene.yml`), and the arming commit landed at 19:37
+UTC on a Thursday — **after** that day's slot — so the first automatic run is
+Monday 2026-08-03.
+
+### 4. The funding query could not match a round nobody called a Series
+
+Checked because 36 base vocabulary terms with nothing about funding reads as a
+hole in the largest pillar. It is not: `GOOGLE_NEWS_QUERIES`, all sixteen
+`GOOGLE_NEWS_VOCAB` packs, `GDELT_QUERIES` and `BACKSTOP_INTENTS` each carry a
+funding query. `BASE_VOCABULARY` genuinely has none and it does not matter —
+`run_collect.build_queries` never hands it to a collector that issues queries.
+Padding it would have looked like closing a gap and changed nothing that runs.
+
+The real defect was structural. The query was `("raises" OR "raised") ("Series
+A" OR "Series B" OR "seed funding")`, and Google News AND-s the groups: a growth
+round, a debt facility, a credit line, a capital increase or an undisclosed
+stage cannot match however many times the article says "raises". Measured
+against the **54 funding events the 2026-07-28 run missed**, using each
+publisher's own headline:
+
+| | matched |
+|---|---|
+| old query | 13/54 (24%) |
+| widened | **37/54 (69%)**, 0 false hits on the 19 leadership headlines |
+
+Every verb and euphemism added appears verbatim in one of those 54 real
+headlines; none was invented, and no bare high-frequency token stands alone (the
+`investice` lesson, asserted by a test). Only `es` and `it` were widened among
+the non-English packs, because they are the only two with a missed headline in
+that language on file. **Stated ceiling, kept as a test fixture:** 17 of the 54
+are "X raises $60m" — verb, abbreviated amount, no noun — and still out of
+headline reach. Google News matches body text too, so both figures are lower
+bounds; a direct RSS probe to settle it returned zero rows for every query
+including the control, so it stays unverified rather than assumed.
+
+### What is still not known
+
+- Whether Google News matches article bodies as well as headlines, which is the
+  difference between "69% now reachable" and "69% reachable from the headline
+  alone". The probe that would settle it could not be run from here.
+- Whether the widened set's new regions are under-measured because of events or
+  because of fetchers: every research pass hit the same wall in Nigeria, Ghana,
+  Uganda, Rwanda and Greece, and at the Indonesian, Malaysian, Sri Lankan,
+  Kuwaiti, Athens and Johannesburg exchanges. Real events were found there and
+  dropped unverified, so those countries will read better than they are.
+- Eight of the 79 countries in the set have no region in the project's own
+  vocabulary (`pipeline.validate._region_for_country` returns None for PY, BO,
+  SV, JM, TT, NA, IQ and one more). That is our geography failing to admit a
+  market the benchmark covers, and nothing currently notices.

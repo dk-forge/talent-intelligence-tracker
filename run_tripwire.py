@@ -34,6 +34,14 @@ spend when that is exhausted, instead of inventing a second ceiling of its own.
 Every run records what it actually cost, per query, per lead and per confirmed
 miss, so a tripwire that is not worth its money is visible as that.
 
+It is no longer a projection. The first live queries went out on 2026-07-30
+(run 30506967802): 17 search-backed queries, $0.0977 billed, **$0.0057 a query
+measured** against the $0.02 the plan was sized on — the estimate is 3.5x the
+real price, so the cap is conservative in the right direction. The Israel query,
+the one a human could check by eye, cost $0.0059 and returned 8 leads, of which
+the diff had 10 of the run's 99 already. Both prices are printed on every run:
+the estimate is what sizes the plan, the measurement is what it costs.
+
 Exit codes: 0 ran | 1 the run itself failed or the outside view returned nothing
 """
 
@@ -246,7 +254,12 @@ def main(argv=None) -> int:
           f"{projection['industry_queries']} industries once a month "
           f"= {projection['queries_per_month']} queries")
     print(f"  projected           ${projection['projected_usd_per_month']:.2f}/month "
-          f"at ${projection['usd_per_query_estimate']:.3f}/query (pessimistic)")
+          f"at ${projection['usd_per_query_estimate']:.3f}/query "
+          f"(pessimistic — what the plan is SIZED on)")
+    print(f"  measured            ${projection['measured_usd_per_month']:.2f}/month "
+          f"at ${projection['usd_per_query_measured']:.4f}/query, "
+          f"{projection['estimate_over_measured']}x under the estimate")
+    print(f"                      {projection['usd_per_query_measured_source']}")
 
     recall = planner.latest_recall()
     results_dir = args.results_dir or report.RESULTS_DIR

@@ -161,9 +161,38 @@ def test_the_countries_the_goldset_scored_zero_on_are_claimed_or_excused():
 
 
 #: Zero-scoring countries with an edition and wired feeds that are NOT claimed
-#: because `build_segments()` is at its ceiling. Empty as of 2026-07-29: the
-#: twelve added that day spent the budget exactly, and every remaining
-#: zero-country is excluded by a language pack that does not exist (CN, NO, FI)
+#: because `build_segments()` is at its ceiling. It was empty as of 2026-07-29:
+#: the twelve added that day spent the budget exactly, and every remaining
+#: zero-country was excluded by a language pack that does not exist (CN, NO, FI)
 #: or by having one wired feed (SA). An entry here is a decision with a reason
 #: beside it; the test above exists so it cannot be an omission instead.
-BUDGET_DEFERRED: dict[str, str] = {}
+#:
+#: It stopped being empty on 2026-07-30, and that is the loop working rather
+#: than failing. The gold set went from 29 countries to 79, the zero list from
+#: 27 to 66, and seventeen of the new zeros have BOTH a swept edition and two or
+#: more wired feeds — so the guard correctly reports that reach is no longer
+#: their excuse. They are still not CLAIMED, because a market claim here is
+#: earned and not asserted: it needs a working connector, a health check and a
+#: passing test, and `build_segments()` has no room for seventeen more without
+#: the segment budget being raised, which is the owner's call and not a test
+#: file's.
+#:
+#: The right state to be in today and the wrong one to stay in. The instruction
+#: attached to it is data/recall_worklist.json, which names all 66 and orders
+#: them by how much of the set each accounts for.
+_WIDENED = ("deferred 2026-07-30: newly measured at zero by the widened gold set "
+            "(79 countries, up from 29). Has an edition and 2+ wired feeds, so "
+            "reach is not the excuse — build_segments() is at its ceiling and "
+            "raising the segment budget is the owner's decision")
+BUDGET_DEFERRED: dict[str, str] = {
+    iso2: _WIDENED for iso2 in (
+        # Africa: the region that went from 1 gold event to 20 and holds none.
+        "KE", "GH", "NG", "MA", "SN",
+        # South-east Asia and greater China: 12 new events, no holds.
+        "VN", "ID", "MY", "PH", "BD", "HK",
+        # Latin America: 13 events, one hold, and it is Brazil.
+        "CL", "UY", "PE",
+        # Europe and the near abroad.
+        "PL", "AT", "TR",
+    )
+}

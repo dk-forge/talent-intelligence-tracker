@@ -110,8 +110,13 @@ def test_a_query_that_comes_back_at_the_cap_is_counted_as_truncated(monkeypatch)
     stats: Counter = Counter()
     walker.fetch_day(date(2026, 1, 1), date(2026, 1, 2),
                      [("en", "US"), ("en", "GB")], pause=0, stats=stats)
-    assert stats["truncated"] == 3, "the three US queries all came back at the cap"
-    assert stats["queries"] == 6
+    # Derived from the phrase pack, never typed. It used to be a literal 3, and
+    # widening the English funding vocabulary on 2026-07-30 turned that into a
+    # failing test with nothing wrong behind it — the same shape of defect as
+    # the sources page asserting a hardcoded set of five collector names.
+    per_edition = len(walker.registry.GOOGLE_NEWS_VOCAB["en"])
+    assert stats["truncated"] == per_edition, "every US query came back at the cap"
+    assert stats["queries"] == per_edition * 2
 
 
 # --- the cost model: the ration is derived, and it is a ration ------------

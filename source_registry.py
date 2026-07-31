@@ -52,6 +52,19 @@ class Market:
 # returned MLB expansion, World of Warcraft expansion, Medicaid expansion,
 # cattle herd expansion and war escalation — 25 candidates, zero of them about
 # employment. Every term below names people or a workplace explicitly.
+#
+# IT CARRIES NO FUNDING TERM, AND THAT IS NOT THE GAP IT LOOKS LIKE.
+# Checked 2026-07-30, because 36 hiring/leadership/pay terms with nothing about
+# funding reads as a hole in the product's largest pillar. It is not on any live
+# query path: `run_collect.build_queries` returns GOOGLE_NEWS_QUERIES for
+# google_news and GDELT_QUERIES for gdelt, and reaches the branch that reads
+# this only for sources whose collectors take the population from a feed list, a
+# register or a frame and ignore the `queries` argument entirely. Funding IS
+# queried — by GOOGLE_NEWS_QUERIES, by all sixteen GOOGLE_NEWS_VOCAB packs, by
+# GDELT_QUERIES and by BACKSTOP_INTENTS. Padding this tuple would look like
+# closing a gap and change nothing that runs. If a future collector is wired to
+# this branch, add the funding terms then, and take them from the widened
+# GOOGLE_NEWS_VOCAB below rather than writing new ones.
 BASE_VOCABULARY = (
     "to create jobs", "will create jobs", "new jobs at", "jobs announcement",
     "hiring spree", "recruitment drive", "ramp up hiring", "headcount growth",
@@ -112,11 +125,44 @@ GOOGLE_NEWS_ANCHOR = ("en", "US")
 # These are deliberately the same three intents in every language rather than a
 # translation of all eleven English queries: a phrase that does not match is a
 # silent zero, and three well-chosen ones beat eleven guesses.
+#
+# THE FUNDING QUERY WAS MEASURED ON 2026-07-30 AND WIDENED.
+# ---------------------------------------------------------
+# The old English phrasing was `("raises" OR "raised") ("Series A" OR "Series B"
+# OR "seed funding")`. Google News AND-s the two groups, so a round that is
+# never called a Series or a seed — a growth round, a debt facility, a credit
+# line, a capital increase, an undisclosed stage — could not match however many
+# times the article said "raises". That is a whole class of funding event
+# structurally excluded, not a phrase that happened to be missing.
+#
+# Measured against the 54 funding events the 2026-07-28 recall run MISSED,
+# reading each publisher's own headline:
+#
+#   old query      13 / 54  (24%)
+#   this one       40 / 54  (74%)     0 false hits on the 19 leadership
+#                                     headlines in the same gold set
+#
+# The 14 still unmatched are all "X raises $60m" — a verb and an abbreviated
+# amount and no noun at all. Google News matches article text and not only
+# headlines, so both figures are LOWER bounds and those 14 are probably reached
+# by the body copy; a direct RSS probe to settle it returned zero rows for every
+# query including the control, so that remains unverified rather than assumed.
+#
+# Every verb and every euphemism below appears verbatim in one of those 54 real
+# headlines. None was invented, which is the same discipline the sibling's
+# layoff euphemism list was built with, and the reason the Czech `investice`
+# trap is not repeated here: no bare high-frequency token stands alone.
 GOOGLE_NEWS_VOCAB = {
     "en": (
         '("appoints chief executive" OR "names new CEO" OR "steps down as CEO")',
         '("plans to hire" OR "hiring spree" OR "to create jobs" OR "opens new office")',
-        '("raises" OR "raised") ("Series A" OR "Series B" OR "seed funding")',
+        '("raises" OR "raised" OR "secures" OR "closes" OR "lands" OR "announces" OR "nets") '
+        '("funding" OR "round" OR "Series A" OR "Series B" OR "seed" OR "investment")',
+        '("Series A" OR "Series B" OR "Series C" OR "seed round" OR "pre-seed") '
+        '("million" OR "billion" OR "led by" OR "valuation")',
+        '("emerges from stealth" OR "out of stealth" OR "oversubscribed" OR '
+        '"bridge round" OR "extension round" OR "growth capital" OR '
+        '"strategic investment" OR "capital increase" OR "credit line")',
     ),
     "de": (
         '("neuer Vorstandsvorsitzender" OR "wird CEO" OR "verlässt das Unternehmen" OR "tritt zurück")',
@@ -131,7 +177,15 @@ GOOGLE_NEWS_VOCAB = {
     "es": (
         '("nuevo consejero delegado" OR "nombrado director general" OR "deja el cargo" OR "nuevo CEO")',
         '("creará empleo" OR "contratará" OR "nuevos puestos" OR "abre oficina")',
-        '("ronda de financiación" OR "capta" "millones")',
+        # "cierra una ronda" is here because a real miss used it and the old
+        # phrasing could not: Techla's "Kintai cierra una ronda Serie A de 10
+        # millones de euros". Spanish and Italian are the only two non-English
+        # packs touched, because they are the only two where a missed headline
+        # in that language is on file. Widening the other thirteen on the
+        # strength of the English result would be exactly the guesswork the
+        # per-language design exists to avoid.
+        '("ronda de financiación" OR "ronda de inversión" OR "cierra una ronda" '
+        'OR "levanta capital" OR "capta" "millones")',
     ),
     "pt": (
         '("novo presidente-executivo" OR "assume como CEO" OR "deixa o cargo" OR "novo CEO")',
@@ -141,7 +195,10 @@ GOOGLE_NEWS_VOCAB = {
     "it": (
         '("nuovo amministratore delegato" OR "nominato CEO" OR "lascia la guida")',
         '("assumerà" OR "nuove assunzioni" OR "crea posti di lavoro" OR "apre una sede")',
-        '("round di finanziamento" OR "raccoglie" "milioni")',
+        # "aumento di capitale" is the mechanism Italian press names when a
+        # round is a capital increase rather than a Series: Young Group's €22.5m
+        # on 2026-07-16 was reported that way and nothing here could match it.
+        '("round di finanziamento" OR "aumento di capitale" OR "raccoglie" "milioni")',
     ),
     "nl": (
         '("nieuwe topman" OR "wordt CEO" OR "stapt op" OR "benoemd tot bestuursvoorzitter")',
@@ -321,7 +378,17 @@ GOOGLE_NEWS_QUERIES = (
     '("plans to hire" OR "will hire" OR "to add jobs") ("engineers" OR "staff" OR "roles")',
     '("opens new office" OR "opens its new" OR "new engineering hub")',
     '("global capability centre" OR "global capability center")',
-    '("raises" OR "raised") ("Series A" OR "Series B" OR "Series C" OR "seed funding")',
+    # Widened 2026-07-30 for the reason set out on GOOGLE_NEWS_VOCAB: the old
+    # single query AND-ed a raise verb with a stage word, so a round nobody
+    # called a Series or a seed could not match at all.
+    '("raises" OR "raised" OR "secures" OR "closes" OR "lands" OR "announces" OR "nets") '
+    '("funding" OR "round" OR "Series A" OR "Series B" OR "seed" OR "investment" '
+    'OR "capital" OR "million" OR "billion" OR "valuation" OR "led by")',
+    '("Series A" OR "Series B" OR "Series C" OR "seed round" OR "pre-seed") '
+    '("million" OR "billion" OR "led by" OR "valuation")',
+    '("emerges from stealth" OR "out of stealth" OR "oversubscribed" OR '
+    '"bridge round" OR "extension round" OR "growth capital" OR '
+    '"strategic investment" OR "capital increase" OR "credit line")',
     '("acquires" OR "to acquire") ("startup" OR "company") when:2d',
     '("pay rise" OR "raises minimum salary" OR "retention bonus")',
     '("return to office" OR "remote work policy") ("employees" OR "staff")',
@@ -364,7 +431,13 @@ GDELT_QUERIES = (
     '("expands its workforce" OR "recruitment drive" OR "ramp up hiring") sourcelang:english',
     '("return to office" OR "remote work policy" OR "hybrid working") sourcelang:english',
     '("pay rise" OR "raises minimum salary" OR "retention bonus") sourcelang:english',
-    '("Series A funding" OR "Series B funding" OR "seed funding round" OR "raises seed round") sourcelang:english',
+    # Same widening as the Google News packs, in GDELT's syntax (space is AND,
+    # so these stay a flat OR of phrases). The phrases are the ones that occur
+    # in the 54 real funding misses; a bare "funding" or "investment" is
+    # deliberately absent, because unanchored high-frequency tokens are what
+    # made "expansion" return cattle herds on the first live run.
+    '("Series A funding" OR "Series B funding" OR "Series C funding" OR "seed funding round" OR "raises seed round" OR "closes seed round") sourcelang:english',
+    '("secures funding" OR "raises funding" OR "closes funding round" OR "lands investment" OR "oversubscribed round" OR "emerges from stealth" OR "growth capital round") sourcelang:english',
 )
 
 
