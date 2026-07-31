@@ -2445,6 +2445,12 @@ function tit_signal_trend($table, $where = 'is_current = 1', array $params = arr
     );
 }
 
+/** "1 collector" and "5 collectors". A live view printed the first as the second. */
+function tit_trend_collectors($n) {
+    $n = (int) $n;
+    return number_format_i18n($n) . ' ' . ($n === 1 ? 'collector' : 'collectors');
+}
+
 /** A trailing average reads as a rate, so it keeps a decimal while it is small. */
 function tit_trend_rate($value) {
     return $value >= 10
@@ -2530,13 +2536,23 @@ function tit_signal_trend_html(array $trend) {
         of the window lets them tell.
       */
       if ($s_first > 0 && $s_last > 0) : ?>
-        <p class="tit-trend-basis"><?php if ($s_last > $s_first) : ?>
-          <?php echo (int) $s_first; ?> collectors were feeding this view in the first week of
-          the window and <?php echo (int) $s_last; ?> in the last, so part of any rise here is
-          us reading more rather than the market moving.
+        <p class="tit-trend-basis"><?php if ($s_last !== $s_first) : ?>
+          <?php
+          /*
+            NEUTRAL ABOUT DIRECTION, deliberately. The first draft of this said
+            "part of any rise here is us reading more", which was written while
+            looking at a view that was rising. Filter the page to Great Britain
+            and the same sentence sat under two falling lines. What the
+            measurement supports is that the basis moved, not which way the
+            lines went, so that is all it says.
+          */
+          echo esc_html(tit_trend_collectors($s_first)); ?> fed this view in the first week of
+          the window and <?php echo (int) $s_last; ?> in the last, so some of the movement here
+          is a change in what we read rather than in the market.
         <?php else : ?>
-          The same <?php echo (int) $s_last; ?> collectors fed the first and the last week of
-          this window, so the movement here is not us reading more sources.
+          The same <?php echo esc_html(tit_trend_collectors($s_last)); ?> fed the first and the
+          last week of this window, so the movement here is not a change in how many sources
+          we read.
         <?php endif; ?></p>
       <?php endif; ?>
       <?php if ($refused) : ?>
