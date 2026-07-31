@@ -879,13 +879,22 @@ check(strpos($html, 'come from one source') !== false,
       . 'concentration caveat has to name it');
 check(strpos($html, 'raised</a>') !== false, 'and the money total sits with the other figures');
 
-/* --- the table ---------------------------------------------------------- */
+/* --- the results list ---------------------------------------------------- */
 
-$tbody = substr($html, strpos($html, '<tbody id="tit-rows">'));
-$tbody = substr($tbody, 0, strpos($tbody, '</tbody>'));
-check(substr_count($tbody, '<tr>') === TIT_DASH_ROWS,
-      'the first page is ' . TIT_DASH_ROWS . ' server-rendered rows and was '
-      . substr_count($tbody, '<tr>'));
+/*
+ * These are CARDS now, not table rows, to the contract in docs/card-contract.json
+ * that this repo shares byte-for-byte with the sibling AI Layoff Tracker. The id
+ * is unchanged (`tit-rows`) because the JavaScript replaces the same element it
+ * always did; what changed is that each result is an <li class="tit-card">.
+ * tests/test_card_contract.py checks the card against the contract; this file
+ * goes on checking the things only a real render can show — the right number of
+ * them, the right rows, nothing blank, and the archived link telling the truth.
+ */
+$tbody = substr($html, strpos($html, '<ul class="tit-cards" id="tit-rows">'));
+$tbody = substr($tbody, 0, strpos($tbody, '</ul>'));
+check(substr_count($tbody, '<li class="tit-card">') === TIT_DASH_ROWS,
+      'the first page is ' . TIT_DASH_ROWS . ' server-rendered cards and was '
+      . substr_count($tbody, '<li class="tit-card">'));
 check(strpos($tbody, 'materiality') === false && strpos($tbody, 'routine') === false,
       'and none of them is a routine officer filing, because the default view sets those aside');
 check(strpos($html, '>HQ<') !== false,
@@ -927,7 +936,7 @@ check(strpos($html, '/company/') !== false, 'every employer name links to that e
  * hold. Counting spans would pass on a render that printed the link on every row
  * and on a render that printed it on none.
  */
-preg_match_all('/<tr>.*?<\/tr>/s', $tbody, $tr_matches);
+preg_match_all('/<li class="tit-card">.*?<\/li>/s', $tbody, $tr_matches);
 $rows_seen = array('archived' => 0, 'plain' => 0);
 foreach ($tr_matches[0] as $tr) {
     $has_span = strpos($tr, 'class="tit-archived"') !== false;
@@ -1316,10 +1325,33 @@ check(substr_count($html, 'multiple size="5"') === 7,
 
 /* --- nothing that scrolls the body sideways ----------------------------- */
 
-// Every wide thing on this page has to live inside its own scroller, or the
-// body scrolls sideways on a phone and the whole layout reads as broken.
-check(strpos($html, 'class="tit-table-scroll"') !== false,
-      'the table sits inside its own horizontal scroller');
+/*
+ * Every wide thing on this page has to live inside its own scroller, or the body
+ * scrolls sideways on a phone and the whole layout reads as broken.
+ *
+ * The results used to be the widest thing here and this line asserted its
+ * scroller. They are cards now (docs/card-contract.json), and a card has nothing
+ * to scroll: it pins no width at all, which is a better answer than a scroller
+ * and is why the assertion changed rather than being deleted. So the property is
+ * stated the way it is actually true now — any TABLE still rendered is inside a
+ * scroller, and the results list is not wrapped in one, because wrapping a thing
+ * that already fits produces a scrollbar with nowhere to go.
+ *
+ * NOT asserted anywhere, and deliberately: scrollWidth === innerWidth. It passes
+ * on a CLIPPED page, and an overflow-x rule on a narrow ancestor already
+ * guillotined this page's hero headline once, in 1.37.0.
+ */
+// Any of our own *-scroll wrappers counts: the glance matrix has its own
+// (.tit-matrix-scroll), because it and a data table need different rules.
+$tables   = preg_match_all('/<table[ >]/', $html);
+$scrolers = preg_match_all('/class="tit-[a-z]+-scroll"/', $html);
+if ($tables > 0) {
+    check($scrolers >= $tables,
+          'every table left on this page sits inside its own horizontal scroller: '
+          . $tables . ' table(s), ' . $scrolers . ' scroller(s)');
+}
+check(strpos($html, '<ul class="tit-cards" id="tit-rows">') !== false,
+      'the results are a card list, which needs no scroller because it pins no width');
 
 /* --- the SVG that has to be sized in markup ----------------------------- */
 
@@ -1410,10 +1442,11 @@ function budget_phase() {
     // And the row count must not either. The first page is a LIMIT, so a table
     // that doubles cannot double the bytes a phone downloads.
     $html = render();
-    $tbody = substr($html, strpos($html, '<tbody id="tit-rows">'));
-    $tbody = substr($tbody, 0, strpos($tbody, '</tbody>'));
-    check(substr_count($tbody, '<tr>') === TIT_DASH_ROWS,
-          'and neither can the number of rows it prints: ' . substr_count($tbody, '<tr>'));
+    $tbody = substr($html, strpos($html, '<ul class="tit-cards" id="tit-rows">'));
+    $tbody = substr($tbody, 0, strpos($tbody, '</ul>'));
+    check(substr_count($tbody, '<li class="tit-card">') === TIT_DASH_ROWS,
+          'and neither can the number of cards it prints: '
+          . substr_count($tbody, '<li class="tit-card">'));
 }
 
 function finish($phase) {

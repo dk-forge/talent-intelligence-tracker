@@ -1,0 +1,86 @@
+name: Card contract
+
+# THE ONLY CHECK THAT CAN SEE BOTH REPOS.
+#
+# docs/card-contract.json defines the result card once, and it is BYTE-IDENTICAL
+# in dk-forge/talent-intelligence-tracker and dk-forge/ai-layoff-tracker. The offline test in this repo
+# (tests/test_card_contract.py) asserts that this product's markup satisfies
+# the contract, and it pins the contract's digest so an accidental edit fails.
+# What it cannot do is notice that the SIBLING changed its copy: it has no
+# network and no view of the other repo. That is this job.
+#
+# It fetches the sibling's copy and goes red while the two differ. Both repos
+# are public, so no token is involved.
+#
+# WHY A DIFF AND NOT A SHARED PACKAGE. The two products have different tables,
+# REST namespaces, plugins, deploy paths and server languages. Coupling them
+# through a library would buy a smaller problem at the price of a much worse
+# one: a coupled release, and a card change on one side blocked on the other
+# side's deploy. A contract they both hold a copy of, and a build that reddens
+# while the copies disagree, keeps the products independent and the design one.
+#
+# WHAT RED MEANS HERE, in order of likelihood:
+#   1. Somebody changed the card in one repo and has not copied the contract to
+#      the other yet. Finish the job: the change is not done until both copies
+#      match and both TECHLOGs record the new digest.
+#   2. The sibling has no copy yet (404). Expected only in the window between
+#      the two repos landing this for the first time.
+#   3. GitHub raw is unreachable. The job exits NON-ZERO for this too, on
+#      purpose: "I could not check" must never render as "the two agree". It is
+#      the same rule this project applies to ops_status and ci_status.
+#
+# The schedule matters as much as the push trigger: a change made in the SIBLING
+# produces no event here, so without a daily tick this repo would keep saying
+# green about a contract that no longer matches.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch the sibling's copy of the contract
+        run: |
+          set -euo pipefail
+          URL="https://raw.githubusercontent.com/dk-forge/ai-layoff-tracker/main/docs/card-contract.json"
+          # --fail-with-body so a 404 is a failure that still prints what came
+          # back, and a retry budget so one flaky second is not reported as
+          # disagreement. A network failure exits non-zero: could-not-check is
+          # never an all-clear.
+          curl -sS --fail-with-body --retry 3 --retry-delay 5 --max-time 30 \
+               -o sibling-card-contract.json "$URL"
+
+      - name: The two copies must be byte-identical
+        run: |
+          set -euo pipefail
+          MINE="docs/card-contract.json"
+          THEIRS="sibling-card-contract.json"
+          echo "this repo : $(sha256sum "$MINE"   | cut -d' ' -f1)"
+          echo "sibling   : $(sha256sum "$THEIRS" | cut -d' ' -f1)"
+          if diff -u "$THEIRS" "$MINE" > contract.diff; then
+            echo "The card contract is identical in both repos."
+            exit 0
+          fi
+          echo
+          echo "::error::docs/card-contract.json differs from dk-forge/ai-layoff-tracker."
+          echo "The result card is defined ONCE and this file is byte-identical"
+          echo "in both repos. Copy the newer file across, update CONTRACT_SHA256"
+          echo "in each repo's card-contract test, and update the digest recorded"
+          echo "in each repo's docs/TECHLOG.md. Both repos stay red until they"
+          echo "agree, which is the point."
+          echo
+          echo "--- sibling  +++ this repo"
+          cat contract.diff
+          exit 1

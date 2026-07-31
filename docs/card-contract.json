@@ -1,0 +1,190 @@
+{
+  "contract": "tracker-result-card",
+  "version": "1.0.0",
+  "adopted": "2026-07-31",
+  "byte_identical_in": [
+    "dk-forge/ai-layoff-tracker:docs/card-contract.json",
+    "dk-forge/talent-intelligence-tracker:docs/card-contract.json"
+  ],
+  "why": [
+    "The two trackers render the same shape of fact and had drifted into two",
+    "designs and two vocabularies. Neither side could say which one was current,",
+    "because each had changed its own copy since the other last looked. This file",
+    "is the single answer. It is data, not code: the products share no database,",
+    "no REST namespace and no build, and coupling them through shared code would",
+    "be worse than the drift. What they share is this contract, and each side has",
+    "a test that fails when its own markup stops matching it."
+  ],
+  "products": [
+    {
+      "repo": "dk-forge/ai-layoff-tracker",
+      "prefix": "alt",
+      "renders": ["wordpress-plugin/ai-layoff-tracker/assets/layoffs.js"],
+      "directions_used": ["displacement", "neutral"],
+      "amount": "job count, e.g. 1,200 jobs"
+    },
+    {
+      "repo": "dk-forge/talent-intelligence-tracker",
+      "prefix": "tit",
+      "renders": [
+        "wordpress-plugin/talent-intelligence-tracker/assets/dashboard.js",
+        "wordpress-plugin/talent-intelligence-tracker/includes/shortcodes.php"
+      ],
+      "directions_used": ["hiring", "displacement", "comp_shift", "neutral"],
+      "amount": "money raised, e.g. $12M raised"
+    }
+  ],
+
+  "structure": {
+    "note": "Every class below is written as a SUFFIX. A product renders it with its own prefix and a hyphen: suffix 'card-rail' is 'alt-card-rail' in the layoff tracker and 'tit-card-rail' in the talent tracker. A product may carry extra classes on the same element (its existing colour and state classes), but the contract class must be present.",
+    "list": {
+      "suffix": "cards",
+      "element": "ol or ul",
+      "required": true
+    },
+    "card": {
+      "suffix": "card",
+      "element": "li",
+      "required": true,
+      "children": ["card-rail", "card-body"]
+    },
+    "rail": {
+      "suffix": "card-rail",
+      "reading_order": ["card-employer", "card-industry", "card-where"],
+      "required_children": ["card-employer", "card-where"],
+      "optional_children": ["card-industry"],
+      "card-employer": "The employer, set in the serif face. Never a link colour unless it is a link.",
+      "card-industry": "Optional. Omitted entirely when the record carries none; never rendered empty.",
+      "card-where": "Location, or the not-stated string wrapped in card-nowhere. Never blank."
+    },
+    "body": {
+      "suffix": "card-body",
+      "reading_order": ["card-badges", "card-h", "card-rt", "card-foot"],
+      "required_children": ["card-badges", "card-h", "card-foot"],
+      "optional_children": ["card-rt"],
+      "card-h": "The fact, in one line. Link colour only when it links somewhere.",
+      "card-rt": "The plain-English read of the record, visually separated from the sourced fact above it. Optional only because a record may carry nothing to say."
+    },
+    "foot": {
+      "suffix": "card-foot",
+      "reading_order": ["card-when", "card-src"],
+      "required_children": ["card-when", "card-src"],
+      "card-when": "The date the SOURCE carries, or the not-stated string. Rendered in a <time datetime> when there is a date.",
+      "card-src": "The publisher, as an outbound link with target=_blank and rel containing noopener. An archived copy may follow as a SECOND link, never instead."
+    }
+  },
+
+  "badges": {
+    "container": "card-badges",
+    "order": ["card-dir", "card-ev", "card-amt"],
+    "order_note": "These three come first, in this order, always. Product-specific badges (the layoff tracker's AI attribution and reason tags) follow them.",
+    "card-dir": {
+      "required": true,
+      "carries": "direction_labels below"
+    },
+    "card-ev": {
+      "required": true,
+      "carries": "the product's own evidence vocabulary, listed under evidence_labels"
+    },
+    "card-amt": {
+      "required": "only when the record carries an amount",
+      "omitted_when": "there is no amount. The direction badge already says 'Headcount Not Stated'; a second badge saying the same thing was the duplicate this contract removed.",
+      "carries": "a number plus a real text unit, never a CSS ::after"
+    }
+  },
+
+  "direction_labels": {
+    "hiring": "Adding Roles",
+    "displacement": "Cutting Roles",
+    "comp_shift": "Pay Change",
+    "neutral": "Headcount Not Stated"
+  },
+  "direction_labels_note": [
+    "The stored keys are the two products' own and are NOT shared: the layoff",
+    "tracker has no signal_direction column and derives its key from whether the",
+    "record carries a headcount. What is shared is the four strings.",
+    "'Adding Roles' replaced 'Hiring up' in the talent tracker because 'up' was",
+    "doing the work of 'the source told us headcount is going up', which a reader",
+    "has to reverse-engineer. 'Cutting Roles' is its opposite in the same shape.",
+    "'Headcount Not Stated' is the bucket for a record whose source says nothing",
+    "about headcount at all. It is not an other-category, and naming it that way",
+    "is truer to the rule that neither product infers a direction its source did",
+    "not state. Title Case, not sentence case: the owner has asked for Title Case",
+    "three times, tests/php/render_dashboard.php enforces it on the talent",
+    "tracker's display labels, and these four strings are quoted in Title Case in",
+    "the decision that created this contract. The general sentence-case house",
+    "rule still governs every label OUTSIDE this vocabulary."
+  ],
+  "direction_mapping": {
+    "alt": {
+      "displacement": "the record names a headcount",
+      "neutral": "the record names no headcount",
+      "note": "Every row this product holds is a cut, so 'Adding Roles' and 'Pay Change' never appear here. They are absent, never renamed and never reused for something else."
+    },
+    "tit": {
+      "source": "the stored signal_direction column, unchanged"
+    }
+  },
+
+  "evidence_labels": {
+    "note": "Each product's evidence vocabulary is its own, because the evidence really is different. What the contract fixes is the SLOT: second badge, always present, always carrying words rather than colour alone.",
+    "alt": {
+      "gold": "SEC filing",
+      "warn": "WARN notice",
+      "silver": "Press release",
+      "bronze": "News"
+    },
+    "tit": {
+      "verified": "Official Filing",
+      "reported": "News Report",
+      "rumored": "Unconfirmed"
+    }
+  },
+
+  "not_stated": {
+    "location": "Location not stated",
+    "date": "Date not stated",
+    "class": "card-nowhere",
+    "note": "Said out loud, never left blank and never guessed. Both strings are shared verbatim."
+  },
+
+  "copy_rules": {
+    "no_em_dash": true,
+    "no_superlatives": true,
+    "sentence_case_outside_the_shared_vocabulary": true,
+    "colour_never_alone": "Every badge carries its own words. A reader who cannot see the colour loses nothing."
+  },
+
+  "a11y": {
+    "no_aria_label_over_visible_text": [
+      "An aria-label on an element that already has visible text REPLACES that",
+      "text for a screen reader. The talent tracker shipped longer, invisible,",
+      "differently-worded labels over its visible ones and they read as a",
+      "different page. Inside a card, aria-label is allowed only on an element",
+      "with no text of its own."
+    ],
+    "expander_is_a_button": [
+      "Anything that opens more detail is a real <button type=button> carrying",
+      "aria-expanded, never a click handler on the row or the card. The layoff",
+      "tracker's expander was a mouse-only <tr> click and is now a button; it",
+      "must stay one."
+    ],
+    "title_is_never_the_only_copy": "A title= attribute is a supplement. Nothing that a reader needs may live only there.",
+    "source_link_opens_out": "target=_blank with rel containing noopener."
+  },
+
+  "mobile": {
+    "min_width_px": 375,
+    "rule": "The rail stacks above the body and nothing else changes; the reading order was already the order a reader needs. Nothing inside a card may set a fixed width or a min-width that exceeds the viewport. Long values wrap with overflow-wrap: anywhere rather than being clipped.",
+    "do_not_validate_with": "scrollWidth === innerWidth. It passes on a clipped page, and both sites have an overflow-x rule on a narrow ancestor that makes the comparison meaningless."
+  },
+
+  "changing_this_file": [
+    "1. Edit it in one repo, run that repo's card-contract test, and update the",
+    "   digest that test pins.",
+    "2. Copy the file byte-for-byte into the sibling and do the same there.",
+    "3. Update the spec section in BOTH docs/TECHLOG.md.",
+    "Step 2 is not a convention anyone has to remember: card-contract.yml in each",
+    "repo fetches the sibling's copy and goes red while the two differ."
+  ]
+}

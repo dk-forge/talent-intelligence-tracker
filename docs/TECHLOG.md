@@ -13,6 +13,170 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## THE RESULT CARD CONTRACT (canonical spec, shared with the sibling tracker)
+
+**Machine-readable copy:** `docs/card-contract.json`
+**sha256:** `5ce62ea8d11073b132af83696e222f0a2c4184fba646c5f0adcb9c06f7493af2`
+**Contract version:** 1.0.0, adopted 2026-07-31.
+
+That file is **byte-identical** in `dk-forge/ai-layoff-tracker` and
+`dk-forge/talent-intelligence-tracker`. This section and the section of the same
+name in the sibling's TECHLOG are the human copy of it, and the digest above is
+how you tell whether the copy you are reading is current.
+
+### Why a contract and not shared code
+
+The two trackers render the same kind of fact: an employer, a place, a
+direction, an evidence tier, an amount, a headline, a source. The owner
+screenshotted the talent tracker's list, liked it, and asked for the layoff
+tracker's to match. By the time an agent looked, the talent tracker had already
+changed its own labels, so neither side could say which design was current.
+
+**The mismatch was not the defect. The inability to say which one was current
+was the defect.** Matching the pixels once would have fixed nothing; they had
+already drifted once and would drift again.
+
+Shared code was considered and rejected. Different repos, different tables,
+different REST namespaces, different plugins, different deploy paths, different
+languages on the server side (one renders the first paint in PHP, the other
+inlines a bootstrap and renders in JS). A shared library across that boundary
+buys a smaller problem at the price of a much worse one: a coupled release
+cycle, and a change to one product's card blocked on the other product's deploy.
+
+What is shared is the **contract**, and what enforces it is a build that goes
+red when one side wanders.
+
+### The card
+
+Every class below is a **suffix**. Each product renders it with its own prefix:
+suffix `card-rail` is `alt-card-rail` here and `tit-card-rail` in the sibling. A
+product may put extra classes on the same element (its own colour and state
+classes); the contract class must be present.
+
+```
+<ol|ul class="{p}-cards">
+  <li class="{p}-card">
+    <div class="{p}-card-rail">            who, and where
+      <span class="{p}-card-employer">     serif
+      <span class="{p}-card-industry">     optional; ABSENT when unknown, never blank
+      <span class="{p}-card-where">        location, or "Location not stated" in {p}-card-nowhere
+    </div>
+    <div class="{p}-card-body">
+      <div class="{p}-card-badges">        direction, evidence, amount, then the product's own
+        <span class="{p}-card-dir">
+        <span class="{p}-card-ev">
+        <span class="{p}-card-amt">        ONLY when there is an amount
+      </div>
+      <a|span class="{p}-card-h">          the fact, one line; link colour only when it links
+      <p class="{p}-card-rt">              our plain-English read, visually separated
+      <div class="{p}-card-foot">
+        <time class="{p}-card-when">       or "Date not stated" in {p}-card-nowhere
+        <span class="{p}-card-src">        publisher, outbound; archived copy SECOND, never instead
+      </div>
+    </div>
+  </li>
+</ol>
+```
+
+### The words
+
+| Stored | Label |
+|---|---|
+| `hiring` | Adding Roles |
+| `displacement` | Cutting Roles |
+| `comp_shift` | Pay Change |
+| `neutral` | Headcount Not Stated |
+
+The **keys are each product's own and are not shared**; the four strings are.
+The talent tracker reads them off its `signal_direction` column. The layoff
+tracker has no such column and derives its key: a record naming a headcount is
+`displacement`, a record naming none is `neutral`. `hiring` and `comp_shift`
+never occur there, because everything it holds is a cut. They are absent, never
+renamed, never reused for something else.
+
+**Why this vocabulary.** "Adding Roles" replaced "Hiring up" in the talent
+tracker after the owner asked what "hiring up" meant, which is a fair question
+about a phrase nobody says: "up" was doing the work of "the source told us
+headcount is going up". "Cutting Roles" is its opposite in the same shape, where
+"Cutting back" could have meant costs, hours or investment. "Headcount Not
+Stated" replaced "Other change", which told a reader nothing: it is the bucket
+for a record whose source says nothing about headcount at all, and naming it
+that way is truer to the rule that neither product infers a direction its source
+did not state. That reasoning stands, so the layoff tracker adopted it rather
+than the reverse.
+
+**Why Title Case here specifically.** The general house rule is sentence case,
+and it still governs every label outside these four. These four are the
+exception on the record: the owner has asked for Title Case three times, the
+talent tracker's `tests/php/render_dashboard.php` enforces it on its display
+labels, and the decision that created this contract quoted the four strings in
+Title Case. Changing that is a contract change, not a tidy-up.
+
+**Evidence labels stay each product's own**, because the evidence really is
+different (`SEC filing / WARN notice / Press release / News` against
+`Official Filing / News Report / Unconfirmed`). What the contract fixes is the
+**slot**: second badge, always present, always carrying words and never colour
+alone.
+
+**Shared verbatim:** "Location not stated", "Date not stated". Said out loud,
+never left blank, never guessed.
+
+**The amount badge is omitted when there is no amount.** It is not a pill
+reading "count not stated" or "no funding stated": the direction badge has
+already said so, and two badges saying one thing was the duplicate this contract
+removed.
+
+### Accessibility, pinned because both products already paid for it
+
+- Anything that opens more detail is a real `<button type=button aria-expanded>`,
+  never a click handler on the row. The layoff tracker's expander was a
+  mouse-only `<tr>` click; it is a button and stays one.
+- **No `aria-label` over visible text.** An aria-label on an element that
+  already has text replaces that text for a screen reader; the talent tracker
+  shipped longer, invisible, differently worded labels over its visible ones.
+  Inside a card an aria-label is allowed only on an element with no text of its
+  own, and today no element in either card qualifies.
+- `title=` is a supplement. Nothing a reader needs lives only there.
+- Source links: `target="_blank"` with `rel` containing `noopener`.
+
+### 375px
+
+The rail stacks above the body and nothing else changes. Nothing inside a card
+sets a fixed width or a min-width; long values wrap with
+`overflow-wrap: anywhere`. **Do not validate this with
+`scrollWidth === innerWidth`** — that passes on a clipped page, an
+`overflow-x: clip` on a narrow ancestor guillotined the talent tracker's hero
+headline in 1.37.0, and the layoff tracker's theme ships an inline
+`html,body{overflow-x:hidden}` that makes the comparison meaningless there too.
+Both test suites therefore check the **cause** (no pinned widths, wrapping on
+the free-text fields) rather than the symptom.
+
+### What stops it drifting again
+
+Three mechanisms, and each covers what the others cannot.
+
+1. **`test_card_contract` in each repo**, offline, on every push. Reads the
+   contract and asserts that the markup that repo actually renders satisfies it:
+   every required class, the badge order, the region reading order, the label
+   maps parsed out of the source, the two a11y rules, the mobile rules. It
+   cannot see the sibling.
+2. **The digest, recorded twice per repo** — in the test and in this section.
+   An accidental edit to the contract fails the test. A deliberate edit means
+   updating the digest, which is the moment you are told this is a two-repo
+   change.
+3. **`.github/workflows/card-contract.yml` in each repo**, which fetches the
+   sibling's copy of `docs/card-contract.json` and goes red while the two
+   differ. This is the only mechanism that can see across the repo boundary,
+   which is why it needs a network and lives in CI rather than in the offline
+   suite. Both repos are public, so it needs no token.
+
+**Changing the card is a four-step job and you cannot do three of them and
+ship:** edit the contract, update the digest in the test and here, change the
+markup, copy the contract into the sibling. Miss the last step and both repos go
+red until somebody finishes.
+
+---
+
 ## 2026-07-31 — Spain states both directions, and a board renewal states both about the same person
 
 `collectors/spain_borme.py`, one new dormant Sunday slot in

@@ -144,10 +144,14 @@
     rumored: 'Unconfirmed'
   };
 
+  // Mirrors the `tit-{signal_direction}` class tit_card_html() prints. `neutral`
+  // was missing and fell through to the bare tag, which put a different class on
+  // a repainted card than on the one the server sent.
   var DIRECTION_CLASS = {
     hiring: 'tit-hiring',
     displacement: 'tit-displacement',
-    comp_shift: 'tit-comp_shift'
+    comp_shift: 'tit-comp_shift',
+    neutral: 'tit-neutral'
   };
 
   // Recruiter language. Colour never carries the meaning on its own, so the
@@ -267,10 +271,15 @@
   // said out loud when there is not one. Parsed by hand from YYYY-MM-DD rather
   // than through Date(), which reads a bare date as UTC midnight and can show
   // the previous day to anyone west of Greenwich.
+  // A real <time datetime> when there is a date, and the shared not-stated
+  // string wrapped in the contract's card-nowhere class when there is not.
+  // Mirrors tit_card_html() in shortcodes.php.
   function whenCell(r) {
-    var d = (r.published_date || '').slice(0, 10).split('-');
-    if (d.length !== 3) return '<span class="tit-nowhere">Date not stated</span>';
-    return esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]);
+    var iso = (r.published_date || '').slice(0, 10);
+    var d = iso.split('-');
+    if (d.length !== 3) return '<span class="tit-card-when tit-card-nowhere">Date not stated</span>';
+    return '<time class="tit-card-when" datetime="' + esc(iso) + '">' +
+      esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]) + '</time>';
   }
 
   // The archived copy, and only ever as a SECOND link beside the publisher's
@@ -291,7 +300,19 @@
       'title="Archived copy at the Internet Archive">Archived</a></span>';
   }
 
-  function renderRow(r) {
+  // ONE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.
+  //
+  // This MUST produce the same markup tit_card_html() produces in
+  // shortcodes.php, or a filtered card would lay out differently from the card
+  // it replaced, and the same shape the sibling AI Layoff Tracker renders:
+  // same regions, same class suffixes, same badge order, same four direction
+  // words. tests/test_card_contract.py pins all of it.
+  //
+  // Reading order, and it is the order a person needs:
+  //   rail  who they are, what sector, where
+  //   body  what kind of move (direction, evidence, amount), the fact, our read
+  //   foot  when, and the document it came from
+  function renderCard(r) {
     // Fall back to headquarters when the source named no place, and say so.
     var isHq = !r.city && !r.country;
     var place = r.city || r.hq_city || '';
@@ -299,28 +320,54 @@
     var country = countryLabel(code);
     var where = esc([place, country].filter(Boolean).join(', '));
     if (!where) {
-      where = '<span class="tit-nowhere">Location not stated</span>';
+      where = '<span class="tit-card-nowhere">Location not stated</span>';
     } else if (isHq) {
       where += ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
     }
 
-    // data-label mirrors the header text. Below the table breakpoint each row
-    // becomes a card and the labels are the only thing naming the fields.
-    // The classes here must match what shortcodes.php renders, or a filtered
-    // row would lay out differently from the row it replaced.
-    return '<tr>' +
-      '<td class="tit-eyebrow" data-label="Employer">' + esc(r.company) + '</td>' +
-      '<td class="tit-headline" data-label="What happened"><span class="tit-h">' + esc(r.headline) + '</span>' +
-      '<span class="tit-rt">' + esc(r.talent_readthrough) + '</span></td>' +
-      '<td class="tit-meta" data-label="Where">' + where + '</td>' +
-      '<td class="tit-meta" data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
-        esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
-      '<td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
-        esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
-      '<td class="tit-meta tit-when" data-label="When">' + whenCell(r) + '</td>' +
-      '<td class="tit-meta" data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
-        esc(r.source_name) + '</a>' + archivedLink(r) + '</td>' +
-      '</tr>';
+    // Omitted entirely when the record carries none. Never an empty line and
+    // never a placeholder: the contract asks for the field to be absent.
+    var industry = r.industry
+      ? '<span class="tit-card-industry">' + esc(INDUSTRY_LABEL[r.industry] || r.industry) + '</span>'
+      : '';
+
+    // Badge three, and ONLY when there is an amount. There is no "no funding
+    // stated" pill: the direction badge already says what the source did and
+    // did not tell us, and a second badge repeating it was the duplicate the
+    // shared contract removed. Real text for the unit, never a CSS ::after: a
+    // bare "$12M" tells a screen reader nothing about what was raised.
+    var usd = Number(r.funding_amount_usd || 0);
+    var amount = usd > 0
+      ? '<span class="tit-card-amt">' + esc(moneyShort(usd)) +
+        '<span class="tit-card-amt-unit"> raised</span></span>'
+      : '';
+
+    return '<li class="tit-card">' +
+      '<div class="tit-card-rail">' +
+        '<span class="tit-card-employer">' + esc(r.company) + '</span>' +
+        industry +
+        '<span class="tit-card-where">' + where + '</span>' +
+      '</div>' +
+      '<div class="tit-card-body">' +
+        // Contract badge order: direction, evidence, amount.
+        '<div class="tit-card-badges">' +
+          '<span class="tit-card-dir tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || 'tit-neutral') + '">' +
+            esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span>' +
+          '<span class="tit-card-ev tit-conf tit-c-' + esc(r.confidence) + '">' +
+            esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span>' +
+          amount +
+        '</div>' +
+        '<span class="tit-card-h tit-h">' + esc(r.headline) + '</span>' +
+        (r.talent_readthrough
+          ? '<p class="tit-card-rt tit-rt">' + esc(r.talent_readthrough) + '</p>' : '') +
+        '<div class="tit-card-foot">' +
+          whenCell(r) +
+          '<span class="tit-card-src"><a href="' + esc(r.source_url) +
+            '" rel="nofollow noopener" target="_blank">' + esc(r.source_name) + '</a>' +
+            archivedLink(r) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '</li>';
   }
 
   // --- The rest of the page follows the filters -----------------------------
@@ -1599,7 +1646,6 @@
     syncCountryButtons();
     syncCityButtons();
     syncBasis();
-    syncSortHeads();
 
     paintActive();
     syncChartStates();
@@ -1632,16 +1678,16 @@
         // nothing beats guessing, and it says so where the rows would be.
         // A one-line "nothing matches" in a seven-column table read as a
         // rendering fault; this reads as an answer, and it carries its own
-        // way out (handled by delegation on the tbody, since this markup is
+        // way out (handled by delegation on the list, since this markup is
         // re-created on every empty render).
         tbody.innerHTML = data.rows.length
-          ? data.rows.map(renderRow).join('')
-          : '<tr class="tit-empty-tr"><td colspan="7">' +
+          ? data.rows.map(renderCard).join('')
+          : '<li class="tit-cards-empty">' +
             '<div class="tit-table-empty">' +
             '<p class="tit-table-empty-h">Nothing matches those filters</p>' +
             '<p class="tit-table-empty-p">We would rather show you nothing than guess.</p>' +
             '<button type="button" class="tit-empty-clear">Reset all filters</button>' +
-            '</div></td></tr>';
+            '</div></li>';
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
@@ -2393,62 +2439,22 @@
     }
   }
 
-  // --- Sortable table headers ----------------------------------------------
-  // A header click sets the SAME `sort` parameter the select above uses, so it
-  // orders the whole filtered set on the server, round-trips through the URL,
-  // and rides along with the exports. Two keys per column so a second click
-  // reverses it, and the select gains an option for whatever the headers chose
-  // so the two controls can never contradict each other.
-  var COL_SORT = {
-    employer: ['employer', 'employer_desc'],
-    place: ['place', 'place_desc'],
-    evidence: ['evidence', 'evidence_desc'],
-    when: ['newest', 'oldest']
-  };
-  // 'when' is the odd one: newest first IS descending by date.
-  var COL_DIR = {
-    employer: ['ascending', 'descending'],
-    place: ['ascending', 'descending'],
-    evidence: ['ascending', 'descending'],
-    when: ['descending', 'ascending']
-  };
+  // --- Sort orderings that no longer have a column header --------------------
+  // Four sortable <th> buttons used to set the SAME `sort` parameter the select
+  // uses. The results are cards now and have no column headers, so every one of
+  // those orderings is a server-rendered <option> in that select instead: the
+  // values are unchanged, so a link somebody saved from the old page still
+  // lands on the ordering it names.
+  //
+  // This map stays because applyUrlState() still needs it. A shared link can
+  // carry a sort value that arrived before its option did, and dropping the
+  // value because the option does not exist YET is what once made every shared
+  // link to a single country come back as the whole world.
   var SORT_OPTION_LABEL = {
     employer_desc: 'Employer Z to A',
-    place: 'By place', place_desc: 'By place, reversed',
-    evidence: 'Strongest evidence first', evidence_desc: 'Weakest evidence first'
+    place: 'By Place', place_desc: 'By Place, Reversed',
+    evidence: 'Strongest Evidence First', evidence_desc: 'Weakest Evidence First'
   };
-
-  var sortHeads = Array.prototype.slice.call(root.querySelectorAll('th.tit-th-sort'));
-
-  function syncSortHeads() {
-    var current = inputs.sort ? inputs.sort.value : '';
-    sortHeads.forEach(function (th) {
-      var pair = COL_SORT[th.getAttribute('data-col')] || [];
-      var at = pair.indexOf(current);
-      var dir = at < 0 ? 'none' : (COL_DIR[th.getAttribute('data-col')] || [])[at];
-      th.setAttribute('aria-sort', dir || 'none');
-      var arrow = th.querySelector('.tit-th-arrow');
-      if (arrow) {
-        arrow.textContent = dir === 'ascending' ? '\u25B2'
-                          : (dir === 'descending' ? '\u25BC' : '\u21C5');
-      }
-    });
-  }
-
-  sortHeads.forEach(function (th) {
-    var btn = th.querySelector('button');
-    if (!btn || !inputs.sort) return;
-    btn.addEventListener('click', function () {
-      var pair = COL_SORT[th.getAttribute('data-col')] || [];
-      if (!pair.length) return;
-      var next = inputs.sort.value === pair[0] ? pair[1] : pair[0];
-      // The select must be able to SAY what the headers chose, or it would sit
-      // there reading "Most useful first" over a table sorted by employer.
-      ensureOption(inputs.sort, next, SORT_OPTION_LABEL[next] || next);
-      inputs.sort.value = next;
-      refresh();
-    });
-  });
 
   syncAllPills();
   collapseMatrixNoteOnPhone();

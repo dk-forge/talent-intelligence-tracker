@@ -280,9 +280,14 @@ function tit_dashboard_facts($table) {
     // order. A stated headcount or a real funding amount outranks a bare
     // officer change; an unjudged row outranks a judged-routine one.
     $facts['rows'] = $wpdb->get_results(
+        // industry and funding_amount_usd joined the list when the results
+        // became cards: the card's rail names the sector and its third badge
+        // names the amount, and a column missing here renders as a card that
+        // silently drops both on the first paint and grows them on the first
+        // repaint. See docs/card-contract.json.
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
-                archive_url, published_date
+                archive_url, published_date, industry, funding_amount_usd
            FROM {$table} WHERE {$base}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
@@ -463,26 +468,10 @@ function tit_dashboard_html() {
         'rewards_comp'        => 'Pay and Benefits',
         'how_we_work'         => 'Ways of Working',
     );
-    $directions = array(
-        /*
-          "Adding Roles", not "Hiring up". The owner asked what "hiring up"
-          meant, and it is a fair question about a phrase nobody says: "up"
-          is doing the work of "the source told us headcount is going up",
-          which a reader has to reverse-engineer. "Adding Roles" is the thing
-          itself. "Cutting Roles" is its opposite in the same shape, where
-          "Cutting back" could have meant costs, hours or investment.
-          Stored values (hiring, displacement, comp_shift, neutral) unchanged.
-        */
-        'hiring'       => 'Adding Roles',
-        'displacement' => 'Cutting Roles',
-        'comp_shift'   => 'Pay Change',
-        // "Other change" told the reader nothing: it is the bucket for updates
-        // whose source says nothing about headcount at all (a funding round
-        // with no hiring plan, a CEO succession). Naming that plainly is both
-        // clearer and truer to the rule that we never infer a direction the
-        // source did not state.
-        'neutral'      => 'Headcount Not Stated',
-    );
+    // One definition, in tit_direction_labels(), because these four strings are
+    // now SHARED WITH THE SIBLING AI LAYOFF TRACKER and a second copy here is a
+    // second place for them to drift. See docs/card-contract.json.
+    $directions = tit_direction_labels();
     $functions = array(
         'engineering' => 'Engineering', 'data_ai' => 'Data & AI',
         'it_infrastructure' => 'IT & Infrastructure', 'product' => 'Product',
@@ -1350,9 +1339,14 @@ function tit_dashboard_html() {
         <?php /* The sort belongs with the rows it orders. It used to sit up in
                  the quick-views strip, three screens above the table, which is
                  where a reader chooses a VIEW and not where they reorder one
-                 they are already reading. Column headers below do the same job
-                 for the columns they name; this covers the orderings that are
-                 not a column, like "most useful" and "biggest raises". */ ?>
+                 they are already reading.
+
+                 IT IS NOW THE ONLY SORT CONTROL. Four sortable column headers
+                 used to sit below it, and a card list has no column headers to
+                 hang them on. Every ordering they offered is an option here
+                 instead, so nothing a reader could reach before became
+                 unreachable, and the `sort` parameter they wrote is unchanged:
+                 old share links still land on the ordering they name. */ ?>
         <label class="tit-detail-sort">
           <span class="tit-detail-l">Sort</span>
           <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
@@ -1363,6 +1357,14 @@ function tit_dashboard_html() {
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
             <option value="employer">Employer A to Z</option>
+            <?php /* Inherited from the retired column headers. The values are
+                     the ones those headers already sent to /query, which is why
+                     a link somebody saved from the old page still works. */ ?>
+            <option value="employer_desc">Employer Z to A</option>
+            <option value="place">By Place</option>
+            <option value="place_desc">By Place, Reversed</option>
+            <option value="evidence">Strongest Evidence First</option>
+            <option value="evidence_desc">Weakest Evidence First</option>
             <?php /* Sorting on money only works because funding_amount_usd is
                      a number; the display string beside it cannot be ordered. */ ?>
             <option value="raised">Biggest Raises First</option>
@@ -1374,106 +1376,32 @@ function tit_dashboard_html() {
                machinery begins, and a section marker has to say so or the
                quick views read as a fourth chart. The id is the jump bar's
                scroll target on phones. */ ?>
-      <div class="tit-table-scroll">
-        <table class="tit-table">
-          <?php
-          /*
-            Sortable columns. Each one drives the SERVER sort through /query, so
-            it orders the whole filtered set and not the fifty rows that happen
-            to be on screen; a header that reordered only the visible page would
-            be a sort that lies about its own scope. The state rides on the same
-            `sort` parameter as the select above, so it round-trips through the
-            URL and the exports like everything else, and aria-sort carries it
-            for anyone not looking at the arrow.
-          */
-          $sortable = array(
-              'Employer' => 'employer',
-              'Where'    => 'place',
-              'Evidence' => 'evidence',
-              'When'     => 'when',
-          );
-          $columns = array('Employer', 'What happened', 'Where',
-                           'What it means', 'Evidence', 'When', 'Source');
-          ?>
-          <thead>
-            <tr>
-              <?php foreach ($columns as $col) :
-                if (!isset($sortable[$col])) : ?>
-                  <th scope="col"><?php echo esc_html($col); ?></th>
-                <?php else : ?>
-                  <th scope="col" class="tit-th-sort" aria-sort="none"
-                      data-col="<?php echo esc_attr($sortable[$col]); ?>">
-                    <button type="button"><?php echo esc_html($col); ?><span
-                      class="tit-th-arrow" aria-hidden="true"></span></button>
-                  </th>
-                <?php endif;
-              endforeach; ?>
-            </tr>
-          </thead>
-          <tbody id="tit-rows">
-            <?php foreach ($rows as $r) : ?>
-              <tr>
-                <td class="tit-eyebrow" data-label="Employer"><?php
-                  $ck = $r['company_key'] ?? '';
-                  if ($ck && function_exists('tit_company_url')) {
-                      printf('<a href="%s">%s</a>', esc_url(tit_company_url($ck)), esc_html($r['company']));
-                  } else {
-                      echo esc_html($r['company']);
-                  }
-                ?></td>
-                <td class="tit-headline" data-label="What happened">
-                  <span class="tit-h"><?php echo esc_html($r['headline']); ?></span>
-                  <span class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></span>
-                </td>
-                <td class="tit-meta" data-label="Where">
-                  <?php
-                  $place = $r['city'] ?: $r['hq_city'];
-                  $cc    = $r['country'] ?: $r['hq_country'];
-                  $is_hq = !$r['city'] && !$r['country'];
-                  $where = trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', ');
-                  if ($where === '') {
-                      // Stored anyway: geography is how we segment, not what
-                      // makes the record true. Saying so beats a blank cell.
-                      echo '<span class="tit-nowhere">Location not stated</span>';
-                  } else {
-                      echo esc_html($where);
-                      if ($is_hq) echo ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
-                  }
-                  ?>
-                </td>
-                <td class="tit-meta" data-label="What it means"><span class="tit-tag tit-<?php echo esc_attr($r['signal_direction']); ?>"><?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?></span></td>
-                <td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
-                  echo esc_html($confidences[$r['confidence']] ?? $r['confidence']); ?></span></td>
-                <td class="tit-meta tit-when" data-label="When"><?php
-                  $when = $r['published_date'] ?: '';
-                  echo $when ? esc_html(date_i18n('j M Y', strtotime($when)))
-                             : '<span class="tit-nowhere">Date not stated</span>';
-                ?></td>
-                <td class="tit-meta" data-label="Source"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a><?php
-                  // The fallback, and only ever a SECOND link. Publishers
-                  // unpublish, rewrite their URL schemes and let domains lapse,
-                  // and when that happens a sourced claim silently becomes an
-                  // unsourced one. A neutral third-party snapshot keeps the
-                  // evidence reachable. The publisher's own copy is the
-                  // citation and stays the citation; this never replaces it.
-                  //
-                  // Printed ONLY where a snapshot exists. Never a placeholder
-                  // and never a disabled control: on a page whose whole claim
-                  // is that every figure still links to its document, a link
-                  // offered and then not there is worse than no link.
-                  //
-                  // The separator is not in this markup. It is a CSS ::before,
-                  // because below 860px each row is a card and this cell shares
-                  // one wrapping line with the rest of the meta; a literal
-                  // middot that wraps lands at the START of the new line and
-                  // reads as a bullet whose text went missing. See the
-                  // .tit-archived rules in dashboard.css.
-                  if (!empty($r['archive_url'])): ?><span class="tit-archived"><a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank" title="Archived copy at the Internet Archive">Archived</a></span><?php endif; ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
+      <?php
+      /*
+        THE RESULTS ARE CARDS, AND THEY ARE THE SIBLING'S CARDS.
+
+        This was a seven-column table that turned itself into cards below 860px
+        with a stack of @media rules, and every one of those rules was a second
+        description of the same layout waiting to disagree with the first. It is
+        one card now, at every width.
+
+        The shape is fixed in docs/card-contract.json, which is BYTE-IDENTICAL to
+        the copy in the AI Layoff Tracker: same regions, same class suffixes,
+        same badge order, same four direction words. The two products render the
+        same kind of fact and had drifted into two designs and two vocabularies,
+        with neither side able to say which was current. tit_card_html() below
+        is the one renderer; renderCard() in dashboard.js reprints the same
+        markup on every repaint; tests/test_card_contract.py pins both against
+        the contract, and .github/workflows/card-contract.yml pins the contract
+        against the sibling's copy.
+
+        The <ul> keeps the id `tit-rows` the JavaScript already replaces, so the
+        filter path is untouched by this change.
+      */
+      ?>
+      <ul class="tit-cards" id="tit-rows">
+        <?php foreach ($rows as $r) { echo tit_card_html($r); } ?>
+      </ul>
 
       <!--
         Download exactly what the filters show. The hrefs are server-rendered
@@ -3235,6 +3163,162 @@ function tit_confidence_labels() {
         'reported' => 'News Report',
         'rumored'  => 'Unconfirmed',
     );
+}
+
+/**
+ * THE SHARED DIRECTION VOCABULARY. Four strings, and they are not only ours.
+ *
+ * MIRRORS direction_labels IN docs/card-contract.json AND DIRECTION_LABEL IN
+ * assets/dashboard.js, AND THE SIBLING AI LAYOFF TRACKER'S OWN COPY OF BOTH.
+ * Changing a word here without changing it in all four places fails
+ * tests/test_card_contract.py in this repo and, once the contract file differs,
+ * .github/workflows/card-contract.yml in both.
+ *
+ * "Adding Roles", not "Hiring up". The owner asked what "hiring up" meant, and
+ * it is a fair question about a phrase nobody says: "up" is doing the work of
+ * "the source told us headcount is going up", which a reader has to
+ * reverse-engineer. "Adding Roles" is the thing itself. "Cutting Roles" is its
+ * opposite in the same shape, where "Cutting back" could have meant costs,
+ * hours or investment. Stored values (hiring, displacement, comp_shift,
+ * neutral) unchanged.
+ *
+ * "Headcount Not Stated" replaced "Other change", which told the reader
+ * nothing: it is the bucket for updates whose source says nothing about
+ * headcount at all (a funding round with no hiring plan, a CEO succession).
+ * Naming that plainly is both clearer and truer to the rule that we never infer
+ * a direction the source did not state. The sibling reuses that same bucket for
+ * a layoff whose record names no headcount, which is the identical fact.
+ *
+ * Title Case, deliberately, and the shared contract records why: the owner has
+ * asked for Title Case three times and tests/php/render_dashboard.php enforces
+ * it here. The sentence-case house rule governs every label outside these four.
+ */
+function tit_direction_labels() {
+    return array(
+        'hiring'       => 'Adding Roles',
+        'displacement' => 'Cutting Roles',
+        'comp_shift'   => 'Pay Change',
+        'neutral'      => 'Headcount Not Stated',
+    );
+}
+
+/**
+ * ONE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.
+ *
+ * This markup and renderCard() in assets/dashboard.js MUST produce the same
+ * shape, or a filtered card would lay out differently from the card it
+ * replaced. It must also match the sibling AI Layoff Tracker's card: same
+ * regions, same class suffixes, same badge order, same four direction words.
+ * tests/test_card_contract.py pins all of that against the contract file, and
+ * .github/workflows/card-contract.yml pins the contract file against the
+ * sibling's copy of it, so neither product can wander alone.
+ *
+ * Structure, and it is the reading order a person needs:
+ *   rail  who they are, what sector, where
+ *   body  what kind of move (direction, evidence, amount), the fact, our read
+ *   foot  when, and the document it came from
+ */
+function tit_card_html($r) {
+    $directions  = tit_direction_labels();
+    $confidences = tit_confidence_labels();
+    $industries  = tit_industry_labels();
+
+    $dir_key = isset($r['signal_direction']) ? (string) $r['signal_direction'] : 'neutral';
+    $conf    = isset($r['confidence']) ? (string) $r['confidence'] : '';
+
+    // Fall back to headquarters when the source named no place, and say so.
+    $is_hq = empty($r['city']) && empty($r['country']);
+    $place = $r['city'] ?: ($r['hq_city'] ?? '');
+    $cc    = $r['country'] ?: ($r['hq_country'] ?? '');
+    $where = trim(($place ? $place . ', ' : '') . tit_country_name($cc), ', ');
+
+    ob_start(); ?>
+<li class="tit-card">
+  <div class="tit-card-rail">
+    <span class="tit-card-employer"><?php
+      $ck = $r['company_key'] ?? '';
+      if ($ck && function_exists('tit_company_url')) {
+          printf('<a href="%s">%s</a>', esc_url(tit_company_url($ck)), esc_html($r['company']));
+      } else {
+          echo esc_html($r['company']);
+      }
+    ?></span>
+    <?php /* Omitted entirely when the record carries none. Never an empty line
+             and never a placeholder: the contract asks for the field to be
+             absent, not blank. */
+    if (!empty($r['industry'])) : ?>
+      <span class="tit-card-industry"><?php
+        echo esc_html($industries[$r['industry']] ?? $r['industry']); ?></span>
+    <?php endif; ?>
+    <span class="tit-card-where"><?php
+      if ($where === '') {
+          // Stored anyway: geography is how we segment, not what makes the
+          // record true. Saying so beats a blank line.
+          echo '<span class="tit-card-nowhere">Location not stated</span>';
+      } else {
+          echo esc_html($where);
+          if ($is_hq) echo ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
+      }
+    ?></span>
+  </div>
+  <div class="tit-card-body">
+    <?php /* Contract badge order: direction, evidence, amount. Colour never
+             carries any of them on its own, which is why each one says its
+             words and the words are the part the contract pins. */ ?>
+    <div class="tit-card-badges">
+      <span class="tit-card-dir tit-tag tit-<?php echo esc_attr($dir_key); ?>"><?php
+        echo esc_html($directions[$dir_key] ?? $dir_key); ?></span>
+      <span class="tit-card-ev tit-conf tit-c-<?php echo esc_attr($conf); ?>"><?php
+        echo esc_html($confidences[$conf] ?? $conf); ?></span>
+      <?php /* ONLY when there is an amount. There is no "no funding stated"
+               pill: the direction badge already says what the source did and
+               did not tell us, and a second badge repeating it was the
+               duplicate the shared contract removed. */
+      $usd = (float) ($r['funding_amount_usd'] ?? 0);
+      if ($usd > 0) : ?>
+        <span class="tit-card-amt"><?php echo esc_html(tit_money_short($usd)); ?><span
+          class="tit-card-amt-unit"> raised</span></span>
+      <?php endif; ?>
+    </div>
+    <span class="tit-card-h tit-h"><?php echo esc_html($r['headline']); ?></span>
+    <?php if (!empty($r['talent_readthrough'])) : ?>
+      <p class="tit-card-rt tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></p>
+    <?php endif; ?>
+    <div class="tit-card-foot">
+      <?php
+      $when = $r['published_date'] ?: '';
+      if ($when) {
+          printf('<time class="tit-card-when" datetime="%s">%s</time>',
+                 esc_attr(substr($when, 0, 10)),
+                 esc_html(date_i18n('j M Y', strtotime($when))));
+      } else {
+          echo '<span class="tit-card-when tit-card-nowhere">Date not stated</span>';
+      }
+      ?>
+      <span class="tit-card-src"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php
+        echo esc_html($r['source_name']); ?></a><?php
+        // The fallback, and only ever a SECOND link. Publishers unpublish,
+        // rewrite their URL schemes and let domains lapse, and when that
+        // happens a sourced claim silently becomes an unsourced one. A neutral
+        // third-party snapshot keeps the evidence reachable. The publisher's
+        // own copy is the citation and stays the citation; this never replaces
+        // it.
+        //
+        // Printed ONLY where a snapshot exists. Never a placeholder and never a
+        // disabled control: on a page whose whole claim is that every figure
+        // still links to its document, a link offered and then not there is
+        // worse than no link.
+        //
+        // The separator is not in this markup. It is a CSS ::before, because
+        // this shares one wrapping line with the date and a literal middot that
+        // wraps lands at the START of the new line and reads as a bullet whose
+        // text went missing. See the .tit-archived rules in dashboard.css.
+        if (!empty($r['archive_url'])): ?><span class="tit-archived"><a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank" title="Archived copy at the Internet Archive">Archived</a></span><?php endif; ?></span>
+    </div>
+  </div>
+</li>
+<?php
+    return ob_get_clean();
 }
 
 /** Round names as a reader would say them, matching the pipeline's vocabulary. */

@@ -174,6 +174,88 @@
 .tit-wrap .tit-rt { display:block; margin-top:5px; font-size:14px; color:var(--tit-mut);
   border-left:3px solid var(--tit-line); padding-left:9px; }
 
+/* ---------------------------------------------------------------------------
+   THE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.
+
+   This is the same card the sibling AI Layoff Tracker renders, and the contract
+   file is byte-identical in both repos. The two products show the same kind of
+   fact and had drifted into two designs; this is the one design.
+
+   The results used to be a seven-column table that turned into cards below
+   860px through a stack of @media rules. Two descriptions of one layout is two
+   things to keep in agreement, and they did not stay in agreement. It is one
+   card at every width now. The .tit-table rules above stay because the sources,
+   recall and trend pages still use them.
+
+   Each card is a two-part shape: a left RAIL saying who and where, and a BODY
+   saying what happened, on what evidence, and where that evidence lives. On a
+   phone the rail stacks above the body and nothing else changes, because the
+   reading order was already the order a reader needs. Nothing here sets a
+   min-width, so there is nothing to side-scroll and nothing to clip.
+   --------------------------------------------------------------------------- */
+.tit-cards { list-style:none; margin:0; padding:0; }
+
+.tit-card { display:grid; grid-template-columns:1fr; gap:4px 20px;
+  border:1px solid var(--tit-line); border-radius:12px; background:#fff;
+  box-shadow:var(--tit-shadow); padding:14px 16px; margin:0 0 10px; }
+/* The rail becomes a fixed column so every employer name starts at the same x
+   and the eye can run straight down them, which is the one thing the table
+   genuinely did well. */
+@media (min-width:700px){ .tit-card { grid-template-columns:190px minmax(0,1fr); } }
+.tit-card:hover { background:#f9fbfd; }
+
+/* --- The rail: who, and where ------------------------------------------- */
+.tit-card-rail { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.tit-wrap .tit-card-employer { font-family:var(--tit-serif); font-size:17px;
+  font-weight:600; line-height:1.25; color:var(--tit-fg); overflow-wrap:anywhere; }
+.tit-wrap .tit-card-employer a { color:inherit; text-decoration:none; border-bottom:0; }
+.tit-wrap .tit-card-employer a:hover { text-decoration:underline; }
+.tit-card-industry { font-size:12px; font-weight:600; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--tit-faint); }
+.tit-card-where { font-size:13px; line-height:1.35; color:var(--tit-mut); }
+/* A record we could not place, or could not date. Said out loud rather than
+   left blank, and never guessed. */
+.tit-card-nowhere { color:var(--tit-faint); font-style:italic; }
+
+/* --- The body: what happened, on what evidence -------------------------- */
+.tit-card-body { min-width:0; }
+.tit-card-badges { display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+  margin:0 0 7px; }
+/* The amount is the number a reader scans for, and the one thing a table did
+   better than a card. It gets the weight a headline figure deserves without
+   becoming the headline. */
+.tit-card-amt { font-size:15px; font-weight:700; letter-spacing:-.01em;
+  color:var(--tit-fg); font-variant-numeric:tabular-nums;
+  background:var(--tit-surface); border:1px solid var(--tit-grid);
+  border-radius:7px; padding:2px 9px; white-space:nowrap; }
+/* Real text, not a CSS ::after: a bare "$12M" tells a screen reader nothing
+   about what was raised, and generated content is not a dependable substitute
+   for saying so. */
+.tit-card-amt-unit { font-size:12px; font-weight:600; color:var(--tit-mut);
+  letter-spacing:0; }
+
+.tit-wrap .tit-card-h { display:block; font-size:16px; font-weight:600;
+  line-height:1.35; color:var(--tit-fg); overflow-wrap:anywhere; }
+/* Our plain-English read of the record, visually separated from the sourced
+   fact above it so the two are never mistaken for each other. */
+.tit-wrap .tit-card-rt { display:block; margin:6px 0 0; font-size:13.5px;
+  line-height:1.5; color:var(--tit-mut); border-left:3px solid var(--tit-line);
+  padding-left:10px; }
+
+/* --- The footer: when, and the receipts --------------------------------- */
+/* Short self-describing values sharing one wrapping row, separated by spacing
+   and not by punctuation: a middot rendered as each item's ::before lands at
+   the START of a wrapped line, where it reads as a bullet that lost its text. */
+.tit-card-foot { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;
+  margin:9px 0 0; font-size:12.5px; line-height:1.35; color:var(--tit-mut); }
+.tit-card-when { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tit-card-src { min-width:0; overflow-wrap:anywhere; }
+.tit-wrap .tit-card-src a { color:var(--tit-blue); font-weight:600; }
+
+/* --- The empty state ---------------------------------------------------- */
+.tit-cards-empty { border:1px solid var(--tit-line); border-radius:12px;
+  background:#fff; box-shadow:var(--tit-shadow); }
+
 /* Colour never carries meaning alone: each tag also carries its words. */
 .tit-tag, .tit-conf { display:inline-block; padding:3px 9px; border-radius:99px;
   font-size:13px; white-space:nowrap; font-weight:500; }

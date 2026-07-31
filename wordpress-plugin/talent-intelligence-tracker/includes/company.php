@@ -545,12 +545,19 @@ function tit_company_current($slug = null) {
 
 /** Reader-facing wording for the four stored directions. */
 function tit_company_direction_labels() {
-    return array(
-        'hiring'      => 'Hiring up',
-        'displacement' => 'Cutting back',
-        'comp_shift'  => 'Pay change reported',
-        'neutral'     => 'Update reported',
-    );
+    /*
+      A THIRD VOCABULARY FOR THE SAME FOUR VALUES, AND IT WAS STILL HERE.
+
+      The dashboard retired "Hiring up" and "Cutting back" and
+      tests/php/render_dashboard.php asserts they cannot come back to that page.
+      Nothing said the same about this one, so a reader who clicked an employer's
+      name went from "Cutting Roles" on the card straight to "Cutting back" on
+      their page, and had to work out that the two were one thing. That is the
+      exact defect the shared card contract exists to stop, happening inside a
+      single repo. One definition now, and it is the shared one.
+      See docs/card-contract.json.
+    */
+    return tit_direction_labels();
 }
 
 /** Reader-facing wording for the four stored pillars. */
