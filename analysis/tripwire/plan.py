@@ -49,6 +49,25 @@ TRIPWIRE_MONTHLY_USD = 1.00
 # this estimate only ever sizes the plan — it never reports the cost.
 USD_PER_QUERY_ESTIMATE = 0.02
 
+# What a query ACTUALLY cost, the first time this instrument issued live
+# queries: run 30506967802 on 2026-07-30, 17 search-backed queries against
+# `perplexity/sonar`, $0.0977 billed, from OpenRouter's own `usage.cost` and not
+# from arithmetic on a price list. The spread across those 17 was $0.0054 to
+# $0.0060, so the figure is stable rather than an average hiding a tail; the
+# Israel query, the one country a human could check by eye, cost $0.0059 and
+# returned 8 leads.
+#
+# It is recorded and NOT substituted for the estimate above. Feeding the
+# measured price back into the sizing arithmetic would take COUNTRIES_PER_RUN
+# from 4 to 19 and quadruple the bill — the derivation would still be correct
+# and the run would still be inside its cap, but the cap would stop being the
+# thing that constrains the design. The estimate sizes the plan; this says what
+# the plan costs. Two numbers doing two jobs, and the gap between them is the
+# safety margin.
+USD_PER_QUERY_MEASURED = 0.0057
+USD_PER_QUERY_MEASURED_SOURCE = (
+    "run 30506967802, 2026-07-30: 17 queries, $0.0977 billed, perplexity/sonar")
+
 # Twice a week. Weekly makes a country come round too rarely to be a tripwire;
 # daily spends the month's budget in a week.
 RUNS_PER_MONTH = 8
@@ -307,4 +326,12 @@ def monthly_projection() -> dict:
         "usd_per_query_estimate": USD_PER_QUERY_ESTIMATE,
         "projected_usd_per_month": round(total * USD_PER_QUERY_ESTIMATE, 2),
         "cap_usd_per_month": TRIPWIRE_MONTHLY_USD,
+        # Both prices, always. A projection quoted only at the pessimistic
+        # estimate reads as the bill and is 3.5x it; one quoted only at the
+        # measured price hides the margin that makes the cap safe.
+        "usd_per_query_measured": USD_PER_QUERY_MEASURED,
+        "usd_per_query_measured_source": USD_PER_QUERY_MEASURED_SOURCE,
+        "measured_usd_per_month": round(total * USD_PER_QUERY_MEASURED, 2),
+        "estimate_over_measured": round(
+            USD_PER_QUERY_ESTIMATE / USD_PER_QUERY_MEASURED, 1),
     }
