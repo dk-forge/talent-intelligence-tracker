@@ -334,6 +334,78 @@ class TestEmail(unittest.TestCase):
         self.assertNotIn("—", subject + body)
 
 
+def coverage(archived=71, in_scope=656, queue=0, never=585, days_ago=1):
+    """A link-health reading, `days_ago` days since its newest snapshot."""
+    return {
+        "collectors": ["national_press"],
+        "in_scope": in_scope, "archived": archived, "unavailable": 0,
+        "capture_queue": queue, "never_probed": never,
+        "pct": round(100.0 * archived / in_scope, 1) if in_scope else 0.0,
+        "newest_snapshot": (NOW - timedelta(days=days_ago)).isoformat(),
+    }
+
+
+class TestArchiveCoverageIsReported(unittest.TestCase):
+    """The failure this closes is not a wrong number, it is no number.
+
+    On 2026-07-30 the archiver spent a day running green and recording nothing,
+    and what hid it was that nothing anybody read reported on it at all.
+    """
+
+    def test_a_stalled_archiver_is_not_stale_degraded_or_expensive(self):
+        """Which is exactly why it needs its own check.
+
+        Every other signal in this digest reads healthy while archiving has
+        stopped producing: the job is not stale (it ran), not degraded (it
+        succeeded), and costs nothing.
+        """
+        self.assertTrue(health_digest.archiving_stalled(
+            coverage(days_ago=health_digest.ARCHIVE_STALL_DAYS + 1), NOW))
+
+    def test_a_recent_snapshot_is_not_a_stall(self):
+        self.assertFalse(health_digest.archiving_stalled(coverage(days_ago=1), NOW))
+
+    def test_nothing_left_to_do_is_not_a_stall(self):
+        """A finished archiver is quiet for the same reason a broken one is.
+
+        Crying wolf here would be worse than silence: an owner who learns to
+        ignore this line ignores it on the week it means something.
+        """
+        self.assertFalse(health_digest.archiving_stalled(
+            coverage(queue=0, never=0, days_ago=90), NOW))
+
+    def test_never_having_recorded_a_snapshot_is_a_stall(self):
+        reading = coverage()
+        reading["newest_snapshot"] = None
+        self.assertTrue(health_digest.archiving_stalled(reading, NOW))
+
+    def test_coverage_is_reported_even_when_nothing_is_wrong(self):
+        """A metric that appears only once it is bad cannot show a slow slide."""
+        buckets = health_digest.classify({"google_news": entry(6)}, NOW)
+        _, body = health_digest.build_email(buckets, False, 6, None, "local",
+                                            [], coverage())
+        self.assertIn("SOURCE LINKS", body)
+        self.assertIn("71 of 656", body)
+
+    def test_a_stall_names_itself_in_the_subject(self):
+        buckets = health_digest.classify({"google_news": entry(6)}, NOW)
+        subject, body = health_digest.build_email(
+            buckets, False, 6, None, "local", [],
+            coverage(days_ago=99), archive_stalled=True)
+        self.assertIn("archiving", subject.lower())
+        self.assertIn("STALLED", body)
+        # The paste-ready instruction has to send the owner at the RUNS, not at
+        # the script. The script was fine every time this has fired; what broke
+        # was a dispatch that carried the dry_run default.
+        self.assertIn("dry_run=false", body)
+        self.assertNotIn("—", subject + body)
+
+    def test_an_unreadable_link_ledger_is_never_fatal(self):
+        from pathlib import Path
+        self.assertIsNone(health_digest.read_link_health(Path("/nope/none.db")))
+        self.assertFalse(health_digest.archiving_stalled(None, NOW))
+
+
 class TestDelivery(unittest.TestCase):
     def test_missing_configuration_is_reported_not_claimed_as_sent(self):
         sent, note = health_digest.send_alert("s", "b", site="", key="")

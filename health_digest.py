@@ -112,6 +112,68 @@ def read_local(db_path: Path = DB) -> dict:
     return {r["collector"]: dict(r) for r in rows}
 
 
+#: A snapshot older than this, with URLs still waiting, means archiving has
+#: STOPPED PRODUCING rather than merely slowed. The staleness leash catches an
+#: archiver that stopped RUNNING; it cannot catch one that runs green every
+#: three hours and records nothing, which is exactly what happened on
+#: 2026-07-30 (run 30507215991 went out with the dry_run default and nobody
+#: noticed for a day). Seven days is several hundred capture attempts: a queue
+#: that has not moved in that time is not being throttled, it is broken.
+ARCHIVE_STALL_DAYS = 7
+
+
+def read_link_health(db_path: Path = DB) -> dict | None:
+    """Archive coverage and rot rate, over the scope the schedule can reach.
+
+    Read LOCALLY even when the collector ledger comes from the site: the link
+    ledger is a repo artifact, and the site never sees the un-archived tail at
+    all. Never fatal — a digest that cannot read this still has collectors to
+    report.
+
+    The scoping is the whole point. `rot_summary()['archive_pct']` is over the
+    whole corpus, ~96% of which is SEC and GOV.UK filings the schedule
+    deliberately skips, so it reads about 0.5% on a perfectly healthy archiver.
+    An email that quotes that number every week teaches its reader to ignore it.
+    """
+    if not db_path.exists():
+        return None
+    try:
+        from pipeline import source_links
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            cover = source_links.archive_coverage(conn)
+            cover["rot"] = source_links.rot_summary(conn)
+        finally:
+            conn.close()
+        return cover
+    except Exception:
+        return None
+
+
+def archiving_stalled(link_health: dict | None, now: datetime) -> bool:
+    """Is there work outstanding that nothing has moved in a week?
+
+    Both halves are required. No outstanding work means a quiet archiver is a
+    finished one, and saying otherwise would train the owner to ignore this.
+    """
+    if not link_health:
+        return False
+    outstanding = link_health["capture_queue"] + link_health["never_probed"]
+    if not outstanding:
+        return False
+    newest = link_health.get("newest_snapshot")
+    if not newest:
+        return True
+    try:
+        when = datetime.fromisoformat(newest)
+    except ValueError:
+        return False
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    return (now - when).days >= ARCHIVE_STALL_DAYS
+
+
 def read_guardrails(db_path: Path = DB) -> list[dict]:
     """Quarantined rows still waiting on a human, worst money first.
 
@@ -266,7 +328,9 @@ PASTE_LEAD = (
 
 
 def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
-                source_label: str, guardrails: list[dict] | None = None) -> tuple[str, str]:
+                source_label: str, guardrails: list[dict] | None = None,
+                link_health: dict | None = None,
+                archive_stalled: bool = False) -> tuple[str, str]:
     """Subject and plain-text body. No em-dashes: this is owner-facing copy."""
     guardrails = guardrails or []
     stale = buckets["stale"]
@@ -300,6 +364,9 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             len(names), ", ".join(names[:4]))
     elif spend and spend.get("at_ceiling"):
         subject = "LLM spend has reached the monthly ceiling"
+    elif archive_stalled:
+        subject = "Source archiving has produced nothing in %d days" % (
+            ARCHIVE_STALL_DAYS)
     else:
         subject = "Health digest"
 
@@ -435,6 +502,59 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'and collection is blocked. Read spend.py, confirm the month-delta '
             'snapshot in data/spend_month.json is correct, and tell me whether '
             'to wait for the month to roll over or raise the allowance."')
+    elif archive_stalled:
+        # Deliberately points at the runs rather than at the script. The script
+        # is fine every time this fires: what breaks is the path to it, and the
+        # first question is always whether the runs went out in dry_run mode.
+        lines.append(
+            '  "The health digest says source archiving has produced nothing '
+            'for a week. Run python3 ops_status.py and read section [2c], then '
+            'check the last few archive-sources runs with gh: confirm each one '
+            'said RECORDING rather than DRY RUN, and that the scheduled tickets '
+            'in data/writer_queue.json carry dry_run=false. If the runs are '
+            'recording, read what Wayback actually answered before changing any '
+            'budget: a throttle is not a refusal and raising spn_max makes it '
+            'worse."')
+
+    # SOURCE LINKS is reported EVERY time, findings or none. It is the one
+    # number in this email that is supposed to move week on week, and a metric
+    # that only appears when it is already bad cannot show a slow slide. The
+    # archiver went a whole day producing nothing on 2026-07-30 and what hid it
+    # was not a wrong number, it was no number anywhere the owner reads.
+    if link_health:
+        rot = link_health.get("rot") or {}
+        lines += [
+            "",
+            "SOURCE LINKS",
+            "  %d of %d cited documents in the archived scope have a Wayback "
+            "fallback (%s%%)." % (link_health["archived"], link_health["in_scope"],
+                                  link_health["pct"]),
+            "  %d are waiting on a capture, %d have never been asked about."
+            % (link_health["capture_queue"], link_health["never_probed"]),
+            "  Newest snapshot: %s." % (link_health.get("newest_snapshot")
+                                        or "none ever recorded"),
+        ]
+        if rot.get("checked"):
+            lines.append(
+                "  Rot: %d of %d checked links are dead or drifted (%s%%)."
+                % (rot["rot"], rot["checked"], rot["rot_pct"]))
+        lines.append(
+            "  The scope is the publisher collectors on purpose. The rest of "
+            "what we")
+        lines.append(
+            "  cite is SEC and GOV.UK filings, which those governments keep "
+            "indefinitely.")
+        if archive_stalled:
+            lines += [
+                "",
+                "  STALLED. There is outstanding work and no snapshot has been "
+                "recorded",
+                "  in %d days. This is the failure that leaves no red run: the "
+                "job can" % ARCHIVE_STALL_DAYS,
+                "  exit green having captured nothing, and every source link "
+                "keeps working",
+                "  right up until the day it does not.",
+            ]
 
     lines += ["", "Ledger read from: %s" % source_label,
               "Healthy collectors: %d" % len(buckets["ok"])]
@@ -524,6 +644,8 @@ def main(argv=None) -> int:
     stopped = pipeline_stopped(collectors, now)
     spend = spend_line()
     guardrail_rows = read_guardrails()
+    link_health = read_link_health()
+    archive_stalled = archiving_stalled(link_health, now)
 
     print("HEALTH DIGEST  (%s)" % source_label)
     print("  %d ok, %d degraded, %d stale, %d without a timestamp"
@@ -552,9 +674,25 @@ def main(argv=None) -> int:
         print("  ::warning:: GUARDRAIL %s: %s"
               % (row.get("check_name", ""), (row.get("label") or "")[:100]))
 
+    if link_health:
+        print("  source links: %d/%d in scope archived (%s%%), %d waiting on a "
+              "capture, %d never asked about, newest %s"
+              % (link_health["archived"], link_health["in_scope"],
+                 link_health["pct"], link_health["capture_queue"],
+                 link_health["never_probed"],
+                 link_health.get("newest_snapshot") or "never"))
+    if archive_stalled:
+        print("  ::warning:: ARCHIVING STALLED: work outstanding and no snapshot "
+              "recorded in %d days" % ARCHIVE_STALL_DAYS)
+
     needs_human = bool(
         stopped or buckets["stale"] or buckets["degraded"] or buckets["unknown_age"]
         or guardrail_rows or (spend and spend.get("at_ceiling"))
+        # An archiver that runs green every three hours and records nothing is
+        # invisible to every other check here: it is not stale, not degraded,
+        # and costs nothing. It is also the exact failure that turns a sourced
+        # claim into an unsourced one the day a publisher deletes a page.
+        or archive_stalled
     )
 
     if not needs_human and not args.send_test:
@@ -562,7 +700,7 @@ def main(argv=None) -> int:
         return 0
 
     subject, body = build_email(buckets, stopped, newest, spend, source_label,
-                                guardrail_rows)
+                                guardrail_rows, link_health, archive_stalled)
     if args.send_test and not needs_human:
         subject = "Test alert: everything is healthy"
         body = ("This is a test of the alert path, sent on request.\n\n"

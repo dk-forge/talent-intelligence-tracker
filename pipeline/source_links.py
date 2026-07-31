@@ -40,6 +40,7 @@ than no checker at all, because it comes with a reassuring number attached.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 
 # States link_check.py may record. Only two of them are rot:
@@ -469,6 +470,93 @@ def rot_summary(conn: sqlite3.Connection) -> dict:
         "archive_unavailable": archive.get("unavailable", 0),
         "archive_pct": (round(100.0 * archive.get("archived", 0) / total, 1)
                         if total else 0.0),
+    }
+
+
+#: Fallback if the workflow cannot be read. Kept in step with the shell default
+#: in .github/workflows/archive-sources.yml by scheduled_archive_scope's test.
+DEFAULT_ARCHIVE_SCOPE = ("national_press", "google_news", "gdelt", "ats_boards")
+
+
+def scheduled_archive_scope(root=None) -> list[str]:
+    """The collectors a SCHEDULED archive run actually covers.
+
+    Read from the SHELL FALLBACK in the workflow rather than from the input
+    default, because a queued ticket carries only `dry_run` and the fallback is
+    what applies on that path.
+
+    This lives here rather than in ops_status.py because two tools now report
+    archive coverage and both must scope it the same way. The same reasoning
+    that moved the staleness leashes into one module applies exactly: a session
+    reading "0.5% archived" from the dashboard and "11% archived" from the
+    weekly email would have no way to tell which one was lying.
+    """
+    from pathlib import Path
+    root = Path(root) if root else Path(__file__).resolve().parent.parent
+    path = root / ".github" / "workflows" / "archive-sources.yml"
+    if not path.exists():
+        return list(DEFAULT_ARCHIVE_SCOPE)
+    for line in path.read_text().splitlines():
+        if "COLLECTOR:-" in line:
+            names = line.split("COLLECTOR:-", 1)[1].split("}", 1)[0]
+            return [n.strip() for n in names.split(",") if n.strip()]
+    return list(DEFAULT_ARCHIVE_SCOPE)
+
+
+def archive_coverage(conn: sqlite3.Connection,
+                     collectors: Sequence[str] | None = None) -> dict:
+    """Archive coverage over the population the schedule can actually reach.
+
+    `rot_summary()['archive_pct']` is over the WHOLE corpus, which is the right
+    number for "how much of what we cite has a fallback" and the wrong one for
+    "is the archiver working". Roughly 96% of that corpus is SEC and GOV.UK
+    filings the schedule deliberately does not touch, so the corpus percentage
+    has a ceiling near 4% and a healthy archiver reads as a stalled one. The
+    ratio here has a ceiling of 100% and moves when the job does.
+
+    `capture_queue` is the count archive.org has answered about and declined to
+    hold: the only population a capture budget should ever be sized against.
+    `never_probed` is not a gap in Wayback, it is a gap in what we know.
+    """
+    names = list(collectors) if collectors is not None else scheduled_archive_scope()
+    if not names:
+        names = list(DEFAULT_ARCHIVE_SCOPE)
+    placeholders = ", ".join("?" for _ in names)
+    urls = {r[0] for r in conn.execute(
+        f"""SELECT source_url FROM signals
+             WHERE is_current = 1 AND source_url IS NOT NULL AND source_url != ''
+               AND collector IN ({placeholders})
+             GROUP BY source_url""", names)}
+    known = {r["source_url"]: dict(r) for r in conn.execute(
+        "SELECT source_url, archive_state, archive_probes, archived_at "
+        "  FROM source_links")}
+
+    archived = unavailable = capture_queue = never = 0
+    newest = None
+    for url in urls:
+        row = known.get(url) or {}
+        state = row.get("archive_state")
+        if state == "archived":
+            archived += 1
+            when = row.get("archived_at")
+            if when and (newest is None or when > newest):
+                newest = when
+        elif state == "unavailable":
+            unavailable += 1
+        elif int(row.get("archive_probes") or 0) > 0:
+            capture_queue += 1
+        else:
+            never += 1
+    total = len(urls)
+    return {
+        "collectors": names,
+        "in_scope": total,
+        "archived": archived,
+        "unavailable": unavailable,
+        "capture_queue": capture_queue,
+        "never_probed": never,
+        "pct": round(100.0 * archived / total, 1) if total else 0.0,
+        "newest_snapshot": newest,
     }
 
 
