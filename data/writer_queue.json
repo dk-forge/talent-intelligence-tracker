@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-30T23:58:49Z",
-  "last_tick": "2026-07-30T23:58:49Z",
+  "last_tick": "2026-07-31T00:07:41Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -274,6 +274,11 @@
           "at": "2026-07-30T23:58:49Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T00:07:41Z",
+          "detail": "run 30592164950",
+          "event": "bound"
         }
       ],
       "id": "20260730T235348Z-archive-sources",
@@ -284,7 +289,7 @@
       "reason": "prove the armed path end to end: first recording run since 2026-07-29, publisher tail",
       "requested_at": "2026-07-30T23:53:48Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30592164950",
       "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
