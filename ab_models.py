@@ -12,6 +12,30 @@ Answers two questions with measurements rather than estimates:
 
     python ab_models.py                 # gate comparison across candidates
     python ab_models.py --readthrough   # quality comparison on survivors only
+    python ab_models.py --extraction    # the REAL schema, field by field
+
+WHY --extraction EXISTS (2026-07-30)
+------------------------------------
+`cost_projection.py` measures extraction at **$31.69 of a $75.99 monthly bill**
+at full worldwide coverage — the largest single line, larger than the frontier
+read-through. Two swaps would move it, and both are quality decisions nobody
+can take on arithmetic alone:
+
+    deepseek/deepseek-chat        $31.69/month   the incumbent
+    deepseek/deepseek-chat-v3.1   $20.52/month   its prefix cache reads at 0.5x
+    google/gemini-2.5-flash-lite   $4.90/month   already trusted as our GATE
+
+The gate comparison above cannot decide this. It asks a one-word question on a
+deliberately reduced prompt, and extraction is twenty structured fields off the
+real 2,754-token `classify.SCHEMA_HINT`. A model can be an excellent gate and a
+poor extractor, so this mode sends the PRODUCTION prompt and scores field by
+field against the incumbent — because a cheaper model that quietly loses the
+country on a fifth of records would show up as a saving and read as a coverage
+regression months later.
+
+The bar is the one the repo already holds elsewhere: agreement on the fields
+that decide a record, not an average across twenty of them. `company`,
+`country` and `pillar` are what a row IS.
 """
 
 from __future__ import annotations
@@ -229,10 +253,106 @@ def _prices() -> dict[str, tuple[float, float]]:
     return out
 
 
+# Extraction candidates, incumbent first. Everything here is scored against
+# `pipeline.classify.MODEL` on `pipeline.classify.SCHEMA_HINT` — the production
+# prompt, byte for byte, because a reduced one measures a different model.
+EXTRACTION_MODELS = [
+    "deepseek/deepseek-chat",
+    "deepseek/deepseek-chat-v3.1",
+    "google/gemini-2.5-flash-lite",
+    "google/gemini-2.5-flash",
+    "openai/gpt-5-mini",
+]
+
+# The fields that decide what a record IS. An average over twenty fields hides
+# a model that gets `funding_stage` right and `company` wrong, and `company` is
+# the difference between a row and a rejection.
+DECIDING_FIELDS = ("is_talent_signal", "company", "pillar", "country",
+                   "signal_direction", "funding_amount")
+
+
+def run_extraction(key: str, headlines: list[str]) -> int:
+    """Field-by-field agreement on the PRODUCTION extraction prompt."""
+    from pipeline import classify
+
+    incumbent = EXTRACTION_MODELS[0]
+    prices = _prices()
+    answers: dict[str, list] = {}
+    spend: dict[str, float] = {}
+
+    for model in EXTRACTION_MODELS:
+        print(f"\n=== {model} ===", flush=True)
+        rows, cost = [], 0.0
+        for headline in headlines:
+            parsed, usage, err = call(model, classify.MINI_SYSTEM,
+                                      classify.SCHEMA_HINT, headline, key)
+            if model in prices and usage:
+                pin, pout = prices[model]
+                cost += (usage.get("prompt_tokens", 0) * pin
+                         + usage.get("completion_tokens", 0) * pout)
+            rows.append(parsed if not err else None)
+            if err:
+                print(f"  ERROR {err[:80]}")
+            time.sleep(0.3)
+        answers[model] = rows
+        spend[model] = cost
+        print(f"  {sum(r is not None for r in rows)}/{len(rows)} parsed, "
+              f"${cost:.5f} for the set")
+
+    print("\n" + "=" * 72)
+    print("AGREEMENT WITH THE INCUMBENT, ON THE FIELDS THAT DECIDE A RECORD")
+    print("=" * 72)
+    print(f"{'model':32} " + " ".join(f"{f[:9]:>10}" for f in DECIDING_FIELDS)
+          + f" {'$/item':>9}")
+    for model in EXTRACTION_MODELS:
+        cells = []
+        for field in DECIDING_FIELDS:
+            same = total = 0
+            for mine, theirs in zip(answers[model], answers[incumbent]):
+                if mine is None or theirs is None:
+                    continue
+                total += 1
+                same += _same_value(mine.get(field), theirs.get(field))
+            cells.append(f"{100 * same // total if total else 0:>9}%")
+        per_item = spend[model] / max(len(headlines), 1)
+        print(f"{model:32} " + " ".join(cells) + f" {per_item:9.6f}")
+
+    print("\nREAD THIS AS A FLOOR, NOT A SCORE. Disagreement with the incumbent")
+    print("is not error: the gate A/B of 2026-07-28 found the challenger")
+    print("CORRECTING the incumbent, which is why 'reject below 90% agreement'")
+    print("would have picked the wrong model there. Below, every disagreement")
+    print("on `company` or `country`, to be read rather than counted.")
+    for model in EXTRACTION_MODELS[1:]:
+        shown = 0
+        for i, headline in enumerate(headlines):
+            mine, theirs = answers[model][i], answers[incumbent][i]
+            if mine is None or theirs is None or shown >= 8:
+                continue
+            for field in ("company", "country"):
+                if not _same_value(mine.get(field), theirs.get(field)):
+                    print(f"\n  {headline[:70]}")
+                    print(f"    {incumbent:30} {field}={theirs.get(field)!r}")
+                    print(f"    {model:30} {field}={mine.get(field)!r}")
+                    shown += 1
+                    break
+    return 0
+
+
+def _same_value(a, b) -> bool:
+    """Compared the way the pipeline compares them: case and surrounding space
+    are normalised away by `vocab` before anything is stored, so counting them
+    as disagreements would manufacture a difference that never reaches a row."""
+    if isinstance(a, list) or isinstance(b, list):
+        return sorted(map(str, a or [])) == sorted(map(str, b or []))
+    return str(a or "").strip().lower() == str(b or "").strip().lower()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="A/B candidate models on real headlines.")
     parser.add_argument("--readthrough", action="store_true",
                         help="compare read-through quality instead of gate verdicts")
+    parser.add_argument("--extraction", action="store_true",
+                        help="compare the REAL extraction schema, field by field")
     args = parser.parse_args()
 
     key = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
@@ -242,6 +362,8 @@ def main() -> int:
 
     headlines = load_headlines()
     print(f"{len(headlines)} real headlines from live runs")
+    if args.extraction:
+        return run_extraction(key, headlines)
     return run_readthrough(key, headlines) if args.readthrough else run_gate(key, headlines)
 
 
