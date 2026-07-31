@@ -298,6 +298,46 @@ class TestTheWorkflowsThatCarryThis:
         assert "CI failure alert" in wf["jobs"]["alert"]["if"]
 
 
+class TestASwitchedOffAlerterIsVisible:
+    """The quietest failure of all: a workflow that is simply turned off.
+
+    'CI failure alert' was disabled by hand at 2026-07-31T01:01 UTC, two minutes
+    after it failed four times POSTing to a host that was answering 504 — an
+    entirely reasonable reaction to an alarm that had started amplifying an
+    outage. Nothing would ever have reminded anyone to turn it back on: a
+    disabled workflow is not red, produces no runs to go stale, and appears only
+    in `gh workflow list`, which nobody runs at a session start.
+    """
+
+    def test_a_disabled_alerter_is_an_action_item(self):
+        import ci_status
+
+        report = ci_status.assess(
+            "r/r", failures=[], cancelled=[], latest={}, default_branch="main",
+            switched_off={"CI failure alert": "a red run would reach nobody"})
+        assert report["problems"], "a switched-off alerter must not read as green"
+        assert "DISABLED" in report["problems"][0]
+        assert "gh workflow enable" in report["problems"][0], \
+            "say how to undo it; the state is invisible everywhere else"
+
+    def test_the_watchdog_and_the_alerter_are_both_on_the_list(self):
+        import ci_status
+
+        assert "CI failure alert" in ci_status.MUST_STAY_ON
+        assert "host-watch" in ci_status.MUST_STAY_ON
+
+    def test_an_unreadable_workflow_list_never_invents_a_problem(self, monkeypatch):
+        """It degrades to 'nothing is off' rather than raising: the caller
+        already fails loudly when gh cannot be reached, and this must not turn a
+        readable report into an unreadable one."""
+        import ci_status
+        import writer_queue_runs
+
+        monkeypatch.setattr(writer_queue_runs, "_gh",
+                            lambda *a, **k: (_ for _ in ()).throw(RuntimeError("404")))
+        assert ci_status.disabled_alerters("r/r") == {}
+
+
 class TestTheFallbackChannelIsDeduplicatedByConstruction:
     def test_one_marker_means_one_issue(self, monkeypatch):
         import gh_fallback

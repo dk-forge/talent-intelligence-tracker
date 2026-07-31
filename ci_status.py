@@ -35,6 +35,7 @@ keeps finding, and it is the one an exit code can actually prevent.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -57,6 +58,28 @@ REPOS = (
 #: `startup_failure` are rarer and worse — the second means the workflow file
 #: itself would not parse, so the job never existed.
 RED = ("failure", "timed_out", "startup_failure")
+
+#: Workflows whose whole job is to TELL somebody. A workflow can be switched off
+#: from the Actions UI, and a switched-off alerter is the purest form of the
+#: failure this project keeps finding: it is not red, it is not stale, it does
+#: not appear anywhere, and it reports nothing forever.
+#:
+#: This is not hypothetical. "CI failure alert" was disabled by hand at
+#: 2026-07-31T01:01 UTC, two minutes after it failed four times trying to POST
+#: to /alert on a host that was answering 504 — a completely reasonable reaction
+#: to an alarm that had started amplifying an outage, and one that nothing would
+#: have reminded anyone to undo. `gh workflow list` is the only place that state
+#: is visible, and nobody runs it.
+#:
+#: Keyed by name because that is what the API returns for a workflow whose file
+#: may sit at any path. A name here that does not exist in the repo is ignored:
+#: the two trackers share this list and do not share their workflow files.
+MUST_STAY_ON = {
+    "CI failure alert": "a red run would reach nobody",
+    "host-watch": "nothing would notice the host going down, or deliver the "
+                  "alerts held while it was",
+    "Alert drain": "alerts held during an outage would never be delivered",
+}
 
 FIELDS = ("databaseId,workflowName,status,conclusion,createdAt,updatedAt,"
           "event,headBranch,url")
@@ -117,6 +140,7 @@ def assess(repo: str, *, failures: list[dict], cancelled: list[dict],
            latest: dict[str, dict | None], default_branch: str,
            lock_group: set[str] | None = None,
            already_recorded: set[str] | None = None,
+           switched_off: dict[str, str] | None = None,
            truncated: bool = False,
            window_hours: int = WINDOW_HOURS,
            now: datetime | None = None) -> dict:
@@ -143,6 +167,7 @@ def assess(repo: str, *, failures: list[dict], cancelled: list[dict],
     moment = now or datetime.now(timezone.utc)
     cutoff = moment - timedelta(hours=window_hours)
     booked = already_recorded or set()
+    switched_off = switched_off or {}
 
     red_now, recovered, unknown = [], [], []
     for name in sorted({run.get("workflowName", "?") for run in failures
@@ -177,6 +202,11 @@ def assess(repo: str, *, failures: list[dict], cancelled: list[dict],
             benign.append(run)
 
     problems = []
+    for name, why in sorted(switched_off.items()):
+        problems.append(
+            f"{repo}: the workflow '{name}' is DISABLED. It is not red and it "
+            f"is not stale, it simply never runs — {why}. Turn it back on: "
+            f"gh workflow enable '{name}' -R {repo}")
     for run in red_now:
         problems.append(
             f"{repo}: {run.get('workflowName')} is RED on {default_branch} "
@@ -198,6 +228,7 @@ def assess(repo: str, *, failures: list[dict], cancelled: list[dict],
 
     return {
         "repo": repo,
+        "switched_off": switched_off,
         "default_branch": default_branch,
         "red_now": red_now,
         "recovered": recovered,
@@ -237,6 +268,30 @@ def recorded_orphans() -> set[str]:
     if not path.exists():
         return set()
     return {str(o.get("run_id")) for o in writer_queue.load(path).get("orphans", [])}
+
+
+def disabled_alerters(repo: str) -> dict[str, str]:
+    """Which of the MUST_STAY_ON workflows are switched off in `repo`.
+
+    A disabled workflow is invisible everywhere a person looks: it is not red,
+    it produces no runs to be stale, and the only place the state appears is
+    `gh workflow list`, which nobody runs at a session start. For an ALERTER
+    that is a total, silent loss of the channel.
+
+    Degrades to "nothing is off" rather than raising, and deliberately does not
+    propagate GhUnavailable: the caller already fails loudly when gh cannot be
+    reached at all, and this must never be the thing that turns a readable
+    report into an unreadable one.
+    """
+    try:
+        raw = writer_queue_runs._gh(
+            ["workflow", "list", "-R", repo, "--all", "--json", "name,state"])
+        rows = json.loads(raw or "[]")
+    except (GhUnavailable, RuntimeError, ValueError, OSError):
+        return {}
+    return {row["name"]: MUST_STAY_ON[row["name"]] for row in rows
+            if row.get("name") in MUST_STAY_ON
+            and str(row.get("state", "")).startswith("disabled")}
 
 
 def read_repo(repo: str, *, limit: int = LIMIT,
@@ -306,6 +361,7 @@ def read_repo(repo: str, *, limit: int = LIMIT,
             latest[name] = result
 
     return assess(repo, failures=failures, cancelled=cancelled, latest=latest,
+                  switched_off=disabled_alerters(repo),
                   default_branch=branch,
                   lock_group=local_lock_group() if local else None,
                   already_recorded=recorded_orphans() if local else set(),
