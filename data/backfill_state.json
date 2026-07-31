@@ -269,7 +269,7 @@
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
-      "cursor": "2026-01-22",
+      "cursor": "2026-01-25",
       "end": "2026-07-26",
       "history": [
         {
@@ -362,6 +362,19 @@
             "stored": 54,
             "windows": 4
           }
+        },
+        {
+          "at": "2026-07-31T21:34:13Z",
+          "run": "",
+          "slice": "2026-01-22..2026-01-25",
+          "stopped_early": "slice budget of 50 minutes reached (74 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 0,
+            "rejected": 0,
+            "stored": 0,
+            "windows": 3
+          }
         }
       ],
       "inputs": {
@@ -372,7 +385,7 @@
       "label": "",
       "opened_at": "2026-07-30T22:10:09Z",
       "slice_size": 4,
-      "slices": 7,
+      "slices": 8,
       "start": "2026-01-01",
       "state": "running",
       "totals": {
@@ -380,10 +393,10 @@
         "left_for_later": 8326,
         "rejected": 391,
         "stored": 393,
-        "windows": 28
+        "windows": 31
       },
       "unit": "days",
-      "updated_at": "2026-07-31T17:03:46Z",
+      "updated_at": "2026-07-31T21:34:13Z",
       "workflow": "backfill-gnews-2026.yml"
     },
     "backfill-structured-2026:bse_india:2026-01-01..2026-07-30": {
