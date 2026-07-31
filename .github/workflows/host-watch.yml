@@ -96,7 +96,13 @@ jobs:
           git config user.email 'bot@users.noreply.github.com'
 
           for attempt in 1 2 3 4 5; do
-            git add data/host_status.json data/alert_outbox.json 2>/dev/null || true
+            # Added ONE AT A TIME. `git add a b` where b does not exist fails
+            # the whole command and stages NEITHER — which is exactly what the
+            # first live run did: it probed, wrote the ledger, and then reported
+            # "Nothing new to record" because data/alert_outbox.json (correctly)
+            # did not exist yet.
+            git add data/host_status.json 2>/dev/null || true
+            git add data/alert_outbox.json 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Nothing new to record."
               exit 0
