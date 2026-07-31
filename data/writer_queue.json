@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T17:04:16Z",
-  "last_tick": "2026-07-31T17:04:16Z",
+  "last_dispatch": "2026-07-31T17:30:03Z",
+  "last_tick": "2026-07-31T17:30:03Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -166,12 +166,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T17:30:03Z",
       "history": [
         {
           "at": "2026-07-31T15:33:06Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-13)",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T17:30:03Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T153306Z-backfill-gdelt-2026",
@@ -187,7 +192,7 @@
       "requested_at": "2026-07-31T15:33:06Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -218,33 +223,6 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-31T17:04:16Z",
-      "history": [
-        {
-          "at": "2026-07-31T16:56:10Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T17:04:16Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260731T165610Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-07-31T16:56:10Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -268,42 +246,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T12:58:33Z",
-      "history": [
-        {
-          "at": "2026-07-29T10:55:02Z",
-          "detail": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T12:58:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T13:40:02Z",
-          "detail": "run 30453912404",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T13:40:02Z",
-          "detail": "run 30453912404",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T105502Z-collect-press",
-      "inputs": {},
-      "landed_at": "2026-07-29T13:40:02Z",
-      "priority": 0,
-      "reason": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
-      "requested_at": "2026-07-29T10:55:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30453912404",
-      "state": "landed",
-      "workflow": "collect-press.yml"
     },
     {
       "attempts": 0,
@@ -2714,6 +2656,44 @@
       "run_id": "30647452274",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T17:04:16Z",
+      "history": [
+        {
+          "at": "2026-07-31T16:56:10Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T17:04:16Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T17:30:03Z",
+          "detail": "run 30649711589",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T17:30:03Z",
+          "detail": "run 30649711589",
+          "event": "landed"
+        }
+      ],
+      "id": "20260731T165610Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-07-31T17:30:03Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-07-31T16:56:10Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30649711589",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
