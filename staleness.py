@@ -134,11 +134,15 @@ MAX_AGE_HOURS = {
     # delay: a ticket written while a long backfill holds the writer lock waits
     # for it, and a 350-minute slice is entitled to its 350 minutes.
     #
-    # archive_sources: every three hours since 2026-07-30 (was nightly). A
-    # single skipped slot is not worth a page — the candidate list IS the gap,
-    # so the next run simply picks up what the last one did not — but eight
-    # slots in a row producing nothing is a job that has stopped. 26h is a full
-    # day of missed slots plus queue slack, and it is deliberately not 3h+slack:
+    # archive_sources: every EIGHT hours since 2026-07-31 (nightly -> 3h on
+    # 2026-07-30 -> 8h). The cadence came down because each run holds the single
+    # writer lock for up to 25 minutes and eight runs a day is 200 minutes of it;
+    # the leash did NOT need to move with it, which is the point of deriving it
+    # from queue slack rather than from the interval. A single skipped slot is
+    # not worth a page — the candidate list IS the gap, so the next run simply
+    # picks up what the last one did not — but three slots in a row producing
+    # nothing is a job that has stopped. 26h is a full day of missed slots plus
+    # queue slack, and it is deliberately not interval-plus-slack:
     # a ticket written while a 350-minute backfill holds the writer lock is
     # entitled to those 350 minutes, and a leash that pages for that would be an
     # alarm for the queue working as designed.

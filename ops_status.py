@@ -720,7 +720,7 @@ def _crons(workflow: str) -> list[str]:
 #: group as an uncoordinated third body and either evicts the pending run or is
 #: evicted itself, ending cancelled with zero jobs and unreplayable inputs.
 #: The schedule lives one level out, in a workflow that writes a ticket.
-LINK_JOBS = {"archive-sources.yml": "three-hourly Wayback pass",
+LINK_JOBS = {"archive-sources.yml": "eight-hourly Wayback pass",
              "link-check.yml": "daily rot sweep"}
 LINK_SCHEDULER = "schedule-link-hygiene.yml"
 

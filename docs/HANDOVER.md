@@ -668,25 +668,36 @@ is not a writer and holds no lock. It writes a *ticket*:
 
 | slot | ticket | run |
 |---|---|---|
-| `20 */3 * * *` | `archive-sources.yml`, `dry_run=false` | Wayback pass, eight times a day |
+| `20 */8 * * *` | `archive-sources.yml`, `dry_run=false` | Wayback pass, three times a day |
 | `30 5 * * *` | `link-check.yml`, `dry_run=false` | daily rot sweep, before the 13:00 Monday digest |
 
-**The cadence was retuned on 2026-07-30, and the arithmetic is the argument.**
-The scheduled scope holds 656 distinct source URLs, 71 archived and 585 never
-once answered about. A run resolves 15-30% of what it examines from the free
-availability API and captures at most 40 more, roughly half of which land first
-try, so a run is worth about twenty snapshots. Nightly, that backlog is three
-and a half WEEKS; every three hours it is three days, after which each run finds
-only what the last collect stored and exits in seconds.
+**The cadence was retuned twice and the arithmetic is the argument both times:
+nightly -> every 3h on 2026-07-30, then 3h -> every 8h on 2026-07-31.** The
+scheduled scope holds 716 distinct source URLs, 227 archived, and the real
+capture queue is 444 confirmed absent from Wayback. A run resolves 15-30% of
+what it examines from the free availability API and captures at most 40 more,
+roughly half of which land first try, so a run is worth about twenty snapshots.
+Eight runs a day clears that queue in about three days; three runs a day clears
+it in about eight.
 
-Not hourly. The sibling tracker's own hourly archive sprint was audited and
-REVERTED on 2026-07-30 after three consecutive runs were handed 0, 2 and 7
-candidates: rate does not buy yield once the queue is short. And every run here
-holds the `talent-collect` write lock for up to 25 minutes
-(`DEFAULT_DEADLINE`), so hourly would spend half the day holding the lock away
-from collection. The rot sweep went weekly to daily for a plainer reason: 150
-URLs a week against 14,796 cited documents revisits a given link about twice a
-decade, which is not a check.
+**Eight days is the right trade, and the lock is why.** Every run holds the
+single `talent-collect` slot for up to 25 minutes (`DEFAULT_DEADLINE`). Eight
+runs is 200 minutes a day — a seventh of the day with collect, enrich and every
+backfill slice queued behind an archiver, then landing on the WordPress host in
+a burst when it clears. Three runs is 75 minutes. Bluehost 504'd for everything
+under `/blog/` twice on 2026-07-30/31; smoothing that bunching is worth more
+than five days of archive latency.
+
+And it was never hourly. The sibling tracker's own hourly archive sprint was
+audited and REVERTED on 2026-07-30 after three consecutive runs were handed 0, 2
+and 7 candidates: rate does not buy yield once the queue is short. Our 444 is a
+real backlog today and will not be one next week, at which point every extra
+slot is a 25-minute lock window spent on a no-op. If the queue is still long in
+two weeks the lever is `spn_max` or the `collector` scope, not this cron.
+
+The rot sweep went weekly to daily for a plainer reason: 150 URLs a week against
+14,796 cited documents revisits a given link about twice a decade, which is not
+a check.
 
 `drain-writers.yml` dispatches each ticket only into an EMPTY group, so it cannot
 be evicted; if one somehow is, its inputs are on file and it is re-dispatched

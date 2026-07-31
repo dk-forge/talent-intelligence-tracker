@@ -45,29 +45,57 @@ name: schedule-link-hygiene
 # the $1.00 cap in analysis/tripwire/plan.TRIPWIRE_MONTHLY_USD. The pessimistic
 # $0.02/query estimate that cap was sized on is 3.4x the real price.
 #
-# THE ARCHIVE CADENCE, AND WHY IT IS EIGHT TIMES A DAY RATHER THAN ONCE
-# ---------------------------------------------------------------------
-# Measured 2026-07-30 against origin/main: the collectors a scheduled archive
-# run covers hold 656 distinct source URLs, 71 of them archived and 585 never
-# once answered about. A run resolves roughly 15-30% of what it examines from
-# the free availability API and then captures at most 40, of which about half
-# land on the first attempt, so a run is worth on the order of twenty new
-# snapshots. Nightly, that backlog takes about three and a half WEEKS. Every
-# three hours it takes three days, after which each run finds only what the
-# last collect stored and exits in seconds.
+# THE ARCHIVE CADENCE, AND WHY IT IS THREE TIMES A DAY
+# ----------------------------------------------------
+# It was every three hours for one day (2026-07-30) and is now every eight.
+# The arithmetic, re-measured against origin/main on 2026-07-31:
 #
-# It is not hourly, and the sibling tracker is the reason: its own hourly
-# archive sprint was audited and REVERTED on 2026-07-30 because three
-# consecutive runs were handed 0, 2 and 7 candidates. Raising the rate does not
-# raise the yield once the queue is short, and here every run holds the single
-# `talent-collect` write lock for up to 25 minutes (DEFAULT_DEADLINE in
-# archive_sources.py), so hourly would spend half the day holding the lock away
-# from collection. Three-hourly is the frequent-and-bounded point: it clears the
-# backlog in days and costs the lock at most a fifth of a day while it does.
+#   in scope   716 distinct source URLs across the four collectors this slot
+#              covers; 227 already archived
+#   the queue  444 confirmed absent from Wayback, plus 45 never answered about
+#   a run      examines up to 600, resolves what it can from the FREE
+#              availability API, and captures at most 40 (DEFAULT_SPN_MAX), of
+#              which roughly half land first time — so about 20 new snapshots
 #
-# `--if-absent` below is what makes a frequent slot safe. A slot that fires
+#   8 runs/day  ~160 snapshots/day  ->  the queue clears in ~3 days
+#   3 runs/day   ~60 snapshots/day  ->  the queue clears in ~8 days
+#
+# Eight days instead of three, for evidence that has already survived without a
+# fallback for months. That is a cheap trade, and the costs it buys down are not:
+#
+#   THE LOCK. Every run holds the single `talent-collect` slot for up to 25
+#   minutes (DEFAULT_DEADLINE in archive_sources.py). Eight runs is 200 minutes
+#   a day — a seventh of every day with collection, enrichment and every
+#   backfill slice queued behind an archiver. Three runs is 75 minutes, a
+#   twentieth. Nothing that waits on that lock is idle: it is bunched, and it
+#   lands on the WordPress host all at once when the lock clears.
+#
+#   THE HOST. Bluehost 504'd for everything under /blog/ twice on 2026-07-30/31,
+#   about six minutes in the afternoon and about seven at night. This job talks
+#   to archive.org and never to our host, so it adds no direct load — but the
+#   things it holds the lock away from (collect, enrich, the backfills) all POST
+#   to the host, and eight lock windows a day is eight times a day that their
+#   traffic is deferred and then delivered in a burst. Smoothing that is worth
+#   more right now than five days of archive latency.
+#
+# AND THE SIBLING ALREADY RAN THIS EXPERIMENT. The AI Layoff Tracker armed an
+# HOURLY archive sprint and REVERTED it on 2026-07-30: three consecutive runs
+# were handed 0, 2 and 7 candidates against a per-run limit of 1,500, and
+# coverage sat flat. Its note is worth quoting exactly because it is the trap
+# here too — "raising the CADENCE will not do it", because what is left is not a
+# backlog but the handful of brand-new rows a day that any cadence picks up.
+# Our 444 is a real backlog TODAY and will not be one next week, at which point
+# every extra slot is a 25-minute lock window spent on a no-op. Choosing the
+# cadence for the backlog we are about to no longer have is how the sibling got
+# there.
+#
+# If the queue is still long in two weeks, the lever is NOT this cron. It is
+# `spn_max` (throttled, and cranking it captures less), or the `collector`
+# default that decides which tail is in scope at all.
+#
+# `--if-absent` below is what makes a repeating slot safe. A slot that fires
 # while the previous ticket is still waiting adds nothing, so a long backfill
-# holding the lock cannot leave eight tickets a day stacked behind it.
+# holding the lock cannot leave a ticket per slot stacked behind it.
 #
 # WHY ENRICH IS SCHEDULED HERE TOO
 # --------------------------------
@@ -75,18 +103,21 @@ name: schedule-link-hygiene
 # classification time and its snapshot is captured afterwards, so at publish
 # time it is always empty. It reaches the site through `/enrich`, which
 # `enrich.yml` runs — and `enrich.yml` had no schedule at all. So an archiver
-# firing eight times a day would fill the local ledger while every reader went
-# on seeing the publisher's link alone, and the surface that carries this
-# product's promise would be the one thing the whole loop never updated.
+# firing all day would fill the local ledger while every reader went on seeing
+# the publisher's link alone, and the surface that carries this product's
+# promise would be the one thing the whole loop never updated.
 #
 # Daily rather than per-archive-run: /enrich pushes the whole derived allowlist,
 # it is idempotent, and there is nothing to gain from pushing the same values
-# eight times. 07:40 UTC, after the 06:20 archive slot has had its 25 minutes.
+# once per archive run. 09:40 UTC, which is after the 08:20 archive slot has had
+# its 25 minutes — it moved with the cadence, because a slot placed relative to
+# a cron that has since changed is a comment describing something that no longer
+# happens.
 on:
   schedule:
-    - cron: '20 */3 * * *'  # every 3h: a Wayback pass over the newest citations
+    - cron: '20 */8 * * *'  # every 8h: a Wayback pass over the newest citations
     - cron: '30 5 * * *'    # daily: a rot sweep, before the 13:00 Monday digest
-    - cron: '40 7 * * *'    # daily: carry the new snapshots to the live rows
+    - cron: '40 9 * * *'    # daily: carry the new snapshots to the live rows
     - cron: '0 7 * * 1,4'   # Mon+Thu: ask an outside view what we are missing
 
   workflow_dispatch:
@@ -137,9 +168,9 @@ jobs:
           set -euo pipefail
           if [ -n "${SLOT:-}" ]; then
             case "$SLOT" in
-              '20 */3 * * *') WANT='archive-sources.yml' ;;
+              '20 */8 * * *') WANT='archive-sources.yml' ;;
               '30 5 * * *')   WANT='link-check.yml' ;;
-              '40 7 * * *')   WANT='enrich.yml' ;;
+              '40 9 * * *')   WANT='enrich.yml' ;;
               '0 7 * * 1,4')  WANT='tripwire.yml' ;;
               *)
                 echo "::error::schedule slot '$SLOT' has no mapping in this"

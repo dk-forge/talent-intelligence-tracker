@@ -101,7 +101,7 @@ def test_no_commented_out_cron_is_left_lying_around(name):
 def test_the_scheduler_exists_and_is_armed():
     triggers = _triggers(SCHEDULER)
     crons = [entry["cron"] for entry in triggers["schedule"]]
-    assert "20 */3 * * *" in crons, "the three-hourly Wayback slot is gone"
+    assert "20 */8 * * *" in crons, "the eight-hourly Wayback slot is gone"
     assert "30 5 * * *" in crons, "the daily rot sweep slot is gone"
 
 
