@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T22:22:20Z",
-  "last_tick": "2026-07-31T22:22:20Z",
+  "last_dispatch": "2026-07-31T22:33:19Z",
+  "last_tick": "2026-07-31T22:33:19Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,12 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T22:33:19Z",
       "history": [
         {
           "at": "2026-07-31T18:29:53Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-21)",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T22:33:19Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T182953Z-backfill-gdelt-2026",
@@ -189,7 +194,7 @@
       "requested_at": "2026-07-31T18:29:53Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -220,31 +225,6 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-31T22:22:20Z",
-      "history": [
-        {
-          "at": "2026-07-31T21:33:05Z",
-          "detail": "Carry the 228 Wayback captures to WordPress; both prior attempts died in the Bluehost outage",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T22:22:20Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260731T213305Z-enrich",
-      "inputs": {},
-      "priority": 0,
-      "reason": "Carry the 228 Wayback captures to WordPress; both prior attempts died in the Bluehost outage",
-      "requested_at": "2026-07-31T21:33:05Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -268,45 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:46:46Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:46:33Z",
-          "detail": "guardrail finding rejected on the filing: e008269d6b2d",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:46:46Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:47:32Z",
-          "detail": "run 30481472672",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:47:32Z",
-          "detail": "run 30481472672",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184633Z-retract",
-      "inputs": {
-        "reason": "Not a capital raise. The Form D reports the value of shares issued in Madison Air's pre-IPO reorganization, not money raised: the 424B4 of 2026-04-17 describes the Organizational Transactions as a reorganization of entities under common control, and 402,614,670 unregistered shares at the 27.00 USD IPO price is exactly the 10,870,596,090 USD on the form. The only cash private placement disclosed is 100.0 million USD from Holdings.",
-        "signal_id": "e008269d6b2d4981d74d30cd203c730b"
-      },
-      "landed_at": "2026-07-29T18:47:32Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: e008269d6b2d",
-      "requested_at": "2026-07-29T18:46:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481472672",
-      "state": "landed",
-      "workflow": "retract.yml"
     },
     {
       "attempts": 0,
@@ -2706,6 +2647,42 @@
       "run_id": "30662474194",
       "state": "failed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T22:22:20Z",
+      "history": [
+        {
+          "at": "2026-07-31T21:33:05Z",
+          "detail": "Carry the 228 Wayback captures to WordPress; both prior attempts died in the Bluehost outage",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T22:22:20Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T22:33:19Z",
+          "detail": "run 30669732736",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T22:33:19Z",
+          "detail": "run 30669732736",
+          "event": "landed"
+        }
+      ],
+      "id": "20260731T213305Z-enrich",
+      "inputs": {},
+      "landed_at": "2026-07-31T22:33:19Z",
+      "priority": 0,
+      "reason": "Carry the 228 Wayback captures to WordPress; both prior attempts died in the Bluehost outage",
+      "requested_at": "2026-07-31T21:33:05Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30669732736",
+      "state": "landed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
