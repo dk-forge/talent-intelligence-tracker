@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T00:49:12Z",
-  "last_tick": "2026-07-31T00:49:12Z",
+  "last_dispatch": "2026-07-31T00:50:44Z",
+  "last_tick": "2026-07-31T00:50:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -159,12 +159,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T00:50:44Z",
       "history": [
         {
           "at": "2026-07-30T21:20:09Z",
           "detail": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-01-29)",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T00:50:44Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260730T212009Z-backfill-structured-2026",
@@ -180,7 +185,7 @@
       "requested_at": "2026-07-30T21:20:09Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
     {
@@ -286,33 +291,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T00:49:12Z",
-      "history": [
-        {
-          "at": "2026-07-31T00:27:08Z",
-          "detail": "carry the 156 snapshots from run 30592164950 to the live rows; enrich has no schedule until PR #2 lands",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T00:49:12Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260731T002708Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "carry the 156 snapshots from run 30592164950 to the live rows; enrich has no schedule until PR #2 lands",
-      "requested_at": "2026-07-31T00:27:08Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
     },
     {
       "attempts": 0,
@@ -1820,6 +1798,43 @@
       "run_id": "30593463043",
       "state": "failed",
       "workflow": "collect.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T00:49:12Z",
+      "history": [
+        {
+          "at": "2026-07-31T00:27:08Z",
+          "detail": "carry the 156 snapshots from run 30592164950 to the live rows; enrich has no schedule until PR #2 lands",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T00:49:12Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T00:50:44Z",
+          "detail": "run 30594629715",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T00:50:44Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260731T002708Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "carry the 156 snapshots from run 30592164950 to the live rows; enrich has no schedule until PR #2 lands",
+      "requested_at": "2026-07-31T00:27:08Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30594629715",
+      "state": "failed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
