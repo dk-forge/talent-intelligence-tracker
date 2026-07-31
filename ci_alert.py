@@ -40,9 +40,35 @@ Usage (the workflow passes these from the `workflow_run` event payload):
     python3 ci_alert.py --run-id 123 --workflow collect --conclusion failure \\
         --branch main --event schedule --run-url https://github.com/...
 
-Exit codes: 0 = handled (mailed, suppressed, or nothing to do)
-            1 = the alert POST itself failed. The run goes RED so the failure of
-                the alerter is itself visible — including in ops_status.py [2f].
+WHAT HAPPENS WHEN THE HOST IS DOWN (added 2026-07-31, after it was)
+-------------------------------------------------------------------
+`/alert` is a route on the WordPress site. Bluehost answered 504 for everything
+under /blog/ between 00:48 and 00:55 UTC, so enrich failed, drain-writers
+correctly went red, and this alerter then failed FOUR times trying to report
+them — because it was posting to the host it was reporting about. The alarm was
+mute at exactly the moment it was needed, and the outage was found by the owner
+in a browser instead.
+
+Two things changed, and they are separate fixes to two separate defects:
+
+1. DELIVERY IS NOW DURABLE. A POST that fails is retried inside the run
+   (transient failures only) and, if it still fails, the alert is HELD in
+   `data/alert_outbox.json` — committed, so it outlives the runner and the
+   outage. `host-watch.yml` delivers it when the host answers again. See
+   alert_outbox.py for why a committed file rather than a longer backoff.
+
+2. A HELD ALERT IS NOT A FAILURE. This used to exit 1 whenever the POST failed,
+   so one outage reddened four workflows and then reddened four ALERT runs on
+   top — an outage manufacturing red runs which manufacture alerts which also
+   fail. Worse, it told a session that the ALERTER was broken when the alerter
+   was doing its job and the host was down. Holding an alert is a kept promise,
+   so it exits 0. The only non-zero left is "could neither deliver NOR hold",
+   which is the one state where the owner will never hear about the failure.
+
+Exit codes: 0 = handled (mailed, suppressed, held for later, or nothing to do)
+            1 = could neither deliver the alert NOR hold it. Nobody is going to
+                be told about the original failure, so this run goes RED and
+                ops_status.py surfaces it at the next session start.
 """
 
 from __future__ import annotations
@@ -54,6 +80,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -251,13 +278,22 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
     return subject, "\n".join(lines), dedupe_key
 
 
-def post_alert(site: str, key: str, payload: dict) -> tuple[bool, str]:
-    """POST to the plugin's keyed /alert. Returns (ok, description).
+#: A shared host under load answers 5xx, and a proxy in front of a dead origin
+#: answers 502/503/504. Those are worth asking again about in a few seconds.
+#: 401/403 (wrong key) and 404 (route not deployed) are not: retrying a settled
+#: "no" only makes the run longer, and both are held for a human either way.
+_TRANSIENT_STATUS = {408, 425, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
 
-    urllib rather than requests on purpose: this runs before any `pip install`,
-    so the alerting path cannot be broken by a dependency resolution failure —
-    which would be a notifier that dies exactly when the repo is unhealthy.
-    """
+#: Seconds between in-run retries. Three attempts over ~20 seconds catches the
+#: single bad response and the brief wobble, which is most of what a shared host
+#: produces. It deliberately does NOT try to outlast an outage: tonight's lasted
+#: seven minutes and a job has ten, so anything longer is a race the runner
+#: cannot win. Outlasting is the outbox's job, not this loop's.
+_BACKOFF = (3, 12)
+
+
+def _post_once(site: str, key: str, payload: dict) -> tuple[bool, str, bool]:
+    """One POST. Returns (ok, description, transient)."""
     req = urllib.request.Request(
         f"{site.rstrip('/')}/wp-json/talent/v1/alert",
         data=json.dumps(payload).encode("utf-8"),
@@ -271,14 +307,100 @@ def post_alert(site: str, key: str, payload: dict) -> tuple[bool, str]:
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
             return False, ("the site has no /alert route yet — the plugin carrying it "
-                           "has not been deployed (deploy-plugin.yml is manual here)")
+                           "has not been deployed (deploy-plugin.yml is manual here)"), False
         detail = exc.read().decode("utf-8", "replace")[:300] if exc.fp else ""
-        return False, f"HTTP {exc.code} from /alert: {detail}"
-    except Exception as exc:
-        return False, f"could not reach /alert: {exc}"
+        return False, f"HTTP {exc.code} from /alert: {detail}", exc.code in _TRANSIENT_STATUS
+    except urllib.error.URLError as exc:
+        # DNS, TCP, TLS, timeout: the host is not answering at all. Always
+        # transient — a name that does not resolve now may resolve in a minute,
+        # and there is nothing here for a human to fix in this repo.
+        return False, f"could not reach /alert: {exc.reason}", True
+    except Exception as exc:  # noqa: BLE001 — a notifier must not raise
+        return False, f"could not reach /alert: {exc}", True
     if body.get("sent"):
-        return True, "emailed the owner"
-    return True, f"not emailed: {body.get('reason', 'the endpoint reported no send')}"
+        return True, "emailed the owner", False
+    return True, f"not emailed: {body.get('reason', 'the endpoint reported no send')}", False
+
+
+def post_alert(site: str, key: str, payload: dict,
+               *, sleep=time.sleep) -> tuple[bool, str, bool]:
+    """POST to the plugin's keyed /alert, retrying transient failures.
+
+    Returns (ok, description, transient) — `transient` is what tells the caller
+    whether this looked like a host outage (hold it, say so quietly, do not go
+    red) or a settled refusal like a bad key (hold it, and be loud about it).
+
+    urllib rather than requests on purpose: this runs before any `pip install`,
+    so the alerting path cannot be broken by a dependency resolution failure —
+    which would be a notifier that dies exactly when the repo is unhealthy.
+    """
+    ok, note, transient = _post_once(site, key, payload)
+    for delay in _BACKOFF:
+        if ok or not transient:
+            break
+        print(f"  /alert did not answer ({note}) — retrying in {delay}s")
+        sleep(delay)
+        ok, note, transient = _post_once(site, key, payload)
+    return ok, note, transient
+
+
+def write_envelope(path: str, *, key: str, kind: str, scope: str,
+                   payload: dict, reason: str, run_url: str) -> bool:
+    """Park an undeliverable alert where the workflow can commit it.
+
+    Writing the envelope and folding it into `data/alert_outbox.json` are two
+    steps because the commit has to survive a racing push, and the answer to a
+    rejected push in this repo is always to reset onto main and RE-DERIVE rather
+    than to replay a diff. The workflow loops fetch -> reset -> `alert_outbox.py
+    enqueue --envelope` -> commit -> push, and `enqueue` is idempotent in `key`.
+    """
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({"key": key, "kind": kind, "scope": scope,
+                       "payload": payload, "reason": reason,
+                       "run_url": run_url}, fh, indent=2, sort_keys=True)
+    except OSError as exc:
+        print(f"::error::could not write the alert envelope to {path}: {exc}")
+        return False
+    return True
+
+
+def hold(*, envelope: str, key: str, kind: str, scope: str, payload: dict,
+         note: str, transient: bool, run_url: str) -> int:
+    """The undeliverable path, in one place so both kinds behave identically.
+
+    Returns the process exit code. It is 0 when the alert is safely held — and
+    that is the fix for the amplification loop, not an oversight. See the module
+    docstring: exiting 1 here is what turned one seven-minute outage into four
+    extra red runs and a false "the alerter is broken" reading in ops_status.
+    """
+    if not envelope:
+        print("::error::the alert could not be delivered and there is nowhere to "
+              "hold it (no ALERT_ENVELOPE path was given), so nobody will be told "
+              f"about this failure at all. Delivery said: {note}")
+        return 1
+
+    if not write_envelope(envelope, key=key, kind=kind, scope=scope,
+                          payload=payload, reason=note, run_url=run_url):
+        print("::error::the alert could not be delivered AND could not be held. "
+              f"Nobody will be told about this failure. Delivery said: {note}")
+        return 1
+
+    # Loud, but not red. The distinction is the point: a session reading this
+    # log must be able to tell "the host was down and we kept the alert" from
+    # "the alerter is broken", because the first needs nothing from anybody.
+    if transient:
+        print(f"::warning::/alert is unreachable ({note}). The alert is HELD in "
+              "data/alert_outbox.json and will be delivered by the next host-watch "
+              "run that finds the host answering. This run is NOT failing: an "
+              "outage must not manufacture red runs on top of the ones it caused.")
+    else:
+        print(f"::error::/alert refused this alert and it is not a transient "
+              f"failure: {note}. It is HELD in data/alert_outbox.json, but a "
+              "settled refusal will not fix itself — check WP_API_KEY and that "
+              "the plugin carrying /alert is deployed. ops_status.py escalates "
+              "a held alert that keeps failing.")
+    return 0
 
 
 def main(argv=None) -> int:
@@ -293,6 +415,9 @@ def main(argv=None) -> int:
         "GITHUB_REPOSITORY", "dk-forge/talent-intelligence-tracker"))
     ap.add_argument("--dry-run", action="store_true",
                     help="print the alert instead of posting it")
+    ap.add_argument("--envelope", default=os.environ.get("ALERT_ENVELOPE", ""),
+                    help="where to park an undeliverable alert for the workflow "
+                         "to commit into data/alert_outbox.json")
     args = ap.parse_args(argv)
 
     conclusion = (args.conclusion or "").lower()
@@ -313,11 +438,17 @@ def main(argv=None) -> int:
         if args.dry_run or not (site and key):
             print(f"[dry-run] resolve scope={scope}")
             return 0
-        ok, note = post_alert(site, key, payload)
+        ok, note, transient = post_alert(site, key, payload)
         print(f"resolve {scope}: {note}")
         if not ok:
-            print(f"::error::CI recovery notice could not be delivered — {note}")
-            return 1
+            # Held like any other alert. Holding a RESOLVE is what lets the
+            # outbox cancel a RED for the same scope that never went out: if
+            # both were raised during one outage, the owner hears about
+            # neither, because neither was ever true by the time anyone could
+            # have read it. See alert_outbox.enqueue.
+            return hold(envelope=args.envelope, key=f"resolve:{scope}",
+                        kind="resolve", scope=scope, payload=payload,
+                        note=note, transient=transient, run_url=args.run_url)
         return 0
 
     if conclusion not in ALERTABLE:
@@ -346,15 +477,13 @@ def main(argv=None) -> int:
         print("::error::WP_SITE_URL / WP_API_KEY are not set — the CI alert was NOT sent.")
         return 1
 
-    ok, note = post_alert(site, key, {"subject": subject, "body": body,
-                                      "dedupe_key": dedupe_key})
+    payload = {"subject": subject, "body": body, "dedupe_key": dedupe_key}
+    ok, note, transient = post_alert(site, key, payload)
     print(f"alert {dedupe_key}: {note}")
     if not ok:
-        # This run going red is the point: it is a separate workflow from the one
-        # that failed, so it can never mask the original failure, and
-        # ops_status.py [2f] surfaces the alerter's own breakage at session start.
-        print(f"::error::CI alert could not be delivered — {note}")
-        return 1
+        return hold(envelope=args.envelope, key=dedupe_key, kind="alert",
+                    scope=scope, payload=payload, note=note,
+                    transient=transient, run_url=args.run_url)
     return 0
 
 

@@ -235,11 +235,42 @@ def describe(doc: dict) -> list[str]:
     return lines
 
 
+def enqueue_envelope(envelope_path: Path | str,
+                     outbox_path: Path | str = OUTBOX) -> str:
+    """Fold an envelope written by ci_alert.py into the committed outbox.
+
+    Separate from writing the envelope ON PURPOSE. A rejected push is answered
+    by fetching main, resetting onto it and re-deriving — the lesson merge_db.py
+    and schedule-link-hygiene.yml both already learned — and re-deriving means
+    running this again against the freshly fetched file. `enqueue` is idempotent
+    in `key`, so the loop is conflict-free by construction and a race costs a
+    retry rather than a duplicate email.
+    """
+    env = json.loads(Path(envelope_path).read_text())
+    doc = load(outbox_path)
+    outcome, _entry = enqueue(
+        doc,
+        key=env["key"], kind=env.get("kind", "alert"), scope=env.get("scope", ""),
+        payload=env["payload"], reason=env.get("reason", ""),
+        run_url=env.get("run_url", ""))
+    save(doc, outbox_path)
+    return outcome
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="inspect the durable alert outbox")
-    ap.add_argument("command", choices=["status", "list"], nargs="?", default="status")
+    ap.add_argument("command", choices=["status", "list", "enqueue"],
+                    nargs="?", default="status")
     ap.add_argument("--path", default=str(OUTBOX))
+    ap.add_argument("--envelope", help="an envelope file written by ci_alert.py")
     args = ap.parse_args(argv)
+
+    if args.command == "enqueue":
+        if not args.envelope:
+            print("::error::alert_outbox.py enqueue needs --envelope")
+            return 2
+        print(f"outbox: {enqueue_envelope(args.envelope, args.path)}")
+        return 0
 
     doc = load(args.path)
     for line in describe(doc):

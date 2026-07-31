@@ -11,6 +11,7 @@ silent-degradation bug rather than a crash.
 """
 
 import io
+import json
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -111,7 +112,7 @@ class TestDedupeByCause:
 
 class TestBehaviour:
     def _run(self, argv, monkeypatch, **env):
-        for k in ("WP_SITE_URL", "WP_API_KEY"):
+        for k in ("WP_SITE_URL", "WP_API_KEY", "ALERT_ENVELOPE"):
             monkeypatch.delenv(k, raising=False)
         for k, v in env.items():
             monkeypatch.setenv(k, v)
@@ -139,20 +140,88 @@ class TestBehaviour:
         assert code == 1, "a missing key must redden the alerter's own run"
         assert "::error::" in out
 
-    def test_a_failed_post_reddens_the_run(self, monkeypatch):
+    def test_an_undeliverable_alert_is_held_and_does_not_redden_the_run(
+            self, monkeypatch, tmp_path):
+        """THE 2026-07-31 DEFECT, in one assertion.
+
+        Bluehost 504'd for seven minutes. enrich failed, drain-writers correctly
+        went red, and this alerter then failed four times reporting them —
+        because /alert is a route on the host it was reporting about. Exiting 1
+        there turned one outage into four EXTRA red runs, each of which said
+        'the alerter is broken' when the alerter was working and the host was
+        down.
+
+        A held alert is a kept promise. It exits 0, and it says so loudly.
+        """
+        envelope = tmp_path / "held.json"
         calls = []
-        monkeypatch.setattr(ci_alert, "post_alert",
-                            lambda s, k, p: (calls.append(p), (False, "HTTP 503"))[1])
+        monkeypatch.setattr(
+            ci_alert, "post_alert",
+            lambda s, k, p, **kw: (calls.append(p), (False, "HTTP 504 from /alert", True))[1])
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "collect", "--conclusion", "failure",
+             "--envelope", str(envelope)],
+            monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
+
+        assert code == 0, "an outage must not manufacture a red run of its own"
+        assert "::warning::" in out and "HELD" in out
+        assert "dedupe_key" in calls[0]
+
+        held = json.loads(envelope.read_text())
+        assert held["key"] == calls[0]["dedupe_key"]
+        assert held["payload"]["subject"].startswith("CI RED:")
+
+    def test_an_undeliverable_alert_with_nowhere_to_go_is_red(self, monkeypatch):
+        """The one state that still deserves a red run: the alert could not be
+        delivered AND could not be held, so nobody will ever be told. Degrading
+        honestly means being loud here and nowhere else."""
+        monkeypatch.setattr(
+            ci_alert, "post_alert",
+            lambda s, k, p, **kw: (False, "HTTP 504 from /alert", True))
         code, out = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "failure"],
             monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
-        assert code == 1 and "::error::" in out
-        assert "dedupe_key" in calls[0]
+        assert code == 1
+        assert "::error::" in out and "nobody will be told" in out.lower()
+
+    def test_a_settled_refusal_is_held_but_said_out_loud(self, monkeypatch, tmp_path):
+        """A 401 is not a bad night, it is a wrong key, and it will not fix
+        itself while the queue quietly grows."""
+        envelope = tmp_path / "held.json"
+        monkeypatch.setattr(
+            ci_alert, "post_alert",
+            lambda s, k, p, **kw: (False, "HTTP 401 from /alert", False))
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "collect", "--conclusion", "failure",
+             "--envelope", str(envelope)],
+            monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
+        assert code == 0, "still held, still not a red run"
+        assert "::error::" in out, "a settled refusal must not be whispered"
+
+    def test_transient_failures_are_retried_inside_the_run(self, monkeypatch):
+        """A single bad response from a shared host is not an outage. Retrying
+        is the cheap half of the fix; the outbox is the half that survives one."""
+        answers = [(False, "HTTP 503", True), (False, "HTTP 503", True),
+                   (True, "emailed the owner", False)]
+        monkeypatch.setattr(ci_alert, "_post_once",
+                            lambda *a, **k: answers.pop(0))
+        ok, note, _ = ci_alert.post_alert("https://x.invalid", "k", {},
+                                          sleep=lambda _s: None)
+        assert ok and not answers, "it stopped retrying before it succeeded"
+
+    def test_a_settled_refusal_is_not_retried(self, monkeypatch):
+        tries = []
+        monkeypatch.setattr(
+            ci_alert, "_post_once",
+            lambda *a, **k: (tries.append(1), (False, "HTTP 404", False))[1])
+        ci_alert.post_alert("https://x.invalid", "k", {}, sleep=lambda _s: None)
+        assert len(tries) == 1, "retrying a settled no only makes the run longer"
 
     def test_success_posts_a_resolve_and_never_a_dedupe_key(self, monkeypatch):
         calls = []
-        monkeypatch.setattr(ci_alert, "post_alert",
-                            lambda s, k, p: (calls.append(p), (True, "emailed"))[1])
+        monkeypatch.setattr(
+            ci_alert, "post_alert",
+            lambda s, k, p, **kw: (calls.append(p), (True, "emailed", False))[1])
         code, _ = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "success",
              "--branch", "main"],
