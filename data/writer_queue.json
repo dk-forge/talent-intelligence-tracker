@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-07-31T20:19:59Z",
-  "last_tick": "2026-07-31T21:33:10Z",
+  "last_tick": "2026-07-31T21:34:43Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,42 +168,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-31T20:19:59Z",
-      "history": [
-        {
-          "at": "2026-07-31T17:03:46Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-22)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T20:19:59Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T20:29:11Z",
-          "detail": "run 30662474194",
-          "event": "bound"
-        }
-      ],
-      "id": "20260731T170346Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-22)",
-      "requested_at": "2026-07-31T17:03:46Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30662474194",
-      "state": "dispatched",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -299,65 +263,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T19:41:36Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:40:06Z",
-          "detail": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:41:22Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:46:46Z",
-          "detail": "run 30481065108",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:46:46Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-07-29T19:01:42Z",
-          "detail": "it failed only because publish was blocked by the eight guardrail findings; those are answered and enforce now passes, so the slice can finish",
-          "event": "requeued"
-        },
-        {
-          "at": "2026-07-29T19:41:36Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T19:45:27Z",
-          "detail": "run 30485534927",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T19:45:27Z",
-          "detail": "run 30485534927",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184006Z-backfill-funding-bulk",
-      "inputs": {
-        "dry_run": "false",
-        "quarters": "2026q1..2026q2"
-      },
-      "landed_at": "2026-07-29T19:45:27Z",
-      "priority": 10,
-      "reason": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
-      "requested_at": "2026-07-29T18:40:06Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30485534927",
-      "state": "landed",
-      "workflow": "backfill-funding-bulk.yml"
     },
     {
       "attempts": 0,
@@ -2755,6 +2660,47 @@
       "run_id": "30649711589",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T20:19:59Z",
+      "history": [
+        {
+          "at": "2026-07-31T17:03:46Z",
+          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-22)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T20:19:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T20:29:11Z",
+          "detail": "run 30662474194",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T21:34:43Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260731T170346Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "ration": "37",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-22)",
+      "requested_at": "2026-07-31T17:03:46Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30662474194",
+      "state": "failed",
+      "workflow": "backfill-gnews-2026.yml"
     }
   ],
   "version": 1
