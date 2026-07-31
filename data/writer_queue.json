@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T00:24:44Z",
-  "last_tick": "2026-07-31T00:27:15Z",
+  "last_dispatch": "2026-07-31T00:49:12Z",
+  "last_tick": "2026-07-31T00:49:12Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -289,45 +289,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-31T00:24:44Z",
-      "history": [
-        {
-          "at": "2026-07-31T00:13:09Z",
-          "detail": "verify the $25 allowance and degrade-not-halt unblocked collection after the 2026-07-30 $9.47 stop",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T00:24:44Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T00:27:15Z",
-          "detail": "run 30593463043",
-          "event": "bound"
-        }
-      ],
-      "id": "20260731T001309Z-collect",
-      "inputs": {
-        "dry_run": "false",
-        "source": "google_news"
-      },
-      "priority": 0,
-      "reason": "verify the $25 allowance and degrade-not-halt unblocked collection after the 2026-07-30 $9.47 stop",
-      "requested_at": "2026-07-31T00:13:09Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30593463043",
-      "state": "dispatched",
-      "workflow": "collect.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T00:49:12Z",
       "history": [
         {
           "at": "2026-07-31T00:27:08Z",
           "detail": "carry the 156 snapshots from run 30592164950 to the live rows; enrich has no schedule until PR #2 lands",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T00:49:12Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T002708Z-enrich",
@@ -339,7 +311,7 @@
       "requested_at": "2026-07-31T00:27:08Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
     },
     {
@@ -1810,6 +1782,44 @@
       "run_id": "30592164950",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T00:24:44Z",
+      "history": [
+        {
+          "at": "2026-07-31T00:13:09Z",
+          "detail": "verify the $25 allowance and degrade-not-halt unblocked collection after the 2026-07-30 $9.47 stop",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T00:24:44Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T00:27:15Z",
+          "detail": "run 30593463043",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T00:49:12Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260731T001309Z-collect",
+      "inputs": {
+        "dry_run": "false",
+        "source": "google_news"
+      },
+      "priority": 0,
+      "reason": "verify the $25 allowance and degrade-not-halt unblocked collection after the 2026-07-30 $9.47 stop",
+      "requested_at": "2026-07-31T00:13:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30593463043",
+      "state": "failed",
+      "workflow": "collect.yml"
     }
   ],
   "version": 1
