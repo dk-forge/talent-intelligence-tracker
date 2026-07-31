@@ -302,11 +302,19 @@ shapes are `... Funding LLC`, a `YYYY-N` serial, and `Blocker Corp`.
 
 | | before | after |
 |---|---|---|
-| funding records | 3,312 | 2,994 |
-| money raised | $118.4bn | $104.2bn |
+| funding records | 3,344 | 3,026 |
+| money raised | $122.0bn | $107.7bn |
 | records drawn from Form D | 3,013 | 2,695 |
 | business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn |
 | employers with a funding record | 3,127 | 2,906 |
+
+The before column is the dashboard's own aggregate (`money.total`,
+`money.coverage`), not a query of our own. `funding=1` over `/query` returns
+3,312 rows and $118.416bn because the funding TEST and the sum of
+`funding_amount_usd` count different populations, and a corrections page quoting
+$118.4bn beside a headline of $122B is a reader's first reason to distrust both.
+The 318 withdrawals are inside both populations, so the difference is a constant
+and not a discrepancy.
 
 221 employers lose every funding record they had. That is the correct outcome —
 each was on the tracker for a takeover it was on the receiving end of — but it is

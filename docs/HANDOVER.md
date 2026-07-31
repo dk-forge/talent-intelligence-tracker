@@ -40,8 +40,8 @@ Derivation, every measurement and both rejected rules are in
 
 | | before | after (projected) |
 |---|---|---|
-| funding records | 3,312 | 2,994 |
-| money raised | $118.4bn | $104.2bn |
+| funding records | 3,344 | 3,026 |
+| money raised | $122.0bn | $107.7bn |
 | business combinations published as raises | 177 / $8.5bn | 7 / $0.7bn |
 
 **State, and the two things left.**

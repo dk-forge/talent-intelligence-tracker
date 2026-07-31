@@ -118,9 +118,13 @@ function tit_corrections_entries() {
                  deleted. A withdrawn record will keep its row and the reason it
                  went, which is how it can still be counted here.',
             ),
+            // The BEFORE column is read off the same aggregate the dashboard
+            // prints, not off a query of our own: a corrections page quoting
+            // $118.4bn beside a dashboard headline of $122B is a reader's first
+            // reason to distrust both.
             'projection' => array(
-                array('Funding records', '3,312', '2,994'),
-                array('Money raised', '$118.4bn', '$104.2bn'),
+                array('Funding records', '3,344', '3,026'),
+                array('Money raised', '$122.0bn', '$107.7bn'),
                 array('Records drawn from Form D', '3,013', '2,695'),
                 array('Takeovers published as raises', '177 records, $8.5bn', '7 records, $0.7bn'),
                 array('Employers with a funding record', '3,127', '2,906'),
