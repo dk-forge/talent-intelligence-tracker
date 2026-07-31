@@ -235,7 +235,160 @@ against a cached copy of the bulletin.
 
 ---
 
+## 2026-07-30 (later) — why were we paying for two model passes per story?
+
+Nobody had asked. Extraction and the read-through were **$47.90 and $47.39 a
+month** at full worldwide coverage — 94% of a $100.99 bill, for reading every
+story twice. The answer turned out to be worth **$41.70 a month** and to cost
+nothing at all in what gets stored.
+
+### What the second pass actually buys: one field, and no facts
+
+Established structurally, not by sampling, because the structure settles it:
+
+- `interpret()` is asked for exactly one key and `interpret_late()` writes
+  exactly one attribute, `signal.talent_readthrough`.
+- It is never given `company`, `country`, `pillar`, `funding_amount`,
+  `signal_direction` or `confidence` to return, and `_accept` refuses any
+  sentence carrying a figure or place not already in the extracted facts.
+- **It sees LESS of the source than extraction does**: 500 characters of teaser
+  against extraction's 4,000. It is not "the model finally reads the article".
+  It cannot know anything extraction did not.
+- Extraction already produces that same field, for free, in the call that was
+  already paid for. `SCHEMA_HINT` has always asked for `talent_readthrough`.
+
+So the field-by-field A/B on the six fields that decide a record would return
+**100% agreement by construction**. There is nothing to measure there, and
+`tests/test_second_pass_is_conditional.py` asserts the structure instead.
+
+What is left is prose quality on one field. That is worth something — but it is
+worth it on the records where the free sentence is actually bad.
+
+### How often is the free sentence bad? 8.8%
+
+The corpus is real production prose: **4,171 rows carrying the sentence the
+fused deepseek call wrote before the split, and 452 carrying claude-sonnet-5's
+after it.** Against `prompts.weak_reasons`, five free deterministic tests:
+
+| | rows | flagged | Latin-script subset |
+|---|---|---|---|
+| deepseek, fused | 4,171 | **8.8%** | 8.7% |
+| claude-sonnet-5 | 452 | 2.2% | **1.0%** |
+
+**Nine to one on comparable text.** That gap is the evidence the triage
+measures the thing it claims to rather than flagging at random — the same tests
+run over the frontier model's own output almost never fire.
+
+The breakdown, and it is not what the earlier A/B suggested:
+
+    hedged             5.6%    "suggests upcoming hiring in biotech roles"
+    short              2.5%    "Brussels Airlines appoints a new CEO;
+                                executive leadership changes."
+    adds-no-fact       1.4%
+    restates-headline  0.2%
+    storage-code       0.0%
+
+Mean headline overlap is **0.150 for deepseek against 0.158 for Sonnet** —
+statistically identical. So "deepseek RESTATES the headline", which is what the
+2026-07-30 A/B concluded from one sample and which this file has been repeating
+since, **is not a property of the corpus.** What IS true: deepseek's sentences
+are thinner (127 characters against 194) and hedge one time in fifteen. That is
+a real but modest difference, and it is worth a frontier call on one record in
+eleven rather than on all of them.
+
+### The triage, and its two refusals to be clever
+
+`pipeline/prompts.weak_reasons(sentence, headline)` — five regex-and-set
+operations, no model, no network, no database, asserted.
+
+1. **Anything it cannot score goes to the model.** Chinese, Japanese and Thai
+   put no spaces between words, so a word split returns one enormous token and
+   both overlap tests then measure an accident. Below a token floor, or above a
+   word-length ceiling, the tests are skipped and the record buys the frontier
+   sentence. That fails toward quality, and it spends the budget on exactly the
+   languages the coverage gap is made of. (All four sentences the first draft
+   flagged in the Sonnet corpus were Chinese, Arabic and Hebrew, and all four
+   were fine — that is how the blind spot was found.)
+2. **Extraction's own sentence must pass `ungrounded_reason` before it stands.**
+   That check only ever ran on the PAID sentence, because the free one was
+   always overwritten. Keeping the free one without it would have quietly
+   reopened the invented-figure hole the split closed — a sentence with no other
+   defect can still carry a number that is not in the source.
+
+`TIT_READ_ALWAYS=1` restores the unconditional call in one variable.
+
+**What this does NOT measure, and the code says so.** These tests find DEFECTS,
+not dull prose. A sentence can pass all five and still be less useful than
+Sonnet's extra 67 characters of context about what the company does. No regex
+scores that. The honest claim is "this catches the defects".
+
+### Two arithmetic bugs found on the way, one of them dangerous
+
+**The read-through volume was `rows / read_throughs` (0.671) multiplied by
+READS** — two different denominators. It overstated the read-through line by
+28% and understated read-late's saving by the same.
+
+**The funnel took the ledger WHOLESALE the moment any collector had data**, and
+exactly one did. `national_press` — the hungriest collector, 249 reads a run —
+plus gdelt and the SEC pair silently vanished from the projection, and the bill
+fell from $75.99 to $57.24 on nothing but four missing collectors. **A number
+that looks more authoritative and is less complete is worse than the estimate it
+replaced.** The ledger now wins per collector, the seed fills the rest, and
+every row is printed `measured` or `seeded`.
+
+### The bill now, with google_news's real funnel in the ledger
+
+Demand is bigger than the seeded log suggested: 726 gate survivors a day from
+google_news alone against 306, so full coverage is **1,282 reads/day**.
+
+| configuration | gate | extract | read | total |
+|---|---|---|---|---|
+| full coverage, read-late | 5.70 | 47.90 | 47.39 | **100.99** |
+| second pass CONDITIONAL | 5.70 | 47.90 | 5.69 | **59.29** |
+| + extraction on `gemini-2.5-flash-lite` | 5.70 | 7.40 | 5.69 | **18.79** |
+| + read-through on `haiku-4.5:batch` too | 5.70 | 7.40 | 1.42 | **14.53** |
+| leadership offloaded (61% of reads left) | 5.70 | 29.32 | 3.48 | 38.50 |
+| + free extraction takes 33% of funding | 5.70 | 19.58 | 2.33 | 27.61 |
+| all of it, cheapest models | 5.70 | 3.03 | 0.58 | **9.31** |
+
+**$5 IS NOT REACHABLE. $9.31 is the floor with every lever stacked**, and that
+floor assumes two model swaps that have not been quality-tested and a leadership
+pillar that is not yet free. The gate alone is $5.70 and is not optional: it is
+how we know which 1,282 of 3,156 daily candidates are worth reading. Any target
+at or below $6 is a target below the cost of *looking*.
+
+### Funding is where free extraction pays, and by fifteen times
+
+Measured over the 289 stored funding rows on the paid path: `cheap_extract`
+closes **33.2% from the headline alone**, against **2.2%** across the whole paid
+path. Funding headlines state every field, which is exactly why. 88% of them are
+Latin-script, so an English-first parser is not the ceiling people assumed.
+
+The declines are where the remaining work is, and they are precision guards
+firing rather than gaps: `LOOPTWORKS, INC raised $3.6M in a private placement`
+(the comma in the name span), `Flourish Health Raises $26M Series A to Scale
+High-Acuity Youth Psychiatric Care` (title-case, so only a single token before
+the verb is trusted). Both are fixable with care and neither should be touched
+without a hand-check at the existing 31/31 bar.
+
+### The cap, raised because it was EARNED
+
+`READTHROUGH_CAP` 75 -> 88, google_news 45 -> 129, gdelt 8 -> 9. A read costs
+$0.00139 instead of $0.00278 now, so the same $25 buys twice as many. That rule
+is the first line of the comment: **raise it when the money per read falls, and
+not before.** Still rationing — $25 buys 461 reads a day against demand of
+1,282 — and `candidate_rank` is what makes 36% of demand buy more than 36% of
+the coverage.
+
+---
+
 ## 2026-07-30 — worldwide coverage priced honestly: $75.99, and the cap goes down
+
+> **SUPERSEDED THE SAME DAY by the entry above.** Two arithmetic bugs (the
+> read-through volume factor, and the funnel dropping four collectors the
+> moment one had ledger data) and google_news's real funnel put full
+> coverage at $100.99 rather than $75.99. The reasoning below stands; the
+> totals do not. `python3 cost_projection.py` is the authority.
 
 The brief was "pull all the countries in the world, pull the missing sources,
 run it for $5"; the allowance was then raised to $25 mid-session. Neither

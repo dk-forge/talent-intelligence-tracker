@@ -352,7 +352,7 @@ again.
    or `stalled` in `ops_status.py [2e]` — and never requeues itself out of it.
    Fix the cause, then re-queue the backfill; it resumes at the cursor.
 
-### Cost and coverage (2026-07-30) — worldwide costs $75.99/month, and $25 is the allowance
+### Cost and coverage (2026-07-30) — worldwide costs $100.99/month, and $25 is the allowance
 
 **Run the program, do not trust this paragraph:**
 
@@ -366,8 +366,21 @@ charged), COUNTED (the funnel) or MODELLED (a price list times a token count).
 It exits **2** when full coverage does not fit the allowance, which today it
 does not.
 
-**The headline: full coverage is $75.99/month against a $25 allowance.** Where
-the money is, and the two surprises in it:
+**The headline: full coverage is $100.99/month against a $25 allowance, and
+$59.29 with the conditional second pass shipped today.** $5 is not reachable
+and $9.31 is the floor with every lever stacked, two of which are unverified
+model swaps. **The gate alone is $5.70 and is not optional** — it is how we
+know which 1,282 of 3,156 daily candidates are worth reading — so any target at
+or below $6 is a target below the cost of looking.
+
+| configuration | total |
+|---|---|
+| full coverage, read-late | $100.99 |
+| second pass CONDITIONAL **(shipped)** | **$59.29** |
+| + extraction on `gemini-2.5-flash-lite` | $18.79 |
+| + leadership free, free funding extraction, cheapest models | **$9.31** |
+
+Where the money is, and the surprises in it:
 
 | stage | model | $/month at full coverage |
 |---|---|---|
@@ -375,6 +388,24 @@ the money is, and the two surprises in it:
 | extraction | deepseek/deepseek-chat | **$31.69** |
 | read-through | claude-sonnet-5 | $40.14 |
 
+- **The second pass buys ONE FIELD and no facts**, and it is now conditional.
+  `interpret()` is asked for one key, writes one attribute, and sees 500
+  characters of teaser against extraction's 4,000 — it cannot change a stored
+  fact and cannot know more than extraction did. Extraction already writes that
+  field for free. Measured on 4,171 fused-deepseek sentences against 452
+  Sonnet ones, `prompts.weak_reasons` flags **8.7% of deepseek's Latin-script
+  prose and 1.0% of Sonnet's** — nine to one, which is the evidence the triage
+  measures what it claims to. So the frontier call is bought for the ~9% that
+  need it. **−$41.70/month.** `TIT_READ_ALWAYS=1` reverts it.
+  Caveat in the code: the tests find DEFECTS, not dull prose.
+- **"deepseek restates the headline" is not true of the corpus.** Mean headline
+  overlap 0.150 against Sonnet's 0.158. What is true: thinner (127 characters
+  against 194) and hedging one time in fifteen. The earlier A/B generalised from
+  one sample and this file repeated it.
+- **Free extraction is 15x better on FUNDING than overall**: 33.2% of the 289
+  stored funding rows close from the headline alone, against 2.2% across the
+  paid path. Funding headlines state every field. 88% are Latin-script, so
+  English-first is not the ceiling anyone assumed.
 - **The gate is 5% of the bill.** Batching it saves ~$1.66/month, not the
   order of magnitude it looks like: `GATE_SYSTEM` is 217 tokens against ~287 of
   item text, so the shared prefix is 43% of a gate call, not the 86% it is for
@@ -467,7 +498,7 @@ coverage priced honestly".
   2026-07-30). It holds by rationing, not by luck: dedup before the LLM, gate on
   headline+teaser only, per-language prefilters, earned cadence, deterministic
   closes, and a per-run read cap sized to the MONTH rather than the run. Feeds
-  are free; only stories cost. Full worldwide coverage would be $75.99/month, so
+  are free; only stories cost. Full worldwide coverage would be $100.99/month, so
   the cap is a real trade and `pipeline/candidate_rank.py` is what decides which
   stories fit inside it. `python3 cost_projection.py` re-derives all of it.
 

@@ -240,8 +240,9 @@ batch. There is a hard spend cap on the OpenRouter key itself — that is what
 makes it a guarantee rather than a hope.
 
 **The budget is a RATION, and saying so is the honest part.** Reading every
-story that survives the gate — full worldwide coverage — costs **$75.99/month**
-at current models, measured. So a per-run cap decides how much gets read and
+story that survives the gate — full worldwide coverage — costs **$100.99/month**
+at current models, and **$59.29** with the conditional second pass. $5 is not
+reachable: the GATE alone is $5.70 and is how we know what is worth reading. So a per-run cap decides how much gets read and
 `pipeline/candidate_rank.py` decides WHICH, giving every country's best story a
 place before any country's second. Do not quote a cost figure from memory:
 
