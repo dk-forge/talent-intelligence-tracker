@@ -76,7 +76,7 @@ on:
         default: failure
 
 permissions:
-  contents: read
+  contents: write        # commit an undeliverable alert into data/alert_outbox.json
   actions: read          # needed to read the failed run's log
 
 jobs:
@@ -99,7 +99,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # `ref: main` explicitly. A workflow_run checkout can land detached, and
+      # the hold step below has to be able to commit onto main.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -108,16 +112,27 @@ jobs:
       # cannot be broken by a dependency resolution failure — which would be an
       # alerting path that dies exactly when the repo is unhealthy.
       #
-      # No `continue-on-error` either: if the alert cannot be delivered this run
-      # goes RED, and ops_status.py [2f] surfaces a failing alerter at the next
-      # session start. A notifier that fails silently is worse than none, because
-      # it buys the false confidence that you would have been told.
+      # WHAT CHANGED ON 2026-07-31, AND WHY THIS STEP CAN NOW GO GREEN WITHOUT
+      # THE OWNER HAVING BEEN TOLD ANYTHING YET.
+      #
+      # /alert is a route on the WordPress host. When Bluehost 504'd for seven
+      # minutes, enrich failed, drain-writers correctly went red, and this step
+      # then failed FOUR times reporting them — an outage manufacturing extra
+      # red runs, each falsely reading as "the alerter is broken". The alerting
+      # system depended on the host it was alerting about.
+      #
+      # An undeliverable alert is now HELD in data/alert_outbox.json (committed
+      # below), and host-watch.yml delivers it when the host answers again. That
+      # is a kept promise, so ci_alert.py exits 0 and this run stays green. It
+      # exits non-zero only when the alert can be neither delivered NOR held —
+      # the one state where nobody is ever going to hear about the failure.
       - name: Alert on failure / clear on recovery
         env:
           WP_SITE_URL: https://asktherecruiter.com/blog
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
         run: |
           python3 ci_alert.py \
             --run-id     "${{ inputs.run_id || github.event.workflow_run.id }}" \
@@ -126,3 +141,57 @@ jobs:
             --branch     "${{ github.event.workflow_run.head_branch || 'main' }}" \
             --event      "${{ github.event.workflow_run.event || 'workflow_dispatch' }}" \
             --run-url    "${{ github.event.workflow_run.html_url }}"
+
+      # Only runs when the step above could not deliver. `!cancelled()` rather
+      # than the default success check, because the envelope is worth committing
+      # even if that step then failed for its own reasons — an alert on a
+      # runner's disk is an alert nobody will ever read.
+      #
+      # The retry loop RE-DERIVES rather than replaying a diff: fetch, reset onto
+      # main, fold the envelope in again. `alert_outbox.py enqueue` is idempotent
+      # in the alert's key, so a race with a concurrent alert costs a retry and
+      # never a duplicate email. Same lesson as merge_db.py and
+      # schedule-link-hygiene.yml, which both learned it the expensive way.
+      - name: Hold the alert until the host is back
+        if: ${{ !cancelled() }}
+        env:
+          ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
+        run: |
+          set -euo pipefail
+          # The envelope only exists when delivery failed. `hashFiles` cannot be
+          # used to gate this step: it only sees paths inside the workspace, and
+          # the envelope is deliberately outside it so a `git reset --hard`
+          # below cannot destroy the very thing being saved.
+          if [ ! -f "$ALERT_ENVELOPE" ]; then
+            echo "The alert was delivered; there is nothing to hold."
+            exit 0
+          fi
+
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 alert_outbox.py enqueue --envelope "$ALERT_ENVELOPE"
+            git add data/alert_outbox.json
+            if git diff --staged --quiet; then
+              echo "This alert was already held by another run."
+              exit 0
+            fi
+            git commit -q -m "alert: held undelivered $(date -u +%Y-%m-%dT%H:%MZ)"
+            # HEAD:main explicitly — a workflow_run checkout can be detached,
+            # and a push that resolves to no upstream fails after the work.
+            if git push origin HEAD:main; then
+              echo "Held on attempt $attempt. host-watch.yml will deliver it."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::The alert could not be delivered AND could not be held."
+          echo "::error::It exists only on this runner, so the failure it"
+          echo "::error::describes will reach nobody. This is the ONE alerting"
+          echo "::error::failure worth a red run; every other kind is queued."
+          exit 1

@@ -239,6 +239,65 @@ class TestTheQueueDoesNotBecomeItsOwnProblem:
         assert alert_outbox.load(path)["entries"] == []
 
 
+class TestTheWorkflowsThatCarryThis:
+    """The properties that only exist in YAML, where nothing else checks them."""
+
+    def _wf(self, name):
+        import yaml
+
+        return yaml.safe_load(
+            (Path(__file__).resolve().parents[1] / ".github/workflows" / name).read_text())
+
+    def test_the_watchdog_is_armed(self):
+        crons = [e["cron"] for e in self._wf("host-watch.yml")[True]["schedule"]]
+        assert crons, "a dormant watchdog is the state we were already in"
+        assert "*/15 * * * *" in crons
+
+    def test_the_watchdog_is_not_in_the_writer_lock(self):
+        """A watchdog that queues behind a six-hour backfill is not a watchdog.
+        It writes no collected data, so it needs no share of that lock."""
+        wf = self._wf("host-watch.yml")
+        assert (wf.get("concurrency") or {}).get("group") != "talent-collect"
+
+    def test_the_watchdog_never_touches_the_collected_database(self):
+        """tests/test_workflows.py finds database writers by searching the raw
+        text for the filename and then demands they join talent-collect. Naming
+        it here — even in a comment — would drag this workflow into the one lock
+        it must stay out of."""
+        text = (Path(__file__).resolve().parents[1]
+                / ".github/workflows/host-watch.yml").read_text()
+        assert "talent_intel.db" not in text
+
+    def test_the_alerter_can_commit_what_it_could_not_send(self):
+        wf = self._wf("ci-alert.yml")
+        assert wf["permissions"]["contents"] == "write", \
+            "without write access an undeliverable alert has nowhere to go"
+        steps = wf["jobs"]["alert"]["steps"]
+        hold = next(s for s in steps if "alert_outbox.py enqueue" in (s.get("run") or ""))
+        run = hold["run"]
+        assert "git reset --hard origin/main" in run
+        assert run.index("git reset --hard") < run.index("alert_outbox.py enqueue"), \
+            "the envelope is folded in before the reset, which discards it"
+        assert "for attempt in" in run, "a single push loses the alert on any race"
+        assert "::error::" in run and run.rstrip().endswith("exit 1"), \
+            "an alert that reaches neither the owner nor the queue must be loud"
+
+    def test_the_hold_step_runs_even_when_the_alert_step_failed(self):
+        """An alert sitting on a runner's disk is an alert nobody will read."""
+        wf = self._wf("ci-alert.yml")
+        hold = next(s for s in wf["jobs"]["alert"]["steps"]
+                    if "alert_outbox.py enqueue" in (s.get("run") or ""))
+        assert "cancelled()" in str(hold.get("if")), \
+            "the default success gate would skip the hold on the path that needs it"
+
+    def test_the_alerter_still_refuses_to_report_on_itself(self):
+        """The recursion guard. A mail loop is not a failure mode worth
+        discovering empirically, and it matters more now that a held alert
+        leaves a green run rather than a red one."""
+        wf = self._wf("ci-alert.yml")
+        assert "CI failure alert" in wf["jobs"]["alert"]["if"]
+
+
 class TestTheFallbackChannelIsDeduplicatedByConstruction:
     def test_one_marker_means_one_issue(self, monkeypatch):
         import gh_fallback

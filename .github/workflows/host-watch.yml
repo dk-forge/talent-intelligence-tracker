@@ -102,7 +102,7 @@ jobs:
               exit 0
             fi
             git commit -q -m "host: $(python3 -c "import json;print(json.load(open('data/host_status.json'))['state'])") $(date -u +%Y-%m-%dT%H:%MZ)"
-            if git push; then
+            if git push origin HEAD:main; then
               echo "Recorded on attempt $attempt."
               exit 0
             fi
