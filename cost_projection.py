@@ -75,6 +75,13 @@ FUNNEL = {
 
 DAYS = 30
 
+#: What `pipeline/cheap_extract.py` closes on FUNDING headlines alone, measured
+#: over the 289 stored funding rows on the paid path: 33.2%, against 2.2%
+#: across the whole paid path. Funding headlines state every field ("X raises
+#: $25M Series B led by Y"), which is why the same parser is fifteen times more
+#: effective on them. Used only for the funding-only scenario below.
+FREE_CLOSE_ON_FUNDING = 0.332
+
 # --- MODELLED: token counts, from exact character counts ---------------------
 #
 # The character counts are exact (`len(classify.SCHEMA_HINT)` and friends); the
@@ -212,25 +219,47 @@ def paid_path_pillars(conn) -> dict:
     return {p: n / total for p, n in rows} if total else {}
 
 
-def measured_funnel(conn) -> tuple[dict, str]:
-    """The funnel from the ledger if it has one, else the seeded constants."""
+def measured_funnel(conn) -> tuple[dict, str, set]:
+    """The funnel per collector: the ledger where it has data, the seed elsewhere.
+
+    MERGED, NOT REPLACED, and the distinction cost a wrong answer once already.
+    The funnel columns landed on 2026-07-30, so for a while only the collectors
+    that have run since then have rows. Taking the ledger wholesale dropped
+    `national_press` — the hungriest collector, 249 reads a run — along with
+    gdelt and the SEC pair, and the projected bill fell from $75.99 to $57.24
+    on nothing but four missing collectors. A number that looks more
+    authoritative and is less complete is worse than the estimate it replaced.
+
+    So each collector is taken from the ledger if the ledger has seen it and
+    from the seed if not, and the third return value is the set that came from
+    the ledger, so the report can mark every row.
+    """
     try:
         rows = list(conn.execute(
             "SELECT collector, AVG(candidates), AVG(gate_calls), "
             "       AVG(gate_rejects), AVG(reads_bought), AVG(budget_deferred) "
             "  FROM source_health WHERE gate_calls IS NOT NULL "
-            " GROUP BY collector"))
+            "   AND candidates IS NOT NULL GROUP BY collector"))
     except sqlite3.OperationalError:
         rows = []
-    if not rows:
-        return FUNNEL, "seeded from two named workflow runs (see FUNNEL)"
-    out = {}
+
+    funnel = dict(FUNNEL)
+    measured_set = set()
     for coll, cands, gate, rejects, reads, deferred in rows:
-        runs_per_day = FUNNEL.get(coll, (0, 0, 0, 0, 2))[4]
-        out[coll] = (round(cands or 0), round(gate or 0),
-                     round((gate or 0) - (rejects or 0)),
-                     round(reads or 0), runs_per_day)
-    return out, f"MEASURED from the ledger, {len(rows)} collector(s)"
+        if coll not in funnel:
+            continue  # a collector with no known cadence cannot be projected
+        runs_per_day = funnel[coll][4]
+        kept = round((gate or 0) - (rejects or 0))
+        funnel[coll] = (round(cands or 0), round(gate or 0), kept,
+                        round(reads or 0), runs_per_day)
+        measured_set.add(coll)
+
+    if not measured_set:
+        return funnel, "seeded from two named workflow runs (see FUNNEL)", set()
+    return (funnel,
+            f"{len(measured_set)} of {len(funnel)} collector(s) MEASURED from "
+            f"the ledger, the rest still seeded",
+            measured_set)
 
 
 # --- the report --------------------------------------------------------------
@@ -257,7 +286,7 @@ def main() -> int:
     conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
     try:
         m = measured(conn)
-        funnel, funnel_source = measured_funnel(conn)
+        funnel, funnel_source, from_ledger = measured_funnel(conn)
         paid_mix = paid_path_pillars(conn)
     finally:
         conn.close()
@@ -294,9 +323,10 @@ def main() -> int:
         day_gate += gate * per_day
         day_full += reads * per_day
         day_kept += survivors * per_day
+        mark = "  measured" if coll in from_ledger else "  seeded"
         print(f"    {coll:16} {cands * per_day:7} {gate * per_day:7} "
               f"{survivors * per_day:7} {reads * per_day:7} "
-              f"{(survivors - reads) * per_day:7}")
+              f"{(survivors - reads) * per_day:7}{mark}")
     print(f"    {'TOTAL/day':16} {'':7} {day_gate:7} {day_kept:7} "
           f"{day_full:7} {day_kept - day_full:7}")
     print(f"\n    FULL COVERAGE means reading all {day_kept:,}/day = "
@@ -336,9 +366,23 @@ def main() -> int:
 
     # [4] ------------------------------------------------------------------
     print("\n[4] THE BILL, per month, at full cadence")
-    store_rate = m["rows"] / max(m["read_throughs"], 1)
+    # Interpretations bought per READ, under each policy. Both are ratios of
+    # the same denominator on purpose: the bug this replaces divided rows by
+    # read-throughs (0.671) and then multiplied by reads, which overstated the
+    # read-through line by 28% and understated read-late's saving by the same.
+    #
+    #   before read-late   every read that extraction called a signal bought one
+    #   after read-late    only a record that will actually store buys one
+    #   conditional        ...and only when the free triage flags extraction's
+    #                      own sentence. 8.8% measured over 4,171 rows of fused
+    #                      deepseek prose; 12% used here, because the flagged
+    #                      share rises as coverage moves to languages the
+    #                      triage declines to score.
+    rt_per_read_eager = m["read_throughs"] / max(m["reads"], 1)
+    rt_per_read_late = m["rows"] / max(m["reads"], 1)
+    CONDITIONAL_SHARE = 0.12
 
-    def bill(reads_per_month: int, *, read_late: bool,
+    def bill(reads_per_month: int, *, read_late: bool, conditional: bool = False,
              extract_model: str | None = None,
              read_model: str | None = None) -> tuple[float, dict]:
         gate_calls = day_gate * DAYS
@@ -350,7 +394,10 @@ def main() -> int:
             return float("nan"), {}
         # Read-late buys an interpretation only for a record that stores.
         # Without it, every read that extraction called a signal bought one.
-        interpretations = reads_per_month * (store_rate if read_late else 0.78)
+        rate = rt_per_read_late if read_late else rt_per_read_eager
+        if conditional:
+            rate *= CONDITIONAL_SHARE
+        interpretations = reads_per_month * rate
         parts = {"gate": g * gate_calls * factor,
                  "extract": e * reads_per_month * factor,
                  "read": r * interpretations * factor}
@@ -360,17 +407,15 @@ def main() -> int:
     full_reads = day_kept * DAYS
 
     rows = [
-        ("today's caps, before read-late", today_reads, False, None, None),
-        ("today's caps, WITH read-late", today_reads, True, None, None),
-        ("FULL coverage, read-late", full_reads, True, None, None),
+        ("today's caps, before read-late", today_reads, False, False, None, None),
+        ("today's caps, WITH read-late", today_reads, True, False, None, None),
+        ("FULL coverage, read-late", full_reads, True, False, None, None),
+        ("FULL coverage, second pass CONDITIONAL", full_reads, True, True, None, None),
     ]
     for alt in ALTERNATIVES["extract"]:
         rows.append((f"  ... extraction on {alt.split('/')[-1]}",
-                     full_reads, True, alt, None))
-    for alt in ALTERNATIVES["read"]:
-        rows.append((f"  ... read-through on {alt.split('/')[-1]}",
-                     full_reads, True, None, alt))
-    rows.append(("  ... both cheapest, together", full_reads, True,
+                     full_reads, True, True, alt, None))
+    rows.append(("  ... both cheapest, together", full_reads, True, True,
                  ALTERNATIVES["extract"][-1], ALTERNATIVES["read"][-1]))
 
     # The architecture moving underneath this. Two other agents are taking
@@ -381,19 +426,29 @@ def main() -> int:
     # because reads are not rows, and labelled as one.
     if paid_mix:
         non_leadership = 1 - paid_mix.get("leadership_change", 0)
+        left = int(full_reads * non_leadership)
         rows.append(
             (f"  ... leadership offloaded, {non_leadership:.0%} of reads left",
-             int(full_reads * non_leadership), True, None, None))
+             left, True, True, None, None))
+        # Funding news is the pillar with no global filing regime behind it,
+        # and it is also the most structured text in the corpus. Measured on
+        # 289 stored funding rows, the FREE parser closes 33.2% from the
+        # headline alone against 2.2% across the whole paid path. So the
+        # funding-only paid path is what the free parser declines.
+        funding_only = int(left * (1 - FREE_CLOSE_ON_FUNDING))
         rows.append(
-            ("  ... that, plus both cheapest models",
-             int(full_reads * non_leadership), True,
+            (f"  ... and free extraction takes {FREE_CLOSE_ON_FUNDING:.0%} of funding",
+             funding_only, True, True, None, None))
+        rows.append(
+            ("  ... all of it, on the cheapest models",
+             funding_only, True, True,
              ALTERNATIVES["extract"][-1], ALTERNATIVES["read"][-1]))
 
     print(f"    {'configuration':44} {'gate':>6} {'extr':>6} {'read':>6} "
           f"{'TOTAL':>7}")
-    for label, reads, late, em, rm in rows:
-        total, parts = bill(reads, read_late=late, extract_model=em,
-                            read_model=rm)
+    for label, reads, late, cond, em, rm in rows:
+        total, parts = bill(reads, read_late=late, conditional=cond,
+                            extract_model=em, read_model=rm)
         if not parts:
             print(f"    {label:44} {'not served at any price':>28}")
             continue
@@ -406,10 +461,11 @@ def main() -> int:
 
     # [5] ------------------------------------------------------------------
     print("\n[5] WHAT THE ALLOWANCE ACTUALLY BUYS")
-    total_full, _ = bill(full_reads, read_late=True)
+    total_full, _ = bill(full_reads, read_late=True, conditional=True)
     e = call_cost(prices, MODELS["extract"], EXTRACT_IN, EXTRACT_OUT,
                   cached_prefix=EXTRACT_PREFIX)
-    per_read = ((e or 0) + (unit["read"] or 0) * store_rate) * factor
+    per_read = ((e or 0)
+                + (unit["read"] or 0) * rt_per_read_late * CONDITIONAL_SHARE) * factor
     gate_bill = (unit["gate"] or 0) * day_gate * DAYS * factor
     affordable = max(0, int((allowance - gate_bill) / per_read)) if per_read else 0
     print(f"    the gate costs ${gate_bill:.2f}/month and is not optional: it "

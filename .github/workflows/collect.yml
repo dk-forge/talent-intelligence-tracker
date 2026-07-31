@@ -131,9 +131,9 @@ jobs:
             overall=0
             for source in google_news gdelt sec_edgar sec_form_d; do
               case "$source" in
-                gdelt)                export TIT_READTHROUGH_CAP=8 ;;
+                gdelt)                export TIT_READTHROUGH_CAP=9 ;;
                 sec_edgar|sec_form_d) export TIT_READTHROUGH_CAP=40 ;;
-                google_news)          export TIT_READTHROUGH_CAP=45 ;;
+                google_news)          export TIT_READTHROUGH_CAP=129 ;;
                 *)                    unset TIT_READTHROUGH_CAP ;;
               esac
               echo "::group::collect $source"

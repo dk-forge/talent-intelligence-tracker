@@ -379,7 +379,7 @@ def test_the_cost_knobs_are_env_configurable_with_the_agreed_defaults():
     import pipeline.classify as classify_module
     src = inspect.getsource(classify_module)
     assert 'os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")' in src
-    assert 'os.environ.get("TIT_READTHROUGH_CAP", "75")' in src
+    assert 'os.environ.get("TIT_READTHROUGH_CAP", "88")' in src
     assert 'os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")' in src, \
         "the read-through model must stay on the incumbent until its own A/B runs"
 

@@ -225,10 +225,22 @@ FULL_READ_CHARS = 4000
 # most coverage. A candidate past the cap defers UNMARKED and returns on the
 # next run, so the cap decides when a story is read, never whether.
 #
-# RAISE IT when the money per read falls, and not before. cost_projection.py
-# prices the two swaps that would move it most, and both are model decisions
-# for the owner rather than routing tweaks.
-READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "75") or "75")
+# 75 -> 88 on 2026-07-30, and the raise is EARNED rather than authorised: the
+# second model pass became conditional the same day, so a read now costs
+# $0.00139 instead of $0.00278 and the same $25 buys twice as many. That is the
+# rule for this number in one line — RAISE IT WHEN THE MONEY PER READ FALLS,
+# AND NOT BEFORE. Re-derive rather than trusting this comment:
+#
+#     python3 cost_projection.py        # section [5]
+#
+# THIS IS STILL RATIONING. Full coverage is 1,282 reads a day and $25 buys 461,
+# so 36% of what the gate keeps gets read. What makes that acceptable is
+# `pipeline/candidate_rank.py`: the reads go to the countries holding least and
+# every country's best story is placed before any country's second, so a capped
+# run is not a random 88 of 249, it is the 88 that buy the most coverage. A
+# candidate past the cap defers UNMARKED and returns next run, so the cap
+# decides when a story is read, never whether.
+READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "88") or "88")
 
 # Spec 4 rule 1: a narrow classification does not need a 1,400-token prompt.
 MINI_SYSTEM = (

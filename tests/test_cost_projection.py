@@ -100,16 +100,14 @@ def test_the_seeded_funnel_names_the_runs_it_came_from():
     assert "30571205733" in head and "30532073727" in head
 
 
-def test_the_ledger_wins_over_the_seed_the_moment_it_has_data(tmp_path):
+def test_the_ledger_wins_over_the_seed_for_the_collectors_it_has_seen(tmp_path):
     """Otherwise the seed quietly becomes the permanent answer."""
-    import sqlite3
-
     from pipeline import schema
 
     conn = schema.connect(tmp_path / "t.db")
     try:
-        _, source = cp.measured_funnel(conn)
-        assert "seeded" in source
+        _, source, seen = cp.measured_funnel(conn)
+        assert "seeded" in source and seen == set()
 
         conn.execute(
             "INSERT INTO source_health (collector, run_at, status, candidates, "
@@ -118,12 +116,37 @@ def test_the_ledger_wins_over_the_seed_the_moment_it_has_data(tmp_path):
             "        600, 500, 350, 150, 0)")
         conn.commit()
 
-        funnel, source = cp.measured_funnel(conn)
+        funnel, source, seen = cp.measured_funnel(conn)
         assert "MEASURED" in source
+        assert seen == {"google_news"}
         assert funnel["google_news"][:4] == (600, 500, 150, 150)
     finally:
         conn.close()
-        sqlite3.connect(":memory:").close()
+
+
+def test_a_collector_the_ledger_has_not_seen_keeps_its_seed(tmp_path):
+    """MERGED, not replaced. Taking the ledger wholesale dropped
+    national_press — the hungriest collector — along with gdelt and the SEC
+    pair, and the projected bill fell by $43 on nothing but four missing
+    collectors. A number that looks more authoritative and is less complete is
+    worse than the estimate it replaced."""
+    from pipeline import schema
+
+    conn = schema.connect(tmp_path / "t.db")
+    try:
+        conn.execute(
+            "INSERT INTO source_health (collector, run_at, status, candidates, "
+            " gate_calls, gate_rejects, reads_bought, budget_deferred) "
+            "VALUES ('google_news', '2026-07-31T00:00:00+00:00', 'ok', "
+            "        600, 500, 350, 150, 0)")
+        conn.commit()
+
+        funnel, _, seen = cp.measured_funnel(conn)
+        assert set(funnel) == set(cp.FUNNEL), "a collector was dropped"
+        for name in set(cp.FUNNEL) - seen:
+            assert funnel[name] == cp.FUNNEL[name], name
+    finally:
+        conn.close()
 
 
 def test_the_run_exits_two_when_full_coverage_does_not_fit():
