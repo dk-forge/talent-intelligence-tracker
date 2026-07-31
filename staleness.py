@@ -103,6 +103,13 @@ MAX_AGE_HOURS = {
     # appointment made and ended between two runs vanishes from the source
     # entirely and no window can reach it. Cadence plus slack, not a month.
     "estonia_ariregister": 180,  # ~7.5 days: weekly cron plus room to notice
+    # collect-structured.yml, weekly on SUNDAYS — the last day of the week that
+    # no other database writer holds, which is why Spain is the seventh and
+    # last weekly structured slot this schedule has room for. Cadence plus
+    # slack, the same shape as the five above. BORME's archive is permanent and
+    # the summary API answers any past date, so a missed week is recovered by
+    # widening TIT_BORME_DAYS up to MAX_DAYS and nothing is lost permanently.
+    "spain_borme": 180,      # ~7.5 days: weekly cron plus room to notice
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

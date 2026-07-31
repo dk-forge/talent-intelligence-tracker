@@ -4,9 +4,11 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-07-30**. Plugin **1.53.0**, **15,711** current signals
+Last updated: **2026-07-31**. Plugin **1.58.0**, **17,539** current signals
 stored, company profiles shipped, cron firing on schedule but not reliably
-green, **1,807 offline tests passing** plus five PHP render harnesses. Figures
+green, **2,576 offline tests passing** plus five PHP render harnesses. Spain
+joined on 2026-07-31 as the fifteenth live collector and the second that
+reports a departure; it is DORMANT, and the section below says how to arm it. Figures
 below dated 2026-07-29 are left as they were measured that day; where one has
 moved it says so beside it.
 
@@ -46,6 +48,76 @@ refused. The sources page joins a collector to a source name through the
 not re-type that map in PHP.** It was typed there with five of nine entries, so
 `national_press`, `sec_execcomp` and `uk_paygap` all read "not yet reported"
 while running twice a day.
+
+### Spain (2026-07-31) — built, measured, DORMANT, and it reports departures
+
+`collectors/spain_borme.py`. Keyless, no model, **$0**, and the **second source
+in this tracker that states a departure at all** (the other is `czechia_ares`).
+It reads BORME Section A, the bulletin every Spanish commercial register
+publishes its inscribed acts in.
+
+| | |
+|---|---|
+| discovery | `boe.es/datosabiertos/api/borme/sumario/{YYYYMMDD}` — Section A, ~30 province files a day |
+| document | `boe.es/diario_borme/txt.php?id=…` — **NOT `xml.php`, which robots.txt disallows** |
+| what it keeps | the **consejero delegado** alone, under 8 spellings, across 3 act headings |
+| measured | 7 real publication days: 213 province files, 15,642 entries, **340 events (141 arrivals, 199 departures)** at 209 employers |
+| projected | ~49 a publication day, **~12,700 a year** |
+| validate | **340 of 340 build a Signal, 0 rejected, all `verified`**; 155 carry a city |
+| tier | **ES stays `discovery_only`** — no run has gone through `run_collect` yet, and the segment budget is still full at 56 of 56 |
+
+**Read three things before you change it.**
+
+1. **The cancel-and-re-inscribe pair is 21% of the raw feed.** A Spanish board
+   renewal is inscribed as a total cancellation followed by a total
+   re-appointment, so the same person appears at the same office in both
+   directions on one date and nobody left — 92 of 432 candidate rows. Both
+   halves are declined. A pair at two DIFFERENT offices survives, because SPLA
+   SA really did move one man from a sole delegation to a joint one, and
+   collapsing on the person alone would delete that.
+2. **The office IS the materiality filter, because Spain publishes no
+   headcount.** Everything board-grade is 494 acts a day (123,455 a year); the
+   consejero delegado is 49. Widening is one entry in `OFFICES` and eight times
+   the volume.
+3. **A Spanish row is a week old by construction.** The date on it is when the
+   registrar inscribed the act; BORME publishes about seven days later (p90 8,
+   p99 11). The two-digit year pivots on the publication date, so `(03.02.97)`
+   is 1997 and not 2097.
+
+**To arm it:** uncomment the single Sunday cron in `collect-structured.yml`.
+The gate is the standing one — a human reads a REAL dry run first:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=collect-structured.yml \
+  -f inputs_json='{"source":"spain_borme","dry_run":"true"}' \
+  -f reason='first real BORME run'
+```
+
+A run is ~210 requests and 10-25 minutes, inside the writer lock's 120-minute
+hold. Promotion to `structured_official` is one commit after the first real run
+lands **and** the segment budget has room.
+
+### The registry sweep behind it (2026-07-31)
+
+Fourteen more national registries were asked one question — *does the source
+STATE a director change as a typed dated event, or would we have to infer it by
+diffing two snapshots?* — and every one was fetched live. The ranking, the
+numbers and the refusals are the `THE 2026-07-31 REGISTRY SWEEP` block in
+`source_registry.py`. **Read it before researching any European registry.**
+The two that matter for a next session:
+
+* **Denmark's CVR is the best source on the whole list and it answers 401.** It
+  is the only registry found that states BOTH a start and an end date per
+  participant AND publishes employee bands. Access is free; the credentials
+  come from Erhvervsstyrelsen on request. **This is the single highest-value
+  owner ask on the page** — higher than ASX, because ASX needs a licence
+  negotiation and this needs an email.
+* **Norway is the best buildable one, and it is the EDINET shape.** A real
+  role-level change feed (`/oppdateringer/roller?afterTime=`, 1,338 updates a
+  day) plus a current-roster endpoint with no per-person dates, so it can say
+  *this employer's board changed on this date* and never who or which way.
+  `antallAnsatte` is the free materiality filter and it is **unstated on 86% of
+  a 147-company sample**, which is a recall hole of the Czech `Neuvedeno` kind.
 
 ### Korea (2026-07-30) — built, measured, deliberately not promoted
 

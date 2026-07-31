@@ -13,6 +13,228 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-07-31 — Spain states both directions, and a board renewal states both about the same person
+
+`collectors/spain_borme.py`, one new dormant Sunday slot in
+`collect-structured.yml`, one fixture, **45 new offline tests**. Keyless, no
+model, **$0**. It is the fifteenth live collector and the **second source in
+this tracker that reports a DEPARTURE** — the only other one is
+`czechia_ares`.
+
+Every number below was fetched live from `www.boe.es` on 2026-07-30, and the
+volume figures come from a real run over seven cached publication days rather
+than from a projection.
+
+### Why Spain, out of fourteen registries asked
+
+The question the sweep asked was narrower than "does it have an API": **does
+the source STATE a director change as a typed, dated event, or would we have to
+infer one by diffing two snapshots?** Diffing is refused here — it is what
+killed Korea's roster endpoints and Estonia's daily file, because a date the
+source never stated is a figure we invented — and that one question sorted all
+fourteen. The full ranking, with what each was measured at, is the
+`THE 2026-07-31 REGISTRY SWEEP` block in `source_registry.py`.
+
+Spain won it outright. BORME Section A is the bulletin every Spanish commercial
+register publishes its inscribed acts in, it publishes every business day, it
+needs no key, and it prints each act under a **fixed heading** and each office
+under a **fixed abbreviation**:
+
+```
+353679 - SIBAN ASISTENCIA INDUSTRIAL, SOCIEDAD LIMITADA.
+Ceses/Dimisiones. Representan: AROSA BELASTEGUI JON.
+Nombramientos. Representan: MARC BAIGET MORENO.
+Datos registrales. S 8 , H VI 13948, I/A 18 (20.07.26).
+```
+
+`Nombramientos`, `Ceses/Dimisiones`, `Revocaciones` and `Reelecciones` are the
+register's own words for the direction, in the same way Item 5.02 and SEBI
+Regulation 30 are, so no model reads anything.
+
+### The population is not the bulletin, and Spain gives nothing to threshold on
+
+| | per day | per year |
+|---|---|---|
+| company entries in Section A | ~2,230 | — |
+| entries carrying any leadership act | ~1,600 | — |
+| **board-grade acts** (Presidente, Consejero, Secretario, …) | **494** | **123,455** |
+| **consejero delegado acts — what is collected** | **49** | **~12,700** |
+
+123,455 rows a year is the Companies House failure (5.7M companies) and the
+Estonian one (74,000 appointments a year, 86% at one-person `OÜ`s) for a third
+time. **And Spain publishes NO headcount anywhere** — not in the bulletin, and
+the accounts that would are deposited with the Colegio de Registradores and
+sold. So the UK's pay-gap roster, Czechia's RES band and Estonia's annual-report
+FTE figure all have no Spanish equivalent.
+
+**The filter is therefore the OFFICE, drawn where Japan and Korea are drawn.**
+`edinet_japan` collects one clause of forty-four — 代表取締役の異動, the
+representative director alone — and `opendart_korea` collects 대표이사변경 for
+the same reason: the office that can bind the company is a different kind of
+event from a seat on a board. Spain's equivalent is the **consejero delegado**,
+the director the board has delegated its powers to under article 249 of the Ley
+de Sociedades de Capital.
+
+Widening to `Presidente` and `Consejero` is one entry in `OFFICES` and eight
+times the volume. It was declined **with that number** rather than left
+unconsidered, and `OFFICES_DECLINED` keeps the refusal as data so the claim is
+checkable.
+
+### The trap that decides whether this source tells the truth
+
+**A Spanish board renewal is inscribed as a total cancellation followed by a
+total re-appointment.** One paragraph reads
+`Ceses/Dimisiones. Con.Delegado: X. Nombramientos. Con.Delegado: X.` — same
+person, same office, same inscription date, both directions, and nobody left.
+
+Measured over the seven cached days: **58 of 373 person-company-date keys carry
+both directions and 46 of them carry the same office too. 92 of 432 candidate
+rows — 21% — were halves of such a pair.** A collector that stores both halves
+reports a Spanish leaving rate that is not real. This is the Czech
+`datumVymazu` finding in a new shape, and it was found by reading real
+paragraphs rather than by reading the format.
+
+**And the obvious over-correction is wrong in the other direction.** SPLA SA
+ceased Javier Muñoz Gómez as `Con.Delegado` and appointed him `Cons.Del.Sol` on
+one date. A sole delegation becoming a joint one is a change the register made,
+not one we inferred, so collapsing on the person alone would delete it.
+`drop_reinscriptions` keys on **(registry entry, person, office, date)**, and
+both cases have a test.
+
+### Three more things a later session would otherwise re-find
+
+**The nice URL is forbidden.** `/diario_borme/xml.php?id=` serves this exact
+text as clean XML, and `boe.es/robots.txt` says `Disallow: /diario_borme/xml.php?`
+in as many words. `/diario_borme/txt.php?id=` carries the identical
+`<h5 class="articulo">` / `<p class="parrafo">` structure and is disallowed by
+no line of that file. The open-data API is not a way round it: it serves
+SUMMARIES only, and `/datosabiertos/api/borme/id/{ident}` answers 404 `No se ha
+localizado la operación requerida`. A test asserts the collector never builds a
+request out of the XML path.
+
+**The date is the inscription date and its year has two digits.** Every entry
+ends `Datos registrales. … (22.07.26).`, which is when the registrar inscribed
+the act; the bulletin publishes it about a week later — measured over 7,281
+entries, **median 7 days, p90 8, p99 11**. So `published_date` is the
+inscription and the publication day is only how the run finds it, which means
+**a Spanish row is a week old by construction** and the sources page says so.
+`(03.02.97)` read as `2000 + 97` is the year 2097; the pivot is the publication
+date it must precede. One such entry appeared in the 7,281, and eleven were
+inscribed more than a year before publication and are declined with a count for
+the reason `czechia_ares` declines its own seven.
+
+**The last item of every day's Section A is not a province.** It is
+`ÍNDICE ALFABÉTICO DE SOCIEDADES`, an A-to-Z pointing back at the province
+files, and it parses to zero company entries. It is skipped by title AND by the
+`-99` suffix, because either alone would start counting an index as an empty
+province the day the other changes. The per-file emptiness floor that found it
+was **removed**: province files run from a handful of entries in Soria to 653 in
+Madrid, so a per-file floor fires on a small province rather than on a broken
+parser. The floor is per DAY.
+
+### The scrubber that had never been tested, because there was nothing to strip
+
+BORME publishes a NAME and nothing else for these acts — no birth date, no
+address, no identifier, unlike the Czech and Estonian files. The first
+`scrub_person` therefore passed the name through whole, and the fixture's
+invented probe entry went straight into the headline, the summary and the
+stored signal:
+
+```
+FUGA DE DATOS SL: SOLER MARTI CARMEN (nacida el 04.06.1975, DNI 12345678Z,
+domicilio en Calle Mayor 1, 28013 Madrid) appointed Consejero delegado …
+```
+
+**A scrubber written against a source that publishes nothing private is a
+scrubber that has never been run.** Two rules now, both checked against the real
+bulletin: everything from the first parenthesis onward is dropped (**no holder
+string in 534 real ones carries a parenthesis at all**), and a name still
+carrying a DIGIT is refused rather than trimmed (two of those 534 did —
+`GRUPO MOORE 2019 SL` and `PUERTO 58 SOCIEDAD LIMITADA` — and both are companies
+`is_legal_person` had already declined).
+
+Names are stored exactly as the register prints them and are **never
+reordered**. BORME writes some people surname-first (`AROSA BELASTEGUI JON`) and
+some given-name-first (`MARC BAIGET MORENO`) and no field says which; guessing
+would rewrite a person's name to make a column look tidy. Diacritics round-trip
+on real names: `MUÑOZ AÑÓN JOSÉ MARÍA`, `GOIKOETXEA ARRIETA IÑIGO`.
+
+### The real run
+
+Seven publication days, 2026-07-22..07-30, no network at run time (the bulletin
+was cached first so the parser could be iterated without re-fetching 213
+documents):
+
+```
+213 province files, 15,642 company entries, 469 chief-executive acts read
+340 stored (141 arrivals, 199 departures)
+declined: 92 halves of a cancel-and-re-inscribe pair, 34 legal-person holders,
+          40 re-elections, 0 over the 365-day backlog, 1 with no inscription date
+```
+
+**All 340 build a Signal through `validate.build_signal`, 0 rejected, all
+`verified`**, and 155 of them carry a city — Madrid 87, Barcelona 47, Seville
+10, Malaga 9, Cordoba 2 — because the province goes through
+`vocab.normalize_city`, which never invents one. 209 distinct employers in a
+week.
+
+A `Reelecciones` is declined and counted: the same person continuing in the
+same office is the register recording that leadership did not change. A legal
+person holding the office is declined too — the delegation is often to a
+company (`BLUEMED EXPERIENCES SL`) which then names a natural person to
+represent it under a separate act.
+
+### Shipped DORMANT
+
+The Sunday cron in `collect-structured.yml` is **commented out**. Sunday is the
+last day of the week no other database writer holds, so Spain is the seventh
+and last weekly structured slot the schedule has room for. Arming it is
+uncommenting one line, and the gate is the standing one — a human reads a real
+dry run first:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=collect-structured.yml \
+  -f inputs_json='{"source":"spain_borme","dry_run":"true"}' \
+  -f reason='first real BORME run'
+```
+
+A run is ~210 requests and 10 to 25 minutes of wall clock (www.boe.es answers a
+province file in one to eight seconds), which is inside
+`writer_queue.LONG_HOLD_MINUTES` with room. BORME's archive is permanent and
+the summary API answers any past date, so a missed week is recovered by widening
+`days` and nothing is lost.
+
+### Where this brief was wrong about the repo
+
+* **The brief said `leadership_change` is ~3,224 rows, essentially all US 8-K
+  Item 5.02.** It is **5,384** as of this session, and six registry collectors
+  already existed before it — `companies_house`, `bse_india`, `edinet_japan`,
+  `opendart_korea`, `czechia_ares` and `estonia_ariregister`, four of them
+  built the day before. The pillar was not untouched; it was six countries in.
+* **The brief said the Companies House, EDINET and OpenDART keys are "in
+  GitHub Secrets, partially used by the SIBLING repo".** All three are in THIS
+  repo's `collect-structured.yml` and all three have live collectors here.
+* **`estonia_ariregister.py` already named Spain as a register refused for
+  size.** There is no triage entry behind that line — TECHLOG's own 2026-07-30
+  entry says so explicitly — and the reason it gives (too many companies) is
+  right about the bulletin and wrong about the office filter.
+
+### Numbers
+
+| | |
+|---|---|
+| tests | **+45**, suite green at **2,576** with 202 subtests (2,526 at the moment this branch was written; another session landed 50 more before it merged) |
+| new collectors | 1, keyless, `as_classified`, **$0** |
+| live collectors on the sources page | 14 → **15** |
+| Spain, real 7-day dry run | 340 events, 141 arrivals, 199 departures, 0 rejected by validate |
+| projected | ~49 a publication day, **~12,700 a year**, ~209 employers a week |
+| registries swept | 14, of which 1 built, 5 measured-and-roadmapped, 8 refused with a reason |
+
+`data/talent_intel.db` was never written: the dry run ran entirely in memory
+against a cached copy of the bulletin.
+
+---
+
 ## 2026-07-30 — worldwide coverage priced honestly: $75.99, and the cap goes down
 
 The brief was "pull all the countries in the world, pull the missing sources,

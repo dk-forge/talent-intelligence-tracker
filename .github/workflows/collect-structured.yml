@@ -60,6 +60,23 @@
 # request with the batches it has rather than an error, so the collector
 # refuses one instead of reporting a quiet month.
 #
+# spain_borme is the seventh weekly structured slot and it ships DORMANT: its
+# SUNDAY cron below is commented out, and Sunday is the last day of the week no
+# other database writer holds. It needs no key. Arming it is uncommenting one
+# line, and the gate is the standing one — a human reads a REAL dry run first:
+#
+#     gh workflow run drain-writers.yml \
+#       -f enqueue=collect-structured.yml \
+#       -f inputs_json='{"source":"spain_borme","dry_run":"true"}' \
+#       -f reason='first real BORME run'
+#
+# It is cheap in requests and slow in wall clock: a 7-day window is 7 summary
+# calls plus about 210 province documents, and www.boe.es answers each in one to
+# eight seconds, so a run is roughly 210 requests and 10 to 25 minutes — inside
+# writer_queue.LONG_HOLD_MINUTES (120) with room to spare. BORME's archive is
+# permanent and the summary API answers any past date, so a missed week is
+# recovered by widening `days` up to spain_borme.MAX_DAYS and nothing is lost.
+#
 # estonia_ariregister is weekly on SATURDAY and needs no key either. It is
 # unlike everything else here in shape: three static file downloads (45MB +
 # 20MB + 18MB compressed) which stream out to about 1.5GB, so it is heavy in
@@ -102,12 +119,18 @@ on:
     # expanding to about 1.5GB that is streamed rather than held. Three HTTP
     # requests in total and roughly two minutes of parsing.
     - cron: '0 4 * * 6'      # Saturdays: Estonian business register appointments
+    # SUNDAY, the last day of the week no other database writer holds. COMMENTED
+    # OUT ON PURPOSE: spain_borme ships dormant until a human has read a real
+    # dry run, which is the standing pattern in this repo and the same gate the
+    # tripwire sits behind. Arming it is uncommenting the next line and nothing
+    # else — the `Pick the source` case below already maps this expression.
+    # - cron: '0 4 * * 0'      # Sundays: BORME Spain consejero delegado acts
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -118,7 +141,7 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India, EDINET Japan, DART Korea, Companies House, ARES Czechia and Ariregister Estonia. How many days back to read. Blank = each collector default (7; 42 for Companies House, derived from its rotation; 14 for Czechia; 21 for Estonia). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30 — it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, ARES 28 (all its notification feed holds, and it answers a wider request with the batches it has rather than an error), Companies House and Estonia none. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
+        description: 'BSE India, EDINET Japan, DART Korea, Companies House, ARES Czechia, Ariregister Estonia and BORME Spain. How many days back to read. Blank = each collector default (7; 42 for Companies House, derived from its rotation; 14 for Czechia; 21 for Estonia; 7 for Spain). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30 — it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, ARES 28 (all its notification feed holds, and it answers a wider request with the batches it has rather than an error), Companies House, Estonia and Spain none — Spain is capped at spain_borme.MAX_DAYS (60) only to keep one run inside the writer lock. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
         required: false
         default: ''
       ch_slice:
@@ -176,6 +199,7 @@ jobs:
             '0 4 * * 4')   scheduled=companies_house ;;
             '0 4 * * 5')   scheduled=czechia_ares ;;
             '0 4 * * 6')   scheduled=estonia_ariregister ;;
+            '0 4 * * 0')   scheduled=spain_borme ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then
@@ -235,6 +259,10 @@ jobs:
           # dispatch went green having stored nothing.
           TIT_ARES_DAYS: ${{ inputs.days }}
           TIT_EE_DAYS: ${{ inputs.days }}
+          # BORME is keyless too, for the same reason and with the same
+          # deliberate absence of an empty-secret mapping. www.boe.es serves the
+          # summary API and the bulletin unauthenticated.
+          TIT_BORME_DAYS: ${{ inputs.days }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \

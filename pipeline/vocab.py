@@ -88,6 +88,13 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # subdomain and cites the register's own company page on the other.
     "ariregister.rik.ee",
     "avaandmed.ariregister.rik.ee",
+    # The Boletín Oficial del Registro Mercantil is where a Spanish commercial
+    # register's acts are LEGALLY published, by the Agencia Estatal BOE, and
+    # this host serves that bulletin rather than a report of it. Same class as
+    # sec.gov. Without this line collectors/spain_borme.py caps at 'reported'
+    # and a statutory inscription reads as a news story.
+    "boe.es",
+    "www.boe.es",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",

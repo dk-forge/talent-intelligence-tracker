@@ -17,6 +17,23 @@
   "collector": "czechia_ares"
  },
  {
+  "name": "BORME Section A (Registro Mercantil, Spain)",
+  "url": "https://www.boe.es/diario_borme/",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Leadership change",
+   "Executive hire",
+   "Executive departure"
+  ],
+  "coverage": "Spain",
+  "country": "ES",
+  "rss": "",
+  "free": true,
+  "notes": "Every act inscribed in a Spanish commercial register is published by law in the Bolet\u00edn Oficial del Registro Mercantil, under the register's own fixed act heading and with the office as a fixed abbreviation, so an appointment and a removal are told apart by the bulletin's words rather than by reading its prose. This is one of only two sources here that report a DEPARTURE. The bulletin publishes no headcount, and the accounts that would are sold rather than published, so there is no employee threshold to draw and the filter is the office instead: this reads the consejero delegado, the director the board has delegated its powers to under article 249 of the Ley de Sociedades de Capital, and not a seat on the board. Everything board-grade would be about 494 acts a day; this is about 49. The date on a row is the day the registrar inscribed the act, which the bulletin publishes about a week later, so a Spanish row is a week old by construction.",
+  "collector": "spain_borme"
+ },
+ {
   "name": "BSE corporate announcements (SEBI Regulation 30)",
   "url": "https://www.bseindia.com/corporates/ann.html",
   "status": "live",

@@ -1,0 +1,95 @@
+{
+ "_provenance": {
+  "fetched": "2026-07-30, keyless, from www.boe.es",
+  "summary": "https://www.boe.es/datosabiertos/api/borme/sumario/20260722",
+  "documents": "https://www.boe.es/diario_borme/txt.php?id={ident}, one per province",
+  "trimmed": "Each province file keeps the company entries named below and drops the other 60 to 650, which changes no behaviour: the parser reads one <h5>/<p> pair at a time and holds no state across them. The MADRID file's entries are INVENTED in the bulletin's own format, and are the only invented text here; they carry the two-digit-year pivot, the backlog decline, the missing inscription date and the diacritics round trip, none of which happened to fall in the same real week.",
+  "personal_data": "BORME publishes a NAME and nothing else for these acts. The `personal_data_probe` document below invents a birth date, a DNI and a home address inside a real-shaped entry, so tests/test_spain_borme.py can prove that a bulletin that started publishing them could not reach a stored row without an edit to scrub_person.",
+  "why_these": {
+   "BORME-A-2026-139-03": "GONHER SA cancels and re-inscribes the same person at the SAME office (both halves must be declined); SPLA SA does it at a DIFFERENT office (both halves must survive).",
+   "BORME-A-2026-139-08": "OLYMPUS IBERIA SA, a Revocaciones in ALLCAPS office spellings with a non-Spanish holder name.",
+   "BORME-A-2026-139-09": "DISBUR SA re-elects its Con.Delegado in the same paragraph that ceases a Consejero — the re-election must be declined and counted while the cese, at an office this collector does not read, is simply not seen.",
+   "BORME-A-2026-139-30": "AM FRESH CITRUS FARMING SL delegates to BLUEMED EXPERIENCES SL and BLACKROCK TECH&FIN INVESTMENTS SL — legal persons, declined.",
+   "BORME-A-2026-139-46": "IDILIA FOODS SL, a real entry whose acts are ALL at offices this collector does not read. It is here so the run has a province file that contributes company entries and no events — the ordinary case, and the one a parser that silently matched too much would break.",
+   "BORME-A-2026-139-28": "the invented MADRID file; see `trimmed`.",
+   "BORME-A-2026-139-99": "the alphabetical index, which is not a province and must never be counted as one."
+  }
+ },
+ "day": "2026-07-22",
+ "summary_payload": {
+  "status": {
+   "code": "200",
+   "text": "ok"
+  },
+  "data": {
+   "sumario": {
+    "metadatos": {
+     "publicacion": "BORME",
+     "fecha_publicacion": "20260722"
+    },
+    "diario": {
+     "numero": "139",
+     "seccion": [
+      {
+       "codigo": "A",
+       "nombre": "SECCIÓN PRIMERA. Empresarios. Actos inscritos",
+       "item": [
+        {
+         "identificador": "BORME-A-2026-139-03",
+         "titulo": "ALICANTE/ALACANT"
+        },
+        {
+         "identificador": "BORME-A-2026-139-08",
+         "titulo": "BARCELONA"
+        },
+        {
+         "identificador": "BORME-A-2026-139-09",
+         "titulo": "BURGOS"
+        },
+        {
+         "identificador": "BORME-A-2026-139-28",
+         "titulo": "MADRID"
+        },
+        {
+         "identificador": "BORME-A-2026-139-30",
+         "titulo": "MURCIA"
+        },
+        {
+         "identificador": "BORME-A-2026-139-46",
+         "titulo": "VALENCIA/VALÈNCIA"
+        },
+        {
+         "identificador": "BORME-A-2026-139-99",
+         "titulo": "ÍNDICE ALFABÉTICO DE SOCIEDADES"
+        }
+       ]
+      },
+      {
+       "codigo": "B",
+       "nombre": "SECCIÓN SEGUNDA. Anuncios y avisos legales"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "documents": {
+  "BORME-A-2026-139-03": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">342572 - GONHER SA.</h5>\n    <p class=\"parrafo\">Ceses/Dimisiones. Consejero: ANGUIZ CORTES VICENTE JOSE;GONZALEZ SANJUAN MARIA AMPARO;GONZALEZ SANTONJA MARGARITA;GONZALEZ SANTONJA MARIA TERESA;GONZALEZ SANTONJA CLARA. Secretario: ANGUIZ CORTES VICENTE JOSE. Con.Delegado: ANGUIZ CORTES VICENTE JOSE. Presidente: GONZALEZ SANJUAN MARIA AMPARO. Nombramientos. Consejero: GONZALEZ SANJUAN MARIA AMPARO. Presidente: GONZALEZ SANJUAN MARIA AMPARO. Consejero: ANGUIZ CORTES VICENTE JOSE. Secretario: ANGUIZ CORTES VICENTE JOSE. Consejero: GONZALEZ SANTONJA MARGARITA. Vicepresid.: GONZALEZ SANTONJA MARGARITA. Consejero: GONZALEZ SANTONJA MARIA TERESA;GONZALEZ SANTONJA CLARA;VALLS GONZALEZ JOSE;VALLS GONZALEZ OTILIA;ANGUIZ GONZALEZ VICENTE;SANJUAN GONZALEZ GABRIEL. Con.Delegado: ANGUIZ CORTES VICENTE JOSE. Consejero: VICEDO GONZALEZ JOSE LUIS. Modificaciones estatutarias. Artículo 25.- Número de miembros del consejo. Artículo 27º. Duración de cargos del consejo.  Datos registrales. S 8 , H A 10217, I/A 19 (15.07.26).</p>\n    <h5 class=\"articulo\">342601 - SPLA SA.</h5>\n    <p class=\"parrafo\">Ceses/Dimisiones. Consejero: BERNABEU GUILLEM ADELA;MIRA BERNABEU ELENA;MUÑOZ GOMEZ JAVIER. Presidente: MUÑOZ GOMEZ JAVIER. Secretario: MIRA BERNABEU ELENA. Vicepresid.: BERNABEU GUILLEM ADELA. Con.Delegado: MUÑOZ GOMEZ JAVIER. Nombramientos. Cons.Del.Sol: MUÑOZ GOMEZ JAVIER. Consejero: BERNABEU GUILLEM ADELA. Vicepresid.: BERNABEU GUILLEM ADELA. Consejero: MIRA BERNABEU ELENA. Secretario: MIRA BERNABEU ELENA. Consejero: MUÑOZ GOMEZ JAVIER. Presidente: MUÑOZ GOMEZ JAVIER.  Datos registrales. S 8 , H A 19065, I/A 14 (15.07.26).</p>\n  </div>\n</div>\n",
+  "BORME-A-2026-139-08": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">342869 - OLYMPUS IBERIA SA.</h5>\n    <p class=\"parrafo\">Revocaciones. CONSEJERO: GABRIELE UTA MOLNAR SLANY. PRESIDENTE: GABRIELE UTA MOLNAR SLANY. CONS.DEL.SOL: GABRIELE UTA MOLNAR SLANY. Nombramientos. CONSEJERO: JEROME GERARD MARIE CHEVILLOTTE. PRESIDENTE: JEROME GERARD MARIE CHEVILLOTTE. CONS.DEL.SOL: JEROME GERARD MARIE CHEVILLOTTE.  Datos registrales. S 8 , H B 16789, I/A 269 (14.07.26).</p>\n  </div>\n</div>\n",
+  "BORME-A-2026-139-09": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">343132 - DISBUR SA.</h5>\n    <p class=\"parrafo\">Ceses/Dimisiones. Consejero: GARCIA MONTOTO ORLANDO. Reelecciones. Presidente: GARCIA VELASCO ORLANDO JAVIER. Con.Delegado: GARCIA VELASCO ORLANDO JAVIER. Consejero: GARCIA VELASCO ORLANDO JAVIER. Secretario: GARCIA VELASCO CESAR LUIS. Consejero: GARCIA VELASCO CESAR LUIS. Vicepresid.: GARCIA VELASCO DANIEL ANGEL. Consejero: GARCIA VELASCO DANIEL ANGEL.  Datos registrales. S 8 , H BU 1781, I/A 14 (16.07.26).</p>\n  </div>\n</div>\n",
+  "BORME-A-2026-139-30": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">344345 - AM FRESH CITRUS FARMING SL.</h5>\n    <p class=\"parrafo\">Ceses/Dimisiones. Consejero: BLUEMED EXPERIENCES SL. Cons.Del.Sol: BLUEMED EXPERIENCES SL. Nombramientos. Consejero: BLACKROCK TECH&amp;FIN INVESTMENTS SL. Apo.Man.Soli: ANTONIO OLIVER ROIG. Apo.Manc.: ENRIQUE JAVIER LOPEZ LOPEZ. Cons.Del.Sol: BLACKROCK TECH&amp;FIN INVESTMENTS SL. Reelecciones. Secretario: AMALIO FUSTER FERNANDEZ-DELGADO. Presidente: LINO PEDRO DIAZ MUÑOZ.  Datos registrales. S 8 , H MU 85950, I/A 30 (15.07.26).</p>\n  </div>\n</div>\n",
+  "BORME-A-2026-139-46": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">344598 - IDILIA FOODS SL.</h5>\n    <p class=\"parrafo\">Otros conceptos: A los efectos del art. 143 del RRM se deja constancia, que la mercantil MARCRISFER SL en el cargo de Consejero, Presidente y Consejero Delegado mancomunado ha cambiado de persona fisica representante, designando a DOÑA MARIA FERRERO MOLINA con DNI 46147395B.  Datos registrales. S 8 , H V 179678, I/A 52 (15.07.26).</p>\n  </div>\n</div>\n",
+  "BORME-A-2026-139-28": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">999001 - VIEJA INSCRIPCION SA.</h5>\n    <p class=\"parrafo\">Nombramientos. Con.Delegado: FERNANDEZ DE LA TORRE ANA MARIA.  Datos registrales. S 8 , H M 1234, I/A 5 (03.02.97).</p>\n    <h5 class=\"articulo\">999002 - ATRASADA SL.</h5>\n    <p class=\"parrafo\">Nombramientos. Con.Delegado: PEREZ SORIANO JOAQUIN.  Datos registrales. S 8 , H M 5678, I/A 2 (11.05.24).</p>\n    <h5 class=\"articulo\">999003 - SIN FECHA REGISTRAL SL.</h5>\n    <p class=\"parrafo\">Nombramientos. Con.Delegado: RIBAS I PUJOL MONTSERRAT.  Otros conceptos: la hoja no consigna la fecha.</p>\n    <h5 class=\"articulo\">999004 - DIACRITICOS SA.</h5>\n    <p class=\"parrafo\">Nombramientos. Cons.Del.Sol: MUÑOZ AÑÓN JOSÉ MARÍA;GOIKOETXEA ARRIETA IÑIGO.  Datos registrales. S 8 , H B 4321, I/A 9 (20.07.26).</p>\n  </div>\n</div>\n",
+  "BORME-A-2026-139-99": "<div id=\"DOdocText\">\n  <div id=\"textoxslt\"> A GONHER SA. BORME-A-2026-139-03 (342572) </div>\n</div>\n"
+ },
+ "personal_data_probe": {
+  "ident": "BORME-A-2026-139-28",
+  "html": "<div id=\"DOdocText\">\n  <h4>TEXTO</h4>\n  <div id=\"textoxslt\">\n    <h5 class=\"articulo\">999005 - FUGA DE DATOS SL.</h5>\n    <p class=\"parrafo\">Nombramientos. Con.Delegado: SOLER MARTI CARMEN (nacida el 04.06.1975, DNI 12345678Z, domicilio en Calle Mayor 1, 28013 Madrid).  Datos registrales. S 8 , H M 9999, I/A 1 (20.07.26).</p>\n  </div>\n</div>\n",
+  "forbidden": [
+   "04.06.1975",
+   "12345678Z",
+   "Calle Mayor 1",
+   "28013"
+  ]
+ }
+}
