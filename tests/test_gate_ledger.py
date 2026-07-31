@@ -298,3 +298,74 @@ def test_merge_never_fails_the_commit_step(tmp_path, capsys):
     monkey.write_text("x")
     added, notes = merge_gate_labels.merge(str(monkey), str(tmp_path / "out"))
     assert added == 0 and notes
+
+
+# --- end to end, through the real run loop -----------------------------------
+
+def test_a_whole_run_writes_a_verdict_and_a_joined_outcome(ledger, monkeypatch,
+                                                           tmp_path, stats):
+    """The join is closed in memory inside one run, so this is the test that
+    proves it: two candidates, one gated NO and one gated YES and stored, and
+    the shard on disk has to say so afterwards."""
+    import run_collect
+    from pipeline import schema
+
+    keep = {
+        "raw_text": "Stripe to create 300 new jobs at expanded Dublin hub\n\n"
+                    "The payments company said the roles would be filled "
+                    "over 2026 at a new engineering site in Dublin.",
+        "headline": "Stripe to create 300 new jobs at expanded Dublin hub",
+        "source_url": "https://www.irishtimes.com/business/stripe-dublin-hub/",
+        "discovery_url": "https://www.irishtimes.com/business/stripe-dublin-hub/",
+        "source_name": "The Irish Times", "collector": "fake_news",
+        "published_date": "2026-07-30", "language": "en", "source_country": "IE",
+    }
+    drop = dict(keep, headline="Council debates hiring rules for the season",
+                raw_text="Council debates hiring rules for the season\n\n"
+                         "Local representatives discussed recruitment policy.",
+                source_url="https://www.irishtimes.com/news/council-hiring/",
+                discovery_url="https://www.irishtimes.com/news/council-hiring/")
+
+    module = type("FakeCollector", (), {
+        "COLLECTOR": "fake_news",
+        "collect": staticmethod(lambda queries, **kw: [dict(keep), dict(drop)]),
+    })
+    monkeypatch.setitem(run_collect.SOURCES, "fake_news", module)
+    real_connect = schema.connect
+    monkeypatch.setattr(schema, "connect",
+                        lambda *a, **k: real_connect(tmp_path / "t.db"))
+    # The interpretation is a separate paid call and not what is under test.
+    monkeypatch.setattr(classify, "read_enabled", lambda: False)
+
+    extraction = json.dumps({
+        "is_talent_signal": True, "company": "Stripe",
+        "pillar": "how_we_work", "signal_direction": "hiring",
+        "city": "Dublin", "country": "Ireland", "confidence": "reported",
+        "headline": "Stripe to create 300 new jobs at expanded Dublin hub",
+        "summary": "Stripe said it would add 300 roles at a new Dublin site.",
+        "talent_readthrough": "Adds 300 engineering roles to the Dublin market "
+                              "over 2026.",
+        "predicted_outcome": "", "check_after_date": "",
+    })
+
+    def fake_call(model, system, user, *, timeout, max_tokens=None,
+                  json_mode=True):
+        if max_tokens == 4:                       # the one-word gate
+            return "YES" if "Stripe" in user else "NO"
+        return extraction
+
+    monkeypatch.setattr(classify, "_call", fake_call)
+
+    run_collect.run(dry_run=False, offline=False, run_index=0, limit=None,
+                    source="fake_news")
+
+    by_key = {line["key"]: line for line in _lines(ledger)}
+    assert len(by_key) == 2
+    kept = by_key[gate_ledger.key(keep)]
+    dropped = by_key[gate_ledger.key(drop)]
+
+    assert kept["gate"] == "YES" and kept["outcome"] == "stored"
+    assert kept["collector"] == "fake_news" and kept["country"] == "IE"
+    assert dropped["gate"] == "NO" and dropped["outcome"] == "gate_reject"
+    # And the gate reject cost nothing downstream: it never reached extraction.
+    assert classify.STATS["full_calls"] == 1

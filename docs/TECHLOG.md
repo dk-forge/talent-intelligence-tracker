@@ -177,6 +177,146 @@ red until somebody finishes.
 
 ---
 
+## 2026-07-31 — every gate verdict was being thrown away, and the classifier that gets us to $5 eats them
+
+`pipeline/gate_ledger.py`, `bootstrap_gate_labels.py`, `merge_gate_labels.py`,
+`data/gate_labels/`, small hunks in `pipeline/classify.py`, `run_collect.py` and
+all three collect workflows. Step 1 of `docs/PLAN-gate-to-five-dollars.md`, and
+only step 1.
+
+**The problem is arithmetic, not engineering.** The paid gate costs **$5.70 a
+month on its own** — the cost of LOOKING at ~3,150 candidates a day to find the
+~1,280 worth reading — and the owner's target for the WHOLE bill is $5. No model
+swap closes that; the gate has to mostly stop being an LLM. The plan's route is a
+local classifier on the free CI runner, and a classifier needs labels.
+
+**VERIFIED, and it is why this went first:** `pipeline/classify.py` kept only
+`STATS["gate_calls"]` and `STATS["gate_rejects"]`. Not one per-candidate verdict
+had ever been stored anywhere. Every day of collection was a day of training data
+thrown away, and the fix costs nothing — no model call is added, no candidate is
+treated differently.
+
+### The ledger
+
+One JSONL line per gate decision, into `data/gate_labels/labels-YYYY-MM.jsonl`:
+key, timestamp, collector, host, language, country, headline, teaser, the
+one-word verdict, and the outcome. Shape and operating notes are in
+`data/gate_labels/README.md`.
+
+Four decisions worth keeping:
+
+**The features are a strict SUBSET of what the gate reads.** `classify.gate()`
+sends `raw_text[:1500]` with the publisher line prepended; the ledger stores the
+headline and 300 characters of teaser with markup stripped. That direction and
+only that direction — a classifier trained on more than the gate gets would score
+beautifully here and fail live, so nothing downstream of the gate (extracted
+company, model summary, read-through) is ever written to a line. No PII, no full
+article text; everything stored is already on the publisher's page.
+
+**The target is `outcome == "stored"`, not `gate == "YES"`.** The plan's shipping
+bar is measured against stored rows, so the ledger has to be able to answer it.
+The verdict is formed inside `classify.classify()` and the outcome is decided
+several guards later in `run_collect`, so both key on
+`sha1(source_url or discovery_url)[:16]` — the same URL `run_collect` dedupes on
+— and the join is closed IN MEMORY inside one run. One complete line is written
+at flush; nothing is left for a later pass to reconcile. The one outcome a run
+cannot close is `deferred` (a busy provider, or the read-through cap), where the
+candidate is deliberately not marked seen; that later run writes a second line
+under the same key, so a reader takes the last terminal outcome per key.
+
+**A fail-open gate is not a YES.** `classify.gate()` returns True when the
+provider is throttled, and the boolean cannot tell "the model said yes" from "the
+model never answered". Recording the second as YES would teach the classifier
+that provider outages are talent signals. So `gate_verdict()` is split out and
+returns YES / NO / ERROR; `gate()` folds them back and is unchanged for every
+existing caller. A gate NO is also TERMINAL in the ledger and refuses to be
+relabelled — `run_collect` sees a gate NO and an extraction NO as the same
+`None`, and gate rejects are the one class the classifier cannot get elsewhere.
+
+**It can never fail a run.** The gate is on the hot path. Every entry point
+swallows its own exception, prints one line on stderr and disables itself for the
+rest of the run. A bookkeeping file is worth nothing beside a day of signals.
+
+### Size, measured
+
+| | items | mean bytes/line |
+|---|---|---|
+| google_news | 504, five locales | **310** |
+| national_press | 253, 25 random feeds | **519** |
+
+google_news is the cheaper half only because of one rule: its `raw_text` is the
+headline followed by an `<a href>` around a ~300-character base64 aggregator URL,
+so stripping markup collapses the teaser to nothing. That single line is the
+difference between ~470 and ~200 bytes on roughly nine tenths of the ledger.
+
+Against the plan's full-coverage 3,150 gate calls a day that is **1.0-1.6 MB/day,
+30-50 MB a month**; at the rate actually measured on 2026-07-31 (1,894 gate calls,
+98% google_news) it is **~0.6 MB/day, ~18 MB a month**. So rotation is built now
+rather than discovered later, which is the lesson `data/ats_board_state.json`
+taught at 13 MB: sharded by month, a closed month gzipped on the first run of the
+next (~4x), shards past six months dropped. The OPEN month stays plain text
+because git delta-compresses an append-only text file almost perfectly and a gzip
+blob rewritten twice a day would not delta at all.
+
+### It is a writer, and the reset was the trap
+
+The labels ride the existing commit-the-database step; nothing new is scheduled
+and nothing is dispatched directly. The hazard was not the new file — it was that
+`collect.yml` does `git reset --hard origin/main` on every attempt before
+committing (correctly: attempt 1 may be working from a stale checkout), which
+would have discarded this run's labels silently. So they are copied aside before
+the reset and folded back by `merge_gate_labels.py` afterwards, the same shape
+`merge_db.py` already uses for the database, and appending only what main does
+not already hold rather than copying over it. `git add -A data/gate_labels`, not
+a plain add: a month closing deletes the plain shard the ledger just gzipped, and
+an unstaged deletion is a file that comes back on the next reset.
+
+### The weak bootstrap: 4,328 labels, and what they are not
+
+`bootstrap_gate_labels.py` reconstructs a rough set from `seen_urls` so step 2
+can prototype now instead of waiting a month: **1,239 positives** (stored) and
+**3,089 weak negatives** (rejected), across the five collectors whose candidates
+actually reach the gate. 5,138 rows were dropped for having no readable URL slug,
+4,309 of them SEC accession numbers, and the drop rule is identical for both
+classes.
+
+**It is weak in four ways and every line says `"weak": true`:**
+
+1. **It contains NO true gate rejects.** A gate NO and an extraction NO were both
+   written to `seen_urls` as `rejected` and are indistinguishable now. The verdict
+   field reads `UNKNOWN` rather than a guess.
+2. **The features are URL slugs, not the gate's text**, because the headline and
+   teaser were never kept for a rejected candidate — only its URL.
+3. **A slug is lossy:** case gone, punctuation gone, `$71M` reads "million".
+4. **`duplicate` candidates are excluded, not guessed at.** As "should the gate
+   keep this" they are yes; as "did this become a stored row" they are no.
+
+The design decision worth keeping: **both classes get the slug.** `signals` holds
+the real headline for the positives and nothing holds one for the negatives, and
+a classifier handed that asymmetry separates the two on field shape alone — a
+perfect score that means nothing. A test pins the symmetry. `uk_paygap`'s 4,761
+stored rows are excluded for a related reason: a derived collector never calls
+the gate, so its rows are not the population the classifier replaces, and
+including them would have made the positive class mostly government forms.
+
+**So: fine for prototyping, NOT fine to ship a classifier against.** The replay
+test that decides whether it ships (>=99.5% of eventually-stored candidates routed
+relevant-or-uncertain) has to run on real ledger labels, which start accumulating
+on the next collect run.
+
+### What is NOT verified
+
+No production collect run has written a real label yet — the ledger is inert
+until `collect.yml` next runs on main, and proving it live would have meant
+spending money on OpenRouter from a laptop. What IS proven is an end-to-end test
+through the real `run_collect.run` loop with a stubbed provider: two candidates,
+one gated NO and one gated YES and stored, and the shard on disk says exactly
+that afterwards. The first real run should be checked for the
+`gate labels: N decision(s) recorded` line and a `data/gate_labels/` change in
+the commit. 2,812 tests pass.
+
+---
+
 ## 2026-07-31 — a Form D "amount sold" is not money raised, and 318 published rows said it was
 
 `correct_form_d_overcount.py`, `.github/workflows/correct-form-d-overcount.yml`,

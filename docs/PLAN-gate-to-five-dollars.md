@@ -43,6 +43,16 @@ using the production SCHEMA_HINT.
 
 ## Step 1 - Start persisting gate labels TODAY. The classifier needs food.
 
+> **SHIPPED 2026-07-31.** `pipeline/gate_ledger.py` writes one JSONL line per
+> gate decision to `data/gate_labels/labels-YYYY-MM.jsonl`, with the outcome
+> joined in memory inside the same run; it rides the existing
+> commit-the-database step and cannot fail a collect run.
+> `bootstrap_gate_labels.py` produced **4,328 weak historical labels** (1,239
+> positives, 3,089 weak negatives) in `data/gate_labels/bootstrap-weak.jsonl`.
+> Shape, size arithmetic and the four ways the weak set is weak are in
+> `data/gate_labels/README.md` and TECHLOG 2026-07-31. **Step 2 reads real
+> ledger labels for the replay test; the weak set is for prototyping only.**
+
 VERIFIED 2026-07-31: pipeline/classify.py keeps only aggregate counters
 (STATS["gate_calls"], STATS["gate_rejects"]). Per-candidate verdicts are
 NOT stored anywhere. The training set does not exist yet, so:
