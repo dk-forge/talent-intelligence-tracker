@@ -1095,6 +1095,182 @@ def sources_manifest() -> list[dict]:
 #     today; promoting them is one commit once a real run has landed and the
 #     budget has room.
 #
+# --- THE 2026-07-31 REGISTRY SWEEP: fourteen more, one built ----------------
+#
+# The 2026-07-30 triage above stopped at ten candidates. This one asked a
+# narrower question of fourteen MORE national registries — does it publish a
+# DIRECTOR CHANGE as a typed, dated event, free and without a key — and every
+# line below was fetched live on 2026-07-30 rather than read about. The point
+# of the question: leadership is the one pillar of this tracker that has a
+# filing regime behind it worldwide, the way WARN and the ERM sit behind the
+# sibling's layoffs, so every country that types the event is a country whose
+# leadership rows cost nothing.
+#
+# THE TEST THAT DECIDES IT, and it is not "does the endpoint answer 200".
+# It is: does the source STATE the event, or would we have to infer it by
+# diffing two snapshots? Diffing is refused here (Korea's roster endpoints,
+# Estonia's daily file), because a date the source never stated is a figure we
+# invented. That single question sorts all fourteen.
+#
+#   BUILT
+#     ES  BORME Section A, the bulletin every Spanish commercial register
+#         publishes its inscribed acts in. collectors/spain_borme.py. Keyless,
+#         daily, no model, and it STATES BOTH DIRECTIONS — only the second
+#         source here that reports a departure at all, after czechia_ares.
+#         The act heading is the register's own fixed word (Nombramientos,
+#         Ceses/Dimisiones, Revocaciones, Reelecciones) and the office is a
+#         fixed abbreviation, so this is the same class of machine-readable
+#         label as Item 5.02 and SEBI Regulation 30.
+#         MEASURED live 2026-07-22..07-30 over 213 province files: 15,642
+#         company entries, **340 consejero delegado acts — 141 arrivals, 199
+#         departures — about 49 a publication day, ~12,700 a year, at 209
+#         distinct employers a week.**
+#         THE MATERIALITY PROBLEM AND WHAT WAS DONE ABOUT IT. Spain publishes
+#         NO headcount anywhere in this bulletin, and the accounts that would
+#         are deposited with the Colegio de Registradores and sold. So the
+#         threshold that works for the UK (the pay-gap duty), Czechia (the RES
+#         band) and Estonia (the annual report's FTE figure) has no equivalent,
+#         and every leadership act in BORME is **123,455 rows a year** — the
+#         Companies House failure a third time. The filter is therefore the
+#         OFFICE, drawn where Japan and Korea are drawn: the **consejero
+#         delegado**, the director the board delegated its powers to under LSC
+#         article 249. Widening to Presidente and Consejero is one entry in
+#         `spain_borme.OFFICES` and eight times the volume; it was declined
+#         with that number rather than left unconsidered.
+#         THREE TRAPS, all found by running it rather than by reading the spec:
+#           * **A board renewal is inscribed as a total cancellation followed
+#             by a total re-appointment.** 46 of 373 person-company-date keys
+#             carry the SAME office in BOTH directions and nobody left; 92 of
+#             432 candidate rows were halves of such a pair. Storing them
+#             reports a leaving rate that is not real — the Czech `datumVymazu`
+#             finding in a new shape. And collapsing on the PERSON alone is
+#             wrong in the other direction: SPLA SA ceased one man as
+#             `Con.Delegado` and appointed him `Cons.Del.Sol` on one date, and
+#             a sole delegation becoming a joint one is a change the register
+#             made. The collapse keys on the office.
+#           * **The document is `txt.php`, not `xml.php`.** The XML is the same
+#             text, cleaner, and `boe.es/robots.txt` disallows
+#             `/diario_borme/xml.php?` in as many words. The open-data API is
+#             not a way round it either: it serves SUMMARIES only, and
+#             `/datosabiertos/api/borme/id/{ident}` 404s.
+#           * **The date is the inscription date and its year has two digits.**
+#             `(03.02.97)` read as 2000+97 is the year 2097. The pivot is the
+#             publication date it must precede. The bulletin publishes about a
+#             week after inscription (median 7 days, p90 8, p99 11 over 7,281
+#             entries), so a Spanish row is a week old by construction and the
+#             sources page says so.
+#         The last item of every day's Section A is `ÍNDICE ALFABÉTICO DE
+#         SOCIEDADES`, not a province, and it parses to zero company entries.
+#
+#   REAL, MEASURED, AND NOT BUILT — the costed roadmap, best first
+#     NO  Brønnøysund (Enhetsregisteret). data.brreg.no, keyless, no robots.txt,
+#         and the only registry found with a **role-level change feed**:
+#         `/oppdateringer/roller?afterTime=` returns CloudEvents saying the
+#         roles of one company changed at one instant. MEASURED 2026-07-29:
+#         **1,338 role updates at 1,322 distinct companies in one day.** The
+#         register also carries `antallAnsatte` — a real employee count, 21,393
+#         on Equinor — which looked like the one candidate handing over a
+#         materiality filter for free. **It was sampled rather than assumed,
+#         and the sample is why Norway is second and not first: on 147 of the
+#         1,322 companies that changed a role that day, `antallAnsatte` is
+#         UNSTATED on 127 (86%)**, with 9 at 10-49, 6 under 10, 4 at 50-249 and
+#         1 at 250+. So the filter exists and covers a seventh of the feed;
+#         projecting the observed 3.4% at 50 staff or more gives about 45 a day
+#         and ~11,000 a year, and the 86% is a recall hole of exactly the Czech
+#         `000 Neuvedeno` kind (65% there) rather than a precision one.
+#         WHY IT IS NOT BUILT: `/enheter/{orgnr}/roller` is a CURRENT ROSTER.
+#         `sistEndret` sits on the role GROUP rather than the person, an
+#         individual role carries no date at all, and there are no end dates —
+#         `avregistrert` is a boolean. So the feed says WHICH company changed
+#         and the roster says who is there NOW, and recovering who arrived or
+#         left means diffing two snapshots, which is refused. What Norway CAN
+#         honestly yield is the EDINET shape: "the board or management of this
+#         employer changed on this date", no person and no direction, filtered
+#         on `antallAnsatte`. That is a real signal and a day's work; it is
+#         second on this list rather than first because a row with no person in
+#         it is worth less than a Spanish row with two.
+#         Two dead ends recorded: `data.brreg.no/kunngjoring/api/` 302s to the
+#         open-data landing page and `w2.brreg.no/kunngjoring/api/` 404s, so
+#         there is no announcement API to read instead; and
+#         `/oppdateringer/roller` rejects `dato` and `oppdateringsid` — the
+#         parameter is `afterTime`, which is not guessable from the enheter
+#         feed's own `dato`.
+#     FR  BODACC, through the DILA open-data portal. Keyless, no key, 8,449,509
+#         annonces, and **24,905 `modification` annonces mentioning
+#         administration in July 2026 alone** — about 300,000 a year, the
+#         largest free European feed found.
+#         WHY IT IS NOT BUILT: the change is not typed at the person. The whole
+#         of `modificationsgenerales` on such an annonce is the sentence
+#         `Modification survenue sur l'administration.` — no name, no office, no
+#         direction — and the `administration` field beside it is the roster
+#         AFTER the change, so telling an arrival from a continuation means
+#         diffing against the previous annonce for that company. Same refusal
+#         as Norway, with less to fall back on: France states no employee
+#         count either, only `capital` and `formeJuridique`, and legal form as
+#         a materiality proxy has already been measured and refused twice
+#         (UK 6.35%, Czechia 8.6%).
+#     LV  Uzņēmumu reģistrs `officers.csv` on data.gov.lv. **CC0-1.0**, keyless,
+#         4.2MB, 32,730 rows, and it carries `registered_on` per officer with
+#         `position` and `governing_body` from a fixed vocabulary. Appointments
+#         are therefore STATED. It is the Estonian shape and inherits the
+#         Estonian limitation — no end-date column, so departures cannot be
+#         reported — over a country of 1.9 million with no published employee
+#         figure to threshold on. Cheap to build, thin to run.
+#     SK  Register právnických osôb, api.statistics.sk/rpo/v1. Keyless,
+#         `statutoryBodies` with a typed `statutoryBodyMember` code and a
+#         `validFrom` per person. But no `validTo` on any live member, and
+#         **no change feed**: `/rpo/v1/search` accepts an identifier or a name
+#         and refuses `dbModificationDateFrom`, `modificationDateFrom` and
+#         `dbModificationDate` alike, and `/rpo/v1/changes` 404s. Without a
+#         change feed the population is the whole register, one entity at a
+#         time. Refused on cost rather than on shape.
+#     BR  Receita Federal's CNPJ open data carries `Sócios` with a
+#         `data_entrada_sociedade` and typed qualification codes including
+#         Diretor and Presidente. Monthly bulk, several GB, entry dates only,
+#         no exits, no headcount. Not fetched beyond the index — the 2026-07
+#         directory 404s at the path tried and the real one was not chased,
+#         which is stated here rather than dressed up as a finding.
+#
+#   REFUSED, WITH THE REASON
+#     FI  PRH open data, `avoindata.prh.fi/opendata-ytj-api/v3/companies`.
+#         Answers 200 keyless and its response has no officer field at all:
+#         the keys are businessId, euId, names, mainBusinessLine, website,
+#         companyForms, companySituations, registeredEntries, addresses,
+#         tradeRegisterStatus, status, registrationDate, lastModified. PRH
+#         sells company representatives as a separate product. Closed.
+#     DK  CVR. The distribution service (`distribution.virk.dk/cvr-permanent`)
+#         is the one registry found that states BOTH a start and an end date per
+#         participant AND publishes employee bands, which would make it the
+#         best source on this whole list. It answers **HTTP 401** — access is
+#         free but needs credentials the Erhvervsstyrelsen issues on request.
+#         NEEDS-OWNER, and it is the single highest-value ask on this page.
+#     CH  Zefix (`zefix.admin.ch/ZefixPublicREST`) and the Swiss Official
+#         Gazette API (`shab.ch/api/v1/publications`) both answer **401**.
+#         NEEDS-OWNER.
+#     IE  CRO web services answer `401 Access denied. Invalid API credentials`;
+#         GR  the businessportal.gr open-data API answers `401 No API key found`;
+#         NL  api.kvk.nl the same and its officer data is a paid product.
+#         All three NEEDS-OWNER, and none is worth an ask before Denmark.
+#     PL  KRS `api-krs.ms.gov.pl` answers per-company only (204 or 404 on a
+#         number that is not in the requested register) with no change feed, so
+#         the population would be the whole of KRS one company at a time.
+#     BE  KBO open data publishes no natural persons at all.
+#     NZ  the NZBN API needs a registered key; `api.business.govt.nz` returned
+#         an HTML 404 to an unauthenticated read.
+#
+#   WHAT THE SWEEP DID NOT ANSWER, said plainly
+#     * Brazil's bulk file was not downloaded, so its volume is an inference
+#       from its documented schema and not a measurement.
+#     * No terms-of-use page was read for Norway, Latvia or Slovakia. Latvia's
+#       licence is stated CC0-1.0 by data.gov.lv itself; the other two are
+#       unchecked, and Australia is on this page precisely because an endpoint
+#       answering 200 is not permission.
+#     * Spain's own reuse terms were read only as far as the BOE's open-data
+#       page, which states that the API exists "to facilitate access, download
+#       and reuse". Spain's general reuse regime (Ley 37/2007 and RD 1495/2011)
+#       was not read line by line. robots.txt WAS, in full, and it is what moved
+#       the collector off xml.php.
+##
 #   BLOCKED — do not retry without the owner doing something first
 #     IL  Tel Aviv Stock Exchange (MAYA). maya.tase.co.il/robots.txt says
 #         `Disallow: /api/`, which is the disclosure feed itself, and
