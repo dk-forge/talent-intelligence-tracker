@@ -1,29 +1,17 @@
 {
- "generated_at": "2026-07-28T23:17:43-07:00",
- "measured_on": "2026-07-28",
- "goldset_version": "2026-07-v1",
+ "generated_at": "2026-07-30T17:28:06-07:00",
+ "measured_on": "2026-07-30",
+ "goldset_version": "2026-07-v2",
  "overall": {
-  "total": 89,
-  "found": 5,
-  "found_partial": 3,
-  "missed": 81,
-  "held": 8,
-  "held_pct": 9.0,
-  "clean_pct": 5.6
+  "total": 169,
+  "found": 12,
+  "found_partial": 12,
+  "missed": 145,
+  "held": 24,
+  "held_pct": 14.2,
+  "clean_pct": 7.1
  },
  "zero_countries": [
-  {
-   "key": "AU",
-   "total": 4,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "CA",
-   "total": 4,
-   "held": 0,
-   "held_pct": 0.0
-  },
   {
    "key": "JP",
    "total": 4,
@@ -31,19 +19,43 @@
    "held_pct": 0.0
   },
   {
-   "key": "GB",
+   "key": "KE",
+   "total": 4,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "PL",
+   "total": 4,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "ZA",
+   "total": 4,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "GH",
    "total": 3,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "IN",
+   "key": "JM",
    "total": 3,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "BR",
+   "key": "VN",
+   "total": 3,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CL",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
@@ -55,19 +67,61 @@
    "held_pct": 0.0
   },
   {
+   "key": "CO",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CZ",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
    "key": "DE",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "SA",
+   "key": "ID",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "NG",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
   },
   {
    "key": "SG",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "TH",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "TR",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "TW",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "UY",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
@@ -85,19 +139,73 @@
    "held_pct": 0.0
   },
   {
+   "key": "AT",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "AZ",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "BD",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "BH",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "BO",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
    "key": "CH",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "CO",
+   "key": "CR",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "CY",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "DK",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "EE",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
    "key": "ES",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "ET",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -115,7 +223,37 @@
    "held_pct": 0.0
   },
   {
+   "key": "GE",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "HK",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "HR",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
    "key": "IE",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "IQ",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "IS",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -133,7 +271,43 @@
    "held_pct": 0.0
   },
   {
+   "key": "KZ",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "LK",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "LT",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "MA",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
    "key": "MX",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "MY",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "NA",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -151,7 +325,31 @@
    "held_pct": 0.0
   },
   {
+   "key": "NP",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
    "key": "NZ",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "OM",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "PE",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "PH",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -163,13 +361,49 @@
    "held_pct": 0.0
   },
   {
+   "key": "PY",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "QA",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "RO",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
    "key": "SE",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "ZA",
+   "key": "SI",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "SN",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "SV",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "UA",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -179,72 +413,108 @@
   {
    "key": "US",
    "total": 34,
-   "held": 7,
-   "held_pct": 20.6
+   "held": 10,
+   "held_pct": 29.4
   },
   {
    "key": "IL",
    "total": 10,
    "held": 1,
    "held_pct": 10.0
+  },
+  {
+   "key": "AU",
+   "total": 4,
+   "held": 1,
+   "held_pct": 25.0
+  },
+  {
+   "key": "CA",
+   "total": 4,
+   "held": 1,
+   "held_pct": 25.0
+  },
+  {
+   "key": "BR",
+   "total": 3,
+   "held": 1,
+   "held_pct": 33.3
+  },
+  {
+   "key": "GB",
+   "total": 3,
+   "held": 1,
+   "held_pct": 33.3
+  },
+  {
+   "key": "HU",
+   "total": 3,
+   "held": 1,
+   "held_pct": 33.3
+  },
+  {
+   "key": "IN",
+   "total": 3,
+   "held": 1,
+   "held_pct": 33.3
   }
  ],
  "weak_source_types": [
   {
    "key": "trade_press",
-   "total": 50,
-   "held": 2,
-   "held_pct": 4.0
-  },
-  {
-   "key": "press_release",
-   "total": 25,
-   "held": 4,
-   "held_pct": 16.0
+   "total": 96,
+   "held": 15,
+   "held_pct": 15.6
   },
   {
    "key": "national_news",
-   "total": 9,
-   "held": 0,
-   "held_pct": 0.0
+   "total": 33,
+   "held": 2,
+   "held_pct": 6.1
+  },
+  {
+   "key": "press_release",
+   "total": 30,
+   "held": 5,
+   "held_pct": 16.7
   },
   {
    "key": "filing",
-   "total": 5,
+   "total": 10,
    "held": 2,
-   "held_pct": 40.0
+   "held_pct": 20.0
   }
  ],
  "weak_segments": [
   {
    "key": "non-US funding",
-   "total": 44,
+   "total": 92,
+   "held": 13,
+   "held_pct": 14.1
+  },
+  {
+   "key": "non-US leadership",
+   "total": 43,
    "held": 1,
    "held_pct": 2.3
   },
   {
    "key": "US funding",
    "total": 22,
-   "held": 2,
-   "held_pct": 9.1
+   "held": 5,
+   "held_pct": 22.7
   },
   {
    "key": "US leadership",
    "total": 12,
    "held": 5,
    "held_pct": 41.7
-  },
-  {
-   "key": "non-US leadership",
-   "total": 11,
-   "held": 0,
-   "held_pct": 0.0
   }
  ],
  "field_defects": {
-  "country_missing": 2,
-  "wrong_category": 1,
-  "amount_missing": 1
+  "country_missing": 8,
+  "amount_missing": 5,
+  "amount_mismatch": 1
  },
  "missed_examples": [
   {
@@ -512,14 +782,6 @@
    "event_date": "2026-07-14"
   },
   {
-   "company": "Singularity",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Business Wire",
-   "source_url": "https://www.businesswire.com/news/home/20260714185502/en/Singularity-Emerges-from-Stealth-with-$80M-Series-A-at-$400M-Valuation-to-Deploy-Air-Defense-at-Scale",
-   "event_date": "2026-07-14"
-  },
-  {
    "company": "Aegis Brands Inc.",
    "country": "CA",
    "signal_type": "leadership",
@@ -566,9 +828,17 @@
    "source_name": "BRIDGE (thebridge.jp)",
    "source_url": "https://thebridge.jp/en/2026/07/starlight-engine-raises-%C2%A560-6-billion-led-by-global-brain-to-promote-fusion-power-demonstration-fast",
    "event_date": "2026-07-15"
+  },
+  {
+   "company": "Monumental",
+   "country": "NL",
+   "signal_type": "funding",
+   "source_name": "Tech.eu",
+   "source_url": "https://tech.eu/2026/07/15/monumental-secures-32m-series-b-to-accelerate-construction-automation/",
+   "event_date": "2026-07-15"
   }
  ],
- "missed_total": 81,
+ "missed_total": 145,
  "next_goldset": {
   "due": false,
   "reason": "the current set is still current and still moving",
@@ -576,6 +846,6 @@
    "start": "2026-06-01",
    "end": "2026-06-30"
   },
-  "instruction": "Assemble a NEW gold set for 2026-06-01 to 2026-06-30 the same way as analysis/recall/goldset-2026-07.json: independent research passes forbidden from consulting our own database, a source URL for every item, quotas filled per segment rather than taking what is easy to find, nothing dropped after assembly, then seal it. See analysis/recall/goldset.py for the rules the file must satisfy."
+  "instruction": "Build a new recall gold set for 2026-06-01 to 2026-06-30 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-06.json with sealed=true and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
  }
 }
