@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T22:33:19Z",
-  "last_tick": "2026-07-31T23:21:51Z",
+  "last_dispatch": "2026-07-31T23:36:03Z",
+  "last_tick": "2026-07-31T23:36:03Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,48 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-31T22:33:19Z",
-      "history": [
-        {
-          "at": "2026-07-31T18:29:53Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-21)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T22:33:19Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T22:48:16Z",
-          "detail": "run 30670319726",
-          "event": "bound"
-        }
-      ],
-      "id": "20260731T182953Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-21)",
-      "requested_at": "2026-07-31T18:29:53Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30670319726",
-      "state": "dispatched",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-07-31T23:36:03Z",
       "history": [
         {
           "at": "2026-07-31T19:34:30Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-25)",
           "event": "queued"
+        },
+        {
+          "at": "2026-07-31T23:36:03Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T193430Z-backfill-gdelt-2026",
@@ -225,7 +194,7 @@
       "requested_at": "2026-07-31T19:34:30Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -279,45 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:47:32Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:47:21Z",
-          "detail": "guardrail finding rejected on the filing: c8952c565623",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:47:32Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:48:09Z",
-          "detail": "run 30481526547",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:48:09Z",
-          "detail": "run 30481526547",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184721Z-retract",
-      "inputs": {
-        "reason": "Not funding. The 9.9 billion USD is what Danaher is paying to acquire Masimo at 180.00 USD per share in cash, per Masimo's own 8-K exhibit 99.1 of 2026-02-17. Acquisition consideration was counted as money raised.",
-        "signal_id": "c8952c565623b370b55ef08fe22b07d6"
-      },
-      "landed_at": "2026-07-29T18:48:09Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: c8952c565623",
-      "requested_at": "2026-07-29T18:47:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481526547",
-      "state": "landed",
-      "workflow": "retract.yml"
     },
     {
       "attempts": 0,
@@ -2678,6 +2608,48 @@
       "run_id": "30662474194",
       "state": "failed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T22:33:19Z",
+      "history": [
+        {
+          "at": "2026-07-31T18:29:53Z",
+          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-21)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T22:33:19Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T22:48:16Z",
+          "detail": "run 30670319726",
+          "event": "bound"
+        },
+        {
+          "at": "2026-07-31T23:36:03Z",
+          "detail": "run 30670319726",
+          "event": "landed"
+        }
+      ],
+      "id": "20260731T182953Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "35",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-07-31T23:36:03Z",
+      "priority": 10,
+      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-21)",
+      "requested_at": "2026-07-31T18:29:53Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30670319726",
+      "state": "landed",
+      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
