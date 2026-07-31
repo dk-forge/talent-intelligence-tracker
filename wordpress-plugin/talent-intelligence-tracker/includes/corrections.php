@@ -59,25 +59,25 @@ function tit_corrections_entries() {
     return array(
         array(
             'date'   => '2026-07-31',
-            'status' => 'scheduled',
+            'applied_on' => '2026-07-31',
+            'measured_on' => '2026-07-31',
+            'status' => 'applied',
             'title'  => 'Money nobody raised: takeovers paid in shares, running totals, and one round counted twice',
             'rows'   => 318,
             'fields' => array('withdrawn'),
             'body'   => array(
-                // TENSE: when this runs, this paragraph moves to the past
-                // ("318 records reported money that no company raised"), the
-                // sentence about the total being overstated is replaced by what
-                // it moved to, and 'projection' becomes 'measured' with a third
-                // column. Only // comments here: the tense tests strip those and
-                // not /* */, so a block comment quoting the future wording is
-                // read as page copy and fails the build.
-                // TENSE: "reports" -> "reported"; drop "currently".
-                '318 published records report money that no company raised. A
+                // This entry was published as pending on 31 July 2026 and the
+                // run landed the same day, so both tenses have been true on this
+                // page within hours of each other. If a defect is ever disclosed
+                // here again before it is fixed, only // comments may carry the
+                // future wording: the tense tests strip these and not /* */, so
+                // a block comment quoting it is read as page copy.
+                '318 published records reported money that no company raised. A
                  Form D reports an "amount sold", and for three kinds of filing
                  that amount is not capital arriving to be spent on anything.
-                 All three are published here as funding rounds, and between
-                 them the money total on this tracker is currently overstated by
-                 roughly $14.3bn.',
+                 All three were published here as funding rounds, and between
+                 them they overstated the money total on this tracker by
+                 $14.25bn.',
                 'The first is a takeover paid for in shares. When one company
                  buys another and hands the sellers stock instead of cash, the
                  stock is registered on a Form D and its value appears in the
@@ -109,27 +109,39 @@ function tit_corrections_entries() {
                  separate $730m offering opened in June under its own file number
                  and is a different raise, which is why these are matched on the
                  offering\'s number and never on the company.',
-                // TENSE: "are scheduled to be withdrawn" -> "were withdrawn on
-                // <date>"; "will keep" -> "keeps".
-                'These 318 records are scheduled to be withdrawn rather than
-                 restated. What is wrong is not the figure, which is what the
-                 filing says: it is that the figure is money raised at all, and
-                 there is no smaller true number to put in its place. Nothing is
-                 deleted. A withdrawn record will keep its row and the reason it
+                'All 318 were withdrawn on 31 July 2026 rather than restated.
+                 What was wrong was not the figure, which is what the filing
+                 says: it is that the figure was money raised at all, and there
+                 is no smaller true number to put in its place. Nothing was
+                 deleted. A withdrawn record keeps its row and the reason it
                  went, which is how it can still be counted here.',
             ),
             // The BEFORE column is read off the same aggregate the dashboard
             // prints, not off a query of our own: a corrections page quoting
             // $118.4bn beside a dashboard headline of $122B is a reader's first
             // reason to distrust both.
-            'projection' => array(
-                array('Funding records', '3,344', '3,026'),
-                array('Money raised', '$122.0bn', '$107.7bn'),
-                array('Records drawn from Form D', '3,013', '2,695'),
-                array('Takeovers published as raises', '177 records, $8.5bn', '7 records, $0.7bn'),
-                array('Employers with a funding record', '3,127', '2,906'),
+            'measured' => array(
+                array('Funding records', '3,344', '3,026', '3,026'),
+                array('Money raised', '$122.0bn', '$107.7bn', '$107.7bn'),
+                array('Records drawn from Form D', '3,013', '2,695', '2,695'),
+                array('Takeovers published as raises', '177 records, $8.5bn',
+                      '7 records, $0.7bn', '7 records, $0.7bn'),
+                array('Employers with a funding record', '3,127', '2,906', '2,937'),
             ),
             'notes' => array(
+                array(
+                    'One row of the projection missed, and it stays visible.',
+                    'Four of the five figures landed exactly where this page said
+                     they would. The fifth did not: we said 2,906 employers would
+                     be left with a funding record and the answer is 2,937. The
+                     31 are not records the withdrawal missed. They are employers
+                     that arrived between the projection and the run, from a
+                     historical backfill and a night of collection that added 32
+                     funding records worth $3.55bn while this was queued. The
+                     projection is left above rather than replaced, because a
+                     corrections page that quietly revises its own numbers is
+                     doing the thing it exists to prevent.',
+                ),
                 array(
                     'Keeping the last figure filed, not the first and not the sum.',
                     'An amendment restates an offering\'s running total, so the
