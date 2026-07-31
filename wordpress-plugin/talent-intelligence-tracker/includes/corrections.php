@@ -58,6 +58,127 @@ function tit_corrections_url() {
 function tit_corrections_entries() {
     return array(
         array(
+            'date'   => '2026-07-31',
+            'status' => 'scheduled',
+            'title'  => 'Money nobody raised: takeovers paid in shares, running totals, and one round counted twice',
+            'rows'   => 318,
+            'fields' => array('withdrawn'),
+            'body'   => array(
+                // TENSE: when this runs, this paragraph moves to the past
+                // ("318 records reported money that no company raised"), the
+                // sentence about the total being overstated is replaced by what
+                // it moved to, and 'projection' becomes 'measured' with a third
+                // column. Only // comments here: the tense tests strip those and
+                // not /* */, so a block comment quoting the future wording is
+                // read as page copy and fails the build.
+                // TENSE: "reports" -> "reported"; drop "currently".
+                '318 published records report money that no company raised. A
+                 Form D reports an "amount sold", and for three kinds of filing
+                 that amount is not capital arriving to be spent on anything.
+                 All three are published here as funding rounds, and between
+                 them the money total on this tracker is currently overstated by
+                 roughly $14.3bn.',
+                'The first is a takeover paid for in shares. When one company
+                 buys another and hands the sellers stock instead of cash, the
+                 stock is registered on a Form D and its value appears in the
+                 same box a startup uses to report a round. So a filing recording
+                 that Danaher is acquiring Masimo at $180 a share, for "total
+                 consideration of $9.9 billion", was published as Masimo raising
+                 $9.9bn. A merger of W.D. Company, Inc. with and into Dillard\'s,
+                 Inc., valued off a closing share price with no cash anywhere in
+                 the document, was published as $2.39bn. The form asks the issuer
+                 outright whether the offering is part of a business combination,
+                 and 177 published records answer yes. That answer is a field in
+                 the public data set and nothing here had ever read it.',
+                'Seven of those 177 stay. Those seven say, in the filer\'s own
+                 words, that cash came in and was then spent on a deal: "a
+                 portion of the proceeds of the sale of securities to investors
+                 was used to acquire", "funds are being used to acquire a
+                 hospital". That is a real raise and the record is true.',
+                'The second is an offering with no ceiling that has been selling
+                 for years. Where the amount offered is the word "Indefinite",
+                 the figure filed is everything sold since the first sale rather
+                 than a round: OPTCAPITAL LLC\'s $1.77bn is the fourteenth annual
+                 amendment to an offering whose first sale was in July 2012, so
+                 it is fourteen years of sales presented as one raise.',
+                'The third is the same round counted twice. A Form D amendment
+                 restates the running total for an offering already filed, so an
+                 offering we published twice is one raise on the page twice.
+                 Fluidstack appears at $450m in January and $842m in May: one
+                 offering, one raise, and the May figure is the whole of it. Its
+                 separate $730m offering opened in June under its own file number
+                 and is a different raise, which is why these are matched on the
+                 offering\'s number and never on the company.',
+                // TENSE: "are scheduled to be withdrawn" -> "were withdrawn on
+                // <date>"; "will keep" -> "keeps".
+                'These 318 records are scheduled to be withdrawn rather than
+                 restated. What is wrong is not the figure, which is what the
+                 filing says: it is that the figure is money raised at all, and
+                 there is no smaller true number to put in its place. Nothing is
+                 deleted. A withdrawn record will keep its row and the reason it
+                 went, which is how it can still be counted here.',
+            ),
+            'projection' => array(
+                array('Funding records', '3,312', '2,994'),
+                array('Money raised', '$118.4bn', '$104.2bn'),
+                array('Records drawn from Form D', '3,013', '2,695'),
+                array('Takeovers published as raises', '177 records, $8.5bn', '7 records, $0.7bn'),
+                array('Employers with a funding record', '3,127', '2,906'),
+            ),
+            'notes' => array(
+                array(
+                    'Keeping the last figure filed, not the first and not the sum.',
+                    'An amendment restates an offering\'s running total, so the
+                     last filing for an offering is the whole raise and every
+                     earlier one is that same money again. Across the 66
+                     offerings this touches, the last figure is also the largest
+                     in 65 of them; in the one exception the filer revised its
+                     own total downwards, and its latest answer is still the one
+                     we should be showing.',
+                ),
+                array(
+                    'What each rule costs in real records, measured rather than assumed.',
+                    'Withdrawing on the word "Indefinite" alone would take 138
+                     more records worth $1.70bn, including a $200m round that
+                     opened this quarter: an uncapped offering is only a running
+                     total once it has been running, so the rule also requires
+                     the first sale to be more than a year before the filing.
+                     Matching duplicate offerings on the company rather than on
+                     the offering\'s file number would delete Fluidstack\'s
+                     genuinely separate $730m. And the takeover rule is the one
+                     with a cost we cannot measure away: 115 of the 177 filings
+                     answer yes and then explain nothing. Among the 62 that do
+                     explain, 7 turn out to be cash raises, so if the silent ones
+                     behave the same way, roughly a dozen real raises go with
+                     them.',
+                ),
+                array(
+                    'A rule we considered and rejected.',
+                    'Eleven of these filings say the money paid a sales
+                     commission, which is what a company pays a broker to sell
+                     securities and is not something a merger needs. Using that
+                     to rescue a record would have kept five filings that state
+                     in words that the shares were merger consideration, four of
+                     them bank mergers where the fee is the adviser\'s. It rescued
+                     fewer records than it wrongly kept, so it is not used.',
+                ),
+                array(
+                    'What we cannot promise about what is left.',
+                    'Two things. The quarterly data set that carries these fields
+                     is only published once a quarter has ended, so 9 records
+                     filed this month, worth $0.09bn, are not covered by this
+                     pass and are checked when that data set appears. And a
+                     filing that answers yes to the takeover question and then
+                     explains nothing cannot be told apart from a cash placement
+                     that happens to fund a deal, so some real raises go with the
+                     rest. If you see a funding record for a company that was
+                     being bought rather than raising, or a figure that looks
+                     like years of an evergreen fund\'s sales, that is what a
+                     survivor looks like, and we would like to be told.',
+                ),
+            ),
+        ),
+        array(
             'date'   => '2026-07-28',
             'applied_on' => '2026-07-29',
             'status' => 'applied',
