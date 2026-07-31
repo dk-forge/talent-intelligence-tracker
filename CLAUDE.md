@@ -27,24 +27,47 @@ Exit 2 in either means something needs a human. `ci_status.py` also exits **3**
 for "I could not check" — no gh, no credential, no network — because that must
 never read as an all-clear.
 
-**Red CI can now EMAIL the owner** — `ci_status.py` tells a session what is red,
-this tells the owner. **The listener is DORMANT until the plugin is deployed**;
-arming it against the live 1.57.0 endpoint would mail a "RECOVERED" for every
-green run across ~30 workflows. Two steps, in order: deploy
-`deploy-plugin.yml -f dry_run=false` (ships 1.58.0 with the `dedupe_key` /
-`resolve_scope` contract), then uncomment the three `workflow_run` lines in
-`.github/workflows/ci-alert.yml`. The file says all of this at the top.
-`.github/workflows/ci-alert.yml` listens for EVERY workflow completing (one
-`workflow_run` listener, not an `if: failure()` step in each of 30 files) and
-runs `ci_alert.py`, which extracts the real failing assertion and POSTs it to the
-keyed `talent/v1/alert`. Deduped **by cause, not by run** (numbers normalised out
-before hashing; open/resolved state held in the endpoint), and it mails
-**RECOVERED once** on the next green run. `cancelled` is deliberately never
-alerted: this repo evicts runs by design, and `ci_status.py` is what tells an
-eviction from a failure. Do not "fix" the quiet on a repeat — an alarm that mails
-eight times in an afternoon is one you learn to filter, and a filtered alarm is
-the original problem in a new hat. `ci_status.py` shares `ci_alert.extract_cause`
-so the dashboard and the email can never describe one failure two ways.
+**Red CI EMAILS the owner, and the email survives the host being down.**
+`ci_status.py` tells a session what is red; this tells the owner. ARMED since
+2026-07-30. `.github/workflows/ci-alert.yml` listens for EVERY workflow
+completing (one `workflow_run` listener, not an `if: failure()` step in each of
+30 files) and runs `ci_alert.py`, which extracts the real failing assertion and
+POSTs it to the keyed `talent/v1/alert`. Deduped **by cause, not by run**
+(numbers normalised out before hashing; open/resolved state held in the
+endpoint), and it mails **RECOVERED once** on the next green run. `cancelled` is
+deliberately never alerted: this repo evicts runs by design, and `ci_status.py`
+is what tells an eviction from a failure. Do not "fix" the quiet on a repeat — an
+alarm that mails eight times in an afternoon is one you learn to filter, and a
+filtered alarm is the original problem in a new hat. `ci_status.py` shares
+`ci_alert.extract_cause` so the dashboard and the email can never describe one
+failure two ways.
+
+**`/alert` is a route on the host it reports about, and on 2026-07-31 that was
+the whole defect.** Bluehost 504'd under `/blog/` for seven minutes: enrich
+failed, drain-writers correctly went red, and the alerter then failed four times
+saying "HTTP 504 from /alert" — mute at exactly the moment it was needed, and
+manufacturing four extra red runs while it was. Three things now hold:
+
+- **An undeliverable alert is HELD, not lost.** `ci_alert.py` retries transient
+  failures in-run, then writes the alert to `data/alert_outbox.json` (committed
+  — the repo IS the memory). `host-watch.yml` delivers it the next time it
+  proves the host is answering. `alert_outbox.py` explains why a committed file
+  and not a longer backoff.
+- **A delivery failure is NOT a red run.** Holding an alert exits 0. The only
+  non-zero left is "could neither deliver NOR hold", which is the one state
+  where nobody hears about the original failure. **Do not restore the old
+  `exit 1` on a failed POST** — that is what let one outage manufacture red runs
+  which manufacture alerts which also fail.
+- **Something watches the host now.** `host-watch.yml` GETs one public REST
+  route every 15 minutes, records `data/host_status.json` (only on a change or a
+  6h heartbeat, so it is not commit noise), and `ops_status.py [2f]` reads it
+  offline. Three consecutive failed runs is a SUSTAINED outage, which opens
+  **one** GitHub issue — the channel that is not on the host. Opening and
+  closing it are two emails; every update in between edits the body and mails
+  nobody. That is deliberate: GitHub's raw run notifications sent ~15 emails for
+  one defect, and an undeduped channel is a filtered channel. **A down host does
+  not redden `host-watch`** — a red run there would fire the CI alert, which
+  posts to the down host, which is the loop this design exists to break.
 
 ## The 60-second model
 
