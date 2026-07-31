@@ -56,9 +56,25 @@ DEFAULT_PATH = latest_path()
 # non-US press events, which we do not. Nobody would have to intend it: "use
 # what was easy to find" produces exactly that set on its own. So a thin spread
 # is a validation failure, not a review note.
+#
+# The GEOGRAPHIC bars were added on 2026-07-30, after the first measurement made
+# the original ones look generous. A set can satisfy `min_countries: 8` and
+# still be the United States, western Europe and nothing else — which describes
+# the feeds we already had rather than the world the tracker now claims to
+# reach, so recall against it answers only "how well do we read the places we
+# already read".
+#
+# Each geographic bar is set at the shape of the NARROWEST set ever actually
+# used (2026-07-v1: 29 countries, 12 of them carrying more than one event, the
+# largest country 38% of the set, six of the project's seven regions carrying at
+# least two events). Deliberate on two counts. Every published figure stays
+# re-derivable, because no set already on disk is retroactively invalidated. And
+# it makes the guard a RATCHET: the next set may be wider than the last and
+# never narrower. Raise these when a wider set has actually been assembled,
+# never in advance of one.
 REQUIRED_SHAPE = {
     "min_items": 40,
-    "min_countries": 8,
+    "min_countries": 20,
     "min_share": {
         ("geography", "non-US"): 0.30,
         ("signal_type", "funding"): 0.25,
@@ -67,6 +83,26 @@ REQUIRED_SHAPE = {
     },
     "min_source_types": 3,
     "min_per_source_type": 4,
+
+    # A country carrying a single event is "an indication and not a rate" — the
+    # set's own caveat. Thirty such countries look broad and measure nothing
+    # about any of them, so a floor on countries carrying more than one event is
+    # a floor on how much of the breadth is real.
+    "min_countries_with_repeats": 8,
+    "repeat_country_events": 2,
+
+    # No single country may dominate. Without this, "widen the set" is satisfied
+    # by keeping forty US events and adding one each from forty countries, and
+    # the headline figure goes on being a US figure wearing a world map.
+    "max_country_share": 0.45,
+
+    # Region coverage, over the project's OWN region vocabulary
+    # (pipeline.validate._region_for_country, seven regions) rather than a
+    # second geography invented here. Six of seven, each carrying at least two
+    # events: a set may miss one region, not two, and may not represent a region
+    # with a single token event.
+    "min_regions": 6,
+    "min_per_region": 2,
 }
 
 REQUIRED_ITEM_FIELDS = (
@@ -198,6 +234,69 @@ def _shape_problems(items: list) -> list:
             f"{REQUIRED_SHAPE['min_per_source_type']} events "
             f"({shape['source_type']}): a set of one document type measures one "
             "collector, not the tracker")
+
+    problems.extend(_geography_problems(shape, total))
+    return problems
+
+
+def regions(shape: dict) -> dict:
+    """Events per region, over the project's own region vocabulary.
+
+    Imported lazily and defensively. This module is the one thing that has to
+    keep working when the pipeline does not: `measure_recall.py --check` is the
+    step that runs before the API is touched, and a validator that cannot run
+    because an unrelated import broke would take the whole measurement with it.
+    A country the vocabulary cannot place lands under `None`, which is worth
+    seeing — it means our own geography cannot admit a market the benchmark
+    covers — but it is a finding rather than an invalid set.
+    """
+    try:
+        from pipeline.validate import _region_for_country
+    except Exception:                              # pragma: no cover - import guard
+        return {}
+    out = {}
+    for iso2, count in shape["country"].items():
+        key = _region_for_country(iso2)
+        out[key] = out.get(key, 0) + count
+    return out
+
+
+def _geography_problems(shape: dict, total: int) -> list:
+    """Is the set actually global, or global-looking?
+
+    See REQUIRED_SHAPE for where each bar comes from. All three of these can be
+    satisfied on paper by a set that is really one market, which is why they are
+    three rules and not one.
+    """
+    problems = []
+    by_country = shape["country"]
+
+    repeats = [c for c, n in by_country.items()
+               if n >= REQUIRED_SHAPE["repeat_country_events"]]
+    if len(repeats) < REQUIRED_SHAPE["min_countries_with_repeats"]:
+        problems.append(
+            f"only {len(repeats)} countries carry "
+            f"{REQUIRED_SHAPE['repeat_country_events']}+ events: below "
+            f"{REQUIRED_SHAPE['min_countries_with_repeats']}, so most of the "
+            "breadth is single events that cannot measure a country")
+
+    if total and by_country:
+        biggest, count = max(by_country.items(), key=lambda kv: (kv[1], kv[0]))
+        share = count / total
+        if share > REQUIRED_SHAPE["max_country_share"]:
+            problems.append(
+                f"{biggest} is {count}/{total} ({share:.0%}) of the set: above "
+                f"the {REQUIRED_SHAPE['max_country_share']:.0%} ceiling, so the "
+                "headline figure would be that one country's figure")
+
+    per_region = {k: n for k, n in regions(shape).items()
+                  if k and n >= REQUIRED_SHAPE["min_per_region"]}
+    if per_region and len(per_region) < REQUIRED_SHAPE["min_regions"]:
+        problems.append(
+            f"only {len(per_region)} regions carry "
+            f"{REQUIRED_SHAPE['min_per_region']}+ events ({per_region}): below "
+            f"{REQUIRED_SHAPE['min_regions']}, so whole regions the tracker "
+            "claims to reach go unmeasured")
     return problems
 
 
