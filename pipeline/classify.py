@@ -161,6 +161,12 @@ STATS = {
     "read_calls": 0, "read_written": 0, "read_unavailable": 0,
     "read_ungrounded": 0, "read_hedged": 0,
     "read_queued": 0, "read_served": 0,
+    # The conditional second pass. `read_skipped_strong` is extraction's own
+    # sentence standing on its own merits and a frontier call not bought;
+    # `read_bought_weak` is one the free triage judged not good enough. Both
+    # counted because the ratio IS the saving, and a triage that silently
+    # stopped flagging anything would otherwise look like a cheaper month.
+    "read_skipped_strong": 0, "read_bought_weak": 0,
 }
 
 # --- Read sizes, named because they are the cost levers ---------------------
@@ -446,6 +452,17 @@ def gate_enabled() -> bool:
 def read_enabled() -> bool:
     """Split read-through, or the fused behaviour extraction still produces."""
     return bool(READ_MODEL) and READ_MODEL.lower() not in ("off", "0", "none")
+
+
+def read_always() -> bool:
+    """Buy the interpretation for EVERY record, as it did before 2026-07-30.
+
+    The one-variable revert if the conditional turns out to cost quality the
+    deterministic triage cannot see. Default off, i.e. conditional: see
+    `interpret_late` for the measurement that decided it.
+    """
+    return (os.environ.get("TIT_READ_ALWAYS") or "").strip().lower() in (
+        "1", "true", "yes", "on")
 
 
 def paid_reads_enabled() -> bool:
@@ -837,9 +854,59 @@ def interpret_late(signal, classified: dict, raw: dict, *,
     be non-empty and never checks its figures (that is `_accept`'s job, and it
     runs on whatever sentence comes back here), so the guard set is identical
     whichever order the two calls happen in. A test pins both properties.
+
+    CONDITIONAL SINCE 2026-07-30, and this is the largest cost decision in the
+    pipeline, so the reasoning is here rather than in a commit message.
+
+    The question that had not been asked: extraction and the read-through were
+    $31.69 and $31.29 a month at full worldwide coverage — 83% of the bill for
+    reading every story twice. What does the second pass buy? **One field.**
+    `interpret()` returns `{"talent_readthrough": ...}` and this function
+    writes that single attribute; it is never asked for the employer, country,
+    pillar, amount or direction, and it sees 500 characters of teaser against
+    extraction's 4,000. It cannot change a stored fact and cannot know anything
+    extraction did not. Extraction already produced its own version of that
+    same field, for free, in the call that was already paid for.
+
+    Measured on 4,171 rows carrying the fused deepseek sentence and 452
+    carrying claude-sonnet-5's, against `prompts.weak_reasons`:
+
+        deepseek, fused     8.8% flagged  (8.7% of the Latin-script subset)
+        claude-sonnet-5     2.2% flagged  (1.0% of the Latin-script subset)
+
+    That gap is the evidence the triage measures what it claims to: on
+    comparable text it flags deepseek's prose nine times as often as Sonnet's.
+    So the frontier model is bought for the ~9% that need it instead of the
+    100% that were getting it.
+
+    TWO WAYS IT REFUSES TO BE CLEVER. Anything it cannot score — an unsegmented
+    script, too few words to compare — is sent to the model, because the
+    languages it cannot score are exactly the ones the coverage gap is made of.
+    And extraction's own sentence has to pass `ungrounded_reason` before it is
+    allowed to stand: that check used to run only on the paid sentence, so
+    keeping the free one without it would quietly reopen the invented-figure
+    hole the split closed.
+
+    `TIT_READ_ALWAYS=1` restores the unconditional call in one variable.
     """
     if not read_enabled():
         return
+
+    if not read_always():
+        own = (signal.talent_readthrough or "").strip()
+        why = prompts.weak_reasons(own, signal.headline or "")
+        if not why:
+            # It also has to be grounded. The paid sentence is checked by
+            # `_accept`; the free one has never been checked by anything,
+            # because until now it was always overwritten.
+            problem = ungrounded_reason(own, classified, raw.get("raw_text") or "")
+            if problem:
+                why = (f"ungrounded: {problem}",)
+        if not why:
+            STATS["read_skipped_strong"] += 1
+            return
+        STATS["read_bought_weak"] += 1
+
     signal.talent_readthrough = interpret(classified, raw, timeout=timeout)
 
 

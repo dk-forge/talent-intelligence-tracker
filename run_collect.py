@@ -738,6 +738,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # extraction worked and whose interpretation failed stores no rows and must
     # say why in the step log, not leave a reader to infer it from a row count.
     # Every deferral here cost an extraction call that bought nothing.
+    if classify.STATS["read_skipped_strong"] or classify.STATS["read_bought_weak"]:
+        skipped = classify.STATS["read_skipped_strong"]
+        bought = classify.STATS["read_bought_weak"]
+        print(
+            f"[{collector}] second pass: {bought} bought, {skipped} skipped "
+            f"because extraction's own sentence stood on its own "
+            f"({100 * bought // max(bought + skipped, 1)}% of records needed a "
+            f"frontier read-through; TIT_READ_ALWAYS=1 buys them all)"
+        )
     if classify.STATS["read_calls"] or classify.STATS["read_served"]:
         print(
             f"[{collector}] read-through ({classify.READ_MODEL}): "

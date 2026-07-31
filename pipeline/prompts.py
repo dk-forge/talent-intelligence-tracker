@@ -149,3 +149,136 @@ def stable_prefix() -> str:
     cannot drift away from it silently.
     """
     return READ_SYSTEM + READ_RULES
+
+
+# --- Is the second pass worth buying for THIS story? -------------------------
+#
+# THE QUESTION NOBODY HAD ASKED. Extraction and the read-through were priced at
+# $31.69 and $31.29 a month at full worldwide coverage, which is 83% of the
+# whole bill for reading every story twice. So: what does the second pass
+# actually buy?
+#
+# EXACTLY ONE FIELD. `interpret()` returns `{"talent_readthrough": "..."}` and
+# `interpret_late()` writes that single attribute. It is never asked for the
+# employer, the country, the pillar, the amount or the direction, and `_accept`
+# refuses any sentence carrying a figure or a place that is not already in the
+# extracted facts. It also sees LESS text than extraction does — 500 characters
+# of teaser against extraction's 4,000. **It cannot change a stored fact, and
+# it cannot know anything extraction did not.** It is a prose upgrade on one
+# field, and `pipeline/schema.py` already stores extraction's own version of
+# that field for every record.
+#
+# WHAT IT IS WORTH, MEASURED. 4,171 rows carry the sentence the fused deepseek
+# call wrote before the split, and 452 carry claude-sonnet-5's. Against five
+# deterministic defect tests:
+#
+#     deepseek, fused        4,171 rows    9.6% defective
+#       hedged  6.4%   short  2.5%   adds-no-fact  1.8%   restates  0.4%
+#     claude-sonnet-5          452 rows    0.9% (and all four are this
+#                                          module's own blind spot below)
+#
+# Mean headline overlap is 0.150 against 0.158 — statistically the same, so
+# "deepseek restates the headline" is not a general property of the corpus,
+# whatever one sample suggested. What it IS: thinner (127 characters against
+# 194) and hedging one time in fifteen.
+#
+# So the frontier model is bought for every record to fix roughly one in ten.
+# This decides which ten.
+#
+# WHAT THIS DOES NOT MEASURE, said plainly. These tests find DEFECTS, not dull
+# prose. A sentence can pass all five and still be less useful than the one
+# Sonnet would have written — Sonnet's extra 67 characters are usually context
+# about what the company does, and no regex scores that. So the honest claim is
+# "this catches the defects", not "this catches the quality gap".
+#
+# IT FAILS TOWARD QUALITY. Anything it cannot judge is sent to the model.
+
+import re as _re
+
+# Same vocabulary as `classify._HEDGE`, which is what the interpretation call
+# is already scored against — a second, differently-worded hedge list would
+# eventually disagree with the guard it exists to anticipate.
+_WEAK_HEDGE = _re.compile(
+    r"\b(suggests?|may|might|could|possibly|potentially|indicates?|likely)\b",
+    _re.I)
+
+# A storage code that leaked into English. The prompt bans it and the guard
+# catches it after the fact; here it is a reason to buy a better sentence.
+_WEAK_CODE = _re.compile(r"\b[a-z]+_[a-z]+\b")
+
+#: Under this many characters a sentence is a label, not a read-through. The
+#: fused corpus averages 127 and Sonnet 194; 80 is where "Brussels Airlines
+#: appoints a new CEO; executive leadership changes." sits, which is the shape
+#: this is for.
+MIN_USEFUL_CHARS = 80
+
+#: Jaccard overlap with the headline above which the sentence is the headline
+#: again. 0.55 flags 0.4% of the fused corpus, which is the honest rate.
+RESTATEMENT_OVERLAP = 0.55
+
+#: Content words the sentence adds beyond the headline. Below this it is a
+#: rewording rather than a read-through.
+MIN_ADDED_WORDS = 6
+
+#: Below this many word-tokens on either side, the two word-count tests are not
+#: applied at all — see `_comparable`. Three, because a headline is short:
+#: "Enigma Raises $71M in Seed Funding" is four scoreable words and is a
+#: perfectly ordinary headline to compare against.
+MIN_TOKENS_TO_COMPARE = 3
+
+#: A "word" longer than this is not a word, it is an unsegmented script. Chinese
+#: and Japanese put no spaces between words, so a word split returns one
+#: enormous token; this is what tells the two apart without a language tag.
+MAX_WORD_CHARS = 20
+
+
+def _tokens(text: str) -> set[str]:
+    return {w for w in _re.findall(r"[^\W\d_]{3,}", text or "", _re.UNICODE)}
+
+
+def _comparable(a: set[str], b: set[str]) -> bool:
+    """Whether the word-overlap tests mean anything for this pair.
+
+    Chinese, Japanese and Thai do not put spaces between words, so a word split
+    returns one enormous token or none at all, and both overlap tests then
+    report whatever that accident produces. Measured: all four sentences this
+    module flagged in the Sonnet corpus were Chinese, Arabic and Hebrew, and
+    all four were fine. So below a floor the tests are SKIPPED, which sends the
+    record to the model — the safe direction, and the one that spends the
+    budget on exactly the languages the coverage gap is made of.
+    """
+    if len(a) < MIN_TOKENS_TO_COMPARE or len(b) < MIN_TOKENS_TO_COMPARE:
+        return False
+    return max(len(w) for w in a | b) <= MAX_WORD_CHARS
+
+
+def weak_reasons(sentence: str, headline: str) -> tuple[str, ...]:
+    """Why extraction's own read-through is not good enough, or ().
+
+    Free: no model, no network, five regex-and-set operations. An empty tuple
+    means the sentence stands on its own and the second pass is not worth
+    buying for this record.
+    """
+    text = (sentence or "").strip()
+    if not text:
+        return ("empty",)
+
+    why = []
+    if len(text) < MIN_USEFUL_CHARS:
+        why.append("short")
+    if _WEAK_HEDGE.search(text):
+        why.append("hedged")
+    if _WEAK_CODE.search(text):
+        why.append("storage-code")
+
+    said, asked = _tokens(text), _tokens(headline)
+    if _comparable(said, asked):
+        union = said | asked
+        if union and len(said & asked) / len(union) >= RESTATEMENT_OVERLAP:
+            why.append("restates-headline")
+        if len(said - asked) < MIN_ADDED_WORDS:
+            why.append("adds-no-fact")
+    else:
+        # Cannot judge. Buy the good sentence.
+        why.append("not-scoreable")
+    return tuple(why)
