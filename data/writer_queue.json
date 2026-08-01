@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T16:28:06Z",
-  "last_tick": "2026-08-01T16:33:49Z",
+  "last_tick": "2026-08-01T16:44:07Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,6 +168,8 @@
       "created_at": "2026-08-01T09:35:54Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-08-01T09:40:47Z",
+      "resolved": "2026-08-01T16:44:02Z",
+      "resolved_note": " (by dakotta-labs)",
       "run_id": "30694055440",
       "workflow": "collect national press"
     }
