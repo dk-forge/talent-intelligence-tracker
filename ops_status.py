@@ -454,7 +454,7 @@ def _report_read_rations() -> list[str]:
     """
     from pipeline import classify
 
-    print("\n[3b] READ RATIONS  (reads follow measured conversion)")
+    print("\n[2g] READ RATIONS  (reads follow measured conversion)")
     for name, cap in sorted(classify.COLLECTOR_READ_CAPS.items()):
         conv = classify.READ_CONVERSION[name]
         print(f"    {name:16} {cap:4} reads/run   measured conversion {conv:.1%}")

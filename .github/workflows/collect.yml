@@ -104,10 +104,25 @@ jobs:
       # that makes the sweep affordable, and since 2026-07-30 each number is
       # that collector's share of what the monthly allowance buys rather than
       # a round number: measured demand is 153 reads/run for google_news and
-      # 26 for gdelt, and $25 a month pays for about 28% of the total. The SEC
-      # pair keep 40, which is headroom on a demand of one or two — rationing
-      # a collector that finds two filings saves nothing and would one day
-      # bind on the run that finds fifty.
+      # 26 for gdelt. The SEC pair keep 40, which is headroom on a demand of
+      # one or two - rationing a collector that finds two filings saves
+      # nothing and would one day bind on the run that finds fifty.
+      #
+      # google_news went 129 -> 99 on 2026-08-01, and it is a REALLOCATION,
+      # not a cut: the total across the two collectors whose demand reaches
+      # their cap is pinned at 217, and national_press takes the 118. The
+      # split now follows measured conversion (google_news 761 reads -> 354
+      # rows = 46.5%; national_press 288 -> 160 = 55.6%) instead of the pair
+      # of numbers nobody chose, which is what 129 and an unset default were.
+      # The rule and its arithmetic live in classify.read_cap; this number is
+      # its output, and ops_status.py [3b] reads this case statement and warns
+      # when the two disagree. A cap set here WINS over the rule, which is
+      # deliberate (backfills need 5000) and is exactly why it can drift.
+      #
+      # The allowance is $5/month, not the $25 this comment used to cite. At
+      # $5 the gate alone costs $4.41 and full coverage is $49.14, so these
+      # caps are not what makes the budget fit and retuning them cannot make
+      # it fit. See the cost discipline section in CLAUDE.md.
       #
       #     python3 cost_projection.py     # re-derives all four from the ledger
       #
@@ -133,7 +148,7 @@ jobs:
               case "$source" in
                 gdelt)                export TIT_READTHROUGH_CAP=9 ;;
                 sec_edgar|sec_form_d) export TIT_READTHROUGH_CAP=40 ;;
-                google_news)          export TIT_READTHROUGH_CAP=129 ;;
+                google_news)          export TIT_READTHROUGH_CAP=99 ;;
                 *)                    unset TIT_READTHROUGH_CAP ;;
               esac
               echo "::group::collect $source"
