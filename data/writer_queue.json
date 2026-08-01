@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T20:23:49Z",
-  "last_tick": "2026-08-01T20:23:49Z",
+  "last_tick": "2026-08-01T20:31:55Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -188,6 +188,11 @@
           "at": "2026-08-01T20:23:49Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T20:31:55Z",
+          "detail": "run 30716879606",
+          "event": "bound"
         }
       ],
       "id": "20260801T181039Z-backfill-gnews-2026",
@@ -202,7 +207,7 @@
       "reason": "recover the 3 days run 30662474194 walked but could not fetch (576/576 queries failed)",
       "requested_at": "2026-08-01T18:10:39Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30716879606",
       "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
