@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T17:56:20Z",
-  "last_tick": "2026-08-01T18:06:02Z",
+  "last_tick": "2026-08-01T18:09:52Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -285,6 +285,32 @@
       "reason": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 2)",
       "requested_at": "2026-08-01T17:49:31Z",
       "requested_by": "backfill-slices",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T18:09:48Z",
+          "detail": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend",
+          "event": "queued"
+        }
+      ],
+      "id": "20260801T180948Z-backfill-structured-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "opendart_korea",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend",
+      "requested_at": "2026-08-01T18:09:48Z",
+      "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
@@ -2658,6 +2684,7 @@
       "workflow": "backfill-structured-2026.yml"
     },
     {
+      "acknowledged": "2026-08-01T18:09:48Z",
       "attempts": 0,
       "dispatched_at": "2026-08-01T17:50:02Z",
       "history": [
@@ -2680,6 +2707,11 @@
           "at": "2026-08-01T17:51:35Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-01T18:09:48Z",
+          "detail": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260801T165618Z-backfill-structured-2026",
