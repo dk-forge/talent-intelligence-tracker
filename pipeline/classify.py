@@ -242,6 +242,125 @@ FULL_READ_CHARS = 4000
 # decides when a story is read, never whether.
 READTHROUGH_CAP = int(os.environ.get("TIT_READTHROUGH_CAP", "88") or "88")
 
+# --- Whose reads are they? ------------------------------------------------
+#
+# THE DEFECT (measured 2026-08-01, source_health, the seven days to that date)
+#
+#     collector        runs  items found  candidates  reads  rows  conversion
+#     google_news         6        6,870       3,892    761   354       46.5%
+#     national_press      2       21,158       1,160    288   160       55.6%
+#     gdelt               4          967         106     62    26       41.9%
+#     sec_edgar           3           30          11     12     5       41.7%
+#     sec_form_d          3           23           8      6     4       66.7%
+#
+# The per-run ceilings behind those numbers were google_news 129 and
+# national_press 88 (the module default; nothing set one for it). So the
+# collector that converts a read into a stored row LESS often, and reads a
+# third as many items to find its candidates, held the larger ration. That is
+# backwards, and nobody chose it: the two numbers were set in different files
+# months apart, one in a bash `case` in collect.yml and one by defaulting.
+#
+# THE RULE, and it is a rule rather than a pair of numbers
+# -------------------------------------------------------
+#     A collector's share of the read budget is its share of MEASURED
+#     CONVERSION among the collectors whose demand actually reaches the cap.
+#
+# The arithmetic, in full, so it can be checked rather than believed:
+#
+#     binding collectors     google_news, national_press
+#     their current caps     129 + 88 = 217 reads/run   <- HELD CONSTANT
+#     measured conversion    0.465 and 0.556, sum 1.021
+#
+#     google_news     217 x 0.465 / 1.021 =  98.8  ->   99
+#     national_press  217 x 0.556 / 1.021 = 118.2  ->  118
+#                                                       217  (unchanged)
+#
+# THIS REALLOCATES SPEND AND DOES NOT RAISE IT. The sum is pinned to what the
+# two caps already bought, and `test_read_budget.py` asserts that, because the
+# obvious way to "fix" a starved collector is to give it more and the obvious
+# way to do that is to raise the total. MONTHLY_ALLOWANCE_USD is untouched and
+# is not this rule's business.
+#
+# WHY ONLY THOSE TWO. A cap only rations a collector whose demand reaches it.
+# On the runs above, sec_edgar bought 2 reads against a ceiling of 40 and
+# sec_form_d bought 1 against 40 — those are headroom, and taking headroom away
+# from a source that never uses it frees no money. gdelt bought 9 against 9 and
+# deferred 0-1, so it is exactly at its ration with nothing waiting; moving it
+# would be churn. national_press deferred 162 candidates on its last run and
+# google_news deferred 12 on its, which is the same finding from the other end.
+#
+# WHAT THIS DOES NOT FIX, and must not be read as fixing: national_press got
+# TWO runs in those seven days against google_news's six. Most of its weekly
+# read deficit is run count, not ration, and run count is a scheduling
+# question in .github/workflows/, not a number in this file. A per-run share
+# cannot compensate for a run that never happened.
+#
+# THIS SITS ABOVE candidate_rank.py AND DOES NOT REPLACE IT. This decides how
+# many reads a collector may buy; `pipeline/candidate_rank.py` decides WHICH,
+# giving every country's best story a place before any country's second (75
+# reads across 6 countries on its first production run, none above 17%). The
+# two answer different questions and both are still asked.
+#
+# RE-DERIVE RATHER THAN TRUSTING THIS COMMENT. The conversion figures are a
+# measurement with a date on them, and a ration set from a stale one is a
+# ration nobody chose:
+#
+#     python3 cost_projection.py        # section [5]
+#     sqlite3 data/talent_intel.db "SELECT collector, SUM(reads_bought), \
+#       SUM(rows_from_reads) FROM source_health \
+#       WHERE run_at >= datetime('now','-7 days') GROUP BY collector"
+
+#: Rows stored per read bought, per collector. MEASURED 2026-08-01 over the
+#: seven days to that date. Only collectors whose demand reaches their cap
+#: appear here; see the note above on why headroom is not a ration.
+READ_CONVERSION = {
+    "national_press": 0.556,   # 160 rows / 288 reads
+    "google_news": 0.465,      # 354 rows / 761 reads
+}
+
+#: The per-run total those two already bought, held constant by the split.
+#: 129 (google_news, set in collect.yml) + 88 (national_press, the module
+#: default). Changing this IS a spend decision and belongs to the owner.
+BINDING_READ_BUDGET = 217
+
+
+def _derive_read_caps() -> dict[str, int]:
+    """Split BINDING_READ_BUDGET by measured conversion, losing nothing.
+
+    Largest-remainder rather than plain rounding, because two independent
+    `round()` calls can lose or gain a read and a budget that does not add up
+    is a budget nobody can check.
+    """
+    total = sum(READ_CONVERSION.values())
+    exact = {name: BINDING_READ_BUDGET * share / total
+             for name, share in READ_CONVERSION.items()}
+    caps = {name: int(value) for name, value in exact.items()}
+    leftover = BINDING_READ_BUDGET - sum(caps.values())
+    for name in sorted(exact, key=lambda n: exact[n] - caps[n], reverse=True):
+        if leftover <= 0:
+            break
+        caps[name] += 1
+        leftover -= 1
+    return caps
+
+
+COLLECTOR_READ_CAPS = _derive_read_caps()
+
+
+def read_cap(collector: str | None) -> int:
+    """This run's read ceiling for one collector.
+
+    TIT_READTHROUGH_CAP STILL WINS when it is set, and that is deliberate:
+    the backfills set it to 5000 because a month of filings would otherwise
+    defer almost entirely, and a derived daily ration silently overriding an
+    explicitly requested one is the kind of surprise this repo keeps paying
+    for. An explicit number beats a derived one; a derived one beats a
+    default.
+    """
+    if os.environ.get("TIT_READTHROUGH_CAP"):
+        return READTHROUGH_CAP
+    return COLLECTOR_READ_CAPS.get((collector or "").strip(), READTHROUGH_CAP)
+
 # Spec 4 rule 1: a narrow classification does not need a 1,400-token prompt.
 MINI_SYSTEM = (
     "Classify a talent-market news item. Use only facts present in the text. "
@@ -830,9 +949,14 @@ def classify(raw: dict, *, timeout: int = 45,
     # Stage 2 is the expensive call, so it carries the per-run ceiling.
     # Raised as Throttled because that is already the "not now, retry next
     # run, do not mark seen" path in run_collect.
-    if STATS["full_calls"] >= READTHROUGH_CAP:
+    #
+    # Per COLLECTOR since 2026-08-01: the ration follows measured conversion
+    # rather than whichever file happened to set a number. See read_cap().
+    cap = read_cap(collector)
+    if STATS["full_calls"] >= cap:
         raise BudgetDeferred(
-            f"read-through cap ({READTHROUGH_CAP}/run) reached — deferring to the next run"
+            f"read-through cap ({cap}/run for {collector or 'this collector'}) "
+            f"reached — deferring to the next run"
         )
     STATS["full_calls"] += 1
     STATS["full_chars_raw"] += len(text)

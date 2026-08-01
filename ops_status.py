@@ -10,6 +10,7 @@ Exit codes: 0 healthy | 2 something needs a human
 
 from __future__ import annotations
 
+import re
 import sqlite3
 import sys
 from datetime import datetime, timedelta, timezone
@@ -50,6 +51,7 @@ def main() -> int:
     problems += _report_employer_keys(conn)
     problems += _report_health(conn)
     problems += _report_run_cost(conn)
+    problems += _report_read_rations()
     problems += _report_writer_queue()
     problems += _report_host()
     problems += _report_link_rot(conn)
@@ -432,6 +434,71 @@ def _commits_behind_origin() -> int:
         return int(out.stdout.strip()) if out.returncode == 0 else 0
     except Exception:
         return 0
+
+
+def _report_read_rations() -> list[str]:
+    """Does the schedule hand out the rations the measured rule derives?
+
+    The rule and its arithmetic live in `pipeline/classify.py` (READ_CONVERSION,
+    BINDING_READ_BUDGET, read_cap): a collector's share of the read budget is
+    its share of measured conversion. But `TIT_READTHROUGH_CAP` in a workflow
+    beats the derived value — it has to, because the backfills set 5000 and a
+    derived daily ration silently overriding an explicitly requested one is the
+    kind of surprise this repo keeps paying for.
+
+    So the two can disagree, and a disagreement is invisible from either side:
+    the code looks right and the run buys something else. This is where it
+    becomes visible. It is a WARNING and not an exit-2 problem, because a
+    workflow deliberately overriding the rule is legitimate and the owner may
+    have chosen it.
+    """
+    from pipeline import classify
+
+    print("\n[3b] READ RATIONS  (reads follow measured conversion)")
+    for name, cap in sorted(classify.COLLECTOR_READ_CAPS.items()):
+        conv = classify.READ_CONVERSION[name]
+        print(f"    {name:16} {cap:4} reads/run   measured conversion {conv:.1%}")
+    print(f"    {'':16} {sum(classify.COLLECTOR_READ_CAPS.values()):4} total, held "
+          f"constant at classify.BINDING_READ_BUDGET")
+
+    scheduled = _scheduled_read_caps()
+    disagree = {n: v for n, v in scheduled.items()
+                if n in classify.COLLECTOR_READ_CAPS
+                and v != classify.COLLECTOR_READ_CAPS[n]}
+    if not disagree:
+        print("    the schedule hands out exactly these.")
+        return []
+
+    for name, value in sorted(disagree.items()):
+        print(f"    ::warning:: collect.yml sets TIT_READTHROUGH_CAP={value} for "
+              f"{name}, where the")
+        print(f"                measured rule derives "
+              f"{classify.COLLECTOR_READ_CAPS[name]}. The workflow wins, so the "
+              f"rule is")
+        print("                inert for this collector until that number is "
+              "changed.")
+    return []
+
+
+def _scheduled_read_caps() -> dict[str, int]:
+    """The per-source TIT_READTHROUGH_CAP values the collect sweep exports.
+
+    Read out of the workflow's shell `case` rather than kept as a constant
+    here, for the same reason `_crons` reads the cron: a constant describing
+    another file is a comment, and this script is supposed to be an authority.
+    """
+    path = ROOT / ".github" / "workflows" / "collect.yml"
+    if not path.exists():
+        return {}
+    found: dict[str, int] = {}
+    pattern = re.compile(
+        r"^\s*([a-z_|]+)\)\s*export TIT_READTHROUGH_CAP=(\d+)")
+    for line in path.read_text().splitlines():
+        hit = pattern.match(line)
+        if hit:
+            for name in hit.group(1).split("|"):
+                found[name] = int(hit.group(2))
+    return found
 
 
 def _report_writer_queue() -> list[str]:

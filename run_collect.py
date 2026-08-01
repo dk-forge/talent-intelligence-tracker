@@ -459,9 +459,13 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # This is an ORDER and not a filter: `rank` returns a permutation, so the
     # same candidates are eligible, the same guards apply to each, and no score
     # can make or unmake a record. It costs no model call and no network call.
+    # `top` must be the ceiling this collector will ACTUALLY hit, not the
+    # module default: the explanation is what a reader uses to judge whether a
+    # capped run bought breadth, and one describing 88 reads while the run
+    # buys 118 describes a run that did not happen.
     ranking = candidate_rank.Context.for_conn(conn)
     note = candidate_rank.explain(kept, ranking,
-                                  top=classify.READTHROUGH_CAP)
+                                  top=classify.read_cap(source))
     kept = candidate_rank.rank(kept, ranking)
 
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
