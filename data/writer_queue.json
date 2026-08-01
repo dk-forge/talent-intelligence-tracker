@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T22:45:06Z",
-  "last_tick": "2026-08-01T22:45:06Z",
+  "last_tick": "2026-08-01T22:45:39Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -188,6 +188,11 @@
           "at": "2026-08-01T22:45:06Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T22:45:39Z",
+          "detail": "run 30721940003",
+          "event": "bound"
         }
       ],
       "id": "20260801T201654Z-backfill-structured-2026",
@@ -202,7 +207,7 @@
       "reason": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 3)",
       "requested_at": "2026-08-01T20:16:54Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30721940003",
       "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
@@ -2542,6 +2547,7 @@
       "workflow": "backfill-structured-2026.yml"
     },
     {
+      "acknowledged": "2026-08-01T22:45:36Z",
       "attempts": 0,
       "dispatched_at": "2026-08-01T20:17:17Z",
       "history": [
@@ -2564,6 +2570,11 @@
           "at": "2026-08-01T20:23:49Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-01T22:45:36Z",
+          "detail": " (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260801T180948Z-backfill-structured-2026",
