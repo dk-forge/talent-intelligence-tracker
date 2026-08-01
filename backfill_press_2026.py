@@ -380,6 +380,44 @@ def last_index(population: list, per_slice: int = PUBLISHERS_PER_SLICE) -> int:
     return max(0, math.ceil(len(population) / max(per_slice, 1)) - 1)
 
 
+def roster_progress(lo: int, hi: int, attempted, answered, expected):
+    """(done_through, unreached_index) for a run that walked roster [lo, hi].
+
+    The cursor moves over roster indices that are COMPLETE, and a roster index
+    is complete only when every publisher in it has been READ. A run that
+    stopped on its budget after 5 of 60 publishers has finished no index, so it
+    emits a cursor that has not moved and `backfill_slices.record` refuses to
+    requeue it — which is correct and loud. Advancing on "we got some of the
+    way through" would leave 55 publishers unvisited with the run count looking
+    perfect, which is the same silent hole a date cursor produces.
+
+    A publisher whose share of the ration ran out IS finished: that is what a
+    ration means, and it is the difference between a walker that converges by
+    repetition and one that stalls.
+
+    AND an index that ANSWERED nothing is not finished either, which is the
+    2026-08-01 fix. Every publisher in an index failing at the transport layer
+    is not sixty dead newspapers, it is one blocked runner — the same fact the
+    gnews walker read as "there was no news on 2026-01-24", and it cost three
+    days of history that nothing will ever be sent back for. One `dead`
+    publisher is ordinary and permanent, so the threshold is "did ANY of them
+    answer", not "did all of them".
+
+    Walked from `lo` and stopped at the first index that fails either test,
+    because the cursor is a high-water mark: it cannot record a hole behind
+    itself, so it must stop in front of one.
+    """
+    done_through: int | None = None
+    for index in range(lo, hi + 1):
+        due = expected(index)
+        if not due or attempted[index] < due:
+            break
+        if not answered[index]:
+            return done_through, index
+        done_through = index
+    return done_through, None
+
+
 # --------------------------------------------------------------------------
 
 @gate_ledger.around_run(WORKFLOW)
@@ -678,38 +716,11 @@ def main() -> int:
             print(f"\nSTOPPING EARLY: {stopped_early}", file=sys.stderr)
             break
 
-    # The cursor moves over roster indices that are COMPLETE, and a roster index
-    # is complete only when every publisher in it has been read. A run that
-    # stopped on its budget after 5 of 60 publishers has finished no index, so
-    # it emits a cursor that has not moved and `backfill_slices.record` refuses
-    # to requeue it — which is correct and loud. Advancing on "we got some of
-    # the way through" would leave 55 publishers unvisited with the run count
-    # looking perfect, which is the same silent hole a date cursor produces.
-    #
-    # A publisher whose share of the ration ran out IS finished: that is what a
-    # ration means, and it is the difference between a walker that converges by
-    # repetition and one that stalls.
-    #
-    # AND an index that answered NOTHING is not finished either, which is the
-    # 2026-08-01 fix. Every publisher in an index failing at the transport layer
-    # is not sixty dead newspapers, it is one blocked runner — the same fact the
-    # gnews walker read as "there was no news on 2026-01-24", and it cost three
-    # days of history that nothing will ever be sent back for. One `dead`
-    # publisher is ordinary and permanent, so the threshold is "did ANY of them
-    # answer", not "did all of them".
-    #
-    # Walked from `lo` and stopped at the first index that fails either test,
-    # because the cursor is a high-water mark: it cannot record a hole behind
-    # itself, so it must stop in front of one.
-    unreached_index: int | None = None
-    for index in range(lo, hi + 1):
-        expected = len(partition(population, index, index, args.publishers_per_slice))
-        if not expected or attempted_by_index[index] < expected:
-            break
-        if not answered_by_index[index]:
-            unreached_index = index
-            break
-        done_through = index
+    # What counts as a finished roster index, and why, is `roster_progress` —
+    # that is where the reasoning and the tests live.
+    done_through, unreached_index = roster_progress(
+        lo, hi, attempted_by_index, answered_by_index,
+        lambda i: len(partition(population, i, i, args.publishers_per_slice)))
 
     if unreached_index is not None:
         stopped_early = backfill_slices.unreached_reason(

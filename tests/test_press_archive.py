@@ -587,3 +587,57 @@ def test_the_slice_count_matches_the_roster_size():
     assert walker.last_index(_feeds(653), 40) == 16
     # The last slice is the short one, and it must still be reachable.
     assert len(walker.partition(_feeds(653), 16, 16, 40)) == 13
+
+
+# --------------------------------------------------------------------------
+# the roster cursor: a slice nobody could reach is not a slice that was walked
+# --------------------------------------------------------------------------
+
+def _progress(lo, hi, pairs, per_index=3):
+    """`pairs` is {index: (attempted, answered)}."""
+    from collections import Counter
+
+    import backfill_press_2026 as press
+
+    attempted = Counter({i: a for i, (a, _) in pairs.items()})
+    answered = Counter({i: b for i, (_, b) in pairs.items()})
+    return press.roster_progress(lo, hi, attempted, answered,
+                                 lambda _i: per_index)
+
+
+def test_a_fully_read_roster_index_advances_the_cursor():
+    assert _progress(0, 1, {0: (3, 3), 1: (3, 2)}) == (1, None)
+
+
+def test_an_index_the_run_never_finished_stops_the_cursor_in_front_of_it():
+    """A run that stopped on its budget after 5 of 60 publishers has finished
+    no index. Advancing on "we got some of the way through" would leave the
+    rest unvisited with the run count looking perfect."""
+    assert _progress(0, 2, {0: (3, 3), 1: (1, 1)}) == (0, None)
+    assert _progress(0, 2, {0: (1, 1)}) == (None, None)
+
+
+def test_an_index_where_every_publisher_failed_is_UNREACHED_not_walked():
+    """Sixty newspapers do not go offline together — that is one blocked
+    runner. Recording it as walked is how the gnews walker decided there had
+    been no news anywhere on 2026-01-24, and the chain never goes back."""
+    done_through, unreached = _progress(0, 2, {0: (3, 3), 1: (3, 0), 2: (3, 3)})
+    assert unreached == 1
+    assert done_through == 0, (
+        "the cursor recorded a hole behind itself; it is a high-water mark and "
+        "must stop in FRONT of one")
+
+
+def test_one_dead_publisher_does_not_freeze_the_walk():
+    """`dead` is a transport failure and `no_window`/`hijacked` are durable
+    answers, but even a genuinely unreachable site is ordinary and permanent.
+    The threshold is "did ANY of them answer", not "did all of them" — the
+    other way round the roster would stop advancing for good."""
+    assert _progress(0, 1, {0: (3, 1), 1: (3, 1)}) == (1, None)
+
+
+def test_a_publisher_whose_ration_ran_out_is_still_finished():
+    """That is what a ration means, and it is the difference between a walker
+    that converges by repetition and one that stalls. Answering counts, not
+    storing."""
+    assert _progress(0, 0, {0: (3, 3)}) == (0, None)
