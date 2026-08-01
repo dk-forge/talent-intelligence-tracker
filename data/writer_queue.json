@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T03:48:10Z",
-  "last_tick": "2026-08-01T03:48:10Z",
+  "last_dispatch": "2026-08-01T04:38:06Z",
+  "last_tick": "2026-08-01T04:38:06Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,43 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T03:48:10Z",
-      "history": [
-        {
-          "at": "2026-08-01T02:24:38Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-06)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T03:48:10Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260801T022438Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-06)",
-      "requested_at": "2026-08-01T02:24:38Z",
-      "requested_by": "backfill-slices",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T04:38:06Z",
       "history": [
         {
           "at": "2026-08-01T03:18:10Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-10)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T04:38:06Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T031810Z-backfill-gdelt-2026",
@@ -220,7 +194,7 @@
       "requested_at": "2026-08-01T03:18:10Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -274,45 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:56:32Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:54:20Z",
-          "detail": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:56:32Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:58:30Z",
-          "detail": "run 30482192005",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:58:30Z",
-          "detail": "run 30482192005",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T185420Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody. Re-queued: the first run withdrew it on WordPress and locally but lost its push to a concurrent commit, so the withdrawal never reached the committed database.",
-        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
-      },
-      "landed_at": "2026-07-29T18:58:30Z",
-      "priority": -1,
-      "reason": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
-      "requested_at": "2026-07-29T18:54:20Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30482192005",
-      "state": "landed",
-      "workflow": "retract.yml"
     },
     {
       "acknowledged": "2026-07-29T19:22:08Z",
@@ -2736,6 +2671,48 @@
       "run_id": "30681742497",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T03:48:10Z",
+      "history": [
+        {
+          "at": "2026-08-01T02:24:38Z",
+          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-06)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T03:48:10Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T04:38:06Z",
+          "detail": "run 30682697491",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T04:38:06Z",
+          "detail": "run 30682697491",
+          "event": "landed"
+        }
+      ],
+      "id": "20260801T022438Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "35",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-01T04:38:06Z",
+      "priority": 10,
+      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-06)",
+      "requested_at": "2026-08-01T02:24:38Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30682697491",
+      "state": "landed",
+      "workflow": "backfill-gdelt-2026.yml"
     }
   ],
   "version": 1
