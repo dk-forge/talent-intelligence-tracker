@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T16:28:06Z",
-  "last_tick": "2026-08-01T16:55:06Z",
+  "last_tick": "2026-08-01T16:55:47Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -306,6 +306,32 @@
       "priority": 5,
       "reason": "2026 catch-up: resume the stalled bse_india chain (cursor 2026-01-29, 7 slices left). Costs $0 - as_classified, no model call.",
       "requested_at": "2026-08-01T16:54:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T16:55:42Z",
+          "detail": "2026 catch-up: resume the companies_house chain (cursor 1 of 7) stalled since its run was cancelled 2026-07-31. Costs $0 - as_classified, no model call.",
+          "event": "queued"
+        }
+      ],
+      "id": "20260801T165542Z-backfill-structured-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "companies_house",
+        "start": "2026-01-01"
+      },
+      "priority": 5,
+      "reason": "2026 catch-up: resume the companies_house chain (cursor 1 of 7) stalled since its run was cancelled 2026-07-31. Costs $0 - as_classified, no model call.",
+      "requested_at": "2026-08-01T16:55:42Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
