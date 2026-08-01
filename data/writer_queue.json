@@ -263,6 +263,32 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T14:34:10Z",
+          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-02-13)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260801T143410Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "ration": "37",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-02-13)",
+      "requested_at": "2026-08-01T14:34:10Z",
+      "requested_by": "backfill-slices",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-30T22:19:34Z",
       "history": [
         {
