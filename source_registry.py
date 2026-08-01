@@ -495,6 +495,33 @@ COLLECTOR_BY_SOURCE_NAME = {
 }
 
 
+# A backfill reads the SAME publisher through a different door, and the rows it
+# stores carry the door's name rather than the source's.
+#
+# `sec_form_d_bulk` walks the SEC's quarterly bulk data set; `sec_form_d` reads
+# the live feed. Same filings, same publisher, same citation, one page entry --
+# so the bulk path is an ALIAS, not a fifteenth source. Listing it separately
+# would tell a reader there are two Form D sources when there is one.
+#
+# This exists because 2,682 stored rows resolved to nothing: their source_name
+# is "SEC EDGAR (Form D)" while COLLECTOR_BY_SOURCE_NAME holds "SEC EDGAR Form
+# D", and the both-directions test derives its collector set from run_collect,
+# where a backfill script does not appear. The usual failure on this page is
+# claiming coverage we do not have; this was the inverse, real rows whose
+# ingest path the page never named.
+#
+# Add an entry here ONLY when the alias reads the same publisher as its target.
+# A genuinely new source gets a row in SOURCES and its own line on the page.
+COLLECTOR_ALIASES = {
+    "sec_form_d_bulk": "sec_form_d",
+}
+
+
+def resolve_collector(collector: str) -> str:
+    """The collector a stored row should be attributed to on the sources page."""
+    return COLLECTOR_ALIASES.get(collector, collector)
+
+
 SOURCES = (
     # --- live: something actually reads these today ------------------------
     Source("SEC EDGAR 8-K (Item 5.02)", "https://www.sec.gov/edgar.shtml", "live",

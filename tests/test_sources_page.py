@@ -302,3 +302,60 @@ def test_the_builder_refuses_rather_than_substituting():
     label, field, fragment = offences[0]
     assert label == "Presseportal" and field == "notes"
     assert "—" in fragment, "the fragment must show the author the dash"
+
+
+def test_every_collector_with_stored_rows_is_named_on_the_page():
+    """The third direction: rows in the database from a path nobody listed.
+
+    `test_live_sources_are_only_the_ones_with_collectors` derives its collector
+    set from `run_collect.SOURCES`, so it can only see the DAILY collectors. A
+    backfill script stores through its own name and never appears there, which
+    is how `sec_form_d_bulk` came to hold 2,682 current rows while resolving to
+    no source at all -- its rows say "SEC EDGAR (Form D)" and the map holds
+    "SEC EDGAR Form D".
+
+    Understating provenance is not the safe direction. The page exists so a
+    reader can judge what the tracker runs on, and a reader cannot audit an
+    ingest path that is not named. So this asserts against what is ACTUALLY
+    STORED rather than what is registered.
+    """
+    import sqlite3
+    from pathlib import Path as _Path
+
+    db = _Path(__file__).parent.parent / "data" / "talent_intel.db"
+    if not db.exists():  # a checkout without the database is not a failure
+        import pytest
+        pytest.skip("no local database to audit")
+
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        stored = {r[0] for r in conn.execute(
+            "select distinct collector from signals where is_current = 1")}
+    finally:
+        conn.close()
+
+    live = {s.name for s in registry.SOURCES if s.status == "live"}
+    named = {registry.COLLECTOR_BY_SOURCE_NAME.get(n) for n in live}
+
+    unnamed = {c for c in stored
+               if registry.resolve_collector(c) not in named} - _DORMANT_COLLECTORS
+    assert not unnamed, (
+        "collector(s) hold current rows but resolve to no live source on the "
+        f"sources page: {sorted(unnamed)}. Either add the source, or -- if it "
+        "reads the same publisher as an existing one -- add it to "
+        "registry.COLLECTOR_ALIASES."
+    )
+
+
+def test_an_alias_must_point_at_a_real_live_source():
+    """An alias that resolves to nothing would silence the check above."""
+    live = {s.name for s in registry.SOURCES if s.status == "live"}
+    named = {registry.COLLECTOR_BY_SOURCE_NAME.get(n) for n in live}
+    for alias, target in registry.COLLECTOR_ALIASES.items():
+        assert target in named, (
+            f"COLLECTOR_ALIASES maps {alias!r} to {target!r}, which is not a "
+            "live source on the page"
+        )
+        assert alias not in named, (
+            f"{alias!r} is both an alias and a listed source; pick one"
+        )
