@@ -4,9 +4,14 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-07-31**. Plugin **1.58.0**, **17,539** current signals
+Last updated: **2026-08-01**. Plugin **1.62.1**, **18,250** current signals
 stored, company profiles shipped, cron firing on schedule but not reliably
-green, **2,576 offline tests passing** plus five PHP render harnesses. Spain
+green, **2,884 offline tests passing** plus seven PHP render harnesses.
+
+**Read the two sections directly below before anything else.** The budget is
+back to **$5/month** and $5 does not fit the current architecture; and the gate
+label ledger, which is the only route to making $5 fit, was silently discarding
+its own output until 2026-08-01. Spain
 joined on 2026-07-31 as the fifteenth live collector and the second that
 reports a departure; it is DORMANT, and the section below says how to arm it. Figures
 below dated 2026-07-29 are left as they were measured that day; where one has
@@ -24,6 +29,193 @@ why. Detail in [TECHLOG.md](TECHLOG.md).
 happened and why; this one is current state and next actions. Both are for the
 TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`
 (a gated baton) and `docs/TECHLOG.md`; never cross-write them.
+
+---
+
+## How to work on this repo without publishing a wrong number
+
+Written 2026-08-01 from the mistakes that actually happened, not from
+principle. The sibling repo carries the same section; keep them in step.
+
+**1. Read facts from `origin/main`, never from the local working tree.** This
+checkout runs behind and holds other sessions' uncommitted files. On 2026-08-01
+it was **180 commits stale** and two wrong numbers reached the owner from it: a
+collector reported as never having run when it had run and stored 48 rows, and
+a row count off by ~700. `git show origin/main:path` costs one command. A stale
+tree does not announce itself; it answers confidently.
+
+**2. Measure the premise before you build on it.** Both coverage premises above
+were briefed as fact and measurement inverted both. An agent that measures and
+contradicts its brief is doing the job; build the part that survives and write
+down the part that did not.
+
+**3. A green run can do nothing at all.** Backfills and `deploy-plugin.yml`
+default to `dry_run=true`: green, zero work. `collect-structured.yml` succeeded
+six times while collectors inside it had never produced a health row. Ask what
+the run *did*, not whether it passed.
+
+**4. Absence of a signal is not a pass, and a small sample proves little.**
+PASS / FAIL / **UNKNOWN** are three states. A session once declared the archiver
+broken on "0 of 40 rows have `archive_url`" when the true rate was 72/17,533 —
+at 0.4% a 40-row sample finds nothing about 86% of the time.
+
+**5. Look at the rendered result when there is one.** Tests, sitemap counts and
+a matched deploy SHA cannot see two links that say the same thing, or a footnote
+printed 316 times. Both shipped in the sibling repo on 2026-08-01 with 400 tests
+green, and both were found in under a minute by opening the page.
+
+**6. Cite the file when briefing an agent.** An agent briefed against the Form D
+and M&A overstatements correctly reported they are in THIS repo's HANDOVER and
+not the sibling's TECHLOG, and designed against the right incidents instead.
+Memory across two similar projects is exactly where this fails.
+
+**7. Check the escape hatch itself.** `drain-writers`' documented remedy
+reported success and fixed nothing for hours. When a documented remedy does not
+work, read it before running it again.
+
+**8. State what you did NOT verify, beside what you did.** It is the only thing
+that tells the next session where to look first.
+
+---
+
+## The budget is $5/month, and $5 does not fit the architecture (2026-08-01)
+
+`spend.MONTHLY_ALLOWANCE_USD` went $10 -> $25 on 2026-07-30 and **back to $5 on
+2026-07-31**, both by the owner. The file kept $25 for a day after the owner had
+returned to $5, so every cost decision in that window was measured against a
+ceiling five times too high — including a "two weeks of runway left" warning
+raised to the owner that was never true.
+
+**What $5 buys, from `cost_projection.py [5]` rather than from opinion:**
+
+| | |
+|---|---|
+| LLM gate, not optional | **$4.41/month** |
+| left for read-throughs | **$0.59** |
+| reads that buys | 14/day against demand of **1,102/day** |
+| share of full coverage | **1%** |
+| full coverage would cost | **$49.14** |
+
+Per-source caps derived at that ceiling are literally `1` for both google_news
+and national_press. **They were deliberately NOT applied.** Rationing reads
+cannot close a gap the gate has already spent, and a cap of 1 would gut
+coverage today in service of a target the architecture cannot yet meet.
+
+**So the road to $5 is making the GATE free, not rationing reads** — replace the
+paid LLM gate with a trained classifier
+(`docs/PLAN-gate-to-five-dollars.md`, steps 2-5). Until then `spend.py
+--degrade` is what keeps the promise: paid reads switch off partway through the
+month, every free collector, the free prefilter and both dedup layers keep
+running, and deferred candidates return UNMARKED on a later run. **Degraded is
+the DESIGNED state at this ceiling, not an incident. Do not raise the allowance
+to make it stop.**
+
+Note for anyone reading a cost comment elsewhere: `collect.yml`'s cap block
+explained itself in terms of $25 until 2026-08-01. If you find another, it is
+stale, not a second opinion.
+
+## The gate ledger was losing the training data it exists to collect (2026-08-01)
+
+**This blocked the only route to $5 and produced no error.** `pipeline/gate_ledger.py`
+records one JSONL line per gate decision, and it records **four** verdicts, not
+two, because the gate fails open: logging an outage as YES would teach the
+classifier that a busy provider is a talent signal.
+
+It was correctly wired at the gate call site and in the three collect
+workflows. But `record()` only **buffers**, and five backfill scripts
+(`backfill_sec_2026`, `_form_d_`, `_gdelt_`, `_gnews_`, `_press_`) call
+`classify.classify()` **without importing `gate_ledger`** — so they filled the
+buffer and it died at process exit. Even a flushed shard would not have
+survived: none of those five workflows ran `merge_gate_labels.py` after their
+`git reset --hard`. **Lost twice, after the money was already spent.** The
+module cannot detect this: a run that gated nothing and a run that lost
+everything look identical from inside it.
+
+Fixed 2026-08-01: `gate_ledger.around_run(label)` resets before and flushes in
+`finally`; all five scripts decorated; all five workflows save `data/gate_labels`
+before the reset and merge after it. `run_collect._with_gate_labels` is now
+that same function rather than a second copy. Two of the new tests **derive
+their subject list from the code** rather than a hand-maintained list, which is
+precisely what let five backfills slip.
+
+**Still unproven:** no real backfill has run since. The first genuine
+confirmation is a `data/gate_labels/labels-2026-08.jsonl` line appearing on
+main. Until then, treat step 1 of the plan as wired but not demonstrated.
+
+---
+
+## Two coverage premises that measurement inverted (2026-08-01)
+
+Both were briefed as fact and both were largely wrong. Recorded because the
+measurements cost real time and the wrong versions are intuitive enough to be
+believed again.
+
+**1. The "24 missing prefilter languages" were mostly not a language problem.**
+The 7x gap is real and reproduces: 117 wired feeds in 23 uncovered languages
+returned **1.3%** in-scope against a 95-feed control's **9.7%**. But a
+**language-neutral control** settles it — untranslated Latin-script tokens every
+newsroom writes anyway (CEO/CFO/CTO, startup, "Series A", seed, VC, unicorn,
+IPO) appear in **6.5%** of the control corpus and **1.2%** of the uncovered one,
+and no regex touches that ratio. The uncovered feeds are national general
+dailies; the covered sample is disproportionately tech and business press.
+**About five sixths of the gap is which feeds are wired, not which languages are
+read.** Wiring general dailies in COVERED languages would buy the same 1.3%.
+Shipped anyway for the part that is real: **1.3% -> 3.3%**, ~24 genuinely in
+scope per 2,119 items, at **~$0.08/month** (not free). Four live collisions are
+pinned by tests, including Latvian `algas` (wages) being Estonian `algas`
+(began) under one regex covering all 23 languages.
+
+**2. The google_news edition dateline would have made English editions WORSE.**
+`company_development` rows were 81.4% no-country from google_news against 35.6%
+from national_press, so the edition should place the story. It does now — but
+**only for non-English editions**, because live measurement showed `en-GB`,
+`en-IE` and `en-SG` return **100% the same items as `en-US`**, and `en-IN` /
+`en-ZA` 97.9%. A hand-read of en-GB's 14 items found **one** British employer
+(Restore plc) among Cracker Barrel, Hormel, Conagra, Toro, Apple and BBVA
+Mexico. Stamping those GB would put a wrong country on exactly the rows the fix
+targets, **and a wrong country is worse than an absent one**. pt-BR scores 12/14
+and every non-English edition overlaps en-US at 0%.
+
+**Separate finding, NOT fixed:** those ten-plus English non-US editions are
+re-fetching the US anchor under another name and burning fetch budget doing it.
+All are recall-worklist markets: IN, ZA, NG, PH, SG, NZ, IE, KE, GH, PK, BD, MY,
+HK. That is a rotation and routing question, not a parsing one.
+
+**Read rations now actually bind.** `classify.read_cap` splits the budget by
+measured conversion (google_news 761 reads -> 354 rows = 46.5%; national_press
+288 -> 160 = 55.6%), but **a `TIT_READTHROUGH_CAP` set in a workflow WINS over
+the rule** (deliberate; backfills need 5000). So the rule was live for
+national_press and inert for google_news, which kept buying 129 from a bash
+`case` statement. Now 99 / 118 with the 217 total pinned in code and asserted by
+a test. `ops_status.py [2g]` reads that case statement and warns when the two
+disagree, so the code can never look right while the run buys something else.
+
+## Operational fixes worth not relearning (2026-08-01)
+
+- **`drain-writers`' own escape hatch was keeping it red.** `-f resolve=all`
+  reported success and cleared nothing, because `"all"` iterated only the
+  `orphans` list while failed tickets required an exact ticket ID — and the help
+  text said "an orphan run, or a failed ticket". Five failed tickets reddened
+  every tick from 00:30 to 01:36. Fixed with a test; landed tickets are still
+  untouched because they were never a problem.
+- **Evictions produce orphans, and each orphan reddens `drain-writers` on every
+  tick until a human clears it.** That is why the failures arrive in bursts. The
+  evictor was identified: **`collect-structured`'s own cron**, which fired at
+  09:56:32Z and cancelled a pending collect-press one second later. Of
+  collect-press's 8 lifetime runs, 3 were cancelled with `total_count: 0`, and
+  two of six SCHEDULED slots were evicted.
+- **The sources page had two live em-dashes**, from
+  `data/sources_catalogue.csv` — a file that is an engineering log AND public
+  copy with nothing marking which field is which. The guard went into
+  `build_sources_json.py`, the render boundary, and it **refuses to build**
+  rather than substituting: of the two offences one wanted a full stop and the
+  other a comma, and a silent swap puts words on a public page nobody wrote.
+  Notes that never render keep their dashes.
+- **`sec_form_d_bulk` stores 2,682 current rows and is not on the sources
+  page.** Its `source_name` is "SEC EDGAR (Form D)" while
+  `COLLECTOR_BY_SOURCE_NAME` maps only "SEC EDGAR Form D" (no parentheses), so
+  it resolves to nothing. The usual failure is a page claiming coverage we lack;
+  this is the inverse, real rows with an undisclosed ingest path. **Open.**
 
 ---
 
