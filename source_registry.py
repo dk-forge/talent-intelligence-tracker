@@ -667,17 +667,19 @@ SOURCES = (
                  "collector paces at 12 seconds a query and retries, and a "
                  "query it never lands is logged as a coverage gap rather than "
                  "retried into a rate-limit spiral."),
-    # OPEN, and NOT introduced here: "38 country editions" has been wrong for a
-    # while. The rotation was 51 editions plus the anchor before 2026-08-01 and
-    # is 34 plus the anchor after it, so the honest string is "35 country
-    # editions, 16 languages". It is left alone in this change on purpose:
-    # changing it means regenerating
-    # wordpress-plugin/.../data/sources.json (test_manifest_is_in_sync_with_the_registry
-    # pins the two together) and then deploying the plugin, and neither is a
-    # subagent's call. Do both in one pass, and check the rendered page.
+    # "38 country editions, 15 languages" had been wrong for a while and was
+    # corrected on 2026-08-01, in the same pass that regenerated sources.json
+    # and deployed the plugin, because the manifest test pins the two together
+    # and a page nobody redeployed still shows the old string.
+    #
+    # The rotation was 51 editions plus the anchor; withdrawing the 17 English
+    # non-US ones leaves 34 plus the anchor. Count the anchor: it is a real
+    # edition that really gets read, so 35 is the honest number and 34 would
+    # understate it. Derive this from LOCALES rather than retyping it if this
+    # ever changes again.
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
-           "38 country editions, 15 languages",
+           "35 country editions, 16 languages",
            notes="Keyless and unthrottled. Read in each edition's own language, "
                  "because English phrases in a non-English edition return almost "
                  "nothing. Its links are encoded redirects, but Google's own "

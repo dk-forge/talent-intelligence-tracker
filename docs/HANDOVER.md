@@ -168,9 +168,22 @@ pinned by tests, including Latvian `algas` (wages) being Estonian `algas`
 **2. The google_news edition dateline would have made English editions WORSE.**
 `company_development` rows were 81.4% no-country from google_news against 35.6%
 from national_press, so the edition should place the story. It does now — but
-**only for non-English editions**, because live measurement showed `en-GB`,
-`en-IE` and `en-SG` return **100% the same items as `en-US`**, and `en-IN` /
-`en-ZA` 97.9%. A hand-read of en-GB's 14 items found **one** British employer
+**only for non-English editions**.
+
+**CORRECTED 2026-08-01: the "100% identical to en-US" figure was wrong.** It
+came from a single query returning 47 items. Re-measured across the full
+five-query production pack, the English non-US editions repeat **62-70%** of
+the anchor, not 100% (only `en-BD` and `en-HK` are true duplicates at 99.7%;
+the anchor re-fetched against itself is also 99.7%, which is the churn floor).
+
+**The conclusion held, but overlap was the wrong instrument.** The ~35% that
+differs is the same global English wire re-ranked. What decides it is the
+publisher test: items from a newsroom in that edition's own country, in scope,
+from a publisher `national_press` does not already read twice a day. On that
+measure English non-US editions are **0.0-11.5% local (0-7 new items a visit)**
+against **49.0-67.7% (53-163 a visit)** for pt-BR, de-DE and ja-JP. The stored
+rows agree: google_news placed BR 48, FR 45, ES 40, JP 39, IT 39 against GB 7,
+IE 5, NG 5, SG 4, and ZA / PH / BD / HK at zero. A hand-read of en-GB's 14 items found **one** British employer
 (Restore plc) among Cracker Barrel, Hormel, Conagra, Toro, Apple and BBVA
 Mexico. Stamping those GB would put a wrong country on exactly the rows the fix
 targets, **and a wrong country is worse than an absent one**. pt-BR scores 12/14
