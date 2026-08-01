@@ -752,6 +752,23 @@ def _report_backfills() -> list[str]:
         print(f"    {job['state'].upper():<8} {job['id']}")
         print(f"             at {where} of {job['end']}, {job['slices']} slice(s) done"
               + (f", updated {job['updated_at']}" if job.get("updated_at") else ""))
+        # A chain between slices has NOTHING running, so "is it still going?"
+        # is answered by what is queued behind it and by nothing else. A
+        # cancelled slice skips its commit step, records no progress and queues
+        # no successor, and the chain then sits at a frozen cursor looking
+        # exactly like one that is merely waiting its turn — for two days, in
+        # the 2026-07-31 case, with `problems: []` the whole time.
+        if job["state"] == "running" and "waiting_on" in job:
+            idle = job.get("idle_hours")
+            age = f", idle {idle:.0f}h" if isinstance(idle, (int, float)) else ""
+            if job["waiting_on"] == "unknown":
+                print(f"             next slice: UNKNOWN — no writer queue file "
+                      f"to read{age}")
+            elif job["waiting_on"]:
+                print(f"             next slice queued as {job['waiting_on']}{age}")
+            else:
+                print(f"             next slice: NOTHING QUEUED{age} — the chain "
+                      f"has stopped")
         if job["totals"]:
             print("             " + ", ".join(
                 f"{k}={v}" for k, v in sorted(job["totals"].items())))

@@ -177,6 +177,165 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-01 — a backfill slice advanced its cursor over three days it never fetched
+
+**Measured, not inferred.** `backfill-gnews-2026` run 30662474194 (2026-07-31,
+74 minutes) reported:
+
+```
+  windows            3 (3 empty)
+  queries sent       576 (576 failed, 0 truncated at the 100 cap)
+  STOPPED EARLY      slice budget of 50 minutes reached (74 min elapsed)
+  next cursor        2026-01-25
+```
+
+Google News refused every request for the whole slice — an IP-level block; the
+next seven slices ran 768 queries with zero failures. The chain nonetheless
+moved from 2026-01-22 to 2026-01-25 and requeued. In the committed database
+**2026-01-24 holds zero google_news rows**, with 01-22/23/25 at 15/3/3 against
+a ~20/day baseline for the surrounding fortnight. A chain only moves forwards,
+so nothing will ever be sent back for those days.
+
+### Nothing was missing. The guard existed, fired, and did not matter.
+
+The obvious hypothesis — that the run stopped on its slice budget part way
+through and set `done_through` from a partial walk whose days were not counted
+as empty — is **wrong**, and the log disproves it. The three days that were
+reached WERE counted (`3 empty` of `3`), the fail-loud check
+`if windows and empty_windows == windows` DID fire, and the run exited 1. The
+budget break happens at the TOP of the loop, before `windows += 1`, so the
+fourth day (01-25) was correctly never claimed and the next slice collected it.
+
+The mechanism is two deliberate design decisions meeting one wrong line:
+
+1. The slice ticket is emitted **before** the fail-loud checks, on purpose, so
+   that rows a run already collected are never the price of how it ended.
+2. The workflow's commit step runs `if: !cancelled()`, on purpose, for the same
+   reason. So a RED run still records its ticket and still requeues.
+3. `done_through = lo` sat at the bottom of the loop body **unconditionally**.
+
+So `done_through` measured "completed a loop iteration", not "collected
+anything", and three days that were walked and could not be fetched were three
+days finished.
+
+**RED IS NOT THE SAME AS UNADVANCED.** The comment above the emit block said "a
+run that finished NOTHING emits a cursor that has not moved, which
+`backfill_slices record` refuses to requeue and goes red on" — which is true,
+and which never described this run, because this run had "finished" three
+windows. Going red is what gets a human to look; the cursor is the only thing
+that decides whether a day is skipped for ever. Both are needed and neither
+substitutes for the other.
+
+### The fix: a window has THREE outcomes
+
+`backfill_slices.py` now names them, for the same reason ops_status keeps
+PASS / FAIL / UNKNOWN apart — the absence of an article and the absence of an
+answer are different facts, and only one of them is progress:
+
+| state | meaning | cursor |
+|---|---|---|
+| `COLLECTED` | the fetch worked and returned something | may pass |
+| `EMPTY` | the fetch worked and there was nothing there | may pass |
+| `UNREACHED` | the fetch itself failed | **must not pass** |
+
+Two classifiers, because the walkers make two different promises:
+
+* `sampled_window(items, fetch_errors)` — gnews and gdelt. They ration what
+  reaches the model and leave the rest unmarked, so partial coverage of a day
+  is the DESIGNED outcome and one flaky edition of 52 is weather. A window is
+  unreached only when it produced nothing while the fetch was erroring — the
+  measured incident exactly.
+* `enumerated_window(items, fetch_errors)` — sec and form_d. The contract is
+  completeness, so ANY failed search page leaves the window incomplete however
+  many filings the earlier pages returned. Re-walking is nearly free
+  (`store.already_seen` skips stored URLs before any model call); a hole is not.
+
+`backfill_press_2026.py` walks a roster rather than a calendar, so it counts
+per index: an index advances only when every publisher in it was attempted AND
+at least one gave an answer. `dead` (a transport failure) is not an answer;
+`no_window` and `hijacked` are, and are permanent, so refusing to advance over
+them would freeze the walk for ever.
+
+An unreached window now breaks the walk before `done_through` is set, prints
+which window and why, and returns 1 — so the emitted cursor equals the one the
+run started from, `record` marks the job `stalled`, nothing is requeued, and
+the chain stops itself instead of stepping over the hole.
+
+**What did NOT change:** committing rows from a failed run. That is correct and
+deliberate — a failed run that already stored and published rows holds the only
+local record of them. Only the cursor advance was wrong.
+
+### The window 2026-01-22..2026-01-25 is still missing
+
+Recorded here rather than silently repaired: recovering it means re-queueing
+that range, and spending is the owner's call. Measured cost is ~$0.2184 per
+gnews slice.
+
+---
+
+## 2026-08-01 — a cancelled chain does not requeue itself, and reported clean
+
+A FAILED slice requeues; its commit step is `if: !cancelled()`, so it records
+its ticket and appends the next one. A CANCELLED slice skips that step
+entirely, so it records nothing and queues nothing and the chain simply ends.
+
+`backfill-structured-2026` run 30594795739 was cancelled mid-run during the
+2026-07-31 Bluehost outage. **bse_india sat at cursor 2026-01-29 and
+companies_house at slice 1 of 7 for two days** while `backfill_slices.py status`
+printed `problems: []`.
+
+The writer queue does mark a cancelled-mid-run ticket `failed` and does report
+it — but `writer_queue resolve` exists so a human can stop a permanently red
+drain tick, and acknowledging that ticket clears the queue's alarm **without
+putting anything back in the line**. The chain is then dead and every dashboard
+is green. (Four such tickets were acknowledged on 2026-08-01, including
+30662474194's.) So a chain has to be able to notice its own death from its own
+state rather than inherit a signal from a queue that has legitimately moved on.
+
+`summary()` now reports a `running` chain that has nothing live in the writer
+queue behind it and has not moved for `CHAIN_IDLE_HOURS` (3). The match is on
+workflow AND inputs, because one workflow drives several independent chains —
+a ticket for bse_india says nothing about companies_house. `ops_status.py [2e]`
+prints, per chain, either the ticket id its next slice is waiting as, or
+`NOTHING QUEUED — the chain has stopped`, with the idle age either way. No
+queue file at all prints `UNKNOWN`, never a stall: a check that could not run is
+not a pass and must not manufacture a red run either.
+
+**Decided: it does NOT auto-requeue**, and the reasoning is in the code.
+Mid-run cancellation is what a host outage and a timeout both look like from
+here. Requeueing into the first is the loop this repo already paid to break
+once (an alerter that posts to the host it is reporting as down); requeueing
+into the second burns one paid slice per attempt for ever and is green every
+time. `writer_queue.tick` already draws this exact line for every other writer
+— cancelled-with-no-jobs is displacement and auto-requeues,
+cancelled-after-starting needs a human — and a backfill is not special enough
+to get a second policy. What was missing was never the requeue. It was somebody
+being told.
+
+### Two smaller things fixed in passing
+
+**`--priority` bought exactly one slice.** `default_priority()` is a property of
+the WORKFLOW, so it reapplied to every requeued ticket. The free, no-model
+structured walkers were queued at priority 5 so they would drain ahead of the
+paid backfills, and each chain's own next slice came back at
+`BACKFILL_PRIORITY` (10), behind the very work it was meant to overtake — the
+parameter looked effective and was not. `writer_queue.chain_priority()` now
+reads the last ticket of the SAME chain (workflow + exact inputs) and
+`backfill_slices` inherits it instead of recomputing. A chain with no history
+still falls back to the workflow default.
+
+**`writer_queue.py drop`** withdraws a ticket that is still queued. Two
+identical `backfill-gdelt-2026` tickets were queued on 2026-08-01; both resume
+from the same committed cursor so nothing would have been redone or doubled,
+but the second was a redundant paid slice (~$0.055). There was no way to
+withdraw it and hand-editing the queue file is how it stops agreeing with the
+runs it tracks. The ticket is marked `abandoned` and acknowledged in one step
+so a deliberate decision does not report as an incident for ever. A
+`dispatched` ticket cannot be dropped: it is bound to a run already holding the
+lock, and forgetting it here is the eviction bug's own fingerprint.
+
+---
+
 ## 2026-07-31 — five backfills bought gate labels and threw every one away
 
 **What was wrong.** `pipeline/gate_ledger.py` records one line per gate

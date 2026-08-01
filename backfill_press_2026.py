@@ -497,7 +497,17 @@ def main() -> int:
     #: The last roster index this run FINISHED. A publisher whose ration ran out
     #: is still FINISHED — that is what a ration means, and it is the difference
     #: between a walker that converges and one that stalls.
+    #:
+    #: A publisher we could not REACH is a different matter, and until
+    #: 2026-08-01 it counted the same: `publishers_done` was incremented for
+    #: every publisher attempted, so a roster index whose every fetch failed was
+    #: recorded as walked and the cursor moved past publishers nobody had read.
+    #: See the accounting below for where the line is actually drawn.
     done_through: int | None = None
+    #: Per roster index: how many publishers were attempted, and how many gave
+    #: any ANSWER at all (`dead` is a transport failure and is not one).
+    attempted_by_index: Counter = Counter()
+    answered_by_index: Counter = Counter()
 
     ration_left = args.ration
 
@@ -512,7 +522,17 @@ def main() -> int:
             order=lambda e: (0 if prefilter.passes(
                 press_archive.slug_words(e.url))[0] else 1, e.day))
         press_archive.PUBLISHER_HEALTH.append(record)
+        index = lo + publishers_done // args.publishers_per_slice
         publishers_done += 1
+        attempted_by_index[index] += 1
+        # `dead` is the ONE status that means we did not get an answer: it is a
+        # transport failure reaching the sitemap. `no_window` (the sitemap
+        # loaded and holds nothing dated inside the window) and `hijacked` (the
+        # domain now belongs to somebody else) are both real, durable answers
+        # about that publisher, and a chain that refused to advance over them
+        # would never move again.
+        if record["status"] != "dead":
+            answered_by_index[index] += 1
         enumerated += record["urls"]
         if record["status"] == "ok":
             reached += 1
@@ -669,14 +689,41 @@ def main() -> int:
     # A publisher whose share of the ration ran out IS finished: that is what a
     # ration means, and it is the difference between a walker that converges by
     # repetition and one that stalls.
-    if publishers_done >= len(batch):
-        done_through = hi
-    elif publishers_done >= args.publishers_per_slice:
-        done_through = lo + (publishers_done // args.publishers_per_slice) - 1
+    #
+    # AND an index that answered NOTHING is not finished either, which is the
+    # 2026-08-01 fix. Every publisher in an index failing at the transport layer
+    # is not sixty dead newspapers, it is one blocked runner — the same fact the
+    # gnews walker read as "there was no news on 2026-01-24", and it cost three
+    # days of history that nothing will ever be sent back for. One `dead`
+    # publisher is ordinary and permanent, so the threshold is "did ANY of them
+    # answer", not "did all of them".
+    #
+    # Walked from `lo` and stopped at the first index that fails either test,
+    # because the cursor is a high-water mark: it cannot record a hole behind
+    # itself, so it must stop in front of one.
+    unreached_index: int | None = None
+    for index in range(lo, hi + 1):
+        expected = len(partition(population, index, index, args.publishers_per_slice))
+        if not expected or attempted_by_index[index] < expected:
+            break
+        if not answered_by_index[index]:
+            unreached_index = index
+            break
+        done_through = index
+
+    if unreached_index is not None:
+        stopped_early = backfill_slices.unreached_reason(
+            f"roster index {unreached_index}",
+            f"all {attempted_by_index[unreached_index]} publishers in it failed "
+            f"at the transport layer")
+        print(f"\nSTOPPING: {stopped_early}", file=sys.stderr)
 
     print(f"\nBACKFILL roster {lo}..{hi}, window {window_start}..{window_end}")
     print(f"  publishers         {publishers_done} read, {reached} reached back "
           f"into the window")
+    if unreached_index is not None:
+        print(f"  UNREACHED INDEX    {unreached_index} — cursor NOT advanced "
+              f"past it")
     print(f"  URLs in window     {enumerated} -> {press_archive.STATS['items']} "
           f"with a headline ({press_archive.STATS['heads_fetched']} heads read, "
           f"{press_archive.STATS['heads_failed']} failed)")
@@ -718,11 +765,15 @@ def main() -> int:
             print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
 
     # Emitted BEFORE the fail-loud check below, on purpose: a run that finished
-    # a publisher and then hit a broken fetch has still done that publisher. A
-    # run that finished NOTHING emits a cursor that has not moved, which
-    # `backfill_slices.record` refuses to requeue and goes red on. Nothing is
-    # emitted for a dry or fetch-only run: those store nothing, so a chain of
-    # them would advance the cursor over publishers it never collected.
+    # a publisher and then hit a broken fetch has still done that publisher, and
+    # the commit step runs `if: !cancelled()` for the same reason, so this is
+    # recorded and requeued even when the function returns 1 below. GOING RED
+    # DOES NOT UN-ADVANCE A CURSOR. What keeps an unread roster index out of the
+    # past is that it never sets `done_through`: a run that finished NOTHING
+    # emits a cursor that has not moved, which `backfill_slices.record` refuses
+    # to requeue and goes red on. Nothing is emitted for a dry or fetch-only
+    # run: those store nothing, so a chain of them would advance the cursor over
+    # publishers it never collected.
     if args.slice and args.emit_next and writes:
         cursor = (backfill_slices.advance(str(done_through), "slices")
                   if done_through is not None else job["cursor"])
@@ -737,7 +788,17 @@ def main() -> int:
     if blocked:
         return 1
 
-    # FAIL LOUD. A slice of sixty catalogue publishers cannot enumerate zero
+    # FAIL LOUD on a roster index nothing could reach. The cursor already
+    # declined to pass it; this is what gets a human to look at why.
+    if unreached_index is not None:
+        print(f"\nSTOPPING: every publisher in roster index {unreached_index} "
+              f"failed at the transport layer. Sixty newspapers do not go "
+              f"offline together, so this is the runner's network or its user "
+              f"agent, not the catalogue. The cursor was NOT moved past that "
+              f"index; the next slice re-reads it.", file=sys.stderr)
+        return 1
+
+    # A slice of sixty catalogue publishers cannot enumerate zero
     # URLs across a window of weeks: 88% of them serve a sitemap. If it does,
     # the ENUMERATION is broken — a changed user agent, a blocked runner IP, a
     # catalogue that loaded empty — and the run must not exit green on it. The

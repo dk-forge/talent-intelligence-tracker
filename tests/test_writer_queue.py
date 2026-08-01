@@ -799,3 +799,74 @@ def test_resolve_all_acknowledges_failed_tickets_not_only_orphans():
     assert by_id["t-abandoned"].get("acknowledged"), "abandoned clears too"
     # A landed ticket was never a problem and must not be touched.
     assert not by_id["t-landed"].get("acknowledged")
+
+
+# --------------------------------------------------------------------------
+# withdrawing work that has not started
+# --------------------------------------------------------------------------
+
+def test_a_queued_ticket_can_be_withdrawn_before_it_is_ever_dispatched(
+        tmp_path, members):
+    """Two identical `backfill-gdelt-2026` tickets were queued on 2026-08-01.
+
+    Both resume from the same committed cursor, so the second would not have
+    redone or doubled anything — it would simply have bought one paid slice of
+    history nobody asked for. There was no way to withdraw it, and hand-editing
+    the queue file is how it stops agreeing with the runs it tracks.
+    """
+    path = tmp_path / "q.json"
+    queue = wq.empty_queue()
+    keep = wq.enqueue(queue, "enrich.yml", members=members, now=NOW)
+    spare = wq.enqueue(queue, "enrich.yml", members=members,
+                       now=NOW + timedelta(minutes=1))
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "drop", spare["id"],
+                    "--note", "duplicate of " + keep["id"]]) == 0
+
+    saved = {t["id"]: t for t in json.loads(path.read_text())["tickets"]}
+    assert saved[spare["id"]]["state"] == "abandoned"
+    assert saved[keep["id"]]["state"] == "queued", "the wrong ticket was dropped"
+
+    # A deliberate withdrawal is a decision, not an incident. Left unacknowledged
+    # it would report as a problem for ever and turn the drain tick permanently
+    # red, which is how a real failure becomes invisible.
+    assert wq.summary(json.loads(path.read_text()), now=NOW)["problems"] == []
+    assert saved[spare["id"]]["history"][-1]["event"] == "dropped"
+
+
+def test_a_dispatched_ticket_cannot_be_withdrawn(tmp_path, members):
+    """It is bound to a run that is already holding the lock. Forgetting it
+    here would leave that run unaccounted for, which is the eviction bug's own
+    fingerprint wearing a helpful command as a hat."""
+    path = tmp_path / "q.json"
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "enrich.yml", members=members, now=NOW)
+    ticket["state"] = "dispatched"
+    ticket["run_id"] = "123"
+    wq.save(queue, path)
+
+    assert wq.main(["--file", str(path), "drop", ticket["id"]]) == 2
+    saved = json.loads(path.read_text())["tickets"][0]
+    assert saved["state"] == "dispatched" and saved["run_id"] == "123"
+
+
+def test_chain_priority_reads_the_last_ticket_of_the_SAME_chain(members):
+    """One workflow drives several independent chains, and they do not share a
+    pace: `backfill-structured-2026.yml` walks bse_india, companies_house and
+    opendart_korea over the same window."""
+    queue = wq.empty_queue()
+    wq.enqueue(queue, "backfill-structured-2026.yml", {"source": "bse_india"},
+               priority=5, members=members, now=NOW)
+    wq.enqueue(queue, "backfill-structured-2026.yml", {"source": "opendart_korea"},
+               members=members, now=NOW + timedelta(minutes=1))
+
+    assert wq.chain_priority(queue, "backfill-structured-2026.yml",
+                             {"source": "bse_india"}) == 5
+    assert wq.chain_priority(queue, "backfill-structured-2026.yml",
+                             {"source": "opendart_korea"}) == \
+        wq.BACKFILL_PRIORITY
+    assert wq.chain_priority(queue, "backfill-structured-2026.yml",
+                             {"source": "companies_house"}) is None, (
+        "a chain with no history must fall back to the workflow default rather "
+        "than inherit a stranger's priority")

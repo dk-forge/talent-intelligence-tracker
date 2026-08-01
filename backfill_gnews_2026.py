@@ -466,13 +466,19 @@ def main() -> int:
     fetched = candidates = gated = rationed_off = 0
     stored = duplicates = rejected = skipped = errors = 0
     cheap_closed = known_rounds = 0
-    windows = empty_windows = 0
+    windows = empty_windows = unreached_windows = 0
     stopped_early = ""
     #: The last day-window this run FINISHED. The cursor is derived from it, so a
     #: run that stops on its budget half way through a slice resumes on the exact
     #: next day rather than repeating or skipping one. A window that spends its
     #: whole ration is still FINISHED — that is what a ration means, and it is
     #: the difference between this walker and the GDELT one.
+    #:
+    #: A window we COULD NOT FETCH is not finished, however, and until
+    #: 2026-08-01 it was: this was assigned at the bottom of the loop body
+    #: unconditionally, so run 30662474194 walked 2026-01-22, 23 and 24 with
+    #: every one of its 576 queries failing and moved the cursor to 01-25 all
+    #: the same. See backfill_slices.COLLECTED / EMPTY / UNREACHED.
     done_through: date | None = None
 
     print(f"[gnews] {len(locales)} editions x 3 queries x "
@@ -490,9 +496,24 @@ def main() -> int:
             stopped_early = budget.reason()
             break
         windows += 1
+        errors_before = fetch_stats["query_errors"]
         items = fetch_day(lo, hi, locales, stats=fetch_stats)
         fetched += len(items)
-        if not items:
+        window_errors = fetch_stats["query_errors"] - errors_before
+
+        # Three states, not two. `fetch_day` swallows a per-edition failure so
+        # that one unreachable edition never loses the other fifty — which is
+        # right, and which means "0 articles" arrives here identically whether
+        # the day was quiet or the whole endpoint refused us.
+        state = backfill_slices.sampled_window(len(items), window_errors)
+        if state == backfill_slices.UNREACHED:
+            unreached_windows += 1
+            stopped_early = backfill_slices.unreached_reason(
+                f"{lo:%Y-%m-%d}",
+                f"all {window_errors} queries for the day failed")
+            print(f"\nSTOPPING: {stopped_early}", file=sys.stderr)
+            break
+        if state == backfill_slices.EMPTY:
             empty_windows += 1
 
         kept = []
@@ -646,7 +667,8 @@ def main() -> int:
         done_through = lo
 
     print(f"\nBACKFILL {start}..{end}")
-    print(f"  windows            {windows} ({empty_windows} empty)")
+    print(f"  windows            {windows} ({empty_windows} empty, "
+          f"{unreached_windows} UNREACHED)")
     print(f"  queries sent       {fetch_stats['queries']} "
           f"({fetch_stats['query_errors']} failed, "
           f"{fetch_stats['truncated']} truncated at the {RESULT_CAP} cap)")
@@ -691,12 +713,19 @@ def main() -> int:
             print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
 
     # Emitted BEFORE the fail-loud checks below, on purpose: a run that finished
-    # four days and then hit a broken fetch has still done four days. A run that
-    # finished NOTHING emits a cursor that has not moved, which
-    # `backfill_slices record` refuses to requeue and goes red on, so a broken
-    # chain stops itself rather than spinning. Nothing is emitted for a dry or
-    # fetch-only run: those store nothing, so a chain of them would advance the
-    # cursor over days it never collected.
+    # four days and then hit a broken fetch has still done four days, and the
+    # commit step runs `if: !cancelled()` for the same reason, so this ticket is
+    # recorded and requeued even when this function returns 1.
+    #
+    # THAT IS WHY `done_through` CARRIES THE WHOLE GUARANTEE. Going red below
+    # does not un-advance a cursor. The only thing standing between a broken
+    # fetch and a permanently skipped day is that an UNREACHED window never sets
+    # `done_through` — a run that fetched nothing therefore emits a cursor that
+    # has not moved, which `backfill_slices record` refuses to requeue and goes
+    # red on, so a broken chain stops itself rather than spinning.
+    #
+    # Nothing is emitted for a dry or fetch-only run: those store nothing, so a
+    # chain of them would advance the cursor over days it never collected.
     if args.slice and args.emit_next and not (args.dry_run or args.fetch_only):
         cursor = (backfill_slices.advance(done_through.isoformat(), "days")
                   if done_through else job["cursor"])
@@ -711,11 +740,27 @@ def main() -> int:
     if blocked:
         return 1
 
-    # FAIL LOUD. A day of world news across 52 editions cannot be empty. If every
-    # window came back with nothing, the FETCH is broken — a changed endpoint, a
-    # blocked agent, an operator Google stopped honouring — and the run must not
-    # exit green on it. The first SEC backfill dispatch exited 0 after five
-    # silent 403s and looked exactly like a successful run that found nothing.
+    # FAIL LOUD, and this one is now the LOUD HALF OF A GUARD THAT ALREADY
+    # WORKED. Run 30662474194 returned 1 here and the chain advanced anyway,
+    # because the ticket above had already been written from a `done_through`
+    # that counted an unfetchable day as a finished one. The cursor is what
+    # decides whether a day is skipped forever; going red is what gets somebody
+    # to look. Both are needed and neither substitutes for the other.
+    if unreached_windows:
+        print(f"\nSTOPPING: {unreached_windows} window(s) could not be fetched "
+              f"at all — every query for the day errored. The cursor was NOT "
+              f"moved past them, so the next slice starts on the same day and "
+              f"nothing is skipped. Check that Google News is answering this "
+              f"runner's IP and that after:/before: are still honoured.",
+              file=sys.stderr)
+        return 1
+
+    # A day of world news across 52 editions cannot be empty. If every window
+    # came back with nothing AND nothing errored, the FETCH is broken in a way
+    # that reports success — a changed endpoint, an operator Google stopped
+    # honouring, a parser returning [] — and the run must not exit green on it.
+    # The first SEC backfill dispatch exited 0 after five silent 403s and looked
+    # exactly like a successful run that found nothing.
     if windows and empty_windows == windows:
         print("\nSTOPPING: every window returned zero articles. A historical day "
               "of world news across every Google News edition cannot be empty, "

@@ -409,3 +409,91 @@ def test_the_walker_holds_the_writer_lock_like_every_other_writer():
     assert parsed["concurrency"]["cancel-in-progress"] is False
     for job in parsed["jobs"].values():
         assert job["timeout-minutes"] <= backfill_slices.SLICE_TIMEOUT_MINUTES
+
+
+# --- the day that was walked, never fetched, and marked done ---------------
+
+def _run_slice(monkeypatch, tmp_path, start="2026-01-22", end="2026-01-31"):
+    state = tmp_path / "state.json"
+    ticket = tmp_path / "slice.json"
+    rc = _run(monkeypatch, [
+        "--start", start, "--end", end, "--slice", "--slice-days", "4",
+        "--ration", "5", "--state", str(state), "--emit-next", str(ticket)])
+    import json
+    return rc, json.loads(ticket.read_text())
+
+
+def test_a_day_whose_every_query_failed_does_not_move_the_cursor(
+        offline_walker, monkeypatch, tmp_path):
+    """Run 30662474194, reproduced.
+
+    Google News refused every request for a 74-minute slice: `queries sent 576
+    (576 failed)`, `windows 3 (3 empty)`. The run went red on its own fail-loud
+    check and the chain advanced to 2026-01-25 regardless, because the ticket
+    is emitted before that check and the workflow's commit step runs
+    `if: !cancelled()` — both deliberate, so that collected rows are never lost
+    to how a run ended. 2026-01-24 holds zero google_news rows to this day.
+
+    So the assertion is on the CURSOR, not on the exit code. Red was never the
+    thing that was missing.
+    """
+    def blocked_fetch_day(lo, hi, locales, *, pause=0.4, stats=None):
+        if stats is not None:
+            stats["queries"] += 192
+            stats["query_errors"] += 192
+        return []
+
+    monkeypatch.setattr(walker, "fetch_day", blocked_fetch_day)
+    rc, ticket = _run_slice(monkeypatch, tmp_path)
+
+    assert rc == 1
+    assert ticket["next_cursor"] == "2026-01-22", (
+        f"the cursor moved to {ticket['next_cursor']} over days that were "
+        "walked and never fetched. Nothing collected them and the chain only "
+        "moves forwards, so no run will ever be asked for them again.")
+    assert ticket["totals"]["windows"] == 1, (
+        "the walk carried on past a window it could not fetch, spending the "
+        "ration on days whose progress cannot be recorded anyway")
+
+
+def test_a_day_that_was_genuinely_quiet_still_moves_the_cursor(
+        offline_walker, monkeypatch, tmp_path):
+    """The other half, and the reason this is not just 'stop on any zero'.
+
+    A fetch that WORKED and found nothing is collected history. If an empty
+    answer stopped the chain, one quiet day would freeze the walk for ever and
+    the fix would be worse than the defect.
+    """
+    def quiet_fetch_day(lo, hi, locales, *, pause=0.4, stats=None):
+        if stats is not None:
+            stats["queries"] += 192
+        return []
+
+    monkeypatch.setattr(walker, "fetch_day", quiet_fetch_day)
+    rc, ticket = _run_slice(monkeypatch, tmp_path)
+
+    assert ticket["next_cursor"] == "2026-01-26", (
+        "a window the fetch answered — with nothing — was treated as unreached")
+    assert rc == 1, (
+        "four silent days across 52 editions is still implausible enough to be "
+        "worth a human, even though the cursor may pass them")
+
+
+def test_a_flaky_edition_does_not_stop_the_walk(
+        offline_walker, monkeypatch, tmp_path):
+    """This walker SAMPLES: it rations what reaches the model and leaves the
+    rest unmarked, so a re-walk reads different rows and partial coverage of a
+    day is the designed outcome. One unreachable edition out of 52 is weather,
+    and a chain that stopped on it would never finish a year."""
+    real_fetch_day = walker.fetch_day
+
+    def flaky(lo, hi, locales, *, pause=0.4, stats=None):
+        if stats is not None:
+            stats["query_errors"] += 3
+        return real_fetch_day(lo, hi, locales, pause=pause, stats=stats)
+
+    monkeypatch.setattr(walker, "fetch_day", flaky)
+    rc, ticket = _run_slice(monkeypatch, tmp_path)
+
+    assert rc == 0
+    assert ticket["next_cursor"] == "2026-01-26"

@@ -72,20 +72,27 @@ def iter_windows(start: date, end: date):
         lo = hi + timedelta(days=1)
 
 
-def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int]:
+def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int, int]:
     """All qualifying Form D filings in one window, paginated.
 
-    Returns (items, raw_hits, already_seen). `raw_hits` is what the SEC search
-    itself returned, BEFORE any issuer filtering — the fail-loud check reads
-    that, because "no filings matched" and "no issuers survived the fund
-    filter" are different failures and only the first one means the search is
-    broken.
+    Returns (items, raw_hits, already_seen, search_failures). `raw_hits` is what
+    the SEC search itself returned, BEFORE any issuer filtering — the fail-loud
+    check reads that, because "no filings matched" and "no issuers survived the
+    fund filter" are different failures and only the first one means the search
+    is broken.
 
-    A fetch failure skips the single filing, never the window.
+    `search_failures` is the one the CURSOR reads, and it is a third thing
+    again: a search that dies on request three leaves the window only partly
+    enumerated, and the filings it never asked for look exactly like filings
+    that were filtered out. A month recorded as done on that basis is a month
+    nothing will ever be sent back for.
+
+    Fetching one FILING is different and still skips only that filing: the
+    search told us it exists, so the window is enumerated either way.
     """
     out: list[dict] = []
     seen: set[str] = set()
-    raw_hits = skipped = 0
+    raw_hits = skipped = failures = 0
 
     page = 0
     for _request in range(MAX_REQUESTS_PER_WINDOW):
@@ -94,6 +101,7 @@ def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int
         except Exception as exc:  # noqa: BLE001 - one window must not kill the run
             print(f"  window {startdt}..{enddt} page {page}: search failed: {exc}",
                   file=sys.stderr)
+            failures += 1
             break
         if not hits:
             break
@@ -172,7 +180,7 @@ def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int
                 "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             })
 
-    return out, raw_hits, skipped
+    return out, raw_hits, skipped, failures
 
 
 @gate_ledger.around_run(WORKFLOW)
@@ -219,10 +227,16 @@ def main() -> int:
     budget = backfill_slices.Budget(args.budget_minutes)
     conn = schema.connect()
     stored = duplicates = rejected = skipped = errors = 0
-    windows = empty_search_windows = total_hits = 0
+    windows = empty_search_windows = unreached_windows = total_hits = 0
     stopped_early = ""
     # The last window this run FINISHED, which is what the cursor is derived
     # from: a run that stops on its budget resumes on the exact next day.
+    #
+    # A window whose SEARCH failed is not finished, and until 2026-08-01 this
+    # was assigned unconditionally at the bottom of the loop, so a run of SEC
+    # 403s advanced the cursor over months nobody had enumerated. Going red
+    # afterwards does not help — the ticket is emitted before the fail-loud
+    # check and the commit step runs on failure by design. See backfill_slices.
     done_through = None
 
     for lo, hi in iter_windows(start, end):
@@ -231,10 +245,23 @@ def main() -> int:
             print(f"\nSTOPPING EARLY: {stopped_early}", file=sys.stderr)
             break
         windows += 1
-        items, raw_hits, window_skipped = collect_window(conn, lo, hi)
+        items, raw_hits, window_skipped, search_failures = collect_window(conn, lo, hi)
         total_hits += raw_hits
         skipped += window_skipped
-        if raw_hits == 0:
+
+        # Three states, not two, and `raw_hits` is what decides them rather
+        # than `items`: a window can legitimately yield zero ISSUERS after the
+        # fund filter while the search worked perfectly, and that is a real
+        # answer. What is not an answer is a search that refused, which until
+        # now arrived here as an indistinguishable zero.
+        state = backfill_slices.enumerated_window(raw_hits, search_failures)
+        if state == backfill_slices.UNREACHED:
+            unreached_windows += 1
+            stopped_early = backfill_slices.unreached_reason(
+                f"{lo}..{hi}", "the EDGAR full-text search refused a request")
+            print(f"\nSTOPPING: {stopped_early}", file=sys.stderr)
+            break
+        if state == backfill_slices.EMPTY:
             empty_search_windows += 1
         print(f"\n[{lo}..{hi}] {raw_hits} Form D search results, "
               f"{window_skipped} already seen, {len(items)} qualifying issuers")
@@ -305,7 +332,8 @@ def main() -> int:
     print(f"\nFORM D BACKFILL {start}..{end}: stored={stored} "
           f"duplicate={duplicates} rejected={rejected} already-seen={skipped} "
           f"transient-errors={errors} windows={windows} "
-          f"filings-found={total_hits} empty-search-windows={empty_search_windows}")
+          f"filings-found={total_hits} empty-search-windows={empty_search_windows} "
+          f"unreached-windows={unreached_windows}")
     # Publishing is a SEPARATE gate from collecting, and a slice must survive
     # it failing. This is not hypothetical: the first live sliced run
     # (30481065108) collected its quarter and then died inside
@@ -321,9 +349,13 @@ def main() -> int:
             print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
 
     # The slice ticket, emitted BEFORE the fail-loud check: work this run
-    # finished survives however the run ends. A run that finished nothing
-    # emits an unmoved cursor, which `backfill_slices record` goes red on
-    # rather than requeueing into a loop.
+    # finished survives however the run ends, and the commit step runs
+    # `if: !cancelled()` for the same reason, so this is recorded and requeued
+    # even when the function returns 1 below. GOING RED DOES NOT UN-ADVANCE A
+    # CURSOR. What keeps an unenumerated month out of the past is that it never
+    # sets `done_through`: a run that finished nothing emits an unmoved cursor,
+    # which `backfill_slices record` goes red on rather than requeueing into a
+    # loop.
     if args.slice and args.emit_next and not args.dry_run:
         cursor = (backfill_slices.advance(done_through, "days")
                   if done_through else job["cursor"])
@@ -336,7 +368,17 @@ def main() -> int:
     if blocked:
         return 1
 
-    # FAIL LOUD. A historical month ALWAYS contains Form D filings — thousands
+    # FAIL LOUD on a window the search refused. The cursor already declined to
+    # pass it; this is what gets a human to look at why.
+    if unreached_windows:
+        print(f"\nSTOPPING: the SEC search refused a request in "
+              f"{unreached_windows} window(s), so those months are only PARTLY "
+              f"enumerated. The cursor was NOT moved past them (check the "
+              f"User-Agent and the 403s above); the next slice re-walks them "
+              f"and already-seen filings cost nothing.", file=sys.stderr)
+        return 1
+
+    # A historical month ALWAYS contains Form D filings — thousands
     # of them — so every window's SEARCH coming back empty means the search is
     # broken, not that the month was quiet. The leadership backfill's first
     # dispatch exited 0 after five silent SEC 403s and looked exactly like a

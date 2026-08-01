@@ -297,7 +297,7 @@ def main() -> int:
 
     fetched = candidates = 0
     stored = duplicates = rejected = skipped = errors = 0
-    windows = empty_windows = 0
+    windows = empty_windows = unreached_windows = 0
     filtered = Counter()
     outlet_countries: Counter = Counter()
     stored_countries: Counter = Counter()
@@ -305,6 +305,11 @@ def main() -> int:
     # The last day-window this run FINISHED. The cursor is derived from it, so
     # a run that stops on its budget half way through a slice resumes on the
     # exact next day rather than repeating or skipping one.
+    #
+    # A window we COULD NOT FETCH is not finished, and until 2026-08-01 this was
+    # assigned unconditionally at the bottom of the loop, so a throttling
+    # lockout advanced the cursor over days nothing had asked GDELT for. The
+    # sibling walker did exactly that on 2026-07-31 and lost 2026-01-24.
     done_through: date | None = None
 
     print(f"[gdelt] {len(queries)} queries x {(end - start).days + 1} day-windows")
@@ -314,10 +319,28 @@ def main() -> int:
             stopped_early = budget.reason()
             break
         windows += 1
+        errors_before = (gdelt.STATS["throttled_out"]
+                         + gdelt.STATS["rejected_queries"])
         items = gdelt.collect(queries, startdatetime=lo, enddatetime=hi,
                               seen_urls=seen_urls, seen_titles=seen_titles)
         fetched += len(items)
-        if not items:
+        window_errors = (gdelt.STATS["throttled_out"]
+                         + gdelt.STATS["rejected_queries"]) - errors_before
+
+        # Three states, not two. GDELT throttles erratically and drops
+        # individual queries, so a window that lost some of them still SAW the
+        # day; a window that returned nothing while every query was throttled
+        # out or rejected did not, and recording that as "the day was quiet" is
+        # a hole no later run would ever be sent back for.
+        state = backfill_slices.sampled_window(len(items), window_errors)
+        if state == backfill_slices.UNREACHED:
+            unreached_windows += 1
+            stopped_early = backfill_slices.unreached_reason(
+                f"{lo:%Y-%m-%d}",
+                f"{window_errors} queries throttled out or rejected, none answered")
+            print(f"\nSTOPPING: {stopped_early}", file=sys.stderr)
+            break
+        if state == backfill_slices.EMPTY:
             empty_windows += 1
 
         kept = []
@@ -418,7 +441,8 @@ def main() -> int:
 
     g = gdelt.STATS
     print(f"\nBACKFILL {start}..{end}")
-    print(f"  windows            {windows} ({empty_windows} empty)")
+    print(f"  windows            {windows} ({empty_windows} empty, "
+          f"{unreached_windows} UNREACHED)")
     print(f"  queries sent       {g['queries']}  "
           f"(throttled out {g['throttled_out']}, rejected {g['rejected_queries']}, "
           f"truncated at the 250 cap {g['truncated']})")
@@ -458,9 +482,14 @@ def main() -> int:
     # The slice ticket. Emitted BEFORE the fail-loud checks below on purpose: a
     # run that collected four days and then hit a broken fetch has still done
     # four days, and the whole point of slicing is that finished work is never
-    # thrown away by however the run ends. A run that finished NOTHING emits a
-    # cursor that has not moved, which `backfill_slices record` refuses to
-    # requeue and goes red on — so a broken chain stops itself rather than
+    # thrown away by however the run ends. The commit step runs
+    # `if: !cancelled()` for the same reason, so this ticket is recorded and
+    # requeued even when this function returns 1 — GOING RED DOES NOT UN-ADVANCE
+    # A CURSOR, and on the sibling gnews walker that cost three days of history
+    # on 2026-07-31. The only thing that keeps an unfetchable day out of the
+    # past is that it never sets `done_through`: a run that finished NOTHING
+    # emits a cursor that has not moved, which `backfill_slices record` refuses
+    # to requeue and goes red on, so a broken chain stops itself rather than
     # spinning.
     #
     # Nothing is emitted for a dry or fetch-only run: those store nothing, so a
@@ -478,11 +507,21 @@ def main() -> int:
     if blocked:
         return 1
 
-    # FAIL LOUD. A month of world news cannot be empty. If every window came
-    # back with nothing, the FETCH is broken — a rejected query, a throttling
-    # lockout, a changed endpoint — and the run must not exit green on it. The
-    # first SEC backfill dispatch exited 0 after five silent 403s and looked
-    # exactly like a successful run that found nothing (2026-07-28).
+    # FAIL LOUD on a window nobody could reach. The cursor already refused to
+    # pass it; this is what gets a human to look at why.
+    if unreached_windows:
+        print(f"\nSTOPPING: {unreached_windows} window(s) could not be fetched "
+              f"at all — every query was throttled out or rejected. The cursor "
+              f"was NOT moved past them, so the next slice starts on the same "
+              f"day and nothing is skipped.", file=sys.stderr)
+        return 1
+
+    # A month of world news cannot be empty. If every window came back with
+    # nothing and nothing errored, the FETCH is broken in a way that reports
+    # success — a changed endpoint, a parser returning [] — and the run must not
+    # exit green on it. The first SEC backfill dispatch exited 0 after five
+    # silent 403s and looked exactly like a successful run that found nothing
+    # (2026-07-28).
     if windows and empty_windows == windows:
         print("\nSTOPPING: every window returned zero articles. A historical "
               "month of world news cannot be empty, so the GDELT fetch itself "

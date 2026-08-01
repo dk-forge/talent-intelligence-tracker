@@ -309,6 +309,42 @@ def default_priority(workflow: str) -> int:
     return BACKFILL_PRIORITY if workflow.startswith("backfill-") else DEFAULT_PRIORITY
 
 
+def chain_priority(queue: dict, workflow: str,
+                   inputs: dict | None = None) -> int | None:
+    """The priority the previous slice of this same chain ran at, or None.
+
+    `default_priority()` is a property of the WORKFLOW, so it reapplies to
+    every ticket, so an operator's `--priority` override lasted exactly one
+    slice. A chain then quietly reverted to `BACKFILL_PRIORITY` on its own
+    first requeue: `backfill-structured-2026` for bse_india was queued at 5 so
+    that the free, no-model walkers would drain ahead of the paid ones, and its
+    self-requeued ticket came back at 10, behind the very work it was meant to
+    overtake. The parameter looked effective and was not, which is worse than
+    not having it.
+
+    So priority is STICKY ALONG A CHAIN rather than recomputed per ticket. It
+    is matched on the workflow AND the exact inputs, because one workflow drives
+    several independent chains — bse_india's pace is not companies_house's —
+    and because `backfill_slices.next_inputs` re-emits the job's own inputs
+    unchanged every slice, so equality is the chain's identity.
+
+    Returns None when this is the first ticket of a chain, which leaves
+    `enqueue` on `default_priority` exactly as before.
+    """
+    wanted = {str(k): str(v) for k, v in (inputs or {}).items()}
+    best, seen_at = None, ""
+    for ticket in queue.get("tickets", []):
+        if ticket.get("workflow") != workflow:
+            continue
+        held = {str(k): str(v) for k, v in (ticket.get("inputs") or {}).items()}
+        if held != wanted:
+            continue
+        stamp = str(ticket.get("requested_at") or "")
+        if best is None or stamp >= seen_at:
+            best, seen_at = ticket.get("priority"), stamp
+    return None if best is None else int(best)
+
+
 def enqueue(queue: dict, workflow: str, inputs: dict | None = None,
             reason: str = "", requested_by: str = "", priority: int | None = None,
             members: dict[str, str] | None = None, now: datetime | None = None,
@@ -905,6 +941,47 @@ def _cmd_dispatch_failed(args) -> int:
     return 0
 
 
+def _cmd_drop(args) -> int:
+    """Withdraw a ticket that is still WAITING, before it is ever dispatched.
+
+    There was no way to do this and there needed to be, because the queue is
+    append-only by design and hand-editing the file is how you desynchronise it
+    from the runs it is tracking. Two identical `backfill-gdelt-2026` tickets
+    were queued on 2026-08-01; both resume from the same committed cursor, so
+    the second would have re-run the first's slice — no rows lost, no rows
+    doubled, just one paid slice of history nobody asked for.
+
+    Withdrawing is only ever legitimate BEFORE dispatch. A `dispatched` ticket
+    is bound to a run that is already holding the lock, and forgetting it here
+    would leave that run unaccounted for — which is the eviction bug's own
+    fingerprint. Use `requeue` or `resolve` for those.
+
+    The ticket is marked `abandoned` and acknowledged in one step rather than
+    deleted: the file keeps landed and dead work as history, and a withdrawal
+    with a note explaining it is history worth keeping. Acknowledging it is
+    what stops `summary()` reporting a deliberate decision as a problem.
+    """
+    path = Path(args.file) if args.file else None
+    queue = load(path)
+    hits = [t for t in queue.get("tickets", []) if t["id"] == args.ticket]
+    if not hits:
+        print(f"::error::no ticket {args.ticket}")
+        return 2
+    for ticket in hits:
+        if ticket["state"] != "queued":
+            print(f"::error::{args.ticket} is {ticket['state']}, not queued. "
+                  "Only a ticket that has never been dispatched can be "
+                  "withdrawn; a dispatched one is bound to a run that holds "
+                  "the lock, and dropping it here would lose the run.")
+            return 2
+        ticket["state"] = "abandoned"
+        ticket["acknowledged"] = _iso(_now())
+        _log(ticket, "dropped", args.note)
+    save(queue, path)
+    print(f"dropped {args.ticket}: {args.note}")
+    return 0
+
+
 def _cmd_status(args) -> int:
     state = summary(load(Path(args.file) if args.file else None))
     print(json.dumps(state, indent=2, default=str))
@@ -1005,6 +1082,12 @@ def main(argv: list[str] | None = None) -> int:
                            "inputs). Marks it failed rather than retrying it "
                            "forever.")
     dead.set_defaults(func=_cmd_dispatch_failed)
+
+    gone = sub.add_parser(
+        "drop", help="withdraw a ticket that is still queued (never dispatched)")
+    gone.add_argument("ticket")
+    gone.add_argument("--note", default="")
+    gone.set_defaults(func=_cmd_drop)
 
     show = sub.add_parser("status", help="queue state as JSON")
     show.set_defaults(func=_cmd_status)
