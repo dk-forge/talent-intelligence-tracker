@@ -6,7 +6,7 @@ you go: it is the only thing that survives a crashed session.
 
 Last updated: **2026-08-01**. Plugin **1.62.1**, **18,250** current signals
 stored, company profiles shipped, cron firing on schedule but not reliably
-green, **2,884 offline tests passing** plus seven PHP render harnesses.
+green, **2,911 offline tests passing** plus seven PHP render harnesses.
 
 **Read the two sections directly below before anything else.** The budget is
 back to **$5/month** and $5 does not fit the current architecture; and the gate
@@ -176,10 +176,39 @@ Mexico. Stamping those GB would put a wrong country on exactly the rows the fix
 targets, **and a wrong country is worse than an absent one**. pt-BR scores 12/14
 and every non-English edition overlaps en-US at 0%.
 
-**Separate finding, NOT fixed:** those ten-plus English non-US editions are
-re-fetching the US anchor under another name and burning fetch budget doing it.
-All are recall-worklist markets: IN, ZA, NG, PH, SG, NZ, IE, KE, GH, PK, BD, MY,
-HK. That is a rotation and routing question, not a parsing one.
+**Separate finding, FIXED the same day, and the premise moved again on the way.**
+Those English non-US editions were re-fetching the US anchor under another name.
+Re-measured on the full five-query production pack rather than one query: the
+overlap is **62-70%, not 100%** — only en-BD and en-HK sit at the churn floor
+(99.7%) — so "identical" was wrong. It did not matter, because overlap was the
+wrong instrument. The publisher test settles it: an English non-US edition
+returns **0-7** in-scope items per visit from a newsroom in its own country that
+`national_press` does not already read, while pt-BR, de-DE and ja-JP return
+**53-163**.
+
+All seventeen are withdrawn (`source_registry.WITHDRAWN_ENGLISH_EDITIONS`, with
+the per-edition table). Nothing needed building to replace them: every one of
+those markets already has publisher feeds read on EVERY run, and the thinnest —
+Bangladesh, Ghana, Malaysia — return 30-45 items a run against the 0-7 the
+edition gave every four days. `LOCALES_PER_RUN` went 5 -> 4 so the swap does not
+raise spend: the withdrawn editions were cheap precisely because they returned
+the anchor again, and 5 all-non-English editions a run would have been a 26%
+rise in daily candidate load. At 4 the load is flat within 1% and there are 8
+productive edition-visits a day instead of 6.7. Read-throughs are capped and
+saturated, so no read money moved — only which candidates compete for it.
+`python3 -m analysis.editions.measure` re-runs the whole thing, free.
+
+Two consequences worth knowing: the segment budget no longer derives from the
+locale rotation (it is `SEGMENT_SWEEP_BUDGET_DAYS`, same 56-segment ceiling —
+otherwise shortening the sweep would have silently cut twelve markets off the
+coverage page); and ZA and NZ now hold their `discovery_only` listing on wired
+feeds alone, so do not read `live_sources=("google_news",)` there as "we query
+their edition". Detail in [TECHLOG.md](TECHLOG.md).
+
+**Open, from that pass:** the sources page still says Google News RSS is "38
+country editions, 15 languages". It was already wrong (51 plus the anchor) and
+the true string is now "35 country editions, 16 languages"; correcting it means
+regenerating `wordpress-plugin/.../sources.json` and deploying.
 
 **Read rations now actually bind.** `classify.read_cap` splits the budget by
 measured conversion (google_news 761 reads -> 354 rows = 46.5%; national_press

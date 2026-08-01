@@ -177,6 +177,84 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-01 — seventeen Google News editions were the US wire under another name
+
+**The premise this started from was wrong, and re-measuring it first is the
+only reason the change is defensible.** The brief said `en-GB`, `en-IE` and
+`en-SG` return 100% the same items as `en-US`. On the full five-query
+production pack they do not: overlap is **62-70%**, and only `en-BD` and
+`en-HK` sit at 99.7%, which is that run's churn floor. The 100% came from a
+single query and 47 items.
+
+**Correcting the number did not move the conclusion, because overlap was never
+the right instrument.** The ~35% that differs is the same global English wire
+re-ranked. What decides is the publisher: how many of an edition's items come
+from a newsroom in that edition's own country, are in scope by the free
+prefilter, and are NOT from a publisher `national_press` already reads twice a
+day. That is an edition's marginal value.
+
+| | English non-US editions | non-English controls |
+|---|---|---|
+| items per visit | 366-381 | 157-285 |
+| from a publisher in that country | **0.0-11.5%** | **49.0-67.7%** |
+| new local, in scope, per visit | **0-7** | **53-163** |
+
+`en-BD` and `en-HK` returned zero items that were not already in the anchor.
+The seventeen also overlap EACH OTHER: individually each adds 48-84 candidates
+on top of the anchor, all seventeen together add 230. One corpus, resampled
+seventeen times.
+
+The churn floor was measured in the same run — the anchor re-fetched at the end
+repeated 99.7% of its own first pull — because without it "edition X differs by
+35%" could just be the index moving during a twenty-minute run.
+
+**What changed.** All seventeen are out of `GOOGLE_NEWS_LOCALES` (51 editions ->
+34, plus the anchor). Nothing replaced them because nothing needed building:
+every one of those markets already has direct publisher feeds in
+`data/sources_catalogue.csv`, read on EVERY run rather than once per rotation.
+The thinnest of them — Bangladesh, Ghana, Malaysia — returned 30, 33 and 45
+items on the last recorded press run, against the 0-7 their edition gave every
+four days. `tests/test_google_news_editions.py` pins that: a withdrawn market
+that drops below two wired feeds turns the withdrawal into a coverage hole and
+says so.
+
+**`LOCALES_PER_RUN` went 5 -> 4, and that is the whole budget story.** Keeping
+5 would have been a spend increase in disguise: the withdrawn editions were
+cheap per visit precisely because they returned the anchor again (~71
+prefilter-passing candidates on top of it, against ~189 for a non-English one),
+so swapping ~3.3 cheap visits a day for expensive ones would have raised the
+daily candidate load from ~1,497 to ~1,890 and gate spend with it. Four holds
+the load at ~1,512, within 1% of today, and buys **8 productive edition-visits
+a day where there were 6.7**. Read-throughs are capped at 99/run for
+google_news and the cap is saturated, so no read money moved at all; what moved
+is which candidates compete for it. Sweep 5.1d -> 4.25d, derived recency window
+7d -> 6d.
+
+**The measurement is committed, not just written down:**
+`python3 -m analysis.editions.measure` re-runs it. Stdlib only, keyless, free,
+resolves no redirects and stores nothing. The table beside
+`WITHDRAWN_ENGLISH_EDITIONS` is that tool's verbatim output, so the comment and
+the instrument cannot drift apart.
+
+**One coupling had to be cut to do this, and it is worth knowing about.** The
+segment matrix was budgeted against `recency_window_days(...)`, the window
+DERIVED FROM THE LOCALE ROTATION. Shortening the locale sweep would therefore
+have cut the segment ceiling from 56 to 40 and forced sixteen segments — twelve
+markets — off the public coverage page as a side effect of an unrelated
+improvement. The two rotations are independent and only the locale one carries
+the hazard: a locale query has `when:Nd` and a story can age out before its
+edition's turn, while a segment query has no `when:` at all (now asserted, so
+the reasoning cannot rot). The ceiling is `SEGMENT_SWEEP_BUDGET_DAYS = 7` now —
+same number, chosen rather than inherited.
+
+**Still open, and NOT touched here.** The sources page says Google News RSS is
+"38 country editions, 15 languages". That was already wrong before this change
+(it was 51 plus the anchor) and the honest string is now "35 country editions,
+16 languages". Fixing it means regenerating `wordpress-plugin/.../sources.json`
+and deploying, which is a session's call and not a subagent's.
+
+---
+
 ## 2026-08-01 — a backfill slice advanced its cursor over three days it never fetched
 
 **Measured, not inferred.** `backfill-gnews-2026` run 30662474194 (2026-07-31,

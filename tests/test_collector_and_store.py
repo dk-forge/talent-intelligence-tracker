@@ -251,26 +251,44 @@ def test_every_market_is_reachable_by_some_discovery_route():
         )
 
 
-def test_the_segment_matrix_still_sweeps_inside_the_recency_window():
-    """The coupling that broke once already: queries asked `when:3d` while the
-    rotation took 6.2 days, and the gap was invisible — the markets simply
-    returned less. The locale window is derived (recency_window_days) and
-    tested in test_locale_rotation.py; this guards the SEGMENT matrix the same
-    way, so that widening MARKETS cannot quietly stretch its sweep past what a
-    derived window would cover. At 4 segments a run, twice a day, the matrix
-    must sweep inside the window the locale rotation derives."""
+def test_the_segment_matrix_still_sweeps_inside_its_budget():
+    """A growth ceiling on MARKETS, so widening it cannot quietly stretch the
+    segment sweep past what anyone chose.
+
+    This used to assert against `recency_window_days(...)`, the window DERIVED
+    FROM THE LOCALE ROTATION, and on 2026-08-01 that coupling showed its teeth
+    on the wrong throat: withdrawing seventeen redundant Google News editions
+    shortens the locale sweep, which would have cut this ceiling from 56
+    segments to 40 and forced sixteen segments off the public coverage page as
+    a side effect of an unrelated improvement.
+
+    The two rotations are independent and only the locale one carries the
+    hazard a window exists for — a locale query carries `when:Nd` and a story
+    can age out before its edition's turn, which is the 2026-07 defect that
+    made the window derived. A segment query carries no `when:` at all
+    (asserted below, so this reasoning cannot rot), so nothing about a segment
+    ages out and the sweep length is purely a budget.
+    """
     import math
 
-    from run_collect import LOCALES_PER_RUN, RUNS_PER_DAY, SEGMENTS_PER_RUN
+    from run_collect import RUNS_PER_DAY, SEGMENTS_PER_RUN, build_queries
 
     segments = registry.build_segments()
     sweep_days = math.ceil(len(segments) / SEGMENTS_PER_RUN / RUNS_PER_DAY)
-    window = registry.recency_window_days(LOCALES_PER_RUN, RUNS_PER_DAY)
-    assert sweep_days <= window, (
+    budget = registry.SEGMENT_SWEEP_BUDGET_DAYS
+    assert sweep_days <= budget, (
         f"{len(segments)} segments at {SEGMENTS_PER_RUN}/run x "
-        f"{RUNS_PER_DAY}/day sweep in {sweep_days}d, outside the {window}d "
-        f"recency window: a segment's stories can age out before its turn "
-        f"comes round"
+        f"{RUNS_PER_DAY}/day sweep in {sweep_days}d, outside the {budget}d "
+        f"segment budget: widening MARKETS is a coverage decision with a cost "
+        f"and SEGMENT_SWEEP_BUDGET_DAYS is where that cost is stated"
+    )
+
+    # The premise the paragraph above rests on. If a segment query ever grows a
+    # `when:`, this becomes a real recency coupling again and the budget has to
+    # go back to being derived rather than chosen.
+    assert not any("when:" in q for q in build_queries(0, "national_press")), (
+        "a segment query grew a recency window; the segment budget can no "
+        "longer be a plain number"
     )
 
 

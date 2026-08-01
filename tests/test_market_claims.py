@@ -72,21 +72,27 @@ def test_the_segment_budget_is_the_real_ceiling_on_this_tuple():
     Recomputed here rather than asserted as a number, so the arithmetic in the
     MARKETS comment cannot drift away from the code. The margin is deliberately
     allowed to be zero: the point is that the next addition must be a decision
-    about what to remove or about widening the rotation, not an accident.
+    about what to remove or about raising the budget, not an accident.
+
+    The ceiling came off `recency_window_days(...)` until 2026-08-01, which tied
+    it to the LOCALE rotation and meant shortening that rotation silently cut
+    twelve markets. It is `SEGMENT_SWEEP_BUDGET_DAYS` now, same number, chosen
+    rather than inherited; see the note beside it.
     """
-    from run_collect import LOCALES_PER_RUN, RUNS_PER_DAY, SEGMENTS_PER_RUN
+    from run_collect import RUNS_PER_DAY, SEGMENTS_PER_RUN
 
     segments = registry.build_segments()
-    window = registry.recency_window_days(LOCALES_PER_RUN, RUNS_PER_DAY)
-    ceiling = window * SEGMENTS_PER_RUN * RUNS_PER_DAY
+    budget = registry.SEGMENT_SWEEP_BUDGET_DAYS
+    ceiling = budget * SEGMENTS_PER_RUN * RUNS_PER_DAY
     assert len(segments) <= ceiling, (
         f"{len(segments)} segments against a ceiling of {ceiling}. Give a market "
-        f"local `terms` only by removing others, or widen the locale rotation.")
+        f"local `terms` only by removing others, or raise the segment budget "
+        f"deliberately.")
     # And the market count is exactly the segment cost, so the comment's
     # "name plus one per term" accounting is real.
     expected = sum(1 + len(m.terms) for m in registry.MARKETS)
     assert len(segments) == expected
-    assert math.ceil(len(segments) / SEGMENTS_PER_RUN / RUNS_PER_DAY) <= window
+    assert math.ceil(len(segments) / SEGMENTS_PER_RUN / RUNS_PER_DAY) <= budget
 
 
 def test_every_claimed_market_has_the_evidence_its_tier_needs():

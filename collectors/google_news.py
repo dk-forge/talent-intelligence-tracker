@@ -40,13 +40,18 @@ sourced value, so writing it there would file a story under whichever edition
 happened to surface it.
 
 **And only for the editions where `gl=` actually selects a place.** Measured on
-the same day, every ENGLISH edition returns the same result set as en-US
-(en-GB, en-IE and en-SG at 100%, en-IN and en-ZA at 98%), while every
-non-English edition overlaps it by 0%. See _LANGUAGE_ONLY_EDITIONS below for
-the numbers and the hand-read behind them. A dateline on an English edition
-would put a wrong country on the rows this change exists to fix, and a wrong
-country is worse than an empty one because nothing downstream can tell it from
-a right one.
+the same day, an ENGLISH edition returns almost nothing published in its own
+country, while every non-English edition is majority-local. See
+_LANGUAGE_ONLY_EDITIONS below for the numbers and the hand-read behind them. A
+dateline on an English edition would put a wrong country on the rows this
+change exists to fix, and a wrong country is worse than an empty one because
+nothing downstream can tell it from a right one.
+
+**The rotation followed the same finding on 2026-08-01.** All seventeen English
+non-US editions were withdrawn from source_registry.GOOGLE_NEWS_LOCALES; the
+en-US anchor is the only English edition left. The measurement, per edition, is
+recorded beside WITHDRAWN_ENGLISH_EDITIONS in that file, and
+`analysis/editions/measure.py` re-runs it for free.
 """
 
 from __future__ import annotations
@@ -67,8 +72,8 @@ COLLECTOR = "google_news"
 
 #: Editions whose `gl=` is a LANGUAGE selector and not a geography one.
 #:
-#: MEASURED 2026-08-01, live, on the leadership query. Every English edition
-#: returns the SAME result set as en-US:
+#: MEASURED 2026-08-01, live, on the leadership query alone. Every English
+#: edition returned the SAME result set as en-US:
 #:
 #:     en-GB   47 items   100.0% also in the en-US result set
 #:     en-IE   47 items   100.0%
@@ -79,7 +84,18 @@ COLLECTOR = "google_news"
 #:     pt-BR   47 items     0.0%
 #:     es-MX   64 items     0.0%
 #:     fr-FR   50 items     0.0%
-#:     ja-JP  100 items     0.0%
+#:     ja-JP   47 items     0.0%
+#:
+#: RE-MEASURED THE SAME DAY ON THE FULL FIVE-QUERY PRODUCTION PACK, and the
+#: 100% does NOT hold: at ~375 items per edition the English editions overlap
+#: en-US by 62-70%, not 100 (en-BD and en-HK are the two exceptions, still at
+#: 99.7%, which is the run's churn floor). The one-query figures above are left
+#: standing because they are what was measured, and because correcting the
+#: number does not move the conclusion an inch: the ~35% that DIFFERS is the
+#: same global English wire re-ranked. On the publisher test — how many of an
+#: edition's items come from a publisher in that edition's own country — the
+#: English editions score 0.0-11.5% and the non-English ones 49.0-67.7%. The
+#: full table is in source_registry.WITHDRAWN_ENGLISH_EDITIONS.
 #:
 #: `gl=GB` with an English query is not a British edition in any useful sense.
 #: A hand-read of the 14 items it returned put ONE British employer among them
@@ -99,10 +115,12 @@ COLLECTOR = "google_news"
 #: Australian data-centre operator.
 #:
 #: This is not a claim about English-speaking markets being uninteresting. It
-#: is a measurement of what `gl=` does, and it says the ten English non-US
-#: editions in source_registry.GOOGLE_NEWS_LOCALES are fetching the anchor
-#: edition again under another name. That is a separate finding and a separate
-#: fix; nothing here changes the rotation.
+#: is a measurement of what `gl=` does, and it says the seventeen English
+#: non-US editions in source_registry.GOOGLE_NEWS_LOCALES were fetching the
+#: anchor edition again under another name. That separate fix landed the same
+#: day: they are withdrawn, their markets are read through their own
+#: publishers' feeds instead, and the rule below is unchanged either way — the
+#: en-US anchor is still an edition whose `gl=` selects a language.
 _LANGUAGE_ONLY_EDITIONS = frozenset({"en"})
 
 

@@ -270,9 +270,89 @@ GOOGLE_NEWS_VOCAB = {
     ),
 }
 
+#: The seventeen English non-US editions, WITHDRAWN 2026-08-01, and the number
+#: that withdrew each one. Kept as data rather than prose because the obvious
+#: future edit is to put `("en", "GB")` back, and the answer to that is a
+#: measurement rather than an opinion.
+#:
+#: MEASURED LIVE 2026-08-01 on the production query pack (the five `en` phrase
+#: sets at `when:7d`), every English edition plus three non-English controls,
+#: against the en-US anchor pulled in the same session. Re-run it rather than
+#: believing this: `python3 -m analysis.editions.measure`.
+#:
+#: The churn floor first, because without it none of the rest means anything:
+#: en-US re-fetched at the end of the same run repeated **99.7%** of its own
+#: first pull. So a difference between two editions is a real difference and
+#: not the index moving underneath the measurement.
+#:
+#: This table is verbatim output, not a transcription:
+#:
+#:   edition   items   same as   from a publisher   NEW local publisher,
+#:                     the       in that country    in scope, not already
+#:                     anchor                       a catalogue feed
+#:   en-IN       366    63.4%         11.5%                  5
+#:   en-GB       379    62.3%          6.6%                  6
+#:   en-AU       373    62.7%          5.6%                  5   (4 of them one
+#:                                                               stock-tip mill)
+#:   en-CA       374    65.8%          4.5%                  0
+#:   en-PH       372    68.5%          3.0%                  0
+#:   en-ZA       374    66.8%          1.9%                  1
+#:   en-IL       374    66.0%          1.9%                  7
+#:   en-SG       373    63.8%          1.3%                  1
+#:   en-NG       376    66.0%          1.1%                  3
+#:   en-GH       377    63.1%          1.1%                  1
+#:   en-IE       374    69.0%          0.8%                  1
+#:   en-NZ       378    69.8%          0.8%                  0
+#:   en-KE       380    67.1%          0.5%                  0
+#:   en-PK       376    65.7%          0.5%                  1
+#:   en-MY       381    64.8%          0.3%                  0
+#:   en-BD       381    99.7%          0.0%                  0
+#:   en-HK       381    99.7%          0.0%                  0
+#:   --- controls, kept in the rotation ---
+#:   pt-BR       191     0.0%         58.1%                 96
+#:   de-DE       157     0.0%         49.0%                 53
+#:   ja-JP       285     0.0%         67.7%                163
+#:
+#: Read the last column, not the second. An earlier measurement on a SINGLE
+#: query found these editions identical to en-US at 100%; on the full pack they
+#: differ by ~35% of items, so "identical" was wrong — and it does not matter,
+#: because the ~35% that differs is the same global English wire re-ranked.
+#: Every one of the seventeen returns between ZERO and SEVEN in-scope items per
+#: visit from a publisher in its own country that we do not already read twice
+#: a day. The three non-English controls return 53 to 163. That is the finding.
+#:
+#: Two of them, en-BD and en-HK, match the anchor at the churn floor: they
+#: returned nothing that was not already in it. Not little. Nothing.
+#:
+#: The local test is conservative in our favour twice over, so the case is
+#: stronger than it reads: a local publisher on a .com the catalogue has never
+#: heard of counts as foreign, and the in-scope filter reads the headline alone
+#: because the measurement resolves no redirects.
+#:
+#: They also overlap EACH OTHER: individually each adds 48-84 prefilter-passing
+#: candidates on top of the anchor, but all seventeen together add 230. One
+#: corpus, resampled seventeen times. A non-English edition adds ~189 on its
+#: own and overlaps the others by nothing, which is what makes the swap a
+#: reallocation rather than a saving — see LOCALES_PER_RUN in run_collect.py.
+#:
+#: WHAT REPLACES THEM. Nothing needed building: every one of these seventeen
+#: markets already has direct publisher feeds in data/sources_catalogue.csv,
+#: read by collectors/national_press.py on EVERY run rather than once per
+#: rotation, and the thinnest of them (Bangladesh, Ghana, Malaysia) returned
+#: 30-45 items on the last recorded press run against the 0-5 its edition gave.
+#: `test_google_news_editions.py` pins that: a withdrawn market that loses its
+#: last wired feed turns this into a coverage hole and says so.
+#:
+#: WHAT THIS IS NOT. It is not a claim that these markets are uninteresting, and
+#: it is not about the English language. It is a measurement of what `gl=` does:
+#: with an English query it selects a language, not a place. The same finding is
+#: why collectors/google_news.py stamps a dateline on non-English editions only.
+WITHDRAWN_ENGLISH_EDITIONS = (
+    "GB", "CA", "AU", "IN", "IE", "SG", "NZ", "ZA", "PH", "NG",
+    "KE", "GH", "PK", "BD", "MY", "HK", "IL",
+)
+
 GOOGLE_NEWS_LOCALES = (
-    ("en", "GB"), ("en", "CA"), ("en", "AU"), ("en", "IN"), ("en", "IE"),
-    ("en", "SG"), ("en", "NZ"), ("en", "ZA"), ("en", "PH"), ("en", "NG"),
     ("de", "DE"), ("de", "AT"), ("de", "CH"),
     ("fr", "FR"), ("fr", "BE"),
     ("es", "ES"), ("es", "MX"), ("es", "AR"), ("es", "CL"), ("es", "CO"),
@@ -287,22 +367,23 @@ GOOGLE_NEWS_LOCALES = (
     ("ja", "JP"),
     ("ko", "KR"),
     ("ar", "AE"), ("ar", "SA"), ("ar", "EG"), ("ar", "QA"), ("ar", "MA"),
-    # 2026-07-28 widening (coverage audit): English editions need no new query
-    # pack, so each of these is one tuple and nothing else. The non-English
-    # ones ride the existing es/fr packs. Kept to markets with real hiring/
-    # funding news flow; the derived recency window below absorbs the longer
-    # sweep automatically.
+    # 2026-07-28 widening (coverage audit). The English editions this block
+    # originally added (KE, GH, PK, BD, MY, HK, IL) were withdrawn on
+    # 2026-08-01 with the rest — see WITHDRAWN_ENGLISH_EDITIONS above. The
+    # non-English ones ride the existing es/fr packs. Kept to markets with real
+    # hiring/funding news flow; the derived recency window below absorbs the
+    # longer sweep automatically.
     # No ("en","US") here: build_locales() pins the US edition as a fixed
-    # anchor on every run, so listing it again would sweep it twice.
-    ("en", "KE"), ("en", "GH"), ("en", "PK"), ("en", "BD"), ("en", "MY"),
-    ("en", "HK"), ("en", "IL"),
+    # anchor on every run, so listing it again would sweep it twice. It is the
+    # only English edition left, and the measurement above is why.
     ("es", "PE"), ("es", "EC"), ("es", "UY"),
     ("fr", "CA"), ("fr", "MA"), ("fr", "SN"),
-    # 2026-07-29, with the Israel market. The English IL edition above reads
-    # what Israeli outlets publish in English; the Hebrew one is where the
-    # rounds break first (Calcalist, Globes, TheMarker publish Hebrew hours
-    # before CTech's English write-up, when one comes at all). The measured
-    # recall failure this answers: Israel held 1 of 10 goldset events.
+    # 2026-07-29, with the Israel market. The Hebrew edition is where the rounds
+    # break first (Calcalist, Globes, TheMarker publish Hebrew hours before
+    # CTech's English write-up, when one comes at all). The measured recall
+    # failure this answers: Israel held 1 of 10 goldset events. Its English
+    # twin was withdrawn on 2026-08-01 — en-IL returned 7 local items in 374,
+    # all seven from a publisher already wired in the catalogue.
     ("he", "IL"),
 )
 
@@ -325,6 +406,33 @@ def recency_window_days(locales_per_run: int, runs_per_day: int) -> int:
         return 7
     sweep = math.ceil(len(GOOGLE_NEWS_LOCALES) / locales_per_run / runs_per_day)
     return max(3, min(30, sweep + 1))
+
+
+# The segment matrix used to be budgeted against the number above, and on
+# 2026-08-01 that coupling nearly cost twelve markets their listing.
+#
+# `test_the_segment_matrix_still_sweeps_inside_the_recency_window` required
+# ceil(segments / SEGMENTS_PER_RUN / RUNS_PER_DAY) <= recency_window_days(...),
+# which made the segment ceiling 56 only because the LOCALE rotation happened
+# to derive a 7-day window. Withdrawing seventeen redundant editions shortens
+# the locale sweep — a straightforward improvement — and would have dropped the
+# segment ceiling to 40, forcing sixteen segments off the public coverage page
+# for no reason anyone would recognise as a reason.
+#
+# The two rotations are independent and only one of them has the hazard the
+# window exists for. A locale query carries `when:Nd`, so a story CAN age out
+# before its edition's turn comes round; that is the 2026-07 defect the derived
+# window fixed. A segment query carries no `when:` at all (check `build_queries`
+# — the base vocabulary, the segment and the standalone queries are all
+# unwindowed), so nothing about a segment ages out. What the guard really was,
+# and all it ever was, is a GROWTH CEILING on MARKETS.
+#
+# So it is a number someone chose, stated once, rather than a side effect of an
+# unrelated rotation. 7 days is the ceiling the matrix has been sized against
+# since it was written: at 4 segments a run, twice a day, that is 56 segments,
+# which is exactly what MARKETS spends today. Raising it is a coverage decision
+# with a cost, and it should read like one.
+SEGMENT_SWEEP_BUDGET_DAYS = 7
 
 
 def google_news_queries(lang: str, *, window_days: int = 7) -> list[str]:
@@ -559,6 +667,14 @@ SOURCES = (
                  "collector paces at 12 seconds a query and retries, and a "
                  "query it never lands is logged as a coverage gap rather than "
                  "retried into a rate-limit spiral."),
+    # OPEN, and NOT introduced here: "38 country editions" has been wrong for a
+    # while. The rotation was 51 editions plus the anchor before 2026-08-01 and
+    # is 34 plus the anchor after it, so the honest string is "35 country
+    # editions, 16 languages". It is left alone in this change on purpose:
+    # changing it means regenerating
+    # wordpress-plugin/.../data/sources.json (test_manifest_is_in_sync_with_the_registry
+    # pins the two together) and then deploying the plugin, and neither is a
+    # subagent's call. Do both in one pass, and check the rendered page.
     Source("Google News RSS", "https://news.google.com/", "live",
            "News aggregation", ("Hiring", "Funding", "Leadership change", "Layoffs"),
            "38 country editions, 15 languages",
@@ -1621,7 +1737,17 @@ MARKETS = (
     # HOW THESE TWELVE WERE CHOSEN, from data/recall_worklist.json:
     # they are the countries the sealed gold set scored us ZERO on that already
     # have a Google News edition in the rotation and at least two wired publisher
-    # feeds in the catalogue. Both conditions matter. Without an edition, a
+    # feeds in the catalogue.
+    #
+    # TWO OF THEM NO LONGER MEET THE FIRST CONDITION, and the tier test says so
+    # in the language it was written in: ZA and NZ lost their editions on
+    # 2026-08-01 (WITHDRAWN_ENGLISH_EDITIONS above) and are now claimed on the
+    # SECOND route alone, six and five wired feeds respectively. That is the
+    # stronger of the two routes, not a concession — en-ZA returned seven
+    # South African items in 374 and en-NZ three in 378, while the feeds return
+    # 125 and 71 every run. Do not read "google_news" in their live_sources as
+    # "we query their edition"; the anchor is the only English edition left.
+    # Both conditions still matter for anything ADDED here. Without an edition, a
     # discovery_only market cannot honestly say `live_sources=("google_news",)` —
     # which is what the tier test requires — and adding an edition means adding a
     # LANGUAGE PACK, which is a live-verified measurement and not a translation.

@@ -128,17 +128,31 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     return queries
 
 
-# Five editions a run, twice a day, sweeps the 51-edition list in 5.1 days
-# (was 3/run over 36 editions = six days; he:IL made it 51 on 2026-07-29).
-# The recency window derives from this — 51 editions push it from 6d to 7d
-# with nobody remembering to — so nothing ages out between visits. The
-# honest cost of the wide list is LATENCY, not loss: a non-anchor market's
-# new story waits up to ~5 days for its edition's turn. The fix would be a
-# third daily cron slot (RUNS_PER_DAY=3 sweeps in 3.4d), but that is +50%
+# Four editions a run, twice a day, sweeps the 34-edition list in 4.25 days
+# (was 3/run over 36 editions = six days; he:IL made it 51 on 2026-07-29; the
+# seventeen English non-US editions were withdrawn on 2026-08-01, see
+# source_registry.WITHDRAWN_ENGLISH_EDITIONS). The recency window derives from
+# this — 34 editions at 4/run put it at 6d — so nothing ages out between
+# visits. The honest cost of a wide list is LATENCY, not loss: a non-anchor
+# market's new story waits up to ~4 days for its edition's turn. The fix would
+# be a third daily cron slot (RUNS_PER_DAY=3 sweeps in 2.8d), but that is +50%
 # on every per-run spend ceiling, and raising spend is the owner's decision,
 # the same rule that pins READTHROUGH_CAP. Raise RUNS_PER_DAY and the cron
 # together or not at all: the rotation arithmetic reads this constant.
-LOCALES_PER_RUN = 5
+#
+# WHY 5 -> 4 AND NOT 5. This is the reallocation, and it is deliberately not a
+# free lunch. The withdrawn editions were cheap per visit precisely because
+# they returned the anchor again: measured 2026-08-01, an English non-US
+# edition adds ~71 prefilter-passing candidates on top of the anchor while a
+# non-English one adds ~189. Keeping 5/run over an all-non-English list would
+# have swapped ~3.3 cheap visits a day for ~3.3 expensive ones and raised the
+# daily candidate load from ~1,497 to ~1,890 — a 26% rise in gate spend that
+# nobody asked for, at a ceiling that is already degrading. Four holds the load
+# at ~1,512, within 1% of what the rotation costs today, and every one of those
+# visits now goes to an edition that returns local publishers instead of a
+# thirteenth copy of the US wire. Same money, 8 productive visits a day where
+# there were 6.7.
+LOCALES_PER_RUN = 4
 
 # Candidates are what cost money, so the run carries its own cap rather than
 # relying on --limit being passed.
