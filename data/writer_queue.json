@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T03:18:34Z",
-  "last_tick": "2026-08-01T03:43:36Z",
+  "last_dispatch": "2026-08-01T03:48:10Z",
+  "last_tick": "2026-08-01T03:48:10Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,48 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T03:18:34Z",
-      "history": [
-        {
-          "at": "2026-08-01T01:10:30Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-28)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T03:18:34Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T03:43:36Z",
-          "detail": "run 30681742497",
-          "event": "bound"
-        }
-      ],
-      "id": "20260801T011030Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-28)",
-      "requested_at": "2026-08-01T01:10:30Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30681742497",
-      "state": "dispatched",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T03:48:10Z",
       "history": [
         {
           "at": "2026-08-01T02:24:38Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-06)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T03:48:10Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T022438Z-backfill-gdelt-2026",
@@ -225,7 +194,7 @@
       "requested_at": "2026-08-01T02:24:38Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -279,45 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:54:30Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:51:39Z",
-          "detail": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:54:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:56:32Z",
-          "detail": "run 30482041924",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:56:32Z",
-          "detail": "run 30482041924",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T185139Z-retract",
-      "inputs": {
-        "reason": "Not a dated capital raise. The filing is a D/A, the fourteenth annual amendment to a continuous offering whose first sale was 2012-07-22, with the offering amount stated as Indefinite and the securities as debt. The 1.77 billion USD is the cumulative amount sold since 2012 through the issuer's own affiliated broker-dealer, not money raised on 2026-06-23. It is only visible now because withdrawing the seven larger errors lowered the derived ceiling onto it.",
-        "signal_id": "44d73d172ec88543cce90532bc583abe"
-      },
-      "landed_at": "2026-07-29T18:56:32Z",
-      "priority": -1,
-      "reason": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
-      "requested_at": "2026-07-29T18:51:39Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30482041924",
-      "state": "landed",
-      "workflow": "retract.yml"
     },
     {
       "attempts": 0,
@@ -2738,6 +2668,48 @@
       "run_id": "30677332204",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T03:18:34Z",
+      "history": [
+        {
+          "at": "2026-08-01T01:10:30Z",
+          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-28)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T03:18:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T03:43:36Z",
+          "detail": "run 30681742497",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T03:48:10Z",
+          "detail": "run 30681742497",
+          "event": "landed"
+        }
+      ],
+      "id": "20260801T011030Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "ration": "37",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-01T03:48:10Z",
+      "priority": 10,
+      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-28)",
+      "requested_at": "2026-08-01T01:10:30Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30681742497",
+      "state": "landed",
+      "workflow": "backfill-gnews-2026.yml"
     }
   ],
   "version": 1
