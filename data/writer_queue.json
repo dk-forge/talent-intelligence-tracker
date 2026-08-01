@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T17:50:02Z",
-  "last_tick": "2026-08-01T17:50:02Z",
+  "last_dispatch": "2026-08-01T17:51:35Z",
+  "last_tick": "2026-08-01T17:51:35Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -255,43 +255,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T17:50:02Z",
-      "history": [
-        {
-          "at": "2026-08-01T16:56:18Z",
-          "detail": "2026 catch-up: start the opendart_korea 2026 chain (never walked; ~4 slices, ~700 rows). Costs $0 - as_classified, no model call.",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T17:50:02Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260801T165618Z-backfill-structured-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "source": "opendart_korea",
-        "start": "2026-01-01"
-      },
-      "priority": 5,
-      "reason": "2026 catch-up: start the opendart_korea 2026 chain (never walked; ~4 slices, ~700 rows). Costs $0 - as_classified, no model call.",
-      "requested_at": "2026-08-01T16:56:18Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T17:51:35Z",
       "history": [
         {
           "at": "2026-08-01T16:57:15Z",
           "detail": "2026 catch-up: Japan. One list call per calendar day over 2026, per the backfill-structured planner. Costs $0 - no model call.",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T17:51:35Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T165715Z-collect-structured",
@@ -304,7 +278,7 @@
       "requested_at": "2026-08-01T16:57:15Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "collect-structured.yml"
     },
     {
@@ -358,48 +332,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T00:59:39Z",
-      "history": [
-        {
-          "at": "2026-07-30T22:10:09Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-04)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T00:59:39Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T01:27:52Z",
-          "detail": "run 30595118867",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-31T01:27:52Z",
-          "detail": "run 30595118867",
-          "event": "landed"
-        }
-      ],
-      "id": "20260730T221009Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-31T01:27:52Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-04)",
-      "requested_at": "2026-07-30T22:10:09Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30595118867",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
@@ -2815,6 +2747,47 @@
       "requested_by": "dakotta-labs",
       "run_id": "30710307022",
       "state": "landed",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T17:50:02Z",
+      "history": [
+        {
+          "at": "2026-08-01T16:56:18Z",
+          "detail": "2026 catch-up: start the opendart_korea 2026 chain (never walked; ~4 slices, ~700 rows). Costs $0 - as_classified, no model call.",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T17:50:02Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T17:51:35Z",
+          "detail": "run 30711186998",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T17:51:35Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260801T165618Z-backfill-structured-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "opendart_korea",
+        "start": "2026-01-01"
+      },
+      "priority": 5,
+      "reason": "2026 catch-up: start the opendart_korea 2026 chain (never walked; ~4 slices, ~700 rows). Costs $0 - as_classified, no model call.",
+      "requested_at": "2026-08-01T16:56:18Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30711186998",
+      "state": "failed",
       "workflow": "backfill-structured-2026.yml"
     }
   ],
