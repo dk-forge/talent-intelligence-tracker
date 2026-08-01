@@ -51,7 +51,7 @@
       "workflow": "backfill-funding-bulk.yml"
     },
     "backfill-gdelt-2026:2026-01-01..2026-07-26": {
-      "cursor": "2026-03-12",
+      "cursor": "2026-03-16",
       "end": "2026-07-26",
       "history": [
         {
@@ -305,6 +305,18 @@
             "stored": 19,
             "windows": 3
           }
+        },
+        {
+          "at": "2026-08-01T05:41:15Z",
+          "run": "",
+          "slice": "2026-03-12..2026-03-15",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 6,
+            "rejected": 23,
+            "stored": 20,
+            "windows": 4
+          }
         }
       ],
       "inputs": {
@@ -315,17 +327,17 @@
       "label": "",
       "opened_at": "2026-07-30T19:22:59Z",
       "slice_size": 4,
-      "slices": 21,
+      "slices": 22,
       "start": "2026-01-01",
       "state": "running",
       "totals": {
-        "duplicates": 78,
-        "rejected": 696,
-        "stored": 314,
-        "windows": 76
+        "duplicates": 84,
+        "rejected": 719,
+        "stored": 334,
+        "windows": 80
       },
       "unit": "days",
-      "updated_at": "2026-08-01T04:37:43Z",
+      "updated_at": "2026-08-01T05:41:15Z",
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
