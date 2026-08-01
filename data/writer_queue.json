@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T17:25:47Z",
-  "last_tick": "2026-08-01T17:25:47Z",
+  "last_tick": "2026-08-01T17:35:42Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -240,6 +240,11 @@
           "at": "2026-08-01T17:25:47Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T17:35:42Z",
+          "detail": "run 30710307022",
+          "event": "bound"
         }
       ],
       "id": "20260801T165542Z-backfill-structured-2026",
@@ -254,7 +259,7 @@
       "reason": "2026 catch-up: resume the companies_house chain (cursor 1 of 7) stalled since its run was cancelled 2026-07-31. Costs $0 - as_classified, no model call.",
       "requested_at": "2026-08-01T16:55:42Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "30710307022",
       "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
