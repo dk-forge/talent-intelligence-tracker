@@ -128,7 +128,8 @@ import backfill_slices
 from collectors import press_archive
 from collectors.national_press import load_feeds
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
-                      prefilter, publish, schema, store, validate)
+                      gate_ledger, prefilter, publish, schema, store,
+                      validate)
 
 COLLECTOR = press_archive.COLLECTOR
 WORKFLOW = "backfill-press-2026.yml"
@@ -381,6 +382,7 @@ def last_index(population: list, per_slice: int = PUBLISHERS_PER_SLICE) -> int:
 
 # --------------------------------------------------------------------------
 
+@gate_ledger.around_run(WORKFLOW)
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--start", default="2026-01-01",
@@ -426,6 +428,9 @@ def main() -> int:
                                         "backfill_slices.py record")
     ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
+    # The decorator could only guess from kwargs, and this one comes from argv.
+    # A rehearsal must not leave an uncommitted shard for a real run to push.
+    gate_ledger.set_dry_run(args.dry_run)
 
     if args.plan_cost:
         print_cost_plan()
@@ -597,14 +602,21 @@ def main() -> int:
                     # History is not going anywhere: leave it unmarked and a
                     # later pass over the same roster picks it up.
                     errors += 1
+                    gate_ledger.outcome(item, "deferred")
                     continue
                 except classify.ClassifyError:
                     errors += 1
+                    gate_ledger.outcome(item, "error")
                     continue
                 gated += 1
 
             if classified is None:
                 rejected += 1
+                # A gate NO already closed its own line as `gate_reject` and
+                # `outcome()` refuses to overwrite it. A cheap close never
+                # reached the gate at all, so it has no line to close and
+                # `outcome()` ignores it.
+                gate_ledger.outcome(item, "model_reject")
                 if writes:
                     store.mark_seen(conn, url, COLLECTOR, "rejected")
                 continue
@@ -615,6 +627,7 @@ def main() -> int:
                                                conn=conn)
             except validate.Rejected:
                 rejected += 1
+                gate_ledger.outcome(item, "validate_reject")
                 if writes:
                     store.mark_seen(conn, url, COLLECTOR, "rejected")
                 continue
@@ -624,12 +637,14 @@ def main() -> int:
 
             if args.dry_run:
                 stored += 1
+                gate_ledger.outcome(item, "would_store")
                 stored_countries[signal.country or "-"] += 1
                 print(f"  WOULD STORE  [{signal.country or '--'}] "
                       f"{signal.headline[:64]}")
                 continue
 
             outcome = store.store(conn, signal)
+            gate_ledger.outcome(item, outcome)
             store.mark_seen(conn, url, COLLECTOR, outcome)
             if outcome == "stored":
                 stored += 1

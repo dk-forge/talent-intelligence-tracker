@@ -63,7 +63,8 @@ from datetime import date, datetime, timedelta
 import backfill_slices
 import source_registry as registry
 from collectors import gdelt
-from pipeline import classify, prefilter, publish, schema, store, validate
+from pipeline import (classify, gate_ledger, prefilter, publish, schema,
+                      store, validate)
 
 # One day. See WINDOWING above.
 WINDOW_HOURS = 24
@@ -219,6 +220,7 @@ def iter_windows(start: date, end: date):
         lo = hi
 
 
+@gate_ledger.around_run(WORKFLOW)
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     # Not `required`: --plan-cost answers a question about the pace and
@@ -253,6 +255,9 @@ def main() -> int:
                                         "backfill_slices.py record")
     ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
+    # The decorator could only guess from kwargs, and this one comes from argv.
+    # A rehearsal must not leave an uncommitted shard for a real run to push.
+    gate_ledger.set_dry_run(args.dry_run)
 
     if args.plan_cost:
         print_cost_plan()
@@ -357,13 +362,20 @@ def main() -> int:
                 # Historical news is not going anywhere: leave it unseen and a
                 # re-dispatch of the same window picks it up.
                 errors += 1
+                gate_ledger.outcome(item, "deferred")
                 continue
             except classify.ClassifyError:
                 errors += 1
+                gate_ledger.outcome(item, "error")
                 continue
 
             if classified is None:
                 rejected += 1
+                # A gate NO already closed its own line as `gate_reject` and
+                # `outcome()` refuses to overwrite it — the two rejections
+                # arrive here identically, and telling them apart is the whole
+                # point of the ledger.
+                gate_ledger.outcome(item, "model_reject")
                 if not args.dry_run:
                     store.mark_seen(conn, url, gdelt.COLLECTOR, "rejected")
                 continue
@@ -375,6 +387,7 @@ def main() -> int:
                                                conn=conn)
             except validate.Rejected:
                 rejected += 1
+                gate_ledger.outcome(item, "validate_reject")
                 if not args.dry_run:
                     store.mark_seen(conn, url, gdelt.COLLECTOR, "rejected")
                 continue
@@ -382,11 +395,13 @@ def main() -> int:
             outlet_countries[item.get("source_country") or "?"] += 1
             if args.dry_run:
                 stored += 1
+                gate_ledger.outcome(item, "would_store")
                 stored_countries[signal.country or "-"] += 1
                 print(f"  WOULD STORE  [{signal.country or '--'}] {signal.headline[:64]}")
                 continue
 
             outcome = store.store(conn, signal)
+            gate_ledger.outcome(item, outcome)
             store.mark_seen(conn, url, gdelt.COLLECTOR, outcome)
             if outcome == "stored":
                 stored += 1

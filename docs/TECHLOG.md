@@ -177,6 +177,67 @@ red until somebody finishes.
 
 ---
 
+## 2026-07-31 — five backfills bought gate labels and threw every one away
+
+**What was wrong.** `pipeline/gate_ledger.py` records one line per gate
+decision: the training set for the free classifier that is the only route to
+the owner's $5/month target, because `cost_projection.py [5]` puts the paid
+gate alone at $4.41 of the $5. The daily collectors were wired correctly and
+their labels land. The five backfills were not, and the failure was silent in
+both halves:
+
+* **In the process.** `classify.classify()` calls `gate_ledger.record()`, which
+  only BUFFERS; something has to call `flush()`. `run_collect.py` did, through
+  a `_with_gate_labels` decorator. `backfill_sec_2026.py`,
+  `backfill_form_d_2026.py`, `backfill_gdelt_2026.py`, `backfill_gnews_2026.py`
+  and `backfill_press_2026.py` never imported `gate_ledger` at all, so every
+  verdict they paid for went to the buffer and was dropped at process exit. The
+  module cannot warn about this: a run that gated nothing and a run that lost
+  everything look identical from inside it.
+* **In the workflow.** Even a flushed shard would not have survived. Each
+  backfill's commit step does `git reset --hard origin/main` before committing
+  (deliberate: it is what stops a `cp` destroying another run's rows), and
+  `merge_gate_labels.py` — which exists precisely for this, mirroring
+  `merge_db.py` — was invoked by `collect.yml`, `collect-press.yml` and
+  `collect-structured.yml` and by no backfill.
+
+So the most expensive way to lose data: the money was already spent.
+
+**The fix.** The reset/flush pairing now lives in ONE place,
+`gate_ledger.around_run(label)`, and every entry point wears it —
+`run_collect.py`'s decorator is now that function rather than a second copy of
+it. Two copies of a pair is how one of them keeps being forgotten. The
+backfills also close the join at the same branches `run_collect` does
+(`deferred`, `error`, `model_reject`, `validate_reject`, `would_store`,
+`stored`/`duplicate`), because the classifier's real target is "did this become
+a stored row", not "did the LLM like it".
+
+All five workflows now save `data/gate_labels` to `$RUNNER_TEMP` before the
+reset, run `merge_gate_labels.py` after it, and `git add -A` the directory
+before the commit — the same three steps, in the same order, that the daily
+collectors already had.
+
+**The verdict stays four-valued.** `YES`, `NO`, `ERROR`, `OFF`. The gate FAILS
+OPEN, so "the model said yes" and "the model never answered" must never share a
+label: recording an outage as a YES would teach the classifier that a busy
+provider is a talent signal. `OFF` (a single-stage run, no gate call at all)
+now has a test of its own; it did not before.
+
+**Guards added, both of which fail on the code as it was.**
+`test_every_entry_point_that_classifies_also_flushes` scans for any file that
+calls `classify.classify` without `gate_ledger.around_run`, and
+`test_every_workflow_that_classifies_merges_its_labels_back` derives the
+workflow list from those scripts rather than from a list kept in the test — a
+hand-maintained list is what let five backfills go unnoticed for months. Plus
+tests that `around_run` flushes on an early return and on a raise (how a
+backfill ends on exhausted credits and on a bad key) and that it resets between
+two runs in one process.
+
+Suite: 2,821 passing, up from 2,813. No production deploy: Python and workflow
+YAML only.
+
+---
+
 ## 2026-07-31 — nine chart cards, the trend demoted into the grid, and the prose behind an (i) (1.62.0)
 
 `wordpress-plugin/talent-intelligence-tracker/includes/shortcodes.php`,

@@ -87,6 +87,7 @@ perfectly, and a gzip blob rewritten twice a day would not delta at all.
 
 from __future__ import annotations
 
+import functools
 import gzip
 import hashlib
 import html
@@ -429,6 +430,47 @@ def compact(now: datetime | None = None) -> list[str]:
     except Exception as exc:
         _fail("compacting the gate label shards", exc)
         return notes
+
+
+def around_run(label="collect"):
+    """Reset before an entry point, flush after it, whatever it returns.
+
+    `record()` only BUFFERS. A caller that classifies and never flushes fills
+    the buffer for a whole run and drops every line at process exit, in silence
+    — the module cannot warn about it, because a run that gates nothing looks
+    exactly the same from in here. That is not hypothetical: `classify()` has
+    always recorded, but `backfill_sec_2026.py` and `backfill_form_d_2026.py`
+    never flushed, so months of paid gate verdicts went to the buffer and
+    nowhere else while the daily run's labels landed fine.
+
+    So the pairing lives in ONE place and every entry point wears it, rather
+    than each remembering two calls. `finally`, because the backfills return
+    early on exhausted credits and on a refused auth, and the verdicts bought
+    before that point are as real as any others.
+
+    `label` may be a callable taking the wrapped function's kwargs, for a caller
+    whose name is only known per invocation (run_collect logs its source).
+    """
+    def decorate(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            reset()
+            # A rehearsal buffers and counts but writes nothing. A caller that
+            # only learns its own dry-run flag later (the backfills parse it
+            # from argv inside the function) calls set_dry_run again itself;
+            # this is the default, not the last word.
+            set_dry_run(bool(kwargs.get("dry_run")))
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                written = flush()
+                if written:
+                    name = label(kwargs) if callable(label) else label
+                    print(f"[{name}] gate labels: {written} decision(s) "
+                          "recorded for the classifier training set "
+                          "(data/gate_labels/)")
+        return wrapper
+    return decorate
 
 
 def read_all(directory: str | None = None):

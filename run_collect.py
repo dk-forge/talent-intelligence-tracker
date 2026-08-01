@@ -11,7 +11,6 @@ Nothing is stored until a dry run looks right (spec 11 step 2).
 from __future__ import annotations
 
 import argparse
-import functools
 import sys
 from dataclasses import asdict
 from datetime import date
@@ -311,37 +310,29 @@ def cluster_stories(items: list[dict]) -> tuple[list[dict], list[dict], int]:
     return kept, removed_strict, removed_loose, clusters
 
 
-def _with_gate_labels(fn):
-    """Open and close the gate-label ledger around a whole collect run.
-
-    A DECORATOR rather than five calls inside `run`, because `run` has five
-    exits — a fetch failure, a bad key, exhausted credits, a dry run and the
-    normal end — plus an unhandled exception as a sixth, and a flush at each is
-    five chances to forget one. `finally` is none.
-
-    It is also a decorator rather than a rename-and-wrap so that `run` stays ONE
-    function: several tests in this repo read `inspect.getsource(run_collect.run)`
-    to assert that an ordering rule is still in the code, and splitting the body
-    into a private `_run` would quietly make every one of those assertions
-    inspect the wrong function. `functools.wraps` sets `__wrapped__`, which
-    `inspect.getsource` follows, so those tests keep reading the real body.
-
-    Nothing here can fail a run: every gate_ledger entry point swallows its own
-    exceptions (see pipeline/gate_ledger).
-    """
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        gate_ledger.reset()
-        gate_ledger.set_dry_run(bool(kwargs.get("dry_run")))
-        try:
-            return fn(*args, **kwargs)
-        finally:
-            written = gate_ledger.flush()
-            if written:
-                print(f"[{kwargs.get('source', 'collect')}] gate labels: "
-                      f"{written} decision(s) recorded for the classifier "
-                      f"training set (data/gate_labels/)")
-    return wrapper
+#: Open and close the gate-label ledger around a whole collect run.
+#:
+#: A DECORATOR rather than five calls inside `run`, because `run` has five
+#: exits — a fetch failure, a bad key, exhausted credits, a dry run and the
+#: normal end — plus an unhandled exception as a sixth, and a flush at each is
+#: five chances to forget one. `finally` is none.
+#:
+#: It is also a decorator rather than a rename-and-wrap so that `run` stays ONE
+#: function: several tests in this repo read `inspect.getsource(run_collect.run)`
+#: to assert that an ordering rule is still in the code, and splitting the body
+#: into a private `_run` would quietly make every one of those assertions
+#: inspect the wrong function. `functools.wraps` sets `__wrapped__`, which
+#: `inspect.getsource` follows, so those tests keep reading the real body.
+#:
+#: The body now lives in `gate_ledger.around_run` because the backfills need
+#: exactly the same pairing and had none: they classified, so they BUFFERED
+#: labels, and with no flush every one was dropped at process exit in silence.
+#: Two copies of a reset/flush pair is how one of them keeps being forgotten.
+#:
+#: Nothing here can fail a run: every gate_ledger entry point swallows its own
+#: exceptions (see pipeline/gate_ledger).
+_with_gate_labels = gate_ledger.around_run(
+    lambda kwargs: kwargs.get("source", "collect"))
 
 
 @_with_gate_labels

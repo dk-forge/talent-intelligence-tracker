@@ -402,3 +402,81 @@ def test_the_drainer_wakes_up_for_every_writer_there_is():
     # coverage while covering nothing.
     stale = set(triggers) - members
     assert not stale, f"the drainer waits on workflows that are not writers: {sorted(stale)}"
+
+
+# --- gate labels: the same reset destroys them, so the same merge saves them --
+
+def _gate_running_workflows():
+    """Every workflow that runs an entry point which calls the paid LLM gate.
+
+    Derived from the scripts themselves rather than from a list kept here: a
+    hand-maintained list is exactly what let five backfills classify for months
+    with no label ever reaching main.
+    """
+    import re
+
+    root = Path(__file__).parent.parent
+    classifiers = {p.name for p in root.glob("*.py")
+                   if "classify.classify(" in p.read_text(encoding="utf-8")}
+    assert classifiers, "no script calls classify.classify — the scan is broken"
+
+    for path in WORKFLOWS:
+        text = path.read_text()
+        invoked = set(re.findall(r"python3?\s+([a-z_0-9]+\.py)", text))
+        if invoked & classifiers:
+            yield path.name, text
+
+
+def test_there_are_gate_running_workflows():
+    assert list(_gate_running_workflows())
+
+
+def test_every_workflow_that_classifies_merges_its_labels_back():
+    """A gate verdict costs money whoever bought it.
+
+    The commit step resets to origin/main, which throws this run's ledger away
+    exactly as it throws the database away, so the labels need the same
+    treatment the rows get: saved before the reset, merged after it, staged
+    before the commit. The daily collectors did all three. The five backfills
+    did none of them, so every verdict they paid for was collected, buffered,
+    written and then discarded by the reset — which is the most expensive way
+    to lose data, because the money was already spent.
+    """
+    missing = {}
+    for name, text in _gate_running_workflows():
+        if "git reset --hard" not in text:
+            continue          # nothing destroys the ledger, nothing to restore
+        problems = []
+        if "merge_gate_labels.py" not in text:
+            problems.append("never merges its gate labels back after the reset")
+        # The destination under $RUNNER_TEMP differs by workflow
+        # (collect-structured.yml keeps a whole `keep/` tree), so this asserts
+        # only that the ledger leaves the working copy before the reset.
+        if 'cp -R data/gate_labels "$RUNNER_TEMP' not in text:
+            problems.append("never saves data/gate_labels before the reset")
+        if "git add -A data/gate_labels" not in text:
+            problems.append("never stages data/gate_labels, so nothing is committed")
+        if problems:
+            missing[name] = problems
+
+    assert not missing, (
+        "these workflows pay for gate calls and then let `git reset --hard` "
+        f"discard the verdicts: {missing}"
+    )
+
+
+def test_the_label_merge_happens_after_the_reset_and_before_the_commit():
+    """Same ordering rule as merge_db.py, and it fails the same silent way:
+    merged before the reset it is discarded, staged after the commit it is not
+    in the commit."""
+    for name, text in _gate_running_workflows():
+        if "merge_gate_labels.py" not in text:
+            continue
+        code = "\n".join(line for line in text.splitlines()
+                         if not line.lstrip().startswith("#"))
+        assert code.index("git reset --hard") < code.index("merge_gate_labels.py"), (
+            f"{name} merges its gate labels before the reset, which discards them"
+        )
+        assert code.index("merge_gate_labels.py") < code.index("git commit"), (
+            f"{name} commits before merging its gate labels back"
+        )

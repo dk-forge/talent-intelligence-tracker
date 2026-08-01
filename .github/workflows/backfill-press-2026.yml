@@ -138,12 +138,23 @@ jobs:
           # this run was collecting. See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
+          # This slice's per-candidate gate verdicts, saved before the reset
+          # discards them. A backfill pays for exactly the same gate calls the
+          # daily run does, so its labels are worth exactly as much to the
+          # classifier that is meant to replace that gate
+          # (docs/PLAN-gate-to-five-dollars.md).
+          rm -rf "$RUNNER_TEMP/gate_labels"
+          cp -R data/gate_labels "$RUNNER_TEMP/gate_labels" 2>/dev/null || true
           RECORD_RC=0
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
             cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            # Appends only what main does not already hold, the same way
+            # merge_db.py does. It cannot fail the step: labels are
+            # bookkeeping and the rows are not.
+            python merge_gate_labels.py "$RUNNER_TEMP/gate_labels" data/gate_labels || true
             # Applied AFTER the reset, for the same reason the database is
             # merged rather than copied: both files have other writers and
             # anything written before the reset is thrown away by it. `record`
@@ -161,6 +172,10 @@ jobs:
             git add data/backfill_state.json data/writer_queue.json || true
             git add data/press_archive_health.json || true
             git add data/spend_month.json || true
+            # `-A` and not a plain add: when a month closes the ledger gzips
+            # the old shard and deletes the plain one, and a deletion that is
+            # never staged is a file that comes back on the next reset.
+            git add -A data/gate_labels || true
             if git diff --staged --quiet; then
               echo "Nothing to commit."
               break

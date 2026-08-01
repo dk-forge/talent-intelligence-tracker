@@ -369,3 +369,109 @@ def test_a_whole_run_writes_a_verdict_and_a_joined_outcome(ledger, monkeypatch,
     assert dropped["gate"] == "NO" and dropped["outcome"] == "gate_reject"
     # And the gate reject cost nothing downstream: it never reached extraction.
     assert classify.STATS["full_calls"] == 1
+
+
+# --- the fourth verdict ------------------------------------------------------
+
+def test_a_single_stage_run_is_recorded_as_OFF_and_not_as_a_YES(ledger,
+                                                               monkeypatch,
+                                                               stats):
+    """The fourth value, and the one with no gate call behind it at all.
+
+    `GATE_MODEL=off` makes every candidate go straight to the read-through.
+    That is not a verdict, and the three ways of losing the distinction all
+    corrupt the training set in a different direction: as YES it teaches that
+    a disabled gate is a talent signal, as NO it teaches the opposite, and as
+    "no line at all" it silently drops the outcome — which is the label the
+    classifier is actually trained on — for every candidate of every
+    single-stage run.
+    """
+    monkeypatch.setattr(classify, "gate_enabled", lambda: False)
+    monkeypatch.setattr(classify, "paid_reads_enabled", lambda: True)
+    monkeypatch.setattr(classify, "read_enabled", lambda: False)
+    monkeypatch.setattr(classify, "_call", lambda *a, **k: json.dumps(
+        {"is_talent_signal": True, "company": "Stripe"}))
+
+    assert classify.classify(dict(PRESS), interpret_now=False) is not None
+    gate_ledger.flush()
+
+    (line,) = _lines(ledger)
+    assert line["gate"] == "OFF"
+    assert line["gate"] not in (gate_ledger.YES, gate_ledger.NO)
+    # Still open, because the outcome is decided by the caller, not here.
+    assert line["outcome"] == "unknown"
+    # And no gate call was billed for it.
+    assert classify.STATS["gate_calls"] == 0
+
+
+def test_the_four_verdicts_are_four_distinct_values():
+    """A refactor that collapsed any two of these back into a boolean would
+    pass every other test in this file."""
+    assert len({gate_ledger.YES, gate_ledger.NO,
+                gate_ledger.ERROR, gate_ledger.OFF}) == 4
+
+
+# --- record() only buffers, so something has to flush ------------------------
+
+def test_around_run_flushes_whatever_the_entry_point_does(ledger):
+    """`record()` BUFFERS. Every label is lost at process exit unless somebody
+    flushes, and the module cannot warn about it: a run that gated nothing and
+    a run that dropped everything look identical from inside here.
+
+    That is not hypothetical. `classify.classify` has always recorded, but the
+    five backfills never flushed, so every gate verdict they paid for went to
+    the buffer and nowhere else while the daily run's labels landed fine. So
+    the flush is tested on the paths that actually lose it: an early return and
+    a raise, which is how a backfill ends on exhausted credits and on a bad key.
+    """
+    @gate_ledger.around_run("early-return")
+    def returns_early():
+        gate_ledger.record(PRESS, "national_press", gate_ledger.YES)
+        return 1
+
+    assert returns_early() == 1
+    assert [line["gate"] for line in _lines(ledger)] == ["YES"]
+
+    @gate_ledger.around_run("raises")
+    def blows_up():
+        gate_ledger.record(GNEWS, "google_news", gate_ledger.ERROR)
+        raise RuntimeError("bad key")
+
+    with pytest.raises(RuntimeError):
+        blows_up()
+    assert [line["gate"] for line in _lines(ledger)] == ["YES", "ERROR"]
+
+
+def test_around_run_starts_each_entry_point_from_an_empty_buffer(ledger):
+    """Two runs in one process must not have the first one's candidates
+    written twice. `reset()` before, not merely `flush()` after."""
+    @gate_ledger.around_run("one")
+    def first():
+        gate_ledger.record(PRESS, "national_press", gate_ledger.YES)
+
+    first()
+    first()
+    assert len(_lines(ledger)) == 2      # one line per run, not one then two
+
+
+def test_every_entry_point_that_classifies_also_flushes():
+    """The invariant behind the bug, asserted so it cannot come back.
+
+    Anything that calls `classify.classify` pays for gate calls, and a paid
+    gate call whose verdict is not written is training data bought and thrown
+    away. `gate_ledger.around_run` is the only thing that pairs the reset with
+    the flush, so requiring it by name is what makes a new backfill notice.
+    """
+    import pathlib
+    root = pathlib.Path(__file__).parent.parent
+    offenders = []
+    for path in sorted(root.glob("*.py")):
+        source = path.read_text(encoding="utf-8")
+        if "classify.classify(" not in source:
+            continue
+        if "gate_ledger.around_run" not in source:
+            offenders.append(path.name)
+    assert not offenders, (
+        "these entry points classify — so they buffer gate labels — but never "
+        f"flush them, and every verdict they pay for is lost: {offenders}"
+    )

@@ -63,6 +63,17 @@ NOT stored anywhere. The training set does not exist yet, so:
 
 Two to four weeks of real labels is enough. The step costs nothing.
 
+STATUS 2026-07-31: shipped, then found half-wired and completed. The ledger is
+pipeline/gate_ledger.py and the daily collectors (collect.yml,
+collect-press.yml, collect-structured.yml) had all of it. The five backfills
+had none of it: they classified, so they BUFFERED labels, but none imported
+gate_ledger to flush them and none merged the directory back after their
+commit step's `git reset --hard`, so every verdict they paid for was lost
+twice over. Both halves are fixed and two invariant tests now derive the list
+of affected scripts and workflows from the code rather than from a list kept
+by hand. Practical effect on this step: backfill slices now contribute labels
+too, so the "two to four weeks" is a ceiling rather than an estimate.
+
 ## Step 2 - The local classifier gate, fail-open, replay-gated.
 
 The architecture change that gets under $5:
