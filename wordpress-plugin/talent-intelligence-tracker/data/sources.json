@@ -1735,7 +1735,7 @@
   "country": "India",
   "rss": "https://www.businessupturn.com/feed.xml",
   "free": true,
-  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:oracle-financial-services-software-limited IN 2026-07-22). Verified through national_press's own path: robots.txt allows (/admin, /api/, /byline-avatar only), 25 items, newest 0d, no domain drift. The feed is at /feed.xml and NOT at /feed/ \u2014 all fourteen of the other candidate paths 404, and the HTML head declares no rel=alternate, so this one is only findable by probing. The feed mixes company news with entertainment and /brand-post/ sponsored items; the free prefilter is what drops those, at no cost.",
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:oracle-financial-services-software-limited IN 2026-07-22). Verified through national_press's own path: robots.txt allows (/admin, /api/, /byline-avatar only), 25 items, newest 0d, no domain drift. The feed is at /feed.xml and NOT at /feed/. All fourteen of the other candidate paths 404, and the HTML head declares no rel=alternate, so this one is only findable by probing. The feed mixes company news with entertainment and /brand-post/ sponsored items; the free prefilter is what drops those, at no cost.",
   "collector": ""
  },
  {
@@ -9290,7 +9290,7 @@
   "country": "Germany",
   "rss": "https://www.presseportal.de/rss/wirtschaft.rss2",
   "free": true,
-  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:gd-towers-deutsche-funkturm DE 2026-07-24). news aktuell's release portal \u2014 the German equivalent of Business Wire, and treated the same way this repo already treats the wires: a release carried here is the company's OWN announcement, which is what separates a wire from an aggregator. Neither national_press._AGGREGATOR_HOSTS nor validate._BLOCKED_SOURCE_HOSTS lists a wire, and the database already cites prnewswire.com on 3 rows and businesswire.com on 1. Verified through national_press's own path: robots.txt carries only Sitemap lines for the Allow-all agent, rel=alternate declares the all-releases rss2 feed, 15 items, newest 0d, no domain drift. The advertised feed is the firehose (police blotter included); the two subject feeds wired instead are wirtschaft and finanzen.",
+  "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 1 miss: intl_leadership:gd-towers-deutsche-funkturm DE 2026-07-24). news aktuell's release portal, the German equivalent of Business Wire, treated the same way this repo already treats the wires: a release carried here is the company's OWN announcement, which is what separates a wire from an aggregator. Neither national_press._AGGREGATOR_HOSTS nor validate._BLOCKED_SOURCE_HOSTS lists a wire, and the database already cites prnewswire.com on 3 rows and businesswire.com on 1. Verified through national_press's own path: robots.txt carries only Sitemap lines for the Allow-all agent, rel=alternate declares the all-releases rss2 feed, 15 items, newest 0d, no domain drift. The advertised feed is the firehose (police blotter included); the two subject feeds wired instead are wirtschaft and finanzen.",
   "collector": ""
  },
  {

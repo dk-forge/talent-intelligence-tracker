@@ -254,3 +254,51 @@ def test_the_php_derives_the_map_and_does_not_retype_it():
             "from data/sources.json, so a collector name has no business being "
             "written here"
         )
+
+
+def test_no_em_dash_reaches_the_generated_sources_page():
+    """The catalogue is an engineering log AND public copy, in one file.
+
+    Em-dashes are fine in "13 of 15 candidate paths answer 403" and banned in
+    anything rendered. Nothing distinguished the two, so on 2026-07-31 two of
+    the thirteen dashes in data/sources_catalogue.csv were live on the sources
+    page. This asserts the shipped artifact, not the catalogue, because the
+    catalogue is allowed to keep its dashes in fields that never render.
+    """
+    import json
+    from pathlib import Path
+
+    out = (Path(__file__).parent.parent / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "data" / "sources.json")
+    manifest = json.loads(out.read_text())
+    offenders = [
+        (s.get("name"), field)
+        for s in manifest
+        for field, value in s.items()
+        if isinstance(value, str) and ("—" in value or "–" in value)
+    ]
+    assert not offenders, (
+        "em or en dash in the shipped sources manifest: %r. Rewrite the text "
+        "in data/sources_catalogue.csv and rerun build_sources_json.py"
+        % (offenders,))
+
+
+def test_the_builder_refuses_rather_than_substituting():
+    """A silent repair would put words on a public page that nobody wrote.
+
+    The build fails and names the field. It does not swap in a comma, because
+    one of the two real offences wanted a full stop and the other wanted a
+    comma, and guessing wrong is a sentence the author never approved.
+    """
+    import build_sources_json as builder
+
+    clean = [{"name": "Fine", "notes": "a - b, and c"}]
+    assert builder.dash_offences(clean) == []
+
+    dirty = [{"name": "Presseportal", "notes": "a release portal — the "
+                                               "German equivalent"}]
+    offences = builder.dash_offences(dirty)
+    assert len(offences) == 1
+    label, field, fragment = offences[0]
+    assert label == "Presseportal" and field == "notes"
+    assert "—" in fragment, "the fragment must show the author the dash"
