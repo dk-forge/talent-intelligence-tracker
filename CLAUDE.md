@@ -96,6 +96,18 @@ change under `wordpress-plugin/`, run it by hand and then verify the page:
 gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
 ```
 
+**A SUBAGENT MUST NOT RUN THAT COMMAND.** It publishes to the live site, and
+the deploy is the session's call to make, not a delegated one. This paragraph
+used to say only "run it by hand", which every spawned agent correctly read as
+an instruction addressed to itself — on 2026-08-01 a chart-grid agent shipped
+1.62.0 to production off the back of it. The work was right and the page was
+fine; the point is that nobody chose to publish it, the doc did.
+
+So: an agent that changes `wordpress-plugin/` pushes to main, bumps `Version:`
+and `TIT_VERSION`, and reports **"pushed SHA <sha>, not deployed"**. The
+session that spawned it runs the deploy and does the live verification. If you
+are an agent and you believe you are the exception, you are not.
+
 **There is no Railway deployment.** Collection runs on Actions because the
 database must be committed back to the repo; an ephemeral container discards
 it. If you find a Railway service pointed at this repo, it is a leftover.
