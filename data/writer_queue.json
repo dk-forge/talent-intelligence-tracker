@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T17:56:20Z",
-  "last_tick": "2026-08-01T17:56:20Z",
+  "last_tick": "2026-08-01T18:06:02Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -188,6 +188,11 @@
           "at": "2026-08-01T17:56:20Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T18:06:02Z",
+          "detail": "run 30711411935",
+          "event": "bound"
         }
       ],
       "id": "20260801T153013Z-backfill-gdelt-2026",
@@ -202,40 +207,8 @@
       "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-11)",
       "requested_at": "2026-08-01T15:30:13Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30711411935",
       "state": "dispatched",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "acknowledged": "2026-08-01T18:02:02Z",
-      "attempts": 0,
-      "dispatched_at": null,
-      "history": [
-        {
-          "at": "2026-08-01T16:27:41Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-15)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T18:02:02Z",
-          "detail": "duplicate of 20260801T153013Z-backfill-gdelt-2026, which is dispatched. Both resume from the same committed cursor so nothing is redone, but the second is a redundant paid slice (~$0.055). Withdrawn before dispatch.",
-          "event": "dropped"
-        }
-      ],
-      "id": "20260801T162741Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-15)",
-      "requested_at": "2026-08-01T16:27:41Z",
-      "requested_by": "backfill-slices",
-      "run_id": null,
-      "state": "abandoned",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -315,48 +288,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T01:27:52Z",
-      "history": [
-        {
-          "at": "2026-07-30T23:18:39Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-01-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T01:27:52Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T01:35:57Z",
-          "detail": "run 30596403914",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-31T02:28:32Z",
-          "detail": "run 30596403914",
-          "event": "landed"
-        }
-      ],
-      "id": "20260730T231839Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-31T02:28:32Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-01-13)",
-      "requested_at": "2026-07-30T23:18:39Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30596403914",
-      "state": "landed",
-      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
@@ -2571,6 +2502,38 @@
       "run_id": "30708194937",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "acknowledged": "2026-08-01T18:02:02Z",
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T16:27:41Z",
+          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-15)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T18:02:02Z",
+          "detail": "duplicate of 20260801T153013Z-backfill-gdelt-2026, which is dispatched. Both resume from the same committed cursor so nothing is redone, but the second is a redundant paid slice (~$0.055). Withdrawn before dispatch.",
+          "event": "dropped"
+        }
+      ],
+      "id": "20260801T162741Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "35",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-15)",
+      "requested_at": "2026-08-01T16:27:41Z",
+      "requested_by": "backfill-slices",
+      "run_id": null,
+      "state": "abandoned",
+      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
