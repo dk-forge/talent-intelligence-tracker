@@ -870,3 +870,68 @@ def test_chain_priority_reads_the_last_ticket_of_the_SAME_chain(members):
                              {"source": "companies_house"}) is None, (
         "a chain with no history must fall back to the workflow default rather "
         "than inherit a stranger's priority")
+
+
+def _chain_ticket(tid, state, requested_at, source="opendart_korea"):
+    return {"id": tid, "workflow": "backfill-structured-2026.yml", "state": state,
+            "requested_at": requested_at, "attempts": 1, "history": [],
+            "inputs": {"source": source, "start": "2026-01-01", "end": "2026-07-30"}}
+
+
+def test_a_failure_the_chain_recovered_from_is_not_red():
+    """A transient upstream timeout must not redden the drainer forever.
+
+    On 2026-08-01 opendart_korea hit a 45s read timeout at 20:17, the chain
+    requeued itself, and the 22:42 slice landed. The 20:17 ticket kept
+    drain-writers red for five consecutive ticks in between, every one of them
+    reporting a problem that no longer existed. A channel that cries wolf about
+    finished work is a channel that gets filtered.
+    """
+    import writer_queue as wq
+
+    queue = wq.empty_queue()
+    queue["tickets"] = [
+        _chain_ticket("t-failed", "failed", "2026-08-01T20:17:00Z"),
+        _chain_ticket("t-landed", "landed", "2026-08-01T22:42:00Z"),
+    ]
+    state = wq.summary(queue)
+    assert state["problems"] == [], "the chain recovered; nothing needs a human"
+    assert any("t-landed" in n for n in state["recovered"]), \
+        "and the recovery is still reported, not silently dropped"
+
+
+def test_a_failure_with_no_later_success_still_needs_a_human():
+    """The loud path is the point; only EVIDENCE of recovery quiets it."""
+    import writer_queue as wq
+
+    queue = wq.empty_queue()
+    queue["tickets"] = [_chain_ticket("t-failed", "failed", "2026-08-01T20:17:00Z")]
+    assert len(wq.summary(queue)["problems"]) == 1
+
+
+def test_another_chains_success_does_not_clear_this_ones_failure():
+    """bse_india landing says nothing about opendart_korea.
+
+    One workflow drives several independent chains, so chain identity is the
+    workflow AND its exact inputs.
+    """
+    import writer_queue as wq
+
+    queue = wq.empty_queue()
+    queue["tickets"] = [
+        _chain_ticket("t-failed", "failed", "2026-08-01T20:17:00Z"),
+        _chain_ticket("t-other", "landed", "2026-08-01T22:42:00Z", source="bse_india"),
+    ]
+    assert len(wq.summary(queue)["problems"]) == 1
+
+
+def test_an_earlier_success_does_not_excuse_a_later_failure():
+    """Recovery has to come AFTER the failure, or it is not recovery."""
+    import writer_queue as wq
+
+    queue = wq.empty_queue()
+    queue["tickets"] = [
+        _chain_ticket("t-landed", "landed", "2026-08-01T18:00:00Z"),
+        _chain_ticket("t-failed", "failed", "2026-08-01T20:17:00Z"),
+    ]
+    assert len(wq.summary(queue)["problems"]) == 1

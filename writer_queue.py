@@ -667,6 +667,46 @@ def prune(queue: dict, keep_terminal: int = 60) -> dict:
 # what ops_status.py and the health digest read
 # --------------------------------------------------------------------------
 
+def superseded_by(queue: dict, ticket: dict) -> str | None:
+    """The id of a LATER ticket in the same chain that landed, or None.
+
+    A transient upstream failure used to redden drain-writers on every tick
+    until a human cleared it, long after the work had actually succeeded. On
+    2026-08-01 opendart_korea hit a 45s read timeout at 20:17, the chain
+    requeued itself, the 22:42 slice landed, and the 20:17 ticket kept the job
+    red for five consecutive ticks in between. Nothing was wrong by then and
+    every one of those runs said something was.
+
+    That is the alarm-fatigue failure this repo keeps writing rules against: a
+    channel that cries wolf about work that already completed is a channel that
+    gets filtered, and the next real breakage goes unread.
+
+    A chain is workflow + exact inputs, the same identity `chain_priority`
+    uses, because `backfill_slices.next_inputs` re-emits a job's inputs
+    unchanged every slice. So a later LANDED ticket of the same chain is proof
+    the chain got past this failure on its own.
+
+    This is NOT an auto-retry and it does not resurrect anything: the ticket
+    stays failed, stays in the file, and stays visible in `status`. It simply
+    stops being a reason to go red, on evidence rather than on a timer. A
+    failure with no later success behind it still needs a human, which is the
+    case the loud path exists for.
+    """
+    held = {str(k): str(v) for k, v in (ticket.get("inputs") or {}).items()}
+    mine = str(ticket.get("requested_at") or "")
+    for other in queue.get("tickets", []):
+        if other is ticket or other.get("workflow") != ticket.get("workflow"):
+            continue
+        if other.get("state") != "landed":
+            continue
+        theirs = {str(k): str(v) for k, v in (other.get("inputs") or {}).items()}
+        if theirs != held:
+            continue
+        if str(other.get("requested_at") or "") > mine:
+            return str(other.get("id"))
+    return None
+
+
 def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
     """Queue state as plain data. Returns `problems` — anything in it means a
     human is needed, and both ops_status.py and the drainer exit non-zero."""
@@ -679,12 +719,21 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
         counts[ticket["state"]] = counts.get(ticket["state"], 0) + 1
 
     problems: list[str] = []
+    recovered: list[str] = []
     for ticket in tickets:
         if ticket.get("acknowledged"):
             # A human read it and said so. It stays in the file as history; it
             # stops being a reason to go red, because a job that is red forever
             # is a job nobody reads.
             continue
+        if ticket["state"] in ("failed", "abandoned"):
+            later = superseded_by(queue, ticket)
+            if later:
+                # The chain recovered without us. Recorded, not red.
+                recovered.append(
+                    f"{ticket['workflow']} failed at {ticket['id']} and the "
+                    f"chain landed anyway at {later}; no action needed")
+                continue
         if ticket["state"] == "failed":
             problems.append(
                 f"{ticket['workflow']} FAILED ({ticket['id']}) — it will not be "
@@ -734,6 +783,8 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
         "last_dispatch": data.get("last_dispatch"),
         "idle_since": data.get("idle_since"),
         "problems": problems,
+        # Failures the chain recovered from by itself. Reported, never red.
+        "recovered": recovered,
     }
 
 
@@ -873,6 +924,10 @@ def _cmd_tick(args) -> int:
     if after != before:
         save(queue, path)
 
+    # Printed, deliberately not as ::error::. A chain that recovered on its own
+    # is worth seeing in the log and is not worth a red run or an email.
+    for note in state.get("recovered", []):
+        print(f"recovered: {note}")
     for problem in state["problems"]:
         print(f"::error::{problem}")
     if state["problems"]:
