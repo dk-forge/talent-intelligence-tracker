@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T17:56:20Z",
-  "last_tick": "2026-08-01T18:09:52Z",
+  "last_tick": "2026-08-01T18:10:43Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -314,6 +314,32 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T18:10:39Z",
+          "detail": "recover the 3 days run 30662474194 walked but could not fetch (576/576 queries failed)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260801T181039Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-01-24",
+        "fetch_only": "false",
+        "ration": "37",
+        "start": "2026-01-22"
+      },
+      "priority": 10,
+      "reason": "recover the 3 days run 30662474194 walked but could not fetch (576/576 queries failed)",
+      "requested_at": "2026-08-01T18:10:39Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
