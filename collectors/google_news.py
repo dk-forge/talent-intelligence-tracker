@@ -14,6 +14,39 @@ posting those to `batchexecute` returns the publisher URL.
 That matters because a homepage is not a receipt. With resolution working, what
 we store is the article that makes the claim (spec 2 rule 5); without it,
 nothing from this collector is storable at all.
+
+**The edition places the story, and we were throwing that away.** Measured on
+2026-08-01 over every current row:
+
+    collector        pillar                rows   no country
+    google_news      company_development    382   81.4%
+    national_press   company_development    118   35.6%
+    gdelt            company_development    130    5.4%
+    google_news      ALL                    999   70.6%
+
+The other two collectors are not better at geography, they are better INFORMED
+about it: `national_press` folds the publisher's own country into `raw_text` as
+a dateline and `gdelt` does the same with `sourcecountry`. This one passed no
+geography at all, and it is the collector that had it for free the whole time —
+we do not read "Google News", we read the `gl=BR` edition of it, and the
+country is chosen by us at fetch time.
+
+One of the 311 unplaced funding rows is literally "Enigma Raises $71M", the
+headline `collectors/national_press.py`'s docstring was written about.
+
+Passed the same way and with the same discipline: folded into `raw_text` as
+CONTEXT, never written to `raw["country"]`. validate.py treats that field as a
+sourced value, so writing it there would file a story under whichever edition
+happened to surface it.
+
+**And only for the editions where `gl=` actually selects a place.** Measured on
+the same day, every ENGLISH edition returns the same result set as en-US
+(en-GB, en-IE and en-SG at 100%, en-IN and en-ZA at 98%), while every
+non-English edition overlaps it by 0%. See _LANGUAGE_ONLY_EDITIONS below for
+the numbers and the hand-read behind them. A dateline on an English edition
+would put a wrong country on the rows this change exists to fix, and a wrong
+country is worse than an empty one because nothing downstream can tell it from
+a right one.
 """
 
 from __future__ import annotations
@@ -30,6 +63,74 @@ import requests
 RSS_ENDPOINT = "https://news.google.com/rss/search"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 COLLECTOR = "google_news"
+
+
+#: Editions whose `gl=` is a LANGUAGE selector and not a geography one.
+#:
+#: MEASURED 2026-08-01, live, on the leadership query. Every English edition
+#: returns the SAME result set as en-US:
+#:
+#:     en-GB   47 items   100.0% also in the en-US result set
+#:     en-IE   47 items   100.0%
+#:     en-SG   47 items   100.0%
+#:     en-IN   47 items    97.9%
+#:     en-ZA   47 items    97.9%
+#:     de-DE  100 items     0.0%
+#:     pt-BR   47 items     0.0%
+#:     es-MX   64 items     0.0%
+#:     fr-FR   50 items     0.0%
+#:     ja-JP  100 items     0.0%
+#:
+#: `gl=GB` with an English query is not a British edition in any useful sense.
+#: A hand-read of the 14 items it returned put ONE British employer among them
+#: (Restore plc); the other thirteen were Cracker Barrel, Hormel, Conagra, The
+#: Toro Company, Iowa 80, Chemquest, Apple, BBVA Mexico and Banijay. The
+#: en-IN edition scored 2 of 14. The pt-BR edition scored 12 of 14.
+#:
+#: So a dateline on an English edition would tag one identical Cracker Barrel
+#: story as British, Indian, Irish, Singaporean and South African across five
+#: runs — and it would do it hardest on exactly the rows this change exists to
+#: fix, the ones carrying no other geography. That is worse than the empty
+#: country field it replaces: an absent value is honestly absent, and a wrong
+#: one is indistinguishable from a right one on the page.
+#:
+#: en-US is in here too. It is the same global English wire seen from its
+#: largest market, and its 47 items included BBVA Mexico, Banijay and an
+#: Australian data-centre operator.
+#:
+#: This is not a claim about English-speaking markets being uninteresting. It
+#: is a measurement of what `gl=` does, and it says the ten English non-US
+#: editions in source_registry.GOOGLE_NEWS_LOCALES are fetching the anchor
+#: edition again under another name. That is a separate finding and a separate
+#: fix; nothing here changes the rotation.
+_LANGUAGE_ONLY_EDITIONS = frozenset({"en"})
+
+
+def edition_dateline(country_code: str, lang: str = "") -> str:
+    """The edition we queried, as CONTEXT for the classifier.
+
+    Empty for an edition whose `gl=` selects a language rather than a place
+    (see _LANGUAGE_ONLY_EDITIONS above), and empty for a country the vocabulary
+    does not hold — a hint the model cannot act on is a hint the token budget
+    pays for and nothing acts on.
+
+    Deliberately worded as the EDITION and not as the outlet's home. Those are
+    different claims and only one of them is true: `gl=BR` is where we aimed
+    the question, and Brazil's edition still carries stories about elsewhere
+    (2 of the 14 measured). Saying "based in Brazil" would be the collector
+    asserting something it does not know, which is the failure the
+    never-write-raw["country"] rule exists to prevent, one layer up.
+    """
+    from pipeline import vocab
+
+    if (lang or "").strip().lower() in _LANGUAGE_ONLY_EDITIONS:
+        return ""
+    code = (country_code or "").strip().upper()
+    name = vocab.COUNTRY_NAMES.get(code)
+    if not name:
+        return ""
+    return (f"(Google News {name} edition — the edition queried, "
+            f"a hint, not a stated fact.)")
 
 
 def build_query_url(query: str, *, lang: str = "en", country: str = "US") -> str:
@@ -50,16 +151,22 @@ def fetch(query: str, *, lang: str = "en", country: str = "US", timeout: int = 3
         timeout=timeout,
     )
     resp.raise_for_status()
-    return parse(resp.content, query)
+    return parse(resp.content, query, country=country, lang=lang)
 
 
-def parse(xml_bytes: bytes, query: str = "") -> list[dict]:
+def parse(xml_bytes: bytes, query: str = "", *, country: str = "",
+          lang: str = "") -> list[dict]:
     """Parse an RSS payload into raw dicts.
 
     Kept separate from fetch() so tests run offline against captured fixtures.
+
+    `country` is the edition's ISO code and `lang` its language. Both default
+    to empty rather than to "US"/"en" on purpose: a caller that forgets to pass
+    them should add no dateline, not silently label every item American.
     """
     root = ET.fromstring(xml_bytes)
     items = []
+    line = edition_dateline(country, lang)
 
     for node in root.findall(".//item"):
         title = _text(node, "title")
@@ -72,9 +179,18 @@ def parse(xml_bytes: bytes, query: str = "") -> list[dict]:
         source_url = (source_el.get("url") or "").strip() if source_el is not None else ""
 
         items.append({
+            # The edition's own code, kept out of raw["country"] on purpose
+            # (see the module docstring). Carried so a later stage can tell
+            # which edition surfaced a story without re-deriving it.
+            "edition_country": (country or "").strip().upper(),
             # raw_text is what the classifier reads. A collector that forgets
-            # this posts zero records forever (spec 6 rule 2).
-            "raw_text": f"{title}\n\n{_text(node, 'description')}".strip(),
+            # this posts zero records forever (spec 6 rule 2). The dateline is
+            # appended rather than prepended so the headline still leads: the
+            # gate reads the first tokens hardest, and the country is context.
+            "raw_text": "\n\n".join(
+                part for part in (title, _text(node, "description"), line)
+                if part
+            ).strip(),
             "headline": title,
             "discovery_url": link,
             "source_url": source_url or link,
