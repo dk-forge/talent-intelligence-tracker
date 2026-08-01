@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T01:10:49Z",
-  "last_tick": "2026-08-01T01:16:45Z",
+  "last_dispatch": "2026-08-01T01:36:33Z",
+  "last_tick": "2026-08-01T01:36:33Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,12 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T01:36:33Z",
       "history": [
         {
           "at": "2026-07-31T23:35:41Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-01)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T01:36:33Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T233541Z-backfill-gdelt-2026",
@@ -189,7 +194,7 @@
       "requested_at": "2026-07-31T23:35:41Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -220,38 +225,6 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T01:10:49Z",
-      "history": [
-        {
-          "at": "2026-08-01T00:58:49Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T01:10:49Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T01:16:45Z",
-          "detail": "run 30677332204",
-          "event": "bound"
-        }
-      ],
-      "id": "20260801T005849Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-01T00:58:49Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30677332204",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -275,45 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:50:13Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:49:13Z",
-          "detail": "guardrail finding rejected on the filing: e0931724fe15",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:50:13Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "run 30481725300",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "run 30481725300",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184913Z-retract",
-      "inputs": {
-        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Defined Contribution Plan Custody Account, the offering amount is Indefinite, with Investment Company Act exclusions 3C.3 and 3C.7, sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
-        "signal_id": "e0931724fe156dccf3d23e0899495714"
-      },
-      "landed_at": "2026-07-29T18:51:00Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: e0931724fe15",
-      "requested_at": "2026-07-29T18:49:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481725300",
-      "state": "landed",
-      "workflow": "retract.yml"
     },
     {
       "attempts": 0,
@@ -2719,6 +2653,44 @@
       "run_id": "30676090333",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T01:10:49Z",
+      "history": [
+        {
+          "at": "2026-08-01T00:58:49Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T01:10:49Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T01:16:45Z",
+          "detail": "run 30677332204",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T01:36:33Z",
+          "detail": "run 30677332204",
+          "event": "landed"
+        }
+      ],
+      "id": "20260801T005849Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-01T01:36:33Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-01T00:58:49Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30677332204",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
