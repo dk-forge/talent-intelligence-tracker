@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T07:38:30Z",
-  "last_tick": "2026-08-01T07:38:30Z",
+  "last_dispatch": "2026-08-01T07:43:39Z",
+  "last_tick": "2026-08-01T07:43:39Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,12 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T07:43:39Z",
       "history": [
         {
           "at": "2026-08-01T05:41:15Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-16)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T07:43:39Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T054115Z-backfill-gdelt-2026",
@@ -189,7 +194,7 @@
       "requested_at": "2026-08-01T05:41:15Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -220,33 +225,6 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T07:38:30Z",
-      "history": [
-        {
-          "at": "2026-08-01T06:17:45Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T07:38:30Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260801T061745Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-08-01T06:17:45Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -270,44 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T20:59:35Z",
-      "history": [
-        {
-          "at": "2026-07-29T20:59:25Z",
-          "detail": "dry run: prove the 11 employers and 38 rows in CI before writing",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T20:59:35Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T21:00:57Z",
-          "detail": "run 30490608515",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T21:00:57Z",
-          "detail": "run 30490608515",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T205925Z-correct-company-key",
-      "inputs": {
-        "dry_run": "true"
-      },
-      "landed_at": "2026-07-29T21:00:57Z",
-      "priority": 0,
-      "reason": "dry run: prove the 11 employers and 38 rows in CI before writing",
-      "requested_at": "2026-07-29T20:59:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30490608515",
-      "state": "landed",
-      "workflow": "correct-company-key.yml"
     },
     {
       "attempts": 0,
@@ -2741,6 +2681,44 @@
       "run_id": "30687348539",
       "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T07:38:30Z",
+      "history": [
+        {
+          "at": "2026-08-01T06:17:45Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T07:38:30Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T07:43:39Z",
+          "detail": "run 30690141925",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T07:43:39Z",
+          "detail": "run 30690141925",
+          "event": "landed"
+        }
+      ],
+      "id": "20260801T061745Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-01T07:43:39Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-01T06:17:45Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30690141925",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
