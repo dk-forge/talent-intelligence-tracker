@@ -242,8 +242,29 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Cost discipline
 
-Budget is **$25/month** (`spend.MONTHLY_ALLOWANCE_USD`, the owner's number,
-raised from $10 on 2026-07-30), all LLM. It holds because: candidates are
+Budget is **$5/month** (`spend.MONTHLY_ALLOWANCE_USD`, the owner's number:
+$10 on 2026-07-29, $25 on 2026-07-30, back to $5 on 2026-07-31), all LLM.
+
+**$5 DOES NOT FIT THE CURRENT ARCHITECTURE, and that is the honest state of
+this project rather than a bug to tune away.** `cost_projection.py [5]` at the
+$5 ceiling: the LLM gate alone costs **$4.41/month**, leaving $0.59 for
+read-throughs — 14 reads/day against a demand of 1,102/day, which is **1% of
+full coverage**, and per-source caps of `1` for both google_news and
+national_press. Full coverage is $49.14. Tuning caps cannot close a gap that
+the gate has already spent.
+
+So the road to $5 is **making the gate free**, not rationing reads: replace the
+paid LLM gate with a trained classifier (`docs/PLAN-gate-to-five-dollars.md`,
+steps 2-5). That needs labelled gate decisions, which `pipeline/gate_ledger.py`
+records — see the warning on that module before assuming it is collecting them.
+
+Until the gate is free, `spend.py --degrade` is what keeps the promise: it
+switches paid reads off partway through the month and lets every free
+collector, the free prefilter and both dedup layers keep running. Degraded is
+the DESIGNED state at this ceiling, not an incident. Do not raise the allowance
+to make it stop.
+
+The $5 holds at all because: candidates are
 keyword-gated before the model sees them; already-seen URLs are skipped *before*
 any spend; the classification prompt is deliberately tiny; the read-through is
 bought LAST, only for a record both dedup layers have already agreed will store;

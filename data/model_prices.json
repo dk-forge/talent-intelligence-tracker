@@ -69,20 +69,10 @@
   "completion": 5e-05,
   "prompt": 1e-05
  },
- "anthropic/claude-fable-5:batch": {
-  "cache_read": 5e-07,
-  "completion": 2.5e-05,
-  "prompt": 5e-06
- },
  "anthropic/claude-haiku-4.5": {
   "cache_read": 1e-07,
   "completion": 5e-06,
   "prompt": 1e-06
- },
- "anthropic/claude-haiku-4.5:batch": {
-  "cache_read": 5e-08,
-  "completion": 2.5e-06,
-  "prompt": 5e-07
  },
  "anthropic/claude-opus-4": {
   "cache_read": 1.5e-06,
@@ -94,30 +84,15 @@
   "completion": 7.5e-05,
   "prompt": 1.5e-05
  },
- "anthropic/claude-opus-4.1:batch": {
-  "cache_read": 7.5e-07,
-  "completion": 3.75e-05,
-  "prompt": 7.5e-06
- },
  "anthropic/claude-opus-4.5": {
   "cache_read": 5e-07,
   "completion": 2.5e-05,
   "prompt": 5e-06
  },
- "anthropic/claude-opus-4.5:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.25e-05,
-  "prompt": 2.5e-06
- },
  "anthropic/claude-opus-4.6": {
   "cache_read": 5e-07,
   "completion": 2.5e-05,
   "prompt": 5e-06
- },
- "anthropic/claude-opus-4.6:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.25e-05,
-  "prompt": 2.5e-06
  },
  "anthropic/claude-opus-4.7": {
   "cache_read": 5e-07,
@@ -129,11 +104,6 @@
   "completion": 0.00015,
   "prompt": 3e-05
  },
- "anthropic/claude-opus-4.7:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.25e-05,
-  "prompt": 2.5e-06
- },
  "anthropic/claude-opus-4.8": {
   "cache_read": 5e-07,
   "completion": 2.5e-05,
@@ -143,11 +113,6 @@
   "cache_read": 1e-06,
   "completion": 5e-05,
   "prompt": 1e-05
- },
- "anthropic/claude-opus-4.8:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.25e-05,
-  "prompt": 2.5e-06
  },
  "anthropic/claude-opus-5": {
   "cache_read": 5e-07,
@@ -169,11 +134,6 @@
   "completion": 1.5e-05,
   "prompt": 3e-06
  },
- "anthropic/claude-sonnet-4.5:batch": {
-  "cache_read": 1.5e-07,
-  "completion": 7.5e-06,
-  "prompt": 1.5e-06
- },
  "anthropic/claude-sonnet-4.6": {
   "cache_read": 3e-07,
   "completion": 1.5e-05,
@@ -183,11 +143,6 @@
   "cache_read": 2e-07,
   "completion": 1e-05,
   "prompt": 2e-06
- },
- "anthropic/claude-sonnet-5:batch": {
-  "cache_read": 1e-07,
-  "completion": 5e-06,
-  "prompt": 1e-06
  },
  "arcee-ai/trinity-large-thinking": {
   "cache_read": 6e-08,
@@ -314,6 +269,11 @@
   "completion": 2.8e-07,
   "prompt": 1.4e-07
  },
+ "deepseek/deepseek-v4-flash-0731": {
+  "cache_read": 2.8e-09,
+  "completion": 2.8e-07,
+  "prompt": 1.4e-07
+ },
  "deepseek/deepseek-v4-pro": {
   "cache_read": 3.625e-09,
   "completion": 8.7e-07,
@@ -334,16 +294,6 @@
   "completion": 4e-07,
   "prompt": 1e-07
  },
- "google/gemini-2.5-flash-lite:batch": {
-  "cache_read": 1e-08,
-  "completion": 2e-07,
-  "prompt": 5e-08
- },
- "google/gemini-2.5-flash:batch": {
-  "cache_read": 3e-08,
-  "completion": 1.25e-06,
-  "prompt": 1.5e-07
- },
  "google/gemini-2.5-pro": {
   "cache_read": 1.25e-07,
   "completion": 1e-05,
@@ -359,20 +309,10 @@
   "completion": 1e-05,
   "prompt": 1.25e-06
  },
- "google/gemini-2.5-pro:batch": {
-  "cache_read": 1.25e-07,
-  "completion": 5e-06,
-  "prompt": 6.25e-07
- },
  "google/gemini-3-flash-preview": {
   "cache_read": 5e-08,
   "completion": 3e-06,
   "prompt": 5e-07
- },
- "google/gemini-3-flash-preview:batch": {
-  "cache_read": null,
-  "completion": 1.5e-06,
-  "prompt": 2.5e-07
  },
  "google/gemini-3-pro-image": {
   "cache_read": 2e-07,
@@ -409,11 +349,6 @@
   "completion": 1.5e-06,
   "prompt": 2.5e-07
  },
- "google/gemini-3.1-flash-lite:batch": {
-  "cache_read": 1.25e-08,
-  "completion": 7.5e-07,
-  "prompt": 1.25e-07
- },
  "google/gemini-3.1-pro-preview": {
   "cache_read": 2e-07,
   "completion": 1.2e-05,
@@ -423,11 +358,6 @@
   "cache_read": 2e-07,
   "completion": 1.2e-05,
   "prompt": 2e-06
- },
- "google/gemini-3.1-pro-preview:batch": {
-  "cache_read": null,
-  "completion": 6e-06,
-  "prompt": 1e-06
  },
  "google/gemini-3.5-flash": {
   "cache_read": 1.5e-07,
@@ -439,25 +369,10 @@
   "completion": 2.5e-06,
   "prompt": 3e-07
  },
- "google/gemini-3.5-flash-lite:batch": {
-  "cache_read": 1.5e-08,
-  "completion": 1.25e-06,
-  "prompt": 1.5e-07
- },
- "google/gemini-3.5-flash:batch": {
-  "cache_read": 7.5e-08,
-  "completion": 4.5e-06,
-  "prompt": 7.5e-07
- },
  "google/gemini-3.6-flash": {
   "cache_read": 1.5e-07,
   "completion": 7.5e-06,
   "prompt": 1.5e-06
- },
- "google/gemini-3.6-flash:batch": {
-  "cache_read": 7.5e-08,
-  "completion": 3.75e-06,
-  "prompt": 7.5e-07
  },
  "google/gemma-2-27b-it": {
   "cache_read": null,
@@ -674,20 +589,10 @@
   "completion": 1.2e-06,
   "prompt": 3e-07
  },
- "minimax/minimax-m3:batch": {
-  "cache_read": 3e-08,
-  "completion": 6e-07,
-  "prompt": 1.5e-07
- },
  "mistralai/codestral-2508": {
   "cache_read": 3e-08,
   "completion": 9e-07,
   "prompt": 3e-07
- },
- "mistralai/devstral-2512": {
-  "cache_read": 4e-08,
-  "completion": 2e-06,
-  "prompt": 4e-07
  },
  "mistralai/ministral-14b-2512": {
   "cache_read": 2e-08,
@@ -760,9 +665,9 @@
   "prompt": 3.51e-07
  },
  "mistralai/mistral-small-3.2-24b-instruct": {
-  "cache_read": 1e-08,
-  "completion": 3e-07,
-  "prompt": 1e-07
+  "cache_read": null,
+  "completion": 2e-07,
+  "prompt": 7.5e-08
  },
  "mistralai/mixtral-8x22b-instruct": {
   "cache_read": 2e-07,
@@ -795,9 +700,9 @@
   "prompt": 5.7e-07
  },
  "moonshotai/kimi-k2.6": {
-  "cache_read": 1.6e-07,
-  "completion": 4e-06,
-  "prompt": 9.5e-07
+  "cache_read": 2e-07,
+  "completion": 3.41e-06,
+  "prompt": 6e-07
  },
  "moonshotai/kimi-k2.7-code": {
   "cache_read": 1.5e-07,
@@ -850,7 +755,7 @@
   "prompt": 1.3e-07
  },
  "nvidia/nemotron-3-nano-30b-a3b": {
-  "cache_read": 2.5e-08,
+  "cache_read": 3e-08,
   "completion": 2e-07,
   "prompt": 5e-08
  },
@@ -999,20 +904,10 @@
   "completion": 2e-06,
   "prompt": 2.5e-07
  },
- "openai/gpt-5-mini:batch": {
-  "cache_read": 1.25e-08,
-  "completion": 1e-06,
-  "prompt": 1.25e-07
- },
  "openai/gpt-5-nano": {
   "cache_read": 5e-09,
   "completion": 4e-07,
   "prompt": 5e-08
- },
- "openai/gpt-5-nano:batch": {
-  "cache_read": 2.5e-09,
-  "completion": 2e-07,
-  "prompt": 2.5e-08
  },
  "openai/gpt-5-pro": {
   "cache_read": null,
@@ -1021,11 +916,6 @@
  },
  "openai/gpt-5.1": {
   "cache_read": 1.25e-07,
-  "completion": 1e-05,
-  "prompt": 1.25e-06
- },
- "openai/gpt-5.1-chat": {
-  "cache_read": 1.3e-07,
   "completion": 1e-05,
   "prompt": 1.25e-06
  },
@@ -1043,11 +933,6 @@
   "cache_read": 3e-08,
   "completion": 2e-06,
   "prompt": 2.5e-07
- },
- "openai/gpt-5.1:batch": {
-  "cache_read": 6.25e-08,
-  "completion": 5e-06,
-  "prompt": 6.25e-07
  },
  "openai/gpt-5.2": {
   "cache_read": 1.75e-07,
@@ -1068,11 +953,6 @@
   "cache_read": null,
   "completion": 0.000168,
   "prompt": 2.1e-05
- },
- "openai/gpt-5.2:batch": {
-  "cache_read": 8.75e-08,
-  "completion": 7e-06,
-  "prompt": 8.75e-07
  },
  "openai/gpt-5.3-chat": {
   "cache_read": 1.75e-07,
@@ -1099,30 +979,15 @@
   "completion": 4.5e-06,
   "prompt": 7.5e-07
  },
- "openai/gpt-5.4-mini:batch": {
-  "cache_read": 3.75e-08,
-  "completion": 2.25e-06,
-  "prompt": 3.75e-07
- },
  "openai/gpt-5.4-nano": {
   "cache_read": 2e-08,
   "completion": 1.25e-06,
   "prompt": 2e-07
  },
- "openai/gpt-5.4-nano:batch": {
-  "cache_read": 1e-08,
-  "completion": 6.25e-07,
-  "prompt": 1e-07
- },
  "openai/gpt-5.4-pro": {
   "cache_read": null,
   "completion": 0.00018,
   "prompt": 3e-05
- },
- "openai/gpt-5.4:batch": {
-  "cache_read": 1.25e-07,
-  "completion": 7.5e-06,
-  "prompt": 1.25e-06
  },
  "openai/gpt-5.5": {
   "cache_read": 5e-07,
@@ -1133,11 +998,6 @@
   "cache_read": null,
   "completion": 0.00018,
   "prompt": 3e-05
- },
- "openai/gpt-5.5:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.5e-05,
-  "prompt": 2.5e-06
  },
  "openai/gpt-5.6-luna": {
   "cache_read": 1e-08,
@@ -1169,11 +1029,6 @@
   "completion": 6e-06,
   "prompt": 1.0000000000000002e-06
  },
- "openai/gpt-5:batch": {
-  "cache_read": 6.25e-08,
-  "completion": 5e-06,
-  "prompt": 6.25e-07
- },
  "openai/gpt-audio": {
   "cache_read": null,
   "completion": 1e-05,
@@ -1195,8 +1050,8 @@
   "prompt": 3.7e-08
  },
  "openai/gpt-oss-20b": {
-  "cache_read": 3e-08,
-  "completion": 1.3e-07,
+  "cache_read": null,
+  "completion": 1.4e-07,
   "prompt": 3e-08
  },
  "openai/gpt-oss-20b:free": {
@@ -1381,8 +1236,8 @@
  },
  "qwen/qwen3-235b-a22b-thinking-2507": {
   "cache_read": null,
-  "completion": 3e-06,
-  "prompt": 3e-07
+  "completion": 2.3e-06,
+  "prompt": 2.3e-07
  },
  "qwen/qwen3-30b-a3b": {
   "cache_read": null,
@@ -1416,7 +1271,7 @@
  },
  "qwen/qwen3-coder-30b-a3b-instruct": {
   "cache_read": null,
-  "completion": 2.7e-07,
+  "completion": 2.8e-07,
   "prompt": 7e-08
  },
  "qwen/qwen3-coder-flash": {
@@ -1466,8 +1321,8 @@
  },
  "qwen/qwen3-vl-30b-a3b-instruct": {
   "cache_read": null,
-  "completion": 6e-07,
-  "prompt": 1.5e-07
+  "completion": 5.2e-07,
+  "prompt": 1.3e-07
  },
  "qwen/qwen3-vl-30b-a3b-thinking": {
   "cache_read": null,
@@ -1659,6 +1514,11 @@
   "completion": 4.05e-06,
   "prompt": 1e-06
  },
+ "thinkingmachines/inkling-small": {
+  "cache_read": 1e-07,
+  "completion": 1.2e-06,
+  "prompt": 5e-07
+ },
  "undi95/remm-slerp-l2-13b": {
   "cache_read": null,
   "completion": 6.5e-07,
@@ -1760,9 +1620,9 @@
   "prompt": 9.66e-07
  },
  "z-ai/glm-5.2": {
-  "cache_read": 1.794e-07,
-  "completion": 3.036e-06,
-  "prompt": 9.66e-07
+  "cache_read": 2.08e-07,
+  "completion": 3.52e-06,
+  "prompt": 1.12e-06
  },
  "z-ai/glm-5v-turbo": {
   "cache_read": 2.4e-07,

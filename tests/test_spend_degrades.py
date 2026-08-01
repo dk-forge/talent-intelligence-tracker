@@ -38,8 +38,14 @@ def stats():
 # --- the allowance -----------------------------------------------------------
 
 def test_the_allowance_is_the_number_the_owner_set():
-    """$25, raised from $10 on 2026-07-30. Policy, in a diff, not a secret."""
-    assert spend.MONTHLY_ALLOWANCE_USD == 25.0
+    """$5. Policy, in a diff, not a secret.
+
+    $10 -> $25 on 2026-07-30, $25 -> $5 on 2026-07-31, both by the owner. This
+    test exists because the file kept $25 for a day after the owner had gone
+    back to $5, and every cost decision taken in that window was measured
+    against a ceiling five times too high.
+    """
+    assert spend.MONTHLY_ALLOWANCE_USD == 5.0
     assert spend.STOP_AT_FRACTION == 0.9
 
 

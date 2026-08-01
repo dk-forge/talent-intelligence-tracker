@@ -47,13 +47,21 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # The budget the owner set. Kept here rather than in a secret so it is
 # reviewable in a diff — it is a policy, not a credential.
 #
-# RAISED 10.0 -> 25.0 on 2026-07-30, by the owner: "pulling everything worldwide
-# and everything's been done for $25 per month". $10 was not a budget for the
-# coverage being asked for — it stopped collection on 2026-07-30 at $9.47 with
-# 49 gate survivors deferred in a single press run, most of them the non-US
-# stories the coverage gap is made of. What $25 does and does not buy is
-# arithmetic, not opinion: run `python cost_projection.py`.
-MONTHLY_ALLOWANCE_USD = 25.0
+# 10.0 -> 25.0 on 2026-07-30, then -> 5.0 on 2026-07-31. Both by the owner, and
+# the second is the one that stands: "it's supposed to be $5 a month for open
+# credit remember?", "well close to $5 a month". The $25 was said while scoping
+# worldwide coverage and this file kept it for a day after the owner had gone
+# back to $5 — so every cost decision in that window was measured against a
+# ceiling five times too high, and a "two weeks of runway left" warning was
+# raised on the strength of it that was never true.
+#
+# $5 is a HARDER constraint than the coverage currently costs, and that is the
+# point: it is the target the architecture is being rebuilt to meet, not a
+# description of today. What $5 does and does not buy is arithmetic, not
+# opinion: run `python cost_projection.py`. Do not raise this to make a red
+# run green — degrading is the designed response, and the free collectors,
+# the free prefilter and both dedup layers do not spend a cent.
+MONTHLY_ALLOWANCE_USD = 5.0
 
 # Stop collecting with headroom left, so a long run cannot overshoot mid-batch.
 STOP_AT_FRACTION = 0.9
