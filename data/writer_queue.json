@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-07-31T23:36:03Z",
-  "last_tick": "2026-08-01T00:31:39Z",
+  "last_dispatch": "2026-08-01T00:39:50Z",
+  "last_tick": "2026-08-01T00:39:50Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -168,48 +168,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-31T23:36:03Z",
-      "history": [
-        {
-          "at": "2026-07-31T19:34:30Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-25)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T23:36:03Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T23:48:34Z",
-          "detail": "run 30673334956",
-          "event": "bound"
-        }
-      ],
-      "id": "20260731T193430Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-25)",
-      "requested_at": "2026-07-31T19:34:30Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30673334956",
-      "state": "dispatched",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T00:39:50Z",
       "history": [
         {
           "at": "2026-07-31T21:34:13Z",
           "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-25)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T00:39:50Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260731T213413Z-backfill-gnews-2026",
@@ -225,7 +194,7 @@
       "requested_at": "2026-07-31T21:34:13Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -279,45 +248,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:48:09Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:47:58Z",
-          "detail": "guardrail finding rejected on the filing: a7ea0346ba8c",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:48:09Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:48:48Z",
-          "detail": "run 30481572578",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:48:48Z",
-          "detail": "run 30481572578",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184758Z-retract",
-      "inputs": {
-        "reason": "Not funding. The Form D itself answers yes to business combination transaction and explains: merger of W.D. Company, Inc. with and into Dillard's, Inc. The amount is stated as estimated based on the closing price of Dillard's Class A common stock on 2026-06-02, so it is the value of shares issued as merger consideration and no cash was raised.",
-        "signal_id": "a7ea0346ba8cb074f447a7e0f78687d3"
-      },
-      "landed_at": "2026-07-29T18:48:48Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: a7ea0346ba8c",
-      "requested_at": "2026-07-29T18:47:58Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481572578",
-      "state": "landed",
-      "workflow": "retract.yml"
     },
     {
       "attempts": 0,
@@ -2679,6 +2609,48 @@
       "requested_at": "2026-07-31T18:29:53Z",
       "requested_by": "backfill-slices",
       "run_id": "30670319726",
+      "state": "landed",
+      "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-07-31T23:36:03Z",
+      "history": [
+        {
+          "at": "2026-07-31T19:34:30Z",
+          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-25)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-07-31T23:36:03Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-07-31T23:48:34Z",
+          "detail": "run 30673334956",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T00:39:50Z",
+          "detail": "run 30673334956",
+          "event": "landed"
+        }
+      ],
+      "id": "20260731T193430Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "35",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-01T00:39:50Z",
+      "priority": 10,
+      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-25)",
+      "requested_at": "2026-07-31T19:34:30Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30673334956",
       "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
     },
