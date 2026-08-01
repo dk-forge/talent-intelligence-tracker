@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T16:56:22Z",
-  "last_tick": "2026-08-01T16:57:02Z",
+  "last_tick": "2026-08-01T16:57:19Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -362,6 +362,29 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T16:57:15Z",
+          "detail": "2026 catch-up: Japan. One list call per calendar day over 2026, per the backfill-structured planner. Costs $0 - no model call.",
+          "event": "queued"
+        }
+      ],
+      "id": "20260801T165715Z-collect-structured",
+      "inputs": {
+        "days": "211",
+        "source": "edinet_japan"
+      },
+      "priority": 5,
+      "reason": "2026 catch-up: Japan. One list call per calendar day over 2026, per the backfill-structured planner. Costs $0 - no model call.",
+      "requested_at": "2026-08-01T16:57:15Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-structured.yml"
     },
     {
       "attempts": 0,
