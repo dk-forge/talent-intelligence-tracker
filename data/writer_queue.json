@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-01T01:36:33Z",
-  "last_tick": "2026-08-01T01:36:33Z",
+  "last_tick": "2026-08-01T02:07:08Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -179,6 +179,11 @@
           "at": "2026-08-01T01:36:33Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T02:07:08Z",
+          "detail": "run 30678284497",
+          "event": "bound"
         }
       ],
       "id": "20260731T233541Z-backfill-gdelt-2026",
@@ -193,7 +198,7 @@
       "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-01)",
       "requested_at": "2026-07-31T23:35:41Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30678284497",
       "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
@@ -1044,6 +1049,7 @@
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
+      "acknowledged": "2026-08-01T02:07:03Z",
       "attempts": 0,
       "dispatched_at": "2026-07-31T00:50:44Z",
       "history": [
@@ -1066,6 +1072,11 @@
           "at": "2026-07-31T00:52:45Z",
           "detail": "cancelled after starting; needs a human",
           "event": "cancelled-mid-run"
+        },
+        {
+          "at": "2026-08-01T02:07:03Z",
+          "detail": " (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260730T212009Z-backfill-structured-2026",
@@ -1161,6 +1172,7 @@
       "workflow": "correct-funding-amount.yml"
     },
     {
+      "acknowledged": "2026-08-01T02:07:03Z",
       "attempts": 0,
       "dispatched_at": "2026-07-31T00:52:45Z",
       "history": [
@@ -1183,6 +1195,11 @@
           "at": "2026-07-31T00:59:39Z",
           "detail": "cancelled after starting; needs a human",
           "event": "cancelled-mid-run"
+        },
+        {
+          "at": "2026-08-01T02:07:03Z",
+          "detail": " (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260730T214725Z-backfill-structured-2026",
@@ -1447,6 +1464,7 @@
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
+      "acknowledged": "2026-08-01T02:07:03Z",
       "attempts": 0,
       "dispatched_at": "2026-07-31T00:24:44Z",
       "history": [
@@ -1469,6 +1487,11 @@
           "at": "2026-07-31T00:49:12Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-01T02:07:03Z",
+          "detail": " (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260731T001309Z-collect",
@@ -1485,6 +1508,7 @@
       "workflow": "collect.yml"
     },
     {
+      "acknowledged": "2026-08-01T02:07:03Z",
       "attempts": 0,
       "dispatched_at": "2026-07-31T00:49:12Z",
       "history": [
@@ -1507,6 +1531,11 @@
           "at": "2026-07-31T00:50:44Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-01T02:07:03Z",
+          "detail": " (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260731T002708Z-enrich",
@@ -2452,6 +2481,7 @@
       "workflow": "archive-sources.yml"
     },
     {
+      "acknowledged": "2026-08-01T02:07:03Z",
       "attempts": 0,
       "dispatched_at": "2026-07-31T20:19:59Z",
       "history": [
@@ -2474,6 +2504,11 @@
           "at": "2026-07-31T21:34:43Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-01T02:07:03Z",
+          "detail": " (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260731T170346Z-backfill-gnews-2026",
