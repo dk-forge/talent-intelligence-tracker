@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T16:56:22Z",
-  "last_tick": "2026-08-01T17:07:24Z",
+  "last_dispatch": "2026-08-01T17:22:42Z",
+  "last_tick": "2026-08-01T17:22:42Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -229,44 +229,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T16:56:22Z",
-      "history": [
-        {
-          "at": "2026-08-01T16:39:02Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T16:56:22Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T16:57:02Z",
-          "detail": "run 30709237921",
-          "event": "bound"
-        }
-      ],
-      "id": "20260801T163902Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-01T16:39:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30709237921",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T17:22:42Z",
       "history": [
         {
           "at": "2026-08-01T16:54:59Z",
           "detail": "2026 catch-up: resume the stalled bse_india chain (cursor 2026-01-29, 7 slices left). Costs $0 - as_classified, no model call.",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T17:22:42Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T165459Z-backfill-structured-2026",
@@ -282,7 +255,7 @@
       "requested_at": "2026-08-01T16:54:59Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
     {
@@ -385,44 +358,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-30T21:49:06Z",
-      "history": [
-        {
-          "at": "2026-07-30T21:38:37Z",
-          "detail": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T21:49:06Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-30T21:49:43Z",
-          "detail": "run 30584878032",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-30T21:49:43Z",
-          "detail": "run 30584878032",
-          "event": "landed"
-        }
-      ],
-      "id": "20260730T213837Z-correct-funding-amount",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-07-30T21:49:43Z",
-      "priority": 0,
-      "reason": "re-derive funding_amount_usd: 12 of 3,254 live rows hold a two- or three-digit figure for a round of millions (7 corrected, 5 cleared, +$340,148,335)",
-      "requested_at": "2026-07-30T21:38:37Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30584878032",
-      "state": "landed",
-      "workflow": "correct-funding-amount.yml"
     },
     {
       "acknowledged": "2026-08-01T02:07:03Z",
@@ -2849,6 +2784,44 @@
       "run_id": "30708194937",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T16:56:22Z",
+      "history": [
+        {
+          "at": "2026-08-01T16:39:02Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T16:56:22Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T16:57:02Z",
+          "detail": "run 30709237921",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T17:22:42Z",
+          "detail": "run 30709237921",
+          "event": "landed"
+        }
+      ],
+      "id": "20260801T163902Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-01T17:22:42Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-01T16:39:02Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30709237921",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
