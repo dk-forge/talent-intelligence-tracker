@@ -278,6 +278,32 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-01T07:15:20Z",
+          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-19)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260801T071520Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "35",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-19)",
+      "requested_at": "2026-08-01T07:15:20Z",
+      "requested_by": "backfill-slices",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-07-29T19:45:27Z",
       "history": [
         {
