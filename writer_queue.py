@@ -940,8 +940,15 @@ def _cmd_resolve(args) -> int:
         orphan["resolved"] = _iso(_now())
         orphan["resolved_note"] = args.note
 
+    # "all" covers FAILED TICKETS too, not just orphans. It did not, and the
+    # help text promised it did ("mark an orphan run, or a failed ticket,
+    # handled"), so `resolve=all` looked like it had cleared the backlog and
+    # left five failed tickets untouched. drain-writers then went red on every
+    # tick for hours — the permanently-red job this function exists to prevent,
+    # reintroduced by the escape hatch itself (2026-08-01).
     tickets = [t for t in queue.get("tickets", [])
-               if t["id"] == target and t["state"] in ("failed", "abandoned")
+               if (target == "all" or t["id"] == target)
+               and t["state"] in ("failed", "abandoned")
                and not t.get("acknowledged")]
     for ticket in tickets:
         ticket["acknowledged"] = _iso(_now())

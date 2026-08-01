@@ -754,3 +754,48 @@ def test_a_queued_ticket_cannot_be_silenced_by_acknowledging_it(tmp_path):
     ticket = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"})
     wq.save(queue, path)
     assert wq.main(["--file", str(path), "resolve", ticket["id"]]) == 2
+
+
+def test_resolve_all_acknowledges_failed_tickets_not_only_orphans():
+    """`resolve=all` promised "an orphan run, or a failed ticket" and delivered
+    only orphans.
+
+    On 2026-08-01 a `resolve=all` looked like it had cleared the backlog and
+    left five failed tickets untouched, so drain-writers went red on every tick
+    for hours. That is the permanently-red job `_cmd_resolve` exists to
+    prevent, reintroduced by the escape hatch itself: an operator who runs the
+    documented command and still sees red learns to stop reading the red.
+    """
+    import types
+
+    import writer_queue as wq
+
+    queue = wq.empty_queue()
+    queue["orphans"] = [{"run_id": "111", "workflow": "collect"}]
+    queue["tickets"] = [
+        {"id": "t-failed", "workflow": "collect.yml", "state": "failed",
+         "history": []},
+        {"id": "t-abandoned", "workflow": "enrich.yml", "state": "abandoned",
+         "history": []},
+        {"id": "t-landed", "workflow": "recall.yml", "state": "landed",
+         "history": []},
+    ]
+
+    import json
+    import tempfile
+    import pathlib
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = pathlib.Path(tmp) / "q.json"
+        path.write_text(json.dumps(queue))
+        rc = wq._cmd_resolve(types.SimpleNamespace(
+            file=str(path), run_id="all", note="cleared after an outage"))
+        assert rc == 0
+        after = json.loads(path.read_text())
+
+    assert after["orphans"][0]["resolved"], "the orphan still resolves"
+    by_id = {t["id"]: t for t in after["tickets"]}
+    assert by_id["t-failed"].get("acknowledged"), "a failed ticket must clear"
+    assert by_id["t-abandoned"].get("acknowledged"), "abandoned clears too"
+    # A landed ticket was never a problem and must not be touched.
+    assert not by_id["t-landed"].get("acknowledged")
