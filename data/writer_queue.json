@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T20:17:17Z",
-  "last_tick": "2026-08-01T20:17:17Z",
+  "last_dispatch": "2026-08-01T20:23:49Z",
+  "last_tick": "2026-08-01T20:23:49Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -177,43 +177,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T20:17:17Z",
-      "history": [
-        {
-          "at": "2026-08-01T18:09:48Z",
-          "detail": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T20:17:17Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260801T180948Z-backfill-structured-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "source": "opendart_korea",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend",
-      "requested_at": "2026-08-01T18:09:48Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T20:23:49Z",
       "history": [
         {
           "at": "2026-08-01T18:10:39Z",
           "detail": "recover the 3 days run 30662474194 walked but could not fetch (576/576 queries failed)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T20:23:49Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T181039Z-backfill-gnews-2026",
@@ -229,7 +203,7 @@
       "requested_at": "2026-08-01T18:10:39Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -335,48 +309,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T03:32:33Z",
-      "history": [
-        {
-          "at": "2026-07-31T01:27:28Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-07)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T03:32:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T03:51:44Z",
-          "detail": "run 30601839280",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-31T04:02:50Z",
-          "detail": "run 30601839280",
-          "event": "landed"
-        }
-      ],
-      "id": "20260731T012728Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-31T04:02:50Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-07)",
-      "requested_at": "2026-07-31T01:27:28Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30601839280",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
@@ -2789,6 +2721,47 @@
       "requested_by": "backfill-slices",
       "run_id": "30715859080",
       "state": "landed",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T20:17:17Z",
+      "history": [
+        {
+          "at": "2026-08-01T18:09:48Z",
+          "detail": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T20:17:17Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T20:23:49Z",
+          "detail": "run 30716645533",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T20:23:49Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260801T180948Z-backfill-structured-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "opendart_korea",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "re-queue after a connect timeout to opendart.fss.or.kr; free, no model spend",
+      "requested_at": "2026-08-01T18:09:48Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30716645533",
+      "state": "failed",
       "workflow": "backfill-structured-2026.yml"
     }
   ],
