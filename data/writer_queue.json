@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-01T14:34:33Z",
-  "last_tick": "2026-08-01T15:07:06Z",
+  "last_dispatch": "2026-08-01T15:30:34Z",
+  "last_tick": "2026-08-01T15:30:34Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -175,48 +175,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-01T14:34:33Z",
-      "history": [
-        {
-          "at": "2026-08-01T13:15:43Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-03)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T14:34:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T15:07:06Z",
-          "detail": "run 30704056127",
-          "event": "bound"
-        }
-      ],
-      "id": "20260801T131543Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-03)",
-      "requested_at": "2026-08-01T13:15:43Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30704056127",
-      "state": "dispatched",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-01T15:30:34Z",
       "history": [
         {
           "at": "2026-08-01T14:07:36Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-07)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-01T15:30:34Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260801T140736Z-backfill-gdelt-2026",
@@ -232,7 +201,7 @@
       "requested_at": "2026-08-01T14:07:36Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -285,48 +254,6 @@
       "requested_by": "backfill-slices",
       "run_id": null,
       "state": "queued",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-30T23:29:47Z",
-      "history": [
-        {
-          "at": "2026-07-30T21:17:23Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-01-09)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-30T23:29:47Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-30T23:35:51Z",
-          "detail": "run 30590687508",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-30T23:58:49Z",
-          "detail": "run 30590687508",
-          "event": "landed"
-        }
-      ],
-      "id": "20260730T211723Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-30T23:58:49Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-01-09)",
-      "requested_at": "2026-07-30T21:17:23Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30590687508",
-      "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -2751,6 +2678,48 @@
       "run_id": "30703136990",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-01T14:34:33Z",
+      "history": [
+        {
+          "at": "2026-08-01T13:15:43Z",
+          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-03)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-01T14:34:33Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-01T15:07:06Z",
+          "detail": "run 30704056127",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-01T15:30:34Z",
+          "detail": "run 30704056127",
+          "event": "landed"
+        }
+      ],
+      "id": "20260801T131543Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "35",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-01T15:30:34Z",
+      "priority": 10,
+      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-03)",
+      "requested_at": "2026-08-01T13:15:43Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30704056127",
+      "state": "landed",
+      "workflow": "backfill-gdelt-2026.yml"
     }
   ],
   "version": 1
