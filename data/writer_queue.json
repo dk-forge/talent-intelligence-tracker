@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T04:23:23Z",
-  "last_tick": "2026-08-02T04:23:23Z",
+  "last_dispatch": "2026-08-02T04:49:27Z",
+  "last_tick": "2026-08-02T04:49:27Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -177,43 +177,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-02T04:23:23Z",
-      "history": [
-        {
-          "at": "2026-08-02T02:53:08Z",
-          "detail": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 6)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T04:23:23Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260802T025308Z-backfill-structured-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "source": "companies_house",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 6)",
-      "requested_at": "2026-08-02T02:53:08Z",
-      "requested_by": "backfill-slices",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T04:49:27Z",
       "history": [
         {
           "at": "2026-08-02T03:00:46Z",
           "detail": "close the national_press Jan-Jun hole; owner raised the allowance to $10 for this",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T04:49:27Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T030046Z-backfill-press-2026",
@@ -228,7 +202,7 @@
       "requested_at": "2026-08-02T03:00:46Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-press-2026.yml"
     },
     {
@@ -308,48 +282,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T17:30:03Z",
-      "history": [
-        {
-          "at": "2026-07-31T15:33:06Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T17:30:03Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T17:49:27Z",
-          "detail": "run 30651402735",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-31T18:30:16Z",
-          "detail": "run 30651402735",
-          "event": "landed"
-        }
-      ],
-      "id": "20260731T153306Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-31T18:30:16Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-13)",
-      "requested_at": "2026-07-31T15:33:06Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30651402735",
-      "state": "landed",
-      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
@@ -2710,6 +2642,48 @@
       "requested_at": "2026-08-02T02:32:56Z",
       "requested_by": "backfill-slices",
       "run_id": "30731543382",
+      "state": "landed",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-02T04:23:23Z",
+      "history": [
+        {
+          "at": "2026-08-02T02:53:08Z",
+          "detail": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 6)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-02T04:23:23Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T04:49:27Z",
+          "detail": "run 30732288254",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-02T04:49:27Z",
+          "detail": "run 30732288254",
+          "event": "landed"
+        }
+      ],
+      "id": "20260802T025308Z-backfill-structured-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "companies_house",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-02T04:49:27Z",
+      "priority": 10,
+      "reason": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 6)",
+      "requested_at": "2026-08-02T02:53:08Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30732288254",
       "state": "landed",
       "workflow": "backfill-structured-2026.yml"
     },
