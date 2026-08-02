@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T10:35:43Z",
-  "last_tick": "2026-08-02T10:35:43Z",
+  "last_dispatch": "2026-08-02T10:52:41Z",
+  "last_tick": "2026-08-02T10:52:41Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -184,12 +184,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T10:52:41Z",
       "history": [
         {
           "at": "2026-08-02T09:07:28Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-05-10)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T10:52:41Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T090728Z-backfill-gdelt-2026",
@@ -205,7 +210,7 @@
       "requested_at": "2026-08-02T09:07:28Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -236,33 +241,6 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-02T10:35:43Z",
-      "history": [
-        {
-          "at": "2026-08-02T10:15:22Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T10:35:43Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260802T101522Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-08-02T10:15:22Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -286,48 +264,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-01T03:18:34Z",
-      "history": [
-        {
-          "at": "2026-08-01T01:10:30Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-28)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T03:18:34Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T03:43:36Z",
-          "detail": "run 30681742497",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-01T03:48:10Z",
-          "detail": "run 30681742497",
-          "event": "landed"
-        }
-      ],
-      "id": "20260801T011030Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-01T03:48:10Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-01-28)",
-      "requested_at": "2026-08-01T01:10:30Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30681742497",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
@@ -2770,6 +2706,44 @@
       "run_id": "30741149895",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-02T10:35:43Z",
+      "history": [
+        {
+          "at": "2026-08-02T10:15:22Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-02T10:35:43Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T10:52:41Z",
+          "detail": "run 30744052706",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-02T10:52:41Z",
+          "detail": "run 30744052706",
+          "event": "landed"
+        }
+      ],
+      "id": "20260802T101522Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-02T10:52:41Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-02T10:15:22Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30744052706",
+      "state": "landed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
