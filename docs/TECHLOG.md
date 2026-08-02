@@ -177,6 +177,59 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-02 — the audience-spec pass: zones, question headings, one caveat one home, and the trend joins the click contract (1.65.0, pushed, NOT deployed)
+
+Implements the talent half of the evidence-based audience display spec (both
+live pages fetched, both bundles audited; the spec lives with the sibling's
+session notes). Six changes, all dashboard-only, verified against the local
+render harness at 375px and desktop:
+
+1. **The trend chart joins the click contract.** Updates a Day was the one
+   chart whose elements looked tappable and did nothing. `tit_trend_svg()` now
+   carries `data-start/end/n/avg` on `.tit-tc`, and a delegated handler in
+   dashboard.js maps a tap's x position to a date and writes the avg-day
+   window ending that day into the SAME since/until inputs the Date Range
+   control uses, so chips, address bar, exports and every chart follow in one
+   pass; a second tap clears it. The (i) names the Date Range control as the
+   keyboard route, the same trade the sibling's canvas charts make. (The Top
+   Cities buttons, the spec's other gap, were already wired in 1.64.0; the
+   spec audited live 1.63.0.)
+2. **One caveat, one home.** The currency sentence was printed five times
+   (dated strip, matrix note, three money cards). It lives ONCE now, in the
+   "About The Money Figures" disclosure over the money cards
+   (`#tit-usd-note`, repainted per view by dashboard.js); everything else
+   carries a short "USD-stated amounts only" pointer. Same treatment for the
+   job-board read-through the board collector stamps verbatim on every row:
+   `tit_boilerplate_readthroughs()` / `BOILERPLATE_RT` (exact-match only,
+   mirrored strings, source is collectors/ats_boards.py) suppress it per card
+   and "About Job Board Readings" says it once over the cards. Records are
+   untouched; card-rt is contract-optional.
+3. **The matrix's seven-bullet "How To Read This" became two visible lines**
+   (what a cell counts + tap to filter; rows overlap so columns do not sum)
+   **plus a closed native details** holding the rest. Not one fact cut.
+4. **Three zones, one tint each**: controls (quick views + filter bar +
+   chips, shared `tit-zone-controls` class because the sticky bar cannot be
+   wrapped without shrinking its sticking range), insight (charts on the
+   ground), updates (one white band: sort, cards, export).
+5. **The nine charts sit under question headings** (Where The Activity Is /
+   How It Is Trending / What Kind Of Moves, And How We Know / Where The Money
+   Is Going), geography first; place and trend are full-width, the four-card
+   group is 2x2. Ids untouched, so every share link and repaint still lands.
+6. **Colour discipline**: one interactive accent (#0072B2, spec-audited,
+   replaces #2a78d6 everywhere a control acts), the green/red pair
+   (#006B4F / #B3402A) reserved for headcount direction alone (badges, bars,
+   cross-tracker lines), the region pills' nine-hue rainbow removed, verified
+   badge distinguished by weight instead of accent blue, pending callouts
+   amber (--tit-warn). Chart series keep their categorical palette. Figure
+   columns get tabular-nums (not standalone inline figures; gotcha 14).
+
+Byte budget 177,000 -> 178,000 (measured 177,466), paid for partly by the
+deleted repetition. All seven PHP harnesses and the full offline suite green.
+JS repaint mirrors (datedHtml, matrixHtml, coverageNote) changed in the same
+commit as their PHP twins, as the contract comments demand.
+
+---
+
 ## 2026-08-02 — the archive pending state says WHEN, and the strip stops reading like a bug (1.64.0, pushed, NOT deployed)
 
 The owner's ask, verbatim: "for wayback, say no wayback link yet, but we check

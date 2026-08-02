@@ -320,6 +320,25 @@
       'title="Archived copy at the Internet Archive">Archived</a></span>';
   }
 
+  // Read-throughs the board collector stamps VERBATIM on every row it emits.
+  // The page explains the category once (the About Job Board Readings note
+  // over the cards); a card whose read-through is one of these prints only its
+  // fact. EXACT match, whole string, so anything the model wrote about one
+  // record renders untouched. MIRRORS tit_boilerplate_readthroughs() in
+  // shortcodes.php character for character; collectors/ats_boards.py is the
+  // source of both strings.
+  var BOILERPLATE_RT = [
+    'A board that grows week on week is the earliest public evidence ' +
+    'of hiring intent an employer produces: it moves before any ' +
+    'announcement and before any filing. Treat the direction as the ' +
+    'signal and the exact count as approximate, since roles are ' +
+    'reposted, split across locations and withdrawn without notice.',
+    'Advertised bands move before published pay data does, because ' +
+    'they are set by what an employer thinks it must offer to fill ' +
+    'a role today. Read the direction across postings rather than ' +
+    'any one band, and remember this is the ask, not the settlement.'
+  ];
+
   // ONE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.
   //
   // This MUST produce the same markup tit_card_html() produces in
@@ -378,7 +397,8 @@
           amount +
         '</div>' +
         '<span class="tit-card-h tit-h">' + esc(r.headline) + '</span>' +
-        (r.talent_readthrough
+        (r.talent_readthrough &&
+         BOILERPLATE_RT.indexOf(String(r.talent_readthrough).trim()) === -1
           ? '<p class="tit-card-rt tit-rt">' + esc(r.talent_readthrough) + '</p>' : '') +
         '<div class="tit-card-foot">' +
           whenCell(r) +
@@ -442,10 +462,12 @@
 
   function moneyFull(n) { return '$' + nfmt(Math.round(Number(n) || 0)); }
 
-  // The coverage sentence, mirroring tit_money_coverage_note(). Never a
-  // hardcoded pair of numbers: a dollar total that does not say what share of
-  // the data it covers is the one number this product must not print.
-  function coverageNote(money, dim) {
+  // The FULL coverage sentence, mirroring tit_money_coverage_sentence(). It
+  // has ONE home on the page now (the About The Money Figures note over the
+  // money cards, #tit-usd-note); everything else carries the short pointer.
+  // Never a hardcoded pair of numbers: a dollar total that does not say what
+  // share of the data it covers is the one number this product must not print.
+  function coverageFull(money) {
     if (!money || !money.coverage) return '';
     var withUsd = Number(money.coverage.with) || 0;
     var all = Number(money.coverage.all) || 0;
@@ -453,7 +475,7 @@
 
     // "the 3,992 of 3,992" reads as a mistake. Say so plainly when coverage is
     // complete; keep the two numbers only when they actually differ.
-    var note = (withUsd >= all
+    return (withUsd >= all
         ? 'All ' + nfmt(all) + (all === 1 ? ' funding update states' : ' funding updates state') +
           ' a US dollar amount'
         : 'Totals cover the ' + nfmt(withUsd) + ' of ' + nfmt(all) +
@@ -461,6 +483,19 @@
           ' a US dollar amount') +
       '; amounts in other currencies are left out rather than converted at a' +
       ' rate nobody published.';
+  }
+
+  // The per-card note, mirroring tit_money_coverage_note(): the short pointer
+  // plus the one fact that differs per card, how many summable updates this
+  // dimension cannot place.
+  function coverageNote(money, dim) {
+    if (!money || !money.coverage) return '';
+    var withUsd = Number(money.coverage.with) || 0;
+    var all = Number(money.coverage.all) || 0;
+    var note = all
+      ? 'USD-stated amounts only; the About The Money Figures note above' +
+        ' says what share of funding updates that covers.'
+      : coverageFull(money);
 
     var placed = (money.placed && dim && money.placed[dim] != null)
       ? Number(money.placed[dim]) : withUsd;
@@ -546,7 +581,7 @@
       var mt = data.money && data.money.total;
       if (mt > 0) {
         bits.push('<a class="tit-fine-money" href="#chart-money-country" title="' +
-          esc(moneyFull(mt) + '. ' + coverageNote(data.money, '')) + '">' +
+          esc(moneyFull(mt) + '. ' + coverageFull(data.money)) + '">' +
           esc(moneyShort(mt)) + ' raised</a>');
       }
       bits.push(esc(nfmt(data.verified)) + ' from official filings');
@@ -587,6 +622,11 @@
       trendBox.innerHTML = data.trend_html;
       syncChartNotes();
     }
+
+    // The caveat's one home follows the filters like every figure it governs:
+    // the About The Money Figures note always describes the view on screen.
+    var usdNote = document.getElementById('tit-usd-note-p');
+    if (usdNote && data.money) usdNote.textContent = coverageFull(data.money);
 
     var glance = root.querySelector('.tit-glance');
     if (glance && data.glance && data.glance.rows) {
@@ -893,8 +933,13 @@
         bits.join(' <span aria-hidden="true">·</span> ') + '</span></div>';
     });
 
-    var cov = coverageNote({ coverage: d.coverage }, '');
-    if (cov) h += '<p class="tit-dg-cov">' + esc(cov) + '</p>';
+    // The short pointer, IDENTICAL to the server's (tit_dated_glance_html):
+    // the full sentence has one home, #tit-usd-note, and this line points at it.
+    if (d.coverage) {
+      h += '<p class="tit-dg-cov">Raised figures sum USD-stated amounts only; the ' +
+        'note by the money charts says what share of funding updates that ' +
+        'covers.</p>';
+    }
     return h + '</div>';
   }
 
@@ -958,19 +1003,27 @@
       and this function repaints them on every filter change, so any difference
       shows up as the block rewriting itself while a reader watches.
     */
+    // TWO LINES ON THE PAGE, THE REST BEHIND A CLOSED DISCLOSURE, mirroring
+    // tit_glance_matrix_html(). The details ships CLOSED on both paints now: a
+    // native disclosure opens without JavaScript, so nothing became
+    // unreachable, and fifteen lines of notes stopped sitting between the
+    // table and the content. The money line points at the caveat's one home
+    // (#tit-usd-note) rather than repeating the whole sentence.
     h += '</tbody></table></div>' +
-      '<details class="tit-matrix-note" open><summary>How To Read This</summary>' +
+      '<p class="tit-matrix-lede">Each cell counts updates dated inside that ' +
+      'window; tap any number to filter the page. Rows overlap, so columns do ' +
+      'not add up.</p>' +
+      '<details class="tit-matrix-note"><summary>Full notes</summary>' +
       '<ul class="tit-matrix-points">' +
       '<li>Each column counts updates whose source dated them inside that window.</li>' +
       '<li>The headline figures count everything in this view, over the whole ' +
       'period we hold, which is why they are larger.</li>' +
       '<li>Colour shows relative activity within each row.</li>' +
-      '<li>Rows overlap, so the columns do not add up. A funded employer may ' +
-      'also be hiring.</li>' +
-      '<li><strong>Tap any number to filter the page.</strong></li>' +
-      '<li class="tit-matrix-money-note">Total Raised sums dollars. Every other ' +
-      'row counts updates. ' + esc(coverageNote({ coverage: m.coverage }, '')) +
-      '</li></ul></details>';
+      '<li>A funded employer may also be hiring, which is why rows overlap.</li>' +
+      '<li class="tit-matrix-money-note">Total Raised sums USD-stated dollars ' +
+      'only; every other row counts updates. The note by the money charts ' +
+      'says what share of funding updates that covers.</li>' +
+      '</ul></details>';
     return h;
   }
 
@@ -1390,22 +1443,11 @@
   }
 
   /*
-    THE "HOW TO READ THIS" BLOCK STARTS CLOSED ON A PHONE, OPEN EVERYWHERE ELSE.
-
-    The three explanations under the matrix are honesty surfaces and not one word
-    of them is cut, but at 390px they were about fifteen lines of prose between
-    the reader and any content. So the markup ships <details open> -- which is
-    what a crawler, a desktop reader and a reader with no JavaScript or no CSS
-    all get, every word in the initial HTML, nothing fetched -- and this is the
-    only thing that closes it, on a narrow viewport, once.
-
-    It has to be script rather than CSS because `open` is an ATTRIBUTE and a
-    stylesheet cannot remove one. Hiding the panel's contents with CSS instead
-    would leave a summary that says "open me" over content the browser believes
-    is already open, so the first tap would close it and the second reopen it.
-
-    Once, on load, and never on resize: re-closing a panel a reader has just
-    opened because they rotated the phone is worse than either state.
+    The matrix's "Full notes" details ships CLOSED on every paint now (the two
+    facts a reader needs are the always-visible lede above it), so there is
+    nothing left for this to close. It stays as a guard for any cached first
+    paint that still carries the old `open` attribute, and because closing an
+    already-closed details is free.
   */
   function collapseMatrixNoteOnPhone() {
     var d = document.querySelector('details.tit-matrix-note');
@@ -2522,6 +2564,57 @@
     });
   }
 
+  // --- Tap-a-date on the trend plot -----------------------------------------
+  // The one chart that broke the click contract: its lines and dates were
+  // inert while every sibling chart row filters the page. A tap on the plot
+  // maps its x position to a day (the .tit-tc wrapper carries data-start,
+  // data-n and data-avg from the server, see tit_trend_svg) and narrows the
+  // page to the avg-day window ending that day, which is exactly the window
+  // the plotted point summarises. Tapping the same spot again clears it. The
+  // window goes through the SAME since/until inputs the Date Range control
+  // writes, so the chips bar, the address bar, the exports and every other
+  // chart follow in one pass, and the Date Range control is the keyboard
+  // route (the note panel says so). Delegated to the stable box, because the
+  // plot inside it is replaced wholesale on every filter change.
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function isoAddDays(iso, days) {
+    var p = (iso || '').split('-');
+    if (p.length !== 3) return '';
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]) + days * 86400000);
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+
+  var trendTap = document.getElementById('tit-trend-box');
+  if (trendTap) {
+    trendTap.addEventListener('click', function (e) {
+      // Only a tap on the plot itself; the note panel and the legend live in
+      // the same box and their clicks mean nothing here.
+      var plot = e.target && e.target.closest ? e.target.closest('.tit-tc-box') : null;
+      if (!plot || !trendTap.contains(plot)) return;
+      var tc = plot.closest('.tit-tc');
+      if (!tc) return;
+      var start = tc.getAttribute('data-start') || '';
+      var n = parseInt(tc.getAttribute('data-n'), 10) || 0;
+      var avg = parseInt(tc.getAttribute('data-avg'), 10) || 7;
+      if (!start || n < 2) return;
+      var rect = plot.getBoundingClientRect();
+      if (!rect.width) return;
+      var frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+      var until = isoAddDays(start, Math.round(frac * (n - 1)));
+      // NOT clamped to the plot's left edge: the point plotted there averages
+      // days the server deliberately reads before the plot starts (the warm-up
+      // in tit_signal_trend), so the honest window may begin before data-start.
+      var since = isoAddDays(until, -(avg - 1));
+      if (!since || !until) return;
+      var same = inputs.since && inputs.until &&
+        inputs.since.value === since && inputs.until.value === until;
+      if (inputs.since) inputs.since.value = same ? '' : since;
+      if (inputs.until) inputs.until.value = same ? '' : until;
+      refresh();
+    });
+  }
+
   /*
     COPY AS POST, BUILT FROM WHAT IS ON SCREEN.
 
@@ -2690,7 +2783,7 @@
   syncLooking();
   syncPlace();
   syncCountryButtons();
-    syncCityButtons();
+  syncCityButtons();
   syncBasis();
   if (location.search) refresh();
   // AFTER refresh(), because refresh() rewrites the address bar from the

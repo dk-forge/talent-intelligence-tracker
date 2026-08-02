@@ -912,11 +912,24 @@ function tit_dashboard_html() {
         nothing red anywhere.
       */
       ?>
-      <div class="tit-sec" id="tit-filter-sec">
+      <?php
+      /*
+        THE ZONE CLASSES (tit-zone-controls here, tit-zone-insight and
+        tit-zone-updates further down) are PAINT, not structure. The page reads
+        as three bands now: controls (quick views, the filter bar, the chips),
+        insight (every chart), updates (sort, cards, export), each with one
+        background tint. The controls band CANNOT be a wrapper div: the filter
+        bar is position:sticky and its sticking range is its parent (.tit-feed),
+        so wrapping it in a band that ends at the chips would stop it sticking
+        the moment the reader scrolled past them. So the band is a shared class
+        on the elements themselves and the stylesheet closes the gaps.
+      */
+      ?>
+      <div class="tit-sec tit-zone-controls" id="tit-filter-sec">
         <p>The charts and the updates both follow these filters.</p>
       </div>
 
-      <div class="tit-quick" role="group" aria-label="Quick views">
+      <div class="tit-quick tit-zone-controls" role="group" aria-label="Quick views">
         <span class="tit-quick-label">Quick Views</span>
         <?php foreach ($quick_views as $spec => $label) : ?>
           <button type="button" class="tit-qv" data-qv="<?php echo esc_attr($spec); ?>"><?php
@@ -1014,7 +1027,7 @@ function tit_dashboard_html() {
       */
       ?>
       <div class="tit-feed">
-        <div class="tit-filterbar" id="tit-panel" aria-labelledby="tit-panel-t">
+        <div class="tit-filterbar tit-zone-controls" id="tit-panel" aria-labelledby="tit-panel-t">
           <div class="tit-panel-head">
             <?php /* The phone affordance, and the ONLY thing that collapses.
                      A bar wide enough for thirteen controls is four rows on a
@@ -1072,6 +1085,13 @@ function tit_dashboard_html() {
                   source named. When a source names no place we use the employer's head
                   office instead, so a company known only by its headquarters still
                   appears. Tick "Only Countries A Source Named" to leave those out.</p>
+                <?php /* The mechanism has been there all along (refresh()
+                         writes every filter into the querystring with
+                         replaceState); this sentence exists because an
+                         invisible feature is one nobody uses. */ ?>
+                <p id="tit-help-share"><strong>Saving a view.</strong> The address
+                  bar always matches the filters, so bookmark or share the page
+                  at any moment and the link reopens this exact view.</p>
               </div>
             </details>
             <?php /* Reset lives at the head of the bar. It was the last cell of
@@ -1395,7 +1415,7 @@ function tit_dashboard_html() {
         idea and the cheapest thing on the page: the dashboard states its own
         scope instead of leaving the reader to reconstruct it.
       -->
-      <div class="tit-active" id="tit-active" hidden>
+      <div class="tit-active tit-zone-controls" id="tit-active" hidden>
         <span class="tit-active-label">Filtering</span>
         <span class="tit-active-chips" id="tit-active-chips"></span>
       </div>
@@ -1430,36 +1450,28 @@ function tit_dashboard_html() {
         else here.
       */
       ?>
+      <div class="tit-zone tit-zone-insight">
       <div class="tit-sec">
         <h3>What The Data Says</h3>
         <p>Click any row to narrow the whole page to it.</p>
       </div>
 
-      <div class="tit-charts">
-      <div class="tit-chart" id="chart-kind">
-        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
-                 not what the chart is made of. "What kind of update" described
-                 the axis; "What is moving" answers the question they opened the
-                 page with. The rows are buttons because they ARE filters:
-                 dashboard.js routes a click through the same state as the
-                 dropdowns, so the subtitle may promise it. Buttons hold span
-                 children only (phrasing content), never divs. */ ?>
-        <?php tit_chart_head('What Is Moving', 'Ranked by how much of it we are seeing.', 'kind'); ?>
-      <div class="tit-pillars" role="group" aria-label="Activity by kind"
-           aria-describedby="<?php echo esc_attr(tit_chart_note_id('kind')); ?>">
-        <?php foreach ($by_pillar as $p) :
-            $key = $p['pillar'];
-            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
-          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
-            <span class="tit-pillar-head">
-              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
-              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
-            </span>
-            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
-          </button>
-        <?php endforeach; ?>
-      </div>
-      </div>
+      <?php
+      /*
+        THE NINE CHARTS ARE GROUPED UNDER THE QUESTION EACH GROUP ANSWERS,
+        which is the sibling layoff tracker's pattern ("Where the cuts are",
+        "How it is trending", "Who is cutting, and why") ported here. One
+        generic "What The Data Says" over nine cards made a reader scan all
+        nine to find the one that answers their question. Geography leads
+        because it is the first thing all three audiences filter by, then
+        time, then the rest, then money. The grouping is headings and grid
+        containers only: every card keeps its id, so click-to-filter, the
+        share links in the wild and every repaint in dashboard.js are
+        untouched.
+      */
+      ?>
+      <h4 class="tit-charts-h">Where The Activity Is</h4>
+      <div class="tit-charts tit-charts--one">
         <div class="tit-chart" id="chart-place">
           <?php
           /* The one-collector caveat goes into the (i) with the rest of the
@@ -1488,27 +1500,17 @@ function tit_dashboard_html() {
             <?php endforeach; ?>
           </div>
         </div>
+      </div>
 
+      <h4 class="tit-charts-h">How It Is Trending</h4>
+      <div class="tit-charts tit-charts--one">
         <?php
         /*
-          THE TREND IS A CARD IN THE GRID NOW, AND IT SITS AFTER THE COUNTRIES.
-
-          It was a full-width panel above the hero's matrix carrying six lines
-          of prose and a five-line "some signals are not drawn" box, which made
-          one chart louder than the eight that answer the questions a reader
-          arrives with. The owner asked for it small and inside the grid, after
-          the country card. Every line it drew survives the smaller box: the
-          plot is redrawn to its own width rather than scaled down (see
-          tit_trend_svg), its axis and date labels are HTML beside the SVG so
-          they never shrink with it, and the endpoint dot on each line is still
-          there. What it loses is the prose, which is in the (i) with
-          everything else.
-
-          The BOX is what dashboard.js replaces on every filter change, and it
-          holds both the plot and the note panel, because both of them move with
-          the filters: a narrower view redraws the lines AND changes which
-          signals could honestly be drawn at all. The head above it is static,
-          so the four controls stay wired through a repaint.
+          THE TREND. The BOX is what dashboard.js replaces on every filter
+          change, and it holds both the plot and the note panel, because both
+          of them move with the filters: a narrower view redraws the lines AND
+          changes which signals could honestly be drawn at all. The head above
+          it is static, so the four controls stay wired through a repaint.
         */
         ?>
         <div class="tit-chart tit-chart-trend" id="chart-trend">
@@ -1517,7 +1519,34 @@ function tit_dashboard_html() {
             <?php echo tit_signal_trend_html($trend); ?>
           </div>
         </div>
+      </div>
 
+      <h4 class="tit-charts-h">What Kind Of Moves, And How We Know</h4>
+      <div class="tit-charts tit-charts--four">
+      <div class="tit-chart" id="chart-kind">
+        <?php /* Headings name what a recruiter or job seeker GETS from the chart,
+                 not what the chart is made of. "What kind of update" described
+                 the axis; "What is moving" answers the question they opened the
+                 page with. The rows are buttons because they ARE filters:
+                 dashboard.js routes a click through the same state as the
+                 dropdowns, so the subtitle may promise it. Buttons hold span
+                 children only (phrasing content), never divs. */ ?>
+        <?php tit_chart_head('What Is Moving', 'Ranked by how much of it we are seeing.', 'kind'); ?>
+      <div class="tit-pillars" role="group" aria-label="Activity by kind"
+           aria-describedby="<?php echo esc_attr(tit_chart_note_id('kind')); ?>">
+        <?php foreach ($by_pillar as $p) :
+            $key = $p['pillar'];
+            $pct = $total ? round(100 * $p['n'] / $total) : 0; ?>
+          <button type="button" class="tit-pillar" data-k="<?php echo esc_attr($key); ?>" aria-pressed="false">
+            <span class="tit-pillar-head">
+              <span class="tit-pillar-name"><?php echo esc_html($labels[$key] ?? $key); ?></span>
+              <span class="tit-pillar-n"><?php echo esc_html(number_format_i18n($p['n'])); ?></span>
+            </span>
+            <span class="tit-bar"><span style="width:<?php echo esc_attr($pct); ?>%"></span></span>
+          </button>
+        <?php endforeach; ?>
+      </div>
+      </div>
         <div class="tit-chart" id="chart-direction">
           <?php tit_chart_head('Which Way Headcount Is Going', 'What the source itself says. Most updates say nothing about headcount, and those are counted as such rather than guessed.', 'direction'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction"
@@ -1625,6 +1654,32 @@ function tit_dashboard_html() {
         rather than as a second section.
       */
       ?>
+      <h4 class="tit-charts-h">Where The Money Is Going</h4>
+      <?php
+      /*
+        THE CURRENCY CAVEAT HAS ONE HOME NOW, AND THIS IS IT.
+
+        The full sentence ("Totals cover the N of M funding updates that state
+        a US dollar amount; amounts in other currencies are left out rather
+        than converted at a rate nobody published") was printed five times on
+        this page: under the dated strip, in the matrix note, and once per
+        money card. One caveat, one home: the full sentence lives here, once,
+        over the cards it governs, and every other money figure carries a
+        short "USD-stated amounts only" pointer instead of the paragraph.
+        dashboard.js repaints the sentence under the filters in force
+        (#tit-usd-note-p), so it always describes the view on screen.
+
+        A <details> rather than the chart-card (i) pattern because it is not a
+        chart: a native disclosure needs no script to open, so a reader with
+        no JavaScript can still reach every word, and a crawler sees it in the
+        initial HTML.
+      */
+      ?>
+      <details class="tit-note-details tit-usd-note" id="tit-usd-note">
+        <summary>About The Money Figures</summary>
+        <p id="tit-usd-note-p"><?php
+          echo esc_html(tit_money_coverage_sentence($money['coverage'] ?? null)); ?></p>
+      </details>
       <div class="tit-charts tit-charts-money">
         <?php
         tit_money_chart(
@@ -1651,7 +1706,9 @@ function tit_dashboard_html() {
         );
         ?>
       </div>
+      </div><!-- /.tit-zone-insight -->
 
+      <div class="tit-zone tit-zone-updates">
       <!--
         The detail control, and the promise that goes with it.
 
@@ -1718,6 +1775,28 @@ function tit_dashboard_html() {
         </label>
       </div>
 
+      <?php
+      /*
+        THE JOB-BOARD CAVEAT, ONCE, FOR EVERY BOARD-READ CARD AT ONCE.
+
+        Every update our board counter produces used to carry the identical
+        44-word read-through, verbatim, card after card; the pay-band rows had
+        their own twin. The records keep the text (a revision is never
+        rewritten), but the page now prints it once here and the cards say
+        only their fact: tit_card_html() and renderCard() both suppress a
+        read-through that exactly matches tit_boilerplate_readthroughs().
+      */
+      ?>
+      <details class="tit-note-details tit-rt-note">
+        <summary>About Job Board Readings</summary>
+        <p>Some updates come from our own daily count of an employer's
+           published job board rather than from a document. A growing board
+           moves before any announcement or filing, so treat the direction as
+           the signal and the exact count as approximate: roles get reposted,
+           split across locations and withdrawn without notice. Advertised pay
+           bands are the employer's ask, not the settlement.</p>
+      </details>
+
       <?php /* The comment that stood here described a section marker that is
                not here and has not been for two releases: it belonged to
                #tit-filter-sec, which sits with the quick views. Its one live
@@ -1774,6 +1853,7 @@ function tit_dashboard_html() {
           carries its own materiality, so you can set them aside yourself.
           Free to reuse, CC BY 4.0.</span>
       </div>
+      </div><!-- /.tit-zone-updates -->
 
         </div><!-- /.tit-results -->
       </div><!-- /.tit-feed -->
@@ -2693,6 +2773,15 @@ function tit_signal_trend_html(array $trend) {
         <?php echo $avg; ?> days ending on the day it is plotted, from
         <?php echo esc_html((string) ($trend['start'] ?? '')); ?>
         to <?php echo esc_html((string) ($trend['end'] ?? '')); ?>.</p>
+      <?php /* The click contract: every chart element that looks tappable
+               filters the page, and this was the one chart that broke it.
+               The plot is pointer-only (an SVG point is not focusable), so
+               the sentence names the keyboard route, the same trade the
+               sibling's canvas charts document. */ ?>
+      <p class="tit-sub">Tap the plot to narrow the page to the
+        <?php echo $avg; ?> days ending on that day; tap it again to clear.
+        The Date Range control under Filters is the keyboard route to the
+        same window.</p>
       <?php
       /*
         THE COMPARISON THE LEGEND USED TO CARRY. Each key read "Leadership
@@ -2849,7 +2938,17 @@ function tit_trend_svg(array $trend) {
     $whole = (fmod($max, 4) == 0.0) && ($max / 4 >= 1);
 
     ob_start(); ?>
-    <div class="tit-tc">
+    <?php /* The four data attributes are the tap-to-filter contract with
+             dashboard.js: the plot spans data-n daily points from data-start
+             to data-end inclusive, smoothed over data-avg days, so a click's
+             x-fraction maps to a date without a second copy of the series
+             ever leaving the server. They ride every repaint because
+             /aggregate rebuilds this same markup. */ ?>
+    <div class="tit-tc"
+         data-start="<?php echo esc_attr((string) ($trend['start'] ?? '')); ?>"
+         data-end="<?php echo esc_attr((string) ($trend['end'] ?? '')); ?>"
+         data-n="<?php echo (int) $n; ?>"
+         data-avg="<?php echo (int) ($trend['avg'] ?? TIT_TREND_AVG); ?>">
       <?php /* Top value first, zero last: the column reads down the axis it
                labels. Placed in flow rather than at percentages so the column
                sizes itself to its widest value and pins no width at any
@@ -3069,12 +3168,15 @@ function tit_dated_glance_html(array $dated, $coverage = null) {
         </div>
       <?php endforeach; ?>
       <?php
-      // The money coverage sentence travels with any dollar figure on this page,
-      // without exception. A total presented as though it covered every round is
-      // the plausible-but-wrong number this product cannot carry.
-      $cov = tit_money_coverage_sentence($coverage);
-      if ($cov !== '') : ?>
-        <p class="tit-dg-cov"><?php echo esc_html($cov); ?></p>
+      // A dollar figure never travels alone, but the FULL coverage sentence
+      // has one home now (the About The Money Figures note over the money
+      // cards, #tit-usd-note). This line is the short pointer, and it is a
+      // pointer to something on the same page rather than a repeat of it.
+      // dashboard.js prints the identical string on every repaint.
+      if (is_array($coverage)) : ?>
+        <p class="tit-dg-cov">Raised figures sum USD-stated amounts only; the
+          note by the money charts says what share of funding updates that
+          covers.</p>
       <?php endif; ?>
     </div>
     <?php
@@ -3184,38 +3286,35 @@ function tit_glance_matrix_html(array $m) {
       here is fetched or injected.
     */
     ?>
-    <details class="tit-matrix-note" open>
-      <summary>How To Read This</summary>
-      <?php
-      /*
-        ONE IDEA PER LINE. The owner read the old two paragraphs and said
-        "this make s not sentds", and they were right: seven separate ideas were
-        packed into two blocks of prose, so finding the one you needed meant
-        parsing all of them. A list of facts is a list, and now looks like one.
+    <?php
+    /*
+      TWO LINES ON THE PAGE, THE REST DEMOTED TO A CLOSED DISCLOSURE.
 
-        NOT ONE FACT IS CUT, and every figure is still computed. The page carries
-        three different totals for three different questions and each was
-        correct while none said what it counted; that is why the first two lines
-        exist and they are unchanged in substance.
-
-        The money line got SHORTER because the LABEL got better. It used to open
-        "Money raised is the exception", which is a sentence a table needs only
-        when one of its rows is lying about its unit. The row is called
-        "Total Raised" now and carries "sum of dollars" on itself, so the line
-        states the contrast once and hands the rest to the coverage sentence.
-      */
-      ?>
+      The open seven-bullet "How To Read This" was the worst prose block on
+      this page by the audience spec's measure: a reader met fifteen lines of
+      notes between the table and the content. The two facts that change what a
+      reader DOES with the numbers stay in plain sight (what a cell counts and
+      that it is tappable; that rows overlap so columns do not sum). Everything
+      else is one native <details>, closed, which a reader with no JavaScript
+      can still open and a crawler still reads. Not one fact is cut, and the
+      money line now points at the caveat's single home (#tit-usd-note) rather
+      than repeating the whole sentence. dashboard.js mirrors all of it.
+    */
+    ?>
+    <p class="tit-matrix-lede">Each cell counts updates dated inside that
+      window; tap any number to filter the page. Rows overlap, so columns do
+      not add up.</p>
+    <details class="tit-matrix-note">
+      <summary>Full notes</summary>
       <ul class="tit-matrix-points">
         <li>Each column counts updates whose source dated them inside that window.</li>
         <li>The headline figures count everything in this view, over the whole
             period we hold, which is why they are larger.</li>
         <li>Colour shows relative activity within each row.</li>
-        <li>Rows overlap, so the columns do not add up. A funded employer may
-            also be hiring.</li>
-        <li><strong>Tap any number to filter the page.</strong></li>
-        <li class="tit-matrix-money-note">Total Raised sums dollars. Every other
-            row counts updates.
-            <?php echo esc_html(tit_money_coverage_sentence($m['coverage'] ?? null)); ?></li>
+        <li>A funded employer may also be hiring, which is why rows overlap.</li>
+        <li class="tit-matrix-money-note">Total Raised sums USD-stated dollars
+            only; every other row counts updates. The note by the money charts
+            says what share of funding updates that covers.</li>
       </ul>
     </details>
     <?php
@@ -3371,9 +3470,20 @@ function tit_money_coverage_sentence($coverage) {
          . ' converted at a rate nobody published.';
 }
 
-/** The same sentence, plus what this particular chart cannot place. */
+/**
+ * The per-card note: the short pointer plus what THIS chart cannot place.
+ *
+ * The full currency sentence used to be repeated here, identically, on all
+ * three money cards; it lives once now, in the About The Money Figures note
+ * over the cards (#tit-usd-note). What stays per card is the one fact that
+ * differs per card: how many summable updates this dimension cannot place.
+ */
 function tit_money_coverage_note(array $money, $dimension = '') {
-    $note = tit_money_coverage_sentence($money['coverage'] ?? null);
+    $note = 'USD-stated amounts only; the About The Money Figures note above'
+          . ' says what share of funding updates that covers.';
+    if (!is_array($money['coverage'] ?? null) || (int) ($money['coverage']['all'] ?? 0) === 0) {
+        $note = tit_money_coverage_sentence($money['coverage'] ?? null);
+    }
     $with = (int) ($money['coverage']['with'] ?? 0);
     $placed = (int) ($money['placed'][$dimension] ?? $with);
     $missing = $with - $placed;
@@ -3549,6 +3659,32 @@ function tit_direction_labels() {
  *   body  what kind of move (direction, evidence, amount), the fact, our read
  *   foot  when, and the document it came from
  */
+/**
+ * Read-throughs the board collector stamps VERBATIM on every row it emits.
+ *
+ * These are category explanations wearing a per-record field: every job-board
+ * growth row carries the first string word for word and every posted-pay row
+ * the second, so a page of board readings said the same 44 words card after
+ * card. The page explains the category once (the About Job Board Readings
+ * note) and the cards keep only what is theirs. EXACT match, whole string:
+ * a read-through the model wrote about one record can never be caught by it.
+ * BOILERPLATE_RT in dashboard.js mirrors this list character for character;
+ * collectors/ats_boards.py is the source of both strings.
+ */
+function tit_boilerplate_readthroughs() {
+    return array(
+        'A board that grows week on week is the earliest public evidence '
+        . 'of hiring intent an employer produces: it moves before any '
+        . 'announcement and before any filing. Treat the direction as the '
+        . 'signal and the exact count as approximate, since roles are '
+        . 'reposted, split across locations and withdrawn without notice.',
+        'Advertised bands move before published pay data does, because '
+        . 'they are set by what an employer thinks it must offer to fill '
+        . 'a role today. Read the direction across postings rather than '
+        . 'any one band, and remember this is the ask, not the settlement.',
+    );
+}
+
 function tit_card_html($r) {
     $directions  = tit_direction_labels();
     $confidences = tit_confidence_labels();
@@ -3612,7 +3748,16 @@ function tit_card_html($r) {
       <?php endif; ?>
     </div>
     <span class="tit-card-h tit-h"><?php echo esc_html($r['headline']); ?></span>
-    <?php if (!empty($r['talent_readthrough'])) : ?>
+    <?php /* A read-through stamped verbatim on every automated board reading
+             is boilerplate, not a read of THIS record, so the page prints it
+             once (the About Job Board Readings note over the cards) rather
+             than card after card. The record keeps its text; the contract's
+             card-rt is optional, so omitting it is an allowed state. Exact
+             match only: anything the model actually wrote about this record
+             renders untouched. renderCard() in dashboard.js applies the same
+             rule or a repaint would resurrect the paragraph. */
+    if (!empty($r['talent_readthrough'])
+        && !in_array(trim($r['talent_readthrough']), tit_boilerplate_readthroughs(), true)) : ?>
       <p class="tit-card-rt tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></p>
     <?php endif; ?>
     <div class="tit-card-foot">

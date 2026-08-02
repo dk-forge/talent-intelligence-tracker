@@ -339,8 +339,17 @@ function check($condition, $message) {
  * each of the three money cards. The point is not the absolute figure, it is
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
+ *
+ * RAISED 177,000 -> 178,000 on 2026-08-02 for the audience-spec pass, which
+ * measured 177,466 against this fixture: four chart-group question headings,
+ * the two shared caveat disclosures (About The Money Figures, About Job Board
+ * Readings), the matrix lede, the trend's tap-to-filter data attributes and
+ * hint sentence, and the two zone wrappers. Partly paid for by the five
+ * copies of the currency caveat and the per-card job-board boilerplate this
+ * same pass deleted. Headroom is ~500 bytes: the next addition raises the
+ * budget again, in writing.
  */
-const TIT_DASH_BYTE_BUDGET = 177000;
+const TIT_DASH_BYTE_BUDGET = 178000;
 
 /*
  * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and

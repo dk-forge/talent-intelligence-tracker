@@ -28,8 +28,19 @@
   --tit-grid:#e7e8ec;       /* alt-grid    */
   --tit-surface:#f7f8fa;    /* alt-surface-2 */
   --tit-ground:#fafaf8;     /* atr-bg, the off-white page ground */
-  --tit-hiring:#2a78d6;     /* alt-blue    */
-  --tit-cutting:#D55E00;    /* alt-red     */
+  /* THE COLOUR DISCIPLINE (audience spec, 2026-08-02): a neutral ground, ONE
+     interactive accent, and the semantic green/red pair reserved for
+     DIRECTION alone. The accent is the audited #0072B2 (5.2:1 on white, the
+     lead chart blue on the sibling too), declared once as --tit-blue below so
+     controls, links, chips and primary bars share one hue. The direction pair
+     is text-safe: green #006B4F (6.5:1) for hiring, red #B3402A (5.7:1) for
+     cutting, a blue-green against a red-orange, which is the Okabe-Ito
+     design's own CVD-safe opposition. Chart SERIES keep their categorical
+     palette (tit_trend_colours in shortcodes.php); inside a chart is the one
+     place more hues are allowed. */
+  --tit-hiring:#006B4F;     /* direction: adding roles. NEVER an accent. */
+  --tit-cutting:#B3402A;    /* direction: cutting roles. NEVER an accent. */
+  --tit-warn:#8A6A00;       /* caveats and pending states, text-safe amber */
   --tit-pay:#4a3aa7;        /* violet, third series */
   --tit-neutral:#52607a;
   --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
@@ -137,7 +148,7 @@
 .tit-pillar-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 .tit-pillar-n { font-variant-numeric:tabular-nums; color:var(--tit-mut); flex:none; font-weight:600; }
 .tit-bar { background:#e6eaef; border-radius:99px; height:9px; overflow:hidden; }
-.tit-bar span { display:block; height:100%; background:var(--tit-hiring); border-radius:99px; }
+.tit-bar span { display:block; height:100%; background:var(--tit-blue); border-radius:99px; }
 
 /* --- Filters ---------------------------------------------------------- */
 /* `align-items:start` so a SHORT control is not stretched to the height of the
@@ -154,7 +165,7 @@
   border:1px solid var(--tit-line); border-radius:9px;
   background:#fff; color:var(--tit-fg); appearance:auto; }
 .tit-filters select:focus-visible, .tit-filters input:focus-visible {
-  outline:2px solid var(--tit-hiring); outline-offset:1px; }
+  outline:2px solid var(--tit-blue); outline-offset:1px; }
 
 .tit-note { font-size:14px; color:var(--tit-mut); margin:0 0 16px; max-width:70ch; }
 
@@ -260,8 +271,11 @@
 .tit-tag, .tit-conf { display:inline-block; padding:3px 9px; border-radius:99px;
   font-size:13px; white-space:nowrap; font-weight:500; }
 .tit-tag { background:#eef1f5; color:var(--tit-fg); }
-.tit-hiring     { background:var(--tit-blue-tint); color:#1c5cab; box-shadow:inset 0 0 0 1px #b9d3f2; }
-.tit-displacement { background:var(--tit-red-tint); color:#8c3d00; box-shadow:inset 0 0 0 1px #f3c6ab; }
+/* Direction wears the semantic pair and NOTHING ELSE does: green means the
+   source said roles are being added, red that they are being cut. The words
+   are still on every badge, so a reader who cannot see the hue loses nothing. */
+.tit-hiring     { background:var(--tit-green-tint); color:var(--tit-hiring); box-shadow:inset 0 0 0 1px #bfdccf; }
+.tit-displacement { background:var(--tit-red-tint); color:var(--tit-cutting); box-shadow:inset 0 0 0 1px #ecc4ba; }
 .tit-comp_shift { background:#eae7f7; color:#332874; box-shadow:inset 0 0 0 1px #cbc4ec; }
 /* "Other change" really is neutral, but it should say so on purpose rather
    than by falling through to the base tag with no rule of its own. */
@@ -271,7 +285,9 @@
    report"), and capitalize would title-case them into a third style the page
    uses nowhere else. */
 .tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg); }
-.tit-c-verified { background:var(--tit-blue-tint); color:#1c5cab; border-color:#b9d3f2; }
+/* Verified stands out by WEIGHT, not by wearing the interactive accent: a
+   blue badge beside blue buttons read as something to press. */
+.tit-c-verified { background:#eef1f5; color:var(--tit-fg); border-color:#d0d5dd; font-weight:600; }
 /* `reported` had no rule at all, so it fell through to the bare .tit-conf and
    sat unstyled next to a coloured `verified`. It is also the commonest value we
    hold by a distance, which made the default the thing most rows wore. Muted on
@@ -344,7 +360,7 @@
 
 /* --- Sources page ------------------------------------------------------ */
 .tit-sources h1 { font-size:32px; margin:6px 0 10px; color:var(--tit-fg); }
-.tit-callout { border:1px solid var(--tit-line); border-left:4px solid var(--tit-hiring);
+.tit-callout { border:1px solid var(--tit-line); border-left:4px solid var(--tit-blue);
   background:var(--tit-surface); border-radius:10px; padding:14px 16px;
   margin:6px 0 22px; font-size:14.5px; color:var(--tit-mut); max-width:78ch; }
 .tit-callout strong { color:var(--tit-fg); }
@@ -368,7 +384,9 @@
 /* An outstanding defect is not a neutral note, so it does not get the neutral
    left border. The colour is always paired with the words "not yet applied"
    and with the heading, so it never carries the meaning on its own. */
-.tit-callout.tit-pending { border-left-color:var(--tit-cutting); }
+/* A pending state is a caveat, not a cut: amber, so the direction red keeps
+   meaning direction and nothing else. */
+.tit-callout.tit-pending { border-left-color:var(--tit-warn); }
 /* The before/after table. Styled standalone rather than reusing .tit-table:
    below 860px that class turns rows into cards and visually hides thead, and
    these cells are numbers whose whole meaning is which column they are in.
@@ -405,10 +423,14 @@
    ====================================================================== */
 
 .tit-wrap {
-  --tit-blue:#2a78d6; --tit-orange:#D55E00; --tit-violet:#4a3aa7;
-  --tit-teal:#1baf7a; --tit-ink-blue:#1c5cab; --tit-ink-orange:#8c3d00;
+  /* --tit-blue IS the single interactive accent (spec value #0072B2,
+     hover/active #084BB5). Everything that acts -- links, chips, active
+     filters, focus rings, primary bars -- reads this one token. */
+  --tit-blue:#0072B2; --tit-blue-strong:#084BB5;
+  --tit-orange:#D55E00; --tit-violet:#4a3aa7;
+  --tit-teal:#1baf7a; --tit-ink-blue:#0072B2; --tit-ink-orange:#8c3d00;
   --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
-  --tit-blue-tint:#eef4fc; --tit-red-tint:#fdeeee;
+  --tit-blue-tint:#eef4fc; --tit-red-tint:#fdeeee; --tit-green-tint:#e9f3ef;
 }
 
 /* --- Hero -------------------------------------------------------------- */
@@ -538,8 +560,8 @@
    different colour depending on where you read it. Blue for growth and orange
    for contraction is also the Okabe-Ito pair, so the two series stay
    distinguishable without relying on hue alone. */
-.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-blue); }
-.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-orange); }
+.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-hiring); }
+.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-cutting); }
 .tit-rank-row[data-dir="comp_shift"]   .tit-rank-fill { background:var(--tit-violet); }
 .tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:#6b7684; }
 
@@ -858,7 +880,7 @@
    horizontal gesture or a font size nobody can read, and this page has
    already been through that with the matrix. */
 .tit-dg-box { margin:0 0 12px; }
-.tit-dg { border:1px solid var(--tit-line); border-left:3px solid var(--tit-hiring);
+.tit-dg { border:1px solid var(--tit-line); border-left:3px solid var(--tit-blue);
   border-radius:10px; background:#fff; padding:12px 14px; }
 .tit-dg-head { display:flex; flex-wrap:wrap; align-items:baseline;
   justify-content:space-between; gap:6px 12px; margin:0 0 8px;
@@ -871,7 +893,7 @@
   padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
   background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }
 .tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:#b9d3f2; }
-.tit-dg-copy:focus-visible { outline:2px solid var(--tit-hiring); outline-offset:1px; }
+.tit-dg-copy:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
 
 .tit-dg-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px;
   padding:4px 0; font-size:13.5px; line-height:1.55; }
@@ -886,10 +908,10 @@
   letter-spacing:.06em; text-transform:uppercase; color:var(--tit-mut);
   background:none; border:0; padding:0; cursor:pointer; }
 .tit-wrap .tit-dg-label-static { cursor:default; }
-.tit-wrap .tit-dg-label:not(.tit-dg-label-static):hover { color:var(--tit-hiring); }
-.tit-wrap .tit-dg-label:focus-visible { outline:2px solid var(--tit-hiring);
+.tit-wrap .tit-dg-label:not(.tit-dg-label-static):hover { color:var(--tit-blue); }
+.tit-wrap .tit-dg-label:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; border-radius:3px; }
-.tit-wrap .tit-dg-label[aria-pressed="true"] { color:var(--tit-hiring); }
+.tit-wrap .tit-dg-label[aria-pressed="true"] { color:var(--tit-blue); }
 /* The week's own dates, inside the label button. Lowercase-preserving and
    letter-spacing reset so "(Jul 27-Aug 2)" reads as dates, not as a second
    shouted label; colour stays the label's own. */
@@ -951,9 +973,9 @@
   padding:9px 14px; border-radius:8px; border:1px solid var(--tit-line);
   background:#fff; color:var(--tit-fg); text-decoration:none; }
 .tit-wrap .tit-btn-solid { background:var(--tit-fg); border-color:var(--tit-fg); color:#fff; }
-.tit-wrap .tit-btn:hover { border-color:var(--tit-hiring); }
+.tit-wrap .tit-btn:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-btn-solid:hover { background:#000; border-color:#000; }
-.tit-wrap .tit-btn:focus-visible { outline:2px solid var(--tit-hiring); outline-offset:2px; }
+.tit-wrap .tit-btn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 
 .tit-tabs { display:none; gap:4px; margin:0 0 14px;
   border-bottom:1px solid var(--tit-line); }
@@ -962,12 +984,12 @@
   padding:8px 13px; border:0; background:none; color:var(--tit-mut);
   cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
 .tit-wrap .tit-tab[aria-selected="true"] { color:var(--tit-fg);
-  border-bottom-color:var(--tit-hiring); }
+  border-bottom-color:var(--tit-blue); }
 .tit-wrap .tit-tab:hover { color:var(--tit-fg); }
 /* Visible focus, and it must not be the selected-tab underline doing double
    duty: a keyboard reader arrowing across tabs needs to see where they are
    even when that tab is not the selected one. */
-.tit-wrap .tit-tab:focus-visible { outline:2px solid var(--tit-hiring);
+.tit-wrap .tit-tab:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:-2px; border-radius:6px 6px 0 0; }
 
 .tit-tabpanel + .tit-tabpanel { margin-top:18px; }
@@ -979,7 +1001,7 @@
 .tit-wrap .tit-tabpanel-h { font-size:15px; margin:0 0 10px; color:var(--tit-fg); }
 .tit-trust.is-tabbed .tit-tabpanel-h { position:absolute; width:1px; height:1px;
   overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
-.tit-wrap .tit-tabpanel:focus-visible { outline:2px solid var(--tit-hiring);
+.tit-wrap .tit-tabpanel:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:3px; border-radius:8px; }
 
 /* FOUR ITEMS, NEVER THREE-PLUS-ONE.
@@ -1155,24 +1177,19 @@
    Family styling, taken from the sibling tracker's live stylesheet.
    =========================================================================== */
 
-/* Its pill: white ground, a 2px border in the tab's own colour, 22px radius.
-   Each region carries a hue exactly as .alt-tab-usa / -europe / -asia do. */
+/* Its pill: white ground, a 2px border, 22px radius. The per-region rainbow
+   (a hue per tab, the sibling's .alt-tab-usa pattern) is gone on purpose: the
+   audience spec's colour rule is ONE interactive accent outside the charts,
+   and seven saturated hues on the first screenful were most of the noise.
+   Every pill is neutral; the active one wears the accent. The emoji flag each
+   pill already carries keeps them tellable at a glance. */
 .tit-wrap .tit-region {
   --tabc:#52607a;
-  padding:7px 14px; border:2px solid var(--tabc); border-radius:22px;
+  padding:7px 14px; border:2px solid var(--tit-line); border-radius:22px;
   background:#fff; color:var(--tabc); font-weight:700; font-size:13.5px;
 }
-.tit-wrap .tit-region:nth-child(1) { --tabc:#52607a; }
-.tit-wrap .tit-region:nth-child(2) { --tabc:#2a78d6; }
-.tit-wrap .tit-region:nth-child(3) { --tabc:#c2417e; }
-.tit-wrap .tit-region:nth-child(4) { --tabc:#7a3fa8; }
-.tit-wrap .tit-region:nth-child(5) { --tabc:#6b4bd6; }
-.tit-wrap .tit-region:nth-child(6) { --tabc:#c62f2e; }
-.tit-wrap .tit-region:nth-child(7) { --tabc:#b8860b; }
-.tit-wrap .tit-region:nth-child(8) { --tabc:#2e8b57; }
-.tit-wrap .tit-region:nth-child(9) { --tabc:#d2691e; }
-.tit-wrap .tit-region:hover { background:var(--tit-surface); border-color:var(--tabc); }
-.tit-wrap .tit-region.is-on { background:var(--tabc); border-color:var(--tabc); color:#fff; }
+.tit-wrap .tit-region:hover { background:var(--tit-surface); border-color:var(--tit-blue); }
+.tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue); color:#fff; }
 .tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.26); color:#fff; }
 .tit-region-n { color:var(--tit-mut); background:var(--tit-surface); }
 
@@ -2620,8 +2637,8 @@ main:has(#tit-dashboard) {
 }
 .tit-cross-list li:last-child { border-bottom: 0; }
 .tit-cross-co { font-weight: 650; }
-.tit-cross-cut { color: var(--tit-secondary, #D55E00); }
-.tit-cross-hire { color: var(--tit-blue, #2a78d6); }
+.tit-cross-cut { color: var(--tit-cutting, #B3402A); }
+.tit-cross-hire { color: var(--tit-hiring, #006B4F); }
 /* Each part wraps as a unit rather than the row scrolling sideways: at 390px a
    three-clause sentence has to become three lines, not a horizontal scrollbar. */
 @media (max-width: 560px) {
@@ -2843,3 +2860,73 @@ main:has(#tit-dashboard) {
   color:var(--tit-mut); }
 .tit-wrap .tit-matrix-points li:last-child { margin-bottom:0; }
 .tit-wrap li.tit-matrix-money-note { color:var(--tit-ink-violet); }
+
+/* ===========================================================================
+   THE THREE ZONES (audience spec, 2026-08-02): controls, insight, updates.
+   One background tint per zone so the page reads as bands rather than as one
+   continuous scroll of equal-weight boxes. The controls band is a SHARED
+   CLASS on its elements rather than a wrapper, because the filter bar is
+   position:sticky and its sticking range is its parent; a wrapper ending at
+   the chips would stop it sticking right where the reader needs it most.
+   =========================================================================== */
+.tit-wrap .tit-quick.tit-zone-controls,
+.tit-wrap .tit-filterbar.tit-zone-controls,
+.tit-wrap .tit-active.tit-zone-controls {
+  background:#eef3f9; border-color:#d7e1ec;
+}
+.tit-wrap .tit-quick.tit-zone-controls { padding:10px 12px; margin:0 0 10px;
+  border:1px solid #d7e1ec; border-radius:12px; }
+/* The chips keep their accent border inside the shared tint: they are the
+   live statement of state, and the tint is the zone. */
+.tit-wrap .tit-active.tit-zone-controls .tit-active-label { color:var(--tit-blue); }
+
+/* Insight zone: the page ground itself, white cards on it. No box of its
+   own on purpose: nine chart cards inside one more bordered box is a frame
+   around frames. */
+.tit-zone-insight { margin:0 0 26px; }
+
+/* Updates zone: one white band holding the sort bar, the cards and the
+   export, so the record reads as one object with its controls attached. */
+.tit-zone-updates { background:#fff; border:1px solid var(--tit-line);
+  border-radius:14px; padding:14px 14px 10px; margin:0 0 22px; }
+.tit-zone-updates .tit-card { box-shadow:none; }
+@media (max-width:700px){ .tit-zone-updates { padding:8px 8px 6px; } }
+
+/* The question headings the chart groups sit under, the sibling's
+   "Where the cuts are / How it is trending" pattern ported here. */
+.tit-charts-h { margin:22px 0 10px; font-size:15.5px; font-weight:700;
+  color:var(--tit-fg); font-family:var(--tit-serif); letter-spacing:.01em; }
+.tit-charts-h:first-of-type { margin-top:14px; }
+
+/* Group grids: a lone card (the place ranking, the trend) takes the full
+   row; the four-card group is 2x2 rather than three-plus-an-orphan. */
+.tit-wrap .tit-charts--one { grid-template-columns:minmax(0,1fr); }
+@media (min-width:900px){ .tit-wrap .tit-charts--four { grid-template-columns:1fr 1fr; } }
+
+/* The shared caveat notes (About The Money Figures, About Job Board
+   Readings): native disclosures, closed by default, openable with no
+   JavaScript, every word in the initial HTML. */
+.tit-note-details { margin:0 0 12px; padding:8px 12px;
+  border:1px solid var(--tit-line); border-radius:10px;
+  background:var(--tit-surface); font-size:13px; color:var(--tit-mut); }
+.tit-note-details summary { cursor:pointer; font-weight:650; font-size:13px;
+  color:var(--tit-fg); }
+.tit-note-details summary:hover { color:var(--tit-blue); }
+.tit-note-details p { margin:8px 0 0; max-width:78ch; line-height:1.55; }
+.tit-note-details[open] { background:#fff; }
+
+/* The two always-visible matrix facts; the rest sit behind "Full notes". */
+.tit-matrix-lede { margin:0; padding:8px 12px; font-size:12.5px;
+  color:var(--tit-mut); border-top:1px solid var(--tit-grid);
+  background:var(--tit-surface); }
+
+/* The trend plot filters on tap now (see the trend handler in dashboard.js),
+   so it advertises it the way every other chart row does. */
+.tit-wrap .tit-tc-box { cursor:pointer; }
+
+/* Columns of figures align on tabular numerals. Deliberately NOT applied to
+   standalone inline figures (see gotcha 14 in docs/HANDOVER.md: a lone "13"
+   at full advance width reads as "1 3"). */
+.tit-rank-n, .tit-pillar-n, .tit-matrix .tit-cell, .tit-tc-ys span {
+  font-variant-numeric:tabular-nums;
+}
