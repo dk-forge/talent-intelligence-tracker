@@ -31,12 +31,17 @@ name: CI failure alert
 # also why it must stay public (CLAUDE.md).
 
 # ---------------------------------------------------------------------------
-# DORMANT until the plugin carrying the new /alert contract is deployed.
+# ARMED since 2026-07-30 (see the `on:` block below, which is the authority).
+# This header used to open with "DORMANT until the plugin carrying the new
+# /alert contract is deployed", and it kept saying so for three days after the
+# arming, which is how a session on 2026-08-02 briefed an agent that the
+# listener was dormant. A comment that contradicts the trigger it sits above
+# is worse than no comment. The arming history below is kept because the
+# two-step order still matters if this is ever disarmed and re-armed:
 #
-# ARM IT IN TWO STEPS, IN THIS ORDER — the order is the whole point:
-#   1. gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker \
-#          --ref main -f dry_run=false        # ships 1.58.0, which has the contract
-#   2. uncomment the three `workflow_run` lines below and push.
+# THE ORIGINAL ARMING RULE, TWO STEPS IN THIS ORDER — the order is the point:
+#   1. deploy the plugin version carrying the /alert contract (done: 1.58.0)
+#   2. only then uncomment the `workflow_run` lines (done: 2026-07-30).
 #
 # WHY NOT BOTH AT ONCE. The DEPLOYED endpoint is 1.57.0 and does not know
 # `dedupe_key` or `resolve_scope`. It falls through to the legacy path, which
@@ -48,7 +53,7 @@ name: CI failure alert
 # exactly the alarm fatigue the whole feature exists to prevent.
 #
 # `ci_alert.py`, its tests, and the shared cause extractor now used by
-# `ci_status.py` are all live and useful today — only the listener waits. This
+# `ci_status.py` are all live, and so is the listener. This
 # follows the repo's own conventions: `deploy-plugin.yml` keeps its push trigger
 # commented out for the same class of reason, and new sources ship DORMANT with
 # dry-run diagnostics rather than half-wired.
