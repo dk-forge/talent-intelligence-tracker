@@ -31,6 +31,15 @@ _NOT_SOURCES = {
     "link_check": "re-checks URLs we already cite",
     "recall": "measures what we miss",
     "sec_form_d_bulk": "backfills SEC EDGAR Form D, which is listed",
+    # It asks a model what we are missing and emits a WORK LIST. Every field it
+    # returns is prefixed `claimed_` and dies there; a lead becomes a record
+    # only when collectors/tripwire_chase.py finds the publisher's own article
+    # and THAT goes through classify -> validate -> store. So the tripwire has
+    # never been the source of a stored row and must never be named as one —
+    # "a model is a discovery pointer too" is the same rule that keeps
+    # Crunchbase and Google News off this page. It first appeared here on
+    # 2026-08-02, when the first non-dry run filed its first health row.
+    "tripwire": "asks a model where to look; stores nothing itself",
 }
 
 

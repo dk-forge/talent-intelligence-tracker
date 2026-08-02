@@ -374,13 +374,29 @@ reported `ok` from a Monday breakage until November. Now 336, which is the
 number that note always named — 3.5-day cadence, four missed runs, wide because
 the slot writes a ticket that waits behind whatever holds the writer lock.
 
-**What was genuinely undone: no tripwire run has ever WRITTEN.** The 2026-07-30
-run was `--dry-run`, so there is no `data/tripwire_worklist.json`, no
+**What was genuinely undone: no tripwire run had ever WRITTEN.** Every run to
+that point was `--dry-run`, so there was no `data/tripwire_worklist.json`, no
 `analysis/tripwire/results/`, no `source_health` row and no first point for the
-trend chart. That run was queued through `drain-writers` (never dispatched
-directly) as ticket `20260802T032205Z-tripwire`, headroom checked first: August
-spend was $4.25 of a $9.00 enforce ceiling, against a run costing at most
-$0.13 measured / $0.44 at the pessimistic estimate.
+trend. Queued through `drain-writers` (never dispatched directly) as ticket
+`20260802T032205Z-tripwire`, headroom checked first: August spend was $4.32 of a
+$9.00 enforce ceiling against a run costing at most $0.44 at the pessimistic
+estimate.
+
+**Run 30731489198, 2026-08-02 — it wrote.** 22 queries (AT, AZ, BD, RS off the
+measured recall rotation, plus the monthly 18-industry sweep), **$0.1248**,
+**$0.0057 a query**, 108 usable leads against 25,152 stored signals, 15 already
+held, **93 missing**. $0.0012 per usable lead, $0.0013 per candidate miss. The
+work list, the dated trend point and one `source_health` row are on main
+(02a8df3). US 40, IN 12, DE 5, GB 4 lead the miss counts, which is the feed
+roadmap talking.
+
+**The price reproduced exactly, and that is worth more than a bigger sample.**
+Two runs three days apart, asking entirely different sets, both land on
+$0.0057/query — 39 queries, $0.2225 total, spread $0.0053-$0.0060. So the price
+tracks the query SHAPE, not what any one run happened to ask, and the $0.02
+estimate stays 3.5x conservative in the right direction. What is still NOT
+measurable is cost per CONFIRMED miss: that needs `collectors/tripwire_chase.py`
+to store a row against a lead, and it has not run.
 
 **`cost_projection.py` did not know the tripwire existed.** It is the tool that
 exists so nobody quotes a cost from memory, and discovery — the one paid thing

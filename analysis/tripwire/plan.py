@@ -49,13 +49,27 @@ TRIPWIRE_MONTHLY_USD = 1.00
 # this estimate only ever sizes the plan — it never reports the cost.
 USD_PER_QUERY_ESTIMATE = 0.02
 
-# What a query ACTUALLY cost, the first time this instrument issued live
-# queries: run 30506967802 on 2026-07-30, 17 search-backed queries against
-# `perplexity/sonar`, $0.0977 billed, from OpenRouter's own `usage.cost` and not
-# from arithmetic on a price list. The spread across those 17 was $0.0054 to
-# $0.0060, so the figure is stable rather than an average hiding a tail; the
-# Israel query, the one country a human could check by eye, cost $0.0059 and
-# returned 8 leads.
+# What a query ACTUALLY costs, from OpenRouter's own `usage.cost` and not from
+# arithmetic on a price list. TWO independent live runs now, three days apart,
+# and they agree to the fourth decimal:
+#
+#   run 30506967802, 2026-07-30  17 queries  $0.0977  --dry-run
+#   run 30731489198, 2026-08-02  22 queries  $0.1248  the first WRITING run
+#   ------------------------------------------------------------------
+#                                39 queries  $0.2225  = $0.005705/query
+#
+# The per-query spread across all 39 is $0.0053 to $0.0060, so this is a stable
+# price and not an average hiding a tail. A reproduced measurement is worth more
+# than a bigger single sample: the second run asked an entirely different set
+# (AT/AZ/BD/RS plus the 18-industry sweep, against IL plus 16 industries) and
+# landed on the same figure, so the price tracks the query SHAPE rather than
+# what any one of them happened to ask.
+#
+# Lead economics, from the writing run: 22 queries -> 108 usable leads, 15
+# already held, 93 missing. $0.0012 per usable lead and $0.0013 per candidate
+# miss. Cost per CONFIRMED miss is still unmeasurable — that needs
+# collectors/tripwire_chase.py to store a row against a lead, and it has not
+# run yet.
 #
 # It is recorded and NOT substituted for the estimate above. Feeding the
 # measured price back into the sizing arithmetic would take COUNTRIES_PER_RUN
@@ -66,7 +80,8 @@ USD_PER_QUERY_ESTIMATE = 0.02
 # safety margin.
 USD_PER_QUERY_MEASURED = 0.0057
 USD_PER_QUERY_MEASURED_SOURCE = (
-    "run 30506967802, 2026-07-30: 17 queries, $0.0977 billed, perplexity/sonar")
+    "runs 30506967802 (2026-07-30) + 30731489198 (2026-08-02): "
+    "39 queries, $0.2225 billed, perplexity/sonar")
 
 # Twice a week. Weekly makes a country come round too rarely to be a tripwire;
 # daily spends the month's budget in a week.

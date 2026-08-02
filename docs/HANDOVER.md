@@ -781,7 +781,7 @@ coverage priced honestly".
 | 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.47.0** | `/company/{slug}`, measured threshold gate, **714 indexable pages**, every URL verified. Employer keys corrected and the three collisions merged the same day; a moved key's old URL 301s. See the sections below and TECHLOG. Next step is Search Console, not code. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
 | 7 | ~~Publish guardrails~~ **BUILT 2026-07-29** | `pipeline/guardrails.py`, on the write path, quarantining rather than halting. Next step is to ANSWER what it holds, not to build anything. See below. |
-| 8 | ~~First live tripwire run~~ **DONE 2026-07-30, and it was armed the same day**; first WRITING run queued 2026-08-02. **Second recall measurement still open.** | 17 live queries, $0.0057 each MEASURED, now charged in `cost_projection.py`. What remains is the work list on a stable path (every run so far was `--dry-run`) and a second recall point, without which the trend chart cannot draw. |
+| 8 | ~~First live tripwire run~~ **DONE**: queries 2026-07-30, first WRITING run 2026-08-02. **Second recall measurement still open.** | 39 live queries across two runs, $0.0057 each MEASURED and reproduced, now charged in `cost_projection.py` at $0.29/month. `data/tripwire_worklist.json` holds 93 leads. What remains is the CHASE (nothing has stored a row against a lead, so cost per confirmed miss is unmeasurable) and a second recall point, without which the trend chart cannot draw. |
 
 ### Non-negotiable
 
@@ -1142,12 +1142,20 @@ query — the one a human can check by eye — cost $0.0059 and returned 8 leads
 queries. The estimate still SIZES the plan and the measurement REPORTS it: two
 numbers doing two jobs, and the gap between them is the safety margin.
 
-**What is still unproven is the WRITE, not the query.** Every run so far has
-been `--dry-run`, so there is no `data/tripwire_worklist.json`, no
-`analysis/tripwire/results/`, no `source_health` row and no first point for the
-trend. The first writing run was queued through `drain-writers` on 2026-08-02;
-until a `data/tripwire_worklist.json` appears on main, the chase collector has
-nothing to read and "cost per CONFIRMED miss" stays unmeasurable.
+**The first WRITING run landed 2026-08-02** (run 30731489198, commit 02a8df3),
+queued through `drain-writers` and never dispatched directly. 22 queries,
+**$0.1248**, $0.0057 each, 108 usable leads against 25,152 stored signals, 15
+already held, **93 missing**; $0.0012 per usable lead. `data/tripwire_worklist.json`,
+`analysis/tripwire/results/tripwire-2026-08-02.json` and one `source_health` row
+are on main, so the chase collector finally has something to read and the trend
+has its first point. The price reproduced exactly across two runs three days
+apart asking entirely different sets (39 queries, $0.2225), which is stronger
+evidence than one larger sample.
+
+**Still unmeasurable: cost per CONFIRMED miss.** That needs
+`collectors/tripwire_chase.py` to store a row against a lead, and it has not
+run. 93 leads are sitting in the work list waiting for it — that is the next
+step, and it is a decision about spend, not a missing piece of code.
 
 ---
 
