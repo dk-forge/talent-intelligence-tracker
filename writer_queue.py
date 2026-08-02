@@ -43,6 +43,15 @@ the run goes RED. A dropped run that shouts is the point.
 Nothing here writes the database, which is why the drainer is deliberately
 NOT a member of `talent-collect`: it must be able to run while the lock is held.
 
+AND ONE LINE IS NOT AUTOMATICALLY A FAIR LINE
+---------------------------------------------
+With five backfill chains live, a chain whose slice takes three minutes was
+waiting two hours for it, because dispatch ordered on a timestamp that knows
+nothing about what a ticket costs. `dispatch_key` fixes that from this file's
+own measured history, under a starvation ceiling, without touching the stored
+priority. The measurement, and the two other fixes it rules out, are written
+out above FAST_SLICE_MINUTES.
+
 Stdlib only, on purpose — ops_status.py imports it and takes no dependencies.
 """
 
@@ -52,6 +61,7 @@ import argparse
 import copy
 import json
 import re
+import statistics
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -115,6 +125,91 @@ BACKFILL_PRIORITY = 10
 LONG_HOLD_MINUTES = 120
 
 TERMINAL_STATES = frozenset({"landed", "abandoned", "failed", "orphan"})
+
+
+# --------------------------------------------------------------------------
+# FAIRNESS: WHY A THREE-MINUTE CHAIN WAITED TWO HOURS
+# --------------------------------------------------------------------------
+#
+# Measured from this file's own history, the 19 hours to 2026-08-02T03:00Z,
+# with five backfill chains live. `wait` is requested -> dispatched, `slice` is
+# dispatched -> landed, both in minutes, both medians:
+#
+#     chain                             slice   wait   wait/slice
+#     backfill-gdelt-2026                  56     92         1.6
+#     backfill-gnews-2026                  23    120         5.2
+#     backfill-structured:companies_house  21    105         5.0
+#     backfill-structured:bse_india         3    123        41.0
+#     (archive-sources, priority 0)        26     17         0.7
+#
+# Three candidate fixes were on the table. The measurement decides between them
+# and two of them are refused here, on the numbers, so nobody re-proposes them
+# from intuition:
+#
+# **NOT a smaller slice budget.** Only ONE chain of five reaches
+# `backfill_slices.SLICE_BUDGET_MINUTES` at all — gdelt, at 56 minutes wall
+# against a 50-minute collection budget. That 56 is already inside
+# LONG_HOLD_MINUTES (120), the line this file itself draws at "the queue is
+# starved", so the ceiling is not the thing that is broken. Halving the budget
+# would shorten one full round from ~135 minutes to ~115 (15%) and cost the
+# chain doing the most work ~40% more runs, each paying the fixed ~3-6 minutes
+# of checkout, install, merge and push again. And it would not touch the row
+# that is actually wrong: a three-minute chain would still wait for everyone
+# ahead of it, just slightly less.
+#
+# **NOT interleaving by chain.** It already interleaves, and the log above is
+# what that looks like: a chain requeues its next slice at the END of its own
+# run, so it re-enters the line with a fresh `requested_at` and sorts behind
+# every chain that has been waiting — a clean round robin, for free, out of the
+# FIFO tiebreak. Building a second scheduler to produce the order we already
+# have would add a mechanism and change nothing.
+#
+# **IT IS THE DISPATCH ORDER, because priority carries no information.**
+# Dispatch does honour `priority` — step 5 has sorted on it since the queue was
+# built, and it works. The defect is upstream of that: `default_priority()`
+# answers one question, "does the name start with backfill-", so all five
+# chains are 10 and dispatch falls through to a timestamp that knows nothing
+# about what a ticket costs. Round robin then gives every chain ONE TURN per
+# round, which is fair in turns and indefensible in latency: bse_india pays 123
+# minutes of queue for 3 minutes of work while gdelt pays 92 for 56.
+#
+# So the tiebreak becomes MEASURED, from this file's own history rather than a
+# hand-kept list of which chain is meant to be quick. See `dispatch_key`.
+
+#: A chain whose whole slice fits inside what it costs to START a run at all.
+#: The fixed overhead of a slice — checkout, pip install, the database merge,
+#: publish, up to five push attempts — measured at 3-6 minutes (bse_india's
+#: ENTIRE run is 3 minutes; gdelt lands at 56 against a 50-minute budget). So a
+#: chain under this bar is not "a shorter job", it is a job indistinguishable
+#: from the noise of scheduling one, and letting it go first costs the chain it
+#: overtakes less than that chain's own startup. Above the bar, reordering
+#: transfers real lock time between chains, which is a policy decision and
+#: belongs to an operator's `--priority` — which now survives a requeue (see
+#: `chain_priority`) instead of lasting exactly one slice.
+FAST_SLICE_MINUTES = 8
+
+#: The ceiling on the fast lane. A ticket that has waited this long sorts ahead
+#: of every cheap chain regardless, longest wait first, so no amount of cheap
+#: work can hold a long chain out of the line forever.
+#:
+#: Deliberately the SAME number as LONG_HOLD_MINUTES rather than a second tuned
+#: constant: this file already calls 120 minutes the point at which a waiting
+#: queue is starved, and it would be incoherent to let the scheduler reorder a
+#: ticket past the threshold at which it reports that ticket as a problem. It is
+#: also inside the wait the FIFO it replaces already delivers (measured 46-173
+#: minutes), so no chain is asked to tolerate more than it does today.
+#:
+#: It promotes; it does not preempt. Nothing here can shorten a slice that is
+#: already running, so this bounds a ticket's PLACE IN THE LINE and not its
+#: wait. That distinction is the whole reason backfill_slices.py exists.
+FAIR_SHARE_AGE_MINUTES = LONG_HOLD_MINUTES
+
+#: How many of a chain's most recent landed slices decide its measured hold.
+#: A median over five, so one slice lost to a host outage does not exile a cheap
+#: chain from the fast lane and one lucky short slice does not smuggle a heavy
+#: one into it. Fewer than this is still measured — a chain with one landed
+#: slice knows more about itself than a constant does.
+HOLD_SAMPLE = 5
 
 
 def _now() -> datetime:
@@ -309,6 +404,31 @@ def default_priority(workflow: str) -> int:
     return BACKFILL_PRIORITY if workflow.startswith("backfill-") else DEFAULT_PRIORITY
 
 
+def chain_inputs(inputs: dict | None) -> dict[str, str]:
+    """A ticket's inputs as the dispatch API will see them.
+
+    The one definition of a chain's identity, which is workflow + these. It was
+    written out four times — `chain_priority`, `superseded_by`,
+    `backfill_slices._live_ticket` and now the fairness measurement — and four
+    copies of an equality rule is three chances for one of them to drift into
+    comparing something subtly different.
+    """
+    return {str(key): str(value) for key, value in (inputs or {}).items()}
+
+
+def same_chain(ticket: dict, workflow: str, inputs: dict | None) -> bool:
+    """Is this ticket a slice of that chain?
+
+    `backfill_slices.next_inputs` re-emits a job's own inputs unchanged on every
+    slice, so exact equality IS the chain's identity. One workflow drives
+    several independent chains — `backfill-structured-2026` walks bse_india,
+    companies_house and opendart_korea over the same window — and a ticket for
+    one says nothing at all about the pace or the cost of the other two.
+    """
+    return (ticket.get("workflow") == workflow
+            and chain_inputs(ticket.get("inputs")) == chain_inputs(inputs))
+
+
 def chain_priority(queue: dict, workflow: str,
                    inputs: dict | None = None) -> int | None:
     """The priority the previous slice of this same chain ran at, or None.
@@ -331,18 +451,139 @@ def chain_priority(queue: dict, workflow: str,
     Returns None when this is the first ticket of a chain, which leaves
     `enqueue` on `default_priority` exactly as before.
     """
-    wanted = {str(k): str(v) for k, v in (inputs or {}).items()}
     best, seen_at = None, ""
     for ticket in queue.get("tickets", []):
-        if ticket.get("workflow") != workflow:
-            continue
-        held = {str(k): str(v) for k, v in (ticket.get("inputs") or {}).items()}
-        if held != wanted:
+        if not same_chain(ticket, workflow, inputs):
             continue
         stamp = str(ticket.get("requested_at") or "")
         if best is None or stamp >= seen_at:
             best, seen_at = ticket.get("priority"), stamp
     return None if best is None else int(best)
+
+
+# --------------------------------------------------------------------------
+# what a chain actually costs, measured rather than declared
+# --------------------------------------------------------------------------
+
+def ticket_hold_minutes(ticket: dict) -> float | None:
+    """How long one landed ticket occupied the writer slot, or None.
+
+    Dispatch to landing, from the ticket's own history. That is deliberately a
+    little WIDER than the run: `landed` is stamped by the drain tick that
+    noticed the run finish, so it includes the seconds between the run ending
+    and the queue being told. Those seconds are part of what the next ticket
+    waits for, so counting them is the honest measure of a chain's share of the
+    line rather than of its billing.
+
+    The last `dispatched` before the `landed` is the one that counts — a ticket
+    evicted from the pending slot and re-dispatched has two, and the first one
+    held nothing.
+    """
+    sent = None
+    for event in ticket.get("history", []):
+        name = event.get("event")
+        if name == "dispatched":
+            sent = _parse(event.get("at"))
+        elif name == "landed" and sent is not None:
+            done = _parse(event.get("at"))
+            if done is not None:
+                return max(0.0, (done - sent).total_seconds() / 60)
+    # Older tickets predate the history log; the two fields say the same thing.
+    sent = sent or _parse(ticket.get("dispatched_at"))
+    done = _parse(ticket.get("landed_at"))
+    if sent is None or done is None:
+        return None
+    return max(0.0, (done - sent).total_seconds() / 60)
+
+
+def measured_hold_minutes(queue: dict, workflow: str,
+                          inputs: dict | None = None) -> float | None:
+    """The median slice this chain has actually taken, or None if never timed.
+
+    None is a THIRD state and not a zero. A chain nobody has timed is unknown,
+    not cheap: reading an absent measurement as "fast" would put every brand
+    new chain in the fast lane on its first ticket, which is exactly how a heavy
+    one would get in. It costs the chain one ordinary turn to become measured.
+    """
+    holds = []
+    for ticket in queue.get("tickets", []):
+        if ticket.get("state") != "landed" or not same_chain(ticket, workflow, inputs):
+            continue
+        held = ticket_hold_minutes(ticket)
+        if held is not None:
+            holds.append((str(ticket.get("requested_at") or ""), held))
+    if not holds:
+        return None
+    holds.sort()
+    return statistics.median(value for _, value in holds[-HOLD_SAMPLE:])
+
+
+def _waited_minutes(ticket: dict, moment: datetime) -> float:
+    asked = _parse(ticket.get("requested_at"))
+    return 0.0 if asked is None else max(0.0, (moment - asked).total_seconds() / 60)
+
+
+def dispatch_key(queue: dict, ticket: dict, now: datetime | None = None) -> tuple:
+    """Where this ticket sits in the line. Lower leaves first.
+
+    Four terms, in the order they are allowed to matter:
+
+      1. **the operator's priority**, untouched. It decides everything else and
+         nothing below can overturn it, which is what makes `--priority` a real
+         control rather than a suggestion.
+      2. **age**, so nothing starves: past FAIR_SHARE_AGE_MINUTES a ticket sorts
+         ahead of every cheap chain, longest wait first.
+      3. **measured cost**, so a chain whose whole slice is under
+         FAST_SLICE_MINUTES goes ahead of one that is not. This is the fix: it
+         is what stops three minutes of work paying two hours of queue.
+      4. **FIFO**, which is the round robin that already worked and is left
+         exactly as it was.
+
+    THIS IS COMPUTED AT DISPATCH AND NEVER WRITTEN BACK, and that is not a
+    detail. `default_priority()` used to be reapplied to a ticket on requeue and
+    silently overwrote an operator's override, so the override looked effective
+    for one slice and then quietly was not — the shape `chain_priority` was
+    written to kill. An ordering that edited `ticket["priority"]` would be the
+    same bug with a new name: the stored number must keep meaning "what a human
+    asked for", and everything derived must be derived again next tick, from
+    facts, where it can be seen changing.
+    """
+    moment = now or _now()
+    priority = int(ticket.get("priority", 0) or 0)
+    waited = _waited_minutes(ticket, moment)
+    requested = str(ticket.get("requested_at") or "")
+
+    if waited >= FAIR_SHARE_AGE_MINUTES:
+        return (priority, 0, -waited, requested)
+
+    hold = measured_hold_minutes(queue, ticket.get("workflow", ""),
+                                 ticket.get("inputs"))
+    if hold is not None and hold <= FAST_SLICE_MINUTES:
+        return (priority, 1, hold, requested)
+    return (priority, 2, 0.0, requested)
+
+
+def dispatch_reason(queue: dict, ticket: dict, now: datetime | None = None) -> str:
+    """One line saying why this ticket is where it is, for the drain log.
+
+    A scheduler that reorders silently is a scheduler nobody can audit, and this
+    repo has already paid for one queue that moved (or did not) without saying
+    anything in eleven consecutive green runs.
+    """
+    moment = now or _now()
+    _, band, _, _ = dispatch_key(queue, ticket, moment)
+    waited = _waited_minutes(ticket, moment)
+    if band == 0:
+        return (f"waited {waited:.0f} min, past the {FAIR_SHARE_AGE_MINUTES}-minute "
+                "fair-share ceiling, so it goes ahead of the cheap chains")
+    hold = measured_hold_minutes(queue, ticket.get("workflow", ""),
+                                 ticket.get("inputs"))
+    if band == 1:
+        return (f"its measured slice is {hold:.0f} min, inside the "
+                f"{FAST_SLICE_MINUTES}-minute fast lane")
+    if hold is None:
+        return "never timed, so it takes an ordinary turn until it is"
+    return f"its measured slice is {hold:.0f} min, so it takes an ordinary turn"
 
 
 def enqueue(queue: dict, workflow: str, inputs: dict | None = None,
@@ -611,9 +852,24 @@ def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
                 }
     else:
         waiting = [t for t in tickets if t["state"] == "queued"]
-        waiting.sort(key=lambda t: (t.get("priority", 0), t.get("requested_at") or ""))
+        # Operator priority first, then age, then measured cost, then FIFO. The
+        # sort key is derived fresh every tick and never stored on the ticket —
+        # see dispatch_key for why that is load-bearing.
+        waiting.sort(key=lambda t: dispatch_key(queue, t, moment))
         if waiting:
             report["dispatch"] = waiting[0]
+            report["dispatch_reason"] = dispatch_reason(queue, waiting[0], moment)
+            # Only worth saying when the new terms actually moved something. A
+            # scheduler that narrates every ordinary FIFO turn is a log nobody
+            # reads, which is how the useful line gets missed.
+            fifo = sorted(waiting, key=lambda t: (t.get("priority", 0),
+                                                  t.get("requested_at") or ""))
+            if fifo and fifo[0] is not waiting[0]:
+                report["overtook"] = {
+                    "chosen": waiting[0]["id"],
+                    "ahead_of": fifo[0]["id"],
+                    "why": report["dispatch_reason"],
+                }
 
     # 6. The silence detector.
     #
@@ -692,15 +948,11 @@ def superseded_by(queue: dict, ticket: dict) -> str | None:
     failure with no later success behind it still needs a human, which is the
     case the loud path exists for.
     """
-    held = {str(k): str(v) for k, v in (ticket.get("inputs") or {}).items()}
     mine = str(ticket.get("requested_at") or "")
     for other in queue.get("tickets", []):
-        if other is ticket or other.get("workflow") != ticket.get("workflow"):
+        if other is ticket or other.get("state") != "landed":
             continue
-        if other.get("state") != "landed":
-            continue
-        theirs = {str(k): str(v) for k, v in (other.get("inputs") or {}).items()}
-        if theirs != held:
+        if not same_chain(other, ticket.get("workflow"), ticket.get("inputs")):
             continue
         if str(other.get("requested_at") or "") > mine:
             return str(other.get("id"))
@@ -888,6 +1140,13 @@ def _cmd_tick(args) -> int:
     if plan:
         mark_dispatched(plan)
         print(f"dispatching {plan['workflow']} ({plan['id']}) inputs={plan['inputs']}")
+        if report.get("dispatch_reason"):
+            print(f"  chosen because {report['dispatch_reason']}")
+        if report.get("overtook"):
+            over = report["overtook"]
+            print(f"  it goes ahead of {over['ahead_of']}, which asked first. "
+                  "Priority is unchanged on both — the order is derived from "
+                  "measured slice length and is recomputed every tick.")
         if args.emit:
             Path(args.emit).write_text(json.dumps(
                 {"workflow": plan["workflow"], "ticket": plan["id"],

@@ -935,3 +935,182 @@ def test_an_earlier_success_does_not_excuse_a_later_failure():
         _chain_ticket("t-failed", "failed", "2026-08-01T20:17:00Z"),
     ]
     assert len(wq.summary(queue)["problems"]) == 1
+
+
+# --------------------------------------------------------------------------
+# fairness: one line is not automatically a fair line
+# --------------------------------------------------------------------------
+#
+# Measured over the 19 hours to 2026-08-02T03:00Z with five chains live:
+# bse_india's slice took 3 minutes and waited 123 for it, while gdelt's took 56
+# and waited 92. Every chain got one turn per round, which is fair in turns and
+# indefensible in latency, because the order fell through to a timestamp that
+# knows nothing about what a ticket costs.
+
+
+def _slice(tid, workflow, inputs, requested, dispatched=None, landed=None,
+           state="landed", priority=None):
+    """A ticket with the history the fairness measurement actually reads."""
+    history = []
+    if dispatched:
+        history.append({"at": dispatched, "event": "dispatched", "detail": ""})
+    if landed:
+        history.append({"at": landed, "event": "landed", "detail": ""})
+    return {
+        "id": tid, "workflow": workflow, "inputs": dict(inputs), "state": state,
+        "requested_at": requested, "attempts": 0, "history": history,
+        "priority": wq.BACKFILL_PRIORITY if priority is None else priority,
+        "dispatched_at": dispatched, "landed_at": landed,
+    }
+
+
+def _chain_history(workflow, inputs, minutes, count=3, priority=None):
+    """`count` landed slices of one chain, each holding the lock `minutes`."""
+    out = []
+    for index in range(count):
+        start = NOW - timedelta(hours=6 - index)
+        out.append(_slice(
+            f"{workflow}-{inputs.get('source', 'x')}-{index}", workflow, inputs,
+            requested=start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            dispatched=start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            landed=(start + timedelta(minutes=minutes)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            priority=priority))
+    return out
+
+
+def test_a_three_minute_chain_is_measured_at_three_minutes():
+    """The cost of a chain is read from what it has actually done, not from a
+    hand-kept list of which chain is supposed to be quick. A list is the thing
+    that goes stale the day a walker starts calling the model."""
+    queue = wq.empty_queue()
+    queue["tickets"] = (
+        _chain_history("backfill-structured-2026.yml", {"source": "bse_india"}, 3)
+        + _chain_history("backfill-gdelt-2026.yml", {}, 56))
+
+    assert wq.measured_hold_minutes(
+        queue, "backfill-structured-2026.yml", {"source": "bse_india"}) == 3
+    assert wq.measured_hold_minutes(queue, "backfill-gdelt-2026.yml", {}) == 56
+
+
+def test_a_chain_nobody_has_timed_is_UNKNOWN_and_not_cheap():
+    """Three states, not two. Reading an absent measurement as "fast" would put
+    every brand new chain in the fast lane on its first ticket, which is exactly
+    how a heavy one would get in."""
+    queue = wq.empty_queue()
+    assert wq.measured_hold_minutes(queue, "backfill-press-2026.yml", {}) is None
+
+    ticket = _slice("t-new", "backfill-press-2026.yml", {},
+                    requested=NOW.strftime("%Y-%m-%dT%H:%M:%SZ"), state="queued")
+    _, band, _, _ = wq.dispatch_key(queue, ticket, NOW)
+    assert band == 2, "an untimed chain takes an ordinary turn, not a fast one"
+
+
+def test_the_cheap_chain_stops_paying_two_hours_for_three_minutes(members):
+    """The measured defect, as a test: bse_india asks LAST and still goes first,
+    because its whole slice is inside what it costs to start a run at all."""
+    queue = wq.empty_queue()
+    queue["tickets"] = (
+        _chain_history("backfill-gdelt-2026.yml", {}, 56)
+        + _chain_history("backfill-gnews-2026.yml", {}, 23)
+        + _chain_history("backfill-structured-2026.yml", {"source": "bse_india"}, 3))
+    for workflow, inputs in (("backfill-gdelt-2026.yml", {}),
+                             ("backfill-gnews-2026.yml", {}),
+                             ("backfill-structured-2026.yml", {"source": "bse_india"})):
+        wq.enqueue(queue, workflow, inputs, members=members,
+                   now=NOW + timedelta(minutes=len(queue["tickets"])))
+
+    report = wq.tick(queue, [], members=members, now=NOW + timedelta(minutes=30))
+    chosen = report["dispatch"]
+    assert chosen["workflow"] == "backfill-structured-2026.yml"
+    assert chosen["inputs"]["source"] == "bse_india"
+    assert report["overtook"], "the log has to say it jumped, or nobody can audit it"
+
+
+def test_a_long_chain_cannot_be_held_out_of_the_line_forever(members):
+    """The fast lane has a ceiling, and it is the same 120 minutes this file
+    already calls a starved queue. Letting the scheduler reorder a ticket past
+    the threshold at which it REPORTS that ticket as a problem would be
+    incoherent."""
+    queue = wq.empty_queue()
+    queue["tickets"] = (
+        _chain_history("backfill-gdelt-2026.yml", {}, 56)
+        + _chain_history("backfill-structured-2026.yml", {"source": "bse_india"}, 3))
+    wq.enqueue(queue, "backfill-gdelt-2026.yml", {}, members=members, now=NOW)
+    wq.enqueue(queue, "backfill-structured-2026.yml", {"source": "bse_india"},
+               members=members, now=NOW + timedelta(minutes=110))
+
+    later = NOW + timedelta(minutes=wq.FAIR_SHARE_AGE_MINUTES + 1)
+    report = wq.tick(queue, [], members=members, now=later)
+    assert report["dispatch"]["workflow"] == "backfill-gdelt-2026.yml", (
+        "past the fair-share ceiling the long chain goes ahead of the cheap one")
+
+
+def test_an_operators_priority_still_decides_everything_above_it(members):
+    """Priority is the outer term and nothing derived may overturn it. A
+    correction at DEFAULT_PRIORITY goes before a three-minute backfill, and an
+    operator who puts a heavy chain at 1 gets a heavy chain at 1."""
+    queue = wq.empty_queue()
+    queue["tickets"] = (
+        _chain_history("backfill-structured-2026.yml", {"source": "bse_india"}, 3)
+        + _chain_history("backfill-gdelt-2026.yml", {}, 56))
+    wq.enqueue(queue, "backfill-structured-2026.yml", {"source": "bse_india"},
+               members=members, now=NOW)
+    wq.enqueue(queue, "backfill-gdelt-2026.yml", {}, priority=1, members=members,
+               now=NOW + timedelta(minutes=1))
+
+    report = wq.tick(queue, [], members=members, now=NOW + timedelta(minutes=5))
+    assert report["dispatch"]["workflow"] == "backfill-gdelt-2026.yml"
+
+
+def test_the_dispatch_order_is_never_written_back_onto_the_ticket(members):
+    """`default_priority()` used to be reapplied on requeue and silently undid
+    an operator's override, so the override looked effective for one slice and
+    then was not. An ordering that edited `priority` would be that bug in a new
+    hat: the stored number keeps meaning "what a human asked for", and anything
+    derived is derived again next tick where it can be seen changing."""
+    queue = wq.empty_queue()
+    queue["tickets"] = _chain_history(
+        "backfill-structured-2026.yml", {"source": "bse_india"}, 3)
+    ticket = wq.enqueue(queue, "backfill-structured-2026.yml",
+                        {"source": "bse_india"}, priority=7, members=members,
+                        now=NOW)
+
+    wq.tick(queue, [], members=members, now=NOW + timedelta(minutes=5))
+    assert ticket["priority"] == 7
+    assert "fast_lane" not in ticket and "effective_priority" not in ticket
+
+
+def test_a_re_dispatched_ticket_is_timed_from_the_dispatch_that_stuck():
+    """A ticket evicted from the pending slot and re-dispatched has two
+    `dispatched` events, and the first one held the lock for exactly no time.
+    Timing from it would report an eviction as a very slow chain."""
+    queue = wq.empty_queue()
+    start = NOW - timedelta(hours=2)
+    ticket = _slice("t-evicted", "backfill-structured-2026.yml",
+                    {"source": "bse_india"},
+                    requested=start.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    ticket["history"] = [
+        {"at": start.strftime("%Y-%m-%dT%H:%M:%SZ"), "event": "dispatched"},
+        {"at": (start + timedelta(minutes=90)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "event": "displaced"},
+        {"at": (start + timedelta(minutes=95)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "event": "dispatched"},
+        {"at": (start + timedelta(minutes=98)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "event": "landed"},
+    ]
+    queue["tickets"] = [ticket]
+    assert wq.measured_hold_minutes(
+        queue, "backfill-structured-2026.yml", {"source": "bse_india"}) == 3
+
+
+def test_the_fast_lane_bar_is_the_cost_of_starting_a_run_at_all():
+    """The threshold is not a taste. Below it, letting a chain go first costs
+    the chain it overtakes less than that chain's own checkout, install, merge
+    and push; above it, reordering transfers real lock time between chains,
+    which is a policy decision and belongs to an operator's --priority."""
+    assert wq.FAST_SLICE_MINUTES <= 10
+    assert wq.FAIR_SHARE_AGE_MINUTES == wq.LONG_HOLD_MINUTES
+    import backfill_slices
+    assert wq.FAST_SLICE_MINUTES < backfill_slices.SLICE_BUDGET_MINUTES / 4, (
+        "a 'fast' chain has to be far below the slice budget or the lane is "
+        "just a second, quieter priority scheme")

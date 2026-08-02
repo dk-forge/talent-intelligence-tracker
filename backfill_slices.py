@@ -78,6 +78,20 @@ STATE_PATH = ROOT / "data" / "backfill_state.json"
 #: to its own timeout would reproduce it in miniature. The gap covers pip
 #: install, whatever request is in flight when the budget expires, publish, the
 #: database merge, and up to five push attempts.
+#:
+#: MEASURED AND DELIBERATELY NOT LOWERED, 2026-08-02. With five chains live, the
+#: obvious answer to "long slices starve short chains" is to shorten the slice.
+#: The queue's own history refuses it: exactly ONE chain of the five reaches
+#: this budget (gdelt, 56 minutes wall), and 56 is already inside
+#: `writer_queue.LONG_HOLD_MINUTES` (120), the line that file draws at "the
+#: queue is starved". gnews lands at 23, companies_house at 21 and bse_india at
+#: 3, so a lower ceiling would not bind on four of five chains at all. Halving
+#: it shortens a full round from ~135 minutes to ~115 while costing the chain
+#: doing the most work about 40% more runs, each paying the fixed 3-6 minutes of
+#: checkout, install, merge and push over again — and it would leave the actual
+#: defect untouched, because a three-minute chain waiting behind a 25-minute one
+#: is the same shape of unfair as waiting behind a 50-minute one. The fix went
+#: into the dispatch ORDER instead: `writer_queue.dispatch_key`.
 SLICE_BUDGET_MINUTES = 50
 
 #: What every sliced backfill workflow sets as `timeout-minutes`. Chosen to sit
@@ -631,14 +645,11 @@ def _live_ticket(queue: dict, job: dict) -> dict | None:
     one of them says nothing about the other two. `next_inputs` re-emits the
     job's own inputs every slice, so the identity is an exact comparison.
     """
-    wanted = {str(k): str(v) for k, v in (next_inputs(job) or {}).items()}
+    wanted = next_inputs(job) or {}
     for ticket in queue.get("tickets", []):
         if ticket.get("state") not in ("queued", "dispatched"):
             continue
-        if ticket.get("workflow") != job.get("workflow"):
-            continue
-        held = {str(k): str(v) for k, v in (ticket.get("inputs") or {}).items()}
-        if held == wanted:
+        if writer_queue.same_chain(ticket, job.get("workflow"), wanted):
             return ticket
     return None
 
@@ -783,6 +794,14 @@ def _cmd_record(args) -> int:
     # Same lock, same queue, same priority rule: a backfill ticket still sorts
     # behind every correction, so slicing shortens the wait without ever
     # letting a backfill jump it.
+    #
+    # Requeueing at the END of the run is also what interleaves the chains: the
+    # new ticket carries a fresh `requested_at` and therefore re-enters the line
+    # behind every chain that has been waiting, which is a round robin for free.
+    # What that ordering could NOT see is what a slice costs, so a three-minute
+    # chain took one turn per round exactly like a fifty-minute one and paid two
+    # hours of queue for it. `writer_queue.dispatch_key` adds that, measured,
+    # and leaves this FIFO underneath it untouched.
     #
     # Inherited rather than recomputed, though. `default_priority()` is a
     # property of the workflow, so it reapplied here on every requeue and an

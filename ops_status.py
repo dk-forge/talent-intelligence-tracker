@@ -546,16 +546,27 @@ def _report_writer_queue() -> list[str]:
     if behind:
         print(f"    (stale: {behind} commit(s) behind origin/main — `git pull --ff-only`)")
 
-    state = writer_queue.summary(writer_queue.load(queue_file))
+    queue = writer_queue.load(queue_file)
+    state = writer_queue.summary(queue)
     counts = state["counts"]
     if counts:
         print("    " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
 
-    for ticket in state["waiting"]:
+    # Printed in the order they will actually be dispatched, not the order they
+    # were asked for. Those stopped being the same thing when the dispatch key
+    # learned what a slice costs, and a list that still read as FIFO would quietly
+    # mislead about which chain moves next.
+    for ticket in sorted(state["waiting"],
+                         key=lambda t: writer_queue.dispatch_key(queue, t)):
         print(f"    {ticket['state']:<11} {ticket['workflow']:<26} "
               f"since {ticket['requested_at']}  attempts={ticket['attempts']}")
         if ticket.get("inputs"):
             print(f"                inputs {ticket['inputs']}")
+        if ticket["state"] == "queued":
+            # Only for work still in the line. A dispatched ticket is already
+            # holding the lock, and printing where it WOULD have sorted reads
+            # like a prediction about a decision that has been made.
+            print(f"                {writer_queue.dispatch_reason(queue, ticket)}")
         if ticket.get("unbound_count"):
             print(f"                dispatched {ticket['unbound_count']}x with NO "
                   f"RUN produced — the dispatch is failing, not the work")
