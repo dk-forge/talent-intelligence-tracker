@@ -1,0 +1,426 @@
+{
+ "run_at": "2026-08-02T05:28:48+00:00",
+ "window": "2026-01-01..2026-07-30",
+ "publishers": 0,
+ "reached": 19,
+ "stats": {
+  "publishers": 0,
+  "sitemaps": 19,
+  "no_sitemap": 21,
+  "robots": 0,
+  "dead": 0,
+  "hijacked": 0,
+  "archive_unknown": 0,
+  "urls": 0,
+  "in_window": 6006,
+  "heads_fetched": 841,
+  "heads_failed": 34,
+  "no_metadata": 0,
+  "items": 988,
+  "duplicate_url": 0,
+  "syndicated": 0,
+  "off_domain": 0
+ },
+ "by_publisher": [
+  {
+   "name": "20 Minutes Economie",
+   "country": "France",
+   "site": "https://www.20minutes.fr",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "24ur",
+   "country": "Slovenia",
+   "site": "https://www.24ur.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "263Chat",
+   "country": "Zimbabwe",
+   "site": "https://www.263chat.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "360 Stepeni",
+   "country": "North Macedonia",
+   "site": "https://360stepeni.mk",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "36Kr",
+   "country": "China",
+   "site": "https://36kr.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "3News Ghana",
+   "country": "Ghana",
+   "site": "https://3news.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 28,
+   "detail": ""
+  },
+  {
+   "name": "A1on",
+   "country": "North Macedonia",
+   "site": "https://a1on.mk",
+   "status": "ok",
+   "urls": 400,
+   "heads": 1,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "ABC Color",
+   "country": "Paraguay",
+   "site": "https://www.abc.com.py",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "ABC Economia",
+   "country": "Spain",
+   "site": "https://www.abc.es",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "ABC News (Business)",
+   "country": "Australia",
+   "site": "https://www.abc.net.au",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Actu Cameroun",
+   "country": "Cameroon",
+   "site": "https://actucameroun.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Actualite.cd",
+   "country": "Democratic Republic of the Congo",
+   "site": "https://www.actualite.cd",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Addis Fortune",
+   "country": "Ethiopia",
+   "site": "https://addisfortune.news",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "African Manager",
+   "country": "Tunisia",
+   "site": "https://africanmanager.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Aftenposten",
+   "country": "Norway",
+   "site": "https://www.aftenposten.no",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "AGBI (Arabian Gulf Business Insight)",
+   "country": "United Arab Emirates",
+   "site": "https://www.agbi.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Agence de Presse Senegalaise (APS)",
+   "country": "Senegal",
+   "site": "https://aps.sn",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Agenda Digitale",
+   "country": "Italy",
+   "site": "https://www.agendadigitale.eu",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "AIDA",
+   "country": "Albania",
+   "site": "https://aida.gov.al",
+   "status": "ok",
+   "urls": 229,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Aktuelno.me",
+   "country": "Montenegro",
+   "site": "https://www.aktuelno.me",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Algerie Eco",
+   "country": "Algeria",
+   "site": "https://algerie-eco.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "AlleyWatch",
+   "country": "United States",
+   "site": "https://www.alleywatch.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Almakos",
+   "country": "Albania",
+   "site": "https://almakos.com",
+   "status": "ok",
+   "urls": 111,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Amandala",
+   "country": "Belize",
+   "site": "https://amandala.com.bz",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Ambito Financiero",
+   "country": "Argentina",
+   "site": "https://www.ambito.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Andina",
+   "country": "Peru",
+   "site": "https://andina.pe",
+   "status": "ok",
+   "urls": 64,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Annahar",
+   "country": "Lebanon",
+   "site": "https://www.annahar.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 0,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "ANSA Economia",
+   "country": "Italy",
+   "site": "https://www.ansa.it",
+   "status": "ok",
+   "urls": 1,
+   "heads": 0,
+   "items": 1,
+   "detail": ""
+  },
+  {
+   "name": "Antigua Observer",
+   "country": "Antigua and Barbuda",
+   "site": "https://antiguaobserver.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Apple Newsroom",
+   "country": "United States",
+   "site": "https://www.apple.com/newsroom/",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Arab News",
+   "country": "Saudi Arabia",
+   "site": "https://www.arabnews.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Arabian Business",
+   "country": "United Arab Emirates",
+   "site": "https://www.arabianbusiness.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Aripaev",
+   "country": "Estonia",
+   "site": "https://www.aripaev.ee",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 59,
+   "detail": ""
+  },
+  {
+   "name": "ASCII.jp",
+   "country": "Japan",
+   "site": "https://ascii.jp",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Australian Financial Review",
+   "country": "Australia",
+   "site": "https://www.afr.com",
+   "status": "ok",
+   "urls": 1,
+   "heads": 0,
+   "items": 1,
+   "detail": ""
+  },
+  {
+   "name": "B2B Cambodia",
+   "country": "Cambodia",
+   "site": "https://www.b2b-asianews.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Baguete",
+   "country": "Brazil",
+   "site": "https://www.baguete.com.br",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Bahrain This Week",
+   "country": "Bahrain",
+   "site": "https://www.bahrainthisweek.com",
+   "status": "no_window",
+   "urls": 0,
+   "heads": 0,
+   "items": 0,
+   "detail": "no dated article URL in 2026-01-01..2026-07-30 — either no sitemap, or one that does not reach back"
+  },
+  {
+   "name": "Bangkok Post (Business)",
+   "country": "Thailand",
+   "site": "https://www.bangkokpost.com",
+   "status": "ok",
+   "urls": 400,
+   "heads": 0,
+   "items": 60,
+   "detail": ""
+  },
+  {
+   "name": "Bani.md",
+   "country": "Moldova",
+   "site": "https://bani.md",
+   "status": "ok",
+   "urls": 400,
+   "heads": 60,
+   "items": 59,
+   "detail": ""
+  }
+ ]
+}
