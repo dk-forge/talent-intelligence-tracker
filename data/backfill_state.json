@@ -51,7 +51,7 @@
       "workflow": "backfill-funding-bulk.yml"
     },
     "backfill-gdelt-2026:2026-01-01..2026-07-26": {
-      "cursor": "2026-04-27",
+      "cursor": "2026-04-30",
       "end": "2026-07-26",
       "history": [
         {
@@ -449,6 +449,18 @@
             "stored": 12,
             "windows": 4
           }
+        },
+        {
+          "at": "2026-08-02T01:40:32Z",
+          "run": "",
+          "slice": "2026-04-27..2026-04-30",
+          "stopped_early": "slice budget of 50 minutes reached (51 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 42,
+            "stored": 16,
+            "windows": 3
+          }
         }
       ],
       "inputs": {
@@ -459,17 +471,17 @@
       "label": "",
       "opened_at": "2026-07-30T19:22:59Z",
       "slice_size": 4,
-      "slices": 33,
+      "slices": 34,
       "start": "2026-01-01",
       "state": "running",
       "totals": {
         "duplicates": 105,
-        "rejected": 1226,
-        "stored": 475,
-        "windows": 124
+        "rejected": 1268,
+        "stored": 491,
+        "windows": 127
       },
       "unit": "days",
-      "updated_at": "2026-08-02T00:03:24Z",
+      "updated_at": "2026-08-02T01:40:32Z",
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
