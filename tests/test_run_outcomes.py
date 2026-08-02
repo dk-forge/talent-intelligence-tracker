@@ -125,3 +125,70 @@ def test_every_other_collector_is_unaffected_by_that():
     assert not hasattr(google_news, "LAST_RUN")
     src = inspect.getsource(run_collect.run)
     assert "observed = found if observed is None else observed" in src
+
+
+def test_already_seen_candidates_are_not_counted_as_rejections():
+    """A weekend is not a broken classifier.
+
+    sec_edgar and sec_form_d read a fixed-size window of the most recent SEC
+    filings. SEC publishes nothing on Saturday or Sunday, so both weekend runs
+    re-read Friday's filings and skip every one as already seen. No guard runs,
+    no verdict is reached, nothing is rejected — and the run still reported
+    "every candidate rejected" (next to its own "0 rejected") and exited
+    non-zero, so `collect` went red both weekend days while the Friday run had
+    stored 1 and 3 rows perfectly normally.
+
+    The test therefore has to reach a guard before it can claim they all failed.
+    """
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    assert "everything_rejected = (len(kept) > skipped" in src, (
+        "everything_rejected must exclude already-seen skips; comparing against "
+        "0 makes an all-already-seen run look like a wholesale rejection")
+
+
+def test_a_genuine_wholesale_rejection_still_degrades():
+    """The guard this protects must keep firing for the case it exists for."""
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    # Still requires nothing stored AND nothing duplicate, so a run whose
+    # candidates DID reach the guards and were all rejected is unchanged.
+    assert "and stored == 0 and duplicates == 0" in src
+    assert "or everything_rejected" in src
+
+
+def test_already_seen_is_visible_on_the_health_row():
+    """"0 dup, 0 rejected, 0 deferred" named no cause for three zeroes.
+
+    The already-seen count lived only in the step log, so the health page (and
+    ops_status, which prints detail[:70]) showed a collector that looked broken
+    and gave a reader nothing to go on.
+    """
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    assert "already seen" in src
+
+
+def test_the_already_seen_counter_is_not_rebound_later_in_the_run():
+    """`skipped` held the already-seen count and was then reused as a local for
+    a second-pass statistic. Nothing read it after that point, so it was
+    harmless — right up until the health verdict started depending on it."""
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    verdict = src.index("everything_rejected = (len(kept) > skipped")
+    assert 'skipped = classify.STATS["read_skipped_strong"]' not in src, (
+        "the second-pass statistic must not rebind `skipped`")
+    assert src.count("skipped += 1") == 1
+    assert verdict > src.index("skipped += 1")

@@ -796,12 +796,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # say why in the step log, not leave a reader to infer it from a row count.
     # Every deferral here cost an extraction call that bought nothing.
     if classify.STATS["read_skipped_strong"] or classify.STATS["read_bought_weak"]:
-        skipped = classify.STATS["read_skipped_strong"]
+        # NOT `skipped` — that name holds the already-seen count, which the
+        # health verdict below now depends on. Rebinding it here silently fed
+        # the wrong number to anything added after this point.
+        strong = classify.STATS["read_skipped_strong"]
         bought = classify.STATS["read_bought_weak"]
         print(
-            f"[{collector}] second pass: {bought} bought, {skipped} skipped "
+            f"[{collector}] second pass: {bought} bought, {strong} skipped "
             f"because extraction's own sentence stood on its own "
-            f"({100 * bought // max(bought + skipped, 1)}% of records needed a "
+            f"({100 * bought // max(bought + strong, 1)}% of records needed a "
             f"frontier read-through; TIT_READ_ALWAYS=1 buys them all)"
         )
     if classify.STATS["read_calls"] or classify.STATS["read_served"]:
@@ -877,7 +880,24 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # the product normally has. It reports `degraded` with the reason named,
     # and it does not trip `everything_rejected`: no guard rejected anything.
     running_degraded = month_deferred > 0
-    everything_rejected = (len(kept) > 0 and stored == 0 and duplicates == 0
+    # `skipped` (already seen) is NOT a rejection, and leaving it out of this
+    # test is what made the SEC pair cry wolf every weekend. sec_edgar and
+    # sec_form_d read a fixed-size window of the most recent filings; SEC
+    # publishes nothing Saturday or Sunday, so both runs re-read Friday's
+    # filings, every one of them already in the seen-ledger. That is the
+    # quietest possible healthy run — no guard rejected anything, the classifier
+    # was never even reached — and it reported "every candidate rejected" beside
+    # its own "0 rejected", and exited non-zero, so `collect` went red both
+    # weekend days (2026-08-01 and 08-02; the Friday run stored 1 and 3 rows
+    # normally). A collector that is red two days in seven for a calendar it
+    # cannot control is a collector nobody reads the health of.
+    #
+    # So the test is now "did anything actually REACH a guard": at least one
+    # candidate must have got past the already-seen skip. Nothing here loosens a
+    # filter — no verdict, threshold or guard changes, and a run that truly
+    # reaches the guards and is rejected wholesale still degrades exactly as
+    # before.
+    everything_rejected = (len(kept) > skipped and stored == 0 and duplicates == 0
                            and not running_degraded)
     # A run that mostly hit a busy provider stored little through no fault of
     # the pipeline. That is still not "ok": it means coverage has a hole that
@@ -925,6 +945,13 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                  "candidate(s) deferred unread; free collectors unaffected | "
                  if running_degraded else "")
                 + f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
+                # already-seen lived only in the step log, so the health page
+                # showed "0 dup, 0 rejected, 0 deferred" for a run that had in
+                # fact skipped all 10 candidates as already held — three zeroes
+                # that read like a broken collector and named no cause. It is
+                # the difference between "nothing came back" and "nothing came
+                # back that we do not already have", so it belongs here.
+                + (f", {skipped} already seen" if skipped else "")
                 + (f" | read-through {classify.READ_MODEL}: "
                    f"{classify.STATS['read_written']} written, "
                    f"{classify.STATS['read_unavailable'] + classify.STATS['read_ungrounded']}"

@@ -480,3 +480,59 @@ def test_the_label_merge_happens_after_the_reset_and_before_the_commit():
         assert code.index("merge_gate_labels.py") < code.index("git commit"), (
             f"{name} commits before merging its gate labels back"
         )
+
+
+def test_no_two_scheduled_writers_queue_in_the_same_minute():
+    """Sharing one lock is necessary; queuing into it together is not free.
+
+    With `cancel-in-progress: false` GitHub keeps at most ONE run pending per
+    concurrency group. A third arrival does not join a queue — it CANCELS the
+    run already waiting. So two scheduled writers on the same cron minute are
+    not "one waits for the other": whichever queues first is the one that gets
+    thrown away as soon as anything else shows up.
+
+    collect-press.yml and collect-structured.yml both sat on '0 9 * * *'. The
+    morning press run was cancelled on 2026-07-29, 07-31, 08-01 and 08-02 while
+    its uncontended 21:00 slot succeeded every time, so a collector scheduled
+    twice a day ran once, ~24h apart, against a 14h staleness leash — and the
+    leash took the blame for a schedule that could not be kept.
+    """
+    import collections
+    from pathlib import Path
+
+    import yaml
+
+    workflows = Path(__file__).parent.parent / ".github/workflows"
+    slots = collections.defaultdict(list)
+    for path in sorted(workflows.glob("*.yml")):
+        text = path.read_text()
+        if "talent_intel.db" not in text:
+            continue
+        doc = yaml.safe_load(text) or {}
+        # PyYAML parses a bare `on:` key as the boolean True.
+        triggers = doc.get("on") or doc.get(True) or {}
+        for entry in (triggers.get("schedule") or []):
+            cron = (entry or {}).get("cron")
+            if not cron:
+                continue
+            # Compare the SLOT, not the literal string: '0 9,21 * * *' and
+            # '0 9 * * *' are different strings that both fire at 09:00, which
+            # is exactly the pair that caused this. Expand the comma lists in
+            # minute and hour; a wildcard or step in either field means the
+            # workflow is not on a fixed daily slot and is out of scope here.
+            minute, hour, *rest = cron.split()
+            if any(c in minute + hour for c in "*/-"):
+                continue
+            for mm in minute.split(","):
+                for hh in hour.split(","):
+                    slots[(f"{int(hh):02d}:{int(mm):02d}", " ".join(rest))].append(
+                        path.name)
+
+    assert slots, "no scheduled database writers found — the test is inert"
+    clashes = {slot: sorted(set(names))
+               for slot, names in slots.items() if len(set(names)) > 1}
+    assert not clashes, (
+        "these scheduled database writers queue into the shared lock in the "
+        f"same minute, so one of them will be cancelled rather than run: "
+        f"{clashes}. Move one to a free minute."
+    )

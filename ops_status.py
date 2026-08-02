@@ -200,15 +200,38 @@ def _report_employer_keys(conn) -> list[str]:
     # waiting on the correction that moves its rows. Saying so is the difference
     # between "somebody must choose which spelling wins" and "the job is
     # queued", and only the first is work.
+    # A pair of DIFFERENT employers that collide is not waiting on a spelling
+    # decision either, and telling someone to make one invites the merge that
+    # destroys an employer. The slug deletes every non-[a-z0-9] character, so
+    # any two names written in a non-Latin script collapse together — '오픈ai'
+    # and '페르소나ai' are both 'ai'. Reviewed pairs live in vocab; they still
+    # block publication, and the fix is the plugin's slug, not the key.
+    distinct = {slug: owners for slug, owners in collisions.items()
+                if tuple(owners) == tuple(sorted(
+                    vocab.DISTINCT_EMPLOYER_SLUG_COLLISIONS.get(slug, ())))}
+    # Same employer, but no spelling of it is SQL-findable, so the alias map
+    # cannot name a survivor. Also blocked on the slug, not on a decision.
+    unnameable = {slug: owners for slug, owners in collisions.items()
+                  if tuple(owners) == tuple(sorted(
+                      vocab.SAME_EMPLOYER_NO_ASCII_KEY.get(slug, ())))}
+
     undecided = {slug: owners for slug, owners in collisions.items()
-                 if not any(vocab.EMPLOYER_KEY_ALIASES.get(o) in owners for o in owners)}
+                 if slug not in distinct and slug not in unnameable
+                 and not any(vocab.EMPLOYER_KEY_ALIASES.get(o) in owners for o in owners)}
 
     if collisions:
         print(f"    {len(collisions)} slug(s) claimed by two keys, so neither "
               f"employer is published:")
         for slug, owners in sorted(collisions.items()):
-            merged = "" if slug in undecided else "   (merged; the rows have not moved yet)"
-            print(f"      /company/{slug}/{merged}")
+            if slug in distinct:
+                note = "   (two DIFFERENT employers; blocked on the slug, do not merge)"
+            elif slug in unnameable:
+                note = "   (one employer, but no ASCII spelling to survive; blocked on the slug)"
+            elif slug in undecided:
+                note = ""
+            else:
+                note = "   (merged; the rows have not moved yet)"
+            print(f"      /company/{slug}/{note}")
             for owner in owners:
                 print(f"          {owner!r}")
     if undecided:
@@ -216,6 +239,13 @@ def _report_employer_keys(conn) -> list[str]:
             f"{len(undecided)} employer(s) recorded under two keys that claim "
             f"one URL and are not merged: decide which spelling wins, add it to "
             f"vocab.EMPLOYER_KEY_ALIASES, then queue correct-company-key.yml")
+    if distinct or unnameable:
+        problems.append(
+            f"{len(distinct) + len(unnameable)} profile URL(s) are unpublishable "
+            f"because the slug drops non-Latin characters: {len(distinct)} held by "
+            f"two DIFFERENT employers, {len(unnameable)} by one employer with no "
+            f"ASCII spelling to survive. Both reviewed in vocab; the fix is "
+            f"tit_company_slug, NOT an alias")
 
     return problems
 

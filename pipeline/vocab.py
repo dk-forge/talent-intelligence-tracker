@@ -1260,6 +1260,85 @@ EMPLOYER_KEY_ALIASES = {
     # re-registered and dropped the ampersand; both ids are the same trust.
     'barking havering & redbridge university hospitals nhs trust':
         'barking havering and redbridge university hospitals nhs trust',
+
+    # --- 2026-08-02 slug-collision review -----------------------------------
+    # ops_status flagged 12 slugs claimed by two keys. They were three different
+    # things, and only the first is an alias:
+    #   * 5 are one employer under two spellings -> merged here;
+    #   * 2 are one employer whose every spelling is non-Latin, so no survivor
+    #     satisfies this map's own SQL-findability rule -> SAME_EMPLOYER_NO_ASCII_KEY;
+    #   * 5 are DIFFERENT employers colliding because the slug deletes non-Latin
+    #     characters -> DISTINCT_EMPLOYER_SLUG_COLLISIONS.
+    # Both lists are below. Merging the third group would have fused SK Telecom
+    # with SK Hynix and two unrelated municipal football clubs.
+    #
+    # The survivor is never a free choice: test_the_surviving_spelling_is_the_
+    # one_sql_can_find_without_the_index requires it to slugify to itself, so it
+    # has to be the ASCII-clean spelling. Where both are clean, the plainer form
+    # wins, matching the three entries above (hyphen -> space, accent -> plain).
+    'coca-cola': 'coca cola',            # news vs EDGAR's "COCA COLA CO"
+    'nestlé': 'nestle',
+    'rcf notre-dame': 'rcf notre dame',  # one appointment, two French outlets
+    # The Hebrew rendering one outlet used, against the company's own
+    # international name (IDE Technologies). Both rows report Yuri Bronstein's
+    # appointment as CEO of the same water-technology company (Calcalist and
+    # TheMarker). Noting the risk honestly: a bare 'ide' is a generic key, so
+    # if some unrelated IDE ever appears it will land here and need splitting.
+    'ide טכנולוגיות מים': 'ide',
+    # BBQ is the trading name of 제너시스BBQ (Genesis BBQ). Both rows track one
+    # executive: Park Ji-man appointed 대표이사 in January, resigning in July.
+    # The full legal name would be the better canonical, but it is not
+    # SQL-findable, so the trading name survives.
+    '제너시스bbq': 'bbq',
+}
+
+
+# One employer, two spellings, and NEITHER can be the survivor: this map
+# requires a key that slugifies to itself, and every spelling of these two is
+# non-Latin. Naming an ASCII canonical would mean inventing a company name the
+# sources do not use, so they are recorded rather than guessed at.
+#
+# They are the same defect as DISTINCT_EMPLOYER_SLUG_COLLISIONS below — the
+# published slug cannot represent a non-Latin name — and they clear the same
+# way: once tit_company_slug keeps those characters (or transliterates them),
+# each spelling gets its own URL and one of them can become the survivor.
+SAME_EMPLOYER_NO_ASCII_KEY = {
+    # NH證 is how the Korean business press abbreviates NH투자증권 (NH
+    # Investment & Securities). Both rows are the same CEO succession race.
+    'nh': ('nh證', 'nh투자증권'),
+    # One diacritic apart: "Giày" is the correct Vietnamese word for shoe,
+    # "Giầy" the variant. Same company, same Vinaconex-linked CEO appointment,
+    # reported by tuoitre.vn and vietstock.vn.
+    'giay-thuong-inh': ('giày thượng đình', 'giầy thượng đình'),
+}
+
+
+# Two keys can claim one profile URL without being one employer. The published
+# slug (tit_company_slug in the plugin) folds accents and then deletes every
+# remaining non-[a-z0-9] character, so a name written in Hangul, Han or Hebrew
+# is reduced to whatever Latin fragment it happens to contain — '오픈ai' and
+# '페르소나ai' both become 'ai'. That is a slug defect, not a duplicate
+# employer, and the fix is a plugin change to keep the two apart.
+#
+# Until then these pairs are recorded here so the collision report can say
+# "two different employers, blocked on the slug" instead of asking someone to
+# decide which spelling wins. Choosing one WOULD silently destroy an employer:
+# every pair below is two distinct companies.
+DISTINCT_EMPLOYER_SLUG_COLLISIONS = {
+    # OpenAI (US, covered by Korean press) and Persona AI, a Korean defence-
+    # tech startup raising from LIG Nex1. Unrelated.
+    'ai': ('오픈ai', '페르소나ai'),
+    # Two subsidiaries of BNK Financial Group: BNK PierX (renamed PierX Co.)
+    # and BNK Capital. Separate companies, separate CEOs.
+    'bnk': ('bnk 피어엑스', 'bnk캐피탈'),
+    # Two municipal South Korean football clubs, Changwon and Hwaseong.
+    'fc': ('창원fc', '화성fc'),
+    # IBM and IBM Japan. The Japanese row is 日本IBM's own presidency changing
+    # hands, which is not a change at the parent.
+    'ibm': ('ibm', '日本ibm'),
+    # SK Telecom and SK Hynix — two SK Group companies, and the one pair here
+    # where a careless merge would have been most expensive.
+    'sk': ('sk 电信', 'sk하이닉스'),
 }
 
 

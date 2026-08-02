@@ -40,7 +40,10 @@ MAX_AGE_HOURS = {
     "gdelt": TWICE_DAILY_HOURS,
     "sec_edgar": TWICE_DAILY_HOURS,
     "sec_form_d": TWICE_DAILY_HOURS,
-    # collect-press.yml, 09:00 and 21:00 UTC.
+    # collect-press.yml, 11:00 and 21:00 UTC. It was 09:00, which collided with
+    # collect-structured's daily cron inside the shared `talent-collect` lock
+    # and got the pending press run cancelled most mornings — the leash was
+    # right and the schedule was not. See the comment on that workflow's cron.
     "national_press": TWICE_DAILY_HOURS,
     # collect-structured.yml. ats_boards is daily and PERISHABLE: a missed day
     # is a hole in a series nothing can back-fill, so one missed run plus
