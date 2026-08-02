@@ -29,6 +29,16 @@
       TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
     } catch (e) { TIT.states = {}; }
   }
+  // The pending-archive note, composed by the SERVER (the collectors the
+  // schedule covers, plus the finished sentence with its derived next-check
+  // date). This script only ever prints it, so a repaint is byte-identical to
+  // the first paint and the date has exactly one derivation. Absent attribute
+  // means no promise file on the server, and then no note is rendered at all.
+  var ARCHIVE_NOTE = null;
+  try {
+    ARCHIVE_NOTE = JSON.parse(root.getAttribute('data-archive-note') || 'null');
+  } catch (e) { ARCHIVE_NOTE = null; }
+  if (!ARCHIVE_NOTE || !ARCHIVE_NOTE.text || !ARCHIVE_NOTE.collectors) ARCHIVE_NOTE = null;
   if (!TIT.api) return;
 
   var tbody = document.getElementById('tit-rows');
@@ -289,12 +299,22 @@
   // snapshot keeps the evidence reachable without ever replacing the citation.
   // Must render identically to shortcodes.php, or a filtered row would differ
   // from the row it replaced.
-  // Only where a snapshot exists. A placeholder or a dead "Archived" would be
-  // the one thing this page cannot afford: a link that is offered and is not
-  // there. The middot before it is a CSS ::before rather than a text node here,
+  // Three states, mirroring tit_archive_note_html(): the link where a snapshot
+  // exists; on a publisher-sourced row without one, the server-composed
+  // pending sentence with its derived next-check date (ARCHIVE_NOTE, printed
+  // verbatim so both paints agree); nothing on rows whose documents a
+  // government already preserves, because promising those a re-check the
+  // schedule never makes would be a false sentence. Still never a dead link.
+  // The middot before either is a CSS ::before rather than a text node here,
   // so it cannot wrap to the start of a line in the card layout.
   function archivedLink(r) {
-    if (!r.archive_url) return '';
+    if (!r.archive_url) {
+      if (ARCHIVE_NOTE && r.collector &&
+          ARCHIVE_NOTE.collectors.indexOf(r.collector) !== -1) {
+        return '<span class="tit-archive-wait">' + esc(ARCHIVE_NOTE.text) + '</span>';
+      }
+      return '';
+    }
     return '<span class="tit-archived"><a href="' + esc(r.archive_url) +
       '" rel="nofollow noopener" target="_blank" ' +
       'title="Archived copy at the Internet Archive">Archived</a></span>';
@@ -841,7 +861,13 @@
       if (+r.money > 0) bits.push('<b>' + esc(moneyShort(r.money)) + '</b> raised');
       if (+r.v > 0) bits.push('<b>' + nfmt(r.v) + '</b> from official filings');
       if (r.top && +r.top_usd > 0) {
-        bits.push('largest: <b>' + esc(r.top) + '</b> (' + esc(moneyShort(r.top_usd)) + ')');
+        // The row's own country field, carried from the same scalar subquery
+        // that picked the raise; absent when the source named no place. Never
+        // inferred here. Mirrors tit_dated_glance_html().
+        var topWhere = r.top_country
+          ? ' <span aria-hidden="true">·</span> ' + esc(countryLabel(r.top_country))
+          : '';
+        bits.push('largest: <b>' + esc(r.top) + '</b> (' + esc(moneyShort(r.top_usd)) + topWhere + ')');
       }
       if (r.key === 'week') {
         if (haveHistory && prev > 0 && (+r.n || 0) > 0) {
@@ -853,10 +879,17 @@
                     'we do not hold a full week before this one</span>');
         }
       }
+      // The week's dates beside its label mirror tit_dated_glance_html(); the
+      // string is server-derived so both paints agree. The single space
+      // between the label button and the body span is a REAL text node, not a
+      // CSS gap: without it a selected-and-copied strip pastes as
+      // "This week1,366 updates", which is the sibling's "Today1,366" bug.
+      var range = r.range_label
+        ? ' <span class="tit-dg-range">(' + esc(r.range_label) + ')</span>' : '';
       h += '<div class="tit-dg-row" data-dg="' + esc(r.key) + '">' +
         '<button type="button" class="tit-dg-label" data-since="' + esc(r.since) +
-        '" aria-pressed="false">' + esc(r.label) + '</button>' +
-        '<span class="tit-dg-body">' +
+        '" aria-pressed="false">' + esc(r.label) + range + '</button>' +
+        ' <span class="tit-dg-body">' +
         bits.join(' <span aria-hidden="true">·</span> ') + '</span></div>';
     });
 

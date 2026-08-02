@@ -890,6 +890,11 @@
 .tit-wrap .tit-dg-label:focus-visible { outline:2px solid var(--tit-hiring);
   outline-offset:2px; border-radius:3px; }
 .tit-wrap .tit-dg-label[aria-pressed="true"] { color:var(--tit-hiring); }
+/* The week's own dates, inside the label button. Lowercase-preserving and
+   letter-spacing reset so "(Jul 27-Aug 2)" reads as dates, not as a second
+   shouted label; colour stays the label's own. */
+.tit-wrap .tit-dg-label .tit-dg-range { font-weight:400; letter-spacing:0;
+  text-transform:none; }
 
 .tit-dg-body { flex:1 1 260px; min-width:0; color:var(--tit-mut); }
 /* Figures are the thing being read. Tabular numerals so a column of them
@@ -1260,6 +1265,22 @@
 @media (max-width:860px){
   .tit-archived::before { content:none; }
   .tit-archived { margin-left:10px; }
+}
+
+/* THE PENDING STATE, quieter than the link it will become. Same separator
+   mechanics as .tit-archived (a ::before the card layout can take away), but
+   the sentence WRAPS: it is a full clause, and nowrap here is what pushes a
+   390px card into a horizontal scroll. It is plain text on purpose — a link
+   that goes nowhere yet is the one thing this footer must never offer. */
+.tit-archive-wait { color:var(--tit-mut); font-size:12px; font-weight:400; }
+/* Scoped to the card footer: the company and place pages print their own
+   literal "· " before this span (their meta lines separate every item that
+   way), and an unscoped ::before would double it there. */
+.tit-card-src .tit-archive-wait::before { content:"\00A0\00B7 ";
+  white-space:pre-wrap; color:var(--tit-faint); }
+@media (max-width:860px){
+  .tit-card-src .tit-archive-wait::before { content:none; }
+  .tit-card-src .tit-archive-wait { display:block; margin-top:2px; }
 }
 
 /* A chart with nothing in it says so. A blank card reads as broken. */

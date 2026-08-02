@@ -340,7 +340,31 @@ function check($condition, $message) {
  * that a session which adds a fourth ranking card has to come here and write
  * down what it cost.
  */
-const TIT_DASH_BYTE_BUDGET = 174000;
+const TIT_DASH_BYTE_BUDGET = 177000;
+
+/*
+ * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and
+ * the strip disambiguators. Measured on this fixture: 175,749 against the old
+ * 174,000 ceiling, and the bill splits three ways:
+ *
+ *   ~1,100  THE PENDING SENTENCE on every page-one publisher card without a
+ *           snapshot ("No archive snapshot yet. We re-check weekly; next check
+ *           by <date>.", ~110 bytes x the in-scope unarchived rows the default
+ *           view holds). This is the owner's ask: the absence of an archive
+ *           link now says what happens next instead of implying nothing does.
+ *
+ *   ~600    THREE MORE FIXTURE CARDS (the Registry pair rows), which exist so
+ *           the out-of-scope state — no link AND no promise — is asserted
+ *           rather than assumed. Fixture cost, not page cost.
+ *
+ *   ~300    data-archive-note on the root (the server-composed sentence the JS
+ *           reprints, so the repaint cannot derive a second date), the week
+ *           rung's derived "(Jul 27-Aug 2)" span, and the largest raise's own
+ *           country inside its parens.
+ *
+ * Headroom ~1,250 bytes. Same rule as every raise below: the next addition
+ * raises this number and writes down why.
+ */
 
 /*
  * RAISED 169,000 -> 174,000 on 2026-07-31, when the chart grid went to nine
@@ -667,6 +691,18 @@ for ($i = 0; $i < 3; $i++) {
         'collector' => 'national_press', 'source_name' => 'TEST FIXTURE Unarchived Outlet',
         'confidence' => 'reported', 'published_date' => gmdate('Y-m-d', TIT_FIXTURE_NOW),
         'source_url' => 'https://example.test/unarchived/' . $i,
+    ));
+    // The THIRD archive state: a collector the archive schedule deliberately
+    // does not cover (EDGAR keeps its own filings indefinitely). Such a row
+    // must render neither the link nor the pending promise — a "we re-check
+    // weekly" on a document nothing will ever re-check is a false sentence.
+    $wpdb->insert_row(array(
+        'country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
+        'company' => 'TEST FIXTURE Registry Employer ' . $i,
+        'company_key' => 'registry employer ' . $i,
+        'collector' => 'sec_edgar', 'source_name' => 'TEST FIXTURE Registry Outlet',
+        'confidence' => 'verified', 'published_date' => gmdate('Y-m-d', TIT_FIXTURE_NOW),
+        'source_url' => 'https://example.test/registry/' . $i,
     ));
 }
 
@@ -1015,6 +1051,63 @@ check(strpos($tbody, '<span class="tit-archived"> ') === false
       && strpos($tbody, "\u{00B7}") === false,
       'and the separator before it is not a text node in the markup');
 
+/*
+ * THE PENDING STATE SAYS WHEN, AND ONLY WHERE THE PROMISE IS REAL.
+ *
+ * The owner's ask (2026-08-02): a row without a snapshot must not just be
+ * silent — it says "No archive snapshot yet. We re-check weekly; next check by
+ * <date>", with the cadence and the date DERIVED from data/archive_promise.json
+ * (itself generated from the real workflow schedule; see
+ * build_archive_promise.py). Three states, all asserted:
+ *   archived      the link, and no pending sentence beside it;
+ *   in scope      the sentence, with the exact derived date — a typed date here
+ *                 is the corrections-page "$124.0bn" mistake on every card;
+ *   out of scope  NOTHING. sec_edgar is not in the schedule's collector list,
+ *                 and promising a re-check nothing will make is a false
+ *                 sentence on a page whose one claim is that it does not lie.
+ */
+$promise = json_decode((string) file_get_contents(TIT_PATH . 'data/archive_promise.json'), true);
+check(is_array($promise) && (int) $promise['recheck_days'] > 0,
+      'data/archive_promise.json has to ship with the plugin; the pending state '
+      . 'renders from it (run build_archive_promise.py)');
+$expected_note = 'No archive snapshot yet. We re-check '
+    . ((int) $promise['recheck_days'] === 7 ? 'weekly' : 'every ' . (int) $promise['recheck_days'] . ' days')
+    . '; next check by '
+    . gmdate('M j', strtotime(gmdate('Y-m-d', TIT_FIXTURE_NOW) . ' 00:00:00 UTC')
+             + (int) $promise['recheck_days'] * DAY_IN_SECONDS)
+    . '.';
+$rows_seen['pending'] = 0;
+$rows_seen['registry'] = 0;
+foreach ($tr_matches[0] as $tr) {
+    $has_wait = strpos($tr, 'class="tit-archive-wait"') !== false;
+    if (strpos($tr, 'TEST FIXTURE Unarchived Outlet') !== false) {
+        $rows_seen['pending']++;
+        check($has_wait && strpos($tr, esc_html($expected_note)) !== false,
+              'a publisher-sourced row with no snapshot has to say the pending '
+              . 'sentence with the DERIVED next-check date: ' . $expected_note);
+    } elseif (strpos($tr, 'TEST FIXTURE Registry Outlet') !== false) {
+        $rows_seen['registry']++;
+        check(!$has_wait,
+              'a row whose collector the archive schedule does not cover must '
+              . 'promise nothing: nothing will re-check it');
+    } elseif (strpos($tr, 'TEST FIXTURE Archived Outlet') !== false) {
+        check(!$has_wait, 'the pending sentence never appears beside the link');
+    }
+}
+check($rows_seen['pending'] > 0 && $rows_seen['registry'] > 0,
+      'both pending-state kinds have to reach page one or this asserts nothing: '
+      . $rows_seen['pending'] . ' pending, ' . $rows_seen['registry'] . ' out of scope');
+
+// The repaint contract: dashboard.js prints the SERVER's sentence, carried on
+// the root element, so the first paint and every repaint say the same date.
+check(strpos($html, 'data-archive-note=') !== false
+      && strpos($html, esc_attr(wp_json_encode(array(
+             'collectors' => array_values($promise['collectors']),
+             'text'       => $expected_note,
+         )))) !== false,
+      'the composed pending note has to ride the root element for dashboard.js, '
+      . 'or the repaint would derive a second date');
+
 /* --- the dated glance panel ---------------------------------------------- */
 
 /*
@@ -1092,6 +1185,44 @@ check(preg_match('/vs the week before/', $html) === 1,
       'this fixture holds forty days, so the week-over-week comparison should '
       . 'be printed: the rule has to switch itself ON once real history exists, '
       . 'or it is not a rule, it is a permanent suppression');
+
+/*
+ * THE WEEK RUNG NAMES ITS OWN DATES (owner, 2026-08-02). Early in a month the
+ * week figure legitimately exceeds the month figure — the week reaches back
+ * into the previous month — and without the dates that correct pair reads as a
+ * bug. Derived from the same boundaries the SQL counted under, never typed,
+ * and only on the week rung: the other labels already state their span.
+ */
+$dg_range = gmdate('M j', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS)
+          . '-' . gmdate('M j', TIT_FIXTURE_NOW);
+check(preg_match('/data-dg="week".*?<span class="tit-dg-range">\('
+                 . preg_quote($dg_range, '/') . '\)<\/span>/s', $html) === 1,
+      'the week rung has to carry its derived date span (' . $dg_range . ') '
+      . 'inside the label, so week-exceeds-month reads as the calendar fact it is');
+check(preg_match('/data-dg="month".*?tit-dg-range/s', $html) !== 1,
+      'and no other rung grows one');
+
+/*
+ * THE LARGEST RAISE NAMES ITS COUNTRY when its own row states one — the row's
+ * job-location country field, never hq and never a lookup. Recomputed from the
+ * same clause the render used, including the country, so the name printed is
+ * the name the database holds.
+ */
+$dg_top = $wpdb->get_row(
+    "SELECT company, country, funding_amount_usd FROM wp_tit_signals
+      WHERE {$base_where} AND funding_amount_usd IS NOT NULL
+        AND {$dg_date} >= '" . gmdate('Y-m-d', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS) . "'
+      ORDER BY funding_amount_usd DESC, row_id ASC LIMIT 1", ARRAY_A);
+if ($dg_top && $dg_top['country'] !== '' && $dg_top['country'] !== null) {
+    check(preg_match('/data-dg="week".*?largest: <b>' . preg_quote(esc_html($dg_top['company']), '/')
+                     . '<\/b> \([^)]*<span aria-hidden="true">·<\/span> '
+                     . preg_quote(esc_html(tit_country_name($dg_top['country'])), '/') . '\)/s',
+                     $html) === 1,
+          'the week rung\'s largest raise has to carry the row\'s own country ('
+          . tit_country_name($dg_top['country']) . '), from its country field');
+} else {
+    check($dg_top !== null, 'the fixture has to hold a funded row in the week window');
+}
 
 /* --- "Why you can trust this", and the FAQ tucked into it ---------------- */
 

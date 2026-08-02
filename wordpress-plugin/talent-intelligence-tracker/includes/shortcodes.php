@@ -328,7 +328,7 @@ function tit_dashboard_facts($table) {
         // repaint. See docs/card-contract.json.
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
-                archive_url, published_date, industry, funding_amount_usd
+                archive_url, collector, published_date, industry, funding_amount_usd
            FROM {$table} WHERE {$base}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
@@ -615,7 +615,22 @@ function tit_dashboard_html() {
     <div class="tit-wrap" id="tit-dashboard"
          data-api="<?php echo esc_attr(rest_url('talent/v1/')); ?>"
          data-countries="<?php echo esc_attr(wp_json_encode(tit_country_names())); ?>"
-         data-states="<?php echo esc_attr(wp_json_encode(tit_state_names())); ?>">
+         data-states="<?php echo esc_attr(wp_json_encode(tit_state_names())); ?>"
+         <?php
+         /* The pending-archive note dashboard.js repaints cards with. The
+            SERVER composes the sentence (tit_archive_pending_note derives the
+            date from data/archive_promise.json) and the JS only ever prints it,
+            so both paints are byte-identical and the date has one derivation.
+            Absent entirely when the promise file is unreadable, and the JS
+            renders nothing in that case — same rule as the PHP. */
+         $tit_ap = tit_archive_promise();
+         if ($tit_ap) {
+             echo ' data-archive-note="' . esc_attr(wp_json_encode(array(
+                 'collectors' => array_values($tit_ap['collectors']),
+                 'text'       => tit_archive_pending_note($tit_ap['collectors'][0]),
+             ))) . '"';
+         }
+         ?>>
 
       <div class="tit-hero">
         <div class="tit-hero-top">
@@ -2252,7 +2267,14 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
       MySQL and SQLite need not agree — the same defect the city flags had.
     */
     foreach ($dg_periods as $gi => $g) {
-        foreach (array('company' => "g_lc_{$gi}", 'funding_amount_usd' => "g_la_{$gi}") as $col => $alias) {
+        // `country` rides along as a third scalar subquery over the SAME
+        // ordering, because "largest: <name> ($8.6B)" leaves a reader guessing
+        // where. It is the row's own job-location country, never hq_country
+        // and never a lookup: a raise whose source named no place prints no
+        // place. The three subqueries share one ORDER BY, so they cannot
+        // describe three different rows.
+        foreach (array('company' => "g_lc_{$gi}", 'funding_amount_usd' => "g_la_{$gi}",
+                       'country' => "g_lk_{$gi}") as $col => $alias) {
             $select[] = "(SELECT {$col} FROM {$table} WHERE {$where}"
                       . " AND funding_amount_usd IS NOT NULL AND {$date_expr} >= %s"
                       . " ORDER BY funding_amount_usd DESC, row_id ASC LIMIT 1) AS {$alias}";
@@ -2320,6 +2342,18 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
             'money'  => (float) ($row["g_m_{$gi}"] ?? 0),
             'top'    => (string) ($row["g_lc_{$gi}"] ?? ''),
             'top_usd' => (float) ($row["g_la_{$gi}"] ?? 0),
+            'top_country' => (string) ($row["g_lk_{$gi}"] ?? ''),
+            // The week's own dates, printed beside its label. Early in a month
+            // the week bucket can legitimately exceed the month bucket (the
+            // week reaches back into the previous month), and without the
+            // dates that CORRECT pair of figures reads as a bug. Derived from
+            // the same boundaries the SQL just counted under and formatted
+            // server-side, so every paint says the same thing. Week only: the
+            // other buckets' labels already state their span.
+            'range_label' => ($g[0] === 'week')
+                ? date_i18n('M j', strtotime($g[2] . ' 00:00:00 UTC')) . '-'
+                  . date_i18n('M j', strtotime($today . ' 00:00:00 UTC'))
+                : '',
         );
     }
 
@@ -2991,10 +3025,15 @@ function tit_dated_glance_html(array $dated, $coverage = null) {
         }
         // The largest raise names its employer, because "largest: $8.6B" with no
         // name is a number a reader cannot check and this page's whole promise
-        // is that they can.
+        // is that they can. The country beside the amount is the ROW'S OWN
+        // country field — never hq_country, never a lookup — and is simply
+        // absent when the source named no place.
         if ($r['top'] !== '' && (float) $r['top_usd'] > 0) {
+            $where_top = ($r['top_country'] ?? '') !== ''
+                ? ' <span aria-hidden="true">·</span> ' . esc_html(tit_country_name($r['top_country']))
+                : '';
             $bits[] = 'largest: <b>' . esc_html($r['top']) . '</b> ('
-                    . esc_html(tit_money_short($r['top_usd'])) . ')';
+                    . esc_html(tit_money_short($r['top_usd'])) . $where_top . ')';
         }
         $note = '';
         if ($r['key'] === 'week') {
@@ -3017,7 +3056,15 @@ function tit_dated_glance_html(array $dated, $coverage = null) {
                    button and not a caption. data-since is the same attribute the
                    matrix cells carry, so one handler drives both. */ ?>
           <button type="button" class="tit-dg-label" data-since="<?php echo esc_attr($r['since']); ?>"
-                  aria-pressed="false"><?php echo esc_html($r['label']); ?></button>
+                  aria-pressed="false"><?php echo esc_html($r['label']);
+              // The week's dates, so "this week $39.7B, this month $735M" on
+              // the 2nd of a month reads as the calendar fact it is (the week
+              // reaches into the previous month) rather than as a bug. Derived
+              // in tit_glance_matrix from the same boundary the count used.
+              if (($r['range_label'] ?? '') !== '') {
+                  echo ' <span class="tit-dg-range">(' . esc_html($r['range_label']) . ')</span>';
+              }
+          ?></button>
           <span class="tit-dg-body"><?php echo implode(' <span aria-hidden="true">·</span> ', $bits); ?></span>
         </div>
       <?php endforeach; ?>
@@ -3588,16 +3635,20 @@ function tit_card_html($r) {
         // own copy is the citation and stays the citation; this never replaces
         // it.
         //
-        // Printed ONLY where a snapshot exists. Never a placeholder and never a
-        // disabled control: on a page whose whole claim is that every figure
-        // still links to its document, a link offered and then not there is
-        // worse than no link.
+        // Three states, one renderer (tit_archive_note_html): the "Archived"
+        // link where a snapshot exists; on a publisher-sourced row without one,
+        // the pending sentence with a DERIVED next-check date (see
+        // tit_archive_promise() — the owner asked for the state to be said, not
+        // implied by absence); and nothing at all on rows whose documents a
+        // government already preserves, because promising those a re-check the
+        // schedule never makes would be a false sentence. Still never a dead
+        // link and never a disabled control.
         //
         // The separator is not in this markup. It is a CSS ::before, because
         // this shares one wrapping line with the date and a literal middot that
         // wraps lands at the START of the new line and reads as a bullet whose
         // text went missing. See the .tit-archived rules in dashboard.css.
-        if (!empty($r['archive_url'])): ?><span class="tit-archived"><a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank" title="Archived copy at the Internet Archive">Archived</a></span><?php endif; ?></span>
+        echo tit_archive_note_html($r['archive_url'] ?? '', $r['collector'] ?? ''); ?></span>
     </div>
   </div>
 </li>

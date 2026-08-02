@@ -576,7 +576,7 @@ function tit_place_facts($kind, $key) {
         "SELECT headline, talent_readthrough, company, company_key, pillar,
                 signal_direction, city, country, hq_city, hq_country, headcount,
                 funding_amount, confidence, source_url, source_name, archive_url,
-                published_date, captured_at
+                collector, published_date, captured_at
            FROM {$table} WHERE {$where}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
@@ -1256,9 +1256,16 @@ function tit_place_render($kind, $cell, $facts) {
                   echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
                 · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php
                   echo esc_html($r['source_name']); ?></a>
+                <?php /* Same three archive states as the dashboard cards and
+                         the company profiles; the pending sentence and its
+                         date have ONE derivation, tit_archive_pending_note(). */ ?>
                 <?php if (!empty($r['archive_url'])) : ?>
                   · <a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank">archived copy</a>
-                <?php endif; ?>
+                <?php else :
+                    $tit_wait = tit_archive_pending_note($r['collector'] ?? '');
+                    if ($tit_wait !== '') : ?>
+                  · <span class="tit-archive-wait"><?php echo esc_html($tit_wait); ?></span>
+                <?php endif; endif; ?>
               </p>
             </div>
           </li>

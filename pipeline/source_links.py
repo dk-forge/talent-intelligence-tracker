@@ -477,6 +477,145 @@ def rot_summary(conn: sqlite3.Connection) -> dict:
 #: in .github/workflows/archive-sources.yml by scheduled_archive_scope's test.
 DEFAULT_ARCHIVE_SCOPE = ("national_press", "google_news", "gdelt", "ats_boards")
 
+#: THE PUBLIC RE-CHECK PROMISE, IN DAYS. The listing surfaces print, on every
+#: in-scope row that has no snapshot yet, "No archive snapshot yet. We re-check
+#: weekly; next check by <date>". That sentence is a commitment, and this
+#: constant is the single definition of it: the plugin's shipped
+#: data/archive_promise.json is generated from it (build_archive_promise.py),
+#: ops_status.py [2c] goes RED when any in-scope unarchived URL has not been
+#: re-attempted within it, and the test suite refuses a schedule that cannot
+#: meet it. Change it HERE or nowhere; a second copy is how the page ends up
+#: promising a cadence nothing keeps.
+#:
+#: Seven days is a deliberate UNDER-promise. The real schedule (the
+#: '20 */8 * * *' slot in schedule-link-hygiene.yml) runs the archiver three
+#: times a day over a 600-URL window, so today's whole in-scope queue is
+#: re-examined roughly daily. Weekly is what survives a bad stretch: Wayback
+#: throttling every pass for days, the writer lock held by a long backfill, a
+#: host outage. Promising the median instead of the floor is how a true
+#: sentence becomes a false one without any code changing.
+RECHECK_PROMISE_DAYS = 7
+
+
+def scheduled_archive_cadence_hours(root=None) -> int | None:
+    """Hours between scheduled archive passes, read from the REAL schedule.
+
+    The cron lives in schedule-link-hygiene.yml (the writers may not carry
+    their own; see that file's header), on the slot that maps to
+    archive-sources.yml. Parsed rather than typed for the same reason
+    scheduled_archive_scope() is: a promise derived from a schedule that
+    changed is a promise nobody is keeping. Returns None when the slot cannot
+    be found or is not armed, and None must never render as a cadence.
+    """
+    from pathlib import Path
+    root = Path(root) if root else Path(__file__).resolve().parent.parent
+    path = root / ".github" / "workflows" / "schedule-link-hygiene.yml"
+    if not path.exists():
+        return None
+    text = path.read_text()
+    # The slot-to-workflow mapping is the `case "$SLOT"` block; the schedule
+    # list holds the same cron strings. The archive slot is the one the case
+    # maps to archive-sources.yml.
+    import re
+    for match in re.finditer(r"'([^']+)'\)\s*WANT='archive-sources\.yml'", text):
+        cron = match.group(1)
+        hour_field = cron.split()[1] if len(cron.split()) == 5 else ""
+        if hour_field.startswith("*/"):
+            try:
+                return int(hour_field[2:])
+            except ValueError:
+                return None
+        return 24  # a fixed hour = one pass a day
+    return None
+
+
+def scheduled_archive_limit(root=None) -> int:
+    """Candidate URLs a scheduled archive run examines, from the shell fallback.
+
+    Read from `${LIMIT:-...}` in archive-sources.yml for the same reason
+    scheduled_archive_scope() reads `${COLLECTOR:-...}`: a queued ticket carries
+    only dry_run, so the fallback is what a scheduled run actually gets, and the
+    capacity arithmetic behind the re-check promise must be sized against that
+    rather than against a constant that can drift from it.
+    """
+    from pathlib import Path
+    root = Path(root) if root else Path(__file__).resolve().parent.parent
+    path = root / ".github" / "workflows" / "archive-sources.yml"
+    if path.exists():
+        for line in path.read_text().splitlines():
+            if "LIMIT:-" in line:
+                raw = line.split("LIMIT:-", 1)[1].split("}", 1)[0]
+                try:
+                    return int(raw)
+                except ValueError:
+                    break
+    return 600
+
+
+def archive_promise(root=None) -> dict:
+    """The one statement of the reader-facing re-check promise.
+
+    Everything the plugin needs to render the pending state, and everything the
+    integrity check needs to enforce it, derived from the same two files the
+    schedule actually runs from. build_archive_promise.py writes this verbatim
+    into the plugin's data directory; tests/test_archive_promise.py fails when
+    the shipped copy no longer matches this derivation, which is what makes a
+    cron edit that breaks the promise a red test rather than a quiet lie.
+    """
+    cadence = scheduled_archive_cadence_hours(root)
+    return {
+        "recheck_days": RECHECK_PROMISE_DAYS,
+        "cadence_hours": cadence,
+        "collectors": scheduled_archive_scope(root),
+        "derived_from": ".github/workflows/schedule-link-hygiene.yml + "
+                        "archive-sources.yml; see pipeline/source_links.py",
+    }
+
+
+def archive_recheck_overdue(conn: sqlite3.Connection,
+                            collectors: Sequence[str] | None = None,
+                            days: int = RECHECK_PROMISE_DAYS) -> list[dict]:
+    """Every in-scope unarchived URL the promise has been broken for.
+
+    The listing surfaces tell a reader "we re-check weekly". This is the check
+    that keeps that sentence true: an in-scope URL with no snapshot whose last
+    archiving round (ledger `updated_at`) is older than the promise window —
+    or that has NO ledger row at all despite being stored longer ago than the
+    window — is a row the page is lying about. ops_status.py [2c] goes red on
+    any result here; a healthy schedule keeps this list empty with days to
+    spare, because the 8-hourly pass re-touches the whole queue roughly daily.
+
+    Brand-new URLs are not violations: a URL stored an hour ago has simply not
+    had its first pass yet, and the promise it renders under ("next check by"
+    seven days out) is still ahead of it.
+    """
+    names = list(collectors) if collectors is not None else scheduled_archive_scope()
+    if not names:
+        return []
+    cutoff = (datetime.now(timezone.utc)
+              - timedelta(days=days)).isoformat(timespec="seconds")
+    placeholders = ", ".join("?" for _ in names)
+    rows = conn.execute(
+        f"""SELECT s.source_url,
+                   MAX(s.captured_at) AS newest_capture,
+                   l.archive_state, l.updated_at
+              FROM signals s
+              LEFT JOIN source_links l ON l.source_url = s.source_url
+             WHERE s.is_current = 1
+               AND s.source_url IS NOT NULL AND s.source_url != ''
+               AND s.collector IN ({placeholders})
+               AND IFNULL(l.archive_state, 'pending') NOT IN
+                   ('archived', 'unavailable')
+             GROUP BY s.source_url""", names).fetchall()
+    overdue = []
+    for r in rows:
+        last = r["updated_at"] or r["newest_capture"] or ""
+        if last and last[:19] < cutoff[:19]:
+            overdue.append({"source_url": r["source_url"],
+                            "last_attempt": last,
+                            "state": r["archive_state"] or "never probed"})
+    return overdue
+
 
 def scheduled_archive_scope(root=None) -> list[str]:
     """The collectors a SCHEDULED archive run actually covers.

@@ -4,10 +4,17 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-08-02**. Plugin **1.63.0 on main and NOT DEPLOYED**,
+Last updated: **2026-08-02**. Plugin **1.64.0 on main and NOT DEPLOYED**
+(1.64.0 adds the archive pending state — every publisher-sourced listing row
+without a Wayback snapshot now says "No archive snapshot yet. We re-check
+weekly; next check by <date>", derived end to end from the real schedule and
+enforced by ops_status [2c]; plus the strip's week-date span, the largest
+raise's own country, and the repaint's missing label space. 1.63.0 and 1.62.3
+are still waiting for the same deploy. TECHLOG 2026-08-02.) Before that:
 **18,250** current signals stored, company profiles shipped, cron firing on
-schedule but not reliably green, **2,930 offline tests passing** (counted, not
-carried forward) plus seven PHP render harnesses.
+schedule but not reliably green, **2,941 offline tests passing** (counted
+2026-08-02, not carried forward; one pre-existing failure in
+test_funding_amount_parsing, see TECHLOG) plus seven PHP render harnesses.
 
 **1.63.0 is a dashboard reorder waiting for a deploy, and 1.62.3 is waiting with
 it.** The chart grid moved from below the update cards to between the filters

@@ -177,6 +177,67 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-02 — the archive pending state says WHEN, and the strip stops reading like a bug (1.64.0, pushed, NOT deployed)
+
+The owner's ask, verbatim: "for wayback, say no wayback link yet, but we check
+weekly, the next time we'll check will be — for both sites and all listings".
+This entry is the talent tracker's half.
+
+**Measured before designing** (2026-08-02, committed DB): the schedule's scope
+is the four publisher collectors (national_press, google_news, gdelt,
+ats_boards), 3,218 distinct current source URLs. **1,746 archived (54.3%)**,
+1,272 confirmed absent from Wayback (the capture queue), 200 never answered
+about, 0 unavailable. Whole-corpus coverage is 7.0% and has its ceiling near
+13%, because ~87% of cited URLs are SEC/GOV.UK/registry documents the schedule
+deliberately skips. The re-attempt cadence is real: every pending URL's ledger
+row had been re-touched within 3 days (the 8-hourly pass examines 600 of a
+1,472-URL queue per run, so the whole queue is swept roughly daily). Coverage
+is NOT low and the cause needed no fixing; what was missing was the reader
+being told any of it.
+
+**Three archive states now render on every listing surface** (dashboard cards,
+company profiles, place pages), all through ONE renderer chain:
+
+- archived → the existing second link ("Archived" / "archived copy");
+- in scope, no snapshot → "No archive snapshot yet. We re-check weekly; next
+  check by <date>." — cadence word and date DERIVED, never typed;
+- out of scope (SEC, GOV.UK, registries) → nothing. Promising a re-check
+  nothing will make is a false sentence on every filing row.
+
+**The derivation chain, one definition end to end:**
+`pipeline/source_links.py` `RECHECK_PROMISE_DAYS = 7` (a deliberate
+under-promise of the ~daily sweep, sized to survive throttled weeks and lock
+contention) → `build_archive_promise.py` derives cadence (8h, parsed from the
+cron in schedule-link-hygiene.yml), scope and per-run limit from the workflows,
+REFUSES to build when the queue exceeds the window's capacity (12,600 vs 1,472
+today), and writes `wordpress-plugin/.../data/archive_promise.json` →
+`tit_archive_pending_note()` (plugin main file) composes the sentence, the ONLY
+place it is written; dashboard.js reprints the server's copy off the root's
+`data-archive-note` attribute, so a repaint cannot derive a second date.
+`tests/test_archive_promise.py` pins shipped-matches-derivation, capacity, and
+single-composer; `ops_status.py [2c]` prints `promise ... KEPT/BROKEN` and goes
+RED via `archive_recheck_overdue()` when any in-scope unarchived URL has not
+been re-attempted within the 7 days the pages promise (0 overdue at ship).
+
+**The dated glance strip, same session (owner):** the week rung now carries its
+derived span — "This week (Jul 27-Aug 2)" — because on the 2nd of a month the
+week figure legitimately exceeding the month figure read as a bug; the largest
+raise carries its row's own `country` field inside the parens ("$389M · United
+States"), a third scalar subquery on the same ORDER BY so the name, amount and
+country cannot describe three rows, and absent when the source named no place;
+and the JS repaint gained the REAL space between the period label and its
+figures that the sibling's strip lacks — selected-and-copied text pasted as
+"This week1,366 updates" after the first repaint (server paint was fine; the
+harness whitespace differs from `datedHtml()`'s concatenation).
+
+Byte budget raised 174,000 → 177,000 in tests/php/render_dashboard.php,
+itemised there. Rendered and verified at 375px on the harness dump
+(TIT_DUMP_HTML): no horizontal overflow, sentence wraps on its own line under
+the source link. Suite: 2,941 passed + 1 pre-existing failure
+(test_funding_amount_parsing::test_the_plausibility_floor_is_not_allowed_to_stand_in_for_the_guard,
+fails identically on clean origin/main). All seven PHP harnesses green.
+**1.64.0 pushed to main, NOT deployed** — deploying is the session's call.
+
 ## 2026-08-02 — a "200 ok" feed audit, and the four dead feeds that were our reader
 
 national_press became the main local-coverage route on 2026-08-01, when the

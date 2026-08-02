@@ -801,9 +801,20 @@ function tit_company_render($rows, $key, $profile) {
                   $conf_labels = function_exists('tit_confidence_labels') ? tit_confidence_labels() : array();
                   echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
                 · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a>
+                <?php /* Three states, one vocabulary with the dashboard cards:
+                         a snapshot link when the Internet Archive holds a copy,
+                         the derived we-re-check-by sentence when this row's
+                         collector is one the archive schedule covers, nothing
+                         on filings a government already preserves. The sentence
+                         and its date come from tit_archive_pending_note(), the
+                         single derivation. */ ?>
                 <?php if (!empty($r['archive_url'])) : ?>
                   · <a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank">archived copy</a>
-                <?php endif; ?>
+                <?php else :
+                    $tit_wait = tit_archive_pending_note($r['collector'] ?? '');
+                    if ($tit_wait !== '') : ?>
+                  · <span class="tit-archive-wait"><?php echo esc_html($tit_wait); ?></span>
+                <?php endif; endif; ?>
               </p>
             </div>
           </li>

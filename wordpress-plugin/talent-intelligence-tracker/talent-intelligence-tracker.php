@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.63.0
+ * Version: 1.64.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.63.0');
+define('TIT_VERSION', '1.64.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -529,6 +529,77 @@ function tit_country_flag($code) {
               . chr(0x80 | ($cp & 0x3F));
     }
     return $out;
+}
+
+/**
+ * The archive re-check promise, read from data/archive_promise.json.
+ *
+ * Every value in that file is DERIVED by build_archive_promise.py from the
+ * schedule that actually runs the archiver (the cron in
+ * schedule-link-hygiene.yml, the collector scope and per-run limit in
+ * archive-sources.yml). Nothing here is typed, because the sentence the file
+ * powers — "No archive snapshot yet. We re-check weekly; next check by
+ * <date>" — is a commitment, and ops_status.py [2c] in the repo goes red when
+ * reality stops keeping it.
+ *
+ * Returns null when the file is missing or unreadable (FTP deploys race
+ * mid-upload), and every caller renders NOTHING on null: an absent note is
+ * honest, a promised date pulled from thin air is not.
+ */
+function tit_archive_promise() {
+    static $promise = false;
+    if ($promise !== false) return $promise;
+    $promise = null;
+    $file = TIT_PATH . 'data/archive_promise.json';
+    if (is_readable($file)) {
+        $decoded = json_decode((string) file_get_contents($file), true);
+        if (is_array($decoded)
+            && (int) ($decoded['recheck_days'] ?? 0) > 0
+            && !empty($decoded['collectors']) && is_array($decoded['collectors'])) {
+            $promise = $decoded;
+        }
+    }
+    return $promise;
+}
+
+/**
+ * The archive state of one row, as the reader sees it. THE one renderer.
+ *
+ * Three states, and each one is said rather than implied:
+ *   archived      a second link beside the publisher's own, never instead.
+ *   pending       the row's collector is one the schedule archives, so the
+ *                 absence is temporary and the page says when it ends: "next
+ *                 check by" is now plus the promised window, both derived.
+ *   out of scope  rows whose documents a government or registry already
+ *                 preserves indefinitely (SEC, GOV.UK, the registries) render
+ *                 nothing. Promising them a re-check the schedule will never
+ *                 make would be a false sentence on every filing row.
+ *
+ * dashboard.js does not rebuild this sentence: the composed pending note
+ * travels on the root element's data-archive-note attribute, so the server and
+ * every repaint print byte-identical copy with one derivation of the date.
+ */
+function tit_archive_note_html($archive_url, $collector) {
+    if (!empty($archive_url)) {
+        return '<span class="tit-archived"><a href="' . esc_url($archive_url)
+             . '" rel="nofollow noopener" target="_blank"'
+             . ' title="Archived copy at the Internet Archive">Archived</a></span>';
+    }
+    $note = tit_archive_pending_note($collector);
+    return $note === '' ? '' : '<span class="tit-archive-wait">' . esc_html($note) . '</span>';
+}
+
+/** The pending sentence, or '' when this row is owed no promise. */
+function tit_archive_pending_note($collector) {
+    $p = tit_archive_promise();
+    if (!$p || !in_array((string) $collector, $p['collectors'], true)) return '';
+    $days = (int) $p['recheck_days'];
+    // "weekly" only when the derived window IS a week; any other window names
+    // its own length, so a schedule change cannot strand the word.
+    $cadence = ($days === 7) ? 'weekly' : sprintf('every %d days', $days);
+    $by = date_i18n('M j', strtotime(current_time('Y-m-d') . ' 00:00:00 UTC') + $days * DAY_IN_SECONDS);
+    return 'No archive snapshot yet. We re-check ' . $cadence
+         . '; next check by ' . $by . '.';
 }
 
 /**

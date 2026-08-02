@@ -527,6 +527,7 @@ function tit_api_query(WP_REST_Request $req) {
                         funding_amount, funding_amount_usd, funding_stage, work_mode,
                         deal_type, site_event,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
+                        collector,
                         materiality, confidence, source_url, source_name,
                         published_date, effective_date, captured_at
                    FROM {$table} WHERE {$where}

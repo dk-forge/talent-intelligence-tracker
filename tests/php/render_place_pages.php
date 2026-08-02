@@ -75,7 +75,12 @@ function is_singular() { return false; }
 function wp_enqueue_style() {}
 function wp_enqueue_script() {}
 function wp_localize_script() {}
-function current_time($t, $gmt = 0) { return gmdate('Y-m-d H:i:s'); }
+function current_time($t, $gmt = 0) {
+    // Honour the requested format: tit_archive_pending_note() asks for
+    // 'Y-m-d' and feeds it to strtotime, where a full datetime is a parse
+    // failure rather than a date.
+    return $t === 'timestamp' ? time() : gmdate($t);
+}
 function get_option($k, $d = false) { return $d; }
 function update_option($k, $v, $a = null) { return true; }
 function delete_transient($k) { unset($GLOBALS['tit_transients'][$k]); return true; }
@@ -314,6 +319,17 @@ $wpdb->insert_row(array('country' => 'US', 'city' => 'Austin', 'industry' => 'te
 seed_cell(array('country' => 'US', 'city' => 'Austin', 'industry' => 'technology'),
           27, 9, array('SEC EDGAR', 'SEC EDGAR (Form D)', 'Reuters'), 'austin');
 
+// The archive pending state on a place page's recent-updates list. One
+// publisher-sourced row with no snapshot, in a cell (Austin) otherwise made of
+// registry rows: the sentence must appear once, with its derived date, and the
+// registry rows must promise nothing — nothing will ever re-check an EDGAR
+// filing. Austin rather than London because GB's document count is a named
+// constant with a concentration caveat hanging off it.
+$wpdb->insert_row(array('country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
+    'company' => 'Austin Press Employer', 'company_key' => 'austin press employer',
+    'collector' => 'national_press', 'source_name' => 'TEST FIXTURE Press Outlet',
+    'source_url' => 'https://example.test/austin/press-1'));
+
 // A withdrawn row must not count towards any gate or any figure.
 $wpdb->insert_row(array('country' => 'IL', 'industry' => 'technology', 'is_current' => 0,
     'company' => 'Retracted Employer', 'company_key' => 'retracted employer',
@@ -529,6 +545,28 @@ check(strpos($austin, 'disclosed across') !== false, 'the money figure is printe
 check(strpos($austin, 'funding update') !== false, 'with the number of rows behind it');
 check(strpos($austin, 'of 3 funding updates that state a US dollar amount') !== false,
       'and never without the coverage sentence: 2 of 3 rows state an amount');
+
+/*
+ * The archive pending state, on this surface too. One Austin row is
+ * publisher-sourced with no snapshot: its meta line says the sentence with the
+ * date DERIVED from data/archive_promise.json. Every other Austin row is a
+ * registry filing, so the sentence appears exactly once — a "we re-check
+ * weekly" on documents the schedule never touches would be a false promise
+ * printed thirty times.
+ */
+$place_promise = json_decode((string) file_get_contents(TIT_PATH . 'data/archive_promise.json'), true);
+check(is_array($place_promise), 'data/archive_promise.json ships with the plugin');
+$place_note = 'No archive snapshot yet. We re-check '
+    . ((int) $place_promise['recheck_days'] === 7 ? 'weekly'
+       : 'every ' . (int) $place_promise['recheck_days'] . ' days')
+    . '; next check by '
+    . gmdate('M j', strtotime(gmdate('Y-m-d') . ' 00:00:00 UTC')
+             + (int) $place_promise['recheck_days'] * DAY_IN_SECONDS)
+    . '.';
+check(substr_count($austin, 'class="tit-archive-wait"') === 1
+      && strpos($austin, esc_html($place_note)) !== false,
+      'the publisher-sourced row without a snapshot says the pending sentence '
+      . 'with its derived date, exactly once on this page: ' . $place_note);
 
 // SEO furniture.
 $GLOBALS['tit_query_vars'] = array('tit_place_kind' => 'country', 'tit_place' => 'united-kingdom');
