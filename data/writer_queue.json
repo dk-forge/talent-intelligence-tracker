@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-02T13:48:18Z",
-  "last_tick": "2026-08-02T13:48:18Z",
+  "last_tick": "2026-08-02T13:49:25Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -195,6 +195,11 @@
           "at": "2026-08-02T13:48:18Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T13:49:25Z",
+          "detail": "run 30750713415",
+          "event": "bound"
         }
       ],
       "id": "20260802T122613Z-backfill-press-2026",
@@ -209,7 +214,7 @@
       "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 4)",
       "requested_at": "2026-08-02T12:26:13Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30750713415",
       "state": "dispatched",
       "workflow": "backfill-press-2026.yml"
     },
