@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T04:49:27Z",
-  "last_tick": "2026-08-02T05:17:33Z",
+  "last_dispatch": "2026-08-02T05:29:20Z",
+  "last_tick": "2026-08-02T05:29:20Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -177,47 +177,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-02T04:49:27Z",
-      "history": [
-        {
-          "at": "2026-08-02T03:00:46Z",
-          "detail": "close the national_press Jan-Jun hole; owner raised the allowance to $10 for this",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T04:49:27Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-02T05:17:33Z",
-          "detail": "run 30733033916",
-          "event": "bound"
-        }
-      ],
-      "id": "20260802T030046Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "close the national_press Jan-Jun hole; owner raised the allowance to $10 for this",
-      "requested_at": "2026-08-02T03:00:46Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30733033916",
-      "state": "dispatched",
-      "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T05:29:20Z",
       "history": [
         {
           "at": "2026-08-02T03:56:08Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-05-04)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T05:29:20Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T035608Z-backfill-gdelt-2026",
@@ -233,7 +203,7 @@
       "requested_at": "2026-08-02T03:56:08Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -313,48 +283,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T18:30:16Z",
-      "history": [
-        {
-          "at": "2026-07-31T16:30:42Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-17)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T18:30:16Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T18:31:32Z",
-          "detail": "run 30655413489",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-31T19:35:04Z",
-          "detail": "run 30655413489",
-          "event": "landed"
-        }
-      ],
-      "id": "20260731T163042Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-31T19:35:04Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-17)",
-      "requested_at": "2026-07-31T16:30:42Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30655413489",
-      "state": "landed",
-      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
@@ -2717,6 +2645,47 @@
       "run_id": "30732288254",
       "state": "landed",
       "workflow": "backfill-structured-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-02T04:49:27Z",
+      "history": [
+        {
+          "at": "2026-08-02T03:00:46Z",
+          "detail": "close the national_press Jan-Jun hole; owner raised the allowance to $10 for this",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-02T04:49:27Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T05:17:33Z",
+          "detail": "run 30733033916",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-02T05:29:20Z",
+          "detail": "run 30733033916",
+          "event": "landed"
+        }
+      ],
+      "id": "20260802T030046Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-02T05:29:20Z",
+      "priority": 10,
+      "reason": "close the national_press Jan-Jun hole; owner raised the allowance to $10 for this",
+      "requested_at": "2026-08-02T03:00:46Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30733033916",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
