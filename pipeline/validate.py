@@ -980,7 +980,13 @@ def _normalize_date(value, source_url: str | None = None) -> str | None:
         return None
     text = str(value).strip()
     parsed = None
-    for fmt in ("%Y-%m-%d", "%a, %d %b %Y %H:%M:%S %Z", "%a, %d %b %Y %H:%M:%S %z"):
+    for fmt in ("%Y-%m-%d", "%a, %d %b %Y %H:%M:%S %Z", "%a, %d %b %Y %H:%M:%S %z",
+                # Drupal's core RSS abbreviates the year: The Daily Star's
+                # business feed dates every item "Sun, 02 Aug 26 00:00:00
+                # +0600". Read as a four-digit year it does not parse at all,
+                # so a daily national paper published 25 items a day and every
+                # one of them stored published_date NULL.
+                "%a, %d %b %y %H:%M:%S %z", "%a, %d %b %y %H:%M:%S %Z"):
         try:
             parsed = datetime.strptime(text, fmt).strftime("%Y-%m-%d")
             break
@@ -989,7 +995,13 @@ def _normalize_date(value, source_url: str | None = None) -> str | None:
     if parsed is None:
         # Anchored: an unanchored search matched any YYYY-MM-DD anywhere in
         # arbitrary text, including one sitting inside a URL or a body quote.
-        m = re.match(r"\s*(\d{4}-\d{2}-\d{2})\b", text)
+        #
+        # The lookahead, and not `\b`: an ISO 8601 instant is "2026-08-02T12:
+        # 00:00+09:00", and `T` is a word character, so `\b` refused the single
+        # most standard datetime there is. That is what `dc:date` carries in
+        # every RSS 1.0 feed. Refusing digits and a hyphen still rejects the
+        # thing the anchor is for ("2026-08-021", "2026-08-02-03").
+        m = re.match(r"\s*(\d{4}-\d{2}-\d{2})(?![\d-])", text)
         parsed = m.group(1) if m else None
     if parsed is None:
         return None

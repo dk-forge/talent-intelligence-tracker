@@ -34,9 +34,10 @@ Bahamas,The Tribune,https://www.tribune242.com/rss/headlines/,rss,English,Nation
 Bahrain,Bahrain This Week,https://www.bahrainthisweek.com/feed/,rss,English,National,https://www.bahrainthisweek.com
 Bahrain,Gulf Insider,https://www.gulf-insider.com/feed/,rss,English,National,https://www.gulf-insider.com
 Bangladesh,Future Startup,https://futurestartup.com/feed/,rss,English,National,https://futurestartup.com
-Bangladesh,Prothom Alo English,https://en.prothomalo.com/feed,rss,English,National,https://en.prothomalo.com
+Bangladesh,The Business Standard (Corporates),https://www.tbsnews.net/economy/corporates/rss.xml,rss,English,National,https://www.tbsnews.net
 Bangladesh,The Business Standard (Economy),https://www.tbsnews.net/economy/rss.xml,rss,English,National,https://www.tbsnews.net
 Bangladesh,The Daily Star (Business),https://www.thedailystar.net/business/rss.xml,rss,English,National,https://www.thedailystar.net
+Bangladesh,The Daily Star (Economy),https://www.thedailystar.net/business/economy/rss.xml,rss,English,National,https://www.thedailystar.net
 Barbados,Barbados Today,https://barbadostoday.bb/feed/,rss,English,National,https://barbadostoday.bb
 Belgium,Bloovi,https://www.bloovi.be/nieuws/rss,rss,Dutch,National,https://www.bloovi.be
 Belgium,Data News (Knack),https://datanews.knack.be/feed/,rss,Dutch,National,https://datanews.knack.be
@@ -55,7 +56,6 @@ Bolivia,Los Tiempos,https://www.lostiempos.com/rss/portada,rss,Spanish,National,
 Bolivia,Opinion,https://www.opinion.com.bo/rss/,rss,Spanish,National,https://www.opinion.com.bo
 Bosnia and Herzegovina,BiznisInfo,https://www.biznisinfo.ba/feed/,rss,Bosnian,National,https://www.biznisinfo.ba
 Bosnia and Herzegovina,Buka (6yka),https://6yka.com/feed/,rss,Bosnian,National,https://6yka.com
-Bosnia and Herzegovina,Capital.ba,https://capital.ba/feed/,rss,Serbian,National,https://capital.ba
 Bosnia and Herzegovina,Dnevni avaz,https://avaz.ba/rss,rss,Bosnian,National,https://avaz.ba
 Bosnia and Herzegovina,Klix.ba,https://www.klix.ba/rss,rss,Bosnian,National,https://www.klix.ba
 Bosnia and Herzegovina,N1 BiH,https://ba.n1info.com/feed/,rss,Bosnian,National,https://n1info.ba
@@ -106,7 +106,7 @@ Canada,Ottawa Business Journal,https://www.obj.ca/feed/,rss,English,Metro,https:
 Canada,Techcouver,https://techcouver.com/feed/,rss,English,Regional,https://techcouver.com
 Canada,The Globe and Mail,https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/business/,rss,English,National,https://www.theglobeandmail.com
 Cape Verde,Expresso das Ilhas,https://expressodasilhas.cv/rss,rss,Portuguese,National,https://expressodasilhas.cv
-Cayman Islands,Cayman Compass,https://www.caymancompass.com/feed/,rss,English,National,https://www.caymancompass.com
+Cayman Islands,Cayman News Service,https://caymannewsservice.com/feed/,rss,English,National,https://caymannewsservice.com
 Central African Republic,Radio Ndeke Luka,https://www.radiondekeluka.org/feed/,rss,French,National,https://www.radiondekeluka.org
 Chad,Tchadinfos,https://www.tchadinfos.com/feed/,rss,French,National,https://www.tchadinfos.com
 Chile,BioBioChile,https://www.biobiochile.cl/static/feed-rss,rss,Spanish,National,https://www.biobiochile.cl
@@ -161,7 +161,6 @@ Egypt,Daily News Egypt,https://www.dailynewsegypt.com/feed/,rss,English,National
 Egypt,Enterprise,https://enterpriseam.com/egypt/feed/,rss,English,National,https://enterprise.press
 Egypt,Mada Masr,https://www.madamasr.com/en/feed/,rss,English,National,https://www.madamasr.com/en/
 El Salvador,elsalvador.com,https://www.elsalvador.com/feed/,rss,Spanish,National,https://www.elsalvador.com
-El Salvador,elsalvador.com negocios,https://www.elsalvador.com/category/noticias/negocios/feed/,rss,Spanish,National,https://www.elsalvador.com
 El Salvador,Focos,https://focostv.com/feed/,rss,Spanish,National,https://focostv.com
 El Salvador,Gato Encerrado,https://gatoencerrado.news/feed/,rss,Spanish,National,https://gatoencerrado.news
 El Salvador,Revista Summa,https://revistasumma.com/feed/,rss,Spanish,National,https://revistasumma.com
@@ -187,7 +186,6 @@ France,FrenchWeb,https://www.frenchweb.fr/feed,rss,French,National,https://www.f
 France,Journal du Net,https://www.journaldunet.com/rss/,rss,French,National,https://www.journaldunet.com
 France,L'Usine Digitale,https://www.usine-digitale.fr/rss/,rss,French,National,https://www.usine-digitale.fr
 France,L'Usine Nouvelle,https://www.usinenouvelle.com/rss/,rss,French,National,https://www.usinenouvelle.com
-France,La French Tech,https://lafrenchtech.gouv.fr/en/feed/,rss,English,National,https://lafrenchtech.gouv.fr
 France,La Tribune,https://www.latribune.fr/feed.xml,rss,French,National,https://www.latribune.fr
 France,Le Figaro,https://www.lefigaro.fr/rss/figaro_economie.xml,rss,French,National,https://www.lefigaro.fr
 France,Le Monde,https://www.lemonde.fr/economie/rss_full.xml,rss,French,National,https://www.lemonde.fr
@@ -208,9 +206,11 @@ Germany,Sueddeutsche Zeitung,https://rss.sueddeutsche.de/rss/Wirtschaft,rss,Germ
 Germany,t3n,https://t3n.de/rss.xml,rss,German,National,https://t3n.de
 Germany,tagesschau Wirtschaft,https://www.tagesschau.de/wirtschaft/index~rss2.xml,rss,German,National,https://www.tagesschau.de
 Germany,WirtschaftsWoche Unternehmen,https://www.wiwo.de/contentexport/feed/rss/unternehmen,rss,German,National,https://www.wiwo.de
-Ghana,Citinewsroom,https://www.citinewsroom.com/wp-json/wp/v2/posts?per_page=20,html,English,National,https://www.citinewsroom.com
+Ghana,3News Ghana,https://3news.com/feed/,rss,English,National,https://3news.com
 Ghana,Ghana Business News,https://www.ghanabusinessnews.com/feed/,rss,English,National,https://www.ghanabusinessnews.com
+Ghana,Ghanaian Times,https://www.ghanaiantimes.com.gh/feed/,rss,English,National,https://ghanaiantimes.com.gh
 Ghana,MyJoyOnline,https://www.myjoyonline.com/feed/,rss,English,National,https://www.myjoyonline.com
+Ghana,Norvan Reports,https://norvanreports.com/feed/,rss,English,National,https://norvanreports.com
 Ghana,Techlabari,https://techlabari.com/feed/,rss,English,National,https://techlabari.com
 Greece,Insider.gr,https://www.insider.gr/rss,rss,Greek,National,https://www.insider.gr
 Greece,Naftemporiki,https://www.naftemporiki.gr/feed/,rss,Greek,National,https://www.naftemporiki.gr
@@ -243,7 +243,6 @@ India,Entrackr,https://entrackr.com/rss,rss,English,National,https://entrackr.co
 India,Hindustan Times,https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml,rss,English,National,https://www.hindustantimes.com
 India,Inc42,https://inc42.com/feed/,rss,English,National,https://inc42.com
 India,Mint,https://www.livemint.com/rss/companies,rss,English,National,https://www.livemint.com
-India,Moneycontrol,https://www.moneycontrol.com/rss/business.xml,unreachable,English,National,https://www.moneycontrol.com
 India,The Economic Times,https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms,rss,English,National,https://economictimes.indiatimes.com
 India,The Hindu (Business),https://www.thehindu.com/business/feeder/default.rss,rss,English,National,https://www.thehindu.com
 India,The Hindu BusinessLine,https://www.thehindubusinessline.com/companies/feeder/default.rss,rss,English,National,https://www.thehindubusinessline.com
@@ -274,7 +273,6 @@ Israel,Globes (Hebrew edition),https://www.globes.co.il/webservice/rss/rssfeeder
 Israel,"Globes (Hebrew, capital markets)",https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=594,rss,Hebrew,National,https://www.globes.co.il
 Israel,Haaretz (Hebrew),https://www.haaretz.co.il/srv/htz---all-articles,rss,Hebrew,National,https://www.haaretz.co.il
 Israel,Israel Innovation Authority,https://innovationisrael.org.il/en/feed/,unreachable,English,National,https://innovationisrael.org.il/en/
-Israel,NoCamels,https://nocamels.com/feed/,rss,English,National,https://nocamels.com
 Israel,Techtime,https://techtime.co.il/feed/,rss,Hebrew,National,https://techtime.co.il
 Israel,The Jerusalem Post,https://www.jpost.com/rss/rssfeedsfrontpage.aspx,rss,English,National,https://www.jpost.com
 Israel,Ynet,https://www.ynet.co.il/Integration/StoryRss2.xml,rss,Hebrew,National,https://www.ynet.co.il
@@ -312,7 +310,6 @@ Kenya,Business Daily Africa,https://www.businessdailyafrica.com/bd/rss.xml,rss,E
 Kenya,Capital FM (business),https://capitalfm.africa/business/feed/,rss,English,National,https://capitalfm.africa
 Kenya,Nation,https://nation.africa/kenya/rss.xml,rss,English,National,https://nation.africa
 Kenya,TechMoran,https://techmoran.com/feed/,rss,English,Regional,https://techmoran.com
-Kenya,Techweez,https://techweez.com/wp-json/wp/v2/posts?per_page=20,html,English,National,https://techweez.com
 Kenya,The Standard (business),https://www.standardmedia.co.ke/rss/business.php,rss,English,National,https://www.standardmedia.co.ke
 Kosovo,Prishtina Insight,https://www.prishtinainsight.com/feed/,rss,English,National,https://www.prishtinainsight.com
 Laos,Laotian Times,https://laotiantimes.com/feed/,rss,English,National,https://laotiantimes.com
@@ -340,7 +337,9 @@ Madagascar,L'Express de Madagascar,https://www.lexpress.mg/rss.xml,rss,French,Na
 Madagascar,Midi Madagasikara,https://www.midi-madagasikara.mg/feed/,rss,French,National,https://www.midi-madagasikara.mg
 Malawi,Nyasa Times,https://www.nyasatimes.com/feed/,rss,English,National,https://www.nyasatimes.com
 Malawi,The Nation (Malawi),https://www.mwnation.com/feed/,rss,English,National,https://www.mwnation.com
+Malaysia,Business Today Malaysia,https://www.businesstoday.com.my/feed/,rss,English,National,https://www.businesstoday.com.my
 Malaysia,Digital News Asia,https://www.digitalnewsasia.com/rss.xml,rss,English,National,https://www.digitalnewsasia.com
+Malaysia,Focus Malaysia,https://focusmalaysia.my/feed/,rss,English,National,https://focusmalaysia.my
 Malaysia,Malay Mail (Money),https://www.malaymail.com/feed/rss/money,rss,English,National,https://www.malaymail.com
 Malaysia,SoyaCincau,https://soyacincau.com/feed/,rss,English,National,https://soyacincau.com
 Maldives,Corporate Maldives,https://corporatemaldives.com/feed/,rss,English,National,https://corporatemaldives.com
@@ -369,7 +368,6 @@ Moldova,TV8,https://tv8.md/feed/,rss,Romanian,National,https://tv8.md
 Moldova,Unimedia,https://unimedia.info/ro/rss/all/,rss,Romanian,National,https://unimedia.info
 Moldova,Ziarul de Garda,https://www.zdg.md/feed/,rss,Romanian,National,https://www.zdg.md
 Moldova,Ziarul de Garda (English),https://www.zdg.md/en/feed/,rss,English,National,https://www.zdg.md
-Mongolia,News.MN,https://news.mn/en/feed/,rss,English,National,https://news.mn
 Montenegro,Aktuelno.me,https://rss.aktuelno.me,rss,Montenegrin,National,https://www.aktuelno.me
 Montenegro,Bankar.me,https://www.bankar.me/feed/,rss,Montenegrin,National,https://bankar.me
 Montenegro,Government of Montenegro,https://rss.gov.me,rss,Montenegrin,National,https://www.gov.me
@@ -516,7 +514,7 @@ Slovenia,Siol.net,https://siol.net/feeds/latest,rss,Slovenian,National,https://s
 Slovenia,Startaj.si,https://www.startaj.si/feed/,rss,Slovenian,National,https://www.startaj.si
 Slovenia,Zurnal24,https://www.zurnal24.si/feeds/latest,rss,Slovenian,National,https://www.zurnal24.si
 South Africa,Daily Maverick,https://www.dailymaverick.co.za/rss,rss,English,National,https://www.dailymaverick.co.za
-South Africa,Disrupt Africa,https://disrupt-africa.com/feed/,rss,English,Regional,https://disruptafrica.com
+South Africa,Disrupt Africa,https://disruptafrica.com/feed/,rss,English,Regional,https://disruptafrica.com
 South Africa,Financial Afrik,https://financialafrik.com/feed/,rss,French,National,https://financialafrik.com
 South Africa,ITWeb,https://www.itweb.co.za/rss,rss,English,National,https://www.itweb.co.za
 South Africa,Moneyweb,https://www.moneyweb.co.za/feed/,rss,English,National,https://www.moneyweb.co.za
@@ -539,7 +537,7 @@ Spain,Novobrief,https://novobrief.com/feed/,rss,English,National,https://novobri
 Spain,Techla Media,https://techla.pro/feed/,rss,Spanish,Regional,https://techla.pro
 Spain,Xataka,https://www.xataka.com/index.xml,rss,Spanish,National,https://www.xataka.com
 Sri Lanka,EconomyNext,https://economynext.com/feed,rss,English,National,https://economynext.com
-Sri Lanka,ReadMe.lk,https://www.readme.lk/feed/,rss,English,National,https://www.readme.lk
+Sri Lanka,Newswire.lk,https://www.newswire.lk/feed/,rss,English,National,https://www.newswire.lk
 Sudan,Radio Dabanga,https://www.dabangasudan.org/feed/,rss,English,National,https://www.dabangasudan.org
 Suriname,Dagblad Suriname,https://dbsuriname.com/feed/,rss,Dutch,National,https://dbsuriname.com
 Suriname,Starnieuws,https://www.starnieuws.com/rss/starnieuws.rss,rss,Dutch,National,https://www.starnieuws.com
@@ -554,7 +552,6 @@ Switzerland,Netzwoche,https://www.netzwoche.ch/rss.xml,rss,German,National,https
 Switzerland,NZZ Wirtschaft,https://www.nzz.ch/wirtschaft.rss,rss,German,National,https://www.nzz.ch
 Taiwan,DIGITIMES Asia,https://www.digitimes.com/rss/daily.xml,rss,English,National,https://www.digitimes.com
 Taiwan,INSIDE,https://www.inside.com.tw/feed/rss,rss,Chinese,National,https://www.inside.com.tw
-Taiwan,Meet Global,https://meet.bnext.com.tw/rss,rss,Chinese,National,https://meet.bnextmedia.com.tw
 Taiwan,Taipei Times,https://www.taipeitimes.com/xml/index.rss,rss,English,National,https://www.taipeitimes.com
 Taiwan,TechNews,https://technews.tw/feed/,rss,Chinese,National,https://technews.tw
 Tanzania,HabariLeo,https://habarileo.co.tz/feed/,rss,Swahili,National,https://habarileo.co.tz
@@ -564,8 +561,6 @@ Thailand,Blognone,https://www.blognone.com/atom.xml,rss,Thai,National,https://ww
 Thailand,Prachachat,https://www.prachachat.net/feed,rss,Thai,National,https://www.prachachat.net
 Thailand,Techsauce,https://techsauce.co/feed,rss,Thai,National,https://techsauce.co
 Tonga,Matangi Tonga,https://matangitonga.to/rss.xml,rss,English,National,https://matangitonga.to
-Trinidad and Tobago,Newsday,https://newsday.co.tt/feed/,rss,English,National,https://newsday.co.tt
-Trinidad and Tobago,Newsday business,https://newsday.co.tt/category/business/feed/,rss,English,National,https://newsday.co.tt
 Trinidad and Tobago,Trinidad Express,https://trinidadexpress.com/search/?f=rss&t=article&c=business&l=50,rss,English,National,https://trinidadexpress.com
 Tunisia,African Manager,https://africanmanager.com/feed/,rss,French,National,https://africanmanager.com
 Tunisia,Kapitalis,https://kapitalis.com/tunisie/feed/,rss,French,National,https://kapitalis.com
@@ -585,18 +580,15 @@ United Arab Emirates,Arabian Business,https://www.arabianbusiness.com/feed,rss,E
 United Arab Emirates,Economy Middle East,https://economymiddleeast.com/feed/,rss,English,National,https://economymiddleeast.com
 United Arab Emirates,Gulf News,https://gulfnews.com/feed/,rss,English,National,https://gulfnews.com
 United Arab Emirates,Khaleej Times (business),https://www.khaleejtimes.com/api/v1/collections/business.rss,rss,English,National,https://www.khaleejtimes.com
-United Arab Emirates,MENAbytes,https://www.menabytes.com/feed/,rss,English,Regional,https://www.menabytes.com
 United Arab Emirates,TahawulTech,https://www.tahawultech.com/feed/,rss,English,National,https://www.tahawultech.com
 United Arab Emirates,Wamda,https://www.wamda.com/feed/,rss,English,Regional,https://www.wamda.com
 United Kingdom,BusinessLive,https://www.business-live.co.uk/rss.xml,rss,English,National,https://www.business-live.co.uk
 United Kingdom,City AM,https://www.cityam.com/feed/,rss,English,National,https://www.cityam.com
 United Kingdom,Innovate UK,https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=innovate-uk,atom,English,National,https://www.gov.uk/government/organisations/innovate-uk
 United Kingdom,Retail Gazette,https://www.retailgazette.co.uk/feed/,rss,English,National,https://www.retailgazette.co.uk
-United Kingdom,Sifted,https://sifted.eu/feed/,rss,English,Europe,https://sifted.eu
 United Kingdom,The Guardian,https://www.theguardian.com/uk/business/rss,rss,English,National,https://www.theguardian.com
 United Kingdom,The London Standard,https://www.standard.co.uk/business/rss,rss,English,National,https://www.standard.co.uk
 United Kingdom,The Telegraph,https://www.telegraph.co.uk/business/rss.xml,rss,English,National,https://www.telegraph.co.uk
-United Kingdom,TheBusinessDesk,https://www.thebusinessdesk.com/feed/,rss,English,National,https://www.thebusinessdesk.com
 United Kingdom,UK Research and Innovation,https://www.ukri.org/feed/,rss,English,National,https://www.ukri.org
 United States,AlleyWatch,https://www.alleywatch.com/feed/,rss,English,Local,https://www.alleywatch.com
 United States,Apple Newsroom,https://www.apple.com/newsroom/rss-feed.rss,rss,English,Global,https://www.apple.com/newsroom/
@@ -610,7 +602,6 @@ United States,Defense News,https://www.defensenews.com/arc/outboundfeeds/rss/,rs
 United States,dot.LA,https://dot.la/feeds/feed.rss,rss,English,Local,https://dot.la
 United States,Endpoints News,https://endpts.com/feed/,rss,English,Global,https://endpoints.news
 United States,Fast Company,https://www.fastcompany.com/rss,rss,English,Global,https://www.fastcompany.com
-United States,FinLedger,https://finledger.com/feed/,rss,English,Global,https://finledger.com
 United States,Fortune,https://fortune.com/feed/,rss,English,Global,https://fortune.com
 United States,FreightWaves,https://www.freightwaves.com/feed,rss,English,Global,https://www.freightwaves.com
 United States,GeekWire,https://www.geekwire.com/feed/,rss,English,Regional,https://www.geekwire.com
@@ -620,13 +611,10 @@ United States,HR Dive,https://www.hrdive.com/feeds/news/,rss,English,United Stat
 United States,Inc.,https://www.inc.com/rss/,rss,English,United States,https://www.inc.com
 United States,LA Business Journal,https://labusinessjournal.com/feed/,rss,English,Local,https://labusinessjournal.com
 United States,Manufacturing Dive,https://www.manufacturingdive.com/feeds/news/,rss,English,National,https://www.manufacturingdive.com
-United States,MedCity News,https://medcitynews.com/feed/,rss,English,United States,https://medcitynews.com
 United States,MIT Technology Review,https://www.technologyreview.com/feed/,rss,English,Global,https://www.technologyreview.com
 United States,New York Times Business,https://rss.nytimes.com/services/xml/rss/nyt/Business.xml,rss,English,United States / Global,https://www.nytimes.com/section/business
 United States,NVIDIA Newsroom,https://nvidianews.nvidia.com/releases.xml,rss,English,Global,https://nvidianews.nvidia.com
 United States,PYMNTS,https://www.pymnts.com/feed/,rss,English,Global,https://www.pymnts.com
-United States,Quartz,https://qz.com/rss,rss,English,Global,https://qz.com
-United States,RecruitingDaily,https://recruitingdaily.com/feed/,rss,English,Global,https://recruitingdaily.com
 United States,Refresh Miami,https://refreshmiami.com/feed/,rss,English,Local,https://refreshmiami.com
 United States,Rest of World,https://restofworld.org/feed/,rss,English,Global,https://restofworld.org
 United States,Retail Dive,https://www.retaildive.com/feeds/news/,rss,English,National,https://www.retaildive.com
@@ -634,7 +622,6 @@ United States,SaaStr,https://www.saastr.com/feed/,rss,English,Global,https://www
 United States,Silicon Hills News,https://siliconhillsnews.com/feed/,rss,English,Local,https://siliconhillsnews.com
 United States,SpaceNews,https://spacenews.com/feed/,rss,English,Global,https://spacenews.com
 United States,STAT News,https://www.statnews.com/feed/,rss,English,Global,https://www.statnews.com
-United States,StrictlyVC,https://www.strictlyvc.com/feed/,rss,English,Global,https://www.strictlyvc.com
 United States,Supply Chain Dive,https://www.supplychaindive.com/feeds/news/,rss,English,National,https://www.supplychaindive.com
 United States,TechCrunch,https://techcrunch.com/feed/,rss,English,Global,https://techcrunch.com
 United States,The Block,https://www.theblock.co/rss.xml,rss,English,Global,https://www.theblock.co
@@ -659,5 +646,4 @@ Zambia,Diggers News,https://diggers.news/feed/,rss,English,National,https://digg
 Zambia,Lusaka Times,https://www.lusakatimes.com/feed/,rss,English,National,https://www.lusakatimes.com
 Zambia,Zambian Business Times,https://zambianbusinesstimes.com/feed/,rss,English,National,https://zambianbusinesstimes.com
 Zimbabwe,263Chat,https://www.263chat.com/feed/,rss,English,National,https://www.263chat.com
-Zimbabwe,Techzim,https://www.techzim.co.zw/wp-json/wp/v2/posts?per_page=20,html,English,National,https://www.techzim.co.zw
 Zimbabwe,Zimbabwe Independent,https://www.theindependent.co.zw/feed/,rss,English,National,https://www.theindependent.co.zw

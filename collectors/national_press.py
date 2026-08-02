@@ -163,6 +163,14 @@ _AGGREGATOR_HOSTS = frozenset({
 
 
 ATOM = "{http://www.w3.org/2005/Atom}"
+# RSS 1.0 (RDF). Its <item> lives in a namespace, so `.//item` — which matches
+# only unqualified names — finds nothing and the feed reads as "200 but no
+# parseable items". Nikkei Asia, CNET Japan, Nikkei xTECH, Impress Watch, PR
+# TIMES and the Taipei Times all serve it, which is most of what this collector
+# could reach in Japan and Taiwan. The format is twenty-five years old and it is
+# still what several major Asian publishers serve; nothing about those feeds is
+# broken.
+RSS10 = "{http://purl.org/rss/1.0/}"
 CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
 DC = "{http://purl.org/dc/elements/1.1/}"
 NEWS = "{http://www.google.com/schemas/sitemap-news/0.9}"
@@ -411,6 +419,16 @@ def _text(node, *tags: str) -> str:
             href = el.get("href")
             if href:
                 return href.strip()
+            # A field whose text lives in a CHILD element. Drupal's core RSS
+            # writes `<title><a href="/business/...">Headline</a></title>`, so
+            # `el.text` is whitespace and `href` is absent on <title> itself.
+            # The Daily Star's business feed is 25 well-formed items every one
+            # of which was dropped for having no title, which reads in the
+            # ledger as "200 but no parseable items" — a live national daily
+            # recorded as a dead feed.
+            nested = _WS.sub(" ", "".join(el.itertext())).strip()
+            if nested:
+                return nested
     return ""
 
 
@@ -528,7 +546,9 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
             # look sourceless while having a perfectly good publisher.
             return _scrape_items(body, feed)
 
-    nodes = root.findall(".//item") or root.findall(f".//{ATOM}entry")
+    nodes = (root.findall(".//item")
+             or root.findall(f".//{RSS10}item")
+             or root.findall(f".//{ATOM}entry"))
     line = dateline(feed)
     items: list[dict] = []
 
@@ -541,7 +561,10 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
     # obvious `root.find("channel") or root` treats a childless <channel> as
     # missing. Compare against None explicitly.
     channel = root.find("channel")
-    base = _text(channel if channel is not None else root, "link", f"{ATOM}link")
+    if channel is None:
+        channel = root.find(f"{RSS10}channel")
+    base = _text(channel if channel is not None else root, "link",
+                 f"{RSS10}link", f"{ATOM}link")
     if not base.startswith("http"):
         base = feed.rss
 
@@ -551,14 +574,15 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
         # because its junk was counted against it.
         if len(items) >= MAX_ITEMS_PER_FEED:
             break
-        title = _text(node, "title", f"{ATOM}title")
-        link = _text(node, "link", f"{ATOM}link", "guid")
+        title = _text(node, "title", f"{RSS10}title", f"{ATOM}title")
+        link = _text(node, "link", f"{RSS10}link", f"{ATOM}link", "guid")
         if link and not link.startswith("http"):
             link = urljoin(base, link)
         if not (title and link.startswith("http")):
             continue
 
-        body = _plain(_text(node, "description", f"{CONTENT}encoded",
+        body = _plain(_text(node, "description", f"{RSS10}description",
+                            f"{CONTENT}encoded",
                             f"{ATOM}summary", f"{ATOM}content"))
 
         items.append({

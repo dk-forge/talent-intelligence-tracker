@@ -177,6 +177,98 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-02 — a "200 ok" feed audit, and the four dead feeds that were our reader
+
+national_press became the main local-coverage route on 2026-08-01, when the
+seventeen English non-US Google News editions were withdrawn on the grounds
+that those markets already have direct publisher feeds. That made the claim
+worth testing rather than repeating, so all 662 wired feeds were re-fetched
+through the collector's own `fetch()` and `parse()` on 2026-08-02.
+
+**A feed is live when `parse()` yields items, not when the host answers 200.**
+The catalogue recorded `200 ok` for feeds that had never produced a single
+item, because the July audit checked the status code.
+
+### What was actually broken, and it was us four times
+
+| Format | Feeds | What happened |
+|---|---|---|
+| RSS 1.0 (RDF) | 6 | `<item>` is namespaced. `.//item` matches unqualified names only, so Nikkei Asia, CNET Japan, Nikkei xTECH, Impress Watch, PR TIMES and the Taipei Times parsed cleanly and yielded nothing |
+| Drupal RSS | 1 | The title is an anchor element. The reader took an element's own text only, so every item was dropped for having no title and The Daily Star's business desk read as dead |
+| ISO 8601 dates | 6 | `_normalize_date` anchored on `\b`, and `T` is a word character, so `2026-08-02T12:00:00+09:00` did not parse. That is what `dc:date` carries in every RDF feed |
+| RFC-822 two-digit year | 1 | `Sun, 02 Aug 26` matched no format, so a daily paper stored `published_date` NULL on every row |
+
+The date half is not cosmetic. Staleness is how a feed that dies later gets
+noticed, and an item whose date will not parse can never make its feed look
+stale, so recovering the items without their dates would have swapped one
+silent failure for a quieter one.
+
+### Two half-applied fixes the audit found
+
+* **Cayman Compass** was fetched twice a day against its own robots.txt. The
+  note in the catalogue row already said "Feed not wired: robots.txt disallows
+  this path" and the `rss` column was never cleared. A note is not a
+  withdrawal; an empty column is, and a test now asserts it.
+* **Disrupt Africa** rebranded to `disruptafrica.com` in July. The note records
+  the rebrand and says the url column was updated to match. The `rss` column
+  was not, so the domain-drift guard refused it on every run since and the row
+  read as 922 days stale. It returns 10 current items on the live domain.
+
+### Genuinely dead, and now recorded as dead
+
+Twenty-two rows unwired. Three (Citinewsroom, Techweez, Techzim) had a
+WordPress REST endpoint in the `rss` column: open, current, and JSON, which an
+XML reader cannot read. Eight are refused or broken at the transport layer
+(Moneycontrol, MedCity News, Capital.ba and Sifted answer 403/500; Newsday
+Trinidad fails its TLS handshake on two rows; News.MN times out). Five answer
+200 with an empty channel or a bot wall (Prothom Alo English, Quartz, Meet
+Global, TheBusinessDesk, La French Tech). Seven have simply stopped publishing,
+between 289 and 2,289 days ago (NoCamels, FinLedger, StrictlyVC,
+RecruitingDaily, MENAbytes, ReadMe.lk, elsalvador.com negocios). One is the
+Cayman Compass above.
+
+CBC News Business is **not** recorded as dead. Its connection is reset before
+any response, from two paths on the same host, on three attempts. A reset at
+the transport layer from one location is not evidence a feed is gone, and
+UNKNOWN is a third state.
+
+### Wired, after two live verifications each
+
+Nine rows: Norvan Reports, 3News Ghana and the Ghanaian Times (Ghana); The
+Daily Star economy desk and The Business Standard corporates desk (Bangladesh);
+Business Today Malaysia and Focus Malaysia; Cayman News Service; Newswire.lk.
+
+**Two verifications, because one is not enough.** The New Straits Times feed
+answered 200 with 25 parseable items on the first probe and 404 on eight
+consecutive attempts afterwards, across two processes. It is not wired, and the
+row says exactly that. Wiring it on the first green fetch would have put a
+permanently dead feed in the catalogue with a live verdict beside it, which is
+the failure this whole pass exists to remove.
+
+Cayman News Service and Newswire.lk exist because the withdrawals would
+otherwise have taken the Cayman Islands to zero wired feeds and no backstop,
+and Sri Lanka to one. Mongolia lost News.MN and has no replacement: Montsame,
+gogo.mn and the UB Post were all probed and none answers, so it holds its
+coverage on the discovery backstop row alone. Trinidad and Tobago drops to one
+wired feed, the Trinidad Express business search feed.
+
+### Cost
+
+Fetching is free and nothing here changes the gate. Net wired feeds 662 -> 648,
+so the candidate load falls slightly; the recovered RDF feeds add Japanese and
+Chinese items which the CJK prefilter block already reads, and the Bengali
+general dailies that would have padded Bangladesh were deliberately NOT wired,
+because Bengali has no prefilter pack and the 2026-08-01 measurement puts an
+uncovered-language general daily at 1.3% in scope. Read-throughs are capped by
+`classify.read_cap` and reallocated rather than raised, so no read money moved.
+
+### Still open
+
+`wordpress-plugin/.../data/sources.json` is out of sync with the catalogue and
+`tests/test_sources_page.py::test_manifest_is_in_sync_with_the_registry` is red
+until `python3 build_sources_json.py` is run and the plugin deployed. That was
+left deliberately: the deploy is the session's call, not an agent's. The build
+was dry-checked and reports zero dash offences, 771 entries, 15 live.
 ## 2026-08-02 — a three-minute chain was paying two hours of queue for it
 
 Five backfill chains share the one `talent-collect` writer slot. Every one of
