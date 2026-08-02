@@ -242,10 +242,10 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Cost discipline
 
-Budget is **$5/month** (`spend.MONTHLY_ALLOWANCE_USD`, the owner's number:
-$10 on 2026-07-29, $25 on 2026-07-30, back to $5 on 2026-07-31), all LLM.
+Budget is **$10/month** (`spend.MONTHLY_ALLOWANCE_USD`, the owner's number:
+$10 on 2026-07-29, $25 on 2026-07-30, $5 on 2026-07-31, $10 on 2026-08-01), all LLM.
 
-**$5 DOES NOT FIT THE CURRENT ARCHITECTURE, and that is the honest state of
+**$10 STILL DOES NOT FUND FULL COVERAGE, and that is the honest state of
 this project rather than a bug to tune away.** `cost_projection.py [5]` at the
 $5 ceiling: the LLM gate alone costs **$4.41/month**, leaving $0.59 for
 read-throughs — 14 reads/day against a demand of 1,102/day, which is **1% of

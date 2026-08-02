@@ -55,13 +55,23 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # ceiling five times too high, and a "two weeks of runway left" warning was
 # raised on the strength of it that was never true.
 #
-# $5 is a HARDER constraint than the coverage currently costs, and that is the
+# RAISED 5.0 -> 10.0 on 2026-08-01, by the owner: "Fine go to $10 for now and
+# we'll figure this out later - I just want both running at 100% asap". This is
+# an interim number, not the target: the owner's standing goal is still ~$5, and
+# docs/PLAN-gate-to-five-dollars.md is still the route there.
+#
+# What $10 does and does not buy, from cost_projection.py rather than opinion:
+# the LLM gate costs $4.41/month whatever else happens, so $10 leaves ~$5.59 for
+# read-throughs against a full-coverage cost of $49.14. That is far better than
+# $0.59 and it is still rationing. Do not read $10 as "coverage is now funded".
+#
+# The $5 that was here is a HARDER constraint than the coverage currently costs, and that is the
 # point: it is the target the architecture is being rebuilt to meet, not a
 # description of today. What $5 does and does not buy is arithmetic, not
 # opinion: run `python cost_projection.py`. Do not raise this to make a red
 # run green — degrading is the designed response, and the free collectors,
 # the free prefilter and both dedup layers do not spend a cent.
-MONTHLY_ALLOWANCE_USD = 5.0
+MONTHLY_ALLOWANCE_USD = 10.0
 
 # Stop collecting with headroom left, so a long run cannot overshoot mid-batch.
 STOP_AT_FRACTION = 0.9
