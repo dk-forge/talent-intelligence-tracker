@@ -393,6 +393,131 @@ from what collection may spend. ARMED is derived from the schedule file that
 actually dispatches it, not asserted, so the figure cannot drift the day
 somebody disarms it; a dormant tripwire is charged $0.00 and still printed with
 the price arming would cost.
+## 2026-08-01 — the charts move above the updates, and eight pointers that named a position (1.63.0)
+
+**Asked for by the owner**, in three parts: quick views and filters above the
+country and city charts; the charts between the filters and the update cards;
+and "Narrow It Down / Everything below follows these filters, including the
+charts — do we need this?"
+
+### What the order was, measured rather than assumed
+
+The brief described the live order as `signal table -> quick views -> filters ->
+charts -> cards`. The live page (1.62.2, fetched and read rather than recalled)
+was `hero + signal table -> Narrow It Down -> quick views -> filters -> chips ->
+cards -> export -> What The Data Says -> charts -> money charts -> trust`. So the
+charts were **below** the fifty result cards, not above the filters: on a phone
+they began 24,143px down a 28,000px page. Three comments in `shortcodes.php` still
+described a third arrangement, one of them ("The market read comes BEFORE the
+filter machinery") describing the opposite of what shipped.
+
+### The new order
+
+`hero -> lede -> quick views -> filters -> Filtering chips -> What The Data Says
+-> 9 chart cards -> 3 money cards -> Routine Filings + Sort -> update cards ->
+export`. Two rules decided the two seams, and they are worth keeping: the chips
+bar states what the filters are doing, so it stays **with** the filters; Routine
+Filings and Sort order the update list and nothing else, so they stay directly
+on top of it.
+
+The chart block moved as one, unedited. Every chart row is still a button that
+writes the same hidden select, so click-to-filter, the querystring, the chips
+bar and the exports are untouched — verified in a real DOM by clicking a country
+row (`?country=GB`, `#tit-f-country` = GB), loading `?industry=technology` cold
+(select set, chip painted, both export hrefs rewritten), and Reset All.
+
+The charts now sit **inside `.tit-results`**. That subtree sets no overflow and
+neither does `.tit-feed`, so the sticky filter bar is unaffected: measured at
+1280px, `.tit-filterbar` computes `position:sticky` and holds `top:0` while the
+page scrolls through both chart grids and the cards. A scrollable ancestor is the
+one thing that cancels sticky outright and it fails **silently**, so anything
+nested here later has to be re-measured, not reasoned about.
+
+### "Narrow It Down": the heading goes, the sentence stays and shrinks
+
+The heading was the redundant half. The next element on the page is a group
+labelled **Quick Views** and the one after it a bar labelled **Filters**, and
+below 900px the word Filters appears twice inside one screen of it (the bar head
+plus the collapse toggle). A heading whose whole job is to announce that filters
+follow, one line above something that says "Filters", is a row of dead pixels.
+
+The sentence was the load-bearing half, because "the charts are filtered too" is
+the one thing the layout could not say — and with the charts now directly under
+the bar, the layout says most of it. So it is one line, no heading:
+
+> The charts and the updates both follow these filters.
+
+**The wrapper and its `id` survive on purpose.** `dashboard.js` builds the phone
+jump bar with `data-jump="#tit-filter-sec"`; deleting the element would have taken
+the Filters button on every phone with it, with nothing red anywhere.
+
+### Eight pointers rewritten, two of them wrong the moment the block moved
+
+A reorder breaks copy that names a POSITION and never breaks copy that names a
+THING. This has now happened twice here (the 2026-07-30 pass left "click a number
+in the matrix at the top" pointing at a matrix that was no longer at the top), so
+every one of these is rewritten to name the thing:
+
+| was | is |
+|---|---|
+| Everything **below** follows these filters, including the charts | The charts and the updates both follow these filters |
+| For a time period, tap a number in the signal table **above** | ...tap a number in the signal table |
+| Every employer name **below** links to that employer's own page | Every employer name **in the updates** links to... |
+| becomes its own chip **above the table** | becomes its own chip **in the Filtering row** |
+| the control **above the table** turns them back on (FAQ) | the **Routine Filings control** turns them back on |
+| The export links **above** take the current view (FAQ) | The **CSV and JSON links** take the current view |
+| The figures **above the table** count everything in this view | The **headline figures** count everything in this view |
+| The counts are in the updates **above** (trend, twice) | ...in the updates **themselves** |
+
+The last one is printed by BOTH `shortcodes.php` and `dashboard.js` (the matrix
+note is repainted on every filter change), so both copies moved together; a
+divergence there shows up as the block rewriting itself while a reader watches.
+
+### "Moves Headcount(1,869)" — a gap that existed only for the eye
+
+The owner read the chip as missing a space, and it was: the markup is
+`Moves Headcount<span class="tit-qv-n">(1,869)</span>` and the separation was
+`margin-left:5px`. A margin separates two words for a sighted reader and for
+nobody else — the accessible name, the copied text and anything scraping the page
+all read `Moves Headcount(1,869)`. It is a real space now and the margin is gone,
+so the gap is the same width.
+
+**Checked every other counted control for the same, and found three more.** The
+server-rendered strips (regions, country pills, city pills, chart rows) all have
+newlines between their spans and were already fine. The ones `dashboard.js`
+builds on every repaint were not: the Filtering chip read `IndustryTechnology×`,
+and the repainted chart and money rows read `United Kingdom2580` where the
+server's copy of the same row read `United Kingdom 2580`. Fixed by emitting the
+space the server already emits. It is free: `.tit-chip` is a flex container and
+`.tit-rank-row` a grid, and whitespace-only anonymous boxes are not rendered in
+either — measured, a row built with the spaces has byte-identical child
+geometry to the server's.
+
+### Not found: the "bare `--` separators"
+
+Reported by the owner, and **not reproducible**. There is no `--` anywhere in the
+dashboard: not in the served markup, not in `innerText` of the live page or of
+the render harness, and not in any CSS `content:` rule (the four that exist are
+`attr(data-label)`, a non-breaking-space middot, `+` and U+2212). The only thing
+on the page that DRAWS as a bare dash is `.tit-trend-swatch` — a 14x3px line mark
+that keys each series in the Updates a Day legend, so at 375px that card ends
+with two lines opening on a short dash. It is a legend key rather than a
+separator and removing it would take the colour mapping with it, so it is left
+alone and raised instead.
+
+### Verified
+
+Full suite green (**2,930** offline tests plus 202 subtests, measured on this
+branch rebased onto 1.62.3 — HANDOVER said 2,923, which is the count that was
+true when somebody last typed it) and all seven PHP render harnesses green, before and after. The page
+was **looked at**, in a layout engine, at 375px and at 1280px: no horizontal overflow at either
+(`scrollWidth === clientWidth`), the two new seams read correctly, and the phone
+jump bar's two targets (`#tit-filter-sec`, `.tit-detail`) both still resolve —
+"Updates" now usefully skips the charts. Markup went 173,572 -> 173,556 bytes on
+the harness fixture, so the byte budget is untouched.
+
+**Not verified:** the live page. This work was done by an agent and agents do not
+deploy (see CLAUDE.md); it is pushed to main and NOT deployed.
 
 ---
 

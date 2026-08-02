@@ -828,7 +828,14 @@ function tit_dashboard_html() {
         </p>
         <p class="tit-hero-links">
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
-          · Every employer name below links to that employer's own page
+          <?php /* NAMES THE THING, NOT THE POSITION. This read "Every employer
+                   name below links to..." until the charts moved between this
+                   line and the updates, which put two sections between "below"
+                   and what it meant. A pointer written as a direction is a
+                   pointer the next reorder breaks silently; a pointer written
+                   as a name is not. Same edit made to every other one on this
+                   page in 1.63.0. */ ?>
+          · Every employer name in the updates links to that employer's own page
           <?php /* The misses belong next to the sources, not buried in a
                    methodology footnote. A tracker that publishes what it fails
                    to catch is making a checkable claim; one that only lists its
@@ -861,17 +868,37 @@ function tit_dashboard_html() {
       }
       ?>
 
-      <?php /* The market read comes BEFORE the filter machinery. These three
-               charts are the ten-second answer a reader arrived for; the
-               controls below them are how to interrogate it. The rows are
-               still click-to-filter and still write the same hidden selects,
-               so the order of sections changes nothing about what a click
-               means. The heading is the design proposal's, kept because it
-               names what the reader gets rather than what the section is
-               made of. */ ?>
+      <?php
+      /*
+        WHERE THE MACHINERY STARTS. One sentence, no heading.
+
+        This block used to be a heading, "Narrow It Down", over the sentence
+        below it. The owner asked whether it was needed and the heading is the
+        half that was not: the very next thing on the page is a control group
+        labelled "Quick Views" and after that a bar labelled "Filters", and on
+        a phone the word Filters appears TWICE within one screen of it (the bar
+        head and the collapse toggle). A heading whose only job is to say
+        "filters follow" one line above something that says "Filters" is a row
+        of dead pixels.
+
+        THE SENTENCE STAYS, SHORTENED, because it is the one thing the layout
+        cannot say by itself: a reader who narrows the page has no reason to
+        expect the CHARTS to move with it, and they do. Since 1.63.0 the charts
+        sit directly under this bar, so the arrangement now carries most of the
+        claim and the sentence only has to name what is included.
+
+        It does NOT say "below" any more. The charts and the updates are named,
+        so moving either one cannot turn this line into a wrong direction --
+        which is exactly what the reorder did to four other lines on this page.
+
+        THE ELEMENT AND ITS ID SURVIVE ON PURPOSE. The phone jump bar in
+        dashboard.js scrolls to #tit-filter-sec, so deleting the wrapper would
+        take the Filters button on every phone with it, silently and with
+        nothing red anywhere.
+      */
+      ?>
       <div class="tit-sec" id="tit-filter-sec">
-        <h3>Narrow It Down</h3>
-        <p>Everything below follows these filters, including the charts.</p>
+        <p>The charts and the updates both follow these filters.</p>
       </div>
 
       <div class="tit-quick" role="group" aria-label="Quick views">
@@ -880,12 +907,25 @@ function tit_dashboard_html() {
           <button type="button" class="tit-qv" data-qv="<?php echo esc_attr($spec); ?>"><?php
             echo esc_html($label);
             /* The one quick view whose set is small enough that its size is
-               part of what it means. See the note beside $quick_views. */
-            if ($spec === 'stated_headcount=1') : ?><span class="tit-qv-n"
+               part of what it means. See the note beside $quick_views.
+
+               THE SPACE BEFORE THE BRACKET IS A REAL SPACE, not a margin. It
+               shipped as `Moves Headcount<span>(1,869)</span>` with a 5px
+               margin-left doing the separating, which looks right and is right
+               nowhere else: the accessible name a screen reader reads out, the
+               text a reader copies, and the string an answer engine scrapes all
+               came back "Moves Headcount(1,869)". That is what the owner saw.
+               A text node fixes all three at once, so the margin goes and the
+               gap stays the same width. */
+            if ($spec === 'stated_headcount=1') : ?> <span class="tit-qv-n"
               id="tit-stated-n"><?php echo esc_html('(' . number_format_i18n($n_stated) . ')');
             ?></span><?php endif; ?></button>
         <?php endforeach; ?>
-        <span class="tit-quick-hint">For a time period, tap a number in the signal table above.</span>
+        <?php /* Names the control, not a direction. The signal table is still
+                 above this strip, but it was above it the last time somebody
+                 wrote "at the top" here too, and that line survived the move
+                 that made it wrong (see the note by the region strip). */ ?>
+        <span class="tit-quick-hint">For a time period, tap a number in the signal table.</span>
       </div>
 
       <?php
@@ -1011,8 +1051,8 @@ function tit_dashboard_html() {
               <div class="tit-help-b">
                 <p id="tit-help-multi"><strong>Filters that take more than one.</strong>
                   Tap every one that applies. Tap again to remove it. Every choice
-                  also becomes its own chip above the table, so you can drop one
-                  without clearing the rest.</p>
+                  also becomes its own chip in the Filtering row, so you can drop
+                  one without clearing the rest.</p>
                 <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
                   source named. When a source names no place we use the employer's head
                   office instead, so a company known only by its headquarters still
@@ -1345,136 +1385,36 @@ function tit_dashboard_html() {
         <span class="tit-active-chips" id="tit-active-chips"></span>
       </div>
 
-      <!--
-        The detail control, and the promise that goes with it.
-
-        A default that sets thousands of rows aside has to be visible, has to
-        state both counts, and has to say what it means by routine, all in the
-        place the reader is about to look at rows. A quiet default with no
-        explanation would be withholding data; a page that leads with two
-        thousand CFO appointments would be burying it. This is the only way to
-        do both.
-      -->
-      <div class="tit-detail">
-        <?php /* The control is named by WHAT IT FILTERS, not by the abstract
-                 job it does. "Show: Notable updates" told a reader neither what
-                 was being hidden nor why, and made them hold three numbers in
-                 their head to work out what they were looking at. */ ?>
-        <?php /* ONE name for the control, and options that read as values of
-                 that name rather than as two more labels. It was
-                 "Officer and director filings" over "Hide the routine ones",
-                 which is a noun phrase over an imperative: neither one told a
-                 reader what state the control was IN. "Routine filings: Hidden /
-                 Shown" is a setting and its value, which is what this is. */ ?>
-        <label class="tit-detail-pick">
-          <span class="tit-detail-l">Routine Filings</span>
-          <select id="tit-f-detail" aria-label="Routine filings">
-            <option value="notable">Hidden</option>
-            <option value="all">Shown</option>
-          </select>
-        </label>
-        <p class="tit-detail-note" id="tit-detail-note"><?php
-          echo esc_html(tit_detail_note('notable', $n_notable, $n_routine)); ?></p>
-        <?php /* The sort belongs with the rows it orders. It used to sit up in
-                 the quick-views strip, three screens above the table, which is
-                 where a reader chooses a VIEW and not where they reorder one
-                 they are already reading.
-
-                 IT IS NOW THE ONLY SORT CONTROL. Four sortable column headers
-                 used to sit below it, and a card list has no column headers to
-                 hang them on. Every ordering they offered is an option here
-                 instead, so nothing a reader could reach before became
-                 unreachable, and the `sort` parameter they wrote is unchanged:
-                 old share links still land on the ordering they name. */ ?>
-        <label class="tit-detail-sort">
-          <span class="tit-detail-l">Sort</span>
-          <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
-            <?php /* Its own option, never a silent tweak to "Newest first": a
-                     control labelled newest that does not put the newest row
-                     first is a control that lies. */ ?>
-            <option value="notable">Most Useful First</option>
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="employer">Employer A to Z</option>
-            <?php /* Inherited from the retired column headers. The values are
-                     the ones those headers already sent to /query, which is why
-                     a link somebody saved from the old page still works. */ ?>
-            <option value="employer_desc">Employer Z to A</option>
-            <option value="place">By Place</option>
-            <option value="place_desc">By Place, Reversed</option>
-            <option value="evidence">Strongest Evidence First</option>
-            <option value="evidence_desc">Weakest Evidence First</option>
-            <?php /* Sorting on money only works because funding_amount_usd is
-                     a number; the display string beside it cannot be ordered. */ ?>
-            <option value="raised">Biggest Raises First</option>
-          </select>
-        </label>
-      </div>
-
-      <?php /* With the charts above rather than below, this is where the
-               machinery begins, and a section marker has to say so or the
-               quick views read as a fourth chart. The id is the jump bar's
-               scroll target on phones. */ ?>
       <?php
       /*
-        THE RESULTS ARE CARDS, AND THEY ARE THE SIBLING'S CARDS.
+        THE CHARTS SIT BETWEEN THE FILTERS AND THE UPDATES, at the owner's ask
+        (1.63.0). They were below the updates, which put twelve chart cards
+        behind fifty result cards and, on a phone, about twenty thousand pixels
+        of scrolling; and the sentence by the filter bar promising that the
+        charts follow the filters was making a claim about something a reader
+        had no way of seeing.
 
-        This was a seven-column table that turned itself into cards below 860px
-        with a stack of @media rules, and every one of those rules was a second
-        description of the same layout waiting to disagree with the first. It is
-        one card now, at every width.
+        The ORDER is now: quick views, filters, what is currently filtered,
+        the charts, then the control that orders the updates, then the updates.
+        Two rules decided the two seams. The chips bar states what the filters
+        are doing, so it stays WITH the filters and reads as their result. The
+        Routine Filings and Sort controls order the update list and nothing
+        else, so they stay directly on top of it.
 
-        The shape is fixed in docs/card-contract.json, which is BYTE-IDENTICAL to
-        the copy in the AI Layoff Tracker: same regions, same class suffixes,
-        same badge order, same four direction words. The two products render the
-        same kind of fact and had drifted into two designs and two vocabularies,
-        with neither side able to say which was current. tit_card_html() below
-        is the one renderer; renderCard() in dashboard.js reprints the same
-        markup on every repaint; tests/test_card_contract.py pins both against
-        the contract, and .github/workflows/card-contract.yml pins the contract
-        against the sibling's copy.
+        Nothing about what a chart click MEANS has changed: every row is still
+        a button that writes the same hidden select, so click-to-filter, the
+        querystring and every share link in the wild are untouched. This block
+        moved as one, unedited, other than the directional lines noted through
+        the file.
 
-        The <ul> keeps the id `tit-rows` the JavaScript already replaces, so the
-        filter path is untouched by this change.
+        The charts are INSIDE .tit-results, which is the same subtree the rows
+        are in. .tit-results sets no overflow and neither does .tit-feed, so
+        the sticky filter bar above is unaffected -- a scrollable ancestor is
+        the one thing that cancels `position:sticky` outright, and it fails
+        silently, so read the note by .tit-filterbar before nesting anything
+        else here.
       */
       ?>
-      <ul class="tit-cards" id="tit-rows">
-        <?php foreach ($rows as $r) { echo tit_card_html($r); } ?>
-      </ul>
-
-      <!--
-        Download exactly what the filters show. The hrefs are server-rendered
-        pointing at the whole dataset; dashboard.js rewrites them with the
-        current querystring on every refresh, and the scope word flips between
-        "all" and "filtered" so the link says which set it hands over.
-      -->
-      <div class="tit-export">
-        <span class="tit-export-label">Download This View</span>
-        <a class="tit-export-link" id="tit-export-csv"
-           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>"
-           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
-          CSV<span class="tit-export-scope" id="tit-export-csv-scope"> · all</span></a>
-        <a class="tit-export-link" id="tit-export-json"
-           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>"
-           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
-          JSON<span class="tit-export-scope" id="tit-export-json-scope"> · all</span></a>
-        <span class="tit-export-note">Every matching update, not just this page,
-          and routine filings are included whichever way Show is set. Each row
-          carries its own materiality, so you can set them aside yourself.
-          Free to reuse, CC BY 4.0.</span>
-      </div>
-
-        </div><!-- /.tit-results -->
-      </div><!-- /.tit-feed -->
-
-      <?php /* The charts read the SAME filtered set as the rows above them and
-               are still click-to-filter, so they belong after the feed rather
-               than wedged between the controls and the table they describe.
-               That is also where the design mock puts them. Nothing about what
-               a click means has changed: every row still writes the same
-               hidden select. */ ?>
       <div class="tit-sec">
         <h3>What The Data Says</h3>
         <p>Click any row to narrow the whole page to it.</p>
@@ -1697,6 +1637,131 @@ function tit_dashboard_html() {
         ?>
       </div>
 
+      <!--
+        The detail control, and the promise that goes with it.
+
+        A default that sets thousands of rows aside has to be visible, has to
+        state both counts, and has to say what it means by routine, all in the
+        place the reader is about to look at rows. A quiet default with no
+        explanation would be withholding data; a page that leads with two
+        thousand CFO appointments would be burying it. This is the only way to
+        do both.
+      -->
+      <div class="tit-detail">
+        <?php /* The control is named by WHAT IT FILTERS, not by the abstract
+                 job it does. "Show: Notable updates" told a reader neither what
+                 was being hidden nor why, and made them hold three numbers in
+                 their head to work out what they were looking at. */ ?>
+        <?php /* ONE name for the control, and options that read as values of
+                 that name rather than as two more labels. It was
+                 "Officer and director filings" over "Hide the routine ones",
+                 which is a noun phrase over an imperative: neither one told a
+                 reader what state the control was IN. "Routine filings: Hidden /
+                 Shown" is a setting and its value, which is what this is. */ ?>
+        <label class="tit-detail-pick">
+          <span class="tit-detail-l">Routine Filings</span>
+          <select id="tit-f-detail" aria-label="Routine filings">
+            <option value="notable">Hidden</option>
+            <option value="all">Shown</option>
+          </select>
+        </label>
+        <p class="tit-detail-note" id="tit-detail-note"><?php
+          echo esc_html(tit_detail_note('notable', $n_notable, $n_routine)); ?></p>
+        <?php /* The sort belongs with the rows it orders. It used to sit up in
+                 the quick-views strip, three screens above the table, which is
+                 where a reader chooses a VIEW and not where they reorder one
+                 they are already reading.
+
+                 IT IS NOW THE ONLY SORT CONTROL. Four sortable column headers
+                 used to sit below it, and a card list has no column headers to
+                 hang them on. Every ordering they offered is an option here
+                 instead, so nothing a reader could reach before became
+                 unreachable, and the `sort` parameter they wrote is unchanged:
+                 old share links still land on the ordering they name. */ ?>
+        <label class="tit-detail-sort">
+          <span class="tit-detail-l">Sort</span>
+          <select id="tit-f-sort" class="tit-sort" aria-label="Sort the updates">
+            <?php /* Its own option, never a silent tweak to "Newest first": a
+                     control labelled newest that does not put the newest row
+                     first is a control that lies. */ ?>
+            <option value="notable">Most Useful First</option>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="employer">Employer A to Z</option>
+            <?php /* Inherited from the retired column headers. The values are
+                     the ones those headers already sent to /query, which is why
+                     a link somebody saved from the old page still works. */ ?>
+            <option value="employer_desc">Employer Z to A</option>
+            <option value="place">By Place</option>
+            <option value="place_desc">By Place, Reversed</option>
+            <option value="evidence">Strongest Evidence First</option>
+            <option value="evidence_desc">Weakest Evidence First</option>
+            <?php /* Sorting on money only works because funding_amount_usd is
+                     a number; the display string beside it cannot be ordered. */ ?>
+            <option value="raised">Biggest Raises First</option>
+          </select>
+        </label>
+      </div>
+
+      <?php /* The comment that stood here described a section marker that is
+               not here and has not been for two releases: it belonged to
+               #tit-filter-sec, which sits with the quick views. Its one live
+               fact -- that the id is the phone jump bar's scroll target -- is
+               written down beside that element instead, where deleting the
+               element would put it in front of whoever was about to. */ ?>
+      <?php
+      /*
+        THE RESULTS ARE CARDS, AND THEY ARE THE SIBLING'S CARDS.
+
+        This was a seven-column table that turned itself into cards below 860px
+        with a stack of @media rules, and every one of those rules was a second
+        description of the same layout waiting to disagree with the first. It is
+        one card now, at every width.
+
+        The shape is fixed in docs/card-contract.json, which is BYTE-IDENTICAL to
+        the copy in the AI Layoff Tracker: same regions, same class suffixes,
+        same badge order, same four direction words. The two products render the
+        same kind of fact and had drifted into two designs and two vocabularies,
+        with neither side able to say which was current. tit_card_html() below
+        is the one renderer; renderCard() in dashboard.js reprints the same
+        markup on every repaint; tests/test_card_contract.py pins both against
+        the contract, and .github/workflows/card-contract.yml pins the contract
+        against the sibling's copy.
+
+        The <ul> keeps the id `tit-rows` the JavaScript already replaces, so the
+        filter path is untouched by this change.
+      */
+      ?>
+      <ul class="tit-cards" id="tit-rows">
+        <?php foreach ($rows as $r) { echo tit_card_html($r); } ?>
+      </ul>
+
+      <!--
+        Download exactly what the filters show. The hrefs are server-rendered
+        pointing at the whole dataset; dashboard.js rewrites them with the
+        current querystring on every refresh, and the scope word flips between
+        "all" and "filtered" so the link says which set it hands over.
+      -->
+      <div class="tit-export">
+        <span class="tit-export-label">Download This View</span>
+        <a class="tit-export-link" id="tit-export-csv"
+           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>"
+           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_csv')); ?>">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          CSV<span class="tit-export-scope" id="tit-export-csv-scope"> · all</span></a>
+        <a class="tit-export-link" id="tit-export-json"
+           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>"
+           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          JSON<span class="tit-export-scope" id="tit-export-json-scope"> · all</span></a>
+        <span class="tit-export-note">Every matching update, not just this page,
+          and routine filings are included whichever way Show is set. Each row
+          carries its own materiality, so you can set them aside yourself.
+          Free to reuse, CC BY 4.0.</span>
+      </div>
+
+        </div><!-- /.tit-results -->
+      </div><!-- /.tit-feed -->
 
       <?php echo tit_trust_panel_html($facts); ?>
 
@@ -1858,7 +1923,7 @@ function tit_trust_panel_html(array $facts) {
               sprintf('%s of the %s records we hold are routine officer and '
                     . 'director filings: accurate, verified, and in such volume '
                     . 'that they bury everything else. The default view sets '
-                    . 'them aside and the control above the table turns them '
+                    . 'them aside and the Routine Filings control turns them '
                     . 'back on, states both counts, and says what we mean by '
                     . 'routine. Nothing is deleted.',
                     $n($routine), $n($total_all))),
@@ -1878,7 +1943,7 @@ function tit_trust_panel_html(array $facts) {
               . 'out of what is easy to find measures memory rather than reach.'),
         array('Can I reuse the data?',
               sprintf('Yes, under CC BY 4.0, citing the Talent Intelligence '
-                    . 'Tracker. The export links above take the current view '
+                    . 'Tracker. The CSV and JSON links take the current view '
                     . 'with its filters applied, and the press page carries the '
                     . 'headline figures with a link behind each one. There are '
                     . '%s updates across %s employers and %s countries in this '
@@ -2572,8 +2637,8 @@ function tit_signal_trend_html(array $trend) {
             <?php else : ?>
             We hold too few updates across the window to average them.
             <?php endif; ?>
-            The counts are in the updates above, where a count of what we hold is exactly
-            what is claimed.</p>
+            The counts are in the updates themselves, where a count of what we hold is
+            exactly what is claimed.</p>
         </div>
         <p class="tit-trend-none">Not drawn for this view yet.</p>
         <?php
@@ -2648,7 +2713,7 @@ function tit_signal_trend_html(array $trend) {
             <span class="tit-trend-nodraw"><b><?php echo esc_html($r['label']); ?></b>:
               <?php echo esc_html($r['why']); ?>.</span>
           <?php endforeach; ?>
-          They stay in the updates above, where a count of what we hold is exactly what is claimed.</p>
+          They stay in the updates themselves, where a count of what we hold is exactly what is claimed.</p>
       <?php endif; ?>
     </div>
     <?php echo tit_trend_svg($trend); // phpcs:ignore — built and escaped in that function ?>
@@ -3095,8 +3160,8 @@ function tit_glance_matrix_html(array $m) {
       ?>
       <ul class="tit-matrix-points">
         <li>Each column counts updates whose source dated them inside that window.</li>
-        <li>The figures above the table count everything in this view, over the
-            whole period we hold, which is why they are larger.</li>
+        <li>The headline figures count everything in this view, over the whole
+            period we hold, which is why they are larger.</li>
         <li>Colour shows relative activity within each row.</li>
         <li>Rows overlap, so the columns do not add up. A funded employer may
             also be hiring.</li>

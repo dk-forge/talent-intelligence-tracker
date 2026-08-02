@@ -480,8 +480,8 @@
       var pct = Math.max(4, Math.round(100 * r.n / max));
       return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
         (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + ' aria-pressed="false">' +
-        '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span>' +
-        '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span> ' +
+        '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span> ' +
         '<span class="tit-rank-n">' + nfmt(r.n) + '</span></button>';
     }).join('');
   }
@@ -591,7 +591,7 @@
         var pct = total ? Math.round(100 * r.n / total) : 0;
         return '<button type="button" class="tit-pillar" data-k="' + esc(r.k) + '" aria-pressed="false">' +
           '<span class="tit-pillar-head">' +
-          '<span class="tit-pillar-name">' + esc(PILLAR_LABEL[r.k] || r.k) + '</span>' +
+          '<span class="tit-pillar-name">' + esc(PILLAR_LABEL[r.k] || r.k) + '</span> ' +
           '<span class="tit-pillar-n">' + nfmt(r.n) + '</span></span>' +
           '<span class="tit-bar"><span style="width:' + pct + '%"></span></span></button>';
       }).join('') : '<p class="tit-rank-empty">Nothing in this view.</p>';
@@ -787,8 +787,8 @@
           var pct = Math.max(4, Math.round(100 * r.v / max));
           return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
             ' data-v="' + esc(Math.round(Number(r.v) || 0)) + '" aria-pressed="false">' +
-            '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span>' +
-            '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
+            '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span> ' +
+            '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span> ' +
             '<span class="tit-rank-n" title="' + esc(moneyFull(r.v)) + '">' +
             esc(moneyShort(r.v)) + '</span></button>';
         }).join('');
@@ -929,8 +929,8 @@
       '<details class="tit-matrix-note" open><summary>How To Read This</summary>' +
       '<ul class="tit-matrix-points">' +
       '<li>Each column counts updates whose source dated them inside that window.</li>' +
-      '<li>The figures above the table count everything in this view, over the ' +
-      'whole period we hold, which is why they are larger.</li>' +
+      '<li>The headline figures count everything in this view, over the whole ' +
+      'period we hold, which is why they are larger.</li>' +
       '<li>Colour shows relative activity within each row.</li>' +
       '<li>Rows overlap, so the columns do not add up. A funded employer may ' +
       'also be hiring.</li>' +
@@ -1887,11 +1887,19 @@
   // $value is passed only for the multi-value filters, so a chip removes the
   // ONE choice it names rather than the whole filter. Picking three industries
   // and being able to drop only all three would make multi-select pointless.
+  // THE SPACES BETWEEN THESE SPANS ARE LOAD-BEARING AND COST NOTHING.
+  // .tit-chip is an inline-flex with a gap, so a whitespace-only text node
+  // between two flex items is dropped by layout and changes no pixel. It
+  // changes the three things layout cannot reach: the accessible name a screen
+  // reader announces, the text a reader copies, and what an answer engine
+  // scrapes. Without them this chip is "IndustryTechnology x, remove this
+  // filter". Same defect the quick views had with "Moves Headcount(1,869)";
+  // see the note beside .tit-qv-n in dashboard.css.
   function chip(key, text, value) {
     return '<button type="button" class="tit-chip" data-clear="' + esc(key) + '"' +
       (value == null ? '' : ' data-value="' + esc(value) + '"') + '>' +
-      '<span class="tit-chip-k">' + esc(FILTER_LABEL[key] || key) + '</span>' +
-      '<span class="tit-chip-v">' + esc(text) + '</span>' +
+      '<span class="tit-chip-k">' + esc(FILTER_LABEL[key] || key) + '</span> ' +
+      '<span class="tit-chip-v">' + esc(text) + '</span> ' +
       '<span class="tit-chip-x" aria-hidden="true">&#215;</span>' +
       '<span class="tit-sr">, remove this filter</span></button>';
   }
@@ -2044,8 +2052,9 @@
   }
 
   // --- The phone jump bar ----------------------------------------------------
-  // With the charts above the machinery, a phone reader is several screens
-  // from the filters by the time they reach the rows. The design proposal
+  // With twelve chart cards sitting between the filters and the rows, a phone
+  // reader is several screens from the controls by the time they reach the
+  // updates, and further since 1.63.0 than before it. The design proposal
   // solves this with a bottom-sheet filter panel, which would mean a second
   // copy of every control; this is the same reach-it-with-a-thumb idea at
   // none of that cost: a fixed bar, phones only (the stylesheet decides where

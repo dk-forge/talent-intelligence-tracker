@@ -4,9 +4,19 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-08-02**. Plugin **1.62.1**, **18,250** current signals
-stored, company profiles shipped, cron firing on schedule but not reliably
-green, **2,923 offline tests passing** plus seven PHP render harnesses.
+Last updated: **2026-08-02**. Plugin **1.63.0 on main and NOT DEPLOYED**,
+**18,250** current signals stored, company profiles shipped, cron firing on
+schedule but not reliably green, **2,930 offline tests passing** (counted, not
+carried forward) plus seven PHP render harnesses.
+
+**1.63.0 is a dashboard reorder waiting for a deploy, and 1.62.3 is waiting with
+it.** The chart grid moved from below the update cards to between the filters
+and them, the "Narrow It Down" heading is gone (its sentence survives,
+shortened), eight lines of directional copy now name the thing rather than the
+position, and the quick-view count carries a real space rather than a margin.
+Written by an agent, so it is pushed and not published: a session has to run
+`deploy-plugin.yml`, then look at the live page at 375px and at desktop rather
+than trust the green run. Full entry in [TECHLOG.md](TECHLOG.md), 2026-08-01.
 
 **Read the two sections directly below before anything else.** The budget is
 **$10/month** since 2026-08-01 (the section below still argues from $5 — the

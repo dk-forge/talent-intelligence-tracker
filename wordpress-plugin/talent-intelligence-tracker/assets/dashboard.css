@@ -2471,7 +2471,11 @@ main:has(#tit-dashboard) {
 
 /* The quick views carry one count, on the one view narrow enough that its size
    is part of what it means. See the $quick_views note in shortcodes.php. */
-.tit-qv-n { margin-left:5px; font-variant-numeric:tabular-nums; letter-spacing:0;
+/* NO margin-left. The separator is a real space in the markup now, because a
+   margin separates the two words for an eye and for nothing else: the
+   accessible name, the copied text and anything scraping the page all read
+   "Moves Headcount(1,869)". Putting the margin back re-doubles the gap. */
+.tit-qv-n { font-variant-numeric:tabular-nums; letter-spacing:0;
   font-weight:700; color:var(--tit-mut); }
 .tit-wrap .tit-qv.is-on .tit-qv-n { color:inherit; }
 
