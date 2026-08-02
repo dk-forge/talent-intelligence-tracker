@@ -333,6 +333,23 @@
   "collector": ""
  },
  {
+  "name": "3News Ghana",
+  "url": "https://3news.com",
+  "status": "candidate",
+  "category": "General News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ghana",
+  "rss": "https://3news.com/feed/",
+  "free": true,
+  "notes": "Wired 2026-08-02 after the national_press feed audit. Media General's national newsroom. Probed live: 200, 25 parseable items, newest 1d.",
+  "collector": ""
+ },
+ {
   "name": "A1on",
   "url": "https://a1on.mk",
   "status": "candidate",
@@ -1721,6 +1738,23 @@
   "collector": ""
  },
  {
+  "name": "Business Today Malaysia",
+  "url": "https://www.businesstoday.com.my",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malaysia",
+  "rss": "https://www.businesstoday.com.my/feed/",
+  "free": true,
+  "notes": "Wired 2026-08-02 after the national_press feed audit. Malaysian business title. Probed live: 200, 20 parseable items, newest 0d.",
+  "collector": ""
+ },
+ {
   "name": "Business Upturn",
   "url": "https://www.businessupturn.com",
   "status": "candidate",
@@ -1996,23 +2030,6 @@
   "collector": ""
  },
  {
-  "name": "Capital.ba",
-  "url": "https://capital.ba",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Bosnia and Herzegovina",
-  "rss": "https://capital.ba/feed/",
-  "free": true,
-  "notes": "Verified by the europe region audit, 2026-07-29. Business/economy; high signal.",
-  "collector": ""
- },
- {
   "name": "Carta de Mocambique",
   "url": "https://cartamz.com",
   "status": "candidate",
@@ -2030,10 +2047,10 @@
   "collector": ""
  },
  {
-  "name": "Cayman Compass",
-  "url": "https://www.caymancompass.com",
+  "name": "Cayman News Service",
+  "url": "https://caymannewsservice.com",
   "status": "candidate",
-  "category": "Technology News",
+  "category": "General News",
   "signals": [
    "Funding",
    "Executive Hire",
@@ -2041,9 +2058,9 @@
   ],
   "coverage": "National",
   "country": "Cayman Islands",
-  "rss": "https://www.caymancompass.com/feed/",
+  "rss": "https://caymannewsservice.com/feed/",
   "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live Feed not wired: robots.txt disallows this path (https://www.caymancompass.com/feed/).",
+  "notes": "Wired 2026-08-02 in place of the Cayman Compass, whose robots.txt disallows its feed. Without this row the Cayman Islands would hold no wired feed and no backstop. Probed live: 200, 10 parseable items, newest 2d, robots.txt allows it.",
   "collector": ""
  },
  {
@@ -2076,7 +2093,7 @@
   "country": "Canada",
   "rss": "https://www.cbc.ca/webfeed/rss/rss-business",
   "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live",
+  "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live Re-probed 2026-08-02: the connection is reset before any response on three attempts, from two paths on the same host. Not recorded as dead, because a reset at the transport layer from one location is not evidence the feed is gone. Left wired so the collector's own ledger settles it.",
   "collector": ""
  },
  {
@@ -2112,23 +2129,6 @@
   "rss": "https://cio-mag.com/feed/",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. Francophone-Africa IT/digital magazine with a strong Abidjan desk. Regional coverage - treat country as a dateline hint.",
-  "collector": ""
- },
- {
-  "name": "Citinewsroom",
-  "url": "https://www.citinewsroom.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Ghana",
-  "rss": "https://www.citinewsroom.com/wp-json/wp/v2/posts?per_page=20",
-  "free": true,
-  "notes": "Verified by the mea region audit, 2026-07-29. NO RSS - /feed/ returns HTML on both apex and www. The WordPress REST endpoint IS open and current (numbers here are from it); bare JSON array, needs a JSON reader.",
   "collector": ""
  },
  {
@@ -3071,7 +3071,7 @@
   "country": "Indonesia",
   "rss": "https://finance.detik.com/rss",
   "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. largest online daily, finance desk",
+  "notes": "Verified by the apac region audit, 2026-07-29. largest online daily, finance desk Re-probed 2026-08-02: one read timeout then a clean 25 items, so the timeout was transient and the row stays wired.",
   "collector": ""
  },
  {
@@ -3288,9 +3288,9 @@
   ],
   "coverage": "Regional",
   "country": "South Africa",
-  "rss": "https://disrupt-africa.com/feed/",
+  "rss": "https://disruptafrica.com/feed/",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector. Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://disruptafrica.com and the catalogue url updated to match.",
+  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector. Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://disruptafrica.com and the catalogue url updated to match. Re-probed 2026-08-02: the rebrand recorded in this note in July was applied to the url column and not to the rss column, so every run since has been refused by the domain-drift guard and the row read as 922d stale. Feed URL moved to the live domain; it returns 10 current items.",
   "collector": ""
  },
  {
@@ -3924,23 +3924,6 @@
   "collector": ""
  },
  {
-  "name": "elsalvador.com negocios",
-  "url": "https://www.elsalvador.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "El Salvador",
-  "rss": "https://www.elsalvador.com/category/noticias/negocios/feed/",
-  "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. STALE. feed parses but is stale",
-  "collector": ""
- },
- {
   "name": "Emerce",
   "url": "https://www.emerce.nl",
   "status": "candidate",
@@ -4530,21 +4513,6 @@
   "collector": ""
  },
  {
-  "name": "FinLedger",
-  "url": "https://finledger.com",
-  "status": "candidate",
-  "category": "Trade Publication",
-  "signals": [
-   "Funding"
-  ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://finledger.com/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector.",
-  "collector": ""
- },
- {
   "name": "FloridaCommerce",
   "url": "https://floridajobs.org",
   "status": "candidate",
@@ -4578,6 +4546,23 @@
   "rss": "https://focostv.com/feed/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live",
+  "collector": ""
+ },
+ {
+  "name": "Focus Malaysia",
+  "url": "https://focusmalaysia.my",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Malaysia",
+  "rss": "https://focusmalaysia.my/feed/",
+  "free": true,
+  "notes": "Wired 2026-08-02 after the national_press feed audit. Business weekly. Probed live: 200, 10 parseable items, newest 0d.",
   "collector": ""
  },
  {
@@ -4918,6 +4903,23 @@
   "rss": "https://www.ghanabusinessnews.com/feed/",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. Business desk.",
+  "collector": ""
+ },
+ {
+  "name": "Ghanaian Times",
+  "url": "https://ghanaiantimes.com.gh",
+  "status": "candidate",
+  "category": "General News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Ghana",
+  "rss": "https://www.ghanaiantimes.com.gh/feed/",
+  "free": true,
+  "notes": "Wired 2026-08-02 after the national_press feed audit. State-owned national daily. Probed live: 200, 10 parseable items, newest 2d.",
   "collector": ""
  },
  {
@@ -6743,25 +6745,6 @@
   "collector": ""
  },
  {
-  "name": "La French Tech",
-  "url": "https://lafrenchtech.gouv.fr",
-  "status": "candidate",
-  "category": "Startup Ecosystem",
-  "signals": [
-   "Companies",
-   "Funding",
-   "Hiring",
-   "Partnership",
-   "Economic Development"
-  ],
-  "coverage": "National",
-  "country": "France",
-  "rss": "https://lafrenchtech.gouv.fr/en/feed/",
-  "free": true,
-  "notes": "Official source URL verified on 2026-07-27.",
-  "collector": ""
- },
- {
   "name": "La Nacion",
   "url": "https://www.lanacion.com.ar",
   "status": "candidate",
@@ -7643,25 +7626,6 @@
   "collector": ""
  },
  {
-  "name": "MedCity News",
-  "url": "https://medcitynews.com",
-  "status": "candidate",
-  "category": "Healthcare News",
-  "signals": [
-   "Healthcare",
-   "Funding",
-   "Product Launch",
-   "Acquisition",
-   "Hiring"
-  ],
-  "coverage": "United States",
-  "country": "United States",
-  "rss": "https://medcitynews.com/feed/",
-  "free": true,
-  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 25 items on the verification fetch.",
-  "collector": ""
- },
- {
   "name": "Medias24",
   "url": "https://medias24.com",
   "status": "candidate",
@@ -7679,23 +7643,6 @@
   "collector": ""
  },
  {
-  "name": "Meet Global",
-  "url": "https://meet.bnextmedia.com.tw",
-  "status": "candidate",
-  "category": "Startup Ecosystem",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Taiwan",
-  "rss": "https://meet.bnext.com.tw/rss",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29. Domain-drift guard flagged a redirect 2026-07-29; confirmed a legitimate rebrand to https://meet.bnextmedia.com.tw and the catalogue url updated to match.",
-  "collector": ""
- },
- {
   "name": "Mehr News Agency",
   "url": "https://en.mehrnews.com",
   "status": "candidate",
@@ -7710,23 +7657,6 @@
   "rss": "https://en.mehrnews.com/rss",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. English edition.",
-  "collector": ""
- },
- {
-  "name": "MENAbytes",
-  "url": "https://www.menabytes.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "Regional",
-  "country": "United Arab Emirates",
-  "rss": "https://www.menabytes.com/feed/",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29. MENA plus Pakistan.",
   "collector": ""
  },
  {
@@ -7933,24 +7863,6 @@
   "rss": "https://www.moneycab.com/feed/",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Swiss business/finance; carries company announcements.",
-  "collector": ""
- },
- {
-  "name": "Moneycontrol",
-  "url": "https://www.moneycontrol.com",
-  "status": "candidate",
-  "category": "Business News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion",
-   "Hiring"
-  ],
-  "coverage": "National",
-  "country": "India",
-  "rss": "https://www.moneycontrol.com/rss/business.xml",
-  "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29.",
   "collector": ""
  },
  {
@@ -8352,23 +8264,6 @@
   "collector": ""
  },
  {
-  "name": "News.MN",
-  "url": "https://news.mn",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Mongolia",
-  "rss": "https://news.mn/en/feed/",
-  "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. news portal",
-  "collector": ""
- },
- {
   "name": "Newsbook",
   "url": "https://newsbook.com.mt",
   "status": "candidate",
@@ -8386,40 +8281,6 @@
   "collector": ""
  },
  {
-  "name": "Newsday",
-  "url": "https://newsday.co.tt",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Trinidad and Tobago",
-  "rss": "https://newsday.co.tt/feed/",
-  "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. LIVE but lagging. main /feed/ newest item 2026-05-30; the business category feed is staler (2026-01-27). Trinidad Express is the dependable TT feed.",
-  "collector": ""
- },
- {
-  "name": "Newsday business",
-  "url": "https://newsday.co.tt",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Trinidad and Tobago",
-  "rss": "https://newsday.co.tt/category/business/feed/",
-  "free": true,
-  "notes": "Verified by the americas region audit, 2026-07-29. STALE. feed parses but is stale",
-  "collector": ""
- },
- {
   "name": "NewsMaker",
   "url": "https://newsmaker.md",
   "status": "candidate",
@@ -8434,6 +8295,23 @@
   "rss": "https://newsmaker.md/ru/feed",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Found via <link rel=alternate>. /rus/feed/ redirects to a JPG.",
+  "collector": ""
+ },
+ {
+  "name": "Newswire.lk",
+  "url": "https://www.newswire.lk",
+  "status": "candidate",
+  "category": "General News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Sri Lanka",
+  "rss": "https://www.newswire.lk/feed/",
+  "free": true,
+  "notes": "Wired 2026-08-02 so Sri Lanka keeps two wired feeds after ReadMe.lk was retired. Daily FT, the Daily Mirror business feed and The Morning were probed the same day and return nothing parseable. Probed live: 200, 20 parseable items, newest 1d.",
   "collector": ""
  },
  {
@@ -8559,20 +8437,20 @@
   "collector": ""
  },
  {
-  "name": "NoCamels",
-  "url": "https://nocamels.com",
+  "name": "Norvan Reports",
+  "url": "https://norvanreports.com",
   "status": "candidate",
-  "category": "Technology News",
+  "category": "Business News",
   "signals": [
    "Funding",
    "Executive Hire",
    "Company Expansion"
   ],
   "coverage": "National",
-  "country": "Israel",
-  "rss": "https://nocamels.com/feed/",
+  "country": "Ghana",
+  "rss": "https://norvanreports.com/feed/",
   "free": true,
-  "notes": "Feed fetched and parsed 2026-07-29. English-language Israeli innovation news. Feed answers 200 with 25 parseable items whose newest is 2024-10-31; the publisher appears to have stopped. Kept so the collector reports it as stale rather than losing the row, and it recovers by itself if publishing resumes.",
+  "notes": "Wired 2026-08-02 after the national_press feed audit. Accra business and finance daily. Probed live: 200, 10 parseable items, newest 1d.",
   "collector": ""
  },
  {
@@ -9430,23 +9308,6 @@
   "collector": ""
  },
  {
-  "name": "Prothom Alo English",
-  "url": "https://en.prothomalo.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Bangladesh",
-  "rss": "https://en.prothomalo.com/feed",
-  "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. largest daily, English edition",
-  "collector": ""
- },
- {
   "name": "Protothema",
   "url": "https://www.protothema.gr",
   "status": "candidate",
@@ -9567,24 +9428,6 @@
   "collector": ""
  },
  {
-  "name": "Quartz",
-  "url": "https://qz.com",
-  "status": "candidate",
-  "category": "Business News",
-  "signals": [
-   "Companies",
-   "Economics",
-   "Technology",
-   "Labor Market Trends"
-  ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://qz.com/rss",
-  "free": true,
-  "notes": "Official source URL verified on 2026-07-27. Feed verified through the collector's own fetch/parse path, 2026-07-29: robots.txt allows it and items parse. 13 items on the verification fetch.",
-  "collector": ""
- },
- {
   "name": "Radio Dabanga",
   "url": "https://www.dabangasudan.org",
   "status": "candidate",
@@ -9667,39 +9510,6 @@
   "rss": "https://www.rappler.com/feed/",
   "free": true,
   "notes": "Verified by the apac region audit, 2026-07-29. Digital publisher",
-  "collector": ""
- },
- {
-  "name": "ReadMe.lk",
-  "url": "https://www.readme.lk",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Sri Lanka",
-  "rss": "https://www.readme.lk/feed/",
-  "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. Sri Lankan tech publisher; STALE: newest item is 285 days old, do not wire without a recheck",
-  "collector": ""
- },
- {
-  "name": "RecruitingDaily",
-  "url": "https://recruitingdaily.com",
-  "status": "candidate",
-  "category": "Trade Publication",
-  "signals": [
-   "Funding",
-   "HR Tech"
-  ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://recruitingdaily.com/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector.",
   "collector": ""
  },
  {
@@ -10764,22 +10574,6 @@
   "collector": ""
  },
  {
-  "name": "StrictlyVC",
-  "url": "https://www.strictlyvc.com",
-  "status": "candidate",
-  "category": "Newsletter",
-  "signals": [
-   "Seed Funding",
-   "Series A"
-  ],
-  "coverage": "Global",
-  "country": "United States",
-  "rss": "https://www.strictlyvc.com/feed/",
-  "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector.",
-  "collector": ""
- },
- {
   "name": "Stuff (Business)",
   "url": "https://www.stuff.co.nz",
   "status": "candidate",
@@ -11320,40 +11114,6 @@
   "collector": ""
  },
  {
-  "name": "Techweez",
-  "url": "https://techweez.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Kenya",
-  "rss": "https://techweez.com/wp-json/wp/v2/posts?per_page=20",
-  "free": true,
-  "notes": "Verified by the mea region audit, 2026-07-29. NO RSS - every WordPress feed path returns HTML (feeds disabled). BUT the publisher's own WordPress REST endpoint is open and current, shown here with its measured numbers. It returns a bare JSON array, so it needs a JSON reader, not the XML feed parser.",
-  "collector": ""
- },
- {
-  "name": "Techzim",
-  "url": "https://www.techzim.co.zw",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Zimbabwe",
-  "rss": "https://www.techzim.co.zw/wp-json/wp/v2/posts?per_page=20",
-  "free": true,
-  "notes": "Verified by the mea region audit, 2026-07-29. Zimbabwe's main tech publisher. Every HTML and feed path returns HTTP 426 Upgrade Required with an EMPTY body - but the WordPress REST endpoint answers 200 and is current (numbers here are from it). Bare JSON array, needs a JSON reader. Without this the country loses its only tech desk.",
-  "collector": ""
- },
- {
   "name": "Tecmundo",
   "url": "https://www.tecmundo.com.br",
   "status": "candidate",
@@ -11557,6 +11317,23 @@
   "collector": ""
  },
  {
+  "name": "The Business Standard (Corporates)",
+  "url": "https://www.tbsnews.net",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bangladesh",
+  "rss": "https://www.tbsnews.net/economy/corporates/rss.xml",
+  "free": true,
+  "notes": "Wired 2026-08-02 after the national_press feed audit. The corporates desk, which is where a Bangladeshi hiring or funding story lands. Probed live: 200, 20 parseable items, newest 1d.",
+  "collector": ""
+ },
+ {
   "name": "The Business Standard (Economy)",
   "url": "https://www.tbsnews.net",
   "status": "candidate",
@@ -11656,7 +11433,24 @@
   "country": "Bangladesh",
   "rss": "https://www.thedailystar.net/business/rss.xml",
   "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk",
+  "notes": "Verified by the apac region audit, 2026-07-29. National daily business desk Re-probed 2026-08-02: this feed was recorded as 0 items and the fault was ours. Drupal wraps each title in an anchor element, and the reader took only an element's own text, so every item was dropped for having no title. Fixed in national_press._text.",
+  "collector": ""
+ },
+ {
+  "name": "The Daily Star (Economy)",
+  "url": "https://www.thedailystar.net",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Bangladesh",
+  "rss": "https://www.thedailystar.net/business/economy/rss.xml",
+  "free": true,
+  "notes": "Wired 2026-08-02 after the national_press feed audit. The economy desk beside the business desk already wired. Probed live: 200, 10 parseable items, newest 0d.",
   "collector": ""
  },
  {
@@ -11998,7 +11792,7 @@
   "country": "Pakistan",
   "rss": "https://www.thenews.com.pk/rss/1/8",
   "free": true,
-  "notes": "Verified by the apac region audit, 2026-07-29. national daily business",
+  "notes": "Verified by the apac region audit, 2026-07-29. national daily business Re-probed 2026-08-02: quiet rather than dead. Pakistan holds five other wired feeds.",
   "collector": ""
  },
  {
@@ -12255,23 +12049,6 @@
   "rss": "",
   "free": false,
   "notes": "",
-  "collector": ""
- },
- {
-  "name": "TheBusinessDesk",
-  "url": "https://www.thebusinessdesk.com",
-  "status": "candidate",
-  "category": "Business News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "United Kingdom",
-  "rss": "https://www.thebusinessdesk.com/feed/",
-  "free": true,
-  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero.",
   "collector": ""
  },
  {
