@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T18:19:44Z",
-  "last_tick": "2026-08-02T19:40:42Z",
+  "last_dispatch": "2026-08-02T19:55:23Z",
+  "last_tick": "2026-08-02T19:55:23Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -212,12 +212,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T19:55:23Z",
       "history": [
         {
           "at": "2026-08-02T18:20:44Z",
           "detail": "2026-08-02 slug-collision review: apply the 5 employer-key merges. Dry run (run 30760846414) confirmed 5 employers re-keyed, 5 rows re-issued, 2 withdrawn as same-event duplicates, 5 retractions first. Note it will also publish the 60 rows already stored-but-unpublished from an earlier interrupted pass.",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T19:55:23Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T182044Z-correct-company-key",
@@ -229,7 +234,7 @@
       "requested_at": "2026-08-02T18:20:44Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-company-key.yml"
     },
     {
