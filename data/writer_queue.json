@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-02T02:33:21Z",
-  "last_tick": "2026-08-02T02:33:21Z",
+  "last_tick": "2026-08-02T02:39:01Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -188,6 +188,11 @@
           "at": "2026-08-02T02:33:21Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T02:39:01Z",
+          "detail": "run 30729067352",
+          "event": "bound"
         }
       ],
       "id": "20260802T004830Z-backfill-structured-2026",
@@ -202,7 +207,7 @@
       "reason": "next slice of backfill-structured-2026:companies_house:0..7 (resumes at 5)",
       "requested_at": "2026-08-02T00:48:30Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30729067352",
       "state": "dispatched",
       "workflow": "backfill-structured-2026.yml"
     },
