@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T18:19:12Z",
-  "last_tick": "2026-08-02T18:19:12Z",
+  "last_dispatch": "2026-08-02T18:19:44Z",
+  "last_tick": "2026-08-02T18:19:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -186,12 +186,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T18:19:44Z",
       "history": [
         {
           "at": "2026-08-02T17:29:14Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-05-26)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T18:19:44Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T172914Z-backfill-gdelt-2026",
@@ -207,35 +212,8 @@
       "requested_at": "2026-08-02T17:29:14Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-02T18:19:12Z",
-      "history": [
-        {
-          "at": "2026-08-02T18:18:17Z",
-          "detail": "2026-08-02 slug-collision review: 5 new employer aliases (coca-cola, nestle, rcf notre dame, ide, bbq) merged in pipeline/vocab.py; dry run to confirm the 8 affected rows before writing",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T18:19:12Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260802T181817Z-correct-company-key",
-      "inputs": {
-        "dry_run": "true"
-      },
-      "priority": 0,
-      "reason": "2026-08-02 slug-collision review: 5 new employer aliases (coca-cola, nestle, rcf notre dame, ide, bbq) merged in pipeline/vocab.py; dry run to confirm the 8 affected rows before writing",
-      "requested_at": "2026-08-02T18:18:17Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
       "state": "dispatched",
-      "workflow": "correct-company-key.yml"
+      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
@@ -262,48 +240,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-01T13:16:07Z",
-      "history": [
-        {
-          "at": "2026-08-01T11:44:06Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-30)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T13:16:07Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T13:49:08Z",
-          "detail": "run 30701383036",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-01T14:07:56Z",
-          "detail": "run 30701383036",
-          "event": "landed"
-        }
-      ],
-      "id": "20260801T114406Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-01T14:07:56Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-03-30)",
-      "requested_at": "2026-08-01T11:44:06Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30701383036",
-      "state": "landed",
-      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
@@ -2755,6 +2691,44 @@
       "run_id": "30758991641",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-02T18:19:12Z",
+      "history": [
+        {
+          "at": "2026-08-02T18:18:17Z",
+          "detail": "2026-08-02 slug-collision review: 5 new employer aliases (coca-cola, nestle, rcf notre dame, ide, bbq) merged in pipeline/vocab.py; dry run to confirm the 8 affected rows before writing",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-02T18:19:12Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T18:19:44Z",
+          "detail": "run 30760846414",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-02T18:19:44Z",
+          "detail": "run 30760846414",
+          "event": "landed"
+        }
+      ],
+      "id": "20260802T181817Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "landed_at": "2026-08-02T18:19:44Z",
+      "priority": 0,
+      "reason": "2026-08-02 slug-collision review: 5 new employer aliases (coca-cola, nestle, rcf notre dame, ide, bbq) merged in pipeline/vocab.py; dry run to confirm the 8 affected rows before writing",
+      "requested_at": "2026-08-02T18:18:17Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30760846414",
+      "state": "landed",
+      "workflow": "correct-company-key.yml"
     }
   ],
   "version": 1
