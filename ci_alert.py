@@ -427,6 +427,28 @@ def main(argv=None) -> int:
     key = os.environ.get("WP_API_KEY", "")
 
     if conclusion == "success":
+        # A green drain-writers tick is NOT proof the queue's problems are
+        # fixed. Since writer_queue.select_red (2026-08-02), a needs-human item
+        # reddens ONE tick and the next tick is deliberately green with the
+        # item still waiting — so resolving this scope here would mail
+        # "RECOVERED ... Nothing to do" about a failure a human has not
+        # touched. The queue file is the authority: while it still reports
+        # problems, a green tick resolves nothing and mails nothing. Every
+        # other workflow's green really does mean the failure stopped.
+        if slug(args.workflow) == "drain-writers":
+            try:
+                import writer_queue
+                open_problems = writer_queue.summary(writer_queue.load())["problems"]
+            except Exception as exc:  # a broken import must not eat real recoveries
+                print(f"could not read the writer queue ({exc}) — "
+                      "treating the green run as a real recovery")
+                open_problems = []
+            if open_problems:
+                print(f"skip resolve for {scope}: the tick is green because its "
+                      f"items were already reported once (red-once), but "
+                      f"{len(open_problems)} item(s) still wait on a human. "
+                      "No RECOVERED mail until the queue itself is clear.")
+                return 0
         # Recovery. The endpoint mails exactly once IF something was open for
         # this scope and stays silent otherwise, so this is cheap to post on
         # every green run and cannot itself become noise.

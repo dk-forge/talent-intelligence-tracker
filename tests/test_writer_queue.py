@@ -31,7 +31,7 @@ NOW = datetime(2026, 7, 29, 12, 0, tzinfo=timezone.utc)
 
 
 def _run(run_id, workflow, status="completed", conclusion="success",
-         created=None, job_count=1):
+         created=None, job_count=1, event="workflow_dispatch"):
     return {
         "databaseId": run_id,
         "workflowName": workflow,
@@ -39,6 +39,7 @@ def _run(run_id, workflow, status="completed", conclusion="success",
         "conclusion": conclusion,
         "createdAt": (created or NOW - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "job_count": job_count,
+        "event": event,
     }
 
 
@@ -1114,3 +1115,189 @@ def test_the_fast_lane_bar_is_the_cost_of_starting_a_run_at_all():
     assert wq.FAST_SLICE_MINUTES < backfill_slices.SLICE_BUDGET_MINUTES / 4, (
         "a 'fast' chain has to be far below the slice budget or the lane is "
         "just a second, quieter priority scheme")
+
+
+# --------------------------------------------------------------------------
+# red once per ITEM, not once per tick
+#
+# Measured 2026-07-26..08-02: 180 red drain-writers runs for a handful of
+# needs-human items, one GitHub failure email each, because every 15-minute
+# tick re-reddened the same already-reported facts until a human acknowledged
+# them. These tests pin the replacement: the tick that FIRST reports an item
+# goes red; later ticks keep listing it but stay green; a NEW item always
+# reds; an ignored item earns one more red every RE_RED_HOURS.
+# --------------------------------------------------------------------------
+
+def _failed_ticket_queue(path, workflow="correct-form-d.yml"):
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, workflow, {"dry_run": "false"})
+    ticket["state"] = "failed"
+    wq.save(queue, path)
+    return ticket
+
+
+def test_a_known_needs_human_item_reddens_once_not_every_tick(tmp_path):
+    """THE 180-red-runs defect, in one assertion: the second tick over the
+    same unhandled failure must not be a second red run."""
+    path = tmp_path / "q.json"
+    runs = tmp_path / "runs.json"
+    runs.write_text("[]")
+    _failed_ticket_queue(path)
+
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 2, (
+        "the first tick to report the failure is the red one")
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 0, (
+        "the second tick reports the SAME fact; a red run here is only "
+        "another email about it")
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 0
+
+
+def test_a_muted_item_is_still_listed_as_a_problem_everywhere(tmp_path, capsys):
+    """Muted is not silenced: status and ops_status still see the problem, and
+    the tick log still prints it. Only the run's conclusion changes."""
+    path = tmp_path / "q.json"
+    runs = tmp_path / "runs.json"
+    runs.write_text("[]")
+    ticket = _failed_ticket_queue(path)
+
+    wq.main(["--file", str(path), "tick", "--runs", str(runs)])
+    capsys.readouterr()
+    wq.main(["--file", str(path), "tick", "--runs", str(runs)])
+    out = capsys.readouterr().out
+    assert ticket["id"] in out, "the muted item must stay visible in the log"
+    assert "::warning::" in out and "FAILED" in out
+
+    state = wq.summary(wq.load(path))
+    assert any(ticket["id"] in p for p in state["problems"]), (
+        "status/ops_status keep reporting it until a human acts")
+    assert wq.main(["--file", str(path), "status"]) == 2
+
+
+def test_a_new_item_reds_even_while_an_old_one_is_muted(tmp_path):
+    path = tmp_path / "q.json"
+    runs = tmp_path / "runs.json"
+    runs.write_text("[]")
+    _failed_ticket_queue(path)
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 2
+
+    queue = wq.load(path)
+    second = wq.enqueue(queue, "correct-sec-pillar.yml", {"dry_run": "false"})
+    second["state"] = "failed"
+    wq.save(queue, path)
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 2, (
+        "a new failure is a new fact and must red, muted neighbours or not")
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 0
+
+
+def test_an_ignored_item_earns_one_more_red_every_re_red_period():
+    queue = wq.empty_queue()
+    ticket = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"})
+    ticket["state"] = "failed"
+
+    state = wq.summary(queue, now=NOW)
+    fresh, muted = wq.select_red(queue, state["problem_keys"], now=NOW)
+    assert fresh and not muted
+
+    later = NOW + timedelta(hours=wq.RE_RED_HOURS - 1)
+    fresh, muted = wq.select_red(queue, wq.summary(queue, now=later)["problem_keys"],
+                                 now=later)
+    assert not fresh and muted, "inside the period it stays muted"
+
+    much_later = NOW + timedelta(hours=wq.RE_RED_HOURS, minutes=1)
+    fresh, muted = wq.select_red(queue,
+                                 wq.summary(queue, now=much_later)["problem_keys"],
+                                 now=much_later)
+    assert fresh and not muted, (
+        "an item ignored for RE_RED_HOURS is re-reported once, so it cannot "
+        "fade into a warning nobody reads")
+
+
+def test_acknowledging_clears_the_mark_so_a_refailure_reds_again(tmp_path):
+    """The mark must die with the problem. If it survived an acknowledge, a
+    RE-failure of the re-queued work inside RE_RED_HOURS would arrive
+    pre-muted — a genuinely new failure that never goes red."""
+    path = tmp_path / "q.json"
+    runs = tmp_path / "runs.json"
+    runs.write_text("[]")
+    ticket = _failed_ticket_queue(path)
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 2
+    assert wq.main(["--file", str(path), "resolve", ticket["id"],
+                    "--note", "read; re-queued"]) == 0
+
+    queue = wq.load(path)
+    assert not queue.get("red_marks"), (
+        "no live problems means no marks — an acknowledged item's mark is "
+        "pruned, and an all-clear file carries no red_marks key at all")
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 0
+
+    # The re-queued work fails again: a new ticket, a new red.
+    retry = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"})
+    retry["state"] = "failed"
+    wq.save(queue, path)
+    assert wq.main(["--file", str(path), "tick", "--runs", str(runs)]) == 2
+
+
+def test_the_red_marks_survive_in_the_committed_file(tmp_path):
+    """The drainer runs on a fresh runner every tick; 'already reported' only
+    works if it is persisted in the queue file the workflow commits."""
+    path = tmp_path / "q.json"
+    runs = tmp_path / "runs.json"
+    runs.write_text("[]")
+    ticket = _failed_ticket_queue(path)
+    wq.main(["--file", str(path), "tick", "--runs", str(runs)])
+    saved = json.loads(path.read_text())
+    assert saved.get("red_marks"), "the mark must be in the file, not in memory"
+    assert f"ticket:{ticket['id']}" in saved["red_marks"]
+
+
+# --------------------------------------------------------------------------
+# a displaced SCHEDULED run resolves itself; a dispatched one still shouts
+# --------------------------------------------------------------------------
+
+def test_an_evicted_scheduled_run_is_recorded_and_resolved_automatically(members):
+    """A scheduled run carries no inputs, so nothing about it is unknowable and
+    its own next cron repeats the pass. 2026-08-02: one evicted scheduled
+    press run generated red drain ticks for hours before a human typed the
+    same conclusion by hand. Recorded, never red."""
+    queue = wq.empty_queue()
+    runs = [_run("777", "collect national press", conclusion="cancelled",
+                 job_count=0, event="schedule")]
+    report = wq.tick(queue, runs, members, now=NOW)
+
+    assert report["orphans"] == [], "not a needs-human orphan"
+    assert len(report["schedule_orphans"]) == 1
+    assert len(queue["orphans"]) == 1, "still recorded — resolved is not forgotten"
+    assert queue["orphans"][0]["resolved"]
+    assert wq.summary(queue, now=NOW)["problems"] == []
+
+
+def test_an_evicted_scheduled_run_is_still_noticed_only_once(members):
+    queue = wq.empty_queue()
+    runs = [_run("777", "collect", conclusion="cancelled",
+                 job_count=0, event="schedule")]
+    wq.tick(queue, runs, members, now=NOW)
+    second = wq.tick(queue, runs, members, now=NOW + timedelta(minutes=15))
+    assert second["schedule_orphans"] == []
+    assert len(queue["orphans"]) == 1
+
+
+def test_an_evicted_dispatched_run_still_needs_a_human(members):
+    """The auto-resolve is ONLY for schedule events; a workflow_dispatch run
+    really does have inputs GitHub will not reveal."""
+    queue = wq.empty_queue()
+    runs = [_run("888", "correct-sec-pillar", conclusion="cancelled",
+                 job_count=0, event="workflow_dispatch")]
+    report = wq.tick(queue, runs, members, now=NOW)
+    assert len(report["orphans"]) == 1
+    assert any("888" in p for p in wq.summary(queue, now=NOW)["problems"])
+
+
+def test_an_eviction_with_no_event_field_is_treated_as_unknowable(members):
+    """Absence of a signal is never a pass: a run list that lost the event
+    field must fall back to the loud path, not the quiet one."""
+    queue = wq.empty_queue()
+    run = _run("999", "enrich", conclusion="cancelled", job_count=0)
+    del run["event"]
+    report = wq.tick(queue, [run], members, now=NOW)
+    assert len(report["orphans"]) == 1
+    assert any("999" in p for p in wq.summary(queue, now=NOW)["problems"])

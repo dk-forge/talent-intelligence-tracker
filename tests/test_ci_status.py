@@ -366,20 +366,35 @@ class TheRitualTests(unittest.TestCase):
         """The exemption above is only sound while ci_alert stays stdlib-only —
         and it must anyway, so the notifier cannot be broken by a dependency
         resolution failure, which would kill alerting exactly when the repo is
-        unhealthy."""
+        unhealthy.
+
+        Since 2026-08-02 ci_alert also reads writer_queue (a green drain tick
+        with items still waiting on a human must not mail RECOVERED — the
+        red-once change makes such greens routine). That keeps the bar only
+        because writer_queue is itself stdlib-only, so this test now holds
+        BOTH files to it: the exemption and its justification travel together.
+        """
         import ast
 
-        tree = ast.parse((self._root() / "ci_alert.py").read_text())
-        imported = {
-            name.name.split(".")[0]
-            for node in ast.walk(tree) if isinstance(node, ast.Import)
-            for name in node.names
-        } | {
-            (node.module or "").split(".")[0]
-            for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom) and node.level == 0
-        }
-        self.assertEqual(imported - set(sys.stdlib_module_names), set())
+        def imports_of(filename):
+            tree = ast.parse((self._root() / filename).read_text())
+            return {
+                name.name.split(".")[0]
+                for node in ast.walk(tree) if isinstance(node, ast.Import)
+                for name in node.names
+            } | {
+                (node.module or "").split(".")[0]
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom) and node.level == 0
+            }
+
+        self.assertEqual(imports_of("ci_alert.py")
+                         - set(sys.stdlib_module_names)
+                         - {"writer_queue"}, set())
+        self.assertEqual(imports_of("writer_queue.py")
+                         - set(sys.stdlib_module_names), set(),
+                         "writer_queue grew a non-stdlib import; ci_alert "
+                         "leans on it, so the notifier would now need a venv")
 
 
 if __name__ == "__main__":

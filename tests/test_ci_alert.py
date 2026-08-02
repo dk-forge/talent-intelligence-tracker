@@ -257,3 +257,68 @@ class TestSharedWithCiStatus:
 
         monkeypatch.setattr("subprocess.run", boom)
         assert ci_status._cause_line("dk-forge/nope", 1) == ""
+
+
+class TestGreenDrainTickIsNotARecovery:
+    """writer_queue.select_red (2026-08-02) makes drain-writers red ONCE per
+    needs-human item: the tick after the red is deliberately green with the
+    item still waiting. A RECOVERED mail off that green would tell the owner a
+    failure a human has never touched is fixed. The queue file is the
+    authority, so the resolve is gated on it — and ONLY for drain-writers;
+    every other workflow's green still resolves immediately."""
+
+    def _run(self, argv, monkeypatch):
+        for k in ("WP_SITE_URL", "WP_API_KEY", "ALERT_ENVELOPE"):
+            monkeypatch.delenv(k, raising=False)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            code = ci_alert.main(argv)
+        return code, buf.getvalue()
+
+    def _queue_with(self, problems):
+        import writer_queue as wq
+        queue = wq.empty_queue()
+        if problems:
+            ticket = wq.enqueue(queue, "correct-form-d.yml", {"dry_run": "false"})
+            ticket["state"] = "failed"
+        return queue
+
+    def test_a_green_tick_with_items_still_waiting_sends_no_recovered(self, monkeypatch):
+        import writer_queue as wq
+        monkeypatch.setattr(wq, "load", lambda *a, **k: self._queue_with(True))
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "drain-writers",
+             "--conclusion", "success", "--dry-run"], monkeypatch)
+        assert code == 0
+        assert "skip resolve" in out
+        assert "[dry-run] resolve" not in out, (
+            "the resolve must not be built at all while the queue holds "
+            "unhandled problems — a RECOVERED here is a false all-clear")
+
+    def test_a_green_tick_over_a_clear_queue_resolves_normally(self, monkeypatch):
+        import writer_queue as wq
+        monkeypatch.setattr(wq, "load", lambda *a, **k: self._queue_with(False))
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "drain-writers",
+             "--conclusion", "success", "--dry-run"], monkeypatch)
+        assert code == 0 and "[dry-run] resolve" in out
+
+    def test_other_workflows_greens_still_resolve_even_with_a_dirty_queue(self, monkeypatch):
+        import writer_queue as wq
+        monkeypatch.setattr(wq, "load", lambda *a, **k: self._queue_with(True))
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "collect",
+             "--conclusion", "success", "--dry-run"], monkeypatch)
+        assert code == 0 and "[dry-run] resolve" in out
+
+    def test_an_unreadable_queue_never_eats_a_real_recovery(self, monkeypatch):
+        """Fail open: absence of the queue signal must degrade to the old
+        behaviour (resolve), never to a permanently open alert."""
+        import writer_queue as wq
+        def boom(*a, **k):
+            raise OSError("no queue file on this runner")
+        monkeypatch.setattr(wq, "load", boom)
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "drain-writers",
+             "--conclusion", "success", "--dry-run"], monkeypatch)
+        assert code == 0 and "[dry-run] resolve" in out

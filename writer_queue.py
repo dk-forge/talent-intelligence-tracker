@@ -98,6 +98,17 @@ UNBOUND_AFTER_MINUTES = 45
 #: for most of a day, so this is set past that.
 STUCK_AFTER_HOURS = 14
 
+#: A needs-human item reddens the tick that FIRST reports it, then again this
+#: many hours later if still unhandled — never on every tick in between.
+#: Measured 2026-07-26..08-02: 180 red drain runs for a handful of causes,
+#: because a failed ticket stayed red on every 15-minute tick until someone
+#: acknowledged it. GitHub mails the owner for each red scheduled run, so one
+#: broken backfill slice was ~25 emails/day saying one fact. The item itself
+#: stays loud everywhere a decision is made: the tick log (as a warning),
+#: `writer_queue.py status`, and ops_status.py [2b] all keep listing it until
+#: a human acknowledges or resolves it — only the RUN stops going red.
+RE_RED_HOURS = 24
+
 #: Two dispatches in a row that produced no run is not bad luck, it is broken.
 #: One is re-dispatched with a warning; the second makes the drain run red.
 UNBOUND_ALARM_COUNT = 2
@@ -709,7 +720,8 @@ def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
     by_id = {str(run.get("databaseId") or run.get("id")): run for run in runs}
 
     report: dict = {"landed": [], "displaced": [], "failed": [],
-                    "abandoned": [], "orphans": [], "stuck": [], "unbound": [],
+                    "abandoned": [], "orphans": [], "schedule_orphans": [],
+                    "stuck": [], "unbound": [],
                     "dispatch": None, "busy": None}
 
     tickets = queue.setdefault("tickets", [])
@@ -819,6 +831,25 @@ def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
             "detail": "displaced from the pending slot; inputs unknowable, "
                       "so it cannot be replayed automatically",
         }
+        if (run.get("event") or "").strip() == "schedule":
+            # A SCHEDULED run carries no inputs, so nothing about it is
+            # unknowable and nothing is lost that its own next cron does not
+            # redo: every scheduled writer here is a recurring incremental
+            # pass. This is exactly the decision a human recorded by hand for
+            # the 2026-07-29 collect eviction ("cron job, later scheduled runs
+            # covered the same ground; not replayed") — recorded, not red.
+            # Only a workflow_dispatch orphan still needs a person, because
+            # GitHub really does not expose the inputs it was given.
+            orphan["detail"] = ("scheduled run displaced from the pending "
+                                "slot; it carries no inputs and the next cron "
+                                "covers the same ground")
+            orphan["resolved"] = _iso(moment)
+            orphan["resolved_note"] = ("schedule eviction, resolved "
+                                       "automatically: the next scheduled run "
+                                       "repeats the same pass")
+            queue.setdefault("orphans", []).append(orphan)
+            report["schedule_orphans"].append(orphan)
+            continue
         queue.setdefault("orphans", []).append(orphan)
         report["orphans"].append(orphan)
 
@@ -970,7 +1001,10 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
     for ticket in tickets:
         counts[ticket["state"]] = counts.get(ticket["state"], 0) + 1
 
-    problems: list[str] = []
+    # Every problem carries a stable KEY alongside its text, so the drainer can
+    # tell "the same fact as last tick" from "something new" (see select_red).
+    # Texts carry timestamps and durations; keys deliberately do not.
+    keyed: list[tuple[str, str]] = []
     recovered: list[str] = []
     for ticket in tickets:
         if ticket.get("acknowledged"):
@@ -987,45 +1021,45 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
                     f"chain landed anyway at {later}; no action needed")
                 continue
         if ticket["state"] == "failed":
-            problems.append(
+            keyed.append((f"ticket:{ticket['id']}",
                 f"{ticket['workflow']} FAILED ({ticket['id']}) — it will not be "
-                "retried automatically; read the run, then re-queue it")
+                "retried automatically; read the run, then re-queue it"))
         elif ticket["state"] == "abandoned":
-            problems.append(
+            keyed.append((f"ticket:{ticket['id']}",
                 f"{ticket['workflow']} was displaced {ticket['attempts']}x and "
-                f"given up on ({ticket['id']})")
+                f"given up on ({ticket['id']})"))
         elif ticket["state"] in ("queued", "dispatched"):
             asked = _parse(ticket.get("requested_at"))
             if asked and (moment - asked) > timedelta(hours=STUCK_AFTER_HOURS):
                 hours = (moment - asked).total_seconds() / 3600
-                problems.append(
+                keyed.append((f"stuck:{ticket['id']}",
                     f"{ticket['workflow']} has been waiting {hours:.0f}h "
-                    f"({ticket['id']}) — the lock is starved")
+                    f"({ticket['id']}) — the lock is starved"))
             if int(ticket.get("unbound_count", 0)) >= UNBOUND_ALARM_COUNT:
-                problems.append(
+                keyed.append((f"unbound:{ticket['id']}",
                     f"{ticket['workflow']} has been dispatched "
                     f"{ticket['unbound_count']}x and produced NO RUN either "
                     f"time ({ticket['id']}) — the dispatch itself is failing, "
                     "not the work. Read the 'Dispatch it' step of the last red "
                     "drain-writers run; check the ticket's inputs against the "
-                    "workflow's declared ones and the WRITER_QUEUE_TOKEN secret")
+                    "workflow's declared ones and the WRITER_QUEUE_TOKEN secret"))
 
     waiting = [t for t in tickets if t["state"] in ("queued", "dispatched")]
     idle = _parse(data.get("idle_since"))
     if idle and waiting and (moment - idle) > timedelta(minutes=IDLE_STALL_MINUTES):
         minutes = round((moment - idle).total_seconds() / 60)
-        problems.append(
+        keyed.append(("idle-stall",
             f"the writer queue has {len(waiting)} ticket(s) waiting and the "
             f"{LOCK_GROUP} lock group has been EMPTY with nothing dispatched "
             f"for {minutes} minutes. The drainer is ticking and the queue is "
             "not moving — that is the shape of the 2026-07-30 stall, where "
-            "eleven green ticks in a row said nothing")
+            "eleven green ticks in a row said nothing"))
 
     for orphan in data.get("orphans", []):
         if not orphan.get("resolved"):
-            problems.append(
+            keyed.append((f"orphan:{orphan['run_id']}",
                 f"{orphan['workflow']} run {orphan['run_id']} was displaced and "
-                "was NOT queued, so its inputs are unknown — re-dispatch it by hand")
+                "was NOT queued, so its inputs are unknown — re-dispatch it by hand"))
 
     return {
         "counts": counts,
@@ -1034,10 +1068,75 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
         "last_tick": data.get("last_tick"),
         "last_dispatch": data.get("last_dispatch"),
         "idle_since": data.get("idle_since"),
-        "problems": problems,
+        "problems": [text for _, text in keyed],
+        "problem_keys": keyed,
         # Failures the chain recovered from by itself. Reported, never red.
         "recovered": recovered,
     }
+
+
+def select_red(queue: dict, problem_keys: list[tuple[str, str]],
+               now: datetime | None = None) -> tuple[list, list]:
+    """Split live problems into (fresh, muted): red ONCE per item, not per tick.
+
+    A needs-human item used to redden EVERY drain tick until a human
+    acknowledged it — 2026-07-26..08-02 that was 180 red runs for a handful of
+    causes, each red run a GitHub failure email to the owner. An alarm that
+    fires 25 times a day for one fact is an alarm that gets filtered, and a
+    filtered alarm is the original silent-loss problem in a new hat.
+
+    So: the tick that FIRST reports an item goes red (that is the one email),
+    and the item is then MUTED — still printed by every tick, still a problem
+    in `status` and ops_status [2b], just not a fresh red run — until either a
+    human clears it (acknowledge/resolve, which removes it from the problem
+    list entirely) or RE_RED_HOURS pass with it still unhandled, when it earns
+    one more red. Nothing here can silence a NEW failure: an unseen key always
+    reds. Marks for keys that stopped being problems are pruned, so a
+    re-failure of re-queued work is a new item, not a muted repeat.
+
+    Mutates queue["red_marks"] (persisted in the committed queue file, which is
+    what makes "already reported" survive between ticks on different runners).
+    Returns (fresh, muted): fresh as (key, text), muted as (key, text, since).
+    """
+    moment = now or _now()
+    marks = queue.setdefault("red_marks", {})
+    live = {key for key, _ in problem_keys}
+    for key in list(marks):
+        if key not in live:
+            del marks[key]
+
+    fresh: list[tuple[str, str]] = []
+    muted: list[tuple[str, str, str]] = []
+    for key, text in problem_keys:
+        seen = _parse(marks.get(key))
+        if seen and (moment - seen) < timedelta(hours=RE_RED_HOURS):
+            muted.append((key, text, marks[key]))
+        else:
+            marks[key] = _iso(moment)
+            fresh.append((key, text))
+    if not marks:
+        # Keep an all-clear queue file byte-identical to one that never had
+        # problems, so idle ticks stay commit-free.
+        queue.pop("red_marks", None)
+    return fresh, muted
+
+
+def prune_red_marks(queue: dict, now: datetime | None = None) -> None:
+    """Drop marks whose problem no longer exists, without marking anything new.
+
+    `resolve`/`drop` clear problems outside a tick; the mark must die with the
+    problem there too, or a mark left behind could pre-mute a genuinely new
+    failure that happens to reuse the key inside RE_RED_HOURS."""
+    marks = queue.get("red_marks")
+    if not marks:
+        queue.pop("red_marks", None)
+        return
+    live = {key for key, _ in summary(queue, now=now)["problem_keys"]}
+    for key in list(marks):
+        if key not in live:
+            del marks[key]
+    if not marks:
+        queue.pop("red_marks", None)
 
 
 # --------------------------------------------------------------------------
@@ -1123,6 +1222,12 @@ def _cmd_tick(args) -> int:
               "They were dispatched directly rather than queued, so GitHub will not "
               "tell us what inputs they were given and they cannot be replayed "
               "automatically. Each is listed below.")
+    for orphan in report.get("schedule_orphans", []):
+        print(f"::warning::{orphan['workflow']} run {orphan['run_id']} (a "
+              "SCHEDULED run) was evicted from the pending slot without running. "
+              "Recorded and resolved automatically: it carried no inputs and its "
+              "next cron repeats the same pass, which is the same decision a "
+              "human recorded for the 2026-07-29 collect eviction.")
 
     if report["busy"]:
         busy = report["busy"]
@@ -1173,6 +1278,10 @@ def _cmd_tick(args) -> int:
     prune(queue)
 
     state = summary(queue)
+    # Red once per ITEM, not once per tick. The marks live in the queue file,
+    # so they are decided before the byte-identical check below and committed
+    # with everything else.
+    fresh, muted = select_red(queue, state["problem_keys"])
     # The heartbeat is only worth recording while something is actually waiting.
     # Writing it on every idle tick would commit to main four times an hour
     # forever, and every writer rebases onto main. When there IS live work, a
@@ -1187,11 +1296,21 @@ def _cmd_tick(args) -> int:
     # is worth seeing in the log and is not worth a red run or an email.
     for note in state.get("recovered", []):
         print(f"recovered: {note}")
-    for problem in state["problems"]:
-        print(f"::error::{problem}")
-    if state["problems"]:
-        print(f"\n{len(state['problems'])} item(s) need a human.")
+    for _key, text, since in muted:
+        print(f"::warning::{text}")
+        print(f"    (first reported {since}; already went red once, so this "
+              "tick stays green rather than repeating the same email. It "
+              "remains listed here, in `writer_queue.py status` and in "
+              "ops_status [2b] until a human acknowledges or resolves it, "
+              f"and it reds once more every {RE_RED_HOURS}h it is ignored.)")
+    for _key, text in fresh:
+        print(f"::error::{text}")
+    if fresh:
+        print(f"\n{len(fresh)} item(s) need a human.")
         return 2
+    if muted:
+        print(f"\n{len(muted)} known item(s) still waiting on a human "
+              "(already reported; not reddening this tick).")
     return 0
 
 
@@ -1349,6 +1468,7 @@ def _cmd_resolve(args) -> int:
         print(f"::error::nothing unresolved matching {target!r} — expected an "
               "orphan run id, a failed ticket id, or 'all'")
         return 2
+    prune_red_marks(queue)
     save(queue, path)
     if hits:
         print(f"resolved {len(hits)} orphan(s): "

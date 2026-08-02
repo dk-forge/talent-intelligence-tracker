@@ -167,9 +167,18 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   committed, and `ops_status.py [2b]` is where you see it.
 
   Anything dispatched directly can still be evicted, so every tick reads the run
-  list and goes RED on any writer run that ended cancelled with zero jobs. Those
-  cannot be replayed — GitHub does not expose a dispatched run's inputs — so
-  they are recorded as orphans and stay loud until a human decides:
+  list and shouts about any writer run that ended cancelled with zero jobs. A
+  displaced **workflow_dispatch** run cannot be replayed — GitHub does not
+  expose its inputs — so it is recorded as an orphan and stays listed until a
+  human decides. A displaced **scheduled** run carries no inputs and its next
+  cron repeats the pass, so it is recorded and auto-resolved (the decision a
+  human typed by hand for the 2026-07-29 collect eviction, made structural).
+  Since 2026-08-02 a needs-human item reds the drainer ONCE when first seen
+  (plus once per ignored 24h), not on every 15-minute tick — the week before,
+  one unhandled item was 180 red runs and as many GitHub emails. Muted items
+  stay listed in the tick log, `writer_queue.py status` and ops_status [2b],
+  and ci_alert skips the drain-writers RECOVERED mail while any remain.
+  Resolve with:
   `gh workflow run drain-writers.yml -f resolve=<run_id> -f reason='why'`.
   **Never guess the inputs of a lost run**: `correct-form-d` and
   `correct-sec-pillar` both default to `dry_run=true`, so a re-dispatch with

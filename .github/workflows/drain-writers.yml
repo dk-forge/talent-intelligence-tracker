@@ -328,9 +328,18 @@ jobs:
 
       # Last, so the queue is always committed and the dispatch always
       # attempted before the run is allowed to go red.
-      - name: Fail loudly if anything needs a human
+      #
+      # rc=2 means a NEW needs-human item (or one ignored for RE_RED_HOURS) —
+      # red once per item, not once per tick. An item already reported on an
+      # earlier tick keeps the tick GREEN and is printed as a warning instead:
+      # it stays listed in `writer_queue.py status` and ops_status [2b] until a
+      # human acknowledges or resolves it. 2026-07-26..08-02 the old
+      # every-tick red produced 180 red runs (one GitHub failure email each)
+      # for a handful of causes; writer_queue.select_red is the fix and
+      # tests/test_writer_queue.py pins it.
+      - name: Fail loudly if anything NEW needs a human
         if: ${{ always() && steps.tick.outputs.rc != '0' }}
         run: |
-          echo "::error::the writer queue has items that need a human — see the"
+          echo "::error::the writer queue has NEW items that need a human — see the"
           echo "::error::reconcile step above, or run: python writer_queue.py status"
           exit 1
