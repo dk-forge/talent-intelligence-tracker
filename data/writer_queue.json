@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-02T16:31:34Z",
-  "last_tick": "2026-08-02T16:31:34Z",
+  "last_tick": "2026-08-02T16:33:36Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -195,6 +195,11 @@
           "at": "2026-08-02T16:31:34Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T16:33:36Z",
+          "detail": "run 30756830162",
+          "event": "bound"
         }
       ],
       "id": "20260802T161212Z-backfill-gdelt-2026",
@@ -209,7 +214,7 @@
       "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-05-22)",
       "requested_at": "2026-08-02T16:12:12Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30756830162",
       "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
     },
