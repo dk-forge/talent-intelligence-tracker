@@ -868,7 +868,7 @@
       "workflow": "backfill-structured-2026.yml"
     },
     "backfill-structured-2026:companies_house:0..7": {
-      "cursor": "4",
+      "cursor": "5",
       "end": "7",
       "history": [
         {
@@ -922,6 +922,19 @@
             "skipped": 0,
             "stored": 360
           }
+        },
+        {
+          "at": "2026-08-02T00:48:30Z",
+          "run": "",
+          "slice": "4..4",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 188,
+            "fetched": 732,
+            "rejected": 143,
+            "skipped": 0,
+            "stored": 401
+          }
         }
       ],
       "inputs": {
@@ -934,18 +947,18 @@
       "label": "companies_house",
       "opened_at": "2026-07-30T21:47:25Z",
       "slice_size": 1,
-      "slices": 4,
+      "slices": 5,
       "start": "0",
       "state": "running",
       "totals": {
-        "duplicates": 866,
-        "fetched": 2768,
-        "rejected": 339,
+        "duplicates": 1054,
+        "fetched": 3500,
+        "rejected": 482,
         "skipped": 0,
-        "stored": 1563
+        "stored": 1964
       },
       "unit": "slices",
-      "updated_at": "2026-08-01T23:06:36Z",
+      "updated_at": "2026-08-02T00:48:30Z",
       "workflow": "backfill-structured-2026.yml"
     }
   },
