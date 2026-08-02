@@ -622,6 +622,18 @@ COLLECTOR_BY_SOURCE_NAME = {
 # A genuinely new source gets a row in SOURCES and its own line on the page.
 COLLECTOR_ALIASES = {
     "sec_form_d_bulk": "sec_form_d",
+    # Same publishers, read through a different door. `press_archive` walks the
+    # publishers' own XML sitemaps because an RSS feed is a WINDOW and not an
+    # archive: national_press reads the same catalogue but sees only the last
+    # few dozen items, capped at 25, so a busy daily's feed covers two or three
+    # days and nothing in that route reaches back a month at any price.
+    #
+    # Verified before aliasing rather than assumed, because the naive check
+    # argues the other way: only 3 of its 16 publishers overlap national_press
+    # on STORED ROWS, which reads like a distinct source. All 16 are in the
+    # shared catalogue. Overlap of output is not identity of source, and
+    # listing this separately would tell a reader we read Endpoints News twice.
+    "press_archive": "national_press",
 }
 
 
