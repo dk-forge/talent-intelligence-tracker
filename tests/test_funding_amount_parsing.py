@@ -354,6 +354,12 @@ FLOOR_REFUSALS = {
     "$1": "Pluang, Indonesian. The headline reads 'pendanaan non-dilutif "
           "$1...', truncated mid-figure by the publisher; the article slug "
           "says 15 juta USD. Nothing in the string we hold states the round.",
+    "$1 mili": "Pluang again, Indonesian, arrived 2026-08-02 (Rocket Lab: "
+               "'pendanaan $1 mili...'). Truncated mid-SCALE-WORD by the "
+               "publisher — 'mili' is the stem of 'miliar' (billion), but the "
+               "string we hold does not finish the word, and reading a "
+               "truncated stem as a known scale would be a guess. Refusing "
+               "is correct.",
 }
 
 
