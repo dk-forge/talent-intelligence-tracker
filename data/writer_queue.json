@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T19:55:23Z",
-  "last_tick": "2026-08-02T19:55:23Z",
+  "last_dispatch": "2026-08-02T19:56:29Z",
+  "last_tick": "2026-08-02T19:56:29Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -186,12 +186,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T19:56:29Z",
       "history": [
         {
           "at": "2026-08-02T18:18:44Z",
           "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-03-25)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T19:56:29Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T181844Z-backfill-gnews-2026",
@@ -207,35 +212,8 @@
       "requested_at": "2026-08-02T18:18:44Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-02T19:55:23Z",
-      "history": [
-        {
-          "at": "2026-08-02T18:20:44Z",
-          "detail": "2026-08-02 slug-collision review: apply the 5 employer-key merges. Dry run (run 30760846414) confirmed 5 employers re-keyed, 5 rows re-issued, 2 withdrawn as same-event duplicates, 5 retractions first. Note it will also publish the 60 rows already stored-but-unpublished from an earlier interrupted pass.",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T19:55:23Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260802T182044Z-correct-company-key",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "2026-08-02 slug-collision review: apply the 5 employer-key merges. Dry run (run 30760846414) confirmed 5 employers re-keyed, 5 rows re-issued, 2 withdrawn as same-event duplicates, 5 retractions first. Note it will also publish the 60 rows already stored-but-unpublished from an earlier interrupted pass.",
-      "requested_at": "2026-08-02T18:20:44Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
       "state": "dispatched",
-      "workflow": "correct-company-key.yml"
+      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
@@ -261,48 +239,6 @@
       "requested_by": "backfill-slices",
       "run_id": null,
       "state": "queued",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-01T14:34:33Z",
-      "history": [
-        {
-          "at": "2026-08-01T13:15:43Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-03)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T14:34:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T15:07:06Z",
-          "detail": "run 30704056127",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-01T15:30:34Z",
-          "detail": "run 30704056127",
-          "event": "landed"
-        }
-      ],
-      "id": "20260801T131543Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-01T15:30:34Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-03)",
-      "requested_at": "2026-08-01T13:15:43Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30704056127",
-      "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -2749,6 +2685,44 @@
       "requested_at": "2026-08-02T18:18:17Z",
       "requested_by": "dakotta-labs",
       "run_id": "30760846414",
+      "state": "landed",
+      "workflow": "correct-company-key.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-02T19:55:23Z",
+      "history": [
+        {
+          "at": "2026-08-02T18:20:44Z",
+          "detail": "2026-08-02 slug-collision review: apply the 5 employer-key merges. Dry run (run 30760846414) confirmed 5 employers re-keyed, 5 rows re-issued, 2 withdrawn as same-event duplicates, 5 retractions first. Note it will also publish the 60 rows already stored-but-unpublished from an earlier interrupted pass.",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-02T19:55:23Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T19:56:29Z",
+          "detail": "run 30764444806",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-02T19:56:29Z",
+          "detail": "run 30764444806",
+          "event": "landed"
+        }
+      ],
+      "id": "20260802T182044Z-correct-company-key",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-02T19:56:29Z",
+      "priority": 0,
+      "reason": "2026-08-02 slug-collision review: apply the 5 employer-key merges. Dry run (run 30760846414) confirmed 5 employers re-keyed, 5 rows re-issued, 2 withdrawn as same-event duplicates, 5 retractions first. Note it will also publish the 60 rows already stored-but-unpublished from an earlier interrupted pass.",
+      "requested_at": "2026-08-02T18:20:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30764444806",
       "state": "landed",
       "workflow": "correct-company-key.yml"
     }
