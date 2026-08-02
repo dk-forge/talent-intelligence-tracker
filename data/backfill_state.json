@@ -996,7 +996,7 @@
       "slice_size": 1,
       "slices": 4,
       "start": "0",
-      "state": "running",
+      "state": "stalled",
       "totals": {
         "duplicates": 9,
         "left_for_later": 968,
@@ -1006,7 +1006,7 @@
         "stored": 61
       },
       "unit": "slices",
-      "updated_at": "2026-08-02T12:26:13Z",
+      "updated_at": "2026-08-02T14:01:40Z",
       "workflow": "backfill-press-2026.yml"
     },
     "backfill-structured-2026:bse_india:2026-01-01..2026-07-30": {
