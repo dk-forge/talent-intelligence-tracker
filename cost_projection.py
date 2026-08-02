@@ -268,6 +268,42 @@ def bar() -> None:
     print("-" * 72)
 
 
+def _discovery_cost() -> dict:
+    """What the tripwire costs the allowance per month, and whether it is armed.
+
+    ARMED is read from the schedule that actually dispatches it rather than
+    asserted here. The tripwire is a database writer, so it may not carry a cron
+    of its own; the Mon+Thu slot lives in `schedule-link-hygiene.yml`, which
+    writes a queue ticket. Deriving it from that file means this figure cannot
+    drift from the deployment the day somebody disarms it — the same reason
+    `writer_queue.lock_group_workflows` reads the workflows instead of a list.
+
+    A dormant tripwire is charged at $0.00 and still PRINTED, with the price
+    arming it would cost. A reserve held against a job that is not running is a
+    ration taken out of collection for nothing.
+    """
+    root = Path(__file__).resolve().parent
+    sys.path.insert(0, str(root))
+    from analysis.tripwire import plan as tripwire_plan
+
+    projection = tripwire_plan.monthly_projection()
+    schedule = root / ".github" / "workflows" / "schedule-link-hygiene.yml"
+    armed = False
+    if schedule.exists():
+        text = schedule.read_text()
+        armed = "tripwire.yml" in text and "cron: '0 7 * * 1,4'" in text
+    return {
+        "armed": armed,
+        "queries_per_month": projection["queries_per_month"],
+        "usd_per_query": projection["usd_per_query_measured"],
+        "usd_per_query_source": projection["usd_per_query_measured_source"],
+        "usd_per_query_estimate": projection["usd_per_query_estimate"],
+        "usd_per_month": projection["measured_usd_per_month"] if armed else 0.0,
+        "usd_per_month_if_armed": projection["measured_usd_per_month"],
+        "cap_usd_per_month": projection["cap_usd_per_month"],
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--offline", action="store_true",
@@ -282,6 +318,24 @@ def main() -> int:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import spend
         allowance = spend.MONTHLY_ALLOWANCE_USD
+
+    # COLLECTION IS NOT THE ONLY THING THAT SPENDS, AND THIS FILE USED TO SAY IT
+    # WAS. The discovery tripwire has been armed since 2026-07-30 — twice a
+    # week, from schedule-link-hygiene.yml — and it bills the same OpenRouter
+    # key against the same monthly allowance. It appeared nowhere in this
+    # program, so every "what the allowance actually buys" figure below was
+    # computed against a ceiling that had already been partly spent by
+    # something else.
+    #
+    # MEASURED, not estimated. `plan.USD_PER_QUERY_ESTIMATE` ($0.02) is
+    # deliberately pessimistic and exists to SIZE the plan; what a query
+    # actually costs is $0.0057, from OpenRouter's own usage accounting over 17
+    # live search-backed queries, and that is the number a budget should be
+    # reconciled against. Both are printed below so the gap between them stays
+    # visible as the safety margin it is, rather than one of them quietly
+    # standing in for the other.
+    tripwire = _discovery_cost()
+    collection_allowance = max(0.0, allowance - tripwire["usd_per_month"])
 
     conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
     try:
@@ -452,12 +506,28 @@ def main() -> int:
         if not parts:
             print(f"    {label:44} {'not served at any price':>28}")
             continue
-        flag = "" if total <= allowance else "  OVER"
+        flag = "" if total <= collection_allowance else "  OVER"
         print(f"    {label:44} {parts['gate']:6.2f} {parts['extract']:6.2f} "
               f"{parts['read']:6.2f} {total:7.2f}{flag}")
-    print(f"\n    allowance ${allowance:.2f}/month (spend.py). Anything marked "
-          f"OVER would\n    trip spend.py --degrade partway through the month: "
-          f"free collection\n    continues, paid reads stop.")
+
+    # DISCOVERY, priced beside collection rather than left out of it. This is
+    # the only paid thing in the product that is not a read of a source we
+    # already trust, and it was invisible here until 2026-08-02.
+    state = "ARMED, Mon+Thu" if tripwire["armed"] else "DORMANT"
+    print(f"\n    discovery (the tripwire, {state}): "
+          f"{tripwire['queries_per_month']} search-backed queries/month at "
+          f"${tripwire['usd_per_query']:.4f} MEASURED\n"
+          f"      = ${tripwire['usd_per_month_if_armed']:.2f}/month"
+          + ("" if tripwire["armed"] else " if it were armed; $0.00 today")
+          + f", against its own ${tripwire['cap_usd_per_month']:.2f} cap and an\n"
+          f"      estimate of ${tripwire['usd_per_query_estimate']:.3f}/query "
+          f"that sizes the plan and never reports it.\n"
+          f"      {tripwire['usd_per_query_source']}")
+    print(f"\n    allowance ${allowance:.2f}/month (spend.py), of which "
+          f"${tripwire['usd_per_month']:.2f} is discovery, leaving\n"
+          f"    ${collection_allowance:.2f} for collection. Anything marked OVER "
+          f"would trip spend.py --degrade\n    partway through the month: free "
+          f"collection continues, paid reads stop.")
 
     # [5] ------------------------------------------------------------------
     print("\n[5] WHAT THE ALLOWANCE ACTUALLY BUYS")
@@ -467,10 +537,11 @@ def main() -> int:
     per_read = ((e or 0)
                 + (unit["read"] or 0) * rt_per_read_late * CONDITIONAL_SHARE) * factor
     gate_bill = (unit["gate"] or 0) * day_gate * DAYS * factor
-    affordable = max(0, int((allowance - gate_bill) / per_read)) if per_read else 0
+    affordable = (max(0, int((collection_allowance - gate_bill) / per_read))
+                  if per_read else 0)
     print(f"    the gate costs ${gate_bill:.2f}/month and is not optional: it "
           f"is how we know\n    which stories are worth reading. That leaves "
-          f"${allowance - gate_bill:.2f} for reads at "
+          f"${collection_allowance - gate_bill:.2f} for reads at "
           f"${per_read:.5f} each.")
     print(f"    affordable: {affordable:,} reads/month = "
           f"{affordable // DAYS:,}/day, against demand of {day_kept:,}/day "
@@ -500,12 +571,14 @@ def main() -> int:
           "it, and it now gives every country's\n    best story a place before "
           "any country's second.")
     bar()
-    if total_full > allowance:
+    if total_full > collection_allowance:
         print(f"FULL COVERAGE DOES NOT FIT: ${total_full:.2f} against "
-              f"${allowance:.2f}.")
+              f"${collection_allowance:.2f} (${allowance:.2f} allowance less "
+              f"${tripwire['usd_per_month']:.2f} of discovery).")
         print("Read section [4] for what would have to change to close it.")
         return 2
-    print(f"Full coverage fits: ${total_full:.2f} against ${allowance:.2f}.")
+    print(f"Full coverage fits: ${total_full:.2f} against "
+          f"${collection_allowance:.2f}.")
     return 0
 
 

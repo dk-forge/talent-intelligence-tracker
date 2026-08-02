@@ -1,15 +1,20 @@
 # The discovery tripwire: ask an outside view what we are missing.
 #
-# DORMANT. The schedule below is deliberately commented out, per the standing
-# rule for a new source: it ships with dry-run diagnostics and is armed only
-# after a human has read a real run and agreed it looks right. Dispatch it by
-# hand until then — the default input is a dry run that writes nothing.
+# ARMED since 2026-07-30, twice a week, from `schedule-link-hygiene.yml` — see
+# the long note under `on:` for why the cron cannot live in this file. This
+# header said DORMANT for three days after that, and told the reader to
+# "uncomment the two schedule lines" that arming had already deleted. Two lies
+# in one paragraph, and the second is the dangerous one: it describes an arming
+# procedure nobody can follow, which is how `staleness.py` kept a 100-day leash
+# on a twice-weekly collector until 2026-08-02.
 #
-# To arm: uncomment the two schedule lines. Twice a week is what the budget in
-# analysis/tripwire/plan.py is sized on (8 runs a month, 4 countries each, plus
-# one full 18-industry sweep a month = 50 search-backed queries ~ $1.00/month at
-# the pessimistic price). Changing the cadence without changing that constant
-# changes the bill, so change both or neither.
+# Twice a week is what the budget in analysis/tripwire/plan.py is sized on (8
+# runs a month, 4 countries each, plus one full 18-industry sweep a month = 50
+# search-backed queries ~ $1.00/month at the pessimistic price, and $0.29 at the
+# price actually measured). Changing the cadence without changing that constant
+# changes the bill, so change both or neither. To DISARM, delete the
+# `0 7 * * 1,4` slot from schedule-link-hygiene.yml and widen the `tripwire`
+# leash in staleness.py back out in the same commit.
 name: tripwire
 
 on:

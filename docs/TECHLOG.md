@@ -177,6 +177,133 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-02 — a three-minute chain was paying two hours of queue for it
+
+Five backfill chains share the one `talent-collect` writer slot. Every one of
+them carried `BACKFILL_PRIORITY` (10), because `default_priority()` answers a
+single question — "does the workflow name start with `backfill-`" — so the
+dispatch order fell through to a timestamp that knows nothing about what a
+ticket costs.
+
+**Measured from the queue's own history, the 19 hours to 2026-08-02T03:00Z.**
+`slice` is dispatch to landing, `wait` is request to dispatch, both medians:
+
+| chain | slice | wait | wait/slice |
+|---|---|---|---|
+| `backfill-gdelt-2026` | 56 | 92 | 1.6 |
+| `backfill-gnews-2026` | 23 | 120 | 5.2 |
+| `backfill-structured:companies_house` | 21 | 105 | 5.0 |
+| `backfill-structured:bse_india` | **3** | **123** | **41.0** |
+| `archive-sources` (priority 0) | 26 | 17 | 0.7 |
+
+Round robin gives every chain one turn per round. That is fair in turns and
+indefensible in latency.
+
+**Two of the three obvious fixes are refused on the numbers, and the refusals
+are written into the code so nobody re-proposes them from intuition.**
+
+*Not a smaller slice budget.* Exactly ONE chain of five reaches
+`SLICE_BUDGET_MINUTES` at all, and its 56 minutes is already inside
+`LONG_HOLD_MINUTES` (120) — the line `writer_queue.py` itself draws at "the
+queue is starved". Halving the budget shortens a full round from ~135 minutes to
+~115 while costing the chain doing the most work about 40% more runs, each
+paying the fixed 3-6 minutes of checkout, install, merge and push again. And it
+leaves the bad row untouched: three minutes waiting behind twenty-five is the
+same shape of unfair as waiting behind fifty.
+
+*Not interleaving by chain.* It already interleaves. A chain requeues its next
+slice at the END of its own run, so it re-enters the line with a fresh
+`requested_at` and sorts behind every chain that has been waiting — a clean
+round robin, free, out of the FIFO tiebreak. A second scheduler would have
+reproduced the order we already had.
+
+*It is the dispatch order, and priority was already honoured there.* Step 5 has
+sorted on `priority` since the queue was built and it works. What was missing is
+that priority carried no information. So `writer_queue.dispatch_key` now sorts
+on four terms: the operator's priority, untouched and still deciding everything
+below it; then age, past `FAIR_SHARE_AGE_MINUTES`, so nothing starves; then
+**measured** cost, from `measured_hold_minutes`, which reads this file's own
+landed tickets; then the FIFO that already worked.
+
+`FAST_SLICE_MINUTES = 8` is not a taste. The fixed overhead of a slice run is
+3-6 minutes measured (bse_india's ENTIRE run is 3), so a chain under that bar is
+not "a shorter job", it is a job indistinguishable from the noise of scheduling
+one, and letting it go first costs the chain it overtakes less than that chain's
+own startup. Above the bar, reordering transfers real lock time between chains,
+which is a policy decision and belongs to an operator's `--priority` — which now
+survives a requeue, since `chain_priority` landed the day before.
+
+`FAIR_SHARE_AGE_MINUTES` is deliberately the same number as
+`LONG_HOLD_MINUTES` rather than a second tuned constant: it would be incoherent
+to let the scheduler reorder a ticket past the threshold at which it reports
+that ticket as a problem. It promotes, it does not preempt — nothing can
+shorten a slice already running, which is the whole reason `backfill_slices.py`
+exists.
+
+**The key is computed at dispatch and never written back onto the ticket.** An
+ordering that edited `ticket["priority"]` would be the `default_priority`
+-on-requeue bug in a new hat: the stored number keeps meaning "what a human
+asked for", and anything derived is derived again next tick where it can be seen
+changing. Pinned by a test.
+
+Also here: a chain's identity — workflow plus exact inputs — was written out
+four separate times, so `chain_inputs`/`same_chain` are now the one definition
+and `chain_priority`, `superseded_by` and `backfill_slices._live_ticket` all use
+it. `ops_status.py [2b]` prints waiting tickets in the order they will actually
+be dispatched, with the reason, because a scheduler that reorders silently is a
+scheduler nobody can audit.
+
+Against the live queue the new order puts bse_india (3 min, asked last) first
+and leaves gnews, companies_house and press in FIFO. `SLICE_BUDGET_MINUTES` is
+unchanged at 50.
+
+## 2026-08-02 — the tripwire was armed, measured, and documented as neither
+
+Three claims about the discovery tripwire were current in this repo and all
+three were wrong. Recorded because each one was believed and acted on.
+
+**"It has never issued a live query."** It has. Run 30506967802, 2026-07-30
+01:54Z: 17 search-backed queries against `perplexity/sonar`, $0.0977 billed,
+**$0.0057 a query**, spread $0.0054-$0.0060. `analysis/tripwire/plan.py` has
+carried that measurement and its source string since 8a74dd5 the same day.
+`docs/HANDOVER.md` still said the cost was an estimate.
+
+**"It is DORMANT."** It has been ARMED since 77becc5, 2026-07-30 — Mon+Thu
+07:00 UTC, `dry_run=false`, from `schedule-link-hygiene.yml`, because a lock
+member may not carry its own cron. `tripwire.yml`'s own header still told the
+reader to "uncomment the two schedule lines", which arming had deleted.
+
+**And that stale header cost something real.** `staleness.py` gave `tripwire` a
+2400-hour (100-day) leash with the note "tighten this to 336 the day the
+schedule in `.github/workflows/tripwire.yml` is uncommented". Arming REMOVES
+that line, so the instruction's own trigger could never fire: a live
+twice-weekly collector wore a 100-day leash for three days and would have
+reported `ok` from a Monday breakage until November. Now 336, which is the
+number that note always named — 3.5-day cadence, four missed runs, wide because
+the slot writes a ticket that waits behind whatever holds the writer lock.
+
+**What was genuinely undone: no tripwire run has ever WRITTEN.** The 2026-07-30
+run was `--dry-run`, so there is no `data/tripwire_worklist.json`, no
+`analysis/tripwire/results/`, no `source_health` row and no first point for the
+trend chart. That run was queued through `drain-writers` (never dispatched
+directly) as ticket `20260802T032205Z-tripwire`, headroom checked first: August
+spend was $4.25 of a $9.00 enforce ceiling, against a run costing at most
+$0.13 measured / $0.44 at the pessimistic estimate.
+
+**`cost_projection.py` did not know the tripwire existed.** It is the tool that
+exists so nobody quotes a cost from memory, and discovery — the one paid thing
+in the product that is not a read of a source we already trust — appeared
+nowhere in it, so every "what the allowance actually buys" figure was computed
+against a ceiling something else had already partly spent. It now prices
+discovery as MEASURED ($0.0057/query, 50 queries/month, **$0.29/month**) beside
+the $0.02 estimate that sizes the plan and never reports it, and subtracts it
+from what collection may spend. ARMED is derived from the schedule file that
+actually dispatches it, not asserted, so the figure cannot drift the day
+somebody disarms it; a dormant tripwire is charged $0.00 and still printed with
+the price arming would cost.
+
+---
+
 ## 2026-08-01 — seventeen Google News editions were the US wire under another name
 
 **The premise this started from was wrong, and re-measuring it first is the

@@ -88,13 +88,33 @@ class TestStalenessBoundary(unittest.TestCase):
                          ["gdelt", "sec_edgar", "sec_form_d"])
 
     def test_quiet_by_design_sources_keep_a_long_leash(self):
-        """The quarterly bulk feed and the dormant tripwire are quiet on
-        purpose. A short leash on them is how a digest trains its reader to
-        ignore it."""
-        ledger = {"sec_form_d_bulk": entry(24 * 30), "tripwire": entry(24 * 30)}
+        """The quarterly bulk feed is quiet on purpose: SEC publishes the Form D
+        data sets four times a year. A short leash on it is how a digest trains
+        its reader to ignore it."""
+        ledger = {"sec_form_d_bulk": entry(24 * 30), "press_archive": entry(24 * 30)}
         buckets = health_digest.classify(ledger, NOW)
         self.assertEqual(buckets["stale"], [])
-        self.assertEqual(sorted(buckets["ok"]), ["sec_form_d_bulk", "tripwire"])
+        self.assertEqual(sorted(buckets["ok"]), ["press_archive", "sec_form_d_bulk"])
+
+    def test_the_tripwire_is_leashed_to_the_cadence_it_actually_runs_at(self):
+        """It was in the test above, as "the dormant tripwire", for three days
+        after it was armed.
+
+        Arming it on 2026-07-30 meant DELETING the cron from tripwire.yml and
+        putting the Mon+Thu slot in schedule-link-hygiene.yml, because a lock
+        member may not carry its own schedule. The instruction left behind in
+        staleness.py said to tighten the leash "the day the schedule in
+        tripwire.yml is uncommented" — a trigger that arming removes, so it
+        could never fire. A live twice-weekly collector kept a 100-day leash and
+        would have reported `ok` from a Monday breakage until November.
+        """
+        buckets = health_digest.classify({"tripwire": entry(24 * 30)}, NOW)
+        self.assertEqual([n for n, _, _ in buckets["stale"]], ["tripwire"])
+        buckets = health_digest.classify({"tripwire": entry(24 * 5)}, NOW)
+        self.assertEqual(buckets["ok"], ["tripwire"], (
+            "and it must not go the other way: the slot writes a ticket that "
+            "waits behind whatever holds the writer lock, so five days of "
+            "silence at a 3.5-day cadence is a queue, not a breakage"))
 
     def test_the_monthly_structured_sources_are_not_flagged_mid_cycle(self):
         """sec_execcomp runs on the 5th and uk_paygap on the 6th of each

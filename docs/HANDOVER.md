@@ -4,14 +4,22 @@
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
 
-Last updated: **2026-08-01**. Plugin **1.62.1**, **18,250** current signals
+Last updated: **2026-08-02**. Plugin **1.62.1**, **18,250** current signals
 stored, company profiles shipped, cron firing on schedule but not reliably
-green, **2,911 offline tests passing** plus seven PHP render harnesses.
+green, **2,923 offline tests passing** plus seven PHP render harnesses.
 
 **Read the two sections directly below before anything else.** The budget is
-back to **$5/month** and $5 does not fit the current architecture; and the gate
-label ledger, which is the only route to making $5 fit, was silently discarding
-its own output until 2026-08-01. Spain
+**$10/month** since 2026-08-01 (the section below still argues from $5 — the
+arithmetic holds, the ceiling moved, and `cost_projection.py` is the authority
+on both); and the gate label ledger, which is the only route to making the gate
+free, was silently discarding its own output until 2026-08-01.
+
+**2026-08-02, and both are premise corrections rather than features.** The
+writer queue's dispatch order now knows what a slice costs — a chain measured at
+3 minutes was waiting 123 for its turn, against 56/92 for the chain doing the
+most work — and the discovery tripwire turned out to be armed, priced and
+documented as none of those things. Both in [TECHLOG.md](TECHLOG.md) under
+2026-08-02. Spain
 joined on 2026-07-31 as the fifteenth live collector and the second that
 reports a departure; it is DORMANT, and the section below says how to arm it. Figures
 below dated 2026-07-29 are left as they were measured that day; where one has
@@ -468,14 +476,16 @@ Four changes shipped together, aimed at the 9% recall measurement:
    Israeli rounds publishes NO feed, so Israel's English coverage is Globes,
    Geektime, the Innovation Authority and the he:IL edition.
 
-**The tripwire stays dormant, deliberately.** Arming is mechanically two
-commented lines in `tripwire.yml`, but its own header states the gate: armed
-only after a human has read a REAL run and agreed. No live query has ever
-been issued (cost per query is still an estimate). The first live run is
-`python run_tripwire.py --dry-run --countries IL --no-industries` — one
-query, about two cents — and arming afterwards means uncommenting the two
-schedule lines AND tightening `tripwire` to 336 in `staleness.py` in the same
-commit.
+**CORRECTED 2026-08-02: the tripwire is ARMED and its cost is MEASURED.**
+This paragraph said it was dormant and unpriced for three days after it was
+neither. It was armed on 2026-07-30 (77becc5), Mon+Thu 07:00 UTC with
+`dry_run=false`, from `schedule-link-hygiene.yml` — arming it meant DELETING
+the cron from `tripwire.yml`, not uncommenting it, because a lock member may
+not carry its own schedule. Live queries went out the same day (run
+30506967802): 17 queries, $0.0977, **$0.0057 a query**, 3.5x under the $0.02
+the plan is sized on. The `staleness.py` half of the instruction below was
+never done, because its stated trigger was a line arming removes — see the
+2026-08-02 TECHLOG entry.
 
 ### Company profiles (built 2026-07-29, live on 1.47.0)
 
@@ -761,7 +771,7 @@ coverage priced honestly".
 | 5 | ~~Company profile pages~~ **BUILT 2026-07-29, live on 1.47.0** | `/company/{slug}`, measured threshold gate, **714 indexable pages**, every URL verified. Employer keys corrected and the three collisions merged the same day; a moved key's old URL 301s. See the sections below and TECHLOG. Next step is Search Console, not code. |
 | 6 | **Country/city/industry SEO pages** | Needs a **per-cell threshold**. Thin programmatic sets get filtered at the *set* level, dragging strong pages down with them. |
 | 7 | ~~Publish guardrails~~ **BUILT 2026-07-29** | `pipeline/guardrails.py`, on the write path, quarantining rather than halting. Next step is to ANSWER what it holds, not to build anything. See below. |
-| 8 | **First live tripwire run + second recall measurement** | The tripwire has never issued a live query (cost is an estimate). The trend chart cannot draw until a second measurement exists. |
+| 8 | ~~First live tripwire run~~ **DONE 2026-07-30, and it was armed the same day**; first WRITING run queued 2026-08-02. **Second recall measurement still open.** | 17 live queries, $0.0057 each MEASURED, now charged in `cost_projection.py`. What remains is the work list on a stable path (every run so far was `--dry-run`) and a second recall point, without which the trend chart cannot draw. |
 
 ### Non-negotiable
 
@@ -774,8 +784,10 @@ coverage priced honestly".
 - **An LLM claim is a lead, never a record.** The tripwire prefixes model-asserted
   fields with `claimed_`; the chase takes the employer name and nothing else.
 - **No em-dashes in UI copy. No superlatives** on page, meta or structured data.
-- **Cost ceiling $25/month** (`spend.MONTHLY_ALLOWANCE_USD`, raised from $10 on
-  2026-07-30). It holds by rationing, not by luck: dedup before the LLM, gate on
+- **Cost ceiling $10/month** (`spend.MONTHLY_ALLOWANCE_USD`; $10 -> $25 on
+  2026-07-30 -> $5 on 2026-07-31 -> $10 on 2026-08-01, all by the owner. This
+  line said $25 until 2026-08-02; `cost_projection.py` is the authority, not
+  this list). It holds by rationing, not by luck: dedup before the LLM, gate on
   headline+teaser only, per-language prefilters, earned cadence, deterministic
   closes, and a per-run read cap sized to the MONTH rather than the run. Feeds
   are free; only stories cost. Full worldwide coverage would be $100.99/month, so
@@ -1110,11 +1122,22 @@ searches Google News for the publisher's own article, and sends THAT through
 finds no articles and stores nothing. A real company whose round the model
 mis-sized still stores the right size, because the size comes from the article.
 
-Still unproven, and the reason it is dormant: nothing has run a LIVE query, so
-the real cost per query is an estimate ($0.02, deliberately pessimistic) and the
-lead quality of the actual model is unmeasured. First live run should be
-`python run_tripwire.py --dry-run --countries IL --no-industries` — one query,
-about two cents, against the country we know we are weak in and can check by eye.
+**ARMED 2026-07-30, and priced by measurement rather than by estimate.** Live
+queries went out that day (run 30506967802): 17 search-backed queries against
+`perplexity/sonar`, $0.0977 billed, **$0.0057 a query**, spread $0.0054-$0.0060,
+so the $0.02 estimate is 3.5x conservative in the right direction. The Israel
+query — the one a human can check by eye — cost $0.0059 and returned 8 leads.
+`analysis/tripwire/plan.py` holds the figure and its source string;
+`cost_projection.py` charges it against the allowance as **$0.29/month** for 50
+queries. The estimate still SIZES the plan and the measurement REPORTS it: two
+numbers doing two jobs, and the gap between them is the safety margin.
+
+**What is still unproven is the WRITE, not the query.** Every run so far has
+been `--dry-run`, so there is no `data/tripwire_worklist.json`, no
+`analysis/tripwire/results/`, no `source_health` row and no first point for the
+trend. The first writing run was queued through `drain-writers` on 2026-08-02;
+until a `data/tripwire_worklist.json` appears on main, the chase collector has
+nothing to read and "cost per CONFIRMED miss" stays unmeasurable.
 
 ---
 

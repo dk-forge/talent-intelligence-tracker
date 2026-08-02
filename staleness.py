@@ -113,11 +113,22 @@ MAX_AGE_HOURS = {
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
-    # The discovery tripwire ships DORMANT: nothing schedules it, so a manual
-    # run followed by weeks of silence is the expected state, not an incident.
-    # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
-    # schedule in .github/workflows/tripwire.yml is uncommented.
-    "tripwire": 2400,
+    # The discovery tripwire, ARMED 2026-07-30 and leashed as though it were
+    # not until 2026-08-02. This entry used to read "ships DORMANT: nothing
+    # schedules it", and told the next person to tighten it "the day the
+    # schedule in .github/workflows/tripwire.yml is uncommented". That day never
+    # came and never could: arming it meant DELETING that cron and moving the
+    # slot to schedule-link-hygiene.yml, which is not a lock member — so the
+    # instruction's own trigger was written against a line that arming removes.
+    # The result was a live twice-weekly collector wearing a 100-day leash: it
+    # could have broken on a Monday and reported `ok` until November.
+    #
+    # 336 is the number that entry always named — the Mon+Thu 07:00 UTC pair in
+    # schedule-link-hygiene.yml, so 3.5 days of cadence, and four missed runs
+    # before it speaks. Wide, on purpose: the slot writes a TICKET and
+    # drain-writers dispatches it into an empty lock group, so a run can
+    # legitimately wait behind a backfill slice that is entitled to its time.
+    "tripwire": 336,           # ~14 days: twice-weekly, plus the queue's wait
     # The historical press walker ships DISPATCH-ONLY: there is no cron in
     # .github/workflows/backfill-press-2026.yml and adding one is both a spend
     # decision and a writer-lock decision. So a run followed by weeks of silence
