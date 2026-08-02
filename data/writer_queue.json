@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-02T04:01:50Z",
-  "last_tick": "2026-08-02T04:01:50Z",
+  "last_dispatch": "2026-08-02T04:04:00Z",
+  "last_tick": "2026-08-02T04:04:00Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -177,12 +177,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-02T04:04:00Z",
       "history": [
         {
           "at": "2026-08-02T02:29:36Z",
           "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-02-28)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-02T04:04:00Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260802T022936Z-backfill-gnews-2026",
@@ -198,7 +203,7 @@
       "requested_at": "2026-08-02T02:29:36Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -276,79 +281,6 @@
       "requested_by": "backfill-slices",
       "run_id": null,
       "state": "queued",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-02T04:01:50Z",
-      "history": [
-        {
-          "at": "2026-08-02T04:01:18Z",
-          "detail": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-07-16)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T04:01:50Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260802T040118Z-backfill-structured-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "source": "bse_india",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-07-16)",
-      "requested_at": "2026-08-02T04:01:18Z",
-      "requested_by": "backfill-slices",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-structured-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-31T15:33:31Z",
-      "history": [
-        {
-          "at": "2026-07-31T14:06:52Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-10)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-31T15:33:31Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-31T15:43:02Z",
-          "detail": "run 30643400431",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-31T16:31:12Z",
-          "detail": "run 30643400431",
-          "event": "landed"
-        }
-      ],
-      "id": "20260731T140652Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-07-31T16:31:12Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-02-10)",
-      "requested_at": "2026-07-31T14:06:52Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30643400431",
-      "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -2792,6 +2724,48 @@
       "run_id": "30731489198",
       "state": "landed",
       "workflow": "tripwire.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-02T04:01:50Z",
+      "history": [
+        {
+          "at": "2026-08-02T04:01:18Z",
+          "detail": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-07-16)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-02T04:01:50Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-02T04:04:00Z",
+          "detail": "run 30731645825",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-02T04:04:00Z",
+          "detail": "run 30731645825",
+          "event": "landed"
+        }
+      ],
+      "id": "20260802T040118Z-backfill-structured-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "bse_india",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-02T04:04:00Z",
+      "priority": 10,
+      "reason": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-07-16)",
+      "requested_at": "2026-08-02T04:01:18Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30731645825",
+      "state": "landed",
+      "workflow": "backfill-structured-2026.yml"
     }
   ],
   "version": 1
