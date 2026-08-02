@@ -27,8 +27,11 @@ free, was silently discarding its own output until 2026-08-01.
 **2026-08-02, and both are premise corrections rather than features.** The
 writer queue's dispatch order now knows what a slice costs — a chain measured at
 3 minutes was waiting 123 for its turn, against 56/92 for the chain doing the
-most work — and the discovery tripwire turned out to be armed, priced and
-documented as none of those things. Both in [TECHLOG.md](TECHLOG.md) under
+most work. Within the hour bse_india took its last two slices six minutes apart
+instead of four hours and the chain finished, delaying the chain it overtook by
+six minutes in total. And the discovery tripwire turned out to be armed, priced
+and documented as none of those things; its first WRITING run landed 93 leads in
+`data/tripwire_worklist.json`. Both in [TECHLOG.md](TECHLOG.md) under
 2026-08-02. Spain
 joined on 2026-07-31 as the fifteenth live collector and the second that
 reports a departure; it is DORMANT, and the section below says how to arm it. Figures

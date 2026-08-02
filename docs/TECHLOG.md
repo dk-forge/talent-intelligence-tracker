@@ -349,6 +349,24 @@ Against the live queue the new order puts bse_india (3 min, asked last) first
 and leaves gnews, companies_house and press in FIFO. `SLICE_BUDGET_MINUTES` is
 unchanged at 50.
 
+**Proven in production within the hour, and the drain log says so in its own
+words.** Three consecutive ticks after the push:
+
+```
+03:58:25  dispatching backfill-structured-2026 (bse_india)
+            chosen because its measured slice is 3 min, inside the 8-minute fast lane
+            it goes ahead of 20260802T022936Z-backfill-gnews-2026, which asked first.
+04:01:50  dispatching backfill-structured-2026 (bse_india)   [same, its next slice]
+04:04:00  dispatching backfill-gnews-2026
+            chosen because its measured slice is 23 min, so it takes an ordinary turn
+```
+
+bse_india took its last TWO slices in six minutes and the chain finished
+(`data/backfill_state.json`, 8 slices, done 04:03:29). At the measured FIFO wait
+of ~123 minutes a turn those two slices were about four hours apart. gnews,
+which it overtook twice, was delayed by six minutes in total — which is the
+whole argument for the 8-minute bar, observed rather than predicted.
+
 ## 2026-08-02 — the tripwire was armed, measured, and documented as neither
 
 Three claims about the discovery tripwire were current in this repo and all
