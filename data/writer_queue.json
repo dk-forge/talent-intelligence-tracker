@@ -183,85 +183,10 @@
       "workflow": "collect national press"
     }
   ],
+  "red_marks": {
+    "ticket:20260803T215353Z-backfill-gnews-2026": "2026-08-03T22:08:59Z"
+  },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T21:54:25Z",
-      "history": [
-        {
-          "at": "2026-08-03T21:53:53Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T21:54:25Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T22:08:36Z",
-          "detail": "run 30856568690",
-          "event": "bound"
-        }
-      ],
-      "id": "20260803T215353Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-13)",
-      "requested_at": "2026-08-03T21:53:53Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30856568690",
-      "state": "dispatched",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T13:11:58Z",
-      "history": [
-        {
-          "at": "2026-08-03T13:11:21Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-15)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T13:11:58Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T13:18:15Z",
-          "detail": "run 30816842658",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-03T13:18:15Z",
-          "detail": "run 30816842658",
-          "event": "landed"
-        }
-      ],
-      "id": "20260803T131121Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-03T13:18:15Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-15)",
-      "requested_at": "2026-08-03T13:11:21Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30816842658",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-03T13:18:15Z",
@@ -2734,6 +2659,47 @@
       "requested_by": "backfill-slices",
       "run_id": "30856111873",
       "state": "landed",
+      "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-03T21:54:25Z",
+      "history": [
+        {
+          "at": "2026-08-03T21:53:53Z",
+          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-13)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-03T21:54:25Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-03T22:08:36Z",
+          "detail": "run 30856568690",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-03T22:08:59Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260803T215353Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "ration": "37",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-13)",
+      "requested_at": "2026-08-03T21:53:53Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30856568690",
+      "state": "failed",
       "workflow": "backfill-gnews-2026.yml"
     }
   ],
