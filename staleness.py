@@ -132,6 +132,14 @@ MAX_AGE_HOURS = {
     # drain-writers dispatches it into an empty lock group, so a run can
     # legitimately wait behind a backfill slice that is entitled to its time.
     "tripwire": 336,           # ~14 days: twice-weekly, plus the queue's wait
+    # The benchmark-diff chase, weekly on Tuesdays from the same scheduler
+    # and DORMANT until the owner arms a BENCHMARK_* secret. While dormant it
+    # files no health row at all, so this leash never ticks; once armed, one
+    # missed weekly slot plus the queue's worst-case wait is the widest quiet
+    # a healthy loop can produce. If the owner disarms it later, delete its
+    # slot from schedule-link-hygiene.yml in the same change or the last
+    # armed run ages into a permanent STALE that means only "disarmed".
+    "benchmark_chase": 384,    # ~16 days: weekly, plus the queue's wait
     # The historical press walker ships DISPATCH-ONLY: there is no cron in
     # .github/workflows/backfill-press-2026.yml and adding one is both a spend
     # decision and a writer-lock decision. So a run followed by weeks of silence

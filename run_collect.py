@@ -16,10 +16,11 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, bse_india, companies_house, czechia_ares,
-                        edinet_japan, estonia_ariregister, gdelt, google_news,
-                        national_press, opendart_korea, sec_edgar, sec_execcomp,
-                        sec_form_d, spain_borme, tripwire_chase, uk_paygap)
+from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
+                        czechia_ares, edinet_japan, estonia_ariregister, gdelt,
+                        google_news, national_press, opendart_korea, sec_edgar,
+                        sec_execcomp, sec_form_d, spain_borme, tripwire_chase,
+                        uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       gate_ledger, prefilter, publish, schema, store, validate)
 
@@ -87,6 +88,12 @@ SOURCES = {
     # searches for each lead's PUBLISHER, so the model's claims never reach the
     # store — only the article does. See collectors/tripwire_chase.py.
     "tripwire_chase": tripwire_chase,
+    # Dormant until the owner arms a BENCHMARK_* secret. It diffs an external
+    # reference list against our stored employers and chases the gap to each
+    # employer's OWN press and filings; the reference is a discovery pointer
+    # and is never cited or named. Its log carries counts only, never a name.
+    # Entry point is run_benchmark_diff.py; see collectors/benchmark_chase.py.
+    "benchmark_chase": benchmark_chase,
 }
 
 RUNS_PER_DAY = 2
@@ -107,9 +114,10 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
         # Precise phrases plus `when:` recency. The old broad sweep returned
         # political job-creation stories with no employer in them.
         return list(registry.GOOGLE_NEWS_QUERIES)
-    if source == "tripwire_chase":
-        # The tripwire's work list IS the population: one targeted query per
-        # lead, built from the employer's name inside the collector.
+    if source in ("tripwire_chase", "benchmark_chase"):
+        # These two have no search vocabulary: the tripwire's work list and
+        # the benchmark diff ARE the population, one targeted query per lead,
+        # built from the employer's name inside the collector.
         return []
 
     base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
@@ -386,6 +394,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             print(f"[{collector}] searching SEC filings")
         elif source == "tripwire_chase":
             print(f"[{collector}] one targeted query per lead, from the work list")
+        elif source == "benchmark_chase":
+            print(f"[{collector}] one targeted query per lead, from the diff")
         else:
             print(f"[{collector}] {len(queries)} queries")
         try:

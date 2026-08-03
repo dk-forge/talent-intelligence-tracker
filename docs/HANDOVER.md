@@ -53,6 +53,16 @@ and og descriptions added to the dashboard and the three trust pages, and the
 cross-tracker pairing built and shipped disabled with the measurement that says
 why. Detail in [TECHLOG.md](TECHLOG.md).
 
+**Also 2026-08-02: the benchmark-diff loop, ported from the sibling and
+DORMANT.** `run_benchmark_diff.py` + `collectors/benchmark_chase.py` diff an
+external reference employer list against our data and chase the gap to each
+employer's own press and filings through the ordinary pipeline. The list
+arrives ONLY via the `BENCHMARK_FEED_URLS` / `BENCHMARK_COMPANIES` secrets;
+with neither set (the current state) the weekly Tuesday slot prints one line
+and exits 0 at zero cost. Do not ask the owner to add the secrets. Logs carry
+counts and slice indices, never a name; the recall gap emails the owner via
+`/alert` only below 90%. TECHLOG 2026-08-02 has the full design.
+
 **Chronological detail lives in [TECHLOG.md](TECHLOG.md)** — that file is what
 happened and why; this one is current state and next actions. Both are for the
 TALENT tracker only. The sibling AI Layoff Tracker has its own `docs/HANDOFF.md`

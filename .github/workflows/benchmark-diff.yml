@@ -1,0 +1,134 @@
+# The benchmark diff: work backwards from an external reference list.
+#
+# Ported from the sibling layoff tracker's tracker-diff loop (2026-08-02).
+# run_benchmark_diff.py diffs a reference employer list, supplied ONLY through
+# the BENCHMARK_FEED_URLS / BENCHMARK_COMPANIES secrets, against our stored
+# employers, and chases what we lack to each employer's OWN press coverage and
+# filings through the ordinary run_collect path. The reference is a discovery
+# pointer: it is never cited, never stored, and never named anywhere in this
+# repo or its logs. Counts and slice indices only.
+#
+# SHIPS DORMANT. With neither secret set the script prints one line and exits
+# 0: no database read, no network, no spend, no commit. The weekly slot in
+# schedule-link-hygiene.yml is therefore free to fire forever; the owner
+# arming a secret is the only activation. Do not ask the owner for the
+# secrets - dormant is a designed state, same as the sibling.
+#
+# To DISARM after arming: remove the secret(s). The slot keeps costing one
+# green one-line run a week; to silence that too, delete the '50 7 * * 2'
+# slot from schedule-link-hygiene.yml and drop the chase collector's leash
+# in staleness.py back to dispatch-only in the same commit.
+name: benchmark-diff
+
+on:
+  # NO `schedule:` HERE, AND THAT IS DELIBERATE. A non-dry armed run stores
+  # rows and files a health row, so this is a database writer and it sits in
+  # the `talent-collect` group. GitHub keeps exactly one pending run per
+  # group, so a cron in this file would be an uncoordinated third body
+  # entering that group on a timer: it would evict whatever was pending, or
+  # be evicted itself and end `cancelled` with zero jobs and inputs GitHub
+  # will not disclose. The weekly slot lives in schedule-link-hygiene.yml,
+  # which writes a TICKET; drain-writers.yml dispatches it into an EMPTY
+  # group, so the run can never be evicted and, if it somehow is, its inputs
+  # are on file and it is re-dispatched automatically.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Diff and chase, print counts, write nothing'
+        type: boolean
+        default: true
+
+# ONE lock for every workflow that writes data/talent_intel.db. Every writer
+# here ends with reset-to-origin then merge-our-rows-back, so two at once
+# means whichever pushes second silently destroys the other's rows.
+# Enforced by tests/test_workflows.py::test_every_database_writer_shares_one_lock.
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  benchmark-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      # The ceiling DEGRADES, it does not halt: past 90% of the monthly
+      # allowance this sets TIT_PAID_READS=off for the rest of the job, so
+      # the free diff, the free searches and both dedup layers still run and
+      # every candidate that would have cost money defers unread. --degrade,
+      # not --enforce: unlike the tripwire, most of what this job does is
+      # free, and a hard stop here would silence the recall gauge to protect
+      # a budget the gauge does not spend.
+      - name: Check the spend ceiling
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
+      # TIT_READTHROUGH_CAP=25 bounds this run's paid reads explicitly. The
+      # chase fetches at most ~5 documents per lead across 40 leads; 25 full
+      # reads (~$0.03 at the measured $0.00128 each) is plenty for a weekly
+      # tripwire and keeps its worst case a rounding error against collect's.
+      - name: Diff and chase
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          BENCHMARK_FEED_URLS: ${{ secrets.BENCHMARK_FEED_URLS }}
+          BENCHMARK_COMPANIES: ${{ secrets.BENCHMARK_COMPANIES }}
+          TIT_READTHROUGH_CAP: '25'
+        run: |
+          python run_benchmark_diff.py \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      # Same commit discipline as every writer: save the file, reset to
+      # origin, MERGE the rows back (never copy a file over the reset; that
+      # destroyed 9,572 rows on 2026-07-28/29), stage, push with retries.
+      # A dormant run changes nothing, so this exits at "No data change."
+      # `!cancelled()` and not success: a run that failed after storing rows
+      # still holds the only local record of them.
+      - name: Commit the database
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+
+          cp data/talent_intel.db "$RUNNER_TEMP/benchmark.db"
+          cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/benchmark.db" data/talent_intel.db
+            cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has this data."
+              exit 0
+            fi
+            git commit -q -m "data: benchmark diff $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) - merging onto the current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the database after 5 attempts. \
+          This run's records exist only on the runner and are lost."
+          exit 1

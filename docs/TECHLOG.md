@@ -177,6 +177,67 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-02 - the benchmark-diff loop ported from the sibling (DORMANT, weekly, secrets-only, names never in a log)
+
+The layoff tracker's tracker-diff tripwire, ported: an external reference list
+of employers, supplied ONLY through the `BENCHMARK_FEED_URLS` (JSON or CSV
+feeds) and `BENCHMARK_COMPANIES` (inline names) secrets, is diffed against our
+stored employers and the gap is chased to each employer's OWN press coverage
+and 8-K filings through the ordinary `run_collect` path. The reference is a
+discovery pointer, exactly as a model or an aggregator is: it is never cited,
+never stored, never named, and the stored source is always the publisher or
+the registry.
+
+What shipped, and the property each piece carries:
+
+- `run_benchmark_diff.py` - entry point. With neither secret set it prints ONE
+  line and exits 0: no database read, no network, no spend, no commit. The
+  repo carries zero benchmark data; the owner arming a secret is the only
+  activation, and nobody asks the owner to add one. Armed, it prints the
+  RECALL line (held/listed as a percent, counts only), emails the missing
+  names to the owner through the keyed `/alert` route ONLY when recall is
+  below `BENCHMARK_RECALL_ALERT_PCT` (default 90), and chases a rotating
+  slice (`BENCHMARK_DIFF_MAX`, default 40, cursored on the calendar date) so
+  the whole backlog is walked across weeks.
+- `collectors/benchmark_chase.py` - the chase, registered in
+  `run_collect.SOURCES` so every guard applies once: prefilter, gate,
+  precheck, both dedup layers, validate, store. Per lead: one targeted Google
+  News query built from the NAME and nothing else, and one SEC full-text
+  search kept only when the employer itself FILED the hit (a filing that
+  merely mentions a name is not evidence about that name). The other
+  structured registries are population-based feeds with no per-company query
+  path, so their ordinary runs are the chase there.
+- PRIVACY, stricter than the tripwire chase beside it: logs carry counts and
+  slice indices only, never a name and never a feed URL. The collector's own
+  narration is written that way; `run_collect`'s narration (REJECT/STORE
+  lines carry headlines, and a chased headline names a list member) is
+  captured and only the count-shaped lines re-emitted; and the gate-label
+  ledger is switched off for the run (`TIT_GATE_LEDGER=off`) because labels
+  are committed and a chased-but-unverified employer's headline is list
+  membership in a public place. All three are pinned in
+  `tests/test_benchmark_diff.py`.
+- WRITER DISCIPLINE: `benchmark-diff.yml` sits in the `talent-collect` lock,
+  carries no cron of its own, and is scheduled weekly (Tue 07:50 UTC) as a
+  ticket from `schedule-link-hygiene.yml`, drained by `drain-writers.yml`
+  like every other writer. Its commit step is the standard save / reset /
+  `merge_db.py` / push ladder. `dry_run` defaults true on a bare dispatch.
+- SPEND: `spend.py --degrade` runs first; `TIT_PAID_READS=off` defers every
+  paid call; `TIT_READTHROUGH_CAP=25` bounds the run's reads explicitly
+  (~$0.03 worst case at the measured $0.00128/read); the free diff, the free
+  searches and both dedup layers run regardless. $0 while dormant, cents when
+  armed.
+- Sources page: `benchmark_chase` joins `_NOT_SOURCES` (with the reason) and
+  `_DORMANT_COLLECTORS`, so the health row it files once armed never renders
+  as a source of documents. Staleness leash 384h (weekly plus queue wait),
+  inert while dormant because a dormant run files no health row.
+
+Deliberately NOT ported from the sibling: the weaning machine (independent
+recall, earned cadence, learn-from-wins outlet suggestions, vocab-miss
+emails). This starts as the sibling's loop started - a plain tripwire - and
+earns those parts when an armed month shows the dependence they measure.
+
+Suite after the port: 3,004 offline tests passing, 25 of them new.
+
 ## 2026-08-02 — the owner's shared design adopted: signal board, editorial hero, freshness panel, coverage ribbon, ochre-for-money (1.66.0, pushed, NOT deployed)
 
 The owner's design artifact ("Talent Intelligence Tracker.dc.html"), adopted per

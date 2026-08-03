@@ -40,8 +40,11 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 # snapshot to the live rows, and it had no schedule of its own, so an
 # archiver running eight times a day filled the local ledger while every
 # reader went on seeing the publisher's link alone.
+# benchmark-diff.yml joined on 2026-08-02, the day it was built: a database
+# writer when armed, dormant (one line, exit 0) until a BENCHMARK_* secret
+# exists, and scheduled weekly through the same ticket path either way.
 WRITERS = ("archive-sources.yml", "link-check.yml", "tripwire.yml",
-           "enrich.yml")
+           "enrich.yml", "benchmark-diff.yml")
 SCHEDULER = "schedule-link-hygiene.yml"
 
 

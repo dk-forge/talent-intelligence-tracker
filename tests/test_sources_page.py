@@ -40,6 +40,15 @@ _NOT_SOURCES = {
     # Crunchbase and Google News off this page. It first appeared here on
     # 2026-08-02, when the first non-dry run filed its first health row.
     "tripwire": "asks a model where to look; stores nothing itself",
+    # The benchmark-diff chase (collectors/benchmark_chase.py, dormant until a
+    # BENCHMARK_* secret is armed). An external reference list is a discovery
+    # pointer exactly as a model or an aggregator is: it points at an
+    # employer, the chase finds that employer's OWN article or filing, and the
+    # stored source is the publisher or the registry. The pointer is never
+    # cited, so it must never be named on this page, and the health row it
+    # files once armed is bookkeeping about a chase, not a source of
+    # documents.
+    "benchmark_chase": "chases a reference-list diff; rows cite the publisher",
 }
 
 
@@ -92,7 +101,9 @@ def test_live_sources_are_only_the_ones_with_collectors():
 
 # Shipped dormant on purpose, so it must NOT appear as a live source until a
 # run has actually stored from it. See CLAUDE.md on the dormant-source pattern.
-_DORMANT_COLLECTORS = {"tripwire_chase"}
+# benchmark_chase is doubly excused: dormant here, and in _NOT_SOURCES above
+# because even armed it is a pointer-chaser whose rows cite the publisher.
+_DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase"}
 
 
 def _registered_collector_keys():

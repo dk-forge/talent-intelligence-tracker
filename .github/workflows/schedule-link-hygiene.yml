@@ -119,6 +119,11 @@ on:
     - cron: '30 5 * * *'    # daily: a rot sweep, before the 13:00 Monday digest
     - cron: '40 9 * * *'    # daily: carry the new snapshots to the live rows
     - cron: '0 7 * * 1,4'   # Mon+Thu: ask an outside view what we are missing
+    # Weekly benchmark diff (Tuesdays). DORMANT until the owner arms a
+    # BENCHMARK_* secret: an unarmed run is one printed line and exit 0, so
+    # this slot costs nothing while the secrets are absent, which is the
+    # designed state. It is a tripwire, not a collector, hence weekly.
+    - cron: '50 7 * * 2'    # Tue: diff the benchmark list, chase the gap
 
   workflow_dispatch:
     inputs:
@@ -131,6 +136,7 @@ on:
           - link-check
           - enrich
           - tripwire
+          - benchmark
         default: both
 
 permissions:
@@ -172,6 +178,7 @@ jobs:
               '30 5 * * *')   WANT='link-check.yml' ;;
               '40 9 * * *')   WANT='enrich.yml' ;;
               '0 7 * * 1,4')  WANT='tripwire.yml' ;;
+              '50 7 * * 2')   WANT='benchmark-diff.yml' ;;
               *)
                 echo "::error::schedule slot '$SLOT' has no mapping in this"
                 echo "::error::workflow. A cron was changed above and this step"
@@ -185,10 +192,11 @@ jobs:
               link-check) WANT='link-check.yml' ;;
               enrich)     WANT='enrich.yml' ;;
               tripwire)   WANT='tripwire.yml' ;;
+              benchmark)  WANT='benchmark-diff.yml' ;;
               # 'both' predates the tripwire and still means the two free
               # link-hygiene passes. It deliberately does NOT include the
-              # tripwire: that one spends, and a hand dispatch of "both"
-              # should never quietly become a hand dispatch of "and bill me".
+              # tripwire or the benchmark diff: those can spend, and a hand
+              # dispatch of "both" should never quietly become "and bill me".
               both)       WANT='archive-sources.yml link-check.yml' ;;
               *) echo "::error::unknown job '${JOB:-}'"; exit 1 ;;
             esac
