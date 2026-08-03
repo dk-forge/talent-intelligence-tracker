@@ -1,10 +1,10 @@
 {
   "entries": [
     {
-      "attempts": 15,
+      "attempts": 16,
       "key": "ci-noise:2026-W32",
       "kind": "alert",
-      "last_attempt_at": "2026-08-03T23:26:39+00:00",
+      "last_attempt_at": "2026-08-03T23:55:01+00:00",
       "last_error": "HTTP 400 from /alert: {\"code\":\"tit_bad_body\",\"message\":\"bad dedupe_key\",\"data\":{\"status\":400}}",
       "payload": {
         "body": "Last 7 days in dk-forge/talent-intelligence-tracker: 398 completed runs, 6 failed across 5 cause(s), 1 repeat red(s), 0 zero-job eviction(s).\n\nA repeat red is a run that went red for a cause an earlier run\nalready reported. The first red of each cause is signal, was\nalready emailed once by the CI alerter, and is not counted here.\n\n  drain-writers: 2 run(s) \u2014 1 repeat red(s)\n      cause: reconcile step above, or run: python writer_queue.py status\n  collect national press: 1 run(s) \u2014 reported once, correctly\n      cause: filtered Omusati father arrested after son\u2019s fatal stabbing (no employment, site or work-policy term)\n  backfill-gdelt-2026: 1 run(s) \u2014 reported once, correctly\n      cause: [backfill-gdelt-<N>.yml] gate labels: <N> decision(s) recorded for the classifier training set (data/gate_labels/)\n  tripwire: 1 run(s) \u2014 reported once, correctly\n      cause: STOPPING: spend ceiling reached. Collection will not run.\n  collect: 1 run(s) \u2014 reported once, correctly\n      cause: ##[endgroup]\n\nNoise means a structural fix regressed or is missing; the fix\nis never to silence the run. See drain-writers red-once and\nthe schedule-eviction auto-resolve in writer_queue.py.",
@@ -17,6 +17,6 @@
       "state": "pending"
     }
   ],
-  "updated_at": "2026-08-03T23:26:39+00:00",
+  "updated_at": "2026-08-03T23:55:01+00:00",
   "version": 1
 }
