@@ -177,6 +177,64 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-02 — the owner's shared design adopted: signal board, editorial hero, freshness panel, coverage ribbon, ochre-for-money (1.66.0, pushed, NOT deployed)
+
+The owner's design artifact ("Talent Intelligence Tracker.dc.html"), adopted per
+the audience spec's ADDENDUM: the board and hero REPLACE prose, they do not add
+to it. The owner's words: "So much text and so many areas - we need colored
+narratives." Measured above-the-fold word counts (local render harness, fixture
+data): desktop 1280x800 **333 -> 275**, mobile 375x812 **126 -> 124**. Byte
+budget headroom widened too: 177,466 -> 175,187 against the 178,000 ceiling.
+
+1. **THE SIGNAL BOARD replaces the dated strip's four text lines.** One
+   container (`#tit-board`): head (derived date + "less [][][] more" heat
+   legend + Copy as Post), the existing signal-by-period matrix, ONE footnote
+   line (rows overlap; Total Raised points at `#tit-usd-note`). The old
+   two-line lede + "Full notes" disclosure is gone; the strip's per-bucket
+   employer/verified/largest-raise scan columns went with it
+   (`tit_glance_matrix` slimmed, still one statement, still 14 queries cold).
+   Copy as Post now reads the matrix rows (each cell's `.tit-cell-p` period is
+   real text) plus the freshness figures and the chips, so it still can never
+   hand somebody a figure the page is not showing. The week column header
+   carries the derived "(Jul 28-Aug 3)" span the owner asked for on the strip,
+   so week-exceeds-month still reads as the calendar fact it is. The
+   week-over-week percentage and its young-corpus suppression went with the
+   strip: the board prints counts, never a derived comparison.
+2. **EDITORIAL HERO**: serif display thesis ("Know who's hiring before the job
+   ad appears."), ONE subhead sentence carrying the trust claim, exactly two
+   actions: "Search N updates" (focuses `#tit-f-company`, count repainted per
+   view) and "How this is built" (`#tit-trust`).
+3. **FRESHNESS PANEL top-right** absorbs the Live pill, Roo (whose next-run
+   line drops its redundant relative half), the promise line, and the old
+   "Everything We Hold" figures as four big stats (updates / employers /
+   $ raised in ochre / official filings). `tit_fresh_stats_html()` +
+   `freshStatsHtml()` are the mirrored pair; repaints per view like the fine
+   print it replaces.
+4. **COVERAGE RIBBON**: one `tit-hero-links` line under the hero — derived
+   date span (`#tit-span`, period dropped from `tit_span_note`) + derived
+   country count (`#tit-ribbon-c`, repainted) + Every source / What we miss,
+   measured / Corrections / places directory / sibling link. The old
+   employer-name sentence died; the places link survives (it is the crawl
+   path to those routes).
+5. **PALETTE**: ground goes warm paper (#faf9f6), ink goes navy (#1b2130),
+   and OCHRE (#b07c00 / text #7a5800) becomes the money hue everywhere the
+   violet was (matrix money row heat + figures, money cards, section tick).
+   Heat cells are ONE muted blue (28,92,171) scaled within each row; the
+   per-signal hues survive as the left-edge ticks (`--tick-rgb`) so a row is
+   still decodable at a glance. Rule fixed in the tokens comment: money wins
+   on figures, blue wins on controls (a selected money cell goes blue).
+
+`/aggregate` no longer returns `glance.dated` (dashboard.js was its only
+consumer); `datedHtml`, `syncDated`, `collapseMatrixNoteOnPhone` and the dgBox
+handlers are deleted with their markup. Click contract intact: every cell still
+round-trips filter+period through the same inputs/URL state, Reset All clears
+it, and the harness now asserts the board's total-row cells against the
+database per window. Verified in a real browser at 375px (stacked rows, zero
+horizontal overflow) and 1280px. All seven PHP harnesses and the full offline
+suite (2,974 + 202 subtests) green.
+
+---
+
 ## 2026-08-02 — the audience-spec pass: zones, question headings, one caveat one home, and the trend joins the click contract (1.65.0, pushed, NOT deployed)
 
 Implements the talent half of the evidence-based audience display spec (both

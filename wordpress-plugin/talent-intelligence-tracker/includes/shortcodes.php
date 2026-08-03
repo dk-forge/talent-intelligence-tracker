@@ -657,22 +657,83 @@ function tit_dashboard_html() {
             thirty seconds, and everything visible has to survive a check.
           */
           ?>
+          <?php
+          /*
+            THE EDITORIAL HERO (the owner's shared design, adopted 2026-08-02).
+            Serif thesis headline, ONE subhead sentence carrying the trust
+            claim, exactly two actions: search the updates, or read how the
+            thing is built. The prose this replaces (the undated figure lump
+            and its two fine-print lines) is not deleted, it is re-homed as
+            FIGURES: the freshness panel on the right holds the four totals,
+            the coverage ribbon below holds the date span and country count.
+            Net words on the first screen go DOWN, which was the owner's ask
+            ("so much text and so many areas - we need colored narratives").
+          */
+          ?>
           <div class="tit-hero-head">
-            <h2>Know who's hiring before the job ad appears</h2>
-            <p class="tit-hero-sub">Every update links to the filing or report behind it</p>
+            <h2>Know who's hiring before the job ad appears.</h2>
+            <p class="tit-hero-sub">Every update links to the filing or report it
+              came from; nothing here is inferred, modelled or estimated.</p>
+            <div class="tit-hero-cta">
+              <?php /* A button, not a link: it focuses the employer search in
+                       the filter bar, which is state, not navigation. The
+                       count is computed and dashboard.js repaints it under
+                       the active filters, so it never promises a number the
+                       table is not showing. */ ?>
+              <button type="button" class="tit-cta tit-cta-search" id="tit-cta-search">Search
+                <span id="tit-cta-n"><?php echo esc_html(number_format_i18n($total)); ?></span>
+                updates</button>
+              <a class="tit-cta tit-cta-how" href="#tit-trust">How this is built</a>
+            </div>
           </div>
-          <?php /* The sibling's freshness shape: the absolute timestamp WITH
-                   its timezone is the primary fact ("Live · updated Jul 28,
-                   1:51 AM EDT"); the relative time and the next-run note live
-                   on Roo's quieter line below. */ ?>
-          <div class="tit-live"><span class="tit-live-dot"></span>
-            Live<?php if ($newest_run) : ?> · updated
-            <?php echo esc_html(tit_local_datetime($newest_run)); ?>
-            <?php endif; ?>
+          <?php
+          /*
+            THE FRESHNESS PANEL, top-right. It absorbs the old status line and
+            the old "Everything We Hold" figures: the Live pill (last
+            collection, absolute time with timezone), four figures, the
+            promise line, and Roo, whose line already derives the next run
+            from the real 06:00/18:00 UTC crons (tit_next_run). dashboard.js
+            repaints the figures under the active filters, the same contract
+            the old fine print had, so a filtered page never shows worldwide
+            totals in its own header.
+          */
+          ?>
+          <div class="tit-fresh">
+            <div class="tit-live"><span class="tit-live-dot"></span>
+              Live<?php if ($newest_run) : ?> · updated
+              <?php echo esc_html(tit_local_datetime($newest_run)); ?>
+              <?php endif; ?>
+            </div>
+            <div class="tit-fresh-stats" id="tit-fresh-stats"><?php
+              echo tit_fresh_stats_html($total, $companies, $money, $verified);
+            ?></div>
+            <span class="tit-fine-say">No figure appears unless its source states it.</span>
+            <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
           </div>
         </div>
 
-        <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
+        <?php
+        /*
+          THE COVERAGE RIBBON: one line under the hero. The date span and the
+          country count are DERIVED (tit_span_note reads the view's own MIN
+          and MAX dates; a typed date here is the corrections-page "$124.0bn"
+          mistake with a slower fuse), and the trust links live beside them.
+          The class stays .tit-hero-links because tests and styles key on it;
+          the places link stays because these routes are in no theme menu and
+          this line is how a crawler finds them.
+        */
+        ?>
+        <p class="tit-hero-links">
+          <span class="tit-ribbon-cov"><span id="tit-span"><?php
+            echo esc_html(tit_span_note($view_lo, $view_hi)); ?></span>
+            <span aria-hidden="true">·</span> <span id="tit-ribbon-c"><?php
+            echo esc_html(number_format_i18n($countries)); ?></span> countries</span>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/places/')); ?>">Every country, city and industry we cover</a>
+          · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
+        </p>
 
         <?php
         /*
@@ -755,115 +816,42 @@ function tit_dashboard_html() {
 
         <?php
         /*
-          THE DATED PANEL SITS ABOVE THE CROSS-TAB, and the two are the same
-          facts at two resolutions. The panel answers "what moved, and when",
-          which is the question somebody opens a tracker with; the matrix
-          answers "what kind, and is it accelerating", which is the question
-          they have once the first is answered. Week, month and year share their
-          boundaries with the matrix rows below, so a reader who checks one
-          against the other finds them equal.
+          THE SIGNAL BOARD (the owner's "colored narratives", 2026-08-02). It
+          REPLACES the dated daily strip's four text lines: the same facts,
+          one colored, readable, tappable matrix instead of four sentences.
+          The strip's header survives as the board's (the date, and Copy as
+          Post, which now copies the board's rows as clean text lines); the
+          matrix inside is the existing signal-by-period cross-tab, cells
+          heat-tinted within their own row, every cell a filter. The trend
+          chart still owns the shape BETWEEN the columns, as a card in the
+          chart grid below.
+
+          #tit-glance stays the repaint target dashboard.js rewrites under
+          the active filters; the head and legend around it are static, so
+          the Copy button is bound once and never lost to a repaint.
         */
         ?>
-        <div class="tit-dg-box" id="tit-dg-box">
-          <?php echo tit_dated_glance_html($glance['dated'] ?? array(), $money['coverage'] ?? null); ?>
+        <div class="tit-board" id="tit-board">
+          <div class="tit-board-head">
+            <h3 class="tit-board-title">Today, <?php echo esc_html(tit_board_date_label()); ?>
+              <span aria-hidden="true">·</span> Sourced Talent Signals Worldwide</h3>
+            <?php /* The heat scale, named. "less/more" is real text; the
+                     swatches are decoration over it, so a screen reader hears
+                     the words and nothing else. */ ?>
+            <span class="tit-board-legend">less<span class="tit-lg" style="--i:.14" aria-hidden="true"></span><span
+              class="tit-lg" style="--i:.4" aria-hidden="true"></span><span
+              class="tit-lg" style="--i:.7" aria-hidden="true"></span><span
+              class="tit-lg" style="--i:1" aria-hidden="true"></span>more</span>
+            <?php /* Rendered hidden; dashboard.js reveals it. Its entire
+                     function is navigator.clipboard, so with no JavaScript it
+                     would be a control that visibly does nothing. */ ?>
+            <button type="button" class="tit-dg-copy" id="tit-dg-copy" hidden>Copy as Post</button>
+          </div>
+          <div class="tit-glance" id="tit-glance">
+            <?php echo tit_glance_matrix_html($glance); ?>
+          </div>
         </div>
 
-        <?php
-        /*
-          THE TREND USED TO LEAD THE MATRIX FROM HERE, full width, above
-          everything. It is a card in the chart grid now, after the country
-          card, at the owner's ask. The division of labour it was written for
-          is unchanged and is the reason it is still on the page at all: the
-          matrix answers "how many, of what kind, in which period" and every
-          cell of it is a control, while the one thing it genuinely cannot
-          answer is the shape BETWEEN its columns, which is what a reader means
-          by "accelerating". What changed is only how much of the first screen
-          that argument is allowed to take.
-        */
-        ?>
-        <div class="tit-glance" id="tit-glance">
-          <?php echo tit_glance_matrix_html($glance); ?>
-        </div>
-        <?php $span_note = tit_span_note($view_lo, $view_hi); ?>
-        <?php if ($span_note) : ?>
-          <p class="tit-span" id="tit-span"><?php echo esc_html($span_note); ?></p>
-        <?php endif; ?>
-
-        <p class="tit-hero-fine">
-          <?php
-          /*
-            THE WIDEST RUNG OF THE SAME LADDER, and it is labelled now.
-
-            This line is the old undated lump. It was not deleted, because it
-            answers a real question — how much is in here altogether — and the
-            meta description is built from the same three figures. What was
-            wrong is that it answered that question in the position where a
-            reader expects "what has moved", with nothing saying which of the
-            two it was. Labelled and placed under the dated rows it is the
-            bottom rung: today, this week, this month, this year, everything.
-
-            The label is OUTSIDE .tit-fine-figures on purpose. dashboard.js
-            rewrites that span's innerHTML on every filter change, so a label
-            inside it would survive exactly until the reader touched a control.
-          */
-          ?>
-          <span class="tit-dg-label tit-dg-label-static">Everything We Hold</span>
-          <span class="tit-fine-figures"><?php
-            /* Money sits WITH the other headline figures, not trailing after
-               the sentence. It is still a link, because it is a sum of dollars
-               among counts and only honest beside the coverage line the money
-               section prints; both read the same aggregate, so the figure and
-               its caveat cannot drift apart. */
-            $bits = array(
-                esc_html(sprintf(_n('%s update', '%s updates', $total, 'tit'), number_format_i18n($total))),
-                esc_html(sprintf(_n('%s employer', '%s employers', $companies, 'tit'), number_format_i18n($companies))),
-                esc_html(sprintf(_n('%s country', '%s countries', $countries, 'tit'), number_format_i18n($countries))),
-            );
-            if ($money['total'] > 0) {
-                $bits[] = sprintf(
-                    '<a class="tit-fine-money" href="#chart-money-country" title="%s">%s raised</a>',
-                    esc_attr(tit_money_full($money['total']) . '. '
-                             . tit_money_coverage_sentence($money['coverage'])),
-                    esc_html(tit_money_short($money['total']))
-                );
-            }
-            $bits[] = esc_html(number_format_i18n($verified)) . ' from official filings';
-            echo implode(' · ', $bits);
-          ?></span>
-          <?php /* Two beats, not one run-on line: the figures, then the promise.
-                   They were competing, and the promise is the more important of
-                   the two. The links move to a line of their own for the same
-                   reason: three different jobs in one paragraph means none of
-                   them lands. */ ?>
-          <?php /* The linking half of this promise is now the hero sub-line
-                   directly above, so saying it twice on one screen would make
-                   both readings weaker. What is left is the half the hero does
-                   not carry. */ ?>
-          <span class="tit-fine-say">No figure appears unless its source states it.</span>
-        </p>
-        <p class="tit-hero-links">
-          <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
-          <?php /* NAMES THE THING, NOT THE POSITION. This read "Every employer
-                   name below links to..." until the charts moved between this
-                   line and the updates, which put two sections between "below"
-                   and what it meant. A pointer written as a direction is a
-                   pointer the next reorder breaks silently; a pointer written
-                   as a name is not. Same edit made to every other one on this
-                   page in 1.63.0. */ ?>
-          · Every employer name in the updates links to that employer's own page
-          <?php /* The misses belong next to the sources, not buried in a
-                   methodology footnote. A tracker that publishes what it fails
-                   to catch is making a checkable claim; one that only lists its
-                   sources is not. */ ?>
-          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
-          <?php /* The place pages are reachable from here and from each other,
-                   and from nowhere else: these routes are in no theme menu, and
-                   a set of pages a crawler can only find through a sitemap gets
-                   crawled slowly and trusted less. One link, in the fine print,
-                   next to the other two pages that exist to be checked. */ ?>
-          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/places/')); ?>">Every country, city and industry we cover</a>
-          · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
-        </p>
       </div>
 
       <?php
@@ -2269,120 +2257,16 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
         }
     }
     /*
-      THE DATED GLANCE PANEL RIDES ON THIS SAME SCAN, and that is a correctness
-      decision before it is a budget one.
-
-      The panel and the matrix describe the SAME four windows over the SAME
-      rows. Computed separately they could disagree — a panel saying "this week,
-      1,204 updates" above a matrix cell saying 1,198 for the same week is the
-      exact failure the hero figures were consolidated to prevent, and it is
-      invisible until a reader adds them up. Sharing one statement makes
-      disagreement impossible rather than unlikely.
-
-      It is also what keeps TIT_DASH_QUERY_BUDGET at 12. Four time buckets are
-      four SETS OF COLUMNS here, never four round trips; the N+1 tripwire in
-      tests/php/render_dashboard.php re-checks the count after five thousand more
-      rows land, so a future session that gives one bucket its own query fails
-      there rather than on the live site under a crawl.
-
-      THE BUCKETS ARE NOT THE MATRIX'S. The matrix runs week / month / quarter /
-      YTD; the panel runs today / week / month / year, which is the ladder a
-      reader reads down. Week, month and year share their boundary expressions
-      with the matrix, so those three rows equal the matrix's own "Everything in
-      This View" cells exactly.
-
-      TODAY IS COMPUTED AND USUALLY ABSENT, deliberately. This tracker measured
-      it once already: every row carries the SOURCE's reporting date rather than
-      our capture time, and collection runs twice a day, so "today" reads zero
-      for most of most days. A permanent zero row does not report a quiet day, it
-      teaches a reader the tracker is dead — which is why the matrix has no Today
-      column at all. The panel computes it and prints the row ONLY when it holds
-      something, so it is the freshest line on the page on a day with news and
-      simply is not there on a day without.
+      THE QUERY BUDGET RULE SURVIVES THE DATED PANEL IT WAS WRITTEN FOR. The
+      four time buckets are four SETS OF COLUMNS in this one statement, never
+      four round trips; the N+1 tripwire in tests/php/render_dashboard.php
+      re-checks TIT_DASH_QUERY_BUDGET after five thousand more rows land, so a
+      future session that gives one bucket its own query fails there rather
+      than on the live site under a crawl. The dated strip this scan also fed
+      was replaced by the signal board on 2026-08-02 (the owner's shared
+      design): its per-bucket employer/verified/largest-raise columns went
+      with it, and the board reads the matrix cells alone.
     */
-    $dg_year   = date('Y', strtotime($today));
-    $dg_week   = date('Y-m-d', strtotime($today . ' -6 days'));
-    $dg_prev   = date('Y-m-d', strtotime($today . ' -13 days'));
-    $dg_periods = array(
-        array('today', 'Today',                 $today),
-        array('week',  'This week',             $dg_week),
-        array('month', 'This month',            date('Y-m-01', strtotime($today))),
-        // The year label is DERIVED, so this becomes "2027 so far" on 1 January
-        // without anybody remembering to change it. corrections.php once shipped
-        // a typed "$124.0bn" labelled "measured now"; a typed year is the same
-        // mistake with a slower fuse.
-        array('year',  $dg_year . ' so far',    date('Y-01-01', strtotime($today))),
-    );
-
-    foreach ($dg_periods as $gi => $g) {
-        $select[] = "SUM({$date_expr} >= %s) AS g_n_{$gi}";
-        $select_params[] = $g[2];
-        $select[] = "COUNT(DISTINCT CASE WHEN {$date_expr} >= %s THEN company_key END) AS g_e_{$gi}";
-        $select_params[] = $g[2];
-        $select[] = "SUM(confidence = 'verified' AND {$date_expr} >= %s) AS g_v_{$gi}";
-        $select_params[] = $g[2];
-        $select[] = "COALESCE(SUM(CASE WHEN {$date_expr} >= %s THEN funding_amount_usd END), 0) AS g_m_{$gi}";
-        $select_params[] = $g[2];
-    }
-
-    /*
-      THE LARGEST RAISE IN EACH WINDOW, as two scalar subqueries per bucket.
-
-      An aggregate can return the largest AMOUNT in one expression; it cannot
-      return the employer that raised it, and SQL has no portable argmax. The
-      tricks that fake one (bare columns beside MAX(), packing the amount and the
-      name into a sortable string) are engine-specific: SQLite defines the first,
-      MySQL does not, and the string form needs a different concat operator in
-      each. This harness runs SQLite and production runs MySQL, so anything that
-      behaves differently between them is a bug that ships green.
-
-      Scalar subqueries are standard in both, they are constant with respect to
-      the outer aggregate, and they stay inside ONE statement. The same shape the
-      top-cities strip above already uses, for the same reason. Each one is
-      narrowed to `funding_amount_usd IS NOT NULL`, which on the live table is a
-      small minority of rows.
-
-      row_id ASC breaks a tie deterministically. Two rounds of the same size
-      would otherwise be resolved by whichever the engine reached first, and
-      MySQL and SQLite need not agree — the same defect the city flags had.
-    */
-    foreach ($dg_periods as $gi => $g) {
-        // `country` rides along as a third scalar subquery over the SAME
-        // ordering, because "largest: <name> ($8.6B)" leaves a reader guessing
-        // where. It is the row's own job-location country, never hq_country
-        // and never a lookup: a raise whose source named no place prints no
-        // place. The three subqueries share one ORDER BY, so they cannot
-        // describe three different rows.
-        foreach (array('company' => "g_lc_{$gi}", 'funding_amount_usd' => "g_la_{$gi}",
-                       'country' => "g_lk_{$gi}") as $col => $alias) {
-            $select[] = "(SELECT {$col} FROM {$table} WHERE {$where}"
-                      . " AND funding_amount_usd IS NOT NULL AND {$date_expr} >= %s"
-                      . " ORDER BY funding_amount_usd DESC, row_id ASC LIMIT 1) AS {$alias}";
-            // Placeholder order inside the subquery is the WHERE clause's own
-            // params first, then this bucket's start date. Getting this pair the
-            // wrong way round binds a date into a country clause and the whole
-            // panel silently reads zero, so it is built in emission order rather
-            // than assembled at the end.
-            $select_params = array_merge($select_params, $params);
-            $select_params[] = $g[2];
-        }
-    }
-
-    /*
-      THE WEEK BEFORE, AND HOW FAR BACK THIS VIEW ACTUALLY GOES.
-
-      Both exist to decide whether a week-over-week comparison may be printed at
-      all. See tit_dated_glance_html(): the news collectors here first ran on
-      27 July 2026, so a comparison drawn today would divide a populated week by
-      an almost empty one and print a percentage in the thousands. g_lo is the
-      earliest date IN THIS VIEW rather than in the table, so the rule holds
-      under a filter that narrows to a young collector too.
-    */
-    $select[] = "SUM({$date_expr} >= %s AND {$date_expr} < %s) AS g_prev_n";
-    $select_params[] = $dg_prev;
-    $select_params[] = $dg_week;
-    $select[] = "MIN({$date_expr}) AS g_lo";
-
     // SELECT placeholders precede WHERE placeholders in statement order, so
     // the select params go first.
     $sql = 'SELECT ' . implode(', ', $select) . " FROM {$table} WHERE {$where}";
@@ -2401,47 +2285,21 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
                         'kind' => $d[4], 'cells' => $cells);
     }
 
-    $dated = array('rows' => array(), 'prev_n' => (int) ($row['g_prev_n'] ?? 0),
-                   'week_start' => $dg_week, 'prev_start' => $dg_prev,
-                   'history_lo' => (string) ($row['g_lo'] ?? ''),
-                   'today' => $today,
-                   // Formatted server-side and carried, so the panel's heading
-                   // says the same date whether the server or dashboard.js
-                   // painted it. Formatting it again in the browser would read
-                   // the READER's clock, and a reader in Auckland would be shown
-                   // a heading a day ahead of the buckets underneath it.
-                   'today_label' => date_i18n('M j', strtotime($today . ' 00:00:00 UTC')));
-    foreach ($dg_periods as $gi => $g) {
-        $dated['rows'][] = array(
-            'key'    => $g[0],
-            'label'  => $g[1],
-            'since'  => $g[2],
-            'n'      => (int) ($row["g_n_{$gi}"] ?? 0),
-            'e'      => (int) ($row["g_e_{$gi}"] ?? 0),
-            'v'      => (int) ($row["g_v_{$gi}"] ?? 0),
-            'money'  => (float) ($row["g_m_{$gi}"] ?? 0),
-            'top'    => (string) ($row["g_lc_{$gi}"] ?? ''),
-            'top_usd' => (float) ($row["g_la_{$gi}"] ?? 0),
-            'top_country' => (string) ($row["g_lk_{$gi}"] ?? ''),
-            // The week's own dates, printed beside its label. Early in a month
-            // the week bucket can legitimately exceed the month bucket (the
-            // week reaches back into the previous month), and without the
-            // dates that CORRECT pair of figures reads as a bug. Derived from
-            // the same boundaries the SQL just counted under and formatted
-            // server-side, so every paint says the same thing. Week only: the
-            // other buckets' labels already state their span.
-            'range_label' => ($g[0] === 'week')
-                ? date_i18n('M j', strtotime($g[2] . ' 00:00:00 UTC')) . '-'
-                  . date_i18n('M j', strtotime($today . ' 00:00:00 UTC'))
-                : '',
-        );
-    }
-
     return array(
         'periods' => array_column($periods, 0),
         'starts'  => array_column($periods, 1),
         'rows'    => $rows,
-        'dated'   => $dated,
+        /*
+          The week's own dates ride along for the column header. Early in a
+          month the week column can legitimately exceed the month column (the
+          week reaches back into the previous month), and without the dates
+          that CORRECT pair of figures reads as a bug -- the owner asked for
+          this on the strip (2026-08-02) and the board keeps it. Derived from
+          the same boundary the SQL counted under, formatted server-side so
+          every paint says the same thing.
+        */
+        'week_range' => date_i18n('M j', strtotime($periods[0][1] . ' 00:00:00 UTC'))
+                      . '-' . date_i18n('M j', strtotime($today . ' 00:00:00 UTC')),
     );
 }
 
@@ -3016,171 +2874,40 @@ function tit_trend_svg(array $trend) {
 }
 
 /**
- * THE DATED GLANCE PANEL: what happened today, this week, this month, this year.
- *
- * The hero used to open with one undated lump — "12,566 updates · 5,542
- * employers · 51 countries · $101B raised · 7,573 from official filings" — which
- * answers "how big is this dataset" and never answers "what has moved". A reader
- * arriving at a tracker wants the second question, and every figure in that line
- * is as true in March as it is today, so nothing on the first screen told anyone
- * whether the thing was still running.
- *
- * The shape is the sibling AI Layoff Tracker's, and the FACTS ARE NOT. Layoffs
- * are not collected here — they are read from the sibling's public API at render
- * time, one source of truth per fact — so "workers" and "verified layoffs" have
- * no meaning on this page. The equivalents are what this tracker actually holds:
- * updates, the employers behind them, dollars raised, and how many came straight
- * from an official filing. "Largest" is the largest single raise, which is the
- * only superlative this dataset can support without inventing a ranking.
- *
- * NO FIGURE HERE IS TYPED. Every number comes off tit_glance_matrix()'s single
- * scan, the year label is derived from the current date, and the money row
- * carries the same coverage sentence the money charts do. corrections.php once
- * shipped a hardcoded "$124.0bn" under the caption "Measured now" while the live
- * figure was $101B; a panel of headline numbers is the worst possible place to
- * repeat that.
+ * The board's date, in the header of the signal board. Derived from the same
+ * clock the matrix buckets use (current_time), formatted at UTC midnight so a
+ * reader in Auckland is not shown a heading a day ahead of the cells under it.
  */
-function tit_dated_glance_html(array $dated, $coverage = null) {
-    $rows = $dated['rows'] ?? array();
-    if (!$rows) return '';
+function tit_board_date_label() {
+    return date_i18n('M j', strtotime(current_time('Y-m-d') . ' 00:00:00 UTC'));
+}
 
-    /*
-      THE WEEK-OVER-WEEK COMPARISON, AND WHY IT IS USUALLY ABSENT.
-
-      The sibling prints "down 25% vs the week before" because it holds years.
-      This tracker's news collectors first ran on 2026-07-27 and national_press
-      on 2026-07-29, so the week before the current one is not a quiet week — it
-      is a week that mostly predates the collector. Dividing by it yields
-      something like "up 4,000%", which is not an exaggeration of a real change;
-      it is an artefact of the corpus start date wearing a statistic's clothes,
-      and it would be the single most quotable number on the page.
-
-      The rule is therefore about HISTORY and not about size: the comparison is
-      printed only when this view holds data from on or before the start of the
-      period being compared against. That is measured per view, so it also holds
-      when a filter narrows the page to a collector younger than the tracker, and
-      it turns itself on — with no code change and no deploy — on the first day
-      the corpus genuinely spans both weeks.
-
-      When it is absent the panel SAYS SO in a few words. Silently omitting it
-      would leave a reader unable to tell "flat" from "we cannot say yet", and
-      the second is the honest answer.
-    */
-    $lo   = (string) ($dated['history_lo'] ?? '');
-    $prev = (int) ($dated['prev_n'] ?? 0);
-    $prev_start = (string) ($dated['prev_start'] ?? '');
-    $have_history = ($lo !== '' && $prev_start !== '' && $lo <= $prev_start);
-
-    ob_start(); ?>
-    <div class="tit-dg" id="tit-dg">
-      <div class="tit-dg-head">
-        <?php /* The date is the panel's subject, so it leads. Computed from the
-                 same clock the buckets are, or the heading could name a day the
-                 rows below it do not describe. */ ?>
-        <h3 class="tit-dg-title">Today, <?php
-          echo esc_html((string) ($dated['today_label'] ?? ''));
-        ?> <span aria-hidden="true">·</span> Sourced Talent Signals Worldwide</h3>
-        <?php
-        /*
-          COPY AS POST, and it copies WHAT IS ON SCREEN.
-
-          The sibling's version of this button is scoped only by the region tab
-          and ignores every other filter, so a reader who had narrowed the page
-          to one country could copy a worldwide total under it. That is a
-          figure-out-of-context bug with our own byline on it, and it is the one
-          reason this button was nearly not built at all.
-
-          It is honest here because it reads the rendered rows out of the DOM at
-          click time rather than rebuilding them from an unfiltered aggregate,
-          and because this panel repaints from /aggregate under the active
-          filters like every other figure on the page. It also appends the active
-          filters by name and a link back, so a pasted summary carries the view
-          it describes. See the handler in dashboard.js.
-
-          Rendered with `hidden`, and dashboard.js removes that. A button whose
-          whole function is navigator.clipboard is a dead control with no
-          JavaScript, and a dead control is worse than an absent one.
-        */
-        ?>
-        <button type="button" class="tit-dg-copy" id="tit-dg-copy" hidden>Copy as Post</button>
-      </div>
-      <?php foreach ($rows as $r) :
-        // TODAY IS PRINTED ONLY WHEN IT HOLDS SOMETHING. See the note in
-        // tit_glance_matrix(): a row that reads zero for most of most days
-        // teaches a reader the tracker is dead rather than that the day is quiet.
-        if ($r['key'] === 'today' && (int) $r['n'] === 0) continue;
-        $bits = array();
-        $bits[] = '<b>' . esc_html(number_format_i18n((int) $r['n'])) . '</b> '
-                . esc_html($r['n'] == 1 ? 'update' : 'updates');
-        if ((int) $r['e'] > 0) {
-            $bits[] = '<b>' . esc_html(number_format_i18n((int) $r['e'])) . '</b> '
-                    . esc_html($r['e'] == 1 ? 'employer' : 'employers');
-        }
-        if ((float) $r['money'] > 0) {
-            $bits[] = '<b>' . esc_html(tit_money_short($r['money'])) . '</b> raised';
-        }
-        if ((int) $r['v'] > 0) {
-            $bits[] = '<b>' . esc_html(number_format_i18n((int) $r['v'])) . '</b> from official filings';
-        }
-        // The largest raise names its employer, because "largest: $8.6B" with no
-        // name is a number a reader cannot check and this page's whole promise
-        // is that they can. The country beside the amount is the ROW'S OWN
-        // country field — never hq_country, never a lookup — and is simply
-        // absent when the source named no place.
-        if ($r['top'] !== '' && (float) $r['top_usd'] > 0) {
-            $where_top = ($r['top_country'] ?? '') !== ''
-                ? ' <span aria-hidden="true">·</span> ' . esc_html(tit_country_name($r['top_country']))
-                : '';
-            $bits[] = 'largest: <b>' . esc_html($r['top']) . '</b> ('
-                    . esc_html(tit_money_short($r['top_usd'])) . $where_top . ')';
-        }
-        $note = '';
-        if ($r['key'] === 'week') {
-            if ($have_history && $prev > 0 && (int) $r['n'] > 0) {
-                $delta = (int) round(100 * ((int) $r['n'] - $prev) / $prev);
-                $note = ($delta >= 0 ? 'up ' : 'down ') . '<b>' . abs($delta)
-                      . '%</b> vs the week before';
-            } else {
-                // Named plainly, and the reason is the corpus rather than the
-                // week. A reader who is told "no comparison yet" learns nothing;
-                // one who is told we do not hold the earlier week can judge it.
-                $note = '<span class="tit-dg-nocmp">no week-on-week change yet: '
-                      . 'we do not hold a full week before this one</span>';
-            }
-        }
-        if ($note !== '') $bits[] = $note;
-        ?>
-        <div class="tit-dg-row" data-dg="<?php echo esc_attr($r['key']); ?>">
-          <?php /* A period label is a filter this page can apply, so it is a
-                   button and not a caption. data-since is the same attribute the
-                   matrix cells carry, so one handler drives both. */ ?>
-          <button type="button" class="tit-dg-label" data-since="<?php echo esc_attr($r['since']); ?>"
-                  aria-pressed="false"><?php echo esc_html($r['label']);
-              // The week's dates, so "this week $39.7B, this month $735M" on
-              // the 2nd of a month reads as the calendar fact it is (the week
-              // reaches into the previous month) rather than as a bug. Derived
-              // in tit_glance_matrix from the same boundary the count used.
-              if (($r['range_label'] ?? '') !== '') {
-                  echo ' <span class="tit-dg-range">(' . esc_html($r['range_label']) . ')</span>';
-              }
-          ?></button>
-          <span class="tit-dg-body"><?php echo implode(' <span aria-hidden="true">·</span> ', $bits); ?></span>
-        </div>
-      <?php endforeach; ?>
-      <?php
-      // A dollar figure never travels alone, but the FULL coverage sentence
-      // has one home now (the About The Money Figures note over the money
-      // cards, #tit-usd-note). This line is the short pointer, and it is a
-      // pointer to something on the same page rather than a repeat of it.
-      // dashboard.js prints the identical string on every repaint.
-      if (is_array($coverage)) : ?>
-        <p class="tit-dg-cov">Raised figures sum USD-stated amounts only; the
-          note by the money charts says what share of funding updates that
-          covers.</p>
-      <?php endif; ?>
-    </div>
-    <?php
-    return ob_get_clean();
+/**
+ * The freshness panel's four figures: updates, employers, dollars raised,
+ * official filings. dashboard.js (freshStatsHtml) mirrors this markup and
+ * repaints it under the active filters, the same contract renderRow has with
+ * the table, so the panel never describes a set the page is not showing.
+ *
+ * The dollar figure keeps the old fine-print honesty: it is a link into the
+ * money section, and its title carries the exact figure plus the coverage
+ * sentence, so the sum never travels without its caveat.
+ */
+function tit_fresh_stats_html($total, $companies, array $money, $verified) {
+    $out  = '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($total)) . '</b>'
+          . '<span>' . esc_html($total == 1 ? 'update' : 'updates') . '</span></span>';
+    $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($companies)) . '</b>'
+          . '<span>' . esc_html($companies == 1 ? 'employer' : 'employers') . '</span></span>';
+    if (($money['total'] ?? 0) > 0) {
+        $out .= '<span class="tit-fstat tit-fstat-money"><a class="tit-fine-money" '
+              . 'href="#chart-money-country" title="'
+              . esc_attr(tit_money_full($money['total']) . '. '
+                         . tit_money_coverage_sentence($money['coverage'] ?? null)) . '"><b>'
+              . esc_html(tit_money_short($money['total'])) . '</b>'
+              . '<span>raised</span></a></span>';
+    }
+    $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($verified)) . '</b>'
+          . '<span>from official filings</span></span>';
+    return $out;
 }
 
 /**
@@ -3199,8 +2926,12 @@ function tit_glance_matrix_html(array $m) {
         <thead>
           <tr>
             <th scope="col"><span class="tit-sr">Signal</span></th>
-            <?php foreach ($m['periods'] as $p) : ?>
-              <th scope="col"><?php echo esc_html($p); ?></th>
+            <?php foreach ($m['periods'] as $pi => $p) : ?>
+              <th scope="col"><?php echo esc_html($p);
+                // The week names its own dates; see 'week_range' above.
+                if ($pi === 0 && ($m['week_range'] ?? '') !== '') : ?><span
+                  class="tit-th-range"><?php echo esc_html($m['week_range']); ?></span><?php
+                endif; ?></th>
             <?php endforeach; ?>
           </tr>
         </thead>
@@ -3270,53 +3001,17 @@ function tit_glance_matrix_html(array $m) {
     </div>
     <?php
     /*
-      ONE DISCLOSURE, OPEN BY DEFAULT, AND NOT A WORD CUT.
-
-      These three paragraphs are honesty surfaces: what the columns actually
-      count, that the rows overlap so the columns do not add up, and that one row
-      sums dollars while every other counts updates. On a 390px screen they were
-      about fifteen lines of prose sitting between the reader and any content,
-      which is how a true statement ends up unread. The owner said the phone
-      experience was bad, and this was most of the reason.
-
-      `open` is in the MARKUP, and the stylesheet is the only thing that takes it
-      away, below 860px. So desktop needs no script, a crawler sees every word in
-      the initial HTML, and a reader with CSS or JavaScript disabled gets three
-      open paragraphs rather than a collapsed control they cannot open. Nothing
-      here is fetched or injected.
+      ONE FOOTNOTE LINE, per the owner's shared design (2026-08-02). The old
+      two-line lede plus a five-bullet disclosure carried three facts a reader
+      acts on and four they do not; the three survive in one sentence and the
+      USD caveat is a POINTER to its one home (#tit-usd-note) rather than a
+      repeat of it. The heat legend is real text in the board head above.
+      dashboard.js (matrixHtml) mirrors this line on every repaint.
     */
     ?>
-    <?php
-    /*
-      TWO LINES ON THE PAGE, THE REST DEMOTED TO A CLOSED DISCLOSURE.
-
-      The open seven-bullet "How To Read This" was the worst prose block on
-      this page by the audience spec's measure: a reader met fifteen lines of
-      notes between the table and the content. The two facts that change what a
-      reader DOES with the numbers stay in plain sight (what a cell counts and
-      that it is tappable; that rows overlap so columns do not sum). Everything
-      else is one native <details>, closed, which a reader with no JavaScript
-      can still open and a crawler still reads. Not one fact is cut, and the
-      money line now points at the caveat's single home (#tit-usd-note) rather
-      than repeating the whole sentence. dashboard.js mirrors all of it.
-    */
-    ?>
-    <p class="tit-matrix-lede">Each cell counts updates dated inside that
-      window; tap any number to filter the page. Rows overlap, so columns do
-      not add up.</p>
-    <details class="tit-matrix-note">
-      <summary>Full notes</summary>
-      <ul class="tit-matrix-points">
-        <li>Each column counts updates whose source dated them inside that window.</li>
-        <li>The headline figures count everything in this view, over the whole
-            period we hold, which is why they are larger.</li>
-        <li>Colour shows relative activity within each row.</li>
-        <li>A funded employer may also be hiring, which is why rows overlap.</li>
-        <li class="tit-matrix-money-note">Total Raised sums USD-stated dollars
-            only; every other row counts updates. The note by the money charts
-            says what share of funding updates that covers.</li>
-      </ul>
-    </details>
+    <p class="tit-board-note">Each cell counts updates dated inside its window;
+      tap a number to filter the page. Rows overlap, so columns do not add up,
+      and Total Raised sums <a href="#tit-usd-note">USD-stated dollars only</a>.</p>
     <?php
     return ob_get_clean();
 }
@@ -4001,11 +3696,11 @@ function tit_span_note($lo, $hi) {
       job is done by the real dates the moment they span years.
     */
     if (substr($lo, 0, 10) === substr($hi, 0, 10)) {
-        return sprintf('Covering %s.', date_i18n('j M Y', strtotime($hi)));
+        return sprintf('Covering %s', date_i18n('j M Y', strtotime($hi)));
     }
     return sprintf(
         /* translators: 1: earliest date, 2: latest date, both with the year */
-        'Covering %1$s to %2$s.',
+        'Covering %1$s to %2$s',
         date_i18n('j M Y', strtotime($lo)),
         date_i18n('j M Y', strtotime($hi))
     );
@@ -4045,9 +3740,10 @@ function tit_roo($newest_run) {
     } else {
         $say = 'Roo is resting until the next run.';
     }
-    $next_note = $next
-        ? sprintf('Next run %s, in %s.', tit_local_datetime($next), human_time_diff(time(), $next))
-        : '';
+    // Absolute time only. Roo's own sentence already carries the relative
+    // ("pulled the latest data 1 hour ago"), and the freshness panel's job is
+    // fewer words, not the same fact twice (design adoption, 2026-08-02).
+    $next_note = $next ? sprintf('Next run %s.', tit_local_datetime($next)) : '';
     ?>
     <span class="tit-roo-wrap<?php echo $working ? ' is-working' : ' is-sleeping'; ?>" aria-hidden="true">
       <span class="tit-zzz"><i>z</i><i>z</i><i>z</i></span>

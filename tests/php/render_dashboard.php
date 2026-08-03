@@ -968,7 +968,10 @@ check(strpos($html, number_format_i18n($notable) . ' updates') !== false,
 check(strpos($html, 'come from one source') !== false,
       'one collector holds 2,400 of the United Kingdom\'s 2,460 rows, so the '
       . 'concentration caveat has to name it');
-check(strpos($html, 'raised</a>') !== false, 'and the money total sits with the other figures');
+check(strpos($html, 'class="tit-fstat tit-fstat-money"') !== false
+      && strpos($html, '<span>raised</span></a>') !== false,
+      'and the money total sits in the freshness panel with the other figures, '
+      . 'still a link so the sum never travels without its caveat');
 
 /* --- the results list ---------------------------------------------------- */
 
@@ -1117,121 +1120,72 @@ check(strpos($html, 'data-archive-note=') !== false
       'the composed pending note has to ride the root element for dashboard.js, '
       . 'or the repaint would derive a second date');
 
-/* --- the dated glance panel ---------------------------------------------- */
+/* --- the signal board ----------------------------------------------------- */
 
 /*
- * THE PANEL THE OWNER ASKED FOR, AND THE ONE RULE IT MUST NOT BREAK.
- *
- * The hero used to open with an undated lump of totals, which answers "how big
- * is this dataset" in the position where a reader is asking "what has moved".
- * The panel answers the second question on four rungs, and every figure on it is
- * computed on the matrix's existing scan.
+ * THE SIGNAL BOARD (the owner\'s shared design, adopted 2026-08-02). It
+ * REPLACED the dated strip\'s four text lines: one head (the date, the heat
+ * legend, Copy as Post), the signal-by-period matrix, ONE footnote line. The
+ * strip\'s markup must be GONE — half a replacement is two summaries that can
+ * disagree — and the board\'s numbers must be the database\'s.
  */
-check(strpos($html, 'id="tit-dg"') !== false,
-      'the dated glance panel has to render, and it is the first thing on the '
-      . 'page that carries a date');
-foreach (array('week', 'month', 'year') as $bucket) {
-    check(strpos($html, 'data-dg="' . $bucket . '"') !== false,
-          "the {$bucket} rung of the dated panel is missing");
+check(strpos($html, 'id="tit-board"') !== false,
+      'the signal board has to render');
+check(strpos($html, 'Today, ' . gmdate('M j', TIT_FIXTURE_NOW)) !== false,
+      'the board title carries the derived date, never a typed one');
+check(strpos($html, 'id="tit-dg-copy"') !== false && strpos($html, 'Copy as Post') !== false,
+      'Copy as Post survives the strip it came from, in the board head');
+check(substr_count($html, 'class="tit-lg"') === 4
+      && preg_match('/tit-board-legend[^>]*>less</', $html) === 1,
+      'the heat legend is real text ("less ... more") with four swatches');
+foreach (array('tit-dg-row', 'data-dg=', 'id="tit-dg"', 'tit-dg-cov') as $gone) {
+    check(strpos($html, $gone) === false,
+          'the dated strip\'s markup (' . $gone . ') must be gone: the board '
+          . 'replaces it, and half a replacement is two summaries that can disagree');
 }
-// The year label is DERIVED from the clock. A typed "2026 so far" is a line that
-// becomes wrong at midnight on 31 December and stays wrong until somebody reads
-// it carefully, which is the same failure as corrections.php's hardcoded
-// "$124.0bn" under a caption reading "Measured now".
-// gmdate, not date: date() reads the process timezone and gmdate() reads UTC, so
-// for the hours either side of New Year in any negative offset the two disagree
-// about which year it is and this compared a local year against a page built
-// from a UTC one.
-check(strpos($html, '>' . gmdate('Y', TIT_FIXTURE_NOW) . ' so far<') !== false,
-      'the year rung has to name the CURRENT year, derived rather than typed, '
-      . 'so it becomes "' . (gmdate('Y', TIT_FIXTURE_NOW) + 1) . ' so far" by itself');
+check(strpos($html, 'vs the week before') === false,
+      'the week-over-week sentence went with the strip that carried it');
+
+// ONE footnote line, and only one: the lede-plus-details pair is gone.
+check(substr_count($html, 'class="tit-board-note"') === 1,
+      'the board carries exactly ONE footnote line');
+check(strpos($html, 'tit-matrix-lede') === false
+      && strpos($html, 'tit-matrix-note') === false,
+      'and the old two-line lede plus Full notes disclosure is gone');
+check(preg_match('/class="tit-board-note">.*?href="#tit-usd-note".*?<\/p>/s', $html) === 1,
+      'the footnote points the USD caveat at its one home (#tit-usd-note) '
+      . 'rather than repeating the sentence');
 
 /*
- * EVERY FIGURE ON THE PANEL IS THE ONE THE DATABASE HOLDS.
- *
- * Read back out of the rendered markup and recomputed here from the same clause
- * the render used. A panel of headline numbers is the worst place on the site
- * for a figure that drifted from its source, and "computed, never typed" is only
- * a claim until something checks the arithmetic.
+ * EVERY CELL IS THE DATABASE\'S NUMBER. The board\'s "Everything in This View"
+ * row is recomputed here from the same clause the render used, per window,
+ * and each window\'s data-since must be carried on the cell so one handler
+ * drives the whole click contract.
  */
 $dg_date = 'COALESCE(published_date, DATE(captured_at))';
-foreach (array('week'  => gmdate('Y-m-d', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS),
-               'month' => gmdate('Y-m-01', TIT_FIXTURE_NOW),
-               'year'  => gmdate('Y-01-01', TIT_FIXTURE_NOW)) as $bucket => $since) {
+$q_month = (intdiv((int) gmdate('n', TIT_FIXTURE_NOW) - 1, 3) * 3) + 1;
+$board_windows = array(
+    'week'    => gmdate('Y-m-d', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS),
+    'month'   => gmdate('Y-m-01', TIT_FIXTURE_NOW),
+    'quarter' => sprintf('%s-%02d-01', gmdate('Y', TIT_FIXTURE_NOW), $q_month),
+    'ytd'     => gmdate('Y-01-01', TIT_FIXTURE_NOW),
+);
+foreach ($board_windows as $bucket => $since) {
     $expect = (int) $wpdb->get_var(
         "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND {$dg_date} >= '{$since}'");
-    if (preg_match('/data-dg="' . $bucket . '".*?<b>([\d,]+)<\/b> updates/s', $html, $m)) {
-        check((int) str_replace(',', '', $m[1]) === $expect,
-              "the {$bucket} rung prints {$m[1]} updates and the database holds "
-              . number_format($expect) . '. Every figure on this panel is computed.');
+    if (preg_match_all('/data-filter=""\s+data-since="' . preg_quote($since, '/')
+                       . '".*?<\/span>([\d,]+)<\/button>/s', $html, $m)) {
+        check((int) str_replace(',', '', $m[1][0]) === $expect,
+              "the {$bucket} column\'s total cell prints {$m[1][0]} and the database holds "
+              . number_format($expect) . '. Every cell on this board is computed.');
     } else {
-        check(false, "the {$bucket} rung has to print an update count");
+        check(false, "the {$bucket} column has to render a total cell carrying data-since");
     }
-    // And it has to agree with the matrix cell for the same window, which is the
-    // reason the two share one query rather than running two.
-    check(strpos($html, 'data-since="' . $since . '"') !== false,
-          "the {$bucket} rung and the matrix column for the same window have to "
-          . 'carry the same data-since, or one handler cannot drive both');
 }
-
-/*
- * THE COMPARISON THAT MUST NOT BE INVENTED.
- *
- * The sibling can print "down 25% vs the week before" because it holds years.
- * This tracker's news collectors first ran on 2026-07-27 and national_press on
- * 2026-07-29, so a week-over-week figure drawn today divides a populated week by
- * one that mostly predates the collector, and prints something in the thousands
- * of percent. That is not an exaggerated trend, it is an artefact of the corpus
- * start date wearing a statistic's clothes, and it would be the most quotable
- * number on the page.
- *
- * Both directions are pinned, because a rule that only ever suppresses is
- * indistinguishable from a feature that never worked:
- *  - this fixture spans forty days, so the comparison IS printed;
- *  - with every older row deleted it must NOT be, and must say why.
- */
-check(preg_match('/vs the week before/', $html) === 1,
-      'this fixture holds forty days, so the week-over-week comparison should '
-      . 'be printed: the rule has to switch itself ON once real history exists, '
-      . 'or it is not a rule, it is a permanent suppression');
-
-/*
- * THE WEEK RUNG NAMES ITS OWN DATES (owner, 2026-08-02). Early in a month the
- * week figure legitimately exceeds the month figure — the week reaches back
- * into the previous month — and without the dates that correct pair reads as a
- * bug. Derived from the same boundaries the SQL counted under, never typed,
- * and only on the week rung: the other labels already state their span.
- */
-$dg_range = gmdate('M j', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS)
-          . '-' . gmdate('M j', TIT_FIXTURE_NOW);
-check(preg_match('/data-dg="week".*?<span class="tit-dg-range">\('
-                 . preg_quote($dg_range, '/') . '\)<\/span>/s', $html) === 1,
-      'the week rung has to carry its derived date span (' . $dg_range . ') '
-      . 'inside the label, so week-exceeds-month reads as the calendar fact it is');
-check(preg_match('/data-dg="month".*?tit-dg-range/s', $html) !== 1,
-      'and no other rung grows one');
-
-/*
- * THE LARGEST RAISE NAMES ITS COUNTRY when its own row states one — the row's
- * job-location country field, never hq and never a lookup. Recomputed from the
- * same clause the render used, including the country, so the name printed is
- * the name the database holds.
- */
-$dg_top = $wpdb->get_row(
-    "SELECT company, country, funding_amount_usd FROM wp_tit_signals
-      WHERE {$base_where} AND funding_amount_usd IS NOT NULL
-        AND {$dg_date} >= '" . gmdate('Y-m-d', TIT_FIXTURE_NOW - 6 * DAY_IN_SECONDS) . "'
-      ORDER BY funding_amount_usd DESC, row_id ASC LIMIT 1", ARRAY_A);
-if ($dg_top && $dg_top['country'] !== '' && $dg_top['country'] !== null) {
-    check(preg_match('/data-dg="week".*?largest: <b>' . preg_quote(esc_html($dg_top['company']), '/')
-                     . '<\/b> \([^)]*<span aria-hidden="true">·<\/span> '
-                     . preg_quote(esc_html(tit_country_name($dg_top['country'])), '/') . '\)/s',
-                     $html) === 1,
-          'the week rung\'s largest raise has to carry the row\'s own country ('
-          . tit_country_name($dg_top['country']) . '), from its country field');
-} else {
-    check($dg_top !== null, 'the fixture has to hold a funded row in the week window');
-}
+// The YTD column names the CURRENT year, derived rather than typed, so it
+// becomes next year\'s by itself at midnight on 31 December.
+check(strpos($html, '>' . gmdate('Y', TIT_FIXTURE_NOW) . ' YTD<') !== false,
+      'the YTD column has to name the current year, derived from the clock');
 
 /* --- "Why you can trust this", and the FAQ tucked into it ---------------- */
 
@@ -1352,19 +1306,10 @@ foreach (array('100% automated', 'real time', 'comprehensive', 'most advanced') 
           . 'support. The automation figure is ~99% and names the human sliver');
 }
 
-$wpdb->pdo->exec("DELETE FROM wp_tit_signals WHERE {$dg_date} < '"
-                 . gmdate('Y-m-d', TIT_FIXTURE_NOW - 9 * DAY_IN_SECONDS) . "'");
-$young = cold_render();
-check(strpos($young, 'vs the week before') === false,
-      'a corpus whose history starts INSIDE the comparison window must not emit '
-      . 'a percentage. This is the "up 4,000%" case and it is a fabrication, not '
-      . 'a large number.');
-check(preg_match('/\bup <b>\d+%|\bdown <b>\d+%/', $young) === 0,
-      'and no percentage of any kind reaches the week rung while the prior week '
-      . 'is outside what we hold');
-check(strpos($young, 'we do not hold a full week before this one') !== false,
-      'the absence has to be STATED. A reader who sees nothing cannot tell '
-      . '"flat" from "we cannot say yet", and the second is the honest answer');
+/* The week-over-week comparison and its young-corpus suppression went with
+   the dated strip (2026-08-02): the board prints counts per window and no
+   derived percentage, so there is no fabricatable comparison left to guard.
+   The "vs the week before" absence is asserted with the board above. */
 
 /* --- the assets ---------------------------------------------------------- */
 

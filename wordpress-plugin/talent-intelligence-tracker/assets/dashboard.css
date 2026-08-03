@@ -21,13 +21,13 @@
    for genuinely decorative labels only, and anything you have to read uses
    --tit-mut (#4a4d55, the sibling's own --alt-ink-2) at 8.6:1. */
 .tit-wrap {
-  --tit-fg:#16181d;         /* alt-ink      15.9:1 on white */
+  --tit-fg:#1b2130;         /* ink-navy (owner's design, 2026-08-02), 15.4:1 on white */
   --tit-mut:#4a4d55;        /* alt-ink-2     8.6:1 on white */
   --tit-faint:#868a93;      /* alt-muted    decorative only */
   --tit-line:#e2e3e8;       /* alt-border  */
   --tit-grid:#e7e8ec;       /* alt-grid    */
   --tit-surface:#f7f8fa;    /* alt-surface-2 */
-  --tit-ground:#fafaf8;     /* atr-bg, the off-white page ground */
+  --tit-ground:#faf9f6;     /* warm paper ground (owner's design, 2026-08-02) */
   /* THE COLOUR DISCIPLINE (audience spec, 2026-08-02): a neutral ground, ONE
      interactive accent, and the semantic green/red pair reserved for
      DIRECTION alone. The accent is the audited #0072B2 (5.2:1 on white, the
@@ -430,6 +430,11 @@
   --tit-orange:#D55E00; --tit-violet:#4a3aa7;
   --tit-teal:#1baf7a; --tit-ink-blue:#0072B2; --tit-ink-orange:#8c3d00;
   --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
+  /* OCHRE IS THE MONEY HUE AND NOTHING ELSE'S (owner's design, 2026-08-02):
+     every dollar figure, the money row's heat, the money bars. Where ochre
+     and the interactive accent could collide the rule is fixed: money wins
+     on figures, blue wins on controls. Text form 5.6:1 on white. */
+  --tit-ochre:#b07c00; --tit-ink-ochre:#7a5800;
   --tit-blue-tint:#eef4fc; --tit-red-tint:#fdeeee; --tit-green-tint:#e9f3ef;
 }
 
@@ -581,13 +586,6 @@
 .tit-wrap .ez-toc-title-container,
 #tit-dashboard #ez-toc-container { display:none !important; }
 
-/* The honest footnote to the glance tiles: how much history is behind them. */
-.tit-wrap .tit-span { margin:9px 0 0; font-size:12.5px; color:var(--tit-faint); }
-.tit-hero-fine { margin:14px 0 0 !important; font-size:13.5px; }
-/* The counts that lead the fine print, and the one part of it JavaScript
-   rewrites when a filter changes. They read as the summary, so they carry the
-   foreground colour while the sentence after them stays muted. */
-.tit-fine-figures { color:var(--tit-fg); font-weight:600; }
 
 /* Region strip ----------------------------------------------------------- */
 .tit-regions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px; }
@@ -789,9 +787,9 @@
 
 /* --- Hero: title and status on one line, four figures in a row ----------- */
 .tit-hero { padding:16px 18px 14px; margin:0 0 16px; border-radius:14px; }
-.tit-hero-top { display:flex; flex-wrap:wrap; align-items:baseline;
-  justify-content:space-between; gap:10px 18px; margin:0 0 14px; }
-.tit-wrap .tit-hero-top h2 { margin:0; font-size:20px; line-height:1.25; }
+.tit-hero-top { display:flex; flex-wrap:wrap; align-items:flex-start;
+  justify-content:space-between; gap:14px 22px; margin:0 0 10px; }
+.tit-hero-head { flex:1 1 380px; }
 .tit-live { margin:0; flex:none; }
 
 /* The at-a-glance strip is now the signal-by-period matrix; its styles live
@@ -800,8 +798,6 @@
 .tit-glance { display:block; margin:0; border:1px solid var(--tit-line);
   border-radius:10px; background:#fff; overflow:hidden; }
 
-.tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
-  max-width:none; line-height:1.5; }
 
 /* --- The trend, drawn inside a card one of nine -------------------------
    It was a full-width panel with its own border, heading and box shadow. It is
@@ -866,84 +862,34 @@
 .tit-trend-basis, .tit-trend-then { margin:6px 0 0; font-size:12px;
   line-height:1.55; color:var(--tit-mut); }
 
-/* --- The dated glance panel --------------------------------------------
-   Four rungs of one ladder: today, this week, this month, this year, with
-   the all-time figures on .tit-hero-fine directly below as the fifth. The
-   left rail is a fixed column so the five labels line up and the eye can
-   run down them; below 560px it becomes a stacked block, because a 102px
-   rail beside a five-fact sentence on a 390px screen leaves the sentence
-   about eighteen characters wide.
-
-   Nothing here scrolls sideways. The body wraps, which is the whole reason
-   it is a flowing span of phrases rather than a table: a table of five
-   columns by five rows cannot be made to fit a phone without either a
-   horizontal gesture or a font size nobody can read, and this page has
-   already been through that with the matrix. */
-.tit-dg-box { margin:0 0 12px; }
-.tit-dg { border:1px solid var(--tit-line); border-left:3px solid var(--tit-blue);
-  border-radius:10px; background:#fff; padding:12px 14px; }
-.tit-dg-head { display:flex; flex-wrap:wrap; align-items:baseline;
-  justify-content:space-between; gap:6px 12px; margin:0 0 8px;
-  padding-bottom:8px; border-bottom:1px solid var(--tit-grid); }
-/* The display serif, which is where the mock's character actually lives.
-   See the font note at the top of this file for what it is and is not. */
-.tit-wrap .tit-dg-title { font-family:var(--tit-serif); font-size:16px;
-  font-weight:600; margin:0; color:var(--tit-fg); letter-spacing:-.2px; }
+/* --- The signal board ----------------------------------------------------
+   The owner's "colored narratives" (2026-08-02): one head (the date, the heat
+   legend, Copy as Post), the signal-by-period matrix, one footnote line. It
+   replaced the dated strip's four text sentences; nothing in it scrolls
+   sideways at 375px because the matrix stacks below 860px. */
+.tit-board { border:1px solid var(--tit-line); border-radius:10px; background:#fff;
+  overflow:hidden; box-shadow:var(--tit-shadow); }
+.tit-board-head { display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px;
+  padding:10px 14px 9px; border-bottom:1px solid var(--tit-grid); }
+/* The display serif, which is where the mock's character actually lives. */
+.tit-wrap .tit-board-title { font-family:var(--tit-serif); font-size:16px;
+  font-weight:600; margin:0; color:var(--tit-fg); letter-spacing:-.2px;
+  flex:1 1 auto; }
+/* The heat scale, named in words with the swatches as decoration between. */
+.tit-board-legend { flex:none; display:inline-flex; align-items:center; gap:3px;
+  font-size:11px; color:var(--tit-mut); }
+.tit-lg { display:inline-block; width:12px; height:12px; border-radius:3px;
+  border:1px solid var(--tit-grid);
+  background:rgba(28,92,171, calc(var(--i, 0) * .3)); }
+.tit-lg:first-of-type { margin-left:5px; }
+.tit-lg:last-of-type { margin-right:5px; }
 .tit-dg-copy { flex:none; font:inherit; font-size:12.5px; font-weight:600;
   padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
   background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }
 .tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:#b9d3f2; }
 .tit-dg-copy:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
-
-.tit-dg-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px;
-  padding:4px 0; font-size:13.5px; line-height:1.55; }
-.tit-dg-row + .tit-dg-row { border-top:1px solid var(--tit-grid); }
-
-/* The period label is a filter, so it is a button; it is styled as a label
-   because it has to read as one down the rail. The mono face is the mock's
-   own treatment for this kind of eyebrow, and here it also makes the five
-   labels the same width class so the rail looks like a rail. */
-.tit-wrap .tit-dg-label { flex:none; min-width:102px; text-align:left;
-  font-family:var(--tit-mono); font-size:11px; font-weight:600;
-  letter-spacing:.06em; text-transform:uppercase; color:var(--tit-mut);
-  background:none; border:0; padding:0; cursor:pointer; }
-.tit-wrap .tit-dg-label-static { cursor:default; }
-.tit-wrap .tit-dg-label:not(.tit-dg-label-static):hover { color:var(--tit-blue); }
-.tit-wrap .tit-dg-label:focus-visible { outline:2px solid var(--tit-blue);
-  outline-offset:2px; border-radius:3px; }
-.tit-wrap .tit-dg-label[aria-pressed="true"] { color:var(--tit-blue); }
-/* The week's own dates, inside the label button. Lowercase-preserving and
-   letter-spacing reset so "(Jul 27-Aug 2)" reads as dates, not as a second
-   shouted label; colour stays the label's own. */
-.tit-wrap .tit-dg-label .tit-dg-range { font-weight:400; letter-spacing:0;
-  text-transform:none; }
-
-.tit-dg-body { flex:1 1 260px; min-width:0; color:var(--tit-mut); }
-/* Figures are the thing being read. Tabular numerals so a column of them
-   does not jitter, and the same mono the rail uses. */
-.tit-wrap .tit-dg-body b { font-family:var(--tit-mono); font-weight:600;
-  font-size:13px; color:var(--tit-fg); font-variant-numeric:tabular-nums; }
-/* The absent comparison is quieter than the figures but still readable:
-   --tit-faint is decorative-only by this file's own rule, so this is
-   --tit-mut in italic instead. */
-.tit-dg-nocmp { font-style:italic; }
-.tit-dg-cov { margin:8px 0 0 !important; font-size:12px; color:var(--tit-mut);
-  line-height:1.45; }
-
-/* The all-time line joins the ladder as its bottom rung. */
-.tit-wrap .tit-hero-fine { display:flex; flex-wrap:wrap; align-items:baseline;
-  gap:2px 10px; }
-.tit-wrap .tit-hero-fine .tit-fine-figures { flex:1 1 260px; min-width:0; }
-.tit-wrap .tit-hero-fine .tit-fine-say { flex:1 0 100%; }
-
-@media (max-width:559px){
-  /* Stacked, so neither the rail nor the sentence is squeezed. */
-  .tit-dg-row { display:block; }
-  .tit-wrap .tit-dg-label { min-width:0; display:block; margin-bottom:1px; }
-  .tit-dg-body { display:block; }
-  .tit-wrap .tit-hero-fine { display:block; }
-  .tit-wrap .tit-hero-fine .tit-dg-label { margin-bottom:1px; }
-}
+/* Inside the board the matrix wrapper sheds its own card chrome: one card. */
+.tit-board .tit-glance { border:0; border-radius:0; box-shadow:none; }
 
 /* --- "Why you can trust this", with the FAQ as its second tab -----------
    PROGRESSIVE ENHANCEMENT, AND IT IS THE LOAD-BEARING PART.
@@ -1588,6 +1534,9 @@ body.admin-bar .tit-active { top:32px; }
   letter-spacing:.05em; color:var(--tit-mut); background:var(--tit-surface);
   text-align:right; white-space:nowrap; padding:7px 10px; }
 .tit-matrix thead th:first-child { text-align:left; }
+/* The week's own dates under its header: quiet, lowercase, never shouted. */
+.tit-matrix thead .tit-th-range { display:block; font-weight:500;
+  letter-spacing:0; text-transform:none; color:var(--tit-faint); }
 .tit-matrix tbody th { font-weight:600; color:var(--tit-fg); text-align:left;
   white-space:nowrap; font-size:13px; padding:4px 10px; }
 .tit-matrix td { text-align:right; padding:2px 4px; }
@@ -1601,22 +1550,25 @@ body.admin-bar .tit-active { top:32px; }
   font:inherit; color:var(--tit-fg); font-weight:600;
   font-variant-numeric:tabular-nums; letter-spacing:0; text-align:right;
   padding:4px 8px; border-radius:7px; cursor:pointer; line-height:1.3; }
-/* Heat map. One hue per signal, held across the whole product, and the tint
-   scaled by --i (set per cell in PHP, relative to that row's own maximum).
-   Colour is always a SECOND read: the number is printed in every cell, so a
-   colourblind or high-contrast reader loses nothing. Alpha tops out at .30 so
-   ink #16181d stays far above AA on the strongest cell, and the hues are the
-   product's existing colourblind-checked blue/violet/teal/orange set. */
-.tit-matrix-row { --row-rgb:82,96,122; }                 /* neutral fallback  */
-.tit-matrix-row[data-signal="hiring"]     { --row-rgb:42,120,214; }   /* blue   */
-.tit-matrix-row[data-signal="funded"]     { --row-rgb:74,58,167; }    /* violet */
-.tit-matrix-row[data-signal="leadership"] { --row-rgb:13,124,128; }   /* teal   */
-.tit-matrix-row[data-signal="pay"]        { --row-rgb:213,94,0; }     /* orange */
-.tit-matrix-row[data-signal="total"]      { --row-rgb:22,24,29; }     /* ink    */
+/* Heat map, in the design's muted blue (2026-08-02): every counting row
+   tints the SAME blue, scaled by --i (set per cell, relative to that row's
+   own maximum, since rows differ by orders of magnitude), and the money row
+   alone tints ochre, because money reads as money everywhere. What tells the
+   signals apart is the colored left-edge tick on each row label (--tick-rgb,
+   one hue per signal, the same hues the trend chart draws with). Colour is
+   always a SECOND read: the number is printed in every cell, so a
+   colourblind or high-contrast reader loses nothing. Alpha tops out at .30
+   so ink stays far above AA on the strongest cell. */
+.tit-matrix-row { --row-rgb:28,92,171; --tick-rgb:82,96,122; }
+.tit-matrix-row[data-signal="hiring"]     { --tick-rgb:42,120,214; }   /* blue   */
+.tit-matrix-row[data-signal="funded"]     { --tick-rgb:74,58,167; }    /* violet */
+.tit-matrix-row[data-signal="leadership"] { --tick-rgb:13,124,128; }   /* teal   */
+.tit-matrix-row[data-signal="pay"]        { --tick-rgb:213,94,0; }     /* orange */
+.tit-matrix-row[data-signal="total"]      { --tick-rgb:22,24,29; }     /* ink    */
 .tit-wrap .tit-cell { background:rgba(var(--row-rgb), calc(var(--i, 0) * 0.30)); }
-/* The row label carries the same hue as a bar, so the colour is decodable
-   without reading the cells left to right. */
-.tit-matrix-row > th { box-shadow:inset 3px 0 0 rgb(var(--row-rgb)); padding-left:11px; }
+/* The row label carries its signal's own hue, so a row is decodable without
+   reading the cells left to right. */
+.tit-matrix-row > th { box-shadow:inset 3px 0 0 rgb(var(--tick-rgb)); padding-left:11px; }
 .tit-wrap .tit-cell:hover { background:rgba(var(--row-rgb), calc(var(--i, 0) * 0.30 + 0.12)); }
 .tit-wrap .tit-cell:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
 .tit-wrap .tit-cell.is-on { background:var(--tit-blue-tint);
@@ -1624,7 +1576,8 @@ body.admin-bar .tit-active { top:32px; }
 /* Muted, still AA: --tit-mut at lighter weight, never --tit-faint (3.4:1). */
 .tit-wrap .tit-cell-zero { color:var(--tit-mut); font-weight:500; background:none; }
 .tit-wrap .tit-cell-zero:hover { background:var(--tit-surface); }
-.tit-matrix-note { margin:0; padding:7px 12px; font-size:12px;
+/* The board's one footnote line. */
+.tit-board-note { margin:0; padding:7px 12px; font-size:12px;
   color:var(--tit-mut); border-top:1px solid var(--tit-grid);
   background:var(--tit-surface); }
 
@@ -1641,26 +1594,24 @@ body.admin-bar .tit-active { top:32px; }
    =========================================================================== */
 
 /* --- The money row inside the at-a-glance matrix ------------------------- */
-.tit-matrix-row[data-signal="money"] { --row-rgb:74,58,167; }   /* violet */
+.tit-matrix-row[data-signal="money"] { --row-rgb:176,124,0; --tick-rgb:176,124,0; }   /* ochre */
 /* The unit, printed under the row label rather than implied by the $ alone.
    Violet ink at 11.6:1 on white, so it is quiet without being decorative. */
 .tit-matrix-unit { display:block; margin-top:1px; font-size:10.5px;
   font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--tit-ink-violet); }
+  color:var(--tit-ink-ochre); }
 .tit-matrix-money th, .tit-matrix-money td { border-bottom:2px solid var(--tit-line); }
-.tit-wrap .tit-cell-money { color:var(--tit-ink-violet); font-weight:700; }
+.tit-wrap .tit-cell-money { color:var(--tit-ink-ochre); font-weight:700; }
 .tit-wrap .tit-cell-money.tit-cell-zero { color:var(--tit-mut); font-weight:500; }
-/* The clause that names the odd row out, given its own emphasis in the note. */
-.tit-matrix-money-note { display:block; margin-top:3px; color:var(--tit-ink-violet); }
 
 /* --- The three money cards ---------------------------------------------- */
 /* Same grid as the activity charts, so the two rows of cards line up. */
 .tit-charts-money { margin:0 0 4px; }
 /* Bars in the funding hue, matching the matrix row they expand on. */
-.tit-chart-money .tit-rank-fill { background:var(--tit-violet); }
+.tit-chart-money .tit-rank-fill { background:var(--tit-ochre); }
 /* Money figures are wider than counts and must not shunt the bar about as the
    ranking changes, so the column is reserved rather than fitted. */
-.tit-chart-money .tit-rank-n { min-width:56px; color:var(--tit-ink-violet);
+.tit-chart-money .tit-rank-n { min-width:56px; color:var(--tit-ink-ochre);
   font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:0; }
 .tit-chart-money .tit-rank { margin-bottom:2px; }
 /* The coverage line. Not fine print to be styled away: a dollar total without
@@ -1846,9 +1797,9 @@ main:has(#tit-dashboard) {
 
 /* The money figure in the summary line. A link, because the total is only
    honest next to the coverage sentence the money section prints. */
-.tit-wrap .tit-fine-money { color:var(--tit-ink-violet); font-weight:700;
-  text-decoration-color:#cbc4ec; }
-.tit-wrap .tit-fine-money:hover { color:var(--tit-violet); }
+.tit-wrap .tit-fine-money { color:var(--tit-ink-ochre); font-weight:700;
+  text-decoration-color:#e3d3a6; }
+.tit-wrap .tit-fine-money:hover { color:var(--tit-ochre); }
 
 /* ===========================================================================
    Final pass: the hero headline, section anchors, and the filter block.
@@ -1856,9 +1807,46 @@ main:has(#tit-dashboard) {
 
 /* --- Hero: benefit first, proof under it -------------------------------- */
 .tit-hero-head { min-width:0; }
-.tit-wrap .tit-hero-head h2 { margin:0; font-size:26px; line-height:1.15;
-  font-weight:750; letter-spacing:-.015em; color:var(--tit-fg); }
-@media (min-width:900px){ .tit-wrap .tit-hero-head h2 { font-size:30px; } }
+.tit-wrap .tit-hero-head h2 { margin:0; font-size:28px; line-height:1.12;
+  font-family:var(--tit-serif); font-weight:700; letter-spacing:-.015em;
+  color:var(--tit-fg); }
+@media (min-width:900px){ .tit-wrap .tit-hero-head h2 { font-size:34px; } }
+/* Exactly two actions under the thesis, per the design. The search button is
+   the accent (a control, so blue); the methodology link is the quiet twin. */
+.tit-hero-cta { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 0; }
+.tit-wrap .tit-cta { display:inline-flex; align-items:center; gap:6px;
+  font:inherit; font-size:14px; font-weight:650; line-height:1.2;
+  padding:9px 15px; border-radius:9px; cursor:pointer; text-decoration:none; }
+.tit-wrap .tit-cta-search { background:var(--tit-blue); border:1px solid var(--tit-blue);
+  color:#fff; }
+.tit-wrap .tit-cta-search:hover { background:var(--tit-blue-strong);
+  border-color:var(--tit-blue-strong); }
+.tit-wrap .tit-cta-how { background:#fff; border:1px solid var(--tit-line);
+  color:var(--tit-fg); }
+.tit-wrap .tit-cta-how:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
+.tit-wrap .tit-cta:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+
+/* --- The freshness panel, top-right of the hero -------------------------
+   Absorbs the status line and the old all-time figures: the Live pill, four
+   figures, the promise line, and Roo's last/next-run sentence. A card, so it
+   reads as one fact block beside the thesis rather than four strays. */
+.tit-fresh { flex:1 1 300px; max-width:380px; min-width:250px;
+  border:1px solid var(--tit-line); border-radius:12px; background:#fff;
+  padding:12px 14px; box-shadow:var(--tit-shadow); }
+.tit-fresh .tit-live { margin:0 0 10px; }
+.tit-fresh-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
+.tit-fstat { min-width:0; font-size:12px; color:var(--tit-mut); line-height:1.3; }
+.tit-fstat > b, .tit-fstat a > b { display:block; font-size:21px; font-weight:750;
+  color:var(--tit-fg); font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
+.tit-fstat > span, .tit-fstat a > span { display:block; }
+.tit-fstat a { text-decoration:none; color:inherit; }
+.tit-fstat a:hover span { text-decoration:underline; }
+/* Money wins on figures: the raised total is the one ochre number here. */
+.tit-wrap .tit-fstat-money b { color:var(--tit-ink-ochre); }
+.tit-fresh .tit-fine-say { display:block; margin:10px 0 0; font-size:12px;
+  color:var(--tit-mut); font-weight:500; }
+.tit-fresh .tit-roo-row { margin:8px 0 0; }
+@media (max-width:700px){ .tit-fresh { max-width:none; } }
 /* The trust line, quieter than the promise but never decorative: AA at 8.6:1
    and set at reading size, because it is the claim the whole page rests on. */
 .tit-wrap .tit-hero-sub { margin:5px 0 0 !important; font-size:15px;
@@ -1867,11 +1855,9 @@ main:has(#tit-dashboard) {
   .tit-wrap .tit-hero-head h2 { font-size:22px; }
   .tit-wrap .tit-hero-sub { font-size:14px; }
 }
-/* Two beats in the fine print, not one run-on line. */
-.tit-fine-figures, .tit-fine-say { display:block; }
-.tit-fine-say { color:var(--tit-mut); font-weight:500; margin-top:2px; }
-/* The links stop competing with the promise by leaving its paragraph. */
-.tit-hero-links { margin:7px 0 0 !important; font-size:13px; color:var(--tit-mut); }
+/* The coverage ribbon: one quiet line of derived facts and trust links. */
+.tit-hero-links { margin:10px 0 0 !important; font-size:13px; color:var(--tit-mut); }
+.tit-hero-links .tit-ribbon-cov { font-weight:600; color:var(--tit-fg); }
 
 /* --- Section anchors ----------------------------------------------------
    Each section carries the hue its content already uses elsewhere, as a rule
@@ -1880,7 +1866,7 @@ main:has(#tit-dashboard) {
    four already validated for CVD separation, and each is paired with words. */
 .tit-sec { --sec:var(--tit-blue); padding-left:12px; border-left:4px solid var(--sec);
   border-radius:2px; }
-.tit-sec--money { --sec:var(--tit-violet); }
+.tit-sec--money { --sec:var(--tit-ochre); }
 .tit-wrap .tit-sec h3 { color:var(--tit-fg); }
 
 /* Chart cards get the same anchor at card scale: a swatch on the heading, in
@@ -1888,7 +1874,7 @@ main:has(#tit-dashboard) {
 .tit-chart { --sec:var(--tit-blue); }
 #chart-place { --sec:var(--tit-teal); }
 #chart-direction { --sec:var(--tit-orange); }
-.tit-chart-money { --sec:var(--tit-violet); }
+.tit-chart-money { --sec:var(--tit-ochre); }
 .tit-wrap .tit-chart-head h3::before { content:""; display:inline-block;
   width:9px; height:9px; border-radius:2px; background:var(--sec);
   margin-right:7px; vertical-align:middle; }
@@ -1898,12 +1884,7 @@ main:has(#tit-dashboard) {
    it at roughly three of the five columns while the table beside it ran the
    full width. A block that stops short of the thing it describes reads as
    unfinished markup, which is exactly how it read. */
-.tit-wrap .tit-matrix-note { padding:8px 12px; border-top:1px solid var(--tit-grid);
-  background:var(--tit-surface); }
-.tit-wrap .tit-matrix-note p { margin:0; max-width:none; font-size:12px;
-  line-height:1.5; color:var(--tit-mut); }
-.tit-wrap .tit-matrix-note p + p { margin-top:4px; }
-.tit-wrap .tit-matrix-money-note { color:var(--tit-ink-violet); }
+.tit-wrap .tit-board-note { max-width:none; }
 
 /* --- Primary row -------------------------------------------------------- */
 .tit-primary { align-items:start; }
@@ -2723,26 +2704,6 @@ main:has(#tit-dashboard) {
    means the desktop behaviour needs no script and the phone behaviour degrades
    to an ordinary open block if the attribute rule ever fails.
    =========================================================================== */
-.tit-matrix-note > summary { display:none; }
-@media (max-width:860px){
-  .tit-wrap .tit-matrix-note > summary { display:flex; align-items:center;
-    gap:7px; padding:9px 12px; font-size:12.5px; font-weight:650;
-    color:var(--tit-ink-blue); cursor:pointer; list-style:none; }
-  .tit-wrap .tit-matrix-note > summary::-webkit-details-marker { display:none; }
-  .tit-wrap .tit-matrix-note > summary::after { content:"+"; margin-left:auto;
-    font-weight:700; }
-  .tit-wrap .tit-matrix-note[open] > summary::after { content:"\2212"; }
-  .tit-wrap .tit-matrix-note > summary:focus-visible {
-    outline:2px solid var(--tit-blue); outline-offset:-2px; }
-  /* Closed on a phone. The attribute is in the markup so desktop and no-CSS
-     both get it open; this is the only place it is taken away. */
-  .tit-wrap .tit-matrix-note[open] > summary + * { }
-}
-@media (min-width:861px){
-  /* Nothing to click, nothing to collapse. */
-  .tit-matrix-note > summary { display:none; }
-}
-
 /* ===========================================================================
    COLOUR SCHEME: this page is light, and now says so to the browser.
 
@@ -2774,8 +2735,8 @@ main:has(#tit-dashboard) {
 .tit-wrap .tit-sec h3, .tit-wrap .tit-chart-head h3, .tit-wrap .tit-hero h2 {
   color:var(--tit-fg) !important;
 }
-.tit-wrap .tit-places-note, .tit-wrap .tit-matrix-note p,
-.tit-wrap .tit-quick-hint, .tit-wrap .tit-span {
+.tit-wrap .tit-places-note, .tit-wrap .tit-board-note,
+.tit-wrap .tit-quick-hint {
   color:var(--tit-mut) !important;
 }
 
@@ -2854,12 +2815,6 @@ main:has(#tit-dashboard) {
 .tit-wrap .tit-ctl { opacity:.55; }
 .tit-wrap .tit-ctl:hover, .tit-wrap .tit-ctl:focus-visible { opacity:1; }
 
-/* The single-idea list under the matrix. A list of facts, set as one. */
-.tit-wrap .tit-matrix-points { margin:0; padding:0 0 0 16px; list-style:disc; }
-.tit-wrap .tit-matrix-points li { margin:0 0 3px; font-size:12px; line-height:1.5;
-  color:var(--tit-mut); }
-.tit-wrap .tit-matrix-points li:last-child { margin-bottom:0; }
-.tit-wrap li.tit-matrix-money-note { color:var(--tit-ink-violet); }
 
 /* ===========================================================================
    THE THREE ZONES (audience spec, 2026-08-02): controls, insight, updates.
@@ -2915,10 +2870,6 @@ main:has(#tit-dashboard) {
 .tit-note-details p { margin:8px 0 0; max-width:78ch; line-height:1.55; }
 .tit-note-details[open] { background:#fff; }
 
-/* The two always-visible matrix facts; the rest sit behind "Full notes". */
-.tit-matrix-lede { margin:0; padding:8px 12px; font-size:12.5px;
-  color:var(--tit-mut); border-top:1px solid var(--tit-grid);
-  background:var(--tit-surface); }
 
 /* The trend plot filters on tap now (see the trend handler in dashboard.js),
    so it advertises it the way every other chart row does. */

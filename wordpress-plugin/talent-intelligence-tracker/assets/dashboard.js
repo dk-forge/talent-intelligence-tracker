@@ -558,54 +558,25 @@
   function paintAggregate(data) {
     var total = +data.total || 0;
 
-    // Hero fine print: restate the view, do not describe a set the reader is
-    // no longer looking at.
-    var fine = root.querySelector('.tit-hero-fine');
-    if (fine) {
-      var lead = fine.querySelector('.tit-fine-figures');
-      if (!lead) {
-        lead = document.createElement('span');
-        lead.className = 'tit-fine-figures';
-        fine.insertBefore(lead, fine.firstChild);
-      }
-      var bits = [
-        esc(plural(total, 'update')),
-        esc(plural(data.companies, 'employer')),
-        esc(plural(data.countries, 'country', 'countries'))
-      ];
-      // A sum of dollars beside three counts, sitting WITH the other headline
-      // figures rather than trailing the sentence, and a link rather than a
-      // bare total: it lands on the money section, which prints what share of
-      // the funding updates it covers. Both read the same aggregate, so the
-      // figure and its caveat cannot drift apart.
-      var mt = data.money && data.money.total;
-      if (mt > 0) {
-        bits.push('<a class="tit-fine-money" href="#chart-money-country" title="' +
-          esc(moneyFull(mt) + '. ' + coverageFull(data.money)) + '">' +
-          esc(moneyShort(mt)) + ' raised</a>');
-      }
-      bits.push(esc(nfmt(data.verified)) + ' from official filings');
-      lead.innerHTML = bits.join(' · ');
-    }
+    // The freshness panel restates the view, exactly as the old hero fine
+    // print did: a filtered page must never carry worldwide totals in its own
+    // header. freshStatsHtml mirrors tit_fresh_stats_html() in shortcodes.php.
+    var fresh = document.getElementById('tit-fresh-stats');
+    if (fresh) fresh.innerHTML = freshStatsHtml(data, total);
+
+    // The Search button's own count is a promise about the table under it.
+    var ctaN = document.getElementById('tit-cta-n');
+    if (ctaN) ctaN.textContent = nfmt(total);
+
+    // The ribbon's country count moves with the filters like its date span.
+    var ribbonC = document.getElementById('tit-ribbon-c');
+    if (ribbonC) ribbonC.textContent = nfmt(data.countries);
 
     // The at-a-glance matrix moves with the filters like everything else. It
     // used to be the one part of the hero that did not, so a filtered page
     // had its own summary contradicting its own strip. Markup mirrors
     // tit_glance_matrix_html() in shortcodes.php, the same contract renderRow
     // has with the table.
-    // The dated panel moves with the filters for the same reason the matrix
-    // does, and for one more: Copy as Post reads its rendered rows, so a stale
-    // panel would let a reader copy an unfiltered total off a filtered page.
-    // The coverage sentence is carried in from the money aggregate rather than
-    // recomputed, so the panel and the money cards state one coverage.
-    var dgbox = document.getElementById('tit-dg-box');
-    if (dgbox && data.glance && data.glance.dated) {
-      var dated = data.glance.dated;
-      dated.coverage = (data.money && data.money.coverage) || null;
-      dgbox.innerHTML = datedHtml(dated);
-      showDatedCopy();
-    }
-
     // The trend chart moves with the filters too, and it arrives as markup
     // rather than as a series. See tit_aggregate_trend() in api.php: the chart
     // carries a continuity gate that decides which lines may honestly be drawn,
@@ -631,10 +602,6 @@
     var glance = root.querySelector('.tit-glance');
     if (glance && data.glance && data.glance.rows) {
       glance.innerHTML = matrixHtml(data.glance);
-      // matrixHtml() emits <details open>, so a repaint would hand a phone the
-      // open wall of prose again. Re-collapse it the same way the first paint
-      // did, or every filter change undoes the mobile fix.
-      collapseMatrixNoteOnPhone();
     }
 
     // Cards are found by id, never by position. They used to be indexed out of
@@ -774,7 +741,7 @@
   function spanNote(lo, hi) {
     var a = niceDate(lo), b = niceDate(hi);
     if (!a || !b) return '';
-    return a === b ? 'Covering ' + b + '.' : 'Covering ' + a + ' to ' + b + '.';
+    return a === b ? 'Covering ' + b : 'Covering ' + a + ' to ' + b;
   }
 
   // Mirrors tit_state_names(). `tit-f-state` rendered 51 bare postal codes as
@@ -858,95 +825,37 @@
     if (note) note.textContent = coverageNote(money, dim);
   }
 
-  /*
-    THE DATED GLANCE PANEL, REPAINTED UNDER THE ACTIVE FILTERS.
-
-    Mirrors tit_dated_glance_html() in shortcodes.php exactly, the same contract
-    matrixHtml() has with tit_glance_matrix_html() and renderRow() has with the
-    table. The server paints this once and this repaints it on every filter
-    change, so any difference between the two shows up as the panel rewriting
-    itself while a reader watches.
-
-    It has to repaint, and not only for consistency. The Copy as Post button
-    reads these rendered rows, so a panel left showing unfiltered figures under a
-    filtered page would let somebody copy a worldwide total off a one-country
-    view. The two are one feature.
-
-    Every suppression rule the server applies is applied here for the same
-    reason it exists there: Today is dropped when it holds nothing, and the
-    week-over-week comparison is printed only when this view holds a full week
-    before the current one.
-  */
-  function datedHtml(d) {
-    if (!d || !d.rows || !d.rows.length) return '';
-    var lo = d.history_lo || '';
-    var prevStart = d.prev_start || '';
-    var prev = +d.prev_n || 0;
-    // The corpus, not the week, is what decides this. See the long note in
-    // tit_dated_glance_html(): the news collectors here first ran on
-    // 2026-07-27, so dividing by a week that mostly predates them prints
-    // something like "up 4,000%" and calls it a trend.
-    var haveHistory = !!(lo && prevStart && lo <= prevStart);
-
-    var h = '<div class="tit-dg" id="tit-dg"><div class="tit-dg-head">' +
-      '<h3 class="tit-dg-title">Today, ' + esc(d.today_label || '') +
-      ' <span aria-hidden="true">·</span> Sourced Talent Signals Worldwide</h3>' +
-      '<button type="button" class="tit-dg-copy" id="tit-dg-copy">Copy as Post</button></div>';
-
-    d.rows.forEach(function (r) {
-      if (r.key === 'today' && (+r.n || 0) === 0) return;
-      var bits = [];
-      bits.push('<b>' + nfmt(r.n) + '</b> ' + (+r.n === 1 ? 'update' : 'updates'));
-      if (+r.e > 0) bits.push('<b>' + nfmt(r.e) + '</b> ' + (+r.e === 1 ? 'employer' : 'employers'));
-      if (+r.money > 0) bits.push('<b>' + esc(moneyShort(r.money)) + '</b> raised');
-      if (+r.v > 0) bits.push('<b>' + nfmt(r.v) + '</b> from official filings');
-      if (r.top && +r.top_usd > 0) {
-        // The row's own country field, carried from the same scalar subquery
-        // that picked the raise; absent when the source named no place. Never
-        // inferred here. Mirrors tit_dated_glance_html().
-        var topWhere = r.top_country
-          ? ' <span aria-hidden="true">·</span> ' + esc(countryLabel(r.top_country))
-          : '';
-        bits.push('largest: <b>' + esc(r.top) + '</b> (' + esc(moneyShort(r.top_usd)) + topWhere + ')');
-      }
-      if (r.key === 'week') {
-        if (haveHistory && prev > 0 && (+r.n || 0) > 0) {
-          var delta = Math.round(100 * ((+r.n) - prev) / prev);
-          bits.push((delta >= 0 ? 'up ' : 'down ') + '<b>' + Math.abs(delta) +
-                    '%</b> vs the week before');
-        } else {
-          bits.push('<span class="tit-dg-nocmp">no week-on-week change yet: ' +
-                    'we do not hold a full week before this one</span>');
-        }
-      }
-      // The week's dates beside its label mirror tit_dated_glance_html(); the
-      // string is server-derived so both paints agree. The single space
-      // between the label button and the body span is a REAL text node, not a
-      // CSS gap: without it a selected-and-copied strip pastes as
-      // "This week1,366 updates", which is the sibling's "Today1,366" bug.
-      var range = r.range_label
-        ? ' <span class="tit-dg-range">(' + esc(r.range_label) + ')</span>' : '';
-      h += '<div class="tit-dg-row" data-dg="' + esc(r.key) + '">' +
-        '<button type="button" class="tit-dg-label" data-since="' + esc(r.since) +
-        '" aria-pressed="false">' + esc(r.label) + range + '</button>' +
-        ' <span class="tit-dg-body">' +
-        bits.join(' <span aria-hidden="true">·</span> ') + '</span></div>';
-    });
-
-    // The short pointer, IDENTICAL to the server's (tit_dated_glance_html):
-    // the full sentence has one home, #tit-usd-note, and this line points at it.
-    if (d.coverage) {
-      h += '<p class="tit-dg-cov">Raised figures sum USD-stated amounts only; the ' +
-        'note by the money charts says what share of funding updates that ' +
-        'covers.</p>';
+  // Mirrors tit_fresh_stats_html() in shortcodes.php: the freshness panel's
+  // four figures, updates / employers / dollars raised / official filings. The
+  // dollar figure keeps its link-plus-title honesty so the sum never travels
+  // without its caveat.
+  function freshStatsHtml(data, total) {
+    var h = '<span class="tit-fstat"><b>' + nfmt(total) + '</b><span>' +
+      (+total === 1 ? 'update' : 'updates') + '</span></span>' +
+      '<span class="tit-fstat"><b>' + nfmt(data.companies) + '</b><span>' +
+      (+data.companies === 1 ? 'employer' : 'employers') + '</span></span>';
+    var mt = data.money && data.money.total;
+    if (mt > 0) {
+      h += '<span class="tit-fstat tit-fstat-money"><a class="tit-fine-money" ' +
+        'href="#chart-money-country" title="' +
+        esc(moneyFull(mt) + '. ' + coverageFull(data.money)) + '"><b>' +
+        esc(moneyShort(mt)) + '</b><span>raised</span></a></span>';
     }
-    return h + '</div>';
+    return h + '<span class="tit-fstat"><b>' + nfmt(data.verified) +
+      '</b><span>from official filings</span></span>';
   }
 
   function matrixHtml(m) {
     var h = '<div class="tit-matrix-scroll"><table class="tit-matrix"><thead><tr>' +
       '<th scope="col"><span class="tit-sr">Signal</span></th>';
-    m.periods.forEach(function (p) { h += '<th scope="col">' + esc(p) + '</th>'; });
+    m.periods.forEach(function (p, i) {
+      // The week names its own dates, mirroring tit_glance_matrix_html(): the
+      // string is server-derived (m.week_range) so both paints agree.
+      h += '<th scope="col">' + esc(p) +
+        (i === 0 && m.week_range
+          ? '<span class="tit-th-range">' + esc(m.week_range) + '</span>' : '') +
+        '</th>';
+    });
     h += '</tr></thead><tbody>';
     m.rows.forEach(function (r) {
       var money = r.kind === 'money';
@@ -982,48 +891,14 @@
       });
       h += '</tr>';
     });
-    /*
-      ONE IDEA PER LINE, AND THE SAME LINES THE SERVER PRINTS.
-
-      The owner's verdict on the old block was "this make s not sentds". Two
-      paragraphs carried seven separate ideas between them, and the reader had to
-      unpack a clause at a time to find the one they needed. A list is the right
-      shape for a list, so it is a list now.
-
-      NOT ONE FACT IS CUT. What the columns count, why the figures above are
-      bigger, what the colour means, that the rows overlap so the columns do not
-      sum, that a number is tappable, and that one row sums dollars while the
-      rest count updates: all still here, all still computed.
-
-      TWO DIVERGENCES FIXED. This function used to omit the "each column counts"
-      paragraph entirely, so the first filter change silently deleted an
-      explanation the server had rendered. And it is now a <details>, matching
-      tit_glance_matrix_html(), or a repaint would revert the phone disclosure to
-      an open wall of prose. Keep the two in step: the server paints these once
-      and this function repaints them on every filter change, so any difference
-      shows up as the block rewriting itself while a reader watches.
-    */
-    // TWO LINES ON THE PAGE, THE REST BEHIND A CLOSED DISCLOSURE, mirroring
-    // tit_glance_matrix_html(). The details ships CLOSED on both paints now: a
-    // native disclosure opens without JavaScript, so nothing became
-    // unreachable, and fifteen lines of notes stopped sitting between the
-    // table and the content. The money line points at the caveat's one home
-    // (#tit-usd-note) rather than repeating the whole sentence.
+    // ONE FOOTNOTE LINE, IDENTICAL to the server's (tit_glance_matrix_html):
+    // what a cell counts and that it filters, that rows overlap, and the USD
+    // pointer to the caveat's one home (#tit-usd-note).
     h += '</tbody></table></div>' +
-      '<p class="tit-matrix-lede">Each cell counts updates dated inside that ' +
-      'window; tap any number to filter the page. Rows overlap, so columns do ' +
-      'not add up.</p>' +
-      '<details class="tit-matrix-note"><summary>Full notes</summary>' +
-      '<ul class="tit-matrix-points">' +
-      '<li>Each column counts updates whose source dated them inside that window.</li>' +
-      '<li>The headline figures count everything in this view, over the whole ' +
-      'period we hold, which is why they are larger.</li>' +
-      '<li>Colour shows relative activity within each row.</li>' +
-      '<li>A funded employer may also be hiring, which is why rows overlap.</li>' +
-      '<li class="tit-matrix-money-note">Total Raised sums USD-stated dollars ' +
-      'only; every other row counts updates. The note by the money charts ' +
-      'says what share of funding updates that covers.</li>' +
-      '</ul></details>';
+      '<p class="tit-board-note">Each cell counts updates dated inside its ' +
+      'window; tap a number to filter the page. Rows overlap, so columns do ' +
+      'not add up, and Total Raised sums <a href="#tit-usd-note">USD-stated ' +
+      'dollars only</a>.</p>';
     return h;
   }
 
@@ -1440,19 +1315,6 @@
     badge.textContent = String(n);
     badge.hidden = n === 0;
     btn.classList.toggle('is-on', n > 0);
-  }
-
-  /*
-    The matrix's "Full notes" details ships CLOSED on every paint now (the two
-    facts a reader needs are the always-visible lede above it), so there is
-    nothing left for this to close. It stays as a guard for any cached first
-    paint that still carries the old `open` attribute, and because closing an
-    already-closed details is free.
-  */
-  function collapseMatrixNoteOnPhone() {
-    var d = document.querySelector('details.tit-matrix-note');
-    if (!d || !window.matchMedia) return;
-    if (window.matchMedia('(max-width: 860px)').matches) d.open = false;
   }
 
   /* The one dropdown whose panel is not a checkbox group.
@@ -2443,7 +2305,6 @@
       });
     });
     syncGlance();
-    syncDated();
   }
 
   // /facets lists values from the location columns only, so a place that only
@@ -2536,31 +2397,18 @@
     });
   }
 
-  // --- The dated glance panel ----------------------------------------------
-  // Its period labels carry the SAME data-since the matrix cells do, so one
-  // rule drives both: clicking a period narrows the page to it, clicking the
-  // lit one clears it. It sets no row filter, because a period row is the
-  // period and nothing else.
-  var dgBox = document.getElementById('tit-dg-box');
-
-  function syncDated() {
-    if (!dgBox) return;
-    var since = inputs.since ? inputs.since.value : '';
-    Array.prototype.forEach.call(dgBox.querySelectorAll('.tit-dg-label[data-since]'), function (b) {
-      var on = since !== '' && b.getAttribute('data-since') === since;
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-  }
-
-  if (dgBox) {
-    dgBox.addEventListener('click', function (e) {
-      var btn = e.target && e.target.closest
-        ? e.target.closest('.tit-dg-label[data-since]') : null;
-      if (!btn) return;
-      var wasOn = btn.getAttribute('aria-pressed') === 'true';
-      if (inputs.since) inputs.since.value = wasOn ? '' : (btn.getAttribute('data-since') || '');
-      if (!wasOn && inputs.until) inputs.until.value = '';
-      refresh();
+  // --- The hero's Search button ---------------------------------------------
+  // It is a focus, not a navigation: the employer search in the primary filter
+  // row is the control the button promises, so it scrolls there and hands the
+  // keyboard over. The count on the button is repainted with the aggregate.
+  var ctaSearch = document.getElementById('tit-cta-search');
+  if (ctaSearch) {
+    ctaSearch.addEventListener('click', function () {
+      var f = document.getElementById('tit-f-company') ||
+              document.getElementById('tit-f-q');
+      if (!f) return;
+      if (f.scrollIntoView) f.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      f.focus({ preventScroll: true });
     });
   }
 
@@ -2639,48 +2487,53 @@
   */
   var canCopy = !!(navigator.clipboard && navigator.clipboard.writeText);
 
-  // Revealed after every paint, not once: the panel replaces its own innerHTML
-  // on each filter change, so the button bound at startup is a node that no
-  // longer exists by the second repaint. Delegation on the box handles the
-  // click; this handles the reveal.
-  function showDatedCopy() {
-    if (!dgBox || !canCopy) return;
-    var b = dgBox.querySelector('.tit-dg-copy');
-    if (b) b.hidden = false;
-  }
-  showDatedCopy();
+  /*
+    COPY AS POST, off the signal board, as clean text lines.
 
-  if (dgBox && canCopy) {
-    dgBox.addEventListener('click', function (e) {
-      var dgCopy = e.target && e.target.closest ? e.target.closest('.tit-dg-copy') : null;
-      if (!dgCopy) return;
+    The rule is unchanged from the strip it replaces: the button can never
+    hand somebody a figure the page is not showing. It reads the RENDERED
+    matrix rows out of the DOM at click time (each cell already carries its
+    period as real text, .tit-cell-p, for the stacked mobile layout), and the
+    board repaints from /aggregate under the active filters, so what is
+    copied is literally what is displayed. It names the active filters from
+    the chips bar for the same reason.
+
+    Bound once: the button lives in the board's static head, outside the
+    #tit-glance element the repaint rewrites, so it survives every filter
+    change. Revealed here because its entire function is navigator.clipboard.
+  */
+  var boardCopy = document.getElementById('tit-dg-copy');
+  var boardEl = document.getElementById('tit-board');
+  if (boardCopy && boardEl && canCopy) {
+    boardCopy.hidden = false;
+    boardCopy.addEventListener('click', function () {
       var lines = [];
-      var title = dgBox.querySelector('.tit-dg-title');
+      var title = boardEl.querySelector('.tit-board-title');
       if (title) lines.push(title.textContent.replace(/\s+/g, ' ').trim());
 
-      Array.prototype.forEach.call(dgBox.querySelectorAll('.tit-dg-row'), function (row) {
-        var label = row.querySelector('.tit-dg-label');
-        var body = row.querySelector('.tit-dg-body');
-        if (!label || !body) return;
-        lines.push(label.textContent.trim() + ': ' +
-                   body.textContent.replace(/\s+/g, ' ').trim());
+      Array.prototype.forEach.call(boardEl.querySelectorAll('.tit-matrix-row'), function (row) {
+        var th = row.querySelector('th');
+        if (!th) return;
+        var label = th.childNodes[0] ? String(th.childNodes[0].textContent).trim()
+                                     : th.textContent.trim();
+        var cells = Array.prototype.map.call(row.querySelectorAll('.tit-cell'), function (b) {
+          var p = b.querySelector('.tit-cell-p');
+          var period = p ? p.textContent.trim() : '';
+          var n = (b.textContent || '').replace(p ? p.textContent : '', '').trim();
+          return period + ' ' + n;
+        }).filter(Boolean);
+        if (cells.length) lines.push(label + ': ' + cells.join(' · '));
       });
 
-      // The all-time rung lives on .tit-hero-fine, outside the panel box, so it
-      // is collected by name rather than by position.
-      var allFig = root.querySelector('.tit-hero-fine .tit-fine-figures');
+      // The all-time figures live in the freshness panel, collected by name.
+      var allFig = document.getElementById('tit-fresh-stats');
       if (allFig) {
         lines.push('Everything we hold: ' +
                    allFig.textContent.replace(/\s+/g, ' ').trim());
       }
 
-      /*
-        THE VIEW THESE FIGURES DESCRIBE, from the chips the page is already
-        showing. Without this a filtered copy reads as a worldwide one. When
-        nothing is filtered it says so explicitly rather than staying silent,
-        because "no filters" and "filters I forgot to mention" look identical in
-        a pasted block of text.
-      */
+      // The view these figures describe, from the chips the page is already
+      // showing; "no filters" is said out loud rather than left ambiguous.
       var chipEls = activeChips ? activeChips.querySelectorAll('.tit-chip') : [];
       var applied = Array.prototype.map.call(chipEls, function (c) {
         return c.textContent.replace(/\s*×\s*$/, '').replace(/\s+/g, ' ').trim();
@@ -2694,9 +2547,9 @@
                  (location.search || ''));
 
       navigator.clipboard.writeText(lines.join('\n')).then(function () {
-        var was = dgCopy.textContent;
-        dgCopy.textContent = 'Copied';
-        setTimeout(function () { dgCopy.textContent = was; }, 1500);
+        var was = boardCopy.textContent;
+        boardCopy.textContent = 'Copied';
+        setTimeout(function () { boardCopy.textContent = was; }, 1500);
       });
     });
   }
@@ -2773,7 +2626,6 @@
   };
 
   syncAllPills();
-  collapseMatrixNoteOnPhone();
   populateFacets();
 
   // Last, because it needs the inputs, the region tabs and refresh() to exist.
