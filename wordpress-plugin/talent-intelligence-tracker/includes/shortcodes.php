@@ -3695,7 +3695,19 @@ function tit_span_note($lo, $hi) {
       there to stop "46 updates" reading like a long-running tracker, and that
       job is done by the real dates the moment they span years.
     */
-    if (substr($lo, 0, 10) === substr($hi, 0, 10)) {
+    /*
+      Clamp the upper bound to today. "Covering" describes COLLECTION, and a
+      row whose stated effective date sits in the future (a filing effective
+      next month is legitimate data) put "to 2 Sep 2026" on the live ribbon on
+      2 Aug 2026 - a tracker that claims to cover a month that has not happened
+      reads as broken even though every underlying row is honest. The record
+      keeps its future date; only this sentence is clamped.
+    */
+    $alt_today = current_time('Y-m-d');
+    if (substr($hi, 0, 10) > $alt_today) {
+        $hi = $alt_today;
+    }
+    if (substr($lo, 0, 10) >= substr($hi, 0, 10)) {
         return sprintf('Covering %s', date_i18n('j M Y', strtotime($hi)));
     }
     return sprintf(
