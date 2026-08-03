@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-03T06:47:30Z",
-  "last_tick": "2026-08-03T06:47:30Z",
+  "last_dispatch": "2026-08-03T06:52:08Z",
+  "last_tick": "2026-08-03T06:52:08Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -186,12 +186,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-03T06:52:08Z",
       "history": [
         {
           "at": "2026-08-03T06:18:19Z",
           "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-06-25)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-03T06:52:08Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260803T061819Z-backfill-gdelt-2026",
@@ -207,35 +212,8 @@
       "requested_at": "2026-08-03T06:18:19Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T06:47:30Z",
-      "history": [
-        {
-          "at": "2026-08-03T06:37:11Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T06:47:30Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260803T063711Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-08-03T06:37:11Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
       "state": "dispatched",
-      "workflow": "link-check.yml"
+      "workflow": "backfill-gdelt-2026.yml"
     },
     {
       "attempts": 0,
@@ -262,48 +240,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-01T22:42:35Z",
-      "history": [
-        {
-          "at": "2026-08-01T19:55:42Z",
-          "detail": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-03-26)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T22:42:35Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T22:45:06Z",
-          "detail": "run 30721850769",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-01T22:45:06Z",
-          "detail": "run 30721850769",
-          "event": "landed"
-        }
-      ],
-      "id": "20260801T195542Z-backfill-structured-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "source": "bse_india",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-01T22:45:06Z",
-      "priority": 10,
-      "reason": "next slice of backfill-structured-2026:bse_india:2026-01-01..2026-07-30 (resumes at 2026-03-26)",
-      "requested_at": "2026-08-01T19:55:42Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30721850769",
-      "state": "landed",
-      "workflow": "backfill-structured-2026.yml"
     },
     {
       "attempts": 0,
@@ -2750,6 +2686,44 @@
       "run_id": "30789784061",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-03T06:47:30Z",
+      "history": [
+        {
+          "at": "2026-08-03T06:37:11Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-03T06:47:30Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-03T06:52:08Z",
+          "detail": "run 30791353758",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-03T06:52:08Z",
+          "detail": "run 30791353758",
+          "event": "landed"
+        }
+      ],
+      "id": "20260803T063711Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-03T06:52:08Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-03T06:37:11Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30791353758",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
