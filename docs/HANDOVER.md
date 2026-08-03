@@ -1,5 +1,13 @@
 # Handover — Talent Intelligence Tracker
 
+> **benchmark-diff is DORMANT BY THE OWNER'S DECISION (2026-08-03). Do NOT ask
+> the owner to set BENCHMARK_COMPANIES or BENCHMARK_FEED_URLS.** He was
+> reminded ten times and asked for it to stop. His named benchmarks need no
+> list: the aggregate publisher's monthly figure is auto-checked weekly into
+> the private benchmark file, the commercial database's public claims
+> likewise, and the tripwire already does discovery. The loop exits green at
+> zero cost while dormant. Same rule as the sibling repo's tracker-diff.
+
 **Read this first if you are a new session.** It is the current state of the
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.
