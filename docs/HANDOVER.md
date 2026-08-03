@@ -805,8 +805,9 @@ coverage priced honestly".
 
 ### Non-negotiable
 
-- **Never store an aggregator as a source** (Crunchbase, Dealroom, Tracxn,
-  Harmonic, StartupBlink, Startup Nation Central, TechIreland, Fundup) —
+- **Never store an aggregator as a source** (commercial funding databases,
+  startup-intelligence platforms and ecosystem directories; the domain
+  blocklist in `collectors/national_press.py` is the authoritative list):
   discovery pointers only; cite the original publisher.
 - **Never bypass a paywall. Never scrape LinkedIn** (`validate.py` blocks it).
 - **Never write a row directly.** `extract → validate → store → publish`, and the
