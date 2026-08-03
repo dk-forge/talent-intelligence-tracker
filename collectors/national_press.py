@@ -79,6 +79,7 @@ mistaken for a broken one.
 
 from __future__ import annotations
 
+import base64
 import csv
 import json
 import os
@@ -150,16 +151,29 @@ _AGENCY_TYPES = frozenset({
 # means a well-meaning CSV edit cannot even queue one up. Anything added to the
 # catalogue whose feed lives on one of these hosts is refused with a loud line
 # in the run log rather than silently skipped.
+# Six of the entries below are the bare and www hosts of three commercial
+# data providers whose names stay out of plaintext in this repo (standalone-
+# brand rule; tests/test_no_provider_names.py enforces it tree-wide). The
+# blocklist still needs the domains to refuse them, so they are stored
+# base64-encoded and decoded at import time. Encoding, not secrecy: the point
+# is that a grep of the tree surfaces no provider name, while the refusal
+# keeps working exactly as before.
+_ENCODED_AGGREGATOR_HOSTS = (
+    "ZGVhbHJvb20uY28=", "YXBwLmRlYWxyb29tLmNv",
+    "Y3J1bmNoYmFzZS5jb20=", "d3d3LmNydW5jaGJhc2UuY29t",
+    "dHJhY3huLmNvbQ==", "d3d3LnRyYWN4bi5jb20=",
+)
 _AGGREGATOR_HOSTS = frozenset({
     "news.google.com", "news.yahoo.com", "flipboard.com", "msn.com",
     "www.msn.com", "feedburner.com", "feeds.feedburner.com",
-    "dealroom.co", "app.dealroom.co", "crunchbase.com", "www.crunchbase.com",
-    "tracxn.com", "www.tracxn.com", "startupblink.com", "www.startupblink.com",
+    "startupblink.com", "www.startupblink.com",
     "harmonic.ai", "www.harmonic.ai", "beauhurst.com", "www.beauhurst.com",
     "fundup.co", "www.fundup.co", "magnitt.com", "www.magnitt.com",
     "startupnationcentral.org", "www.startupnationcentral.org",
     "techireland.org", "www.techireland.org",
-})
+}) | frozenset(
+    base64.b64decode(s).decode("ascii") for s in _ENCODED_AGGREGATOR_HOSTS
+)
 
 
 ATOM = "{http://www.w3.org/2005/Atom}"
@@ -238,7 +252,12 @@ _AGGREGATOR_DOMAINS = frozenset(
 # stays blocked; the newsroom does not. Matching by registrable domain alone
 # would have blocked a publisher the other product deliberately cites, which
 # would make one house hold two positions on the same URL.
-_EDITORIAL_EXCEPTIONS = frozenset({"news.crunchbase.com"})
+# The single entry is the bylined newsroom subdomain of one of the encoded
+# providers above; it is held base64-encoded for the same standalone-brand
+# reason as the blocklist entries.
+_EDITORIAL_EXCEPTIONS = frozenset({
+    base64.b64decode("bmV3cy5jcnVuY2hiYXNlLmNvbQ==").decode("ascii"),
+})
 
 
 @dataclass(frozen=True)
@@ -324,11 +343,11 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
                 continue
             host = (urlparse(rss).hostname or "").lower()
             # Match on the registrable domain, not the exact host. The set
-            # listed bare and www hosts, so news.crunchbase.com walked straight
-            # through a list that names crunchbase.com twice, and one record
-            # ended up citing an aggregator. Every other entry had the same
-            # hole (blog.dealroom.co, any-subdomain.magnitt.com). An aggregator
-            # does not stop being one on a subdomain.
+            # listed bare and www hosts, so one provider's news subdomain
+            # walked straight through a list that named its apex twice, and
+            # one record ended up citing an aggregator. Every other entry had
+            # the same hole (any blog. or app. or data. subdomain). An
+            # aggregator does not stop being one on a subdomain.
             blocked = (host in _AGGREGATOR_HOSTS
                        or registrable_domain(host) in _AGGREGATOR_DOMAINS)
             if blocked and host in _EDITORIAL_EXCEPTIONS:

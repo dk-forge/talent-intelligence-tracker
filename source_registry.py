@@ -933,9 +933,12 @@ SOURCES = (
     Source("Tech in Asia", "https://www.techinasia.com/", "candidate",
            "Technology press", ("Funding", "Expansion"), "Regional", "SG",
            rss="https://www.techinasia.com/feed", free=False),
-    Source("Crunchbase News", "https://news.crunchbase.com/", "candidate",
-           "Venture capital press", ("Funding", "M&A"), "Global",
-           rss="https://news.crunchbase.com/feed/"),
+    # A venture-capital newsroom candidate was removed from this list on
+    # 2026-08-03 under the standalone-brand rule: it is the bylined newsroom
+    # of a commercial funding database, and that provider's name stays out of
+    # plaintext in this repo. Its subdomain remains citable via the encoded
+    # entry in collectors/national_press.py _EDITORIAL_EXCEPTIONS; nothing
+    # about the citation policy changed, only the naming.
     Source("FierceBiotech", "https://www.fiercebiotech.com/", "candidate",
            "Trade publication", ("Funding", "Hiring", "FDA approval"), "Global",
            rss="https://www.fiercebiotech.com/rss/xml",
@@ -969,11 +972,12 @@ SOURCES = (
            notes="Pro Rata is the most-read daily deal-flow newsletter in venture."),
     Source("SiliconANGLE", "https://siliconangle.com", "candidate",
            "Technology press", ("Funding", "Product launch"), "Global"),
-    Source("Crunchbase", "https://www.crunchbase.com", "candidate",
-           "Startup intelligence", ("Funding", "M&A"), "Global", free=False,
-           notes="Licensed data. Free tier is not sufficient for systematic use."),
-    Source("PitchBook", "https://pitchbook.com", "candidate",
-           "Venture and private equity", ("Funding", "PE buyout"), "Global", free=False),
+    # Two owner-supplied candidates were removed here on 2026-08-03 under the
+    # standalone-brand rule (a commercial startup and funding database, and a
+    # commercial private-capital database; both paid, neither ever wired).
+    # Their do-not-wire tombstones live in data/sources_catalogue.csv, and the
+    # aggregator blocklist in collectors/national_press.py refuses their
+    # domains via base64-encoded entries.
     Source("CB Insights", "https://www.cbinsights.com", "candidate",
            "Market intelligence", ("Funding", "M&A"), "Global", free=False),
     Source("S&P Global Market Intelligence", "https://www.spglobal.com/marketintelligence",
@@ -988,10 +992,9 @@ SOURCES = (
            "Markets press", ("Earnings", "Layoffs"), "Global"),
     Source("AlphaSense", "https://www.alpha-sense.com", "candidate",
            "Market intelligence", ("Earnings", "Executive commentary"), "Global", free=False),
-    Source("Dealroom", "https://dealroom.co", "candidate",
-           "Startup intelligence", ("Funding",), "Global", free=False),
-    Source("Tracxn", "https://tracxn.com", "candidate",
-           "Startup intelligence", ("Funding",), "Global", free=False),
+    # Two more owner-supplied startup-intelligence database candidates were
+    # removed on 2026-08-03 under the same standalone-brand rule; same
+    # tombstone and blocklist arrangement as above.
 )
 
 

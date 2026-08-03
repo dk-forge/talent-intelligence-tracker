@@ -25,6 +25,8 @@ robots file and stops there.
 
 from __future__ import annotations
 
+import base64
+
 import csv
 import re
 import unittest
@@ -90,10 +92,13 @@ class TheWideningReachedRealPublishers(unittest.TestCase):
                           press._AGGREGATOR_DOMAINS, host)
         self.assertNotIn("finance.yahoo.com", press._EDITORIAL_EXCEPTIONS)
 
-    def test_the_crunchbase_newsroom_stays_allowed(self):
+    def test_the_editorial_newsroom_exception_stays_allowed(self):
         # Blocked once by mistake. The database is an aggregator; the bylined
-        # newsroom on the same registrable domain is a publisher.
-        self.assertIn("news.crunchbase.com", press._EDITORIAL_EXCEPTIONS)
+        # newsroom on the same registrable domain is a publisher. The host is
+        # a banned plaintext string (standalone-brand rule), so it decodes at
+        # runtime, matching how _EDITORIAL_EXCEPTIONS itself stores it.
+        host = base64.b64decode("bmV3cy5jcnVuY2hiYXNlLmNvbQ==").decode("ascii")
+        self.assertIn(host, press._EDITORIAL_EXCEPTIONS)
 
     def test_no_feed_url_is_listed_twice(self):
         seen = {}

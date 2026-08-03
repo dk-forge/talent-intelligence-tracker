@@ -37,7 +37,7 @@ _NOT_SOURCES = {
     # and THAT goes through classify -> validate -> store. So the tripwire has
     # never been the source of a stored row and must never be named as one —
     # "a model is a discovery pointer too" is the same rule that keeps
-    # Crunchbase and Google News off this page. It first appeared here on
+    # commercial funding databases and Google News off this page. It first appeared here on
     # 2026-08-02, when the first non-dry run filed its first health row.
     "tripwire": "asks a model where to look; stores nothing itself",
     # The benchmark-diff chase (collectors/benchmark_chase.py, dormant until a

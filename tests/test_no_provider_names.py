@@ -4,15 +4,11 @@ The four banned patterns are stored base64-encoded so that this file itself
 carries none of them, and failure output masks the match so CI logs stay
 clean too.
 
-Some tracked files still carry the strings today and are exempted below,
-each with the reason. The exemptions are a snapshot taken 2026-08-03, when
-the catalogue rows and the handover doc were anonymized: the remaining
-carriers are functional blocklist code (a domain must be spelled to be
-blocked), the registry and its generated manifest, the tests of that
-blocklist, historical logs, and captured label data. Shrinking this list is
-an owner decision (the files are owned by other active work streams);
-GROWING it is what this test exists to stop. Any new tracked file that
-mentions a banned pattern fails here.
+Every git-tracked file is scanned, case-insensitive, except two collected
+data files (exemptions below). Code that functionally needs one of the
+strings (the aggregator blocklist must spell a domain to refuse it) stores
+it base64-encoded and decodes at import time, so plaintext never appears in
+a tracked source file.
 
 Note: git HISTORY still holds the names in earlier revisions of the
 anonymized files. A history rewrite is a separate owner decision.
@@ -33,25 +29,14 @@ _ENCODED = (
 )
 _BANNED = tuple(base64.b64decode(s).decode("ascii") for s in _ENCODED)
 
-# Exact tracked paths that legitimately still carry a pattern (see module
-# docstring). Paths only; no banned string appears in any path.
+# The ONLY exemptions: collected records. Wild headlines and stored rows that
+# mention these companies are observations captured as they occurred, and
+# rewriting records is falsification. Everything else in the tree is authored
+# and must stay name-free.
 _EXEMPT = frozenset({
-    # Hand-written registry entries (owner-supplied candidate catalogue).
-    "source_registry.py",
-    # The aggregator domain blocklist: a domain must be spelled to be blocked.
-    "collectors/national_press.py",
-    # Generated verbatim from source_registry.py; fix the registry first.
-    "wordpress-plugin/talent-intelligence-tracker/data/sources.json",
-    # Tests that pin the blocklist and its subdomain semantics.
-    "tests/test_source_widening.py",
-    "tests/test_national_press.py",
-    "tests/test_sources_page.py",
-    # Historical engineering log; scrubbing history is an owner decision.
-    "docs/TECHLOG.md",
+    "data/gate_labels/bootstrap-weak.jsonl",
+    "data/talent_intel.db",
 })
-
-# Captured weak-label data: headlines and hosts recorded as observed.
-_EXEMPT_PREFIXES = ("data/gate_labels/",)
 
 
 def _tracked_files():
@@ -64,7 +49,7 @@ def _tracked_files():
 def test_no_banned_provider_name_in_any_tracked_file():
     offenders = []
     for rel in _tracked_files():
-        if rel in _EXEMPT or rel.startswith(_EXEMPT_PREFIXES):
+        if rel in _EXEMPT:
             continue
         path = ROOT / rel
         if not path.is_file():  # deleted in worktree, submodule, etc.

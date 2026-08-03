@@ -2983,9 +2983,9 @@ exists rather than invented here.
 It already is answered, in three places that agree:
 
 - `national_press._AGGREGATOR_HOSTS` lists Google News, Yahoo News, Flipboard,
-  MSN, FeedBurner and the funding databases (Dealroom, Crunchbase, Tracxn,
-  StartupBlink, Harmonic, Beauhurst, Fundup, Magnitt, Startup Nation Central,
-  TechIreland). **No wire appears in it.**
+  MSN, FeedBurner and ten commercial funding databases and startup
+  directories (three of them held base64-encoded since 2026-08-03 under the
+  standalone-brand rule). **No wire appears in it.**
 - `validate._BLOCKED_SOURCE_HOSTS` is the same five aggregator hosts. **No wire
   appears in it either.**
 - The database already cites `prnewswire.com` on 3 current rows and
@@ -2995,9 +2995,9 @@ The distinction the existing policy draws is about WHOSE DOCUMENT it is. A
 release on a wire is the company's own announcement, published under its own
 name — the same class of thing as a company newsroom, which this catalogue
 already carries 16 of. Google News republishes somebody else's article and adds
-a redirect. That is why `news.crunchbase.com` is in `_EDITORIAL_EXCEPTIONS`
-while the rest of crunchbase.com is blocked: the test is the reporting, not the
-domain's other businesses. We have over-blocked by analogy once already, and
+a redirect. That is why one funding database's bylined newsroom subdomain is
+in `_EDITORIAL_EXCEPTIONS` while the rest of its domain is blocked: the test
+is the reporting, not the domain's other businesses. We have over-blocked by analogy once already, and
 this is the shape it takes.
 
 So the wires were treated as wireable and each one failed or passed on its own
@@ -6059,7 +6059,8 @@ rule; a recency window binding both sides; and more than 49 hiring rows in
   — syndication, and we already read cstoredive.com directly for two other rows.
   But `sg.finance.yahoo.com/news/hsbc-plans-hire-100-ai-...` canonicalises to
   ITSELF: Yahoo Finance Singapore is the publisher of record. A registrable-domain
-  block would drop it, which is the `news.crunchbase.com` over-block again. Also
+  block would drop it, which is the editorial-newsroom over-block
+  (`_EDITORIAL_EXCEPTIONS`) again. Also
   `finance.yahoo.com` is a registered candidate source in `source_registry.py`
   and appears in the recall gold set. The right rule is the canonical host, not
   the requested one. NOT IMPLEMENTED: `validate.py` was held by another agent.
@@ -6433,8 +6434,8 @@ Singapore 5 -> 6, Switzerland 4 -> 5.
   Yahoo host. Adding it by name would imply the domain rule does not work.
   Checked first: the sibling allows no Yahoo host as editorial either. Asserted
   now rather than re-argued.
-- **`news.crunchbase.com` is still in `_EDITORIAL_EXCEPTIONS`** and stays there.
-  Asserted.
+- **The funding database's newsroom subdomain is still in
+  `_EDITORIAL_EXCEPTIONS`** and stays there. Asserted.
 
 ### One place the brief was wrong about this repo
 

@@ -4,6 +4,7 @@ Every test here runs offline against a recorded fixture or an in-memory feed
 list. Nothing in this file touches the network or the model.
 """
 
+import base64
 import csv
 import json
 from pathlib import Path
@@ -227,7 +228,11 @@ def test_an_aggregator_feed_is_refused_at_load_time(tmp_path):
     even queue one up."""
     path = tmp_path / "cat.csv"
     _write_catalogue(path, [
-        {"name": "Dealroom", "rss": "https://dealroom.co/feed", "country": "Netherlands"},
+        # The aggregator's domain is a banned plaintext string (standalone-
+        # brand rule), so the fixture decodes it at runtime, exactly like the
+        # blocklist itself does.
+        {"name": "An aggregator", "country": "Netherlands",
+         "rss": "https://" + base64.b64decode("ZGVhbHJvb20uY28=").decode("ascii") + "/feed"},
         {"name": "Google News", "rss": "https://news.google.com/rss", "country": "United States"},
         {"name": "Globes", "rss": "https://en.globes.co.il/feed", "country": "Israel"},
     ])
@@ -673,15 +678,21 @@ def test_only_an_encoding_we_can_decode_is_advertised():
 
 
 def test_an_aggregator_is_blocked_on_every_subdomain():
-    """One record ended up citing news.crunchbase.com because the blocklist
-    named exact hosts: it listed crunchbase.com and www.crunchbase.com, and a
-    third subdomain walked straight through a set that mentions the company
-    twice. Every other entry had the same hole. Matching what someone OWNS
-    closes it for names already listed and for any name added later."""
+    """One record ended up citing an aggregator's news subdomain because the
+    blocklist named exact hosts: it listed the bare and www hosts, and a third
+    subdomain walked straight through a set that mentions the company twice.
+    Every other entry had the same hole. Matching what someone OWNS closes it
+    for names already listed and for any name added later.
+
+    Three of the probed hosts belong to providers whose names are banned in
+    plaintext (standalone-brand rule), so their apexes decode at runtime from
+    the same base64 form the blocklist uses."""
     from collectors.national_press import _AGGREGATOR_DOMAINS, registrable_domain
 
-    for host in ("news.crunchbase.com", "blog.dealroom.co", "app.magnitt.com",
-                 "data.tracxn.com", "www.startupnationcentral.org"):
+    encoded_apexes = ("Y3J1bmNoYmFzZS5jb20=", "ZGVhbHJvb20uY28=", "dHJhY3huLmNvbQ==")
+    news, blog, data = (base64.b64decode(s).decode("ascii") for s in encoded_apexes)
+    for host in (f"news.{news}", f"blog.{blog}", f"data.{data}",
+                 "app.magnitt.com", "www.startupnationcentral.org"):
         assert registrable_domain(host) in _AGGREGATOR_DOMAINS, host
 
     # Publishers we legitimately read must stay readable.

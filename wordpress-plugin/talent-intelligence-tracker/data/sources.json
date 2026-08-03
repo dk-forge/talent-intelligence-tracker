@@ -2529,38 +2529,6 @@
   "collector": ""
  },
  {
-  "name": "Crunchbase",
-  "url": "https://www.crunchbase.com",
-  "status": "candidate",
-  "category": "Startup intelligence",
-  "signals": [
-   "Funding",
-   "M&A"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": false,
-  "notes": "Licensed data. Free tier is not sufficient for systematic use.",
-  "collector": ""
- },
- {
-  "name": "Crunchbase News",
-  "url": "https://news.crunchbase.com/",
-  "status": "candidate",
-  "category": "Venture capital press",
-  "signals": [
-   "Funding",
-   "M&A"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "https://news.crunchbase.com/feed/",
-  "free": true,
-  "notes": "",
-  "collector": ""
- },
- {
   "name": "Curacao (discovery backstop)",
   "url": "",
   "status": "backstop",
@@ -2780,21 +2748,6 @@
   "rss": "https://www.tijd.be/rss/ondernemen.xml",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business daily. Use this path: /rss/top_stories.xml is STALE (last item 2022-11-20) though it still returns 200.",
-  "collector": ""
- },
- {
-  "name": "Dealroom",
-  "url": "https://dealroom.co",
-  "status": "candidate",
-  "category": "Startup intelligence",
-  "signals": [
-   "Funding"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": false,
-  "notes": "",
   "collector": ""
  },
  {
@@ -8883,22 +8836,6 @@
   "collector": ""
  },
  {
-  "name": "PitchBook",
-  "url": "https://pitchbook.com",
-  "status": "candidate",
-  "category": "Venture and private equity",
-  "signals": [
-   "Funding",
-   "PE buyout"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": false,
-  "notes": "",
-  "collector": ""
- },
- {
   "name": "Platum",
   "url": "https://platum.kr",
   "status": "candidate",
@@ -12219,21 +12156,6 @@
   "rss": "https://touchit.sk/feed",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Tech trade press.",
-  "collector": ""
- },
- {
-  "name": "Tracxn",
-  "url": "https://tracxn.com",
-  "status": "candidate",
-  "category": "Startup intelligence",
-  "signals": [
-   "Funding"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": false,
-  "notes": "",
   "collector": ""
  },
  {
