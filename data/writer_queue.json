@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-03T13:18:15Z",
-  "last_tick": "2026-08-03T13:18:15Z",
+  "last_dispatch": "2026-08-03T13:23:49Z",
+  "last_tick": "2026-08-03T13:23:49Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -190,43 +190,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-03T13:18:15Z",
-      "history": [
-        {
-          "at": "2026-08-03T13:17:42Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-16)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T13:18:15Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260803T131742Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-16)",
-      "requested_at": "2026-08-03T13:17:42Z",
-      "requested_by": "backfill-slices",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-03T13:23:49Z",
       "history": [
         {
           "at": "2026-08-03T13:23:21Z",
           "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-17)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-03T13:23:49Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260803T132321Z-backfill-gnews-2026",
@@ -242,55 +216,8 @@
       "requested_at": "2026-08-03T13:23:21Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "acknowledged": "2026-08-02T17:15:06Z",
-      "attempts": 0,
-      "dispatched_at": "2026-08-02T13:48:18Z",
-      "history": [
-        {
-          "at": "2026-08-02T12:26:13Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 4)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-02T13:48:18Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-02T13:49:25Z",
-          "detail": "run 30750713415",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-02T14:02:13Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-08-02T17:15:06Z",
-          "detail": " (by dakotta-labs)",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20260802T122613Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 4)",
-      "requested_at": "2026-08-02T12:26:13Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30750713415",
-      "state": "failed",
-      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
@@ -2733,6 +2660,48 @@
       "requested_at": "2026-08-03T13:11:21Z",
       "requested_by": "backfill-slices",
       "run_id": "30816842658",
+      "state": "landed",
+      "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-03T13:18:15Z",
+      "history": [
+        {
+          "at": "2026-08-03T13:17:42Z",
+          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-16)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-03T13:18:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-03T13:23:49Z",
+          "detail": "run 30817331909",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-03T13:23:49Z",
+          "detail": "run 30817331909",
+          "event": "landed"
+        }
+      ],
+      "id": "20260803T131742Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "ration": "37",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-03T13:23:49Z",
+      "priority": 10,
+      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-16)",
+      "requested_at": "2026-08-03T13:17:42Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30817331909",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
     }
