@@ -689,7 +689,7 @@
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
-      "cursor": "2026-07-04",
+      "cursor": "2026-07-05",
       "end": "2026-07-26",
       "history": [
         {
@@ -2134,6 +2134,19 @@
             "stored": 3,
             "windows": 2
           }
+        },
+        {
+          "at": "2026-08-03T20:43:01Z",
+          "run": "",
+          "slice": "2026-07-04..2026-07-07",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-05",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 898,
+            "rejected": 2,
+            "stored": 3,
+            "windows": 2
+          }
         }
       ],
       "inputs": {
@@ -2144,18 +2157,18 @@
       "label": "",
       "opened_at": "2026-07-30T22:10:09Z",
       "slice_size": 4,
-      "slices": 111,
+      "slices": 112,
       "start": "2026-01-01",
       "state": "running",
       "totals": {
-        "duplicates": 533,
-        "left_for_later": 130685,
-        "rejected": 2377,
-        "stored": 2029,
-        "windows": 290
+        "duplicates": 534,
+        "left_for_later": 131583,
+        "rejected": 2379,
+        "stored": 2032,
+        "windows": 292
       },
       "unit": "days",
-      "updated_at": "2026-08-03T20:36:44Z",
+      "updated_at": "2026-08-03T20:43:01Z",
       "workflow": "backfill-gnews-2026.yml"
     },
     "backfill-gnews-2026:2026-01-22..2026-01-24": {
