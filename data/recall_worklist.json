@@ -1,15 +1,15 @@
 {
- "generated_at": "2026-07-30T17:28:06-07:00",
- "measured_on": "2026-07-30",
+ "generated_at": "2026-08-03T09:23:40+00:00",
+ "measured_on": "2026-08-03",
  "goldset_version": "2026-07-v2",
  "overall": {
   "total": 169,
-  "found": 12,
-  "found_partial": 12,
-  "missed": 145,
-  "held": 24,
-  "held_pct": 14.2,
-  "clean_pct": 7.1
+  "found": 13,
+  "found_partial": 20,
+  "missed": 136,
+  "held": 33,
+  "held_pct": 19.5,
+  "clean_pct": 7.7
  },
  "zero_countries": [
   {
@@ -20,12 +20,6 @@
   },
   {
    "key": "KE",
-   "total": 4,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "PL",
    "total": 4,
    "held": 0,
    "held_pct": 0.0
@@ -62,12 +56,6 @@
   },
   {
    "key": "CN",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "CO",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
@@ -224,12 +212,6 @@
   },
   {
    "key": "GE",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "HK",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -413,14 +395,14 @@
   {
    "key": "US",
    "total": 34,
-   "held": 10,
-   "held_pct": 29.4
+   "held": 12,
+   "held_pct": 35.3
   },
   {
    "key": "IL",
    "total": 10,
-   "held": 1,
-   "held_pct": 10.0
+   "held": 3,
+   "held_pct": 30.0
   },
   {
    "key": "AU",
@@ -430,6 +412,12 @@
   },
   {
    "key": "CA",
+   "total": 4,
+   "held": 1,
+   "held_pct": 25.0
+  },
+  {
+   "key": "PL",
    "total": 4,
    "held": 1,
    "held_pct": 25.0
@@ -451,20 +439,14 @@
    "total": 3,
    "held": 1,
    "held_pct": 33.3
-  },
-  {
-   "key": "IN",
-   "total": 3,
-   "held": 1,
-   "held_pct": 33.3
   }
  ],
  "weak_source_types": [
   {
    "key": "trade_press",
    "total": 96,
-   "held": 15,
-   "held_pct": 15.6
+   "held": 22,
+   "held_pct": 22.9
   },
   {
    "key": "national_news",
@@ -475,34 +457,34 @@
   {
    "key": "press_release",
    "total": 30,
-   "held": 5,
-   "held_pct": 16.7
+   "held": 6,
+   "held_pct": 20.0
   },
   {
    "key": "filing",
    "total": 10,
-   "held": 2,
-   "held_pct": 20.0
+   "held": 3,
+   "held_pct": 30.0
   }
  ],
  "weak_segments": [
   {
    "key": "non-US funding",
    "total": 92,
-   "held": 13,
-   "held_pct": 14.1
+   "held": 18,
+   "held_pct": 19.6
   },
   {
    "key": "non-US leadership",
    "total": 43,
-   "held": 1,
-   "held_pct": 2.3
+   "held": 3,
+   "held_pct": 7.0
   },
   {
    "key": "US funding",
    "total": 22,
-   "held": 5,
-   "held_pct": 22.7
+   "held": 7,
+   "held_pct": 31.8
   },
   {
    "key": "US leadership",
@@ -512,9 +494,10 @@
   }
  ],
  "field_defects": {
-  "country_missing": 8,
-  "amount_missing": 5,
-  "amount_mismatch": 1
+  "country_missing": 14,
+  "amount_missing": 7,
+  "amount_mismatch": 1,
+  "country_wrong": 1
  },
  "missed_examples": [
   {
@@ -838,14 +821,14 @@
    "event_date": "2026-07-15"
   }
  ],
- "missed_total": 145,
+ "missed_total": 136,
  "next_goldset": {
   "due": false,
   "reason": "the current set is still current and still moving",
   "suggested_window": {
-   "start": "2026-06-01",
-   "end": "2026-06-30"
+   "start": "2026-07-01",
+   "end": "2026-07-31"
   },
-  "instruction": "Build a new recall gold set for 2026-06-01 to 2026-06-30 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-06.json with sealed=true and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
+  "instruction": "Build a new recall gold set for 2026-07-01 to 2026-07-31 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-07.json with sealed=true and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
  }
 }
