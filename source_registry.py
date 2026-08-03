@@ -978,7 +978,7 @@ SOURCES = (
     # Their do-not-wire tombstones live in data/sources_catalogue.csv, and the
     # aggregator blocklist in collectors/national_press.py refuses their
     # domains via base64-encoded entries.
-    Source("CB Insights", "https://www.cbinsights.com", "candidate",
+    Source("a commercial market-intelligence database", "https://www.a commercial market-intelligence database.com", "candidate",
            "Market intelligence", ("Funding", "M&A"), "Global", free=False),
     Source("S&P Global Market Intelligence", "https://www.spglobal.com/marketintelligence",
            "candidate", "Market intelligence", ("M&A", "Financial results"), "Global", free=False),

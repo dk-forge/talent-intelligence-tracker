@@ -350,6 +350,22 @@
   "collector": ""
  },
  {
+  "name": "a commercial market-intelligence database",
+  "url": "https://www.a commercial market-intelligence database.com",
+  "status": "candidate",
+  "category": "Market intelligence",
+  "signals": [
+   "Funding",
+   "M&A"
+  ],
+  "coverage": "Global",
+  "country": "",
+  "rss": "",
+  "free": false,
+  "notes": "",
+  "collector": ""
+ },
+ {
   "name": "A1on",
   "url": "https://a1on.mk",
   "status": "candidate",
@@ -2061,22 +2077,6 @@
   "rss": "https://caymannewsservice.com/feed/",
   "free": true,
   "notes": "Wired 2026-08-02 in place of the Cayman Compass, whose robots.txt disallows its feed. Without this row the Cayman Islands would hold no wired feed and no backstop. Probed live: 200, 10 parseable items, newest 2d, robots.txt allows it.",
-  "collector": ""
- },
- {
-  "name": "CB Insights",
-  "url": "https://www.cbinsights.com",
-  "status": "candidate",
-  "category": "Market intelligence",
-  "signals": [
-   "Funding",
-   "M&A"
-  ],
-  "coverage": "Global",
-  "country": "",
-  "rss": "",
-  "free": false,
-  "notes": "",
   "collector": ""
  },
  {

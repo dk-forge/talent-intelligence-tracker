@@ -26,6 +26,11 @@ _ENCODED = (
     "ZGVhbHJvb20=",
     "Y3J1bmNoYmFzZQ==",
     "cGl0Y2hib29r",
+    # Added 2026-08-03: the fifth provider slipped every scrub because the
+    # original four patterns simply did not include it, and it stayed on the
+    # LIVE sources page through two "complete" passes. Both spellings.
+    "Y2JpbnNpZ2h0cw==",
+    "Y2IgaW5zaWdodHM=",
 )
 _BANNED = tuple(base64.b64decode(s).decode("ascii") for s in _ENCODED)
 
