@@ -177,6 +177,73 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-03 — the "feeds deliver, rows do not appear" pass: Spanish, Polish and Greek widened at the free gate, measured both sides
+
+The private benchmark's diagnosis section named four causes for the thin wired
+markets (Argentina 7 feeds / 138 items a run / 3 rows ever; Mexico 6/130/5;
+Poland 4/85/13; Greece 4/109/0). This session verified each against the
+ledgers and closed the free ones that were still open.
+
+**What was already closed before this session, so nobody re-fixes it:** the
+23-language pack (2026-08-01) covers Greek and Norwegian — the benchmark's
+"no Greek pack" line predates it — and `google_news.edition_dateline` (also
+2026-08-01) closed the no-country-context cause the same file names. What
+remains open and is NOT code: the press collector losing runs to the
+`talent-collect` lock (an eviction/scheduling question) and the read-cap /
+key-lifetime arithmetic (an owner question).
+
+**Measured, live, through the collector's own parse** (35 wired feeds for
+AR/MX/PL/GR plus Germany as the covered-language control, 717 items,
+2026-08-03; corpus + harness in the session scratchpad, not committed):
+
+| market | items | pass before | pass after | every new pass hand-read |
+|---|---:|---:|---:|---|
+| Argentina | 137 | 11.7% | 12.4% | a fund putting $10m into startups |
+| Mexico | 130 | 9.2% | 10.0% | the MSD leadership appointment |
+| Poland | 85 | 7.1% | 12.9% | market entry, portfolio join, factory story, fund teaser, board seat |
+| Greece | 100 | 0.0% | 0.0% | (all 100 items were fires/politics/sport — the pack works, tested) |
+| Germany (control) | 265 | 8.3% | 8.3% | control did not move |
+
+Seven newly passing items, all seven genuine signals or funding teasers; zero
+movement on the control, so the widening bought recall without precision drift.
+
+**What the widening actually was** (`pipeline/prefilter.py`):
+
+* **Spanish knew Spain's register and not Latin America's.** "ronda de
+  financiación" was the only funding phrase; LatAm copy writes
+  "financiamiento", and the verbs it actually leads with — levantar, recaudar,
+  cerrar una ronda — were absent, each now anchored to an amount or a round
+  (bare "levanta" is a crane, bare "recauda" is a tax office). Leadership
+  gained "asume la dirección / asume como", "nombramiento", "designado como",
+  anchored "renuncia a/al/como"; employment gained "vacantes", "sueldos".
+* **Polish was nominative-only and verbless.** "runda finansowania" is now
+  stemmed ("rundę/rundzie…"), and the real newsroom verbs joined, anchored:
+  "pozyskał … mln/finansowania", "zebrał … mln" (a crowd also gathers),
+  "dołącza do portfolio", "powołała … na stanowisko", "obejmuje stanowisko",
+  "odchodzi z firmy", "rekrutacja", "pensje", "podwyżki płac" — anchored to
+  pay because Bankier's front page is price rises. Site vocabulary gained
+  "fabryk\*/siedzib\*" and the open/close verbs (otwiera, zamknęli…).
+* **Greek gained the singular** ("πρόσληψη" has a different accented stem than
+  "προσλήψεις") and the funding verb "άντλησε", anchored to an amount because
+  the fire brigade draws water with the same verb.
+* **The boundary got a guard the new Polish site verbs made necessary:**
+  "Zamknęli fabrykę, 200 pracowników zwolnionych" must go to the sibling, and
+  "zwolnieni\w+" reached the noun but not the participle. The participle is
+  now anchored to the people, both ways round — bare "zwolni\w+" slows down,
+  releases and exempts.
+
+**Verified NOT broken, so nobody chases them again:** `candidate_rank` buckets
+national_press items by `source_country` correctly (Argentina→AR, 11 rows =
+thin +3.0; Greece→GR, 0 rows = empty +6.0; the round robin gives each market a
+slot); and seen-churn is the designed terminal-verdict behaviour
+(national_press ledger: 2,487 rejected / 361 stored; deferrals stay unmarked).
+
+Tests: 3,022 passing (was 3,004): live-observed AR/MX/PL headlines, real
+historical rounds in both registers, anchor-holding noise cases, and the
+factory-closure boundary case.
+
+---
+
 ## 2026-08-02 - the benchmark-diff loop ported from the sibling (DORMANT, weekly, secrets-only, names never in a log)
 
 The layoff tracker's tracker-diff tripwire, ported: an external reference list

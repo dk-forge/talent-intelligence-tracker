@@ -72,7 +72,11 @@ _FUNDING_TERMS = (
     # German, French, Spanish, Portuguese, Italian, Dutch
     r"finanzierungsrunde", r"eingesammelt", r"kapitalrunde",
     r"lev\w*e de fonds", r"tour de table",
-    r"ronda de (?:financiaci\w*n|inversi\w*n)", r"capta\w*",
+    # `financia\w+` and not `financiaci\w*n`: Latin American business copy
+    # writes "ronda de financiamiento" (El Economista, El CEO, iProUP) where
+    # Spain writes "financiación", and the narrower stem silently dropped the
+    # whole LatAm phrasing (measured on the wired AR/MX feeds, 2026-08-03).
+    r"ronda de (?:financia\w+|inversi\w*n)", r"capta\w*",
     r"rodada de (?:investimento|financiamento)",
     r"round di finanziamento", r"raccoglie",
     r"financieringsronde",
@@ -135,10 +139,28 @@ _EMPLOYMENT_TERMS_INTL = (
     r"emplois?", r"salari\w+", r"recrut\w+", r"embauch\w+", r"effectifs?",
     r"directeur g\w*n\w*ral", r"pdg", r"d\w*mission\w*", r"salaires?",
     r"lev\w*e de fonds",
-    # Spanish
+    # Spanish. Widened 2026-08-03 after a live read of the wired Argentine and
+    # Mexican feeds (137 + 130 items): the pack knew Spain's register and not
+    # Latin America's. "Fabiano Hideto Ikejiri asume la dirección de MSD Salud
+    # Animal en México" is a leadership row this gate rejected, and every
+    # funding verb LatAm newsrooms actually use (levantar, recaudar, cerrar
+    # una ronda, "financiamiento") was absent while the one phrase present
+    # ("ronda de financiación") is Spain-only. The money verbs are anchored to
+    # an amount or a round the way the Czech and Danish blocks anchor theirs:
+    # bare "levanta" is a crane and bare "recauda" is a tax office.
     r"empleos?", r"empleados?", r"contrata\w*", r"plantilla", r"puestos?",
+    r"vacantes?", r"sueldos?",
     r"consejero delegado", r"director general", r"dimit\w+", r"salarios?",
-    r"ronda de financiaci\w*n",
+    r"nombramiento\w*", r"asume (?:la |el )?(?:direcci\w*n|presidencia|gerencia)",
+    r"asume como", r"nuev\w+ director\w*",
+    r"designad\w+ (?:como|nuev\w+|director\w*)",
+    r"renunci\w+ (?:a la |al |como )",
+    r"ronda de financia\w+", r"ronda de inversi\w*n",
+    r"ronda semilla", r"capital semilla",
+    r"levant\w+\s+(?:\S+\s+){0,3}?(?:millon\w*|mdd|mdp|capital|una ronda)",
+    r"recauda\w*\s+(?:\S+\s+){0,3}?millon\w*",
+    r"cierra (?:una |su )?ronda", r"obtien\w+ financiamiento",
+    r"millon\w+ en (?:las )?startups?",
     # Portuguese. The hiring side was fine; the FUNDING side had exactly one
     # phrase, "rodada de investimento", which is the formal register and not
     # what Brazilian business copy actually writes. Measured 2026-07-30 by
@@ -165,9 +187,31 @@ _EMPLOYMENT_TERMS_INTL = (
     r"banen", r"medewerkers?", r"personeel", r"aannem\w+", r"vacatures?",
     r"topman", r"bestuursvoorzitter", r"stapt op", r"salaris\w*",
     r"financieringsronde",
-    # Polish
+    # Polish. Widened 2026-08-03 after a live read of the four wired Polish
+    # feeds (85 items) with MamStartup — Poland's dedicated startup-funding
+    # title — among them and one Polish-publisher row ever stored. Two kinds
+    # of gap. First, inflection: "runda finansowania" is the nominative, and
+    # a Polish headline as often writes "rundę/rundzie finansowania", so the
+    # noun is now stemmed. Second, the verbs: "ForActive dołącza do portfolio
+    # Simpact Ventures" and "TBD Solutions rozpoczyna działalność w Polsce"
+    # are a funding row and a market entry this gate rejected. The money
+    # verbs are anchored (pozyskał grant data too; zebrał a crowd), and
+    # "podwyżk" is anchored to pay because bare it is every price-rise story
+    # on Bankier's front page ("nie przewiduje podwyżek cen").
     r"prezes\w*", r"zatrudni\w*", r"miejsc pracy", r"pracownik\w+",
-    r"rezygnuje", r"wynagrodzeni\w+", r"runda finansowania",
+    r"rezygnuje", r"rezygnacj\w+", r"wynagrodzeni\w+",
+    r"rund\w+ finansowania", r"rund\w+ inwestycyjn\w+",
+    r"pozyska\w+\s+(?:\S+\s+){0,3}?(?:mln|milion\w*|finansowani\w*|inwestor\w*)",
+    r"zebra\w+\s+(?:\S+\s+){0,3}?(?:mln|milion\w*)",
+    r"od inwestorów", r"dołącza do portfolio",
+    r"dyrektor\w* generaln\w*", r"dyrektor\w* zarządzając\w*",
+    r"mianowan\w+",
+    r"powoła\w+\s+(?:\S+\s+){0,2}?(?:na stanowisko|do zarządu|na prezesa)",
+    r"obejmuje (?:stanowisko|funkcję|stery)",
+    r"odchodzi z (?:firmy|funkcji|stanowiska|zarządu)",
+    r"rekrutacj\w+", r"pensj\w+",
+    r"podwyżk\w+ (?:płac|wynagrodze\w+|pensji)",
+    r"rozpoczyna działalność",
     # Swedish
     r"\bvd\b", r"anställ\w+", r"jobb", r"medarbetare", r"personal",
     r"lämnar sin post", r"finansieringsrunda",
@@ -410,6 +454,12 @@ _EMPLOYMENT_TERMS_INTL = (
     r"διορίστηκε", r"διορισμ\w+", r"ανέλαβε καθήκοντα",
     r"αναλαμβάνει καθήκοντα", r"παραιτήθηκε από", r"μισθ[οόώ]\w*",
     r"κατώτατος μισθός", r"γύρο\w* χρηματοδότησης", r"χρηματοδότηση seed",
+    # The singular has a different accented stem (πρόσληψη vs προσλήψεις), so
+    # the plural-only stem above misses it; and "άντλησε 5 εκατ." is the verb
+    # a Greek funding headline actually leads with, anchored to the amount
+    # because bare it also draws water (added 2026-08-03).
+    r"πρόσληψ\w+",
+    r"άντλησ\w+\s+(?:\S+\s+){0,3}?(?:εκατ|δισ|κεφάλαι\w+|χρηματοδότησ\w+)",
     # Hungarian
     r"munkahely\w*", r"munkavállaló\w*", r"alkalmazott\w*",
     r"foglalkoztat\w+", r"toborz\w+", r"munkaerő\w*", r"vezérigazgató\w*",
@@ -546,6 +596,9 @@ _SITE_NOUN = (
     r"kantoren?|vestiging(?:en)?|fabriek(?:en)?|"
     r"kontore?r?|fabrikke?r?|"
     r"pobo[čc]k\w*|z[áa]vod\w*|"
+    # Polish. `fabryk\w*` carries the inflections ("fabrykę", "fabryki");
+    # bare "zakład" is NOT here because it is also a bet and a barbershop.
+    r"fabryk\w*|siedzib\w*|"
     r"ofis\w*|fabrika\w*|tesis\w*|"
     # Italian
     r"uffici(?:o)?|stabiliment\w+"
@@ -570,7 +623,9 @@ _SITE_OPEN_VERB = (
     r"ouvre|ouvrir|ouvertures?|implante|"
     r"er[öo]ffnet|er[öo]ffnung|errichtet|"
     r"apre|aprir[àe]|investe|"
-    r"opent|åbner|otev[řr]\w+|a[çc][ıi]yor|a[çc]t[ıi]|kuruyor"
+    r"opent|åbner|otev[řr]\w+|a[çc][ıi]yor|a[çc]t[ıi]|kuruyor|"
+    # Polish (2026-08-03): "Zamknęli fabrykę, wybudują bloki" was invisible.
+    r"otwiera|otworzy\w*|uruchamia|wybuduje|zbuduje"
 )
 _SITE_CLOSE_VERB = (
     r"clos(?:es|ed|ing)|shut(?:s|ting)? down|shutters?|shuttering|"
@@ -578,7 +633,7 @@ _SITE_CLOSE_VERB = (
     r"cierra|cierre|clausura|"
     r"ferme|fermeture|"
     r"schlie[ßs]t|schlie[ßs]ung|"
-    r"chiude|chiusura|sluit|lukker|zav[íi]r\w+|kapat\w+"
+    r"chiude|chiusura|sluit|lukker|zav[íi]r\w+|kapat\w+|zamyka|zamkn[ęe]\w+"
 )
 _SITE_MOVE_VERB = (
     r"relocat(?:es|ed|ing|ion)?|moves? (?:its|their)|"
@@ -602,6 +657,7 @@ _SITE_TERMS = (
     r"\bnouve(?:au|lle)\s+(?:[\w'’\-]+\s+){0,2}?(?:bureau|site|usine|si[èe]ge|centre)\w*",
     r"\bneue[rns]?\s+(?:[\w'’\-]+\s+){0,2}?(?:standort|werk|niederlassung|b[üu]ro|zentrum)\w*",
     r"\bnuov[ao]\s+(?:[\w'’\-]+\s+){0,2}?(?:sede|stabilimento|ufficio)\w*",
+    r"\bnow[aey]\s+(?:[\w'’\-]+\s+){0,2}?(?:fabryk\w*|siedzib\w*|biur[oa])\b",
     # Site types that name the event on their own.
     r"\bcapability cent(?:re|er)s?\b", r"\bcent(?:re|er)s? of excellence\b",
     r"\bdelivery cent(?:re|er)s?\b", r"\bshared services\b",
@@ -823,7 +879,16 @@ _REDUCTION_TERMS = (
     r"riduzione (?:del personale|dell[e'’]organico)",
     # Dutch, Polish, Swedish, Turkish — cheap to add, same failure if absent.
     r"ontslag\w*", r"banenverlies", r"schrapt\s+[\d.]+\s+banen",
+    # "zwolnieni\w+" reaches the noun ("zwolnienia grupowe") but not the
+    # participle a Polish headline actually uses ("200 pracowników
+    # zwolnionych"), and bare "zwolni\w+" is off the table: the same verb
+    # slows down, releases and exempts ("zwolnił tempo", "zwolnienie
+    # lekarskie"). So the participle is anchored to the people, both ways
+    # round (2026-08-03, found when the Polish site vocabulary would have
+    # passed a factory-closure-with-job-losses story to the gate).
     r"zwolnieni\w+", r"redukcj\w+ etat\w+",
+    r"zwolni\w+\s+(?:\S+\s+){0,2}?(?:pracownik\w*|osób|etat\w*)",
+    r"pracownik\w*\s+zwolnion\w+", r"zwalnia\w*\s+(?:\S+\s+){0,2}?pracownik\w*",
     r"varsl\w+", r"neddragning\w*",
     r"i̇?şten çıkar\w*", r"toplu i̇?şten",
     # Czech. The live E15 feed carried "Porsche ... zruší dalších pět tisíc
