@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-03T08:15:24Z",
-  "last_tick": "2026-08-03T08:15:24Z",
+  "last_dispatch": "2026-08-03T08:16:45Z",
+  "last_tick": "2026-08-03T08:16:45Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -183,15 +183,23 @@
       "workflow": "collect national press"
     }
   ],
+  "red_marks": {
+    "ticket:20260803T081056Z-tripwire": "2026-08-03T08:16:45Z"
+  },
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-03T08:16:45Z",
       "history": [
         {
           "at": "2026-08-03T06:47:06Z",
           "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-04-19)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-03T08:16:45Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260803T064706Z-backfill-gnews-2026",
@@ -207,7 +215,7 @@
       "requested_at": "2026-08-03T06:47:06Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-gnews-2026.yml"
     },
     {
@@ -234,75 +242,6 @@
       "requested_by": "backfill-slices",
       "run_id": null,
       "state": "queued",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T08:15:24Z",
-      "history": [
-        {
-          "at": "2026-08-03T08:10:56Z",
-          "detail": "scheduled link hygiene (0 7 * * 1,4)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T08:15:24Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260803T081056Z-tripwire",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (0 7 * * 1,4)",
-      "requested_at": "2026-08-03T08:10:56Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "tripwire.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-01T23:06:59Z",
-      "history": [
-        {
-          "at": "2026-08-01T21:44:59Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-23)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-01T23:06:59Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-01T23:34:29Z",
-          "detail": "run 30722690456",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-02T00:03:48Z",
-          "detail": "run 30722690456",
-          "event": "landed"
-        }
-      ],
-      "id": "20260801T214459Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-02T00:03:48Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-04-23)",
-      "requested_at": "2026-08-01T21:44:59Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30722690456",
-      "state": "landed",
       "workflow": "backfill-gdelt-2026.yml"
     },
     {
@@ -2746,6 +2685,43 @@
       "run_id": "30791353758",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-03T08:15:24Z",
+      "history": [
+        {
+          "at": "2026-08-03T08:10:56Z",
+          "detail": "scheduled link hygiene (0 7 * * 1,4)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-03T08:15:24Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-03T08:16:45Z",
+          "detail": "run 30796700013",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-03T08:16:45Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260803T081056Z-tripwire",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (0 7 * * 1,4)",
+      "requested_at": "2026-08-03T08:10:56Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30796700013",
+      "state": "failed",
+      "workflow": "tripwire.yml"
     }
   ],
   "version": 1
