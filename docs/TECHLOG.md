@@ -241,6 +241,73 @@ slot); and seen-churn is the designed terminal-verdict behaviour
 Tests: 3,022 passing (was 3,004): live-observed AR/MX/PL headlines, real
 historical rounds in both registers, anchor-holding noise cases, and the
 factory-closure boundary case.
+---
+
+## 2026-08-03 - the classifier gate built as a SELF-ARMING system (plan step 2; ships UNARMED, no human step ever needed)
+
+The $5 blocker is the paid gate ($5.70/month just to LOOK), and the plan's
+answer is a local classifier in front of it. Built end to end today; nothing
+routes yet, and nothing needs a human to make it start.
+
+**Runtime** (`pipeline/gate_classifier.py`, standard library only): logistic
+weights over hashed char 3-5-grams + word unigrams (CRC32, 2^18 buckets; the
+featurizer is ONE function imported by trainer and runtime, so the bytes that
+train are the bytes that serve). Three-way routing in `classify.classify()`:
+confident-RELEVANT skips the LLM gate straight to extraction, UNCERTAIN pays
+the LLM gate exactly as today, confident-IRRELEVANT drops. Fail-open
+EVERYWHERE: artifact missing/corrupt/truncated, flag unarmed, replay report
+missing/stale/under-bar/about-different-weights, a language the training set
+never saw (under 25 real labels), an empty headline, any exception - all
+route UNCERTAIN, i.e. yesterday's behaviour. There is an off switch
+(`TIT_GATE_CLASSIFIER=off`) and deliberately NO on switch a human or env var
+can force past a failed replay.
+
+**Trainer** (`train_gate_classifier.py` + weekly `gate-classifier.yml`,
+Tuesdays 05:15 UTC): trains from `data/gate_labels/` (weak bootstrap rides
+along at 0.25 weight; `clf_reject` lines are excluded so the classifier never
+grades its own homework), replays OUT OF SAMPLE (chronological day blocks,
+each scored by a model that never saw its days, thresholds chosen on each
+fold's own held-out tail), and self-arms ONLY when the shipping bar passes:
+**>=99.5% of stored-row candidates routed relevant-or-uncertain over >=30
+days of real labels**. Under the bar or under 30 days it prints
+`not ready: N labels, D days, replay X%` and changes NOTHING. Passing commits
+the artifact (`data/gate_classifier/model.json.gz`, ~1MB gz) + the flag
+(`status.json`) and emails ONE arming notice via the keyed /alert; a later
+retrain that fails the bar REVERTS the flag and emails once, deduped by
+cause. Drift alarm: armed + uncertain share >35% over 7 days -> one deduped
+alert, RECOVERED under 25%. scikit-learn is installed by the workflow alone
+and stays out of requirements.txt; no collector runtime gained a dependency;
+the workflow never touches the signals database so it takes no writer lock
+and commits only its own snapshot files, recall.yml-style.
+
+**Thresholds are recall-first by construction**: the drop threshold sits 20%
+below the worst held-out stored score and never above 0.40; the skip band
+opens only where the LLM gate agreed >=95% on >=20 rows (a skip trades a
+cheap gate call for an expensive extraction, so an unproven skip saves
+nothing and stays shut). **And the skip band is earned PER LANGUAGE**: the
+ledger read behind the es/pl/el prefilter fix showed Polish passing the paid
+gate at 17.7% against Spanish's 80.1%, with the Polish passes skewed to
+football-club/municipal noise - a globally calibrated skip band would buy
+extractions for exactly that. So a language needs >=200 real labels AND its
+own held-out band agreement to enter `relevant_langs`; below that its high
+scorers stay UNCERTAIN and keep paying the cheap gate. Confident routing of
+ANY kind additionally needs >=25 labels and >=5 stored rows in the language
+(a base that is all junk earns no drop band either). The 99.5% stored-row
+replay bar stays GLOBAL on top of all of it. The test that matters most
+(`tests/test_gate_classifier.py`): a synthetic classifier blind to a
+vocabulary shift that fills the final replay block FAILS the bar - the drop
+threshold learned on the old world drops the new world's stored rows and the
+replay says so. Also proven: every fail-open, the flag-flip refusals, the
+three-way routing in classify (confident drop makes zero paid calls), drift
+dedupe, and the per-language skip roster. Suite: 3,023 on main before this, 3,057 after.
+
+**Measured today on the real ledger** (run, not estimated): 6,900 real labels
+over 3 days, 4,328 weak; first weekly run will print
+`not ready: 6900 labels, 3 days, replay 97.82%`. At ~2,300 labels/day the 30-day
+bar is met ~2026-08-31, so the earliest arming is the Tuesday after:
+**2026-09-01**, with ~69k labels behind it. Confident-band coverage at 3 days
+of data is 20.0% (34.5% before the per-language skip roster); the plan's 80%
+hope gets measured at arming time, not assumed.
 
 ---
 

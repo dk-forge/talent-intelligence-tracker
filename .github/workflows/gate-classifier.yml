@@ -1,0 +1,110 @@
+# Train the classifier gate weekly, replay it against real labels, and arm it
+# ONLY when the shipping bar passes. docs/PLAN-gate-to-five-dollars.md, step 2.
+#
+# SELF-ARMING, ZERO HUMAN STEPS. Every run trains from the committed label
+# ledger (data/gate_labels/) and replays the result out of sample. Then:
+#
+#   labels span < 30 days, or replay < 99.5%  -> prints
+#       not ready: N labels, D days, replay X%
+#     and changes NOTHING (green run, no commit, no mail);
+#   bar passes -> commits data/gate_classifier/ (artifact + armed flag) and
+#     emails the owner ONE arming notice via the keyed /alert;
+#   bar FAILS on a retrain while armed -> flips the flag off (classify.py
+#     falls back to the LLM gate on the next collect run) and emails once,
+#     deduped by cause.
+#
+# CHEAP AND OFFLINE: no model is called, ever. scikit-learn fits a logistic
+# regression on this runner in seconds. It is installed HERE and only here —
+# it must never enter requirements.txt, because nothing on any collector's
+# runtime path may grow a dependency for this (the runtime scorer in
+# pipeline/gate_classifier.py is standard library only).
+#
+# NOT a database writer: this job never opens the signals database, so it does
+# not take the shared writer lock — it commits only its own snapshot files
+# under data/gate_classifier/, restored whole over a reset like recall.yml's
+# measurement files. The label ledger is read-only input here; the collectors
+# own writing it.
+#
+# The Tuesday 05:15 slot is deliberately clear of the 06:00/18:00 collect
+# sweeps, the Monday link/recall/digest cluster and every other fixed cron in
+# this repo.
+
+name: gate-classifier
+
+on:
+  schedule:
+    - cron: '15 5 * * 2'      # Tuesdays 05:15 UTC
+  workflow_dispatch: {}
+
+concurrency:
+  group: gate-classifier
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Training-only dependencies. See the header: scikit-learn stays out of
+      # requirements.txt on purpose.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt scikit-learn
+
+      # Exit 0 in every legitimate state — "not ready" is a result, not a
+      # failure. A non-zero exit here means the trainer itself crashed, which
+      # is exactly what should redden the run and reach ci-alert.
+      - name: Train, replay, and arm or revert
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: python train_gate_classifier.py
+
+      # Snapshot commit with the reset-and-restore shape recall.yml uses for
+      # its measurement files: these are whole-file artifacts with no row
+      # identity, so copy-back is correct for them. Push retries because a
+      # collect run can land mid-job.
+      - name: Commit the artifact and flag
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          git add -A data/gate_classifier 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No change to commit (not ready, or identical artifact)."
+            exit 0
+          fi
+
+          mkdir -p "$RUNNER_TEMP/keep"
+          cp -R data/gate_classifier "$RUNNER_TEMP/keep/gate_classifier"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            rm -rf data/gate_classifier
+            cp -R "$RUNNER_TEMP/keep/gate_classifier" data/gate_classifier
+            git add -A data/gate_classifier
+            if git diff --staged --quiet; then
+              echo "No change after rebase."
+              exit 0
+            fi
+            git commit -m "gate-classifier: weekly train/replay"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt) — refetching"
+            sleep $((attempt * 7))
+          done
+          echo "FAILED: could not push the gate-classifier artifact after 5 attempts" >&2
+          exit 1

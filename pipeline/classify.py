@@ -16,7 +16,7 @@ import time
 
 import requests
 
-from . import cheap_extract, gate_ledger, prompts, validate, vocab
+from . import cheap_extract, gate_classifier, gate_ledger, prompts, validate, vocab
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
@@ -130,6 +130,11 @@ def provider_order(model: str) -> tuple[str, ...]:
 # actually served rather than estimating either.
 STATS = {
     "gate_calls": 0, "gate_rejects": 0, "full_calls": 0,
+    # The classifier gate's confident bands (plan step 2). clf_relevant skipped
+    # a paid LLM gate call; clf_irrelevant dropped without one. The uncertain
+    # band needs no counter of its own — it IS gate_calls once the flag is
+    # armed, and all of gate_calls before that.
+    "clf_relevant": 0, "clf_irrelevant": 0,
     "full_chars_raw": 0,   # candidate text length before truncation
     "full_chars_sent": 0,  # what actually went to the model
     "prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0,
@@ -936,10 +941,27 @@ def classify(raw: dict, *, timeout: int = 45,
     # `gate_ledger` swallows its own failures, so it cannot cost a run.
     collector = (raw.get("collector") or "").strip()
     if gate_enabled():
-        verdict = gate_verdict(text, timeout=min(timeout, 30))
-        gate_ledger.record(raw, collector, verdict)
-        if verdict == gate_ledger.NO:
+        # Stage 0.5: the LOCAL classifier gate (plan step 2), three ways.
+        # confident-RELEVANT skips the paid gate call; confident-IRRELEVANT
+        # drops; UNCERTAIN falls through to the LLM gate exactly as before.
+        # `route_item` fails open to UNCERTAIN on every doubt — no committed
+        # artifact, an unarmed or stale flag, a language it never trained on,
+        # any exception — so until the weekly trainer arms the flag this block
+        # is a no-op and after any failure it degrades to yesterday's
+        # behaviour. A classifier failure may cost money, never coverage.
+        clf_route = gate_classifier.route_item(raw)
+        if clf_route == gate_classifier.RELEVANT:
+            STATS["clf_relevant"] += 1
+            gate_ledger.record(raw, collector, gate_ledger.CLF_YES)
+        elif clf_route == gate_classifier.IRRELEVANT:
+            STATS["clf_irrelevant"] += 1
+            gate_ledger.record(raw, collector, gate_ledger.CLF_NO)
             return None
+        else:
+            verdict = gate_verdict(text, timeout=min(timeout, 30))
+            gate_ledger.record(raw, collector, verdict)
+            if verdict == gate_ledger.NO:
+                return None
     else:
         # Single-stage runs have no verdict to record, but the candidate and
         # its eventual outcome are still worth a line: "did this become a

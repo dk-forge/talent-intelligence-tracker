@@ -126,6 +126,14 @@ KEEP_MONTHS = int(os.environ.get("TIT_GATE_LEDGER_KEEP_MONTHS", "6") or "6")
 # provider outages are talent signals.
 YES, NO, ERROR, OFF = "YES", "NO", "ERROR", "OFF"
 
+# Two more since the classifier gate (plan step 2): the local classifier's own
+# confident verdicts, recorded so the funnel stays complete once most
+# candidates never reach the LLM gate. Kept DISTINCT from YES/NO on purpose —
+# the trainer must never feed the classifier its own homework as ground truth
+# (`train_gate_classifier.SELF_LABELLED`), and the drift alarm reads the
+# CLF-vs-LLM split to know the uncertain share.
+CLF_YES, CLF_NO = "CLF_YES", "CLF_NO"
+
 # Feature bases. A training script must never mix them: `gate_text` lines carry
 # the real headline and teaser the gate read, `url_slug` lines are the weak
 # historical bootstrap, reconstructed from a URL because the source text was
@@ -304,9 +312,12 @@ def record(item: dict, collector: str, verdict: str) -> None:
             "gate": verdict,
             # A gate NO is terminal here and nowhere else: `classify` returns
             # None and no later stage ever sees the candidate, so this is the
-            # only place that outcome can be written. Everything else starts as
-            # "unknown" and is closed by run_collect.
-            "outcome": "gate_reject" if verdict == NO else "unknown",
+            # only place that outcome can be written. A classifier drop is
+            # terminal the same way, but keeps its own outcome value so the
+            # trainer can exclude it (it is the model's opinion, not evidence).
+            # Everything else starts as "unknown" and is closed by run_collect.
+            "outcome": ("gate_reject" if verdict == NO
+                        else "clf_reject" if verdict == CLF_NO else "unknown"),
             "basis": BASIS_GATE_TEXT,
         }
         if candidate_key not in _BUFFER:
@@ -330,7 +341,7 @@ def outcome(item: dict, value: str) -> None:
         line = _BUFFER.get(key(item))
         if line is None:
             return
-        if line["gate"] == NO:
+        if line["gate"] in (NO, CLF_NO):
             # A gate NO is terminal: `classify` returned None and no later
             # stage ever saw this candidate. run_collect cannot tell that
             # rejection apart from an extraction NO — both arrive as
