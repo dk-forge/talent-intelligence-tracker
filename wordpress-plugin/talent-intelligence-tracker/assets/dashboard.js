@@ -1557,12 +1557,17 @@
   // which set the file will hold. Server-rendered hrefs point at the whole
   // dataset, so a reader without JavaScript still gets a working download.
   function updateExportLinks() {
-    ['tit-export-csv', 'tit-export-json'].forEach(function (id) {
+    // One updater for every download and the feed, so no link can hand over a
+    // different set than the page is showing. The admin-post bases already
+    // carry ?action=, the REST feed base carries nothing, hence the joiner.
+    ['tit-export-csv', 'tit-export-json', 'tit-export-hubspot',
+     'tit-export-salesforce', 'tit-export-rss'].forEach(function (id) {
       var a = document.getElementById(id);
       if (!a) return;
       var base = a.getAttribute('data-base');
       if (!base) return;
-      a.href = base + (lastQuery ? '&' + lastQuery : '');
+      a.href = base + (lastQuery
+        ? (base.indexOf('?') >= 0 ? '&' : '?') + lastQuery : '');
       var scope = document.getElementById(id + '-scope');
       if (scope) scope.textContent = lastQuery ? ' · filtered' : ' · all';
     });
@@ -1650,6 +1655,7 @@
         // rendering fault; this reads as an answer, and it carries its own
         // way out (handled by delegation on the list, since this markup is
         // re-created on every empty render).
+        lastRows = data.rows;
         tbody.innerHTML = data.rows.length
           ? data.rows.map(renderCard).join('')
           : '<li class="tit-cards-empty">' +
@@ -1658,6 +1664,7 @@
             '<p class="tit-table-empty-p">We would rather show you nothing than guess.</p>' +
             '<button type="button" class="tit-empty-clear">Reset all filters</button>' +
             '</div></li>';
+        afterRowsPaint();
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
@@ -2625,6 +2632,353 @@
     evidence: 'Strongest Evidence First', evidence_desc: 'Weakest Evidence First'
   };
 
+
+  /*
+    --- WATCHLIST AND THE CARD / TABLE VIEW, both browser-local ---------------
+
+    NO ACCOUNTS, NO SERVER STORAGE, NO PII. The watchlist and the view choice
+    live in this browser's localStorage and nowhere else. When localStorage is
+    unavailable (private mode on some engines, storage disabled), `store` is
+    null and the whole watchlist surface stays hidden: no star, no chip,
+    nothing that could be pressed to no effect. The view toggle still works for
+    the session; only the memory of it degrades.
+
+    WHY THE WATCHLIST FILTERS CLIENT-SIDE, stated because it is a real limit:
+    /query's `company` parameter is a single LIKE over company_key and does not
+    take a comma list, so there is no one request that returns "these nine
+    employers". Merging nine sequential fetches would hammer the origin and
+    still lie about ordering, so the chip narrows what is already on the page
+    (the newest 50 of the current view) and the (i) panel says exactly that.
+
+    WHY THE STARS ARE INJECTED AFTER PAINT rather than rendered by
+    tit_card_html()/renderCard(): the card markup is a shared contract with the
+    sibling tracker (docs/card-contract.json) and both renderers are pinned by
+    tests. A runtime enhancement that decorates the rendered card leaves the
+    contract untouched, and a reader without JavaScript, who could not use a
+    watchlist anyway, never sees a dead control.
+  */
+  var store = (function () {
+    try {
+      var probe = '__tit_probe__';
+      localStorage.setItem(probe, '1');
+      localStorage.removeItem(probe);
+      return {
+        get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+        set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) { /* full or gone: degrade */ } }
+      };
+    } catch (e) { return null; }
+  })();
+
+  var lastRows = null;
+
+  var watchChip = document.getElementById('tit-watch-chip');
+  var watchNEl = document.getElementById('tit-watch-n');
+  var watchNewEl = document.getElementById('tit-watch-new');
+  var watchOn = false;
+  var watchSet = {};
+  var lastVisit = 0;
+  if (store) {
+    try { watchSet = JSON.parse(store.get('tit_watchlist') || '{}') || {}; }
+    catch (e) { watchSet = {}; }
+    lastVisit = parseInt(store.get('tit_last_visit') || '0', 10) || 0;
+    // Written now, read next time: "new since your last visit" means since the
+    // moment this page last loaded, which is the reading a person expects.
+    store.set('tit_last_visit', String(Date.now()));
+  }
+
+  function watchCount() { return Object.keys(watchSet).length; }
+  function saveWatch() { if (store) store.set('tit_watchlist', JSON.stringify(watchSet)); }
+
+  // The star, on every card's employer. Idempotent per paint: the button is
+  // created once per card and re-synced afterwards, and the employer name is
+  // captured onto the card BEFORE the button joins the span, so the name can
+  // never include the star's own glyph.
+  function decorateCards() {
+    if (!store || !tbody) return;
+    Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
+      var emp = li.querySelector('.tit-card-employer');
+      if (!emp) return;
+      if (!li.getAttribute('data-employer')) {
+        li.setAttribute('data-employer', emp.textContent.trim());
+      }
+      var name = li.getAttribute('data-employer');
+      var btn = emp.querySelector('.tit-watch-star');
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tit-watch-star';
+        emp.appendChild(btn);
+      }
+      var on = !!watchSet[name];
+      btn.textContent = on ? '★' : '☆';
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.setAttribute('aria-label', (on ? 'Stop watching ' : 'Watch ') + name);
+      btn.title = on ? 'Stop watching this employer' : 'Watch this employer';
+    });
+  }
+
+  // Updates from watched employers dated after the previous visit, counted
+  // from the fetched rows when there are any and from the served cards on the
+  // first paint. Dates compare as UTC midnights, which is how they render.
+  function watchNewCount() {
+    if (!watchCount() || !lastVisit) return 0;
+    var n = 0;
+    if (lastRows) {
+      lastRows.forEach(function (r) {
+        if (!watchSet[String(r.company || '').trim()]) return;
+        var t = Date.parse(String(r.published_date || '').slice(0, 10));
+        if (t && t > lastVisit) n++;
+      });
+      return n;
+    }
+    Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
+      if (!watchSet[li.getAttribute('data-employer')]) return;
+      var tm = li.querySelector('time[datetime]');
+      var t = tm ? Date.parse(tm.getAttribute('datetime')) : 0;
+      if (t && t > lastVisit) n++;
+    });
+    return n;
+  }
+
+  function applyWatchFilter() {
+    if (!tbody) return;
+    var total = 0, hidden = 0;
+    Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
+      total++;
+      var hide = watchOn && !watchSet[li.getAttribute('data-employer')];
+      li.classList.toggle('tit-watch-hide', hide);
+      if (hide) hidden++;
+    });
+    // An empty filtered list must say why, or it reads as a broken page.
+    var note = document.getElementById('tit-watch-empty');
+    var need = watchOn && total > 0 && hidden === total;
+    if (need && !note) {
+      note = document.createElement('li');
+      note.id = 'tit-watch-empty';
+      note.className = 'tit-cards-empty';
+      note.textContent = 'None of the loaded updates is from a watched employer. '
+        + 'The watchlist narrows the newest 50 of this view; widen the filters '
+        + 'to reach further back.';
+      tbody.appendChild(note);
+    } else if (!need && note && note.parentNode) {
+      note.parentNode.removeChild(note);
+    }
+    if (tableWrap) {
+      Array.prototype.forEach.call(
+        tableWrap.querySelectorAll('tbody tr[data-employer]'), function (tr) {
+          tr.classList.toggle('tit-watch-hide',
+            watchOn && !watchSet[tr.getAttribute('data-employer')]);
+        });
+    }
+  }
+
+  function setWatchOn(on) {
+    watchOn = !!on && watchCount() > 0;
+    if (watchChip) {
+      watchChip.classList.toggle('is-on', watchOn);
+      watchChip.setAttribute('aria-pressed', watchOn ? 'true' : 'false');
+    }
+    applyWatchFilter();
+  }
+
+  function paintWatch() {
+    if (!store || !watchChip) return;
+    watchChip.hidden = false;
+    if (watchNEl) watchNEl.textContent = '(' + watchCount() + ')';
+    decorateCards();
+    var fresh = watchNewCount();
+    if (watchNewEl) {
+      watchNewEl.textContent = fresh > 0 ? fresh + ' new' : '';
+      watchNewEl.hidden = fresh <= 0;
+      if (fresh > 0) {
+        watchNewEl.title = fresh + (fresh === 1 ? ' update' : ' updates')
+          + ' from watched employers since your last visit';
+      }
+    }
+    // A watchlist that just lost its last employer stops filtering: an "on"
+    // chip over zero stars would hide every row and look like an outage.
+    if (watchOn && watchCount() === 0) setWatchOn(false);
+    else applyWatchFilter();
+  }
+
+  if (store && watchChip) {
+    watchChip.addEventListener('click', function () { setWatchOn(!watchOn); });
+  }
+  if (store && tbody) {
+    // Delegated: the cards are re-created on every repaint.
+    tbody.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.tit-watch-star') : null;
+      if (!btn) return;
+      e.preventDefault();
+      var li = btn.closest('li.tit-card');
+      var name = li && li.getAttribute('data-employer');
+      if (!name) return;
+      if (watchSet[name]) delete watchSet[name]; else watchSet[name] = 1;
+      saveWatch();
+      paintWatch();
+    });
+  }
+
+  /*
+    --- THE COMPACT TABLE, a sibling rendering of the same rows ---------------
+
+    Built entirely client-side from the SAME /query rows the cards render, so
+    the two views can never show different sets. The card markup is not touched
+    and not restyled: docs/card-contract.json governs the card, and this is a
+    second rendering beside it, not a variant of it.
+
+    The sortable headers write the SAME `sort` parameter the select and the
+    shared links use, so a header click orders the whole filtered set on the
+    server, never the fifty rows on screen. Names here deliberately do NOT
+    reuse the retired table-header names; the contract test pins those as gone.
+  */
+  var viewWrap = document.getElementById('tit-viewtoggle');
+  var vtCards = document.getElementById('tit-vt-cards');
+  var vtTable = document.getElementById('tit-vt-table');
+  var tableWrap = document.getElementById('tit-tablewrap');
+  var viewMode = (store && store.get('tit_view')) === 'table' ? 'table' : 'cards';
+
+  var UT_SORT = {
+    when: ['newest', 'oldest'], employer: ['employer', 'employer_desc'],
+    place: ['place', 'place_desc'], evidence: ['evidence', 'evidence_desc'],
+    raised: ['raised']
+  };
+  // 'when' is the odd one out: newest first IS descending by date. 'raised'
+  // has one server ordering (NULL amounts must stay at the bottom either way),
+  // so its header is a one-way sort and says so by never flipping.
+  var UT_DIR = {
+    when: ['descending', 'ascending'], employer: ['ascending', 'descending'],
+    place: ['ascending', 'descending'], evidence: ['ascending', 'descending'],
+    raised: ['descending']
+  };
+  var UT_COLS = [
+    ['when', 'Date'], ['employer', 'Employer'], ['', 'Signal'],
+    ['', 'What It Means'], ['raised', 'Amount'], ['place', 'Country'],
+    ['evidence', 'Evidence'], ['', 'Source']
+  ];
+
+  function utWhen(r) {
+    var iso = String(r.published_date || '').slice(0, 10);
+    var d = iso.split('-');
+    if (d.length !== 3) return '<span class="tit-card-nowhere">Not stated</span>';
+    return '<time datetime="' + esc(iso) + '">' +
+      esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]) + '</time>';
+  }
+
+  function utRow(r) {
+    var code = r.country || r.hq_country || '';
+    var usd = Number(r.funding_amount_usd || 0);
+    return '<tr data-employer="' + esc(String(r.company || '').trim()) + '">' +
+      '<td class="tit-ut-when">' + utWhen(r) + '</td>' +
+      '<td class="tit-ut-emp">' + esc(r.company) + '</td>' +
+      '<td class="tit-ut-signal">' + esc(r.headline) + '</td>' +
+      '<td><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || 'tit-neutral') + '">' +
+        esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
+      '<td class="tit-ut-amt">' + (usd > 0 ? esc(moneyShort(usd)) : '') + '</td>' +
+      '<td>' + (code ? esc(countryLabel(code)) : '<span class="tit-card-nowhere">Not stated</span>') + '</td>' +
+      '<td><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
+        esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
+      '<td class="tit-ut-src"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
+        esc(r.source_name) + '</a></td>' +
+      '</tr>';
+  }
+
+  function syncTableSort() {
+    if (!tableWrap || !inputs.sort) return;
+    var current = inputs.sort.value;
+    Array.prototype.forEach.call(tableWrap.querySelectorAll('th.tit-ts'), function (th) {
+      var pair = UT_SORT[th.getAttribute('data-ts')] || [];
+      var at = pair.indexOf(current);
+      var dir = at < 0 ? 'none' : (UT_DIR[th.getAttribute('data-ts')] || [])[at];
+      th.setAttribute('aria-sort', dir || 'none');
+      var arrow = th.querySelector('.tit-ts-arrow');
+      if (arrow) {
+        arrow.textContent = dir === 'ascending' ? '▲'
+                          : (dir === 'descending' ? '▼' : '⇅');
+      }
+    });
+  }
+
+  function renderTable() {
+    if (!tableWrap || lastRows === null) return;
+    var head = UT_COLS.map(function (col) {
+      if (!col[0] || !inputs.sort) {
+        return '<th scope="col">' + esc(col[1]) + '</th>';
+      }
+      return '<th scope="col" class="tit-ts" aria-sort="none" data-ts="' + col[0] + '">' +
+        '<button type="button">' + esc(col[1]) +
+        '<span class="tit-ts-arrow" aria-hidden="true"></span></button></th>';
+    }).join('');
+    tableWrap.innerHTML = '<table class="tit-table tit-ut">' +
+      '<caption class="tit-sr">The same updates as the cards, one per row. ' +
+      'Sortable headers order the whole filtered set.</caption>' +
+      '<thead><tr>' + head + '</tr></thead><tbody>' +
+      (lastRows.length ? lastRows.map(utRow).join('')
+        : '<tr><td colspan="8"><div class="tit-table-empty">' +
+          '<p class="tit-table-empty-h">Nothing matches those filters</p>' +
+          '<p class="tit-table-empty-p">We would rather show you nothing than guess.</p>' +
+          '<button type="button" class="tit-empty-clear">Reset all filters</button>' +
+          '</div></td></tr>') +
+      '</tbody></table>';
+    syncTableSort();
+    applyWatchFilter();
+  }
+
+  if (tableWrap) {
+    // Delegated: the table is re-created on every repaint.
+    tableWrap.addEventListener('click', function (e) {
+      var clear = e.target && e.target.closest ? e.target.closest('.tit-empty-clear') : null;
+      if (clear) { resetAll(); return; }
+      var th = e.target && e.target.closest ? e.target.closest('th.tit-ts') : null;
+      if (!th || !inputs.sort) return;
+      var pair = UT_SORT[th.getAttribute('data-ts')] || [];
+      if (!pair.length) return;
+      var next = (pair.length > 1 && inputs.sort.value === pair[0]) ? pair[1] : pair[0];
+      // The select must be able to SAY what the header chose, or it would sit
+      // there reading "Most Useful First" over a table sorted by employer.
+      ensureOption(inputs.sort, next, SORT_OPTION_LABEL[next] || next);
+      inputs.sort.value = next;
+      refresh();
+    });
+  }
+
+  function setView(mode, fetchIfEmpty) {
+    viewMode = mode === 'table' ? 'table' : 'cards';
+    if (store) store.set('tit_view', viewMode);
+    var isTable = viewMode === 'table';
+    if (vtCards) {
+      vtCards.classList.toggle('is-on', !isTable);
+      vtCards.setAttribute('aria-pressed', isTable ? 'false' : 'true');
+    }
+    if (vtTable) {
+      vtTable.classList.toggle('is-on', isTable);
+      vtTable.setAttribute('aria-pressed', isTable ? 'true' : 'false');
+    }
+    if (tbody) tbody.hidden = isTable;
+    if (tableWrap) tableWrap.hidden = !isTable;
+    if (isTable) {
+      if (lastRows !== null) renderTable();
+      else if (fetchIfEmpty) refresh();
+    }
+  }
+
+  // Everything a fresh set of rows has to touch, in one place, so the cards,
+  // the table, the stars and the watch badge can never disagree about which
+  // rows arrived.
+  function afterRowsPaint() {
+    decorateCards();
+    if (viewMode === 'table') renderTable();
+    paintWatch();
+    syncTableSort();
+  }
+
+  if (viewWrap && vtCards && vtTable) {
+    viewWrap.hidden = false;
+    vtCards.addEventListener('click', function () { setView('cards', false); });
+    vtTable.addEventListener('click', function () { setView('table', true); });
+  }
+
   syncAllPills();
   populateFacets();
 
@@ -2642,4 +2996,11 @@
   // filters alone and would drop the `card` this is about to read if it ran
   // first. It sets expandedCard, so every later write keeps it.
   openCardFromUrl();
+
+  // The browser-local surfaces, last: the stars decorate the served cards, the
+  // remembered view may need a fetch (only when no shared link already
+  // triggered one; afterRowsPaint() covers that path), and the watch chip
+  // reveals itself only when storage is real.
+  paintWatch();
+  if (viewMode === 'table') setView('table', !location.search);
 })();

@@ -349,7 +349,16 @@ function check($condition, $message) {
  * same pass deleted. Headroom is ~500 bytes: the next addition raises the
  * budget again, in writing.
  */
-const TIT_DASH_BYTE_BUDGET = 178000;
+/*
+ * RAISED 178,000 -> 180,000 on 2026-08-03 for the owner-approved batch of
+ * four, which measured 178,134 against this fixture: the watchlist chip and
+ * its (i) paragraph, the hidden card/table view toggle and its empty table
+ * container, and three more links in the export strip (HubSpot CSV,
+ * Salesforce CSV, RSS) with two sentences added to the export note. The
+ * table itself costs nothing here: it is built client-side from rows already
+ * fetched, which is why its container ships empty.
+ */
+const TIT_DASH_BYTE_BUDGET = 180000;
 
 /*
  * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and

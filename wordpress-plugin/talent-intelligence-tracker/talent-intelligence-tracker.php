@@ -41,8 +41,15 @@ function tit_require($relative) {
 tit_require('includes/db.php');
 tit_require('includes/api.php');
 tit_require('includes/export.php');
+// After export.php: the CRM presets reuse its walker, its guard and its
+// throttle, and refuse politely rather than fatalling when the FTP race has
+// not landed export.php yet.
+tit_require('includes/export_crm.php');
 tit_require('includes/shortcodes.php');
 tit_require('includes/page.php');
+// After api.php (tit_build_where, tit_cache_key) and page.php (TIT_PAGE_SLUG
+// for the head link). Same FTP-race degradation as everything else.
+tit_require('includes/feed.php');
 tit_require('includes/company.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.

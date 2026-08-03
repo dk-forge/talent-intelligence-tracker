@@ -84,6 +84,12 @@ jobs:
       - name: Render the sources page and check what it claims about the archive
         run: php tests/php/render_sources.php
 
+      # The RSS feed has to satisfy a strict parser for every row we hold, the
+      # filtered feed has to honour the filters, and the CRM preset headers are
+      # a contract with two import wizards that map columns by name.
+      - name: Feed and CRM export presets, run for real
+        run: php tests/php/feed_and_crm.php
+
       - name: Run tests
         run: python -m pytest -q
 

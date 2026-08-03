@@ -177,6 +177,54 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-03 - the owner-approved batch of four: RSS per view, watchlist, card/table toggle, CRM export presets
+
+One version bump, four reader-facing features, no data change and no model call.
+
+1. **RSS per filtered view.** `GET talent/v1/feed` (includes/feed.php) takes
+   the SAME filter params as /query (it calls tit_build_where, so the two can
+   never drift) and returns RSS 2.0 of the newest 50 matching signals: title =
+   headline, link = the SOURCE document, guid = signal_id
+   (isPermaLink="false"), pubDate RFC 822, category = pillar. Same transient
+   discipline as /query (tit_cache_key + TIT_CACHE_TTL, wiped by
+   tit_flush_caches), CDN Cache-Control, and a 60-builds-per-10-min-per-IP cap
+   counted only on cache MISSES so polling a cached feed can never 429. Raw
+   XML leaves through a rest_pre_serve_request filter keyed on the
+   Content-Type. An RSS link joined the export strip and rides the same href
+   updater as every download; the unfiltered feed is announced with
+   <link rel="alternate"> on the dashboard page. Proven well-formed by TWO
+   independent strict parsers (DOMDocument in tests/php/feed_and_crm.php,
+   ElementTree + email.utils in tests/test_feed_and_crm.py) over rows carrying
+   ampersands, control characters and a missing published_date.
+2. **Watchlist without accounts.** localStorage only: a star on every card's
+   employer (INJECTED after paint so the shared card contract's two renderers
+   are untouched), a Watchlist (N) chip beside the quick views that narrows
+   client-side, and an "M new" badge from the previous visit's timestamp
+   against card dates. /query's `company` is a single LIKE and takes no comma
+   list, so the chip filters the loaded rows in the browser and the (i) panel
+   says exactly that (sequential fetch-merge was considered and rejected).
+   With localStorage unavailable the whole surface stays hidden.
+3. **Card / table view toggle.** A compact sortable table as a SIBLING
+   rendering of the same /query rows (date, employer, signal, direction,
+   amount, country, evidence, source). Card markup untouched, contract tests
+   still green. Headers write the same `sort` parameter as the select
+   (aria-sort carried), so a click orders the whole filtered set server-side.
+   The table scrolls inside its own container (.tit-updates-scroll, NOT
+   .tit-table-scroll whose sub-860px rules stack rows into cards) and the page
+   never bleeds at 375px, measured in a real browser. Choice persists as
+   tit_view.
+4. **CRM export presets.** "CSV for HubSpot" and "CSV for Salesforce"
+   (includes/export_crm.php) stream the SAME filtered set through
+   tit_export_walk with headers each import wizard maps by name; vendor docs
+   cited in the file. The website/domain column ships EMPTY on every row: we
+   hold no company websites and the publisher's domain in a CRM dedupe key
+   would be invented data. Exact header rows pinned by the harness.
+
+Byte budget raised 178,000 -> 180,000 in tests/php/render_dashboard.php, in
+writing, for the chip, the toggle, the empty table container and three export
+links. company_key joined /query's column list for the watchlist's benefit.
+New harness tests/php/feed_and_crm.php runs in CI beside the other seven.
+
 ## 2026-08-03 — the "feeds deliver, rows do not appear" pass: Spanish, Polish and Greek widened at the free gate, measured both sides
 
 The private benchmark's diagnosis section named four causes for the thin wired

@@ -2881,3 +2881,73 @@ main:has(#tit-dashboard) {
 .tit-rank-n, .tit-pillar-n, .tit-matrix .tit-cell, .tit-tc-ys span {
   font-variant-numeric:tabular-nums;
 }
+
+/* --- Watchlist (browser-local; injected after paint, so no rule here may
+   touch the card contract's own classes) --------------------------------- */
+.tit-wrap .tit-watch-star { display:inline-block; margin-left:6px; padding:0 4px;
+  border:0; background:none; cursor:pointer; font-size:15px; line-height:1;
+  color:var(--tit-mut); vertical-align:baseline; }
+.tit-wrap .tit-watch-star:hover { color:var(--tit-blue); }
+.tit-wrap .tit-watch-star.is-on { color:#b8860b; }
+.tit-wrap .tit-watch-star:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; border-radius:4px; }
+.tit-watch-new { margin-left:6px; padding:1px 7px; border-radius:999px;
+  background:var(--tit-blue); color:#fff; font-size:11px; font-weight:700; }
+.tit-watch-hide { display:none; }
+
+/* --- The card / table view toggle --------------------------------------- */
+.tit-viewtoggle { display:inline-flex; align-items:center; gap:6px;
+  margin-left:auto; }
+.tit-wrap .tit-vt { padding:5px 12px; border:1px solid var(--tit-line);
+  border-radius:8px; background:#fff; font-size:13px; font-weight:650;
+  color:var(--tit-mut); cursor:pointer; }
+.tit-wrap .tit-vt:hover { border-color:var(--tit-blue); color:var(--tit-blue); }
+.tit-wrap .tit-vt.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
+  color:#fff; }
+.tit-wrap .tit-vt:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+
+/* --- The compact updates table ------------------------------------------
+   Its own scroll container at EVERY width, deliberately not .tit-table-scroll:
+   that class drops its overflow below 860px for other pages' tables, and this
+   one must keep scrolling inside itself on a phone rather than bleeding the
+   page. The min-width lives on the table INSIDE the scroller, which is the
+   allowed place for one. */
+.tit-updates-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch;
+  border:1px solid var(--tit-line); border-radius:12px; background:#fff;
+  margin:0 0 14px; }
+.tit-updates-scroll .tit-ut { min-width:880px; font-size:14px; }
+.tit-updates-scroll .tit-ut th, .tit-updates-scroll .tit-ut td {
+  padding:10px 12px; }
+.tit-ut-when { white-space:nowrap; font-variant-numeric:tabular-nums; }
+.tit-ut-emp { font-weight:650; }
+.tit-ut-signal { min-width:260px; }
+.tit-ut-amt { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tit-wrap .tit-ut th.tit-ts { padding:0; }
+.tit-wrap .tit-ut th.tit-ts button { display:flex; align-items:center; gap:5px;
+  width:100%; padding:10px 12px; border:0; background:none; cursor:pointer;
+  font:inherit; font-size:12.5px; font-weight:inherit; text-transform:inherit;
+  letter-spacing:inherit; color:inherit; text-align:left; }
+.tit-wrap .tit-ut th.tit-ts button:hover { color:var(--tit-blue); }
+.tit-wrap .tit-ut th.tit-ts button:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:-2px; }
+.tit-ts-arrow { font-size:10px; }
+
+/* Below 860px the generic .tit-table rules stack every row into a card, which
+   is right for the pages that read narrow and WRONG for this one: the compact
+   table's whole contract is that it scrolls inside its own container at every
+   width, 375px included, and never stacks and never bleeds the page. These
+   put the table back to being a table inside its own scroller. */
+@media (max-width:860px){
+  .tit-updates-scroll { overflow-x:auto; border:1px solid var(--tit-line);
+    border-radius:12px; }
+  .tit-wrap .tit-updates-scroll .tit-ut { display:table; min-width:880px; }
+  .tit-updates-scroll .tit-ut thead { position:static; width:auto; height:auto;
+    overflow:visible; clip:auto; white-space:normal; }
+  .tit-updates-scroll .tit-ut tbody { display:table-row-group; }
+  .tit-updates-scroll .tit-ut tr { display:table-row; border:0; border-radius:0;
+    padding:0; margin:0; background:none; }
+  .tit-wrap .tit-updates-scroll .tit-ut td { display:table-cell;
+    border-bottom:1px solid var(--tit-line); padding:10px 12px; flex:none; }
+  .tit-updates-scroll .tit-ut tr:last-child td { border-bottom:0; }
+}

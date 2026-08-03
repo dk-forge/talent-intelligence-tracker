@@ -520,8 +520,11 @@ function tit_api_query(WP_REST_Request $req) {
     // The accepted-column list for /query. A column missing here is invisible
     // to every consumer of the API however well it is populated, so a new
     // field lands in this list in the same change that creates it.
+    // company_key rides along for the watchlist: the star keys on the same
+    // canonical identity the company pages and the employer filter use, so
+    // "Alphabet" and "Alphabet Inc." star as one employer rather than two.
     $rows_sql = "SELECT signal_id, headline, summary, talent_readthrough, company,
-                        ticker, cik, employer_type,
+                        company_key, ticker, cik, employer_type,
                         pillar, signal_direction, city, region, country, hq_city, hq_country,
                         state, functions, industry, headcount, headcount_scope,
                         funding_amount, funding_amount_usd, funding_stage, work_mode,

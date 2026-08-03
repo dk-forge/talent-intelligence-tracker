@@ -937,6 +937,17 @@ function tit_dashboard_html() {
               id="tit-stated-n"><?php echo esc_html('(' . number_format_i18n($n_stated) . ')');
             ?></span><?php endif; ?></button>
         <?php endforeach; ?>
+        <?php /* The watchlist chip. Ships hidden and is revealed by script ONLY
+                 when localStorage is usable: the whole feature lives in this
+                 browser (no account, no server storage, no PII), so without
+                 storage there is nothing it could do and it must not appear.
+                 Not a member of $quick_views: those are saved filter specs the
+                 querystring can carry, and this narrows client-side (see the
+                 watchlist note in the (i) panel). */ ?>
+        <button type="button" class="tit-qv tit-watch-chip" id="tit-watch-chip" hidden
+                aria-pressed="false" aria-describedby="tit-help-watch">Watchlist <span
+          class="tit-qv-n" id="tit-watch-n">(0)</span><span class="tit-watch-new"
+          id="tit-watch-new" hidden></span></button>
         <?php /* Names the control, not a direction. The signal table is still
                  above this strip, but it was above it the last time somebody
                  wrote "at the top" here too, and that line survived the move
@@ -1069,6 +1080,12 @@ function tit_dashboard_html() {
                   Tap every one that applies. Tap again to remove it. Every choice
                   also becomes its own chip in the Filtering row, so you can drop
                   one without clearing the rest.</p>
+                <p id="tit-help-watch"><strong>Watchlist.</strong> Star an
+                  employer on any update to follow it. Stars are saved in this
+                  browser only; nothing is sent to us and no account exists.
+                  Turning the watchlist on narrows the updates loaded on this
+                  page (the newest 50 of the current view) to your starred
+                  employers, right here in the browser.</p>
                 <p id="tit-help-basis"><strong>Where.</strong> Places come from what a
                   source named. When a source names no place we use the employer's head
                   office instead, so a company known only by its headquarters still
@@ -1761,6 +1778,22 @@ function tit_dashboard_html() {
             <option value="raised">Biggest Raises First</option>
           </select>
         </label>
+        <?php /* Cards or a compact table, one view at a time. Ships hidden and
+                 is revealed by script: the table is built client-side from the
+                 same rows the cards show, so without JavaScript the buttons
+                 would be chrome that does nothing and the reader keeps the
+                 server-rendered cards. The choice persists in localStorage and
+                 the CARD markup is untouched either way; the table is a
+                 sibling rendering, not a restyle of the card (see
+                 docs/card-contract.json). */ ?>
+        <div class="tit-viewtoggle" id="tit-viewtoggle" role="group"
+             aria-label="How to show the updates" hidden>
+          <span class="tit-detail-l">View</span>
+          <button type="button" class="tit-vt" id="tit-vt-cards"
+                  aria-pressed="true">Cards</button>
+          <button type="button" class="tit-vt" id="tit-vt-table"
+                  aria-pressed="false">Table</button>
+        </div>
       </div>
 
       <?php
@@ -1818,6 +1851,15 @@ function tit_dashboard_html() {
         <?php foreach ($rows as $r) { echo tit_card_html($r); } ?>
       </ul>
 
+      <?php /* The table the View toggle swaps in. Empty on the server on
+               purpose: it is filled client-side from the SAME /query rows the
+               cards render, so it can never show a different set, and a
+               reader without JavaScript never meets an empty box. It scrolls
+               inside its own container at every width (its own class, NOT
+               .tit-table-scroll, whose sub-860px rules belong to other
+               pages' tables). */ ?>
+      <div class="tit-updates-scroll" id="tit-tablewrap" hidden></div>
+
       <!--
         Download exactly what the filters show. The hrefs are server-rendered
         pointing at the whole dataset; dashboard.js rewrites them with the
@@ -1836,10 +1878,33 @@ function tit_dashboard_html() {
            href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_json')); ?>">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
           JSON<span class="tit-export-scope" id="tit-export-json-scope"> · all</span></a>
+        <?php /* The same rows with headers each CRM's import wizard maps by
+                 name. Mapping and vendor docs: includes/export_crm.php. */ ?>
+        <a class="tit-export-link" id="tit-export-hubspot"
+           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_hubspot')); ?>"
+           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_hubspot')); ?>">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          CSV for HubSpot<span class="tit-export-scope" id="tit-export-hubspot-scope"> · all</span></a>
+        <a class="tit-export-link" id="tit-export-salesforce"
+           data-base="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_salesforce')); ?>"
+           href="<?php echo esc_url(admin_url('admin-post.php?action=tit_export_salesforce')); ?>">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+          CSV for Salesforce<span class="tit-export-scope" id="tit-export-salesforce-scope"> · all</span></a>
+        <?php /* The feed of this view. Same filter params as /query; the
+                 unfiltered feed is also announced with a <link rel=alternate>
+                 in the head (includes/feed.php). */ ?>
+        <a class="tit-export-link tit-export-rss" id="tit-export-rss"
+           data-base="<?php echo esc_url(rest_url('talent/v1/feed')); ?>"
+           href="<?php echo esc_url(rest_url('talent/v1/feed')); ?>"
+           title="RSS feed of this view">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM4 10a10 10 0 0 1 10 10M4 4a16 16 0 0 1 16 16"/></svg>
+          RSS<span class="tit-export-scope" id="tit-export-rss-scope"> · all</span></a>
         <span class="tit-export-note">Every matching update, not just this page,
           and routine filings are included whichever way Show is set. Each row
           carries its own materiality, so you can set them aside yourself.
-          Free to reuse, CC BY 4.0.</span>
+          The HubSpot and Salesforce files hold the same rows with headers
+          their import wizards map by name. RSS carries the newest 50 of this
+          view. Free to reuse, CC BY 4.0.</span>
       </div>
       </div><!-- /.tit-zone-updates -->
 
