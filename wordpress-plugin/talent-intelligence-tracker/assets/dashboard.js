@@ -94,7 +94,12 @@
     work_mode: 'Work Setup', deal_type: 'Deal Type', site_event: 'Site Change',
     confidence: 'Evidence', country_basis: 'Places', company: 'Employer',
     min_funding_usd: 'Amount Raised', funding_stage: 'Funding Stage',
-    q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
+    q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View',
+    // The period shorthand's chips. year/quarter/month are not API parameters:
+    // the selects write real dates into since/until, and when the window
+    // exactly spans a period the chips name the period instead of two raw
+    // dates, because "Year: 2026" is what the reader chose.
+    year: 'Year', quarter: 'Quarter', month: 'Month'
   };
 
   // Saved views that no longer have a button of their own but can still be
@@ -555,14 +560,17 @@
     return rows.slice().sort(function (a, b) { return at(a.k) - at(b.k); });
   }
 
-  function paintAggregate(data) {
+  function paintAggregate(data, ytd) {
     var total = +data.total || 0;
 
     // The freshness panel restates the view, exactly as the old hero fine
     // print did: a filtered page must never carry worldwide totals in its own
     // header. freshStatsHtml mirrors tit_fresh_stats_html() in shortcodes.php.
+    // `ytd` (the current-year slice under the same filters) keeps the
+    // this-year/all-time pairing through every repaint; it is null whenever
+    // the view is date-narrowed and the pairing would lie.
     var fresh = document.getElementById('tit-fresh-stats');
-    if (fresh) fresh.innerHTML = freshStatsHtml(data, total);
+    if (fresh) fresh.innerHTML = freshStatsHtml(data, total, ytd);
 
     // The Search button's own count is a promise about the table under it.
     var ctaN = document.getElementById('tit-cta-n');
@@ -829,17 +837,52 @@
   // four figures, updates / employers / dollars raised / official filings. The
   // dollar figure keeps its link-plus-title honesty so the sum never travels
   // without its caveat.
-  function freshStatsHtml(data, total) {
-    var h = '<span class="tit-fstat"><b>' + nfmt(total) + '</b><span>' +
-      (+total === 1 ? 'update' : 'updates') + '</span></span>' +
-      '<span class="tit-fstat"><b>' + nfmt(data.companies) + '</b><span>' +
-      (+data.companies === 1 ? 'employer' : 'employers') + '</span></span>';
+  //
+  // `ytd` is the same aggregate under the same filters plus since=Jan-1
+  // (include=fresh), and when it is present each stat leads with this year's
+  // figure and keeps the whole record small beneath it, exactly as the server
+  // renders the plain page. It is absent whenever the reader has set a date
+  // window of their own, because "all time" under a date filter would be a
+  // false label; then the single filtered figure returns.
+  function freshStatsHtml(data, total, ytd) {
+    var year = new Date().getFullYear();
+    var all = function (text) {
+      return '<span class="tit-fstat-all">' + text + ' all time</span>';
+    };
+    var h;
+    if (ytd) {
+      h = '<span class="tit-fstat"><b>' + nfmt(ytd.total) + '</b><span>' +
+        (+ytd.total === 1 ? 'update' : 'updates') + ' in ' + year + '</span>' +
+        all(nfmt(total)) + '</span>' +
+        '<span class="tit-fstat"><b>' + nfmt(ytd.companies) + '</b><span>' +
+        (+ytd.companies === 1 ? 'employer' : 'employers') + ' in ' + year + '</span>' +
+        all(nfmt(data.companies)) + '</span>';
+    } else {
+      h = '<span class="tit-fstat"><b>' + nfmt(total) + '</b><span>' +
+        (+total === 1 ? 'update' : 'updates') + '</span></span>' +
+        '<span class="tit-fstat"><b>' + nfmt(data.companies) + '</b><span>' +
+        (+data.companies === 1 ? 'employer' : 'employers') + '</span></span>';
+    }
     var mt = data.money && data.money.total;
     if (mt > 0) {
+      // Same rule as the server: the dollar pair only pairs when this year
+      // actually holds a stated sum, so a thin January never prints $0 over a
+      // real all-time figure.
+      var yt = ytd && ytd.money && ytd.money.total > 0 ? ytd.money.total : 0;
+      var title = yt > 0
+        ? moneyFull(yt) + ' in ' + year + '; ' + moneyFull(mt) + ' all time. ' +
+          coverageFull(data.money)
+        : moneyFull(mt) + '. ' + coverageFull(data.money);
       h += '<span class="tit-fstat tit-fstat-money"><a class="tit-fine-money" ' +
-        'href="#chart-money-country" title="' +
-        esc(moneyFull(mt) + '. ' + coverageFull(data.money)) + '"><b>' +
-        esc(moneyShort(mt)) + '</b><span>raised</span></a></span>';
+        'href="#chart-money-country" title="' + esc(title) + '"><b>' +
+        esc(moneyShort(yt > 0 ? yt : mt)) + '</b><span>' +
+        (yt > 0 ? 'raised in ' + year : 'raised') + '</span></a>' +
+        (yt > 0 ? all(esc(moneyShort(mt))) : '') + '</span>';
+    }
+    if (ytd) {
+      return h + '<span class="tit-fstat"><b>' + nfmt(ytd.verified) +
+        '</b><span>official filings in ' + year + '</span>' +
+        all(nfmt(data.verified)) + '</span>';
     }
     return h + '<span class="tit-fstat"><b>' + nfmt(data.verified) +
       '</b><span>from official filings</span></span>';
@@ -907,9 +950,27 @@
   function refreshAggregate(params) {
     if (pendingAgg) pendingAgg.abort();
     pendingAgg = new AbortController();
-    fetch(TIT.api + 'aggregate?' + params.toString(), { signal: pendingAgg.signal })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) { if (data) paintAggregate(data); })
+    var signal = pendingAgg.signal;
+    var main = fetch(TIT.api + 'aggregate?' + params.toString(), { signal: signal })
+      .then(function (r) { return r.ok ? r.json() : null; });
+    // The current-year slice for the freshness pairing: same filters, since
+    // clamped to Jan 1, and include=fresh so the endpoint skips everything the
+    // panel does not print. Only fetched when the view has no date window of
+    // its own; a date-filtered view paints single figures. If this half fails
+    // the main paint still lands, just unpaired, which beats blanking a panel
+    // over a companion figure.
+    var ytdReq = null;
+    if (!params.get('since') && !params.get('until')) {
+      var yp = new URLSearchParams(params.toString());
+      yp.set('since', new Date().getFullYear() + '-01-01');
+      yp.set('include', 'fresh');
+      yp.delete('per_page');
+      ytdReq = fetch(TIT.api + 'aggregate?' + yp.toString(), { signal: signal })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+    Promise.all([main, ytdReq])
+      .then(function (both) { if (both[0]) paintAggregate(both[0], both[1]); })
       .catch(function (err) {
         // Leave the server-rendered numbers alone rather than blanking them.
         if (err && err.name === 'AbortError') return;
@@ -1332,8 +1393,13 @@
     asDropdown(dateField);
     var panel = dateField.querySelector('.tit-dd-panel');
     var range = dateField.querySelector('.tit-daterange');
+    var period = dateField.querySelector('.tit-period');
     // The inputs are server-rendered inside the cell, so unlike the checkbox
-    // groups they are moved rather than built.
+    // groups they are moved rather than built. The Year/Quarter/Month
+    // shorthand rides into the same panel, ABOVE the two boxes it writes, so
+    // picking a year visibly fills From and To right underneath it and the
+    // bar still spends one slot on dates.
+    if (panel && period && period.parentNode !== panel) panel.appendChild(period);
     if (panel && range && range.parentNode !== panel) panel.appendChild(range);
     var n = 0;
     if (inputs.since && inputs.since.value) n++;
@@ -1622,6 +1688,7 @@
     syncCountryButtons();
     syncCityButtons();
     syncBasis();
+    syncPeriodSelects();
 
     paintActive();
     syncChartStates();
@@ -1695,6 +1762,106 @@
       debounced();
     });
   });
+
+  // --- Year / Quarter / Month, shorthand for the date boxes ----------------
+  //
+  // The sibling tracker's period selects, wired as SHORTHAND rather than as
+  // state: picking one writes a real window into the since/until inputs where
+  // the reader can see it, so the querystring, the chips, the exports, Reset
+  // All and the signal board's cells all keep reading the one pair of dates
+  // they always read. syncPeriodSelects() is the reverse mapping, run on every
+  // refresh: dates that exactly span a year, quarter or month light the
+  // selects up (which is what makes a shared link round trip), and any other
+  // window blanks them, so hand-editing a date box visibly releases the
+  // shorthand.
+  var periodSel = {
+    year: document.getElementById('tit-f-yearsel'),
+    quarter: document.getElementById('tit-f-quartersel'),
+    month: document.getElementById('tit-f-monthsel')
+  };
+  var MONTH_LABEL = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function daysInMonth(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+
+  // The window a year / quarter / month choice means, as [since, until].
+  // Month and quarter are two grains of one question, so a month wins when
+  // both are somehow set; applyPeriod() never lets that happen from the UI.
+  function periodWindow(y, q, m) {
+    if (!y) return null;
+    if (m) return [y + '-' + pad2(m) + '-01',
+                   y + '-' + pad2(m) + '-' + pad2(daysInMonth(y, m))];
+    if (q) {
+      var m2 = q * 3;
+      return [y + '-' + pad2(q * 3 - 2) + '-01',
+              y + '-' + pad2(m2) + '-' + pad2(daysInMonth(y, m2))];
+    }
+    return [y + '-01-01', y + '-12-31'];
+  }
+
+  function applyPeriod(changed) {
+    if (!periodSel.year) return;
+    // A month names a quarter's worth of window more precisely, so picking
+    // either blanks the other rather than silently ANDing two grains.
+    if (changed === 'month' && periodSel.month.value && periodSel.quarter) {
+      periodSel.quarter.value = '';
+    }
+    if (changed === 'quarter' && periodSel.quarter.value && periodSel.month) {
+      periodSel.month.value = '';
+    }
+    // A quarter or month with no year means the newest year we hold, and it is
+    // SELECTED rather than assumed, so the reader sees exactly what happened.
+    if (!periodSel.year.value &&
+        ((periodSel.quarter && periodSel.quarter.value) ||
+         (periodSel.month && periodSel.month.value))) {
+      var opts = periodSel.year.options;
+      if (opts.length > 1) periodSel.year.value = opts[1].value;
+    }
+    var w = periodWindow(+periodSel.year.value || 0,
+                         periodSel.quarter ? +periodSel.quarter.value || 0 : 0,
+                         periodSel.month ? +periodSel.month.value || 0 : 0);
+    if (inputs.since) inputs.since.value = w ? w[0] : '';
+    if (inputs.until) inputs.until.value = w ? w[1] : '';
+    refresh();
+  }
+
+  Object.keys(periodSel).forEach(function (key) {
+    if (!periodSel[key]) return;
+    periodSel[key].addEventListener('change', function () { applyPeriod(key); });
+  });
+
+  // The reverse read: which year/quarter/month the current window IS, or
+  // blanks. Only a value the year select actually offers lights up — the list
+  // is derived from the data's own bounds, and a shared link asking for a year
+  // we hold nothing in stays a plain From/To.
+  function syncPeriodSelects() {
+    if (!periodSel.year) return;
+    var s = inputs.since ? inputs.since.value : '';
+    var u = inputs.until ? inputs.until.value : '';
+    var y = '', q = '', m = '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(u)) {
+      var ys = +s.slice(0, 4);
+      var ms = +s.slice(5, 7);
+      if (s === ys + '-01-01' && u === ys + '-12-31') {
+        y = String(ys);
+      } else if (s.slice(8) === '01') {
+        if (u === ys + '-' + pad2(ms) + '-' + pad2(daysInMonth(ys, ms))) {
+          y = String(ys); m = String(ms);
+        } else if (ms % 3 === 1) {
+          var me = ms + 2;
+          if (u === ys + '-' + pad2(me) + '-' + pad2(daysInMonth(ys, me))) {
+            y = String(ys); q = String((ms + 2) / 3);
+          }
+        }
+      }
+    }
+    var has = y && Array.prototype.some.call(periodSel.year.options,
+      function (o) { return o.value === y; });
+    periodSel.year.value = has ? y : '';
+    if (periodSel.quarter) periodSel.quarter.value = has ? q : '';
+    if (periodSel.month) periodSel.month.value = has ? m : '';
+  }
 
   var region = null;
   var tabs = Array.prototype.slice.call(root.querySelectorAll('.tit-region'));
@@ -1874,12 +2041,32 @@
       chips.push(chip('quickview', qb ? qb.textContent.trim()
                                       : (QV_LABEL[quickView] || quickView)));
     }
+    // When the date window IS a period pick, the chips say so in the reader's
+    // own words: "Year: 2026", "Quarter: Q3", never two raw dates for a click
+    // on a dropdown. syncPeriodSelects() has already run this refresh, so the
+    // selects are the derived truth about the window; any hand-made window
+    // leaves them blank and the plain From/To chips return.
+    var periodChipped = false;
+    if (periodSel.year && periodSel.year.value) {
+      chips.push(chip('year', periodSel.year.value));
+      if (periodSel.quarter && periodSel.quarter.value) {
+        chips.push(chip('quarter', 'Q' + periodSel.quarter.value));
+      }
+      if (periodSel.month && periodSel.month.value) {
+        chips.push(chip('month', MONTH_LABEL[+periodSel.month.value - 1] || periodSel.month.value));
+      }
+      periodChipped = true;
+    }
+
     Object.keys(inputs).forEach(function (key) {
       var el = inputs[key];
       // `detail` gets no chip: the bar above the table states it in full, with
       // both counts and what routine means. A chip would be a quieter copy of
       // something already impossible to miss.
       if (!el || key === 'sort' || key === 'detail') return;
+      // The dates behind a period chip are that chip; two more chips
+      // restating them as From/To would be three names for one narrowing.
+      if (periodChipped && (key === 'since' || key === 'until')) return;
       if (MULTI[key]) {
         multiValues(el).forEach(function (v) {
           chips.push(chip(key, optionText(el, v), v));
@@ -1928,6 +2115,18 @@
     if (key === 'region') setRegion(null);
     else if (key === 'quickview') setQuickView(null);
     else if (key === 'stated_headcount') setStated(false);
+    else if (key === 'year') {
+      // The quarter and month hang off the year, so dropping the year drops
+      // the whole window.
+      if (inputs.since) inputs.since.value = '';
+      if (inputs.until) inputs.until.value = '';
+    } else if (key === 'quarter' || key === 'month') {
+      // Dropping the finer grain widens back to the whole year it sat in.
+      var yv = periodSel.year ? periodSel.year.value : '';
+      var w = periodWindow(+yv || 0, 0, 0);
+      if (inputs.since) inputs.since.value = w ? w[0] : '';
+      if (inputs.until) inputs.until.value = w ? w[1] : '';
+    }
     else if (MULTI[key] && inputs[key]) {
       setMulti(inputs[key], multiValues(inputs[key]).filter(function (v) {
         return v !== value;

@@ -224,6 +224,56 @@ Byte budget raised 178,000 -> 180,000 in tests/php/render_dashboard.php, in
 writing, for the chip, the toggle, the empty table container and three export
 links. company_key joined /query's column list for the watchlist's benefit.
 New harness tests/php/feed_and_crm.php runs in CI beside the other seven.
+## 2026-08-03 — this-year/all-time pairing + Year/Quarter/Month selects (1.67.0, pushed, NOT deployed)
+
+Two owner asks, one version. Supersedes pending task #67 (the entire-record
+sublabel): the dual number ships INSTEAD of a sublabel.
+
+**1. Every whole-record figure now says which span it covers.** The freshness
+panel's four stats each lead with the current year big ("3,639 updates in
+2026") and keep the entire record small beneath it ("25,397 all time"); the
+year is derived from the clock at every layer (current_time in PHP, the
+Date object in JS, TIT_FIXTURE_NOW in the harness), so the labels say 2027 in
+January without an edit. Server side, the current-year slice rides the SAME
+one-pass head scan in `tit_dashboard_facts()` as four more CASE expressions —
+no extra query. Repaints keep the pairing: `refreshAggregate()` adds a second
+/aggregate call under the same filters plus `since=Jan-1&include=fresh`, and
+`include=fresh` is a new closed-vocabulary response shape on /aggregate that
+returns only total/companies/countries/verified/money (the param joined the
+cache-key whitelist, or slim and full responses would share an entry). The
+pairing DROPS whenever the reader sets a date window of their own, because
+"all time" under a date filter is a false label; the single filtered figure
+returns. The dollar stat only pairs when the year actually holds a stated sum,
+so a thin January never prints $0 over a real total. The hero "Search N
+updates" button was verified unchanged: it carries the current-view count.
+
+**2. Year / Quarter / Month selects, wired as SHORTHAND, not as state.** They
+live inside the Date Range dropdown ABOVE the From/To boxes and WRITE the
+window into them visibly (Year 2026 + Q3 fills 2026-07-01 / 2026-09-30), so
+the querystring, chips, exports, Reset All and the signal board's cells keep
+the one since/until source of truth, unchanged. `syncPeriodSelects()` is the
+reverse read on every refresh: dates that exactly span a year, quarter or
+month light the selects (that is what round-trips a shared URL — verified:
+?since=2026-07-01&until=2026-09-30 reloads as Year 2026 + Quarter Q3), any
+other hand-edited window blanks them. Chips name the period ("Year: 2026",
+"Quarter: Q3") instead of two raw dates; removing the quarter/month chip
+widens back to its year, removing the year chip clears the window. The year
+list is DERIVED from the data's own date bounds, never typed, and the harness
+asserts the year after the data's max is NOT an option. Month and quarter
+never AND: picking one blanks the other.
+
+Rendered at 375px and 1280px before push (the browser pane would not paint
+scrolled content, so the fixed-overlay clone inside the plugin wrapper did the
+seeing; panel geometry re-measured on the REAL open dropdown both widths: 349px
+wide inside a 375px viewport, 265px on desktop, zero horizontal document
+overflow). Full suite 3,053 passed with only the three pre-existing
+test_audit_publishers reds (they fail identically on clean origin/main); all 7
+PHP harnesses green. render_dashboard byte budget NOT raised: 175,187 ->
+177,535 of 178,000, itemised in the harness. Card contract, wayback notes and
+the signal board untouched. Version 1.66.3 -> 1.67.0, pushed to main, NOT
+deployed.
+
+---
 
 ## 2026-08-03 — the "feeds deliver, rows do not appear" pass: Spanish, Polish and Greek widened at the free gate, measured both sides
 

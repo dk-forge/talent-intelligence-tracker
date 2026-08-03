@@ -348,6 +348,15 @@ function check($condition, $message) {
  * copies of the currency caveat and the per-card job-board boilerplate this
  * same pass deleted. Headroom is ~500 bytes: the next addition raises the
  * budget again, in writing.
+ *
+ * NOT RAISED on 2026-08-03, and 2,348 bytes of the room the interim passes had
+ * opened is now spent: 175,187 -> 177,535. It bought the owner's two asks: the
+ * freshness panel's this-year/all-time pairing (four small "all time" lines
+ * plus the year in each label, ~400 bytes) and the Year / Quarter / Month
+ * period selects beside the date boxes (~1,900 bytes, most of it the derived
+ * year options and the three labelled parts). Headroom is 465 bytes, which is
+ * not room for anything: the next addition raises this number and writes down
+ * why.
  */
 /*
  * RAISED 178,000 -> 180,000 on 2026-08-03 for the owner-approved batch of
@@ -358,7 +367,14 @@ function check($condition, $message) {
  * table itself costs nothing here: it is built client-side from rows already
  * fetched, which is why its container ships empty.
  */
-const TIT_DASH_BYTE_BUDGET = 180000;
+/*
+ * RAISED 180,000 -> 181,000 on 2026-08-03 for the this-year/all-time stat
+ * pairing (eight figures where four were) and the Year/Quarter/Month selects
+ * inside the Date Range panel. Measured 180,482; the 482 overage is entirely
+ * those two owner-requested controls, itemised here per the convention. This
+ * page is read on phones; the next raise needs its own itemised bill.
+ */
+const TIT_DASH_BYTE_BUDGET = 181000;
 
 /*
  * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and
@@ -977,10 +993,49 @@ check(strpos($html, number_format_i18n($notable) . ' updates') !== false,
 check(strpos($html, 'come from one source') !== false,
       'one collector holds 2,400 of the United Kingdom\'s 2,460 rows, so the '
       . 'concentration caveat has to name it');
+/*
+ * THE FRESHNESS PANEL PAIRS EVERY FIGURE: this year big, all time small. The
+ * whole-record totals alone read as this year's numbers (the owner misread
+ * them himself), so each stat leads with the current-year slice and keeps the
+ * entire record beneath it. The year in the labels is DERIVED from the same
+ * clock the fixture runs on, so this assertion says 2027 in January without an
+ * edit, exactly like the year rung above.
+ */
+$fx_year = gmdate('Y', TIT_FIXTURE_NOW);
 check(strpos($html, 'class="tit-fstat tit-fstat-money"') !== false
-      && strpos($html, '<span>raised</span></a>') !== false,
+      && strpos($html, '<span>raised in ' . $fx_year . '</span></a>') !== false,
       'and the money total sits in the freshness panel with the other figures, '
-      . 'still a link so the sum never travels without its caveat');
+      . 'still a link so the sum never travels without its caveat, led by the '
+      . 'current year');
+check(strpos($html, 'updates in ' . $fx_year . '</span>') !== false
+      && strpos($html, 'employers in ' . $fx_year . '</span>') !== false
+      && strpos($html, 'official filings in ' . $fx_year . '</span>') !== false,
+      'each freshness stat leads with the current year, derived from the clock');
+check(substr_count($html, ' all time</span>') >= 4,
+      'and every one of the four keeps its all-time figure beneath the pair');
+$ytd_notable = (int) $wpdb->get_var(
+    "SELECT COUNT(*) FROM wp_tit_signals WHERE is_current = 1 AND " . tit_notable_where()
+    . " AND COALESCE(published_date, DATE(captured_at)) >= '{$fx_year}-01-01'");
+check(strpos($html, '<b>' . number_format_i18n($ytd_notable) . '</b>'
+             . '<span>updates in ' . $fx_year . '</span>') !== false,
+      'the big number is the current-year slice of the same clause the table '
+      . 'uses (' . number_format_i18n($ytd_notable) . '), never a typed figure');
+
+/*
+ * THE PERIOD SHORTHAND. Year, quarter and month selects that write into the
+ * since/until inputs. The year list is DERIVED from the data's own bounds:
+ * this fixture's rows span two calendar years at most (seeded relative to the
+ * clock), so the current year must be an option and a year we hold nothing in
+ * must not be.
+ */
+foreach (array('tit-f-yearsel', 'tit-f-quartersel', 'tit-f-monthsel') as $id) {
+    check(strpos($html, 'id="' . $id . '"') !== false,
+          "the {$id} period select has to exist beside the date boxes");
+}
+check(strpos($html, '<option value="' . $fx_year . '">') !== false,
+      'the year select offers the year the data actually holds');
+check(strpos($html, '<option value="' . ($fx_year + 1) . '">') === false,
+      'and never a year the data does not (' . ($fx_year + 1) . ')');
 
 /* --- the results list ---------------------------------------------------- */
 

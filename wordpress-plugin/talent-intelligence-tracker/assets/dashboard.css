@@ -1843,6 +1843,11 @@ main:has(#tit-dashboard) {
 .tit-fstat a:hover span { text-decoration:underline; }
 /* Money wins on figures: the raised total is the one ochre number here. */
 .tit-wrap .tit-fstat-money b { color:var(--tit-ink-ochre); }
+/* The all-time line under each figure. Each stat leads with the current year
+   (the big number) and keeps the entire record beneath it, smaller and muted,
+   because the whole-record totals alone read as this year's numbers. */
+.tit-fstat .tit-fstat-all { display:block; font-size:11px; color:var(--tit-mut);
+  font-variant-numeric:tabular-nums; margin-top:1px; }
 .tit-fresh .tit-fine-say { display:block; margin:10px 0 0; font-size:12px;
   color:var(--tit-mut); font-weight:500; }
 .tit-fresh .tit-roo-row { margin:8px 0 0; }
@@ -1952,6 +1957,13 @@ main:has(#tit-dashboard) {
    the only thing saying which box was the start, it was decoration to a screen
    reader, and at 375px it was competing for width with the two controls it was
    separating. */
+/* Year / Quarter / Month, the shorthand row above the two date boxes. Same
+   part layout as the boxes beneath so the cell reads as one control with two
+   grains. The selects are full-width inside their thirds, so at 375px the row
+   stays three tidy columns rather than bleeding. */
+.tit-period { display:flex; align-items:flex-end; gap:10px; min-width:0;
+  margin:0 0 8px; }
+.tit-period select { width:100%; min-width:0; }
 .tit-daterange { display:flex; align-items:flex-end; gap:10px; min-width:0; }
 .tit-daterange-part { flex:1 1 0; min-width:0; display:grid; gap:3px; }
 .tit-wrap .tit-daterange-l { font-size:11.5px; font-weight:650;

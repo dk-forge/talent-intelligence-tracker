@@ -430,6 +430,10 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // whichever request arrives first decides what everyone else sees.
         'min_funding_usd', 'funding_stage', 'detail', 'stated_headcount',
         'employer_type', 'work_mode', 'deal_type', 'site_event',
+        // /aggregate's response-shaping param. Read but not keyed on would let
+        // a slimmed include=fresh response be served to the full dashboard
+        // fetch, which then paints from keys that are not there.
+        'include',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -604,6 +608,33 @@ function tit_api_aggregate(WP_REST_Request $req) {
     $params = array();
     $where  = tit_build_where($req, $params);
     $table  = tit_table_name();
+
+    /*
+      include=fresh RETURNS ONLY THE FRESHNESS PANEL'S FIGURES. The panel pairs
+      each stat with the current year's slice, which is one more /aggregate
+      call under the same filters plus since=Jan-1; making that call carry the
+      groups, the matrix and the trend would double the whole endpoint's cost
+      to fetch four scalars. A closed vocabulary of one value: anything else is
+      ignored and the full response returns, so nothing that already consumes
+      this endpoint can change shape by accident. The cache key carries the
+      param (see tit_cache_key) so slim and full responses never share an entry.
+    */
+    if (trim((string) $req->get_param('include')) === 'fresh') {
+        $one = function ($expr) use ($wpdb, $table, $where, $params) {
+            $sql = "SELECT {$expr} FROM {$table} WHERE {$where}";
+            return (int) $wpdb->get_var($params ? $wpdb->prepare($sql, $params) : $sql);
+        };
+        $out = array(
+            'total'     => $one('COUNT(*)'),
+            'companies' => $one('COUNT(DISTINCT company_key)'),
+            'countries' => $one('COUNT(DISTINCT ' . tit_country_expr() . ')'),
+            'verified'  => $one("SUM(confidence = 'verified')"),
+            'money'     => tit_aggregate_money($table, $where, $params),
+            'generated' => gmdate('c'),
+        );
+        set_transient($cache_key, $out, TIT_CACHE_TTL);
+        return tit_public_response($out);
+    }
 
     $group = function ($column) use ($wpdb, $table, $where, $params) {
         $sql = "SELECT {$column} AS k, COUNT(*) AS n FROM {$table}

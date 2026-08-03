@@ -141,6 +141,20 @@ function tit_dashboard_facts($table) {
     $base = "is_current = 1 AND {$notable_sql}";
     $date_expr = 'COALESCE(published_date, DATE(captured_at))';
 
+    /*
+      THE CURRENT-YEAR SLICE RIDES ON THE SAME PASS. The freshness panel shows
+      each figure twice, this year first and all time under it, because the
+      whole-record totals alone read as this year's; the owner misread them
+      himself. The year is DERIVED from the clock (current_time), never typed,
+      so the labels roll over on January 1 without an edit, and the daily cache
+      key above already carries the date so a cached December render cannot
+      serve January. Four more CASE expressions on a scan the page was paying
+      for anyway, so the pairing costs no extra query.
+    */
+    $ytd_year = (int) current_time('Y');
+    $jan1 = sprintf('%04d-01-01', $ytd_year);
+    $ytd_sql = "({$notable_sql}) AND {$date_expr} >= '{$jan1}'";
+
     $head = $wpdb->get_row(
         "SELECT COUNT(*) total_all,
                 SUM(materiality = 'routine') routine,
@@ -149,6 +163,10 @@ function tit_dashboard_facts($table) {
                 SUM(({$notable_sql}) AND confidence = 'reported') reported,
                 SUM(({$notable_sql}) AND confidence = 'rumored') rumored,
                 COUNT(DISTINCT CASE WHEN {$notable_sql} THEN company_key END) companies,
+                SUM({$ytd_sql}) ytd_total,
+                SUM(({$ytd_sql}) AND confidence = 'verified') ytd_verified,
+                COUNT(DISTINCT CASE WHEN {$ytd_sql} THEN company_key END) ytd_companies,
+                COALESCE(SUM(CASE WHEN {$ytd_sql} THEN funding_amount_usd END), 0) ytd_money,
                 MIN({$date_expr}) lo_all,
                 MAX({$date_expr}) hi_all,
                 MIN(CASE WHEN {$notable_sql} THEN {$date_expr} END) lo,
@@ -166,6 +184,13 @@ function tit_dashboard_facts($table) {
         'notable'   => (int) ($head['notable'] ?? $total_all),
         'verified'  => (int) ($head['verified'] ?? 0),
         'companies' => (int) ($head['companies'] ?? 0),
+        // This year's slice of the same four figures, plus the year they
+        // belong to, so the render never re-reads the clock the query used.
+        'ytd_year'      => $ytd_year,
+        'ytd_total'     => (int) ($head['ytd_total'] ?? 0),
+        'ytd_verified'  => (int) ($head['ytd_verified'] ?? 0),
+        'ytd_companies' => (int) ($head['ytd_companies'] ?? 0),
+        'ytd_money'     => (float) ($head['ytd_money'] ?? 0),
         // Bounds for the date inputs. The sibling can offer years, quarters and
         // months because it holds years; we hold days. Letting the control ask
         // for a period we have nothing in is a control that manufactures empty
@@ -705,7 +730,13 @@ function tit_dashboard_html() {
               <?php endif; ?>
             </div>
             <div class="tit-fresh-stats" id="tit-fresh-stats"><?php
-              echo tit_fresh_stats_html($total, $companies, $money, $verified);
+              echo tit_fresh_stats_html($total, $companies, $money, $verified, array(
+                  'year'      => (int) ($facts['ytd_year'] ?? 0),
+                  'total'     => (int) ($facts['ytd_total'] ?? 0),
+                  'companies' => (int) ($facts['ytd_companies'] ?? 0),
+                  'verified'  => (int) ($facts['ytd_verified'] ?? 0),
+                  'money'     => (float) ($facts['ytd_money'] ?? 0),
+              ));
             ?></div>
             <span class="tit-fine-say">No figure appears unless its source states it.</span>
             <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
@@ -1353,6 +1384,57 @@ function tit_dashboard_html() {
                id="tit-field-daterange"
                role="group" aria-labelledby="tit-daterange-l">
             <span class="tit-field-l" id="tit-daterange-l">Date Range</span>
+            <?php
+            /*
+              YEAR / QUARTER / MONTH, the sibling's period selects, but wired
+              as SHORTHAND for the two date boxes underneath rather than as
+              parameters of their own. Picking one WRITES the window into
+              From and To where the reader can see it, so the mechanism is
+              legible, and everything that already reads since/until (the
+              querystring, the chips, the exports, Reset All, the signal
+              board's cells) keeps one source of truth. dashboard.js does the
+              reverse read too: dates that exactly span a year, quarter or
+              month light these up, which is what makes a shared link round
+              trip; any other hand-edited dates blank them.
+
+              The year list is DERIVED from the data's own bounds, never
+              typed, newest first. A year we hold nothing in would be a
+              control that manufactures empty states.
+            */
+            $yr_hi = (int) substr((string) $span_hi, 0, 4);
+            $yr_lo = (int) substr((string) $span_lo, 0, 4);
+            if ($yr_hi < $yr_lo) { $t = $yr_hi; $yr_hi = $yr_lo; $yr_lo = $t; }
+            ?>
+            <div class="tit-period" role="group" aria-label="Pick a period">
+              <label class="tit-daterange-part">
+                <span class="tit-daterange-l">Year</span>
+                <select id="tit-f-yearsel">
+                  <option value="">Any</option>
+                  <?php if ($yr_hi > 0) : for ($y = $yr_hi; $y >= $yr_lo; $y--) : ?>
+                    <option value="<?php echo esc_attr($y); ?>"><?php echo esc_html($y); ?></option>
+                  <?php endfor; endif; ?>
+                </select>
+              </label>
+              <label class="tit-daterange-part">
+                <span class="tit-daterange-l">Quarter</span>
+                <select id="tit-f-quartersel">
+                  <option value="">Any</option>
+                  <?php foreach (array(1, 2, 3, 4) as $q) : ?>
+                    <option value="<?php echo esc_attr($q); ?>">Q<?php echo esc_html($q); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <label class="tit-daterange-part">
+                <span class="tit-daterange-l">Month</span>
+                <select id="tit-f-monthsel">
+                  <option value="">Any</option>
+                  <?php for ($m = 1; $m <= 12; $m++) : ?>
+                    <option value="<?php echo esc_attr($m); ?>"><?php
+                      echo esc_html(date_i18n('M', mktime(12, 0, 0, $m, 1, 2026))); ?></option>
+                  <?php endfor; ?>
+                </select>
+              </label>
+            </div>
             <div class="tit-daterange">
               <label class="tit-daterange-part">
                 <span class="tit-daterange-l">From</span>
@@ -2957,21 +3039,64 @@ function tit_board_date_label() {
  * money section, and its title carries the exact figure plus the coverage
  * sentence, so the sum never travels without its caveat.
  */
-function tit_fresh_stats_html($total, $companies, array $money, $verified) {
-    $out  = '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($total)) . '</b>'
-          . '<span>' . esc_html($total == 1 ? 'update' : 'updates') . '</span></span>';
-    $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($companies)) . '</b>'
-          . '<span>' . esc_html($companies == 1 ? 'employer' : 'employers') . '</span></span>';
-    if (($money['total'] ?? 0) > 0) {
-        $out .= '<span class="tit-fstat tit-fstat-money"><a class="tit-fine-money" '
-              . 'href="#chart-money-country" title="'
-              . esc_attr(tit_money_full($money['total']) . '. '
-                         . tit_money_coverage_sentence($money['coverage'] ?? null)) . '"><b>'
-              . esc_html(tit_money_short($money['total'])) . '</b>'
-              . '<span>raised</span></a></span>';
+function tit_fresh_stats_html($total, $companies, array $money, $verified, $ytd = null) {
+    /*
+      TWO FIGURES PER STAT WHEN THE VIEW IS NOT DATE-NARROWED. The whole-record
+      totals read as this year's numbers with only the coverage ribbon saying
+      otherwise; the owner misread them himself. So each stat leads with the
+      current year (big) and keeps the entire record under it (small). The year
+      in the labels is derived from the clock upstream, never typed. When the
+      reader has set their own date window, $ytd is null and the single figure
+      returns, because "all time" under a date filter would be a false label.
+    */
+    $pair = is_array($ytd) && !empty($ytd['year']);
+    $year = $pair ? (string) (int) $ytd['year'] : '';
+    $all = function ($text) {
+        return '<span class="tit-fstat-all">' . $text . ' all time</span>';
+    };
+    if ($pair) {
+        $n = (int) $ytd['total'];
+        $out = '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($n)) . '</b>'
+             . '<span>' . esc_html(($n == 1 ? 'update' : 'updates') . ' in ' . $year) . '</span>'
+             . $all(esc_html(number_format_i18n($total))) . '</span>';
+        $c = (int) $ytd['companies'];
+        $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($c)) . '</b>'
+              . '<span>' . esc_html(($c == 1 ? 'employer' : 'employers') . ' in ' . $year) . '</span>'
+              . $all(esc_html(number_format_i18n($companies))) . '</span>';
+    } else {
+        $out  = '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($total)) . '</b>'
+              . '<span>' . esc_html($total == 1 ? 'update' : 'updates') . '</span></span>';
+        $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($companies)) . '</b>'
+              . '<span>' . esc_html($companies == 1 ? 'employer' : 'employers') . '</span></span>';
     }
-    $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($verified)) . '</b>'
-          . '<span>from official filings</span></span>';
+    if (($money['total'] ?? 0) > 0) {
+        // The dollar pair only pairs when this year actually holds a stated
+        // sum: "$0 raised in 2026" over a real all-time figure would read as a
+        // broken parser rather than a thin January.
+        $money_pair = $pair && ($ytd['money'] ?? 0) > 0;
+        $lead = $money_pair ? $ytd['money'] : $money['total'];
+        $title = $money_pair
+            ? tit_money_full($ytd['money']) . ' in ' . $year . '; '
+              . tit_money_full($money['total']) . ' all time. '
+              . tit_money_coverage_sentence($money['coverage'] ?? null)
+            : tit_money_full($money['total']) . '. '
+              . tit_money_coverage_sentence($money['coverage'] ?? null);
+        $out .= '<span class="tit-fstat tit-fstat-money"><a class="tit-fine-money" '
+              . 'href="#chart-money-country" title="' . esc_attr($title) . '"><b>'
+              . esc_html(tit_money_short($lead)) . '</b>'
+              . '<span>' . esc_html($money_pair ? 'raised in ' . $year : 'raised') . '</span></a>'
+              . ($money_pair ? $all(esc_html(tit_money_short($money['total']))) : '')
+              . '</span>';
+    }
+    if ($pair) {
+        $v = (int) $ytd['verified'];
+        $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($v)) . '</b>'
+              . '<span>' . esc_html('official filings in ' . $year) . '</span>'
+              . $all(esc_html(number_format_i18n($verified))) . '</span>';
+    } else {
+        $out .= '<span class="tit-fstat"><b>' . esc_html(number_format_i18n($verified)) . '</b>'
+              . '<span>from official filings</span></span>';
+    }
     return $out;
 }
 
