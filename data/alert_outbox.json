@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "attempts": 1,
-      "key": "resolve:tests:main",
-      "kind": "resolve",
-      "last_attempt_at": "2026-08-04T16:26:00+00:00",
-      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
-      "payload": {
-        "body": "'tests' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/30928877574\n\nWhatever was failing is no longer failing. Nothing to do.",
-        "resolve_scope": "tests:main",
-        "subject": "RECOVERED: tests is green again"
-      },
-      "raised_at": "2026-08-04T16:26:00+00:00",
-      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/30928877574",
-      "scope": "tests:main",
-      "state": "pending"
-    },
-    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -30,8 +14,21 @@
       "settled_at": "2026-08-04T01:25:41+00:00",
       "settled_because": "delivered late: not emailed: suppressed, this exact cause is already open (raised 3 minutes ago)",
       "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:tests:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-04T16:26:00+00:00",
+      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
+      "raised_at": "2026-08-04T16:26:00+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/30928877574",
+      "scope": "tests:main",
+      "settled_at": "2026-08-04T16:41:20+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-04T16:26:00+00:00",
+  "updated_at": "2026-08-04T16:41:22+00:00",
   "version": 1
 }
