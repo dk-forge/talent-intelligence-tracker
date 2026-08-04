@@ -41,9 +41,13 @@ its own name, with its own code:
 | 21 | הגדלה של הון רשום — increase of registered capital | 924 |
 | 22157 | דו"ח שנתי-הגדלת הון — annual return, capital increase | 375 |
 
-**6,694 acts a year, about 257 in a fortnight**, which is the same order as the
-UK connector's measured ~110 stored rows a week and is why no size filter is
-needed to keep this from swamping the database.
+**6,694 acts a year.** A live 14-day dry run on 2026-08-03 returned **343 rows
+across 311 distinct companies** (228 share allotments, 64 through the annual
+return, 35 capital increases, 16 through the annual return), so the real rate
+is about 24.5 a day rather than the 18.3 a flat division of the year suggests:
+these acts are not spread evenly. That is the same order as the UK connector's
+measured ~110 stored rows a week, and it is why no size filter is needed to
+keep this from swamping the database.
 
 A share allotment is the act of issuing NEW shares. It is what a company does
 when it takes investment, and a dormant shell does not do it — which is the
@@ -195,11 +199,13 @@ DEFAULT_DAYS = 14
 # for rows the registrar does not publish and would read as a quiet year.
 MAX_DAYS = 365
 
-# A national funding stream cannot be empty over a fortnight. The measured rate
-# is 6,694 acts a year, about 257 a fortnight, so one twentieth of that is a
-# floor no working run can fail. Below it, the act codes have been renumbered
-# or the date column has moved.
-FLOOR_PER_DAY = 0.9
+# A national funding stream cannot be empty over a fortnight. Measured on a
+# live 14-day run: 343 rows, so 24.5 acts a day. The floor is a TWENTIETH of
+# that, which is a bar no working run can fail and which still catches the
+# failure it exists for: an act code renumbered, or the date column moved, and
+# either of those returns zero rather than a few.
+MEASURED_ACTS_PER_DAY = 24.5
+FLOOR_FRACTION = 20
 
 # One company can register several allotments in a year, so its citation URL is
 # a page this collector revisits on purpose.
@@ -393,10 +399,10 @@ def emptiness_floor(days: int) -> int:
     """How few acts is too few to be a quiet fortnight.
 
     Scaled to the window rather than typed as one number, because the window is
-    an input. The measured rate is 6,694 acts a year, ~18.3 a day; this floor
-    is one twentieth of that.
+    an input: a one-day rehearsal and a 90-day catch-up cannot share a floor.
+    A live fortnight returned 343, and this asks for 17 of them.
     """
-    return max(1, int(days * FLOOR_PER_DAY / 20) or 1)
+    return max(1, int(days * MEASURED_ACTS_PER_DAY / FLOOR_FRACTION))
 
 
 def collect(queries=None, *, days: int | None = None, today: date | None = None,
@@ -446,9 +452,10 @@ def collect(queries=None, *, days: int | None = None, today: date | None = None,
     if len(out) < floor:
         raise IsraelRegistrarError(
             f"{start}..{end} produced {len(out)} funding acts against a "
-            f"measured rate of about 18 a day across these four codes. That is "
-            f"the act codes having been renumbered or the date column having "
-            f"moved, not a quiet fortnight.")
+            f"measured rate of about {MEASURED_ACTS_PER_DAY} a day across "
+            f"these four codes, and a floor of {floor}. That is the act codes "
+            f"having been renumbered or the date column having moved, not a "
+            f"quiet fortnight.")
     return out
 
 

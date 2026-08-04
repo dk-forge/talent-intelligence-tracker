@@ -183,26 +183,37 @@ class TheClassificationIsDerived(unittest.TestCase):
         self.assertIn("employee count", self.out["talent_readthrough"])
 
 
+def ballast(n=25):
+    """Enough distinct in-window rows to clear the emptiness floor.
+
+    The floor is deliberately scaled to the window (17 for a fortnight), so a
+    window test that supplied three rows would fail on emptiness rather than on
+    the boundary it is testing, and reading that failure as "the boundary is
+    wrong" is how a real floor gets loosened to make a test pass.
+    """
+    return [record(number=900000000 + i) for i in range(n)]
+
+
 class TheWindowIsInclusiveAtBothEnds(unittest.TestCase):
 
-    def collect(self, rows):
+    def collect(self, extra):
         return il.collect(days=WINDOW, today=TODAY,
-                          session=_Session({2: rows}))
+                          session=_Session({2: extra + ballast()}))
 
     def test_a_row_on_the_first_day_is_kept(self):
-        out = self.collect([record(when=START_EDGE)] * 1 + [record()] * 3)
+        out = self.collect([record(when=START_EDGE)])
         self.assertIn("2026-07-20", [r["registered_on"] for r in out])
 
     def test_a_row_on_the_last_day_is_kept(self):
-        out = self.collect([record(when=END_EDGE)] + [record()] * 3)
+        out = self.collect([record(when=END_EDGE)])
         self.assertIn("2026-08-03", [r["registered_on"] for r in out])
 
     def test_a_row_the_day_before_the_window_is_dropped(self):
-        out = self.collect([record(when=OUTSIDE)] + [record()] * 3)
+        out = self.collect([record(when=OUTSIDE)])
         self.assertNotIn("2026-07-19", [r["registered_on"] for r in out])
 
     def test_the_same_act_twice_is_stored_once(self):
-        out = self.collect([record(), record()] + [record(number=1)] * 3)
+        out = self.collect([record(), record()])
         pairs = [(r["company_number"], r["registered_on"], r["act_code"])
                  for r in out]
         self.assertEqual(len(pairs), len(set(pairs)))
@@ -229,10 +240,17 @@ class ItFailsLoudlyRatherThanQuietly(unittest.TestCase):
             del os.environ["TIT_IL_DAYS"]
 
     def test_the_four_act_codes_are_all_queried(self):
-        session = _Session({2: [record()] * 4})
+        session = _Session({2: ballast()})
         il.collect(days=WINDOW, today=TODAY, session=session)
         self.assertEqual({code for code, _offset in session.calls},
                          set(il.FUNDING_ACTS))
+
+    def test_the_floor_scales_with_the_window(self):
+        # A one-day rehearsal and a 90-day catch-up cannot share a floor, and
+        # a floor typed as one number is the bug this guards.
+        self.assertEqual(il.emptiness_floor(14), 17)
+        self.assertEqual(il.emptiness_floor(1), 1)
+        self.assertGreater(il.emptiness_floor(90), il.emptiness_floor(14))
 
 
 if __name__ == "__main__":
