@@ -6,19 +6,16 @@
       "kind": "alert",
       "last_attempt_at": "2026-08-03T23:55:01+00:00",
       "last_error": "",
-      "payload": {
-        "body": "Last 7 days in dk-forge/talent-intelligence-tracker: 398 completed runs, 6 failed across 5 cause(s), 1 repeat red(s), 0 zero-job eviction(s).\n\nA repeat red is a run that went red for a cause an earlier run\nalready reported. The first red of each cause is signal, was\nalready emailed once by the CI alerter, and is not counted here.\n\n  drain-writers: 2 run(s) \u2014 1 repeat red(s)\n      cause: reconcile step above, or run: python writer_queue.py status\n  collect national press: 1 run(s) \u2014 reported once, correctly\n      cause: filtered Omusati father arrested after son\u2019s fatal stabbing (no employment, site or work-policy term)\n  backfill-gdelt-2026: 1 run(s) \u2014 reported once, correctly\n      cause: [backfill-gdelt-<N>.yml] gate labels: <N> decision(s) recorded for the classifier training set (data/gate_labels/)\n  tripwire: 1 run(s) \u2014 reported once, correctly\n      cause: STOPPING: spend ceiling reached. Collection will not run.\n  collect: 1 run(s) \u2014 reported once, correctly\n      cause: ##[endgroup]\n\nNoise means a structural fix regressed or is missing; the fix\nis never to silence the run. See drain-writers red-once and\nthe schedule-eviction auto-resolve in writer_queue.py.",
-        "dedupe_key": "ci-noise:2026-w32",
-        "subject": "CI noise, week 2026-w32: 1 noisy run(s) in talent-intelligence-tracker"
-      },
       "raised_at": "2026-08-03T14:05:54+00:00",
       "repaired_at": "2026-08-04T00:00:00+00:00",
       "repaired_because": "key ci-noise:2026-W32 was rejected 400 'bad dedupe_key' 16 times: /alert accepts ^[a-z0-9][a-z0-9:._-]{0,159}$ and the ISO week carried an uppercase W. Rewritten to ci-noise:2026-w32; ci_noise_report.py now composes %G-w%V. Attempts zeroed because this is a different, deliverable key, and leaving it past FAIL_LOUD_ATTEMPTS would keep host-watch red on an alert that is about to succeed.",
       "run_url": "",
       "scope": "ci-noise",
-      "state": "pending"
+      "settled_at": "2026-08-04T01:25:41+00:00",
+      "settled_because": "delivered late: not emailed: suppressed, this exact cause is already open (raised 3 minutes ago)",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-04T00:00:00+00:00",
+  "updated_at": "2026-08-04T01:25:43+00:00",
   "version": 1
 }
