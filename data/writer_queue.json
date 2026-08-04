@@ -189,76 +189,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-04T03:36:06Z",
-      "history": [
-        {
-          "at": "2026-08-04T03:36:01Z",
-          "detail": "CXMT $8.6bn is a Shanghai STAR Market IPO, not a private round; accepted in error by amount-guardrail triage 2026-07-29 and live on the site since.",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-04T03:36:06Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260804T033601Z-retract",
-      "inputs": {
-        "reason": "An IPO is not private funding. The source states an $8.6bn Shanghai STAR Market IPO, not a private round.",
-        "signal_id": "875d48bbbcc438a9744e8982d1843f6e"
-      },
-      "priority": 0,
-      "reason": "CXMT $8.6bn is a Shanghai STAR Market IPO, not a private round; accepted in error by amount-guardrail triage 2026-07-29 and live on the site since.",
-      "requested_at": "2026-08-04T03:36:01Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T13:31:42Z",
-      "history": [
-        {
-          "at": "2026-08-03T13:31:09Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-18)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T13:31:42Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T13:40:17Z",
-          "detail": "run 30818368483",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-03T13:40:17Z",
-          "detail": "run 30818368483",
-          "event": "landed"
-        }
-      ],
-      "id": "20260803T133109Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-03T13:40:17Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-05-18)",
-      "requested_at": "2026-08-03T13:31:09Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30818368483",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-03T13:40:17Z",
       "history": [
         {
@@ -2723,6 +2653,45 @@
       "run_id": "30869925596",
       "state": "landed",
       "workflow": "collect.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-04T03:36:06Z",
+      "history": [
+        {
+          "at": "2026-08-04T03:36:01Z",
+          "detail": "CXMT $8.6bn is a Shanghai STAR Market IPO, not a private round; accepted in error by amount-guardrail triage 2026-07-29 and live on the site since.",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-04T03:36:06Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-04T03:36:50Z",
+          "detail": "run 30875221356",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-04T03:36:50Z",
+          "detail": "run 30875221356",
+          "event": "landed"
+        }
+      ],
+      "id": "20260804T033601Z-retract",
+      "inputs": {
+        "reason": "An IPO is not private funding. The source states an $8.6bn Shanghai STAR Market IPO, not a private round.",
+        "signal_id": "875d48bbbcc438a9744e8982d1843f6e"
+      },
+      "landed_at": "2026-08-04T03:36:50Z",
+      "priority": 0,
+      "reason": "CXMT $8.6bn is a Shanghai STAR Market IPO, not a private round; accepted in error by amount-guardrail triage 2026-07-29 and live on the site since.",
+      "requested_at": "2026-08-04T03:36:01Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30875221356",
+      "state": "landed",
+      "workflow": "retract.yml"
     }
   ],
   "version": 1
