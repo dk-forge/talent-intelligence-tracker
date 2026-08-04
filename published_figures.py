@@ -158,8 +158,18 @@ def _i(v):
 # Dashboard figures that BOTH the PHP server-render and the REST endpoint
 # produce. That duality is what makes them checkable at all.
 HOME_FIGURES = (
+    # STAMPED detail=notable, and getting this wrong is the mistake the note on
+    # TILE_FIGURES below warns about, made two lines above the warning. The
+    # ribbon's count is COUNT of the keys in tit_dashboard_facts()' country map,
+    # which is grouped under `is_current = 1 AND tit_notable_where()`. Checked
+    # against an UNFILTERED /aggregate it read "the page shows 103 but the API
+    # answers 104", every run, forever: the unfiltered endpoint counts routine
+    # rows too, and one country is present only among them. The ribbon was
+    # right. /aggregate?detail=notable answers 103, which is the query the page
+    # actually issues.
     Figure("home.ribbon_countries", "home", "tit-ribbon-c",
-           "countries", PLACES, "all time", {}, lambda d: _i(d.get("countries"))),
+           "countries", PLACES, "all time", {"detail": "notable"},
+           lambda d: _i(d.get("countries"))),
 )
 
 # The four stat tiles carry no element id, but they DO carry their own label, and
@@ -328,14 +338,40 @@ def check_region_drilldown(ctx):
 # 2. RECONCILIATION
 # ---------------------------------------------------------------------------
 def check_region_reconciliation(ctx):
-    """The region tabs are a partition, so they must add up to World.
+    """The six regions are a partition of the PLACED rows, and World is not.
 
-    Every region is a disjoint set of country codes, so a reader adding the six
-    regional badges must land exactly on the World badge. If they do not, either
-    a country belongs to two regions or it belongs to none, and in both cases a
-    number on the page is describing a population nobody can name.
+    This check used to assert `sum(six regional badges) == World badge`, and
+    that was right only while the World badge was itself the sum of a placed
+    country map. Fixing the drill-down defect (1.71.1) made World the view's own
+    total, which correctly includes the notable rows carrying neither a country
+    nor an HQ country. Those rows are in no region, by construction: a region is
+    a list of country codes. So the old equality is now false BY DESIGN, and it
+    failed live at -1,488, which is exactly that placeless population.
+
+    An equality that a correct fix makes fail is a check that will be switched
+    off, so it is replaced rather than relaxed, and the replacement is stronger
+    on the axis the old one was actually protecting.
+
+    WHAT IS ASSERTED NOW, and each fails on something the old sum could not
+    distinguish:
+
+      1. DISJOINT. The six badges must sum to what ONE query for the union of
+         all six code lists returns. A country listed in two regions inflates
+         the sum but not the union, so it fails here and names itself; under the
+         old check it was indistinguishable from a country listed in none.
+      2. EXHAUSTIVE, over the countries the API will name. Every country in
+         /aggregate?detail=notable's ranking must appear in some region list. A
+         country we hold rows for and no tab can reach is unreachable by
+         clicking, which is the reader-facing half of "in none".
+      3. THE REMAINDER IS NAMED. World minus the union is reported as the
+         placeless population rather than passed over, so the number a reader
+         cannot reach through any region tab is on the record every run.
+
+    WHERE IT STOPS, said plainly: the ranking is a LIMIT 40, so assertion 2
+    covers the 40 largest countries. The rest of the tail is counted and
+    reported in the detail, never implied to be checked.
     """
-    key, label = "region_parts_reconcile", "Region badges sum to the World badge"
+    key, label = "region_parts_reconcile", "Region tabs partition the placed rows"
     html, err = _get_html(ctx, HOME_URL)
     if html is None:
         return Result(key, label, UNKNOWN, _why(err) + " — not checked", error=err)
@@ -349,21 +385,78 @@ def check_region_reconciliation(ctx):
         if not n:
             continue
         if codes and codes.group(1):
-            rest.append((text, _i(n.group(1))))
+            rest.append((text, codes.group(1), _i(n.group(1))))
         else:
             world = _i(n.group(1))
     if world is None or not rest:
         return Result(key, label, UNKNOWN,
                       "the World tab or the regional tabs were not found — the "
                       "partition is NOT being checked")
-    s = sum(v for _, v in rest)
-    if s != world:
-        return Result(key, label, FAIL,
-                      f"the {len(rest)} regional tabs sum to {s:,} records but the "
-                      f"World tab badges {world:,} ({s - world:+,}). A country is in "
-                      f"two regions or in none", observed=s)
-    return Result(key, label, PASS,
-                  f"{len(rest)} regions sum to {s:,}, equal to the World badge")
+
+    listed = [c for _, codes, _n in rest for c in codes.split(",") if c]
+    union_codes = sorted(set(listed))
+    badge_sum = sum(v for _t, _c, v in rest)
+    parts = []
+
+    # 1. DISJOINT.
+    dupes = sorted({c for c in union_codes if listed.count(c) > 1})
+    got, gerr = _get_json(ctx, "query", {"detail": "notable", "per_page": 1,
+                                         "country": ",".join(union_codes),
+                                         "country_basis": "any"})
+    if got is None:
+        parts.append((UNKNOWN, "could not fetch the union of all region codes — "
+                               "disjointness NOT checked"))
+        union = None
+    else:
+        union = _i(got.get("total"))
+        if badge_sum != union:
+            parts.append((FAIL,
+                          f"the {len(rest)} regional badges sum to {badge_sum:,} but one "
+                          f"query for all {len(union_codes)} of their codes returns "
+                          f"{union:,} ({badge_sum - union:+,}). The regions overlap"
+                          + (f"; listed in more than one: {', '.join(dupes)}" if dupes else "")))
+        else:
+            parts.append((PASS, f"{len(rest)} regions are disjoint: badges sum to "
+                                f"{badge_sum:,}, the union of their codes returns "
+                                f"{union:,}"))
+
+    # 2. EXHAUSTIVE, over the countries the API names.
+    agg, aerr = _get_json(ctx, "aggregate", {"detail": "notable"})
+    if agg is None:
+        parts.append((UNKNOWN, "could not fetch the country ranking — reachability "
+                               "NOT checked"))
+    else:
+        ranked = [(str(r.get("k") or ""), _i(r.get("n"))) for r in (agg.get("by_country") or [])]
+        orphans = [(k, n) for k, n in ranked if k and k not in set(union_codes)]
+        if orphans:
+            parts.append((FAIL,
+                          "no region tab can reach "
+                          + ", ".join(f"{k} ({n:,} records)" for k, n in orphans)
+                          + ": the country is in the data and in no region list"))
+        elif ranked:
+            covered = sum(n for _k, n in ranked)
+            tail = "" if union is None else f", leaving a tail of {union - covered:,}"
+            parts.append((PASS,
+                          f"every one of the {len(ranked)} countries the ranking names "
+                          f"is in a region ({covered:,} records{tail}; the ranking is a "
+                          f"LIMIT 40, so the tail is counted, NOT name-checked)"))
+
+    # 3. THE REMAINDER IS NAMED.
+    if union is not None:
+        placeless = world - union
+        if placeless < 0:
+            parts.append((FAIL,
+                          f"the regions reach {union:,} records but World badges only "
+                          f"{world:,} ({placeless:+,}). A region is counting rows the "
+                          f"view does not contain"))
+        else:
+            parts.append((PASS,
+                          f"{placeless:,} notable records carry neither a country nor an "
+                          f"HQ country, so no region tab reaches them; World badges "
+                          f"{world:,} = {union:,} placed + {placeless:,} placeless"))
+
+    state, detail = _worst(parts)
+    return Result(key, label, state, detail, observed=badge_sum)
 
 
 # ---------------------------------------------------------------------------
@@ -373,24 +466,33 @@ def check_figures_agree(ctx):
     """The page's number equals the API's answer to that number's own query."""
     key, label = "figures_agree_with_api", "Dashboard figures agree with the API"
     html, herr = _get_html(ctx, HOME_URL)
-    agg, aerr = _get_json(ctx, "aggregate", {})
-    if html is None or agg is None:
-        e = herr or aerr
-        return Result(key, label, UNKNOWN, _why(e) + " — figures NOT checked", error=e)
+    if html is None:
+        return Result(key, label, UNKNOWN, _why(herr) + " — figures NOT checked",
+                      error=herr)
 
     parts = []
     for f in HOME_FIGURES:
-        expect = f.field(agg)
+        # EACH FIGURE'S OWN STAMPED QUERY, not one shared unfiltered call. A
+        # single /aggregate{} for every figure in this tuple is a second
+        # derivation of a DIFFERENT population, which is how the ribbon check
+        # reported a defect that did not exist.
         m = re.search(r'id=["\']' + re.escape(f.dom) + r'["\'][^>]*>([\d,\.\s]+)<', html)
         if not m:
             parts.append((UNKNOWN, f"#{f.dom} not found — {f.key} NOT checked"))
             continue
+        agg, aerr = _get_json(ctx, "aggregate", f.params)
+        if agg is None:
+            parts.append((UNKNOWN,
+                          f"{f.key}: could not fetch its stamped query {f.params} "
+                          f"— NOT checked"))
+            continue
+        expect = f.field(agg)
         shown = _i(m.group(1))
         if shown != expect:
             parts.append((FAIL,
                           f"{f.key}: the page shows {shown:,} but the API answers "
-                          f"{expect:,} for its own query ({f.label}, {f.unit}, "
-                          f"{f.period})"))
+                          f"{expect:,} for its own query {f.params} ({f.label}, "
+                          f"{f.unit}, {f.period})"))
         else:
             parts.append((PASS, f"{f.key}: {shown:,} {f.unit}"))
 

@@ -13,6 +13,50 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-04 - the verifier cried twice about nothing, so it was the verifier that was wrong
+
+Two of the five published-figure checks were FAILING live, and neither defect
+existed. No plugin file changes here; `published_figures.py` and its guards do.
+
+**1. The ribbon, 103 against 104.** `home.ribbon_countries` was stamped with an
+empty query, so it was compared against an unfiltered `/aggregate`. The ribbon
+counts distinct countries among NOTABLE rows (`tit_dashboard_facts()` groups its
+country map under `is_current = 1 AND tit_notable_where()`); the unfiltered
+endpoint counts routine rows as well and reaches one more country.
+`/aggregate?detail=notable` answers 103, which is exactly what the ribbon
+renders. The module's own note on `TILE_FIGURES` warns about this mistake in so
+many words, and the figure two lines above it made it. Each figure now fetches
+its OWN stamped query rather than sharing one unfiltered call.
+
+**2. The region partition, -1,488.** `region_parts_reconcile` asserted
+`sum(six regional badges) == World badge`. That held only while the World badge
+was itself the sum of a placed country map, which is the defect 1.71.1 fixed.
+World is the view's own total now, so it correctly includes the notable rows
+carrying neither a country nor an HQ country, and those rows are in no region by
+construction. The old equality was made false by a correct fix.
+
+It is replaced rather than relaxed, and the replacement separates the two faults
+the old sum could only report as one number:
+
+- **disjoint**: the badges must equal what ONE query for the union of every
+  region's codes returns, so a country listed in two regions fails and names
+  itself (live: 23,991 = 23,991);
+- **exhaustive**: every country `/aggregate?detail=notable` ranks must appear in
+  some region list, so a country we hold rows for that no tab can reach fails
+  and names itself (live: all 40, 23,835 records, with a 156-record tail that is
+  counted and explicitly NOT name-checked, because the ranking is a LIMIT 40);
+- **the remainder is named**: World minus the union is reported every run as the
+  placeless population (live: 25,479 = 23,991 placed + 1,488 placeless) rather
+  than passed over in silence.
+
+A check that reports a defect every day is a check that gets switched off, and
+then the real defect goes out under it. Both guards keep their failing halves:
+`tests/test_published_figure_guards.py` gained an overlap fixture, an
+unreachable-country fixture, and a genuine ribbon disagreement, and 7 of its
+cases fail on the tree before this change.
+
+---
+
 ## THE RESULT CARD CONTRACT (canonical spec, shared with the sibling tracker)
 
 **Machine-readable copy:** `docs/card-contract.json`
