@@ -1901,3 +1901,64 @@ same defect against a WARN-only floor, and behind it a third bug: the file used
 `source=` where the API expects `sources=`, so the filter silently did nothing
 and returned unfiltered data. A parameter that is ignored rather than rejected
 is its own hazard, and worth checking elsewhere.
+
+## Final state 2026-08-04: live 1.71.1, CI green
+
+Verified against the live site and live API, not inferred from green runs.
+
+**Shipped:** security hardening (JSON-LD XSS, SSRF class, hash-pinned deps);
+13 publishers wired or refused with evidence; the funding quarantine drained,
+8 wrong-class rows retracted and 7 real rounds released; the star made
+self-explanatory with a confirmation that says it is saved in this browser only;
+nine chart titles renamed to name their unit; the World tab badge reconciled;
+Israel and Singapore registries added DORMANT; and the published-figure invariant.
+
+**Registries, so nobody re-litigates them.** Israel: `data.gov.il` `ica-changes`,
+CC-BY, four act codes that are the Israeli SH01 analogue, 343 rows / 311 companies
+in a 14-day dry run. Its honest limit is on the sources page: the file carries no
+amount, so a row means capital was raised, never how much. Singapore: ACRA,
+incorporations only, monthly latency, open licence. **Canada is REFUSED with
+evidence** and should not be re-opened without new facts: 642,984 active rows, no
+industry column, no directors, no share data, no event stream, and the
+per-corporation API is lookup-by-id only, so harvesting events means polling
+642,984 ids. Federal CBCA only; the provinces are separate systems.
+
+**Both are DORMANT.** Neither has a cron. All seven daily slots are taken; Israel
+wants a weekly slot, Singapore a monthly one. That is a deliberate ship-dormant,
+not an oversight.
+
+**Do not quote $493.3bn or $214.9bn.** Still true, still unreproduced. The live
+API returns $457.1B. Stamp the query the publish run uses and read it from the
+endpoint before publishing any funding total. An agent's reported total is a
+claim, not a measurement, and that number passed through three agents unverified.
+
+**The verifier's own false positives are the lesson.** The new invariant flagged
+two things that were NOT defects: the ribbon's 103 against an API 104 (the ribbon
+counts notable rows; `?detail=notable` answers 103 exactly), and a news card
+quoting a source's own words. Both were fixed IN THE CHECKER, not the page,
+because a false positive is a wrong check: it trains the reader to dismiss the
+alert. One was caused by a figure stamped with an EMPTY query, and the module's
+own warning about that mistake sits two lines below the figure that made it.
+
+**THE PATTERN, the most useful thing to carry forward.** About ten defects across
+both trackers today were one species: a mechanism that reports health while doing
+nothing. Here specifically: a benchmark badge reading "auto-refresh OK" in a file
+containing no JavaScript at all; a test fixture answering 200 where ACRA answers
+201, so 42 tests passed against a collector that dies on first real use; an
+import-promise check walking the whole AST so it saw the very imports deferred
+because of the promise it enforces, its allowlist quietly become an appeasement
+list; and `host-watch` red 7 times in 57 runs with the host UP and answering in
+under a second every time.
+
+So the question to ask is not "what is broken" but **"what would never tell us if
+it broke."** Run the thing live rather than trusting a fixture: the ACRA 201 was
+found by calling the real endpoint, and no amount of green suite would have shown
+it.
+
+**Still open:** the money classification sweep over ALREADY-PUBLISHED rows (the
+quarantine drain covered only rows above the ~$6.5bn outlier ceiling, and the four
+error classes are not size-dependent, so the same mistakes almost certainly sit
+below that line in volume). Owner-only: the ChangXin IPO retract, which needs a
+credentialed `retract.py` and must NOT be done as a local-only retraction, since
+that removes it from our copy while leaving it live and kills every surface that
+would otherwise nag.
