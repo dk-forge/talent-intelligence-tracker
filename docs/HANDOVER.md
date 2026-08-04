@@ -1,5 +1,77 @@
 # Handover — Talent Intelligence Tracker
 
+---
+
+## READ THIS FIRST (2026-08-04): the published money total is wrong
+
+A 40-agent audit measured it. Reports: `audit2/00-SYNTHESIS.md` and
+`landmark/blast-radius.md` in the 2026-08-04 session scratchpad.
+
+**Of the top 25 rows by `funding_amount_usd`, only 6 are a private company's
+disclosed funding round stored at the right scale.** Four distinct failures,
+all of which inflate the public money total:
+
+1. **Currency mis-scale.** `100 billion lira ($2.3 billion)` stored as
+   **$100.00B**: the parser took the foreign-currency figure and ignored the
+   USD conversion the source itself supplied. About 43x wrong.
+2. **Assets under management counted as a raise** ($539B of private-market
+   assets is not money anyone raised).
+3. **Investor FUND raises counted as company rounds** (a $15B fund close is not
+   a startup round; one $4B fund appears twice under two spellings).
+4. **An IPO counted as private funding** ($8.6B).
+
+Recall side: **of the 20 largest disclosed private rounds of 2026 we hold 9**,
+missing the two largest private rounds ever recorded. Not for lack of
+collection: in the six days around one of them we stored 1,093 signals, 133
+carrying a funding amount, and none was that round.
+
+**This outranks every feature on the backlog.** The product's promise is that a
+figure appears only if its source states it, and the biggest number on the page
+does not currently meet that bar. Fix the classification (raise vs fund vs AUM
+vs IPO), fix the currency parse, re-derive the total, then return to coverage.
+
+Meanwhile keep the honest claim already written into the private benchmark:
+this tracker does not lead on coverage (3.2 percent median against commercial
+databases across 29 audited markets). It leads on per-row auditability and on
+cost. No surface may claim otherwise.
+
+### Other audit-confirmed defects, ranked in the synthesis
+- `/aggregate`, `/query`, `/facets`, `/feed` all return `cf-cache-status:
+  DYNAMIC` in production, so every filter click lands 2-3 uncached PHP hits on a
+  shared host. `api.php`'s comment claiming the edge caches for five minutes is
+  FALSE, and a design constant was reasoned from that false premise. Fix is a
+  Cloudflare rule (owner action) plus adding `feed` to the htaccess alternation.
+- `tit_flush_caches()` deletes `_transient_tit_%`, sweeping the export throttle,
+  the feed throttle and the alert suppression with it, 4-plus times daily. Use
+  options, not renamed transients.
+- Both 2026-08-03 collect runs concluded FAILURE while every collector reported
+  the DESIGNED degradation. Degrading is success; two red runs a day is how an
+  alert channel gets filtered right before real breakage.
+- `%G-W%V` mints an uppercase W that `/alert` rejects with a settled 400, so
+  host-watch reddens every ~30 minutes and MASKS a real outage.
+- 648 publisher feeds are fetched with whole-body buffering, so one compromised
+  or expired-domain publisher can OOM the twice-daily collect run.
+- $9.94 of a $10 August allowance went in three days with only $0.88
+  attributable, because the backfill workflow runs `spend.py || true` so the
+  guard never binds. Meter every backfill before promising a monthly number.
+- ~1,000 company and place URLs are in no sitemap index; the sibling repo
+  already solved this and the code is a copy.
+- `data/talent_intel.db` is 68.86 MB, committed and re-pushed every data tick.
+  GitHub hard-rejects at 100 MB, at which point every data job fails at the push
+  step. A future outage with a known shape and no alarm.
+
+### Fixed and live this session, do not redo
+- Stored XSS: all three in-script JSON-LD blocks emitted stored publisher
+  headlines with `JSON_UNESCAPED_SLASHES`, so a `</script>` in a headline could
+  break out on the company, place and dashboard pages. Hardened with
+  `JSON_HEX_TAG|JSON_HEX_AMP`; guard test proven to fail on the old tree. Live
+  at 1.67.2.
+- "Where the Money Went" renamed "Money Raised by City": the only card in the
+  money trio whose title did not name its dimension.
+
+---
+
+
 > **benchmark-diff is DORMANT BY THE OWNER'S DECISION (2026-08-03). Do NOT ask
 > the owner to set BENCHMARK_COMPANIES or BENCHMARK_FEED_URLS.** He was
 > reminded ten times and asked for it to stop. His named benchmarks need no
