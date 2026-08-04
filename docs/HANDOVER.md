@@ -1863,3 +1863,41 @@ all eight new publishers render on the sources page.
 landmark fix restores rounds lost to word-shaped dollars, but confirm it also
 covers classification (a raise vs an investor fund close vs assets under
 management vs an IPO) and the 43x lira mis-scale before trusting the headline.
+
+## 2026-08-04: do NOT quote $493.3bn, and the badge that certifies itself
+
+**Two funding totals were circulated in session that nobody could reproduce.**
+A quarantine-drain agent reported the published total moving $214.9bn to a
+projected $493.3bn after 8 wrong-class rows were retracted and 7 real rounds
+released. A later agent tried to stamp those into the benchmark and could not
+get either number out of the live API under ANY parameter combination. What the
+API actually returns: **$457.1B** bare, $457.0B with `since=2025-01-01`, and
+$442.9B on the 2026-YTD tile.
+
+The retraction work itself is sound and independently evidenced, row by row.
+What was never verified is the arithmetic quoted around it. So: **do not quote
+$214.9bn or $493.3bn.** Before publishing any funding total, stamp the exact
+query the publish run uses and read it from the live endpoint. The benchmark now
+carries the measured $457.1B with its query recorded, plus an explicit UNKNOWN
+block, which is the right shape.
+
+This is worth remembering as a pattern rather than a one-off: the number was
+produced by an agent, relayed by a second, and would have been published by a
+third. Nobody lied. It simply never touched the live endpoint on the way through.
+An agent's reported total is a claim, not a measurement.
+
+**A badge that cannot fail.** `scratchpad/bm-live.html` on the talent side shows
+an "auto-refresh OK" badge and carries `data-bench-*` hooks, but the file
+contains NO JavaScript at all. Every number in it was hand-typed while the badge
+asserted freshness. Same species as the archiver that never once completed, the
+alert key the endpoint could never accept, and the review queue nobody drained:
+a mechanism that reports health while doing nothing. Either wire the refresh the
+badge claims, or delete the badge. Do not leave it self-certifying.
+
+**Also fixed in that file, in case the reasoning is needed again:** the tech cell
+divided a US-filtered numerator by global denominators and scored 73 and 53
+percent. On one basis it is 131 and 94 percent by jobs. A second cell had the
+same defect against a WARN-only floor, and behind it a third bug: the file used
+`source=` where the API expects `sources=`, so the filter silently did nothing
+and returned unfiltered data. A parameter that is ignored rather than rejected
+is its own hazard, and worth checking elsewhere.
