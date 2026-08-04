@@ -85,7 +85,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt pytest
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements-dev.lock
 
       # The pure guard logic, offline, before any credential is read. These are
       # the refusals that stand between a two-line append and a deindexed

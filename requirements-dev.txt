@@ -1,0 +1,7 @@
+# The test and model-training install. Separate from requirements.txt so a
+# twice-daily collect run does not pull scikit-learn, which is why
+# gate-classifier.yml and tests.yml were appending packages to a bare
+# `pip install` line instead.
+-r requirements.txt
+pytest>=7.0
+scikit-learn>=1.5

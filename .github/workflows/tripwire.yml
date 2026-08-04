@@ -82,7 +82,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # The product-wide ceiling, checked before a search-backed query is
       # issued. run_tripwire.py checks it again itself and declines to spend

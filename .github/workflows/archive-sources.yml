@@ -90,7 +90,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # Derived ONCE and read by both the message and the command. Deriving it
       # twice is how a run announces one mode and performs the other, which on a

@@ -193,6 +193,27 @@
     });
   }
 
+  // esc() for an href is entity escaping, and entity escaping does not make a
+  // URL safe: `javascript:alert(1)` contains no character esc() touches, so it
+  // survives intact and the browser runs it on click. The SERVER paint of the
+  // same links uses esc_url(), which enforces a scheme allowlist, so a poisoned
+  // source_url was inert on first paint and live the moment a filter change
+  // repainted the card in JS. Two paints of one field disagreeing about what is
+  // safe is the defect; this is the client half agreeing with esc_url.
+  //
+  // Returns '' for anything that is not http(s), and the callers drop the
+  // anchor entirely rather than render a dead one. Defence in depth: every
+  // source_url is validated on the way in and this is a page the server also
+  // renders. Depth is the point.
+  function escUrl(value) {
+    var raw = String(value == null ? '' : value).trim();
+    // Strip the control characters a URL may not contain but a string may:
+    // "java\tscript:" is parsed as "javascript:" by browsers.
+    var probe = raw.replace(/[\u0000-\u0020\u007f]/g, '').toLowerCase();
+    if (!/^https?:\/\//.test(probe)) return '';
+    return esc(raw);
+  }
+
   function populateFacets() {
     fetch(TIT.api + 'facets')
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -312,6 +333,19 @@
   // schedule never makes would be a false sentence. Still never a dead link.
   // The middot before either is a CSS ::before rather than a text node here,
   // so it cannot wrap to the start of a line in the card layout.
+  // The one place a source link becomes an anchor. Two call sites painted this
+  // by hand and both used esc(); a single definition is what stops the next
+  // one from doing it a third way. A row whose URL fails the scheme check
+  // still shows its publisher, as plain text: dropping the name would hide
+  // that we hold the record at all, which is a worse answer than a dead link.
+  function srcAnchor(r) {
+    var href = escUrl(r.source_url);
+    var name = esc(r.source_name);
+    if (!href) return '<span class="tit-card-src-name">' + name + '</span>';
+    return '<a href="' + href + '" rel="nofollow noopener" target="_blank">' +
+      name + '</a>';
+  }
+
   function archivedLink(r) {
     if (!r.archive_url) {
       if (ARCHIVE_NOTE && r.collector &&
@@ -320,7 +354,9 @@
       }
       return '';
     }
-    return '<span class="tit-archived"><a href="' + esc(r.archive_url) +
+    var archiveHref = escUrl(r.archive_url);
+    if (!archiveHref) return '';
+    return '<span class="tit-archived"><a href="' + archiveHref +
       '" rel="nofollow noopener" target="_blank" ' +
       'title="Archived copy at the Internet Archive">Archived</a></span>';
   }
@@ -407,8 +443,7 @@
           ? '<p class="tit-card-rt tit-rt">' + esc(r.talent_readthrough) + '</p>' : '') +
         '<div class="tit-card-foot">' +
           whenCell(r) +
-          '<span class="tit-card-src"><a href="' + esc(r.source_url) +
-            '" rel="nofollow noopener" target="_blank">' + esc(r.source_name) + '</a>' +
+          '<span class="tit-card-src">' + srcAnchor(r) +
             archivedLink(r) + '</span>' +
         '</div>' +
       '</div>' +
@@ -3078,8 +3113,7 @@
       '<td>' + (code ? esc(countryLabel(code)) : '<span class="tit-card-nowhere">Not stated</span>') + '</td>' +
       '<td><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
         esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
-      '<td class="tit-ut-src"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
-        esc(r.source_name) + '</a></td>' +
+      '<td class="tit-ut-src">' + srcAnchor(r) + '</td>' +
       '</tr>';
   }
 

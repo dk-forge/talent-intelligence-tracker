@@ -52,7 +52,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # The gold set is checked before the API is touched. An invalid reference
       # set produces a wrong denominator, and a wrong recall number is worse

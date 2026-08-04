@@ -133,6 +133,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 import requests
+from collectors import capped_fetch
 
 from collectors.national_press import (
     USER_AGENT, DomainDrift, Feed, dateline, load_feeds, registrable_domain,
@@ -666,19 +667,20 @@ def head_text(url: str, *, session=None, timeout: int = TIMEOUT
     if not robots_allows(url, session=session):
         return "", ""
     try:
-        resp = _http(session).get(url, headers=_headers(_ACCEPT_HTML),
-                                  timeout=timeout, stream=True)
+        # This capped read is where `capped_fetch` came from. It lived here
+        # only, written for a local reason (nothing wants the article body),
+        # and every other collector buffered whole third-party responses while
+        # the right pattern sat one file away. It is now the shared helper and
+        # this call site is one of its users rather than its only copy.
+        resp = capped_fetch.open_capped(url, session=_http(session),
+                                        headers=_headers(_ACCEPT_HTML),
+                                        timeout=timeout)
         if resp.status_code != 200:
+            resp.close()
             return "", ""
-        body = resp.raw.read(HEAD_BYTES, decode_content=True) if hasattr(
-            resp, "raw") and resp.raw is not None else resp.content[:HEAD_BYTES]
+        body = capped_fetch.read_capped(resp, capped_fetch.HEAD_BYTES)
     except (requests.RequestException, AttributeError, ValueError):
         return "", ""
-    finally:
-        try:
-            resp.close()
-        except Exception:
-            pass
     return metadata(body or b"")
 
 

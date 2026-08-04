@@ -107,7 +107,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # `--plan` is free — it fetches nothing and calls nothing — and it runs in
       # the SAME step as the slice on purpose. As its own step it would be a

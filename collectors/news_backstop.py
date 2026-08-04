@@ -62,6 +62,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
+from collectors import capped_fetch
 
 import source_registry as registry
 from collectors import google_news
@@ -164,15 +165,15 @@ def dateline(spot: Backstop) -> str:
 
 def fetch(spot: Backstop, *, timeout: int = TIMEOUT, session=None) -> list[dict]:
     """One country's pointers. Unresolved: nothing here is storable yet."""
-    http = session or requests
-    resp = http.get(spot.query_url,
-                    headers={"User-Agent": google_news.USER_AGENT},
-                    timeout=timeout)
+    resp, body = capped_fetch.capped_get(
+        spot.query_url, session=session,
+        headers={"User-Agent": google_news.USER_AGENT}, timeout=timeout,
+        max_bytes=capped_fetch.FEED_BYTES)
     resp.raise_for_status()
 
     line = dateline(spot)
     items = []
-    for item in google_news.parse(resp.content, spot.query):
+    for item in google_news.parse(body, spot.query):
         item.update({
             "raw_text": f"{item['raw_text']}\n\n{line}".strip(),
             "collector": COLLECTOR,

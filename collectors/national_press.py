@@ -94,6 +94,8 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 
+from collectors import capped_fetch
+
 COLLECTOR = "national_press"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -695,26 +697,56 @@ def fetch(feed: Feed, *, timeout: int = TIMEOUT, session=None) -> tuple[list[dic
 
     Raises requests.RequestException upward so collect() can record WHY a feed
     produced nothing.
+
+    TWO THINGS CHANGED HERE and they are one change seen from two angles.
+
+    The body is now STREAMED and CAPPED. `requests.get` without `stream=True`
+    buffers the whole response before it returns and inflates gzip and brotli
+    on the way, so the number of bytes landing in this process is not the
+    number the publisher sent. This runs once per catalogued feed, twice a day,
+    unattended, against several hundred third-party servers, and the documented
+    hazard for this catalogue is a domain that expired and got taken over. One
+    such publisher serving a decompression bomb takes the whole run with it.
+
+    And the DRIFT CHECK NOW RUNS FIRST. It used to sit above `resp.content`,
+    which reads as "before the body" and was not: the body had already been
+    read, in full, inside `http.get`. The guard against citing a betting site
+    was declining to PARSE bytes it had already paid to receive. Streaming is
+    what makes that ordering real, which is why these are not two fixes.
     """
-    http = session or requests
-    resp = http.get(feed.rss, headers=_headers(_ACCEPT_RSS), timeout=timeout)
+    resp = capped_fetch.open_capped(feed.rss, session=session,
+                                    headers=_headers(_ACCEPT_RSS), timeout=timeout)
     used = "rss"
     if resp.status_code in (403, 406):
         # A WAF refusing the RSS type, not the publisher refusing us.
-        resp = http.get(feed.rss, headers=_headers(_ACCEPT_BROWSER), timeout=timeout)
+        try:
+            resp.close()
+        except Exception:
+            pass
+        resp = capped_fetch.open_capped(feed.rss, session=session,
+                                        headers=_headers(_ACCEPT_BROWSER),
+                                        timeout=timeout)
         used = "browser"
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
 
-    # Where did the bytes actually come from?
-    final = getattr(resp, "url", "") or feed.rss
-    landed = registrable_domain(final)
-    expected = feed.expected_domains
-    if landed and expected and landed not in expected:
-        raise DomainDrift(
-            f"redirects to {landed}, not {' or '.join(sorted(expected))} — "
-            f"the domain may have been taken over")
+        # Where did the bytes actually come from? Asked BEFORE they are read.
+        final = getattr(resp, "url", "") or feed.rss
+        landed = registrable_domain(final)
+        expected = feed.expected_domains
+        if landed and expected and landed not in expected:
+            raise DomainDrift(
+                f"redirects to {landed}, not {' or '.join(sorted(expected))}, "
+                f"the domain may have been taken over")
 
-    return parse(resp.content, feed), used
+        body = capped_fetch.read_capped(resp, capped_fetch.FEED_BYTES)
+    finally:
+        try:
+            resp.close()
+        except Exception:
+            pass
+
+    return parse(body, feed), used
 
 
 def newest_item_age_days(items: list[dict], now=None) -> int | None:

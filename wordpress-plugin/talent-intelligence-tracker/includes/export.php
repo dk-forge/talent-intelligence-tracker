@@ -22,7 +22,19 @@ add_action('admin_post_nopriv_tit_export_json', 'tit_export_json');
  */
 function tit_csv_guard($value) {
     $value = (string) $value;
-    if ($value !== '' && in_array($value[0], array('=', '+', '-', '@'), true)) {
+    if ($value === '') return $value;
+    // TAB and CR belong in this list because Excel and LibreOffice STRIP
+    // leading whitespace before deciding what a cell IS. So "\t=cmd|..." is
+    // read as "=cmd|...", and the guard that only inspected $value[0] saw a
+    // tab, judged it harmless, and passed the formula through unchanged. A
+    // leading CR additionally lets a value forge a row break inside a quoted
+    // field. Defence in depth: every value reaching here is normalised through
+    // a fixed vocabulary or is a number. Depth is the point.
+    $lead = ltrim($value, " \t\r\n");
+    if ($lead !== '' && in_array($lead[0], array('=', '+', '-', '@'), true)) {
+        return "'" . $value;
+    }
+    if (in_array($value[0], array('=', '+', '-', '@', "\t", "\r"), true)) {
         return "'" . $value;
     }
     return $value;

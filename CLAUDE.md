@@ -302,10 +302,46 @@ collect job red at $9.47 of $10 and stopped a month of free collection with it.
 ## Before you touch it
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
-.venv/bin/pytest -q                                  # 2,435 offline tests
+python3 -m venv .venv
+.venv/bin/pip install --require-hashes -r requirements-dev.lock
+.venv/bin/pytest -q                                  # offline tests
 .venv/bin/python run_collect.py --dry-run --offline  # whole pipeline, no spend
 ```
+
+**Dependencies are hash-pinned. Never `pip install` a name.**
+`requirements.txt` and `requirements-dev.txt` are the human-edited INPUTS:
+floors, for a resolver to read. `requirements.lock` and `requirements-dev.lock`
+are the resolved outputs, exact versions, every package hash-pinned
+transitively, and they are what every workflow installs with `--require-hashes`
+so pip refuses anything the lock did not vouch for. Two locks, because a
+twice-daily collect run should not install a model-training stack: the dev lock
+adds pytest and scikit-learn, and `tests.yml` and `gate-classifier.yml` are its
+only users.
+
+This is not hygiene. These runners hold `TIT_API_KEY` and
+`OPENROUTER_API_KEY`, they run unattended, and a floor with no lockfile means a
+scheduled job resolves fresh at run time with nobody reading what it picked.
+One malicious release of any transitive dependency executes with both keys and
+nothing in any log looks wrong. `tests/test_dependency_pinning.py` fails on a
+bare install, an unhashed pin, a workflow naming a lock that does not exist, or
+the two locks disagreeing about a shared package.
+
+**The ritual when a dependency changes:**
+
+```bash
+python3 -m venv /tmp/lock && /tmp/lock/bin/pip install pip-tools
+/tmp/lock/bin/pip-compile --generate-hashes --strip-extras \
+    --output-file=requirements.lock requirements.txt
+/tmp/lock/bin/pip-compile --generate-hashes --strip-extras \
+    --output-file=requirements-dev.lock requirements-dev.txt
+```
+
+Then **read the diff**. A lock refresh nobody read is the unpinned state with
+extra steps. `tests` runs on every push and installs from the dev lock, so a
+lock that does not resolve on the runner goes red there rather than in a
+collect run. `pip install --upgrade pip` is banned for the same reason the lock
+exists: it is an unverified download into the same runner, immediately before
+the verified one.
 
 `--offline` uses a captured fixture and a deterministic stub classifier, so it
 proves the plumbing without a network call or a cent of spend. Never store

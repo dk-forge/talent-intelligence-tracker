@@ -80,7 +80,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # Said loudly, because a green run that recorded nothing is the exact trap
       # deploy-plugin.yml sets with its own dry_run default. The mode is derived

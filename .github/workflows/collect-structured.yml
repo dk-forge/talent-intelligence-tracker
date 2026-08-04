@@ -183,7 +183,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # A dispatch says which collector to run. A cron cannot, so the schedule
       # expression itself picks one.

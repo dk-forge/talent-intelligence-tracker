@@ -53,6 +53,8 @@ from datetime import date, datetime, timezone
 
 import requests
 
+from collectors import capped_fetch
+
 from analysis.recall.match import first_token
 from collectors import google_news, sec_edgar
 from pipeline.vocab import company_key
@@ -140,14 +142,15 @@ def _fetch_feed(url: str, label: str, *, session=None) -> list[str]:
     """One feed's names. NEVER print the URL: it lives in a secret, and a URL
     substring can slip past GitHub's masking into a public log. The feed is
     referred to only by its index."""
-    http = session or requests
     try:
-        resp = http.get(url, timeout=40, headers={
-            "User-Agent": "TalentIntel/1.0 (info@asktherecruiter.com)"})
+        resp, raw = capped_fetch.capped_get(
+            url, session=session, timeout=40,
+            headers={"User-Agent": "TalentIntel/1.0 (info@asktherecruiter.com)"},
+            max_bytes=capped_fetch.FEED_BYTES)
         if resp.status_code != 200:
             print(f"[{COLLECTOR}] feed {label}: HTTP {resp.status_code}")
             return []
-        body = resp.text
+        body = raw.decode("utf-8", errors="replace")
     except requests.RequestException as exc:
         print(f"[{COLLECTOR}] feed {label}: fetch failed ({type(exc).__name__})")
         return []

@@ -18,8 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt 'pytest>=7.0' pyyaml
+          pip install --require-hashes -r $GITHUB_WORKSPACE/requirements-dev.lock
 
       # A PHP parse error is the one plugin mistake the host cannot absorb.
       # tit_require() guards a MISSING file, but a file that is present and

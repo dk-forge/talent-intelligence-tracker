@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # The ceiling DEGRADES, it does not halt. --degrade never fails this
       # step: past 90% of the monthly allowance it sets TIT_PAID_READS=off for

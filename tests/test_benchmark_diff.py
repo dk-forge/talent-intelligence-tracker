@@ -92,12 +92,36 @@ def test_feed_json_and_csv_both_parse():
 
 
 def test_feeds_and_inline_deduplicate_case_insensitively(monkeypatch, capsys):
+    # A double that behaves like a STREAMED response, because that is what the
+    # collector now asks for. The old double exposed only `.text`, which meant
+    # it could not have noticed whether the body was buffered whole or read in
+    # a bounded way - a fake that cannot fail the property under test is not
+    # testing it.
+    body = json.dumps([{"company": "ACME CORP"}, {"company": "Bravo Ltd"}]).encode()
+
+    class FakeRaw:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def read(self, n, decode_content=True):
+            return self._payload[:n]
+
     class FakeResp:
         status_code = 200
-        text = json.dumps([{"company": "ACME CORP"}, {"company": "Bravo Ltd"}])
+
+        def __init__(self):
+            self.raw = FakeRaw(body)
+            self.content = body
+            self.text = body.decode()
+            self.closed = False
+
+        def close(self):
+            self.closed = True
 
     class FakeSession:
         def get(self, url, **kwargs):
+            assert kwargs.get("stream") is True, (
+                "an untrusted feed body must not be buffered whole")
             return FakeResp()
 
     monkeypatch.setenv("BENCHMARK_FEED_URLS", "https://example.com/private.json")

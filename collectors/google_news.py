@@ -64,6 +64,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 import requests
+from collectors import capped_fetch
 
 RSS_ENDPOINT = "https://news.google.com/rss/search"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -163,13 +164,12 @@ def build_query_url(query: str, *, lang: str = "en", country: str = "US") -> str
 
 def fetch(query: str, *, lang: str = "en", country: str = "US", timeout: int = 30) -> list[dict]:
     """Fetch one query and return raw candidate dicts."""
-    resp = requests.get(
+    resp, body = capped_fetch.capped_get(
         build_query_url(query, lang=lang, country=country),
-        headers={"User-Agent": USER_AGENT},
-        timeout=timeout,
-    )
+        headers={"User-Agent": USER_AGENT}, timeout=timeout,
+        max_bytes=capped_fetch.FEED_BYTES)
     resp.raise_for_status()
-    return parse(resp.content, query, country=country, lang=lang)
+    return parse(body, query, country=country, lang=lang)
 
 
 def parse(xml_bytes: bytes, query: str = "", *, country: str = "",
