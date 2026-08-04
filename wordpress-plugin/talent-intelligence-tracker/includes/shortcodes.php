@@ -999,12 +999,67 @@ function tit_dashboard_html() {
                 aria-pressed="false" aria-describedby="tit-help-watch">Watchlist <span
           class="tit-qv-n" id="tit-watch-n">(0)</span><span class="tit-watch-new"
           id="tit-watch-new" hidden></span></button>
+        <?php
+        /*
+          WHAT THE STAR DOES, IN THE OPEN. The owner asked three times and could
+          not tell from the page, and the answer existed in exactly two places a
+          reader never reaches: a comment in dashboard.js, and #tit-help-watch
+          inside <details id="tit-help">, which ships CLOSED. A sentence behind a
+          disclosure is a sentence for the people who already know.
+
+          So it is prose in the controls band, on its own row, beside the control
+          it explains. Same lesson as the place caveat above (see the note by
+          chart-place): it is NOT passed through tit_chart_head() as note_html,
+          because dashboard.js closes every .tit-chart-note on load and the
+          element would compute display:none on every browser that ran the
+          script. Nothing on this page may explain itself from inside a container
+          the script shuts.
+
+          IT SHIPS hidden FOR ONE REASON ONLY, the same one that hides the chip:
+          without usable localStorage there are no stars, and prose about a
+          control that is not there is worse than silence. paintWatch() reveals
+          the chip and this sentence on the same pass, so on any browser that can
+          hold a watchlist it is visible at load with nothing to open or expand.
+
+          #tit-watch-short is the shortfall line, written by applyWatchFilter().
+          It stays empty until the watchlist is on AND some starred employer has
+          nothing in the loaded window, which is the moment the feature reads as
+          broken.
+        */
+        ?>
+        <p class="tit-quick-hint tit-watch-hint" id="tit-watch-hint" hidden><span
+          id="tit-watch-hint-t">Star an employer on any update to follow it.
+          Stars stay on this device and are never sent to us. Turn Watchlist on
+          to show just the employers you starred.</span> <span
+          class="tit-watch-short" id="tit-watch-short" hidden></span></p>
         <?php /* Names the control, not a direction. The signal table is still
                  above this strip, but it was above it the last time somebody
                  wrote "at the top" here too, and that line survived the move
                  that made it wrong (see the note by the region strip). */ ?>
         <span class="tit-quick-hint">For a time period, tap a number in the signal table.</span>
       </div>
+      <?php
+      /*
+        THE STAR CONFIRMATION, one region, outside the chip strip.
+
+        NOT `hidden`, and that is the whole reason it sits here rather than as a
+        fourth item in .tit-quick. An aria-live region has to be IN the
+        accessibility tree before the text lands in it; a region that is
+        display:none until the moment it is written is a region several screen
+        readers never announce. So it ships empty and permanent, and the
+        stylesheet gives it no padding, no border and no background while it is
+        :empty, which is why an empty one measures zero and the strip above
+        keeps its spacing. Inside the flex strip it would have cost two 7px gaps
+        on every load for a message that is usually not there.
+
+        POLITE, and ONE region. A reader starring six employers in six seconds
+        gets the sixth confirmation, not a queue of six: each write replaces the
+        text and restarts the single timer. Nothing takes focus, so the keyboard
+        stays on the star that was just pressed, and the message is above the
+        cards rather than over them, so it cannot cover that star.
+      */
+      ?>
+      <p class="tit-watch-toast" id="tit-watch-toast" aria-live="polite"></p>
 
       <?php
       /*

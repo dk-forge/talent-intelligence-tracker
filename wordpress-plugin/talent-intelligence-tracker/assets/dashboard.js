@@ -2908,6 +2908,9 @@
   var watchChip = document.getElementById('tit-watch-chip');
   var watchNEl = document.getElementById('tit-watch-n');
   var watchNewEl = document.getElementById('tit-watch-new');
+  var watchHint = document.getElementById('tit-watch-hint');
+  var watchShort = document.getElementById('tit-watch-short');
+  var watchToast = document.getElementById('tit-watch-toast');
   var watchOn = false;
   var watchSet = {};
   var lastVisit = 0;
@@ -2944,12 +2947,58 @@
         emp.appendChild(btn);
       }
       var on = !!watchSet[name];
+      // TWO GLYPHS, not two shades of one. The filled and the hollow star differ
+      // in SHAPE, so the state survives a monochrome screen, a colour vision
+      // difference, and a print. The colour and the tinted pill on .is-on are
+      // reinforcement; neither of them is load bearing on its own.
       btn.textContent = on ? '★' : '☆';
       btn.classList.toggle('is-on', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      btn.setAttribute('aria-label', (on ? 'Stop watching ' : 'Watch ') + name);
-      btn.title = on ? 'Stop watching this employer' : 'Watch this employer';
+      // PLAIN WORDS, and the word "watchlist" is not among them. A first-time
+      // reader is told what pressing this does and what pressing it again does;
+      // "Watch" alone was a label that only made sense to somebody who already
+      // knew the feature by name.
+      btn.setAttribute('aria-label', on
+        ? 'Following ' + name + '. Press to unfollow.'
+        : 'Star ' + name + ' to follow it.');
+      btn.title = on ? 'Following. Click to unfollow.' : 'Star this company to follow it';
     });
+  }
+
+  /*
+    THE CONFIRMATION after a star is pressed.
+
+    WHERE IT IS SAVED IS THE MESSAGE, not decoration on it. The owner read the
+    star and assumed a cookie. It is not one, and the difference is a privacy
+    claim rather than a technicality: a cookie is sent to the server on every
+    single request, and localStorage is never transmitted anywhere. So the
+    sentence says "Saved in this browser only" and the word cookie appears
+    nowhere, because it would be false.
+
+    ONE TIMER, ONE REGION. Starring six employers quickly replaces the text five
+    times and leaves one timer running, so nothing stacks and nothing queues.
+    The region is aria-live="polite" and permanent in the DOM (see the note in
+    shortcodes.php): it is written, never created, which is what makes it
+    reliably announced.
+
+    REDUCED MOTION is honoured by the stylesheet, and the message is the part
+    that never depends on it: the class that fades is added here regardless and
+    the media query drops only the transition. A reader who asks for no motion
+    still gets the confirmation, instantly.
+  */
+  var watchToastTimer = 0;
+  function sayWatch(msg) {
+    if (!watchToast) return;
+    watchToast.textContent = msg;
+    watchToast.classList.add('is-on');
+    if (watchToastTimer) clearTimeout(watchToastTimer);
+    watchToastTimer = setTimeout(function () {
+      watchToastTimer = 0;
+      watchToast.classList.remove('is-on');
+      // Emptied as well as un-tinted: an :empty region takes no space and says
+      // nothing to a screen reader that lands on it later.
+      watchToast.textContent = '';
+    }, 4000);
   }
 
   // Updates from watched employers dated after the previous visit, counted
@@ -2977,26 +3026,52 @@
 
   function applyWatchFilter() {
     if (!tbody) return;
-    var total = 0, hidden = 0;
+    var total = 0, hidden = 0, seen = {}, matched = 0;
     Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
       total++;
-      var hide = watchOn && !watchSet[li.getAttribute('data-employer')];
+      var name = li.getAttribute('data-employer');
+      var hide = watchOn && !watchSet[name];
       li.classList.toggle('tit-watch-hide', hide);
-      if (hide) hidden++;
+      if (hide) { hidden++; return; }
+      // Distinct STARRED employers still on the page. Counting rows would say
+      // "5 of your 3" the moment one employer had three updates in the window.
+      if (watchSet[name] && !seen[name]) { seen[name] = 1; matched++; }
     });
-    // An empty filtered list must say why, or it reads as a broken page.
+    /*
+      THE 50-ROW LIMIT IS SAID WHERE IT IS MET, which is the empty or thin list
+      in front of the reader, not in a panel they would have to go and open.
+
+      TWO STATES, because the confusing one is not only the empty one. Star four
+      employers, filter, see one card, and the page looks like it lost three
+      stars. It did not: the watchlist narrows the rows already loaded (the
+      newest 50 of this view) and the other three simply have nothing in that
+      window. So the shortfall is named with both numbers whenever fewer starred
+      employers appear than are starred, and the empty case is just the shortfall
+      at zero, told in the list itself where the missing cards would have been.
+    */
+    var starred = watchCount();
     var note = document.getElementById('tit-watch-empty');
     var need = watchOn && total > 0 && hidden === total;
     if (need && !note) {
       note = document.createElement('li');
       note.id = 'tit-watch-empty';
       note.className = 'tit-cards-empty';
-      note.textContent = 'None of the loaded updates is from a watched employer. '
-        + 'The watchlist narrows the newest 50 of this view; widen the filters '
-        + 'to reach further back.';
+      note.textContent = 'No loaded update is from an employer you starred. '
+        + 'The watchlist narrows the newest 50 updates of this view, so a '
+        + 'starred employer with nothing in that window does not appear here. '
+        + 'Widen the filters or clear one to reach further back.';
       tbody.appendChild(note);
     } else if (!need && note && note.parentNode) {
       note.parentNode.removeChild(note);
+    }
+    if (watchShort) {
+      var short = watchOn && total > 0 && matched < starred;
+      watchShort.textContent = short
+        ? 'Showing ' + matched + ' of the ' + starred + ' employers you starred. '
+          + 'The watchlist narrows the newest 50 updates of this view; widen the '
+          + 'filters to reach further back.'
+        : '';
+      watchShort.hidden = !short;
     }
     if (tableWrap) {
       Array.prototype.forEach.call(
@@ -3019,6 +3094,11 @@
   function paintWatch() {
     if (!store || !watchChip) return;
     watchChip.hidden = false;
+    // The sentence that says what the star does is revealed by the SAME pass
+    // that reveals the chip, and by nothing else. It is never collapsed, never
+    // behind a disclosure, and never conditional on having starred anything:
+    // the reader who most needs it has starred nothing yet.
+    if (watchHint) watchHint.hidden = false;
     if (watchNEl) watchNEl.textContent = '(' + watchCount() + ')';
     decorateCards();
     var fresh = watchNewCount();
@@ -3048,9 +3128,13 @@
       var li = btn.closest('li.tit-card');
       var name = li && li.getAttribute('data-employer');
       if (!name) return;
-      if (watchSet[name]) delete watchSet[name]; else watchSet[name] = 1;
+      var added = !watchSet[name];
+      if (added) watchSet[name] = 1; else delete watchSet[name];
       saveWatch();
       paintWatch();
+      sayWatch(added
+        ? 'Added to your watchlist. Saved in this browser only.'
+        : 'Removed from your watchlist.');
     });
   }
 

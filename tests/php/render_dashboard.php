@@ -397,7 +397,38 @@ function check($condition, $message) {
  * which is not in the 196 above and is not measured anywhere. Budget ~5,400 for
  * that panel in production rather than the ~5,300 recorded below.
  */
-const TIT_DASH_BYTE_BUDGET = 181000;
+/*
+ * RAISED 181,000 -> 181,600 on 2026-08-03, for the watchlist explaining itself.
+ * Measured on this fixture: 180,678 -> 181,146, so 468 bytes, and the headroom
+ * afterwards is 454.
+ *
+ * THE DEFECT it buys out: the owner asked three times what the star does and
+ * could not tell from the page. The answer existed, in a comment in
+ * dashboard.js and in #tit-help-watch inside <details id="tit-help">, which
+ * ships CLOSED. Both are places a first-time reader never reaches, so the page
+ * had no answer on it. These bytes are the answer, printed.
+ *
+ *   ~367  #tit-watch-hint, one sentence in the controls band beside the chip it
+ *         explains: what the star does, where the stars live, what turning the
+ *         Watchlist on then does. It carries the empty #tit-watch-short span,
+ *         which applyWatchFilter() fills only when the watchlist is on and some
+ *         starred employer has nothing in the loaded window. Deliberately NOT
+ *         inside the (i) panel and NOT passed as note_html, for the reason the
+ *         2026-08-03 entry below records about the place caveat.
+ *
+ *    ~71  #tit-watch-toast, the empty aria-live region the star confirmation is
+ *         written into. It ships empty and permanent because a live region
+ *         created at the moment of the message is one several screen readers
+ *         never announce, and :empty gives it no padding, border or background,
+ *         so an unstarred page pays these 71 bytes and no pixels.
+ *
+ *    ~30  indentation and line breaks around the two elements.
+ *
+ * Nothing else on the page moved. The star's own tooltip and accessible name
+ * are written by dashboard.js onto buttons the server never renders, so the
+ * plainer wording cost this budget nothing at all.
+ */
+const TIT_DASH_BYTE_BUDGET = 181600;
 
 /*
  * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and

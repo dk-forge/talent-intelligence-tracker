@@ -2955,7 +2955,32 @@ body:has(.tit-main) header.wp-block-template-part {
   border:0; background:none; cursor:pointer; font-size:15px; line-height:1;
   color:var(--tit-mut); vertical-align:baseline; }
 .tit-wrap .tit-watch-star:hover { color:var(--tit-blue); }
-.tit-wrap .tit-watch-star.is-on { color:#b8860b; }
+/* The starred state differs from the unstarred one by SHAPE first: the glyph is
+   filled rather than hollow (dashboard.js), which reads on a monochrome screen
+   and in print. The tinted pill here is a second, independent signal, so no
+   reader has to tell two shades apart to know which state they are in. */
+.tit-wrap .tit-watch-star.is-on { color:#b8860b; background:rgba(184,134,11,.13);
+  border-radius:5px; }
+
+/* The one-line explanation, on its own row under the chips. Full width so it
+   never squeezes between two buttons, and it carries no colour of its own: it
+   is the quick-strip hint style, which the zone rule above already sets. */
+.tit-wrap .tit-watch-hint { flex:1 0 100%; margin:1px 0 0; line-height:1.45; }
+.tit-wrap .tit-watch-short { font-weight:650; color:var(--tit-fg); }
+
+/* The star confirmation. It is ALWAYS in the DOM (an aria-live region that is
+   created on demand is one several screen readers never announce), so :empty
+   carries the whole cost of not being there: no box, no space, nothing. */
+.tit-wrap .tit-watch-toast { margin:0 0 10px; padding:7px 11px; font-size:13px;
+  color:#1f4620; background:#eaf6ec; border:1px solid #bfe0c4; border-radius:8px;
+  opacity:0; transition:opacity .18s ease; }
+.tit-wrap .tit-watch-toast.is-on { opacity:1; }
+.tit-wrap .tit-watch-toast:empty { margin:0; padding:0; border:0; background:none; }
+@media (prefers-reduced-motion:reduce) {
+  /* The fade goes, the message does not. A reader who asks for no motion gets
+     the same sentence, at full opacity, immediately. */
+  .tit-wrap .tit-watch-toast { transition:none; }
+}
 .tit-wrap .tit-watch-star:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; border-radius:4px; }
 .tit-watch-new { margin-left:6px; padding:1px 7px; border-radius:999px;
