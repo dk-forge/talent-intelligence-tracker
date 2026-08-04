@@ -328,12 +328,26 @@ def record(item: dict, collector: str, verdict: str) -> None:
         _fail("recording a gate label", exc)
 
 
-def outcome(item: dict, value: str) -> None:
+#: How much of a rejection message the ledger keeps. Long enough to hold the
+#: rule and its subject, short enough that a month of them is still a file.
+REASON_MAX = 240
+
+
+def outcome(item: dict, value: str, reason: str = "") -> None:
     """Close the join: what this candidate finally became. Never raises.
 
     Silently ignores a candidate that was never gated (a deterministic close, a
     derived row, an offline stub) — those never cost a gate call and are not
     part of the population the classifier replaces.
+
+    `reason` is WHY, and it exists because twice in one investigation a story
+    was lost and the record of the loss did not say why. 269 candidates carry
+    `validate_reject` in the August 2026 shard and not one of them names the
+    rule that refused it, so the only way to triage any of them is to re-fetch
+    and re-run - which for the Spanish copy of OpenAI's $122bn close, the only
+    copy of that round we ever saw, meant the biggest round of the year was
+    unattributable from stored state. validate.Rejected has always carried the
+    message; nothing kept it. The cost of keeping it is one string.
     """
     if not enabled():
         return
@@ -351,6 +365,9 @@ def outcome(item: dict, value: str) -> None:
             # at all, which is the one class the classifier most needs.
             return
         line["outcome"] = value
+        text = " ".join(str(reason or "").split())
+        if text:
+            line["reason"] = text[:REASON_MAX]
         STATS["outcomes"] += 1
     except Exception as exc:
         _fail("recording a gate outcome", exc)

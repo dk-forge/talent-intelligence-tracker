@@ -38,6 +38,14 @@ about the file, not about the news.
 - `key` — `sha1(source_url or discovery_url or headline)[:16]`, the same URL
   `run_collect` deduplicates on, so a line and a `seen_urls` row describe the
   same candidate.
+- `reason` - OPTIONAL, present only on an outcome that refused the candidate
+  (`validate_reject`, `error`): the rule's own message, whitespace-collapsed and
+  truncated to 240 characters. Added 2026-08-04. Before it, the 269
+  `validate_reject` lines in the August shard named no rule, so triaging any one
+  of them meant re-fetching and re-running the candidate - and for the single
+  Spanish copy of OpenAI's $122bn March close, the only copy of that round this
+  pipeline ever saw, that made the loss unattributable from stored state. Absent
+  on every line written before that date; a reader must treat it as optional.
 
 **The classifier's target is `outcome == "stored"`**, not `gate == "YES"`. The
 plan's shipping bar is measured against stored rows: *a replay over >=30 days in

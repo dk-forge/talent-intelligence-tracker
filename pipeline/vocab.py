@@ -1626,6 +1626,103 @@ _NON_USD = re.compile(
     re.I,
 )
 
+# --- The dollar, written as a word ------------------------------------------
+#
+# Every form below is an inflection of "dollar" in a language the catalogue
+# wires, listed rather than stemmed for the reason SCALE_WORDS_BY_LANGUAGE is
+# listed rather than stemmed: a loose stem match puts `doler` (Spanish, to hurt)
+# and `dolerite` (a rock) inside the currency, and this file has already paid
+# once for a stem that matched more than it meant.
+DOLLAR_WORDS = (
+    # English, Italian, Estonian, Finnish
+    "dollar", "dollars", "dollari", "dollaria", "dollarit", "dollaria",
+    # Spanish, Portuguese, Slovak, Hungarian
+    "dólar", "dólares", "dolar", "dolares", "dolár", "doláru", "dolárov",
+    "dollár", "dollárt", "dollárok",
+    # Turkish (doları / dolarları), Indonesian, Malay, Polish, Czech,
+    # Croatian / Serbian / Bosnian, Romanian, Lithuanian, Latvian
+    "doları", "dolari", "dolarları", "dolarlar", "dolarów", "dolarow",
+    "dolarů", "dolaru", "dolary", "dolara", "dolare", "dolarima",
+    "doleris", "doleriai", "dolāri", "dolāru",
+    # Russian, Ukrainian, Bulgarian, Macedonian, Serbian Cyrillic
+    "доллар", "доллара", "долларов", "доларів", "долар", "долара", "долари",
+    "долары",
+    # Greek
+    "δολάριο", "δολάρια", "δολαρίων",
+    # Albanian. Vietnamese is deliberately absent: it writes "đô la", two
+    # tokens, and the bare "đô" is far too short to admit as a currency.
+    "dollarë", "dollarësh",
+)
+
+#: Hebrew and Arabic glue their clitics on, so the dollar word needs the same
+#: boundary the Hebrew prefilter block spells out rather than a `\b`.
+_DOLLAR_WORDS_RTL = (
+    r"(?<![א-ת])[והבלכמש]{0,2}דולר(?:ים)?(?![א-ת])",
+    r"(?<![؀-ۿ])(?:ال|وال|بال)?دولار(?:ات|ا)?(?![؀-ۿ])",
+)
+
+#: Scripts that write the currency glued to the number, so no boundary exists
+#: to assert. 美元 and 美金 name the US dollar outright ("American money"), which
+#: is why the Chinese entries need no qualifier veto below: 港元, 加元 and 澳元
+#: are different words rather than qualified forms of this one.
+_DOLLAR_WORDS_GLUED = ("ドル", "달러", "美元", "美金")
+
+# ...and the qualifiers that make it SOMEBODY ELSE'S dollar.
+#
+# This is the word-shaped sibling of the `(?:HK|NZ|C|A|S)\s?\$` arm of _NON_USD,
+# and it carries the same honest limit: a Canadian round reported in Canadian
+# dollars without the word "Canadian" anywhere in the amount string reads as US
+# dollars, exactly as a bare `$` always has. The list is the dollars that
+# actually appear in the business copy these feeds carry; it is not every dollar
+# in ISO 4217, and it does not pretend to be.
+_DOLLAR_QUALIFIERS_BEFORE = (
+    r"canadian", r"australian", r"singapore(?:an)?", r"hong\s*kong", r"new\s*zealand",
+    r"taiwan(?:ese)?", r"jamaican", r"namibian", r"fijian", r"brunei(?:an)?",
+    r"liberian", r"guyanese", r"barbadian", r"bahamian", r"belize(?:an)?",
+    r"caribbean", r"trinidad\w*", r"zimbabwe(?:an)?", r"surinamese", r"solomon",
+    # German and Dutch put the adjective in front
+    r"kanadische\w*", r"australische\w*", r"neuseel\w+", r"hongkong\w*",
+    r"singapur\w*", r"taiwanische\w*", r"canadese", r"australische",
+    # Turkish, Indonesian and Malay put the bare country name in front
+    r"kanada", r"avustralya", r"yeni\s*zelanda", r"singapura?", r"tayvan",
+    r"australia", r"brunei",
+)
+_DOLLAR_QUALIFIERS_AFTER = (
+    r"canadiens?", r"canadiennes?", r"canadienses?", r"canadenses?",
+    r"australiens?", r"australiennes?", r"australianos?", r"australians?",
+    r"singapouriens?", r"singapurenses?", r"singapore",
+    r"n[ée]o-?z[ée]landais\w*", r"neozeland[eé]s\w*", r"neozelandeses?",
+    r"taiwan[eé]s\w*", r"taiwan", r"hong\s*kong", r"jamaicanos?",
+    r"kanadsk\w+", r"australsk\w+", r"kanadyjski\w*", r"australijski\w*",
+)
+_DOLLAR_QUALIFIERS_GLUED = (
+    "カナダドル", "豪ドル", "加ドル", "香港ドル", "台湾ドル", "NZドル",
+    "ニュージーランドドル", "シンガポールドル", "シンガポール・ドル",
+    "홍콩 달러", "캐나다 달러", "호주 달러", "싱가포르 달러", "대만 달러",
+    "홍콩달러", "캐나다달러", "호주달러", "싱가포르달러",
+)
+
+_DOLLAR_WORD_ALT = "|".join(re.escape(w) for w in DOLLAR_WORDS)
+_DOLLAR_GLUED_ALT = "|".join(re.escape(w) for w in _DOLLAR_WORDS_GLUED)
+
+#: Every way this module will accept "a dollar was named in words".
+_DOLLAR_WORD_PATTERNS = (
+    (r"\b(?:%s)\b" % _DOLLAR_WORD_ALT,)
+    + _DOLLAR_WORDS_RTL
+    + (_DOLLAR_GLUED_ALT,)
+)
+
+#: A dollar word that a qualifier has claimed for another country. Checked
+#: beside _NON_USD, so it refuses the figure rather than converting it.
+_QUALIFIED_DOLLAR = re.compile(
+    r"(?:%s)[\s\-·]{0,2}(?:%s)"
+    % ("|".join(_DOLLAR_QUALIFIERS_BEFORE), _DOLLAR_WORD_ALT)
+    + r"|(?:%s)\s+(?:de\s+|dos\s+|d[ae]\s+|di\s+)?(?:%s)"
+    % (_DOLLAR_WORD_ALT, "|".join(_DOLLAR_QUALIFIERS_AFTER))
+    + r"|(?:%s)" % "|".join(re.escape(q) for q in _DOLLAR_QUALIFIERS_GLUED),
+    re.I | re.UNICODE,
+)
+
 # A US DOLLAR HAS TO BE STATED, not merely not-contradicted.
 #
 # The rule used to be a denylist: refuse if _NON_USD matches, otherwise treat the
@@ -1642,7 +1739,38 @@ _NON_USD = re.compile(
 # rows carrying a funding_amount, 3,094 name '$', 'US$' or 'USD' outright. The
 # only three that did not were these three, and all three were wrong. A currency
 # we have never seen now refuses by default instead of quietly becoming dollars.
-_USD_MARKER = re.compile(r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$")
+#
+# WHAT THIS RULE DOES *NOT* MEAN, added 2026-08-04. "Stated" was implemented as
+# "written with the symbol $, the prefix US$ or the code USD", and a headline
+# that writes the currency out in words states it just as plainly. Six real
+# strings measured that day, every one of them a 2026 AI mega-round:
+#
+#   '122.000 millones de dólares'  '65 milliards de dollars'  '30 Mrd. Dollar'
+#   '650億ドル'                     '965 מיליארד דולר'          '300亿美元'
+#
+# All six returned None, so the rows carrying them stored with
+# funding_amount_usd NULL: absent from every money chart, from "sort by raised",
+# and from the amount arm of funding_event_duplicate. The parser was not
+# refusing to guess - the source had told it, in words, and the reader could not
+# read the word.
+#
+# So a dollar WORD counts, on exactly the same terms the '$' sign already
+# counts. That is the honest symmetry: a bare '$' is written by Canada,
+# Australia, Singapore, Hong Kong and a dozen others, and this module has always
+# accepted a bare '$' as a US dollar. A bare "dollars" is ambiguous in precisely
+# the same way and to precisely the same degree, so it is admitted the same way
+# - and the NAMED other dollars are vetoed the same way too, by
+# _QUALIFIED_DOLLAR below, which is the word-shaped sibling of the `C$|A$|S$`
+# arm of _NON_USD.
+#
+# It cannot widen anything else. A string naming no currency at all still
+# returns None, which keeps the three rows this positive test was built for
+# ('500 millones', '25 millioner kroner', '10,5 mio. kr.') refusing exactly as
+# before, and keeps the live '93.175 millones' row NULL rather than guessing.
+_USD_MARKER = re.compile(
+    r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$"
+    r"|(?:%s)" % "|".join(_DOLLAR_WORD_PATTERNS)
+)
 
 # --- The scale word, in every language the catalogue wires -------------------
 #
@@ -2234,7 +2362,11 @@ def read_funding_figure(value: str):
     text = _USD_PREFIX.sub("$", text)
     text = _USD_CODE.sub(" ", text)
 
-    if _NON_USD.search(text):
+    # ...and it has to be OUR dollar. _NON_USD covers the symbols and the codes;
+    # _QUALIFIED_DOLLAR covers the same claim written in words, which is the
+    # only new way a non-US currency can reach here now that a dollar word is a
+    # marker. 'dollars canadiens' refuses; 'US dollars' does not.
+    if _NON_USD.search(text) or _QUALIFIED_DOLLAR.search(text):
         return None
 
     m = _NUMBER.search(text)

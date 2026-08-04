@@ -363,7 +363,8 @@ _with_gate_labels = gate_ledger.around_run(
 
 
 def run_outcome(*, observed: int, everything_rejected: bool,
-                mostly_throttled: bool, running_degraded: bool) -> tuple[bool, bool]:
+                mostly_throttled: bool, running_degraded: bool,
+                mostly_errored: bool = False) -> tuple[bool, bool]:
     """-> (health_is_degraded, the_run_failed). TWO QUESTIONS, TWO ANSWERS.
 
     "Is the page as deep as usual?" is the health status. "Does a human need to
@@ -391,8 +392,16 @@ def run_outcome(*, observed: int, everything_rejected: bool,
     they are tested independently, so a degraded run that also read zero, or
     that had everything rejected, or that was mostly throttled, is still a
     broken collector and still exits non-zero.
+
+    `mostly_errored` joins them on 2026-08-04, and it is a GENUINE failure
+    rather than a rationing: a gate that errored on a fifth of its candidates
+    judged none of them, which is a provider outage and not a budget decision.
+    On 2026-08-03 the rate was 85.7% for eight hours, every collector reported
+    an ordinary run because errors and NOs were the same number in `rejected`,
+    and all three copies of Anthropic's $65bn Series H died in that window.
     """
-    failed = bool(observed == 0 or everything_rejected or mostly_throttled)
+    failed = bool(observed == 0 or everything_rejected or mostly_throttled
+                  or mostly_errored)
     return failed or bool(running_degraded), failed
 
 
@@ -535,6 +544,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
 
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
     cheap_closed = known_rounds = unread_duplicates = month_deferred = 0
+    # Candidates the gate ERRORED on: not judged, not rejected, not marked
+    # seen. Counted apart from `rejected` for the reason set out at the
+    # ClassifyError handler below.
+    gate_errored = 0
 
     def _stop_run(detail: str, exc: Exception) -> int:
         """End the run on a permanent condition, having recorded what it cost.
@@ -610,7 +623,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             if parsed is not None:
                 if dedupe.funding_event_duplicate(
                         conn, parsed.company_key, parsed.amount_usd,
-                        parsed.amount_canon):
+                        parsed.amount_canon,
+                        # The window belongs to the CANDIDATE. Anchored on
+                        # today it was dead for every round we discover late,
+                        # which is most of them (median google_news lag: 130
+                        # days). validate._normalize_date is the same reader
+                        # the stored rows went through, so the two agree.
+                        published_date=validate._normalize_date(
+                            item.get("published_date"), item.get("source_url"))):
                     known_rounds += 1
                     duplicates += 1
                     print(f"  SKIP    {item.get('headline','')[:66]}\n"
@@ -681,9 +701,26 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
             continue
         except classify.ClassifyError as exc:
-            rejected += 1
-            gate_ledger.outcome(item, "error")
-            print(f"  REJECT  {item.get('headline','')[:70]}\n          classify: {exc}")
+            # A gate that ERRORED did not judge this candidate, so counting it
+            # as `rejected` is the pipeline telling itself a verdict was
+            # reached. On 2026-08-03 that arithmetic hid a total provider
+            # outage: 4,849 of 5,656 gate calls errored (85.7%, against 0.0% on
+            # each of the two preceding days) and every collector still
+            # reported an ordinary run, because a wall of errors is
+            # indistinguishable from a wall of NOs in the only number the
+            # health check reads. All three copies of Anthropic's $65bn Series
+            # H arrived in that window and none survived it.
+            #
+            # It is counted with the deferrals instead - which is what it is:
+            # the URL is deliberately NOT marked seen (contrast the
+            # model_reject and validate_reject paths below), so the next
+            # healthy run picks it up. `mostly_errored` below turns a run that
+            # could not judge its candidates into a `degraded` health row
+            # instead of a quiet one.
+            gate_errored += 1
+            gate_ledger.outcome(item, "error", str(exc))
+            print(f"  DEFER   {item.get('headline','')[:70]}\n"
+                  f"          gate could not judge it: {exc}")
             continue
 
         if classified is None:
@@ -725,7 +762,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             signal = validate.build_signal(classified, item, collector, conn=conn)
         except validate.Rejected as exc:
             rejected += 1
-            gate_ledger.outcome(item, "validate_reject")
+            gate_ledger.outcome(item, "validate_reject", str(exc))
             print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")
             if url and not dry_run:
                 store.mark_seen(conn, url, collector, "rejected")
@@ -809,7 +846,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         f"\n[{collector}] found={found} "
         f"{'would store' if dry_run else 'stored'}={stored} "
         f"duplicate={duplicates} rejected={rejected} "
-        f"deferred={throttled} budget-deferred={budget_deferred} already-seen={skipped}"
+        f"deferred={throttled} budget-deferred={budget_deferred} "
+        f"gate-errored={gate_errored} already-seen={skipped}"
     )
     if month_deferred:
         print(
@@ -955,6 +993,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # only the next run can fill, and silence about it is how a throttled
     # source looks like a quiet news day for a month.
     mostly_throttled = throttled > 0 and throttled >= max(1, len(kept) // 2)
+    # And a run whose GATE errored on a fifth of its candidates did not have a
+    # quiet news day either - it had an outage. The ceiling is deliberately
+    # lower than the throttle one: a throttle is the provider saying "later",
+    # an error is the provider saying nothing at all, and on 2026-08-03 the
+    # rate was 85.7% for eight hours with nothing anywhere reporting it.
+    GATE_ERROR_CEILING = 0.2
+    mostly_errored = (gate_errored > 0
+                      and gate_errored >= max(1, int(GATE_ERROR_CEILING * len(kept))))
 
     # A DIFF-shaped collector emits a row only when something MOVED, so counting
     # emitted rows as `items_found` marks a perfectly healthy quiet day
@@ -973,6 +1019,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     broken, failed = run_outcome(observed=observed,
                                  everything_rejected=everything_rejected,
                                  mostly_throttled=mostly_throttled,
+                                 mostly_errored=mostly_errored,
                                  running_degraded=running_degraded)
 
     # The health row is also the spend ledger now. Every number printed above
@@ -1015,15 +1062,23 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                    f"{classify.STATS['read_unavailable'] + classify.STATS['read_ungrounded']}"
                    " deferred"
                    if classify.STATS["read_calls"] or classify.STATS["read_served"] else "")
+                + (f", {gate_errored} gate-errored" if gate_errored else "")
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"
-                   if mostly_throttled else "")),
+                   if mostly_throttled else "")
+                + (f" | GATE ERRORING: {gate_errored} of {len(kept)} candidates "
+                   "were never judged, they retry next run"
+                   if mostly_errored else "")),
     )
     conn.commit()
 
     if everything_rejected:
         print(f"\n[{collector}] DEGRADED: {found} candidates, none stored, none duplicate.",
               file=sys.stderr)
+    if mostly_errored:
+        print(f"\n[{collector}] DEGRADED: the gate errored on {gate_errored} of "
+              f"{len(kept)} candidates and judged none of them. They are NOT "
+              f"marked seen and retry on the next healthy run.", file=sys.stderr)
     if running_degraded and not failed:
         # Said on stdout, not stderr, and it exits 0: the run is a success that
         # was rationed. ops_status and the health page still show `degraded`.

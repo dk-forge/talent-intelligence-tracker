@@ -80,6 +80,34 @@ cost. No surface may claim otherwise.
 > likewise, and the tripwire already does discovery. The loop exits green at
 > zero cost while dormant. Same rule as the sibling repo's tracker-diff.
 
+**2026-08-04, and it is the largest recall defect this tracker has had.** The
+three biggest private AI rounds of 2026 were all missing from the page: OpenAI's
+March close (~$122bn at ~$852bn), Anthropic's February round ($30bn at $380bn)
+and Anthropic's May Series H ($65bn at $965bn). None of it was discovery - the
+query pack matched every one of them and the gate ledger holds the proof - so
+the fixes are four downstream defects, all in [TECHLOG.md](TECHLOG.md) under
+2026-08-04: the amount parser could not read a dollar written as a word
+("122.000 millones de dolares" and five more returned NULL), the free gate could
+not read the billion-scale register (Series stopped at E while cheap_extract
+read [a-k]; no French "leve", no German separable "sammelt ... ein", no
+valuation shape at all), dedup collapsed two different rounds in one fortnight
+and kept whichever arrived first, and a gate that ERRORED was counted as a
+rejection so an eight-hour 85.7% outage looked like a quiet news day. Before and
+after on the same corpus: prefilter 13/22 -> 22/22, the amount parser 3/14 ->
+14/14, 19 live rows newly quantified with 0 disagreements, 3,069 -> 3,140 tests.
+Nothing was relaxed: all seventeen must-refuse amount strings still refuse, and
+"93.175 millones" is still NULL because it names no currency.
+
+**AND THE NEXT THING TO FIX IS PUBLICATION, NOT RECALL.** 15 rows worth $874.2bn
+sit in `publish_guardrails` with `state='open'` and `reviewed_at NULL`, and
+`publish.py` withholds every one of them - Anthropic $30bn is IN the database,
+correctly extracted, re-seen 169 times, and has never reached a reader. That was
+deliberately left alone: the guard is not wrong (Arch $539bn really is a misread
+of "private market ASSETS"), so raising the threshold publishes the wrong ones
+with the right ones, and auto-accepting is weakening a number guard. It needs a
+corroboration rule plus a human draining the queue. The 2026-08-04 fixes push
+MORE correctly-parsed mega-rounds into that queue, not fewer.
+
 **Read this first if you are a new session.** It is the current state of the
 build, what is proven, what is broken, and what to do next. Keep it updated as
 you go: it is the only thing that survives a crashed session.

@@ -492,8 +492,21 @@ GOOGLE_NEWS_QUERIES = (
     '("raises" OR "raised" OR "secures" OR "closes" OR "lands" OR "announces" OR "nets") '
     '("funding" OR "round" OR "Series A" OR "Series B" OR "seed" OR "investment" '
     'OR "capital" OR "million" OR "billion" OR "valuation" OR "led by")',
-    '("Series A" OR "Series B" OR "Series C" OR "seed round" OR "pre-seed") '
+    # The stage list runs to H because the rounds it has to reach do. Anthropic
+    # closed a Series H in May 2026 and this query stopped at C, which put the
+    # largest private round of the year outside the only stage-shaped query in
+    # the pack. pipeline/prefilter.py and pipeline/cheap_extract.py both read
+    # `series [a-k]`; this now agrees with them.
+    '("Series A" OR "Series B" OR "Series C" OR "Series D" OR "Series E" '
+    'OR "Series F" OR "Series G" OR "Series H" OR "seed round" OR "pre-seed") '
     '("million" OR "billion" OR "led by" OR "valuation")',
+    # The mega-round register, which the two queries above read only by
+    # accident: a close stated as a VALUATION, and the secondary/tender
+    # transactions that set one. Measured 2026-08-04 against the real
+    # headlines of the three largest 2026 rounds.
+    '("closes funding round" OR "closes its funding round" OR "completing" OR '
+    '"post-money valuation" OR "pre-money valuation" OR "tender offer" OR '
+    '"secondary share sale") ("billion" OR "valuation" OR "round")',
     '("emerges from stealth" OR "out of stealth" OR "oversubscribed" OR '
     '"bridge round" OR "extension round" OR "growth capital" OR '
     '"strategic investment" OR "capital increase" OR "credit line")',

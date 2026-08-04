@@ -283,6 +283,209 @@ is a list of documents that have already been read.
 
 ---
 
+## 2026-08-04 - the same three rounds, and the four PIPELINE stages that lost them
+
+**Companion entry to the one directly above, and deliberately a different half
+of the same problem.** That one recovers these three rounds from the primary
+document, by hand, once. This one fixes the four places the pipeline lost them,
+so the NEXT mega-round arrives on its own. Neither replaces the other: a
+hand-assembled URL list is not a collector, and a widened parser cannot reach a
+document nobody fetched.
+
+### What the owner measured
+
+OpenAI held 8 rows and the March 2026 close
+(~$122bn at ~$852bn) was not among them; the one OpenAI funding row on the live
+page read `OpenAI capta 93.175 millones`, verbatim, to an English reader.
+Anthropic held 1 row - an April leadership appointment - with the February round
+($30bn at $380bn) and the May Series H ($65bn at $965bn) both absent.
+
+**None of it was discovery.** The funding query pack matched every one of those
+rounds and our own gate ledger holds the proof: eight fetches of the OpenAI
+close across six languages, both Anthropic rounds seen in Hebrew, Spanish,
+German and English. Writing that down here so the next investigation does not
+re-open the question. The losses are downstream, at four separate stages, and
+this entry is one fix per stage. Fixtures and the before/after are in
+`tests/test_megaround_recall.py`; nothing here was tuned against an invented
+headline.
+
+### 1. The amount parser could not read a dollar written as a word
+
+`pipeline/vocab._USD_MARKER` implemented "a dollar must be STATED" as "the
+symbol `$`, the prefix `US$` or the code `USD`". A headline that writes the
+currency out states it just as plainly, and six real strings - every one of them
+one of these rounds - returned None: `122.000 millones de dólares`,
+`65 milliards de dollars`, `30 Mrd. Dollar`, `650億ドル`, `965 מיליארד דולר`,
+`300亿美元`. The rows carrying them stored with `funding_amount_usd` NULL:
+invisible to every money chart, to "sort by raised", and to the amount arm of
+`funding_event_duplicate`. The parser was not refusing to guess - the source had
+told it, in words, and the reader could not read the word.
+
+A dollar WORD is now a marker, on exactly the terms the `$` sign already is.
+That symmetry is the whole argument: a bare `$` is written by Canada, Australia,
+Singapore and a dozen others, this module has always accepted one as a US
+dollar, and a bare "dollars" is ambiguous to precisely the same degree. So the
+named other dollars are vetoed the same way too - `_QUALIFIED_DOLLAR` is the
+word-shaped sibling of the `C$|A$|S$` arm of `_NON_USD`, and
+`dollars canadiens`, `20 million Singapore dollars` and `500億カナダドル` all
+refuse. **Nothing was relaxed.** A string naming no currency at all still
+returns None, so `93.175 millones` is still NULL, and so are the three rows the
+positive test was built for in the first place (`500 millones`,
+`25 millioner kroner`, `10,5 mio. kr.`).
+
+Measured over every `funding_amount` string in the live database (4,178 current
+rows): **19 newly parse, 0 disagree with a stored figure**, and the 251 that
+stay NULL are euros, pounds, reais, rupees, yen and bare `millones` - exactly
+the population the rule exists for. The 19 include a Turkish `200 milyon dolar`,
+an Arabic `700 مليون دولار`, a Korean `5.5억 달러`, an Italian
+`210,9 milioni di dollari` and a Dutch `113 miljoen dollar`.
+
+### 2. The free gate could not read the billion-scale register
+
+`pipeline/prefilter` was built from seed-and-Series-A copy and reads that
+register fluently. Four real headlines of these three rounds failed it outright:
+Bloomberg's `OpenAI Valued at $852 Billion After Completing $122 Billion Round`
+(a bare "$X Billion Round" is not "funding round"), L'Usine Digitale's
+`Anthropic lève 65 milliards de dollars` (the pack had the noun "levée de fonds"
+and not the verb a French headline writes), qz.de's `Anthropic sammelt 65
+Milliarden Dollar ein` (the participle "eingesammelt" and not the separable verb
+in its present tense), and XenoSpectrum's `650億ドル調達` (`資金調達` cannot
+reach it, because a Japanese headline glues the scale word, the currency and the
+verb into one run). So did the whole class whose only money noun is a VALUATION.
+
+Every addition is anchored to a stated amount or a funding noun, the discipline
+the Czech and Danish blocks already keep. Two regex facts are load-bearing and
+are written into the file because they are silent when got wrong: this tuple
+compiles inside `\b(?:...)\b`, so an alternative that ENDS in `[\d.,]+` can never
+match `$71M` (the boundary lands between the digit and the M) and one that
+BEGINS with `[\$€£₹]` can never match at all (a space and a `$` are both
+non-word characters). `secures? ...[\d.,]+` above has the first defect and was
+left alone - fixing it is its own measurement.
+
+**The Series-letter ceiling** was the sharpest and the cheapest. Every Series
+pattern in prefilter stopped at E or F while `cheap_extract._STAGE` has always
+read `series\s+[a-k]`, so the two halves of the pipeline disagreed about what a
+funding stage is and the round that exposed it was a Series H. They are the same
+class now - English, Portuguese and Czech - and because these alternatives
+compile into one expression over every language at once, that is also what lets
+the French "série H" through. `source_registry.GOOGLE_NEWS_QUERIES` ran to
+Series C and now runs to H, and a test pins prefilter and cheap_extract to each
+other so they cannot drift apart again.
+
+**Precision, measured rather than asserted**, on the committed gate ledger
+(`data/gate_labels/labels-2026-08.jsonl`, 6,975 candidates the paid gate
+actually judged). The new terms match 44 of them and the gate said YES to 40:
+**90.9% against a 46.8% corpus base rate**. Two of the four NOs are funding
+stories the gate arguably got wrong (a Rivian spinout at $2bn, a Bezos startup
+at $41bn), one is a layoff story the sibling owns and one is a tax-policy
+headline. That ledger cannot show NEW admissions - everything in it already
+passed the old prefilter - and this entry does not claim otherwise; a live
+unfiltered sweep would cost a fetch budget this pass did not have.
+
+`評価額` (valuation) was considered for the CJK block and left OUT: the Japanese
+headline already passes on `億ドル調達`, so it would have added a
+three-character substring with real appraisal-context ambiguity and recovered
+nothing measured.
+
+### 3. Dedup collapsed two rounds into one, and kept the weaker
+
+`dedupe.fuzzy_duplicate` matched on employer + pillar + a 14-day window with no
+look at the amount. That is right for a leadership change and wrong for funding
+in 2026: run against the live database, a correctly-quantified
+`OpenAI raises $110 billion at $730 billion valuation` dated 2026-02-24 is
+suppressed by `OpenAI capta 93.175 millones`, published three days later, whose
+amount never parsed. The survivor of that pair is the row that states no dollars
+at all, and it is the only OpenAI funding row on the live site.
+
+A window row that makes a DIFFERENT amount claim is no longer a same-event
+match; it falls through to the near-identical-headline test, which still
+collapses an outlet rewrite. Where neither row states a parsed figure - every
+leadership row, every acquisition - the rule is exactly what it always was, so
+the blast radius is funding only. The asymmetry is the argument: **a false merge
+is silent and permanent, a false split is a visible duplicate a correction can
+join.** That is the rule `funding_event_duplicate` already states, applied one
+layer later.
+
+And `funding_event_duplicate`'s own window ran back 21 days from `date.today()`,
+which made the whole cheap layer dead code for anything discovered late - and
+late is the norm: google_news's median discovery lag over 2,795 current rows is
+130 days, with only 17.9% inside three days. It is anchored on the candidate's
+own `published_date` now, which is what its docstring always claimed.
+
+### 4. A gate that ERRORED was counted as a rejection
+
+On 2026-08-03 the gate errored on **4,849 of 5,656 calls (85.7%)** between 13:11Z
+and 21:17Z, against 0.0% on each of the two preceding days. Every collector
+reported an ordinary run, because a wall of errors and a wall of NOs are the
+same number in `rejected`. All three copies of Anthropic's Series H arrived in
+that window and none survived it.
+
+`run_collect` counts them apart now, as `gate_errored`, and a run whose gate
+errored on more than 20% of its candidates reports `degraded` with the reason.
+The ceiling is deliberately lower than the throttle one: a throttle is the
+provider saying "later", an error is the provider saying nothing at all. The
+URLs were never marked seen, then or now, so they retry on the next healthy run.
+
+### 5. A rejection that names no rule cannot be triaged
+
+269 candidates carry `validate_reject` in the August shard and not one of them
+names the rule that refused it, so triaging any one meant re-fetching and
+re-running - which, for the single Spanish copy of the OpenAI close, the only
+copy of that round this pipeline ever saw, made the loss unattributable from
+stored state. `gate_ledger.outcome()` takes an optional `reason` now
+(whitespace-collapsed, 240 characters), `run_collect` passes `str(exc)` on the
+validate and gate-error paths, and `data/gate_labels/README.md` documents it as
+optional because every line written before today lacks it.
+
+### What this does NOT fix, and it is the biggest one
+
+**15 rows worth $874.2bn sit in `publish_guardrails` with `state='open'` and
+`reviewed_at NULL`, and `publish.py` withholds every one of them from the live
+site.** Anthropic $30bn (open since 2026-08-01, re-seen 169 times), Anthropic
+$13bn, OpenAI $100bn, xAI $20bn, Waymo $16bn, DeepSeek $7.4bn and more. Every
+unpublished current row in the 28,625-row database is above the derived
+threshold and zero rows below it are unpublished, so this is systematic rather
+than incidental: `derive_amount_threshold` fits a log-normal to a corpus whose
+median raise is ~$8M, and in the AI mega-round era "genuinely enormous" and
+"parse error" are the same signal to it.
+
+**That was deliberately left alone by this pass**, and the reason matters. The
+guard is not wrong - Arch $539bn really is a misread ("surpasses $539 billion in
+private market ASSETS") and Turkish Airlines $100bn really is a $2bn story - so
+raising the threshold would publish the wrong ones with the right ones, and
+auto-accepting is weakening a number guard, which is the one thing this repo
+does not trade for recall. It needs a corroboration rule (an amount two
+independent source_names state, or one the employer's own newsroom states) plus
+a human draining the queue, and both are a session's call rather than an agent's.
+**Note that fixes 1 and 2 above will push MORE correctly-parsed mega-rounds into
+that queue, not fewer.** Recall is now ahead of publication, and publication is
+the next thing to fix.
+
+### Numbers
+
+Same corpus before and after, offline, no model call, $0 spent:
+
+| | before | after |
+|---|---|---|
+| prefilter keeps, 22 real megaround headlines | 13 | **22** |
+| amount parser correct, 14 stated-in-words strings | 3 | **14** |
+| must-refuse strings still refusing | 17/17 | **17/17** |
+| off-topic control still rejected | 5/6 | **5/6** |
+| live DB `funding_amount` strings newly parsed | - | **19 of 4,178, 0 disagreements** |
+| offline test suite | 3,069 passing | **3,140 passing** |
+
+The one control leak is `Government bond auction raises 65 billion in new debt`,
+which passes on `raises` and did before this change too. The three pre-existing
+`test_audit_publishers` failures are unrelated to this work and were red on
+`a77d4a2` before it.
+
+`tests/test_megaround_recall.py` is 71 tests; **29 of them fail on the commit
+before this one.** Files touched: `pipeline/vocab.py`, `pipeline/prefilter.py`,
+`pipeline/dedupe.py`, `pipeline/gate_ledger.py`, `run_collect.py`,
+`source_registry.py`, `data/gate_labels/README.md`. No plugin file, no deploy.
+
+---
+
 ## 2026-08-03 - the owner-approved batch of four: RSS per view, watchlist, card/table toggle, CRM export presets
 
 One version bump, four reader-facing features, no data change and no model call.

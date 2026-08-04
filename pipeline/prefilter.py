@@ -65,13 +65,81 @@ _EMPLOYMENT_TERMS = (
 #
 # A raise is a hiring signal: it is the money that pays for the roles. That is
 # why it is a pillar, and why the page headline says "who is raising money".
+#
+# --- THE BILLION-SCALE GAP, measured 2026-08-04 ------------------------------
+#
+# This pack was built from seed-and-Series-A copy and it reads that register
+# fluently. It could not read the register the three largest private rounds of
+# 2026 were reported in, and the loss was total for four of their real
+# headlines:
+#
+#   'OpenAI Valued at $852 Billion After Completing $122 Billion Round'
+#       -- Bloomberg. A bare "$X Billion Round" is not "funding round".
+#   'Anthropic lève 65 milliards de dollars en série H'
+#       -- L'Usine Digitale. The pack had the NOUN "levée de fonds" and not the
+#          VERB "lève", which is what a French headline actually writes.
+#   'Anthropic sammelt 65 Milliarden Dollar ein'
+#       -- the separable verb in its present tense; the pack had only the
+#          participle "eingesammelt".
+#   'Anthropic、650億ドル調達で評価額9,650億ドルに到達'
+#       -- _EMPLOYMENT_TERMS_CJK had 資金調達 and not 億ドル調達.
+#
+# and for the whole class of headline whose only money noun is a VALUATION:
+# 'Anthropic hits $965 billion valuation', 'alcanza una valoración de 965.000
+# millones', 'erreicht 840 Milliarden Dollar Bewertung'.
+#
+# Every addition below is anchored to a stated amount or to a funding noun, the
+# discipline the Czech and Danish blocks already keep: bare "valuation" is every
+# market-cap column ever written, and bare "lève" lifts a weight.
+#
+# THE SERIES-LETTER CEILING is the sharpest one and the cheapest to fix. Every
+# Series pattern in this file stopped at E or F while pipeline/cheap_extract.py
+# `_STAGE` has always read `series\s+[a-k]`, so the two halves of the pipeline
+# disagreed about what a funding stage is, and the round that exposed it was a
+# Series H. They are the same class now. Raising the ceiling is what lets the
+# French "série H" through as well, since these alternatives compile into one
+# expression over every language at once.
 _FUNDING_TERMS = (
-    r"rais(?:e[sd]?|ing)", r"series [a-e]\b", r"seed (?:funding|round)",
+    r"rais(?:e[sd]?|ing)", r"series [a-k]\b", r"seed (?:funding|round)",
     r"pre-?seed", r"funding round", r"secures? (?:\$|€|£|₹|us\$)?[\d.,]+",
     r"private placement", r"venture round", r"led the round",
+    r"(?:post|pre)-?money", r"tender offer", r"secondary (?:share )?sale",
+    # An amount at scale, followed by the noun that makes it a raise. This is
+    # the Bloomberg shape, and TWO details of it are load-bearing.
+    #
+    # It ends on a WORD, because an alternative ending in `[\d.,]+` can never
+    # match "$71M" at all: the trailing \b this tuple is compiled inside lands
+    # between the digit and the M and fails, and backtracking cannot save it.
+    # (`secures? ...[\d.,]+` above has exactly that defect. Left alone here
+    # because fixing it is a separate measurement.)
+    #
+    # And it STARTS on the digits with the currency symbol optional, because
+    # the LEADING \b cannot fire in front of a '$' either -- a space and a '$'
+    # are both non-word characters, so an alternative beginning `[\$€£₹]` is
+    # unreachable in every string that writes the symbol after a space, which
+    # is all of them.
+    r"(?:[\$€£₹]\s?)?[\d.,]+\s*(?:billion|trillion|million|bn|tn|m)\s+"
+    r"(?:round|raise|financing|funding)",
+    # A valuation, in either order, and only ever beside a figure at scale.
+    # "$122,000 valuation" has no scale word and does not reach this.
+    r"valu(?:ed|ation)\s+(?:at|of)\s+(?:about |around |nearly |over |more than )?"
+    r"[\$€£₹]?\s?[\d.,]+\s*(?:billion|trillion|million|bn|tn)",
+    r"(?:[\$€£₹]\s?)?[\d.,]+\s*(?:billion|trillion|million|bn|tn)\s+valuation",
     # German, French, Spanish, Portuguese, Italian, Dutch
     r"finanzierungsrunde", r"eingesammelt", r"kapitalrunde",
     r"lev\w*e de fonds", r"tour de table",
+    # French: the verb, anchored to what is being raised.
+    r"l[èe]ve\s+(?:\S+\s+){0,3}?(?:millions?|milliards?)",
+    r"valorisation de\s+(?:\S+\s+){0,3}?(?:millions?|milliards?)",
+    # German: the separable verb in its present tense, and a valuation in
+    # either order. "sammelt" alone collects donations; the scale word and the
+    # trailing "ein" are what make it a round.
+    r"sammelt\s+(?:\S+\s+){0,4}?(?:millionen|milliarden|mio\.?|mrd\.?)\w*"
+    r"(?:\s+\S+){0,3}?\s+ein\b",
+    r"bewertung von\s+(?:\S+\s+){0,3}?(?:millionen|milliarden|mio\.?|mrd\.?)",
+    r"(?:millionen|milliarden|mio\.?|mrd\.?)\w*\s+(?:\S+\s+){0,2}?bewertung",
+    # Spanish
+    r"valoraci\w*n de\s+(?:\S+\s+){0,3}?(?:millon\w*|mil millones)",
     # `financia\w+` and not `financiaci\w*n`: Latin American business copy
     # writes "ronda de financiamiento" (El Economista, El CEO, iProUP) where
     # Spain writes "financiación", and the narrower stem silently dropped the
@@ -178,7 +246,7 @@ _EMPLOYMENT_TERMS_INTL = (
     r"empregos?", r"funcion\w*rios?", r"contrat\w+", r"vagas?", r"quadro de pessoal",
     r"presidente-executivo", r"diretor-?geral", r"demiss\w+", r"sal\w*rios?",
     r"rodada de investimento", r"aportes?", r"aportou", r"capta\w*ão", r"captou",
-    r"levantou", r"s\w*rie [a-f]\b", r"pr\w*-seed", r"investimento semente",
+    r"levantou", r"s\w*rie [a-k]\b", r"pr\w*-seed", r"investimento semente",
     # Italian
     r"posti di lavoro", r"dipendenti", r"assunzion\w+", r"assumer\w+", r"organico",
     r"amministratore delegato", r"dimission\w+", r"stipend\w+",
@@ -246,7 +314,7 @@ _EMPLOYMENT_TERMS_INTL = (
     r"od investorů", r"investic\w+\s+(?:ve výši|za|od)",
     r"vstoupil\w*\s+do\s+(?:firmy|startupu|společnosti)",
     r"kolo financování", r"investiční kolo", r"rizikový kapitál",
-    r"seed(?:ov\w+)?\s+(?:kolo|investic\w+)", r"série [a-e]\b",
+    r"seed(?:ov\w+)?\s+(?:kolo|investic\w+)", r"série [a-k]\b",
     # Danish. "rejser" and "henter" are the two verbs a Danish funding
     # headline actually uses, and both are ordinary words on their own
     # ("travels", "collects"), so each is anchored to what is being raised.
@@ -526,14 +594,20 @@ _EMPLOYMENT_TERMS_INTL = (
 # be unambiguous — the risk \b guards against ("RIF" inside "tariff") does not
 # arise for 社長に就任 or تعيين رئيس تنفيذي.
 _EMPLOYMENT_TERMS_CJK = (
-    # Japanese
+    # Japanese. 億ドル調達 and 億円調達 added 2026-08-04: a Japanese headline
+    # writes the scale word, the currency and the verb as one run
+    # ("650億ドル調達"), so 資金調達 -- which is the noun, with 資金 in front --
+    # cannot reach it. Both are long enough to be unambiguous, which is the
+    # test this whole block is matched on.
     "社長", "就任", "退任", "採用", "求人", "従業員", "人員", "新拠点",
-    "資金調達", "シリーズA", "シードラウンド", "賃上げ", "給与",
+    "資金調達", "億ドル調達", "億円調達", "万ドル調達", "億ドルを調達",
+    "シリーズA", "シードラウンド", "賃上げ", "給与",
     # Korean
     "대표이사", "선임", "사임", "채용", "인력", "직원", "사무소",
-    "투자 유치", "시리즈 A", "시드 투자", "임금",
+    "투자 유치", "억 달러 투자", "억달러 투자", "시리즈 A", "시드 투자", "임금",
     # Chinese
     "首席执行官", "总裁", "任命", "辞职", "招聘", "员工", "融资", "轮融资",
+    "亿美元融资", "亿美元投资",
     # Arabic
     "الرئيس التنفيذي", "تعيين", "استقالة", "توظيف", "وظائف", "موظف",
     "جولة تمويل", "تمويل", "رواتب",
@@ -946,7 +1020,7 @@ _IN_SCOPE_SUBJECT_TERMS = (
     r"steps? down", r"resign\w*", r"succeeds?", r"promot\w+",
     r"new (?:ceo|chief executive|cfo|cto)",
     # Money
-    r"rais(?:e[sd]?|ing)", r"funding round", r"series [a-e]\b",
+    r"rais(?:e[sd]?|ing)", r"funding round", r"series [a-k]\b",
     r"secures? (?:\$|€|£|₹)?[\d.,]+", r"invest(?:s|ment|ing)\b",
     # Pay
     r"pay ris\w+", r"pay increase", r"salar\w+ (?:increase|rise)",
