@@ -29,7 +29,12 @@ on:
       source:
         description: 'Collector to run'
         type: choice
-        options: [google_news, gdelt, sec_edgar, sec_form_d]
+        # primary_chase is dispatch-only and never in the scheduled sweep: its
+        # population is a hand-made list of URLs, so a cron would re-fetch
+        # documents that have already been read. It is here so the run can be
+        # QUEUED through drain-writers like every other database writer, rather
+        # than dispatched past a pending run and evicted.
+        options: [google_news, gdelt, sec_edgar, sec_form_d, primary_chase]
         default: google_news
       limit:
         description: 'Cap candidates sent to the LLM (blank = no cap)'

@@ -590,6 +590,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "GDELT DOC 2.0": "gdelt",
     "Google News RSS": "google_news",
     "Employer job boards (Greenhouse, Lever, Ashby)": "ats_boards",
+    "Employer newsrooms (announcements read at the source)": "primary_chase",
     "UK gender pay gap service": "uk_paygap",
     "SEC executive compensation disclosures": "sec_execcomp",
     "National and regional tech press": "national_press",
@@ -716,6 +717,34 @@ SOURCES = (
                  "when they are filled, withdrawn or reposted, so only growth is "
                  "published. SmartRecruiters was dropped in July 2026 because "
                  "its API robots.txt disallows every agent but LinkedIn's."),
+
+    # Added 2026-08-04, the same day its first rows stored, because this page
+    # names EXACTLY the live collectors and a collector holding rows that
+    # resolves to no source is the failure the both-directions test exists to
+    # catch. It is listed as a source and not excused as a chase (unlike
+    # tripwire_chase and benchmark_chase) for one reason: those two chase a
+    # pointer to somebody ELSE's article and cite the publisher, while this one
+    # cites the document it read, and that document is the employer's own.
+    #
+    # HONEST LIMIT, and it is the whole shape of this source: the list of
+    # documents is assembled BY HAND. Nothing here discovers a round. It is
+    # what a session runs when a measurement says a named event is missing, and
+    # it should never be scheduled, because a standing list of URLs re-fetched
+    # twice a day is a list of documents that have already been read.
+    Source("Employer newsrooms (announcements read at the source)",
+           "https://www.anthropic.com/news", "live",
+           "Employer publications", ("Funding", "Hiring", "Leadership change"),
+           "Global, per employer",
+           notes="The employer's own announcement, read as the document rather "
+                 "than through anybody's rewrite: the figure, the date and the "
+                 "round's name all come off the company's post. Free, and "
+                 "usually free of a model too, because a newsroom headline "
+                 "states the round outright and the deterministic extractor "
+                 "closes it for nothing. Two honest limits. The list of "
+                 "documents is hand-assembled from what a recall measurement "
+                 "says we are missing, so this source finds nothing on its own. "
+                 "And a company writing about itself is a self-report, so rows "
+                 "are reported and never verified, exactly like a news story."),
 
     # These three were LIVE and collecting while this page listed five sources.
     # The project rule is that this page names EXACTLY the live collectors, and

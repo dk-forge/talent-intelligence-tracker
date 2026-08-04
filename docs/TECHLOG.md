@@ -177,6 +177,112 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-04 - the three biggest private rounds of 2026, recovered from the primary document (1.68.0, pushed, NOT deployed)
+
+The owner measured a recall failure that outranks every open item: OpenAI held
+eight rows and none of them was the March 2026 close; Anthropic held one row and
+neither the February round nor the May Series H was in it. The diagnosis found
+the same shape three times over: **every one of those rounds was discovered, in
+several languages, and then died downstream** - the Yahoo copies host-blocked as
+aggregators, the Hebrew and Spanish copies lost to an eight-hour gate outage on
+2026-08-03, the German ones deferred unread when the month's allowance ran out.
+
+Two things came out of fixing it, and the second is the larger one.
+
+### 1. Nothing had ever read the announcement
+
+Every copy we ever saw was a rewrite. `anthropic.com/news` and `openai.com` are
+in nobody's feed list, so the document the rewrites were rewriting had never
+been fetched by anything in this pipeline. `collectors/tripwire_chase.py` chases
+a lead to *a publisher's* article; `collectors/primary_chase.py` chases it one
+rung further, to *the primary document*.
+
+Same discipline, stated in the module: the work list carries a URL and nothing
+else that reaches the database. No amount, no date, no company, no headline.
+Every field is read out of the document, and the item then goes through the
+identical `prefilter -> precheck -> extract -> validate -> dedupe -> store`
+path with every guard that implies. A work list that names a round the document
+does not state stores nothing.
+
+It cost **$0.00**, and that is not luck. A newsroom headline is written to state
+the round - "Anthropic raises $65B in Series H funding at $965B post-money
+valuation" IS the record - so `pipeline/cheap_extract.py` closed all four leads
+deterministically and no model was called at all. The run was made with
+`TIT_PAID_READS=off` so that claim is enforced and not merely observed.
+
+    found=4  stored=2  duplicate=2  rejected=0  deferred=0
+    deterministic: 4 closed with no model call
+
+Stored: Anthropic $65,000,000,000 (Series H, 2026-05-28, anthropic.com) and
+OpenAI $122,000,000,000 (2026-03-31, openai.com). Both figures match the
+employer's own wording exactly. The other two leads were the February Series G
+and the September 2025 Series F, which dedup correctly recognised as rounds we
+already hold - that is the guard working, and it is why they were in the list.
+
+`openai.com` answers 403 to every non-interactive client, so that lead carries
+`archive_fallback` and the collector reads the Internet Archive's copy of the
+same URL. The **cited** source stays the publisher's own permalink, because the
+archive served the document and did not publish it; the archived copy is
+recorded as `discovery_url`. This is the relationship `archive_sources.py`
+already maintains from the other direction.
+
+### 2. The rounds were not missing from the DATABASE. They were missing from the SITE
+
+Anthropic's $30bn was in the database, correct and complete, and had never been
+published - along with $874.2bn of other rows. `pipeline/guardrails.py` derives
+its amount ceiling from the corpus's own log-normal fit, currently
+**$6,229,521,923**, and the corpus median raise is ~$8M. In the AI mega-round
+era that means "genuinely enormous" and "parse error" are the same signal to it,
+so the check quarantines the correct answers at the same rate as the wrong ones,
+and the rows it silently withholds are exactly the ones a funding tracker exists
+to hold. Every one of the 15 unpublished rows in a 28,625-row database was a
+mega-raise. Not one had ever been reviewed; the oldest had been re-seen 229
+times over five days.
+
+**The guard was not wrong. `open` had become a terminal state because nothing
+drained it.** Four findings were answered against the employer's own
+announcement, which is the evidence that distinguishes a real mega-round from a
+mis-parse:
+
+    accepted  Anthropic  $65,000,000,000   anthropic.com/news/series-h
+    accepted  OpenAI    $122,000,000,000   openai.com/index/accelerating-the-next-phase-ai/
+    accepted  Anthropic  $30,000,000,000   the Series G announcement corroborates the stored row
+    accepted  Anthropic  $13,000,000,000   the Series F announcement corroborates the stored row
+
+And one was answered the other way, which is the reason blanket-accepting the
+queue would have been wrong:
+
+    rejected  OpenAI    $100,000,000,000   "closes in on" / "is nearing" (CNBC, 9 Feb)
+
+That is the SAME round, reported in progress seven weeks before it closed at
+$122bn. Publishing it would have put two different sizes for one round on the
+page. It was never published, so nothing needs retracting; it stays quarantined
+with the reasoning recorded. The queue still holds eight open findings and at
+least one of them is plainly wrong - Turkish Airlines' "100 billion lira ($2.3
+billion)" parsed as $100bn - which is the evidence that this queue must be
+answered row by row and never in bulk.
+
+**The standing defect this leaves.** A review queue with no human on it is a
+check silently converted into a delete, and nothing here fixed that. The two
+follow-ups, in order: make `ops_status.py` exit 2 on any amount finding open
+past 48h, naming the row and the figure; and let a figure corroborated by two
+independent sources at the same amount auto-accept, leaving human review for
+singly-sourced outliers. Do NOT simply raise the threshold - that publishes
+Arch's $539bn, which is a private-market ASSETS figure read as a raise.
+
+### The source page, same session
+
+`primary_chase` stored rows, so it is a live source and is named as one:
+"Employer newsrooms (announcements read at the source)". It is listed rather
+than excused as a chase (unlike `tripwire_chase` and `benchmark_chase`) because
+those cite somebody else's article and this one cites the document it read. Its
+honest limit is on the page: the URL list is assembled BY HAND from what a
+recall measurement says is missing, so this source discovers nothing on its own,
+and it must never be scheduled - a standing list of URLs re-fetched twice a day
+is a list of documents that have already been read.
+
+---
+
 ## 2026-08-03 - the owner-approved batch of four: RSS per view, watchlist, card/table toggle, CRM export presets
 
 One version bump, four reader-facing features, no data change and no model call.

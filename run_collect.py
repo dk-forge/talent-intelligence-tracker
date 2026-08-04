@@ -18,7 +18,8 @@ from datetime import date
 import source_registry as registry
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         czechia_ares, edinet_japan, estonia_ariregister, gdelt,
-                        google_news, national_press, opendart_korea, sec_edgar,
+                        google_news, national_press, opendart_korea,
+                        primary_chase, sec_edgar,
                         sec_execcomp, sec_form_d, spain_borme, tripwire_chase,
                         uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
@@ -94,6 +95,11 @@ SOURCES = {
     # and is never cited or named. Its log carries counts only, never a name.
     # Entry point is run_benchmark_diff.py; see collectors/benchmark_chase.py.
     "benchmark_chase": benchmark_chase,
+    # Dormant: nothing schedules it, and nothing should. It reads a hand-made
+    # list of URLs and stores what the EMPLOYER'S OWN announcement (or the
+    # regulator's own filing) says, so the list is a place to look and never
+    # a fact. See collectors/primary_chase.py.
+    "primary_chase": primary_chase,
 }
 
 RUNS_PER_DAY = 2
@@ -114,10 +120,9 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
         # Precise phrases plus `when:` recency. The old broad sweep returned
         # political job-creation stories with no employer in them.
         return list(registry.GOOGLE_NEWS_QUERIES)
-    if source in ("tripwire_chase", "benchmark_chase"):
-        # These two have no search vocabulary: the tripwire's work list and
-        # the benchmark diff ARE the population, one targeted query per lead,
-        # built from the employer's name inside the collector.
+    if source in ("tripwire_chase", "benchmark_chase", "primary_chase"):
+        # These three have no search vocabulary: the tripwire's work list, the
+        # benchmark diff and the primary-chase URL list ARE the population.
         return []
 
     base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
@@ -428,6 +433,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             print(f"[{collector}] searching SEC filings")
         elif source == "tripwire_chase":
             print(f"[{collector}] one targeted query per lead, from the work list")
+        elif source == "primary_chase":
+            print(f"[{collector}] one primary document per lead, from the work list")
         elif source == "benchmark_chase":
             print(f"[{collector}] one targeted query per lead, from the diff")
         else:

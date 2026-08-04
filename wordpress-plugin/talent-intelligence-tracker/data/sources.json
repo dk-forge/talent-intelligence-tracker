@@ -114,6 +114,23 @@
   "collector": "ats_boards"
  },
  {
+  "name": "Employer newsrooms (announcements read at the source)",
+  "url": "https://www.anthropic.com/news",
+  "status": "live",
+  "category": "Employer publications",
+  "signals": [
+   "Funding",
+   "Hiring",
+   "Leadership change"
+  ],
+  "coverage": "Global, per employer",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "The employer's own announcement, read as the document rather than through anybody's rewrite: the figure, the date and the round's name all come off the company's post. Free, and usually free of a model too, because a newsroom headline states the round outright and the deterministic extractor closes it for nothing. Two honest limits. The list of documents is hand-assembled from what a recall measurement says we are missing, so this source finds nothing on its own. And a company writing about itself is a self-report, so rows are reported and never verified, exactly like a news story.",
+  "collector": "primary_chase"
+ },
+ {
   "name": "Estonian business register (Ariregister open data)",
   "url": "https://avaandmed.ariregister.rik.ee/en/downloading-open-data",
   "status": "live",
