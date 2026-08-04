@@ -1017,6 +1017,23 @@
   "collector": ""
  },
  {
+  "name": "Aviacionline",
+  "url": "https://www.aviacionline.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Argentina",
+  "rss": "https://www.aviacionline.com/rss",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. /feed and /feed/ return 404; the working feed is /rss. The homepage declares no rel alternate link, so this one was found by probing. robots.txt names a list of AI crawlers and disallows them by name; this collector is none of them and the wildcard group allows /rss, blocking only /_/, /search and /api. Aviation trade coverage across Latin America, which is why coverage is Regional and the outlet's base does not place a story.",
+  "collector": ""
+ },
+ {
   "name": "Axios",
   "url": "https://www.axios.com",
   "status": "candidate",
@@ -3703,6 +3720,23 @@
   "rss": "https://www.eleconomista.com.mx/rss/ultimas-noticias",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29.",
+  "collector": ""
+ },
+ {
+  "name": "El Ecosistema Startup",
+  "url": "https://ecosistemastartup.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Latin America (regional)",
+  "rss": "https://ecosistemastartup.com/feed/",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. Declared in the homepage head as the WordPress feed and confirmed live. robots.txt allows it and blocks only /wp-admin/. Coverage is Latin America wide rather than one country, so the row is Regional and the outlet's base does not place a story.",
   "collector": ""
  },
  {
@@ -7159,6 +7193,40 @@
   "collector": ""
  },
  {
+  "name": "Liputan6 (Bisnis)",
+  "url": "https://www.liputan6.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://feed.liputan6.com/rss/bisnis",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. The publisher serves no feed on its own paths; the homepage head declares twelve section feeds on feed.liputan6.com and this is the business one. robots.txt on the main host allows it, and the feed host serves no robots.txt at all, which is the standard reading of no restriction.",
+  "collector": ""
+ },
+ {
+  "name": "Liputan6 (News)",
+  "url": "https://www.liputan6.com",
+  "status": "candidate",
+  "category": "Technology News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://feed.liputan6.com/rss/news",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. The general news section of the same declared feed set as the row above. The gold miss that named this publisher was a state company leadership change, which lands here as often as in the business section.",
+  "collector": ""
+ },
+ {
   "name": "Listin Diario",
   "url": "https://listindiario.com",
   "status": "candidate",
@@ -7712,6 +7780,23 @@
   "rss": "https://www.midi-madagasikara.mg/feed/",
   "free": true,
   "notes": "Verified by the 2026-07-30 publisher widening: a second outlet for Madagascar, so the country is not a single point of failure.",
+  "collector": ""
+ },
+ {
+  "name": "Mining Weekly",
+  "url": "https://www.miningweekly.com",
+  "status": "candidate",
+  "category": "Trade Publication",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "South Africa",
+  "rss": "https://www.miningweekly.com/page/international-home/feed",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. /feed, /rss, /rss.xml, /atom.xml, /index.xml, /page/rss, /rss/topstories and /breaking_news_rss all 404. The publisher's own /page/rss-feed page links the working path used here. robots.txt disallows only paginated listing pages, search, print versions and the login page, so this path is allowed. Coverage is Regional because the international feed carries mining across Africa and beyond.",
   "collector": ""
  },
  {
@@ -8765,6 +8850,23 @@
   "rss": "https://www.obj.ca/feed/",
   "free": true,
   "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero.",
+  "collector": ""
+ },
+ {
+  "name": "Parkiet",
+  "url": "https://www.parkiet.com",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Poland",
+  "rss": "https://www.parkiet.com/rss_main",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. Declared in the homepage head as rel alternate, at a path no common probe would have found. The wire carries ESPI current reports, which is exactly the filing route the gold miss came through. robots.txt allows it and blocks only print, preview and search templates.",
   "collector": ""
  },
  {
@@ -10477,6 +10579,23 @@
   "rss": "https://startupi.com.br/feed/",
   "free": true,
   "notes": "Verified by the americas region audit, 2026-07-29. LIVE. verified live",
+  "collector": ""
+ },
+ {
+  "name": "Startups Latam",
+  "url": "https://startupslatam.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "Regional",
+  "country": "Latin America (regional)",
+  "rss": "https://startupslatam.com/feed/",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. Declared in the homepage head as the WordPress feed. The host serves no robots.txt (404 from nginx), which is the standard reading of no restriction. Regional coverage across Latin America, so the outlet's base does not place a story.",
   "collector": ""
  },
  {
@@ -12955,6 +13074,23 @@
   "collector": ""
  },
  {
+  "name": "Youngster.id",
+  "url": "https://youngster.id",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Indonesia",
+  "rss": "https://youngster.id/feed/",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. Declared in the homepage head as the WordPress feed. robots.txt allows everything except one plugin JSON file and points at a sitemap index.",
+  "collector": ""
+ },
+ {
   "name": "YourStory",
   "url": "https://yourstory.com",
   "status": "candidate",
@@ -12985,6 +13121,40 @@
   "rss": "https://zambianbusinesstimes.com/feed/",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. Business desk.",
+  "collector": ""
+ },
+ {
+  "name": "Ziarul BURSA",
+  "url": "https://www.bursa.ro",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Romania",
+  "rss": "https://www.bursa.ro/titluri-bursa.xml",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. /feed, /feed/, /rss.xml, /atom.xml, /feed/rss and /index.xml all 404, and /rss answers 200 with an HTML page rather than XML. That page is the publisher's own RSS index and it links the two real feeds, which redirect to /_rss/. This row is the general wire. robots.txt allows both and blocks only internal directories.",
+  "collector": ""
+ },
+ {
+  "name": "Ziarul BURSA (Piata de Capital)",
+  "url": "https://www.bursa.ro",
+  "status": "candidate",
+  "category": "Business News",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion"
+  ],
+  "coverage": "National",
+  "country": "Romania",
+  "rss": "https://www.bursa.ro/piata-capital-bursa.xml",
+  "free": true,
+  "notes": "Wired by the rejection audit follow up, 2026-08-04. The capital market section feed listed on the publisher's own /rss index page, alongside the general wire in the row above. It is a thin section feed by design, so a low item count here is the section and not a breakage.",
   "collector": ""
  },
  {

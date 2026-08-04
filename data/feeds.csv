@@ -9,6 +9,7 @@ Algeria,Maghreb Emergent,https://maghrebemergent.news/fr/feed/,rss,French,Nation
 Algeria,TSA (Tout Sur l'Algerie),https://www.tsa-algerie.com/feed/,rss,French,National,https://www.tsa-algerie.com
 Antigua and Barbuda,Antigua Observer,https://antiguaobserver.com/feed/,rss,English,National,https://antiguaobserver.com
 Argentina,Ambito Financiero,https://www.ambito.com/rss/pages/economia.xml,rss,Spanish,National,https://www.ambito.com
+Argentina,Aviacionline,https://www.aviacionline.com/rss,rss,Spanish,Regional,https://www.aviacionline.com
 Argentina,Clarin Economia,https://www.clarin.com/rss/economia/,rss,Spanish,National,https://www.clarin.com
 Argentina,Infobae,https://www.infobae.com/arc/outboundfeeds/rss/,rss,Spanish,National,https://www.infobae.com
 Argentina,iProUP,https://www.iproup.com/rss/home,rss,Spanish,National,https://www.iproup.com
@@ -254,6 +255,9 @@ Indonesia,DailySocial,https://dailysocial.id/feed,rss,English,National,https://d
 Indonesia,Detik Finance,https://finance.detik.com/rss,rss,Indonesian,National,https://finance.detik.com
 Indonesia,Katadata,https://katadata.co.id/rss,rss,Indonesian,National,https://katadata.co.id
 Indonesia,Kontan (Investasi),https://investasi.kontan.co.id/rss,rss,Indonesian,National,https://investasi.kontan.co.id
+Indonesia,Liputan6 (Bisnis),https://feed.liputan6.com/rss/bisnis,rss,Indonesian,National,https://www.liputan6.com
+Indonesia,Liputan6 (News),https://feed.liputan6.com/rss/news,rss,Indonesian,National,https://www.liputan6.com
+Indonesia,Youngster.id,https://youngster.id/feed/,rss,Indonesian,National,https://youngster.id
 Iran,Islamic Republic News Agency (IRNA),https://en.irna.ir/rss,rss,English,National,https://en.irna.ir
 Iran,ISNA,https://en.isna.ir/rss,rss,English,National,https://en.isna.ir
 Iran,Mehr News Agency,https://en.mehrnews.com/rss,rss,English,National,https://en.mehrnews.com
@@ -314,8 +318,10 @@ Kenya,The Standard (business),https://www.standardmedia.co.ke/rss/business.php,r
 Kosovo,Prishtina Insight,https://www.prishtinainsight.com/feed/,rss,English,National,https://www.prishtinainsight.com
 Laos,Laotian Times,https://laotiantimes.com/feed/,rss,English,National,https://laotiantimes.com
 Latin America (regional),Bloomberg Linea,https://www.bloomberglinea.com/arc/outboundfeeds/rss/?outputType=xml,rss,Spanish,National,https://www.bloomberglinea.com
+Latin America (regional),El Ecosistema Startup,https://ecosistemastartup.com/feed/,rss,Spanish,Regional,https://ecosistemastartup.com
 Latin America (regional),iupana,https://iupana.com/feed/,rss,Spanish,National,https://iupana.com
 Latin America (regional),LatamList,https://latamlist.com/feed/,rss,English,Regional,https://latamlist.com
+Latin America (regional),Startups Latam,https://startupslatam.com/feed/,rss,Spanish,Regional,https://startupslatam.com
 Latvia,Dienas Bizness,https://www.db.lv/rss,rss,Latvian,National,https://db.lv
 Latvia,LSM (Latvian Public Media),https://www.lsm.lv/rss/,rss,Latvian,National,https://www.lsm.lv
 Latvia,TVNET,https://www.tvnet.lv/rss,rss,Latvian,National,https://www.tvnet.lv
@@ -461,6 +467,7 @@ Philippines,Rappler,https://www.rappler.com/feed/,rss,English,National,https://w
 Poland,Bankier.pl,https://www.bankier.pl/rss/wiadomosci.xml,rss,Polish,National,https://www.bankier.pl
 Poland,ITwiz,https://itwiz.pl/feed/,rss,Polish,National,https://itwiz.pl
 Poland,MamStartup,https://mamstartup.pl/feed/,rss,Polish,National,https://mamstartup.pl
+Poland,Parkiet,https://www.parkiet.com/rss_main,rss,Polish,National,https://www.parkiet.com
 Poland,Puls Biznesu,https://www.pb.pl/rss/najnowsze.xml,rss,Polish,National,https://www.pb.pl
 Portugal,ECO,https://eco.sapo.pt/feed/,rss,Portuguese,National,https://eco.sapo.pt
 Portugal,Jornal de Negocios,https://www.jornaldenegocios.pt/rss,rss,Portuguese,National,https://www.jornaldenegocios.pt
@@ -477,6 +484,8 @@ Republic of the Congo,Les Depeches de Brazzaville,https://www.adiac-congo.com/rs
 Romania,Economedia,https://economedia.ro/feed/,rss,Romanian,National,https://economedia.ro
 Romania,Profit.ro,https://www.profit.ro/rss,rss,Romanian,National,https://www.profit.ro
 Romania,start-up.ro,https://start-up.ro/feed/,rss,Romanian,National,https://start-up.ro
+Romania,Ziarul BURSA,https://www.bursa.ro/titluri-bursa.xml,rss,Romanian,National,https://www.bursa.ro
+Romania,Ziarul BURSA (Piata de Capital),https://www.bursa.ro/piata-capital-bursa.xml,rss,Romanian,National,https://www.bursa.ro
 Romania,Ziarul Financiar,https://www.zf.ro/rss,rss,Romanian,National,https://www.zf.ro
 Rwanda,KT Press,https://www.ktpress.rw/feed/,rss,English,National,https://www.ktpress.rw
 Saint Lucia,St Lucia Times,https://stluciatimes.com/feed/,rss,English,National,https://stluciatimes.com
@@ -517,6 +526,7 @@ South Africa,Daily Maverick,https://www.dailymaverick.co.za/rss,rss,English,Nati
 South Africa,Disrupt Africa,https://disruptafrica.com/feed/,rss,English,Regional,https://disruptafrica.com
 South Africa,Financial Afrik,https://financialafrik.com/feed/,rss,French,National,https://financialafrik.com
 South Africa,ITWeb,https://www.itweb.co.za/rss,rss,English,National,https://www.itweb.co.za
+South Africa,Mining Weekly,https://www.miningweekly.com/page/international-home/feed,rss,English,Regional,https://www.miningweekly.com
 South Africa,Moneyweb,https://www.moneyweb.co.za/feed/,rss,English,National,https://www.moneyweb.co.za
 South Africa,Stuff South Africa,https://stuff.co.za/feed/,rss,English,National,https://stuff.co.za
 South Africa,TechCentral,https://techcentral.co.za/feed/,rss,English,National,https://techcentral.co.za

@@ -177,6 +177,54 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-04 - the thirteen publishers the rejection audit named: eight wired, five refused in writing
+
+`tests/test_audit_publishers.py` had been red on main for six commits. It names
+the publishers in the audit's two ACTIONABLE buckets and demands, per publisher,
+either a feed we fetched or a dated refusal carrying what was tried. Thirteen
+domains had neither.
+
+Every one was probed through the collector's own `fetch`, with its own
+User-Agent, honouring robots.txt: `/feed`, `/feed/`, `/rss`, `/rss/`,
+`/rss.xml`, `/atom.xml`, `/feed/rss`, `/index.xml`, `/feeds/posts/default`,
+`/sitemap.xml`, plus every `rel="alternate"` link in the homepage head, plus
+publisher-specific guesses where those failed.
+
+**Eight wired (10 feed rows), all fetched and counted at the moment of wiring:**
+Aviacionline `/rss` (20 items), Ziarul BURSA `titluri-bursa.xml` (23) and
+`piata-capital-bursa.xml` (2), El Ecosistema Startup `/feed/` (10), Liputan6
+`feed.liputan6.com/rss/bisnis` and `/rss/news` (25 each), Mining Weekly
+`/page/international-home/feed` (8), Parkiet `/rss_main` (20), Startups Latam
+`/feed/` (10), Youngster.id `/feed/` (10).
+
+Three of those would never have been found by path probing. Parkiet and
+Liputan6 declare feeds only in the homepage head (Liputan6's live on a separate
+`feed.` host), and Mining Weekly's is linked from the publisher's own
+`/page/rss-feed` page under a path that looks nothing like a feed. Parkiet's
+wire carries ESPI current reports, which is the exact filing route the gold miss
+came through.
+
+**Five refused, with the probe list and status codes in `notes`:**
+Commersant.ge and ShareSansar publish no feed at all (every path 404; ShareSansar
+serves its full site template on a 404, so none of them is a soft redirect
+hiding one). Commercial Times serves an object-store `/rss/` prefix where every
+key 404s as `NoSuchKey`. Muscat Daily is WordPress with feeds switched OFF: five
+paths and all seven menu-linked category feeds answer 200 and redirect to HTML.
+Renewable Carbon News is an **outage** verdict and says so: every path including
+the homepage returned 500 with `Error establishing a database connection`, so a
+later session should recheck rather than conclude there is nothing there.
+
+The distinction matters more than the count. "No feed" is finished work; "the
+site was down when I looked" is not, and a note that blurs the two is how the
+same fifteen paths get probed a third time.
+
+Nothing was weakened to close this: the test is unchanged, no name was dropped
+from the audit, and the two refusals that could have been quietly wired (a news
+sitemap for Commersant.ge, an HTML parse for ShareSansar) are written up as
+`NEEDS HTML PARSING` instead of pretending a sitemap is a feed.
+
+---
+
 ## 2026-08-04 - the three biggest private rounds of 2026, recovered from the primary document (1.68.0, pushed, NOT deployed)
 
 The owner measured a recall failure that outranks every open item: OpenAI held
