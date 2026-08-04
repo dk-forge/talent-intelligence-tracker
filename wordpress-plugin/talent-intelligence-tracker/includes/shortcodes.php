@@ -818,7 +818,11 @@ function tit_dashboard_html() {
           looks broken. Replacing always narrows, never contradicts, and the
           chips bar names whichever one is applied.
         */
-        $tit_regions = tit_regions($counts_by_country);
+        // $total is the view's own row count, the one the hero prints and the
+        // one the World tab's request returns. World carries no country filter,
+        // so its badge has to be that, not the sum of a country map that skips
+        // every row with no geography.
+        $tit_regions = tit_regions($counts_by_country, $total);
         $tit_top = tit_top_countries($counts_by_country);
         ?>
         <div class="tit-places">
@@ -4521,7 +4525,7 @@ function tit_flag($cc) {
     return mb_chr(127397 + ord($cc[0]), 'UTF-8') . mb_chr(127397 + ord($cc[1]), 'UTF-8');
 }
 
-function tit_regions(array $counts) {
+function tit_regions(array $counts, $view_total) {
     /*
       ONE taxonomy, exhaustive and non-overlapping.
 
@@ -4571,11 +4575,27 @@ function tit_regions(array $counts) {
                         . 'AS,GU,MP,NF,PN,UM,AQ,BV,HM,TF'),
     );
 
-    $total = array_sum(array_map('intval', $counts));
+    /*
+      EVERY BADGE IS THE COUNT ITS OWN TAB RETURNS.
+
+      World's badge was the sum of the country map, which is grouped under
+      `COALESCE(country, hq_country) IS NOT NULL` and therefore skips every row
+      we hold no geography for. But the World tab sends NO country parameter, so
+      it returns those rows too. The badge said 23,991 and the tab returned
+      25,479, on the default view, three inches under a hero printing 25,479.
+
+      So World takes the view's own total, the same figure the hero and the
+      detail control print, and it is passed in rather than summed here: this
+      function cannot see the rows the map left out, and a number it cannot
+      derive is a number it must be handed. Every other region is a list of
+      codes, and its badge stays the sum over that list, which is exactly what
+      sending the list to /query returns.
+    */
+    $view_total = (int) $view_total;
     $out = array();
     foreach ($defs as [$name, $codes]) {
         if ($codes === '') {
-            $out[] = array('name' => $name, 'codes' => '', 'n' => $total);
+            $out[] = array('name' => $name, 'codes' => '', 'n' => $view_total);
             continue;
         }
         $n = 0;
