@@ -136,7 +136,13 @@ _NORMALISE = (
 #: stuck with the host up". A permanently red watchdog cannot report an outage.
 #: Any caller composing a key by hand rather than through `slug()` must assert
 #: against this.
-KEY_SAFE = re.compile(r"^[a-z0-9][a-z0-9:._-]{0,159}$")
+#:
+#: ONE DEFINITION, and it is the queue's. A second copy of this pattern is a
+#: second thing to keep in step with the PHP, and the failure mode of a copy
+#: that drifts is exactly the one above: a key that passes here and 400s there.
+#: `alert_outbox.enqueue_envelope` is what ENFORCES it, because the queue is
+#: what must never accept a key it can do nothing with but retry forever.
+from alert_outbox import KEY_SAFE  # noqa: E402,F401  stdlib-only, no cycle
 
 
 def slug(text: str, limit: int = 48) -> str:

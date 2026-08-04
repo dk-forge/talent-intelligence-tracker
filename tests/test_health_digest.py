@@ -141,37 +141,72 @@ class TestStalenessBoundary(unittest.TestCase):
         root = Path(health_digest.__file__).parent
         for module in ("ops_status.py", "staleness.py"):
             tree = ast.parse((root / module).read_text())
+            # MODULE SCOPE MEANS tree.body, NOT ast.walk.
+            #
+            # This used to walk the whole tree, so it saw every import in every
+            # function body — the exact imports that are deferred BECAUSE of this
+            # promise. The allowlist below had therefore been growing into an
+            # appeasement list, one entry per deferred import, and on 2026-08-04
+            # it went red on `published_figures` and `urllib` for no better
+            # reason than that nobody had appended them yet. Neither is a
+            # module-scope import: ops_status.py:94 and :120 defer both, inside
+            # _report_published_figures(), precisely so this file still imports
+            # before any venv exists. The promise was never broken. The check was
+            # measuring something its own docstring does not claim.
             top_level_imports = {
                 name.name.split(".")[0]
-                for node in ast.walk(tree)
+                for node in tree.body
                 if isinstance(node, ast.Import)
                 for name in node.names
             } | {
                 (node.module or "").split(".")[0]
-                for node in ast.walk(tree)
+                for node in tree.body
                 if isinstance(node, ast.ImportFrom) and node.level == 0
             }
-            third_party = top_level_imports - {
-                "sqlite3", "sys", "datetime", "pathlib", "annotations",
-                "__future__", "re", "unicodedata", "json", "subprocess",
-                "csv", "dataclasses", "math",
-                # ops_status reads spend.py's monthly allowance by PARSING it
-                # rather than importing it, because spend.py imports requests
-                # and this promise is the reason it may not.
-                "ast",
-                # Repo-local, themselves dependency-free at import time.
-                "source_registry", "staleness", "writer_queue",
-                "backfill_slices", "pipeline",
-                # analysis.landmarks (the landmark guard) and the matcher it
-                # borrows from analysis.recall are stdlib-only by design and
-                # pinned as such by tests/test_landmarks.py, which is what
-                # keeps this entry honest. ops_status recomputes the landmark
-                # check offline at session start, so it has to be importable
-                # before any venv exists.
-                "analysis",
-            }
+            # And the allowlist is a DEFINITION now, not a list. "Not
+            # third-party" means the standard library, which Python will tell us
+            # itself, plus the two repo-local modules that are proven
+            # dependency-free at import time. A repo-local module is not
+            # automatically safe here: anything else hoisted to module scope has
+            # to earn its place by being pinned stdlib-only first, and until then
+            # this fails, which is the point.
+            repo_local_and_dependency_free = {"source_registry", "staleness"}
+            third_party = top_level_imports - (
+                set(sys.stdlib_module_names) | repo_local_and_dependency_free)
             self.assertFalse(third_party,
                              f"{module} imports {third_party} at module scope")
+
+    def test_a_deferred_import_cannot_redden_the_import_promise(self):
+        """The guard is worth nothing if the way to keep it green is to append
+        the name of every import anyone ever defers. Written because that is
+        what was happening."""
+        import ast
+        import textwrap
+
+        tree = ast.parse(textwrap.dedent("""
+            import sqlite3
+            def later():
+                import requests
+                return requests
+        """))
+        at_module_scope = {n.name.split(".")[0] for node in tree.body
+                           if isinstance(node, ast.Import) for n in node.names}
+        walked = {n.name.split(".")[0] for node in ast.walk(tree)
+                  if isinstance(node, ast.Import) for n in node.names}
+        self.assertEqual(at_module_scope, {"sqlite3"})
+        # ast.walk, the mechanism this replaced, flags the deferred one.
+        self.assertIn("requests", walked)
+
+    def test_the_import_promise_still_catches_a_real_module_scope_import(self):
+        """The other half: relaxing the scope must not relax the rule."""
+        import ast
+
+        tree = ast.parse("import requests\nimport sqlite3\n")
+        at_module_scope = {n.name.split(".")[0] for node in tree.body
+                           if isinstance(node, ast.Import) for n in node.names}
+        offending = at_module_scope - (
+            set(sys.stdlib_module_names) | {"source_registry", "staleness"})
+        self.assertEqual(offending, {"requests"})
 
     def test_an_unreadable_timestamp_is_surfaced_not_swallowed(self):
         buckets = health_digest.classify(
