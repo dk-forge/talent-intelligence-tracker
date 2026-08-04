@@ -104,8 +104,86 @@ function tit_create_or_update_table() {
     dbDelta($sql);
 }
 
+/**
+ * DURABLE SHORT-LIVED STATE, DELIBERATELY NOT A TRANSIENT.
+ *
+ * `tit_flush_caches()` below deletes every `_transient_tit_%` row, and it runs
+ * on EVERY write route - four or more times a day in ordinary operation. That
+ * is right for cached DATA, whose whole purpose is to be thrown away when the
+ * data changes. It was catastrophic for the three things that had quietly moved
+ * into the same namespace and are not caches at all:
+ *
+ *   - `tit_export_rl_<ip>`   the 20-exports-per-10-minutes throttle
+ *   - `tit_feed_rl_<ip>`     the 60-feed-builds-per-10-minutes throttle
+ *   - `tit_alert_<subject>`  the legacy three-day alert suppression
+ *
+ * A throttle that resets four times a day is not a throttle: the counter a
+ * caller has to stay under is wiped for them, on a schedule, by our own
+ * collectors. And the suppression window is what stops a persistent breakage
+ * mailing the owner on every single run, so wiping it turns one alert into a
+ * daily one, which is precisely how a sender gets filtered - the same defect
+ * this repo keeps paying for at the other end of the same channel.
+ *
+ * OPTIONS, NOT RENAMED TRANSIENTS. Renaming out of the `tit_` prefix would fix
+ * the LIKE-delete and nothing else: `tit_flush_caches()` also calls
+ * `wp_cache_flush()`, and under a persistent object cache that drops every
+ * transient regardless of its name. An option survives both, which is exactly
+ * why `tit_ci_alert_state` was already built this way. Expiry is carried in the
+ * row rather than in a companion `_timeout_` option, so a value can never
+ * outlive its own clock.
+ *
+ * These are `autoload = no`: they are read on the routes that need them and
+ * must never join the autoload bundle loaded on every page view.
+ */
+define('TIT_EPHEMERAL_PREFIX', 'tit_eph_');
+
+/** Odds of sweeping expired rows on a write. ~1 in 50 keeps wp_options bounded
+ *  (the throttle keys are per-IP, so they accumulate) without putting a DELETE
+ *  on the hot path of every request. */
+define('TIT_EPHEMERAL_GC_ODDS', 50);
+
+function tit_ephemeral_get($name) {
+    $row = get_option(TIT_EPHEMERAL_PREFIX . $name, null);
+    if (!is_array($row) || !isset($row['x'], $row['v'])) return null;
+    if ((int) $row['x'] <= time()) {
+        // Expired. Delete on read so a key nobody writes again cannot linger.
+        delete_option(TIT_EPHEMERAL_PREFIX . $name);
+        return null;
+    }
+    return $row['v'];
+}
+
+function tit_ephemeral_set($name, $value, $ttl) {
+    update_option(TIT_EPHEMERAL_PREFIX . $name,
+                  array('v' => $value, 'x' => time() + max(1, (int) $ttl)), false);
+    if (function_exists('wp_rand')
+        ? wp_rand(1, TIT_EPHEMERAL_GC_ODDS) === 1
+        : mt_rand(1, TIT_EPHEMERAL_GC_ODDS) === 1) {
+        tit_ephemeral_gc();
+    }
+}
+
+/** Drop rows whose clock has run out. Bounded per sweep so one call can never
+ *  become a long-running DELETE on somebody's page view. */
+function tit_ephemeral_gc($limit = 200) {
+    global $wpdb;
+    $like = $wpdb->esc_like(TIT_EPHEMERAL_PREFIX) . '%';
+    $names = $wpdb->get_col($wpdb->prepare(
+        "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT %d",
+        $like, (int) $limit));
+    foreach ((array) $names as $option_name) {
+        $row = get_option($option_name, null);
+        if (!is_array($row) || !isset($row['x']) || (int) $row['x'] <= time()) {
+            delete_option($option_name);
+        }
+    }
+}
+
 function tit_flush_caches() {
     global $wpdb;
+    // `_transient_tit_%` ONLY, and that is a boundary, not an implementation
+    // detail. Anything that must survive a write lives under
+    // TIT_EPHEMERAL_PREFIX as an option and is untouched here by construction.
     $wpdb->query(
         "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_tit_%'
          OR option_name LIKE '_transient_timeout_tit_%'"

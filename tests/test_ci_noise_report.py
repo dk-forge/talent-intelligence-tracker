@@ -10,10 +10,14 @@ signal, and above all that a quiet week sends NOTHING.
 from __future__ import annotations
 
 import io
+import re
 from contextlib import redirect_stdout
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
+import ci_alert
 import ci_noise_report as cnr
+import host_watch
 
 NOW = datetime(2026, 8, 3, 13, 20, tzinfo=timezone.utc)
 SINCE = NOW - timedelta(days=7)
@@ -123,6 +127,77 @@ class TestCompose:
         _s, body, _k = cnr.compose(result, repo="dk-forge/x", days=7, now=NOW)
         assert "reported once, correctly" in body
         assert "1 repeat red(s)" in body
+
+
+def _endpoint_regex() -> str:
+    """The literal `tit_api_alert()` actually validates against, read from the
+    PHP source. Mirroring a regex in two languages is only safe if a test fails
+    when the two drift apart."""
+    php = (Path(__file__).resolve().parents[1] / "wordpress-plugin"
+           / "talent-intelligence-tracker" / "includes" / "api.php").read_text()
+    found = re.search(r"\$safe\s*=\s*'/\^(.*?)\$/';", php)
+    assert found, ("tit_api_alert() no longer declares $safe as a literal, so "
+                   "the Python mirror in ci_alert.KEY_SAFE is now unpinned")
+    return found.group(1)
+
+
+class TestTheKeyIsOneTheEndpointAccepts:
+    """A key the endpoint REJECTS is not a bad email, it is no email.
+
+    Measured here on 2026-08-03. `compose()` formatted the ISO week with
+    `%G-W%V` and minted `ci-noise:2026-W32`. `tit_api_alert()` validates both
+    `dedupe_key` and `resolve_scope` against `^[a-z0-9][a-z0-9:._-]{0,159}$`,
+    so the uppercase W came back HTTP 400 `bad dedupe_key` — a SETTLED failure
+    that no amount of retrying can clear. The report was held in
+    data/alert_outbox.json, retried 16 times, passed FAIL_LOUD_ATTEMPTS and
+    went `stuck`; host_watch.py then failed every tick from 2026-08-03T21:55Z
+    on "alerts are stuck with the host up", six consecutive red runs and
+    counting. A permanently red watchdog cannot report an outage, so one
+    uppercase character in a cache key disabled the outage alarm.
+
+    So the shape is pinned in three places at once: against the PHP literal,
+    across a whole year of week numbers, and for every other key composed by
+    hand rather than through `slug()`.
+    """
+
+    def test_the_python_mirror_matches_the_endpoint_literal(self):
+        assert ci_alert.KEY_SAFE.pattern.strip("^$") == _endpoint_regex()
+
+    def test_every_week_of_the_year_composes_an_accepted_key(self):
+        runs = [_run(i, "drain-writers", "failure") for i in (1, 2)]
+        result = cnr.classify(runs, {}, SINCE)
+        endpoint = re.compile("^" + _endpoint_regex() + "$")
+        for offset in range(0, 366, 7):
+            moment = NOW + timedelta(days=offset)
+            subject, _body, key = cnr.compose(
+                result, repo="dk-forge/talent-intelligence-tracker", days=7,
+                now=moment)
+            assert endpoint.match(key), f"rejected key on {moment.date()}: {key}"
+            assert ci_alert.KEY_SAFE.match(key)
+            # The subject quotes the same token, so the email in the inbox can
+            # be tied to the key in the endpoint's open-alert state.
+            assert key.split(":", 1)[1] in subject
+
+    def test_the_host_down_key_is_accepted_too(self):
+        """The same defect in the worse place: `since` is an ISO timestamp, so
+        the un-slugged key carried an uppercase `T` and a `+`. The one email
+        whose entire job is to arrive after the host comes back could not."""
+        doc = {"since": "2026-08-03T21:55:00+00:00", "consecutive_failures": 3,
+               "last_detail": "HTTP 504", "state": "down"}
+        summary = host_watch.outage_summary(doc, now=NOW)
+        assert ci_alert.KEY_SAFE.match(summary["dedupe_key"]), \
+            summary["dedupe_key"]
+        # Still one key per outage: a different outage must not be suppressed
+        # as a repeat of this one.
+        other = dict(doc, since="2026-08-04T07:10:00+00:00")
+        assert (host_watch.outage_summary(other, now=NOW)["dedupe_key"]
+                != summary["dedupe_key"])
+
+    def test_the_bug_itself_would_be_caught(self):
+        """Proof this test is able to fail."""
+        assert not ci_alert.KEY_SAFE.match("ci-noise:2026-W32")
+        assert not ci_alert.KEY_SAFE.match(
+            "host-unreachable:2026-08-03T21:55:00+00:00")
 
 
 class TestMain:

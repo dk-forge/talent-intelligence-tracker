@@ -285,7 +285,16 @@ def outage_summary(doc: dict, *, now: datetime) -> dict:
     since = doc.get("since", "unknown")
     return {
         "subject": f"HOST DOWN: asktherecruiter.com/blog stopped answering at {since}",
-        "dedupe_key": f"host-unreachable:{since}",
+        # SLUGGED, not interpolated. `since` is an ISO timestamp, so the
+        # obvious `f"host-unreachable:{since}"` mints
+        # `host-unreachable:2026-08-03T21:55:00+00:00` — an uppercase T and a
+        # `+`, both outside the endpoint's `^[a-z0-9][a-z0-9:._-]{0,159}$`.
+        # That is a settled 400: the record of the outage would be held,
+        # retried, and stuck, so the ONE email whose whole job is to arrive
+        # after the host comes back could never arrive at all. Same defect as
+        # the `%G-W%V` week token, in the worse place. Still one key per
+        # outage, because `since` is still what varies.
+        "dedupe_key": f"host-unreachable:{ci_alert.slug(since)}",
         "body": "\n".join([
             "The WordPress host that serves both trackers stopped answering.",
             "",

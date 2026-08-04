@@ -357,6 +357,40 @@ _with_gate_labels = gate_ledger.around_run(
     lambda kwargs: kwargs.get("source", "collect"))
 
 
+def run_outcome(*, observed: int, everything_rejected: bool,
+                mostly_throttled: bool, running_degraded: bool) -> tuple[bool, bool]:
+    """-> (health_is_degraded, the_run_failed). TWO QUESTIONS, TWO ANSWERS.
+
+    "Is the page as deep as usual?" is the health status. "Does a human need to
+    fix something?" is the exit code. These were ONE variable, and the
+    allowance degradation answered yes to both.
+
+    Measured 2026-08-03: BOTH scheduled `collect` runs and both `collect-press`
+    runs concluded FAILURE while every collector reported the designed
+    degradation and nothing was broken (`google_news` deferred 253 candidates,
+    `gdelt` 14, `sec_edgar` 3, at $9.94 of the $10 allowance). Four red runs a
+    day for the rest of the month is well over a hundred GitHub failure
+    notifications about a budget decision the owner made on purpose. Both
+    trackers already carry this rule in writing: an alarm that cries every day
+    is one you learn to filter, and a filtered alarm is the original silence in
+    a new hat. It would also have gone off in exactly the wrong month, because
+    the allowance is spent every month by design.
+
+    So `running_degraded` colours the HEALTH ROW and not the exit code. It is
+    the one condition here that is somebody's decision rather than somebody's
+    bug: the guard chose to defer paid reads, said so in the ledger, and the
+    free prefilter, deterministic extraction and both dedup layers ran exactly
+    as designed. Depth was rationed; coverage was not.
+
+    Every genuine failure keeps its red, including DURING a degraded month:
+    they are tested independently, so a degraded run that also read zero, or
+    that had everything rejected, or that was mostly throttled, is still a
+    broken collector and still exits non-zero.
+    """
+    failed = bool(observed == 0 or everything_rejected or mostly_throttled)
+    return failed or bool(running_degraded), failed
+
+
 @_with_gate_labels
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
@@ -924,8 +958,15 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # and a run that reads nothing is still degraded.
     observed = (getattr(module, "LAST_RUN", None) or {}).get("read")
     observed = found if observed is None else observed
-    broken = (observed == 0 or everything_rejected or mostly_throttled
-              or running_degraded)
+
+    # NOT named `verdict`: `run()` binds a local `verdict` for the per-candidate
+    # duplicate check a few hundred lines up, which shadows any module-level
+    # function of that name and turns this call into a TypeError at the very
+    # end of a run that has already spent its money.
+    broken, failed = run_outcome(observed=observed,
+                                 everything_rejected=everything_rejected,
+                                 mostly_throttled=mostly_throttled,
+                                 running_degraded=running_degraded)
 
     # The health row is also the spend ledger now. Every number printed above
     # is persisted with it, so drift shows up the next time anyone runs
@@ -976,7 +1017,13 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if everything_rejected:
         print(f"\n[{collector}] DEGRADED: {found} candidates, none stored, none duplicate.",
               file=sys.stderr)
-    return 1 if broken else 0
+    if running_degraded and not failed:
+        # Said on stdout, not stderr, and it exits 0: the run is a success that
+        # was rationed. ops_status and the health page still show `degraded`.
+        print(f"\n[{collector}] DEGRADED but not failed: the monthly allowance "
+              f"deferred {month_deferred} paid read(s). Everything free ran. "
+              "This is the budget guard working, so the run is green.")
+    return 1 if failed else 0
 
 
 # A news run stores a dozen rows and every one of them is worth reading. A

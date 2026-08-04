@@ -85,14 +85,23 @@ def test_a_busy_provider_is_deferred_not_rejected():
 
 
 def test_a_mostly_throttled_run_reports_degraded():
-    """Storing little because the provider was busy is not a quiet news day."""
+    """Storing little because the provider was busy is not a quiet news day.
+
+    Asserted on run_outcome() rather than on the text of run(): the two
+    questions "is the page shallower" and "does a human need to fix something"
+    were one variable until 2026-08-03 and are now separate, so the behaviour is
+    testable directly instead of by reading a boolean expression.
+    """
     import inspect
 
     import run_collect
 
     src = inspect.getsource(run_collect.run)
     assert "mostly_throttled" in src
-    assert "or mostly_throttled" in src
+    degraded, failed = run_collect.run_outcome(
+        observed=10, everything_rejected=False, mostly_throttled=True,
+        running_degraded=False)
+    assert degraded is True and failed is True
 
 
 def test_a_diff_shaped_collector_is_judged_on_what_it_read():
@@ -110,7 +119,10 @@ def test_a_diff_shaped_collector_is_judged_on_what_it_read():
     src = inspect.getsource(run_collect.run)
     assert 'getattr(module, "LAST_RUN", None)' in src
     assert "items_found=observed" in src
-    assert "broken = (observed == 0" in src
+    # Reading nothing is the real breakage, and it is red as well as degraded.
+    assert run_collect.run_outcome(
+        observed=0, everything_rejected=False, mostly_throttled=False,
+        running_degraded=False) == (True, True)
     # The collector's side of the contract.
     assert "read" in ats_boards.LAST_RUN
 
@@ -160,7 +172,9 @@ def test_a_genuine_wholesale_rejection_still_degrades():
     # Still requires nothing stored AND nothing duplicate, so a run whose
     # candidates DID reach the guards and were all rejected is unchanged.
     assert "and stored == 0 and duplicates == 0" in src
-    assert "or everything_rejected" in src
+    assert run_collect.run_outcome(
+        observed=10, everything_rejected=True, mostly_throttled=False,
+        running_degraded=False) == (True, True)
 
 
 def test_already_seen_is_visible_on_the_health_row():

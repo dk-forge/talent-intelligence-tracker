@@ -148,7 +148,59 @@ def test_a_degraded_run_is_not_reported_as_every_candidate_rejected():
     broken classifier over a budget decision the owner made."""
     src = inspect.getsource(run_collect.run)
     assert "and not running_degraded" in src
-    assert "running_degraded" in src.split("broken = (observed == 0", 1)[1][:200]
+    assert run_collect.run_outcome(observed=5, everything_rejected=False,
+                               mostly_throttled=False,
+                               running_degraded=True)[0] is True
+
+
+# --- degrading is a SUCCESS, and the exit code has to say so ------------------
+#
+# Measured 2026-08-03: collect runs 30793331965 and 30842395879 and both
+# collect-press runs concluded FAILURE with every collector printing its
+# designed degradation and nothing broken. `broken` drove the health status and
+# the exit code at once, so "the page is shallower than usual" and "a human
+# must fix something" were the same bit. They are two questions now.
+
+def test_a_purely_degraded_run_is_green():
+    """The whole point. Four red runs a day for the rest of the month over a
+    budget decision is how the owner learns to filter this sender, and the next
+    genuine breakage arrives in a folder nobody opens."""
+    degraded, failed = run_collect.run_outcome(
+        observed=253, everything_rejected=False, mostly_throttled=False,
+        running_degraded=True)
+    assert failed is False, "a rationed run is a success"
+    assert degraded is True, "but it is NOT 'ok': the page is shallower"
+
+
+def test_a_healthy_run_is_green_and_not_degraded():
+    assert run_collect.run_outcome(observed=40, everything_rejected=False,
+                               mostly_throttled=False,
+                               running_degraded=False) == (False, False)
+
+
+@pytest.mark.parametrize("breakage", ["observed", "everything_rejected",
+                                      "mostly_throttled"])
+@pytest.mark.parametrize("degraded_month", [False, True])
+def test_a_genuine_collector_failure_stays_red(breakage, degraded_month):
+    """Including during a degraded month. A month whose allowance is spent is
+    exactly when a real breakage is easiest to wave through, so each genuine
+    condition is tested on its own rather than under the degradation."""
+    kwargs = dict(observed=10, everything_rejected=False,
+                  mostly_throttled=False, running_degraded=degraded_month)
+    kwargs[breakage] = 0 if breakage == "observed" else True
+    degraded, failed = run_collect.run_outcome(**kwargs)
+    assert failed is True, breakage
+    assert degraded is True
+
+
+def test_the_exit_code_is_driven_by_failed_and_the_health_row_by_broken():
+    """A regression here is invisible in behaviour tests of `verdict` alone:
+    `run` could compute the split correctly and then still `return 1 if broken`.
+    """
+    src = inspect.getsource(run_collect.run)
+    assert "return 1 if failed else 0" in src
+    assert "return 1 if broken else 0" not in src
+    assert 'status="degraded" if broken else "ok"' in src
 
 
 def test_a_degraded_run_says_so_in_the_ledger_and_the_log():

@@ -124,6 +124,21 @@ _NORMALISE = (
 )
 
 
+#: The EXACT shape `talent/v1/alert` accepts for `dedupe_key` and
+#: `resolve_scope`, mirrored from `tit_api_alert()` in
+#: wordpress-plugin/.../includes/api.php (`$safe = '/^[a-z0-9][a-z0-9:._-]{0,159}$/'`).
+#: Lowercase only, and the endpoint answers a settled 400 for anything else.
+#:
+#: This lives here because a key the endpoint rejects is not a bad email, it is
+#: NO email. `ci_noise_report.py` composed its week with `%G-W%V`, minted
+#: `ci-noise:2026-W32`, took a 400 sixteen times, went `stuck` in the outbox,
+#: and host-watch then failed EVERY tick from 2026-08-03T21:55Z on "alerts are
+#: stuck with the host up". A permanently red watchdog cannot report an outage.
+#: Any caller composing a key by hand rather than through `slug()` must assert
+#: against this.
+KEY_SAFE = re.compile(r"^[a-z0-9][a-z0-9:._-]{0,159}$")
+
+
 def slug(text: str, limit: int = 48) -> str:
     """A stable, key-safe scope fragment. Two different workflows must never
     collide here — a collision would silence a real, separate breakage."""

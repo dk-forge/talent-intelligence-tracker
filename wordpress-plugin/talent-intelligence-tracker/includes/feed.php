@@ -132,10 +132,15 @@ function tit_feed_rows(WP_REST_Request $req) {
 function tit_feed_over_cap() {
     $ip = isset($_SERVER['REMOTE_ADDR'])
         ? preg_replace('/[^0-9a-f:.]/i', '', (string) $_SERVER['REMOTE_ADDR']) : '0';
-    $key = 'tit_feed_rl_' . md5($ip);
-    $n = (int) get_transient($key);
+    // An OPTION, via tit_ephemeral_* in db.php. As a transient this counter was
+    // swept by tit_flush_caches() on every write - the one thing a rate limit
+    // must not be, since our own collectors were resetting it several times a
+    // day for whoever was polling.
+    if (!function_exists('tit_ephemeral_get')) return false;  // FTP race: fail open
+    $key = 'feed_rl_' . md5($ip);
+    $n = (int) tit_ephemeral_get($key);
     if ($n >= 60) return true;
-    set_transient($key, $n + 1, 10 * MINUTE_IN_SECONDS);
+    tit_ephemeral_set($key, $n + 1, 10 * MINUTE_IN_SECONDS);
     return false;
 }
 

@@ -1018,8 +1018,20 @@ function tit_api_alert(WP_REST_Request $req) {
     // ---- LEGACY: suppress by subject for three days ----------------------
     // A breakage that persists would otherwise mail on every run until it is
     // fixed, and an alert that arrives weekly forever gets filtered.
-    $seen = 'tit_alert_' . md5($subject);
-    if (get_transient($seen)) {
+    // An OPTION, via tit_ephemeral_* in db.php, for the same reason
+    // `tit_ci_alert_state` above is one. As a transient this key matched
+    // `_transient_tit_%`, so tit_flush_caches() wiped it on every write route:
+    // the three-day window collapsed to "until the next collector run", and a
+    // persistent breakage mailed the owner several times a day. An alarm that
+    // mails several times a day is one you learn to filter, and a filtered
+    // alarm is the original silence in a new hat - which is the whole reason
+    // this endpoint's keyed path dedupes by cause. The legacy path was quietly
+    // undoing that for every caller still on it (health_digest.py,
+    // link_check.py, process_tips.py).
+    // FTP race: fail OPEN, so the alert goes out. A duplicate email costs the
+    // owner a second read; a swallowed one costs the thing this route exists for.
+    $seen = 'alert_' . md5($subject);
+    if (function_exists('tit_ephemeral_get') && tit_ephemeral_get($seen)) {
         return rest_ensure_response(array(
             'ok' => true, 'sent' => false,
             'reason' => 'suppressed, the same alert went out within three days',
@@ -1028,8 +1040,8 @@ function tit_api_alert(WP_REST_Request $req) {
 
     $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
                     wp_strip_all_tags($message));
-    if ($sent) {
-        set_transient($seen, 1, 3 * DAY_IN_SECONDS);
+    if ($sent && function_exists('tit_ephemeral_set')) {
+        tit_ephemeral_set($seen, 1, 3 * DAY_IN_SECONDS);
     }
     return rest_ensure_response(array('ok' => (bool) $sent, 'sent' => (bool) $sent));
 }
