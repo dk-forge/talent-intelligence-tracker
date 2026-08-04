@@ -13,6 +13,7 @@ Answers two questions with measurements rather than estimates:
     python ab_models.py                 # gate comparison across candidates
     python ab_models.py --readthrough   # quality comparison on survivors only
     python ab_models.py --extraction    # the REAL schema, field by field
+    python ab_models.py --cache-check   # does the extraction prefix REALLY cache?
 
 WHY --extraction EXISTS (2026-07-30)
 ------------------------------------
@@ -27,7 +28,9 @@ can take on arithmetic alone:
 
 The gate comparison above cannot decide this. It asks a one-word question on a
 deliberately reduced prompt, and extraction is twenty structured fields off the
-real 2,754-token `classify.SCHEMA_HINT`. A model can be an excellent gate and a
+real ~2,500-token extraction prefix (`classify.extract_stable_prefix()`;
+11,016 measured characters, 2,509 tokens at the repo's 4.39 chars/token
+calibration). A model can be an excellent gate and a
 poor extractor, so this mode sends the PRODUCTION prompt and scores field by
 field against the incumbent — because a cheaper model that quietly loses the
 country on a fifth of records would show up as a saving and read as a coverage
@@ -347,18 +350,163 @@ def _same_value(a, b) -> bool:
     return str(a or "").strip().lower() == str(b or "").strip().lower()
 
 
+# --- Does the extraction prefix ACTUALLY cache on this slug? ------------------
+#
+# The two-call procedure, executable rather than remembered. A cache_control
+# flag or a provider-order tweak that "should" cache is worth exactly nothing
+# until the provider's own usage accounting says tokens were served from cache
+# — the ledger holds 27 priced runs on `deepseek/deepseek-chat` with
+# cached_tokens = 0 on every one, which is what "no endpoint prices a cache
+# read" looks like from the billing side.
+#
+# So: send the PRODUCTION extraction prompt (the byte-stable prefix, then one
+# fixed item) twice, a few seconds apart, and read back what OpenRouter says it
+# billed. Three verdicts, and absence of a signal is never a pass:
+#
+#   CACHED      exit 0   call 2 reports cached_tokens >= the 1,024-token floor
+#   NOT CACHED  exit 2   usage came back and says no tokens were cached
+#   UNKNOWN     exit 3   the probe could not check (402, network, no usage) —
+#                        top the key up and re-run; do not treat this as a pass
+
+#: Gemini 2.5 models cache implicitly from a 1,024-token prefix; Sonnet 5's
+#: explicit floor is the same figure. The extraction prefix is ~2,509 modelled
+#: tokens, so a verdict below this floor is a miss, not a rounding error.
+CACHE_FLOOR_TOKENS = 1024
+
+#: Seconds between the two probe calls. Implicit caches populate on the first
+#: request; the gap only needs to outlast request pipelining.
+PROBE_GAP_SECONDS = 5
+
+#: Byte-stable on purpose: a probe item that changed between sessions would
+#: make two sessions' billed numbers incomparable. Synthetic, so no real
+#: company's row is ever created from a probe.
+CACHE_CHECK_ITEM = (
+    "Published by: Example Wire\n\n"
+    "Example Robotics raises $25M Series B led by Example Capital. "
+    "The Munich-based warehouse-automation firm said the round will fund its "
+    "expansion into France and the Netherlands. The company employs 140 "
+    "people and plans to open a Paris engineering office in 2027."
+)
+
+
+def _cached_tokens(usage: dict | None) -> int:
+    details = (usage or {}).get("prompt_tokens_details") or {}
+    try:
+        return int(details.get("cached_tokens") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def cache_verdict(first: dict | None, second: dict | None) -> tuple[str, int]:
+    """(verdict, exit code) from the two calls' billed usage.
+
+    PASS / FAIL / UNKNOWN are three distinct states. A probe that could not
+    read billed tokens has checked nothing, and nothing is not a pass.
+    """
+    if not first or not second or not second.get("prompt_tokens"):
+        return "UNKNOWN", 3
+    if _cached_tokens(second) >= CACHE_FLOOR_TOKENS:
+        return "CACHED", 0
+    return "NOT CACHED", 2
+
+
+def _cache_probe(model: str, key: str) -> tuple[dict, str, str]:
+    """One production-shaped extraction call. Returns (usage, provider, error).
+
+    Its own request rather than `call()` because the verdict needs OpenRouter's
+    usage accounting (`usage: {include: true}`) and the serving provider — a
+    prefix cache is per provider, so two calls that scattered across providers
+    explain their own miss.
+    """
+    from pipeline import classify
+
+    body = {
+        "model": model,
+        "temperature": 0,
+        "messages": [
+            {"role": "system", "content": classify.MINI_SYSTEM},
+            {"role": "user",
+             "content": f"{classify.SCHEMA_HINT}\n\n---\n{CACHE_CHECK_ITEM}"},
+        ],
+        "usage": {"include": True},
+    }
+    if not model.startswith("anthropic/"):
+        body["response_format"] = {"type": "json_object"}
+        body["provider"] = {"require_parameters": True}
+    try:
+        resp = requests.post(
+            ENDPOINT,
+            headers={"Authorization": f"Bearer {key}",
+                     "Content-Type": "application/json",
+                     "User-Agent": USER_AGENT},
+            json=body,
+            timeout=90,
+        )
+    except requests.RequestException as exc:
+        return {}, "", f"network: {exc}"
+    if resp.status_code >= 400:
+        return {}, "", f"HTTP {resp.status_code}: {resp.text[:160]}"
+    try:
+        payload = resp.json()
+    except ValueError as exc:
+        return {}, "", f"unparseable response: {exc}"
+    provider = payload.get("provider") or ""
+    return payload.get("usage") or {}, str(provider), ""
+
+
+def run_cache_check(key: str, model: str) -> int:
+    print(f"Two identical PRODUCTION extraction calls to {model}, "
+          f"{PROBE_GAP_SECONDS}s apart.")
+    print("The verdict is read from OpenRouter's billed usage, never assumed.\n")
+
+    results = []
+    for n in (1, 2):
+        usage, provider, err = _cache_probe(model, key)
+        if err:
+            print(f"  call {n}: FAILED — {err}")
+            print("\nVERDICT: UNKNOWN — this probe could not check. A run that")
+            print("could not check is not a pass. If the failure is HTTP 402,")
+            print("top up the OpenRouter key and re-run this exact command.")
+            return 3
+        results.append(usage)
+        print(f"  call {n}: provider={provider or '?':16} "
+              f"prompt_tokens={usage.get('prompt_tokens', '?'):>6} "
+              f"cached_tokens={_cached_tokens(usage):>6} "
+              f"completion={usage.get('completion_tokens', '?'):>5} "
+              f"cost=${float(usage.get('cost') or 0):.6f}")
+        if n == 1:
+            time.sleep(PROBE_GAP_SECONDS)
+
+    verdict, code = cache_verdict(results[0], results[1])
+    print(f"\nVERDICT: {verdict} (floor {CACHE_FLOOR_TOKENS} cached tokens on "
+          f"call 2; the prefix is ~2,509 modelled tokens)")
+    if verdict == "NOT CACHED":
+        print("If the two providers above differ, the miss may be routing")
+        print("scatter rather than a slug that cannot cache — re-run once")
+        print("before concluding. Record BOTH calls' numbers either way.")
+    return code
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="A/B candidate models on real headlines.")
     parser.add_argument("--readthrough", action="store_true",
                         help="compare read-through quality instead of gate verdicts")
     parser.add_argument("--extraction", action="store_true",
                         help="compare the REAL extraction schema, field by field")
+    parser.add_argument("--cache-check", nargs="?", const="google/gemini-2.5-flash-lite",
+                        default=None, metavar="MODEL",
+                        help="send the production extraction prompt twice and report "
+                             "the BILLED cached tokens (default probe: "
+                             "google/gemini-2.5-flash-lite)")
     args = parser.parse_args()
 
     key = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
     if not key:
         print("OPENROUTER_API_KEY is not set", file=sys.stderr)
         return 1
+
+    if args.cache_check:
+        return run_cache_check(key, args.cache_check)
 
     headlines = load_headlines()
     print(f"{len(headlines)} real headlines from live runs")

@@ -469,6 +469,23 @@ A weak read-through is worse than none. Compare:
 """
 
 
+def extract_stable_prefix() -> str:
+    """Everything byte-identical on every extraction call, for the caching
+    arithmetic: MINI_SYSTEM plus SCHEMA_HINT, the same pair `classify()` puts
+    on the wire (the system message, then the head of the user message, with
+    the per-item text LAST).
+
+    Exposed for the same reason as `prompts.stable_prefix`: so the token
+    claims elsewhere are measured against the prompt that actually ships
+    rather than remembered. `cost_projection.EXTRACT_PREFIX` and the
+    `ab_models.py --cache-check` probe both rest on this text, and a test
+    pins their agreement — the previous constant (2,754 tokens) had drifted
+    9.8% above what the prompt really holds, and nothing could catch it
+    because nothing measured the live text.
+    """
+    return MINI_SYSTEM + SCHEMA_HINT
+
+
 # Statuses that say "not now", never "no".
 TRANSIENT_STATUS = frozenset({408, 425, 429, 500, 502, 503, 504})
 RETRIES = 4

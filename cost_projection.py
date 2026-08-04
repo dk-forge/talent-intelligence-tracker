@@ -90,9 +90,15 @@ FREE_CLOSE_ON_FUNDING = 0.332
 # reports how far the resulting model sits from what the provider actually
 # charged, and every projection below is scaled by that factor.
 GATE_IN, GATE_OUT = 504, 2          # system 217 + item; one word back
-EXTRACT_IN, EXTRACT_OUT = 3100, 254  # prefix 2,754 of the input, byte-stable
+EXTRACT_IN, EXTRACT_OUT = 3100, 254  # prefix 2,509 of the input, byte-stable
 READ_IN, READ_OUT = 550, 90          # the small prompt, one or two sentences
-EXTRACT_PREFIX = 2754                # what a cache would serve, if one existed
+# What a cache would serve, if one existed: len(classify.extract_stable_prefix())
+# = 11,016 characters / 4.39 = 2,509 tokens. The previous value here (2,754)
+# was 9.8% above what the prompt actually holds and nothing supported it — it
+# quietly flattered every cached-extraction row below by ~$0.57/month. A test
+# (tests/test_preamble_cache_exit.py) now pins this constant to the live
+# prefix, so it moves when the prompt does and never on its own.
+EXTRACT_PREFIX = 2509
 
 MODELS = {
     "gate": os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite"),

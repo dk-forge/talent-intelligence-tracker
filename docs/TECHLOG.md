@@ -13,6 +13,66 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-04 - the preamble exit: instrumented and priced honestly, NOT taken (key exhausted)
+
+**The waste, measured.** Every extraction call re-sends the same byte-stable
+preamble — `MINI_SYSTEM` + `SCHEMA_HINT`, 11,016 characters, 2,509 tokens at
+the repo's 4.39 chars/token calibration (SCHEMA_HINT alone is 2,478) — as
+FRESH input on `deepseek/deepseek-chat`, a slug where no OpenRouter endpoint
+prices a cache read. The ledger agrees from the billing side: the last 27
+priced runs report `cached_tokens = 0` on 7,918,361 prompt tokens. At full
+coverage that preamble is ~$16.4/month of the $54.20 unconditional bill
+(30%), all MODELLED numbers labelled as such.
+
+**The exit `cost_projection.py` prices** is extraction on
+`google/gemini-2.5-flash-lite` (already trusted as the gate): extract line
+$27.23 -> $4.78/month, total conditional bill $33.18 -> $10.73. Decomposed:
+the model swap alone (uncached) is $27.23 -> $10.62; the prefix cache
+engaging (flash-lite bills cache reads at $0.010/M) is the remaining
+$10.62 -> $4.78. **Neither part is claimable without the swap** — on the
+incumbent slug caching is worth exactly $0, re-verified in the snapshot.
+
+**Why it was NOT taken today.** Two proofs are owed and both need live calls,
+and the OpenRouter key is exhausted ($26.81 lifetime against a $20 cap — every
+call 402s):
+
+1. **Extraction quality.** `ab_models.py --extraction` (built 2026-07-30 for
+   exactly this decision) has never been run. A cheaper model that quietly
+   loses `country` on a fifth of records is a coverage regression sold as a
+   saving. The bar: read every `company`/`country` disagreement against the
+   incumbent, per the tool's own output.
+2. **The cache actually engaging.** A cache_control flag or a routed provider
+   that "should" cache is worth nothing until billed tokens say so. New:
+   `ab_models.py --cache-check [slug]` sends the PRODUCTION extraction prompt
+   twice, 5s apart, and prints both calls' billed `prompt_tokens` /
+   `cached_tokens` / cost from OpenRouter's usage accounting. Verdicts are
+   three-state — CACHED (exit 0, >=1,024 cached tokens on call 2), NOT CACHED
+   (exit 2), UNKNOWN (exit 3, could not check) — and a 402 is UNKNOWN, never a
+   pass. Today it exits 3.
+
+**What shipped instead of a claim:**
+
+- `classify.extract_stable_prefix()` — the cacheable bytes, exposed like
+  `prompts.stable_prefix`, so the token claims are measured, not remembered.
+- `ab_models.py --cache-check` — the two-call verification, executable.
+- `cost_projection.EXTRACT_PREFIX` corrected 2,754 -> 2,509: the old value was
+  9.8% above what the prompt holds, nothing supported it, and it flattered
+  every cached row by ~$0.57/month (the $4.21 previously quoted for the
+  flash-lite row is really $4.78). A test now pins the constant to the live
+  prefix.
+- `tests/test_preamble_cache_exit.py` — 8 tests, all proven to fail on the
+  pre-fix tree.
+
+**The arming procedure for the next session with a live key**, in order, stop
+at the first failure: (1) top up the key; (2) `python3 ab_models.py
+--extraction` and READ the disagreements; (3) `python3 ab_models.py
+--cache-check google/gemini-2.5-flash-lite` and record both calls' billed
+numbers — the second call must show cached_tokens >= 1024; (4) only then set
+`TIT_MODEL=google/gemini-2.5-flash-lite` on both collect jobs (env, one line
+each) and watch `cached_tokens` become nonzero in the next ledger rows;
+(5) revert is unsetting the variable. `spend.py --degrade` untouched and still
+exit-0; no collector, language or cap changed.
+
 ## 2026-08-04 - the verifier cried twice about nothing, so it was the verifier that was wrong
 
 Two of the five published-figure checks were FAILING live, and neither defect
