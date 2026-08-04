@@ -61,6 +61,7 @@ def main() -> int:
     _report_discovery()
     _report_rejection_audit()
     problems += _report_landmarks(conn)
+    problems += _report_published_figures()
     _report_surfaces()
     _report_spend()
 
@@ -73,6 +74,60 @@ def main() -> int:
 
     print("All clear.")
     return 0
+
+
+def _report_published_figures() -> list[str]:
+    """Are the numbers a reader can quote actually right?
+
+    Source health asks "did the collector run". The guardrails ask "is the row
+    plausible". Neither asks the question a journalist's editor asks, which is
+    whether the number on the screen is the number the data supports. That is a
+    separate question and until 2026-08-04 nothing here asked it: a region tab
+    badged one figure and returned another for weeks, and every check was green
+    the whole time.
+
+    The verdicts come from published_figures.check_all(), the single definition,
+    so this dashboard and anything else that reports these can never disagree.
+    """
+    print("\n[PUBLISHED FIGURES]  numbers a reader or a journalist can quote")
+    try:
+        import published_figures
+    except Exception as e:                                  # noqa: BLE001
+        print(f"    UNKNOWN — could not load the checks ({e}). NOT a pass.")
+        return ["PUBLISHED FIGURES: checks could not be loaded (UNKNOWN, not a pass)"]
+
+    report = published_figures.check_all()
+    problems: list[str] = []
+    for r in report.results:
+        if r.state == published_figures.FAIL:
+            print(f"    FAIL    {r.key}")
+            for line in r.detail.split("; "):
+                print(f"            {line}")
+            problems.append(f"PUBLISHED FIGURE: {r.key}")
+        elif r.state == published_figures.UNKNOWN:
+            print(f"    UNKNOWN {r.key} — NOT checked, NOT passing")
+            for line in r.detail.split("; "):
+                print(f"            {line}")
+            # An environment that cannot reach the site is not a defect in the
+            # site, but it is never a clean bill of health either, so it is
+            # ALWAYS printed above as UNKNOWN. What it is not is an action item,
+            # in exactly two cases: a transport fault (an egress-blocked or
+            # offline session, which says nothing about the data) and the
+            # deploy's own 503 maintenance window, which is self-resolving and
+            # which every deploy would otherwise turn into five action items.
+            # This mirrors _excusable() in the sibling repo rather than inventing
+            # a second opinion about the same question.
+            import urllib.error
+            deploying = (isinstance(r.error, urllib.error.HTTPError)
+                         and r.error.code == 503)
+            if not r.transport and not deploying:
+                problems.append(f"PUBLISHED FIGURE UNVERIFIED: {r.key}")
+        else:
+            print(f"    ok      {r.key}")
+    if report.verdict == published_figures.FAIL:
+        print("    *** A PUBLISHED NUMBER IS WRONG ON A LIVE PUBLIC SURFACE.")
+        print("    *** Journalists quote these. Fix before any staleness item.")
+    return problems
 
 
 def _report_collection_armed() -> list[str]:
