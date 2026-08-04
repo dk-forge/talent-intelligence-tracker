@@ -856,7 +856,7 @@ function tit_company_render($rows, $key, $profile) {
                 'url'           => $r['source_url'],
             );
         }, $visible),
-      ), JSON_UNESCAPED_SLASHES);
+      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php endif;
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();

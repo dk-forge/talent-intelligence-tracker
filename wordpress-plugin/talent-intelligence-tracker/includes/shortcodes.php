@@ -2260,7 +2260,7 @@ function tit_trust_panel_html(array $facts) {
                 'acceptedAnswer' => array('@type' => 'Answer', 'text' => $q[1]),
             );
         }, $faqs),
-      ), JSON_UNESCAPED_SLASHES);
+      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php
     return ob_get_clean();

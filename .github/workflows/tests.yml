@@ -64,7 +64,8 @@ jobs:
       # byte budget on the markup, because the owner asked for this to be fast
       # on a phone and a fourth ranking card is not free.
       - name: Render the dashboard and count its queries and bytes
-        run: php tests/php/render_dashboard.php
+        run: php tests/php/jsonld_xss.php
+          php tests/php/render_dashboard.php
 
       # /enrich and /correct are the only routes that can change a row a reader
       # is already looking at, and the safety of both is which branch a value

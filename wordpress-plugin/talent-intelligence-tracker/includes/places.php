@@ -1321,7 +1321,7 @@ function tit_place_render($kind, $cell, $facts) {
                 );
             }, $listed),
         ),
-      ), JSON_UNESCAPED_SLASHES);
+      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
