@@ -37,6 +37,22 @@ jobs:
           case "${{ inputs.mode }}" in
             readthrough) python ab_models.py --readthrough ;;
             extraction)  python ab_models.py --extraction ;;
-            cache-check) python ab_models.py --cache-check google/gemini-2.5-flash-lite ;;
+            cache-check)
+              # The script speaks a three-state verdict through its exit code:
+              # 0 CACHED, 2 NOT CACHED, 3 UNKNOWN (could not measure, e.g. a
+              # dead key). For CI, a DEFINITIVE answer in either direction is a
+              # successful measurement and must be green: the first live run
+              # answered NOT CACHED, exited 2, and mailed the owner a CI RED
+              # for a diagnostic that had worked perfectly. Only "could not
+              # measure" (3) or a real crash (1) stays red.
+              set +e
+              python ab_models.py --cache-check google/gemini-2.5-flash-lite
+              code=$?
+              set -e
+              case "$code" in
+                0) echo "VERDICT: CACHED (measured; green)" >> "$GITHUB_STEP_SUMMARY" ;;
+                2) echo "VERDICT: NOT CACHED (measured; green — a no is an answer, not a failure)" >> "$GITHUB_STEP_SUMMARY" ;;
+                *) echo "VERDICT: UNKNOWN or error (exit $code) — could not measure, so this run is red" >> "$GITHUB_STEP_SUMMARY"; exit "$code" ;;
+              esac ;;
             *)           python ab_models.py ;;
           esac
