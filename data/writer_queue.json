@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-04T01:49:29Z",
-  "last_tick": "2026-08-04T01:49:29Z",
+  "last_dispatch": "2026-08-04T03:36:06Z",
+  "last_tick": "2026-08-04T03:36:06Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -187,6 +187,34 @@
     "ticket:20260803T215353Z-backfill-gnews-2026": "2026-08-03T22:08:59Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-04T03:36:06Z",
+      "history": [
+        {
+          "at": "2026-08-04T03:36:01Z",
+          "detail": "CXMT $8.6bn is a Shanghai STAR Market IPO, not a private round; accepted in error by amount-guardrail triage 2026-07-29 and live on the site since.",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-04T03:36:06Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260804T033601Z-retract",
+      "inputs": {
+        "reason": "An IPO is not private funding. The source states an $8.6bn Shanghai STAR Market IPO, not a private round.",
+        "signal_id": "875d48bbbcc438a9744e8982d1843f6e"
+      },
+      "priority": 0,
+      "reason": "CXMT $8.6bn is a Shanghai STAR Market IPO, not a private round; accepted in error by amount-guardrail triage 2026-07-29 and live on the site since.",
+      "requested_at": "2026-08-04T03:36:01Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-03T13:31:42Z",
