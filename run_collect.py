@@ -18,10 +18,10 @@ from datetime import date
 import source_registry as registry
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         czechia_ares, edinet_japan, estonia_ariregister, gdelt,
-                        google_news, national_press, opendart_korea,
-                        primary_chase, sec_edgar,
-                        sec_execcomp, sec_form_d, spain_borme, tripwire_chase,
-                        uk_paygap)
+                        google_news, israel_registrar, national_press,
+                        opendart_korea, primary_chase, sec_edgar,
+                        sec_execcomp, sec_form_d, singapore_acra, spain_borme,
+                        tripwire_chase, uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       gate_ledger, prefilter, publish, schema, store, validate)
 
@@ -73,6 +73,25 @@ SOURCES = {
     # spends nothing. Filtered to employers reporting 50 full-time equivalents
     # or more, the Commission's own small-enterprise boundary.
     "estonia_ariregister": estonia_ariregister,
+    # Israel's FUNDING spine, and the only registry here that is not a
+    # leadership one. The registrar's daily changes file is an event stream,
+    # not a company list: 558,617 rows across 96 act types, and four of those
+    # codes are the act a company files when it issues new shares or raises
+    # registered capital. That is the Israeli SH01, 6,694 rows a year.
+    # Keyless, derived, spends nothing. There is NO size filter available:
+    # Israel publishes no employee count in any registrar dataset, so the act
+    # type is the only filter and a share allotment is self-filtering in a way
+    # a company list is not. The file carries no amount, so a row is the fact
+    # that capital was raised and never a figure for how much.
+    "israel_registrar": israel_registrar,
+    # Singapore's INCORPORATION signal, and the narrowest source here on
+    # purpose. ACRA's register is a monthly SNAPSHOT rather than a filing feed,
+    # so there are no dated officer-change events and no funding on it at all.
+    # What it does state is a dated incorporation plus an SSIC industry code,
+    # which is what stops it being a bare company-name list: the code selects
+    # software and IT rather than every company in the country. Keyless,
+    # derived, spends nothing.
+    "singapore_acra": singapore_acra,
     # Spain's chief-executive spine, and the second source here that reports a
     # DEPARTURE. Every act inscribed in a Spanish commercial register is
     # published in BORME Section A under a fixed heading, with the office as a

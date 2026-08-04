@@ -95,6 +95,22 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # and a statutory inscription reads as a news story.
     "boe.es",
     "www.boe.es",
+    # data.gov.il is the Israeli government's own portal, and the changes file
+    # on it is published BY the Registrar of Companies at the Ministry of
+    # Justice rather than reported by anybody. Same class as sec.gov: the
+    # register itself. Without this line collectors/israel_registrar.py caps at
+    # 'reported' and a statutory share allotment reads as a news story. The
+    # collector cites the portal's own datastore query for the company on
+    # purpose: the registrar's public lookup at ica.justice.gov.il is a search
+    # FORM with no per-company permalink, so there is no stabler page to cite.
+    "data.gov.il",
+    # data.gov.sg is the Singapore government's own portal and the corporate
+    # entities register on it is published BY the Accounting and Corporate
+    # Regulatory Authority, the body companies incorporate with. Same class
+    # again. Two hosts, because the collector reads the dataset through the
+    # portal's API subdomain and cites the register's own collection page.
+    "data.gov.sg",
+    "api-production.data.gov.sg",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",

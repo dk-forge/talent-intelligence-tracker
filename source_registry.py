@@ -614,6 +614,8 @@ COLLECTOR_BY_SOURCE_NAME = {
     "ARES Czech company register (veřejný rejstřík)": "czechia_ares",
     "Estonian business register (Ariregister open data)": "estonia_ariregister",
     "BORME Section A (Registro Mercantil, Spain)": "spain_borme",
+    "Israeli Registrar of Companies (changes file)": "israel_registrar",
+    "ACRA register of corporate entities (Singapore)": "singapore_acra",
 }
 
 
@@ -937,6 +939,54 @@ SOURCES = (
                  "the day the registrar inscribed the act, which the bulletin "
                  "publishes about a week later, so a Spanish row is a week old "
                  "by construction."),
+    Source("Israeli Registrar of Companies (changes file)",
+           "https://data.gov.il/dataset/ica-changes",
+           "live", "Government filings",
+           ("Funding", "Share allotment", "Capital increase"),
+           "Israel", "IL",
+           notes="Israel's Registrar of Companies publishes a daily changes "
+                 "file, which is an event stream rather than a company list: "
+                 "one row per act filed against a company, under the "
+                 "registrar's own heading and with the date it was registered. "
+                 "This reads four of its 96 act types, the ones that mean new "
+                 "shares were issued or registered capital was raised, because "
+                 "a share allotment is what a company files when it takes in "
+                 "investment. It is the only funding registry read here rather "
+                 "than a leadership one. Two limits matter. The file carries "
+                 "NO amount: there is no share count, no price, no investor "
+                 "and no valuation on the record, so a row is the fact that "
+                 "capital was raised and never a figure for how much, and a "
+                 "small top-up is filed identically to a large round. And "
+                 "there is no size filter, because Israel publishes no "
+                 "employee count in any of the registrar's datasets, so unlike "
+                 "the UK rows these are not narrowed to large employers and a "
+                 "company's size is unknown. The act type is the only filter "
+                 "available, and it is a real one: a dormant shell does not "
+                 "issue shares. The date is the day the registrar updated the "
+                 "company's status, which can trail the decision behind it. No "
+                 "address is published, so Israeli rows place at country level "
+                 "only."),
+    Source("ACRA register of corporate entities (Singapore)",
+           "https://data.gov.sg/collections/2/view",
+           "live", "Government filings",
+           ("Incorporation", "Company formation"),
+           "Singapore", "SG",
+           notes="Singapore's Accounting and Corporate Regulatory Authority "
+                 "publishes its register of corporate entities as open data, "
+                 "and every entity carries the date it was incorporated and an "
+                 "SSIC industry code. This is the narrowest source listed "
+                 "here, and the shape of it should be read before the rows "
+                 "are. It is a monthly SNAPSHOT and not a filing feed, so it "
+                 "reports incorporations and nothing else: there are no dated "
+                 "officer-change events on it, only a current count of "
+                 "officers, and no funding, share or capital data of any kind. "
+                 "What keeps it from being a bare list of company names is the "
+                 "industry code, which is what selects software and IT rather "
+                 "than every company in the country. Because the file is "
+                 "refreshed monthly, a new company can be up to about a month "
+                 "old before it appears. A row is the legal fact of an "
+                 "incorporation and says nothing about whether the company has "
+                 "raised money, hired anyone or begun trading."),
     Source("IDA Ireland", "https://www.idaireland.com/", "candidate",
            "Investment promotion agency", ("Hiring", "Office opening", "Job creation"),
            "National", "IE",

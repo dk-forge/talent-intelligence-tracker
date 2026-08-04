@@ -113,6 +113,28 @@ MAX_AGE_HOURS = {
     # the summary API answers any past date, so a missed week is recovered by
     # widening TIT_BORME_DAYS up to MAX_DAYS and nothing is lost permanently.
     "spain_borme": 180,      # ~7.5 days: weekly cron plus room to notice
+    # Israel and Singapore both ship DORMANT: neither has a cron anywhere, so
+    # neither files a health row and neither of these leashes ticks yet. They
+    # are entered now rather than later so that arming one is a schedule
+    # decision alone and nobody has to remember a second file.
+    #
+    # TIGHTEN BOTH THE DAY A CRON IS CHOSEN, and note they want different
+    # numbers, because the two sources are not the same shape.
+    #
+    # israel_registrar reads a rolling ONE-YEAR changes file, so a missed run
+    # is recoverable for a year simply by widening TIT_IL_DAYS, and nothing is
+    # ever lost permanently. That is the most forgiving source in the tracker.
+    # On a weekly slot it wants 180, the same as the six above.
+    "israel_registrar": 2400,   # ~100 days: DORMANT, no cron, no health row
+    # singapore_acra reads a MONTHLY snapshot, so its natural cadence is
+    # monthly and a weekly leash would be permanent noise: the file simply does
+    # not change between most runs. On a monthly slot it wants roughly 840
+    # (~35 days, one refresh plus room to notice). It is also the one source
+    # here whose gap cannot be closed by widening a window, because an
+    # incorporation date is stated on the snapshot rather than accumulated: a
+    # company incorporated and struck off between two readings is never in any
+    # file, and no window reaches it.
+    "singapore_acra": 2400,     # ~100 days: DORMANT, no cron, no health row
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

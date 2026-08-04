@@ -4629,6 +4629,11 @@ function tit_collector_label($key) {
         'gdelt'        => 'GDELT news monitoring',
         'ats_boards'   => 'company job boards',
         'national_press' => 'national press feeds',
+        // The fallback turns 'israel_registrar' into 'israel registrar', which
+        // is lower case, names no country properly and does not say what was
+        // read. Both of these name the registry rather than the collector.
+        'israel_registrar' => 'the Israeli Registrar of Companies',
+        'singapore_acra'   => 'the ACRA register of Singapore companies',
     );
     return $map[$key] ?? str_replace('_', ' ', (string) $key);
 }

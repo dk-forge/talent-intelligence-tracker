@@ -1,5 +1,21 @@
 [
  {
+  "name": "ACRA register of corporate entities (Singapore)",
+  "url": "https://data.gov.sg/collections/2/view",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Incorporation",
+   "Company formation"
+  ],
+  "coverage": "Singapore",
+  "country": "SG",
+  "rss": "",
+  "free": true,
+  "notes": "Singapore's Accounting and Corporate Regulatory Authority publishes its register of corporate entities as open data, and every entity carries the date it was incorporated and an SSIC industry code. This is the narrowest source listed here, and the shape of it should be read before the rows are. It is a monthly SNAPSHOT and not a filing feed, so it reports incorporations and nothing else: there are no dated officer-change events on it, only a current count of officers, and no funding, share or capital data of any kind. What keeps it from being a bare list of company names is the industry code, which is what selects software and IT rather than every company in the country. Because the file is refreshed monthly, a new company can be up to about a month old before it appears. A row is the legal fact of an incorporation and says nothing about whether the company has raised money, hired anyone or begun trading.",
+  "collector": "singapore_acra"
+ },
+ {
   "name": "ARES Czech company register (ve\u0159ejn\u00fd rejst\u0159\u00edk)",
   "url": "https://ares.gov.cz/ekonomicke-subjekty",
   "status": "live",
@@ -180,6 +196,23 @@
   "free": true,
   "notes": "Keyless and unthrottled. Read in each edition's own language, because English phrases in a non-English edition return almost nothing. Its links are encoded redirects, but Google's own resolution endpoint returns the publisher URL, so records cite the article rather than an outlet homepage.",
   "collector": "google_news"
+ },
+ {
+  "name": "Israeli Registrar of Companies (changes file)",
+  "url": "https://data.gov.il/dataset/ica-changes",
+  "status": "live",
+  "category": "Government filings",
+  "signals": [
+   "Funding",
+   "Share allotment",
+   "Capital increase"
+  ],
+  "coverage": "Israel",
+  "country": "IL",
+  "rss": "",
+  "free": true,
+  "notes": "Israel's Registrar of Companies publishes a daily changes file, which is an event stream rather than a company list: one row per act filed against a company, under the registrar's own heading and with the date it was registered. This reads four of its 96 act types, the ones that mean new shares were issued or registered capital was raised, because a share allotment is what a company files when it takes in investment. It is the only funding registry read here rather than a leadership one. Two limits matter. The file carries NO amount: there is no share count, no price, no investor and no valuation on the record, so a row is the fact that capital was raised and never a figure for how much, and a small top-up is filed identically to a large round. And there is no size filter, because Israel publishes no employee count in any of the registrar's datasets, so unlike the UK rows these are not narrowed to large employers and a company's size is unknown. The act type is the only filter available, and it is a real one: a dormant shell does not issue shares. The date is the day the registrar updated the company's status, which can trail the decision behind it. No address is published, so Israeli rows place at country level only.",
+  "collector": "israel_registrar"
  },
  {
   "name": "National and regional tech press",

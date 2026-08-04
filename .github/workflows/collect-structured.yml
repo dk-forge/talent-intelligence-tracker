@@ -125,12 +125,29 @@ on:
     # tripwire sits behind. Arming it is uncommenting the next line and nothing
     # else — the `Pick the source` case below already maps this expression.
     # - cron: '0 4 * * 0'      # Sundays: BORME Spain consejero delegado acts
+    #
+    # israel_registrar and singapore_acra have NO cron line at all, and that is
+    # not the same omission as the commented-out Sunday above. Both ship
+    # dormant pending a human reading a real dry run, exactly as spain_borme
+    # does, but there is also nowhere to put them: this schedule runs one
+    # structured collector a day and all seven days are already spoken for, so
+    # arming either is a slot decision rather than an uncommenting. They are
+    # dispatchable below in the meantime, which is how the dry run gets read.
+    #
+    # When that decision is made the two want different cadences. Israel reads
+    # a rolling one-year changes file, so it fits any weekly slot and a missed
+    # run stays recoverable for a year by widening TIT_IL_DAYS. Singapore reads
+    # a MONTHLY snapshot, so a weekly slot would re-read an unchanged file
+    # three times out of four; it belongs on a monthly cron beside sec_execcomp
+    # and uk_paygap rather than in the daily rotation. Tighten the matching
+    # leash in staleness.py in the SAME change, or a dormant 100-day entry
+    # keeps a newly armed collector looking healthy for three months.
   workflow_dispatch:
     inputs:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -263,6 +280,14 @@ jobs:
           # deliberate absence of an empty-secret mapping. www.boe.es serves the
           # summary API and the bulletin unauthenticated.
           TIT_BORME_DAYS: ${{ inputs.days }}
+          # The Israeli registrar's changes file and Singapore's ACRA register
+          # are keyless too, and both are national open data portals that
+          # answer anonymously: data.gov.il is CKAN, and data.gov.sg hands out
+          # a signed download URL to an unauthenticated caller. Same deliberate
+          # absence of an empty-secret mapping as ARES, Ariregister and BORME.
+          # Neither owner secret exists and neither should be requested.
+          TIT_IL_DAYS: ${{ inputs.days }}
+          TIT_SG_DAYS: ${{ inputs.days }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \
