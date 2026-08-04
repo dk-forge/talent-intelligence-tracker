@@ -268,6 +268,26 @@ class TestTheWorkflowsThatCarryThis:
                 / ".github/workflows/host-watch.yml").read_text()
         assert "talent_intel.db" not in text
 
+    def test_every_step_that_re_runs_the_probe_carries_the_probes_env(self):
+        """A step does not inherit another step's env, and the commit step's
+        retry path RE-RUNS host_watch.py after a rejected push.
+
+        Without WP_SITE_URL there, the re-derivation exits 1 on "the host cannot
+        be probed at all", so an ordinary push race — a drain tick landing in
+        the same second, which happens constantly in this repo — reddened the
+        watchdog and named a configuration problem that did not exist. Measured
+        on run 30868552426, which had already probed the host, found it UP and
+        delivered a held alert before this step ran. A watchdog red for its own
+        bookkeeping cannot report an outage, which is the same failure class as
+        the stuck alert that very run had just cleared.
+        """
+        steps = self._wf("host-watch.yml")["jobs"]["watch"]["steps"]
+        probes = [s for s in steps if "host_watch.py" in (s.get("run") or "")]
+        assert probes
+        for step in probes:
+            assert (step.get("env") or {}).get("WP_SITE_URL"), \
+                f"step {step.get('name')!r} re-runs the probe without WP_SITE_URL"
+
     def test_the_alerter_can_commit_what_it_could_not_send(self):
         wf = self._wf("ci-alert.yml")
         assert wf["permissions"]["contents"] == "write", \

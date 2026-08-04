@@ -90,6 +90,20 @@ jobs:
       # its `commit` output; `git diff --staged --quiet` is the second belt.
       - name: Commit the ledger
         if: ${{ !inputs.dry_run && steps.watch.outputs.commit == 'yes' && !cancelled() }}
+        # THE SAME ENV AS THE PROBE STEP, because the retry path below RE-RUNS
+        # host_watch.py after a rejected push, and a step does not inherit
+        # another step's env. Without this the re-derivation exits 1 on
+        # "WP_SITE_URL is not set, so the host cannot be probed at all", so an
+        # ordinary push race (a drain tick landing in the same second, which
+        # happens constantly in this repo) reddened the watchdog and named a
+        # configuration problem that did not exist. Observed on run
+        # 30868552426, which had already probed the host, found it UP, and
+        # delivered a held alert successfully before this step ran.
+        env:
+          WP_SITE_URL: https://asktherecruiter.com/blog
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           git config user.name  'talent-intel-bot'
