@@ -1778,3 +1778,36 @@ collection. What is actually left:
 - Layoffs are NOT collected here; read the sibling's public API.
 - Coverage is earned: a market in the registry is not a covered market.
 - Never publish fabricated records to the live site, for any reason.
+
+## 2026-08-04: main is GREEN, and the world got wider
+
+`tests/test_audit_publishers.py` had reddened `main` for six commits. It was never
+a broken test. It named 13 publishers that each cost a gold-set event and for which
+the catalogue held neither a feed nor a written reason. All 13 are now closed
+honestly, test byte-identical, nothing skipped or xfailed, full suite 0 failed /
+3193 passed.
+
+**Wired, 8 publishers / 10 feeds**, item counts observed at probe time:
+aviacionline.com (Argentina), bursa.ro (Romania, two feeds, one carries the ESPI
+current reports the gold miss came through), ecosistemastartup.com, liputan6.com
+(Indonesia, two feeds, declared only in the homepage head on a separate host),
+miningweekly.com (South Africa), parkiet.com (Poland), startupslatam.com,
+youngster.id (Indonesia).
+
+**Refused with evidence, 5.** Each note carries the paths probed and the status
+codes seen, so the next session does not repeat the work. Note the one that is a
+DIFFERENT KIND of answer: renewable-carbon.eu returned 500 "Error establishing a
+database connection" on every path INCLUDING the homepage. That is an outage
+verdict, not a no-feed verdict, and the note says to recheck. commersant.ge and
+sharesansar.com are marked NEEDS HTML PARSING (no feed exists, content does).
+ctee.com.tw blocks a named AI-crawler roster. muscatdaily.com is WordPress with
+feeds switched off.
+
+**Security batch 1.68.1 is LIVE**, deployed after this went green so one clean
+state shipped rather than a half one. Verified: live page reports ver=1.68.1 and
+all eight new publishers render on the sources page.
+
+**Still the top job, unchanged:** the published money total is inflated. The
+landmark fix restores rounds lost to word-shaped dollars, but confirm it also
+covers classification (a raise vs an investor fund close vs assets under
+management vs an IPO) and the 43x lira mis-scale before trusting the headline.
