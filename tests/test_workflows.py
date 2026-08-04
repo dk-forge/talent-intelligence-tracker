@@ -536,3 +536,44 @@ def test_no_two_scheduled_writers_queue_in_the_same_minute():
         f"same minute, so one of them will be cancelled rather than run: "
         f"{clashes}. Move one to a free minute."
     )
+
+
+def test_the_retraction_reason_never_reaches_the_shell_unquoted():
+    """A withdrawal must be able to state a dollar figure.
+
+    `${{ }}` is pasted into a `run` block as text before bash sees it, so bash
+    then expands what it finds. On 2026-08-04 the CXMT withdrawal was sent with
+    the reason "... an $8.6bn Shanghai STAR Market IPO ..." and `$8` expanded to
+    the empty eighth positional parameter: WordPress and the database both
+    recorded "an .6bn", losing the one figure the retraction existed to state.
+    The run was green.
+
+    `reason` is the only genuinely free-text input any writer takes — the rest
+    are dates, row limits and slugs — which makes it the only one where a `$`,
+    a backtick or a `$(...)` is likely rather than merely possible. It travels
+    through the environment, quoted, and this is what says so.
+    """
+    path = Path(__file__).parent.parent / ".github" / "workflows" / "retract.yml"
+    parsed = yaml.safe_load(path.read_text())
+
+    steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])]
+    running = [s for s in steps if "retract.py" in (s.get("run") or "")]
+    assert running, "retract.yml no longer invokes retract.py — this test is inert"
+
+    for step in running:
+        run = step["run"]
+        for field in ("reason", "signal_id", "bare_domains"):
+            assert f"inputs.{field}" not in run, (
+                f"retract.yml interpolates inputs.{field} into a run block. "
+                "bash will expand it: a reason containing $8.6bn loses the "
+                "figure, and one containing a backtick is executed. Pass it "
+                "through env: and quote the variable."
+            )
+        env = step.get("env") or {}
+        assert any("inputs.reason" in str(v) for v in env.values()), (
+            "retract.yml must carry the reason through env:, not the shell"
+        )
+        assert '"$TIT_REASON"' in run, (
+            "the reason variable must be quoted, or the shell splits it on "
+            "whitespace and the withdrawal states something else again"
+        )

@@ -177,6 +177,82 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-04 - the CXMT IPO is withdrawn, and the withdrawal lost its own figure to a shell
+
+**The retraction.** ChangXin Memory Technologies, `$8.6bn`, content_hash
+`875d48bbbcc438a9744e8982d1843f6e`, published 2026-07-29 and live ever since.
+The source says what it is in the headline — "CXMT becomes China's most valuable
+A-share company after $8.6 billion IPO" — and again in the summary: "raised
+RMB57.92 billion ($8.6 billion) in its Shanghai STAR Market IPO". An IPO is not
+private funding. It is error class 4 of the four the audit named, and it was the
+last one still live.
+
+It survived because the amount guardrail DID flag it on 2026-07-29 and a
+session ACCEPTED it as a genuine raise. An accepted finding is remembered
+forever and reported by nothing, so the row published and every ops surface
+stayed green. The guard worked; the review was wrong; nothing downstream can
+tell those apart. `ops_status.py` exits 2 on findings left OPEN too long — it
+has no opinion about a finding closed wrongly, and that asymmetry is the hole.
+
+Withdrawn through `retract.yml` (WordPress first, database second: the order
+matters, because the reverse leaves a row live on a page while our copy
+believes it is gone). `wordpress=1 local=1`, run 30875221356, committed as
+`4a6c7dc`. The ledger verdict is now `rejected`, so the record says what
+happened rather than what was believed on the day.
+
+**Queued, not dispatched.** `retract.yml` is a database writer and shares the
+`talent-collect` lock, so it went through `drain-writers.yml` like everything
+else. It is also the only path with `WP_SITE_URL` and `WP_API_KEY`, which is
+why three previous sessions recorded this row as still owed: it does not need a
+human, it needs the credentials that only Actions holds.
+
+**The defect the withdrawal shipped with.** The reason sent was "... an $8.6bn
+Shanghai STAR Market IPO ...". What WordPress and the database both recorded
+was "an .6bn". `retract.yml` pasted `${{ inputs.reason }}` straight into the
+`run` block, so bash expanded `$8` to the empty eighth positional parameter and
+ate the figure the retraction exists to state. The run was green and nothing
+warned.
+
+`drain-writers.yml` has passed dispatch inputs through the ENVIRONMENT since it
+was written, with a comment saying exactly why. The lesson had never been
+carried across to the workflow it dispatches — the same shape as the push-replay
+loop that `collect.yml` solved first and `retract.yml` learned only after losing
+a withdrawal. `retract.yml` now takes `TIT_REASON`, `TIT_SIGNAL_ID` and
+`TIT_BARE` from `env:` and quotes them. A reason carrying a backtick or
+`$(...)` would have been executed rather than merely eaten.
+
+The local note is repaired in this commit. **The WordPress-side note cannot
+be:** `/talent/v1/retract` updates `WHERE is_current = 1` and the row is now 0,
+and `/correct` refuses retracted rows by the same rule. It is not rendered —
+`/corrections/` is a hand-maintained list, not a query over withdrawn rows — so
+the damage is a wrong string in a column nobody reads. Recorded rather than
+worked around, because reviving a retracted row to fix its prose is a worse
+thing than the prose.
+
+**Still owed, and now measured.** The audit said 6 of the top 25 rows by
+`funding_amount_usd` are a correctly-scaled private round. The amount queue only
+ever held rows above the derived ceiling of ~$6.5bn, so everything below it was
+reviewed by nobody. Of the 12 rows in the top 25 with no `amount` ledger entry
+at all, 7 do not survive reading their own headline:
+
+| Row | What the source actually says |
+|---|---|
+| Marcos $2.5bn | Not a company. The Philippine president collecting investment *commitments* on a state visit; "Marcos" is stored as the employer |
+| GSK $2.2bn | An acquisition (GSK buying Rapt), booked against the acquirer |
+| Bradesco $2.0bn | A listed bank's capital increase |
+| Revolution Medicines $2.0bn | "prices $2B raise" — a public stock and debt offering, the same class as CXMT |
+| Cursor $2.0bn | "Set For ... Round", reported — not closed, and stored at `reported` |
+| Nscale $2.0bn | Duplicate of an already-resolved Nscale row whose own headline is "Aims to Raise" |
+| Ominimo $1.6bn | A *valuation*, not a raise — the summary says so and the amount column disagrees |
+
+That is two error classes the audit's list of four does not contain: **an
+acquisition counted as a raise**, and **a person counted as a company**. The
+remaining 5 are sound (Isomorphic, Saronic, and three SEC Form D placements at
+`verified`). None of this is fixed here; it is written down so the next session
+inherits the finding and not the search.
+
+---
+
 ## 2026-08-04 - the amount guardrail was quarantining the truth, and nobody was reading the queue (1.70.0, pushed, NOT deployed)
 
 **The state that started it.** The publish quarantine held 15 rows worth

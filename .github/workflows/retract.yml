@@ -46,15 +46,31 @@ jobs:
           python-version: '3.12'
       - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
+      # The reason arrives through the ENVIRONMENT, never through `${{ }}`.
+      # A `${{ }}` inside a run block is pasted in as text before the shell
+      # sees it, so the shell then expands what it finds. On 2026-08-04 the
+      # CXMT withdrawal was sent with the reason "... an $8.6bn Shanghai STAR
+      # Market IPO ..." and `$8` expanded to the (empty) eighth positional
+      # parameter: WordPress and the database both recorded "an .6bn", losing
+      # the very figure the retraction exists to correct. Nothing failed and
+      # the run was green. A reason carrying a backtick or `$(...)` would have
+      # been executed rather than merely eaten.
+      #
+      # drain-writers.yml has passed dispatch inputs through the environment
+      # since it was written, and says why in its own comment; the lesson was
+      # never carried across to the workflow it dispatches.
       - name: Retract
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          TIT_SIGNAL_ID: ${{ inputs.signal_id }}
+          TIT_REASON: ${{ inputs.reason }}
+          TIT_BARE: ${{ inputs.bare_domains }}
         run: |
-          if [ "${{ inputs.bare_domains }}" = "true" ]; then
-            python retract.py --bare-domains "${{ inputs.reason }}"
+          if [ "$TIT_BARE" = "true" ]; then
+            python retract.py --bare-domains "$TIT_REASON"
           else
-            python retract.py "${{ inputs.signal_id }}" "${{ inputs.reason }}"
+            python retract.py "$TIT_SIGNAL_ID" "$TIT_REASON"
           fi
 
       # A single push attempt LOSES THE RECORD OF A WITHDRAWAL that has already

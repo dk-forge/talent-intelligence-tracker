@@ -25,16 +25,32 @@ changed since it was written:
   digest mails the same full list. See the TECHLOG entry of the same date.
 - **Row 25799 is fixed.** "93.175 millones" is no longer rendered as a figure.
 
-**Still owed, and it needs credentials this session did not have:** ChangXin
-Memory $8.6bn is LIVE and is an IPO, not private funding. It was ACCEPTED into
-the ledger on 2026-07-29 by mistake, so no ops surface reports it. Run
-`python3 retract.py <signal_id> "An IPO is not private funding"` (WordPress
-first, local second), then `guardrails.review(..., 'rejected', ...)`.
+**DONE 2026-08-04:** ChangXin Memory $8.6bn is withdrawn. It was an IPO, not
+private funding, and had been ACCEPTED into the ledger on 2026-07-29 by
+mistake, so no ops surface ever reported it. Retracted via `retract.yml`
+(queued through `drain-writers.yml` — it is a writer, and it is the only path
+holding `WP_SITE_URL`/`WP_API_KEY`, which is what the previous sessions were
+missing): `wordpress=1 local=1`, run 30875221356, commit `4a6c7dc`. The ledger
+verdict is now `rejected`. **Error class 4 is closed.**
 
-**Also still owed:** the audit below says only 6 of the top 25 rows are a
+That withdrawal also found a defect in `retract.yml` itself — the reason was
+interpolated into bash, so `$8.6bn` was recorded as `.6bn` on both sides. Fixed
+(inputs now travel via `env:`); the local note is repaired, the WordPress one
+cannot be and is not rendered. Full account in the TECHLOG entry of this date.
+
+**Still owed:** the audit below says only 6 of the top 25 rows are a
 correctly-scaled private round. The amount queue only ever contained rows ABOVE
-the derived ceiling of ~$6.5bn. Everything in the top 25 below that line has
-still been reviewed by nobody.
+the derived ceiling of ~$6.5bn, so everything in the top 25 below that line was
+reviewed by nobody. **That gap is now read but not fixed:** of the 12 top-25
+rows with no `amount` ledger entry, **7 are wrong** — Marcos $2.5bn (a head of
+state, not a company), GSK $2.2bn (an acquisition), Bradesco $2.0bn (a listed
+bank's capital increase), Revolution Medicines $2.0bn (a public offering),
+Cursor $2.0bn (not closed), Nscale $2.0bn (a duplicate), Ominimo $1.6bn (a
+valuation, not a raise). The other 5 are sound. Two of those are error classes
+the list of four below does not name: **an acquisition counted as a raise** and
+**a person counted as a company**. The table is in the TECHLOG entry of this
+date. **None of them are retracted yet** — that is the next session's job, and
+the ceiling that hid them is the thing to fix, not the seven rows.
 
 ---
 
