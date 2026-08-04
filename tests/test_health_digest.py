@@ -162,6 +162,13 @@ class TestStalenessBoundary(unittest.TestCase):
                 # Repo-local, themselves dependency-free at import time.
                 "source_registry", "staleness", "writer_queue",
                 "backfill_slices", "pipeline",
+                # analysis.landmarks (the landmark guard) and the matcher it
+                # borrows from analysis.recall are stdlib-only by design and
+                # pinned as such by tests/test_landmarks.py, which is what
+                # keeps this entry honest. ops_status recomputes the landmark
+                # check offline at session start, so it has to be importable
+                # before any venv exists.
+                "analysis",
             }
             self.assertFalse(third_party,
                              f"{module} imports {third_party} at module scope")

@@ -1,0 +1,127 @@
+name: landmarks
+
+# Do we still hold the events nobody could defend missing?
+#
+# WEEKLY, Mondays 09:00 UTC. The hour is chosen and not arbitrary: `recall`
+# runs at 08:00 and commits the database, and `health digest` runs at 13:00 and
+# reads the report this job writes. So the order each Monday is measure the
+# corpus, check the landmarks against it, then mail the owner one line about
+# both. Running this daily would produce a number that cannot move that fast
+# and a commit every morning to say so.
+#
+# WHY THIS EXISTS. On 2026-08-04 the owner found by hand that the three largest
+# private funding rounds ever recorded were not on this site. Two had never
+# been stored; the third was stored, correct, and withheld from every reader
+# for five days by a publish guardrail nobody had answered. Every check we had
+# was green the whole time, because each asked a question that cannot notice a
+# named event going missing. This asks the narrow question: twenty events, each
+# with the company's own announcement behind it, do we hold every one.
+#
+# COSTS NOTHING. No model is called and none can be: the script imports nothing
+# that talks to a model provider. The live lens is about fourteen public GETs
+# against our own site.
+#
+# THIS JOB IS NOT A DATABASE WRITER. It opens the corpus read-only and commits
+# exactly one file, data/landmarks_report.json, which is a snapshot with no row
+# identity to merge on. That is why it is not in the `talent-collect` lock and
+# why the drain-writers queue does not apply to it. If you ever make it write a
+# signal, it becomes a writer and both of those change: read the rules in
+# CLAUDE.md before you do.
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'      # Mondays 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      live:
+        description: 'Also ask the public site what a reader can actually see'
+        type: boolean
+        default: true
+
+# Only against itself. Two landmark runs at once would race on the one file
+# they write, and cancel-in-progress would throw away the run that has already
+# done the work.
+concurrency:
+  group: talent-landmarks
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  landmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The set is validated BEFORE anything is measured against it. An invalid
+      # or emptied set produces "0 of 0 held, 0 regressions" and exits 0 for
+      # ever, which is the one way this guard can fail without saying so.
+      - name: Check the landmark set
+        run: python check_landmarks.py --check
+
+      # The report is written whatever the verdict, and BEFORE the exit code is
+      # allowed to matter. A regression that reds the run must still leave the
+      # evidence committed, or the next run has no history to compare against
+      # and the regression silently becomes the new normal.
+      - name: Check the landmarks
+        id: check
+        continue-on-error: true
+        run: |
+          python check_landmarks.py --write \
+            ${{ inputs.live == false && ' ' || '--live' }}
+
+      - name: Commit the report
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          path=data/landmarks_report.json
+          git add "$path"
+          if git diff --staged --quiet; then
+            echo "No change to commit."
+            exit 0
+          fi
+
+          cp "$path" "$RUNNER_TEMP/landmarks_report.json"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/landmarks_report.json" "$path"
+            git add "$path"
+            if git diff --staged --quiet; then
+              echo "Remote already has this report."
+              exit 0
+            fi
+            git commit -q -m "landmarks: checked $(date -u +%Y-%m-%d)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), replaying onto current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the landmark report after 5 attempts. \
+          This run's history exists only on the runner, so next week cannot \
+          detect a regression against it."
+          exit 1
+
+      # The verdict decides the colour of the run, AFTER the report is safely
+      # committed. Exit 2 is a regression and only a regression; standing gaps
+      # exit 0 on purpose, because a permanent red on a backlog is a red that
+      # teaches the next session to stop reading exit codes.
+      - name: Fail only on a regression
+        if: ${{ steps.check.outcome == 'failure' }}
+        run: |
+          echo "::error::The landmark check reported a regression or could not "\
+               "run. Read the step above: a REGRESSION block names the round, "\
+               "the amount and the primary document."
+          exit 1

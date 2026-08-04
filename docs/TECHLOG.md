@@ -177,6 +177,102 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-04 - the LANDMARK GUARD: twenty named events, weekly, so a missing round is never again found by a human looking
+
+The recovery recorded further down this day was correct and it was also the
+wrong shape of win. Three enormous rounds were absent for months, a person
+noticed, and an agent fixed them. Nothing in the system had an opinion about any of it while it was
+happening, and nothing would have an opinion the next time. So this is the
+guard, and it is deliberately not another pipeline fix.
+
+**What it is.** `data/landmarks.json` holds 20 events across 7 quarters
+(2025Q1 to 2026Q3): the largest disclosed funding round per quarter, each with
+company, date, amount and **the company's own announcement URL**. Assembled by
+public web research on 2026-08-04, no commercial funding database consulted and
+none permitted (asserted in the tests, because those sites are the easiest
+place to find the list and that is exactly the temptation). It is small and
+hand-curatable on purpose: a new quarter is an edit to a JSON file.
+
+**What it asks.** `check_landmarks.py` reports HELD / WRONG_AMOUNT / MISSING
+per entry, through **two lenses that are allowed to disagree**:
+
+- `stored`, the committed corpus, offline, recomputed by `ops_status.py [3d]`
+  on every session start so it is never a week stale;
+- `live`, the public `/query` endpoint, which is what a reader actually sees.
+
+The two lenses are the whole design and not a nicety. On 2026-08-01 Anthropic's
+$30bn round was IN the database, correctly extracted, and invisible to every
+reader for five days behind an unanswered publish guardrail. A guard that only
+asked the database would have reported that round held. `held_not_live` is
+therefore a first-class outcome, and the first run found two more of them.
+
+**What reddens, and what deliberately does not.** Only a REGRESSION: an entry a
+previous report recorded as held that is not held now. A landmark that has
+never been held is a STANDING GAP, printed every week and never red. A
+permanent red on a backlog that only backfilling can move is a red that trains
+the next session to stop reading exit codes, which is the same reasoning
+`[3c]` already applies to the young-corpus finding. The live lens failing is
+neither: an outage is UNKNOWN, and a guard that converts somebody else's seven
+bad minutes into a red run and an alert email is a failure this repository has
+already paid for twice.
+
+**THE FIRST RUN, which is the number worth writing down: 4 of 20 held live,
+6 of 20 held in the database, 0 regressions.** By quarter, live: 2025Q1 0/4,
+2025Q2 0/2, 2025Q3 1/3, 2025Q4 0/3, 2026Q1 2/4, 2026Q2 1/2, 2026Q3 0/2. The
+2025 gaps are the young corpus and agree with the rejection audit's
+`outside_our_history` bucket, so they are a backfill list. The ones that are
+not excusable are these:
+
+- **xAI $20bn (2026-01-06) and Waymo $16bn (2026-02-02): stored and NOT live.**
+  Both are held, correctly, and no reader can see either. Both sit in the
+  publish guardrail queue described below. That queue is now the single
+  largest cause of landmark invisibility, measured rather than argued.
+- **Anduril $5bn (2026-05-13), Helsing $1.8bn (2026-07-13) and Fireworks
+  $1.505bn (2026-07-16): never collected at all**, and the last two are three
+  weeks old. Those are not history, they are the live pipeline missing rounds
+  it should be catching this month.
+
+**Wiring, because a number computed weekly and surfaced nowhere is the fourth
+way a guard dies.** `ops_status.py [3d]` prints it at session start and adds an
+ACTION NEEDED item for a regression or a stale report. `health_digest.py`
+carries one line every week whether or not it is bad - `landmarks: 4 of 20
+held, 16 standing gaps, 0 regressions, 2 stored but not live` - for the same
+reason SOURCE LINKS is reported every week: a metric that only appears once it
+is already bad cannot show a slow slide. A regression sets the email subject
+and is its own `needs_human` trigger. `.github/workflows/landmarks.yml` runs
+Mondays 09:00 UTC, between `recall` at 08:00 and the digest at 13:00, so the
+order each Monday is measure the corpus, check the landmarks, mail one line.
+
+**Costs nothing and cannot cost anything.** No model is imported on the path.
+The live lens is fourteen public GETs against our own site.
+
+**Not a recall measurement, and the file says so in its own method block.**
+`analysis/recall/` answers "how much of the world do we hold" against a sealed
+set with a required geographic shape. This answers "are the events nobody could
+defend missing actually here". It is top-of-distribution and US/Europe heavy
+because that is where the largest disclosed rounds were, so quoting a
+percentage from it as coverage would be flattery.
+
+**Not a database writer.** It opens the corpus read-only and commits one
+snapshot file with no row identity to merge on, which is why it is not in the
+`talent-collect` lock and why `drain-writers` does not apply. A test pins that:
+if it ever writes a signal, both of those change.
+
+**The sibling needs the same thing** and it is out of scope here: the largest
+layoff EVENTS per quarter, with company, date, headcount and the primary
+document (the 8-K, the WARN notice, or the employer's own statement). Recorded
+in `data/landmarks.json` under `sibling_note` so the idea does not die with the
+session that had it. It is a port of the shape, never an import of the module:
+the two trackers share no code and no database.
+
+**Files:** `data/landmarks.json`, `data/landmarks_report.json` (committed
+history - the regression detector has no memory without it),
+`analysis/landmarks/{landmarks,check}.py`, `check_landmarks.py`,
+`.github/workflows/landmarks.yml`, `tests/test_landmarks.py` (41 tests).
+`tests/test_health_digest.py` gained `analysis` to ops_status's allowed import
+set, which `test_landmarks.py` earns by pinning the package stdlib-only.
+---
+
 ## 2026-08-04 - the thirteen publishers the rejection audit named: eight wired, five refused in writing
 
 `tests/test_audit_publishers.py` had been red on main for six commits. It names

@@ -60,6 +60,7 @@ def main() -> int:
     _report_coverage()
     _report_discovery()
     _report_rejection_audit()
+    problems += _report_landmarks(conn)
     _report_surfaces()
     _report_spend()
 
@@ -1185,6 +1186,117 @@ def _report_discovery() -> None:
     if data.get("missing_total"):
         print("    Chase them (a lead is never a record):")
         print("      python run_collect.py --source tripwire_chase --dry-run")
+
+
+def _report_landmarks(conn) -> list[str]:
+    """The events nobody could defend missing. RECOMPUTED here, not read.
+
+    This section exists because on 2026-08-04 the owner found by hand that the
+    three largest private funding rounds ever recorded were absent from the
+    site, and every automated check was green while they were. Source health
+    answers "did the collector run". Data integrity answers "do the numbers add
+    up". Recall answers "do we hold a representative sample of the world". Not
+    one of those can notice a specific enormous event going missing.
+
+    The STORED lens is recomputed from the committed database on every run,
+    because a weekly report is up to seven days stale and a session that
+    breaks collection today should see it today. The LIVE lens needs the
+    network, which this file will not touch, so it is read from the committed
+    report and always printed with its date.
+
+    Only a REGRESSION is an ACTION NEEDED item. A landmark that has never been
+    held is a standing gap: real, listed, and not this run's fault. A permanent
+    red on a number only backfilling can move teaches the next session to
+    ignore the exit code, which is the failure this whole section is about.
+    """
+    import json
+
+    print("\n[3d] LANDMARKS  (the events nobody could defend missing)")
+
+    try:
+        from analysis.landmarks import check as lcheck
+        from analysis.landmarks import landmarks as lset
+    except Exception as exc:               # pragma: no cover - import guard
+        print(f"    Could not load the landmark check: {exc}")
+        return ["the landmark check will not import, so nothing is watching "
+                "the largest rounds"]
+
+    try:
+        data = lset.load()
+    except lset.InvalidLandmarkSet as exc:
+        print(f"    {exc}")
+        return ["the landmark set is not usable, so the guard is INERT"]
+
+    report_path = ROOT / "data" / "landmarks_report.json"
+    previous = None
+    if report_path.exists():
+        try:
+            previous = json.loads(report_path.read_text())
+        except ValueError:
+            previous = None
+
+    rows = lcheck.stored_rows(conn)
+    body = lcheck.evaluate(
+        lset.entries(data), rows, None,
+        today=_utcnow().date(),
+        history=lcheck.previous_history(previous),
+        tolerance=float(data.get("amount_tolerance") or lcheck.AMOUNT_TOLERANCE),
+        window_days=int(data.get("window_days") or lcheck.WINDOW_DAYS),
+    )
+    summary = body["summary"]
+    print("    stored, recomputed now: " + summary["one_line"])
+
+    problems = []
+    for item in body["entries"]:
+        if item["regression"]:
+            problems.append(
+                "landmark REGRESSION: %s %s ($%.3gbn) was held and is not any "
+                "more (%s)" % (item["quarter"], item["company"],
+                               item["amount_usd"] / 1e9,
+                               "; ".join(item["regression"])))
+
+    gaps = [i for i in body["entries"]
+            if i["status"] != "held" and not i["regression"]]
+    if gaps:
+        print("    standing gaps, largest first:")
+        for item in sorted(gaps, key=lambda i: -float(i["amount_usd"]))[:8]:
+            print("      %-8s %-16s $%-8s %s"
+                  % (item["quarter"], item["company"][:16],
+                     _landmark_money(item["amount_usd"]), item["status"]))
+        if len(gaps) > 8:
+            print("      ... and %d more" % (len(gaps) - 8))
+        print("      Full list, with the primary document for each:")
+        print("        python3 check_landmarks.py")
+
+    if previous:
+        live = (previous.get("summary") or {})
+        checked = previous.get("checked_on")
+        stale = lcheck.report_is_stale(previous, _utcnow().date())
+        print("    live (what a reader sees), from the weekly report of %s%s:"
+              % (checked, "  STALE" if stale else ""))
+        print("      %s" % live.get("one_line", "no summary recorded"))
+        if live.get("held_not_live"):
+            # The exact 2026-08 defect: correct rows, quarantined, invisible.
+            print("      %d landmark(s) are STORED and NOT LIVE. Those are "
+                  "rows we hold and no reader can see;" % live["held_not_live"])
+            print("      check the publish guardrails: python3 guardrails.py")
+        if stale:
+            problems.append(
+                "the landmark report is stale (last checked %s). The weekly "
+                "landmarks workflow has probably stopped."
+                % (checked or "never"))
+    else:
+        print("    live lens: UNKNOWN, no report has ever been written.")
+        print("      python3 check_landmarks.py --live --write")
+        problems.append("no landmark report has ever been written, so the "
+                        "reader-facing lens has never been checked")
+
+    return problems
+
+
+def _landmark_money(value) -> str:
+    value = float(value or 0)
+    return "%.4gbn" % (value / 1e9) if value >= 1e9 else "%.4gm" % (value / 1e6)
 
 
 def _report_rejection_audit() -> None:

@@ -246,8 +246,30 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
     a human step by design, and the page says so.
   - **Never re-use one set forever.** It converges, and then it measures memory
     rather than reach. The run detects that and asks for a replacement.
-- **Don't claim "100% automated."** Scraper repair, novel-source judgement and
-  assembling each new recall gold set are human. Say ~99% and name the sliver.
+- **Landmarks are named, and their absence is a check.** Recall measures a
+  representative sample; it cannot notice one enormous event going missing, and
+  on 2026-08-04 the three largest private rounds ever recorded were absent for
+  months while every automated check was green. `data/landmarks.json` names 20
+  such events per quarter with the company's OWN announcement behind each, and
+  `check_landmarks.py` runs weekly (`landmarks.yml`), reports
+  HELD / WRONG_AMOUNT / MISSING through **two lenses** (the committed corpus,
+  and the public endpoint a reader actually sees), and commits
+  `data/landmarks_report.json`. Three rules hold it up:
+  - **Only a REGRESSION reds it.** Something previously held that is not held
+    now. A never-held landmark is a standing gap, listed every week and never
+    red, because a permanent red on a backfill backlog trains the next session
+    to ignore exit codes.
+  - **Stored is not live.** `held_not_live` is a real outcome: a correct row
+    behind an unanswered publish guardrail is invisible, and two landmarks are
+    in exactly that state today. Do not collapse the two lenses.
+  - **Never grow the set from our own database, and never shrink it to make a
+    number look better.** It is assembled by hand from public sources, and the
+    entry floors in `analysis/landmarks/landmarks.py` fail the tests if
+    somebody thins it. An emptied file would read "0 of 0 held, 0 regressions"
+    and exit 0 for ever.
+- **Don't claim "100% automated."** Scraper repair, novel-source judgement,
+  assembling each new recall gold set and appending each quarter's landmarks
+  are human. Say ~99% and name the sliver.
 
 ## Cost discipline
 

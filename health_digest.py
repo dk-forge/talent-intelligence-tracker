@@ -151,6 +151,53 @@ def read_link_health(db_path: Path = DB) -> dict | None:
         return None
 
 
+def read_landmarks(path: Path | None = None) -> dict | None:
+    """The weekly landmark result, as one summary. Never fatal.
+
+    Read from the committed report rather than recomputed, on purpose: the
+    report is the only place the LIVE lens exists, and the live lens is the one
+    that answers the owner's actual question, which is whether a reader can see
+    these events. Recomputing the stored lens here would produce a second
+    number in the same email that disagrees with the first for a good reason
+    nobody would remember.
+    """
+    import json
+
+    path = path or (ROOT / "data" / "landmarks_report.json")
+    if not path.exists():
+        return None
+    try:
+        report = json.loads(path.read_text())
+    except ValueError:
+        return None
+    summary = report.get("summary")
+    if not isinstance(summary, dict):
+        return None
+    return {
+        "checked_on": report.get("checked_on"),
+        "version": report.get("landmarks_version"),
+        "one_line": summary.get("one_line", ""),
+        "total": summary.get("total", 0),
+        "held": summary.get("held", 0),
+        "standing_gaps": summary.get("standing_gaps", 0),
+        "regressions": summary.get("regressions", 0),
+        "held_not_live": summary.get("held_not_live", 0),
+        "live_lens": summary.get("live_lens"),
+        "regressed": [
+            {"company": e.get("company"), "quarter": e.get("quarter"),
+             "amount_usd": e.get("amount_usd"), "why": "; ".join(e.get("regression") or []),
+             "source_url": e.get("source_url")}
+            for e in (report.get("entries") or []) if e.get("regression")
+        ],
+        "biggest_gaps": sorted(
+            [{"company": e.get("company"), "quarter": e.get("quarter"),
+              "amount_usd": e.get("amount_usd") or 0, "status": e.get("status")}
+             for e in (report.get("entries") or [])
+             if e.get("status") != "held" and not e.get("regression")],
+            key=lambda g: -float(g["amount_usd"]))[:5],
+    }
+
+
 def archiving_stalled(link_health: dict | None, now: datetime) -> bool:
     """Is there work outstanding that nothing has moved in a week?
 
@@ -330,9 +377,11 @@ PASTE_LEAD = (
 def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
                 source_label: str, guardrails: list[dict] | None = None,
                 link_health: dict | None = None,
-                archive_stalled: bool = False) -> tuple[str, str]:
+                archive_stalled: bool = False,
+                landmarks: dict | None = None) -> tuple[str, str]:
     """Subject and plain-text body. No em-dashes: this is owner-facing copy."""
     guardrails = guardrails or []
+    landmark_regressions = (landmarks or {}).get("regressions") or 0
     stale = buckets["stale"]
     degraded = buckets["degraded"]
     unknown = buckets["unknown_age"]
@@ -343,6 +392,13 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         subject = "Pipeline may have stopped: no collect in %s" % (
             "any recorded run" if newest_hours is None
             else "%.0f hours" % newest_hours)
+    elif landmark_regressions:
+        # Ranked this high because of what it means. A landmark is an event
+        # with the company's own announcement behind it, and a regression says
+        # one that WAS on the site is not any more. Nothing else in this email
+        # can tell you that.
+        subject = ("%d landmark round(s) we used to hold have gone missing"
+                   % landmark_regressions)
     elif guardrails:
         # Ranked by what the finding actually costs, not by count. A row that is
         # already LIVE is a wrong figure on the page right now, which is the
@@ -371,6 +427,24 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         subject = "Health digest"
 
     lines = ["The weekly health check found something that needs a human.", ""]
+
+    if landmark_regressions:
+        lines += ["LANDMARK REGRESSION: %d round(s) this tracker used to hold "
+                  "are gone." % landmark_regressions, ""]
+        for item in (landmarks or {}).get("regressed", [])[:6]:
+            lines.append("  %s  %s  $%.3gbn"
+                         % (item.get("quarter"), item.get("company"),
+                            float(item.get("amount_usd") or 0) / 1e9))
+            lines.append("    %s" % (item.get("why") or ""))
+            lines.append("    %s" % (item.get("source_url") or ""))
+        lines += [
+            "  A landmark is an event with the company's OWN announcement "
+            "behind it,",
+            "  so this is not a judgement call about coverage. Something we "
+            "published",
+            "  is not published any more.",
+            "",
+        ]
 
     if stopped:
         lines += [
@@ -466,6 +540,15 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'me what actually broke."'
             % ("any recorded run" if newest_hours is None
                else "%.0f hours" % newest_hours))
+    elif landmark_regressions:
+        lines.append(
+            '  "The health digest says a landmark round has gone missing. Run '
+            'python3 check_landmarks.py --live and read the REGRESSION block: '
+            'it names the company, the amount and the primary document. Find '
+            'out whether the row was retracted, superseded by a revision, or '
+            'quarantined by a publish guardrail, and tell me which before '
+            'changing anything. Do not add the row by hand: if it needs '
+            'recollecting it goes through the collector like everything else."')
     elif guardrails:
         lines.append(
             '  "The health digest says rows are quarantined by the publish '
@@ -515,6 +598,37 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'recording, read what Wayback actually answered before changing any '
             'budget: a throttle is not a refusal and raising spn_max makes it '
             'worse."')
+
+    # LANDMARKS is reported EVERY time, for the same reason SOURCE LINKS is:
+    # it is supposed to move, and a number that only appears once it is already
+    # bad cannot show a slow slide. It is also the one line in this email that
+    # answers "are the events nobody could defend missing actually here", which
+    # is the question a human had to ask by hand on 2026-08-04.
+    if landmarks:
+        lines += ["", "LANDMARKS  (largest disclosed round per quarter, "
+                  "primary sources)", "  " + landmarks["one_line"]]
+        if landmarks.get("held_not_live"):
+            lines.append(
+                "  %d are STORED and NOT LIVE: rows we hold that no reader can "
+                "see. Check the" % landmarks["held_not_live"])
+            lines.append("  publish guardrails before anything else.")
+        if landmarks.get("biggest_gaps"):
+            lines.append("  Largest standing gaps:")
+            for gap in landmarks["biggest_gaps"]:
+                lines.append("    %-8s %-18s $%.3gbn  %s"
+                             % (gap["quarter"], gap["company"][:18],
+                                float(gap["amount_usd"]) / 1e9, gap["status"]))
+        lines.append(
+            "  A standing gap has never been held, so it is a work list and "
+            "not a fault.")
+        lines.append("  Checked %s against set %s."
+                     % (landmarks.get("checked_on") or "never",
+                        landmarks.get("version") or "unknown"))
+    else:
+        lines += ["", "LANDMARKS",
+                  "  No landmark report exists, so nothing is watching the "
+                  "largest rounds.",
+                  "  Run: python3 check_landmarks.py --live --write"]
 
     # SOURCE LINKS is reported EVERY time, findings or none. It is the one
     # number in this email that is supposed to move week on week, and a metric
@@ -646,6 +760,7 @@ def main(argv=None) -> int:
     guardrail_rows = read_guardrails()
     link_health = read_link_health()
     archive_stalled = archiving_stalled(link_health, now)
+    landmarks = read_landmarks()
 
     print("HEALTH DIGEST  (%s)" % source_label)
     print("  %d ok, %d degraded, %d stale, %d without a timestamp"
@@ -685,6 +800,16 @@ def main(argv=None) -> int:
         print("  ::warning:: ARCHIVING STALLED: work outstanding and no snapshot "
               "recorded in %d days" % ARCHIVE_STALL_DAYS)
 
+    if landmarks:
+        print("  " + landmarks["one_line"] + "  (checked %s)"
+              % landmarks.get("checked_on"))
+        if landmarks["regressions"]:
+            print("  ::warning:: LANDMARK REGRESSION: %d round(s) we used to "
+                  "hold are gone" % landmarks["regressions"])
+    else:
+        print("  ::warning:: no landmark report: nothing is watching the "
+              "largest rounds")
+
     needs_human = bool(
         stopped or buckets["stale"] or buckets["degraded"] or buckets["unknown_age"]
         or guardrail_rows or (spend and spend.get("at_ceiling"))
@@ -693,6 +818,10 @@ def main(argv=None) -> int:
         # and costs nothing. It is also the exact failure that turns a sourced
         # claim into an unsourced one the day a publisher deletes a page.
         or archive_stalled
+        # A landmark that WAS held and is not any more. Standing gaps are
+        # deliberately not here: they are a backlog, and a weekly email about a
+        # backlog that only backfilling can move is an email that gets filtered.
+        or bool(landmarks and landmarks["regressions"])
     )
 
     if not needs_human and not args.send_test:
@@ -700,7 +829,8 @@ def main(argv=None) -> int:
         return 0
 
     subject, body = build_email(buckets, stopped, newest, spend, source_label,
-                                guardrail_rows, link_health, archive_stalled)
+                                guardrail_rows, link_health, archive_stalled,
+                                landmarks)
     if args.send_test and not needs_human:
         subject = "Test alert: everything is healthy"
         body = ("This is a test of the alert path, sent on request.\n\n"
