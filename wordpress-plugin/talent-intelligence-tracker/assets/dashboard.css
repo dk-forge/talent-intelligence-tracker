@@ -1766,6 +1766,61 @@ main:has(#tit-dashboard) {
 }
 
 /* ---------------------------------------------------------------------------
+   THE SITE HEADER, WHICH IS STICKY AND WAS TRANSPARENT.
+
+   Read off the live page at 375px. The site's own mobile rule is
+
+     @media (max-width:781px){
+       header.wp-block-template-part { position:sticky; top:0; z-index:999 }
+       header .wp-block-group.alignfull { background:rgba(255,255,255,.92); ... }
+     }
+
+   and those are two different elements. The header group on this site carries
+   `atr-header`, never `alignfull`, so the second selector matched nothing and
+   the bar pinned itself over the page with no background at all. Two failures
+   came out of that one mismatch, and they are not the same failure:
+
+     1. IT WAS UNREADABLE. Page text scrolled under the wordmark and printed
+        letter on letter.
+     2. IT ATE EVERY TAP. A sticky bar is a hit target whether or not anything
+        was painted into it, so elementFromPoint anywhere in the top 64px of a
+        375px viewport returned the header rather than the page under it.
+
+   So there are two fixes here, because a background alone would have fixed only
+   the first one:
+
+     1. AN OPAQUE BACKGROUND AND A HAIRLINE, ON THE STICKY ELEMENT ITSELF. Not
+        on a descendant. A descendant is precisely the mistake above: painting a
+        child does not paint the sticky parent's own box, and it is the parent
+        that the page scrolls under.
+     2. `position:static` BELOW THE SAME BREAKPOINT the site sticks at, which is
+        what stops the interception. A static header scrolls away with the page,
+        so nothing invisible is left sitting over the content and the top 64px
+        belongs to the page again.
+
+   The background is declared OUTSIDE the media query and stays declared even
+   though the header is static inside it. It costs nothing at desktop widths,
+   where the header is static anyway, and it means that anything re-sticking
+   this bar later cannot take the page back to text printed over text.
+
+   Scoped with :has() to the pages this stylesheet is loaded for, which is the
+   only part of the site this repo owns: the dashboard (#tit-dashboard) and the
+   routed pages that render the block theme's header around .tit-main. Every
+   other page keeps whatever the theme gives it.
+   --------------------------------------------------------------------------- */
+body:has(#tit-dashboard) header.wp-block-template-part,
+body:has(.tit-main) header.wp-block-template-part {
+  background: #fff;
+  border-bottom: 1px solid rgba(16, 18, 24, 0.12);
+}
+@media (max-width:781px){
+  body:has(#tit-dashboard) header.wp-block-template-part,
+  body:has(.tit-main) header.wp-block-template-part {
+    position: static;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    The results header: what orders the rows, sitting with the rows.
    The sort control used to live up in the quick-views strip, three screens
    above the table it orders, which is where a reader looks to CHOOSE a view and

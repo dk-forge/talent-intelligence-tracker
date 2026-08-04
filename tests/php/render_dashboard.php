@@ -374,6 +374,29 @@ function check($condition, $message) {
  * those two owner-requested controls, itemised here per the convention. This
  * page is read on phones; the next raise needs its own itemised bill.
  */
+/*
+ * NOT RAISED on 2026-08-03 for the four-defect UX pass, and the spend is written
+ * down anyway because the convention is that every session says what it cost:
+ * 180,482 -> 180,678, so 196 bytes, and the headroom is now 322.
+ *
+ *   ~130  THE PLACE CARD'S SUBTITLE gained "Every bar is a count of updates we
+ *         hold, never a count of jobs", after the card shipped titled "Where the
+ *         Jobs Are" over a ranking of record counts.
+ *   ~110  THE KIND CARD'S SUBTITLE, rewritten from "Ranked by how much of it we
+ *         are seeing" to a sentence that names the unit.
+ *   ~-44  net of the six title changes, which are mostly the same length as what
+ *         they replaced.
+ *
+ * The place caveat MOVED out of the (i) panel and did not change size, so the
+ * one fix a reader is most likely to notice cost nothing.
+ *
+ * THIS FIXTURE STILL CANNOT PRICE THE TREND PANEL, for the reason the 2026-07-30
+ * entry below already names: its rows sit within days of the render date, so the
+ * continuity gate refuses every signal and the panel collapses to one sentence.
+ * The same pass lengthened the drawn panel's basis sentence by roughly 120 bytes,
+ * which is not in the 196 above and is not measured anywhere. Budget ~5,400 for
+ * that panel in production rather than the ~5,300 recorded below.
+ */
 const TIT_DASH_BYTE_BUDGET = 181000;
 
 /*

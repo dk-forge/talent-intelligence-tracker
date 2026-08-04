@@ -43,8 +43,28 @@ if (!defined('ABSPATH')) exit;
  * above as three more CASE expressions over rows it was already counting, so a
  * ranking of two buckets costs nothing. Which industry cannot: it is a GROUP BY
  * over a column nothing else on the page groups on.
+ *
+ * RAISED 14 -> 15 on 2026-08-03, and this one bought a correction rather than a
+ * feature: tit_trend_ingest_breadth(), the scan behind the trend panel's
+ * statement about how much of a movement is us reading more.
+ *
+ *   1  which collectors STORED rows for this view in the first and the last week
+ *      of the window, GROUP BY DATE(captured_at)
+ *
+ * It cannot ride the daily rollup above it, and the reason is the whole point of
+ * the fix. That scan groups by COALESCE(published_date, DATE(captured_at)), and
+ * the sentence was previously counting collector names out of it, so a collector
+ * switched on last week that ingests back-dated articles was counted as having
+ * fed the START of the window. A measurement whose one job is to detect
+ * collection growth was blind to the commonest shape of it. Bucketing by ingest
+ * needs a different GROUP BY, and a different GROUP BY is a different scan.
+ *
+ * It is the same order of cost as the scan beside it: neither is sargable, since
+ * both wrap their date column in an expression, so both were always going to
+ * read the slice rather than seek it. Both are behind the same transient, so a
+ * warm render still costs zero.
  */
-const TIT_DASH_QUERY_BUDGET = 14;
+const TIT_DASH_QUERY_BUDGET = 15;
 
 /**
  * How many rows the server prints before JavaScript is involved.
@@ -1557,22 +1577,68 @@ function tit_dashboard_html() {
         untouched.
       */
       ?>
+      <?php
+      /*
+        EVERY CARD TITLE NAMES ITS DIMENSION AND ITS UNIT, and this overrides an
+        earlier decision on this page that is worth stating rather than quietly
+        reversing. The comment on the "kind" card below still argues the old
+        line: that a heading should name what a reader GETS from the chart and
+        not what the chart is made of. That produced "Where the Jobs Are" over a
+        ranking of RECORD COUNTS, so a bar reading "United Kingdom 7,955" told a
+        reader there were 7,955 jobs there when the figure was 7,955 updates, 97
+        percent of them one filing. A title that names the wrong quantity is a
+        wrong number written in words, and it travels further than the chart
+        does: it is what a share link, a screenshot and a headline all carry.
+
+        The reader-facing voice did not go anywhere. It moved UP, to these four
+        section headings, which are questions ("Where The Activity Is", "How It
+        Is Trending") and carry the interest. The cards underneath them are
+        allowed to be flat and exact, and being flat is what lets a reader tell
+        this card from the money card of nearly the same name.
+
+        The unit is one of three words on this page and never a fourth: UPDATES
+        (a count of rows we hold), US DOLLARS (summed, and only the rows carrying
+        a figure), or a rate of updates per day. Nothing here counts jobs, and
+        nothing here counts companies. If a future card counts either, it says so
+        in its own title.
+      */
+      ?>
       <h4 class="tit-charts-h">Where The Activity Is</h4>
       <div class="tit-charts tit-charts--one">
         <div class="tit-chart" id="chart-place">
           <?php
-          /* The one-collector caveat goes into the (i) with the rest of the
-             prose, and it is still the same element with the same id, so
-             dashboard.js keeps rewriting and hiding it under the filters in
-             force. It never becomes unreachable: the panel ships open, the
-             card points at it with aria-describedby, and the (i) is a
-             keyboard control. */
-          ob_start(); ?>
+          /*
+            THE CAVEAT IS PROSE ON THE CARD, AND IT IS NOT A LINE IN THE (i).
+
+            It used to be passed into tit_chart_head() as note_html, which put it
+            inside .tit-chart-note. That panel ships open from the server and is
+            then CLOSED by dashboard.js on load (see setNote(chart, false) in the
+            wiring loop), so on every browser that ran the script the element
+            computed display:none and measured 0x0. A live audit found it that
+            way. Every argument for putting it behind the (i) was sound and every
+            one of them was about prose a reader can choose to read; this is not
+            that. It is a retraction of the number sitting next to it, and a
+            retraction nobody has ever seen is not a retraction.
+
+            ABOVE THE RANKING, not under it. The base .tit-chart-caveat rule has
+            carried `margin:0 0 9px` since it was written, which is the spacing
+            of something that sits on top of what it qualifies, and the reason is
+            the one that matters here: the dominated country is by definition one
+            of the longest bars, so it is near the top of a list that is forty
+            rows long on a phone. A correction printed below all forty arrives
+            after the misreading it exists to prevent.
+
+            Same element, same id, so dashboard.js keeps rewriting the text and
+            re-hiding it when no country is dominated under the filters in force.
+            It is now genuinely hidden only when it is genuinely not true.
+          */
+          tit_chart_head('Updates by Country',
+            "Counted where the work sits; head office stands in when no place is"
+            . " named. Every bar is a count of updates we hold, never a count of jobs.",
+            'place'); ?>
           <p class="tit-chart-caveat" id="tit-place-caveat"<?php
             echo $place_caveat === '' ? ' hidden' : ''; ?>><?php
             echo esc_html($place_caveat); ?></p>
-          <?php $place_note = ob_get_clean();
-          tit_chart_head('Where the Jobs Are', "Counted where the work sits; head office stands in when no place is named.", 'place', $place_note); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by place"
                aria-describedby="<?php echo esc_attr(tit_chart_note_id('place')); ?>">
             <?php
@@ -1601,7 +1667,10 @@ function tit_dashboard_html() {
         */
         ?>
         <div class="tit-chart tit-chart-trend" id="chart-trend">
-          <?php tit_chart_head('Updates a Day', '', 'trend', '', true); ?>
+          <?php /* "Collected", in the title, because the whole card is our own
+                   collection rate and the note under it now says so in the
+                   first sentence rather than several sentences down. */ ?>
+          <?php tit_chart_head('Updates Collected a Day', '', 'trend', '', true); ?>
           <div class="tit-trend-box" id="tit-trend-box">
             <?php echo tit_signal_trend_html($trend); ?>
           </div>
@@ -1618,7 +1687,9 @@ function tit_dashboard_html() {
                  dashboard.js routes a click through the same state as the
                  dropdowns, so the subtitle may promise it. Buttons hold span
                  children only (phrasing content), never divs. */ ?>
-        <?php tit_chart_head('What Is Moving', 'Ranked by how much of it we are seeing.', 'kind'); ?>
+        <?php tit_chart_head('Updates by Kind of Move',
+          'How many updates we hold of each kind. The section heading above is the'
+          . ' question; this is the quantity that answers it.', 'kind'); ?>
       <div class="tit-pillars" role="group" aria-label="Activity by kind"
            aria-describedby="<?php echo esc_attr(tit_chart_note_id('kind')); ?>">
         <?php foreach ($by_pillar as $p) :
@@ -1635,7 +1706,11 @@ function tit_dashboard_html() {
       </div>
       </div>
         <div class="tit-chart" id="chart-direction">
-          <?php tit_chart_head('Which Way Headcount Is Going', 'What the source itself says. Most updates say nothing about headcount, and those are counted as such rather than guessed.', 'direction'); ?>
+          <?php /* "Updates by", not "Which Way Headcount Is Going": the bars
+                   count ROWS grouped by the direction each row states, and the
+                   old title named a movement in headcount that this chart has
+                   no figure for. Nothing on this card is a number of people. */ ?>
+          <?php tit_chart_head('Updates by Stated Headcount Direction', 'What the source itself says. Most updates say nothing about headcount, and those are counted as such rather than guessed.', 'direction'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction"
                aria-describedby="<?php echo esc_attr(tit_chart_note_id('direction')); ?>">
             <?php
@@ -1672,7 +1747,7 @@ function tit_dashboard_html() {
         */
         ?>
         <div class="tit-chart" id="chart-confidence">
-          <?php tit_chart_head('How Solid the Evidence Is', 'What each update is based on. A news report is never promoted to a filing.', 'confidence'); ?>
+          <?php tit_chart_head('Updates by Strength of Evidence', 'What each update is based on. A news report is never promoted to a filing.', 'confidence'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by evidence"
                aria-describedby="<?php echo esc_attr(tit_chart_note_id('confidence')); ?>">
             <?php
@@ -1700,7 +1775,10 @@ function tit_dashboard_html() {
         */
         ?>
         <div class="tit-chart" id="chart-industry">
-          <?php tit_chart_head('Which Industries Are Moving', 'Counted by updates, not by dollars.', 'industry'); ?>
+          <?php /* "Updates by Industry" against the money card's "Money Raised
+                   by Industry": one word apart in the title is what stops the
+                   two being read as the same ranking with different numbers. */ ?>
+          <?php tit_chart_head('Updates by Industry', 'Counted by updates, not by dollars.', 'industry'); ?>
           <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by industry"
                aria-describedby="<?php echo esc_attr(tit_chart_note_id('industry')); ?>">
             <?php
@@ -1776,11 +1854,14 @@ function tit_dashboard_html() {
             function ($k) { return tit_country_label_html($k); }, true
         );
         tit_money_chart(
-            /* The mock's own wording for this card, which is the one the owner
-               named. "Where the money went" is what the deleted section heading
-               used to say, so the phrase survives ON the card it describes
-               instead of over a section that did not need one. */
-            'city', 'Where the Money Went',
+            /* "Money Raised by City", matching its two siblings, and the mock's
+               "Where the money went" is retired here. It was the only card in
+               the money trio whose title named neither its dimension nor its
+               unit, and it sat between two that named both, so the odd one out
+               read as a different KIND of figure rather than the same figure cut
+               a third way. docs/HANDOVER.md already recorded this rename as the
+               right one; this is it landing. */
+            'city', 'Money Raised by City',
             "Funding rounds added up, in US dollars, by city.",
             $money['by_city'], $money, 'city',
             function ($k) { return $k; }
@@ -2567,23 +2648,24 @@ function tit_signal_trend($table, $where = 'is_current = 1', array $params = arr
         $select[] = "SUM({$d[3]}) AS s{$i}";
     }
     /*
-      WHICH COLLECTORS WERE READING, PER DAY, in the same scan.
+      THIS SCAN NO LONGER CARRIES THE COLLECTOR NAMES, and the removal is the
+      point rather than a tidy-up. It used to append
 
-      The continuity gate refuses a line with a hole in it. It cannot see the
-      other way this corpus can move a line on its own: a source that starts
-      part-way through the window raises every count after it without anything
-      happening in the market. This tracker's national press and news collectors
-      first ran on 27 July, four days before the right-hand edge of a 90-day
-      chart, and "Everything in This View" reads 26 a day at the start of the
-      window and 71 at the end largely because of it.
+        GROUP_CONCAT(DISTINCT collector) AS cols
 
-      There is no gate that can honestly separate those two causes, so the panel
-      states the measurement instead of hiding it: how many collectors were
-      feeding this view at each end of the window. GROUP_CONCAT(DISTINCT) is
-      standard in both MySQL and SQLite and the value is a dozen short names, far
-      inside either engine's length cap.
+      here, and the panel counted those names at each end of the window to tell a
+      reader how much of the movement was us reading more. The flaw is in the
+      GROUP BY: every row in this query is bucketed by tit_signal_date_expr(),
+      which is COALESCE(published_date, DATE(captured_at)), so a collector that
+      arrived last week and ingested a year of back-dated articles was counted as
+      having fed the START of the window. That is exactly the confound the
+      measurement existed to detect, and it was the one shape of it the
+      measurement could not see.
+
+      It is measured by INGEST date instead, in tit_trend_ingest_breadth() below,
+      which is a separate scan because it needs a different GROUP BY and cannot
+      ride along on this one.
     */
-    $select[] = 'GROUP_CONCAT(DISTINCT collector) AS cols';
     $sql = 'SELECT ' . implode(', ', $select) . " FROM {$table} WHERE {$where}"
          . " AND {$date_expr} >= %s AND {$date_expr} <= %s GROUP BY d";
     $raw = $wpdb->get_results(
@@ -2671,22 +2753,25 @@ function tit_signal_trend($table, $where = 'is_current = 1', array $params = arr
         );
     }
 
-    // How many collectors were feeding this view at each end of the window.
-    // Sets rather than per-day counts, so a source that reports every third day
-    // counts once for the week rather than dropping out of it.
-    $breadth = function ($from, $to) use ($span, $by_day) {
-        $seen = array();
-        for ($i = $from; $i < $to && $i < count($span); $i++) {
-            $names = (string) ($by_day[$span[$i]]['cols'] ?? '');
-            if ($names === '') continue;
-            foreach (explode(',', $names) as $name) {
-                $name = trim($name);
-                if ($name !== '') $seen[$name] = true;
-            }
-        }
-        return count($seen);
-    };
+    /*
+      THE TWO ENDS OF THE WINDOW, AS CALENDAR DATES, for the ingest measurement.
+
+      Both are seven days wide, matching the trailing average, so "the first week
+      of the window" in the prose is the same seven days the first plotted point
+      averages over.
+    */
     $end_i = count($span);
+    $first_lo = $span[$plot_from] ?? $start;
+    $first_hi = $span[min($plot_from + TIT_TREND_AVG - 1, $end_i - 1)] ?? $first_lo;
+    $last_lo  = $span[max(0, $end_i - TIT_TREND_AVG)] ?? $start;
+    $last_hi  = $span[$end_i - 1] ?? $today;
+
+    $sets = tit_trend_ingest_breadth($table, $where, $params, array(
+        array($first_lo, $first_hi),
+        array($last_lo,  $last_hi),
+    ));
+    $set_first = $sets[0] ?? array();
+    $set_last  = $sets[1] ?? array();
 
     return array(
         'start'   => $span[$plot_from] ?? $start,
@@ -2696,9 +2781,83 @@ function tit_signal_trend($table, $where = 'is_current = 1', array $params = arr
         'series'  => $series,
         'refused' => $refused,
         'max'     => $max,
-        'sources_first' => $breadth($plot_from, $plot_from + TIT_TREND_AVG),
-        'sources_last'  => $breadth($end_i - TIT_TREND_AVG, $end_i),
+        'sources_first' => count($set_first),
+        'sources_last'  => count($set_last),
+        /*
+          THE SETS, COMPARED, and not their two counts. Three collectors at each
+          end is not the same three: one can stop and another start in the same
+          window and leave the count untouched, which is a change in what we read
+          reported as no change at all. Both lists come back sorted, so === is a
+          set comparison.
+        */
+        'sources_same'  => $set_first === $set_last,
     );
+}
+
+/**
+ * Which collectors were STORING rows for this view at each end of the window.
+ *
+ * Bucketed by captured_at, which is when we wrote the row down, and never by
+ * published_date, which is when the world published it. That distinction is the
+ * whole reason this function exists rather than riding along on the trend's own
+ * scan, and it is worth stating plainly: a collector switched on last week that
+ * then ingests a year of older articles publishes nothing and stores a great
+ * deal. Bucketed by publication it looks like a source that has been feeding us
+ * all along, and every count it adds to the left-hand end of the chart looks
+ * like something that was already there. Bucketed by ingest it appears exactly
+ * where it actually arrived.
+ *
+ * It answers one narrow question, and the prose that prints it is held to the
+ * same narrowness: how many distinct collectors put rows into THIS view during
+ * those seven days. It cannot see a collector that stayed and doubled its yield,
+ * so nothing built on it may claim that the rest of a movement is the market.
+ *
+ * $ranges is a list of array(lo, hi) inclusive date strings. Returns a list in
+ * the same order, each a sorted list of collector names.
+ */
+function tit_trend_ingest_breadth($table, $where, array $params, array $ranges) {
+    global $wpdb;
+    if (!$ranges) return array();
+
+    // One scan for both ends. Two queries would be two chances for the halves of
+    // one sentence to describe different sets of rows, which is the reason the
+    // trend's own signals are counted in a single pass as well.
+    $clauses = array();
+    $args = $params;             // The caller's filter params come FIRST: they
+    foreach ($ranges as $r) {    // appear first in statement order, inside $where.
+        $clauses[] = 'DATE(captured_at) BETWEEN %s AND %s';
+        $args[] = (string) $r[0];
+        $args[] = (string) $r[1];
+    }
+    // GROUP_CONCAT(DISTINCT) is standard in both MySQL and SQLite and the value
+    // is a dozen short names, far inside either engine's length cap.
+    $sql = "SELECT DATE(captured_at) AS d, GROUP_CONCAT(DISTINCT collector) AS cols
+              FROM {$table}
+             WHERE {$where} AND (" . implode(' OR ', $clauses) . ')
+             GROUP BY d';
+    $rows = $wpdb->get_results($wpdb->prepare($sql, $args), ARRAY_A) ?: array();
+
+    $out = array();
+    foreach ($ranges as $i => $r) $out[$i] = array();
+    foreach ($rows as $row) {
+        $d = (string) ($row['d'] ?? '');
+        foreach ($ranges as $i => $r) {
+            // A day can fall in more than one range only if the caller overlaps
+            // them, and then it belongs to both. No early break.
+            if ($d === '' || $d < (string) $r[0] || $d > (string) $r[1]) continue;
+            foreach (explode(',', (string) ($row['cols'] ?? '')) as $name) {
+                $name = trim($name);
+                if ($name !== '') $out[$i][$name] = true;
+            }
+        }
+    }
+    // Sorted, so the caller can compare two of these with === and be comparing
+    // sets rather than insertion order.
+    foreach ($out as $i => $set) {
+        ksort($set);
+        $out[$i] = array_keys($set);
+    }
+    return $out;
 }
 
 /** "1 collector" and "5 collectors". A live view printed the first as the second. */
@@ -2766,6 +2925,7 @@ function tit_signal_trend_html(array $trend) {
 
     $s_first = (int) ($trend['sources_first'] ?? 0);
     $s_last  = (int) ($trend['sources_last'] ?? 0);
+    $s_same  = !empty($trend['sources_same']);
 
     $then = array();
     foreach ($series as $s) {
@@ -2774,10 +2934,13 @@ function tit_signal_trend_html(array $trend) {
 
     ob_start(); ?>
     <div class="tit-chart-note" id="<?php echo esc_attr($note_id); ?>">
-      <p class="tit-sub">Each line is that signal's daily count, smoothed over the
+      <p class="tit-sub">Each line is how many updates of that signal we recorded
+        per day, smoothed over the
         <?php echo $avg; ?> days ending on the day it is plotted, from
         <?php echo esc_html((string) ($trend['start'] ?? '')); ?>
-        to <?php echo esc_html((string) ($trend['end'] ?? '')); ?>.</p>
+        to <?php echo esc_html((string) ($trend['end'] ?? '')); ?>. It is a
+        collection rate, and it moves when the market moves and when we start
+        reading somewhere new.</p>
       <?php /* The click contract: every chart element that looks tappable
                filters the page, and this was the one chart that broke it.
                The plot is pointer-only (an SVG point is not focusable), so
@@ -2800,36 +2963,84 @@ function tit_signal_trend_html(array $trend) {
         <?php echo esc_html(implode(', ', $then)); ?>.</p>
       <?php
       /*
-        THE SENTENCE THAT STOPS THE CHART OVERCLAIMING, and it is measured
-        rather than hedged. A line here counts updates WE HOLD, so it moves when
-        the market moves and it moves when we start reading another source, and
-        no chart can tell a reader which. Naming how many collectors fed each end
-        of the window lets them tell.
+        THE SENTENCE THAT STOPS THE CHART OVERCLAIMING, and it says less than it
+        used to because the old version said more than it could show.
+
+        A line here counts updates WE HOLD, so it moves when the market moves and
+        it moves when we start reading another source, and no chart can tell a
+        reader which. Naming which collectors were storing rows at each end of
+        the window lets them tell part of it. It is measured by INGEST date now
+        (tit_trend_ingest_breadth), which is the fix: bucketed by publication, a
+        collector switched on last week that back-fills older articles was
+        counted as having fed the START of the window, so the one confound worth
+        detecting was the one the check was blind to.
+
+        WHAT WAS REMOVED, AND WHY IT CANNOT COME BACK. The equal-basis branch
+        used to end "so the movement here is not a change in how many sources we
+        read", which reads as a certificate that the rise is real. Nothing here
+        can certify that. The same collectors can double what they return, one
+        can be swapped for another without moving a count, and a query can widen
+        inside a collector that never changes its name. So the branch now reports
+        the measurement and states what it does not cover, and any session
+        tempted to shorten it back into a verdict should read this paragraph
+        first.
+
+        THE FIRST BRANCH IS NEW. A window whose opening week has no ingest at
+        all is a window whose left-hand end is entirely backfill. That is a
+        plain fact about the corpus and the old check could not report it,
+        because a backfilled row carries a publication date inside the window
+        and so looked like a row we had held all along.
 
         IT IS IN THE (i) AND IT IS NOT OPTIONAL. The panel ships open, the card
-        points at it with aria-describedby and the (i) is a keyboard control, so
-        moving it here changed how much of the first screen it takes and nothing
-        about whether a reader can get to it.
+        points at it with aria-describedby and the (i) is a keyboard control.
       */
-      if ($s_first > 0 && $s_last > 0) : ?>
-        <p class="tit-trend-basis"><?php if ($s_last !== $s_first) : ?>
-          <?php
-          /*
-            NEUTRAL ABOUT DIRECTION, deliberately. The first draft of this said
-            "part of any rise here is us reading more", which was written while
-            looking at a view that was rising. Filter the page to Great Britain
-            and the same sentence sat under two falling lines. What the
-            measurement supports is that the basis moved, not which way the
-            lines went, so that is all it says.
-          */
-          echo esc_html(tit_trend_collectors($s_first)); ?> fed this view in the first week of
-          the window and <?php echo (int) $s_last; ?> in the last, so some of the movement here
-          is a change in what we read rather than in the market.
-        <?php else : ?>
-          The same <?php echo esc_html(tit_trend_collectors($s_last)); ?> fed the first and the
-          last week of this window, so the movement here is not a change in how many sources
-          we read.
-        <?php endif; ?></p>
+      ?>
+      <?php if ($s_last > 0 && $s_first === 0) : ?>
+        <p class="tit-trend-basis">No collector stored anything for this view during the
+          first week of this window; those updates were written down later. The left hand
+          end of these lines is backfill rather than what we were reading at the time.</p>
+      <?php elseif ($s_first > 0 && $s_last > 0 && !$s_same && $s_first === $s_last) : ?>
+        <?php
+        /*
+          EQUAL COUNTS, DIFFERENT SETS, and it gets its own sentence because the
+          shared one would print "3 in the first week and 3 in the last" and
+          invite the reader to conclude that nothing moved. This is the case the
+          old check could not report at all: it compared two counts, so a
+          collector stopping and another starting inside the window cancelled out
+          and the panel said the basis had not changed.
+
+          Two sets of equal size that are not equal cannot be a subset of one
+          another, so at least one left and at least one arrived. That is
+          arithmetic, not an estimate.
+        */
+        ?>
+        <p class="tit-trend-basis"><?php
+          echo esc_html(tit_trend_collectors($s_first)); ?> stored updates for this view in the
+          first week of the window and the same number in the last, but not the same ones: at
+          least one stopped feeding this view and at least one started. Some of the movement
+          here is a change in what we read rather than in the market.</p>
+      <?php elseif ($s_first > 0 && $s_last > 0 && !$s_same) : ?>
+        <?php
+        /*
+          NEUTRAL ABOUT DIRECTION, deliberately. The first draft of this said
+          "part of any rise here is us reading more", which was written while
+          looking at a view that was rising. Filter the page to Great Britain
+          and the same sentence sat under two falling lines. What the
+          measurement supports is that the basis moved, not which way the
+          lines went, so that is all it says.
+        */
+        ?>
+        <p class="tit-trend-basis"><?php
+          echo esc_html(tit_trend_collectors($s_first)); ?> stored updates for this view in the
+          first week of the window and <?php echo (int) $s_last; ?> in the last, counted by when
+          we wrote each update down. Some of the movement here is a change in what we read
+          rather than in the market.</p>
+      <?php elseif ($s_first > 0 && $s_last > 0) : ?>
+        <p class="tit-trend-basis">The same <?php
+          echo esc_html(tit_trend_collectors($s_last)); ?> stored updates for this view in the
+          first and the last week of this window, counted by when we wrote each update down.
+          That is a count of sources and not a measure of how much each one returns, so it
+          does not on its own make this movement a change in the market.</p>
       <?php endif; ?>
       <?php if ($refused) : ?>
         <p class="tit-trend-refused"><?php

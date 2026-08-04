@@ -440,6 +440,102 @@ is a list of documents that have already been read.
 
 ---
 
+## 2026-08-03 - four defects a live UX audit found, and three of them were the page saying something it could not support (1.69.0, pushed, NOT deployed)
+
+Nothing here was a broken query or a wrong sum. The markup was valid, the
+numbers were correctly computed, and the page was wrong anyway, which is the
+class of defect the render tests cannot see because they check that a thing is
+printed and not whether it is true.
+
+**1. The sticky site header was transparent, and it ate every tap.** At 375px
+the site's own mobile rule is `header.wp-block-template-part{position:sticky;
+top:0;z-index:999}` and the background meant to go with it is written for
+`header .wp-block-group.alignfull`. The header group on this site carries
+`atr-header` and never `alignfull`, so that selector matched nothing: a bar
+pinned over the page with nothing painted into it. Page text printed letter on
+letter under the wordmark, and because a sticky bar is a hit target whether or
+not you can see it, `document.elementFromPoint` anywhere in the top 64px
+returned the header rather than the page.
+
+Two fixes, because a background alone fixes only half of it: an opaque
+background and a hairline ON THE STICKY ELEMENT ITSELF (painting a descendant is
+the original mistake, and it does not paint the parent's box), plus
+`position:static` below the same breakpoint, which is what stops the
+interception. Both scoped with `:has()` to the surfaces this stylesheet loads
+on. The offending CSS is NOT in this repo; it is site-level custom CSS, so this
+is an override on the tracker pages and the rest of the site still has the
+transparent bar. Naming that limit rather than implying the site is fixed.
+
+**2. A retraction that was never once seen.** The place card's one-collector
+caveat ("read that bar as filing volume") was passed into `tit_chart_head()` as
+its `note_html`, which puts it inside `.tit-chart-note`. `dashboard.js` closes
+every one of those panels on load, so the element computed `display:none` and
+measured 0x0 on every browser that ran the script. It is now prose on the card,
+above the ranking, where its own base rule's `margin:0 0 9px` always assumed it
+was. Same id, so the JS still rewrites and re-hides it under the filters; it is
+now hidden only when it is not true.
+
+**3. The trend chart certified its own collection rate as market movement.** The
+basis sentence counted distinct collector names out of `tit_signal_trend()`'s
+scan, which groups by `COALESCE(published_date, DATE(captured_at))`. So a
+collector switched on last week that ingests back-dated articles was counted as
+having fed the START of the window: the one confound the measurement existed to
+detect was the one shape of it the measurement was blind to. It then concluded
+"so the movement here is not a change in how many sources we read", which reads
+as a certificate the evidence could not issue.
+
+Rebuilt as `tit_trend_ingest_breadth()`, bucketed by `DATE(captured_at)`, which
+is when we wrote the row down. It compares SETS rather than two counts, because
+one collector stopping while another starts leaves the count untouched and is
+still a change in what we read. Four branches now, and none of them certifies:
+no ingest at all in the opening week (the left end is backfill), the set moved,
+the set moved without the count moving, and the same set at both ends, which
+says only that the COUNT of sources held and that this is not a measure of how
+much each one returns. `TIT_DASH_QUERY_BUDGET` 14 -> 15, itemised at the
+constant: it needs a different GROUP BY and a different GROUP BY is a different
+scan.
+
+**4. Six of nine chart titles did not name what they showed.** "Where the Jobs
+Are" sat over a ranking of record counts, so a bar reading "United Kingdom
+7,955" told a reader there were 7,955 jobs there. A title is the part of a chart
+that travels: a share link, a screenshot and a headline all carry it. Every card
+now names its dimension and its unit, and the reader-facing voice moved up to
+the four section headings, which is where the questions belong.
+
+| id | before | after |
+|---|---|---|
+| place | Where the Jobs Are | Updates by Country |
+| trend | Updates a Day | Updates Collected a Day |
+| kind | What Is Moving | Updates by Kind of Move |
+| direction | Which Way Headcount Is Going | Updates by Stated Headcount Direction |
+| confidence | How Solid the Evidence Is | Updates by Strength of Evidence |
+| industry | Which Industries Are Moving | Updates by Industry |
+| money-country | Money Raised by Country | unchanged |
+| money-city | Where the Money Went | Money Raised by City |
+| money-industry | Money Raised by Industry | unchanged |
+
+`money-city` is the rename `docs/HANDOVER.md` already recorded as correct and
+which was not in the tree; this is it landing.
+
+**The guard: `tests/test_chart_titles_and_basis.py`, seven assertions, all seven
+proven red against the pre-fix tree.** That last part is the reason one of them
+exists in its current form: the assertion keeping the certifying sentence out
+was written as a plain literal, and the sentence it rejects wrapped across two
+source lines, so it PASSED against the very tree it was written to reject. It
+collapses whitespace first now. A guard nobody has run against the defect is a
+guard nobody should trust.
+
+Byte budget not raised: 180,482 -> 180,678, itemised at the constant, headroom
+322. The fixture still cannot price the trend panel (its rows sit within days of
+the render date, so every signal fails the continuity gate), so the four basis
+branches were proven with a throwaway harness instead and the drawn panel's
+cost is an estimate, marked as one.
+
+**Not touched, and deliberately:** the $228B money total and the funding
+classification. Another workstream owns it.
+
+---
+
 ## 2026-08-03 - the owner-approved batch of four: RSS per view, watchlist, card/table toggle, CRM export presets
 
 One version bump, four reader-facing features, no data change and no model call.
