@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-03T21:54:25Z",
-  "last_tick": "2026-08-03T22:08:36Z",
+  "last_dispatch": "2026-08-04T01:22:48Z",
+  "last_tick": "2026-08-04T01:22:48Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -189,12 +189,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-04T01:22:48Z",
       "history": [
         {
           "at": "2026-08-04T00:56:21Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-04T01:22:48Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260804T005621Z-archive-sources",
@@ -206,8 +211,32 @@
       "requested_at": "2026-08-04T00:56:21Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-04T01:22:45Z",
+          "detail": "publish the four mega-round rows released from the amount guardrail (Anthropic 65bn/30bn/13bn, OpenAI 122bn); primary_chase itself has nothing new to fetch",
+          "event": "queued"
+        }
+      ],
+      "id": "20260804T012245Z-collect",
+      "inputs": {
+        "dry_run": "false",
+        "limit": "",
+        "source": "primary_chase"
+      },
+      "priority": 0,
+      "reason": "publish the four mega-round rows released from the amount guardrail (Anthropic 65bn/30bn/13bn, OpenAI 122bn); primary_chase itself has nothing new to fetch",
+      "requested_at": "2026-08-04T01:22:45Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect.yml"
     },
     {
       "attempts": 0,
