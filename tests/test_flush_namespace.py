@@ -76,13 +76,44 @@ def test_the_value_carries_its_own_expiry():
 
 
 def test_expired_rows_are_swept_so_wp_options_stays_bounded():
-    """The throttle keys are per-IP, so without a sweep this grows forever -
-    and an unbounded wp_options is a slow site, which is a worse bug than the
-    one being fixed."""
+    """The throttle keys are per-IP, so without a sweep this grows forever, and
+    an unbounded wp_options is a slow site: a worse bug than the one fixed."""
     assert "function tit_ephemeral_gc" in DB
     gc = DB[DB.index("function tit_ephemeral_gc"):]
     assert "LIMIT %d" in gc, "one sweep must never become a long-running DELETE"
-    assert "TIT_EPHEMERAL_GC_ODDS" in DB, "and it must not run on every write"
+
+
+def test_the_sweep_is_deterministic_and_on_a_write_path():
+    """The first version rolled a 1-in-50 die inside tit_ephemeral_set(), which
+    put a SELECT on a READER's request path with probability. It passed locally
+    and then fataled in CI when the roll came up on the PHP harness, whose stub
+    database has no wp_options table. A cleanup that runs sometimes is a cleanup
+    you cannot test and a stack trace you cannot reproduce."""
+    setter = DB[DB.index("function tit_ephemeral_set"):]
+    setter = setter[:setter.index("/**")]
+    assert "rand(" not in setter and "tit_ephemeral_gc" not in setter, (
+        "the sweep must not fire probabilistically from a setter")
+    flush = DB[DB.index("function tit_flush_caches"):]
+    assert "tit_ephemeral_gc()" in flush[:flush.index("\n}")], (
+        "tit_flush_caches already deletes from wp_options several times a day, "
+        "on writes, which is the right place and cadence for the sweep")
+
+
+def test_the_sweep_can_never_take_down_a_page():
+    """A store whose cleanup can fatal is not an improvement on a transient."""
+    gc = DB[DB.index("function tit_ephemeral_gc"):]
+    gc = gc[:gc.index("\nfunction ")]
+    assert "catch (Exception" in gc and "catch (Error" in gc
+    assert "method_exists($wpdb, 'get_col')" in gc
+
+
+def test_the_sweep_only_removes_expired_rows():
+    """Surviving the flush is the whole point; a live row deleted here would
+    reintroduce the bug inside the fix."""
+    gc = DB[DB.index("function tit_ephemeral_gc"):]
+    gc = gc[:gc.index("\nfunction ")]
+    assert "(int) $row['x'] <= time()" in gc
+    assert "delete_option($option_name)" in gc
 
 
 def test_the_flush_only_touches_the_transient_namespace():

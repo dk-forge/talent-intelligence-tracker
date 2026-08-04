@@ -137,11 +137,6 @@ function tit_create_or_update_table() {
  */
 define('TIT_EPHEMERAL_PREFIX', 'tit_eph_');
 
-/** Odds of sweeping expired rows on a write. ~1 in 50 keeps wp_options bounded
- *  (the throttle keys are per-IP, so they accumulate) without putting a DELETE
- *  on the hot path of every request. */
-define('TIT_EPHEMERAL_GC_ODDS', 50);
-
 function tit_ephemeral_get($name) {
     $row = get_option(TIT_EPHEMERAL_PREFIX . $name, null);
     if (!is_array($row) || !isset($row['x'], $row['v'])) return null;
@@ -156,21 +151,45 @@ function tit_ephemeral_get($name) {
 function tit_ephemeral_set($name, $value, $ttl) {
     update_option(TIT_EPHEMERAL_PREFIX . $name,
                   array('v' => $value, 'x' => time() + max(1, (int) $ttl)), false);
-    if (function_exists('wp_rand')
-        ? wp_rand(1, TIT_EPHEMERAL_GC_ODDS) === 1
-        : mt_rand(1, TIT_EPHEMERAL_GC_ODDS) === 1) {
-        tit_ephemeral_gc();
-    }
 }
 
-/** Drop rows whose clock has run out. Bounded per sweep so one call can never
- *  become a long-running DELETE on somebody's page view. */
+/**
+ * Drop rows whose clock has run out, so wp_options stays bounded: the throttle
+ * keys are per-IP and would otherwise accumulate forever, and an unbounded
+ * wp_options is a slow site, a worse bug than the one this store fixes.
+ *
+ * CALLED FROM tit_flush_caches(), DETERMINISTICALLY, and that is the second
+ * version of this function. The first rolled a 1-in-50 die inside
+ * tit_ephemeral_set(), which put a SELECT on a reader's request path with
+ * probability - so it passed locally, then fataled in CI when the roll came up
+ * on the PHP harness, whose stub database has no wp_options table. A cleanup
+ * that runs sometimes is a cleanup you cannot test and a stack trace you cannot
+ * reproduce. tit_flush_caches() already runs a DELETE against wp_options
+ * several times a day, on writes rather than reads, which is exactly the right
+ * place and the right cadence.
+ *
+ * It only ever deletes rows that have EXPIRED or are malformed. The whole point
+ * of this store is surviving the flush, so a live row must come through it
+ * untouched.
+ *
+ * Bounded per sweep, and non-fatal: a store whose cleanup can take down a page
+ * is not an improvement on a transient.
+ */
 function tit_ephemeral_gc($limit = 200) {
     global $wpdb;
-    $like = $wpdb->esc_like(TIT_EPHEMERAL_PREFIX) . '%';
-    $names = $wpdb->get_col($wpdb->prepare(
-        "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT %d",
-        $like, (int) $limit));
+    if (!isset($wpdb) || !method_exists($wpdb, 'get_col')) return;
+    $like = method_exists($wpdb, 'esc_like')
+        ? $wpdb->esc_like(TIT_EPHEMERAL_PREFIX) . '%'
+        : TIT_EPHEMERAL_PREFIX . '%';
+    try {
+        $names = $wpdb->get_col($wpdb->prepare(
+            "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT %d",
+            $like, (int) $limit));
+    } catch (Exception $e) {
+        return;
+    } catch (Error $e) {
+        return;
+    }
     foreach ((array) $names as $option_name) {
         $row = get_option($option_name, null);
         if (!is_array($row) || !isset($row['x']) || (int) $row['x'] <= time()) {
@@ -188,6 +207,12 @@ function tit_flush_caches() {
         "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_tit_%'
          OR option_name LIKE '_transient_timeout_tit_%'"
     );
+
+    // ...and while we are already deleting from wp_options, drop the durable
+    // rows whose clock has run out. EXPIRED ONLY - a live one surviving this
+    // call is the entire purpose of the store. This is a write path, so the
+    // sweep never lands on a reader's request.
+    tit_ephemeral_gc();
 
     // Clearing our transients refreshes the DATA while leaving the previously
     // generated HTML sitting in front of it. This host runs a page cache, and
