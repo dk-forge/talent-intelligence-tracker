@@ -386,3 +386,70 @@ class TestTheFallbackChannelIsDeduplicatedByConstruction:
                             lambda *a, **k: (_ for _ in ()).throw(FileNotFoundError()))
         ok, note = gh_fallback.open_or_update("r/r", line="- x")
         assert not ok and "gh is not installed" in note
+
+
+class TestAnUnsendableKeyCannotEnterTheRetryLoop:
+    """The 2026-08-03 outage in one class.
+
+    `ci_noise_report.py` composed its ISO week with `%G-W%V` and minted
+    `ci-noise:2026-W32`. Uppercase W is not in the character class `/alert`
+    accepts, so every POST earned a SETTLED 400. The outbox retried it anyway,
+    sixteen times, passed FAIL_LOUD_ATTEMPTS, declared the entry `stuck` — and
+    host-watch, which reports "alerts are stuck with the host UP", then failed
+    every fifteen-minute tick for five hours while the host answered HTTP 200 in
+    under a second.
+
+    The individual bad key was repaired by hand. These pin the CLASS: the queue
+    itself now refuses to accept anything it could only retry forever, so the
+    next caller to hand-compose a key cannot repeat it.
+    """
+
+    def _envelope(self, tmp_path, key):
+        env = tmp_path / "envelope.json"
+        env.write_text(json.dumps({
+            "key": key, "kind": "alert", "scope": "ci-noise",
+            "payload": {"subject": "CI noise", "dedupe_key": key},
+            "reason": "HTTP 400 from /alert"}))
+        return env
+
+    def test_the_exact_key_that_took_the_watchdog_down_is_repaired_on_the_way_in(
+            self, tmp_path):
+        out = tmp_path / "alert_outbox.json"
+        alert_outbox.enqueue_envelope(
+            self._envelope(tmp_path, "ci-noise:2026-W32"), out)
+        held = alert_outbox.pending(alert_outbox.load(out))
+        assert len(held) == 1
+        assert held[0]["key"] == "ci-noise:2026-w32"
+        assert alert_outbox.KEY_SAFE.match(held[0]["key"])
+        # and the repair is auditable rather than silent
+        assert held[0]["original_key"] == "ci-noise:2026-W32"
+
+    def test_no_key_the_endpoint_would_reject_can_reach_the_queue(self, tmp_path):
+        # Every shape the endpoint's regex refuses: uppercase, a leading
+        # separator, characters outside the class, an over-long key, and empty.
+        for bad in ("ci-noise:2026-W32", ":leading-colon", "has spaces",
+                    "sl/ash", "éaccent", "x" * 400, ""):
+            out = tmp_path / f"outbox-{abs(hash(bad))}.json"
+            alert_outbox.enqueue_envelope(self._envelope(tmp_path, bad), out)
+            held = alert_outbox.pending(alert_outbox.load(out))
+            assert len(held) == 1, bad
+            assert alert_outbox.KEY_SAFE.match(held[0]["key"]), \
+                f"{bad!r} was queued as {held[0]['key']!r}, which /alert rejects"
+
+    def test_a_key_that_was_already_valid_is_left_exactly_alone(self, tmp_path):
+        # The repair must not renumber healthy keys: two runs of one cause have
+        # to keep colliding on one key, or the dedupe that keeps eight identical
+        # emails down to one stops working.
+        good = "collect:main:abc-123.def_4"
+        out = tmp_path / "alert_outbox.json"
+        for _ in range(3):
+            alert_outbox.enqueue_envelope(self._envelope(tmp_path, good), out)
+        held = alert_outbox.pending(alert_outbox.load(out))
+        assert len(held) == 1 and held[0]["key"] == good
+        assert "original_key" not in held[0]
+        assert held[0]["attempts"] == 3
+
+    def test_the_python_mirror_is_the_one_the_queue_enforces(self):
+        # One definition. A second copy is a second thing to drift from the PHP,
+        # and the copy that drifts passes here and 400s there.
+        assert ci_alert.KEY_SAFE is alert_outbox.KEY_SAFE

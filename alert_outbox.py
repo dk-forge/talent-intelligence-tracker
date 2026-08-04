@@ -66,12 +66,48 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 OUTBOX = ROOT / "data" / "alert_outbox.json"
+
+#: What the endpoint accepts as a dedupe_key, mirrored from `tit_api_alert()` in
+#: wordpress-plugin/.../includes/api.php
+#: (`$safe = '/^[a-z0-9][a-z0-9:._-]{0,159}$/'`). `ci_alert.KEY_SAFE` IS this
+#: object, so there is one definition, and tests/test_ci_noise_report.py pins it
+#: against the PHP.
+#:
+#: IT LIVES IN THE QUEUE BECAUSE THE QUEUE IS WHAT MUST NOT ACCEPT A BAD ONE.
+#: A key the endpoint rejects fails with a SETTLED 400, and no number of retries
+#: turns a settled 400 into a delivery. On 2026-08-03 ci_noise_report.py composed
+#: its ISO week with `%G-W%V`, minted `ci-noise:2026-W32` (uppercase W is not in
+#: that character class), and the outbox held it and retried it sixteen times. At
+#: twelve it went `stuck`, and host-watch — which reports "alerts are stuck with
+#: the host UP" — then failed EVERY fifteen-minute tick from 21:55Z onward while
+#: the host answered HTTP 200 in under a second. One malformed string took the
+#: outage alarm offline for five hours. Retrying the unretryable is the bug.
+KEY_SAFE = re.compile(r"^[a-z0-9][a-z0-9:._-]{0,159}$")
+
+
+def deliverable_key(key: str) -> str:
+    """The nearest key the endpoint will actually accept.
+
+    Deliberately a REPAIR rather than a rejection. The alternative is to refuse
+    the envelope, and refusing means the owner never hears about the failure that
+    prompted it — trading a stuck queue for silence, which is worse. The repair
+    is deterministic and case-folding only in practice, so two runs of the same
+    cause still collide on one key and the idempotence the queue relies on holds.
+
+    A key that survives this unchanged is one the endpoint will take. That is the
+    property `enqueue` depends on: nothing unsendable-by-construction can enter
+    the retry loop, so the 2026-08-03 shape cannot recur with a different string.
+    """
+    safe = re.sub(r"[^a-z0-9:._-]", "-", (key or "").lower()).lstrip(":._-")[:160]
+    return safe or "alert"
+
 
 #: Delivered/cancelled entries kept for forensics. Enough to reconstruct an
 #: outage after the fact, small enough that the committed file stays reviewable.
@@ -248,11 +284,32 @@ def enqueue_envelope(envelope_path: Path | str,
     """
     env = json.loads(Path(envelope_path).read_text())
     doc = load(outbox_path)
-    outcome, _entry = enqueue(
+
+    # NOTHING THE ENDPOINT WILL CERTAINLY REJECT GETS INTO THE RETRY LOOP.
+    # This is the only door into the committed outbox, so it is the only place
+    # this has to hold. A key that fails KEY_SAFE earns a settled 400 on every
+    # attempt forever, and the queue's escalation is built for "the host is
+    # having a bad night" — twelve failures and it declares the entry stuck,
+    # which reddens host-watch on every tick from then on. Repairing the key
+    # here costs nothing when it was already valid and, when it was not, turns a
+    # permanently undeliverable alert into a delivered one.
+    key = env["key"]
+    safe = deliverable_key(key)
+    original = None
+    if safe != key:
+        original = key
+        print(f"::warning::alert key {key!r} is not one /alert will accept; "
+              f"queued as {safe!r}. A key it rejects is a settled 400, not an "
+              f"outage, and retrying it is what took host-watch down on "
+              f"2026-08-03.")
+
+    outcome, entry = enqueue(
         doc,
-        key=env["key"], kind=env.get("kind", "alert"), scope=env.get("scope", ""),
+        key=safe, kind=env.get("kind", "alert"), scope=env.get("scope", ""),
         payload=env["payload"], reason=env.get("reason", ""),
         run_url=env.get("run_url", ""))
+    if original and entry.get("original_key") != original:
+        entry["original_key"] = original      # so the repair is auditable
     save(doc, outbox_path)
     return outcome
 

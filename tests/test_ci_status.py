@@ -388,13 +388,26 @@ class TheRitualTests(unittest.TestCase):
                 if isinstance(node, ast.ImportFrom) and node.level == 0
             }
 
+        # The repo-local modules ci_alert is allowed to lean on. Each is exempt
+        # ONLY because it is itself stdlib-only, and the loop below is what makes
+        # that a fact rather than a claim: the exemption and its justification
+        # travel together, so an exempted module that grows a dependency fails
+        # here rather than killing alerting at 2am.
+        #
+        # alert_outbox joined on 2026-08-04, when KEY_SAFE moved there. It moved
+        # because the QUEUE is what has to refuse a key the endpoint will only
+        # ever answer with a settled 400 — see the note on alert_outbox.KEY_SAFE
+        # and the five hours host-watch spent red over one uppercase letter.
+        leans_on = {"writer_queue", "alert_outbox"}
+
         self.assertEqual(imports_of("ci_alert.py")
                          - set(sys.stdlib_module_names)
-                         - {"writer_queue"}, set())
-        self.assertEqual(imports_of("writer_queue.py")
-                         - set(sys.stdlib_module_names), set(),
-                         "writer_queue grew a non-stdlib import; ci_alert "
-                         "leans on it, so the notifier would now need a venv")
+                         - leans_on, set())
+        for module in sorted(leans_on):
+            self.assertEqual(
+                imports_of(f"{module}.py") - set(sys.stdlib_module_names), set(),
+                f"{module} grew a non-stdlib import; ci_alert leans on it, so "
+                f"the notifier would now need a venv")
 
 
 if __name__ == "__main__":
