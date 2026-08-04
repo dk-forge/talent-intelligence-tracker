@@ -183,9 +183,6 @@
       "workflow": "collect national press"
     }
   ],
-  "red_marks": {
-    "ticket:20260803T215353Z-backfill-gnews-2026": "2026-08-04T22:21:35Z"
-  },
   "tickets": [
     {
       "attempts": 0,
@@ -2326,6 +2323,7 @@
       "workflow": "backfill-gnews-2026.yml"
     },
     {
+      "acknowledged": "2026-08-04T23:05:29Z",
       "attempts": 0,
       "dispatched_at": "2026-08-03T21:54:25Z",
       "history": [
@@ -2348,6 +2346,11 @@
           "at": "2026-08-03T22:08:59Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-04T23:05:29Z",
+          "detail": "Died when the OpenRouter key exhausted mid-run (402 at $26.81 vs $20 cap); two sibling slices completed minutes earlier, so not a code defect. Class fix is PR #10. Re-run after the top-up.",
+          "event": "acknowledged"
         }
       ],
       "id": "20260803T215353Z-backfill-gnews-2026",
