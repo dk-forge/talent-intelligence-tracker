@@ -25,10 +25,13 @@ def region_button(text, codes, n):
             f'<span>{text}</span> <span class="tit-region-n">{n:,}</span></button>')
 
 
+# The CORRECT shape since 1.71.1: World badges the view's own total, so it is
+# the placed regions (23,991) plus the 1,488 notable rows carrying neither a
+# country nor an HQ country. The six regions do not sum to World, and must not.
 REGIONS_OK = (region_button("World", "", 25_479)
               + region_button("Americas", "US,CA", 7_765)
               + region_button("Europe", "GB,DE", 8_972)
-              + region_button("Asia", "IN,JP", 8_742))
+              + region_button("Asia", "IN,JP", 7_254))
 
 # The live shape: World badges the placed-rows sum, not the whole view.
 REGIONS_BROKEN = (region_button("World", "", 23_991)
@@ -46,13 +49,33 @@ TILES = ('<span class="tit-fstat"><b>17,460</b><span>updates in 2026</span>'
 RIBBON = '<span class="tit-ribbon-c" id="tit-ribbon-c">{c}</span>'
 
 
-def home(regions=REGIONS_OK, all_time="25,479", countries=104):
+def home(regions=REGIONS_OK, all_time="25,479", countries=103):
     return TILES.format(all=all_time) + regions + RIBBON.format(c=countries)
 
 
-def _router(html, query_totals, aggregate=None):
-    agg = aggregate or {"total": 28_634, "companies": 16_275, "countries": 104,
-                        "verified": 19_799, "money": {"total": 503_309_683_768}}
+# The union of every region's codes, as the reconciliation check builds it:
+# sorted, deduplicated, urlencoded. 23,991 placed rows inside a 25,479 view
+# leaves 1,488 carrying no country at all, which is the live shape.
+UNION = "CA%2CDE%2CGB%2CIN%2CJP%2CUS"
+
+
+# TWO AGGREGATE PAYLOADS, because the endpoint has two populations and the
+# whole point of a stamped query is choosing between them. Unfiltered
+# /aggregate counts routine rows too and reaches one more country; the page's
+# ribbon and tiles are the NOTABLE view. Serving one payload for both is what
+# let a check compare the ribbon against a population the ribbon never showed.
+AGG_ALL = {"total": 28_634, "companies": 16_275, "countries": 104,
+           "verified": 19_799, "money": {"total": 503_309_683_768},
+           "by_country": [{"k": "GB", "n": "8100"}, {"k": "US", "n": "7442"}]}
+AGG_NOTABLE = {"total": 25_479, "companies": 14_461, "countries": 103,
+               "verified": 19_799, "money": {"total": 503_309_683_768},
+               "by_country": [{"k": "GB", "n": "8972"}, {"k": "US", "n": "7765"},
+                              {"k": "IN", "n": "8742"}]}
+
+
+def _router(html, query_totals, aggregate=None, aggregate_notable=None):
+    agg = aggregate or AGG_ALL
+    agg_n = aggregate_notable or AGG_NOTABLE
 
     def fetch(url, timeout=None):
         if "talent-intelligence-tracker/" in url:
@@ -63,7 +86,7 @@ def _router(html, query_totals, aggregate=None):
                     return json.dumps({"total": total}).encode()
             return json.dumps({"total": query_totals.get("", 0)}).encode()
         if "/aggregate" in url:
-            return json.dumps(agg).encode()
+            return json.dumps(agg_n if "detail=notable" in url else agg).encode()
         raise AssertionError("unrouted URL: " + url)
     return pf.Ctx(fetch, 5, "cb")
 
@@ -72,8 +95,10 @@ def _dead(url, timeout=None):
     raise urllib.error.URLError("network is down")
 
 
-DRILL_OK = {"": 25_479, "US%2CCA": 7_765, "GB%2CDE": 8_972, "IN%2CJP": 8_742}
-DRILL_BROKEN = {"": 25_479, "US%2CCA": 7_765, "GB%2CDE": 8_972, "IN%2CJP": 7_254}
+DRILL_OK = {UNION: 23_991, "": 25_479,
+            "US%2CCA": 7_765, "GB%2CDE": 8_972, "IN%2CJP": 7_254}
+DRILL_BROKEN = {UNION: 23_991, "": 25_479,
+                "US%2CCA": 7_765, "GB%2CDE": 8_972, "IN%2CJP": 7_254}
 
 
 class RegionDrillDownTest(unittest.TestCase):
@@ -110,17 +135,54 @@ class RegionDrillDownTest(unittest.TestCase):
 
 class RegionReconciliationTest(unittest.TestCase):
 
-    def test_fails_when_the_regions_do_not_partition_the_world(self):
-        bad = (region_button("World", "", 25_479)
-               + region_button("Americas", "US,CA", 7_765)
-               + region_button("Europe", "GB,DE", 8_972))
-        r = pf.check_region_reconciliation(_router(home(bad), DRILL_OK))
-        self.assertEqual(r.state, pf.FAIL)
-        self.assertIn("in two regions or in none", r.detail)
+    def test_fails_when_a_country_is_listed_in_two_regions(self):
+        """The axis the old sum-to-World assertion could not isolate.
 
-    def test_passes_when_the_regions_partition_the_world(self):
+        Asia is given JP twice over, so the badges sum higher than one query for
+        the union of every code returns. The old check saw only "the sum is not
+        World" and could not say which of the two faults it was.
+        """
+        overlap = (region_button("World", "", 25_479)
+                   + region_button("Americas", "US,CA", 7_765)
+                   + region_button("Europe", "GB,DE,JP", 8_972)
+                   + region_button("Asia", "IN,JP", 7_254))
+        r = pf.check_region_reconciliation(
+            _router(home(overlap), dict(DRILL_OK, **{UNION: 23_000})))
+        self.assertEqual(r.state, pf.FAIL)
+        self.assertIn("overlap", r.detail)
+        self.assertIn("JP", r.detail)
+
+    def test_fails_when_a_country_we_hold_rows_for_is_in_no_region(self):
+        """The other axis: a country in the data that no tab can reach.
+
+        BR carries records and appears in no region list, so a reader cannot
+        arrive at those rows by clicking. The badges still sum to the union, so
+        the disjointness assertion passes and this one has to catch it alone.
+        """
+        agg_orphan = dict(AGG_NOTABLE,
+                          by_country=AGG_NOTABLE["by_country"] + [{"k": "BR", "n": "412"}])
+        r = pf.check_region_reconciliation(
+            _router(home(REGIONS_OK), DRILL_OK, aggregate_notable=agg_orphan))
+        self.assertEqual(r.state, pf.FAIL)
+        self.assertIn("BR", r.detail)
+        self.assertIn("no region tab can reach", r.detail)
+
+    def test_fails_when_a_region_counts_rows_the_view_does_not_contain(self):
+        r = pf.check_region_reconciliation(
+            _router(home(REGIONS_OK), dict(DRILL_OK, **{UNION: 26_000})))
+        self.assertEqual(r.state, pf.FAIL)
+
+    def test_passes_on_the_correct_shape_and_names_the_placeless_rows(self):
+        """The regions do NOT sum to World now, and that is right.
+
+        World is the view's own total since 1.71.1, so it includes rows with no
+        geography. The check must report that remainder rather than treat it as
+        a discrepancy, and it must say the number.
+        """
         r = pf.check_region_reconciliation(_router(home(REGIONS_OK), DRILL_OK))
-        self.assertEqual(r.state, pf.PASS)
+        self.assertEqual(r.state, pf.PASS, r.detail)
+        self.assertIn("1,488", r.detail)
+        self.assertIn("placeless", r.detail)
 
     def test_reconciliation_can_pass_while_drilldown_fails(self):
         # This pairing is the point. On the live site the regions summed exactly
@@ -159,19 +221,42 @@ class SameClaimOnOnePageTest(unittest.TestCase):
 
 class AgreementTest(unittest.TestCase):
 
-    def test_fails_when_the_page_and_the_api_disagree(self):
-        # THE LIVE DEFECT: the ribbon renders 103 while the API answers 104.
-        r = pf.check_figures_agree(_router(home(countries=103), DRILL_OK))
-        self.assertEqual(r.state, pf.FAIL)
-        self.assertIn("103", r.detail)
-        self.assertIn("104", r.detail)
+    def test_the_ribbon_is_checked_against_the_notable_view_it_renders(self):
+        """103 against 104 was a FALSE POSITIVE, and this is the pair that pins it.
 
-    def test_passes_when_they_agree(self):
-        r = pf.check_figures_agree(_router(home(countries=104), DRILL_OK))
-        self.assertEqual(r.state, pf.PASS)
+        The ribbon counts distinct countries among NOTABLE rows. Compared with
+        an unfiltered /aggregate, which counts routine rows too and reaches one
+        more country, it reported "the page shows 103 but the API answers 104"
+        on every run. Nothing was wrong. A check that cries every day is a check
+        that gets switched off, and then the real defect goes out under it.
+
+        The router serves 104 unfiltered and 103 for detail=notable, so a
+        checker that issues the wrong query fails here on the number it reads.
+        """
+        r = pf.check_figures_agree(_router(home(countries=103), DRILL_OK))
+        self.assertEqual(r.state, pf.PASS, r.detail)
+        self.assertNotIn("104", r.detail)
+
+    def test_it_still_fails_when_the_ribbon_really_disagrees(self):
+        """The half that makes the half above mean something."""
+        r = pf.check_figures_agree(_router(home(countries=99), DRILL_OK))
+        self.assertEqual(r.state, pf.FAIL)
+        self.assertIn("99", r.detail)
+        self.assertIn("103", r.detail)
+        self.assertIn("detail", r.detail)      # the stamped query is reported
+
+    def test_every_home_figure_stamps_the_view_it_is_rendered_from(self):
+        """No figure may be stamped with an empty query.
+
+        An empty query means "whatever the endpoint's default population is",
+        which is not a claim about the number on the page. It is exactly the
+        mistake this module's own note on TILE_FIGURES warns about.
+        """
+        for f in pf.HOME_FIGURES:
+            self.assertTrue(f.params, f"{f.key} carries no stamped query")
 
     def test_uncovered_figures_are_named_in_the_detail(self):
-        r = pf.check_figures_agree(_router(home(countries=104), DRILL_OK))
+        r = pf.check_figures_agree(_router(home(countries=103), DRILL_OK))
         self.assertIn("NOT covered", r.detail)
 
     def test_a_dead_network_is_unknown_not_pass(self):
