@@ -177,6 +177,133 @@ red until somebody finishes.
 
 ---
 
+## 2026-08-04 - the amount guardrail was quarantining the truth, and nobody was reading the queue (1.70.0, pushed, NOT deployed)
+
+**The state that started it.** The publish quarantine held 15 rows worth
+$874.2bn. Every one was `state='open'` with `reviewed_at` NULL. One had been
+re-seen 229 times over five days. The live site published $212.5bn. So roughly
+four fifths of the funding dollars we held had never reached a reader, and the
+thing holding them was a human review step with nobody on it.
+
+Nothing was broken. `pipeline/publish.py` excluded every quarantined
+content_hash exactly as designed, the countdown printed exactly as designed, and
+the design's own escalation was 192 hours away for findings already ignored for
+four times that in aggregate. **A check whose queue is never read has been
+silently converted into a delete.**
+
+**The inversion, which is the actual defect.** The single-row ceiling is derived
+from the corpus's own distribution, which is the right way to derive it. In 2026
+that puts it at $6.55bn over 3,928 stored amounts, and $6.55bn is BELOW every
+real AI mega-round of the year. The check was flagging correct answers at the
+same rate as wrong ones.
+
+Raising the threshold does not work, and the ledger is the proof rather than an
+argument. Sorted by size the queue interleaved:
+
+    $539bn  Arch              "Surpasses $539 Billion In Private Market ASSETS"
+    $100bn  Turkish Airlines  a 100bn LIRA capex programme; the story is $2.3bn
+     $30bn  Anthropic         a real round, GIC and Coatue at $380bn
+     $20bn  xAI               a real Series E
+     $15bn  A16z              an investor's own fund close
+
+Any ceiling that admits Anthropic admits Arch. Size is not what is wrong with
+them.
+
+**Two questions, two answers, and both are required.**
+
+*Is the FIGURE right?* Independent outlets. A misparse is one outlet's mistake;
+a $30bn round is reported by everyone. And the corroboration was ARRIVING and
+being destroyed: on 2026-08-01 the Anthropic row stored from one outlet at
+14:25:39, reuters.com arrived at 14:26:21 and w.media at 16:53:45, and on
+2026-08-04 Anthropic's own press release for that exact round arrived. All three
+were marked `duplicate` in seen_urls, which keeps a url and the word
+"duplicate": no employer, no amount, no pointer to what was duplicated. Four
+independent reports of one figure, and the row they corroborated sat quarantined
+for a fifth day for want of exactly that.
+
+Dedup is the only place this can be captured, because by design the second
+outlet's article never becomes a row. New table `funding_corroborations`
+(signal_id, host, amount_usd), written by `store.record_corroboration` at the
+three sites that call `dedupe.funding_event_duplicate`: `run_collect.py`,
+`backfill_gnews_2026.py`, `backfill_press_2026.py`. Host is the registrable
+domain, so syndication cannot inflate the count.
+
+*Is it a COMPANY RAISE at all?* Outlet count cannot answer this, and the corpus
+proves it: Kingswood's $4bn fund close was carried by businesswire.com AND
+citybiz.co at the same $4bn. Corroboration alone would have auto-published a
+private equity fund close as a company round. So `NOT_A_COMPANY_ROUND` is a
+separate, independent condition over the row's own headline and summary: assets
+/ AUM, `\bfunds?\b` but never "funding", IPO, capex and "injects". Measured
+against all seventeen ledger rows: it vetoes A16z, Blackstone, Kingswood x2,
+Arch, ASE and Turkish Airlines, and leaves xAI's "Series E funding round" and
+Databricks' "in latest funding" clean.
+
+It **never creates a finding of its own** and quarantines nothing. It only
+withholds the shortcut. A new queue with nobody on it is the defect being
+removed here, not one to add.
+
+**The durable half, and it is the part that matters.** New
+`AMOUNT_REVIEW_DEADLINE_HOURS = 48`, with one definition in `pipeline/guardrails`
+read by both surfaces a human actually looks at. `ops_status.py [2d]` now exits
+2 on any `amount` finding older than that and prints EVERY one with its dollars,
+its age and its ledger key, never truncated: "and 9 more" is not a fact anybody
+acts on. `health_digest.py` mails the same full list and names the withheld
+dollars in the subject line.
+
+Deliberately separate from `LIVE_FINDING_GRACE_HOURS` / `HELD_FINDING_GRACE_HOURS`,
+which are unchanged. Those govern whether a DATA JOB goes red and are long on
+purpose; this project has the permanently-red drain-writers to show what a
+routinely red run teaches people. This governs the tool the session ritual runs
+first, read by somebody already sitting down to work. 48 hours is four collect
+runs, so a finding that old has been offered to a person four times.
+
+**The fifteen, adjudicated individually.** Accepted and now publishing: xAI
+$20bn, Waymo $16bn, DeepSeek $7.4bn, Databricks $5bn, plus Anthropic $30bn /
+$13bn / $65bn and OpenAI $122bn already accepted earlier the same day. Rejected
+and retracted locally (all were unpublished, so nothing was owed to the site):
+Arch $539bn (AUM), Turkish Airlines $100bn (lira capex, ~43x), A16z $15bn (fund
+close), ASE $10.5bn (capex budget), Blackstone $6.3bn (fund close), Corgi $4bn
+(the $4bn is the valuation; the raise is undisclosed), Kingswood $4bn twice (one
+fund close stored under two company_keys). OpenAI $100bn stays rejected: "closes
+in on" is a round that had not closed.
+
+The amount queue is now empty. Published funding total goes from $214.9bn to a
+projected $493.3bn once the next publish run sends the eight released rows.
+
+**One live figure is NOT resolved and is called out rather than quietly fixed.**
+ChangXin Memory $8.6bn was accepted on 2026-07-29 and is on the site. Its source
+says "$8.6 billion IPO" and "Shanghai STAR Market IPO", so it is the IPO error
+class, and `pipeline/guardrails.py` was citing it in its own module docstring as
+the canonical example of review working correctly. The docstring is corrected.
+The row is left alone because a local retraction would take it off our copy
+while leaving it on the page and remove it from every ops surface that would
+otherwise nag. It needs a credentialed `python3 retract.py <signal_id>`.
+
+**The live wrong number that was fixed.** Row 25799, published 2026-08-02:
+`funding_amount` = "93.175 millones", printed verbatim, in bold, followed by
+"raised", on the OpenAI profile and on place pages. In Spanish that dot is a
+thousands separator; an English reader reads ninety three point one seven five.
+The page showed one number and asserted another.
+
+The parser was RIGHT to refuse it. `vocab._USD_MARKER` requires a dollar to be
+stated and that string names no currency, so `funding_amount_usd` is correctly
+NULL. That veto is load-bearing and was not touched. What was wrong was the
+rendering. New `tit_amount_names_a_currency()` and `tit_amount_raised_html()` in
+shortcodes.php, one definition for both pages: print OUR parsed dollars when we
+have them, the source's own words when they name a currency at all, and NOTHING
+when they name none. Measured over the 243 distinct live unparsed strings: 222
+still print, 21 are silenced, and all 21 are a bare number plus a scale word
+("5.300 millones", "300 miljoen", "93.175 millones"). Note the ISO codes are
+matched with a lookahead and not a trailing `\b`, because they are written glued
+to the number ("EUR10 milioni", "Rp2,35 Triliun", "RM540mil") - the same
+boundary trap vocab.py records under the Turkish `mil`/`milyon` loss.
+
+**Tests.** `tests/test_funding_corroboration.py`, 17 cases, asserting through
+`publish.publish` so the batch assembly is exercised and not just
+`check_amounts`. Three of them fail against the old rule and pass against the
+new one, verified by reverting only `check_amounts` and re-running. Suite: 3,243
+to 3,260, all green.
+
 ## 2026-08-04 - the LANDMARK GUARD: twenty named events, weekly, so a missing round is never again found by a human looking
 
 The recovery recorded further down this day was correct and it was also the

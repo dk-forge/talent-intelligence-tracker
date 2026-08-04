@@ -2,6 +2,42 @@
 
 ---
 
+## READ THIS FIRST (2026-08-04, later): the amount queue is empty and the guard now escalates
+
+The section below stands as the diagnosis and is still the ranking. What
+changed since it was written:
+
+- **The publish quarantine is empty.** All 15 held rows ($874.2bn) were
+  adjudicated individually. 4 accepted (xAI $20bn, Waymo $16bn, DeepSeek
+  $7.4bn, Databricks $5bn), 8 rejected and retracted locally (Arch $539bn AUM,
+  Turkish Airlines $100bn lira capex, A16z $15bn fund close, ASE $10.5bn capex,
+  Blackstone $6.3bn fund close, Corgi $4bn valuation-not-raise, Kingswood $4bn
+  twice), 3 already answered earlier the same day. Published funding total goes
+  from $214.9bn to a **projected $493.3bn** once the next publish run sends the
+  eight released rows. **Nothing has been deployed and no publish run has been
+  made**, so the site still shows the old total.
+- **Defects 1 to 4 in the list below now have machine guards.** Currency
+  mis-scale, AUM, fund closes and IPOs are all vetoed by
+  `guardrails.NOT_A_COMPANY_ROUND`, which is what withholds the new
+  corroboration auto-accept. It never quarantines on its own.
+- **The queue cannot go unread again.** `ops_status.py` exits 2 on any `amount`
+  finding older than 48h and names every row and its dollars, and the weekly
+  digest mails the same full list. See the TECHLOG entry of the same date.
+- **Row 25799 is fixed.** "93.175 millones" is no longer rendered as a figure.
+
+**Still owed, and it needs credentials this session did not have:** ChangXin
+Memory $8.6bn is LIVE and is an IPO, not private funding. It was ACCEPTED into
+the ledger on 2026-07-29 by mistake, so no ops surface reports it. Run
+`python3 retract.py <signal_id> "An IPO is not private funding"` (WordPress
+first, local second), then `guardrails.review(..., 'rejected', ...)`.
+
+**Also still owed:** the audit below says only 6 of the top 25 rows are a
+correctly-scaled private round. The amount queue only ever contained rows ABOVE
+the derived ceiling of ~$6.5bn. Everything in the top 25 below that line has
+still been reviewed by nobody.
+
+---
+
 ## READ THIS FIRST (2026-08-04): the published money total is wrong
 
 A 40-agent audit measured it. Reports: `audit2/00-SYNTHESIS.md` and

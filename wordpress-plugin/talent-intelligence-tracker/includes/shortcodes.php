@@ -3462,6 +3462,131 @@ function tit_money_full($n) {
 }
 
 /**
+ * Whether a stated amount names a currency at all.
+ *
+ * WHY THIS EXISTS, and it is a live defect rather than a hypothetical.
+ * `funding_amount` is the source's own words. The company profile and the
+ * place pages printed it verbatim, in bold, followed by the word "raised".
+ * One row published that way on 2026-08-02:
+ *
+ *     OpenAI  -  "93.175 millones"  -  diarioestrategia.cl
+ *
+ * In Spanish that dot is a THOUSANDS separator, so the source wrote ninety
+ * three thousand one hundred and seventy five million. An English reader sees
+ * "93.175" and reads ninety three point one seven five. The page was showing
+ * one number and asserting another, in bold, with "raised" after it.
+ *
+ * The parser was right to refuse it: `pipeline/vocab._USD_MARKER` requires a
+ * dollar to be STATED, and that string names no currency, so
+ * funding_amount_usd is correctly NULL and the row is correctly absent from
+ * every total. That veto is load-bearing and is not touched here. What was
+ * wrong was the rendering: a string the parser declined to read was being
+ * displayed as though it had been read.
+ *
+ * So this asks the one question the display actually depends on, which is
+ * strictly weaker than the parser's: does the string name a currency AT ALL?
+ *
+ *   yes  "$5 billion", "US$10.5 billion", "EUR 48 million", "R$ 50 milhoes",
+ *        "GBP 585K", "250 crore" with a rupee sign, "300 Millionen Euro".
+ *        A reader can see what unit it is even when we do not convert it,
+ *        which is the promise the page already makes about other currencies.
+ *   no   "93.175 millones", "5.300 millones", "52,5 millones". A bare number
+ *        and a scale word. There is nothing here for a reader to be right
+ *        about, so nothing is printed.
+ *
+ * Measured over the 251 live rows carrying an amount we did not parse: the
+ * overwhelming majority name a symbol or a currency word and keep printing
+ * exactly as before. The ones this silences are the currency-less ones, which
+ * is the class the OpenAI row belongs to.
+ *
+ * Deliberately NOT a second copy of the parser. It answers a different, easier
+ * question, it is used only for display, and its failure direction is to print
+ * nothing rather than to print something wrong.
+ */
+function tit_amount_names_a_currency($text) {
+    $text = (string) $text;
+    if ($text === '') return false;
+
+    // 1. Any currency SYMBOL, including the CJK and Hangul currency
+    // characters, which are ordinary letters to a word-boundary and so can
+    // never be matched by the word list below. The dollar sign is included:
+    // an ambiguous dollar is the ambiguity this product already accepts
+    // everywhere else, and a reader seeing "$5 billion" is not being misled
+    // about the magnitude.
+    if (preg_match('/[$\x{20A0}-\x{20CF}\x{00A3}\x{00A5}\x{00A2}\x{FDFC}]'
+                   . '|z\x{0142}|\x{5143}|\x{5186}|\x{5713}|\x{C6D0}/u', $text)) {
+        return true;
+    }
+
+    // 2. An ISO code or a code-like prefix. Matched with a LOOKAHEAD and not a
+    // trailing \b, because these are written glued to the number: "EUR10
+    // milioni", "Rp2,35 Triliun", "RM540mil", "Rs2-3 billion", "Tk200cr".
+    // `\b...\b` fails on every one of them, and that is the exact shape of the
+    // bug pipeline/vocab.py records under "a regex alternative ending in a
+    // magnitude word can silently never match" - the same trap, one layer up.
+    if (preg_match(
+        '/\b(?:usd|eur|gbp|jpy|chf|cny|rmb|inr|krw|brl|cad|aud|sek|nok|dkk|'
+        . 'pln|try|zar|mxn|sgd|hkd|twd|ils|aed|sar|qar|rub|thb|idr|myr|vnd|'
+        . 'ngn|kes|pkr|bdt|egp|clp|cop|ars|uah|czk|huf|ron|isk|'
+        . 'rs|rp|rm|tk|ksh|shs|nt)(?![a-z])/iu', $text)) {
+        return true;
+    }
+    // The naira's bare capital N, which only counts immediately before a
+    // digit: "N1bn". Case-sensitive on purpose, so an ordinary lowercase word
+    // cannot become a currency.
+    if (preg_match('/\bN\s?\d/u', $text)) return true;
+
+    // 3. Or a currency NAME, in the languages the catalogue wires. Same
+    // principle as vocab.py's dollar words: a currency written out is stated
+    // just as plainly as one written with a sign. Note `meuro?` for the
+    // "300 MEuro" contraction, and that "300 Millionen" is deliberately NOT
+    // here - a scale word alone names no currency, which is the whole point.
+    return (bool) preg_match(
+        '/\b(dollars?|dolares|dolar|d\x{00F3}lar(?:es)?|dollar[oi]|'
+        . 'm?euros?|eura|eury|evro|libras?|livres?|pounds?|sterlin[g]?|'
+        . 'yen|yuan|renminbi|rupees?|rupiah|rupia|crore|lakh|won|reais|real|'
+        . 'pesos?|francs?|franken|krona|kronor|krone|kroner|kroon|'
+        . 'zloty|z\x{0142}oty|forint|lir[ae]|liras|shekel|dirhams?|riyals?|'
+        . 'rand|ringgit|baht|dong|naira|shillings?|couronne|corona)\b'
+        // The same names in the scripts that write them, where \b is
+        // meaningless: Arabic, Hebrew, CJK and Korean.
+        . '|\x{0631}\x{064A}\x{0627}\x{0644}|\x{062F}\x{0648}\x{0644}\x{0627}\x{0631}'
+        . '|\x{062F}\x{0631}\x{0647}\x{0645}|\x{064A}\x{0648}\x{0631}\x{0648}'
+        . '|\x{05E9}\x{05E7}\x{05DC}|\x{FF04}|\x{B2EC}\x{B7EC}|\x{30C9}\x{30EB}/iu',
+        $text);
+}
+
+/**
+ * The "N raised" fragment for one row, or '' when there is nothing honest to
+ * print. Returns escaped HTML, ready to echo.
+ *
+ * ONE definition for the company profile and the place pages, because the two
+ * carried the same line twice and would have been fixed once. Three cases:
+ *
+ *   parsed        print OUR figure, not the source's string. It is the number
+ *                 the totals add up, so a profile and a chart can never
+ *                 disagree, and it is unambiguous in any reader's locale.
+ *   not parsed,
+ *   currency named  print the source's words unchanged. "48 million euros" is
+ *                 a fact a reader can use, and the page's standing promise is
+ *                 that other currencies are shown and not converted.
+ *   not parsed,
+ *   no currency   print NOTHING. See tit_amount_names_a_currency.
+ */
+function tit_amount_raised_html($row) {
+    $usd = isset($row['funding_amount_usd']) ? (float) $row['funding_amount_usd'] : 0.0;
+    if ($usd > 0) {
+        return '<strong title="' . esc_attr(tit_money_full($usd)) . '">'
+            . esc_html(tit_money_short($usd)) . '</strong> raised';
+    }
+    $raw = isset($row['funding_amount']) ? (string) $row['funding_amount'] : '';
+    if ($raw !== '' && tit_amount_names_a_currency($raw)) {
+        return '<strong>' . esc_html($raw) . '</strong> raised';
+    }
+    return '';
+}
+
+/**
  * Summed US dollars under the caller's filters, plus the coverage figures the
  * page is required to print beside them.
  *

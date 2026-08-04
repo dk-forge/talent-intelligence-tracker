@@ -24,6 +24,72 @@ def mark_seen(conn: sqlite3.Connection, url: str, collector: str, outcome: str) 
     )
 
 
+def record_corroboration(conn: sqlite3.Connection, signal_id: str, *,
+                         source_url: str, source_name: str = "",
+                         amount_usd: int | None = None,
+                         collector: str = "") -> bool:
+    """Write down that a SECOND outlet reported a round we already hold.
+
+    Called from the one place the fact is still available: the moment dedup
+    decides an arriving article is a round we already stored and drops it. By
+    design that article never becomes a row, so if this is not written here the
+    only trace left is a url in seen_urls marked `duplicate` - which carries no
+    employer, no amount, and no pointer to what it duplicated.
+
+    That loss had a price. `pipeline/guardrails.check_amounts` holds back any
+    single figure the corpus's own distribution cannot explain, and in 2026 the
+    derived ceiling (~$6.5bn) sits BELOW every real AI mega-round, so it flags
+    correct answers at the same rate as wrong ones. The one thing that tells a
+    real $30bn round from a misread $539bn of assets under management is that
+    several independent outlets state the same figure - and that was exactly
+    what was being thrown away. See guardrails.CORROBORATION_MIN_OUTLETS.
+
+    Returns True when this is a new outlet for that round. Never raises: a
+    missing table on an old database, or a locked one, must not take down a
+    collect run over a note about a row that was going to be skipped anyway.
+    `INSERT OR IGNORE` keyed on (signal_id, host) makes it idempotent, so an
+    outlet that republishes the same story eight times counts once.
+    """
+    host = registrable_host(source_url)
+    if not signal_id or not host:
+        return False
+    try:
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO funding_corroborations "
+            "  (signal_id, host, source_url, source_name, amount_usd, "
+            "   collector, first_seen) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (signal_id, host, source_url, source_name, amount_usd, collector,
+             datetime.now(timezone.utc).isoformat(timespec="seconds")))
+        return bool(cur.rowcount)
+    except sqlite3.Error:
+        return False
+
+
+def registrable_host(url: str) -> str:
+    """The registrable domain of a url, or "" when it cannot be read.
+
+    One import site for the whole write path, and it is deliberately a
+    re-export rather than a second implementation: `collectors.national_press`
+    already owns the multi-label suffix table that stops `guardian.co.tt` and
+    `mirror.co.tt` comparing equal, and two outlets that compare equal when
+    they are not is precisely the way a corroboration count lies upward.
+
+    Imported lazily because `collectors` imports `pipeline`, and because that
+    module imports `requests`, which the test machine does not have. The
+    fallback takes the last two labels, which OVER-merges hosts under a
+    two-label public suffix - so it can only ever return FEWER distinct
+    outlets, never more. That is the safe direction for a rule whose whole job
+    is to be hard to satisfy.
+    """
+    try:
+        from collectors.national_press import registrable_domain
+        return registrable_domain(url)
+    except Exception:
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").lower().strip(".")
+        return ".".join(host.split(".")[-2:]) if host else ""
+
+
 def duplicate_verdict(conn: sqlite3.Connection, signal) -> str | None:
     """'duplicate', 'retracted', or None when this signal would be inserted.
 

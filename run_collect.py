@@ -621,7 +621,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         if not derive:
             parsed = cheap_extract.parse_funding(item)
             if parsed is not None:
-                if dedupe.funding_event_duplicate(
+                known = dedupe.funding_event_duplicate(
                         conn, parsed.company_key, parsed.amount_usd,
                         parsed.amount_canon,
                         # The window belongs to the CANDIDATE. Anchored on
@@ -630,12 +630,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                         # days). validate._normalize_date is the same reader
                         # the stored rows went through, so the two agree.
                         published_date=validate._normalize_date(
-                            item.get("published_date"), item.get("source_url"))):
+                            item.get("published_date"), item.get("source_url")))
+                if known:
                     known_rounds += 1
                     duplicates += 1
                     print(f"  SKIP    {item.get('headline','')[:66]}\n"
                           f"          round already stored, matched before any read")
                     if url and not dry_run:
+                        # The article is dropped; the FACT that a second outlet
+                        # reported this round is not. It is the only evidence
+                        # that separates a real mega-round from a parse error,
+                        # and this is the last moment it exists. See
+                        # pipeline/guardrails.CORROBORATION_MIN_OUTLETS.
+                        store.record_corroboration(
+                            conn, known, source_url=url,
+                            source_name=item.get("source_name") or "",
+                            amount_usd=parsed.amount_usd, collector=collector)
                         store.mark_seen(conn, url, collector, "duplicate")
                     continue
             # Cost lever 1: when the headline/teaser states every field, the

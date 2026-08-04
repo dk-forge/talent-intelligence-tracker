@@ -37,6 +37,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Imported under an alias because `build_email` takes a parameter called
+# `guardrails` (the ledger rows), and the module and the rows are both needed
+# in the same scope. The alias is the honest fix; renaming the parameter would
+# touch every caller and every test for a shadowing that is one line deep.
+from pipeline import guardrails as guardrails_mod
+
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -413,6 +419,18 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         elif overdue:
             subject = ("%d quarantined row(s) unanswered past the grace window"
                        % len(overdue))
+        elif guardrails_mod.unreviewed_amounts(
+                [r for r in guardrails if "already_live" in r]):
+            # Named in the SUBJECT because this is the one the ledger showed
+            # nobody ever opening: fifteen rows, $874.2bn, `reviewed_at` NULL
+            # on every one. "Waiting on you" was true and got ignored; the
+            # dollars are what makes it read as a cost rather than a chore.
+            unreviewed = guardrails_mod.unreviewed_amounts(
+                [r for r in guardrails if "already_live" in r])
+            total = sum(r.get("value") or 0 for r in unreviewed)
+            subject = ("$%.1fbn of funding is held back, unanswered for over "
+                       "%dh" % (total / 1e9,
+                                guardrails_mod.AMOUNT_REVIEW_DEADLINE_HOURS))
         else:
             subject = "%d row(s) quarantined, waiting on you" % len(guardrails)
     elif names:
@@ -506,6 +524,39 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
                 "  ($%.2fbn)" % (value / 1e9) if value >= 1e9 else "", when))
         if len(guardrails) > 6:
             lines.append("  ... and %d more" % (len(guardrails) - 6))
+
+        # THE MONEY QUEUE, IN FULL, WITH NO "AND N MORE".
+        #
+        # The six-row extract above is a summary and it is allowed to truncate.
+        # This is not, and the reason is what the ledger looked like on
+        # 2026-08-04: fifteen `amount` findings worth $874.2bn, every one
+        # `state='open'` with `reviewed_at` NULL, one of them re-seen 229 times
+        # over five days, while the site published $212.5bn. Four fifths of the
+        # money we hold had never reached a reader and no email had ever named
+        # the rows. A queue summarised as a count is a queue that stays a count.
+        #
+        # Mailed at 48h rather than at the grace window because this email is
+        # the moment of telling, and the thing being told is that real figures
+        # are being withheld - not that anything failed.
+        unreviewed = guardrails_mod.unreviewed_amounts(
+            [r for r in guardrails if "already_live" in r])
+        if unreviewed:
+            total = sum(r.get("value") or 0 for r in unreviewed)
+            lines += [
+                "",
+                "  UNREVIEWED FUNDING FIGURES (%d, $%.1fbn), every one, oldest "
+                "first:" % (len(unreviewed), total / 1e9),
+                "  These are out of the money charts, the totals and the table "
+                "until answered.",
+            ]
+            for row in sorted(unreviewed, key=lambda r: -(r.get("age_hours") or 0)):
+                lines.append("    $%8.2fbn  %-46s %.0fd unanswered  %s" % (
+                    (row.get("value") or 0) / 1e9,
+                    (row.get("label") or "")[:46],
+                    (row.get("age_hours") or 0) / 24,
+                    "ON THE LIVE SITE" if row.get("already_live") else "held back"))
+                lines.append("                %s/%s" % (
+                    row.get("check_name", ""), row.get("subject", "")))
         lines.append("")
 
     for name, hours, limit in stale:

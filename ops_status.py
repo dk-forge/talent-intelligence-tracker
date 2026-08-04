@@ -1084,6 +1084,18 @@ def _report_guardrails(conn) -> list[str]:
               "pipeline's.")
         print("    For the full set:  .venv/bin/python guardrails.py --check")
 
+    # Rows that went out over the ceiling because independent outlets agreed on
+    # the figure. Printed even when nothing is quarantined: an exemption nobody
+    # sees is the same kind of invisible as a queue nobody reads, and this one
+    # publishes numbers rather than withholding them.
+    corroborated = (report.get("amount") or {}).get("corroborated") or []
+    if corroborated:
+        print(f"    {len(corroborated)} figure(s) above the ceiling published "
+              f"themselves on independent corroboration:")
+        for row in corroborated[:6]:
+            print(f"      OK    {row['label'][:44]:<44} "
+                  f"{', '.join(row['outlets'][:3])}")
+
     held, live = report["held"], report["live"]
     overdue, aggregate = report["overdue"], report["aggregate"]
     if not (held or live or aggregate):
@@ -1103,6 +1115,42 @@ def _report_guardrails(conn) -> list[str]:
         print(f"          ... and {len(held) + len(live) - 6} more")
 
     problems = []
+
+    # THE MONEY QUEUE, NAMED IN FULL AND NEVER TRUNCATED.
+    #
+    # The six-row summary above is a glance. This is not: it is the list of
+    # figures a person has now been shown for two days and not answered, and it
+    # prints every one of them with its dollars, because the state it exists to
+    # prevent is the one found on 2026-08-04 - fifteen open `amount` findings
+    # worth $874.2bn, none ever reviewed, one re-seen 229 times. A truncated
+    # list is how a queue becomes decorative: "and 9 more" is not a fact
+    # anybody acts on.
+    #
+    # This goes red at 48h while the publish runs stay green until their own
+    # grace window, and the split is deliberate. Red CI trains people to skim.
+    # The tool the session ritual runs FIRST is the right place to be insistent,
+    # and it is read by a person who is already sitting down to work.
+    unreviewed = guardrails.unreviewed_amounts(held + live)
+    if unreviewed:
+        total = sum(r.get("value") or 0 for r in unreviewed)
+        print(f"\n    UNREVIEWED FUNDING FIGURES, all of them "
+              f"({len(unreviewed)} row(s), ${total / 1e9:,.1f}bn held out of "
+              f"every published figure):")
+        for row in unreviewed:
+            where = "on the live site" if row.get("already_live") else "held back"
+            print(f"      ${(row.get('value') or 0) / 1e9:>8,.2f}bn  "
+                  f"{(row.get('label') or '')[:46]:<46} "
+                  f"{row['age_hours'] / 24:.0f}d unanswered, {where}")
+            print(f"                  {row['check_name']}/{row['subject']}")
+        problems.append(
+            f"{len(unreviewed)} funding figure(s) worth ${total / 1e9:,.1f}bn "
+            f"have been in the amount queue longer than "
+            f"{guardrails.AMOUNT_REVIEW_DEADLINE_HOURS}h with nobody's answer on "
+            f"them. Every one is out of the money charts, the totals and the "
+            f"table until it is answered. Read each source, then "
+            f"`python3 guardrails.py --accept amount/<hash> '<why>'` for the "
+            f"real ones and `--reject` plus `python3 retract.py` for the rest.")
+
     if aggregate:
         for row in aggregate:
             print(f"    HALT  {row['check_name']:<13} {(row.get('label') or '')[:44]}")

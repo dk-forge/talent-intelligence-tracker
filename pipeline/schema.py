@@ -307,6 +307,41 @@ CREATE TABLE IF NOT EXISTS publish_guardrails (
     PRIMARY KEY (check_name, subject)
 );
 
+-- WHO ELSE SAID IT. One row per outlet that reported a funding figure we
+-- already hold, written at the moment dedup throws that outlet's article away.
+--
+-- WHY THIS TABLE EXISTS. Corroboration was arriving and being discarded. On
+-- 2026-08-01 the Anthropic $30bn round stored from one outlet at 14:25:39; at
+-- 14:26:21 reuters.com and at 16:53:45 w.media arrived reporting the same round
+-- and were marked `duplicate` in seen_urls, and on 2026-08-04 Anthropic's own
+-- press release for that exact round arrived and was marked `duplicate` too.
+-- Four independent reports of one figure, and the only thing the system kept
+-- was a url and the word "duplicate" - no employer, no amount, no way to ask
+-- afterwards how many outlets agreed. Meanwhile the amount guardrail was
+-- holding that same row out of the product for a fifth day because a single
+-- source could not distinguish it from a parse error.
+--
+-- Dedup is the ONLY place this can be captured. By design the second outlet's
+-- article never becomes a row (that is the whole point of dedup: one event,
+-- one record), so the fact that it existed is destroyed unless it is written
+-- down here as it goes past.
+--
+-- `amount_usd` is the figure the ARRIVING outlet stated, kept separately from
+-- the stored row's, so a later reader can see that the two agreed rather than
+-- having to trust that they did. `host` is the registrable domain, which is
+-- what makes two reports independent; the UNIQUE key is on (signal_id, host)
+-- so an outlet that republishes the same round eight times counts once.
+CREATE TABLE IF NOT EXISTS funding_corroborations (
+    signal_id   TEXT NOT NULL,   -- the row this outlet corroborates
+    host        TEXT NOT NULL,   -- registrable domain of the arriving article
+    source_url  TEXT,
+    source_name TEXT,
+    amount_usd  INTEGER,         -- what THIS outlet stated, not what we hold
+    collector   TEXT,
+    first_seen  TEXT NOT NULL,
+    PRIMARY KEY (signal_id, host)
+);
+
 CREATE TABLE IF NOT EXISTS employer_identity (
     company_key   TEXT PRIMARY KEY,
     company       TEXT,
@@ -344,6 +379,7 @@ CREATE INDEX IF NOT EXISTS idx_links_checked  ON source_links(checked_at);
 CREATE INDEX IF NOT EXISTS idx_links_archive  ON source_links(archive_state);
 CREATE INDEX IF NOT EXISTS idx_links_host     ON source_links(host);
 CREATE INDEX IF NOT EXISTS idx_guardrails_state ON publish_guardrails(state);
+CREATE INDEX IF NOT EXISTS idx_corrob_signal ON funding_corroborations(signal_id);
 -- Deliberately NO index on signals(source_url). It would help the GROUP BY in
 -- source_links.distinct_source_urls by a millisecond or two on 15k rows, and it
 -- added 1.7 MB to a database that is committed to the repo on every collect run

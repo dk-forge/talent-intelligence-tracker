@@ -591,8 +591,18 @@ function tit_company_status_line($rows) {
     $what = '';
     if (!empty($r['funding_stage']) && isset($stages[$r['funding_stage']])) {
         $what = 'Funding reported, ' . $stages[$r['funding_stage']];
-    } elseif (!empty($r['funding_amount'])) {
+    } elseif (!empty($r['funding_amount_usd']) && function_exists('tit_money_short')) {
+        // Our parsed dollars, never the source's string. Same rule and same
+        // reason as tit_amount_raised_html below the timeline.
+        $what = 'Funding reported, ' . tit_money_short((float) $r['funding_amount_usd']);
+    } elseif (!empty($r['funding_amount'])
+              && function_exists('tit_amount_names_a_currency')
+              && tit_amount_names_a_currency($r['funding_amount'])) {
         $what = 'Funding reported, ' . $r['funding_amount'];
+    } elseif (!empty($r['funding_amount'])) {
+        // An amount we could not read and whose string names no currency. The
+        // event is real and is still reported; the unreadable figure is not.
+        $what = 'Funding reported';
     } else {
         $directions = tit_company_direction_labels();
         $pillars    = tit_company_pillar_labels();
@@ -792,7 +802,15 @@ function tit_company_render($rows, $key, $profile) {
               <p class="tit-event-meta">
                 <?php if ($where) : ?><?php echo esc_html($where); ?> · <?php endif; ?>
                 <?php if ($r['headcount']) : ?><strong><?php echo (int) $r['headcount']; ?></strong> roles · <?php endif; ?>
-                <?php if ($r['funding_amount']) : ?><strong><?php echo esc_html($r['funding_amount']); ?></strong> raised · <?php endif; ?>
+                <?php /* Never the source's raw string. tit_amount_raised_html
+                         prints OUR parsed dollars when we have them, the
+                         source's words when they name a currency, and nothing
+                         at all otherwise - because "93.175 millones" in bold
+                         followed by "raised" told an English reader a number
+                         the source never wrote. */
+                       $tit_raised = function_exists('tit_amount_raised_html')
+                           ? tit_amount_raised_html($r) : '';
+                       if ($tit_raised) : ?><?php echo $tit_raised; ?> · <?php endif; ?>
                 <?php /* The same reader-facing labels as the dashboard table.
                          A profile page reading "rumored" while the tracker it
                          links from reads "Unconfirmed" is one product speaking

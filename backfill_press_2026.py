@@ -601,12 +601,20 @@ def main() -> int:
                     store.mark_seen(conn, url, COLLECTOR, "rejected")
                 continue
             parsed = cheap_extract.parse_funding(item)
-            if parsed is not None and dedupe.funding_event_duplicate(
+            known = parsed is not None and dedupe.funding_event_duplicate(
                     conn, parsed.company_key, parsed.amount_usd,
-                    parsed.amount_canon):
+                    parsed.amount_canon)
+            if known:
                 known_rounds += 1
                 duplicates += 1
                 if url and writes:
+                    # The article is dropped, but not the fact that a second
+                    # outlet reported this round. See run_collect.py and
+                    # pipeline/guardrails.CORROBORATION_MIN_OUTLETS.
+                    store.record_corroboration(
+                        conn, known, source_url=url,
+                        source_name=item.get("source_name") or "",
+                        amount_usd=parsed.amount_usd, collector=COLLECTOR)
                     store.mark_seen(conn, url, COLLECTOR, "duplicate")
                 continue
             eligible.append(item)

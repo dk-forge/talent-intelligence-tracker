@@ -575,7 +575,8 @@ function tit_place_facts($kind, $key) {
     $recent = $wpdb->get_results($wpdb->prepare(
         "SELECT headline, talent_readthrough, company, company_key, pillar,
                 signal_direction, city, country, hq_city, hq_country, headcount,
-                funding_amount, confidence, source_url, source_name, archive_url,
+                funding_amount, funding_amount_usd, confidence, source_url,
+                source_name, archive_url,
                 collector, published_date, captured_at
            FROM {$table} WHERE {$where}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
@@ -1251,7 +1252,15 @@ function tit_place_render($kind, $cell, $facts) {
                 <?php endif; ?>
                 <?php if ($where_label) : ?><?php echo esc_html($where_label); ?> · <?php endif; ?>
                 <?php if ($r['headcount']) : ?><strong><?php echo (int) $r['headcount']; ?></strong> roles · <?php endif; ?>
-                <?php if ($r['funding_amount']) : ?><strong><?php echo esc_html($r['funding_amount']); ?></strong> raised · <?php endif; ?>
+                <?php /* Never the source's raw string. tit_amount_raised_html
+                         prints OUR parsed dollars when we have them, the
+                         source's words when they name a currency, and nothing
+                         at all otherwise - because "93.175 millones" in bold
+                         followed by "raised" told an English reader a number
+                         the source never wrote. */
+                       $tit_raised = function_exists('tit_amount_raised_html')
+                           ? tit_amount_raised_html($r) : '';
+                       if ($tit_raised) : ?><?php echo $tit_raised; ?> · <?php endif; ?>
                 <span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
                   echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
                 · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php
