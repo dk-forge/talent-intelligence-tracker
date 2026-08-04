@@ -104,10 +104,26 @@ jobs:
           python-version: '3.12'
       - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
+      # DEGRADE, not enforce (2026-08-04). The 2026-07-28 note above approved
+      # these backfills as report-only spend, estimated $7-12 in total. What
+      # happened instead: 91 gnews-backfill dispatches on 2026-08-03 spent
+      # ~$21.5 (MEASURED by balance delta), exhausted the month's allowance AND
+      # the key's $20 credit cap, and every paid call has 402'd since
+      # 2026-08-03 08:16Z. The scheduled collectors DO run `--degrade`, so the
+      # discretionary job switched the production job off: collect.yml on
+      # 08-04 deferred 351 google_news candidates unread.
+      #
+      # `--degrade` is not `--enforce` and does not halt this job. It exits 0
+      # and sets TIT_PAID_READS=off only once the month's allowance is spent;
+      # the backfill still fetches, still prefilters, still stores everything
+      # it can close for free, and deferred candidates are left UNMARKED so a
+      # later run reads them. The backfill has a cursor, so nothing is lost -
+      # it resumes at the same slice. What it can no longer do is spend the
+      # scheduled collectors' budget.
       - name: Spend before
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: python spend.py || true
+        run: python spend.py --degrade
 
       - name: Backfill one slice
         env:

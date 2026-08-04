@@ -257,3 +257,61 @@ def test_the_degraded_marker_survives_the_health_line_truncation():
     assert "detail'][:70]" in ops, (
         "the truncation this ordering is defending against has moved; "
         "re-check that DEGRADED still fits inside it")
+
+
+# ---------------------------------------------------------------------------
+# The discretionary jobs must not be able to switch the scheduled ones off
+# ---------------------------------------------------------------------------
+#
+# Measured 2026-08-03/04. The 2026 backfills ran `python spend.py || true` --
+# report-only, by a 2026-07-28 note that approved them as an estimated $7-12 of
+# owner-approved spend. 91 gnews-backfill dispatches on 2026-08-03 instead spent
+# ~$21.5 (balance delta), took the key past its $20 credit cap, and every paid
+# call has 402'd since 08-03 08:16Z. Because collect.yml DOES degrade, the
+# discretionary job switched the production job off: 351 google_news candidates
+# deferred unread on 08-04.
+#
+# `--degrade` cannot halt a backfill. It exits 0 and only turns PAID reads off
+# once the allowance is spent; the free fetch, the prefilter and every record
+# `cheap_extract` can close for $0 keep running, and a deferred candidate is
+# left UNMARKED with the cursor unmoved, so a later run reads it. The backfill
+# loses depth for the rest of the month. It does not lose coverage.
+
+BACKFILL_WORKFLOWS = sorted(
+    p.name for p in WORKFLOWS.glob("backfill-*.yml")
+    if "python spend.py" in p.read_text()
+)
+
+
+def test_there_are_backfill_workflows_to_check():
+    """Guard the guard: a glob that matches nothing passes every test below."""
+    assert BACKFILL_WORKFLOWS, "no backfill workflow invokes spend.py at all"
+
+
+@pytest.mark.parametrize("name", BACKFILL_WORKFLOWS)
+def test_a_backfill_runs_under_the_guard_before_it_spends(name):
+    text = (WORKFLOWS / name).read_text()
+    assert "python spend.py --degrade" in text, (
+        f"{name} spends against the shared allowance without asking the guard, "
+        f"so a discretionary run can exhaust the budget the scheduled "
+        f"collectors depend on"
+    )
+
+
+@pytest.mark.parametrize("name", BACKFILL_WORKFLOWS)
+def test_a_backfill_is_never_hard_stopped(name):
+    """--enforce here would be the 2026-07-30 outage again, on a job the owner
+    approved. Degrade, never halt."""
+    assert "python spend.py --enforce" not in (WORKFLOWS / name).read_text(), name
+
+
+@pytest.mark.parametrize("name", BACKFILL_WORKFLOWS)
+def test_the_guard_runs_before_the_backfill_step_not_after(name):
+    """A report printed after the money is gone is a receipt, not a guard.
+
+    Compared against the script INVOCATION, not the cap: every one of these
+    workflows explains the raised read cap in a header comment, so matching the
+    name alone finds the comment and the ordering check passes vacuously."""
+    text = (WORKFLOWS / name).read_text()
+    invocation = text.index("\n          python backfill")
+    assert text.index("python spend.py --degrade") < invocation, name
