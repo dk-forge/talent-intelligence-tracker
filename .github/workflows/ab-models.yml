@@ -17,7 +17,7 @@ on:
       mode:
         description: 'What to compare'
         type: choice
-        options: [gate, readthrough, extraction]
+        options: [gate, readthrough, extraction, cache-check]
         default: gate
 
 jobs:
@@ -37,5 +37,6 @@ jobs:
           case "${{ inputs.mode }}" in
             readthrough) python ab_models.py --readthrough ;;
             extraction)  python ab_models.py --extraction ;;
+            cache-check) python ab_models.py --cache-check google/gemini-2.5-flash-lite ;;
             *)           python ab_models.py ;;
           esac
