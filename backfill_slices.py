@@ -483,10 +483,22 @@ def record(state: dict, ticket: dict, now: datetime | None = None) -> dict:
     if not advanced:
         job["state"] = "stalled"
         job["updated_at"] = _iso(moment)
+        # NAME WHAT DID NOT ADVANCE, not just that something did not. The
+        # 2026-08-05 press run said "the cursor is still 0" and stopped there,
+        # so the actual cause (the month's allowance was spent, the walk broke
+        # out after 2 of 40 publishers) was only in the previous step's log and
+        # only if you knew to read it. The ticket carries the reason; print it.
+        why = ticket.get("stopped_early") or ticket.get("halt") or ""
         return {"job": job, "advanced": False, "complete": False,
-                "problem": (f"{key} made no progress: the cursor is still {was}. "
-                            "Not requeueing — a chain that cannot advance would "
-                            "run forever without ever going red.")}
+                "problem": (
+                    f"{key} made no progress: it walked "
+                    f"{ticket.get('slice') or '?'} and the cursor is still "
+                    f"{was}, so the chain STOPS here and will not restart "
+                    f"itself. Not requeueing — a chain that cannot advance "
+                    f"would run forever without ever going red. "
+                    + (f"The run says it ended because: {why}" if why else
+                       "The run recorded no reason for ending, which is itself "
+                       "the thing to investigate: read its walk step."))}
 
     job["cursor"] = now_cursor
     job["slices"] = int(job.get("slices", 0)) + 1

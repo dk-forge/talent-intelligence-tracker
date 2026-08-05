@@ -13,6 +13,91 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-05 - INCIDENT: the spend degrade killed the press backfill chain
+
+**Symptom.** Run 30982514410 (`backfill-press-2026`, window 2026-01-01..06-30)
+committed its slice and then went red on: *"the slice was committed but the
+backfill chain did not advance, so nothing was requeued."* The chain was dead
+after one slice, and every retry would have reproduced it exactly.
+
+**Root cause, and it is an interaction rather than a bug in either half.**
+PR #10 put the backfills under `spend.py --degrade` so discretionary work could
+not spend the scheduled collectors' allowance. Its stated promise was that
+`--degrade` "always exits 0", "can never fail a backfill step", and leaves the
+candidates it cannot pay for UNMARKED for a later pass. With the month's
+allowance spent, `classify.classify` raised `BudgetExhausted` on the FIRST
+candidate of the run, and `backfill_press_2026` caught `BudgetDeferred` **before**
+the `Throttled` handler that would have deferred and continued, setting
+`stopped_early` and `break`ing out of the candidate loop and then out of the
+PUBLISHER loop. The run walked **2 of the 40 publishers in roster index 0** and
+stopped. Two-fortieths of an index is not a finished index, so `roster_progress`
+left `done_through` at `None`, the emitted ticket carried a `next_cursor` equal
+to the cursor the run started from, and `backfill_slices.record` did exactly
+what it is designed to do: refused to requeue a chain that had made no progress,
+and went red. **Every guard behaved correctly. The defect was upstream of all of
+them** — a shut wallet was being reported as an unwalked roster.
+
+The same cause had already stalled `backfill-press-2026:2026-01-01..2026-07-30`
+at slice 4 on 2026-08-02, and killed a `backfill-gnews-2026` slice on 08-03 via
+`CreditsExhausted` (writer-queue ticket `20260803T215353Z-backfill-gnews-2026`,
+acknowledged as "class fix is PR #10" — it was not; PR #10 is what exposed it).
+
+**The fix.** `paid_path_closed` is a **latch, not a stop**. The first
+`BudgetDeferred`, `CreditsExhausted`, or `--max-readthroughs` refusal closes the
+paid path for the rest of the run; the candidate is left UNMARKED and counted in
+a new `left_unread` total, and **the walk continues**. Fetching, prefiltering and
+every `cheap_extract` close are free and still run, so the publishers really are
+read and the cursor advances honestly. What is lost is DEPTH, which already had
+a name in this walker: `rationed_off`, the candidates past the ration, left
+unmarked so a later pass reads them. A budget-deferred candidate is the same
+thing for the same reason. `AuthFailed` still returns 1 — a bad key is wrong for
+every run and cannot be left for later.
+
+**No guard was weakened.** The runaway guard in `record` still refuses a cursor
+that did not move; `roster_progress` still refuses to pass an index whose every
+publisher failed at the transport layer; the wall-clock budget still stops a
+slice at a publisher boundary and still stalls the chain if it stops mid-index.
+Only the wallet stopped counting as either of those.
+
+**Visibility, which was the second half of the failure.** The run that caused
+the stall exited 0 and said nothing about it, so the only explanation anywhere
+was `record` one step later saying "the cursor is still 0" without saying why.
+Three changes: the walker now prints `NOT REQUEUEING:` naming the roster index
+and how far it actually got (`N of 40 publishers`) and the reason the walk
+ended; `record`'s stall message now quotes the `stopped_early` the ticket
+carries, and says so explicitly when a ticket carries no reason at all, because
+"no reason" must never read like "no problem"; and the workflow captures
+`record`'s output and replays it into the `::error::` annotations instead of
+telling a human to scroll.
+
+**Pinned by** `tests/test_backfill_press_degrade.py`, 9 tests, **all nine
+verified failing on the pre-fix tree**.
+
+---
+
+## 2026-08-05 - the shared email digest signup, pinned by an executed guard
+
+The embed itself landed at 1.71.2 (`85bba44`): `tit_dashboard_html()` calls the
+sibling plugin's `alt_digest_subscribe_form('talent')` behind
+`function_exists()`, after the trust panel and before the citation footer, so
+the form never pushes the data below the fold. One WordPress install, one
+subscriber table, one consent record per person; no require crosses the plugin
+boundary.
+
+Its test did not hold. `test_the_dashboard_prints_the_shared_signup_form` was an
+`assertIn` over the raw file, and the embed sits under fifty words of prose, so
+**commenting the call out left all four tests passing on a dashboard that
+rendered no form at all** (verified by mutation). Rewritten: every textual
+assertion now strips comments first and matches a CALL rather than a mention,
+and the missing-dependency path is **executed** rather than described. The
+guarded block is lifted out of shortcodes.php by brace matching and run under
+the real `php` binary twice: with the sibling absent it must exit clean and
+print nothing, with a stub defined it must print what the stub returned. A third
+test proves an unguarded call really does fatal on this php build, without which
+the silent-degrade test would prove nothing.
+
+---
+
 ## 2026-08-04 - the preamble exit: instrumented and priced honestly, NOT taken (key exhausted)
 
 **The waste, measured.** Every extraction call re-sends the same byte-stable

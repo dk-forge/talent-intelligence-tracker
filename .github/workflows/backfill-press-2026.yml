@@ -181,8 +181,13 @@ jobs:
             # must still not cost us the rows we collected.
             RECORD_RC=0
             if [ -f "$RUNNER_TEMP/slice.json" ]; then
+              # Captured as well as printed: when this refuses to requeue, the
+              # sentence saying WHY is the only thing a human needs, and it is
+              # replayed into the ::error:: annotations at the end of the step
+              # rather than left for somebody to find by scrolling.
               python backfill_slices.py record --from "$RUNNER_TEMP/slice.json" \
-                --queue || RECORD_RC=$?
+                --queue > "$RUNNER_TEMP/record.log" 2>&1 || RECORD_RC=$?
+              cat "$RUNNER_TEMP/record.log"
             fi
             git add data/talent_intel.db
             git add data/backfill_state.json data/writer_queue.json || true
@@ -212,6 +217,14 @@ jobs:
             exit 0
           fi
           echo "::error::the slice was committed but the backfill chain did not"
-          echo "::error::advance, so nothing was requeued. Read the record step"
-          echo "::error::above, then: python backfill_slices.py status"
+          echo "::error::advance, so nothing was requeued. This backfill is now"
+          echo "::error::STOPPED and does not restart itself."
+          if [ -s "$RUNNER_TEMP/record.log" ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error::$line"
+            done < "$RUNNER_TEMP/record.log"
+          else
+            echo "::error::no record output was captured, so read the walk step"
+          fi
+          echo "::error::Then: python backfill_slices.py status"
           exit 1

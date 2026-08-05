@@ -532,6 +532,34 @@ def main() -> int:
     cheap_closed = known_rounds = 0
     publishers_done = 0
     stopped_early = ""
+    #: Set once the PAID path closes for the rest of this run, to the sentence
+    #: that says which ceiling closed it. It is a LATCH and not a stop, and the
+    #: distinction is the 2026-08-05 incident.
+    #:
+    #: `spend.py --degrade` sets TIT_PAID_READS=off once the month's allowance
+    #: is spent, and `classify.classify` then raises BudgetExhausted (a
+    #: BudgetDeferred) on the first candidate it is handed. This loop used to
+    #: `break` on that, out of the candidate loop and then out of the PUBLISHER
+    #: loop, so a degraded run walked 2 of the 40 publishers in roster index 0
+    #: and stopped. An index that is 2/40 walked is not finished, so
+    #: `roster_progress` left `done_through` at None, the emitted ticket carried
+    #: a `next_cursor` equal to the cursor it started from, and
+    #: `backfill_slices.record` did exactly what it should: refused to requeue a
+    #: chain that made no progress, and went red. Every later run repeated it,
+    #: so the chain was dead for as long as the allowance stayed spent, and the
+    #: degrade that promised it "always exits 0" reddened the run and stopped
+    #: the backfill.
+    #:
+    #: A closed wallet is not an unread publisher. The fetch, the prefilter and
+    #: every `cheap_extract` close are FREE and still run, so the walk finishes
+    #: its publishers and the cursor advances honestly. What is lost is DEPTH,
+    #: and depth already has a name here: the candidates past the cut are left
+    #: UNMARKED, exactly like `rationed_off`, so a later pass reads them.
+    paid_path_closed = ""
+    #: Candidates that reached the gate and were left unread because the paid
+    #: path was closed. Counted, printed and carried on the ticket, because a
+    #: shallow slice that says so is a different thing from a full one.
+    deferred_unread = 0
     #: The last roster index this run FINISHED. A publisher whose ration ran out
     #: is still FINISHED — that is what a ration means, and it is the difference
     #: between a walker that converges and one that stalls.
@@ -641,29 +669,45 @@ def main() -> int:
                 gated_countries[candidate_rank.candidate_country(item) or "?"] += 1
                 print(f"  WOULD GATE   {item['headline'][:70]}")
                 continue
-            if classify.STATS["full_calls"] >= args.max_readthroughs:
-                stopped_early = (f"--max-readthroughs ({args.max_readthroughs}) "
-                                 f"reached at {feed.name}")
-                break
-
             # A headline that states every field closes for $0 and goes through
-            # the same validate -> store path, marked on `notes`.
+            # the same validate -> store path, marked on `notes`. Checked BEFORE
+            # any ceiling, because none of the ceilings below are about it: they
+            # ration money, and this costs none.
             classified = cheap_extract.extract(item)
             cheap = classified is not None
             if cheap:
                 cheap_closed += 1
+            elif paid_path_closed:
+                # The wallet shut earlier in this run. Leave the candidate
+                # UNMARKED so a later pass reads it, and keep walking.
+                deferred_unread += 1
+                gate_ledger.outcome(item, "deferred")
+                continue
             else:
+                if classify.STATS["full_calls"] >= args.max_readthroughs:
+                    paid_path_closed = (f"--max-readthroughs "
+                                        f"({args.max_readthroughs}) reached at "
+                                        f"{feed.name}")
+                    deferred_unread += 1
+                    gate_ledger.outcome(item, "deferred")
+                    continue
                 try:
                     classified = classify.classify(item)
-                except classify.CreditsExhausted:
-                    stopped_early = "OpenRouter credits exhausted"
-                    break
                 except classify.AuthFailed as exc:
+                    # The one wall a walk cannot spend its way past and cannot
+                    # leave for later: a bad key is wrong for every run.
                     print(f"\nSTOPPING: {exc}", file=sys.stderr)
                     return 1
+                except classify.CreditsExhausted as exc:
+                    paid_path_closed = f"OpenRouter credits exhausted: {exc}"
+                    deferred_unread += 1
+                    gate_ledger.outcome(item, "deferred")
+                    continue
                 except classify.BudgetDeferred as exc:
-                    stopped_early = f"read-through cap: {exc}"
-                    break
+                    paid_path_closed = f"read-through cap: {exc}"
+                    deferred_unread += 1
+                    gate_ledger.outcome(item, "deferred")
+                    continue
                 except classify.Throttled:
                     # History is not going anywhere: leave it unmarked and a
                     # later pass over the same roster picks it up.
@@ -720,9 +764,14 @@ def main() -> int:
                 duplicates += 1
 
         conn.commit()
-        if stopped_early:
-            print(f"\nSTOPPING EARLY: {stopped_early}", file=sys.stderr)
-            break
+
+    # A closed wallet is reported, and is NOT a stop. Nothing inside the loop
+    # above breaks out of it any more: the only thing that ends a slice early is
+    # the wall clock, which breaks at the publisher boundary at the top.
+    if paid_path_closed and not stopped_early:
+        stopped_early = (f"{paid_path_closed}; the walk continued on free "
+                         f"extraction and left {deferred_unread} candidate(s) "
+                         f"unread and UNMARKED for a later pass")
 
     # What counts as a finished roster index, and why, is `roster_progress` —
     # that is where the reasoning and the tests live.
@@ -751,6 +800,8 @@ def main() -> int:
     for reason, count in filtered.most_common():
         print(f"      {count:5d}  {reason}")
     print(f"  left for a later pass  {rationed_off} (ration {args.ration}/slice)")
+    if deferred_unread:
+        print(f"  left UNREAD (no paid path)  {deferred_unread}")
     print(f"  gate calls         {classify.STATS['gate_calls']} "
           f"({classify.STATS['gate_rejects']} rejected there, cost avoided)")
     print(f"  read-throughs      {classify.STATS['full_calls']}   "
@@ -801,9 +852,26 @@ def main() -> int:
             next_cursor=cursor,
             totals={"stored": stored, "duplicates": duplicates,
                     "rejected": rejected, "publishers": publishers_done,
-                    "reached": reached, "left_for_later": rationed_off},
+                    "reached": reached, "left_for_later": rationed_off,
+                    "left_unread": deferred_unread},
             stopped_early=stopped_early, halt=blocked))
         print(f"  next cursor        {cursor}")
+
+        # A slice that finished NO roster index cannot requeue: `record` will
+        # refuse to move a cursor that did not move, and the workflow goes red
+        # on it. That refusal is right. What was wrong is that the run which
+        # CAUSED it exited 0 and said nothing, so on 2026-08-05 the only
+        # explanation anywhere was `record` one step later saying "the cursor is
+        # still 0" without saying why. The counters that explain it are here.
+        if cursor == job["cursor"] and unreached_index is None:
+            due = len(partition(population, lo, lo, args.publishers_per_slice))
+            print(f"\nNOT REQUEUEING: roster index {lo} is unfinished at "
+                  f"{attempted_by_index[lo]} of {due} publishers, so the cursor "
+                  f"stays at {job['cursor']} and nothing can be queued behind "
+                  f"this slice. The chain STOPS here until a human looks. The "
+                  f"walk ended because: "
+                  f"{stopped_early or 'no reason was recorded, which is itself the thing to investigate'}.",
+                  file=sys.stderr)
     if blocked:
         return 1
 
