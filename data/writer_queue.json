@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-05T16:19:18Z",
-  "last_tick": "2026-08-05T16:21:19Z",
+  "last_dispatch": "2026-08-05T16:43:01Z",
+  "last_tick": "2026-08-05T16:43:01Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -198,48 +198,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-05T16:19:18Z",
-      "history": [
-        {
-          "at": "2026-08-05T16:18:44Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T16:19:18Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T16:21:19Z",
-          "detail": "run 31024711526",
-          "event": "bound"
-        }
-      ],
-      "id": "20260805T161844Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-06-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 13)",
-      "requested_at": "2026-08-05T16:18:44Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31024711526",
-      "state": "dispatched",
-      "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-05T16:43:01Z",
       "history": [
         {
           "at": "2026-08-05T16:42:30Z",
           "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 14)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-05T16:43:01Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260805T164230Z-backfill-press-2026",
@@ -255,50 +224,8 @@
       "requested_at": "2026-08-05T16:42:30Z",
       "requested_by": "backfill-slices",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T17:02:14Z",
-      "history": [
-        {
-          "at": "2026-08-03T17:01:49Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-06-14)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T17:02:14Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T17:10:05Z",
-          "detail": "run 30834911033",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-03T17:10:05Z",
-          "detail": "run 30834911033",
-          "event": "landed"
-        }
-      ],
-      "id": "20260803T170149Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-03T17:10:05Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-06-14)",
-      "requested_at": "2026-08-03T17:01:49Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30834911033",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
@@ -2730,6 +2657,48 @@
       "requested_at": "2026-08-05T15:54:33Z",
       "requested_by": "backfill-slices",
       "run_id": "31022707791",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T16:19:18Z",
+      "history": [
+        {
+          "at": "2026-08-05T16:18:44Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 13)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T16:19:18Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T16:21:19Z",
+          "detail": "run 31024711526",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T16:43:01Z",
+          "detail": "run 31024711526",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T161844Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T16:43:01Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 13)",
+      "requested_at": "2026-08-05T16:18:44Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31024711526",
       "state": "landed",
       "workflow": "backfill-press-2026.yml"
     }
