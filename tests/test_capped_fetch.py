@@ -193,5 +193,90 @@ class EveryUntrustedCallSiteUsesIt(unittest.TestCase):
                          "the second copy of the capped read is still here")
 
 
+class AThirdPartysFailureIsData(unittest.TestCase):
+    """A publisher that goes silent MID-BODY is that publisher's outcome.
+
+    On 2026-08-05 neweralive.na accepted the connection, returned 200, and
+    stopped sending mid-body. `raw.read` raised urllib3's ReadTimeoutError,
+    which is NOT a `requests.RequestException`, so it sailed past `head_text`'s
+    except clause and killed the whole 19-minute press slice (run 31013599896),
+    whose crash-manufactured FAILED ticket then reddened drain-writers.
+    Every test here fails on the pre-fix tree.
+    """
+
+    def test_a_mid_body_timeout_is_raised_as_a_requests_exception(self):
+        import requests
+        import urllib3
+
+        class DyingRaw:
+            def read(self, n, decode_content=True):
+                raise urllib3.exceptions.ReadTimeoutError(
+                    None, "neweralive.na", "Read timed out.")
+
+        resp = Resp()
+        resp.raw = DyingRaw()
+        with self.assertRaises(requests.RequestException):
+            capped_fetch.read_capped(resp, 1_000)
+        self.assertTrue(resp.closed, "the dead response must still be closed")
+
+    def test_head_text_records_the_dead_host_rather_than_raising(self):
+        import urllib3
+        from collectors import press_archive
+
+        class DyingRaw:
+            def read(self, n, decode_content=True):
+                raise urllib3.exceptions.ReadTimeoutError(
+                    None, "neweralive.na", "Read timed out.")
+
+        resp = Resp()
+        resp.raw = DyingRaw()
+        original = press_archive.robots_allows
+        press_archive.robots_allows = lambda url, session=None: True
+        try:
+            title, description = press_archive.head_text(
+                "https://neweralive.na/posts/x", session=Session(resp))
+        finally:
+            press_archive.robots_allows = original
+        self.assertEqual((title, description), ("", ""))
+
+    def test_the_walk_finishes_the_slice_when_one_publisher_escapes(self):
+        """Even an exception the reader did not anticipate is one publisher's
+        `dead` record, and the publishers after it are still read."""
+        import requests
+        from collectors import press_archive
+        from collectors.national_press import Feed
+
+        def feed(name):
+            return Feed(name=name, rss=f"https://{name}.example/rss",
+                        country="Namibia", city="", coverage="national",
+                        language="en", source_type="press")
+
+        walked = []
+
+        def reader(feed_, lo, hi, **kwargs):
+            walked.append(feed_.name)
+            if feed_.name == "dead-host":
+                raise requests.exceptions.ConnectionError("mid-body timeout")
+            return [], {"name": feed_.name, "country": feed_.country,
+                        "site": feed_.rss, "status": "no_window",
+                        "urls": 0, "heads": 0, "items": 0, "detail": ""}
+
+        original = press_archive.read_publisher
+        press_archive.read_publisher = reader
+        try:
+            press_archive.collect(
+                start="2026-01-01", end="2026-01-31",
+                feeds=[feed("dead-host"), feed("alive")], dry_run=True)
+        finally:
+            press_archive.read_publisher = original
+
+        self.assertEqual(walked, ["dead-host", "alive"],
+                         "the walk must survive the dead host and finish")
+        by_name = {r["name"]: r for r in press_archive.PUBLISHER_HEALTH}
+        self.assertEqual(by_name["dead-host"]["status"], "dead",
+                         "the dead host must be RECORDED as an outcome")
+        self.assertIn("ConnectionError", by_name["dead-host"]["detail"])
+
+
 if __name__ == "__main__":
     unittest.main()

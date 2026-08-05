@@ -922,9 +922,21 @@ def collect(queries=None, *, start: str, end: str, feeds: list[Feed] | None = No
 
     for feed in population:
         order = order_for(feed) if order_for else None
-        items, record = read_publisher(
-            feed, start, end, session=session, max_heads=max_heads,
-            order=order, pause=pause, head_pause=head_pause)
+        # A third party's failure is DATA, not an exception: whatever
+        # transport error escapes the reader is this one publisher's `dead`
+        # record, never the end of the walk over everybody else.
+        try:
+            items, record = read_publisher(
+                feed, start, end, session=session, max_heads=max_heads,
+                order=order, pause=pause, head_pause=head_pause)
+        except (requests.RequestException, OSError) as exc:
+            items = []
+            record = {"name": feed.name, "country": feed.country,
+                      "site": feed.site or feed.rss, "status": "dead",
+                      "urls": 0, "heads": 0, "items": 0,
+                      "detail": f"host failure escaped the reader: "
+                                f"{type(exc).__name__}"}
+            STATS["dead"] += 1
         for item in items:
             url = item["source_url"]
             if url in seen_urls:

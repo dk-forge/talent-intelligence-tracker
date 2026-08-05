@@ -34,6 +34,7 @@ Two things it does NOT do, said plainly:
   loud, counted, and not a silently half-read publisher.
 """
 import requests
+import urllib3
 
 #: Feeds. The largest legitimate feed in the catalogue is comfortably under a
 #: megabyte; five is room for a publisher having a bad idea, not room for an
@@ -83,15 +84,42 @@ def read_capped(response, max_bytes=FEED_BYTES):
     `decode_content=True` is the whole reason this is a function rather than a
     slice: a cap applied to the compressed stream is not a cap, because gzip
     and brotli are precisely where a small response becomes a large one.
+
+    FAILURES DURING THE READ ARE RAISED AS `requests.RequestException`. This
+    is load-bearing: `raw.read` talks to urllib3 directly, and urllib3 raises
+    its OWN exceptions (`ReadTimeoutError`, `ProtocolError`, ...) which are NOT
+    `requests.RequestException`. Every caller in this codebase guards its loop
+    over third-party hosts with `except requests.RequestException`, which
+    covers the request but — before this translation — not the body read. On
+    2026-08-05 one publisher (neweralive.na) accepted the connection, returned
+    200, and then went silent mid-body: the `ReadTimeoutError` sailed past
+    `head_text`'s except clause and killed the entire 19-minute press slice
+    (run 31013599896). requests itself does this same translation inside
+    `iter_content`; this mirrors its mapping so a slow or dead remote is one
+    publisher's recorded outcome, never a run-level crash.
     """
     try:
         raw = getattr(response, "raw", None)
         if raw is not None and hasattr(raw, "read"):
             try:
-                return raw.read(max_bytes, decode_content=True) or b""
-            except TypeError:
-                # A test double, or a urllib3 old enough to lack the kwarg.
-                return raw.read(max_bytes) or b""
+                try:
+                    return raw.read(max_bytes, decode_content=True) or b""
+                except TypeError:
+                    # A test double, or a urllib3 old enough to lack the kwarg.
+                    return raw.read(max_bytes) or b""
+            except urllib3.exceptions.ReadTimeoutError as exc:
+                raise requests.exceptions.ConnectionError(exc) from exc
+            except urllib3.exceptions.DecodeError as exc:
+                raise requests.exceptions.ContentDecodingError(exc) from exc
+            except urllib3.exceptions.ProtocolError as exc:
+                raise requests.exceptions.ChunkedEncodingError(exc) from exc
+            except urllib3.exceptions.SSLError as exc:
+                raise requests.exceptions.SSLError(exc) from exc
+            except (urllib3.exceptions.HTTPError, OSError) as exc:
+                # Anything else transport-shaped (socket resets, bare
+                # timeouts): still one host's failure, still catchable by the
+                # per-host guards.
+                raise requests.exceptions.ConnectionError(exc) from exc
         # No raw stream (a stubbed response, or a non-streamed one). Falling
         # back to .content is a whole-body read, which is what this module
         # exists to avoid, so it is capped too rather than trusted.

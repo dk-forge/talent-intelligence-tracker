@@ -94,7 +94,14 @@ jobs:
     # that starves it. The script stops itself at SLICE_BUDGET_MINUTES, well
     # inside this, so the run ends CLEANLY and its commit step actually runs —
     # the one thing the 350-minute run never got to do.
-    timeout-minutes: 90
+    #
+    # Sized from measurement, 2026-08-05: the script's own budget is
+    # SLICE_BUDGET_MINUTES (50) and the 2026-08-03 slices measured 58-66
+    # minutes wall clock, i.e. the fixed checkout/install/commit overhead has
+    # been up to ~16 minutes. 66 was already 73% of the old 90 ceiling — the
+    # next self-timeout waiting. 50 + ~16 overhead + headroom = 110, still
+    # under LONG_HOLD_MINUTES (120), which is the hard upper bound here.
+    timeout-minutes: 110
     permissions:
       contents: write
     steps:

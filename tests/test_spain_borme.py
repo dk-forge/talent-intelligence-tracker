@@ -456,6 +456,38 @@ class TheRegistration(unittest.TestCase):
                 / "collect-structured.yml").read_text(encoding="utf-8")
         self.assertIn("spain_borme", text)
 
+    def test_one_dead_province_file_does_not_kill_the_bulletin(self):
+        """A socket read that times out mid-body raises TimeoutError, which is
+        NOT a URLError, and it used to sail past the per-file except clause
+        and kill the whole run. A third party's failure is data: the file is
+        skipped, counted, and the rest of the day is still read. Fails on the
+        pre-fix tree."""
+        payload = _fixture()
+        idents = sorted(payload["documents"])
+        dead, living = idents[0], idents[1:]
+
+        def dying_get(url, *, session=None, timeout=60, accept=""):
+            for ident in living:
+                if ident in url:
+                    return payload["documents"][ident]
+            raise TimeoutError("The read operation timed out")
+
+        saved_get = es._get
+        saved = (es.MIN_PROVINCE_FILES_PER_DAY, es.MIN_ENTRIES_PER_DAY,
+                 es.FLOOR_EVENTS_PER_DAY)
+        es._get = dying_get
+        es.MIN_PROVINCE_FILES_PER_DAY = 1
+        es.MIN_ENTRIES_PER_DAY = 1
+        es.FLOOR_EVENTS_PER_DAY = 0
+        try:
+            rows = es.collect(days=1, today=DAY, pause=0,
+                              summaries={DAY: payload["summary_payload"]})
+        finally:
+            es._get = saved_get
+            (es.MIN_PROVINCE_FILES_PER_DAY, es.MIN_ENTRIES_PER_DAY,
+             es.FLOOR_EVENTS_PER_DAY) = saved
+        self.assertTrue(rows, "the living province files must still be read")
+
     def test_it_revisits_its_source_url(self):
         """One province file carries up to 653 company entries, so many rows
         share a URL. Without this the second row from a file is skipped as

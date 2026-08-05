@@ -664,7 +664,14 @@ def collect(queries=None, *, days: int | None = None, today: date | None = None,
                 try:
                     html = _get(DOCUMENT_URL.format(ident=ident),
                                 session=session, accept="text/html")
-                except (urllib.error.HTTPError, urllib.error.URLError) as bad:
+                except OSError as bad:
+                    # OSError is the common ancestor of everything
+                    # transport-shaped here: urllib's URLError/HTTPError, a
+                    # socket read that times out mid-body (TimeoutError, which
+                    # is NOT a URLError and used to escape this clause and
+                    # kill the whole run), and requests.RequestException on
+                    # the session path. One unreadable province file is that
+                    # file's outcome, not the end of the bulletin.
                     print(f"[{COLLECTOR}] {ident} unreadable: {bad}")
                     continue
                 if pause:

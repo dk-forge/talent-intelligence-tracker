@@ -124,6 +124,8 @@ import sys
 from collections import Counter
 from datetime import date
 
+import requests
+
 import backfill_slices
 from collectors import press_archive
 from collectors.national_press import load_feeds
@@ -582,11 +584,28 @@ def main() -> int:
             stopped_early = budget.reason()
             break
 
-        items, record = press_archive.read_publisher(
-            feed, window_start, window_end, session=session,
-            max_heads=args.max_heads,
-            order=lambda e: (0 if prefilter.passes(
-                press_archive.slug_words(e.url))[0] else 1, e.day))
+        # A third party's failure is DATA, not an exception. `read_publisher`
+        # already records the failures it anticipates, and `capped_fetch` now
+        # translates urllib3's body-read errors into `requests.RequestException`
+        # so they are anticipated too. This belt is for whatever transport
+        # error is invented next: one publisher's dead host becomes that
+        # publisher's `dead` record and the walk finishes its slice, instead of
+        # one timeout 19 minutes in killing the run and stopping the chain
+        # (neweralive.na, run 31013599896, 2026-08-05).
+        try:
+            items, record = press_archive.read_publisher(
+                feed, window_start, window_end, session=session,
+                max_heads=args.max_heads,
+                order=lambda e: (0 if prefilter.passes(
+                    press_archive.slug_words(e.url))[0] else 1, e.day))
+        except (requests.RequestException, OSError) as exc:
+            items = []
+            record = {"name": feed.name, "country": feed.country,
+                      "site": feed.site or feed.rss, "status": "dead",
+                      "urls": 0, "heads": 0, "items": 0,
+                      "detail": f"host failure escaped the reader: "
+                                f"{type(exc).__name__}"}
+            press_archive.STATS["dead"] += 1
         press_archive.PUBLISHER_HEALTH.append(record)
         index = lo + publishers_done // args.publishers_per_slice
         publishers_done += 1
