@@ -26,6 +26,11 @@ from pathlib import Path
 import source_registry as registry
 
 OUT = Path(__file__).parent / "wordpress-plugin" / "talent-intelligence-tracker" / "data" / "sources.json"
+# The recall page's per-country source lines: which live sources cover a
+# country, which publishers were probed and refused (with the recorded
+# reason), and how many candidates are queued. Written in the same run so the
+# two files can never describe two different catalogues.
+OUT_COUNTRY = OUT.parent / "country_sources.json"
 
 # Em dash and en dash. Hyphen-minus is ordinary punctuation and is not banned.
 BANNED_DASHES = ("—", "–")
@@ -70,10 +75,29 @@ def main() -> int:
               "should not carry words nobody chose.", file=sys.stderr)
         return 1
 
+    coverage = registry.country_coverage()
+    # Same render boundary, same rule: this file feeds the recall page's
+    # country blocks, so a banned dash in a probe reason is refused here, not
+    # rewritten. Repair the text in data/sources_catalogue.csv.
+    coverage_offences = dash_offences([
+        {"name": code, "live": " ".join(c["live"]),
+         "refused": " ".join(r["name"] + " " + r["reason"] for r in c["refused"])}
+        for code, c in coverage.items()
+    ])
+    if coverage_offences:
+        print("REFUSING TO BUILD: %d country coverage field(s) carry an em or "
+              "en dash, and this file feeds a public page." % len(coverage_offences),
+              file=sys.stderr)
+        for label, field, fragment in coverage_offences:
+            print("\n  %s  (%s)\n    ...%s..." % (label, field, fragment), file=sys.stderr)
+        return 1
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(manifest, indent=1))
+    OUT_COUNTRY.write_text(json.dumps(coverage, indent=1, sort_keys=True))
     live = sum(1 for s in manifest if s["status"] == "live")
     print(f"{len(manifest)} sources ({live} live) -> {OUT}")
+    print(f"{len(coverage)} countries -> {OUT_COUNTRY}")
     return 0
 
 

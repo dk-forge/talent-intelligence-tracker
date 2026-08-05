@@ -353,14 +353,41 @@ check(strpos($empty, 'We save a copy') === false,
       'a table with nothing in it prints no archive paragraph at all, rather than '
       . '"0 of 0 documents (0.0%)"');
 
+/* --- the collection-rate chart, which lives HERE now --------------------- */
+
+/*
+ * 2026-08-05: "Updates Collected a Day" moved to this page from the dashboard.
+ * It plots our own collection rate, which is an operations measure, and the
+ * dashboard's slot carries a fixed-panel market trend instead. Moved and not
+ * deleted is the property under guard: the section has to render here, has to
+ * say it measures our reading and not the market, and must NOT promise the
+ * dashboard's tap-to-filter interaction, because this page has no filters and
+ * loads no dashboard.js.
+ */
+$html = render_with(1200, 60, 4);
+$text = prose($html);
+check(strpos($html, 'Updates Collected a Day') !== false,
+      'the collection-rate chart renders on the sources page now; moved, not deleted');
+check(strpos($text, 'a measure of our own reading, not of the market') !== false,
+      'and the section says what kind of measure it is');
+check(strpos($html, 'Tap the plot') === false,
+      'the tap-to-filter sentence is a dashboard promise and must not be made '
+      . 'on a page with no filters and no dashboard.js');
+
 /* --- what it costs ------------------------------------------------------- */
 
 /*
- * One query, and it is cached. This page cost nothing before: it reads a JSON
- * file the pipeline writes and one option. COUNT(DISTINCT source_url) over the
- * whole table is not free on 15,711 rows, so a second render inside the TTL has
- * to touch the database not at all, for the same reason the dashboard's warm
- * render is asserted at zero.
+ * Three queries, all cached. This page cost one (the archive split) until the
+ * collection-rate chart moved here on 2026-08-05, which brought the two scans
+ * the dashboard used to pay for it: the daily rollup behind the lines and the
+ * ingest-breadth scan behind the basis sentence. Itemised, per the convention:
+ *
+ *   1  the archive split (COUNT(DISTINCT source_url) per collector)
+ *   1  the daily rollup, every signal in one GROUP BY over the trend window
+ *   1  which collectors stored rows in the first and last week of that window
+ *
+ * A second render inside the TTL has to touch the database not at all, for the
+ * same reason the dashboard's warm render is asserted at zero.
  */
 $wpdb->pdo->exec('DELETE FROM wp_tit_signals');
 for ($i = 0; $i < 40; $i++) {
@@ -371,7 +398,7 @@ $GLOBALS['tit_transients'] = array();
 $wpdb->reset_reads();
 ob_start(); tit_sources_render($SOURCES); ob_end_clean();
 $cold = $wpdb->reads;
-check($cold === 1, "the sources page costs one query cold and cost {$cold}: "
+check($cold === 3, "the sources page costs three queries cold and cost {$cold}: "
                    . implode(' | ', $wpdb->log));
 
 $wpdb->reset_reads();
@@ -384,5 +411,6 @@ if ($failures) {
     exit(1);
 }
 printf("sources ok: the archive paragraph counts its own numbers, reads the same "
-     . "at 0.3%% and 4.4%%, and costs %d query cold and none warm.\n", $cold);
+     . "at 0.3%% and 4.4%%, the collection-rate chart renders here, and it all "
+     . "costs %d queries cold and none warm.\n", $cold);
 exit(0);

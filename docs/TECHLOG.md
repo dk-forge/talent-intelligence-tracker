@@ -98,6 +98,126 @@ the silent-degrade test would prove nothing.
 
 ---
 
+## 2026-08-05 - the owner read his own pages: coverage named as coverage, and the dashboard's trend becomes a market claim (1.72.0, pushed, NOT deployed)
+
+Three changes, all found by the owner reading his own live pages, none of them
+a wrong number: every figure was correctly computed and the page still misled.
+
+**1. The recall page made a doubling of coverage read as decline.** The
+direction sentence said "Held has gone from 9% to 19.5%, a change of +10.5
+points", and the owner asked "we're getting worse?". On a page about what we
+MISS, a bare metric called "Held" rising reads as more of something bad. The
+metric is the share of the independent gold set we hold, i.e. coverage, and
+the sentence now says so, states the movement as a gain or a fall, and adds
+"Higher is better" in words. Swept the rest of the page for the bare metric
+name: the mobile data-labels on the two percentage columns now match their
+column headers ("In the tracker" / "And every field right") and the chart's
+screen reader text says "in the tracker", never a bare "held". The per-event
+verdict labels ("Held and correct", "Held, field wrong") stay: those are
+states the methodology section defines, not the metric. No number and no
+measurement changed. Guarded by a full-page render in
+tests/php/render_recall.php that holds the exact sentence and rejects the old
+one.
+
+**2. "Updates Collected a Day" left the dashboard for the sources page.** It
+plots our own collection rate, which is an operations measure, and the owner
+judged readers do not need it on the dashboard. Moved, not deleted:
+sources.php renders the same tit_signal_trend() series beside the collectors
+it describes, minus the tap-to-filter sentence (no filters and no dashboard.js
+there; tit_signal_trend_html grew an $interactive flag). The sources page now
+costs three queries cold instead of one, cached and itemised in its harness.
+
+**3. Its dashboard slot carries a fixed-panel MARKET trend, with direction as
+the split.** tit_market_trend(): twelve whole Monday-to-Sunday weeks, running
+week excluded, weekly update counts split by stated headcount direction
+(Adding Roles / Cutting Roles / Headcount Not Stated), drawn ONLY from the
+collectors whose first ingest day is on or before the window start and whose
+last is inside the final week: same-store-sales logic, liveness by
+DATE(captured_at) and never by publication date, for exactly the reason the
+2026-08-03 entry gives about the breadth scan. When the panel is thinner than
+five sources the chart falls back to COMPOSITION (each week's shares of its
+own updates, which survive volume changes), and under four weeks of data it
+draws nothing and says so. The visible caveat on the card names the panel
+size, the window, the variant and why, and says the page filters do not
+narrow this card; it is .tit-chart-caveat prose, never note_html, per the
+place-caveat lesson. Raw all-collector counts are never drawn as a market
+claim in any state. Today, live, no collector has been live for a full twelve
+week window (collection began 2026-07-26), so the page renders the
+composition variant and says so; the counts variant switches on by itself
+once the fleet has twelve weeks of history behind it.
+
+The standalone "Updates by Stated Headcount Direction" card is gone: its
+numbers are the split inside the market chart. The by_direction group stays
+on /aggregate and its GROUP BY stays in the facts bundle (the
+stated-headcount toggle's figure is summed from it). /aggregate still serves
+trend_html for any consumer; the dashboard no longer injects it (the
+tit-trend-box is gone, dashboard.js's lookup is null-guarded). Chart count 9
+-> 8; the "What Kind Of Moves" group drops --four for the base three-column
+grid.
+
+**Budgets.** TIT_DASH_QUERY_BUDGET held at 15, two out (trend rollup, breadth
+scan, both moved to the sources page) and two in (panel discovery, weekly
+split), itemised at the constant. Byte budget raised 181,600 -> 184,600,
+itemised in the harness: the fixture prices the DRAWN market chart against
+the old collapsed trend card, so the fixture gets heavier while the live page
+gets lighter (the drawn collection chart, ~5,400 bytes, leaves entirely).
+
+**Guards, all proven red against the pre-fix tree (064472e):**
+tests/php/render_recall.php (the coverage sentence, three ways),
+tests/php/render_dashboard.php (market card present and honest, direction
+card and collection card gone), tests/php/render_sources.php (moved not
+deleted, three queries), tests/php/market_trend.php (NEW harness with
+controlled ingest dates: the counts variant excludes a 100-row mid-window
+flood, the thin panel falls back to shares, two sparse weeks draw nothing,
+two queries exactly), and five new assertions in
+tests/test_chart_titles_and_basis.py (8 titles, no "Collected" title on the
+dashboard, sources.php carries the moved chart, the counts variant is
+panel-restricted in source, the market caveat is visible prose).
+
+**4. The recall country table became readable, and got real denominators
+(same session, owner follow-ups).** Four parts:
+
+- Country rows print FULL NAMES via tit_country_name(), the plugin's own map,
+  never a second list; the by-country history table goes through the same
+  country-aware label. AE, AR, AT is not a table a human reads.
+- The two score headers are "Event captured" and "Captured with every detail
+  correct" (the owner had to ask what "And every field right" meant), with
+  one sentence above the tables saying the second score is stricter: an event
+  held with one wrong detail passes the first and fails the second. The stat
+  tiles and the chart legend use the same words, so the page keeps one
+  vocabulary.
+- UNDER each country row, the sources: live sources reading that country,
+  publishers probed and refused with the probe's own dated one-line reason
+  (capped at three shown plus a count), the researched queue, and where there
+  is nothing: "No dedicated source yet. Events here can only arrive via
+  worldwide discovery." Always-visible prose, never a collapsed panel. The
+  data is data/country_sources.json, written by build_sources_json.py from
+  source_registry.country_coverage() in the same run as sources.json (155
+  countries, ~45KB), same em-dash refusal at the build boundary. A publisher
+  the hand registry wires (Sifted) is never listed as refused, mirroring the
+  manifest's hand-entries-win rule. Guard:
+  tests/test_country_sources_manifest.py, six tests.
+- A NEW whole-market table, "Against the whole market, by country": our
+  holdings against EXTERNAL market-size counts for KR, DE, SG, IT, ES, with a
+  Read column (Real gap / Thin coverage / Not comparable). South Korea is the
+  load-bearing row: the external figure counts individual fund investments
+  and ours counts rounds, so its 0.1% prints under "Not comparable" and never
+  as a coverage score. Kept as a SEPARATE table from the gold set (different
+  question, different units, labelled, never blended). Figures are a dated
+  snapshot (both sides recorded together 2026-08-05) and the note says
+  external counts use their own definitions and dates, so shares are
+  indicative and not a parity claim. No reference is NAMED: none could be
+  confirmed against these exact figures at the time of writing, so each
+  carries a neutral descriptor instead, and competing trackers and paid data
+  products are never cited at all.
+
+**Found in passing and fixed:** the "Render the dashboard" step in tests.yml
+was a plain-scalar `run:` whose continuation line YAML joins with a space, so
+CI was running `php tests/php/jsonld_xss.php <ignored argv>` and the dashboard
+harness NEVER RAN in CI. It is a block scalar now and both run.
+
+---
+
 ## 2026-08-04 - the preamble exit: instrumented and priced honestly, NOT taken (key exhausted)
 
 **The waste, measured.** Every extraction call re-sends the same byte-stable

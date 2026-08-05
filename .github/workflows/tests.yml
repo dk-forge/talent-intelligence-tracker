@@ -63,8 +63,23 @@ jobs:
       # byte budget on the markup, because the owner asked for this to be fast
       # on a phone and a fourth ranking card is not free.
       - name: Render the dashboard and count its queries and bytes
-        run: php tests/php/jsonld_xss.php
+        # This was a single plain-scalar `run:` whose continuation line YAML
+        # joins with a space, so CI was actually running jsonld_xss.php with
+        # the dashboard harness path as an ignored argv and the dashboard
+        # harness NEVER RAN here. A block scalar runs both.
+        run: |
+          php tests/php/jsonld_xss.php
           php tests/php/render_dashboard.php
+
+      # The market trend makes the dashboard's one market claim, and the claim
+      # is only honest because of what it refuses to count: collectors not live
+      # for the whole window. The render harness above can only reach the
+      # share variant (its fixture ingests everything within days), so this
+      # one seeds controlled ingest dates and proves the counts variant
+      # excludes a mid-window flood, the thin panel falls back to shares, and
+      # two sparse weeks draw nothing.
+      - name: Prove the market trend counts only its fixed panel
+        run: php tests/php/market_trend.php
 
       # /enrich and /correct are the only routes that can change a row a reader
       # is already looking at, and the safety of both is which branch a value
@@ -79,8 +94,9 @@ jobs:
       # keep them, versus citations that can be taken down. A sentence with
       # counts in it is true the day it is written, and this one has to stay true
       # while the archived share climbs, so it is rendered against two corpora
-      # rather than read. It also holds the page to one query cold and none warm:
-      # COUNT(DISTINCT source_url) over 15,711 rows is not free.
+      # rather than read. It also holds the page to three queries cold and none
+      # warm: the archive split plus the two scans behind the collection-rate
+      # chart, which lives on this page since 2026-08-05.
       - name: Render the sources page and check what it claims about the archive
         run: php tests/php/render_sources.php
 

@@ -2,6 +2,35 @@
 
 ---
 
+## 2026-08-05: recall copy fixed, dashboard trend is now a market claim (1.72.0, pushed, NOT deployed)
+
+Three owner-driven changes, full detail and guards in the TECHLOG entry of the
+same date. The short version for the next session:
+
+- The recall page's direction sentence names the metric as COVERAGE and says
+  "Higher is better". Do not shorten it back to a bare "Held".
+- "Updates Collected a Day" renders on the SOURCES page now. The dashboard's
+  trend slot is tit_market_trend(): weekly counts from the fixed panel of
+  collectors live the whole 12-week window, split by stated headcount
+  direction. With no full-window collector yet (collection began 2026-07-26)
+  it renders the composition variant and says so on the card; the counts
+  variant arms itself once the fleet has the history. The standalone
+  direction card is gone; by_direction stays on /aggregate.
+- Budgets: query budget held at 15 (itemised at the constant), byte budget
+  181,600 -> 184,600 (itemised in the harness). New harness
+  tests/php/market_trend.php proves the panel excludes a mid-window flood.
+- Recall country table: full country names, headers "Event captured" /
+  "Captured with every detail correct", a generated source line under every
+  country (data/country_sources.json, built with sources.json), and a
+  separate whole-market table with external denominators and a Read column
+  (South Korea prints "Not comparable", never 0.1% as a score). The market
+  figures are a dated snapshot recorded 2026-08-05; update them there when
+  the private benchmark refreshes.
+- Version 1.72.0 pushed to main. NOT deployed; deploy-plugin.yml not run, per
+  standing instruction.
+
+---
+
 ## READ THIS FIRST (2026-08-04, later): the amount queue is empty and the guard now escalates
 
 The section below stands as the diagnosis and is still the ranking. What

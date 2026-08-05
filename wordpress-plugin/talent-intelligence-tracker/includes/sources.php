@@ -182,6 +182,35 @@ function tit_sources_archive_facts($sources) {
     return $out;
 }
 
+/**
+ * The collection-rate chart, moved here from the dashboard on 2026-08-05.
+ *
+ * "Updates Collected a Day" plots OUR OWN collection rate: it moves when the
+ * market moves and when we start reading somewhere new, and no reader can tell
+ * which from the lines. That makes it an operations measure, and this page,
+ * which lists the collectors and their last runs, is where an operations
+ * measure belongs. The dashboard's slot now carries a market trend built on a
+ * fixed source panel instead (tit_market_trend in shortcodes.php).
+ *
+ * Moved, not deleted, and not recomputed differently: this is the same
+ * tit_signal_trend() the dashboard used, whole-tracker default clause, with
+ * the tap-to-filter sentence off because this page has no filters and loads
+ * no dashboard.js. Two queries cold, cached in its own transient; every write
+ * route flushes tit_ transients, so a fresh run appears immediately.
+ */
+function tit_sources_trend_html() {
+    if (!function_exists('tit_signal_trend') || !function_exists('tit_signal_trend_html')) {
+        return '';
+    }
+    $cached = get_transient('tit_sources_trend');
+    if (is_string($cached)) return $cached;
+
+    $html = tit_signal_trend_html(tit_signal_trend(tit_table_name()), false);
+    set_transient('tit_sources_trend', $html,
+        defined('TIT_CACHE_TTL') ? TIT_CACHE_TTL : 5 * MINUTE_IN_SECONDS);
+    return $html;
+}
+
 function tit_sources_last_run($row) {
     if (empty($row['run_at'])) return '';
     $ts = strtotime($row['run_at'] . (str_ends_with($row['run_at'], 'Z') ? '' : ' UTC'));
@@ -364,6 +393,20 @@ function tit_sources_render($sources) {
         and says nothing about headcount.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">See the corrections log</a>.
       </div>
+
+      <?php $tit_trend_html = tit_sources_trend_html(); ?>
+      <?php if ($tit_trend_html !== '') : ?>
+        <h2>Updates Collected a Day</h2>
+        <p class="tit-note">
+          How many updates these collectors stored per day, smoothed over seven
+          days. This is a measure of our own reading, not of the market: the
+          lines move when the market moves and when we start reading somewhere
+          new, which is why this chart lives here beside the collectors it
+          describes. The dashboard carries the market view, counted so that a
+          new source cannot appear as a market move.
+        </p>
+        <?php echo $tit_trend_html; // phpcs:ignore - built and escaped in tit_signal_trend_html ?>
+      <?php endif; ?>
 
       <div class="tit-filters">
         <select id="tit-s-status" aria-label="Filter by status">

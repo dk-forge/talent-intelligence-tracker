@@ -147,7 +147,7 @@ function tit_recall_head() {
           . 'without consulting our own database.';
     if (!empty($overall['total'])) {
         $text .= sprintf(
-            ' Latest measurement: %s of %s events held, including the categories '
+            ' Latest measurement: we hold %s of %s events, including the categories '
             . 'we come off badly in.',
             number_format_i18n((int) ($overall['held'] ?? 0)),
             number_format_i18n((int) $overall['total'])
@@ -187,6 +187,212 @@ function tit_recall_label($key) {
     return $map[$key] ?? $key;
 }
 
+/**
+ * A country cell's label: the full name, never the ISO code.
+ *
+ * "AZ" is not a country to anyone who is not already thinking in codes. The
+ * map is the plugin's own (tit_country_name), never a second list here that
+ * could drift; a code the map does not know falls through to
+ * tit_recall_label(), which handles the non-code keys ("non-US") too.
+ */
+function tit_recall_country_label($key) {
+    if (preg_match('/^[A-Z]{2}$/', (string) $key) && function_exists('tit_country_name')) {
+        $name = tit_country_name($key);
+        if ($name !== '' && $name !== $key) return $name;
+    }
+    return tit_recall_label($key);
+}
+
+/**
+ * Per-country source coverage, written by build_sources_json.py in the same
+ * run that writes sources.json, so the two can never describe two different
+ * catalogues. Keyed by ISO2. Absent file or absent key both mean "nothing
+ * dedicated", which renders as exactly that sentence rather than as silence.
+ */
+function tit_recall_country_sources() {
+    static $data = null;
+    if ($data !== null) return $data;
+    $file = TIT_PATH . 'data/country_sources.json';
+    $data = array();
+    if (is_readable($file)) {
+        $decoded = json_decode(file_get_contents($file), true);
+        if (is_array($decoded)) $data = $decoded;
+    }
+    return $data;
+}
+
+/**
+ * The sentence under a country's score that says WHY the score is what it is:
+ * the live sources reading that country, the publishers probed and refused
+ * with the probe's own recorded reason, and, where there is nothing, the
+ * honest answer to why a country sits at zero. This is what turns the table
+ * from a scoreboard into a coverage to-do list.
+ *
+ * ALWAYS VISIBLE PROSE. Never a collapsed control and never .tit-chart-note:
+ * this codebase has shipped three separate caveats that computed display:none
+ * or 0x0 and were never seen, and this line is the explanation of the number
+ * directly above it.
+ */
+function tit_recall_country_sources_html($code) {
+    $all = tit_recall_country_sources();
+    $c = isset($all[$code]) && is_array($all[$code]) ? $all[$code] : array();
+    $live = array_values(array_filter((array) ($c['live'] ?? array()), 'is_string'));
+    $refused = (array) ($c['refused'] ?? array());
+    $researched = (int) ($c['researched'] ?? 0);
+
+    $parts = array();
+    if ($live) {
+        $parts[] = 'Read today: ' . esc_html(implode('; ', $live)) . '.';
+    } else {
+        $parts[] = esc_html('No dedicated source yet. Events here can only arrive via '
+                          . 'worldwide discovery.');
+    }
+    if ($refused) {
+        $shown = array_slice($refused, 0, 3);
+        $bits = array();
+        foreach ($shown as $r) {
+            if (!is_array($r) || empty($r['name'])) continue;
+            $bits[] = esc_html($r['name'])
+                    . (empty($r['reason']) ? '' : ' (' . esc_html($r['reason']) . ')');
+        }
+        if ($bits) {
+            $more = count($refused) - count($shown);
+            $parts[] = 'Probed, no wireable feed: ' . implode('; ', $bits)
+                     . ($more > 0 ? '; and ' . (int) $more . ' more' : '') . '.';
+        }
+    }
+    if ($researched > 0) {
+        $parts[] = sprintf('%d researched candidate%s queued.',
+            $researched, $researched === 1 ? '' : 's');
+    }
+    return implode(' ', $parts);
+}
+
+/**
+ * The by-country score table, with the source line under each country.
+ *
+ * Separate from tit_recall_table() because its rows are two lines each (the
+ * score, then why), and because its labels come from the country map.
+ */
+function tit_recall_country_table($title, $cells, $note = '') {
+    if (empty($cells)) return;
+    ?>
+    <h2><?php echo esc_html($title); ?></h2>
+    <?php if ($note) : ?><p class="tit-note"><?php echo esc_html($note); ?></p><?php endif; ?>
+    <div class="tit-table-scroll">
+      <table class="tit-table tit-recall-table">
+        <thead><tr>
+          <th>Country</th><th class="tit-num">Event captured</th><th class="tit-num">Captured with every detail correct</th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($cells as $key => $cell) : ?>
+          <?php tit_recall_cell_row(tit_recall_country_label($key), $cell); ?>
+          <tr class="tit-recall-src">
+            <td colspan="3" data-label="Sources"><?php
+              echo tit_recall_country_sources_html($key); // escaped inside ?></td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <?php
+}
+
+/**
+ * The whole-market table: our holdings against EXTERNAL market-size counts.
+ *
+ * The gold-set tables above answer "of a known list of landmark events, how
+ * many did we catch and get right". This one answers a different question:
+ * against an external count of everything the market announced, what share do
+ * we hold. The two are labelled and kept apart, never blended into one score.
+ *
+ * THE FIGURES ARE A DATED SNAPSHOT, deliberately. Each external count is a
+ * public national statistic or a publicly published ecosystem report with its
+ * own definitions, window and publication date, so pairing it with a live
+ * database count would compare a moving number against a frozen one and call
+ * the ratio coverage. Both sides of each row were recorded together on the
+ * date the table names. No reference is named here because none could be
+ * confirmed against these exact figures at the time of writing; a neutral
+ * description is honest and a guessed citation is not. Competing trackers and
+ * paid data products are never cited on this site at all.
+ *
+ * THE READ COLUMN IS THE POINT. South Korea is the load-bearing case: without
+ * "Not comparable", a reader concludes we hold 0.1% of that market, when the
+ * external figure counts individual fund investments and ours counts funding
+ * rounds. A ratio between two different units must never print as a coverage
+ * score without that label.
+ */
+function tit_recall_market_rows() {
+    return array(
+        array('code' => 'KR', 'theirs' => 8542, 'ours' => 8, 'share' => '0.1%',
+              'read' => 'Not comparable',
+              'why'  => 'the external figure counts individual fund investments; ours counts funding rounds',
+              'ref'  => 'national venture investment statistics'),
+        array('code' => 'DE', 'theirs' => 716, 'ours' => 15, 'share' => '2.1%',
+              'read' => 'Real gap', 'why' => '',
+              'ref'  => 'a publicly published ecosystem report'),
+        array('code' => 'SG', 'theirs' => 472, 'ours' => 16, 'share' => '3.4%',
+              'read' => 'Real gap', 'why' => '',
+              'ref'  => 'a publicly published ecosystem report'),
+        array('code' => 'IT', 'theirs' => 436, 'ours' => 12, 'share' => '2.8%',
+              'read' => 'Real gap', 'why' => '',
+              'ref'  => 'a publicly published ecosystem report'),
+        array('code' => 'ES', 'theirs' => 376, 'ours' => 18, 'share' => '4.8%',
+              'read' => 'Thin coverage', 'why' => '',
+              'ref'  => 'a publicly published ecosystem report'),
+    );
+}
+
+/** The date both sides of every market row were recorded together. */
+const TIT_RECALL_MARKET_ASOF = '2026-08-05';
+
+function tit_recall_market_table() {
+    $rows = tit_recall_market_rows();
+    if (!$rows) return;
+    ?>
+    <h2>Against the whole market, by country</h2>
+    <p class="tit-note">
+      A different question from the tables above, so it gets its own table and
+      its own units. The gold set asks how much of a fixed list of landmark
+      events we caught; this asks what share we hold of everything a market
+      announced, using external market-size counts. External counts use their
+      own definitions and publication dates, so these shares are indicative
+      and not a parity claim. Both sides of each row were recorded together on
+      <?php echo esc_html(TIT_RECALL_MARKET_ASOF); ?>. Read the last column
+      first: a ratio between two differently defined counts is not a coverage
+      score, and the one row where the units differ says so.
+    </p>
+    <div class="tit-table-scroll">
+      <table class="tit-table tit-recall-table">
+        <thead><tr>
+          <th>Country</th><th class="tit-num">Events in the external count</th>
+          <th class="tit-num">Events we hold</th><th class="tit-num">Our share</th>
+          <th>Read</th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($rows as $r) : ?>
+          <tr>
+            <td data-label="Country"><?php echo esc_html(tit_recall_country_label($r['code'])); ?></td>
+            <td class="tit-num" data-label="Events in the external count">
+              <?php echo esc_html(number_format_i18n($r['theirs'])); ?>
+              <span class="tit-rt"><?php echo esc_html($r['ref']); ?></span>
+            </td>
+            <td class="tit-num" data-label="Events we hold"><?php echo (int) $r['ours']; ?></td>
+            <td class="tit-num" data-label="Our share"><?php echo esc_html($r['share']); ?></td>
+            <td data-label="Read">
+              <strong><?php echo esc_html($r['read']); ?></strong>
+              <?php if ($r['why'] !== '') : ?>
+                <span class="tit-rt"><?php echo esc_html($r['why']); ?></span>
+              <?php endif; ?>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <?php
+}
+
 /** A percentage never appears without the counts it came from. */
 function tit_recall_cell_row($label, $cell) {
     $held  = (int) ($cell['held'] ?? 0);
@@ -197,11 +403,16 @@ function tit_recall_cell_row($label, $cell) {
     ?>
     <tr>
       <td data-label="Category"><?php echo esc_html($label); ?></td>
-      <td class="tit-num" data-label="Held">
+      <?php /* The mobile data-labels match the column headers. They said
+               "Held" and "Held with every field right", which is the bare
+               metric name the owner misread as a bad thing rising, and then
+               "And every field right", which the owner had to ask about. The
+               headers are plain now and these labels mirror them. */ ?>
+      <td class="tit-num" data-label="Event captured">
         <strong><?php echo $held_pct === null ? 'n/a' : esc_html($held_pct) . '%'; ?></strong>
         <span class="tit-rt"><?php echo esc_html("$held of $total"); ?></span>
       </td>
-      <td class="tit-num" data-label="Held with every field right">
+      <td class="tit-num" data-label="Captured with every detail correct">
         <strong><?php echo $clean_pct === null ? 'n/a' : esc_html($clean_pct) . '%'; ?></strong>
         <span class="tit-rt"><?php echo esc_html("$clean of $total"); ?></span>
       </td>
@@ -214,10 +425,15 @@ function tit_recall_table($title, $cells, $note = '') {
     ?>
     <h2><?php echo esc_html($title); ?></h2>
     <?php if ($note) : ?><p class="tit-note"><?php echo esc_html($note); ?></p><?php endif; ?>
+    <?php /* "Event captured" and "Captured with every detail correct", not
+             "In the tracker" and "And every field right": the owner had to
+             ask what the second one meant, which means it failed as a header.
+             The one-sentence explainer above the first table says how the two
+             relate. */ ?>
     <div class="tit-table-scroll">
       <table class="tit-table tit-recall-table">
         <thead><tr>
-          <th>Category</th><th class="tit-num">In the tracker</th><th class="tit-num">And every field right</th>
+          <th>Category</th><th class="tit-num">Event captured</th><th class="tit-num">Captured with every detail correct</th>
         </tr></thead>
         <tbody>
         <?php foreach ($cells as $key => $cell) tit_recall_cell_row(tit_recall_label($key), $cell); ?>
@@ -271,7 +487,9 @@ function tit_recall_sparkline($points) {
 
     $described = '';
     foreach ($points as $p) {
-        $described .= sprintf('%s: %s%% held, %s%% with every field right. ',
+        // "in the tracker", never a bare "held": the screen reader text names
+        // the metric the same way the legend and the tables do.
+        $described .= sprintf('%s: %s%% of events captured, %s%% captured with every detail correct. ',
             $p['measured_on'], $p['held_pct'], $p['clean_pct']);
     }
 
@@ -308,8 +526,8 @@ function tit_recall_sparkline($points) {
     </svg>
     </div>
     <p class="tit-recall-legend">
-      <span class="tit-rc-key tit-rc-k-held"></span> in the tracker at all
-      <span class="tit-rc-key tit-rc-k-clean"></span> with every field right
+      <span class="tit-rc-key tit-rc-k-held"></span> event captured
+      <span class="tit-rc-key tit-rc-k-clean"></span> captured with every detail correct
     </p>
     <?php
     return ob_get_clean();
@@ -346,7 +564,9 @@ function tit_recall_history_table($title, $group, $series, $note = '') {
         <tbody>
         <?php foreach ($keys as $key) : ?>
           <tr>
-            <td data-label="Category"><?php echo esc_html(tit_recall_label($key)); ?></td>
+            <?php // Through the country-aware label: the by-country history
+                  // prints names, and non-code keys fall through unchanged. ?>
+            <td data-label="Category"><?php echo esc_html(tit_recall_country_label($key)); ?></td>
             <?php foreach ($series as $point) :
               $cell = $point[$group][$key] ?? null; ?>
               <td class="tit-num" data-label="<?php echo esc_attr($point['measured_on']); ?>">
@@ -466,11 +686,11 @@ function tit_recall_render($data) {
       <div class="tit-stats">
         <div class="tit-stat">
           <span class="tit-n"><?php echo $overall['held_pct'] === null ? 'n/a' : esc_html($overall['held_pct']) . '%'; ?></span>
-          <span class="tit-l">in the tracker at all<br><?php echo esc_html($overall['held'] . ' of ' . $overall['total']); ?></span>
+          <span class="tit-l">events captured<br><?php echo esc_html($overall['held'] . ' of ' . $overall['total']); ?></span>
         </div>
         <div class="tit-stat">
           <span class="tit-n"><?php echo $overall['clean_pct'] === null ? 'n/a' : esc_html($overall['clean_pct']) . '%'; ?></span>
-          <span class="tit-l">with every field right<br><?php echo esc_html($overall['found'] . ' of ' . $overall['total']); ?></span>
+          <span class="tit-l">captured with every detail correct<br><?php echo esc_html($overall['found'] . ' of ' . $overall['total']); ?></span>
         </div>
         <div class="tit-stat">
           <span class="tit-n"><?php echo (int) $overall['missed']; ?></span>
@@ -503,15 +723,34 @@ function tit_recall_render($data) {
       <?php else : ?>
         <p class="tit-note">
           <?php
+          /*
+            THE METRIC IS NAMED AS COVERAGE AND THE DIRECTION IS SPELLED OUT.
+
+            This sentence used to read "Held has gone from 9% to 19.5%, a
+            change of +10.5 points", and the owner read his own improvement as
+            decline: on a page about what we MISS, a bare metric called "Held"
+            moving upward reads like more of something bad. The number is the
+            share of the independent gold set this tracker holds, which is
+            coverage, and a rise is good. So the sentence names the thing,
+            states the movement as a gain or a fall, and says in words which
+            way is better. Do not shorten it back to a bare metric name.
+          */
           $delta = $points[count($points) - 1]['held_pct'] - $first['held_pct'];
+          if ($delta > 0) {
+              $moved = 'a gain of ' . round($delta, 1) . ' points';
+          } elseif ($delta < 0) {
+              $moved = 'a fall of ' . round(abs($delta), 1) . ' points';
+          } else {
+              $moved = 'no change';
+          }
           printf(
-              esc_html('%1$s measurements between %2$s and %3$s. Held has gone from %4$s%% to %5$s%%, a change of %6$s points.'),
+              esc_html('Coverage of the independent gold set has gone from %1$s%% to %2$s%% across %3$s weekly measurements between %4$s and %5$s, %6$s. Higher is better: this is the share of independently listed events this tracker holds.'),
+              esc_html($first['held_pct']),
+              esc_html($points[count($points) - 1]['held_pct']),
               esc_html(count($points)),
               esc_html($first['measured_on']),
               esc_html($points[count($points) - 1]['measured_on']),
-              esc_html($first['held_pct']),
-              esc_html($points[count($points) - 1]['held_pct']),
-              esc_html(($delta > 0 ? '+' : '') . round($delta, 1))
+              esc_html($moved)
           );
           ?>
         </p>
@@ -572,17 +811,26 @@ function tit_recall_render($data) {
       </p>
       <?php endif; ?>
 
+      <?php /* The one sentence that relates the two scores, printed once,
+               above the first table that uses them. It exists because the
+               owner had to ask what the second column meant. */ ?>
+      <p class="tit-note">
+        Every table below scores twice. The second score is stricter: an event
+        we hold with one wrong detail (the amount, the date, the company or
+        the place) passes the first score and fails the second.
+      </p>
       <?php
       tit_recall_table('Recall by category', $summary['by_segment'] ?? array(),
-          'The four cells that matter most. "In the tracker" means the event is here at all. "Every field right" additionally requires the country, the amount, the date and a working source link to be correct.');
+          'The four cells that matter most. "Event captured" means the event is here at all; "Captured with every detail correct" additionally requires the country, the amount, the date and a working source link to be right.');
       tit_recall_table('By signal type', $summary['by_signal_type'] ?? array());
       tit_recall_table('By where the event happened', $summary['by_geography'] ?? array());
       tit_recall_table('By what kind of document announced it', $summary['by_source_type'] ?? array(),
           'A mandatory filing is a different collection problem from a press release in a local outlet. This row is the honest measure of that difference.');
       tit_recall_table('By size of the event', $summary['by_size_band'] ?? array(),
           'Large means a funding round of $50M or more, or a change at a large listed employer. Small events are deliberately over represented in the test set, because measuring only the large ones would flatter the result.');
-      tit_recall_table('By country', $summary['by_country'] ?? array(),
-          'Most countries carry only a handful of events, so treat a single country cell as an indication and not a rate.');
+      tit_recall_country_table('By country', $summary['by_country'] ?? array(),
+          'Most countries carry only a handful of events, so treat a single country cell as an indication and not a rate. Under each score is why it is what it is: the sources we read there, the publishers we probed and could not wire, and the queue.');
+      tit_recall_market_table();
       ?>
 
       <?php if (count($points) > 1) : ?>

@@ -68,9 +68,11 @@ UNIT_WORDS = ("Updates", "Money")
 
 def test_every_chart_title_names_its_unit():
     titles = chart_titles(read())
-    # Nine cards. If this number moves, a card was added or removed and this
+    # Eight cards since 2026-08-05: the collection-rate card moved to the
+    # sources page and the direction ranking merged into the market trend as
+    # its split. If this number moves, a card was added or removed and this
     # test should be read rather than renumbered.
-    assert len(titles) == 9, f"expected 9 chart titles, found {len(titles)}: {titles}"
+    assert len(titles) == 8, f"expected 8 chart titles, found {len(titles)}: {titles}"
     for t in titles:
         assert any(w in t for w in UNIT_WORDS), (
             f"chart title {t!r} names no unit. Every title on this page says "
@@ -152,6 +154,90 @@ def test_the_basis_compares_sets_and_not_two_counts():
     assert "$set_first === $set_last" in src, (
         "sources_same must be a set comparison of the two sorted collector "
         "lists, not a comparison of their sizes."
+    )
+
+
+def test_the_dashboard_no_longer_titles_a_collection_rate_chart():
+    """The ops chart left the dashboard for the sources page, 2026-08-05.
+
+    Its title reappearing in shortcodes.php means somebody put the
+    collection-rate card back on the dashboard, which the owner removed on the
+    judgement that readers do not need an ops metric there. The chart itself
+    lives on: sources.php renders it, and the guard for that is in
+    tests/php/render_sources.php.
+    """
+    for title in chart_titles(read()):
+        assert "Collected" not in title, (
+            f"chart title {title!r} looks like the collection-rate card back on "
+            f"the dashboard. It renders on the sources page now; the dashboard "
+            f"slot carries the fixed-panel market trend."
+        )
+
+
+SOURCES_PHP = (
+    ROOT / "wordpress-plugin" / "talent-intelligence-tracker" / "includes" / "sources.php"
+)
+
+
+def test_the_collection_rate_chart_moved_and_was_not_deleted():
+    src = SOURCES_PHP.read_text(encoding="utf-8")
+    assert "Updates Collected a Day" in src, (
+        "the collection-rate chart is on neither page. It was MOVED to the "
+        "sources page, not deleted; if it is being retired on purpose, retire "
+        "this test in the same commit and say so in the TECHLOG."
+    )
+    assert "tit_signal_trend(" in src and "tit_signal_trend_html(" in src, (
+        "the sources page must render the same measured series the dashboard "
+        "used (tit_signal_trend), not a copy that can drift."
+    )
+
+
+def test_the_market_counts_variant_is_panel_restricted():
+    """Raw all-collector counts are never drawn as a market claim.
+
+    The counts variant must narrow its weekly scan to the fixed panel, and the
+    panel must be decided by ingest dates (captured_at), never publication
+    dates: a collector that arrives late and backfills looks, by publication,
+    like it was always there. Same confound, same reason, as
+    tit_trend_ingest_breadth() above.
+    """
+    src = strip_comments(read())
+    assert "function tit_market_trend(" in src, (
+        "the market trend function is gone. If the chart was deliberately "
+        "removed, this file and the render harnesses must change with it."
+    )
+    body = src[src.index("function tit_market_trend("):]
+    body = body[: body.index("\n}\n")]
+    flat = re.sub(r"\s+", " ", body)
+    assert "MIN(DATE(captured_at))" in flat and "MAX(DATE(captured_at))" in flat, (
+        "panel liveness must be read from first-seen and last-seen ingest days"
+    )
+    assert "'counts'" in flat and "collector IN (" in flat, (
+        "the counts variant must restrict its weekly scan to the panel "
+        "collectors; a count over every collector is the confound this chart "
+        "exists to keep out."
+    )
+    assert "'share'" in flat, (
+        "the composition fallback is gone: with a thin panel the chart must "
+        "fall back to shares, never to raw all-collector counts."
+    )
+
+
+def test_the_market_caveat_is_visible_prose_not_note_html():
+    """Same defect class as the place caveat: a basis nobody sees is not one."""
+    src = strip_comments(read())
+    head = src[src.index('<div class="tit-chart tit-chart-nodl" id="chart-market">'):]
+    head = head[: head.index('<div class="tit-market-box"')]
+    assert 'id="tit-market-caveat"' in head, "the market caveat left the card"
+    caveat_at = head.index('id="tit-market-caveat"')
+    head_call_at = head.index("tit_chart_head(")
+    assert caveat_at > head_call_at, (
+        "the market caveat is being passed into tit_chart_head(), which puts "
+        "it inside the (i) panel that dashboard.js closes on load."
+    )
+    assert 'class="tit-chart-caveat"' in head, (
+        "and it must carry the visible caveat class, not sit inside "
+        ".tit-chart-note."
     )
 
 

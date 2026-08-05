@@ -63,6 +63,23 @@ if (!defined('ABSPATH')) exit;
  * both wrap their date column in an expression, so both were always going to
  * read the slice rather than seek it. Both are behind the same transient, so a
  * warm render still costs zero.
+ *
+ * HELD AT 15 on 2026-08-05, two out and two in. The collection-rate chart left
+ * this page for the sources page, taking its daily rollup and the ingest
+ * breadth scan with it. Its slot holds the market trend now, which costs the
+ * same two:
+ *
+ *   1  every collector's first and last ingest day, GROUP BY collector, which
+ *      is what decides the fixed panel (the sources live for the whole window)
+ *   1  the weekly split by stated headcount direction, GROUP BY event date,
+ *      restricted to the panel when the panel is wide enough to count from
+ *
+ * Neither can ride an existing scan for the same reason the breadth scan could
+ * not: the panel needs GROUP BY collector over ingest dates and nothing else
+ * on the page groups on either. Both sit behind the same transient, so a warm
+ * render still costs zero. The direction ranking's own GROUP BY stays although
+ * its card merged into the market chart, because the stated-headcount toggle's
+ * figure is summed from it and /aggregate still serves the group.
  */
 const TIT_DASH_QUERY_BUDGET = 15;
 
@@ -229,7 +246,7 @@ function tit_dashboard_facts($table) {
         'countries' => 0,
         'by_country' => array(),
         'glance'    => array(),
-        'trend'     => array(),
+        'market'    => array(),
         'money'     => array('total' => 0, 'coverage' => array('with' => 0, 'all' => 0),
                              'placed' => array(), 'by_country' => array(),
                              'by_city' => array(), 'by_industry' => array()),
@@ -302,9 +319,11 @@ function tit_dashboard_facts($table) {
           GROUP BY industry ORDER BY n DESC LIMIT 40", ARRAY_A) ?: array();
 
     $facts['glance'] = tit_glance_matrix($table, $base);
-    // The trajectory behind the matrix's columns, under the same clause, so the
-    // line and the cell above it can only ever be the same rows counted twice.
-    $facts['trend'] = tit_signal_trend($table, $base);
+    // The market trend, under the same clause as every other card. The
+    // collection-rate chart this slot used to hold (tit_signal_trend) now
+    // renders on the sources page, where an operations measure belongs; see
+    // the note above tit_market_trend().
+    $facts['market'] = tit_market_trend($table, $base);
     // The money views and the matrix's money row share one coverage figure, so
     // a dollar total can never sit next to a sentence describing a different
     // set of rows.
@@ -506,14 +525,13 @@ function tit_dashboard_html() {
     $newest_run       = $facts['newest_run'];
     $n_stated         = (int) $facts['stated'];
     $by_pillar        = $facts['by_pillar'];
-    $by_direction     = $facts['by_direction'];
     $by_confidence    = $facts['by_confidence'] ?? array();
     $by_industry_n    = $facts['by_industry'] ?? array();
     $counts_by_country = $facts['counts_by_country'];
     $countries        = (int) $facts['countries'];
     $by_country       = $facts['by_country'];
     $glance           = $facts['glance'];
-    $trend            = is_array($facts['trend'] ?? null) ? $facts['trend'] : array();
+    $market           = is_array($facts['market'] ?? null) ? $facts['market'] : array();
     $money            = $facts['money'];
     $place_caveat     = $facts['place_caveat'];
     $rows             = $facts['rows'];
@@ -1718,26 +1736,47 @@ function tit_dashboard_html() {
       <div class="tit-charts tit-charts--one">
         <?php
         /*
-          THE TREND. The BOX is what dashboard.js replaces on every filter
-          change, and it holds both the plot and the note panel, because both
-          of them move with the filters: a narrower view redraws the lines AND
-          changes which signals could honestly be drawn at all. The head above
-          it is static, so the four controls stay wired through a repaint.
+          THE MARKET TREND, and it is deliberately NOT the collection-rate
+          chart that used to sit here. "Updates Collected a Day" plotted our
+          own collection rate, which is an operations measure, and it renders
+          on the sources page now beside the collectors it describes. This
+          card makes the market claim instead, on same-store-sales logic; the
+          whole argument is above tit_market_trend().
+
+          It is a whole-tracker card and it does NOT move with the filters:
+          the panel is a property of the collector fleet, not of a view, and
+          a filtered fixed-panel trend thins out faster than it can stay
+          honest. The visible caveat says so on the card. dashboard.js
+          repaints nothing inside it.
+
+          The direction ranking that used to be its own card ("Updates by
+          Stated Headcount Direction") is the SPLIT inside this chart now; the
+          by_direction group stays on /aggregate for anything that consumed
+          it. tit-chart-nodl keeps the CSV button off a card whose bars are
+          not rank rows; the download would have been an empty file.
         */
         ?>
-        <div class="tit-chart tit-chart-trend" id="chart-trend">
-          <?php /* "Collected", in the title, because the whole card is our own
-                   collection rate and the note under it now says so in the
-                   first sentence rather than several sentences down. */ ?>
-          <?php tit_chart_head('Updates Collected a Day', '', 'trend', '', true); ?>
-          <div class="tit-trend-box" id="tit-trend-box">
-            <?php echo tit_signal_trend_html($trend); ?>
+        <div class="tit-chart tit-chart-nodl" id="chart-market">
+          <?php tit_chart_head('Weekly Updates by Stated Headcount Direction',
+            'Each bar is one week of updates, split by the headcount direction the source '
+            . 'itself stated. Most updates say nothing about headcount, and those are counted '
+            . 'as such rather than guessed.', 'market'); ?>
+          <?php /* Visible prose, ABOVE the drawing, never note_html: the (i)
+                   panel is closed by dashboard.js on load, and this sentence
+                   is the basis of the whole card. */ ?>
+          <p class="tit-chart-caveat" id="tit-market-caveat"><?php
+            echo esc_html(tit_market_caveat($market)); ?></p>
+          <div class="tit-market-box" role="group" aria-label="Weekly updates by stated headcount direction"
+               aria-describedby="<?php echo esc_attr(tit_chart_note_id('market')); ?>">
+            <?php echo tit_market_trend_html($market); ?>
           </div>
         </div>
       </div>
 
       <h4 class="tit-charts-h">What Kind Of Moves, And How We Know</h4>
-      <div class="tit-charts tit-charts--four">
+      <?php /* Three cards since the direction ranking merged into the market
+               trend, so the base three-column grid, not the 2x2 --four. */ ?>
+      <div class="tit-charts">
       <div class="tit-chart" id="chart-kind">
         <?php /* Headings name what a recruiter or job seeker GETS from the chart,
                  not what the chart is made of. "What kind of update" described
@@ -1764,28 +1803,17 @@ function tit_dashboard_html() {
         <?php endforeach; ?>
       </div>
       </div>
-        <div class="tit-chart" id="chart-direction">
-          <?php /* "Updates by", not "Which Way Headcount Is Going": the bars
-                   count ROWS grouped by the direction each row states, and the
-                   old title named a movement in headcount that this chart has
-                   no figure for. Nothing on this card is a number of people. */ ?>
-          <?php tit_chart_head('Updates by Stated Headcount Direction', 'What the source itself says. Most updates say nothing about headcount, and those are counted as such rather than guessed.', 'direction'); ?>
-          <div class="tit-rank" tabindex="0" role="group" aria-label="Activity by direction"
-               aria-describedby="<?php echo esc_attr(tit_chart_note_id('direction')); ?>">
-            <?php
-            $dmax = $by_direction ? max(array_map('intval', array_column($by_direction, 'n'))) : 1;
-            foreach ($by_direction as $d) : ?>
-              <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($d['k']); ?>"
-                      data-dir="<?php echo esc_attr($d['k']); ?>" aria-pressed="false">
-                <span class="tit-rank-name"><?php echo esc_html($directions[$d['k']] ?? $d['k']); ?></span>
-                <span class="tit-rank-track"><span class="tit-rank-fill"
-                  style="width:<?php echo esc_attr(max(4, round(100 * $d['n'] / $dmax))); ?>%"></span></span>
-                <span class="tit-rank-n"><?php echo (int) $d['n']; ?></span>
-              </button>
-            <?php endforeach; ?>
-          </div>
-        </div>
-
+        <?php
+        /*
+          NO STANDALONE DIRECTION CARD. "Updates by Stated Headcount
+          Direction" is the split inside the market trend above now, so a
+          second card of the same numbers was a duplicate. The direction
+          FILTER control stays (tit-f-direction), the by_direction group
+          stays on /aggregate, and the query behind it stays in
+          tit_dashboard_facts because the stated-headcount toggle's count is
+          summed from it.
+        */
+        ?>
         <?php
         /*
           HOW SOLID THE EVIDENCE IS. The credibility claim, drawn.
@@ -2956,7 +2984,7 @@ function tit_trend_rate($value) {
  * to 20 into a cliff, and this page's whole argument is that its numbers can be
  * checked.
  */
-function tit_signal_trend_html(array $trend) {
+function tit_signal_trend_html(array $trend, $interactive = true) {
     $series  = $trend['series'] ?? array();
     $refused = $trend['refused'] ?? array();
     if (!$series && !$refused) return '';
@@ -3016,11 +3044,15 @@ function tit_signal_trend_html(array $trend) {
                filters the page, and this was the one chart that broke it.
                The plot is pointer-only (an SVG point is not focusable), so
                the sentence names the keyboard route, the same trade the
-               sibling's canvas charts document. */ ?>
+               sibling's canvas charts document. $interactive is false on the
+               sources page, where there are no filters and no dashboard.js,
+               so promising a tap there would be a control that does nothing. */ ?>
+      <?php if ($interactive) : ?>
       <p class="tit-sub">Tap the plot to narrow the page to the
         <?php echo $avg; ?> days ending on that day; tap it again to clear.
         The Date Range control under Filters is the keyboard route to the
         same window.</p>
+      <?php endif; ?>
       <?php
       /*
         THE COMPARISON THE LEGEND USED TO CARRY. Each key read "Leadership
@@ -3298,6 +3330,288 @@ function tit_trend_svg(array $trend) {
         echo esc_html((string) $trend['start']); ?></span><span><?php
         echo esc_html((string) $trend['end']); ?></span></p>
     </div>
+    <?php
+    return ob_get_clean();
+}
+
+/*
+ * THE MARKET TREND: the dashboard's one claim about the market over time.
+ *
+ * It replaced "Updates Collected a Day", which plotted our own collection rate
+ * and now lives on the sources page where an operations measure belongs. This
+ * chart makes a MARKET claim, so it is built to not launder collection growth
+ * as market movement, which is the exact confound the old chart's basis
+ * sentence once falsely certified away (docs/TECHLOG.md, 2026-08-03 and
+ * 2026-08-04).
+ *
+ * Same-store-sales logic. The honest version of "the market did X this quarter"
+ * from a growing collector fleet is the panel: count only the collectors that
+ * were storing rows for the ENTIRE window, so a source switched on mid-window
+ * cannot appear as a rise. Liveness is read from first-seen and last-seen
+ * ingest dates (DATE(captured_at)), never from publication dates, for the
+ * reason tit_trend_ingest_breadth() documents: a collector that arrives late
+ * and backfills old articles looks, by publication date, like it was always
+ * there.
+ *
+ * When the panel is too thin for an honest count trend, the chart falls back
+ * to COMPOSITION: each week's share of updates by stated headcount direction,
+ * which survives changes in how much we collect because a share has no volume
+ * axis. And when even that has too few weeks behind it, nothing is drawn and
+ * the card says so. Raw all-collector counts are never drawn as a market
+ * claim in any state.
+ */
+/** Weeks in the market window. Twelve seven-day weeks, Monday to Sunday. */
+const TIT_MARKET_WEEKS = 12;
+/** Fewer panel sources than this and a count trend is not honest. */
+const TIT_MARKET_MIN_PANEL = 5;
+/** Fewer weeks holding any updates than this and no trend is drawn at all. */
+const TIT_MARKET_MIN_WEEKS = 4;
+
+/**
+ * The weekly market series, two queries.
+ *
+ * One finds the panel: every collector's first and last ingest day. One counts
+ * the weeks, grouped by event date and split by stated headcount direction,
+ * restricted to the panel when the panel is wide enough to count from.
+ *
+ * $where is the caller's clause (the dashboard hands its notable-default
+ * clause), so the chart counts the same set of rows every other card does.
+ */
+function tit_market_trend($table, $where = 'is_current = 1', array $params = array()) {
+    global $wpdb;
+
+    // Whole weeks only, Monday to Sunday, and the running week is excluded: a
+    // partial week drawn as a short bar reads as a fall that has not happened.
+    $today = current_time('Y-m-d');
+    $dow = (int) date('N', strtotime($today));
+    $monday = date('Y-m-d', strtotime($today . ' -' . ($dow - 1) . ' days'));
+    $end = date('Y-m-d', strtotime($monday . ' -1 day'));
+    $start = date('Y-m-d', strtotime($end . ' -' . (TIT_MARKET_WEEKS * 7 - 1) . ' days'));
+
+    /*
+      The panel. Liveness is bucketed by ingest date over EVERY current row,
+      not under the caller's clause: whether a collector was running is a fact
+      about the collector, and a view filter that happens to exclude its rows
+      must not make it look dead. "Live for the entire window" means it had
+      stored something on or before the window opened and was still storing in
+      the window's final week.
+    */
+    $lives = $wpdb->get_results(
+        "SELECT collector,
+                MIN(DATE(captured_at)) AS first_seen,
+                MAX(DATE(captured_at)) AS last_seen
+           FROM {$table} WHERE is_current = 1 GROUP BY collector", ARRAY_A) ?: array();
+    $final_week = date('Y-m-d', strtotime($end . ' -6 days'));
+    $panel = array();
+    foreach ($lives as $row) {
+        $name = trim((string) ($row['collector'] ?? ''));
+        if ($name === '') continue;
+        if ((string) $row['first_seen'] <= $start && (string) $row['last_seen'] >= $final_week) {
+            $panel[] = $name;
+        }
+    }
+    sort($panel);
+
+    $variant = count($panel) >= TIT_MARKET_MIN_PANEL ? 'counts' : 'share';
+
+    /*
+      The weekly split. Grouped by event date (published, with ingest date
+      standing in), because a market trend is about when things happened. In
+      the counts variant the panel restriction is what keeps that honest; the
+      share variant reads all collectors, because a share of a week's updates
+      carries no volume claim for a new collector to inflate.
+    */
+    $date_expr = tit_signal_date_expr();
+    $sql = "SELECT {$date_expr} AS d,
+                   SUM(signal_direction = 'hiring') AS g,
+                   SUM(signal_direction = 'displacement') AS s,
+                   SUM(signal_direction NOT IN ('hiring', 'displacement')) AS u
+              FROM {$table} WHERE {$where}
+               AND {$date_expr} >= %s AND {$date_expr} <= %s";
+    $args = array_merge($params, array($start, $end));
+    if ($variant === 'counts') {
+        $sql .= ' AND collector IN (' . implode(', ', array_fill(0, count($panel), '%s')) . ')';
+        $args = array_merge($args, $panel);
+    }
+    $sql .= ' GROUP BY d';
+    $rows = $wpdb->get_results($wpdb->prepare($sql, $args), ARRAY_A) ?: array();
+
+    $weeks = array();
+    for ($i = 0; $i < TIT_MARKET_WEEKS; $i++) {
+        $lo = date('Y-m-d', strtotime($start . ' +' . ($i * 7) . ' days'));
+        $weeks[$i] = array(
+            'lo' => $lo,
+            'hi' => date('Y-m-d', strtotime($lo . ' +6 days')),
+            'g' => 0, 's' => 0, 'u' => 0, 'n' => 0,
+        );
+    }
+    $start_ts = strtotime($start);
+    foreach ($rows as $r) {
+        $d = strtotime((string) $r['d']);
+        if ($d === false) continue;
+        $i = intdiv((int) floor(($d - $start_ts) / DAY_IN_SECONDS), 7);
+        if ($i < 0 || $i >= TIT_MARKET_WEEKS) continue;
+        $weeks[$i]['g'] += (int) $r['g'];
+        $weeks[$i]['s'] += (int) $r['s'];
+        $weeks[$i]['u'] += (int) $r['u'];
+        $weeks[$i]['n'] += (int) $r['g'] + (int) $r['s'] + (int) $r['u'];
+    }
+
+    $with_data = 0;
+    foreach ($weeks as $w) {
+        if ($w['n'] > 0) $with_data++;
+    }
+    if ($with_data < TIT_MARKET_MIN_WEEKS) $variant = 'none';
+
+    return array(
+        'start'       => $start,
+        'end'         => $end,
+        'weeks'       => $weeks,
+        'weeks_total' => TIT_MARKET_WEEKS,
+        'with_data'   => $with_data,
+        'panel'       => $panel,
+        'panel_size'  => count($panel),
+        'variant'     => $variant,
+    );
+}
+
+/**
+ * The sentence on the card that says what the chart is allowed to claim.
+ *
+ * Printed as visible prose (.tit-chart-caveat) and NEVER as note_html: the (i)
+ * panels are closed by dashboard.js on load, and a basis statement nobody has
+ * seen is not a basis statement. The place caveat learned this on 2026-08-03.
+ */
+function tit_market_caveat(array $m) {
+    $fixed = ' Counted across the whole tracker; the filters on this page do not narrow this card.';
+    if ($m['variant'] === 'counts') {
+        return sprintf(
+            'Counted only from the %d sources that were live for all %d weeks of this window '
+            . '(%s to %s), so a source switched on mid window cannot appear as a market move.',
+            (int) $m['panel_size'], (int) $m['weeks_total'], $m['start'], $m['end']) . $fixed;
+    }
+    $none = (int) $m['panel_size'] === 0;
+    $lead = $none
+        ? sprintf('No source has yet been live for all %d weeks of this window (%s to %s)',
+                  (int) $m['weeks_total'], $m['start'], $m['end'])
+        : sprintf('Only %d source%s been live for all %d weeks of this window (%s to %s)',
+                  (int) $m['panel_size'], (int) $m['panel_size'] === 1 ? ' has' : 's have',
+                  (int) $m['weeks_total'], $m['start'], $m['end']);
+    if ($m['variant'] === 'share') {
+        return $lead . ', too few for an honest count trend, so this chart shows each '
+             . 'week as SHARES of its own updates instead. A share survives changes in '
+             . 'how much we collect; a count from a growing set of sources would not.'
+             . $fixed;
+    }
+    return $lead . sprintf(
+        ', and only %d of the %d weeks hold any updates at all, so no trend is drawn: '
+        . 'a line through that would show the shape of our collection, not the market.',
+        (int) $m['with_data'], (int) $m['weeks_total']);
+}
+
+/**
+ * The stacked weekly bars, as inline SVG built in PHP.
+ *
+ * Same decisions as every other chart here: no library, no script, y axis
+ * from zero, and the drawing arrives in the initial HTML. Wrapped in the
+ * shared scroll container so a narrow phone scrolls the chart inside its own
+ * box rather than the page sideways.
+ */
+function tit_market_trend_html(array $m) {
+    $weeks = $m['weeks'] ?? array();
+    if (($m['variant'] ?? 'none') === 'none' || !$weeks) {
+        return '<p class="tit-trend-none">Not drawn yet: too few weeks hold updates '
+             . 'inside this window for a trend to mean anything.</p>';
+    }
+    $share = $m['variant'] === 'share';
+    $n = count($weeks);
+
+    $max = 1;
+    if (!$share) {
+        foreach ($weeks as $w) $max = max($max, (int) $w['n']);
+        // A rounded axis: the same 1 / 2 / 2.5 / 5 rule the collection chart
+        // uses, because 0/10/20/30/40 is read instantly and 0/9/18/27/36 is not.
+        $q = $max / 4;
+        $mag = pow(10, floor(log10(max(0.001, $q))));
+        foreach (array(1, 2, 2.5, 5, 10) as $mult) {
+            if ($q <= $mag * $mult + 1e-9) { $q = $mag * $mult; break; }
+        }
+        $max = 4 * $q;
+    }
+
+    $w_px = 720; $h_px = 230; $pad_l = 46; $pad_r = 10; $pad_t = 12; $pad_b = 30;
+    $plot_w = $w_px - $pad_l - $pad_r;
+    $plot_h = $h_px - $pad_t - $pad_b;
+    $slot = $plot_w / $n;
+    $bar = max(8, (int) round($slot * 0.62));
+
+    $labels = array('g' => 'Adding Roles', 's' => 'Cutting Roles', 'u' => 'Headcount Not Stated');
+    $described = '';
+    foreach ($weeks as $w) {
+        if ($w['n'] === 0) {
+            $described .= sprintf('Week of %s: no updates. ', $w['lo']);
+            continue;
+        }
+        $described .= sprintf('Week of %s: %d adding roles, %d cutting roles, %d not stated. ',
+            $w['lo'], $w['g'], $w['s'], $w['u']);
+    }
+
+    ob_start(); ?>
+    <div class="tit-table-scroll">
+    <svg class="tit-market-chart" viewBox="0 0 <?php echo $w_px; ?> <?php echo $h_px; ?>"
+         role="img" preserveAspectRatio="xMidYMid meet"
+         aria-label="<?php echo esc_attr(($share
+             ? 'Each week of updates split into shares by stated headcount direction. '
+             : 'Updates a week from the fixed source panel, split by stated headcount direction. ')
+             . $described); ?>">
+      <?php for ($g = 0; $g <= 4; $g++) :
+        $value = $share ? 25 * $g : $max * $g / 4;
+        $gy = round($pad_t + $plot_h - ($plot_h * $g / 4), 1); ?>
+        <line x1="<?php echo $pad_l; ?>" x2="<?php echo $w_px - $pad_r; ?>"
+              y1="<?php echo $gy; ?>" y2="<?php echo $gy; ?>" class="tit-mk-grid"/>
+        <text x="<?php echo $pad_l - 7; ?>" y="<?php echo $gy + 4; ?>"
+              class="tit-mk-axis" text-anchor="end"><?php
+          echo esc_html($share ? $value . '%' : number_format_i18n($value)); ?></text>
+      <?php endfor; ?>
+
+      <?php foreach ($weeks as $i => $wk) :
+        $x = (int) round($pad_l + $slot * $i + ($slot - $bar) / 2);
+        if ($wk['n'] === 0) {
+            // An empty week is an explicit gap, never a zero-height bar that
+            // reads as a market with nothing in it.
+            continue;
+        }
+        $scale = $share ? ($plot_h / $wk['n']) : ($plot_h / $max);
+        $y_cursor = $pad_t + $plot_h;
+        foreach (array('u', 's', 'g') as $key) :
+            $seg = (int) $wk[$key];
+            if ($seg === 0) continue;
+            $seg_h = $seg * $scale;
+            $y_cursor -= $seg_h; ?>
+            <rect x="<?php echo $x; ?>" y="<?php echo round($y_cursor, 1); ?>"
+                  width="<?php echo $bar; ?>" height="<?php echo round($seg_h, 1); ?>"
+                  class="tit-mk-<?php echo $key; ?>">
+              <title><?php echo esc_html(sprintf('Week of %s: %s, %s update%s',
+                  $wk['lo'], $labels[$key], number_format_i18n($seg),
+                  $seg === 1 ? '' : 's')); ?></title>
+            </rect>
+        <?php endforeach; ?>
+      <?php endforeach; ?>
+
+      <?php // Only the end weeks are dated. Twelve dated columns is a smear. ?>
+      <text x="<?php echo $pad_l; ?>" y="<?php echo $h_px - 8; ?>"
+            class="tit-mk-axis" text-anchor="start"><?php
+        echo esc_html($weeks[0]['lo']); ?></text>
+      <text x="<?php echo $w_px - $pad_r; ?>" y="<?php echo $h_px - 8; ?>"
+            class="tit-mk-axis" text-anchor="end"><?php
+        echo esc_html($weeks[$n - 1]['hi']); ?></text>
+    </svg>
+    </div>
+    <p class="tit-market-legend">
+      <span class="tit-mk-key"><span class="tit-mk-swatch tit-mk-g"></span>Adding Roles</span>
+      <span class="tit-mk-key"><span class="tit-mk-swatch tit-mk-s"></span>Cutting Roles</span>
+      <span class="tit-mk-key"><span class="tit-mk-swatch tit-mk-u"></span>Headcount Not Stated</span>
+    </p>
     <?php
     return ob_get_clean();
 }

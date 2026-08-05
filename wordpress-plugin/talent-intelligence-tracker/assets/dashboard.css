@@ -843,6 +843,23 @@
    wraps away from the label it names is a legend that names nothing. */
 .tit-trend-legend { margin:8px 0 0; font-size:12.5px; line-height:1.6;
   color:var(--tit-mut); display:flex; flex-wrap:wrap; gap:2px 14px; }
+
+/* The market trend: stacked weekly bars, drawn server-side. Green is adding
+   roles, the warm red is cutting, and not-stated is the quiet grey, because
+   most updates say nothing about headcount and the chart must read that way
+   at a glance. The SVG scrolls inside the shared scroll container on narrow
+   screens rather than shrinking its axis text below reading size. */
+.tit-market-chart { display:block; width:100%; min-width:520px; height:auto; }
+.tit-mk-grid { stroke:var(--tit-line); stroke-width:1; }
+.tit-mk-axis { font-size:11px; fill:var(--tit-mut); }
+rect.tit-mk-g, .tit-mk-swatch.tit-mk-g { fill:#1f7a4d; background:#1f7a4d; }
+rect.tit-mk-s, .tit-mk-swatch.tit-mk-s { fill:#a83d2a; background:#a83d2a; }
+rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
+.tit-market-legend { margin:8px 0 0; font-size:12.5px; line-height:1.6;
+  color:var(--tit-mut); display:flex; flex-wrap:wrap; gap:2px 14px; }
+.tit-mk-key { white-space:nowrap; }
+.tit-mk-swatch { display:inline-block; width:10px; height:10px; border-radius:2px;
+  margin-right:5px; vertical-align:baseline; }
 .tit-trend-key { display:inline-block; white-space:normal; }
 .tit-trend-swatch { display:inline-block; width:14px; height:3px; margin:0 6px 3px 0;
   vertical-align:middle; border-radius:2px; }
@@ -2087,6 +2104,11 @@ body:has(.tit-main) header.wp-block-template-part {
    would be the whole point of this page lost in a palette. */
 .tit-c-partial { background:#fff8e6; color:#7a5300; border-color:#efdca6; }
 
+/* The source line under each country in the recall table: always-visible
+   quiet prose. Never a collapsed control; this page has shipped caveats that
+   computed display:none and were never seen. */
+.tit-recall-src td { font-size:12px; color:var(--tit-mut); line-height:1.5;
+  border-top:0; padding-top:0; }
 .tit-recall-gaps { margin:0 0 16px; padding-left:20px; }
 .tit-recall-gaps li { margin:0 0 6px; line-height:1.5; }
 

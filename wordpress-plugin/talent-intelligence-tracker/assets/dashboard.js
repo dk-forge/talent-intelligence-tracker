@@ -2468,13 +2468,15 @@
       });
     }
 
-    // The trend keeps its download HIDDEN, and that is the honest answer
-    // rather than an omission. chartCsv() reads the rendered bar rows, and the
-    // trend has none: it would hand over a file containing a header and
-    // nothing else, which is worse than no button. The whole page's numbers,
-    // including every row behind these lines, are the CSV and JSON under
-    // Download This View.
-    if (dl && !chart.classList.contains('tit-chart-trend')) {
+    // A card carrying tit-chart-nodl (the market trend; formerly the
+    // collection-rate card via tit-chart-trend) keeps its download HIDDEN,
+    // and that is the honest answer rather than an omission. chartCsv() reads
+    // the rendered bar rows, and these cards have none: it would hand over a
+    // file containing a header and nothing else, which is worse than no
+    // button. The whole page's numbers are the CSV and JSON under Download
+    // This View.
+    if (dl && !chart.classList.contains('tit-chart-trend')
+           && !chart.classList.contains('tit-chart-nodl')) {
       dl.hidden = false;
       dl.addEventListener('click', function () {
         download('talent-' + (dl.dataset.chart || 'chart') + '.csv', chartCsv(chart));

@@ -428,7 +428,35 @@ function check($condition, $message) {
  * are written by dashboard.js onto buttons the server never renders, so the
  * plainer wording cost this budget nothing at all.
  */
-const TIT_DASH_BYTE_BUDGET = 181600;
+/*
+ * RAISED 181,600 -> 184,600 on 2026-08-05, for the market trend replacing the
+ * collection-rate chart, and the direction card folding into it. Measured on
+ * this fixture: 181,146 -> 184,118, so a net 2,972, and the bill splits:
+ *
+ *   ~3,600  THE MARKET CHART, drawn (this fixture's dated rows reach six of
+ *           its twelve weeks, so the share variant renders): the stacked-bar
+ *           SVG whose every segment carries a <title> naming its week, its
+ *           direction and its count, the axis, the legend, and the visible
+ *           caveat sentence that names the panel and the variant. The titles
+ *           are most of it and they are the reason a reader on any pointer
+ *           gets the numbers without a script.
+ *
+ *   ~1,700  net of the two cards it replaced: the collection-rate card cost
+ *           about 700 here (its rows sit within days of the render date, so
+ *           it rendered its collapsed one-sentence form; in production it
+ *           drew, and budget ~5,400 there, so the LIVE page gets lighter even
+ *           though this fixture gets heavier), and the direction ranking's
+ *           four rows about 1,000.
+ *
+ *   ~1,070  the section comments' share and the market card's (i) panel.
+ *
+ * Production note, honestly: live, this swap REMOVES more than it adds (the
+ * drawn collection chart was ~5,400 and leaves entirely), so the raise here is
+ * a property of this fixture pricing the drawn market chart against the
+ * collapsed old one. Headroom ~480 bytes: the next addition raises this
+ * number and writes down why.
+ */
+const TIT_DASH_BYTE_BUDGET = 184600;
 
 /*
  * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and
@@ -1520,6 +1548,60 @@ check(count($heads[1]) >= 4, 'the chart cards have to render their headings');
 foreach ($heads[1] as $label) {
     check($title_case_ok($label),
           'heading "' . $label . '" is not Title Case');
+}
+
+/* --- the market trend, and the two cards it replaced --------------------- */
+
+/*
+ * 2026-08-05. The owner judged the collection-rate chart an ops metric readers
+ * do not need on the dashboard, so its slot carries a MARKET trend now, on
+ * same-store-sales logic, and the standalone direction ranking folded into it
+ * as the split. Three properties are load-bearing and each shipped broken once
+ * in some form on this page:
+ *
+ *  - the basis sentence is VISIBLE prose on the card, never note_html: the
+ *    (i) panels are closed by dashboard.js on load, and a basis nobody sees
+ *    is the place-caveat defect again;
+ *  - raw all-collector counts are never drawn as a market claim: this fixture
+ *    has no collector live for the whole window, so the card MUST be in its
+ *    share (or not-drawn) state and must say which and why;
+ *  - the replaced cards are actually gone from this page, and the moved one
+ *    is gone by its title, not merely renamed.
+ */
+check(strpos($html, 'id="chart-market"') !== false,
+      'the market trend card renders');
+check(strpos($html, 'id="chart-direction"') === false,
+      'the standalone direction card is gone: its numbers are the split inside '
+      . 'the market trend now, and a second card of them was a duplicate');
+check(strpos($html, 'Updates Collected a Day') === false,
+      'the collection-rate chart has left the dashboard: it is an operations '
+      . 'measure and it renders on the sources page now');
+check(strpos($html, 'id="tit-trend-box"') === false,
+      'and its repaint box went with it, or dashboard.js would inject the '
+      . 'aggregate trend_html into a card that no longer explains it');
+
+$mk = strpos($html, 'id="chart-market"');
+$mk_seg = substr($html, $mk, strpos($html, 'What Kind Of Moves') - $mk);
+check(strpos($mk_seg, 'id="tit-market-caveat"') !== false,
+      'the market card carries its visible caveat');
+$mk_note = strpos($mk_seg, 'tit-chart-note');
+$mk_cav  = strpos($mk_seg, 'id="tit-market-caveat"');
+check($mk_note !== false && $mk_cav !== false && $mk_cav > $mk_note,
+      'the caveat is its own element AFTER the head block, not note_html '
+      . 'inside the (i) panel that dashboard.js closes on load');
+// This fixture ingests everything within days of the render, so no collector
+// was live for the whole window and a count trend would be dishonest here.
+check(strpos($mk_seg, 'live for all 12 weeks') !== false,
+      'the caveat names the panel state and the window');
+check(strpos($mk_seg, 'SHARES of its own updates') !== false
+      || strpos($mk_seg, 'no trend is drawn') !== false,
+      'with no full-window collector the card must be the share variant or '
+      . 'refuse to draw, never a raw count drawn as a market claim');
+check(strpos($mk_seg, 'the filters on this page do not narrow this card') !== false,
+      'a static card on a filterable page says so in visible prose');
+foreach (array('Adding Roles', 'Cutting Roles', 'Headcount Not Stated') as $mk_label) {
+    check(strpos($mk_seg, $mk_label) !== false,
+          'the market legend carries "' . $mk_label . '", the shared direction vocabulary');
 }
 
 /* --- ONE vocabulary, not two -------------------------------------------- */

@@ -1,0 +1,2387 @@
+{
+ "AE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Emirates News Agency (WAM)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Gulf Business",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "MENAbytes",
+    "reason": "2026-08-02 not live (200 but the newest item is 328d old) (https://www.menabytes.com/feed/)"
+   }
+  ],
+  "researched": 7
+ },
+ "AF": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "AG": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Antigua and Barbuda (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (57 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "AL": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Albanian Telegraphic Agency",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Exit.al",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Monitor",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Panorama",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Top Channel",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "AR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Canal AR",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Contxto",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "El Cronista",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Infotechnology",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "AT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "AustrianStartups",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "AU": {
+  "live": [],
+  "refused": [
+   {
+    "name": "CRN Australia",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Capital Brief",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "InnovationAus",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 9
+ },
+ "AW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Aruba (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (45 pointers)"
+   },
+   {
+    "name": "Aruba Today",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 0
+ },
+ "BA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Akta.ba",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "BHRT",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Bljesak.info",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Capital.ba",
+    "reason": "2026-08-02 not live (403) (https://capital.ba/feed/)"
+   }
+  ],
+  "researched": 10
+ },
+ "BB": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Barbados (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (100 pointers)"
+   },
+   {
+    "name": "Nation News",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "BD": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Dhaka Tribune",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "New Age (Business)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Prothom Alo English",
+    "reason": "2026-08-02 not live (200, 0 items: empty channel) (https://en.prothomalo.com/feed)"
+   },
+   {
+    "name": "TechShohor",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "The Financial Express BD",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "BE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "L'Echo",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Tech.eu",
+    "reason": "2026-07-30 robots.txt disallows the feed path (re-verified)"
+   }
+  ],
+  "researched": 5
+ },
+ "BG": {
+  "live": [],
+  "refused": [],
+  "researched": 3
+ },
+ "BH": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Al Watan News",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Gulf Daily News",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "BI": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "BJ": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "BN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Borneo Bulletin",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Brunei (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (40 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "BO": {
+  "live": [],
+  "refused": [],
+  "researched": 4
+ },
+ "BR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Canaltech",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Mobile Time",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "StartSe",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 13
+ },
+ "BS": {
+  "live": [],
+  "refused": [],
+  "researched": 3
+ },
+ "BT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "BBS (Bhutan Broadcasting Service)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Kuensel",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "BW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Botswana Guardian",
+    "reason": "2026-07-29 DOMAIN TAKEN OVER"
+   },
+   {
+    "name": "Mmegi",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "BZ": {
+  "live": [],
+  "refused": [],
+  "researched": 2
+ },
+ "CA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Communitech",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Government of Canada news (ISED)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "IT World Canada",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "MaRS Discovery District",
+    "reason": "2026-07-29 robots.txt disallows the feed path"
+   },
+   {
+    "name": "Statistics Canada - The Daily",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "The Logic",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Toronto Star Business",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   }
+  ],
+  "researched": 19
+ },
+ "CF": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "CH": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Startupticker.ch",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "inside-it.ch",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "CL": {
+  "live": [],
+  "refused": [
+   {
+    "name": "BioBioChile Economia",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Corfo",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "Diario Financiero",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "El Mostrador",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Emol",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "Emol Economia",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "La Segunda",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "CM": {
+  "live": [],
+  "refused": [],
+  "researched": 4
+ },
+ "CN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Caixin Global",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Huxiu",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "KrASIA",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "PingWest",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Yicai Global",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 7
+ },
+ "CO": {
+  "live": [],
+  "refused": [
+   {
+    "name": "El Espectador Economia",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Forbes Colombia",
+    "reason": "2026-07-29 not live (401, 0 items)"
+   },
+   {
+    "name": "MinTIC Colombia",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Portafolio",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "CR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "CINDE",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "CRHoy",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "La Republica CR",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "CU": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Cubadebate",
+    "reason": "2026-07-29 not live (200, 10 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "CW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Curacao (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (43 pointers)"
+   },
+   {
+    "name": "Curacao Chronicle",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 0
+ },
+ "CY": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Cyprus News Agency",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Kathimerini Cyprus",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Philenews",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Reporter",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Sigmalive",
+    "reason": "2026-07-29 live but stale, newest item 2024-09-18"
+   },
+   {
+    "name": "StockWatch",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "CZ": {
+  "live": [
+   "ARES Czech company register (ve\u0159ejn\u00fd rejst\u0159\u00edk)"
+  ],
+  "refused": [],
+  "researched": 3
+ },
+ "DE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Renewable Carbon News",
+    "reason": "2026-08-04 not live (500, 0 items)"
+   },
+   {
+    "name": "deutsche-startups.de",
+    "reason": "2026-07-29 not live (ERR, 0 items)"
+   }
+  ],
+  "researched": 14
+ },
+ "DK": {
+  "live": [],
+  "refused": [],
+  "researched": 5
+ },
+ "DM": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Dominica (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (100 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "DO": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Acento",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Diario Libre",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "DZ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Algerie Presse Service (APS)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "EC": {
+  "live": [],
+  "refused": [
+   {
+    "name": "El Universo",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   }
+  ],
+  "researched": 4
+ },
+ "EE": {
+  "live": [
+   "Estonian business register (Ariregister open data)"
+  ],
+  "refused": [],
+  "researched": 3
+ },
+ "EG": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Ahram Online",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "ES": {
+  "live": [
+   "BORME Section A (Registro Mercantil, Spain)"
+  ],
+  "refused": [],
+  "researched": 7
+ },
+ "ET": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Addis Standard",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Shega",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "FI": {
+  "live": [],
+  "refused": [
+   {
+    "name": "ArcticStartup",
+    "reason": "2026-07-29 dead: read timeout"
+   },
+   {
+    "name": "Kauppalehti",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "FJ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Fiji (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (100 pointers)"
+   },
+   {
+    "name": "Fiji Sun",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Fiji Village",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Fiji Times",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "FR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "La French Tech",
+    "reason": "2026-08-02 not live (200, 0 items: bot wall) (https://lafrenchtech.gouv.fr/en/feed/)"
+   },
+   {
+    "name": "Les Echos",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 11
+ },
+ "GA": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "GB": {
+  "live": [
+   "UK gender pay gap service",
+   "Companies House officer appointments"
+  ],
+  "refused": [
+   {
+    "name": "Finextra",
+    "reason": "2026-07-29 robots.txt disallows the feed path"
+   },
+   {
+    "name": "Oxford University Innovation",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "TheBusinessDesk",
+    "reason": "2026-08-02 not live (200, 0 items) (https://www.thebusinessdesk.com/feed/)"
+   },
+   {
+    "name": "UKTN",
+    "reason": "2026-07-29 robots.txt disallows the feed path"
+   },
+   {
+    "name": "Unleash",
+    "reason": "2026-07-29 dead: HTTP 404"
+   }
+  ],
+  "researched": 11
+ },
+ "GD": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Grenada (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (51 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "GE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Commersant.ge",
+    "reason": "2026-08-04 not live (404, 0 items)"
+   }
+  ],
+  "researched": 0
+ },
+ "GH": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Citinewsroom",
+    "reason": "2026-08-02 not live (200, 0 items: JSON, not a feed) (https://www.citinewsroom.com/wp-json/wp/v2/posts?per_page=20)"
+   }
+  ],
+  "researched": 6
+ },
+ "GN": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "GR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Kathimerini",
+    "reason": "2026-07-29 not live (410, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "GT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Forbes Centroamerica",
+    "reason": "2026-07-29 not live (401, 0 items)"
+   },
+   {
+    "name": "Soy502",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "GY": {
+  "live": [],
+  "refused": [
+   {
+    "name": "News Room Guyana",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Stabroek News",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Stabroek News business",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "HK": {
+  "live": [],
+  "refused": [
+   {
+    "name": "HKEX News",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "The Standard",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "HN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Criterio.hn",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "El Heraldo",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "La Prensa HN",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "La Tribuna",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Tiempo",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "HR": {
+  "live": [],
+  "refused": [],
+  "researched": 4
+ },
+ "HT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "AlterPresse",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Haiti (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (56 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "HU": {
+  "live": [],
+  "refused": [],
+  "researched": 5
+ },
+ "ID": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Bisnis.com",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Kumparan (Bisnis)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Tech in Asia Indonesia",
+    "reason": "2026-07-29 robots.txt disallows the feed path"
+   },
+   {
+    "name": "Tempo (Bisnis)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "The Jakarta Post (Business)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "IE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Business Post",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "TheJournal.ie",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   }
+  ],
+  "researched": 7
+ },
+ "IL": {
+  "live": [
+   "Israeli Registrar of Companies (changes file)"
+  ],
+  "refused": [
+   {
+    "name": "CTech",
+    "reason": "2026-07-30 no feed published (re-verified, 21 paths + robots + wayback)"
+   },
+   {
+    "name": "CTech by Calcalist",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Calcalist (Hebrew)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "NoCamels",
+    "reason": "2026-08-02 not live (200 but the newest item is 640d old) (https://nocamels.com/feed/)"
+   },
+   {
+    "name": "The Times of Israel",
+    "reason": "2026-07-29 robots.txt disallows the feed path"
+   },
+   {
+    "name": "TheMarker",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 9
+ },
+ "IN": {
+  "live": [
+   "BSE corporate announcements (SEBI Regulation 30)"
+  ],
+  "refused": [
+   {
+    "name": "Analytics India Magazine",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Business Standard (Companies)",
+    "reason": "2026-07-30 not live (403, re-verified)"
+   },
+   {
+    "name": "ETtech",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Financial Express (Industry)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "MediaNama",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Moneycontrol",
+    "reason": "2026-08-02 not live (403) (https://www.moneycontrol.com/rss/business.xml)"
+   },
+   {
+    "name": "NDTV Profit",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "TechCircle",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "VCCircle",
+    "reason": "2026-07-29 not live (500, 0 items)"
+   }
+  ],
+  "researched": 11
+ },
+ "IQ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Rudaw",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "IR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Financial Tribune",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "IS": {
+  "live": [],
+  "refused": [],
+  "researched": 3
+ },
+ "IT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "StartupItalia",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 7
+ },
+ "JM": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Loop Jamaica",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "JO": {
+  "live": [],
+  "refused": [
+   {
+    "name": "The Jordan Times",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "JP": {
+  "live": [
+   "EDINET extraordinary reports (FSA Japan)"
+  ],
+  "refused": [
+   {
+    "name": "@Press",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "JETRO",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Japan Today (Business)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "TechCrunch Japan",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   }
+  ],
+  "researched": 11
+ },
+ "KE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Kenyan Wall Street",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Techweez",
+    "reason": "2026-08-02 not live (200, 0 items: JSON, not a feed) (https://techweez.com/wp-json/wp/v2/posts?per_page=20)"
+   }
+  ],
+  "researched": 5
+ },
+ "KH": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Cambodianess",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Khmer Times",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Kiripost",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Phnom Penh Post",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "KN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "SKN Vibes",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Saint Kitts and Nevis (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (61 pointers)"
+   }
+  ],
+  "researched": 0
+ },
+ "KR": {
+  "live": [
+   "DART disclosures (Korea, FSS OpenDART)"
+  ],
+  "refused": [
+   {
+    "name": "Korea JoongAng Daily",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Pulse (Maeil Business)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "The Bell",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Korea Herald (Business)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 7
+ },
+ "KW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Al Qabas",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Arab Times",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Kuwait (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (79 pointers)"
+   },
+   {
+    "name": "Kuwait News Agency (KUNA)",
+    "reason": "2026-07-29 not live (ERR, 0 items)"
+   },
+   {
+    "name": "Kuwait Times",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 0
+ },
+ "KZ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Astana Hub",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Forbes Kazakhstan",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Kapital.kz",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Tengrinews (English)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 6
+ },
+ "LA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Laos (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (45 pointers)"
+   },
+   {
+    "name": "Vientiane Times",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "LB": {
+  "live": [],
+  "refused": [
+   {
+    "name": "L'Orient Today / L'Orient-Le Jour",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "LC": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Saint Lucia (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (15 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "LK": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Daily FT",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Daily Mirror (Business)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Lanka Business Online",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "ReadMe.lk",
+    "reason": "2026-08-02 not live (200 but the newest item is 289d old) (https://www.readme.lk/feed/)"
+   },
+   {
+    "name": "Sri Lanka (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (100 pointers)"
+   },
+   {
+    "name": "The Morning",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "The Sunday Times (Business)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "LS": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "LT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Startup Lithuania",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "LU": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Chronicle.lu",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Delano",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Government of Luxembourg",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Luxinnovation",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Paperjam",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 6
+ },
+ "LV": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Labs of Latvia",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "LY": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Libya (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (57 pointers)"
+   },
+   {
+    "name": "Libya Observer",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "MA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "L'Economiste",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "MAP (Maghreb Arabe Presse)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "MD": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Agora.md",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Mold-street",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Moldpres",
+    "reason": "2026-07-29 not live (500, 0 items)"
+   },
+   {
+    "name": "Teleradio-Moldova",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "ME": {
+  "live": [],
+  "refused": [
+   {
+    "name": "CDM",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Dan",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "MG": {
+  "live": [],
+  "refused": [],
+  "researched": 2
+ },
+ "MK": {
+  "live": [],
+  "refused": [],
+  "researched": 15
+ },
+ "ML": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "MM": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Eleven Media",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Frontier Myanmar",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Myanmar Business Today",
+    "reason": "2026-07-29 live but stale, newest item 2022-08-15"
+   },
+   {
+    "name": "The Irrawaddy (Business)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "MN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Mongolia (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (100 pointers)"
+   },
+   {
+    "name": "Montsame",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "News.MN",
+    "reason": "2026-08-02 not live (connect timeout) (https://news.mn/en/feed/)"
+   },
+   {
+    "name": "The UB Post",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 0
+ },
+ "MT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Malta Independent",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "MaltaToday",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "TVM News",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Times of Malta",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 7
+ },
+ "MU": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Business Magazine",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "L'Express Maurice",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "MV": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Avas",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Maldives Republic / Adhadhu",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Mihaaru",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Raajje.mv",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Sun Online",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Edition",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "The Press",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "MW": {
+  "live": [],
+  "refused": [],
+  "researched": 2
+ },
+ "MX": {
+  "live": [],
+  "refused": [
+   {
+    "name": "El Universal Cartera",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Forbes Mexico",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Milenio",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Milenio Negocios",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Reporte Indigo",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Secretaria de Economia (gob.mx)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Wired en Espanol / Whitepaper",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 6
+ },
+ "MY": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Free Malaysia Today (Business)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "MDEC",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "New Straits Times (Business)",
+    "reason": "2026-08-02 not live (404 on eight of nine attempts)"
+   },
+   {
+    "name": "The Edge Malaysia",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "The Edge Markets",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "The Malaysian Reserve",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "The Star (Business)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "MZ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "O Pais",
+    "reason": "2026-07-29 not live (ERR, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "NA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Namibian Sun",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "NG": {
+  "live": [],
+  "refused": [],
+  "researched": 8
+ },
+ "NI": {
+  "live": [],
+  "refused": [
+   {
+    "name": "100% Noticias",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "La Prensa NI",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Nicaragua (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (54 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "NL": {
+  "live": [],
+  "refused": [
+   {
+    "name": "DutchNews.nl",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "MT/Sprout",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 7
+ },
+ "NO": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Shifter",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "NP": {
+  "live": [],
+  "refused": [
+   {
+    "name": "MyRepublica",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Nepali Times",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "ShareSansar",
+    "reason": "2026-08-04 not live (404, 0 items)"
+   },
+   {
+    "name": "TechLekh",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Himalayan Times (Business)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "NZ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "BusinessDesk",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "NZ Entrepreneur",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Reseller News NZ",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "OM": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Muscat Daily",
+    "reason": "2026-08-04 not live (200, 0 items)"
+   },
+   {
+    "name": "Oman (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (61 pointers)"
+   },
+   {
+    "name": "Oman Observer",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "PA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Capital Financiero",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "Panama America",
+    "reason": "2026-07-29 live but stale, newest item 2024-08-30"
+   }
+  ],
+  "researched": 2
+ },
+ "PE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Infomercado",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "La Republica PE",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Peru21",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "PG": {
+  "live": [],
+  "refused": [],
+  "researched": 3
+ },
+ "PH": {
+  "live": [],
+  "refused": [
+   {
+    "name": "BusinessMirror",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   }
+  ],
+  "researched": 7
+ },
+ "PK": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Data Darbar",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   },
+   {
+    "name": "Profit (Pakistan Today)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 6
+ },
+ "PL": {
+  "live": [],
+  "refused": [],
+  "researched": 5
+ },
+ "PR": {
+  "live": [],
+  "refused": [],
+  "researched": 5
+ },
+ "PT": {
+  "live": [],
+  "refused": [],
+  "researched": 5
+ },
+ "PY": {
+  "live": [],
+  "refused": [
+   {
+    "name": "La Nacion Paraguay",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Ultima Hora",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "QA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Gulf Times",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Qatar (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (59 pointers)"
+   },
+   {
+    "name": "Qatar Tribune",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Peninsula",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "RO": {
+  "live": [],
+  "refused": [],
+  "researched": 6
+ },
+ "RS": {
+  "live": [],
+  "refused": [
+   {
+    "name": "NIN",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Nova Ekonomija",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Politika",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "RTS",
+    "reason": "2026-07-29 not live (ERR, 0 items)"
+   },
+   {
+    "name": "Vreme",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "eKapija",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "RW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "IGIHE",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Rwanda (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (100 pointers)"
+   },
+   {
+    "name": "The New Times",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "SA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Argaam",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Leaders MENA",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "Saudi Gazette",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Saudi Press Agency (SPA)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "SD": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "SE": {
+  "live": [],
+  "refused": [],
+  "researched": 4
+ },
+ "SG": {
+  "live": [
+   "ACRA register of corporate entities (Singapore)"
+  ],
+  "refused": [
+   {
+    "name": "CNA (Business)",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   },
+   {
+    "name": "DealStreetAsia",
+    "reason": "2026-07-29 not live (503, 0 items)"
+   },
+   {
+    "name": "IMDA",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "SGInnovate",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Business Times",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "The Straits Times (Business)",
+    "reason": "2026-07-29 not live (503, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "SI": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Finance",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "SPIRIT Slovenia",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "STA (Slovenian Press Agency)",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Vecer",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 8
+ },
+ "SK": {
+  "live": [],
+  "refused": [],
+  "researched": 3
+ },
+ "SL": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "SN": {
+  "live": [],
+  "refused": [],
+  "researched": 4
+ },
+ "SR": {
+  "live": [],
+  "refused": [],
+  "researched": 2
+ },
+ "SS": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "SV": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Diario El Salvador",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "El Faro",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "El Mundo",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "La Prensa Grafica",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "elsalvador.com Noticias",
+    "reason": "2026-07-29 live but stale, newest item 2025-04-03"
+   },
+   {
+    "name": "elsalvador.com negocios",
+    "reason": "2026-08-02 not live (200 but the newest item is 353d old) (https://www.elsalvador.com/category/noticias/negocios/feed/)"
+   }
+  ],
+  "researched": 4
+ },
+ "SZ": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "TD": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "TH": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Krungthep Turakij",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Thai PBS World",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Thansettakij",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "The Nation Thailand (Business)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "TN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Tunis Afrique Presse (TAP)",
+    "reason": "2026-07-29 not live (ERR, 0 items)"
+   },
+   {
+    "name": "Webmanagercenter",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "TO": {
+  "live": [],
+  "refused": [],
+  "researched": 1
+ },
+ "TR": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Webrazzi",
+    "reason": "2026-07-29 robots.txt disallows the feed path"
+   }
+  ],
+  "researched": 3
+ },
+ "TT": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Guardian TT",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Loop TT",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Loop Trinidad",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Newsday",
+    "reason": "2026-08-02 not live (TLS failure) (https://newsday.co.tt/feed/)"
+   },
+   {
+    "name": "Newsday business",
+    "reason": "2026-08-02 not live (TLS failure) (https://newsday.co.tt/category/business/feed/)"
+   },
+   {
+    "name": "Trinidad and Tobago Guardian",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 1
+ },
+ "TW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Business Next (bnext)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Commercial Times (ctee)",
+    "reason": "2026-08-04 not live (404, 0 items)"
+   },
+   {
+    "name": "Focus Taiwan (CNA)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Meet Global",
+    "reason": "2026-08-02 not live (200, 0 items: empty channel) (https://meet.bnext.com.tw/rss)"
+   }
+  ],
+  "researched": 4
+ },
+ "TZ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Daily News",
+    "reason": "2026-07-29 not live (500, 0 items)"
+   },
+   {
+    "name": "IPPMedia",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "The Citizen",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "UA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "AIN.UA",
+    "reason": "2026-07-29 robots.txt disallows this path"
+   }
+  ],
+  "researched": 4
+ },
+ "UG": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Daily Monitor",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "New Vision",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "US": {
+  "live": [
+   "SEC EDGAR 8-K (Item 5.02)",
+   "SEC EDGAR Form D",
+   "SEC executive compensation disclosures"
+  ],
+  "refused": [
+   {
+    "name": "Amazon News",
+    "reason": "2026-07-29 no feed published (404)"
+   },
+   {
+    "name": "Austin Business Journal",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "Automotive News",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "Axios",
+    "reason": "2026-07-29 robots.txt disallows the feed"
+   },
+   {
+    "name": "Becker's Hospital Review",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "BostInno",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "Business Wire",
+    "reason": "2026-07-30 not live (403 on robots.txt and on all 15 paths)"
+   },
+   {
+    "name": "CNBC",
+    "reason": "2026-07-29 robots.txt disallows the feed"
+   },
+   {
+    "name": "Crain's Chicago",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "Crain's New York",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "ERE",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "FinLedger",
+    "reason": "2026-08-02 not live (200 but the newest item is 1384d old) (https://finledger.com/feed/)"
+   },
+   {
+    "name": "GlobeNewswire",
+    "reason": "2026-07-30 robots.txt disallows /newsroom/rss/ and /SubscribeToRss/"
+   },
+   {
+    "name": "Hypepotamus",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "MedCity News",
+    "reason": "2026-08-02 not live (403) (https://medcitynews.com/feed/)"
+   },
+   {
+    "name": "Microsoft News",
+    "reason": "2026-07-29 200 but stale: newest item 448d old"
+   },
+   {
+    "name": "Pittsburgh Business Times",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "Puget Sound Business Journal",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "Quartz",
+    "reason": "2026-08-02 not live (200, 0 items: empty channel) (https://qz.com/rss)"
+   },
+   {
+    "name": "RecruitingDaily",
+    "reason": "2026-08-02 not live (200 but the newest item is 753d old) (https://recruitingdaily.com/feed/)"
+   },
+   {
+    "name": "San Francisco Business Times",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "Silicon Valley Business Journal",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "South Florida Business Journal",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "Staffing Industry Analysts",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "StrictlyVC",
+    "reason": "2026-08-02 not live (200 but the newest item is 2289d old) (https://www.strictlyvc.com/feed/)"
+   },
+   {
+    "name": "Technical.ly",
+    "reason": "2026-07-29 dead: serves HTML, the feed was withdrawn"
+   },
+   {
+    "name": "Triangle Business Journal",
+    "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "WRAL TechWire",
+    "reason": "2026-07-29 dead: serves HTML, the feed was withdrawn"
+   },
+   {
+    "name": "Washington Business Journal",
+    "reason": "2026-07-29 dead: HTTP 404"
+   },
+   {
+    "name": "Yahoo Finance",
+    "reason": "2026-07-30 refused: aggregator domain (yahoo.com)"
+   }
+  ],
+  "researched": 85
+ },
+ "UY": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Busqueda",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "El Pais Uruguay",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "Uruguay XXI",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   }
+  ],
+  "researched": 2
+ },
+ "UZ": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Daryo",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "IT Park Uzbekistan",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Kun.uz (English)",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Podrobno.uz",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 4
+ },
+ "VC": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Saint Vincent and the Grenadines (discovery backstop)",
+    "reason": "2026-07-29 discovery ok (74 pointers)"
+   }
+  ],
+  "researched": 1
+ },
+ "VE": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Banca y Negocios",
+    "reason": "2026-07-29 not live (0, 0 items)"
+   }
+  ],
+  "researched": 3
+ },
+ "VN": {
+  "live": [],
+  "refused": [
+   {
+    "name": "The Investor (VAFIE)",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "Tuoi Tre News",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Vietnam Investment Review",
+    "reason": "2026-07-29 not live (404, 0 items)"
+   },
+   {
+    "name": "VnEconomy",
+    "reason": "2026-07-29 not live (200, 0 items)"
+   }
+  ],
+  "researched": 5
+ },
+ "ZA": {
+  "live": [],
+  "refused": [
+   {
+    "name": "BusinessTech",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   },
+   {
+    "name": "MyBroadband",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 9
+ },
+ "ZM": {
+  "live": [],
+  "refused": [],
+  "researched": 3
+ },
+ "ZW": {
+  "live": [],
+  "refused": [
+   {
+    "name": "Techzim",
+    "reason": "2026-08-02 not live (200, 0 items: JSON, not a feed) (https://www.techzim.co.zw/wp-json/wp/v2/posts?per_page=20)"
+   },
+   {
+    "name": "The Herald",
+    "reason": "2026-07-29 not live (403, 0 items)"
+   }
+  ],
+  "researched": 2
+ }
+}

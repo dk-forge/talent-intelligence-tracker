@@ -1165,6 +1165,76 @@ def _catalogue() -> list[dict]:
     return out
 
 
+def country_coverage() -> dict:
+    """Per-country source coverage, for the recall page's country table.
+
+    The recall page names, under each country's score, WHY the score is what
+    it is: which live sources cover the country, which publishers were probed
+    and could not be wired (with the recorded one-line reason from the probe),
+    and how many researched candidates are queued. A country at zero with no
+    dedicated source is then a to-do item rather than a mystery.
+
+    Derived, never typed, for the same reason as sources_manifest(): a
+    hand-written coverage list drifts within a week. Keys are ISO2 codes,
+    joined from the vocabulary's own name map, so the PHP side can look a
+    gold-set cell's country code straight up. Catalogue rows whose country is
+    a region ("Latin America (regional)") carry no code and are skipped: a
+    regional feed is not a dedicated source for any one country.
+
+    A "refused" entry means every probe of that publisher failed to yield a
+    wireable feed, and the reason is the probe's own recorded evidence line,
+    never a summary someone wrote later.
+    """
+    from pipeline import vocab
+
+    code_by_name = {name: code for code, name in vocab.COUNTRY_NAMES.items()}
+
+    out: dict[str, dict] = {}
+
+    def bucket(code: str) -> dict:
+        return out.setdefault(code, {"live": [], "refused": [], "researched": 0})
+
+    for s in SOURCES:
+        if s.status == "live" and s.country:
+            bucket(s.country)["live"].append(s.name)
+
+    # Publishers the hand-written registry already wires or reads. A catalogue
+    # probe that failed for one of these must not list it as refused: the
+    # registry entry is the one that knows, exactly as sources_manifest() lets
+    # hand entries win on a name clash. Sifted is the live case: probed
+    # without a feed in the catalogue, wired by hand in the registry.
+    hand_wired = {
+        s.name.lower() for s in SOURCES
+        if s.status == "live" or (s.rss or "").startswith("http")
+    }
+
+    if CATALOGUE_CSV.exists():
+        by_name: dict[str, list[dict]] = {}
+        with CATALOGUE_CSV.open(newline="") as fh:
+            for row in csv.DictReader(fh):
+                by_name.setdefault(row.get("name") or "", []).append(row)
+        for name, rows in sorted(by_name.items()):
+            if not name:
+                continue
+            code = code_by_name.get((rows[0].get("country") or "").strip(), "")
+            if not code:
+                continue
+            if (name.lower() in hand_wired
+                    or any(_wireable(r) and not _is_backstop(r) for r in rows)):
+                bucket(code)["researched"] += 1
+                continue
+            evidence = [
+                (r.get("feed_checked") or "").strip()
+                for r in rows
+                if (r.get("feed_checked") or "").strip()
+            ]
+            reasons = [e for e in evidence if "200 ok" not in e] or evidence
+            if reasons:
+                bucket(code)["refused"].append({"name": name, "reason": reasons[0]})
+
+    return out
+
+
 def sources_manifest() -> list[dict]:
     """Renders straight onto the public sources page.
 
