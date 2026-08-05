@@ -192,10 +192,33 @@
       "workflow": "collect"
     }
   ],
-  "red_marks": {
-    "ticket:20260805T134352Z-backfill-press-2026": "2026-08-05T14:27:56Z"
-  },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-05T18:43:00Z",
+          "detail": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260805T184300Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
+      "requested_at": "2026-08-05T18:43:00Z",
+      "requested_by": "claude-fix-session",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-press-2026.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-03T18:00:23Z",
@@ -2215,6 +2238,7 @@
       "workflow": "backfill-press-2026.yml"
     },
     {
+      "acknowledged": "2026-08-05T18:43:00Z",
       "attempts": 0,
       "dispatched_at": "2026-08-05T14:07:35Z",
       "history": [
@@ -2237,6 +2261,11 @@
           "at": "2026-08-05T14:27:56Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-05T18:43:00Z",
+          "detail": "root cause fixed on main (bc9c82c): urllib3 ReadTimeoutError from a mid-body read on neweralive.na escaped head_text; capped_fetch now translates body-read errors to requests exceptions and the walker records a dead host per publisher. Re-queued to resume at cursor 9.",
+          "event": "acknowledged"
         }
       ],
       "id": "20260805T134352Z-backfill-press-2026",
