@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-05T08:44:51Z",
-  "last_tick": "2026-08-05T08:44:51Z",
+  "last_tick": "2026-08-05T08:50:23Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -181,6 +181,15 @@
       "resolved_note": " (by dakotta-labs)",
       "run_id": "30742123499",
       "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-08-05T08:47:01Z",
+      "detail": "scheduled run displaced from the pending slot; it carries no inputs and the next cron covers the same ground",
+      "noticed_at": "2026-08-05T08:50:23Z",
+      "resolved": "2026-08-05T08:50:23Z",
+      "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
+      "run_id": "30990450867",
+      "workflow": "collect"
     }
   ],
   "tickets": [
@@ -197,6 +206,11 @@
           "at": "2026-08-05T08:44:51Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T08:50:23Z",
+          "detail": "run 30990303269",
+          "event": "bound"
         }
       ],
       "id": "20260805T084428Z-backfill-press-2026",
@@ -211,7 +225,7 @@
       "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 2)",
       "requested_at": "2026-08-05T08:44:28Z",
       "requested_by": "backfill-slices",
-      "run_id": null,
+      "run_id": "30990303269",
       "state": "dispatched",
       "workflow": "backfill-press-2026.yml"
     },
