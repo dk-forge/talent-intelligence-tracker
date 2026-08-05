@@ -101,13 +101,14 @@ SLICE_BUDGET_MINUTES = 50
 #: longer be the thing that starves it, by construction rather than by hope.
 #: Asserted in tests/test_workflows.py.
 #:
-#: 90 -> 110 on 2026-08-05, from measurement: the gdelt slices of 2026-08-03
-#: ran 58-66 minutes wall clock — SLICE_BUDGET_MINUTES (50) of walking plus
-#: up to ~16 minutes of checkout, install and a 69 MB database commit. 66 was
-#: already 73% of the old 90, i.e. the next self-timeout waiting, and a run
-#: cancelled at the ceiling loses its commit step. 50 + ~16 + headroom = 110,
-#: still strictly under LONG_HOLD_MINUTES, which remains the hard line.
-SLICE_TIMEOUT_MINUTES = 110
+#: This number is a LOCK-HOLD bound, not a runtime allowance, and it does not
+#: move on measurement. On 2026-08-05 the gdelt slices (58-66 min measured,
+#: 73% of this ceiling) were briefly "fixed" by raising this to 110; that was
+#: backwards — every database writer shares ONE lock, and a backfill holding
+#: it longer starves the live collectors and the drain, which is worse than
+#: the self-timeout it was avoiding. When a slice crowds this ceiling the
+#: slice gets SMALLER (its --budget-minutes), the ceiling does not get bigger.
+SLICE_TIMEOUT_MINUTES = 90
 
 #: A chain that never ends is worse than a job that runs too long, because
 #: nothing about it looks wrong. A year of GDELT at four days a slice is 92
