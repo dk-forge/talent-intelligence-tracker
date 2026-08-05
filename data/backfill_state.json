@@ -2392,7 +2392,7 @@
       "workflow": "backfill-press-2026.yml"
     },
     "backfill-press-2026:2026-01-01..2026-07-30:0..16": {
-      "cursor": "4",
+      "cursor": "5",
       "end": "16",
       "history": [
         {
@@ -2450,6 +2450,21 @@
             "rejected": 56,
             "stored": 18
           }
+        },
+        {
+          "at": "2026-08-05T09:34:07Z",
+          "run": "",
+          "slice": "4..4",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 136,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 14,
+            "rejected": 0,
+            "stored": 0
+          }
         }
       ],
       "inputs": {
@@ -2462,19 +2477,20 @@
       "label": "2026-01-01..2026-07-30",
       "opened_at": "2026-08-02T05:28:56Z",
       "slice_size": 1,
-      "slices": 4,
+      "slices": 5,
       "start": "0",
-      "state": "stalled",
+      "state": "running",
       "totals": {
         "duplicates": 9,
-        "left_for_later": 968,
-        "publishers": 160,
-        "reached": 91,
+        "left_for_later": 1104,
+        "left_unread": 75,
+        "publishers": 200,
+        "reached": 105,
         "rejected": 244,
         "stored": 61
       },
       "unit": "slices",
-      "updated_at": "2026-08-02T14:01:40Z",
+      "updated_at": "2026-08-05T09:34:07Z",
       "workflow": "backfill-press-2026.yml"
     },
     "backfill-structured-2026:bse_india:2026-01-01..2026-07-30": {
