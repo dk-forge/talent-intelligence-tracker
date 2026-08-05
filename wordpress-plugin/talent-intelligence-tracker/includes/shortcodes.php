@@ -2135,6 +2135,18 @@ function tit_dashboard_html() {
 
       <?php echo tit_trust_panel_html($facts); ?>
 
+      <?php /* Shared email digest signup. The subscriber store, the consent
+               flow and the sender live in the SIBLING plugin (AI Layoff
+               Tracker, includes/subscribe.php): one WordPress install, one
+               subscriber list, one consent record per person. This call is
+               deliberately function_exists-guarded and never a require, so
+               the isolation promise at the top of this plugin holds: if the
+               sibling is missing or mid-deploy, nothing renders and nothing
+               fatals. */
+      if (function_exists('alt_digest_subscribe_form')) {
+          echo alt_digest_subscribe_form('talent');
+      } ?>
+
       <p class="tit-cite">
         Data licensed CC BY 4.0. Cite as: Talent Intelligence Tracker,
         asktherecruiter.com. Layoff and redundancy data is not collected here;
