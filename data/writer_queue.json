@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-05T19:22:26Z",
-  "last_tick": "2026-08-05T19:53:18Z",
+  "last_tick": "2026-08-05T19:55:09Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -195,42 +195,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-05T19:22:26Z",
-      "history": [
-        {
-          "at": "2026-08-05T18:43:00Z",
-          "detail": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T19:22:26Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T19:53:18Z",
-          "detail": "run 31039107569",
-          "event": "bound"
-        }
-      ],
-      "id": "20260805T184300Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
-      "requested_at": "2026-08-05T18:43:00Z",
-      "requested_by": "claude-fix-session",
-      "run_id": "31039107569",
-      "state": "dispatched",
-      "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -254,48 +218,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T18:00:23Z",
-      "history": [
-        {
-          "at": "2026-08-03T17:59:52Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-06-18)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T18:00:23Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T18:08:43Z",
-          "detail": "run 30839299813",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-03T18:08:43Z",
-          "detail": "run 30839299813",
-          "event": "landed"
-        }
-      ],
-      "id": "20260803T175952Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-03T18:08:43Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-06-18)",
-      "requested_at": "2026-08-03T17:59:52Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30839299813",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
@@ -2735,6 +2657,48 @@
       "run_id": "31032799885",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T19:22:26Z",
+      "history": [
+        {
+          "at": "2026-08-05T18:43:00Z",
+          "detail": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T19:22:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T19:53:18Z",
+          "detail": "run 31039107569",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T19:55:09Z",
+          "detail": "run 31039107569",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T184300Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T19:55:09Z",
+      "priority": 10,
+      "reason": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
+      "requested_at": "2026-08-05T18:43:00Z",
+      "requested_by": "claude-fix-session",
+      "run_id": "31039107569",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
     }
   ],
   "version": 1
