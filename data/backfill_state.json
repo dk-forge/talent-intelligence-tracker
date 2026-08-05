@@ -2316,7 +2316,7 @@
       "workflow": "backfill-gnews-2026.yml"
     },
     "backfill-press-2026:2026-01-01..2026-06-30:0..16": {
-      "cursor": "9",
+      "cursor": "10",
       "end": "16",
       "history": [
         {
@@ -2453,6 +2453,21 @@
             "rejected": 0,
             "stored": 0
           }
+        },
+        {
+          "at": "2026-08-05T15:08:42Z",
+          "run": "",
+          "slice": "9..9",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 119,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 16,
+            "rejected": 0,
+            "stored": 0
+          }
         }
       ],
       "inputs": {
@@ -2465,20 +2480,20 @@
       "label": "2026-01-01..2026-06-30",
       "opened_at": "2026-08-05T06:47:16Z",
       "slice_size": 1,
-      "slices": 9,
+      "slices": 10,
       "start": "0",
       "state": "running",
       "totals": {
         "duplicates": 0,
-        "left_for_later": 1484,
-        "left_unread": 672,
-        "publishers": 360,
-        "reached": 179,
+        "left_for_later": 1603,
+        "left_unread": 747,
+        "publishers": 400,
+        "reached": 195,
         "rejected": 1,
         "stored": 3
       },
       "unit": "slices",
-      "updated_at": "2026-08-05T14:43:32Z",
+      "updated_at": "2026-08-05T15:08:42Z",
       "workflow": "backfill-press-2026.yml"
     },
     "backfill-press-2026:2026-01-01..2026-07-30:0..16": {
