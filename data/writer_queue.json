@@ -257,6 +257,32 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-05T12:29:46Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 6)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260805T122946Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 6)",
+      "requested_at": "2026-08-05T12:29:46Z",
+      "requested_by": "backfill-slices",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-08-03T15:37:40Z",
       "history": [
         {
