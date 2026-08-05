@@ -12,39 +12,328 @@
      own container, never the page body.
 */
 
-/* Tokens are the AI Layoff Tracker's, copied from its live layoffs.css rather
+/* ===========================================================================
+   THE TOKEN BLOCK. EVERY COLOUR IN THIS FILE COMES FROM HERE.
+
+   Tokens are the AI Layoff Tracker's, copied from its live layoffs.css rather
    than approximated, so the two products are one family and not two dialects.
    Its blue is #2a78d6 and its secondary is #D55E00.
 
    One deliberate divergence: the sibling's --alt-muted (#868a93) is about
    3.4:1 on white, which fails AA for body text. It is kept here as --tit-faint
    for genuinely decorative labels only, and anything you have to read uses
-   --tit-mut (#4a4d55, the sibling's own --alt-ink-2) at 8.6:1. */
-.tit-wrap {
+   --tit-mut (#4a4d55, the sibling's own --alt-ink-2) at 8.6:1.
+
+   THE COLOUR DISCIPLINE (audience spec, 2026-08-02): a neutral ground, ONE
+   interactive accent, and the semantic green/red pair reserved for DIRECTION
+   alone. The accent is the audited #0072B2 (5.2:1 on white, the lead chart
+   blue on the sibling too), declared once as --tit-blue so controls, links,
+   chips and primary bars share one hue. The direction pair is text-safe:
+   green #006B4F (6.5:1) for hiring, red #B3402A (5.7:1) for cutting, a
+   blue-green against a red-orange, which is the Okabe-Ito design's own
+   CVD-safe opposition. Chart SERIES keep their categorical palette; inside a
+   chart is the one place more hues are allowed.
+
+   THREE BLOCKS, AND WHAT DECIDES BETWEEN THEM.
+     :root                                        the light values
+     @media (prefers-color-scheme: dark)
+       :root:not([data-theme="light"])            the OS asked, nobody overrode
+     :root[data-theme="dark"]                     the reader asked, explicitly
+
+   An explicit choice beats the media query in BOTH directions: data-theme
+   "light" excludes the media block, data-theme "dark" is a later rule of equal
+   weight so it wins on order. The attribute is stamped on <html> before first
+   paint by the inline script in page.php, and set by the Light / Dark / Auto
+   control dashboard.js injects. Auto REMOVES the attribute, which hands the
+   decision back to the media query.
+
+   NOTHING BUT CUSTOM PROPERTIES MAY LIVE IN THE TWO DARK BLOCKS. A component
+   rule in there is a second description of the same layout that only one theme
+   ever reads, and the two descriptions stop agreeing. Every token named in
+   :root is redefined in BOTH dark blocks, in the same order: a token defined
+   light-only keeps its light value in dark and paints a white card in a dark
+   page, which is the failure mode that is invisible until a reader reports it.
+   tests/test_theme_light_dark.py asserts all three of those properties.
+
+   The dark values are arithmetic, not taste. Every text pair is >= 4.5:1 and
+   every bar, tick and border >= 3:1 against the surface it sits on, and the
+   categorical hues are >= 15 dE2000 apart pairwise (contrast ratio is the
+   wrong tool there: an equal-luminance palette reads as a collision to it).
+   The ratios are recomputed from these declarations by the test, so the
+   palette cannot regress quietly.
+   =========================================================================== */
+:root {
+  color-scheme: light;
+
+  /* --- Ink ------------------------------------------------------------- */
   --tit-fg:#1b2130;         /* ink-navy (owner's design, 2026-08-02), 15.4:1 on white */
+  --tit-ink:#1b2130;        /* alias: the board figures read this name */
   --tit-mut:#4a4d55;        /* alt-ink-2     8.6:1 on white */
-  --tit-faint:#868a93;      /* alt-muted    decorative only */
+  --tit-faint:#696d77;      /* alt-muted    4.78:1 on the dimmest ground */
+  --tit-ink-invert:#ffffff; /* text and icons ON a filled accent */
+
+  /* --- Surfaces -------------------------------------------------------- */
+  --tit-surface-1:#ffffff;  /* cards, controls, anything raised */
+  --tit-surface:#f7f8fa;    /* alt-surface-2: stripes, table heads, quiet panels */
+  --tit-ground:#faf9f6;     /* warm paper ground (owner's design, 2026-08-02) */
+  --tit-quiet:#f4f6f8;      /* the quietest chip ground */
+  --tit-hover:#f9fbfd;      /* row and card hover */
   --tit-line:#e2e3e8;       /* alt-border  */
   --tit-grid:#e7e8ec;       /* alt-grid    */
-  --tit-surface:#f7f8fa;    /* alt-surface-2 */
-  --tit-ground:#faf9f6;     /* warm paper ground (owner's design, 2026-08-02) */
-  /* THE COLOUR DISCIPLINE (audience spec, 2026-08-02): a neutral ground, ONE
-     interactive accent, and the semantic green/red pair reserved for
-     DIRECTION alone. The accent is the audited #0072B2 (5.2:1 on white, the
-     lead chart blue on the sibling too), declared once as --tit-blue below so
-     controls, links, chips and primary bars share one hue. The direction pair
-     is text-safe: green #006B4F (6.5:1) for hiring, red #B3402A (5.7:1) for
-     cutting, a blue-green against a red-orange, which is the Okabe-Ito
-     design's own CVD-safe opposition. Chart SERIES keep their categorical
-     palette (tit_trend_colours in shortcodes.php); inside a chart is the one
-     place more hues are allowed. */
+  --tit-track:#e6eaef;      /* pillar bar track */
+  --tit-track-2:#eef1f5;    /* rank bar track, neutral tag ground */
+
+  /* --- The one interactive accent -------------------------------------- */
+  --tit-blue:#0072B2; --tit-blue-strong:#084BB5;
+  --tit-blue-tint:#eef4fc; --tit-blue-ring:#b9d3f2; --tit-blue-edge:#cfe0f4;
+  --tit-accent-ink:#1c5cab;
+  --tit-link:#1a5fb4; --tit-link-hover:#12447f;
+  --tit-on-accent:rgba(255,255,255,.26);  /* a count inside a filled pill */
+
+  /* --- Direction and status -------------------------------------------- */
   --tit-hiring:#006B4F;     /* direction: adding roles. NEVER an accent. */
   --tit-cutting:#B3402A;    /* direction: cutting roles. NEVER an accent. */
   --tit-warn:#8A6A00;       /* caveats and pending states, text-safe amber */
   --tit-pay:#4a3aa7;        /* violet, third series */
   --tit-neutral:#52607a;
-  --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
+  --tit-neutral-bar:#6b7684; --tit-neutral-fg:#41485a; --tit-neutral-ring:#d8dde5;
+  --tit-green-tint:#e9f3ef; --tit-green-ring:#bfdccf;
+  --tit-red-tint:#fdeeee;   --tit-red-ring:#ecc4ba;
+  --tit-violet-tint:#eae7f7; --tit-violet-ring:#cbc4ec;
+  --tit-verified-line:#d0d5dd;
 
+  /* --- The chart palette ----------------------------------------------- */
+  --tit-orange:#D55E00; --tit-violet:#4a3aa7; --tit-teal:#18a271;
+  --tit-ink-blue:#0072B2; --tit-ink-orange:#8c3d00;
+  --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
+  --tit-teal-tint:#e4f6ee; --tit-teal-ring:#b9e6d3;
+  --tit-teal-glow:rgba(24,162,113,.22);
+  --tit-trust-k:#17624a; --tit-stat-5:#5b6570;
+
+  /* OCHRE IS THE MONEY HUE AND NOTHING ELSE'S (owner's design, 2026-08-02):
+     every dollar figure, the money row's heat, the money bars. Where ochre
+     and the interactive accent could collide the rule is fixed: money wins
+     on figures, blue wins on controls. Text form 5.6:1 on white. */
+  --tit-ochre:#b07c00; --tit-ink-ochre:#7a5800; --tit-ochre-line:#e3d3a6;
+
+  /* --- The trend series, one hue per signal ---------------------------- */
+  --tit-tc-hiring:#1f7a4d; --tit-tc-funded:#a8560f;
+  /* market-trend marks: gained, shrank, unchanged. The grey was #9aa1ab,
+     which is 2.61:1 on the card and under the 3:1 bar for a swatch that
+     carries meaning by its fill. */
+  --tit-mk-g:#1f7a4d; --tit-mk-s:#a83d2a; --tit-mk-u:#868d99;
+  --tit-tc-leadership:#7a3fa8; --tit-tc-pay:#c2417e; --tit-tc-total:#1c5cab;
+  /* The recall chart's two lines: what we hold, and what we hold correctly. */
+  --tit-rc-held:#1c5cab; --tit-rc-clean:#1f7a4d;
+
+  /* --- Heat channels. Triplets, because the alpha is set per cell ------ */
+  --tit-heat-rgb:28,92,171;
+  --tit-heat-money-rgb:176,124,0;
+  --tit-tick-default-rgb:82,96,122;
+  --tit-tick-hiring-rgb:42,120,214;
+  --tit-tick-funded-rgb:74,58,167;
+  --tit-tick-leadership-rgb:13,124,128;
+  --tit-tick-pay-rgb:213,94,0;
+  --tit-tick-total-rgb:22,24,29;
+
+  /* --- Zones, bands and the hero wash ---------------------------------- */
+  --tit-hero-1:#f4f8fe; --tit-hero-2:#fdf6f2; --tit-hero-3:#f7f4fd;
+  --tit-zone-bg:#eef3f9; --tit-zone-line:#d7e1ec;
+  --tit-region-n-bg:#f1f4f8;
+  --tit-sticky-bg:rgba(238,244,252,.94);
+  --tit-header-bg:#ffffff; --tit-header-line:rgba(16,18,24,.12);
+
+  /* --- Named states ----------------------------------------------------- */
+  --tit-degraded-bg:#fdf3e8; --tit-degraded-fg:#8c3d00; --tit-degraded-line:#f0cfae;
+  --tit-partial-bg:#fff8e6;  --tit-partial-fg:#7a5300;  --tit-partial-line:#efdca6;
+  --tit-toast-bg:#eaf6ec;    --tit-toast-fg:#1f4620;    --tit-toast-line:#bfe0c4;
+  --tit-star:#a9790a;        --tit-star-bg:rgba(169,121,10,.13);
+  --tit-solid-hover:#000000;
+
+  /* --- Roo -------------------------------------------------------------- */
+  --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#ffffff;
+  --roo-soft:#dbe9fb; --roo-tint:#eef4fd; --roo-zzz:#8a93a0;
+
+  /* --- Shadows carry colour, so they are tokens too --------------------- */
+  --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
+  --tit-shadow-bar:0 2px 10px rgba(16,18,24,.06);
+  --tit-shadow-pop:0 6px 24px rgba(16,18,24,.14);
+  --tit-shadow-float:0 4px 10px rgba(16,18,24,.14), 0 10px 26px rgba(16,18,24,.16);
+  /* The opaque stop of a mask gradient. Not a theme colour: a mask reads
+     luminance, so this stays the same in both schemes. It is a token so that
+     "no colour literal outside the token block" is true without an exception. */
+  --tit-mask-ink:#000000;
+}
+
+/* The OS asked for dark, and the reader has not overridden it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --tit-fg:#e8eaee;
+    --tit-ink:#e8eaee;
+    --tit-mut:#b0b6c0;
+    --tit-faint:#8b929d;
+    --tit-ink-invert:#0b1016;
+
+    --tit-surface-1:#1b1e25;
+    --tit-surface:#22262e;
+    --tit-ground:#14161b;
+    --tit-quiet:#20242b;
+    --tit-hover:#242932;
+    --tit-line:#333944;
+    --tit-grid:#2c313a;
+    --tit-track:#2f353f;
+    --tit-track-2:#2a2f38;
+
+    --tit-blue:#6cb6ff; --tit-blue-strong:#9cccff;
+    --tit-blue-tint:#16273a; --tit-blue-ring:#2f5a85; --tit-blue-edge:#2a4c70;
+    --tit-accent-ink:#7fb8f5;
+    --tit-link:#7fb8f5; --tit-link-hover:#a9d1ff;
+    --tit-on-accent:rgba(11,16,22,.22);
+
+    --tit-hiring:#4fc99a;
+    --tit-cutting:#ff8f7a;
+    --tit-warn:#e0b64f;
+    --tit-pay:#b9a3ff;
+    --tit-neutral:#a3adbd;
+    --tit-neutral-bar:#8791a1; --tit-neutral-fg:#c3cbd8; --tit-neutral-ring:#3b414c;
+    --tit-green-tint:#16281f; --tit-green-ring:#2f5a45;
+    --tit-red-tint:#2e1c19;   --tit-red-ring:#6b3a30;
+    --tit-violet-tint:#221d33; --tit-violet-ring:#4a3f70;
+    --tit-verified-line:#3b414c;
+
+    --tit-orange:#ff9d52; --tit-violet:#b9a3ff; --tit-teal:#4ecfa5;
+    --tit-ink-blue:#7fb8f5; --tit-ink-orange:#f0a35c;
+    --tit-ink-violet:#c19bef; --tit-ink-teal:#4ecfa5;
+    --tit-teal-tint:#132a23; --tit-teal-ring:#2c5b4a;
+    --tit-teal-glow:rgba(78,207,165,.22);
+    --tit-trust-k:#4fc99a; --tit-stat-5:#8791a1;
+
+    --tit-ochre:#e3b341; --tit-ink-ochre:#e8c368; --tit-ochre-line:#6b5623;
+
+    --tit-tc-hiring:#4fc99a; --tit-tc-funded:#f0a35c;
+    --tit-mk-g:#4fc99a; --tit-mk-s:#ff8f7a; --tit-mk-u:#8791a1;
+    --tit-tc-leadership:#c19bef; --tit-tc-pay:#f582b4; --tit-tc-total:#7fb8f5;
+    --tit-rc-held:#7fb8f5; --tit-rc-clean:#4fc99a;
+
+    --tit-heat-rgb:124,178,255;
+    --tit-heat-money-rgb:227,179,65;
+    --tit-tick-default-rgb:163,173,189;
+    --tit-tick-hiring-rgb:108,182,255;
+    --tit-tick-funded-rgb:185,163,255;
+    --tit-tick-leadership-rgb:78,207,165;
+    --tit-tick-pay-rgb:255,157,82;
+    --tit-tick-total-rgb:232,234,238;
+
+    --tit-hero-1:#161d28; --tit-hero-2:#221c18; --tit-hero-3:#1d1930;
+    --tit-zone-bg:#181d26; --tit-zone-line:#2c3542;
+    --tit-region-n-bg:#262b34;
+    --tit-sticky-bg:rgba(22,29,40,.94);
+    --tit-header-bg:#14161b; --tit-header-line:rgba(232,234,238,.14);
+
+    --tit-degraded-bg:#2a2118; --tit-degraded-fg:#f0b47a; --tit-degraded-line:#5c452a;
+    --tit-partial-bg:#2a2618;  --tit-partial-fg:#e8cf82;  --tit-partial-line:#5c5228;
+    --tit-toast-bg:#1f3326;    --tit-toast-fg:#bde8c6;    --tit-toast-line:#395c43;
+    --tit-star:#e8b93d;        --tit-star-bg:rgba(232,185,61,.16);
+    --tit-solid-hover:#ffffff;
+
+    --roo-deep:#7fb8f5; --roo-accent:#ff9d52; --roo-surface:#1b1e25;
+    --roo-soft:#2a3d55; --roo-tint:#1c2531; --roo-zzz:#8b929d;
+
+    --tit-shadow:0 1px 2px rgba(0,0,0,.34), 0 4px 14px rgba(0,0,0,.42);
+    --tit-shadow-bar:0 2px 10px rgba(0,0,0,.42);
+    --tit-shadow-pop:0 6px 24px rgba(0,0,0,.55);
+    --tit-shadow-float:0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.5);
+    --tit-mask-ink:#000000;
+  }
+}
+
+/* The reader asked for dark, whatever the OS says. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --tit-fg:#e8eaee;
+  --tit-ink:#e8eaee;
+  --tit-mut:#b0b6c0;
+  --tit-faint:#8b929d;
+  --tit-ink-invert:#0b1016;
+
+  --tit-surface-1:#1b1e25;
+  --tit-surface:#22262e;
+  --tit-ground:#14161b;
+  --tit-quiet:#20242b;
+  --tit-hover:#242932;
+  --tit-line:#333944;
+  --tit-grid:#2c313a;
+  --tit-track:#2f353f;
+  --tit-track-2:#2a2f38;
+
+  --tit-blue:#6cb6ff; --tit-blue-strong:#9cccff;
+  --tit-blue-tint:#16273a; --tit-blue-ring:#2f5a85; --tit-blue-edge:#2a4c70;
+  --tit-accent-ink:#7fb8f5;
+  --tit-link:#7fb8f5; --tit-link-hover:#a9d1ff;
+  --tit-on-accent:rgba(11,16,22,.22);
+
+  --tit-hiring:#4fc99a;
+  --tit-cutting:#ff8f7a;
+  --tit-warn:#e0b64f;
+  --tit-pay:#b9a3ff;
+  --tit-neutral:#a3adbd;
+  --tit-neutral-bar:#8791a1; --tit-neutral-fg:#c3cbd8; --tit-neutral-ring:#3b414c;
+  --tit-green-tint:#16281f; --tit-green-ring:#2f5a45;
+  --tit-red-tint:#2e1c19;   --tit-red-ring:#6b3a30;
+  --tit-violet-tint:#221d33; --tit-violet-ring:#4a3f70;
+  --tit-verified-line:#3b414c;
+
+  --tit-orange:#ff9d52; --tit-violet:#b9a3ff; --tit-teal:#4ecfa5;
+  --tit-ink-blue:#7fb8f5; --tit-ink-orange:#f0a35c;
+  --tit-ink-violet:#c19bef; --tit-ink-teal:#4ecfa5;
+  --tit-teal-tint:#132a23; --tit-teal-ring:#2c5b4a;
+  --tit-teal-glow:rgba(78,207,165,.22);
+  --tit-trust-k:#4fc99a; --tit-stat-5:#8791a1;
+
+  --tit-ochre:#e3b341; --tit-ink-ochre:#e8c368; --tit-ochre-line:#6b5623;
+
+  --tit-tc-hiring:#4fc99a; --tit-tc-funded:#f0a35c;
+  --tit-mk-g:#4fc99a; --tit-mk-s:#ff8f7a; --tit-mk-u:#8791a1;
+  --tit-tc-leadership:#c19bef; --tit-tc-pay:#f582b4; --tit-tc-total:#7fb8f5;
+  --tit-rc-held:#7fb8f5; --tit-rc-clean:#4fc99a;
+
+  --tit-heat-rgb:124,178,255;
+  --tit-heat-money-rgb:227,179,65;
+  --tit-tick-default-rgb:163,173,189;
+  --tit-tick-hiring-rgb:108,182,255;
+  --tit-tick-funded-rgb:185,163,255;
+  --tit-tick-leadership-rgb:78,207,165;
+  --tit-tick-pay-rgb:255,157,82;
+  --tit-tick-total-rgb:232,234,238;
+
+  --tit-hero-1:#161d28; --tit-hero-2:#221c18; --tit-hero-3:#1d1930;
+  --tit-zone-bg:#181d26; --tit-zone-line:#2c3542;
+  --tit-region-n-bg:#262b34;
+  --tit-sticky-bg:rgba(22,29,40,.94);
+  --tit-header-bg:#14161b; --tit-header-line:rgba(232,234,238,.14);
+
+  --tit-degraded-bg:#2a2118; --tit-degraded-fg:#f0b47a; --tit-degraded-line:#5c452a;
+  --tit-partial-bg:#2a2618;  --tit-partial-fg:#e8cf82;  --tit-partial-line:#5c5228;
+  --tit-toast-bg:#1f3326;    --tit-toast-fg:#bde8c6;    --tit-toast-line:#395c43;
+  --tit-star:#e8b93d;        --tit-star-bg:rgba(232,185,61,.16);
+  --tit-solid-hover:#ffffff;
+
+  --roo-deep:#7fb8f5; --roo-accent:#ff9d52; --roo-surface:#1b1e25;
+  --roo-soft:#2a3d55; --roo-tint:#1c2531; --roo-zzz:#8b929d;
+
+  --tit-shadow:0 1px 2px rgba(0,0,0,.34), 0 4px 14px rgba(0,0,0,.42);
+  --tit-shadow-bar:0 2px 10px rgba(0,0,0,.42);
+  --tit-shadow-pop:0 6px 24px rgba(0,0,0,.55);
+  --tit-shadow-float:0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.5);
+  --tit-mask-ink:#000000;
+}
+
+/* The wrapper keeps its NON-colour declarations: the type stack, the reading
+   measure, the smoothing. Every colour it used to declare is a token above. */
+.tit-wrap {
   /* =======================================================================
      THE FONT DECISION, SETTLED, WITH THE MEASUREMENT THAT SETTLED IT.
 
@@ -147,7 +436,7 @@
   font-size:15px; margin-bottom:6px; color:var(--tit-fg); }
 .tit-pillar-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 .tit-pillar-n { font-variant-numeric:tabular-nums; color:var(--tit-mut); flex:none; font-weight:600; }
-.tit-bar { background:#e6eaef; border-radius:99px; height:9px; overflow:hidden; }
+.tit-bar { background:var(--tit-track); border-radius:99px; height:9px; overflow:hidden; }
 .tit-bar span { display:block; height:100%; background:var(--tit-blue); border-radius:99px; }
 
 /* --- Filters ---------------------------------------------------------- */
@@ -163,7 +452,7 @@
 .tit-filters select, .tit-filters input {
   width:100%; min-width:0; padding:11px 12px; font-size:15px;
   border:1px solid var(--tit-line); border-radius:9px;
-  background:#fff; color:var(--tit-fg); appearance:auto; }
+  background:var(--tit-surface-1); color:var(--tit-fg); appearance:auto; }
 .tit-filters select:focus-visible, .tit-filters input:focus-visible {
   outline:2px solid var(--tit-blue); outline-offset:1px; }
 
@@ -207,13 +496,13 @@
 .tit-cards { list-style:none; margin:0; padding:0; }
 
 .tit-card { display:grid; grid-template-columns:1fr; gap:4px 20px;
-  border:1px solid var(--tit-line); border-radius:12px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:12px; background:var(--tit-surface-1);
   box-shadow:var(--tit-shadow); padding:14px 16px; margin:0 0 10px; }
 /* The rail becomes a fixed column so every employer name starts at the same x
    and the eye can run straight down them, which is the one thing the table
    genuinely did well. */
 @media (min-width:700px){ .tit-card { grid-template-columns:190px minmax(0,1fr); } }
-.tit-card:hover { background:#f9fbfd; }
+.tit-card:hover { background:var(--tit-hover); }
 
 /* --- The rail: who, and where ------------------------------------------- */
 .tit-card-rail { display:flex; flex-direction:column; gap:2px; min-width:0; }
@@ -265,21 +554,21 @@
 
 /* --- The empty state ---------------------------------------------------- */
 .tit-cards-empty { border:1px solid var(--tit-line); border-radius:12px;
-  background:#fff; box-shadow:var(--tit-shadow); }
+  background:var(--tit-surface-1); box-shadow:var(--tit-shadow); }
 
 /* Colour never carries meaning alone: each tag also carries its words. */
 .tit-tag, .tit-conf { display:inline-block; padding:3px 9px; border-radius:99px;
   font-size:13px; white-space:nowrap; font-weight:500; }
-.tit-tag { background:#eef1f5; color:var(--tit-fg); }
+.tit-tag { background:var(--tit-track-2); color:var(--tit-fg); }
 /* Direction wears the semantic pair and NOTHING ELSE does: green means the
    source said roles are being added, red that they are being cut. The words
    are still on every badge, so a reader who cannot see the hue loses nothing. */
-.tit-hiring     { background:var(--tit-green-tint); color:var(--tit-hiring); box-shadow:inset 0 0 0 1px #bfdccf; }
-.tit-displacement { background:var(--tit-red-tint); color:var(--tit-cutting); box-shadow:inset 0 0 0 1px #ecc4ba; }
-.tit-comp_shift { background:#eae7f7; color:#332874; box-shadow:inset 0 0 0 1px #cbc4ec; }
+.tit-hiring     { background:var(--tit-green-tint); color:var(--tit-hiring); box-shadow:inset 0 0 0 1px var(--tit-green-ring); }
+.tit-displacement { background:var(--tit-red-tint); color:var(--tit-cutting); box-shadow:inset 0 0 0 1px var(--tit-red-ring); }
+.tit-comp_shift { background:var(--tit-violet-tint); color:var(--tit-ink-violet); box-shadow:inset 0 0 0 1px var(--tit-violet-ring); }
 /* "Other change" really is neutral, but it should say so on purpose rather
    than by falling through to the base tag with no rule of its own. */
-.tit-neutral    { background:#eef1f5; color:#41485a; box-shadow:inset 0 0 0 1px #d8dde5; }
+.tit-neutral    { background:var(--tit-track-2); color:var(--tit-neutral-fg); box-shadow:inset 0 0 0 1px var(--tit-neutral-ring); }
 
 /* No text-transform. These carry real labels now ("Official filing", "News
    report"), and capitalize would title-case them into a third style the page
@@ -287,16 +576,16 @@
 .tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg); }
 /* Verified stands out by WEIGHT, not by wearing the interactive accent: a
    blue badge beside blue buttons read as something to press. */
-.tit-c-verified { background:#eef1f5; color:var(--tit-fg); border-color:#d0d5dd; font-weight:600; }
+.tit-c-verified { background:var(--tit-track-2); color:var(--tit-fg); border-color:var(--tit-verified-line); font-weight:600; }
 /* `reported` had no rule at all, so it fell through to the bare .tit-conf and
    sat unstyled next to a coloured `verified`. It is also the commonest value we
    hold by a distance, which made the default the thing most rows wore. Muted on
    purpose: reported is the floor, not a distinction worth colouring. */
-.tit-c-reported { background:#f4f6f8; color:var(--tit-mut); border-color:var(--tit-line); }
-.tit-c-rumored  { background:#f4f6f8; color:var(--tit-mut); font-style:italic; }
+.tit-c-reported { background:var(--tit-quiet); color:var(--tit-mut); border-color:var(--tit-line); }
+.tit-c-rumored  { background:var(--tit-quiet); color:var(--tit-mut); font-style:italic; }
 
 .tit-hq { font-size:12px; padding:2px 6px; border-radius:5px;
-  background:#eef1f5; color:var(--tit-fg); }
+  background:var(--tit-track-2); color:var(--tit-fg); }
 .tit-when { font-size:12.5px; color:var(--tit-mut); }
 .tit-cite { margin:16px 0 0; font-size:13.5px; color:var(--tit-mut); }
 
@@ -313,23 +602,31 @@
   stroke:currentColor; stroke-width:1.9; stroke-linecap:round;
   stroke-linejoin:round; flex:none; }
 .tit-wrap a.tit-export-link:hover { border-color:var(--tit-blue);
-  color:var(--tit-blue); background:#fff; }
+  color:var(--tit-blue); background:var(--tit-surface-1); }
 .tit-wrap a.tit-export-link:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
 .tit-export-scope { font-weight:500; color:var(--tit-mut); }
 .tit-wrap a.tit-export-link:hover .tit-export-scope { color:var(--tit-blue); }
 .tit-export-note { font-size:12.5px; color:var(--tit-mut); }
 
-.tit-wrap a { color:#1a5fb4; text-decoration:underline; }
-.tit-wrap a:hover { color:#12447f; }
+.tit-wrap a { color:var(--tit-link); text-decoration:underline; }
+.tit-wrap a:hover { color:var(--tit-link-hover); }
 
-/* NO prefers-color-scheme block, deliberately.
+/* THERE IS A prefers-color-scheme BLOCK NOW, AND WHY IT IS SAFE THIS TIME.
 
-   The parent WordPress theme paints a white page background regardless of the
-   OS setting. Honouring prefers-color-scheme here produced light text on that
-   white background — the exact unreadability this rewrite set out to fix.
-   Our surface is not ours to control, so we style for the surface we are
-   actually given. Revisit only if the theme gains a real dark mode. */
+   The first attempt at this failed and the failure is worth keeping written
+   down: the parent WordPress theme paints a white page background regardless
+   of the OS setting, so honouring the preference by re-inking TEXT alone put
+   light text on a white page. That was read as "we cannot do dark mode here".
+   It was really "we cannot re-ink text without also owning the surface under
+   it".
+
+   So this version owns the surface. Every container in this stylesheet that
+   holds text states its own background from a token, the wrapper paints the
+   ground it sits on, and the sticky site header is repainted too, so nothing
+   we ink is ever sitting on a colour the theme chose. The tokens at the top of
+   the file are the only place a value changes; nothing below this line knows
+   which scheme is in force. */
 
 /* --- Company profile pages -------------------------------------------- */
 .tit-company h1 { font-size:32px; margin:6px 0 8px; color:var(--tit-fg); }
@@ -422,33 +719,24 @@
    always paired with a word or an icon so it never carries meaning alone.
    ====================================================================== */
 
-.tit-wrap {
-  /* --tit-blue IS the single interactive accent (spec value #0072B2,
-     hover/active #084BB5). Everything that acts -- links, chips, active
-     filters, focus rings, primary bars -- reads this one token. */
-  --tit-blue:#0072B2; --tit-blue-strong:#084BB5;
-  --tit-orange:#D55E00; --tit-violet:#4a3aa7;
-  --tit-teal:#1baf7a; --tit-ink-blue:#0072B2; --tit-ink-orange:#8c3d00;
-  --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
-  /* OCHRE IS THE MONEY HUE AND NOTHING ELSE'S (owner's design, 2026-08-02):
-     every dollar figure, the money row's heat, the money bars. Where ochre
-     and the interactive accent could collide the rule is fixed: money wins
-     on figures, blue wins on controls. Text form 5.6:1 on white. */
-  --tit-ochre:#b07c00; --tit-ink-ochre:#7a5800;
-  --tit-blue-tint:#eef4fc; --tit-red-tint:#fdeeee; --tit-green-tint:#e9f3ef;
-}
+/* --tit-blue IS the single interactive accent (spec value #0072B2,
+   hover/active #084BB5). Everything that acts -- links, chips, active filters,
+   focus rings, primary bars -- reads that one token. It used to be declared in
+   a SECOND `.tit-wrap` block here, which meant the palette had two homes and a
+   dark value would have had to be written twice. Every one of those tokens is
+   in the :root block at the top of the file now, with the rest of them. */
 
 /* --- Hero -------------------------------------------------------------- */
 .tit-hero { border:1px solid var(--tit-line); border-radius:16px;
   padding:22px 22px 20px; margin:0 0 22px;
-  background:linear-gradient(140deg,#f4f8fe 0%,#fdf6f2 55%,#f7f4fd 100%); }
+  background:linear-gradient(140deg,var(--tit-hero-1) 0%,var(--tit-hero-2) 55%,var(--tit-hero-3) 100%); }
 .tit-hero h2 { margin:0 0 6px; font-size:23px; color:var(--tit-fg); font-weight:650; }
 .tit-hero p { margin:0; color:var(--tit-mut); font-size:15px; max-width:62ch; }
 .tit-live { display:inline-flex; align-items:center; gap:7px; font-size:13px;
-  font-weight:600; color:var(--tit-ink-teal); background:#e4f6ee;
-  border:1px solid #b9e6d3; border-radius:99px; padding:4px 11px; margin:0 0 12px; }
+  font-weight:600; color:var(--tit-ink-teal); background:var(--tit-teal-tint);
+  border:1px solid var(--tit-teal-ring); border-radius:99px; padding:4px 11px; margin:0 0 12px; }
 .tit-live-dot { width:8px; height:8px; border-radius:50%; background:var(--tit-teal);
-  box-shadow:0 0 0 3px rgba(27,175,122,.22); }
+  box-shadow:0 0 0 3px var(--tit-teal-glow); }
 
 /* --- Stat tiles get their own accent ---------------------------------- */
 /* An absolutely positioned bar cannot follow a rounded corner: clipping it with
@@ -459,7 +747,7 @@
 .tit-stat:nth-child(2) { box-shadow:inset 4px 0 0 var(--tit-orange); }
 .tit-stat:nth-child(3) { box-shadow:inset 4px 0 0 var(--tit-violet); }
 .tit-stat:nth-child(4) { box-shadow:inset 4px 0 0 var(--tit-teal); }
-.tit-stat:nth-child(5) { box-shadow:inset 4px 0 0 #5b6570; }
+.tit-stat:nth-child(5) { box-shadow:inset 4px 0 0 var(--tit-stat-5); }
 
 /* --- Pillar bars, one hue each, with a label chip ---------------------- */
 .tit-pillar-name::before { content:""; display:inline-block; width:9px; height:9px;
@@ -475,7 +763,7 @@
 .tit-charts { display:grid; grid-template-columns:1fr; gap:16px; margin:0 0 24px; }
 @media (min-width:820px){ .tit-charts { grid-template-columns:1fr 1fr; } }
 .tit-chart { border:1px solid var(--tit-line); border-radius:12px; padding:16px 18px;
-  background:#fff; }
+  background:var(--tit-surface-1); }
 .tit-chart h3 { margin:0 0 3px; font-size:15px; color:var(--tit-fg); font-weight:650; }
 .tit-chart .tit-sub { margin:0; font-size:13px; color:var(--tit-mut); }
 
@@ -504,7 +792,7 @@
 /* Open, the (i) is lit the way the expand control is: two toggles on one head
    that behaved differently would read as two different kinds of control. */
 .tit-wrap .tit-chart-info[aria-expanded="true"] { background:var(--tit-blue);
-  border-color:var(--tit-blue); color:#fff; opacity:1; }
+  border-color:var(--tit-blue); color:var(--tit-ink-invert); opacity:1; }
 
 /* Head row: titles on the left, the expand control on the right. */
 .tit-chart-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
@@ -523,13 +811,13 @@
 .tit-wrap .tit-ctl svg { width:16px; height:16px; fill:none; stroke:currentColor;
   stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
 .tit-wrap .tit-ctl:hover { border-color:var(--tit-blue); color:var(--tit-blue);
-  background:#fff; }
+  background:var(--tit-surface-1); }
 .tit-wrap .tit-ctl:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 .tit-wrap .tit-chart.is-expanded .tit-expand { background:var(--tit-blue);
-  border-color:var(--tit-blue); color:#fff; }
+  border-color:var(--tit-blue); color:var(--tit-ink-invert); }
 /* Copy and download give no visible result of their own, so the button says so. */
 .tit-wrap .tit-ctl.is-done { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; }
+  color:var(--tit-ink-invert); }
 
 /* ---------------------------------------------------------------------------
    Scroll in place, never truncate.
@@ -552,7 +840,7 @@
   align-items:center; font-size:14px; }
 .tit-rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:var(--tit-fg); }
-.tit-rank-track { background:#eef1f5; border-radius:99px; height:10px; overflow:hidden; }
+.tit-rank-track { background:var(--tit-track-2); border-radius:99px; height:10px; overflow:hidden; }
 .tit-rank-fill { display:block; height:100%; border-radius:99px; background:var(--tit-blue); }
 .tit-rank-n { font-variant-numeric:tabular-nums; color:var(--tit-mut);
   font-weight:600; min-width:22px; text-align:right; }
@@ -568,10 +856,10 @@
 .tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-hiring); }
 .tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-cutting); }
 .tit-rank-row[data-dir="comp_shift"]   .tit-rank-fill { background:var(--tit-violet); }
-.tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:#6b7684; }
+.tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:var(--tit-neutral-bar); }
 
 /* --- Table: colour the direction column, keep the words ---------------- */
-.tit-table tbody tr:hover { background:#f9fbfd; }
+.tit-table tbody tr:hover { background:var(--tit-hover); }
 .tit-h a { text-decoration:none; }
 .tit-h a:hover { text-decoration:underline; }
 
@@ -591,17 +879,17 @@
 .tit-regions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px; }
 .tit-wrap .tit-region { display:inline-flex; align-items:center; gap:8px;
   padding:8px 13px; border:1px solid var(--tit-line); border-radius:99px;
-  background:#fff; color:var(--tit-fg); font-size:14px; font-weight:550;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-size:14px; font-weight:550;
   cursor:pointer; line-height:1.2; font-family:inherit; }
 .tit-wrap .tit-region:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-region:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 /* Selection is a filled pill plus a weight change, never colour alone. */
 .tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; font-weight:700; }
+  color:var(--tit-ink-invert); font-weight:700; }
 .tit-region-flag { font-size:15px; }
 .tit-region-n { font-size:12.5px; font-variant-numeric:tabular-nums;
-  color:var(--tit-mut); background:#f1f4f8; border-radius:99px; padding:1px 7px; }
-.tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.24); color:#fff; }
+  color:var(--tit-mut); background:var(--tit-region-n-bg); border-radius:99px; padding:1px 7px; }
+.tit-wrap .tit-region.is-on .tit-region-n { background:var(--tit-on-accent); color:var(--tit-ink-invert); }
 
 /* The theme tracks its headings wide, which turns "11" into "1 1". Numerals in
    our own figures opt out. */
@@ -628,7 +916,7 @@
   .tit-table tbody { display:block; }
   .tit-table tr { display:flex; flex-wrap:wrap; align-items:center; gap:9px 10px;
     border:1px solid var(--tit-line); border-radius:12px;
-    padding:13px 15px; margin:0 0 10px; background:#fff; }
+    padding:13px 15px; margin:0 0 10px; background:var(--tit-surface-1); }
 
   /* Full width is the DEFAULT, and that matters more than it looks.
      These rules used to name the dashboard's own columns
@@ -733,7 +1021,7 @@
 /* Filters read as one control panel rather than eight loose boxes. */
 .tit-filters { background:var(--tit-surface); border:1px solid var(--tit-line);
   border-radius:12px; padding:14px; }
-.tit-filters select, .tit-filters input { background:#fff; }
+.tit-filters select, .tit-filters input { background:var(--tit-surface-1); }
 
 /* ---------------------------------------------------------------------------
    Measure, on every route.
@@ -796,7 +1084,7 @@
    at the end of this file with the other interactive-filter styling. The
    container keeps the card treatment (border, radius, family shadow). */
 .tit-glance { display:block; margin:0; border:1px solid var(--tit-line);
-  border-radius:10px; background:#fff; overflow:hidden; }
+  border-radius:10px; background:var(--tit-surface-1); overflow:hidden; }
 
 
 /* --- The trend, drawn inside a card one of nine -------------------------
@@ -852,9 +1140,9 @@
 .tit-market-chart { display:block; width:100%; min-width:520px; height:auto; }
 .tit-mk-grid { stroke:var(--tit-line); stroke-width:1; }
 .tit-mk-axis { font-size:11px; fill:var(--tit-mut); }
-rect.tit-mk-g, .tit-mk-swatch.tit-mk-g { fill:#1f7a4d; background:#1f7a4d; }
-rect.tit-mk-s, .tit-mk-swatch.tit-mk-s { fill:#a83d2a; background:#a83d2a; }
-rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
+rect.tit-mk-g, .tit-mk-swatch.tit-mk-g { fill:var(--tit-mk-g); background:var(--tit-mk-g); }
+rect.tit-mk-s, .tit-mk-swatch.tit-mk-s { fill:var(--tit-mk-s); background:var(--tit-mk-s); }
+rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:var(--tit-mk-u); background:var(--tit-mk-u); }
 .tit-market-legend { margin:8px 0 0; font-size:12.5px; line-height:1.6;
   color:var(--tit-mut); display:flex; flex-wrap:wrap; gap:2px 14px; }
 .tit-mk-key { white-space:nowrap; }
@@ -884,7 +1172,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
    legend, Copy as Post), the signal-by-period matrix, one footnote line. It
    replaced the dated strip's four text sentences; nothing in it scrolls
    sideways at 375px because the matrix stacks below 860px. */
-.tit-board { border:1px solid var(--tit-line); border-radius:10px; background:#fff;
+.tit-board { border:1px solid var(--tit-line); border-radius:10px; background:var(--tit-surface-1);
   overflow:hidden; box-shadow:var(--tit-shadow); }
 .tit-board-head { display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px;
   padding:10px 14px 9px; border-bottom:1px solid var(--tit-grid); }
@@ -897,13 +1185,13 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
   font-size:11px; color:var(--tit-mut); }
 .tit-lg { display:inline-block; width:12px; height:12px; border-radius:3px;
   border:1px solid var(--tit-grid);
-  background:rgba(28,92,171, calc(var(--i, 0) * .3)); }
+  background:rgba(var(--tit-heat-rgb), calc(var(--i, 0) * .3)); }
 .tit-lg:first-of-type { margin-left:5px; }
 .tit-lg:last-of-type { margin-right:5px; }
 .tit-dg-copy { flex:none; font:inherit; font-size:12.5px; font-weight:600;
   padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
   background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }
-.tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:#b9d3f2; }
+.tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:var(--tit-blue-ring); }
 .tit-dg-copy:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
 /* Inside the board the matrix wrapper sheds its own card chrome: one card. */
 .tit-board .tit-glance { border:0; border-radius:0; box-shadow:none; }
@@ -934,10 +1222,10 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 .tit-trust-btns { display:flex; flex-wrap:wrap; gap:8px; margin:0 !important; }
 .tit-wrap .tit-btn { display:inline-block; font-size:13px; font-weight:600;
   padding:9px 14px; border-radius:8px; border:1px solid var(--tit-line);
-  background:#fff; color:var(--tit-fg); text-decoration:none; }
-.tit-wrap .tit-btn-solid { background:var(--tit-fg); border-color:var(--tit-fg); color:#fff; }
+  background:var(--tit-surface-1); color:var(--tit-fg); text-decoration:none; }
+.tit-wrap .tit-btn-solid { background:var(--tit-fg); border-color:var(--tit-fg); color:var(--tit-ink-invert); }
 .tit-wrap .tit-btn:hover { border-color:var(--tit-blue); }
-.tit-wrap .tit-btn-solid:hover { background:#000; border-color:#000; }
+.tit-wrap .tit-btn-solid:hover { background:var(--tit-solid-hover); border-color:var(--tit-solid-hover); }
 .tit-wrap .tit-btn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 
 .tit-tabs { display:none; gap:4px; margin:0 0 14px;
@@ -979,7 +1267,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 .tit-trust-items li { min-width:0; }
 .tit-wrap .tit-trust-k { display:block; font-family:var(--tit-mono);
   font-size:10.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
-  color:#17624a; margin-bottom:6px; }
+  color:var(--tit-trust-k); margin-bottom:6px; }
 .tit-wrap .tit-trust-t { display:block; font-size:13.5px; line-height:1.55;
   color:var(--tit-mut); }
 
@@ -1018,7 +1306,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
     overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
   .tit-press-table tbody, .tit-press-table tr { display:block; }
   .tit-press-table tr { border:1px solid var(--tit-line); border-radius:10px;
-    padding:11px 13px; margin:0 0 9px; background:#fff; }
+    padding:11px 13px; margin:0 0 9px; background:var(--tit-surface-1); }
   .tit-wrap .tit-press-table th[scope="row"] { display:block; border:0; padding:0 0 6px;
     font-size:15px; white-space:normal; }
   .tit-wrap .tit-press-table td { display:flex; justify-content:space-between;
@@ -1120,9 +1408,9 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 .tit-board { margin:0 0 14px; padding:14px 16px; border:1px solid var(--tit-line);
   border-left:4px solid var(--tit-line); border-radius:12px;
   background:var(--tit-surface); max-width:78ch; }
-.tit-board-rising  { border-left-color:#1f7a4d; color:#1f7a4d; }
-.tit-board-falling { border-left-color:#a8560f; color:#a8560f; }
-.tit-board-flat    { border-left-color:#1c5cab; color:#1c5cab; }
+.tit-board-rising  { border-left-color:var(--tit-tc-hiring); color:var(--tit-tc-hiring); }
+.tit-board-falling { border-left-color:var(--tit-tc-funded); color:var(--tit-tc-funded); }
+.tit-board-flat    { border-left-color:var(--tit-tc-total); color:var(--tit-tc-total); }
 .tit-board-unknown { border-left-color:var(--tit-line); color:var(--tit-mut); }
 .tit-board-head { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
 .tit-board-head .tit-n { font-size:26px; font-weight:800;
@@ -1147,13 +1435,13 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
    Every pill is neutral; the active one wears the accent. The emoji flag each
    pill already carries keeps them tellable at a glance. */
 .tit-wrap .tit-region {
-  --tabc:#52607a;
+  --tabc:var(--tit-neutral);
   padding:7px 14px; border:2px solid var(--tit-line); border-radius:22px;
-  background:#fff; color:var(--tabc); font-weight:700; font-size:13.5px;
+  background:var(--tit-surface-1); color:var(--tabc); font-weight:700; font-size:13.5px;
 }
 .tit-wrap .tit-region:hover { background:var(--tit-surface); border-color:var(--tit-blue); }
-.tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue); color:#fff; }
-.tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.26); color:#fff; }
+.tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue); color:var(--tit-ink-invert); }
+.tit-wrap .tit-region.is-on .tit-region-n { background:var(--tit-on-accent); color:var(--tit-ink-invert); }
 .tit-region-n { color:var(--tit-mut); background:var(--tit-surface); }
 
 /* Cards sit on white with the family's two-stop shadow, on an off-white ground. */
@@ -1161,7 +1449,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
   box-shadow:var(--tit-shadow);
 }
 .tit-hero { background:var(--tit-ground); border-color:var(--tit-line); }
-.tit-chart, .tit-table-scroll { background:#fff; }
+.tit-chart, .tit-table-scroll { background:var(--tit-surface-1); }
 .tit-filters { background:var(--tit-ground); }
 .tit-table th, .tit-table td { border-color:var(--tit-grid); }
 .tit-wrap .tit-table th { background:var(--tit-surface); }
@@ -1272,18 +1560,18 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 .tit-quick-label { font-size:12px; font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--tit-mut); margin-right:2px; }
 .tit-wrap .tit-qv { padding:6px 12px; border:1px solid var(--tit-line);
-  border-radius:8px; background:#fff; color:var(--tit-fg); font-size:13.5px;
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-fg); font-size:13.5px;
   font-weight:600; font-family:inherit; cursor:pointer; line-height:1.25; }
 .tit-wrap .tit-qv:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-qv:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 .tit-wrap .tit-qv.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; }
+  color:var(--tit-ink-invert); }
 /* The quick views now hold only what the matrix cannot express, so the strip
    has to say where the periods went rather than leave them looking dropped. */
 .tit-quick-hint { font-size:12.5px; color:var(--tit-mut); }
 @media (max-width:700px){ .tit-quick-hint { flex:1 0 100%; } }
 .tit-wrap .tit-sort { margin-left:auto; padding:6px 10px; font-size:13.5px;
-  border:1px solid var(--tit-line); border-radius:8px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:8px; background:var(--tit-surface-1);
   color:var(--tit-fg); font-family:inherit; }
 @media (max-width:700px){ .tit-wrap .tit-sort { margin-left:0; width:100%; } }
 
@@ -1326,12 +1614,12 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
    scrolled away with them. */
 .tit-active { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap;
   align-items:center; gap:8px; margin:0 0 12px; padding:9px 12px;
-  border:1px solid #cfe0f4; border-radius:10px; background:var(--tit-blue-tint); }
+  border:1px solid var(--tit-blue-edge); border-radius:10px; background:var(--tit-blue-tint); }
 .tit-active-label { font-size:12px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:#1c5cab; }
+  text-transform:uppercase; color:var(--tit-accent-ink); }
 .tit-active-chips { display:flex; flex-wrap:wrap; gap:6px; min-width:0; }
 .tit-wrap .tit-chip { display:inline-flex; align-items:center; gap:6px;
-  padding:4px 9px; border:1px solid #b9d3f2; border-radius:99px; background:#fff;
+  padding:4px 9px; border:1px solid var(--tit-blue-ring); border-radius:99px; background:var(--tit-surface-1);
   color:var(--tit-fg); font-family:inherit; font-size:13px; line-height:1.3;
   cursor:pointer; }
 .tit-wrap .tit-chip:hover { border-color:var(--tit-blue); }
@@ -1341,10 +1629,10 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 .tit-chip-v { font-weight:600; }
 .tit-chip-x { font-size:15px; line-height:1; color:var(--tit-mut); }
 .tit-wrap .tit-chip:hover .tit-chip-x { color:var(--tit-blue); }
-.tit-wrap .tit-reset { margin-left:auto; padding:5px 11px; border:1px solid #b9d3f2;
-  border-radius:8px; background:#fff; color:#1c5cab; font-family:inherit;
+.tit-wrap .tit-reset { margin-left:auto; padding:5px 11px; border:1px solid var(--tit-blue-ring);
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-accent-ink); font-family:inherit;
   font-size:13px; font-weight:650; cursor:pointer; }
-.tit-wrap .tit-reset:hover { border-color:var(--tit-blue); background:#fff; }
+.tit-wrap .tit-reset:hover { border-color:var(--tit-blue); background:var(--tit-surface-1); }
 .tit-wrap .tit-reset:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 @media (max-width:700px){ .tit-wrap .tit-reset { margin-left:0; } }
 
@@ -1362,8 +1650,10 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
    --------------------------------------------------------------------------- */
 .tit-roo-row { display:flex; align-items:center; gap:9px; margin:12px 0 0; }
 .tit-roo-wrap { position:relative; display:inline-flex; align-items:center; flex:none; }
-.tit-roo { --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#fff;
-  --roo-soft:#dbe9fb; --roo-tint:#eef4fd; flex:none; overflow:visible; }
+/* The mascot's five colours are tokens in the :root block like everything
+   else, so he greys correctly in the dark scheme instead of staying a bright
+   white robot in a dark card. Nothing here declares a value. */
+.tit-roo { flex:none; overflow:visible; }
 .tit-roo-say { font-size:13px; color:var(--tit-mut); }
 /* The next-run note is the quietest part of the freshness line: smaller, same
    AA-passing colour. On a phone it wraps to its own line as a unit rather
@@ -1382,7 +1672,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 .tit-roo-sleeping .roo-body-group { animation:roo-breathe 4s ease-in-out infinite; }
 
 .tit-zzz { position:absolute; top:-6px; right:-8px; display:none;
-  font:700 10px/1 system-ui, sans-serif; color:#8a93a0; }
+  font:700 10px/1 system-ui, sans-serif; color:var(--roo-zzz); }
 .tit-roo-wrap.is-sleeping .tit-zzz { display:inline-block; }
 .tit-zzz i { font-style:normal; display:inline-block; opacity:0;
   animation:tit-zzz 3.2s ease-in-out infinite; }
@@ -1433,7 +1723,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 
 .tit-lastrun { font-size:13px; color:var(--tit-mut); white-space:nowrap; }
 .tit-lastrun .tit-rt { white-space:normal; font-size:12px; margin-top:2px; }
-.tit-c-degraded { background:#fdf3e8; color:#8c3d00; border-color:#f0cfae; }
+.tit-c-degraded { background:var(--tit-degraded-bg); color:var(--tit-degraded-fg); border-color:var(--tit-degraded-line); }
 
 /* ===========================================================================
    Zebra striping + row hover, the sibling tracker's table pattern.
@@ -1442,8 +1732,9 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
    with no help. The sources table filters rows with display:none, which
    nth-child cannot see, so its stripes are class-driven from the same filter
    loop that hides the rows (see sources.php).
-   All text keeps AA contrast: ink #16181d and muted #4a4d55 both clear 7:1 on
-   the stripe (--tit-surface) and on the hover tint (--tit-blue-tint).
+   All text keeps AA contrast in both schemes: --tit-fg and --tit-mut are
+   checked against --tit-surface and --tit-blue-tint, light and dark, by
+   tests/test_theme_light_dark.py rather than by anyone's eye.
    =========================================================================== */
 #tit-rows tr:nth-child(even) { background:var(--tit-surface); }
 #tit-s-rows tr.tit-even { background:var(--tit-surface); }
@@ -1456,7 +1747,7 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
 @media (max-width:860px) {
   /* Below the card breakpoint each row is its own bordered card; stripes
      there would read as two different components alternating. */
-  #tit-rows tr:nth-child(even), #tit-s-rows tr.tit-even { background:#fff; }
+  #tit-rows tr:nth-child(even), #tit-s-rows tr.tit-even { background:var(--tit-surface-1); }
   .tit-table tbody tr:hover,
   #tit-rows tr:hover, #tit-s-rows tr:hover { background:var(--tit-surface); }
 }
@@ -1471,9 +1762,9 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:#9aa1ab; background:#9aa1ab; }
    chips readable over whatever scrolls beneath them.
    =========================================================================== */
 .tit-active { top:0; z-index:40;
-  background:rgba(238, 244, 252, 0.94);
+  background:var(--tit-sticky-bg);
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  box-shadow:0 2px 10px rgba(16, 18, 24, 0.06); }
+  box-shadow:var(--tit-shadow-bar); }
 body.admin-bar .tit-active { top:32px; }
 @media (max-width:782px) { body.admin-bar .tit-active { top:46px; } }
 @media (max-width:600px) {
@@ -1525,7 +1816,7 @@ body.admin-bar .tit-active { top:32px; }
 .tit-wrap .tit-rank-row:focus-visible, .tit-wrap .tit-pillar:focus-visible {
   outline:2px solid var(--tit-blue); outline-offset:1px; }
 .tit-wrap .tit-rank-row.is-on, .tit-wrap .tit-pillar.is-on {
-  background:var(--tit-blue-tint); box-shadow:inset 0 0 0 1px #b9d3f2; }
+  background:var(--tit-blue-tint); box-shadow:inset 0 0 0 1px var(--tit-blue-ring); }
 .tit-wrap .tit-rank-row.is-on .tit-rank-name,
 .tit-wrap .tit-pillar.is-on .tit-pillar-name {
   font-weight:700; color:var(--tit-ink-blue); }
@@ -1576,12 +1867,12 @@ body.admin-bar .tit-active { top:32px; }
    always a SECOND read: the number is printed in every cell, so a
    colourblind or high-contrast reader loses nothing. Alpha tops out at .30
    so ink stays far above AA on the strongest cell. */
-.tit-matrix-row { --row-rgb:28,92,171; --tick-rgb:82,96,122; }
-.tit-matrix-row[data-signal="hiring"]     { --tick-rgb:42,120,214; }   /* blue   */
-.tit-matrix-row[data-signal="funded"]     { --tick-rgb:74,58,167; }    /* violet */
-.tit-matrix-row[data-signal="leadership"] { --tick-rgb:13,124,128; }   /* teal   */
-.tit-matrix-row[data-signal="pay"]        { --tick-rgb:213,94,0; }     /* orange */
-.tit-matrix-row[data-signal="total"]      { --tick-rgb:22,24,29; }     /* ink    */
+.tit-matrix-row { --row-rgb:var(--tit-heat-rgb); --tick-rgb:var(--tit-tick-default-rgb); }
+.tit-matrix-row[data-signal="hiring"]     { --tick-rgb:var(--tit-tick-hiring-rgb); }   /* blue   */
+.tit-matrix-row[data-signal="funded"]     { --tick-rgb:var(--tit-tick-funded-rgb); }    /* violet */
+.tit-matrix-row[data-signal="leadership"] { --tick-rgb:var(--tit-tick-leadership-rgb); }   /* teal   */
+.tit-matrix-row[data-signal="pay"]        { --tick-rgb:var(--tit-tick-pay-rgb); }     /* orange */
+.tit-matrix-row[data-signal="total"]      { --tick-rgb:var(--tit-tick-total-rgb); }     /* ink    */
 .tit-wrap .tit-cell { background:rgba(var(--row-rgb), calc(var(--i, 0) * 0.30)); }
 /* The row label carries its signal's own hue, so a row is decodable without
    reading the cells left to right. */
@@ -1589,7 +1880,7 @@ body.admin-bar .tit-active { top:32px; }
 .tit-wrap .tit-cell:hover { background:rgba(var(--row-rgb), calc(var(--i, 0) * 0.30 + 0.12)); }
 .tit-wrap .tit-cell:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
 .tit-wrap .tit-cell.is-on { background:var(--tit-blue-tint);
-  box-shadow:inset 0 0 0 1px #b9d3f2; color:var(--tit-ink-blue); }
+  box-shadow:inset 0 0 0 1px var(--tit-blue-ring); color:var(--tit-ink-blue); }
 /* Muted, still AA: --tit-mut at lighter weight, never --tit-faint (3.4:1). */
 .tit-wrap .tit-cell-zero { color:var(--tit-mut); font-weight:500; background:none; }
 .tit-wrap .tit-cell-zero:hover { background:var(--tit-surface); }
@@ -1611,7 +1902,7 @@ body.admin-bar .tit-active { top:32px; }
    =========================================================================== */
 
 /* --- The money row inside the at-a-glance matrix ------------------------- */
-.tit-matrix-row[data-signal="money"] { --row-rgb:176,124,0; --tick-rgb:176,124,0; }   /* ochre */
+.tit-matrix-row[data-signal="money"] { --row-rgb:var(--tit-heat-money-rgb); --tick-rgb:var(--tit-heat-money-rgb); }   /* ochre */
 /* The unit, printed under the row label rather than implied by the $ alone.
    Violet ink at 11.6:1 on white, so it is quiet without being decorative. */
 .tit-matrix-unit { display:block; margin-top:1px; font-size:10.5px;
@@ -1660,7 +1951,7 @@ body.admin-bar .tit-active { top:32px; }
 }
 .tit-wrap .tit-primary select, .tit-wrap .tit-primary input[type="search"] {
   width:100%; min-width:0; padding:9px 11px; font-size:14.5px; font-weight:600;
-  border:1px solid var(--tit-line); border-radius:9px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:9px; background:var(--tit-surface-1);
   color:var(--tit-fg); font-family:inherit; }
 .tit-wrap .tit-primary select:hover,
 .tit-wrap .tit-primary input[type="search"]:hover { border-color:var(--tit-blue); }
@@ -1674,7 +1965,7 @@ body.admin-bar .tit-active { top:32px; }
    that clears 40px rather than being a bare checkbox floating in a row. */
 .tit-check { display:flex; align-items:center; gap:8px; min-height:38px;
   padding:8px 11px; border:1px solid var(--tit-line); border-radius:9px;
-  background:#fff; cursor:pointer; }
+  background:var(--tit-surface-1); cursor:pointer; }
 .tit-check:hover { border-color:var(--tit-blue); }
 .tit-check input { flex:none; width:16px; height:16px; margin:0;
   accent-color:var(--tit-blue); cursor:pointer; }
@@ -1715,7 +2006,7 @@ body.admin-bar .tit-active { top:32px; }
   text-transform:uppercase; color:var(--tit-mut); flex:none; }
 .tit-wrap .tit-detail select { max-width:100%; min-width:0; padding:7px 10px;
   font-size:14px; font-weight:600; border:1px solid var(--tit-line);
-  border-radius:8px; background:#fff; color:var(--tit-fg); font-family:inherit; }
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; }
 .tit-wrap .tit-detail select:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-detail select:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
@@ -1827,8 +2118,8 @@ main:has(#tit-dashboard) {
    --------------------------------------------------------------------------- */
 body:has(#tit-dashboard) header.wp-block-template-part,
 body:has(.tit-main) header.wp-block-template-part {
-  background: #fff;
-  border-bottom: 1px solid rgba(16, 18, 24, 0.12);
+  background:var(--tit-surface-1);
+  border-bottom: 1px solid var(--tit-header-line);
 }
 @media (max-width:781px){
   body:has(#tit-dashboard) header.wp-block-template-part,
@@ -1870,7 +2161,7 @@ body:has(.tit-main) header.wp-block-template-part {
 /* The money figure in the summary line. A link, because the total is only
    honest next to the coverage sentence the money section prints. */
 .tit-wrap .tit-fine-money { color:var(--tit-ink-ochre); font-weight:700;
-  text-decoration-color:#e3d3a6; }
+  text-decoration-color:var(--tit-ochre-line); }
 .tit-wrap .tit-fine-money:hover { color:var(--tit-ochre); }
 
 /* ===========================================================================
@@ -1890,10 +2181,10 @@ body:has(.tit-main) header.wp-block-template-part {
   font:inherit; font-size:14px; font-weight:650; line-height:1.2;
   padding:9px 15px; border-radius:9px; cursor:pointer; text-decoration:none; }
 .tit-wrap .tit-cta-search { background:var(--tit-blue); border:1px solid var(--tit-blue);
-  color:#fff; }
+  color:var(--tit-ink-invert); }
 .tit-wrap .tit-cta-search:hover { background:var(--tit-blue-strong);
   border-color:var(--tit-blue-strong); }
-.tit-wrap .tit-cta-how { background:#fff; border:1px solid var(--tit-line);
+.tit-wrap .tit-cta-how { background:var(--tit-surface-1); border:1px solid var(--tit-line);
   color:var(--tit-fg); }
 .tit-wrap .tit-cta-how:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
 .tit-wrap .tit-cta:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
@@ -1903,7 +2194,7 @@ body:has(.tit-main) header.wp-block-template-part {
    figures, the promise line, and Roo's last/next-run sentence. A card, so it
    reads as one fact block beside the thesis rather than four strays. */
 .tit-fresh { flex:1 1 300px; max-width:380px; min-width:250px;
-  border:1px solid var(--tit-line); border-radius:12px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:12px; background:var(--tit-surface-1);
   padding:12px 14px; box-shadow:var(--tit-shadow); }
 .tit-fresh .tit-live { margin:0 0 10px; }
 .tit-fresh-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
@@ -1980,7 +2271,7 @@ body:has(.tit-main) header.wp-block-template-part {
    where the row actually has more than one column. */
 .tit-check { display:flex; align-items:flex-start; gap:9px; width:100%;
   min-height:42px; padding:10px 12px; border:1px solid var(--tit-line);
-  border-radius:9px; background:#fff; cursor:pointer; }
+  border-radius:9px; background:var(--tit-surface-1); cursor:pointer; }
 .tit-check:hover { border-color:var(--tit-blue); }
 .tit-check:has(input:checked) { border-color:var(--tit-blue);
   background:var(--tit-blue-tint); }
@@ -2062,7 +2353,7 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-help { margin:0 0 8px; }
 .tit-wrap .tit-help-s { display:inline-flex; align-items:center; gap:7px;
   width:auto; padding:5px 11px 5px 6px; border:1px solid var(--tit-line);
-  border-radius:99px; background:#fff; color:var(--tit-mut); font-size:12.5px;
+  border-radius:99px; background:var(--tit-surface-1); color:var(--tit-mut); font-size:12.5px;
   font-weight:600; cursor:pointer; list-style:none; }
 .tit-wrap .tit-help-s::-webkit-details-marker { display:none; }
 .tit-wrap .tit-help-s:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
@@ -2102,7 +2393,7 @@ body:has(.tit-main) header.wp-block-template-part {
 
 /* Held-but-wrong is neither a pass nor a miss, and colouring it as either
    would be the whole point of this page lost in a palette. */
-.tit-c-partial { background:#fff8e6; color:#7a5300; border-color:#efdca6; }
+.tit-c-partial { background:var(--tit-partial-bg); color:var(--tit-partial-fg); border-color:var(--tit-partial-line); }
 
 /* The source line under each country in the recall table: always-visible
    quiet prose. Never a collapsed control; this page has shipped caveats that
@@ -2143,14 +2434,14 @@ body:has(.tit-main) header.wp-block-template-part {
    down. */
 .tit-wrap .tit-cbtn { display:inline-flex; align-items:center; gap:6px;
   padding:4px 9px; border:1px solid var(--tit-line); border-radius:7px;
-  background:#fff; color:var(--tit-fg); font-family:inherit; font-size:12.5px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; font-size:12.5px;
   font-weight:600; line-height:1.3; cursor:pointer; }
 .tit-wrap .tit-cbtn:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-cbtn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 /* Selection is a tint plus a ring plus a weight change, never colour alone,
    and aria-pressed carries it for anyone not seeing any of it. */
 .tit-wrap .tit-cbtn.is-on { background:var(--tit-blue-tint);
-  border-color:#b9d3f2; box-shadow:inset 0 0 0 1px #b9d3f2;
+  border-color:var(--tit-blue-ring); box-shadow:inset 0 0 0 1px var(--tit-blue-ring);
   color:var(--tit-ink-blue); font-weight:750; }
 .tit-cbtn-n { font-size:11.5px; font-variant-numeric:tabular-nums;
   letter-spacing:0; color:var(--tit-mut); }
@@ -2210,18 +2501,18 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-recall-chart { display:block; width:100%; min-width:520px; height:auto; }
 .tit-rc-grid { stroke:var(--tit-line); stroke-width:1; }
 .tit-rc-axis { fill:var(--tit-mut); font-size:12px; font-variant-numeric:tabular-nums; }
-.tit-rc-held { stroke:#1c5cab; stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
-.tit-rc-clean { stroke:#1f7a4d; stroke-width:2.5; stroke-dasharray:6 4;
+.tit-rc-held { stroke:var(--tit-rc-held); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+.tit-rc-clean { stroke:var(--tit-rc-clean); stroke-width:2.5; stroke-dasharray:6 4;
   stroke-linejoin:round; stroke-linecap:round; }
-.tit-rc-dot-held { fill:#1c5cab; }
-.tit-rc-dot-clean { fill:#1f7a4d; }
+.tit-rc-dot-held { fill:var(--tit-rc-held); }
+.tit-rc-dot-clean { fill:var(--tit-rc-clean); }
 
 .tit-recall-legend { font-size:13px; color:var(--tit-mut); margin:6px 0 18px; }
 .tit-rc-key { display:inline-block; width:14px; height:3px; margin:0 6px 0 14px;
   vertical-align:middle; border-radius:2px; }
 .tit-recall-legend .tit-rc-key:first-child { margin-left:0; }
-.tit-rc-k-held { background:#1c5cab; }
-.tit-rc-k-clean { background:#1f7a4d; }
+.tit-rc-k-held { background:var(--tit-rc-held); }
+.tit-rc-k-clean { background:var(--tit-rc-clean); }
 
 /* The history tables grow a column per measurement, so they are the one thing
    here that genuinely will not fit. They scroll inside their own container like
@@ -2273,7 +2564,8 @@ body:has(.tit-main) header.wp-block-template-part {
       like a keyhole.
 
    The aesthetic is taken from the record cards, which the owner endorsed: the
-   same paper (--tit-surface on the ground, #fff for anything interactive), the
+   same paper (--tit-surface on the ground, --tit-surface-1 for anything
+   interactive), the
    same 12px card radius with 8px on the parts inside it, the same small-caps
    mono-ish eyebrow, the same 8.6:1 muted ink for supporting text.
    =========================================================================== */
@@ -2316,7 +2608,7 @@ body:has(.tit-main) header.wp-block-template-part {
 }
 
 .tit-panel-head { display:flex; align-items:center; gap:10px;
-  padding:5px 12px; border-bottom:1px solid var(--tit-line); background:#fff;
+  padding:5px 12px; border-bottom:1px solid var(--tit-line); background:var(--tit-surface-1);
   border-radius:12px 12px 0 0; }
 /* The card eyebrow, same treatment the record cards use for their tag row. */
 .tit-panel-t { font-size:11px; font-weight:700; letter-spacing:.1em;
@@ -2403,7 +2695,7 @@ body:has(.tit-main) header.wp-block-template-part {
    vocabularies (Industry has twenty) ever reach it. */
 .tit-wrap .tit-select-hidden { display:none; }
 .tit-optbox { max-height:min(320px, 60vh); overflow-y:auto;
-  overscroll-behavior:contain; background:#fff; padding:4px; }
+  overscroll-behavior:contain; background:var(--tit-surface-1); padding:4px; }
 /* Inside a dropdown the panel draws the edge, so the box must not draw a second
    one 4px inside it. Standalone (no JS dropdown, or a future flat use) it keeps
    its own border, which is what gives the group a boundary at all. */
@@ -2447,7 +2739,7 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-filterbar .tit-dd { position:relative; }
 .tit-wrap .tit-dd-btn { display:flex; align-items:center; gap:6px; width:100%;
   box-sizing:border-box; padding:5px 8px; border:1px solid var(--tit-line);
-  border-radius:8px; background:#fff; color:var(--tit-fg);
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-fg);
   font-family:inherit; font-size:13px; font-weight:500; line-height:1.3;
   text-align:left; cursor:pointer; }
 .tit-wrap .tit-dd-btn:hover { border-color:var(--tit-blue); }
@@ -2466,7 +2758,7 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-wrap .tit-dd-btn.is-on { border-color:var(--tit-blue);
   background:var(--tit-blue-tint); font-weight:650; color:var(--tit-ink-blue); }
 .tit-dd-n { flex:none; min-width:18px; padding:0 5px; border-radius:9px;
-  background:var(--tit-blue); color:#fff; font-size:11px; font-weight:700;
+  background:var(--tit-blue); color:var(--tit-ink-invert); font-size:11px; font-weight:700;
   line-height:18px; text-align:center; }
 /* On the bar a trigger is sized by its own text rather than stretched to a
    cell, because the cells have no fixed width to stretch to. AFTER the base
@@ -2478,7 +2770,7 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-dd-panel { position:absolute; z-index:60; top:calc(100% + 4px); left:0;
   min-width:100%; width:max-content; max-width:min(300px, calc(100vw - 24px));
   box-sizing:border-box; border:1px solid var(--tit-line); border-radius:10px;
-  background:#fff; box-shadow:0 6px 24px rgba(16,18,24,.14); padding:4px; }
+  background:var(--tit-surface-1); box-shadow:var(--tit-shadow-pop); padding:4px; }
 /* Stated rather than relied on: `hidden` is a user agent rule and .tit-dd-panel
    would otherwise be beaten by any author display. This is the bug that leaves
    every panel on the page permanently open, and it looks like a layout fault
@@ -2522,8 +2814,8 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-filterbar .tit-help-b { position:absolute; z-index:60; left:0;
   top:calc(100% + 6px);
   width:min(420px, calc(100vw - 24px)); box-sizing:border-box; padding:12px 14px;
-  border:1px solid var(--tit-line); border-radius:10px; background:#fff;
-  box-shadow:0 6px 24px rgba(16,18,24,.14); max-width:none; }
+  border:1px solid var(--tit-line); border-radius:10px; background:var(--tit-surface-1);
+  box-shadow:var(--tit-shadow-pop); max-width:none; }
 .tit-filterbar .tit-help:not([open]) .tit-help-b { display:none; }
 
 /* --- THE PHONE: one button, and a sheet in normal flow --------------------
@@ -2550,13 +2842,13 @@ body:has(.tit-main) header.wp-block-template-part {
    reader keeps, and they keep the open bar with it. */
 .tit-wrap .tit-bar-toggle { display:inline-flex; align-items:center; gap:7px;
   padding:7px 12px; border:1px solid var(--tit-line); border-radius:8px;
-  background:#fff; color:var(--tit-fg); font-family:inherit; font-size:13.5px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; font-size:13.5px;
   font-weight:650; cursor:pointer; }
 .tit-wrap .tit-bar-toggle[hidden] { display:none; }
 .tit-wrap .tit-bar-toggle:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
 .tit-bar-n { min-width:18px; padding:0 5px; border-radius:9px;
-  background:var(--tit-blue); color:#fff; font-size:11px; font-weight:700;
+  background:var(--tit-blue); color:var(--tit-ink-invert); font-size:11px; font-weight:700;
   line-height:18px; text-align:center; }
 .tit-wrap .tit-bar-n[hidden] { display:none; }
 @media (min-width:900px){
@@ -2617,7 +2909,7 @@ body:has(.tit-main) header.wp-block-template-part {
   color:var(--tit-fg); }
 .tit-table-empty-p { margin:0 0 14px; font-size:14px; color:var(--tit-mut); }
 .tit-wrap .tit-empty-clear { padding:9px 16px; border:1px solid var(--tit-line);
-  border-radius:9px; background:#fff; color:var(--tit-fg); font-family:inherit;
+  border-radius:9px; background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit;
   font-size:13.5px; font-weight:650; cursor:pointer; }
 .tit-wrap .tit-empty-clear:hover { border-color:var(--tit-blue);
   color:var(--tit-blue); }
@@ -2647,18 +2939,18 @@ body:has(.tit-main) header.wp-block-template-part {
 }
 .tit-wrap .tit-jump-btn { display:inline-flex; align-items:center; gap:6px;
   padding:10px 16px; border:1px solid var(--tit-line); border-radius:99px;
-  background:#fff; color:var(--tit-fg); font-family:inherit; font-size:14px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; font-size:14px;
   font-weight:650; line-height:1.2; cursor:pointer;
-  box-shadow:0 4px 10px rgba(16,18,24,.14), 0 10px 26px rgba(16,18,24,.16); }
+  box-shadow:var(--tit-shadow-float); }
 /* The Filters button leads, in the family blue; selection state elsewhere
    uses the same fill, so the bar speaks the page's existing language. */
 .tit-wrap .tit-jump-btn:first-child { background:var(--tit-blue);
-  border-color:var(--tit-blue); color:#fff; }
+  border-color:var(--tit-blue); color:var(--tit-ink-invert); }
 .tit-wrap .tit-jump-btn:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
 .tit-jump-n { font-size:12px; font-weight:700;
   font-variant-numeric:tabular-nums; letter-spacing:0;
-  background:rgba(255,255,255,.26); border-radius:99px; padding:1px 7px; }
+  background:var(--tit-on-accent); border-radius:99px; padding:1px 7px; }
 
 /* --- Country, city and industry pages, and their directory -----------------
    Almost nothing new: these pages reuse .tit-stats, .tit-callout, .tit-note,
@@ -2703,12 +2995,12 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-cross-list { list-style: none; margin: 0; padding: 0; }
 .tit-cross-list li {
   display: flex; flex-wrap: wrap; gap: .35rem .6rem; align-items: baseline;
-  padding: .7rem 0; border-bottom: 1px solid var(--tit-border, #e2e3e8);
+  padding: .7rem 0; border-bottom: 1px solid var(--tit-line);
 }
 .tit-cross-list li:last-child { border-bottom: 0; }
 .tit-cross-co { font-weight: 650; }
-.tit-cross-cut { color: var(--tit-cutting, #B3402A); }
-.tit-cross-hire { color: var(--tit-hiring, #006B4F); }
+.tit-cross-cut { color: var(--tit-cutting); }
+.tit-cross-hire { color: var(--tit-hiring); }
 /* Each part wraps as a unit rather than the row scrolling sideways: at 390px a
    three-clause sentence has to become three lines, not a horizontal scrollbar. */
 @media (max-width: 560px) {
@@ -2756,7 +3048,7 @@ body:has(.tit-main) header.wp-block-template-part {
   .tit-wrap .tit-matrix thead { display:none; }
   .tit-wrap .tit-matrix tbody { display:block; }
   .tit-wrap .tit-matrix-row { display:block; margin:0 0 10px;
-    border:1px solid var(--tit-line); border-radius:10px; background:#fff;
+    border:1px solid var(--tit-line); border-radius:10px; background:var(--tit-surface-1);
     overflow:hidden; }
   .tit-wrap .tit-matrix-row > th[scope="row"] { display:block; width:auto;
     padding:10px 12px; border:0; border-bottom:1px solid var(--tit-grid);
@@ -2794,28 +3086,31 @@ body:has(.tit-main) header.wp-block-template-part {
    to an ordinary open block if the attribute rule ever fails.
    =========================================================================== */
 /* ===========================================================================
-   COLOUR SCHEME: this page is light, and now says so to the browser.
+   COLOUR SCHEME: this page is light OR dark, and says which to the browser.
 
-   The owner's dark screenshot showed "Narrow It Down" almost invisible and the
-   region note dark grey on near black. The note further up this file explains
-   why there is no prefers-color-scheme block -- the theme paints a white page
-   whatever the OS says, so honouring the preference made light text on white.
-   That reasoning holds and is unchanged; what was missing is that we never TOLD
-   the browser. Without `color-scheme`, a user agent in dark mode is free to
-   re-paint form controls, scrollbars and any background we did not set
-   ourselves, which is exactly the mixed result in those screenshots: our own
-   inked text on surfaces the UA had darkened underneath us.
+   THIS IS THE PLACE THE OLD NOTE SAID TO REVISIT, AND IT HAS BEEN REVISITED.
+   It read `color-scheme: only light` with a hard white background, and the
+   reasoning behind that was sound for what it was fixing: the owner's dark
+   screenshot showed "Narrow It Down" almost invisible and the region note dark
+   grey on near black, because without a stated `color-scheme` a user agent in
+   dark mode is free to repaint form controls, scrollbars and any background we
+   did not set ourselves, and our own inked text ended up on surfaces the UA had
+   darkened underneath us. Opting out fixed that. It also ruled out, for good,
+   the thing a reader in a dark room actually wants.
 
-   `color-scheme:only light` on the wrapper opts this subtree out of that, and
-   every container that holds text now states its own background rather than
-   inheriting one it cannot see. Supported schemes are stated rather than
-   implied: light. If the theme ever gains a real dark mode this is the one
-   place to revisit, and the tokens at the top of the file are the only thing
-   that has to change.
+   What replaces it keeps every guarantee the opt-out was buying. `color-scheme`
+   is still STATED rather than implied: `light` in :root, `dark` in each of the
+   two dark blocks, so the UA is never guessing and never repainting a control
+   against us. The difference is that it is now told the truth in both
+   directions instead of one. And the tokens at the top of the file are the only
+   thing that had to change, which is exactly what the old note promised.
+
+   The background here is still stated rather than inherited, which was the
+   load-bearing half of the old rule. It is a token now, so it follows the
+   scheme instead of pinning it.
    =========================================================================== */
 .tit-wrap, .tit-sources, .tit-company, .tit-corrections, .tit-recall {
-  color-scheme: only light;
-  background:#fff;
+  background:var(--tit-ground);
   color:var(--tit-fg);
 }
 /* Headings inside our subtree take the ink explicitly. .tit-sec h3 was styled
@@ -2890,8 +3185,8 @@ body:has(.tit-main) header.wp-block-template-part {
 
 /* 4. A fade at the scroll edge instead of a bisected row. */
 .tit-chart .tit-rank, .tit-chart .tit-pillars {
-  -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
-          mask-image:linear-gradient(to bottom, #000 calc(100% - 18px), transparent); }
+  -webkit-mask-image:linear-gradient(to bottom, var(--tit-mask-ink) calc(100% - 18px), transparent);
+          mask-image:linear-gradient(to bottom, var(--tit-mask-ink) calc(100% - 18px), transparent); }
 /* No fade when there is nothing hidden: a list shorter than its box would get a
    faded last row for no reason. :has() scopes it to the scrolling case only. */
 .tit-chart .tit-rank:not(:has(> :nth-child(6))),
@@ -2916,10 +3211,10 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-wrap .tit-quick.tit-zone-controls,
 .tit-wrap .tit-filterbar.tit-zone-controls,
 .tit-wrap .tit-active.tit-zone-controls {
-  background:#eef3f9; border-color:#d7e1ec;
+  background:var(--tit-zone-bg); border-color:var(--tit-zone-line);
 }
 .tit-wrap .tit-quick.tit-zone-controls { padding:10px 12px; margin:0 0 10px;
-  border:1px solid #d7e1ec; border-radius:12px; }
+  border:1px solid var(--tit-zone-line); border-radius:12px; }
 /* The chips keep their accent border inside the shared tint: they are the
    live statement of state, and the tint is the zone. */
 .tit-wrap .tit-active.tit-zone-controls .tit-active-label { color:var(--tit-blue); }
@@ -2931,7 +3226,7 @@ body:has(.tit-main) header.wp-block-template-part {
 
 /* Updates zone: one white band holding the sort bar, the cards and the
    export, so the record reads as one object with its controls attached. */
-.tit-zone-updates { background:#fff; border:1px solid var(--tit-line);
+.tit-zone-updates { background:var(--tit-surface-1); border:1px solid var(--tit-line);
   border-radius:14px; padding:14px 14px 10px; margin:0 0 22px; }
 .tit-zone-updates .tit-card { box-shadow:none; }
 @media (max-width:700px){ .tit-zone-updates { padding:8px 8px 6px; } }
@@ -2957,7 +3252,7 @@ body:has(.tit-main) header.wp-block-template-part {
   color:var(--tit-fg); }
 .tit-note-details summary:hover { color:var(--tit-blue); }
 .tit-note-details p { margin:8px 0 0; max-width:78ch; line-height:1.55; }
-.tit-note-details[open] { background:#fff; }
+.tit-note-details[open] { background:var(--tit-surface-1); }
 
 
 /* The trend plot filters on tap now (see the trend handler in dashboard.js),
@@ -2981,7 +3276,7 @@ body:has(.tit-main) header.wp-block-template-part {
    filled rather than hollow (dashboard.js), which reads on a monochrome screen
    and in print. The tinted pill here is a second, independent signal, so no
    reader has to tell two shades apart to know which state they are in. */
-.tit-wrap .tit-watch-star.is-on { color:#b8860b; background:rgba(184,134,11,.13);
+.tit-wrap .tit-watch-star.is-on { color:var(--tit-star); background:var(--tit-star-bg);
   border-radius:5px; }
 
 /* The one-line explanation, on its own row under the chips. Full width so it
@@ -2994,7 +3289,7 @@ body:has(.tit-main) header.wp-block-template-part {
    created on demand is one several screen readers never announce), so :empty
    carries the whole cost of not being there: no box, no space, nothing. */
 .tit-wrap .tit-watch-toast { margin:0 0 10px; padding:7px 11px; font-size:13px;
-  color:#1f4620; background:#eaf6ec; border:1px solid #bfe0c4; border-radius:8px;
+  color:var(--tit-toast-fg); background:var(--tit-toast-bg); border:1px solid var(--tit-toast-line); border-radius:8px;
   opacity:0; transition:opacity .18s ease; }
 .tit-wrap .tit-watch-toast.is-on { opacity:1; }
 .tit-wrap .tit-watch-toast:empty { margin:0; padding:0; border:0; background:none; }
@@ -3006,18 +3301,18 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-wrap .tit-watch-star:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; border-radius:4px; }
 .tit-watch-new { margin-left:6px; padding:1px 7px; border-radius:999px;
-  background:var(--tit-blue); color:#fff; font-size:11px; font-weight:700; }
+  background:var(--tit-blue); color:var(--tit-ink-invert); font-size:11px; font-weight:700; }
 .tit-watch-hide { display:none; }
 
 /* --- The card / table view toggle --------------------------------------- */
 .tit-viewtoggle { display:inline-flex; align-items:center; gap:6px;
   margin-left:auto; }
 .tit-wrap .tit-vt { padding:5px 12px; border:1px solid var(--tit-line);
-  border-radius:8px; background:#fff; font-size:13px; font-weight:650;
+  border-radius:8px; background:var(--tit-surface-1); font-size:13px; font-weight:650;
   color:var(--tit-mut); cursor:pointer; }
 .tit-wrap .tit-vt:hover { border-color:var(--tit-blue); color:var(--tit-blue); }
 .tit-wrap .tit-vt.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; }
+  color:var(--tit-ink-invert); }
 .tit-wrap .tit-vt:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
 
@@ -3028,7 +3323,7 @@ body:has(.tit-main) header.wp-block-template-part {
    page. The min-width lives on the table INSIDE the scroller, which is the
    allowed place for one. */
 .tit-updates-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch;
-  border:1px solid var(--tit-line); border-radius:12px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:12px; background:var(--tit-surface-1);
   margin:0 0 14px; }
 .tit-updates-scroll .tit-ut { min-width:880px; font-size:14px; }
 .tit-updates-scroll .tit-ut th, .tit-updates-scroll .tit-ut td {
@@ -3064,4 +3359,89 @@ body:has(.tit-main) header.wp-block-template-part {
   .tit-wrap .tit-updates-scroll .tit-ut td { display:table-cell;
     border-bottom:1px solid var(--tit-line); padding:10px 12px; flex:none; }
   .tit-updates-scroll .tit-ut tr:last-child td { border-bottom:0; }
+}
+
+/* ===========================================================================
+   THE PAGE GROUND, on our routes only.
+
+   The wrapper paints its own ground, but the theme paints the document behind
+   it and does not know about the scheme. Left alone, a dark dashboard sat in a
+   white page with a white margin around every edge, which is worse than either
+   scheme on its own. :has() keeps this to the pages this stylesheet is loaded
+   for, exactly as the overflow rules above do; every other page keeps whatever
+   the theme gives it.
+   =========================================================================== */
+html:has(#tit-dashboard), body:has(#tit-dashboard),
+html:has(.tit-main), body:has(.tit-main) {
+  background:var(--tit-ground);
+}
+
+/* ===========================================================================
+   THE TREND SERIES, DRAWN THROUGH TOKENS RATHER THAN INLINE ATTRIBUTES.
+
+   The plot is server-rendered PHP, and the server does not know which scheme
+   the reader is in -- it cannot, the choice lives in the browser. It used to
+   write `stroke="#1f7a4d"` straight onto each path from tit_trend_colours(),
+   which pins a light-mode hue into the markup, and the card is ALSO replaced
+   wholesale by dashboard.js on every filter change (trend_html from the same
+   server), so the wrong hue would have arrived twice.
+
+   Each series carries a CLASS instead and the value lives here. That fixes
+   first paint and the client-side swap in one move, with no theme knowledge on
+   the server and no second copy of the palette in the JavaScript. The light
+   values are the ones the function has always returned.
+   =========================================================================== */
+.tit-tc-s-hiring     { stroke:var(--tit-tc-hiring); }
+.tit-tc-s-funded     { stroke:var(--tit-tc-funded); }
+.tit-tc-s-leadership { stroke:var(--tit-tc-leadership); }
+.tit-tc-s-pay        { stroke:var(--tit-tc-pay); }
+.tit-tc-s-total      { stroke:var(--tit-tc-total); }
+/* The endpoint dots are a second SVG laid over the plot (see the note in
+   shortcodes.php about why), so they need the same hue as a fill. */
+.tit-tc-d-hiring     { fill:var(--tit-tc-hiring); }
+.tit-tc-d-funded     { fill:var(--tit-tc-funded); }
+.tit-tc-d-leadership { fill:var(--tit-tc-leadership); }
+.tit-tc-d-pay        { fill:var(--tit-tc-pay); }
+.tit-tc-d-total      { fill:var(--tit-tc-total); }
+/* And the legend swatch that names each line. */
+.tit-tc-w-hiring     { background:var(--tit-tc-hiring); }
+.tit-tc-w-funded     { background:var(--tit-tc-funded); }
+.tit-tc-w-leadership { background:var(--tit-tc-leadership); }
+.tit-tc-w-pay        { background:var(--tit-tc-pay); }
+.tit-tc-w-total      { background:var(--tit-tc-total); }
+
+/* ===========================================================================
+   THE THEME CONTROL.
+
+   THREE BUTTONS, NOT A SWITCH. "Follow my device" is a real answer and a
+   two-state switch cannot express it: a reader who has never touched the
+   control and a reader who chose light are in the same visual state and want
+   different things the day their phone flips to dark at sunset. Auto REMOVES
+   the attribute, which hands the decision back to prefers-color-scheme.
+
+   It is injected by dashboard.js into the container rather than written into
+   each template, so the dashboard and the recall page share one control and
+   there is no markup in two files to keep in step. Every button is a real
+   <button> with aria-pressed, so it is tab-reachable, announced and operable
+   with no role wiring of ours, and the group states the current theme in its
+   own accessible name.
+   =========================================================================== */
+.tit-theme-row { display:flex; justify-content:flex-end; margin:0 0 10px; }
+.tit-theme { display:inline-flex; align-items:center; gap:2px; padding:2px;
+  border:1px solid var(--tit-line); border-radius:99px;
+  background:var(--tit-surface); }
+.tit-wrap .tit-theme-b { flex:none; padding:4px 11px; border:0;
+  border-radius:99px; background:none; color:var(--tit-mut);
+  font-family:inherit; font-size:12.5px; font-weight:650; line-height:1.35;
+  cursor:pointer; transition:background-color .14s ease, color .14s ease; }
+.tit-wrap .tit-theme-b:hover { color:var(--tit-fg); }
+/* Pressed is a fill AND a weight change AND aria-pressed, never colour alone. */
+.tit-wrap .tit-theme-b[aria-pressed="true"] { background:var(--tit-blue);
+  color:var(--tit-ink-invert); font-weight:750; }
+.tit-wrap .tit-theme-b:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* The fade goes, the state does not. This is the only transition the control
+   has, so removing it leaves an instant, fully painted button. */
+@media (prefers-reduced-motion: reduce) {
+  .tit-wrap .tit-theme-b { transition:none; }
 }

@@ -161,3 +161,45 @@ function tit_dashboard_head() {
     tit_head_description(implode('. ', $bits) . '.');
 }
 add_action('wp_head', 'tit_dashboard_head', 1);
+
+/**
+ * THE THEME STAMP, AND WHY IT IS A BLOCKING INLINE SCRIPT IN THE HEAD.
+ *
+ * The reader's choice lives in localStorage, which only the browser can read,
+ * and the stylesheet decides everything off one attribute on <html>. If that
+ * attribute is written by dashboard.js -- deferred, in the footer, on purpose
+ * -- then a reader who chose dark gets a full white page painted first and a
+ * dark one a moment later. That flash is not a cosmetic complaint on a page
+ * somebody opens in a dark room; it is the brightest thing they will see.
+ *
+ * So this runs where nothing has painted yet: an inline script, in the head,
+ * before the stylesheet has anything to apply. It is nine lines and does one
+ * thing. It never writes storage, only reads it, and a browser with storage
+ * disabled or full throws on the read, which the try/catch turns into "no
+ * attribute", which is the auto behaviour and the correct default.
+ *
+ * "auto" is the ABSENCE of the attribute rather than a value of it, so there
+ * is nothing to clean up: a reader on auto has no attribute and the media
+ * query in dashboard.css governs, which is exactly what auto means.
+ *
+ * Hooked at priority 2 and gated on the stylesheet, not on a list of routes.
+ * wp_enqueue_scripts runs at wp_head priority 1, so by 2 the answer is known,
+ * and it is the same answer for every surface this plugin owns -- the
+ * dashboard, the recall page, sources, corrections, employer profiles and the
+ * place pages -- with no route names to keep in step. Naming routes here is
+ * the mistake tit_enqueue_assets() already documents having made once.
+ */
+function tit_theme_head() {
+    if (!function_exists('wp_style_is') || !wp_style_is('tit-dashboard', 'enqueued')) return;
+
+    $js = "(function(){try{var t=localStorage.getItem('tit-theme');"
+        . "if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);"
+        . "}catch(e){}})();";
+
+    if (function_exists('wp_print_inline_script_tag')) {
+        wp_print_inline_script_tag($js);
+        return;
+    }
+    echo '<script>' . $js . '</script>' . "\n";
+}
+add_action('wp_head', 'tit_theme_head', 2);

@@ -2707,6 +2707,17 @@ const TIT_TREND_MIN_ROWS = 30;
 /**
  * One colour per signal, so a colour means the same thing wherever it appears.
  * Taken from the palette already in dashboard.css rather than a new one.
+ *
+ * THESE VALUES ARE NO LONGER WRITTEN INTO THE MARKUP, and that is deliberate.
+ * They used to be emitted as inline `stroke=` and `fill=` attributes on the
+ * trend plot, which pins one scheme's hue into the HTML -- and this server
+ * cannot know which scheme the reader is in, because that choice lives in the
+ * browser. The plot is also swapped wholesale by dashboard.js on every filter
+ * change, from this same server, so the wrong hue would have arrived twice.
+ * Each series carries a CLASS now (tit_trend_series_class below) and the value
+ * lives in dashboard.css as a token, light and dark. The function stays
+ * because it is the one written record of which hue belongs to which signal,
+ * and the CSS light values are these.
  */
 function tit_trend_colours() {
     return array(
@@ -2716,6 +2727,20 @@ function tit_trend_colours() {
         'pay'        => '#c2417e',
         'total'      => '#1c5cab',
     );
+}
+
+/**
+ * The stylesheet class that paints one series, for one kind of mark.
+ *
+ * $part is 's' for a stroked line, 'd' for an endpoint dot, 'w' for a legend
+ * swatch. The key is checked against the palette rather than interpolated, so
+ * a signal that is ever renamed falls back to the total hue instead of writing
+ * a class that matches no rule and drawing an invisible line.
+ */
+function tit_trend_series_class($key, $part) {
+    $known = array_keys(tit_trend_colours());
+    if (!in_array($key, $known, true)) $key = 'total';
+    return 'tit-tc-' . $part . '-' . $key;
 }
 
 /**
@@ -3161,8 +3186,8 @@ function tit_signal_trend_html(array $trend, $interactive = true) {
     <?php echo tit_trend_svg($trend); // phpcs:ignore — built and escaped in that function ?>
     <p class="tit-trend-legend">
       <?php foreach ($series as $s) : ?>
-        <span class="tit-trend-key"><span class="tit-trend-swatch"
-          style="background:<?php echo esc_attr($s['colour']); ?>"></span><?php
+        <span class="tit-trend-key"><span class="tit-trend-swatch <?php
+          echo esc_attr(tit_trend_series_class($s['key'], 'w')); ?>"></span><?php
           echo esc_html($s['label']); ?> <b><?php echo esc_html(tit_trend_rate($s['last'])); ?></b></span>
       <?php endforeach; ?>
     </p>
@@ -3298,7 +3323,7 @@ function tit_trend_svg(array $trend) {
             $parts = array();
             foreach ($s['avg'] as $i => $v) $parts[] = ($i ? 'L' : 'M') . $x($i) . ' ' . $y($v); ?>
             <path d="<?php echo esc_attr(implode(' ', $parts)); ?>" fill="none"
-                  stroke="<?php echo esc_attr($s['colour']); ?>" class="tit-tc-line"
+                  class="tit-tc-line <?php echo esc_attr(tit_trend_series_class($s['key'], 's')); ?>"
                   vector-effect="non-scaling-stroke"/>
           <?php endforeach; ?>
         </svg>
@@ -3321,7 +3346,7 @@ function tit_trend_svg(array $trend) {
         <svg class="tit-tc-dots" aria-hidden="true" focusable="false">
           <?php foreach ($series as $s) : ?>
             <circle cx="100%" cy="<?php echo esc_attr(round(100 * $y($s['avg'][$n - 1]) / $h, 1)); ?>%"
-                    r="3.5" fill="<?php echo esc_attr($s['colour']); ?>"/>
+                    r="3.5" class="<?php echo esc_attr(tit_trend_series_class($s['key'], 'd')); ?>"/>
           <?php endforeach; ?>
         </svg>
       </div>

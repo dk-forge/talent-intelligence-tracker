@@ -1,3 +1,88 @@
+/* THE THEME CONTROL.
+
+   FIRST, AND IN ITS OWN FUNCTION, because the dashboard's own script below
+   returns immediately when #tit-dashboard is absent -- and the recall page is
+   exactly that case. A control built inside that function would exist on one
+   of the two pages this file loads on. Nothing here reads TIT, the API or any
+   dashboard element, so it has nothing to wait for either.
+
+   THE ATTRIBUTE IS ALREADY SET BY THE TIME THIS RUNS. tit_theme_head() in
+   includes/page.php stamps <html data-theme> from localStorage before first
+   paint; this file is deferred and arrives long after. So this never has to
+   apply the stored theme on load, only to READ it back, light the right
+   button, and write both when the reader presses one. The two must not both
+   claim to be the loader, or a reader on auto gets one of them guessing.
+
+   "auto" is the ABSENCE of the attribute rather than a value of it, which is
+   what makes it real: with nothing on <html>, the prefers-color-scheme block
+   in dashboard.css governs, and the page follows the device from then on,
+   including when the device flips at sunset with the tab still open. */
+
+(function () {
+  'use strict';
+
+  var host = document.querySelector('#tit-dashboard, #tit-recall');
+  if (!host) return;
+
+  var KEY = 'tit-theme';
+  var MODES = ['light', 'dark', 'auto'];
+  var LABELS = { light: 'Light', dark: 'Dark', auto: 'Auto' };
+
+  // Storage is a preference, never a requirement. Private windows, a full
+  // quota and a browser with storage switched off all throw on the plain call,
+  // and none of them is a reason for the control to stop working for the rest
+  // of the page's life: without storage the choice simply lasts one page.
+  function read() {
+    try {
+      var v = localStorage.getItem(KEY);
+      return MODES.indexOf(v) > -1 ? v : 'auto';
+    } catch (e) { return 'auto'; }
+  }
+  function write(mode) {
+    try { localStorage.setItem(KEY, mode); } catch (e) { /* the choice lasts one page */ }
+  }
+
+  var row = document.createElement('div');
+  row.className = 'tit-theme-row';
+  var group = document.createElement('div');
+  group.className = 'tit-theme';
+  group.setAttribute('role', 'group');
+  row.appendChild(group);
+
+  var buttons = {};
+  MODES.forEach(function (mode) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tit-theme-b';
+    b.textContent = LABELS[mode];
+    // A real button with aria-pressed: tab-reachable, announced as a toggle,
+    // and operable by Space and Enter with no key handling of ours.
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () { apply(mode, true); });
+    buttons[mode] = b;
+    group.appendChild(b);
+  });
+
+  function apply(mode, persist) {
+    if (MODES.indexOf(mode) < 0) mode = 'auto';
+    if (mode === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', mode);
+    }
+    MODES.forEach(function (m) {
+      buttons[m].setAttribute('aria-pressed', m === mode ? 'true' : 'false');
+    });
+    // The group names its own current state, so a screen reader landing on the
+    // control is told what the page is set to before reading three buttons.
+    group.setAttribute('aria-label', 'Colour theme: ' + mode);
+    if (persist) write(mode);
+  }
+
+  apply(read(), false);
+  host.insertBefore(row, host.firstChild);
+})();
+
 /* Filters talk to talent/v1/query. The table is already server-rendered, so
    this only ever replaces rows that are already there. If the API is
    unreachable the page keeps working with what the server sent. */
