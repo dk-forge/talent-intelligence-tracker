@@ -3509,7 +3509,7 @@ function tit_market_trend($table, $where = 'is_current = 1', array $params = arr
  * seen is not a basis statement. The place caveat learned this on 2026-08-03.
  */
 function tit_market_caveat(array $m) {
-    $fixed = ' Counted across the whole tracker. The filters on this page do not narrow this card.';
+    $fixed = ' Counted across the whole tracker, and the filters on this page do not narrow this card.';
     if ($m['variant'] === 'counts') {
         return sprintf(
             'Counted only from the %d sources that were live for all %d weeks of this window '
@@ -3530,8 +3530,8 @@ function tit_market_caveat(array $m) {
              . $fixed;
     }
     return $lead . sprintf(
-        ', and only %d of the %d weeks hold any updates at all. We draw no trend, '
-        . 'because a line through that would show the shape of our collection, not the market.',
+        ', and only %d of the %d weeks hold any updates at all. So no trend is drawn: '
+        . 'a line through that would show the shape of our collection, not the market.',
         (int) $m['with_data'], (int) $m['weeks_total']);
 }
 

@@ -326,7 +326,7 @@ function tit_recall_market_rows() {
     return array(
         array('code' => 'KR', 'theirs' => 8542, 'ours' => 8, 'share' => '0.1%',
               'read' => 'Not comparable',
-              'why'  => 'the external figure counts individual fund investments, while ours counts funding rounds',
+              'why'  => 'the external figure counts individual fund investments; ours counts funding rounds',
               'ref'  => 'national venture investment statistics'),
         array('code' => 'DE', 'theirs' => 716, 'ours' => 15, 'share' => '2.1%',
               'read' => 'Real gap', 'why' => '',
@@ -816,7 +816,7 @@ function tit_recall_render($data) {
                above the first table that uses them. It exists because the
                owner had to ask what the second column meant. */ ?>
       <p class="tit-note">
-        Every table below scores twice, and the second score is stricter. An
+        Every table below scores twice. The second score is stricter. An
         event we hold with one wrong detail (the amount, the date, the company
         or the place) passes the first score and fails the second.
       </p>
