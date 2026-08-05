@@ -326,7 +326,7 @@ function tit_recall_market_rows() {
     return array(
         array('code' => 'KR', 'theirs' => 8542, 'ours' => 8, 'share' => '0.1%',
               'read' => 'Not comparable',
-              'why'  => 'the external figure counts individual fund investments; ours counts funding rounds',
+              'why'  => 'the external figure counts individual fund investments, while ours counts funding rounds',
               'ref'  => 'national venture investment statistics'),
         array('code' => 'DE', 'theirs' => 716, 'ours' => 15, 'share' => '2.1%',
               'read' => 'Real gap', 'why' => '',
@@ -354,10 +354,11 @@ function tit_recall_market_table() {
     <p class="tit-note">
       A different question from the tables above, so it gets its own table and
       its own units. The gold set asks how much of a fixed list of landmark
-      events we caught; this asks what share we hold of everything a market
-      announced, using external market-size counts. External counts use their
-      own definitions and publication dates, so these shares are indicative
-      and not a parity claim. Both sides of each row were recorded together on
+      events we caught. This table asks what share we hold of everything a
+      market announced, using external market-size counts. External counts use
+      their own definitions and publication dates, so these shares are
+      indicative and not a parity claim. We recorded both sides of each row
+      together on
       <?php echo esc_html(TIT_RECALL_MARKET_ASOF); ?>. Read the last column
       first: a ratio between two differently defined counts is not a coverage
       score, and the one row where the units differ says so.
@@ -677,7 +678,7 @@ function tit_recall_render($data) {
         We fixed a list of <?php echo (int) $overall['total']; ?> real events that
         happened between <?php echo esc_html($window['start']); ?> and
         <?php echo esc_html($window['end']); ?>, assembled from public sources
-        without ever looking at our own database, and then checked how many of
+        without ever looking at our own database. Then we checked how many of
         them we actually hold. We held
         <strong><?php echo (int) $overall['held']; ?> of <?php echo (int) $overall['total']; ?></strong>.
         Measured <?php echo esc_html($data['measured_on']); ?>.
@@ -760,9 +761,9 @@ function tit_recall_render($data) {
             <strong>These points are not all the same test.</strong>
             <?php printf(esc_html('%s different test sets appear in this series.'),
                 esc_html(count($sets))); ?>
-            A set is replaced once its window has aged out or the number against
-            it has stopped moving, because re-running one fixed list of events
-            forever would measure memory rather than reach and would walk to
+            We replace a set once its window has aged out, or once the number
+            against it has stopped moving. Re-running one fixed list of events
+            forever would measure memory rather than reach, and it would walk to
             100% while meaning nothing. So a step between two points is a change
             in coverage plus a change in the test, and the per category tables
             below are the safer read.
@@ -799,15 +800,15 @@ function tit_recall_render($data) {
       </p>
       <p>
         <strong>The rest of it is simply us, and we are not going to dress that
-        up as a structural problem.</strong> A gap this wide is not explained by
-        filing regimes. It is a young tracker reading a small number of
+        up as a structural problem.</strong> Filing regimes do not explain a gap
+        this wide. It is a young tracker reading a small number of
         collectors, at a volume far below what the world actually announces in a
-        month, and the events it does catch skew to the ones that arrive as
+        month. The events it does catch skew to the ones that arrive as
         machine readable filings. Even in the category with a mandatory filing
-        we are well short of complete. This number is bad. It is published
-        because a bad measured number is worth more than a good unmeasured
-        claim, and because it is the only version of this page that can improve
-        for a reason you can check.
+        we are well short of complete. This number is bad. We publish it anyway.
+        A bad measured number is worth more than a good unmeasured claim. This
+        is also the only version of this page that can improve for a reason you
+        can check.
       </p>
       <?php endif; ?>
 
@@ -815,13 +816,13 @@ function tit_recall_render($data) {
                above the first table that uses them. It exists because the
                owner had to ask what the second column meant. */ ?>
       <p class="tit-note">
-        Every table below scores twice. The second score is stricter: an event
-        we hold with one wrong detail (the amount, the date, the company or
-        the place) passes the first score and fails the second.
+        Every table below scores twice, and the second score is stricter. An
+        event we hold with one wrong detail (the amount, the date, the company
+        or the place) passes the first score and fails the second.
       </p>
       <?php
       tit_recall_table('Recall by category', $summary['by_segment'] ?? array(),
-          'The four cells that matter most. "Event captured" means the event is here at all; "Captured with every detail correct" additionally requires the country, the amount, the date and a working source link to be right.');
+          'The four cells that matter most. "Event captured" means the event is here at all. "Captured with every detail correct" also requires the country, the amount, the date and a working source link to be right.');
       tit_recall_table('By signal type', $summary['by_signal_type'] ?? array());
       tit_recall_table('By where the event happened', $summary['by_geography'] ?? array());
       tit_recall_table('By what kind of document announced it', $summary['by_source_type'] ?? array(),
@@ -837,10 +838,10 @@ function tit_recall_render($data) {
       <h2>Every category, over time</h2>
       <p class="tit-note">
         The same breakdowns across every measurement, as raw counts. This is
-        where an improvement shows up as an improvement: a new set of feeds in a
-        region moves that region's row and leaves the others alone, and a
-        movement that appears everywhere at once is usually the test changing
-        rather than the tracker.
+        where an improvement shows up as an improvement. A new set of feeds in a
+        region moves that region's row and leaves the others alone. A movement
+        that appears everywhere at once is usually the test changing rather than
+        the tracker.
       </p>
       <?php
       tit_recall_history_table('By category, over time', 'by_segment', $points);
@@ -856,7 +857,7 @@ function tit_recall_render($data) {
         <?php echo esc_html(count($partial)); ?> of the
         <?php echo (int) $overall['held']; ?> events we hold have at least one
         field wrong or missing. These need a better extractor rather than a new
-        source, and they are counted separately for that reason. A record with
+        source, and we count them separately for that reason. A record with
         no country is invisible to every geographic filter on this site even
         though we have it.
       </p>
@@ -877,38 +878,38 @@ function tit_recall_render($data) {
 
       <h2>How this was measured</h2>
       <p>
-        One bounded period was chosen first:
+        We chose one bounded period first:
         <?php echo esc_html($window['start']); ?> to
         <?php echo esc_html($window['end']); ?>. Within it we assembled
         <?php echo (int) $overall['total']; ?> events that genuinely happened at
         named employers, from public sources only: company announcements,
-        regulatory filings, national and trade press. The reference set was
-        never built by querying our own database, because a list drawn from what
-        we already hold measures nothing at all.
+        regulatory filings, national and trade press. We never built the
+        reference set by querying our own database, because a list drawn from
+        what we already hold measures nothing at all.
       </p>
       <p>
-        The set was then sealed. Its contents were fixed on
+        We then sealed the set. We fixed its contents on
         <?php echo esc_html($gold['assembled_on']); ?>, before any matching ran,
         and the file carries a digest
-        (<code><?php echo esc_html($gold['digest']); ?></code>) that is recorded
-        alongside every published figure. Nothing was added or removed after
+        (<code><?php echo esc_html($gold['digest']); ?></code>) that we record
+        alongside every published figure. We added and removed nothing after
         seeing the result. Four of the events were known misses before the
-        exercise began and were included deliberately, because a test set that
-        drops its known failures is not a test.
+        exercise began, and we included them deliberately, because a test set
+        that drops its known failures is not a test.
       </p>
       <p>
-        Each event was then looked up through the same public API anyone else
-        can use, matched on employer name, kind of event and a date window that
-        allows for a late write up. An event counts as held when we have a
+        We then looked up each event through the same public API anyone else
+        can use. We matched on employer name, kind of event, and a date window
+        that allows for a late write up. An event counts as held when we have a
         record of it. It counts as fully correct only when the country, the
         amount, the date and the source link are all right as well. Where a rule
-        could go either way it was written to favour counting an event as held,
+        could go either way, we wrote it to favour counting an event as held,
         so the misses reported here are conservative.
       </p>
       <h3>How this stays honest as it repeats</h3>
       <p>
         The measurement runs on a schedule and commits its result, so the series
-        above is produced without anybody deciding to produce it. That solves
+        above appears without anybody deciding to produce it. That solves
         one problem and creates another: re-running the same fixed list of
         events forever would stop measuring reach and start measuring memory.
         Once those particular events are collected the figure walks towards 100%
@@ -916,7 +917,7 @@ function tit_recall_render($data) {
         can fail.
       </p>
       <p>
-        So a test set is retired rather than reused indefinitely. It is replaced
+        So we retire a test set rather than reuse it indefinitely. We replace it
         when the window it covers has aged out, or earlier when the number
         against it stops moving, and the run itself says which. Every past set
         stays on disk with its digest so any figure ever published here can be
@@ -948,8 +949,8 @@ function tit_recall_render($data) {
       <?php endif; ?>
 
       <p class="tit-note">
-        The measurement is a script in the public repository and can be re run
-        by anyone against the live API, which is what makes this number
+        The measurement is a script in the public repository, and anyone can re
+        run it against the live API. That is what makes this number
         contestable rather than a claim. Coverage changes, so a recall figure
         without a date is worthless: this one was measured on
         <?php echo esc_html($data['measured_on']); ?> and will be measured

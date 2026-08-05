@@ -776,9 +776,9 @@ function tit_company_render($rows, $key, $profile) {
                 : esc_html(number_format_i18n($profile['documents'])) . ' source documents'; ?>
           on <?php echo esc_html($name); ?> so far, not because nothing else has
           happened there. We only publish what we have read on a primary source
-          and can link to, so a profile fills up as filings and reports come in
-          rather than being seeded from an estimate. Profiles at this stage are
-          left out of our sitemap and marked noindex until they carry enough to
+          and can link to. So a profile fills up as filings and reports come in,
+          and we never seed it from an estimate. We keep profiles at this stage
+          out of our sitemap and mark them noindex until they carry enough to
           be worth a search result of their own.
         </p>
       <?php endif; ?>

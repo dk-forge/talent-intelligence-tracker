@@ -273,15 +273,15 @@ function tit_sources_render($sources) {
         // the skimmer's takeaway before, and it read as coverage we do not
         // have. Both numbers are computed from the registry, never typed.
         printf(
-            esc_html('We read %1$s %2$s today. The other %3$s listed here are researched and queued, not yet read.'),
+            esc_html('We read %1$s %2$s today. We have researched and queued another %3$s listed here, and we do not read those yet.'),
             esc_html(number_format_i18n(count($live))),
             count($live) === 1 ? 'source' : 'sources',
             esc_html(number_format_i18n(count($cand)))
         );
         ?>
         Every record on this tracker links to the document that makes the
-        claim, and this page is generated from the collectors themselves so it
-        cannot drift from what actually runs.
+        claim. We build this page from the collectors themselves, so it cannot
+        drift from what actually runs.
       </p>
 
       <div class="tit-stats">
@@ -292,10 +292,10 @@ function tit_sources_render($sources) {
       </div>
 
       <div class="tit-callout">
-        <strong>Country here means where a source is based, not where we have
-        coverage.</strong> Most of what we read is not tied to one country:
-        Google News is read in 25 national editions across 7 languages, and
-        GDELT is machine-translated from 65. Those are filed as Worldwide, so
+        <strong>Country here means the home country of a source, not the places
+        we cover.</strong> Most of what we read is not tied to one country. We
+        read Google News in 25 national editions across 7 languages, and GDELT
+        machine-translates from 65 languages. We file those as Worldwide, so
         filtering by country narrows to sources that are specific to it rather
         than to everything that covers it.
       </div>
@@ -303,8 +303,8 @@ function tit_sources_render($sources) {
       <div class="tit-callout">
         <strong>What "running now" means.</strong> A source counts as running
         only when a collector reads it, reports its health, and has a passing
-        test. Everything else is listed as researched so the roadmap is public,
-        and is never counted as coverage. A source appearing on this page is not
+        test. We list everything else as researched, so the roadmap is public,
+        and we never count it as coverage. A source appearing on this page is not
         a claim that we cover it.
       </div>
 
@@ -372,21 +372,21 @@ function tit_sources_render($sources) {
 
       <div class="tit-callout">
         <strong>A list of sources is not evidence of coverage.</strong> So we
-        also measure what these collectors miss, against a fixed set of real
-        events assembled from public sources without ever looking at our own
-        database, and publish the result including the categories where we come
-        off badly.
+        also measure what these collectors miss. The test uses a fixed set of
+        real events, assembled from public sources without ever looking at our
+        own database. We publish the result, including the categories where we
+        come off badly.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">See the measured recall</a>.
       </div>
 
       <div class="tit-callout">
         <strong>What we exclude, and what that costs.</strong> A Form D reports
-        money raised, and most Form D filers are not employers: pooled
+        money raised, and most Form D filers are not employers. They are pooled
         investment funds, single-asset property vehicles, and insurance or
         annuity products where the "amount sold" is premium collected from
-        policyholders. All three are excluded. Form D filings in the
-        real-estate industry group are excluded outright, because the
-        overwhelming majority of them are single-asset vehicles. This does drop
+        policyholders. We exclude all three. We also exclude Form D filings in
+        the real-estate industry group outright, because the overwhelming
+        majority of them are single-asset vehicles. This does drop
         a small number of genuine real-estate employers along with them, and the
         dataset offers no field that separates the two. Funding
         records also carry no hiring badge, because a filing states an amount
@@ -399,11 +399,11 @@ function tit_sources_render($sources) {
         <h2>Updates Collected a Day</h2>
         <p class="tit-note">
           How many updates these collectors stored per day, smoothed over seven
-          days. This is a measure of our own reading, not of the market: the
-          lines move when the market moves and when we start reading somewhere
-          new, which is why this chart lives here beside the collectors it
-          describes. The dashboard carries the market view, counted so that a
-          new source cannot appear as a market move.
+          days. This is a measure of our own reading, not of the market. The
+          lines move when the market moves, and also when we start reading
+          somewhere new. That is why this chart lives here, beside the
+          collectors it describes. The dashboard carries the market view,
+          counted so that a new source cannot appear as a market move.
         </p>
         <?php echo $tit_trend_html; // phpcs:ignore - built and escaped in tit_signal_trend_html ?>
       <?php endif; ?>
@@ -513,7 +513,7 @@ function tit_sources_render($sources) {
       </div>
 
       <p class="tit-cite">
-        Layoff and redundancy data is deliberately not collected here. It is read
+        We deliberately do not collect layoff and redundancy data here. We read it
         from the <a href="https://asktherecruiter.com/blog/ai-layoff-tracker/">AI
         Layoff Tracker</a>, so there is one source of truth per fact.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
@@ -608,8 +608,8 @@ function tit_sources_head() {
     }
     tit_head_description(sprintf(
         'The %d %s the Talent Intelligence Tracker reads today, and the %s more '
-        . 'that are researched and not yet read. A source counts as running only '
-        . 'when a collector reads it, reports its health and has a passing test.',
+        . 'that we have researched but do not yet read. A source counts as running '
+        . 'only when a collector reads it, reports its health and has a passing test.',
         $live, $live === 1 ? 'source' : 'sources', number_format_i18n($cand)
     ));
     echo '<link rel="canonical" href="' . esc_url(tit_sources_url()) . '" />' . "\n";

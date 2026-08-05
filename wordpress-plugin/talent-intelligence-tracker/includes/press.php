@@ -268,10 +268,10 @@ function tit_press_render(array $f) {
       <h1>Press and Media Kit</h1>
 
       <p class="tit-note">
-        Every figure on this page is computed when the page is requested, and
-        every one carries a link to the rows it came from, with the same filters
-        already applied. Nothing here is typed in by hand, so a number you quote
-        today can be checked against the tracker by anyone, including later.
+        We compute every figure on this page when you request it. Every one
+        carries a link to the rows it came from, with the same filters already
+        applied. Nobody types these numbers in by hand, so anyone can check a
+        number you quote today against the tracker, now or later.
         <?php if ($all['newest']) : ?>
           The most recent collection ran
           <?php echo esc_html(function_exists('tit_local_datetime')
@@ -289,8 +289,8 @@ function tit_press_render(array $f) {
       <h2 id="press-numbers">Numbers You Can Use Right Now</h2>
       <p class="tit-note">
         Each row states one period. The link beside it opens the tracker
-        narrowed to exactly those rows, so the number and the evidence behind it
-        are one click apart rather than a claim and a promise.
+        narrowed to exactly those rows. The number and the evidence behind it
+        are one click apart, rather than a claim and a promise.
       </p>
 
       <div class="tit-table-scroll tit-press-scroll">
@@ -339,8 +339,8 @@ function tit_press_render(array $f) {
       ?>
       <p class="tit-note">
         Dollar totals cover the funding updates that state an amount in US
-        dollars. Amounts stated in another currency are left out rather than
-        converted at a rate nobody published, and the dashboard prints the exact
+        dollars. We leave out amounts stated in another currency rather than
+        convert them at a rate nobody published. The dashboard prints the exact
         coverage beside every money figure it shows.
       </p>
 
@@ -363,9 +363,9 @@ function tit_press_render(array $f) {
                      ranking on this tracker is dominated by one mandatory annual
                      return. Saying it here rather than only on the dashboard is
                      the difference between a caveat and a disclaimer. */ ?>
-            Read a country total as filing volume rather than as how much is
-            happening there: one mandatory annual return can account for most of
-            a country's rows, and the dashboard names the collector when it does.
+            Read a country total as filing volume, not as how much is happening
+            there. One mandatory annual return can account for most of a
+            country's rows, and the dashboard names the collector when it does.
           </li>
         <?php endif; ?>
         <?php if (!empty($f['top_industry']['k'])) : ?>
@@ -401,11 +401,11 @@ function tit_press_render(array $f) {
       <h2 id="press-archive">The Archive</h2>
       <p class="tit-note">
         Every month keeps its own preset view, so a figure quoted last quarter
-        still resolves to that quarter's rows. The figures are recomputed rather
-        than frozen: corrections on this tracker append a revision instead of
-        overwriting a record, so a frozen copy would preserve a number we have
-        since corrected and present it as though it still stood. What makes an
-        older figure answerable is the
+        still resolves to that quarter's rows. We recompute the figures rather
+        than freeze them. A correction on this tracker appends a revision
+        instead of overwriting a record. A frozen copy would preserve a number
+        we have since corrected, and present it as though it still stood. What
+        makes an older figure answerable is the
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">corrections log</a>,
         which says what changed and when.
       </p>
@@ -442,30 +442,30 @@ function tit_press_render(array $f) {
 
       <h2 id="press-limits">What This Tracker Does Not Do</h2>
       <p class="tit-note">
-        Stated here rather than left to be discovered after somebody has quoted
-        us. None of it is a defect being confessed; each is a decision, and each
-        one costs something real.
+        We state these here rather than leave you to discover them after you
+        have quoted us. None of this confesses a defect. Each is a decision, and
+        each one costs something real.
       </p>
       <ul class="tit-press-facts">
         <li>
-          <strong>It does not track layoffs.</strong> Redundancies and job cuts
-          are collected by the
-          <a href="/blog/ai-layoff-tracker/">AI Layoff Tracker</a> instead and
-          read from it rather than duplicated here, so there is one source of
-          truth per fact. Do not cite this page for a layoff figure.
+          <strong>It does not track layoffs.</strong> The
+          <a href="/blog/ai-layoff-tracker/">AI Layoff Tracker</a> collects
+          redundancies and job cuts instead. We read from it rather than
+          duplicate them here, so there is one source of truth per fact. Do not
+          cite this page for a layoff figure.
         </li>
         <li>
           <strong>It does not estimate.</strong> No figure appears unless its
-          source states it in those words. An update whose source names no
-          headcount is labelled as not stated rather than inferred, and an amount
-          in a currency we cannot read as US dollars is left out of the totals
-          rather than converted.
+          source states it in those words. When an update's source names no
+          headcount, we label it as not stated rather than infer one. When an
+          amount comes in a currency we cannot read as US dollars, we leave it
+          out of the totals rather than convert it.
         </li>
         <li>
-          <strong>It does not claim to be complete.</strong> Coverage is measured
-          rather than asserted: the collectors are graded every week against a
-          fixed set of real events assembled from public sources without ever
-          looking at our own database, and the result is published including the
+          <strong>It does not claim to be complete.</strong> We measure coverage
+          rather than assert it. Every week we grade the collectors against a
+          fixed set of real events, assembled from public sources without ever
+          looking at our own database. We publish the result, including the
           categories where we come off badly.
           <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">See what we miss, measured</a>.
         </li>
@@ -479,19 +479,20 @@ function tit_press_render(array $f) {
         <li>
           <strong>It is not fully automated.</strong> About 99% of it runs
           without a human: collection, classification, validation, deduplication
-          and publishing. Repairing a scraper when a site changes, judging
-          whether a novel source is worth reading, and assembling each new recall
-          test set are human, and the last is human by design.
+          and publishing. Three things stay human: repairing a scraper when a
+          site changes, judging whether a novel source is worth reading, and
+          assembling each new recall test set. The last of those is human by
+          design.
         </li>
       </ul>
 
       <h2 id="press-cite">How to Cite Us</h2>
       <p class="tit-note">
         Cite as: Talent Intelligence Tracker, asktherecruiter.com, accessed
-        <?php echo esc_html(date_i18n('j F Y')); ?>. The data is licensed
-        CC BY 4.0. Please link to the preset view for the figure you are using
-        rather than to this page alone, so your readers land on the rows rather
-        than on a summary of them.
+        <?php echo esc_html(date_i18n('j F Y')); ?>. The data carries a
+        CC BY 4.0 license. Please link to the preset view for the figure you are
+        using, rather than to this page alone. Then your readers land on the
+        rows rather than on a summary of them.
         <?php if ($all['lo'] && $all['hi']) : ?>
           The tracker currently holds updates dated
           <?php echo esc_html(date_i18n('j F Y', strtotime($all['lo'] . ' 00:00:00 UTC'))); ?>
@@ -503,10 +504,9 @@ function tit_press_render(array $f) {
       <h2 id="press-contact">Press Contact</h2>
       <p class="tit-note">
         Questions, corrections and data requests go to
-        <a href="/blog/contact/">the contact page</a>. If you have found a figure
-        that looks wrong, every record links to the document behind it, so it can
-        be checked, and anything we get wrong is corrected in public with its
-        date.
+        <a href="/blog/contact/">the contact page</a>. If a figure looks wrong to
+        you, every record links to the document behind it, so you can check it
+        yourself. We correct anything we get wrong in public, with its date.
       </p>
 
       <p class="tit-cite">

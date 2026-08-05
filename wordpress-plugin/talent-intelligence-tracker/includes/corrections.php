@@ -73,48 +73,50 @@ function tit_corrections_entries() {
                 // future wording: the tense tests strip these and not /* */, so
                 // a block comment quoting it is read as page copy.
                 '318 published records reported money that no company raised. A
-                 Form D reports an "amount sold", and for three kinds of filing
+                 Form D reports an "amount sold". For three kinds of filing,
                  that amount is not capital arriving to be spent on anything.
-                 All three were published here as funding rounds, and between
-                 them they overstated the money total on this tracker by
-                 $14.25bn.',
-                'The first is a takeover paid for in shares. When one company
-                 buys another and hands the sellers stock instead of cash, the
-                 stock is registered on a Form D and its value appears in the
-                 same box a startup uses to report a round. So a filing recording
-                 that Danaher is acquiring Masimo at $180 a share, for "total
-                 consideration of $9.9 billion", was published as Masimo raising
-                 $9.9bn. A merger of W.D. Company, Inc. with and into Dillard\'s,
-                 Inc., valued off a closing share price with no cash anywhere in
-                 the document, was published as $2.39bn. The form asks the issuer
-                 outright whether the offering is part of a business combination,
-                 and 177 published records answer yes. That answer is a field in
-                 the public data set and nothing here had ever read it.',
+                 We published all three here as funding rounds. Between them
+                 they overstated the money total on this tracker by $14.25bn.',
+                'The first is a takeover paid for in shares. One company buys
+                 another and hands the sellers stock instead of cash. That stock
+                 goes on a Form D, and its value appears in the same box a
+                 startup uses to report a round. So one filing recorded that
+                 Danaher is acquiring Masimo at $180 a share, for "total
+                 consideration of $9.9 billion". We published it as Masimo
+                 raising $9.9bn. Another recorded a merger of W.D. Company, Inc.
+                 with and into Dillard\'s, Inc., valued off a closing share price
+                 with no cash anywhere in the document. We published that one as
+                 $2.39bn. The form asks the issuer outright whether the offering
+                 is part of a business combination, and 177 published records
+                 answer yes. That answer is a field in the public data set, and
+                 we had never read it.',
                 'Seven of those 177 stay. Those seven say, in the filer\'s own
-                 words, that cash came in and was then spent on a deal: "a
-                 portion of the proceeds of the sale of securities to investors
-                 was used to acquire", "funds are being used to acquire a
-                 hospital". That is a real raise and the record is true.',
+                 words, that cash came in and the company then spent it on a
+                 deal. Two examples: "a portion of the proceeds of the sale of
+                 securities to investors was used to acquire", "funds are being
+                 used to acquire a hospital". That is a real raise and the
+                 record is true.',
                 'The second is an offering with no ceiling that has been selling
                  for years. Where the amount offered is the word "Indefinite",
                  the figure filed is everything sold since the first sale rather
-                 than a round: OPTCAPITAL LLC\'s $1.77bn is the fourteenth annual
-                 amendment to an offering whose first sale was in July 2012, so
-                 it is fourteen years of sales presented as one raise.',
+                 than a round. OPTCAPITAL LLC\'s $1.77bn is one of these. It is
+                 the fourteenth annual amendment to an offering whose first sale
+                 was in July 2012, so the figure covers fourteen years of sales
+                 presented as one raise.',
                 'The third is the same round counted twice. A Form D amendment
                  restates the running total for an offering already filed, so an
                  offering we published twice is one raise on the page twice.
                  Fluidstack appears at $450m in January and $842m in May: one
                  offering, one raise, and the May figure is the whole of it. Its
-                 separate $730m offering opened in June under its own file number
-                 and is a different raise, which is why these are matched on the
-                 offering\'s number and never on the company.',
-                'All 318 were withdrawn on 31 July 2026 rather than restated.
+                 separate $730m offering opened in June under its own file
+                 number, and it is a different raise. That is why we match these
+                 on the offering\'s number and never on the company.',
+                'We withdrew all 318 on 31 July 2026 rather than restating them.
                  What was wrong was not the figure, which is what the filing
-                 says: it is that the figure was money raised at all, and there
-                 is no smaller true number to put in its place. Nothing was
-                 deleted. A withdrawn record keeps its row and the reason it
-                 went, which is how it can still be counted here.',
+                 says. What was wrong is that we called the figure money raised
+                 at all, and there is no smaller true number to put in its
+                 place. We deleted nothing. A withdrawn record keeps its row and
+                 the reason it went, so we can still count it here.',
             ),
             // The BEFORE column is read off the same aggregate the dashboard
             // prints, not off a query of our own: a corrections page quoting
@@ -133,14 +135,15 @@ function tit_corrections_entries() {
                     'One row of the projection missed, and it stays visible.',
                     'Four of the five figures landed exactly where this page said
                      they would. The fifth did not: we said 2,906 employers would
-                     be left with a funding record and the answer is 2,937. The
-                     31 are not records the withdrawal missed. They are employers
-                     that arrived between the projection and the run, from a
-                     historical backfill and a night of collection that added 32
-                     funding records worth $3.55bn while this was queued. The
-                     projection is left above rather than replaced, because a
-                     corrections page that quietly revises its own numbers is
-                     doing the thing it exists to prevent.',
+                     keep a funding record, and the answer came out at 2,937.
+                     Those 31 are not records the withdrawal missed. They are
+                     employers that arrived between the projection and the run.
+                     A historical backfill and a night of collection added 32
+                     funding records worth $3.55bn while this correction sat in
+                     the queue. We leave the projection above rather than
+                     replacing it, because a corrections page that quietly
+                     revises its own numbers is doing the thing it exists to
+                     prevent.',
                 ),
                 array(
                     'Keeping the last figure filed, not the first and not the sum.',
@@ -148,7 +151,7 @@ function tit_corrections_entries() {
                      last filing for an offering is the whole raise and every
                      earlier one is that same money again. Across the 66
                      offerings this touches, the last figure is also the largest
-                     in 65 of them; in the one exception the filer revised its
+                     in 65 of them. In the one exception the filer revised its
                      own total downwards, and its latest answer is still the one
                      we should be showing.',
                 ),
@@ -156,41 +159,43 @@ function tit_corrections_entries() {
                     'What each rule costs in real records, measured rather than assumed.',
                     'Withdrawing on the word "Indefinite" alone would take 138
                      more records worth $1.70bn, including a $200m round that
-                     opened this quarter: an uncapped offering is only a running
-                     total once it has been running, so the rule also requires
+                     opened this quarter. An uncapped offering is only a running
+                     total once it has been running. So the rule also requires
                      the first sale to be more than a year before the filing.
                      Matching duplicate offerings on the company rather than on
                      the offering\'s file number would delete Fluidstack\'s
                      genuinely separate $730m. And the takeover rule is the one
                      with a cost we cannot measure away: 115 of the 177 filings
                      answer yes and then explain nothing. Among the 62 that do
-                     explain, 7 turn out to be cash raises, so if the silent ones
+                     explain, 7 turn out to be cash raises. If the silent ones
                      behave the same way, roughly a dozen real raises go with
                      them.',
                 ),
                 array(
                     'A rule we considered and rejected.',
                     'Eleven of these filings say the money paid a sales
-                     commission, which is what a company pays a broker to sell
-                     securities and is not something a merger needs. Using that
-                     to rescue a record would have kept five filings that state
-                     in words that the shares were merger consideration, four of
-                     them bank mergers where the fee is the adviser\'s. It rescued
-                     fewer records than it wrongly kept, so it is not used.',
+                     commission. That is what a company pays a broker to sell
+                     securities, and a merger does not need one. Using that to
+                     rescue a record would have kept five filings that state in
+                     words that the shares were merger consideration. Four of
+                     those five are bank mergers where the fee is the adviser\'s.
+                     The rule rescued fewer records than it wrongly kept, so we
+                     do not use it.',
                 ),
                 array(
-                    'What we cannot promise about what is left.',
+                    'What we cannot promise about the records that remain.',
                     'Two things. The quarterly data set that carries these fields
-                     is only published once a quarter has ended, so 9 records
-                     filed this month, worth $0.09bn, are not covered by this
-                     pass and are checked when that data set appears. And a
-                     filing that answers yes to the takeover question and then
-                     explains nothing cannot be told apart from a cash placement
-                     that happens to fund a deal, so some real raises go with the
-                     rest. If you see a funding record for a company that was
-                     being bought rather than raising, or a figure that looks
-                     like years of an evergreen fund\'s sales, that is what a
-                     survivor looks like, and we would like to be told.',
+                     only appears once a quarter has ended. So this pass does not
+                     cover 9 records filed this month, worth $0.09bn, and we
+                     check those when that data set appears. A filing can answer
+                     yes to the takeover question and then explain nothing. We
+                     cannot tell that filing apart from a cash placement that
+                     happens to fund a deal, so some real raises go with the
+                     rest. A survivor would look like a funding record for a
+                     company that a buyer was taking over rather than one
+                     raising money. Or it would look like a figure covering
+                     years of an evergreen fund\'s sales. If you see one, we
+                     would like to be told.',
                 ),
             ),
         ),
@@ -221,40 +226,41 @@ function tit_corrections_entries() {
                    from it, which is what caught the rename: a log describing a
                    badge that no longer exists sends a reader looking for
                    something they cannot find. */
-                '3,005 records were corrected on 29 July 2026. The badge is now
-                 "Headcount Not Stated", and each read-through says only what its
-                 filing records: who raised how much, when, and the address on the
-                 filing, followed by the gap named plainly. For example: "The
-                 filing records the money only; it names no roles and no hiring
-                 plan."',
+                'We corrected 3,005 records on 29 July 2026. The badge is now
+                 "Headcount Not Stated". Each read-through says only what its
+                 filing records: who raised how much, when, and the address on
+                 the filing, followed by the gap named plainly. For example:
+                 "The filing records the money only; it names no roles and no
+                 hiring plan."',
             ),
         ),
         array(
             'date'   => '2026-07-28',
             'applied_on' => '2026-07-29',
             'status' => 'applied',
-            'title'  => 'Entities that employ nobody were listed as employers, and they were inflating our money totals',
+            'title'  => 'We listed entities that employ nobody as employers, and they were inflating our money totals',
             'rows'   => 998,
             'fields' => array('withdrawn'),
             'body'   => array(
                 '998 published records were not companies raising money to hire.
                  They were single-asset property vehicles, insurance separate
-                 accounts and synthetic guaranteed investment contracts, all
-                 published as startup funding.',
-                'A large share of Form D filings are made by entities that exist
-                 to hold an asset rather than to employ anyone: a limited company
-                 formed to buy one building, a numbered series vehicle, a
-                 non-traded credit fund. Published as employers raising money they
-                 were useless to a recruiter or a job seeker, and because each
-                 raise is large they distorted every money total on the tracker.',
+                 accounts and synthetic guaranteed investment contracts, and we
+                 published all of them as startup funding.',
+                'A large share of Form D filings come from entities that exist
+                 to hold an asset rather than to employ anyone. Examples: a
+                 limited company formed to buy one building, a numbered series
+                 vehicle, a non-traded credit fund. We published them as
+                 employers raising money, where they were useless to a recruiter
+                 or a job seeker. Because each raise is large, they distorted
+                 every money total on the tracker.',
                 'Insurance products were the same failure in a different form. A
                  life insurer files a Form D for each variable life or annuity
                  product it sells, and the "amount sold" is premium collected from
                  policyholders, not capital the company raised. The largest single
                  record on the tracker was one of these, at $7.4bn.',
-                'All 998 were withdrawn on 29 July 2026. Nothing was deleted: a
-                 withdrawn record keeps its row and carries the reason it was
-                 withdrawn, which is why they can still be counted here.',
+                'We withdrew all 998 on 29 July 2026. We deleted nothing. A
+                 withdrawn record keeps its row and carries the reason we
+                 withdrew it, so we can still count it here.',
             ),
             // Three columns on purpose. The projection we published stays next
             // to the measured result rather than being overwritten by it: a
@@ -270,20 +276,21 @@ function tit_corrections_entries() {
             'notes' => array(
                 array(
                     'The money total has since fallen from $124.0bn to $101.4bn, and
-                     nothing was corrected downwards to make it.',
+                     we corrected nothing downwards to make that happen.',
                     'The figure above is what the live tracker held on 29 July 2026,
-                     the day this correction ran, and it is left as measured. Two
-                     later passes moved it: every stale company_key was re-issued,
-                     which merged eleven employers that had been counted as more
-                     than eleven, and five funding amounts were found to be off by
-                     a factor of a million because the multiplier parser read only
-                     English. Two of those five were Danish kroner sitting in a US
-                     dollar column, and this page promises amounts in other
-                     currencies are left out rather than converted at a rate nobody
-                     published, so their dollar figures were removed rather than
-                     restated. The current total is on the dashboard, computed on
-                     request; this page does not restate it, because a corrections
-                     log that keeps rewriting its own history is not a log.',
+                     the day this correction ran, and we leave it as measured.
+                     Two later passes moved it. We re-issued every stale
+                     company_key, which merged eleven employers we had counted as
+                     more than eleven. We also found five funding amounts off by
+                     a factor of a million, because the multiplier parser read
+                     only English. Two of those five were Danish kroner sitting
+                     in a US dollar column. This page promises we leave amounts
+                     in other currencies out rather than converting them at a
+                     rate nobody published, so we removed those dollar figures
+                     rather than restating them. The current total is on the
+                     dashboard, computed on request. This page does not restate
+                     it, because a corrections log that keeps rewriting its own
+                     history is not a log.',
                 ),
                 array(
                     'We published a projection of $114.1bn and the result was $124.0bn.',
@@ -294,30 +301,32 @@ function tit_corrections_entries() {
                      first run happened between the projection and the correction,
                      including a single $8.6bn semiconductor raise. The same run is
                      why the country count moved at the same time. The remaining
-                     $0.9bn is twenty-one records from other collectors that were
-                     already live but were missing from the copy of the database
-                     the projection was computed against. We are leaving the
-                     projection visible above rather than replacing it, because a
+                     $0.9bn is twenty-one records from other collectors. Those
+                     collectors were already live, but the copy of the database
+                     we computed the projection against was missing their
+                     records. We are leaving the projection visible above rather
+                     than replacing it, because a
                      corrections page that quietly revises its own numbers is doing
                      the thing it exists to prevent.',
                 ),
                 array(
-                    'What we can and cannot promise about what is left.',
+                    'What we can and cannot promise about the records that remain.',
                     'The withdrawal reached every record it could reach, and all
-                     998 landed. Checked afterwards: no remaining record on the
-                     tracker matches any of the vehicle name patterns, and the
+                     998 landed. We checked afterwards. No remaining record on
+                     the tracker matches any of the vehicle name patterns. The
                      "Hiring up" badge now appears on 43 records across the whole
-                     tracker rather than 4,018. What we cannot promise is that no
-                     inflated record survives anywhere, because a correction can
-                     only reach the records the pipeline holds. If you see a
-                     funding record whose employer is a numbered or single-address
-                     entity, an insurance separate account, or a name that reads
-                     like one building rather than one company, that is what a
-                     survivor would look like, and we would like to be told.',
+                     tracker, rather than 4,018 records. What we cannot promise
+                     is that no inflated record survives anywhere, because a
+                     correction can only reach the records the pipeline holds. A
+                     survivor would look like a funding record whose employer is
+                     a numbered or single-address entity. It could also be an
+                     insurance separate account, or a name that reads like one
+                     building rather than one company. If you see one, we would
+                     like to be told.',
                 ),
                 array(
                     'A cost worth stating.',
-                    'Form D filings in the real-estate industry group are excluded
+                    'We exclude Form D filings in the real-estate industry group
                      outright, because the overwhelming majority of them are
                      single-asset vehicles. This does drop a small number of
                      genuine real-estate employers along with them, and the
@@ -326,17 +335,19 @@ function tit_corrections_entries() {
                      of the two errors, but it is a real cost and not a free one.',
                 ),
                 array(
-                    'The fix was checked rather than assumed.',
+                    'We checked the fix rather than assuming it worked.',
                     'A first pass at these exclusions left the four largest
-                     records on the tracker still wrong, because the rule was
-                     written from the spelled-out phrase "guaranteed investment
-                     contract" and the filings use the trade\'s abbreviations:
-                     "Synthetic GICs issued to insurance carriers of BOLI/COLI
-                     policies" at $4.21bn, "Synthetic GICs issued to IRC Section
-                     529 plans" at $3.23bn, "Allocated Units of Precious Metals"
-                     at $2.51bn, "AGL Institutional Life" at $0.59bn. Seven
-                     filings and $12.4bn, found by reading the money list after
-                     the fix instead of trusting it. They are included in the 998.',
+                     records on the tracker still wrong. We had written the rule
+                     from the spelled-out phrase "guaranteed investment
+                     contract", and the filings use the trade\'s abbreviations
+                     instead. The first two are "Synthetic GICs issued to
+                     insurance carriers of BOLI/COLI policies" at $4.21bn and
+                     "Synthetic GICs issued to IRC Section 529 plans" at
+                     $3.23bn. The other two are "Allocated Units of Precious
+                     Metals" at $2.51bn and "AGL Institutional Life" at $0.59bn.
+                     Seven filings and $12.4bn in all, found by reading the money
+                     list after the fix instead of trusting it. The 998 include
+                     them.',
                 ),
             ),
         ),
@@ -379,14 +390,14 @@ function tit_corrections_render($entries) {
       // errors were found and published rather than quietly patched.
       ?>
       <p class="tit-note">
-        Everything on this tracker is read from a primary document, and
+        Every figure on this tracker comes from a primary document, and
         sometimes what we say about that document is wrong. When it is, we fix
         it and we write it down here: what was wrong, how many records it
         touched, and what they say now. A system that finds and discloses its
-        own errors is more trustworthy than one that hides them, and a
-        correction you can read is the only way to tell the two apart. Records
-        are corrected in place where the underlying document is unchanged, and
-        withdrawn where they should never have been published; nothing is ever
+        own errors is more trustworthy than one that hides them. A correction
+        you can read is the only way to tell the two apart. We correct a record
+        in place where the underlying document has not changed. We withdraw it
+        where we should never have published it. Either way, nothing is ever
         silently deleted.
       </p>
 
@@ -400,7 +411,7 @@ function tit_corrections_render($entries) {
         <div class="tit-callout tit-pending">
           <strong>Some of these are not fixed yet.</strong>
           <?php printf(
-              esc_html('%1$s published %2$s below %3$s known to be wrong and %4$s scheduled to be corrected or withdrawn. Until that runs, the figures on the tracker still include %5$s. Each entry says what is affected and what the numbers will be afterwards.'),
+              esc_html('%1$s published %2$s below %3$s wrong, and %4$s in the queue for correction or withdrawal. Until that runs, the figures on the tracker still include %5$s. Each entry says what it affects and what the numbers will be afterwards.'),
               esc_html(number_format_i18n($pending_rows)),
               $pending_rows === 1 ? 'record' : 'records',
               $pending_rows === 1 ? 'is' : 'are',
@@ -526,8 +537,8 @@ function tit_corrections_render($entries) {
 
       <p class="tit-cite">
         Spotted something wrong? Every record links to the document it came
-        from, so it can be checked. Write to
-        <a href="/blog/contact/">the contact page</a> and it will be corrected
+        from, so you can check it. Write to
+        <a href="/blog/contact/">the contact page</a> and we will correct it
         here.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Where this data comes from</a>
         &middot;

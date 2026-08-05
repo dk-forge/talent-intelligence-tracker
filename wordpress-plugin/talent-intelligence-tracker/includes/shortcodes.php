@@ -487,8 +487,8 @@ function tit_dashboard_html() {
           <div class="tit-empty">
             <h2>No signals published yet</h2>
             <p>Collection has not been switched on. Every record here has to
-               link to the article that makes the claim, and that sourcing is
-               still being proven out, so an empty table is the honest state
+               link to the article that makes the claim, and we are still
+               proving that sourcing out. So an empty table is the honest state
                rather than a broken one.</p>
             <p class="tit-empty-note">This page will fill in once collection is
                armed. It will not be backfilled with anything unsourced.</p>
@@ -2281,9 +2281,9 @@ function tit_trust_panel_html(array $facts) {
             . 'dollar amount, and every total says so beside itself.',
             $n($cov_with), $n($cov_all))),
         array('Unguessed', sprintf(
-            'Most updates say nothing about headcount. %s of %s are labelled '
-            . 'as not stated rather than inferred, and no figure appears in a '
-            . 'summary unless the source states it in those words.',
+            'Most updates say nothing about headcount. We label %s of %s as '
+            . 'not stated rather than infer a direction, and no figure appears '
+            . 'in a summary unless the source states it in those words.',
             $n($unstated), $n($notable))),
         array('Correctable', sprintf(
             'A correction appends a revision and never overwrites the record, '
@@ -2326,8 +2326,8 @@ function tit_trust_panel_html(array $facts) {
                     . 'headcount is going, which is true of %s of the %s '
                     . 'updates in this view. A funding round with no hiring '
                     . 'plan and a chief executive succession are both real '
-                    . 'signals that state no direction, and guessing one from '
-                    . 'them would be our claim rather than the document\'s.',
+                    . 'signals that state no direction. Guessing a direction '
+                    . 'from them would be our claim rather than the document\'s.',
                     $n($unstated), $n($notable))),
         array('Why are some updates hidden by default?',
               sprintf('%s of the %s records we hold are routine officer and '
@@ -2338,19 +2338,20 @@ function tit_trust_panel_html(array $facts) {
                     . 'routine. Nothing is deleted.',
                     $n($routine), $n($total_all))),
         array('What do you know you are missing?',
-              'We measure it rather than assert it. Every week the collectors '
-              . 'are graded against a fixed set of real events assembled from '
-              . 'public sources without ever looking at our own database, and '
-              . 'the result is published including the countries and document '
+              'We measure it rather than assert it. Every week we grade the '
+              . 'collectors against a fixed set of real events, assembled from '
+              . 'public sources without ever looking at our own database. We '
+              . 'publish the result, including the countries and document '
               . 'types where we come off badly. The countries scoring zero are '
               . 'the roadmap.'),
         array('How much of this is automated?',
               'About 99%. Collection, classification, validation, deduplication '
-              . 'and publishing all run without a human. Repairing a scraper '
-              . 'when a site changes, judging whether a novel source is worth '
-              . 'reading, and assembling each new recall test set are human, '
-              . 'and the last of those is human by design: a test set built '
-              . 'out of what is easy to find measures memory rather than reach.'),
+              . 'and publishing all run without a human. Three things stay '
+              . 'human: repairing a scraper when a site changes, judging '
+              . 'whether a novel source is worth reading, and assembling each '
+              . 'new recall test set. The last of those is human by design, '
+              . 'because a test set built out of what is easy to find measures '
+              . 'memory rather than reach.'),
         array('Can I reuse the data?',
               sprintf('Yes, under CC BY 4.0, citing the Talent Intelligence '
                     . 'Tracker. The CSV and JSON links take the current view '
@@ -3034,7 +3035,7 @@ function tit_signal_trend_html(array $trend, $interactive = true) {
         <div class="tit-chart-note" id="<?php echo esc_attr($note_id); ?>">
           <p class="tit-sub">Not drawn for this view yet.<?php if ($worst >= $avg) : ?>
             The longest run of days holding nothing here is <?php echo (int) $worst; ?>,
-            longer than the <?php echo $avg; ?> days the average covers, so every line would
+            longer than the <?php echo $avg; ?> days the average covers. Every line would
             pass through a stretch that shows a gap in our collection rather than the market.
             <?php else : ?>
             We hold too few updates across the window to average them.
@@ -3144,8 +3145,8 @@ function tit_signal_trend_html(array $trend, $interactive = true) {
         ?>
         <p class="tit-trend-basis"><?php
           echo esc_html(tit_trend_collectors($s_first)); ?> stored updates for this view in the
-          first week of the window and the same number in the last, but not the same ones: at
-          least one stopped feeding this view and at least one started. Some of the movement
+          first week of the window and the same number in the last, but not the same ones. At
+          least one stopped feeding this view, and at least one started. Some of the movement
           here is a change in what we read rather than in the market.</p>
       <?php elseif ($s_first > 0 && $s_last > 0 && !$s_same) : ?>
         <?php
@@ -3167,8 +3168,8 @@ function tit_signal_trend_html(array $trend, $interactive = true) {
         <p class="tit-trend-basis">The same <?php
           echo esc_html(tit_trend_collectors($s_last)); ?> stored updates for this view in the
           first and the last week of this window, counted by when we wrote each update down.
-          That is a count of sources and not a measure of how much each one returns, so it
-          does not on its own make this movement a change in the market.</p>
+          That is a count of sources, not a measure of how much each one returns. On its own
+          it does not make this movement a change in the market.</p>
       <?php endif; ?>
       <?php if ($refused) : ?>
         <p class="tit-trend-refused"><?php
@@ -3508,11 +3509,11 @@ function tit_market_trend($table, $where = 'is_current = 1', array $params = arr
  * seen is not a basis statement. The place caveat learned this on 2026-08-03.
  */
 function tit_market_caveat(array $m) {
-    $fixed = ' Counted across the whole tracker; the filters on this page do not narrow this card.';
+    $fixed = ' Counted across the whole tracker. The filters on this page do not narrow this card.';
     if ($m['variant'] === 'counts') {
         return sprintf(
             'Counted only from the %d sources that were live for all %d weeks of this window '
-            . '(%s to %s), so a source switched on mid window cannot appear as a market move.',
+            . '(%s to %s). A source switched on mid window cannot appear as a market move.',
             (int) $m['panel_size'], (int) $m['weeks_total'], $m['start'], $m['end']) . $fixed;
     }
     $none = (int) $m['panel_size'] === 0;
@@ -3525,12 +3526,12 @@ function tit_market_caveat(array $m) {
     if ($m['variant'] === 'share') {
         return $lead . ', too few for an honest count trend, so this chart shows each '
              . 'week as SHARES of its own updates instead. A share survives changes in '
-             . 'how much we collect; a count from a growing set of sources would not.'
+             . 'how much we collect. A count from a growing set of sources would not.'
              . $fixed;
     }
     return $lead . sprintf(
-        ', and only %d of the %d weeks hold any updates at all, so no trend is drawn: '
-        . 'a line through that would show the shape of our collection, not the market.',
+        ', and only %d of the %d weeks hold any updates at all. We draw no trend, '
+        . 'because a line through that would show the shape of our collection, not the market.',
         (int) $m['with_data'], (int) $m['weeks_total']);
 }
 
@@ -4097,8 +4098,8 @@ function tit_money_coverage_sentence($coverage) {
                $all, 'tit'),
             number_format_i18n($with), number_format_i18n($all));
 
-    return $lead . '; amounts in other currencies are left out rather than'
-         . ' converted at a rate nobody published.';
+    return $lead . '. We leave out amounts in other currencies rather than'
+         . ' convert them at a rate nobody published.';
 }
 
 /**
@@ -4110,7 +4111,7 @@ function tit_money_coverage_sentence($coverage) {
  * differs per card: how many summable updates this dimension cannot place.
  */
 function tit_money_coverage_note(array $money, $dimension = '') {
-    $note = 'USD-stated amounts only; the About The Money Figures note above'
+    $note = 'USD-stated amounts only. The About The Money Figures note above'
           . ' says what share of funding updates that covers.';
     if (!is_array($money['coverage'] ?? null) || (int) ($money['coverage']['all'] ?? 0) === 0) {
         $note = tit_money_coverage_sentence($money['coverage'] ?? null);

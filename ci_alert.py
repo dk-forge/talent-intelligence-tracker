@@ -245,7 +245,7 @@ def fetch_failed_log(repo: str, run_id: str) -> str:
             capture_output=True, text=True, timeout=180,
         )
     except (OSError, subprocess.SubprocessError) as exc:
-        print(f"could not read the failed log ({exc}) — alerting without the cause line")
+        print(f"could not read the failed log ({exc}), alerting without the cause line")
         return ""
     if proc.returncode != 0:
         print(f"gh run view exited {proc.returncode}: {proc.stderr.strip()[:300]}")
@@ -261,7 +261,7 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
     dedupe_key = f"{scope}:{fingerprint}"
 
     headline = cause or "no error line could be extracted from the log"
-    subject = f"CI RED: {workflow} — {headline}"[:180]
+    subject = f"CI RED: {workflow}: {headline}"[:180]
 
     lines = [
         f"The workflow '{workflow}' failed on GitHub Actions and nothing else would "
@@ -283,7 +283,7 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
         lines.append("")
         lines.append(
             "No assertion or error line could be read out of this run's log (the log may "
-            "have expired, or the job died before producing one). Open the run URL — this "
+            "have expired, or the job died before producing one). Open the run URL. This "
             "email is telling you the truth it has, not guessing at one.")
     lines.append(
         "\nWhat to do: open a Claude Code session in the talent-intelligence-tracker repo "
@@ -293,7 +293,7 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
         '`.venv/bin/pytest -q`, find the root cause, and fix it."\n')
     lines.append(
         "You will get ONE more email about this workflow: a RECOVERED notice on its next "
-        "green run. Repeats of this same failure are suppressed deliberately — an alarm "
+        "green run. We suppress repeats of this same failure deliberately. An alarm "
         "that mails eight times in an afternoon is one you learn to filter, and a filtered "
         "alarm is how a wrong number stays live for hours.")
     return subject, "\n".join(lines), dedupe_key
@@ -327,7 +327,7 @@ def _post_once(site: str, key: str, payload: dict) -> tuple[bool, str, bool]:
             body = json.loads(resp.read().decode("utf-8", "replace") or "{}")
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
-            return False, ("the site has no /alert route yet — the plugin carrying it "
+            return False, ("the site has no /alert route yet: the plugin carrying it "
                            "has not been deployed (deploy-plugin.yml is manual here)"), False
         detail = exc.read().decode("utf-8", "replace")[:300] if exc.fp else ""
         return False, f"HTTP {exc.code} from /alert: {detail}", exc.code in _TRANSIENT_STATUS
@@ -359,7 +359,7 @@ def post_alert(site: str, key: str, payload: dict,
     for delay in _BACKOFF:
         if ok or not transient:
             break
-        print(f"  /alert did not answer ({note}) — retrying in {delay}s")
+        print(f"  /alert did not answer ({note}), retrying in {delay}s")
         sleep(delay)
         ok, note, transient = _post_once(site, key, payload)
     return ok, note, transient
@@ -461,7 +461,7 @@ def main(argv=None) -> int:
                 import writer_queue
                 open_problems = writer_queue.summary(writer_queue.load())["problems"]
             except Exception as exc:  # a broken import must not eat real recoveries
-                print(f"could not read the writer queue ({exc}) — "
+                print(f"could not read the writer queue ({exc}), "
                       "treating the green run as a real recovery")
                 open_problems = []
             if open_problems:
@@ -495,7 +495,7 @@ def main(argv=None) -> int:
         return 0
 
     if conclusion not in ALERTABLE:
-        print(f"conclusion '{conclusion}' is not alertable — nothing to do")
+        print(f"conclusion '{conclusion}' is not alertable, nothing to do")
         return 0
 
     cause, context = extract_cause(fetch_failed_log(args.repo, args.run_id))
@@ -517,7 +517,7 @@ def main(argv=None) -> int:
     if not (site and key):
         # Loud, and non-zero. A silent "no credentials so I did nothing" is the
         # same class of lie as a green drain tick that dispatched nothing.
-        print("::error::WP_SITE_URL / WP_API_KEY are not set — the CI alert was NOT sent.")
+        print("::error::WP_SITE_URL / WP_API_KEY are not set. The CI alert was NOT sent.")
         return 1
 
     payload = {"subject": subject, "body": body, "dedupe_key": dedupe_key}

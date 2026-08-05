@@ -1030,8 +1030,8 @@ function tit_place_city_note($kind, $cell, $facts) {
     $lead = $cross[0];
     $others = (int) $facts['records'] - (int) $lead['n'];
     $note = sprintf(
-        'Updates are grouped by the city name a source printed. %1$s of the %2$s'
-        . ' here are placed in %3$s.',
+        'Updates are grouped by the city name a source printed. We place %1$s of'
+        . ' the %2$s here in %3$s.',
         number_format_i18n((int) $lead['n']),
         number_format_i18n((int) $facts['records']),
         tit_place_the('country', $lead['name']) . $lead['name']
@@ -1411,14 +1411,14 @@ function tit_places_render() {
       <p class="tit-note">
         Counts on this page and on the pages it links to include every update we
         hold, routine officer filings included. The tracker itself sets those
-        aside in its default view, so its figure for the same place is lower, and
-        the control above its table says how many it is holding back.
+        aside in its default view, so its figure for the same place is lower.
+        The control above its table says how many it is holding back.
       </p>
       <div class="tit-callout">
-        <strong>Pages appear by themselves.</strong> This list is computed from
-        the database on every request, so a country crosses the bar and gets a
-        page without anybody publishing it, and loses it again if its records are
-        withdrawn. The
+        <strong>Pages appear by themselves.</strong> We compute this list from
+        the database on every request. So a country crosses the bar and gets a
+        page without anybody publishing it, and loses it again if we withdraw
+        its records. The
         <?php echo esc_html(number_format_i18n($below)); ?> below the bar are not
         hidden: each one is a click away on the tracker, filtered to it.
       </div>

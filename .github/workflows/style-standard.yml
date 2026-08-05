@@ -1,0 +1,102 @@
+name: Style standard
+
+# THE SECOND CHECK THAT CAN SEE BOTH REPOS. The first is card-contract.yml, and
+# this one works exactly the same way, for the same reason.
+#
+# The owner asked for ONE language standard across both dashboards: quality
+# daily newspaper, readable by a college-level reader on the first pass. A
+# standard that exists in two copies is two standards the moment somebody edits
+# one of them, and the edit that causes the drift is never announced.
+#
+# So docs/STYLE.md and the scorer that enforces it are BYTE-IDENTICAL in
+# dk-forge/ai-layoff-tracker and dk-forge/talent-intelligence-tracker. The
+# offline test in this repo (tests/test_style_standard.py) pins both
+# digests, so an ACCIDENTAL edit fails on every push without a network. What it
+# cannot do is notice that the SIBLING changed its copy: it has no network and
+# no view of the other repo. That is this job.
+#
+# NOTE THE PATHS DIFFER AND THE CONTENT DOES NOT. The talent tracker keeps its
+# Python at the repo root, the layoff tracker keeps it under railway/, so the
+# scorer lives at style_check.py here and railway/style_check.py there. Same
+# bytes, different address. Comparing content rather than location is what lets
+# each repo keep its own layout.
+#
+# WHAT RED MEANS HERE, in order of likelihood:
+#   1. Somebody changed the standard in one repo and has not copied it to the
+#      other yet. Finish the job: the change is not done until both copies
+#      match and both TECHLOGs record the new digests.
+#   2. The sibling has no copy yet (404). Expected only in the window between
+#      the two repos landing this for the first time.
+#   3. GitHub raw is unreachable. The job exits NON-ZERO for this too, on
+#      purpose: "I could not check" must never render as "the two agree".
+#
+# The schedule matters as much as the push trigger: a change made in the
+# SIBLING produces no event here, so without a daily tick this repo would keep
+# reporting green about a standard that no longer matches.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SIBLING: dk-forge/ai-layoff-tracker
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch the sibling's copy of the standard
+        run: |
+          set -euo pipefail
+          BASE="https://raw.githubusercontent.com/${SIBLING}/main"
+          # --fail-with-body so a 404 fails but still prints what came back,
+          # and a retry budget so one flaky second is not reported as
+          # disagreement. A network failure exits non-zero: could-not-check is
+          # never an all-clear.
+          curl -sS --fail-with-body --retry 3 --retry-delay 5 --max-time 30 \
+               -o sibling-STYLE.md "${BASE}/docs/STYLE.md"
+          curl -sS --fail-with-body --retry 3 --retry-delay 5 --max-time 30 \
+               -o sibling-style_check.py "${BASE}/railway/style_check.py"
+
+      - name: The standard must be byte-identical in both repos
+        run: |
+          set -euo pipefail
+          rc=0
+          compare() {
+            local mine="$1" theirs="$2" label="$3"
+            echo "== ${label}"
+            echo "   this repo : $(sha256sum "$mine"   | cut -d' ' -f1)"
+            echo "   sibling   : $(sha256sum "$theirs" | cut -d' ' -f1)"
+            if diff -u "$theirs" "$mine" > "style.diff"; then
+              echo "   identical."
+              return 0
+            fi
+            echo
+            echo "::error::${label} differs from ${SIBLING}."
+            echo "--- sibling  +++ this repo"
+            cat "style.diff"
+            echo
+            return 1
+          }
+
+          compare "docs/STYLE.md"          "sibling-STYLE.md"       "docs/STYLE.md"          || rc=1
+          compare "style_check.py"         "sibling-style_check.py" "style_check.py (scorer)" || rc=1
+
+          if [ "$rc" -ne 0 ]; then
+            echo "One language standard, held in two repos. Copy the newer file"
+            echo "across, update STYLE_MD_SHA256 and STYLE_CHECK_SHA256 in each"
+            echo "repo's test_style_standard.py, and record the digests in each"
+            echo "repo's docs/TECHLOG.md. Both repos stay red until they agree,"
+            echo "which is the point."
+            exit 1
+          fi
+          echo "The language standard is identical in both repos."

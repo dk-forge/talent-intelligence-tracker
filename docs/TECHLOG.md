@@ -13,6 +13,56 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-05 - one language standard across both trackers (1.74.0)
+
+The owner's brief: the language on both dashboards should read like the Los
+Angeles Times or the Boston Globe, understandable by a college-level reader.
+That is a real requirement, and prose requirements decay quietly. So the
+standard is written down once and a machine holds it.
+
+- **`docs/STYLE.md`** is the standard, BYTE-IDENTICAL in both repos, same
+  pattern as `docs/card-contract.json`. Register, sentence ceiling, the
+  plain-word table, the attribution rule, the standing bans, and a BEFORE and
+  AFTER table built from real strings on these pages.
+- **`style_check.py`** (`railway/style_check.py` here, `style_check.py` in the
+  sibling, same bytes) extracts only READER copy and scores it. Flesch-Kincaid
+  implemented directly with its own syllable counter: no dependency added,
+  because every install here is hash-pinned and the formula is arithmetic.
+- **It strips comments first, and that is the point.** Both codebases write
+  long rationale comments in the register of the copy, which quote display
+  strings verbatim INCLUDING REPLACED ONES. A scorer that read them would grade
+  the commentary, pass while the page was wrong, and fail after a correct fix.
+  The stripper is quote-aware and length-preserving, so line numbers survive
+  and a failure names the sentence, its file and its line.
+- **Thresholds are MEASURED, not chosen** (reading taken 2026-08-05, before any
+  rewrite): 30 words per body sentence, page mean grade 11.0, passive 25%.
+  Set at or slightly better than where the better pages already sat.
+- **Result.** Layoff mean grade 8.46 -> 7.01, talent 7.14 -> 6.54. Worst page
+  12.7 -> 8.1. Most passive page 38% -> 3%. 123 over-length sentences -> 0.
+  Roughly 174 reader strings rewritten across the two products. No number,
+  basis, caveat meaning or legal framing was changed.
+- **Three guard tests caught copy that other tests pin** (`kept out of search
+  results`, `counted as unrecorded, not assigned one`, `Metro widgets are
+  deliberately unavailable`). Those phrases were restored and the prose
+  rewritten around them. Run the full suite, not just the style check.
+- **A banned term inside quotation marks is exempt**, because we describe the
+  phrases we SEARCH for and `"workforce reduction"` is a real discovery term in
+  `source_registry.py`. Rewriting it out of that list would have made the page
+  describe a collector that does not exist.
+- **`canonical` does not mean "official"** here, it means the row we count in
+  its own right. The jargon list says so, because a list that suggests a wrong
+  synonym is worse than no list.
+
+Held by three things, same design as the card contract: this repo's offline
+test pins both digests; `docs/TECHLOG.md` records them, so a deliberate edit is
+visible; and `.github/workflows/style-standard.yml` fetches the sibling's
+copies daily and reddens while they differ.
+
+**docs/STYLE.md sha256:** `28975ec6e9e5d99e95c8fc775f8ab033d558454091e8b8c3a972d314ef238c85`
+**style_check.py sha256:** `a45b3347508d830d128042f524946755508b2e5fd56bf971905a9cf2930e68b9`
+
+---
+
 ## 2026-08-05 - INCIDENT: the spend degrade killed the press backfill chain
 
 **Symptom.** Run 30982514410 (`backfill-press-2026`, window 2026-01-01..06-30)
