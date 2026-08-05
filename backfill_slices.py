@@ -94,12 +94,20 @@ STATE_PATH = ROOT / "data" / "backfill_state.json"
 #: into the dispatch ORDER instead: `writer_queue.dispatch_key`.
 SLICE_BUDGET_MINUTES = 50
 
-#: What every sliced backfill workflow sets as `timeout-minutes`. Chosen to sit
-#: below `writer_queue.LONG_HOLD_MINUTES` (120), the point at which the drainer
+#: What every sliced backfill workflow sets as `timeout-minutes` (an upper
+#: bound: a workflow may set less). Chosen to sit below
+#: `writer_queue.LONG_HOLD_MINUTES` (120), the point at which the drainer
 #: reports the queue as starved: with this ceiling a sliced backfill can no
 #: longer be the thing that starves it, by construction rather than by hope.
 #: Asserted in tests/test_workflows.py.
-SLICE_TIMEOUT_MINUTES = 90
+#:
+#: 90 -> 110 on 2026-08-05, from measurement: the gdelt slices of 2026-08-03
+#: ran 58-66 minutes wall clock — SLICE_BUDGET_MINUTES (50) of walking plus
+#: up to ~16 minutes of checkout, install and a 69 MB database commit. 66 was
+#: already 73% of the old 90, i.e. the next self-timeout waiting, and a run
+#: cancelled at the ceiling loses its commit step. 50 + ~16 + headroom = 110,
+#: still strictly under LONG_HOLD_MINUTES, which remains the hard line.
+SLICE_TIMEOUT_MINUTES = 110
 
 #: A chain that never ends is worse than a job that runs too long, because
 #: nothing about it looks wrong. A year of GDELT at four days a slice is 92
