@@ -86,13 +86,6 @@ permissions:
 
 jobs:
   alert:
-    # NEVER listen to ourselves. workflows: ['*'] includes THIS workflow, so
-    # every alert run completing spawned another. On 2026-08-06 that loop, fed
-    # by runner starvation (jobs waiting 15 minutes with zero steps, then
-    # cancelled, and a cancellation is a completion), produced 37 emails in 40
-    # minutes across both repos. GitHub has no negation in workflows:, so the
-    # exclusion has to live here.
-    if: github.event.workflow_run.name != 'CI failure alert'
     # `cancelled` is deliberately not alertable, and here that is not a style
     # choice: this repo cancels runs BY DESIGN — the `talent-collect` lock
     # evicts a pending run when another is dispatched past it. Alerting on those
