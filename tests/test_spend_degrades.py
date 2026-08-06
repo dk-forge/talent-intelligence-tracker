@@ -233,9 +233,29 @@ def test_the_collect_jobs_degrade_rather_than_halt():
         assert "python spend.py --enforce" not in text, name
 
 
-def test_the_tripwire_still_hard_stops():
-    """There is no degraded mode for a job whose only action is a paid query."""
-    assert "python spend.py --enforce" in (WORKFLOWS / "tripwire.yml").read_text()
+def test_the_tripwire_gates_rather_than_hard_stopping():
+    """There is still no DEGRADED mode for a job whose only action is a paid
+    query — the run genuinely does nothing when the allowance is gone. What
+    changed on 2026-08-06 is the exit code, not the ceiling.
+
+    `--enforce` here exited 1 at $10.08 of $10, so the run went red, so the
+    writer ticket that dispatched it was filed `failed`, so drain-writers went
+    red as well: two failure emails for one correct budget stop. `--gate` exits
+    0, names the numbers in a `::notice::`, and answers `over` so the paid step
+    skips itself. The money saved is identical.
+
+    The full pinning — including that a genuine tripwire fault stays red, and
+    that no OTHER workflow reintroduces the shape — lives in
+    tests/test_budget_stop_is_not_a_failure.py.
+    """
+    text = (WORKFLOWS / "tripwire.yml").read_text()
+    body = "\n".join(line for line in text.splitlines()
+                     if not line.lstrip().startswith("#"))
+    assert "python spend.py --gate" in body
+    assert "--enforce" not in body
+    assert "python spend.py" in body, (
+        "the guard must still be asked before a query is bought; dropping the "
+        "step entirely would be the one thing worse than going red for it")
 
 
 def test_the_structured_collectors_were_never_gated_by_spend():

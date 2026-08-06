@@ -13,6 +13,107 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-06 - one budget event was producing two red workflows and two emails
+
+**The defect.** `tripwire` run 31088398613 exited non-zero on "ACTION NEEDED:
+this month's spend $10.08 is at or past 90% of the $10 allowance" — the spend
+guard binding exactly as designed. Its writer ticket
+`20260806T075314Z-tripwire` was then filed `state=failed`, so `drain-writers`
+reported "the writer queue has NEW items that need a human" and went red too
+(run 31088429711). The owner got a tripwire alert AND a drain-writers alert for
+one expected, recurring, correct budget stop, on a schedule that would meet the
+same closed gate every run for the rest of the month.
+
+This project settled the principle for the collectors and the backfills on
+2026-07-30 — a spend degrade is NOT a failure, `--degrade` exits 0, free work
+continues — and never extended it to two places: the tripwire's own exit code,
+and how a budget stop is recorded in the writer queue.
+
+**Half one: a budget stop is a DEFERRAL, not a failure.** New terminal ticket
+state `deferred` in `writer_queue.py`, meaning *not done, nothing broken, retry
+when the allowance allows*.
+
+- `summary()` excludes it from `problems`, which is the exact set drain-writers
+  reddens on, so a budget stop cannot make the drainer red.
+- It is excluded from RED, not from sight: `writer_queue.py status` lists it
+  with its reason and its deadline, `counts` counts it, and `ops_status [2b]`
+  prints it.
+- **A deferral is not a delete.** `deferral_expires_at()` is the start of the
+  month AFTER the deferral (which is when the allowance actually comes back,
+  since `spend.month_delta` measures calendar months) plus `DEFERRAL_GRACE_DAYS
+  = 5`. Past that the ticket becomes a genuine needs-a-human item. Five days
+  because the deferring job runs Monday and Thursday, so the widest gap between
+  two chances to resume is four; anything shorter would escalate a ticket that
+  is waiting exactly as designed. An open queue nobody drained was found in this
+  repo this week, so the deadline is computed from the calendar rather than left
+  to anyone's memory.
+- `superseded_by` is REUSED rather than duplicated: a later landed ticket of the
+  same chain means discovery resumed, so the old deferral does not escalate.
+- A ticket that carries no usable date is REPORTED, not forgiven. PASS / FAIL /
+  UNKNOWN are three states.
+
+**The channel.** The deferring run is the only thing that knows why it stopped,
+and it cannot write `data/writer_queue.json` — drain-writers pushes that file
+every tick and a second writer rebasing onto it is the lost-write shape this
+repo has paid for twice. So it writes ONE marker named after its own run id
+under `data/writer_deferrals/`. Unique filenames merge by existing, so the
+tripwire's reset-and-copy-back cannot destroy another run's marker the way it
+could destroy another run's rows. The next tick applies it, deletes it, and
+commits the deletion; an unclaimed marker is swept after 30 days, out loud.
+
+**Half two: the tripwire no longer goes red for stopping.** `spend.py --gate` is
+a third mode beside `--degrade` and `--enforce`: exit 0 either way, print the
+same report, emit a `::notice::` naming the spend and the allowance, and answer
+the workflow through `$GITHUB_OUTPUT` as `over=true|false` so the paid step
+skips itself. **Nothing about the ceiling moved** — same $10 allowance, same
+`STOP_AT_FRACTION = 0.9`, and a gated run spends exactly $0.
+
+A GENUINE tripwire fault stays loudly red, and that line is pinned: an
+unreachable model, a crash, a bad key or a silent zero is `run_tripwire.py`'s
+own non-zero exit, which the gate never touches.
+
+**The signal survives as one email.** The red run used to be what told the
+owner. Now that stopping is green, `ci_alert.py --notice-key` sends one alert on
+the same endpoint, the same server-side dedupe and the same held-not-lost outbox
+as every other alert, keyed `spend-ceiling:<YYYY-MM>` — one email per allowance
+month however many runs meet a closed gate.
+
+**The audit.** `tripwire.yml` was the ONLY workflow running `spend.py
+--enforce`; every other one already used `--degrade`.
+`test_no_workflow_is_hard_stopped_by_the_spend_guard` keeps it that way as a
+test rather than as a claim in a report. `collect.yml`'s header had said "spend.py
+runs first and exits 1 at 90%" since the 2026-07-30 change that stopped it doing
+that; corrected.
+
+**Reconciliation of what was stuck.**
+
+- `20260806T075314Z-tripwire` — re-filed by hand as `deferred`, exactly as the
+  new tick would file it, with the reason and the date the escalation clock runs
+  from. Its `red_marks` entry was pruned. `writer_queue.py status` now exits 0.
+- `20260805T134352Z-backfill-press-2026` — SUPERSEDED. Acknowledged 2026-08-05
+  with the root cause (a urllib3 `ReadTimeoutError` escaping `head_text`, fixed
+  on main at bc9c82c), and `superseded_by` resolves it to
+  `20260805T184300Z-backfill-press-2026`, which landed; the chain then ran on to
+  cursor 16 and finished. Both mechanisms already agree it needs nothing, so no
+  edit was made rather than adding a second marker saying the same thing.
+- `20260803T215353Z-backfill-gnews-2026` — **LEFT OPEN ON PURPOSE.** It is
+  acknowledged, so it does not redden CI, but the chain has no later ticket at
+  all: it is still stopped at 2026-07-13 against an end of 2026-07-26. The
+  blocker is stated on the ticket — the OpenRouter key hit its $20 credit cap at
+  $26.81 and every paid call has 402'd since 2026-08-03 — so the work is neither
+  done nor superseded and must not be resolved. It resumes after a top-up.
+
+**Tests.** `tests/test_budget_stop_is_not_a_failure.py`, 36 tests, every
+workflow assertion made against the file with comment lines STRIPPED so a `#`
+line quoting the old behaviour cannot satisfy a substring check. 30 of the 36
+were proven to fail on the pre-fix tree; the 6 that pass there are the
+deliberate guard-the-guard invariants (a `failed` ticket must still need a
+human, a genuine tripwire fault must still be red, the allowance must still be
+$10). `test_the_tripwire_still_hard_stops` pinned the defect and was replaced by
+`test_the_tripwire_gates_rather_than_hard_stopping`, which also fails pre-fix.
+
+---
+
 ## 2026-08-05 - one language standard across both trackers (1.74.0)
 
 The owner's brief: the language on both dashboards should read like the Los

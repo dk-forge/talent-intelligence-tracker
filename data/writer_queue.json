@@ -192,9 +192,6 @@
       "workflow": "collect"
     }
   ],
-  "red_marks": {
-    "ticket:20260806T075314Z-tripwire": "2026-08-06T09:17:09Z"
-  },
   "tickets": [
     {
       "attempts": 0,
@@ -2507,6 +2504,8 @@
     },
     {
       "attempts": 0,
+      "deferred_at": "2026-08-06T09:17:09Z",
+      "deferred_reason": "the monthly spend allowance was already exhausted ($10.08 of $10), so no query was bought",
       "dispatched_at": "2026-08-06T09:16:26Z",
       "history": [
         {
@@ -2528,6 +2527,11 @@
           "at": "2026-08-06T09:17:09Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-06T16:27:12Z",
+          "detail": "reclassified by hand: run 31088398613 went red only because spend.py --enforce exited 1 on the budget ceiling. No query was bought and nothing was broken, so this is a deferral, not a failure. The tripwire now gates instead of enforcing and records this itself.",
+          "event": "deferred"
         }
       ],
       "id": "20260806T075314Z-tripwire",
@@ -2539,7 +2543,7 @@
       "requested_at": "2026-08-06T07:53:14Z",
       "requested_by": "dakotta-labs",
       "run_id": "31088398613",
-      "state": "failed",
+      "state": "deferred",
       "workflow": "tripwire.yml"
     },
     {

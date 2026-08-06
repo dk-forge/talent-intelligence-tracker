@@ -172,7 +172,11 @@ jobs:
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
+          # `-A` on the deferral directory, because the tick DELETES the markers
+          # it has applied and a deletion that is never committed is a marker
+          # that re-applies on every tick forever.
           git add data/writer_queue.json
+          git add -A data/writer_deferrals 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Queue unchanged."
             exit 0
@@ -329,6 +333,20 @@ jobs:
 
       # Last, so the queue is always committed and the dispatch always
       # attempted before the run is allowed to go red.
+      #
+      # WHAT COUNTS AS "NEEDS A HUMAN" (2026-08-06). Exactly the set
+      # `writer_queue.summary()` puts in `problems`: unacknowledged failed and
+      # abandoned tickets whose chain did not recover on its own, tickets stuck
+      # past STUCK_AFTER_HOURS, a dispatch that produced no run twice, an
+      # unresolved orphan, the idle stall — and a `deferred` ticket ONLY once
+      # the allowance it was waiting on has reset and the grace has passed.
+      #
+      # `deferred` is deliberately NOT in that set the rest of the time. A run
+      # that stopped because the monthly spend allowance was exhausted did no
+      # work and broke nothing; filing it `failed` is what made one budget event
+      # produce two red workflows and two emails on 2026-08-06. The ticket stays
+      # visible in `writer_queue.py status` and in ops_status [2b] throughout —
+      # it is excluded from RED, not from sight.
       #
       # rc=2 means a NEW needs-human item (or one ignored for RE_RED_HOURS) —
       # red once per item, not once per tick. An item already reported on an

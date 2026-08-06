@@ -15,8 +15,11 @@ name: collect
 # with 6 placed and nothing deferred.
 #
 # To disarm: comment the two schedule lines out again. Nothing else changes.
-# Spend is capped independently — spend.py runs first and exits 1 at 90% of the
-# monthly allowance, and DEFAULT_CANDIDATE_CAP bounds each run at 40 candidates.
+# Spend is capped independently — spend.py runs first and DEGRADES at 90% of
+# the monthly allowance, switching paid reads off while the free collectors,
+# the prefilter and both dedup layers carry on; it does not halt the job. (This
+# line said "exits 1" for a week after the 2026-07-30 change that stopped it
+# doing that.) DEFAULT_CANDIDATE_CAP bounds each run at 40 candidates.
 on:
   schedule:
     - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC

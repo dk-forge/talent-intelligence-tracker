@@ -70,6 +70,12 @@ ROOT = Path(__file__).resolve().parent
 QUEUE_PATH = ROOT / "data" / "writer_queue.json"
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 
+#: Where a run that stopped on the SPEND ALLOWANCE leaves word for the drainer.
+#: One file per run id, so two runs can never conflict on a rebase — the whole
+#: reason this is a directory of small files rather than one JSON document that
+#: every deferring run would have to read, modify and push.
+DEFERRAL_DIR = ROOT / "data" / "writer_deferrals"
+
 #: The lock every database writer shares. Read from the workflows themselves so
 #: this cannot drift from what is actually deployed.
 LOCK_GROUP = "talent-collect"
@@ -135,7 +141,49 @@ BACKFILL_PRIORITY = 10
 #: it — but a fact that should be said out loud rather than discovered later.
 LONG_HOLD_MINUTES = 120
 
-TERMINAL_STATES = frozenset({"landed", "abandoned", "failed", "orphan"})
+TERMINAL_STATES = frozenset({"landed", "abandoned", "failed", "orphan", "deferred"})
+
+#: A BUDGET STOP IS NOT A FAILURE, AND IT IS NOT A LANDING EITHER.
+#:
+#: 2026-08-06T07:53Z: the tripwire ticket was dispatched, the month's spend was
+#: $10.08 against the $10 allowance, `spend.py --enforce` exited 1, the run went
+#: red — and the drainer, reading only "conclusion: failure", filed the ticket
+#: as `failed`. So ONE expected budget event produced TWO red workflows and two
+#: emails: the tripwire's own, and drain-writers reporting "NEW items that need
+#: a human" about a queue in which nothing was broken.
+#:
+#: This project settled the principle for the collectors and the backfills long
+#: ago — `spend.py --degrade` exits 0 and the free work carries on — and never
+#: extended it to the queue. `deferred` is that extension. It means: NOT DONE,
+#: NOTHING BROKEN, ask again when the allowance allows.
+#:
+#: It is terminal, so it never occupies the writer slot and never blocks the
+#: next recurring ticket. It is NOT silent: `status` lists it, `summary()`
+#: counts it, and `deferral_expires_at` turns it into a genuine needs-a-human
+#: item if the allowance resets and the work still never resumes. Deferred work
+#: nobody ever comes back to is its own failure mode — an open review queue
+#: nobody drained was found in this repo this week — so the deferral carries
+#: its own deadline rather than trusting anyone to remember.
+DEFERRED = "deferred"
+
+#: How long after the allowance resets a deferred ticket may still be deferred
+#: before it needs a person.
+#:
+#: The allowance is a CALENDAR MONTH (`spend.month_delta`), so the money comes
+#: back at 00:00Z on the 1st and not a moment sooner — a shorter fixed timer
+#: would escalate a ticket that is waiting exactly as designed. The grace on top
+#: is five days because the deferring job here runs Monday and Thursday
+#: (`schedule-link-hygiene.yml`, `0 7 * * 1,4`), so the widest gap between two
+#: chances to resume is four days. Five clears it with a day in hand: anything
+#: still deferred by then has missed a real opportunity, not just a weekend.
+DEFERRAL_GRACE_DAYS = 5
+
+#: A marker whose run nobody ever claimed is swept at this age. Long enough that
+#: it cannot race a drain tick (they arrive minutes apart), short enough that
+#: `data/writer_deferrals/` does not become a landfill. Swept markers are
+#: PRINTED when they go, because a file deleted in silence is how a deferral
+#: becomes the delete this state exists to prevent.
+DEFERRAL_MARKER_MAX_AGE_DAYS = 30
 
 
 # --------------------------------------------------------------------------
@@ -409,6 +457,97 @@ def save(queue: dict, path: Path | None = None) -> None:
 def _log(ticket: dict, event: str, detail: str = "") -> None:
     ticket.setdefault("history", []).append(
         {"at": _iso(_now()), "event": event, "detail": detail})
+
+
+# --------------------------------------------------------------------------
+# how a deferring run tells the drainer
+# --------------------------------------------------------------------------
+#
+# The run that hits the ceiling knows two things nobody else does: that it
+# stopped on the budget rather than on a fault, and its own run id. It cannot
+# write the queue file itself — drain-writers pushes that file every tick, and a
+# second writer rebasing onto it is exactly the lost-write shape this repo keeps
+# paying for. So it leaves ONE small file named after its run id. Unique names
+# never conflict on a rebase, the file is committed like any other evidence, and
+# the drainer consumes it on the next tick.
+
+
+def deferral_marker_path(run_id: str, directory: Path | None = None) -> Path:
+    """The marker file for this run id.
+
+    REFUSES anything that is not a bare run id rather than scrubbing it into
+    one. A run id is digits; scrubbing `../../etc/passwd` down to a legal name
+    would file the marker under a run that does not exist, which is a lost
+    deferral wearing the disguise of a successful write. The filename is also
+    the only thing separating two concurrent runs, so a mangled one could
+    collide with a real marker and overwrite it.
+    """
+    if not re.fullmatch(r"[0-9A-Za-z_-]+", str(run_id)):
+        raise ValueError(
+            f"{run_id!r} is not a usable run id: a marker filename must be a "
+            "bare run id, so nothing can be written outside the directory and "
+            "no two runs can be made to collide")
+    return (directory or DEFERRAL_DIR) / f"{run_id}.json"
+
+
+def write_deferral(run_id: str, reason: str, workflow: str = "",
+                   directory: Path | None = None,
+                   now: datetime | None = None) -> Path:
+    """Record that this RUN stopped on the allowance rather than on a fault."""
+    path = deferral_marker_path(run_id, directory)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "run_id": str(run_id),
+        "workflow": workflow,
+        "reason": reason,
+        "at": _iso(now or _now()),
+    }, indent=2, sort_keys=True) + "\n")
+    return path
+
+
+def load_deferrals(directory: Path | None = None) -> dict[str, dict]:
+    """run id -> marker. A marker we cannot parse is ignored, not fatal.
+
+    Failing open matters here: an unreadable marker must never stop the drainer
+    reconciling everything else, and the worst case of ignoring one is the old
+    behaviour (the ticket is filed by its run's conclusion).
+    """
+    target = directory or DEFERRAL_DIR
+    found: dict[str, dict] = {}
+    if not target.exists():
+        return found
+    for path in sorted(target.glob("*.json")):
+        try:
+            marker = json.loads(path.read_text())
+        except (OSError, ValueError):
+            continue
+        if isinstance(marker, dict):
+            marker.setdefault("run_id", path.stem)
+            marker["path"] = str(path)
+            found[str(marker["run_id"])] = marker
+    return found
+
+
+def deferral_expires_at(ticket: dict) -> datetime | None:
+    """When this deferred ticket stops being patience and starts being a stall.
+
+    The start of the month AFTER the one it was deferred in — which is when the
+    allowance the ticket is waiting on actually comes back — plus
+    DEFERRAL_GRACE_DAYS. Returns None for a ticket that is not deferred, or one
+    with no usable timestamp, because "I cannot tell" must never read as "it is
+    fine": an undateable deferral is reported by `summary()` on its own terms
+    rather than quietly given an infinite deadline.
+    """
+    if ticket.get("state") != DEFERRED:
+        return None
+    at = _parse(ticket.get("deferred_at")) or _parse(ticket.get("requested_at"))
+    if at is None:
+        return None
+    year, month = at.year, at.month + 1
+    if month > 12:
+        year, month = year + 1, 1
+    reset = datetime(year, month, 1, tzinfo=timezone.utc)
+    return reset + timedelta(days=DEFERRAL_GRACE_DAYS)
 
 
 def default_priority(workflow: str) -> int:
@@ -709,19 +848,22 @@ def _matches(ticket: dict, run: dict, members: dict[str, str]) -> bool:
 # --------------------------------------------------------------------------
 
 def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
-         now: datetime | None = None) -> dict:
+         now: datetime | None = None,
+         deferrals: dict[str, dict] | None = None) -> dict:
     """Reconcile the queue against reality, then decide what to dispatch.
 
-    Pure: takes the run list, returns a plan. Everything that touches the
-    network lives in the CLI below, so all of this is testable offline.
+    Pure: takes the run list (and any budget-deferral markers), returns a plan.
+    Everything that touches the network or the filesystem lives in the CLI
+    below, so all of this is testable offline.
     """
     known = members if members is not None else lock_group_workflows()
     moment = now or _now()
     by_id = {str(run.get("databaseId") or run.get("id")): run for run in runs}
+    markers = deferrals or {}
 
     report: dict = {"landed": [], "displaced": [], "failed": [],
                     "abandoned": [], "orphans": [], "schedule_orphans": [],
-                    "stuck": [], "unbound": [],
+                    "stuck": [], "unbound": [], "deferred": [],
                     "dispatch": None, "busy": None}
 
     tickets = queue.setdefault("tickets", [])
@@ -775,7 +917,21 @@ def tick(queue: dict, runs: list[dict], members: dict[str, str] | None = None,
         if not run or run.get("status") != "completed":
             continue
         conclusion = run.get("conclusion")
-        if conclusion == "success":
+        marker = markers.get(str(ticket.get("run_id") or ""))
+        if marker is not None:
+            # The run left word that it stopped on the spend allowance. That is
+            # neither a landing (the work was not done) nor a failure (nothing
+            # is broken), and calling it either is how one budget event became
+            # two red workflows. Believed WHATEVER the conclusion says: a run
+            # that both deferred and then fell over still deferred, and the
+            # crash is the tripwire's own red run to report, not the queue's.
+            ticket["state"] = DEFERRED
+            ticket["deferred_at"] = _iso(moment)
+            ticket["deferred_reason"] = str(marker.get("reason") or "")
+            _log(ticket, "deferred", ticket["deferred_reason"])
+            report["deferred"].append(ticket)
+            report.setdefault("consumed_markers", []).append(marker)
+        elif conclusion == "success":
             ticket["state"] = "landed"
             ticket["landed_at"] = _iso(moment)
             _log(ticket, "landed", f"run {ticket['run_id']}")
@@ -1012,14 +1168,39 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
             # stops being a reason to go red, because a job that is red forever
             # is a job nobody reads.
             continue
-        if ticket["state"] in ("failed", "abandoned"):
+        if ticket["state"] in ("failed", "abandoned", DEFERRED):
             later = superseded_by(queue, ticket)
             if later:
                 # The chain recovered without us. Recorded, not red.
+                verb = "deferred" if ticket["state"] == DEFERRED else "failed"
                 recovered.append(
-                    f"{ticket['workflow']} failed at {ticket['id']} and the "
+                    f"{ticket['workflow']} {verb} at {ticket['id']} and the "
                     f"chain landed anyway at {later}; no action needed")
                 continue
+        if ticket["state"] == DEFERRED:
+            # THE ONE STATE THAT IS NOT A PROBLEM. A budget stop is the spend
+            # guard working exactly as the owner set it, so it must not redden
+            # drain-writers — that was the whole 2026-08-06 defect. It becomes a
+            # problem only if the allowance has since come back and the work
+            # still never resumed, which is the deferral quietly turning into a
+            # delete. Nothing here can be satisfied by waiting: the deadline is
+            # computed from the calendar, not from a flag anyone can clear.
+            expires = deferral_expires_at(ticket)
+            if expires is None:
+                keyed.append((f"deferred:{ticket['id']}",
+                    f"{ticket['workflow']} is deferred ({ticket['id']}) and "
+                    "carries no usable date, so nothing can tell whether it is "
+                    "waiting or lost. Re-queue it or resolve it by hand"))
+            elif moment >= expires:
+                keyed.append((f"deferred:{ticket['id']}",
+                    f"{ticket['workflow']} deferred on the spend allowance "
+                    f"({ticket['id']}) and is STILL not done — the allowance "
+                    f"reset on {expires.strftime('%Y-%m-01')} and "
+                    f"{DEFERRAL_GRACE_DAYS} days of grace have passed since. "
+                    f"Reason given: {ticket.get('deferred_reason') or '(none)'}. "
+                    "Re-queue the work, or resolve the ticket if it is no "
+                    "longer wanted"))
+            continue
         if ticket["state"] == "failed":
             keyed.append((f"ticket:{ticket['id']}",
                 f"{ticket['workflow']} FAILED ({ticket['id']}) — it will not be "
@@ -1061,9 +1242,25 @@ def summary(queue: dict | None = None, now: datetime | None = None) -> dict:
                 f"{orphan['workflow']} run {orphan['run_id']} was displaced and "
                 "was NOT queued, so its inputs are unknown — re-dispatch it by hand"))
 
+    # Listed explicitly, not just counted. A deferral that only ever showed up
+    # as a number in `counts` would be work nobody can see they are missing —
+    # which is the failure mode the escalation above exists to catch, so the
+    # least this can do is put the ticket, the reason and the deadline in front
+    # of whoever runs `status`.
+    deferred = [
+        {"id": t["id"], "workflow": t["workflow"],
+         "reason": t.get("deferred_reason") or "",
+         "deferred_at": t.get("deferred_at"),
+         "needs_a_human_after": (
+             _iso(deferral_expires_at(t)) if deferral_expires_at(t) else None),
+         "acknowledged": t.get("acknowledged")}
+        for t in tickets if t["state"] == DEFERRED
+    ]
+
     return {
         "counts": counts,
         "waiting": waiting,
+        "deferred": deferred,
         "orphans": [o for o in data.get("orphans", []) if not o.get("resolved")],
         "last_tick": data.get("last_tick"),
         "last_dispatch": data.get("last_dispatch"),
@@ -1194,10 +1391,35 @@ def _cmd_tick(args) -> int:
     before = json.dumps(copy.deepcopy(queue), indent=2, sort_keys=True)
     prior_tick = queue.get("last_tick")
     runs = json.loads(Path(args.runs).read_text()) if args.runs else []
-    report = tick(queue, runs)
+    marker_dir = Path(args.deferrals) if args.deferrals else DEFERRAL_DIR
+    report = tick(queue, runs, deferrals=load_deferrals(marker_dir))
+
+    # A consumed marker is DELETED, and the deletion is committed with the
+    # queue: leaving it would re-apply on every tick forever, and the directory
+    # is evidence, not state. The ticket keeps the reason in its own history, so
+    # nothing is lost with the file.
+    for marker in report.get("consumed_markers", []):
+        if marker.get("path"):
+            Path(marker["path"]).unlink(missing_ok=True)
+    for marker in load_deferrals(marker_dir).values():
+        at = _parse(marker.get("at"))
+        if at and (_now() - at) > timedelta(days=DEFERRAL_MARKER_MAX_AGE_DAYS):
+            print(f"::warning::sweeping the budget-deferral marker for run "
+                  f"{marker['run_id']}: it is over "
+                  f"{DEFERRAL_MARKER_MAX_AGE_DAYS} days old and no ticket ever "
+                  "claimed it, so the run it describes was dispatched directly "
+                  "rather than queued. Nothing in the queue was waiting on it.")
+            Path(marker["path"]).unlink(missing_ok=True)
 
     for ticket in report["landed"]:
         print(f"landed    {ticket['id']}")
+    for ticket in report.get("deferred", []):
+        print(f"::notice::{ticket['workflow']} ({ticket['id']}) DEFERRED: "
+              f"{ticket.get('deferred_reason')}. The work was not done and "
+              "nothing is broken — this is the spend guard binding as the "
+              "owner set it, so the tick stays green. It is listed in "
+              "`writer_queue.py status` and needs a human after "
+              f"{_iso(deferral_expires_at(ticket)) if deferral_expires_at(ticket) else 'an undeterminable date'}.")
     for ticket in report.get("unbound", []):
         print(f"::warning::{ticket['workflow']} ({ticket['id']}) was marked "
               f"dispatched {UNBOUND_AFTER_MINUTES}+ minutes ago and NO RUN ever "
@@ -1311,6 +1533,25 @@ def _cmd_tick(args) -> int:
     if muted:
         print(f"\n{len(muted)} known item(s) still waiting on a human "
               "(already reported; not reddening this tick).")
+    return 0
+
+
+def _cmd_mark_deferred(args) -> int:
+    """Leave word that THIS run stopped on the spend allowance.
+
+    Called by the run itself, not by the drainer, because the run is the only
+    thing that knows why it stopped. It deliberately does NOT touch
+    data/writer_queue.json: drain-writers pushes that file every tick, and a
+    second writer rebasing onto it is the lost-write shape this repo has already
+    paid for twice. One file, named after the run id, merges by existing.
+    """
+    path = write_deferral(args.run_id, args.reason, args.workflow,
+                          Path(args.dir) if args.dir else None)
+    print(f"recorded a budget deferral for run {args.run_id} in "
+          f"{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}: "
+          f"{args.reason}")
+    print("The next drain tick files the matching ticket as `deferred` — not "
+          "done, nothing broken — instead of `failed`.")
     return 0
 
 
@@ -1458,7 +1699,7 @@ def _cmd_resolve(args) -> int:
     # reintroduced by the escape hatch itself (2026-08-01).
     tickets = [t for t in queue.get("tickets", [])
                if (target == "all" or t["id"] == target)
-               and t["state"] in ("failed", "abandoned")
+               and t["state"] in ("failed", "abandoned", DEFERRED)
                and not t.get("acknowledged")]
     for ticket in tickets:
         ticket["acknowledged"] = _iso(_now())
@@ -1499,7 +1740,19 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--runs", help="JSON file of recent runs from the API")
     run.add_argument("--emit", help="write the dispatch plan here")
     run.add_argument("--ref", default="main")
+    run.add_argument("--deferrals",
+                     help="directory of budget-deferral markers "
+                          "(default data/writer_deferrals)")
     run.set_defaults(func=_cmd_tick)
+
+    held = sub.add_parser(
+        "mark-deferred",
+        help="this run stopped on the spend allowance, not on a fault")
+    held.add_argument("--run-id", required=True)
+    held.add_argument("--reason", required=True)
+    held.add_argument("--workflow", default="")
+    held.add_argument("--dir", help="marker directory (tests only)")
+    held.set_defaults(func=_cmd_mark_deferred)
 
     back = sub.add_parser("requeue", help="put a dispatched ticket back in the line")
     back.add_argument("ticket")

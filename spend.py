@@ -8,6 +8,7 @@ something the pipeline cannot exceed.
 
     python spend.py             # report
     python spend.py --degrade   # exit 0, but switch PAID reads off when over
+    python spend.py --gate      # exit 0, and tell the workflow whether it is over
     python spend.py --enforce   # exit 1 if over the monthly allowance
 
 THE CEILING DEGRADES, IT DOES NOT HALT (2026-07-30)
@@ -28,9 +29,28 @@ every candidate that would have cost money defers UNMARKED — so it is read nex
 month rather than lost. The run keeps its free rows and says plainly, in the
 step log and in the health ledger, that it is running degraded.
 
-`--enforce` is kept for a human asking "should I be spending right now" and for
-`tripwire.yml`, whose entire purpose is a paid query: there is no degraded mode
-for a job that does nothing else.
+`--enforce` is kept for a human asking "should I be spending right now" from a
+shell, where a non-zero exit is the answer and nothing downstream reads it.
+
+AND A CEILING THAT BINDS IS NOT A DEFECT (2026-08-06)
+----------------------------------------------------
+`tripwire.yml` ran `--enforce`, because a job whose only action is a paid query
+has no degraded mode. True, and beside the point: the QUESTION had no degraded
+answer, but the EXIT CODE still turned a correct, expected, recurring budget
+stop into a red workflow. On 2026-08-06 the month stood at $10.08 of $10, the
+tripwire went red, its queue ticket was filed as `failed`, drain-writers then
+reported "NEW items that need a human" — and the owner got two failure emails
+for one event that was the budget working.
+
+So the tripwire asks with `--gate`: exit 0 either way, print the same report,
+emit a `::notice::` naming the spend and the allowance when the ceiling binds,
+and answer the workflow through `$GITHUB_OUTPUT` as `over=true|false` so the
+steps that would spend can skip themselves. Nothing about the ceiling moves:
+the allowance is the same $10, STOP_AT_FRACTION is the same 0.9, and a gated
+run spends exactly $0. What changes is that stopping is reported as stopping
+rather than as breakage. A real tripwire fault — an unreachable model, a crash,
+a bad key — is still loudly red, because that is `run_tripwire.py`'s own exit
+code and this flag never touches it.
 """
 
 from __future__ import annotations
@@ -170,6 +190,41 @@ def degrade(over: bool) -> None:
               "as normal, and the key's hard cap is the remaining backstop")
 
 
+def gate(over: bool, spent: float) -> None:
+    """Answer the WORKFLOW, without failing it.
+
+    Writes `over=true|false` to `$GITHUB_OUTPUT` so a later step can skip the
+    part that would spend, and emits the `::notice::` that names the numbers. A
+    notice and not a warning or an error: nothing here is wrong, and this repo
+    has already learned what happens to a channel that shouts about correct
+    behaviour — it gets filtered, and the next real breakage goes unread.
+    """
+    if over:
+        print(f"\n::notice::Spend gate CLOSED: ${spent:,.2f} spent this month is "
+              f"at or past {int(STOP_AT_FRACTION * 100)}% of the "
+              f"${MONTHLY_ALLOWANCE_USD:,.2f} monthly allowance, so this run "
+              "will not buy anything. This is the ceiling working, not a "
+              "failure. The allowance resets at the start of next month.")
+    else:
+        print(f"\n  Spend gate OPEN: ${spent:,.2f} of "
+              f"${MONTHLY_ALLOWANCE_USD:,.2f} used this month.")
+
+    output = os.environ.get("GITHUB_OUTPUT")
+    if not output:
+        return
+    try:
+        with open(output, "a") as fh:
+            fh.write(f"over={'true' if over else 'false'}\n")
+    except OSError as exc:
+        # Loud, and still exit 0 — but say plainly which way this fails. With
+        # no output the caller's `if:` sees an empty string, which is not
+        # 'true', so the paid step RUNS. That is the same safe direction
+        # `degrade` fails in: the key's own hard cap is still underneath.
+        print(f"  COULD NOT WRITE THE GATE OUTPUT: {exc} — the caller will "
+              "read no answer and proceed as if inside the allowance; the "
+              "key's hard cap is the remaining backstop")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Report and enforce LLM spend.")
     parser.add_argument("--enforce", action="store_true",
@@ -177,6 +232,11 @@ def main() -> int:
     parser.add_argument("--degrade", action="store_true",
                         help="always exit 0; switch paid reads off when over the "
                              "allowance, leaving the free collectors running")
+    parser.add_argument("--gate", action="store_true",
+                        help="always exit 0; report whether the allowance is "
+                             "exhausted as the step output `over`, for a job "
+                             "that has no degraded mode and must not go red "
+                             "for stopping")
     args = parser.parse_args()
 
     d = fetch()
@@ -224,9 +284,13 @@ def main() -> int:
 
     # Degradation first: when both flags are given, the softer one wins, so a
     # workflow that gains --degrade without losing --enforce cannot go red by
-    # accident.
+    # accident. --gate is softer still, and sits alongside for the same reason.
     if args.degrade:
         degrade(over)
+        return 0
+
+    if args.gate:
+        gate(over, spent_this_month)
         return 0
 
     # Enforcement is deliberately a hard stop, not a warning. A budget that only

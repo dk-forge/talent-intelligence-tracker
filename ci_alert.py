@@ -144,6 +144,11 @@ _NORMALISE = (
 #: what must never accept a key it can do nothing with but retry forever.
 from alert_outbox import KEY_SAFE  # noqa: E402,F401  stdlib-only, no cycle
 
+#: The module itself, for `deliverable_key` on the notice path below. Same
+#: import, same no-cycle guarantee; named separately so the `#:` above stays
+#: attached to the constant it documents.
+import alert_outbox  # noqa: E402
+
 
 def slug(text: str, limit: int = 48) -> str:
     """A stable, key-safe scope fragment. Two different workflows must never
@@ -424,11 +429,59 @@ def hold(*, envelope: str, key: str, kind: str, scope: str, payload: dict,
     return 0
 
 
+def notice(*, subject: str, body: str, dedupe_key: str, run_url: str,
+           envelope: str, dry_run: bool) -> int:
+    """Mail one thing that is TRUE but not a failure, on the same rails.
+
+    The tripwire's budget stop is the case this exists for. Once the ceiling
+    binding stopped being a red run (see spend.py `--gate`), the run-completed
+    alert path stopped firing for it — and "the owner separately needs to know
+    spend is AT the cap" is a real requirement, not a side effect of the red. So
+    the signal survives, as ONE email, through the same endpoint, the same
+    server-side dedupe and the same held-not-lost outbox as every other alert.
+
+    Deduped on the caller's key rather than on an extracted log line, because
+    the caller knows what one event is. `spend-ceiling:2026-08` is one email per
+    allowance month however many runs meet the closed gate.
+    """
+    key = alert_outbox.deliverable_key(dedupe_key)
+    site = os.environ.get("WP_SITE_URL", "").rstrip("/")
+    api_key = os.environ.get("WP_API_KEY", "")
+    payload = {"subject": subject, "body": body, "dedupe_key": key}
+
+    print(f"dedupe_key: {key}")
+    if dry_run:
+        print("--- subject ---")
+        print(subject)
+        print("--- body ---")
+        print(body)
+        return 0
+    if not (site and api_key):
+        print("::error::WP_SITE_URL / WP_API_KEY are not set. The notice was NOT sent.")
+        return 1
+
+    ok, note, transient = post_alert(site, api_key, payload)
+    print(f"notice {key}: {note}")
+    if not ok:
+        return hold(envelope=envelope, key=key, kind="alert", scope=key,
+                    payload=payload, note=note, transient=transient,
+                    run_url=run_url)
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="CI failure -> the owner's inbox")
-    ap.add_argument("--run-id", required=True)
-    ap.add_argument("--workflow", required=True)
-    ap.add_argument("--conclusion", required=True)
+    ap.add_argument("--run-id")
+    ap.add_argument("--workflow")
+    ap.add_argument("--conclusion")
+    # The notice path: not a run conclusion at all, so it takes none of the
+    # three above. Kept in this file rather than a new one because it must use
+    # THIS module's post/retry/hold, and a second copy of that logic is a second
+    # thing to forget to fix.
+    ap.add_argument("--notice-key",
+                    help="send one deduped non-failure alert with this key")
+    ap.add_argument("--notice-subject", default="")
+    ap.add_argument("--notice-body", default="")
     ap.add_argument("--branch", default="main")
     ap.add_argument("--event", default="unknown")
     ap.add_argument("--run-url", default="")
@@ -440,6 +493,18 @@ def main(argv=None) -> int:
                     help="where to park an undeliverable alert for the workflow "
                          "to commit into data/alert_outbox.json")
     args = ap.parse_args(argv)
+
+    if args.notice_key:
+        return notice(subject=args.notice_subject, body=args.notice_body,
+                      dedupe_key=args.notice_key, run_url=args.run_url,
+                      envelope=args.envelope, dry_run=args.dry_run)
+
+    missing = [name for name, value in (("--run-id", args.run_id),
+                                        ("--workflow", args.workflow),
+                                        ("--conclusion", args.conclusion))
+               if not value]
+    if missing:
+        ap.error(f"{', '.join(missing)} are required unless --notice-key is given")
 
     conclusion = (args.conclusion or "").lower()
     scope = f"{slug(args.workflow)}:{slug(args.branch, 32)}"

@@ -657,6 +657,17 @@ def _report_writer_queue() -> list[str]:
             print(f"                dispatched {ticket['unbound_count']}x with NO "
                   f"RUN produced — the dispatch is failing, not the work")
 
+    # Deferred work is listed even though it is green. A budget stop does no
+    # work and breaks nothing, so it must not redden the drainer — but it is
+    # still work that has not happened, and a state visible only as a number in
+    # `counts` is the shape of a queue nobody drains. Each one names its own
+    # deadline, so a session can see whether it is still waiting or overdue.
+    for held in state.get("deferred", []):
+        if held.get("acknowledged"):
+            continue
+        print(f"    DEFERRED    {held['workflow']:<26} {held['reason'][:60]}")
+        print(f"                needs a human after {held['needs_a_human_after']}")
+
     for orphan in state["orphans"]:
         print(f"    ORPHAN      {orphan['workflow']} run {orphan['run_id']} "
               f"(created {orphan.get('created_at')})")
