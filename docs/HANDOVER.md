@@ -2,6 +2,92 @@
 
 ---
 
+## 2026-08-07: budget stop. Read this before spending anything.
+
+**No code changed in this repo this session.** The session's work was in the
+sibling layoff tracker; this entry exists so the state here is readable cold,
+because the owner is out of budget and this was the last dispatch.
+
+### The one thing that will stop you
+
+**The OpenRouter key is exhausted.** Verified in the `collect.yml` run of
+2026-08-07T00:09Z, not assumed:
+
+```
+ACTION NEEDED: key limit reached: collection will fail with 402
+ACTION NEEDED: this month's spend $10.08 is at or past 90% of the $10 allowance
+DEGRADED: paid reads are OFF for the rest of this job.
+```
+
+**This is the guard working, not a breakage.** `spend.py --degrade` set
+`TIT_PAID_READS=off`, the job exited 0, and free collection kept running: the
+deterministic extractors, the structured SEC and registry collectors, dedup and
+the gate all continue. Paid candidates defer UNMARKED and return on a later
+run, so this costs depth, never coverage. **Do not raise the allowance, do not
+disarm the guard, and do not "fix" the degraded lines on the dashboard.** The
+only real fix is owner-side: top up the key or wait for the month to roll.
+
+Until then, treat any paid measurement as unavailable. A number you cannot buy
+is UNKNOWN, and UNKNOWN is not a pass.
+
+### The measured cost floor, both trackers
+
+From a cost ratio of **0.389**, measured twice on independent token mixes
+(`google/gemini-2.5-flash-lite` against the incumbent `deepseek/deepseek-chat`):
+
+| scenario | cost floor per tracker at FULL coverage |
+|---|---|
+| today | (the incumbent, above the $10 allowance in bursts) |
+| with the model swap | **$7.78 to $13.62 / month** |
+| with batch on top | **$3.89 to $6.81 / month** |
+
+**Batch is a SECOND halving that only unlocks AFTER the swap.** OpenRouter's
+batch pricing is confirmed real at 50% off, but the `:batch` slugs exist **only
+for Gemini, not for DeepSeek**. So while the incumbent is a DeepSeek model,
+batch is not purchasable at any price. Flipping to flash-lite is what makes the
+second halving available. **Do not build the batch path yet** — it was
+deliberately left unbuilt, and it is worth nothing until the swap ships.
+
+Note this repo already runs `google/gemini-2.5-flash-lite` as the GATE and
+`deepseek/deepseek-chat` as the read-through, so the swap here is about the
+read-through only. Last 7 days measured: $1.4524 over 16 runs, 948 reads to 391
+rows (41%), **$0.00343 per stored row**, projecting $6.22/30d against the $10
+allowance.
+
+### Still open
+
+1. **The money classification sweep over ALREADY-PUBLISHED rows.** Unchanged
+   and still the top item. The quarantine drain only covered rows above the
+   ~$6.5bn outlier ceiling, and none of the four error classes (currency
+   mis-scale, AUM, fund closes, IPOs) are size-dependent, so the same mistakes
+   almost certainly sit below that line in volume. `guardrails.NOT_A_COMPANY_ROUND`
+   vetoes them going FORWARD; nothing has swept BACKWARD.
+2. **Do not quote $493.3bn or $214.9bn.** Still unreproduced. The live API
+   returns $457.1B. Stamp the query the publish run uses and read the total from
+   the endpoint before publishing it. An agent's reported total is a claim, not
+   a measurement.
+3. **The 11 slugs claimed by two employers** (`ops_status.py` section 1c).
+   Blocked on the slug by design; several are two genuinely different employers
+   and must NOT be merged.
+
+### Owner-only (a session cannot do these)
+
+- **The ChangXin Memory $8.6bn IPO retract.** Needs a credentialed `retract.py`.
+  It must NOT be done as a local-only retraction: that removes the row from our
+  copy while leaving it live on the site, and kills every surface that would
+  otherwise keep nagging about it. Unchanged from the 2026-08-04 entry.
+- **Topping up the OpenRouter key** (above).
+
+### The lesson to carry, in one line
+
+Roughly a dozen defects across both trackers this week were one species: a
+mechanism reporting health while doing nothing, so the search is **"what would
+never tell us if it broke"** — and the answer comes from running the thing
+live, never from a green fixture.
+
+---
+---
+
 ## 2026-08-05: recall copy fixed, dashboard trend is now a market claim (1.72.0, pushed, NOT deployed)
 
 Three owner-driven changes, full detail and guards in the TECHLOG entry of the
