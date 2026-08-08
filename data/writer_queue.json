@@ -195,75 +195,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-08T17:24:28Z",
-      "history": [
-        {
-          "at": "2026-08-08T16:56:22Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-08T17:24:28Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260808T165622Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-08T16:56:22Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T21:19:48Z",
-      "history": [
-        {
-          "at": "2026-08-03T21:19:17Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-10)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T21:19:48Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T21:25:40Z",
-          "detail": "run 30854165154",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-03T21:25:40Z",
-          "detail": "run 30854165154",
-          "event": "landed"
-        }
-      ],
-      "id": "20260803T211917Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-03T21:25:40Z",
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-10)",
-      "requested_at": "2026-08-03T21:19:17Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30854165154",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-03T21:42:21Z",
       "history": [
         {
@@ -2650,6 +2581,44 @@
       "run_id": "31253642889",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-08T17:24:28Z",
+      "history": [
+        {
+          "at": "2026-08-08T16:56:22Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-08T17:24:28Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-08T17:51:14Z",
+          "detail": "run 31269342792",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-08T17:51:14Z",
+          "detail": "run 31269342792",
+          "event": "landed"
+        }
+      ],
+      "id": "20260808T165622Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-08T17:51:14Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-08T16:56:22Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31269342792",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
