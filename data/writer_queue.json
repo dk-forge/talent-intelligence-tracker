@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-08T09:21:01Z",
-  "last_tick": "2026-08-08T09:21:01Z",
+  "last_dispatch": "2026-08-08T10:50:03Z",
+  "last_tick": "2026-08-08T10:50:03Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -195,12 +195,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-08T10:50:03Z",
       "history": [
         {
           "at": "2026-08-08T10:05:42Z",
           "detail": "scheduled link hygiene (40 9 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-08T10:50:03Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260808T100542Z-enrich",
@@ -212,7 +217,7 @@
       "requested_at": "2026-08-08T10:05:42Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
     },
     {
