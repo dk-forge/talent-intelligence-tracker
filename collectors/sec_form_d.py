@@ -115,6 +115,113 @@ EXCLUDED_NAME_PATTERNS = re.compile(
 # floor (shell companies, single-property real estate LPs) is high.
 MIN_RAISED = 1_000_000
 
+
+# --- Is the amount sold money raised, on the date we are dating it to? ------
+#
+# Everything above asks WHO filed. These three ask WHAT THE FIGURE IS, and a
+# real operating company clears every issuer filter and still reports a number
+# that is not a dated capital raise. All three shipped, and the first two were
+# withdrawn by hand on 2026-07-29 before this function existed: Dillard's
+# $2.39bn (shares issued as merger consideration) and OPTCAPITAL $1.77bn (the
+# fourteenth annual amendment to an offering whose first sale was 2012).
+#
+# Measured on 2026-07-29 against the published corpus (2,998 Form D bulk rows,
+# $87.09bn), each rule counting only what the ones above it left:
+#
+#     business combination    176 rows   $ 8.53bn
+#     amendment               539 rows   $14.75bn
+#     continuous offering      29 rows   $ 0.27bn
+#                             ---------------------
+#                             744 rows   $23.55bn   (24.8% of rows, 27% of $)
+
+#: 1. The issuer has ticked "business combination transaction" itself: the
+#:    securities are merger, acquisition or exchange consideration, so the
+#:    "amount sold" is the value of stock handed to the target's holders and no
+#:    cash reached the company. Snowflake/Observe, Marvell/XConn, Roblox/
+#:    Morpheus, AeroVironment/Empirical, Radian/Inigo, Tencent Music/Ximalaya
+#:    were all live on the site as raises.
+#:
+#:    Deliberately NOT gated on the clarification text, even though the text is
+#:    where the reader can see it. 115 of the 176 published rows leave that box
+#:    EMPTY, so a text rule decides a third of the class and readmits whichever
+#:    filers happened to write prose we could match. Of those that do write
+#:    something, the largest are MIXED — Onebrief $359M and CesiumAstro $271M
+#:    both say part-cash-part-consideration in one sentence, HawkEye 360 says
+#:    "$25M of the shares", ChartSpan says "includes shares issued pursuant to a
+#:    merger as well as shares sold to investors" — and no column splits one
+#:    figure into its two halves. Keeping those publishes an overstated raise,
+#:    which is the exact failure this rule exists for.
+#:
+#:    The cost is known and paid on purpose: about fifteen rows, ~$0.6bn, where
+#:    the offering really was cash and the acquisition was what the cash bought
+#:    (Infinity Natural Resources $350M, Legence $100M, FONAR, Saint Raphael
+#:    Health). Those are recall lost to precision, and they are named here so
+#:    the loss is documented rather than discovered.
+BUSINESS_COMBINATION = (
+    "not a capital raise: the filing answers yes to business combination "
+    "transaction, so the securities are consideration in a merger, acquisition "
+    "or exchange rather than stock sold for cash")
+
+#: 2. An amendment (D/A) restates the CUMULATIVE amount sold since the
+#:    offering's first sale. It is not new money on the day it was filed, and
+#:    the original Form D is already stored with the same raise at its own date
+#:    — under a different headline, so a different content_hash, so dedup never
+#:    saw them as one. Fluidstack is the shape: D 2026-01-23 $450M, D/A
+#:    2026-05-12 $842M (same first sale, the $450M inside it), D 2026-06-30
+#:    $730M against a new $1.5bn offering. Dropping the amendment leaves the two
+#:    genuine offerings, each dated to its own filing.
+#:
+#:    The increment ($392M here) is deliberately not derived. Subtracting one
+#:    filing from another produces a figure that appears in neither, and a
+#:    figure that appears in no source is the one thing this project does not
+#:    store. An amendment can also revise the total DOWN, so the subtraction is
+#:    not even reliably a raise.
+AMENDMENT = (
+    "not new money on the filing date: this is an amendment (D/A), and the "
+    "amount sold on an amendment is the cumulative total since the offering's "
+    "first sale. The original Form D already carries that raise at its own "
+    "date, so counting both states it twice")
+
+#: 3. A continuous offering: no stated size AND intended to run more than a
+#:    year. The amount sold is then a running total over a window with no
+#:    beginning in view, re-reported larger at every annual amendment —
+#:    OPTCAPITAL's $1.77bn had been accumulating since 2012-07-22.
+#:
+#:    Both halves are required. "Indefinite" ALONE is kept, because it usually
+#:    means only that the filer declined to state a ceiling: 88 published rows /
+#:    $1.21bn are Indefinite on a one-year offering with a recent first sale,
+#:    and they are ordinary raises (Harvey AI's $200M, first sold twelve days
+#:    before the filing). Excluding on the word alone would have taken them.
+CONTINUOUS_OFFERING = (
+    "not a dated capital raise: the offering states no size ('Indefinite') and "
+    "is intended to last more than one year, so the amount sold is a running "
+    "total over an open window rather than money raised on the filing date")
+
+
+def is_true(value: str | None) -> bool:
+    """A Form D boolean. Written 'true'/'false' in both the XML and the TSV."""
+    return (value or "").strip().lower() == "true"
+
+
+def money_raised_exclusion(*, business_combination: bool, amendment: bool,
+                           offering_amount: str, more_than_one_year: bool) -> str | None:
+    """Why this offering's amount sold is not money raised, or None if it is.
+
+    Takes the four answers rather than a filing, because the two routes read
+    them out of different shapes — TSV columns on the bulk path, XML tags on
+    the search path — and the RULE has to have one home, for the same reason
+    EXCLUDED_INDUSTRIES and US_STATE_CODES do. The returned string is published
+    as the retraction reason, so it says why rather than that.
+    """
+    if business_combination:
+        return BUSINESS_COMBINATION
+    if amendment:
+        return AMENDMENT
+    if (offering_amount or "").strip().lower() == "indefinite" and more_than_one_year:
+        return CONTINUOUS_OFFERING
+    return None
+
+
 # Where a Form D issuer is, decided from the address the filing states. Both of
 # these live HERE, in the module the bulk path already imports, so the two
 # routes to one filing cannot disagree about which issuers are American — the
@@ -239,6 +346,20 @@ def collect(queries=None, *, days_back: int = 5, pages: int = 3,
 
             industry = _tag(xml, "industryGroupType")
             if industry.lower() in EXCLUDED_INDUSTRIES:
+                continue
+
+            # Is the figure money raised, on the date we would date it to? The
+            # three answers are in the XML the whole time; this path read past
+            # them for as long as it existed. Both amendment signals are read
+            # because the form carries both, and a filing that says D/A at the
+            # top must not depend on a nested flag being present to be caught.
+            if money_raised_exclusion(
+                business_combination=is_true(_tag(xml, "isBusinessCombinationTransaction")),
+                amendment=(_tag(xml, "submissionType").upper() == "D/A"
+                           or is_true(_tag(xml, "isAmendment"))),
+                offering_amount=_tag(xml, "totalOfferingAmount"),
+                more_than_one_year=is_true(_tag(xml, "moreThanOneYear")),
+            ):
                 continue
 
             raised = _money(_tag(xml, "totalAmountSold"))

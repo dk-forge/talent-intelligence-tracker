@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 import correct_form_d as correct
-from collectors import sec_form_d_bulk as bulk
+from collectors import sec_form_d, sec_form_d_bulk as bulk
 from pipeline import publish, validate
 
 
@@ -102,7 +102,7 @@ def test_a_broken_download_cannot_retract_the_source(monkeypatch):
     """An empty or truncated archive parses to nothing, which reads exactly
     like "no row qualifies any more". That must be a refusal, not a mass
     retraction."""
-    monkeypatch.setattr(correct, "still_qualifying", lambda quarters: set())
+    monkeypatch.setattr(correct, "reparse", lambda quarters: (set(), {}))
     rows = [_published(signal_id=f"sig-{i}", content_hash=f"h{i}",
                        source_url=f"https://sec.gov/{i}") for i in range(100)]
     with pytest.raises(correct.Unsafe):
@@ -114,7 +114,7 @@ def test_a_plausible_exclusion_rate_is_allowed_through(monkeypatch):
     rows = [_published(signal_id=f"sig-{i}", content_hash=f"h{i}",
                        source_url=f"https://sec.gov/{i}") for i in range(100)]
     keep = {r["source_url"] for r in rows[25:]}
-    monkeypatch.setattr(correct, "still_qualifying", lambda quarters: keep)
+    monkeypatch.setattr(correct, "reparse", lambda quarters: (keep, {}))
     assert len(correct.retractions(rows)) == 25
 
 
@@ -122,6 +122,38 @@ def test_the_retraction_reason_says_why_rather_than_that():
     """A retraction is published. "removed" tells a reader nothing."""
     assert "not an employer" in correct.REASON
     assert len(correct.REASON) > 40
+
+
+def test_a_row_is_withdrawn_with_the_reason_that_actually_applies(monkeypatch):
+    """One pass now withdraws rows for four different reasons. Publishing the
+    vehicle wording over a merger-consideration row would be a corrections log
+    that misdescribes its own corrections."""
+    vehicle = _published(signal_id="sig-v", content_hash="hv",
+                         source_url="https://sec.gov/vehicle")
+    merger = _published(signal_id="sig-m", content_hash="hm",
+                        source_url="https://sec.gov/merger")
+    kept = [_published(signal_id=f"sig-{i}", content_hash=f"h{i}",
+                       source_url=f"https://sec.gov/{i}") for i in range(20)]
+    monkeypatch.setattr(correct, "reparse", lambda quarters: (
+        {r["source_url"] for r in kept},
+        {"https://sec.gov/merger": sec_form_d.BUSINESS_COMBINATION}))
+
+    out = {r["signal_id"]: r["reason"] for r in correct.retractions([vehicle, merger, *kept])}
+    assert out["sig-m"] == sec_form_d.BUSINESS_COMBINATION
+    # No archive verdict for the vehicle: it was dropped by a name pattern, and
+    # the fallback is the wording those retractions already carry on the site.
+    assert out["sig-v"] == correct.REASON
+
+
+def test_every_offering_shape_reason_is_publishable_prose():
+    """These strings go straight onto the corrections page under a withdrawn
+    row. A reader has to be able to tell what was wrong from the reason alone,
+    without the filing in front of them."""
+    for reason in (sec_form_d.BUSINESS_COMBINATION, sec_form_d.AMENDMENT,
+                   sec_form_d.CONTINUOUS_OFFERING):
+        assert reason.startswith("not "), reason      # says why, not that
+        assert len(reason) > 80, reason
+        assert reason == reason.strip()
 
 
 # --- the server side --------------------------------------------------------

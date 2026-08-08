@@ -4,9 +4,9 @@
     python3 correct_form_d.py --dry-run      # counts only, writes nothing
     python3 correct_form_d.py                # apply
 
-Three things were published that the filings do not say, all fixed in the
-collector (see collectors/sec_form_d_bulk.py). The collector fix only governs
-rows collected AFTER it. This governs the rows already on the site.
+Things were published that the filings do not say, all fixed in the collector
+(see collectors/sec_form_d_bulk.py). The collector fix only governs rows
+collected AFTER it. This governs the rows already on the site.
 
     1. signal_direction "hiring" on a filing that states money and not
        headcount. Corrected in place to "neutral".
@@ -15,6 +15,20 @@ rows collected AFTER it. This governs the rows already on the site.
     3. Rows that are not employers, or not capital raises: single-purpose
        property vehicles, non-traded credit vehicles, insurance product
        offerings. Those are RETRACTED, not corrected.
+    4. Rows whose figure is a real number off a real filing that is not money
+       raised on the filing date: securities issued as merger consideration, an
+       amendment's cumulative total, and a continuous offering's running total.
+       Also RETRACTED, with the reason naming which of the three it was —
+       see sec_form_d.money_raised_exclusion. Measured on 2026-07-29 these are
+       744 of the 2,998 published rows and $23.55bn of stated raises: 176
+       business combinations, 539 amendments, 29 continuous offerings.
+
+Retraction, not revision, is the correction path for 3 and 4: the row should
+not be on the site at all, so there is no corrected version of it to append.
+`retract.retract_local` marks it is_current = 0 and writes the reason into
+notes, so the original survives and the corrections log can show what was
+published and when it was withdrawn — the same guarantee store.revise() gives
+a record whose FACTS changed.
 
 **Why a correction and not a purge-and-reimport.** content_hash is
 md5(company_key|pillar|published_date|normalised_headline) — pipeline/validate.py,
@@ -131,20 +145,30 @@ def _archives(quarter: str, *, timeout: int = 300) -> list[bytes]:
     return blobs
 
 
-def still_qualifying(quarters: set[str]) -> set[str]:
-    """Every source_url the collector's CURRENT rules would still produce."""
+def reparse(quarters: set[str]) -> tuple[set[str], dict[str, str]]:
+    """(every source_url the CURRENT rules still produce, {url: why not}).
+
+    One pass, because the archives are large and the second half is only the
+    reasons for the first half's absences. The reasons cover the offering-shape
+    rules only — a row dropped as a vehicle or an insurance product is not in
+    the map and falls back to REASON below.
+    """
     keep: set[str] = set()
+    reasons: dict[str, str] = {}
     for quarter in sorted(quarters):
         print(f"  re-running the exclusion rules over {quarter} ...", flush=True)
         for blob in _archives(quarter):
             for item in bulk.parse_archive(blob):
                 keep.add(item["source_url"])
-    return keep
+            reasons.update(bulk.money_raised_exclusions(blob))
+    return keep, reasons
 
 
 # A correction pass that retracts most of a quarter is not a correction pass,
 # it is a broken download reading as "nothing qualifies any more". The measured
-# exclusion rate is ~25%, so anything past this is a fault, not a result.
+# exclusion rate is ~25% — it was the vehicles when this was written, and it is
+# the offering-shape rules now (744 of 2,998 published rows on 2026-07-29,
+# 24.8%) — so anything past this is a fault, not a result.
 MAX_RETRACTION_SHARE = 0.45
 
 
@@ -157,11 +181,14 @@ def retractions(rows: list[dict], *, force: bool = False) -> list[dict]:
     """Published rows the current rules would no longer collect.
 
     Decided by re-running parse_archive rather than by re-implementing the
-    filters here, so this cannot drift from the collector.
+    filters here, so this cannot drift from the collector. Each row carries the
+    reason it is going, under "reason": the specific one where the archive can
+    name it, REASON where it cannot.
     """
     quarters = {_quarter(r["published_date"]) for r in rows if r.get("published_date")}
-    keep = still_qualifying(quarters)
-    out = [r for r in rows if r["source_url"] not in keep]
+    keep, reasons = reparse(quarters)
+    out = [{**r, "reason": reasons.get(r["source_url"], REASON)}
+           for r in rows if r["source_url"] not in keep]
     share = len(out) / len(rows) if rows else 0
     if share > MAX_RETRACTION_SHARE and not force:
         raise Unsafe(
@@ -254,8 +281,14 @@ def main() -> int:
     print(f"    read-through      {wording:>5}   -> what the filing records")
     print(f"  already correct     {len(rows) - len(to_retract) - len(to_correct):>5}")
 
-    for row in to_retract[:8]:
-        print(f"  [retract] ${int(row['funding_amount_usd'] or 0):>15,}  {row['company']}")
+    by_reason: dict[str, list[dict]] = {}
+    for row in to_retract:
+        by_reason.setdefault(row["reason"], []).append(row)
+    for reason, group in sorted(by_reason.items(), key=lambda kv: -len(kv[1])):
+        cash = sum(int(r["funding_amount_usd"] or 0) for r in group)
+        print(f"\n  {len(group):>5} rows  ${cash / 1e9:>6.2f}bn  {reason[:96]}")
+        for row in group[:4]:
+            print(f"        ${int(row['funding_amount_usd'] or 0):>15,}  {row['company']}")
     for row in to_correct[:3]:
         print(f"\n  [correct] {row['company']}\n            {row.get('talent_readthrough', '')}")
 
@@ -268,8 +301,8 @@ def main() -> int:
         print(f"\nretracting {len(to_retract)} ...")
         for row in to_retract:
             try:
-                retract.retract_remote(row["signal_id"], REASON)
-                retract.retract_local(conn, row["signal_id"], REASON)
+                retract.retract_remote(row["signal_id"], row["reason"])
+                retract.retract_local(conn, row["signal_id"], row["reason"])
             except (publish.PublishError, requests.RequestException) as exc:
                 failures += 1
                 print(f"  FAILED {row['company']}: {exc}", file=sys.stderr)
