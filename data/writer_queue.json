@@ -195,80 +195,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-09T09:22:45Z",
-      "history": [
-        {
-          "at": "2026-08-09T09:05:38Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-09T09:22:45Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260809T090538Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-09T09:05:38Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "acknowledged": "2026-08-04T23:05:29Z",
-      "attempts": 0,
-      "dispatched_at": "2026-08-03T21:54:25Z",
-      "history": [
-        {
-          "at": "2026-08-03T21:53:53Z",
-          "detail": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-03T21:54:25Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-03T22:08:36Z",
-          "detail": "run 30856568690",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-03T22:08:59Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-08-04T23:05:29Z",
-          "detail": "Died when the OpenRouter key exhausted mid-run (402 at $26.81 vs $20 cap); two sibling slices completed minutes earlier, so not a code defect. Class fix is PR #10. Re-run after the top-up.",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20260803T215353Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "37",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gnews-2026:2026-01-01..2026-07-26 (resumes at 2026-07-13)",
-      "requested_at": "2026-08-03T21:53:53Z",
-      "requested_by": "backfill-slices",
-      "run_id": "30856568690",
-      "state": "failed",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-04T01:22:48Z",
       "history": [
         {
@@ -2638,6 +2564,44 @@
       "run_id": "31299979160",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-09T09:22:45Z",
+      "history": [
+        {
+          "at": "2026-08-09T09:05:38Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-09T09:22:45Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-09T09:49:30Z",
+          "detail": "run 31305764857",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-09T09:49:30Z",
+          "detail": "run 31305764857",
+          "event": "landed"
+        }
+      ],
+      "id": "20260809T090538Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-09T09:49:30Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-09T09:05:38Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31305764857",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
