@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "attempts": 1,
+      "key": "resolve:deploy-plugin:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-10T17:59:23+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a290e4d59b0dc3ca',t:'MTc4NjM4NDc2MQ=='",
+      "payload": {
+        "body": "'deploy-plugin' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31416655820\n\nWhatever was failing is no longer failing. Nothing to do.",
+        "resolve_scope": "deploy-plugin:main",
+        "subject": "RECOVERED: deploy-plugin is green again"
+      },
+      "raised_at": "2026-08-10T17:59:23+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31416655820",
+      "scope": "deploy-plugin:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -29,6 +45,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-04T16:41:22+00:00",
+  "updated_at": "2026-08-10T17:59:23+00:00",
   "version": 1
 }
