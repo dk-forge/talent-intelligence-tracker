@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-08-03T09:23:40+00:00",
- "measured_on": "2026-08-03",
+ "generated_at": "2026-08-10T08:44:08+00:00",
+ "measured_on": "2026-08-10",
  "goldset_version": "2026-07-v2",
  "overall": {
   "total": 169,
   "found": 13,
-  "found_partial": 20,
-  "missed": 136,
-  "held": 33,
-  "held_pct": 19.5,
+  "found_partial": 23,
+  "missed": 133,
+  "held": 36,
+  "held_pct": 21.3,
   "clean_pct": 7.7
  },
  "zero_countries": [
@@ -56,12 +56,6 @@
   },
   {
    "key": "CN",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "CZ",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
@@ -395,14 +389,14 @@
   {
    "key": "US",
    "total": 34,
-   "held": 12,
-   "held_pct": 35.3
+   "held": 13,
+   "held_pct": 38.2
   },
   {
    "key": "IL",
    "total": 10,
-   "held": 3,
-   "held_pct": 30.0
+   "held": 4,
+   "held_pct": 40.0
   },
   {
    "key": "AU",
@@ -451,14 +445,14 @@
   {
    "key": "national_news",
    "total": 33,
-   "held": 2,
-   "held_pct": 6.1
+   "held": 3,
+   "held_pct": 9.1
   },
   {
    "key": "press_release",
    "total": 30,
-   "held": 6,
-   "held_pct": 20.0
+   "held": 8,
+   "held_pct": 26.7
   },
   {
    "key": "filing",
@@ -471,8 +465,8 @@
   {
    "key": "non-US funding",
    "total": 92,
-   "held": 18,
-   "held_pct": 19.6
+   "held": 20,
+   "held_pct": 21.7
   },
   {
    "key": "non-US leadership",
@@ -483,8 +477,8 @@
   {
    "key": "US funding",
    "total": 22,
-   "held": 7,
-   "held_pct": 31.8
+   "held": 8,
+   "held_pct": 36.4
   },
   {
    "key": "US leadership",
@@ -494,20 +488,12 @@
   }
  ],
  "field_defects": {
-  "country_missing": 14,
-  "amount_missing": 7,
+  "country_missing": 17,
+  "amount_missing": 6,
   "amount_mismatch": 1,
   "country_wrong": 1
  },
  "missed_examples": [
-  {
-   "company": "Aligned",
-   "country": "IL",
-   "signal_type": "funding",
-   "source_name": "Globes",
-   "source_url": "https://en.globes.co.il/en/article-israeli-b2b-sales-ai-agent-co-aligned-raises-60m-1001547552",
-   "event_date": "2026-07-01"
-  },
   {
    "company": "Tsuruya Yoshinobu Co., Ltd.",
    "country": "JP",
@@ -522,14 +508,6 @@
    "signal_type": "funding",
    "source_name": "FinSMEs",
    "source_url": "https://www.finsmes.com/2026/07/queue-raises-12-6m-in-seed-funding.html",
-   "event_date": "2026-07-01"
-  },
-  {
-   "company": "Together AI",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Business Wire",
-   "source_url": "https://www.businesswire.com/news/home/20260701243402/en/Together-AI-Raises-$800-Million-at-$8.3-Billion-Valuation-to-Make-Frontier-AI-Accessible-to-All",
    "event_date": "2026-07-01"
   },
   {
@@ -819,9 +797,25 @@
    "source_name": "Tech.eu",
    "source_url": "https://tech.eu/2026/07/15/monumental-secures-32m-series-b-to-accelerate-construction-automation/",
    "event_date": "2026-07-15"
+  },
+  {
+   "company": "Think",
+   "country": "SA",
+   "signal_type": "funding",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/07/think-gears-gcc-expansion-8-million-pre-seed-funding",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "Float",
+   "country": "SE",
+   "signal_type": "funding",
+   "source_name": "Tech.eu",
+   "source_url": "https://tech.eu/2026/07/15/float-raises-eur45m-series-a-to-bridge-europes-funding-gap/",
+   "event_date": "2026-07-15"
   }
  ],
- "missed_total": 136,
+ "missed_total": 133,
  "next_goldset": {
   "due": false,
   "reason": "the current set is still current and still moving",

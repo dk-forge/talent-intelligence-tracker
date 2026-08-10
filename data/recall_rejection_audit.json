@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-08-03T09:23:42+00:00",
- "measured_on": "2026-08-03",
+ "generated_at": "2026-08-10T08:44:12+00:00",
+ "measured_on": "2026-08-10",
  "goldset_version": "2026-07-v2",
  "gold_events": 169,
- "misses": 136,
+ "misses": 133,
  "feed_backlog_days": 3,
- "catalogue_rows": 1313,
- "feeds_swept": 643,
+ "catalogue_rows": 1329,
+ "feeds_swept": 651,
  "gold_countries_on_the_backstop_route": [
   "LK",
   "OM",
@@ -24,7 +24,9 @@
   "google_news": "2026-07-27",
   "link_check": "2026-07-29",
   "national_press": "2026-07-29",
+  "opendart_korea": "2026-08-05",
   "press_archive": "2026-08-02",
+  "primary_chase": "2026-08-04",
   "recall": "2026-07-29",
   "sec_edgar": "2026-07-27",
   "sec_execcomp": "2026-07-28",
@@ -37,10 +39,10 @@
   "stored_unmatched": 0,
   "stored_not_current": 0,
   "fetched_then_dropped": 0,
-  "outside_our_history": 90,
-  "feed_read_item_missed": 22,
-  "publisher_not_wired": 12,
-  "publisher_unknown": 12
+  "outside_our_history": 87,
+  "feed_read_item_missed": 30,
+  "publisher_not_wired": 16,
+  "publisher_unknown": 0
  },
  "answers": {
   "stored_unmatched": "neither \u2014 a matching or field defect",
@@ -52,35 +54,35 @@
   "publisher_unknown": "source (not researched)"
  },
  "split": {
-  "filter": 22,
-  "source": 24,
-  "history": 90,
+  "filter": 30,
+  "source": 16,
+  "history": 87,
   "neither": 0
  },
  "sensitivity_to_feed_backlog_days": {
   "1": {
-   "outside_our_history": 90,
-   "feed_read_item_missed": 22,
-   "publisher_not_wired": 12,
-   "publisher_unknown": 12
+   "outside_our_history": 87,
+   "feed_read_item_missed": 30,
+   "publisher_not_wired": 16,
+   "publisher_unknown": 0
   },
   "3": {
-   "outside_our_history": 90,
-   "feed_read_item_missed": 22,
-   "publisher_not_wired": 12,
-   "publisher_unknown": 12
+   "outside_our_history": 87,
+   "feed_read_item_missed": 30,
+   "publisher_not_wired": 16,
+   "publisher_unknown": 0
   },
   "7": {
-   "outside_our_history": 90,
-   "feed_read_item_missed": 22,
-   "publisher_not_wired": 12,
-   "publisher_unknown": 12
+   "outside_our_history": 87,
+   "feed_read_item_missed": 30,
+   "publisher_not_wired": 16,
+   "publisher_unknown": 0
   },
   "14": {
-   "outside_our_history": 65,
-   "feed_read_item_missed": 32,
-   "publisher_not_wired": 19,
-   "publisher_unknown": 20
+   "outside_our_history": 62,
+   "feed_read_item_missed": 40,
+   "publisher_not_wired": 24,
+   "publisher_unknown": 7
   }
  },
  "by_country": {
@@ -106,7 +108,7 @@
    "outside_our_history": 1
   },
   "BO": {
-   "publisher_unknown": 1
+   "feed_read_item_missed": 1
   },
   "BR": {
    "outside_our_history": 1,
@@ -119,7 +121,7 @@
    "outside_our_history": 1
   },
   "CL": {
-   "publisher_unknown": 1,
+   "feed_read_item_missed": 1,
    "outside_our_history": 1
   },
   "CN": {
@@ -132,14 +134,14 @@
    "outside_our_history": 1
   },
   "CZ": {
-   "outside_our_history": 2
+   "outside_our_history": 1
   },
   "DE": {
    "outside_our_history": 1,
    "feed_read_item_missed": 1
   },
   "DK": {
-   "publisher_unknown": 1
+   "publisher_not_wired": 1
   },
   "EE": {
    "outside_our_history": 1
@@ -164,7 +166,7 @@
    "publisher_not_wired": 1
   },
   "GE": {
-   "publisher_unknown": 1
+   "publisher_not_wired": 1
   },
   "GH": {
    "feed_read_item_missed": 3
@@ -176,13 +178,13 @@
    "feed_read_item_missed": 2
   },
   "ID": {
-   "publisher_unknown": 2
+   "feed_read_item_missed": 2
   },
   "IE": {
    "publisher_not_wired": 1
   },
   "IL": {
-   "outside_our_history": 5,
+   "outside_our_history": 4,
    "publisher_not_wired": 2
   },
   "IN": {
@@ -231,7 +233,7 @@
    "outside_our_history": 1
   },
   "NA": {
-   "publisher_unknown": 1
+   "feed_read_item_missed": 1
   },
   "NG": {
    "outside_our_history": 2
@@ -243,7 +245,7 @@
    "outside_our_history": 1
   },
   "NP": {
-   "publisher_unknown": 1
+   "publisher_not_wired": 1
   },
   "NZ": {
    "outside_our_history": 1
@@ -259,8 +261,7 @@
   },
   "PL": {
    "outside_our_history": 1,
-   "feed_read_item_missed": 1,
-   "publisher_unknown": 1
+   "feed_read_item_missed": 2
   },
   "PT": {
    "outside_our_history": 1
@@ -272,7 +273,7 @@
    "feed_read_item_missed": 1
   },
   "RO": {
-   "publisher_unknown": 1
+   "feed_read_item_missed": 1
   },
   "SA": {
    "outside_our_history": 1
@@ -291,7 +292,7 @@
    "outside_our_history": 1
   },
   "SV": {
-   "publisher_unknown": 1
+   "feed_read_item_missed": 1
   },
   "TH": {
    "outside_our_history": 2
@@ -300,14 +301,14 @@
    "outside_our_history": 2
   },
   "TW": {
-   "publisher_unknown": 1,
+   "publisher_not_wired": 1,
    "outside_our_history": 1
   },
   "UA": {
    "outside_our_history": 1
   },
   "US": {
-   "outside_our_history": 16,
+   "outside_our_history": 15,
    "publisher_not_wired": 5,
    "feed_read_item_missed": 1
   },
@@ -354,77 +355,33 @@
    "publisher": "WeAreAquaculture"
   },
   {
-   "domain": "muscatdaily.com",
-   "misses": 1,
-   "publisher": "Muscat Daily"
-  }
- ],
- "unknown_publishers": [
-  {
-   "domain": "miningweekly.com",
-   "misses": 1
-  },
-  {
-   "domain": "bursa.ro",
-   "misses": 1
-  },
-  {
-   "domain": "parkiet.com",
-   "misses": 1
-  },
-  {
    "domain": "renewable-carbon.eu",
-   "misses": 1
+   "misses": 1,
+   "publisher": "Renewable Carbon News"
   },
   {
    "domain": "commersant.ge",
-   "misses": 1
+   "misses": 1,
+   "publisher": "Commersant.ge"
   },
   {
    "domain": "ctee.com.tw",
-   "misses": 1
+   "misses": 1,
+   "publisher": "Commercial Times (ctee)"
   },
   {
-   "domain": "ecosistemastartup.com",
-   "misses": 1
-  },
-  {
-   "domain": "startupslatam.com",
-   "misses": 1
-  },
-  {
-   "domain": "aviacionline.com",
-   "misses": 1
-  },
-  {
-   "domain": "youngster.id",
-   "misses": 1
-  },
-  {
-   "domain": "liputan6.com",
-   "misses": 1
+   "domain": "muscatdaily.com",
+   "misses": 1,
+   "publisher": "Muscat Daily"
   },
   {
    "domain": "sharesansar.com",
-   "misses": 1
+   "misses": 1,
+   "publisher": "ShareSansar"
   }
  ],
+ "unknown_publishers": [],
  "items": [
-  {
-   "id": "il_funding:aligned:2026-07-01",
-   "country": "IL",
-   "signal_type": "funding",
-   "event_date": "2026-07-01",
-   "publisher": "Globes",
-   "domain": "globes.co.il",
-   "domain_is_swept_feed": true,
-   "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 40,
-   "live_routes": [],
-   "stage": "outside_our_history",
-   "earliest_reachable": "2026-07-20",
-   "widest_route": "google_news"
-  },
   {
    "id": "intl_leadership:tsuruya-yoshinobu-co-ltd:2026-07-01",
    "country": "JP",
@@ -449,22 +406,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 70,
-   "live_routes": [],
-   "stage": "outside_our_history",
-   "earliest_reachable": "2026-07-20",
-   "widest_route": "google_news"
-  },
-  {
-   "id": "us_funding_large:together-ai:2026-07-01",
-   "country": "US",
-   "signal_type": "funding",
-   "event_date": "2026-07-01",
-   "publisher": "Business Wire",
-   "domain": "businesswire.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 35,
+   "urls_fetched_from_this_domain": 132,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -494,7 +436,7 @@
    "domain": "bloomberg.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 12,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -509,7 +451,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 14,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -524,7 +466,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 70,
+   "urls_fetched_from_this_domain": 132,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -539,7 +481,7 @@
    "domain": "technode.global",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 12,
+   "urls_fetched_from_this_domain": 13,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -569,7 +511,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -584,7 +526,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 14,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -614,7 +556,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 35,
+   "urls_fetched_from_this_domain": 73,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -659,7 +601,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -689,7 +631,7 @@
    "domain": "latamlist.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -704,7 +646,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -719,7 +661,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 70,
+   "urls_fetched_from_this_domain": 132,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -734,7 +676,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 41,
+   "urls_fetched_from_this_domain": 42,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -749,7 +691,7 @@
    "domain": "latamlist.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -779,7 +721,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 14,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -794,7 +736,7 @@
    "domain": "sedaily.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 4,
+   "urls_fetched_from_this_domain": 5,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -809,7 +751,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 35,
+   "urls_fetched_from_this_domain": 73,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -824,7 +766,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -839,7 +781,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 70,
+   "urls_fetched_from_this_domain": 132,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -884,7 +826,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 95,
+   "urls_fetched_from_this_domain": 121,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -899,7 +841,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 70,
+   "urls_fetched_from_this_domain": 132,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -914,7 +856,7 @@
    "domain": "yahoo.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 197,
+   "urls_fetched_from_this_domain": 393,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -929,7 +871,7 @@
    "domain": "betakit.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 14,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -959,7 +901,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -989,7 +931,7 @@
    "domain": "thebridge.jp",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 1,
+   "urls_fetched_from_this_domain": 2,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1004,7 +946,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 14,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1019,7 +961,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 41,
+   "urls_fetched_from_this_domain": 42,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1034,7 +976,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 14,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1049,7 +991,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 95,
+   "urls_fetched_from_this_domain": 121,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1094,7 +1036,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 35,
+   "urls_fetched_from_this_domain": 73,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1109,7 +1051,7 @@
    "domain": "smartcompany.com.au",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1124,7 +1066,7 @@
    "domain": "smartcompany.com.au",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1139,7 +1081,7 @@
    "domain": "smartcompany.com.au",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1154,7 +1096,7 @@
    "domain": "latamlist.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [
     "google_news"
    ],
@@ -1169,7 +1111,7 @@
    "domain": "european-biotechnology.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [
     "google_news"
    ],
@@ -1184,7 +1126,7 @@
    "domain": "yahoo.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 197,
+   "urls_fetched_from_this_domain": 393,
    "live_routes": [
     "google_news"
    ],
@@ -1199,7 +1141,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [
     "google_news"
    ],
@@ -1214,7 +1156,7 @@
    "domain": "entrackr.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 34,
+   "urls_fetched_from_this_domain": 40,
    "live_routes": [
     "google_news"
    ],
@@ -1229,7 +1171,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 70,
+   "urls_fetched_from_this_domain": 132,
    "live_routes": [
     "google_news"
    ],
@@ -1244,7 +1186,7 @@
    "domain": "thebridge.jp",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 1,
+   "urls_fetched_from_this_domain": 2,
    "live_routes": [
     "google_news"
    ],
@@ -1259,7 +1201,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 35,
+   "urls_fetched_from_this_domain": 73,
    "live_routes": [
     "google_news"
    ],
@@ -1319,7 +1261,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 25,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [
     "google_news"
    ],
@@ -1334,7 +1276,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 35,
+   "urls_fetched_from_this_domain": 73,
    "live_routes": [
     "google_news"
    ],
@@ -1349,7 +1291,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [
     "google_news"
    ],
@@ -1379,7 +1321,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [
     "google_news"
    ],
@@ -1410,7 +1352,7 @@
    "domain": "technode.global",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 12,
+   "urls_fetched_from_this_domain": 13,
    "live_routes": [
     "gdelt",
     "google_news"
@@ -1456,7 +1398,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1518,7 +1460,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1548,7 +1490,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -1563,7 +1505,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [
     "google_news"
    ],
@@ -1578,7 +1520,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [
     "google_news"
    ],
@@ -1593,7 +1535,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [
     "google_news"
    ],
@@ -1606,15 +1548,15 @@
    "event_date": "2026-07-28",
    "publisher": "Mining Weekly",
    "domain": "miningweekly.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 0,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "africa_funding:senelec:2026-07-15",
@@ -1646,21 +1588,6 @@
     "google_news"
    ],
    "stage": "feed_read_item_missed"
-  },
-  {
-   "id": "cee_funding:wultra:2026-07-01",
-   "country": "CZ",
-   "signal_type": "funding",
-   "event_date": "2026-07-01",
-   "publisher": "PR Newswire",
-   "domain": "prnewswire.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 95,
-   "live_routes": [],
-   "stage": "outside_our_history",
-   "earliest_reachable": "2026-07-20",
-   "widest_route": "google_news"
   },
   {
    "id": "cee_funding:hypefy:2026-07-01",
@@ -1806,15 +1733,15 @@
    "event_date": "2026-07-27",
    "publisher": "BURSA",
    "domain": "bursa.ro",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "cee_leadership:hipa-nemzeti-befektetesi-ugynokseg:2026-07-28",
@@ -1840,15 +1767,15 @@
    "event_date": "2026-07-28",
    "publisher": "Parkiet (ESPI current report 12/2026)",
    "domain": "parkiet.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 2,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "eurasia_funding:extella-ai:2026-07-23",
@@ -1888,14 +1815,14 @@
    "publisher": "Renewable Carbon News",
    "domain": "renewable-carbon.eu",
    "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
-   "stage": "publisher_unknown"
+   "stage": "publisher_not_wired"
   },
   {
    "id": "eurasia_funding:microbank-crystal:2026-07-20",
@@ -1905,12 +1832,12 @@
    "publisher": "Commersant.ge",
    "domain": "commersant.ge",
    "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "publisher_not_wired"
   },
   {
    "id": "eurasia_leadership:unnamed:2026-07-23",
@@ -1920,12 +1847,12 @@
    "publisher": "\u5de5\u5546\u6642\u5831 (Commercial Times)",
    "domain": "ctee.com.tw",
    "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "publisher_not_wired"
   },
   {
    "id": "eurasia_leadership:unnamed:2026-07-17",
@@ -1935,7 +1862,7 @@
    "publisher": "\u5de5\u5546\u6642\u5831 (Commercial Times)",
    "domain": "ctee.com.tw",
    "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [],
    "stage": "outside_our_history",
@@ -1951,7 +1878,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [
     "google_news"
    ],
@@ -1966,7 +1893,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [
     "google_news"
    ],
@@ -2009,15 +1936,15 @@
    "event_date": "2026-07-26",
    "publisher": "El Ecosistema Startup",
    "domain": "ecosistemastartup.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 2,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "latam_leadership:itau-administradora-general-de-fondos-agf-de-itau:2026-07-01",
@@ -2041,13 +1968,13 @@
    "event_date": "2026-07-23",
    "publisher": "Startups Latam",
    "domain": "startupslatam.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "latam_funding:smartsoil:2026-07-12",
@@ -2086,14 +2013,14 @@
    "event_date": "2026-07-24",
    "publisher": "Aviacionline",
    "domain": "aviacionline.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 1,
    "live_routes": [
     "gdelt",
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "latam_leadership:citibank-del-peru:2026-07-27",
@@ -2168,7 +2095,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 41,
+   "urls_fetched_from_this_domain": 42,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -2183,7 +2110,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 41,
+   "urls_fetched_from_this_domain": 42,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -2198,7 +2125,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 41,
+   "urls_fetched_from_this_domain": 42,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2382,13 +2309,13 @@
    "event_date": "2026-07-21",
    "publisher": "Youngster.id",
    "domain": "youngster.id",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 1,
    "live_routes": [
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "seasia_leadership:pt-pos-indonesia-persero:2026-07-20",
@@ -2397,13 +2324,13 @@
    "event_date": "2026-07-20",
    "publisher": "Liputan6",
    "domain": "liputan6.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 4,
    "live_routes": [
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "feed_read_item_missed"
   },
   {
    "id": "seasia_leadership:govtech-sri-lanka-pvt-ltd:2026-07-02",
@@ -2428,12 +2355,12 @@
    "publisher": "ShareSansar",
    "domain": "sharesansar.com",
    "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
+   "domain_in_catalogue": true,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [
     "google_news"
    ],
-   "stage": "publisher_unknown"
+   "stage": "publisher_not_wired"
   },
   {
    "id": "seasia_funding:policystreet:2026-07-14",
@@ -2444,7 +2371,7 @@
    "domain": "technode.global",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 12,
+   "urls_fetched_from_this_domain": 13,
    "live_routes": [],
    "stage": "outside_our_history",
    "earliest_reachable": "2026-07-20",
@@ -2481,7 +2408,7 @@
    "widest_route": "google_news"
   }
  ],
- "verdict": "NEITHER, yet: 90 of 136 misses predate the day any route could have carried them, and exactly 0 were fetched and dropped \u2014 so on today's evidence this is a HISTORY problem (backfill), with 24 genuinely unsourced publishers behind it and 22 inside feeds we already read. HIGH confidence on the 0: it is an exact-URL lookup. MEDIUM on the split between the rest, which rests on publication dates and feed reach rather than on a record of what each run saw.",
+ "verdict": "NEITHER, yet: 87 of 133 misses predate the day any route could have carried them, and exactly 0 were fetched and dropped \u2014 so on today's evidence this is a HISTORY problem (backfill), with 16 genuinely unsourced publishers behind it and 30 inside feeds we already read. HIGH confidence on the 0: it is an exact-URL lookup. MEDIUM on the split between the rest, which rests on publication dates and feed reach rather than on a record of what each run saw.",
  "limits": [
   "No rejection reason is persisted: seen_urls holds a URL and the word 'rejected'. A fetched-and-dropped item cannot be attributed to the keyword gate, the gate model, extraction, validate or dedupe.",
   "Nothing records the items a feed carried and a run did not reach, so 'feed_read_item_missed' is inferred from the publisher being swept, not observed.",
