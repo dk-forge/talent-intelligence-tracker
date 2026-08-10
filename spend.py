@@ -56,6 +56,7 @@ code and this flag never touches it.
 from __future__ import annotations
 
 import argparse
+import datetime
 import os
 import sys
 
@@ -99,6 +100,147 @@ STOP_AT_FRACTION = 0.9
 # The environment variable a degraded run sets. Read by pipeline/classify.py,
 # which is the only place that can spend.
 PAID_READS_ENV = "TIT_PAID_READS"
+
+
+# ---------------------------------------------------------------------------
+# Forward-first: who gets the allowance BEFORE it runs out
+# ---------------------------------------------------------------------------
+#
+# The owner's policy, 2026-08-10. `--degrade` answers "is the month spent",
+# which is a question about a total. It cannot answer "who should get the
+# money first", and until now nothing did: a walk over 2024 and the live
+# collectors drew on one key at the same 90% line, so whoever ran earlier in
+# the month won. That ordering was an accident of dispatch times.
+#
+#   Paid processing prioritizes FORWARD_FROM onward. Paid extraction and
+#   discovery for windows BEFORE that date are deferred until the owner opts
+#   in. Forward accuracy is what a reader uses; history is the expensive tail.
+#
+# THREE THINGS THIS DOES NOT DO, each of them load-bearing:
+#
+#  1. It does not touch CORRECTNESS. Retractions, corrections and guardrail
+#     work on rows ALREADY PUBLISHED are not deferred, at any date. Those run
+#     from correct-*.yml, retract.yml and the guardrail path, none of which
+#     walks a window or reads TIT_BACKFILL_START, so none of them can be
+#     switched off here. `tests/test_forward_first.py` pins that.
+#  2. It does not stop FREE historical work. Fetching, registries,
+#     deterministic parsing, validation and dedup cost nothing and keep
+#     running: this switches PAID reads only.
+#  3. It does not stop FREE FORWARD collection when the cap is reached. That
+#     is `--degrade`'s existing behaviour and it is unchanged.
+#
+# It is a pause, not a teardown. No collector is retired, no cursor is reset.
+# A walker that defers records `stopped_early` and a `next_cursor`, so the
+# next funded run resumes on the first window it did not do -- machinery that
+# already exists and is already tested (tests/test_backfill_pace.py).
+FORWARD_FROM = "2026-01-01"
+
+# The date the policy was adopted, and the clock a pause is measured against.
+POLICY_ADOPTED = "2026-08-10"
+
+# The window start a walker was dispatched with. Workflows pass their `start`
+# input through as this, which is the only thing this module needs to know to
+# tell forward work from historical work.
+BACKFILL_START_ENV = "TIT_BACKFILL_START"
+
+# How the owner opts historical paid work back in.
+BACKFILL_OPT_IN_ENV = "TIT_HISTORICAL_BACKFILL"
+_OPT_IN_OFF = frozenset({"", "0", "off", "no", "false", "deferred"})
+
+# Grace after the next UTC allowance month opens before a still-deferred
+# historical walk is raised as needing the owner's decision. One health-digest
+# cycle: the digest is weekly, so a pause survives at most one digest after the
+# month turns over before ops_status starts asking. It is not a money number.
+DEFERRAL_GRACE_DAYS = 7
+
+
+def historical_backfill_opted_in(env: dict | None = None) -> bool:
+    """True when the owner has explicitly funded paid pre-FORWARD_FROM work."""
+    src = os.environ if env is None else env
+    return (src.get(BACKFILL_OPT_IN_ENV, "") or "").strip().lower() not in _OPT_IN_OFF
+
+
+def forward_first_defers(env: dict | None = None) -> tuple[bool, str]:
+    """(defers, why) -- must this run's PAID reads yield to forward work?
+
+    True only for a run whose declared window starts before FORWARD_FROM and
+    which has not been opted in. A run that declares no window is forward work
+    by default: the live collectors declare nothing, and failing closed here
+    would switch off the very thing the policy exists to protect.
+    """
+    src = os.environ if env is None else env
+    start = (src.get(BACKFILL_START_ENV, "") or "").strip()
+    if not start:
+        return False, ("this run declares no backfill window, so it is forward "
+                       "work and keeps the allowance")
+    try:
+        window_start = datetime.date.fromisoformat(start[:10])
+    except ValueError:
+        # Unparseable is UNKNOWN, and UNKNOWN is not a licence to defer live
+        # collection. Say so and leave the allowance alone.
+        return False, (f"{BACKFILL_START_ENV}={start!r} is not a date this module "
+                       f"can read, so the forward-first policy made no decision "
+                       f"about this run; the monthly ceiling still applies")
+    if window_start >= datetime.date.fromisoformat(FORWARD_FROM):
+        return False, (f"this run walks {start}, which is {FORWARD_FROM} or later, "
+                       f"so it is forward work and keeps the allowance")
+    if historical_backfill_opted_in(env):
+        return False, (f"this run walks {start}, before {FORWARD_FROM}, and the "
+                       f"owner has opted in ({BACKFILL_OPT_IN_ENV} is set), so it "
+                       f"may spend")
+    return True, (f"this run walks {start}, before {FORWARD_FROM}. Paid extraction "
+                  f"and discovery for pre-{FORWARD_FROM} windows are DEFERRED so "
+                  f"forward collection is funded first. The walk still fetches, "
+                  f"parses, validates and dedups, all of which cost nothing, and "
+                  f"its cursor is recorded so a funded run resumes on the first "
+                  f"window it did not do. Set {BACKFILL_OPT_IN_ENV}=on to fund it.")
+
+
+def deferral_review_due(adopted: str | None = None) -> str:
+    """The date a still-deferred historical walk becomes a question.
+
+    The start of the next UTC allowance month after adoption, plus the grace. A
+    new month is new money, so that is the honest moment to re-decide rather
+    than let a pause quietly become permanent.
+    """
+    d = datetime.date.fromisoformat(adopted or POLICY_ADOPTED)
+    nxt = datetime.date(d.year + (d.month == 12), (d.month % 12) + 1, 1)
+    return (nxt + datetime.timedelta(days=DEFERRAL_GRACE_DAYS)).isoformat()
+
+
+def deferral_overdue(today: str | None = None, adopted: str | None = None) -> bool:
+    """True once the pause has outlived the month it was taken in, plus grace."""
+    day = today or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    return datetime.date.fromisoformat(day) >= datetime.date.fromisoformat(
+        deferral_review_due(adopted))
+
+
+def apply_forward_first() -> None:
+    """Switch PAID reads off for a pre-FORWARD_FROM walk, and say why.
+
+    Called on the `--degrade` path, which every paid walker already runs. It
+    needs no balance reading: this is a decision about ORDER, not about a
+    total, and it holds on the first day of a fresh month exactly as it holds
+    on the last.
+    """
+    defers, why = forward_first_defers()
+    print(f"\n  Forward-first: {why}")
+    if not defers:
+        return
+    os.environ[PAID_READS_ENV] = "off"
+    print(f"  DEFERRED BY POLICY. Not broken and not finished: this is a third "
+          f"state. Review due {deferral_review_due()}.")
+    github_env = os.environ.get("GITHUB_ENV")
+    if not github_env:
+        return
+    try:
+        with open(github_env, "a") as fh:
+            fh.write(f"{PAID_READS_ENV}=off\n")
+    except OSError as exc:
+        # Loud, and still exit 0, in the same safe direction `degrade` fails:
+        # the step spends as before and the key's hard cap is underneath.
+        print(f"  COULD NOT SET {PAID_READS_ENV} for later steps: {exc} - they "
+              f"will spend as normal; the key's hard cap is the backstop")
 
 
 def fetch() -> dict:
@@ -287,6 +429,7 @@ def main() -> int:
     # accident. --gate is softer still, and sits alongside for the same reason.
     if args.degrade:
         degrade(over)
+        apply_forward_first()
         return 0
 
     if args.gate:

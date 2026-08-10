@@ -70,6 +70,75 @@ matching. Not deployed: pushed for the session to publish.
 
 ---
 
+## 2026-08-10 - the budget knew how much, and never knew who first
+
+**The defect, and it was an omission rather than a bug.** `spend.py --degrade`
+answers "is this month spent", which is a question about a TOTAL. Nothing
+answered "who should get the money first". A walk over 2024 and the live
+collectors drew on one key at the same 90% line, so whoever happened to run
+earlier in the month won the allowance. On 2026-08-03, 91 gnews-backfill
+dispatches spent ~$21.5 and exhausted both the month and the key's credit cap;
+`collect.yml` on 08-04 then deferred 351 google_news candidates unread. The
+`--degrade` step was added to the walkers that same day and it was the right
+fix for "a discretionary job must not outlive the cap". It could not fix
+ordering, because degrade fires at 90% and by then the money is gone.
+
+**What was already there and was NOT rebuilt.** The $10 UTC-calendar allowance,
+`STOP_AT_FRACTION`, degrade-exits-0, the per-collector read rations, the
+writer-queue self-requeue chain, `backfill_slices` cursors with `next_cursor` /
+`stopped_early`, the `BudgetExhausted` defer-UNMARKED path, `gate_ledger`
+deferral accounting, and the publish / retraction / guardrail / deploy approval
+gates. All load-bearing, all untouched. In particular the pause-and-resume
+machinery this policy depends on was already correct and already tested
+(`test_a_budget_stop_resumes_on_the_first_window_it_did_not_do`): the walkers
+knew how to stop cleanly, nothing had ever told them to.
+
+**The fix.** `FORWARD_FROM = "2026-01-01"` and `apply_forward_first()` in
+`spend.py`, called on the `--degrade` path. A walker workflow declares its
+window as `TIT_BACKFILL_START`; if that window starts before `FORWARD_FROM` and
+`TIT_HISTORICAL_BACKFILL` is unset, paid reads go off for the job. Five paid
+walkers gained the env declaration and a `historical_backfill` dispatch input.
+
+Three design choices worth not relearning:
+
+* **`forward_first_defers` takes no balance argument.** Deliberate, and
+  test-pinned by signature. A fraction-of-allowance reserve would have required
+  inventing a number, and a threshold cannot fix ordering anyway: the whole
+  failure was a walker spending the FIRST dollars of a healthy month.
+* **UNKNOWN defers nothing.** An unparseable `TIT_BACKFILL_START` returns
+  "no decision" rather than switching paid reads off. Failing closed here would
+  have let a typo silence live collection, which is the opposite of the policy.
+* **Correctness is out of scope by construction, not by promise.** The gate can
+  only fire on a run that sets `TIT_BACKFILL_START`. No `correct-*.yml` and not
+  `retract.yml` sets it, so a correction to an already-published pre-2026 row
+  cannot be deferred. Pinned by a test that reads those nine workflows.
+
+**Also found and fixed.** `ab-models.yml` held `OPENROUTER_API_KEY` with no
+spend step at either end, the only paid workflow with no guard. It now runs
+`spend.py --degrade`. `health-digest.yml` also holds the key but buys nothing
+(it reads the balance for the digest's spend line), so it is an explicit,
+reasoned exemption in the test rather than an omission.
+
+**Also fixed: `ops_status._report_spend` was stale and toothless.** It claimed
+"Enforced before every collection run via spend.py --enforce", which stopped
+being true when the collect jobs moved to `--degrade`, and it returned `None`
+so it could never raise anything. It now parses the policy constants out of
+`spend.py` with `ast` (no import, no key, no network), prints FUNDED FIRST /
+DEFERRED BY POLICY as distinct states, and RETURNS a problem once the review
+date passes, so a pause cannot quietly become permanent. Review due 2026-09-08:
+the start of the next UTC allowance month plus one health-digest cycle.
+
+**Test.** `tests/test_forward_first.py`, 22 assertions. 18 fail on the pre-fix
+tree with comments stripped before matching; the other 4 are deliberate
+regression guards on behaviour that must NOT have moved (the cap is still $10
+and still UTC-calendar, degrade still only switches one flag and never exits
+non-zero, every paid walker still runs `--degrade`, no walker was deleted).
+
+**No cost effect measured, because nothing was bought.** No model, cap or
+ration changed. The intended effect is distributional only.
+
+---
+
 ## 2026-08-06 - one budget event was producing two red workflows and two emails
 
 **The defect.** `tripwire` run 31088398613 exited non-zero on "ACTION NEEDED:

@@ -2,6 +2,106 @@
 
 ---
 
+## 2026-08-10: FORWARD-FIRST budget policy. Read this before dispatching a backfill.
+
+**The owner's decision, arrived at with a second AI advisor.** It is a policy
+about ORDER, not a new budget system. The $10 cap, the degrade-not-halt
+behaviour, the per-run read rations and the approval gates are all unchanged
+and all still binding.
+
+### The policy
+
+1. Paid model and discovery spend is capped at **$10 per UTC calendar month**.
+   Verified UTC-calendar, not rolling: `spend.month_delta` keys its snapshot on
+   `datetime.now(timezone.utc).strftime("%Y-%m")` and measures a delta from a
+   committed month-start reading of the key's lifetime usage.
+2. **Paid processing prioritizes 2026-01-01 forward.** Forward accuracy is what
+   readers use. History is the expensive tail and it is not going anywhere.
+3. **Paid pre-2026 extraction and discovery are deferred** until the owner opts
+   in.
+4. **Correctness still applies to every record already published, at any date.**
+   Retractions, corrections and guardrail work are NOT deferred. The gate can
+   only fire on a run that declares a window through `TIT_BACKFILL_START`; no
+   `correct-*.yml` and not `retract.yml` sets it, so no correction to a
+   published row can be blocked by this policy. Test-pinned.
+5. **Free structured historical work continues.** Fetching, registries,
+   deterministic parsing, validation and dedup cost nothing and are untouched.
+   `backfill-funding-bulk` and `backfill-structured-2026` hold no key and were
+   deliberately left alone.
+6. **Free forward collectors continue after the paid ceiling is reached.** That
+   is `--degrade`'s existing behaviour and nothing about it moved.
+
+### The mechanism, in one paragraph
+
+A walker workflow now declares the window it is walking as `TIT_BACKFILL_START`.
+`spend.py --degrade`, which every paid walker already ran, additionally calls
+`apply_forward_first()`: if that window starts before `FORWARD_FROM` and the
+owner has not opted in, it sets `TIT_PAID_READS=off` for the rest of the job.
+`pipeline/classify.py` then raises `BudgetExhausted` on the first candidate, the
+candidate defers UNMARKED, and the walker records `stopped_early` with a
+`next_cursor`. **It takes no balance argument**, deliberately: this is ordering,
+so it holds on day one of a fresh month exactly as it holds on day thirty. That
+is what stops a history walk taking the headroom forward collection needs.
+
+A run that declares no window is forward work and keeps the allowance. An
+unparseable window is UNKNOWN and defers nothing, because UNKNOWN is not a
+licence to switch off live collection.
+
+### How to opt back into historical backfill
+
+Either one:
+
+* Dispatch the walker from the Actions tab with **`historical_backfill` ticked**.
+* Set **`TIT_HISTORICAL_BACKFILL=on`** in the environment of the run.
+
+Available on `backfill-2026`, `backfill-funding-2026`, `backfill-gdelt-2026`,
+`backfill-gnews-2026` and `backfill-press-2026`.
+
+**It is a pause, not a teardown.** No collector or backfill was deleted or
+retired. Cursors and the writer-queue self-requeue chain are intact, so a funded
+run resumes on the first window it did not do (`tests/test_backfill_pace.py`
+already pinned that, and it still passes).
+
+### It escalates if the pause outlives its reason
+
+`ops_status.py [5] SPEND` prints three states: **FUNDED FIRST**, **DEFERRED BY
+POLICY** and, once the clock runs out, **an ACTION NEEDED item**. Deferred is a
+third state and must never be read as broken or as done.
+
+The clock is the start of the next UTC allowance month after adoption, plus one
+health-digest cycle of grace: **review due 2026-09-08**. A new month is new
+money, so that is the honest moment to re-decide. Past that date `_report_spend`
+returns a problem and ops_status exits 2 until the owner opts back in or
+restates the deferral here.
+
+### What this does NOT claim about cost
+
+The read-through model swap has **not** shipped in this repo. `pipeline/classify.py`
+still has `MODEL = deepseek/deepseek-chat` for the read-through; only
+`GATE_MODEL` is `google/gemini-2.5-flash-lite`. The measured cost ratio of
+**0.389** (recorded in the 2026-08-07 entry below, measured twice on independent
+token mixes) implies the same $10 would buy roughly 2.6x as many read-throughs
+after the swap, but that is an ESTIMATE conditional on a swap that has not
+happened, not a description of today. Do not budget against it until it ships.
+
+Last measured actuals, unchanged by this session: $1.4524 over 16 runs, 948
+reads to 391 rows, $0.00343 per stored row.
+
+**This session bought nothing.** It changed no model, no cap and no ration, so
+it has no measured cost effect of its own. The intended effect is distributional:
+paid pre-2026 walks now spend $0 until opted in, and that headroom stays with
+forward collection.
+
+### One thing left for the owner to decide
+
+`ab-models.yml` held `OPENROUTER_API_KEY` with no spend step at either end, so a
+discretionary model comparison could take the month's headroom from forward
+collection. It now runs `spend.py --degrade` like every other paid job. If the
+owner wants comparisons to outrank forward collection, say so and it comes back
+out; the reverse was assumed here because that is what forward-first means.
+
+---
+
 ## 2026-08-07: budget stop. Read this before spending anything.
 
 **No code changed in this repo this session.** The session's work was in the

@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import source_registry as registry
@@ -63,7 +63,7 @@ def main() -> int:
     problems += _report_landmarks(conn)
     problems += _report_published_figures()
     _report_surfaces()
-    _report_spend()
+    problems += _report_spend()
 
     print("\n" + "-" * 64)
     if problems:
@@ -1493,12 +1493,85 @@ def _report_rejection_audit() -> None:
         print("    by cause: " + ", ".join(f"{k}={v}" for k, v in split.items()))
 
 
-def _report_spend() -> None:
-    """Spend needs a key, which ops_status deliberately does not require, so
-    this only points at where to look."""
+def _report_spend() -> list[str]:
+    """[5] What the allowance is for, and who is waiting on it.
+
+    Measuring month-to-date needs a key, which ops_status deliberately does
+    not require, so the figure is not printed here. The POLICY is a committed
+    file and can be read with no key at all, which is the part that was
+    missing: a session could see what had been spent and never see what the
+    money was for next.
+
+    Three states, printed as three states:
+
+      FUNDED FIRST        forward work, 2026-01-01 onward.
+      DEFERRED BY POLICY  paid extraction and discovery over earlier windows.
+                          Not broken, not finished.
+      NEEDS A DECISION    a deferral that has outlived the allowance month it
+                          was taken in, plus grace. Returned as a problem, so
+                          a pause cannot quietly become permanent.
+    """
     print("\n[5] SPEND")
-    print("    python spend.py            (needs OPENROUTER_API_KEY)")
-    print("    Enforced before every collection run via spend.py --enforce")
+
+    try:
+        import ast
+
+        src = (ROOT / "spend.py").read_text()
+        tree = ast.parse(src)
+        const: dict[str, object] = {}
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                target = node.targets[0]
+                if isinstance(target, ast.Name):
+                    try:
+                        const[target.id] = ast.literal_eval(node.value)
+                    except ValueError:
+                        pass
+        allowance = float(const["MONTHLY_ALLOWANCE_USD"])
+        stop = float(const["STOP_AT_FRACTION"])
+        forward_from = str(const["FORWARD_FROM"])
+        adopted = str(const["POLICY_ADOPTED"])
+        grace = int(const["DEFERRAL_GRACE_DAYS"])
+        opt_in_env = str(const["BACKFILL_OPT_IN_ENV"])
+    except (OSError, SyntaxError, KeyError, ValueError, TypeError) as exc:
+        # UNKNOWN, and said so. Absence of a reading is not a pass, but it is
+        # also not evidence of a fault, so it does not manufacture an issue.
+        print(f"    UNKNOWN: could not read the policy out of spend.py ({exc}).")
+        print("    This run did not establish what is funded. Not a pass.")
+        return []
+
+    print(f"    allowance           ${allowance:,.2f} per UTC calendar month, stop at "
+          f"{int(stop * 100)}% (policy, spend.py)")
+    print("    month to date       run `python spend.py` with OPENROUTER_API_KEY; "
+          "it is not readable from here")
+    print(f"    FUNDED FIRST        paid extraction and discovery for {forward_from} "
+          f"onward, and every correction, retraction and guardrail check on rows "
+          f"already published, at ANY date")
+    print(f"    DEFERRED BY POLICY  paid extraction and discovery for windows before "
+          f"{forward_from}")
+    print("                        Not broken and not finished. The free paths keep "
+          "running: fetch, registries, deterministic parsing, validation and dedup "
+          "cost nothing and are unaffected, and free forward collection continues "
+          "after the paid ceiling is reached.")
+    print(f"                        Deferred since {adopted}. Cursors and the "
+          f"self-requeue chain are intact, so a funded run resumes on the first "
+          f"window it did not do.")
+
+    # The escalation clock. Start of the next UTC allowance month after
+    # adoption, plus the grace, because a new month is new money and that is
+    # the honest moment to re-decide.
+    d = date.fromisoformat(adopted)
+    nxt = date(d.year + (d.month == 12), (d.month % 12) + 1, 1)
+    due = nxt + timedelta(days=grace)
+    print(f"    review due          {due.isoformat()}")
+    print(f"    to opt back in      dispatch the walker with historical_backfill "
+          f"ticked, or set {opt_in_env}=on")
+
+    if datetime.now(timezone.utc).date() >= due:
+        return [f"historical backfill has been deferred since {adopted} and the "
+                f"review date {due.isoformat()} has passed: the owner needs to "
+                f"either opt it back in or restate the deferral (docs/HANDOVER.md)"]
+    return []
 
 
 def _report_surfaces() -> None:

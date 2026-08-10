@@ -30,6 +30,18 @@ jobs:
           python-version: '3.12'
       - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
+      # Forward-first (2026-08-10). This job spends the SAME key the live
+      # collectors spend, and it was the one paid workflow with no spend step
+      # at either end, so a model comparison run late in the month could take
+      # the headroom forward collection needed. `--degrade` never fails this
+      # job: past the ceiling ab_models simply reads nothing, which is the
+      # honest outcome for a discretionary comparison, and the comparison can
+      # be re-run on the first of the month for free headroom.
+      - name: Spend guard (degrade, never halt)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
       - name: Compare
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

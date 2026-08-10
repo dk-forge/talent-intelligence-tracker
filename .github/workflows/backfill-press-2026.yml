@@ -51,6 +51,11 @@ name: backfill-press-2026
 on:
   workflow_dispatch:
     inputs:
+      historical_backfill:
+        description: 'Fund PAID reads for a window before 2026-01-01 (deferred by default under the forward-first policy)'
+        type: boolean
+        required: false
+        default: false
       start:
         description: 'First day of the HISTORICAL WINDOW (YYYY-MM-DD). Not a cursor — the cursor walks publishers, and widening this is free.'
         required: true
@@ -77,6 +82,17 @@ on:
 concurrency:
   group: talent-collect
   cancel-in-progress: false
+
+# Forward-first budget policy (spend.py, owner's decision 2026-08-10). Paid
+# processing prioritizes 2026-01-01 onward, so a walk over an earlier window
+# runs with PAID reads off unless the owner ticks historical_backfill on the
+# dispatch. Declaring the window here is what lets `spend.py --degrade` tell
+# forward work from historical work. Free paths are untouched: this walk still
+# fetches, parses, validates and dedups, and its cursor is recorded so a funded
+# run resumes on the first window it did not do. See docs/HANDOVER.md.
+env:
+  TIT_BACKFILL_START: ${{ inputs.start }}
+  TIT_HISTORICAL_BACKFILL: ${{ inputs.historical_backfill && 'on' || '' }}
 
 jobs:
   backfill:
