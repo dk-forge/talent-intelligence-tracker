@@ -13,6 +13,63 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-10 - the control that changes the theme was the hardest thing to find in dark mode (1.74.2)
+
+**The defect, as the owner reported it.** The Light / Dark / Auto switcher
+becomes hard to see once the page is dark, on the dashboard and on the recall
+page. It is the one control that rescues a reader from a theme they cannot
+read, so it is the last thing allowed to disappear in any theme, and it was one
+of the first.
+
+**Why every check read green.** The control never failed a text ratio. In the
+dark scheme its labels measured 7.44:1 and its selected label 8.88:1. What
+failed was 1.4.11, the BOUNDARY of the component, and nothing in this repo was
+measuring that. The control borrowed page furniture: `--tit-surface` for the
+well over a `--tit-ground` page, which is **1.19:1**, and `--tit-line` for its
+edge, which is **1.56:1** against the page and **1.31:1** against its own fill.
+The three buttons carried `border:0; background:none`, so they had no boundary
+to measure at all. In dark mode the whole thing collapsed to three floating
+words and one blue pill. Light was no better on the same measure and worse on
+one of them (well 1.01:1, edge 1.22:1); it read as intact only because dark
+text on a pale page carries itself.
+
+**The fix.** The control owns its colours now, eight `--tit-theme-*` tokens
+defined in `:root` and redefined in both dark blocks, and the boundary is
+carried more than once rather than by a single hairline:
+
+- the well has a fill AND an edge that clears 3:1 against the page ground and
+  against the fill;
+- every button has a fill AND an edge of its own that clears 3:1 against both
+  the well and that fill, so three controls read as three controls;
+- selected is a fill, a weight, `aria-pressed`, and a DOT that is present or
+  absent, drawn in `currentColor`. That is the watchlist star's trick: state by
+  shape, so it survives a reader who cannot separate the hues. The dot's
+  footprint is reserved on all three buttons and only the paint changes, so
+  pressing one cannot reflow the group;
+- the focus ring is the control's own token at 2px with a 2px offset, measured
+  against the well and against the page, which are the two surfaces the offset
+  puts it on.
+
+Measured on the rendered page at 375px in both schemes, composited values read
+back off the live elements rather than off the source: dark 6.95 / 6.34 / 6.34
+/ 4.73 / 10.23 / 8.88 / 7.69 / 5.73 / 9.83 / 10.77, light 4.35 / 3.94 / 3.94 /
+4.58 / 12.32 / 5.19 / 4.46 / 5.19 / 6.74 / 7.43, against bars of 3.0 for the
+edges and fills and 4.5 for every label. `documentElement.scrollWidth` equals
+`clientWidth` at 375 and the group's right edge lands on 375 in every state.
+
+**The guard.** `_theme_control_pairs` in `tests/test_theme_light_dark.py`
+computes all eleven ratios from the shipped declarations, for both schemes, and
+is folded into the two palette tests, so the control cannot regress quietly the
+way it did. Six structural tests alongside it pin what the arithmetic cannot:
+the tokens exist in all three blocks, the rules do not name `--tit-line` or
+`--tit-surface` again, no button may go back to `border:0` or
+`background:none`, the selected mark is a shape and not another colour, the
+pressed marker may change paint but never layout, and the ring is the control's
+own token. All eight fail on the pre-fix tree, comments stripped before
+matching. Not deployed: pushed for the session to publish.
+
+---
+
 ## 2026-08-06 - one budget event was producing two red workflows and two emails
 
 **The defect.** `tripwire` run 31088398613 exited non-zero on "ACTION NEEDED:

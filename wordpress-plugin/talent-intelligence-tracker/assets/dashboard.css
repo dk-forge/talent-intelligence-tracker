@@ -150,6 +150,26 @@
   --tit-star:#a9790a;        --tit-star-bg:rgba(169,121,10,.13);
   --tit-solid-hover:#000000;
 
+  /* --- The theme control, which owns its colours -------------------------
+     THE CONTROL THAT CHANGES THE THEME IS THE LAST THING ALLOWED TO
+     DISAPPEAR IN ANY THEME, so it does not borrow the general surface and
+     border tokens any more. It borrowed --tit-surface over --tit-ground and
+     --tit-line as its edge, and in the dark scheme those measure 1.19:1 and
+     1.56:1 against the page: a control with no perceivable boundary, which
+     is what the owner reported. These eight are sized to the bars the test
+     enforces from these very declarations: the two edges clear 3:1 against
+     BOTH neighbours, every label clears 4.5:1 on the fill it actually sits
+     on, and the selected fill clears 3:1 against the well and against an
+     unselected chip. Nothing here leans on a single hairline. */
+  --tit-theme-bg:#eceef2;      /* the well the three chips sit in */
+  --tit-theme-line:#6f7681;    /* the well's edge, against the page ground */
+  --tit-theme-b-bg:#ffffff;    /* an unselected chip: a fill, not nothing */
+  --tit-theme-b-line:#6f7681;  /* an unselected chip's own edge */
+  --tit-theme-b-fg:#2f3540;    /* an unselected chip's label */
+  --tit-theme-on-bg:#0072B2;   /* the selected chip */
+  --tit-theme-on-fg:#ffffff;   /* the selected chip's label */
+  --tit-theme-focus:#084BB5;   /* the keyboard ring, on the well or the page */
+
   /* --- Roo -------------------------------------------------------------- */
   --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#ffffff;
   --roo-soft:#dbe9fb; --roo-tint:#eef4fd; --roo-zzz:#8a93a0;
@@ -238,6 +258,21 @@
     --tit-star:#e8b93d;        --tit-star-bg:rgba(232,185,61,.16);
     --tit-solid-hover:#ffffff;
 
+    /* The theme control's own colours. The general surface and border
+       tokens measure 1.19:1 and 1.56:1 against this ground, which is how
+       the control that changes the theme became the hardest thing on the
+       page to find once the page went dark. Here the well is darker than
+       the chips and both edges are a light grey, so the boundary survives
+       without a hairline having to carry it alone. */
+    --tit-theme-bg:#1b1f26;
+    --tit-theme-line:#98a1b0;
+    --tit-theme-b-bg:#2f3540;
+    --tit-theme-b-line:#98a1b0;
+    --tit-theme-b-fg:#e8eaee;
+    --tit-theme-on-bg:#6cb6ff;
+    --tit-theme-on-fg:#0b1016;
+    --tit-theme-focus:#9cccff;
+
     --roo-deep:#7fb8f5; --roo-accent:#ff9d52; --roo-surface:#1b1e25;
     --roo-soft:#2a3d55; --roo-tint:#1c2531; --roo-zzz:#8b929d;
 
@@ -320,6 +355,21 @@
   --tit-toast-bg:#1f3326;    --tit-toast-fg:#bde8c6;    --tit-toast-line:#395c43;
   --tit-star:#e8b93d;        --tit-star-bg:rgba(232,185,61,.16);
   --tit-solid-hover:#ffffff;
+
+  /* The theme control's own colours. The general surface and border
+     tokens measure 1.19:1 and 1.56:1 against this ground, which is how
+     the control that changes the theme became the hardest thing on the
+     page to find once the page went dark. Here the well is darker than
+     the chips and both edges are a light grey, so the boundary survives
+     without a hairline having to carry it alone. */
+  --tit-theme-bg:#1b1f26;
+  --tit-theme-line:#98a1b0;
+  --tit-theme-b-bg:#2f3540;
+  --tit-theme-b-line:#98a1b0;
+  --tit-theme-b-fg:#e8eaee;
+  --tit-theme-on-bg:#6cb6ff;
+  --tit-theme-on-fg:#0b1016;
+  --tit-theme-focus:#9cccff;
 
   --roo-deep:#7fb8f5; --roo-accent:#ff9d52; --roo-surface:#1b1e25;
   --roo-soft:#2a3d55; --roo-tint:#1c2531; --roo-zzz:#8b929d;
@@ -3425,23 +3475,55 @@ html:has(.tit-main), body:has(.tit-main) {
    <button> with aria-pressed, so it is tab-reachable, announced and operable
    with no role wiring of ours, and the group states the current theme in its
    own accessible name.
+
+   IT IS THE LAST THING ALLOWED TO DISAPPEAR IN ANY THEME, and it was one of
+   the first. The control borrowed the general tokens: --tit-surface for the
+   well over a --tit-ground page, --tit-line for its edge, and for the three
+   buttons `border:0; background:none`, which is no boundary at all. Measured
+   in the dark scheme those are 1.19:1 for the well against the page and
+   1.56:1 for its edge, so in dark mode the whole control collapsed to three
+   floating words and one blue pill. Nothing was under the text bar, which is
+   why every check read green: the failure was 1.4.11, the boundary of the
+   component, and nothing was measuring that.
+
+   So the control now owns its colours (--tit-theme-*), and the boundary is
+   carried three times over rather than by one hairline: the well has a fill
+   AND an edge that clears 3:1 against the page ground and against the fill,
+   and every chip has a fill of its own AND an edge that clears 3:1 against
+   both the well and that fill. The edge may not be the only cue, because an
+   edge is exactly what vanished.
+
+   SELECTED IS NEVER COLOUR. It is a fill, a weight, aria-pressed, and a dot
+   that is present or absent. The dot's footprint is reserved in every state,
+   so pressing a button cannot reflow the group or change its width.
    =========================================================================== */
-.tit-theme-row { display:flex; justify-content:flex-end; margin:0 0 10px; }
-.tit-theme { display:inline-flex; align-items:center; gap:2px; padding:2px;
-  border:1px solid var(--tit-line); border-radius:99px;
-  background:var(--tit-surface); }
-.tit-wrap .tit-theme-b { flex:none; padding:4px 11px; border:0;
-  border-radius:99px; background:none; color:var(--tit-mut);
+.tit-wrap .tit-theme-row { display:flex; justify-content:flex-end; margin:0 0 10px; }
+.tit-wrap .tit-theme { display:inline-flex; align-items:center; gap:3px; padding:3px;
+  border:1px solid var(--tit-theme-line); border-radius:99px;
+  background:var(--tit-theme-bg); }
+.tit-wrap .tit-theme-b { flex:none; padding:4px 11px;
+  border:1px solid var(--tit-theme-b-line);
+  border-radius:99px; background:var(--tit-theme-b-bg); color:var(--tit-theme-b-fg);
   font-family:inherit; font-size:12.5px; font-weight:650; line-height:1.35;
   cursor:pointer; transition:background-color .14s ease, color .14s ease; }
 .tit-wrap .tit-theme-b:hover { color:var(--tit-fg); }
-/* Pressed is a fill AND a weight change AND aria-pressed, never colour alone. */
-.tit-wrap .tit-theme-b[aria-pressed="true"] { background:var(--tit-blue);
-  color:var(--tit-ink-invert); font-weight:750; }
-.tit-wrap .tit-theme-b:focus-visible { outline:2px solid var(--tit-blue);
+/* The shape cue. currentColor, so it is the label's own ink in every state and
+   can never be the one thing a reader cannot see. Reserved, never inserted:
+   the box is in the layout on all three buttons and only the paint changes. */
+.tit-wrap .tit-theme-b::before { content:""; display:inline-block;
+  width:7px; height:7px; margin-right:6px; border-radius:50%;
+  background:currentColor; opacity:0; }
+/* Pressed is a fill AND a weight AND a dot AND aria-pressed, never colour. */
+.tit-wrap .tit-theme-b[aria-pressed="true"] { background:var(--tit-theme-on-bg);
+  border-color:var(--tit-theme-on-bg);
+  color:var(--tit-theme-on-fg); font-weight:750; }
+.tit-wrap .tit-theme-b[aria-pressed="true"]::before { opacity:1; }
+.tit-wrap .tit-theme-b:focus-visible { outline:2px solid var(--tit-theme-focus);
   outline-offset:2px; }
 /* The fade goes, the state does not. This is the only transition the control
-   has, so removing it leaves an instant, fully painted button. */
+   has, so removing it leaves an instant, fully painted button. The dot is
+   deliberately not in it: an appearing state marker that fades is a state
+   marker that is briefly wrong, so it never animates for anybody. */
 @media (prefers-reduced-motion: reduce) {
   .tit-wrap .tit-theme-b { transition:none; }
 }

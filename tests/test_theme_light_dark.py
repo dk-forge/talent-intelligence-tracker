@@ -340,6 +340,124 @@ def test_the_control_has_a_visible_focus_state():
     )
 
 
+# --- the control that changes the theme is the last thing allowed to vanish -
+
+def rule_body(selector):
+    """The declarations of one rule, matched in the COMMENT-STRIPPED CSS.
+
+    Comments are stripped before any of this matches, so a rule cannot be
+    satisfied by a paragraph promising that it is satisfied. Every one of
+    these files is more comment than code and that is the trap.
+
+    Selectors are named WITHOUT whatever ancestor happens to prefix them, so
+    a rename of the prefix cannot turn "this declaration is wrong" into "this
+    rule is missing" and quietly pass for a new reason.
+    """
+    m = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", CSS_CODE)
+    assert m, "no rule for %s, so nothing styles it" % selector
+    return re.sub(r"\s+", "", m.group(1))
+
+
+def test_the_theme_control_owns_its_colours_in_every_scheme():
+    """It borrowed --tit-surface and --tit-line, and those are page furniture:
+    tuned to be quiet against the page, which is the opposite of what the one
+    control that rescues a reader from an unreadable theme needs to be."""
+    blocks = {
+        "light :root": declarations(root_light_block()),
+        "the dark media block": declarations(media_dark_block()[1]),
+        "the explicit dark block": declarations(attr_dark_block()),
+    }
+    missing = [
+        "%s in %s" % (name, where)
+        for where, T in blocks.items()
+        for name in THEME_CONTROL_TOKENS
+        if name not in T
+    ]
+    assert not missing, (
+        "the theme control is not fully coloured in every scheme: %s"
+        % ", ".join(missing)
+    )
+
+
+def test_the_theme_control_does_not_borrow_the_tokens_that_vanished():
+    """--tit-line is 1.56:1 against the dark ground and --tit-surface is
+    1.19:1. Naming either one here is the defect coming back."""
+    for selector in (".tit-theme", ".tit-theme-b"):
+        body = rule_body(selector)
+        for borrowed in ("var(--tit-line)", "var(--tit-surface)", "var(--tit-surface-1)"):
+            assert borrowed not in body, (
+                "%s uses %s, which does not clear 3:1 against the dark page"
+                % (selector, borrowed)
+            )
+
+
+def test_every_theme_button_has_a_fill_and_an_edge_of_its_own():
+    """`border:0; background:none` is not a quiet button, it is no button:
+    there is nothing on the page whose contrast could be measured, which is
+    why the three of them read as loose words in the dark scheme."""
+    body = rule_body(".tit-theme-b")
+    assert "border:0" not in body and "border:none" not in body, (
+        "a theme button with no border has no boundary to see"
+    )
+    assert "background:none" not in body and "background:transparent" not in body, (
+        "a theme button with no fill leans entirely on the well behind it"
+    )
+    assert "background:var(--tit-theme-b-bg)" in body, (
+        "each theme button needs a fill of its own"
+    )
+    assert "border:1pxsolidvar(--tit-theme-b-line)" in body, (
+        "each theme button needs an edge of its own"
+    )
+    well = rule_body(".tit-theme")
+    assert "background:var(--tit-theme-bg)" in well, "the well needs a fill"
+    assert "border:1pxsolidvar(--tit-theme-line)" in well, "the well needs an edge"
+
+
+def test_the_selected_theme_button_is_marked_by_shape_as_well():
+    """The palette carries state by shape elsewhere (the watchlist star fills
+    in), and the selected theme has to as well: fill plus weight is two colour
+    cues wearing a hat. A dot that is present or absent is neither."""
+    mark = rule_body(".tit-theme-b::before")
+    assert "content:" in mark, "the state marker must be a painted box"
+    assert "background:currentColor" in mark, (
+        "the marker must be the label's own ink, or it is one more colour that "
+        "can fail on its own"
+    )
+    on = rule_body('.tit-theme-b[aria-pressed="true"]::before')
+    assert "opacity:1" in on, "the marker must appear only on the pressed button"
+    assert "opacity:0" in mark, "the marker must be absent on the others"
+
+
+def test_the_selected_marker_cannot_change_the_control_s_width():
+    """375px: the group is flex-end against the page edge, so anything that
+    widens it on press pushes the whole control out of the viewport. The box
+    is in the layout in EVERY state and only the paint changes, so pressing a
+    button reflows nothing."""
+    mark = rule_body(".tit-theme-b::before")
+    for geometry in ("width:7px", "height:7px", "margin-right:6px", "display:inline-block"):
+        assert geometry in mark, (
+            "the marker must reserve %s on every button, pressed or not" % geometry
+        )
+    on = rule_body('.tit-theme-b[aria-pressed="true"]::before')
+    for geometry in ("width", "height", "margin", "padding", "content", "display"):
+        assert geometry not in on, (
+            "the pressed marker may only change paint, never layout, and it "
+            "sets %s" % geometry
+        )
+
+
+def test_the_focus_ring_is_the_control_s_own_colour():
+    body = rule_body(".tit-theme-b:focus-visible")
+    assert "outline:2pxsolidvar(--tit-theme-focus)" in body, (
+        "the ring must be the control's own token, measured against the well "
+        "and against the page"
+    )
+    assert "outline-offset:2px" in body, (
+        "the ring sits outside the chip, which is what puts it on a surface "
+        "the test measures it against"
+    )
+
+
 def test_the_control_reaches_the_recall_page():
     assert "#tit-recall" in JS_CODE, (
         "the control is built inside the dashboard-only closure, so the recall "
@@ -500,6 +618,56 @@ def dark_tokens():
     return declarations(attr_dark_block())
 
 
+THEME_CONTROL_TOKENS = (
+    "--tit-theme-bg", "--tit-theme-line",
+    "--tit-theme-b-bg", "--tit-theme-b-line", "--tit-theme-b-fg",
+    "--tit-theme-on-bg", "--tit-theme-on-fg", "--tit-theme-focus",
+)
+
+
+def _theme_control_pairs(T):
+    """The control that CHANGES the theme, measured in the theme it lands in.
+
+    This is the pass that was missing. Every ratio in _pairs is text on a
+    surface, and the theme control never failed a text ratio: its labels were
+    7.4:1 and its selected label 8.9:1 in the dark scheme while the control as
+    an object was invisible, because the well was 1.19:1 against the page and
+    its edge 1.56:1, and the three buttons had `border:0; background:none` and
+    so had no boundary to measure at all. A control a reader cannot find is
+    not saved by the contrast of the words inside it. So the BOUNDARIES are
+    pairs here too, at the 3:1 that non-text UI has to clear, and each is
+    checked against BOTH things it sits between -- an edge that clears the
+    page but not its own fill has not survived, it has moved.
+    """
+    for name in THEME_CONTROL_TOKENS:
+        assert name in T, (
+            "%s is not defined: the theme control has no colour of its own and "
+            "is borrowing tokens that vanish against a dark page" % name
+        )
+    ground = T["--tit-ground"]
+    well, well_line = T["--tit-theme-bg"], T["--tit-theme-line"]
+    chip, chip_line = T["--tit-theme-b-bg"], T["--tit-theme-b-line"]
+    on = T["--tit-theme-on-bg"]
+    return [
+        # The label on the fill it actually sits on, in both states.
+        ("theme chip label", T["--tit-theme-b-fg"], chip, 4.5),
+        ("theme chip label on hover", T["--tit-fg"], chip, 4.5),
+        ("theme selected label", T["--tit-theme-on-fg"], on, 4.5),
+        # The well, against the page and against its own fill.
+        ("theme well edge vs the page", well_line, ground, 3.0),
+        ("theme well edge vs the well", well_line, well, 3.0),
+        # Each button, so three controls read as three controls.
+        ("theme chip edge vs the well", chip_line, well, 3.0),
+        ("theme chip edge vs the chip", chip_line, chip, 3.0),
+        # Selected, told apart from the well behind it and from its neighbours.
+        ("theme selected fill vs the well", on, well, 3.0),
+        ("theme selected fill vs an unselected chip", on, chip, 3.0),
+        # The ring sits outside the chip, so it lands on the well or the page.
+        ("theme focus ring vs the well", T["--tit-theme-focus"], well, 3.0),
+        ("theme focus ring vs the page", T["--tit-theme-focus"], ground, 3.0),
+    ]
+
+
 def _pairs(T):
     """(name, foreground, background, minimum) for one scheme's tokens."""
     s1, s2, ground = T["--tit-surface-1"], T["--tit-surface"], T["--tit-ground"]
@@ -570,7 +738,7 @@ def _pairs(T):
         ("fg on a hovered heat cell", T["--tit-fg"], heat_hover, 4.5),
         ("ink-ochre on the money row", T["--tit-ink-ochre"], money, 4.5),
     ]
-    return body + large
+    return body + large + _theme_control_pairs(T)
 
 
 def _report(scheme, T):
