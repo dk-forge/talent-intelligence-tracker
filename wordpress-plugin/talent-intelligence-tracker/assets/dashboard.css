@@ -80,6 +80,7 @@
   --tit-hover:#f9fbfd;      /* row and card hover */
   --tit-line:#e2e3e8;       /* alt-border  */
   --tit-grid:#e7e8ec;       /* alt-grid    */
+  --tit-load-scrim:rgba(255,255,255,.8);
   --tit-track:#e6eaef;      /* pillar bar track */
   --tit-track-2:#eef1f5;    /* rank bar track, neutral tag ground */
 
@@ -203,6 +204,7 @@
     --tit-hover:#242932;
     --tit-line:#333944;
     --tit-grid:#2c313a;
+    --tit-load-scrim:rgba(18,20,26,.82);
     --tit-track:#2f353f;
     --tit-track-2:#2a2f38;
 
@@ -301,6 +303,7 @@
   --tit-hover:#242932;
   --tit-line:#333944;
   --tit-grid:#2c313a;
+  --tit-load-scrim:rgba(18,20,26,.82);
   --tit-track:#2f353f;
   --tit-track-2:#2a2f38;
 
@@ -3526,4 +3529,61 @@ html:has(.tit-main), body:has(.tit-main) {
    marker that is briefly wrong, so it never animates for anybody. */
 @media (prefers-reduced-motion: reduce) {
   .tit-wrap .tit-theme-b { transition:none; }
+}
+
+/* ---------------------------------------------------------------------------
+   LOADING, LOADED, FAILED. The owner reported both dashboards looking frozen
+   while a fetch was in flight, because the previous numbers stayed on screen
+   fully styled and looking final. Every async region now says it is working.
+
+   The overlay is absolutely positioned inside its region, so it consumes no
+   flow space and nothing moves when the content arrives; dashboard.js freezes
+   the region's height for the duration so an empty region does not jump
+   either. The scrim is what dims the stale content underneath, which is why
+   it is one element and not a separate dimmer plus a spinner.
+
+   The spinner is decoration. Under prefers-reduced-motion it stops turning and
+   becomes a static ring, and the word beside it carries the state in both
+   cases. A reader who never sees the animation loses nothing.
+--------------------------------------------------------------------------- */
+.tit-load-host { position:relative; }
+.tit-load {
+  position:absolute;
+  inset:0;
+  z-index:6;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  padding:26px 16px;
+  text-align:center;
+  background:var(--tit-load-scrim);
+  color:var(--tit-ink);
+  font-size:14px;
+  line-height:1.45;
+}
+.tit-load-msg { max-width:32ch; }
+.tit-load-spin {
+  width:22px; height:22px; flex:none;
+  border-radius:50%;
+  border:2.5px solid var(--tit-line);
+  border-top-color:var(--tit-blue);
+  animation:tit-load-turn .9s linear infinite;
+}
+@keyframes tit-load-turn { to { transform:rotate(360deg); } }
+.tit-load-retry {
+  font:inherit;
+  padding:7px 14px;
+  border-radius:7px;
+  border:1px solid var(--tit-blue-edge);
+  background:var(--tit-blue-tint);
+  color:var(--tit-accent-ink);
+  cursor:pointer;
+}
+.tit-load-retry:focus-visible { outline:3px solid var(--tit-blue); outline-offset:2px; }
+.tit-load-failed .tit-load-spin { display:none; }
+.tit-load-failed .tit-load-msg { font-weight:600; }
+@media (prefers-reduced-motion: reduce) {
+  .tit-load-spin { animation:none; border-top-color:var(--tit-line); }
 }

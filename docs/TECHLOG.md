@@ -13,6 +13,106 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-11 - two tests that went red without a code change, for opposite reasons
+
+`main` had been red for a while on four assertions in two files. Neither was a
+defect in shipped code; both were tests pinned to a moment rather than to a
+mechanism, and they are worth separating because the right repair differs.
+
+**`tests/test_ci_noise_report.py` - a fixed clock the code could not see.**
+Three `TestMain` assertions. The fixtures are stamped relative to
+`NOW = 2026-08-03 13:20Z`. `TestClassify` and `TestCompose` inject that instant
+explicitly (`SINCE`, `now=`), but `TestMain` calls `cnr.main()`, which derives
+its window from `_now()` - the wall clock, with no seam. On day eight every
+fixture run fell outside main's own 7-day window, `classify` saw zero runs, and
+`main()` took the quiet-week early return: no summary, no subject line, exit 0
+where the test wanted 1. Fix: patch `cnr._now` alongside the seams `_patch`
+already installs. No assertion, threshold or tolerance moved. Re-dating `NOW`
+was rejected for the same reason it was rejected in the sibling repo on
+2026-08-10 - it re-arms the identical expiry a week later. This is a port of
+that fix (layoff repo `6857cf6`), adapted to pytest's `monkeypatch`.
+
+**`tests/test_audit_publishers.py` - a guard that failed on success.** The
+tripwire asserted `stages["publisher_unknown"] > 0`. It was 0. The other five
+assertions in the file all passed, so no publisher had gone unanswered; the
+opposite had happened. `publisher_unknown` means "the domain is not in the
+catalogue at all", so researching a publisher necessarily empties the bucket.
+Between the 2026-08-03 and 2026-08-10 runs it went 12 -> 0 while
+`publisher_not_wired` went 12 -> 16: all 12 named on 08-03 were answered on
+08-04, 8 wired to live feeds (which is why they now classify as
+`feed_read_item_missed`, feed depth rather than a missing source) and 4 refused
+with the status code seen - renewable-carbon.eu 500, commersant.ge 404,
+ctee.com.tw 404, sharesansar.com 404. Those 4 stay in `publisher_not_wired`, so
+they are still covered by the wired-or-refused assertions.
+
+The guard was therefore asserting that this project must permanently hold at
+least one unresearched publisher, and was guaranteed to fail the moment the
+worklist was finished. What it actually protects is that the assertions below
+it iterate over something. That is now asserted directly, on the same set they
+iterate (`_audit_domains()`) plus the actionable total - strictly closer to the
+hazard than counting one bucket was, and still red if both buckets empty. Both
+of those failure modes were reproduced against a mutated audit file before the
+change was accepted. No name was removed from the audit, no publisher probe was
+skipped, and the catalogue was not touched, so `build_sources_json.py` did not
+need to run.
+
+Main: 3559 passed, 1 skipped, 421 subtests. Tests only - no plugin change, no
+version bump, no deploy.
+
+---
+
+## 2026-08-10 - the page looked frozen while it was working (1.74.3)
+
+**The defect, as the owner reported it.** Both dashboards appear stalled while
+data loads. Measured against the code he was describing something exact. All
+three fetches in `dashboard.js` ended in a catch that said, in words, "leave the
+existing rows in place" or "leave the server-rendered numbers alone". As a
+fallback that is right. As a signal it is silence: the previous figures stayed
+on screen, fully styled, looking final, and nothing told a reader the difference
+between a slow host and a finished page. A non-ok response was worse: it
+resolved to `null` and took the same quiet path as success, so an HTTP 500 and a
+healthy repaint looked identical from outside.
+
+**What landed.** One small state machine in `dashboard.js` (`busyBegin` /
+`busyClear` / `busyFail` / `busyTrack`) with every async region wired through
+it: `#tit-fresh-stats`, `#tit-zone-insight`, `#tit-glance`, `#tit-rows`,
+`#tit-more`.
+
+- **Loading.** The stale content dims under an absolutely positioned
+  `role="status"` overlay carrying a ring and a word, and the region gets
+  `aria-busy="true"`. Two channels because they answer different questions: the
+  attribute says what you can see is stale, the live region says work is
+  happening.
+- **Loaded.** Overlay removed, `aria-busy="false"`, reserved height released on
+  the next frame so the region never collapses between the two paints.
+- **Failed.** Overlay stays, `aria-busy` drops, the copy says we could not load
+  it, and a retry button is the way back. `busyTrack` carries a 20s deadline, so
+  a request that never answers is given up on and aborted rather than spun over.
+  An indicator that spins forever is this codebase's recurring defect class
+  wearing a sprite.
+
+**Two things the tests caught rather than the reasoning.** A response arriving
+after the deadline used to clear the failed state and paint its data behind the
+reader's back; `busyFail` now retires the region's token. And the supersede
+abort (a reader typing quickly replaces their own request) must not surface as
+an error, which is the same token check read the other way.
+
+`pending` and `pendingAgg` are gone: the supersede abort they existed for now
+lives in `busyBegin`, so there is one place a request gets cancelled instead of
+three.
+
+No layout shift: the overlay is out of flow and the region's height is frozen
+for the duration, with a 132px floor for a region empty on first paint. Under
+`prefers-reduced-motion` the ring stops turning and the wording carries the
+state, which it does in every case anyway. `--tit-load-scrim` is defined in all
+three theme blocks.
+
+**Guard.** `tests/test_loading_states.py`, 17 tests, all 17 failing on
+origin/main@8a4ae9c. The state machine is executed for real in node against a
+stub document rather than grepped, and every string assertion runs against
+source with comments stripped.
+
+
 ## 2026-08-10 - the control that changes the theme was the hardest thing to find in dark mode (1.74.2)
 
 **The defect, as the owner reported it.** The Light / Dark / Auto switcher

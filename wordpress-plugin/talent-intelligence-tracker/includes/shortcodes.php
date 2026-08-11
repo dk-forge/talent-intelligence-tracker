@@ -1634,7 +1634,10 @@ function tit_dashboard_html() {
         else here.
       */
       ?>
-      <div class="tit-zone tit-zone-insight">
+      <?php /* id, not just a class: dashboard.js marks this whole zone busy
+               while the one /aggregate call every chart in it depends on is in
+               flight (busyTrack in assets/dashboard.js). */ ?>
+      <div class="tit-zone tit-zone-insight" id="tit-zone-insight">
       <div class="tit-sec">
         <h3>What The Data Says</h3>
         <p>Click any row to narrow the whole page to it.</p>

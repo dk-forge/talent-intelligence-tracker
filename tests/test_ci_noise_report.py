@@ -202,6 +202,16 @@ class TestTheKeyIsOneTheEndpointAccepts:
 
 class TestMain:
     def _patch(self, monkeypatch, runs, causes=None):
+        # main() derives its window from the wall clock, while every fixture
+        # below is stamped relative to the fixed NOW. Without this seam the
+        # class passed for seven days and then went red on the eighth, on a
+        # schedule, with no code change on either side: the fixture runs aged
+        # out of main()'s own 7-day window, classify saw nothing, and main()
+        # took the quiet-week early return. TestClassify and TestCompose
+        # already inject the same instant explicitly via SINCE / now=; this
+        # gives TestMain the same footing rather than re-dating the fixtures,
+        # which would only move the expiry a week down the road.
+        monkeypatch.setattr(cnr, "_now", lambda: NOW)
         monkeypatch.setattr(cnr.writer_queue_runs, "run_list",
                             lambda **kw: runs)
         monkeypatch.setattr(cnr.writer_queue_runs, "attach_job_counts",

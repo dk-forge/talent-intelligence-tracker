@@ -63,12 +63,36 @@ def _rows_for(domain: str, rows: list[dict]) -> list[dict]:
                           registrable_domain(r.get("rss") or "")}]
 
 
-def test_the_audit_still_names_the_two_actionable_buckets():
-    """If the audit is regenerated and these buckets vanish, this file is
-    measuring nothing and should be read again rather than left green."""
+def test_the_audit_still_gives_this_file_something_to_measure():
+    """If the audit is regenerated and the actionable buckets vanish, this file
+    is measuring nothing and should be read again rather than left green.
+
+    Read again on 2026-08-10, as instructed. `publisher_unknown` had gone 12 ->
+    0 while `publisher_not_wired` went 12 -> 16, and the drain is the work
+    landing, not the measurement breaking: `publisher_unknown` means "domain is
+    not in the catalogue at all", so researching a publisher necessarily empties
+    it. All 12 that the 2026-08-03 run listed were answered on 2026-08-04 - 8
+    wired to live feeds (which is why they now classify as
+    `feed_read_item_missed`, a feed-depth problem rather than a source one) and
+    4 refused with the status code seen (renewable-carbon.eu 500,
+    commersant.ge / ctee.com.tw / sharesansar.com 404), all 4 of which remain in
+    `publisher_not_wired` and so are still covered by the tests below.
+
+    So the bucket-by-bucket form of this guard asserted that the project must
+    permanently hold at least one unresearched publisher, and would fail exactly
+    when the worklist was finished. What it was really protecting is that the
+    tests below iterate over something; that is asserted directly here, on the
+    same set they iterate, which is strictly closer to the hazard than counting
+    one bucket was. Emptying BOTH buckets still fails, loudly.
+    """
     audit = json.loads(AUDIT.read_text())
-    assert audit["stages"]["publisher_not_wired"] > 0
-    assert audit["stages"]["publisher_unknown"] > 0
+    actionable = sum(audit["stages"][bucket] for bucket in ACTIONABLE)
+    assert actionable > 0, (
+        "no publisher is in either actionable bucket, so every assertion below "
+        "iterates an empty set and this file has stopped measuring recall loss")
+    assert _audit_domains(), (
+        "the actionable buckets are populated but resolve to zero domains, so "
+        "the tests below are vacuous")
 
 
 def test_every_publisher_the_audit_named_is_in_the_catalogue():
