@@ -35,10 +35,17 @@ node against a stub document. The stubs are plumbing (a node with a class list,
 a child list and attributes); nothing that decides a state is stubbed.
 
 PROVEN TO FAIL ON THE PRE-FIX TREE. Every test here was run against
-origin/main@8a4ae9c, the commit this change starts from. All 17 failed: the four
-functions do not exist on that tree, so the extraction raises rather than
-silently testing nothing, and the wiring and stylesheet assertions have nothing
-to match.
+origin/main@8a4ae9c, where this work started. All 17 of the original tests
+failed there: the four functions do not exist on that tree, so the extraction
+raises rather than silently testing nothing, and the wiring and stylesheet
+assertions have nothing to match.
+
+The two companion-region tests were added later, against the shipped 1.74.3, and
+both failed on it. The one that matters,
+test_a_companion_region_cannot_outlive_the_deadline_it_shares, is not
+hypothetical: the equivalent region was observed spinning forever on the sibling
+tracker's live page after the tiles beside it had correctly reported the
+timeout.
 """
 import json
 import re
@@ -75,7 +82,7 @@ REGIONS = {
     "tit-more": "the facet dropdowns",
 }
 
-STATE_FNS = ["busyOverlay", "busyBegin", "busyClear", "busyFailed", "busyFail", "busyTrack"]
+STATE_FNS = ["busyOverlay", "busyBegin", "busyClear", "busyFail", "busyTrack"]
 
 
 def extract(name):
@@ -326,6 +333,58 @@ class LoadingStateMachineTests(unittest.TestCase):
         self.assertTrue(out["aborted"], "the abandoned request was left in flight")
         self.assertEqual(out["retried"], 1)
 
+    def test_a_companion_region_cannot_outlive_the_deadline_it_shares(self):
+        # MEASURED ON THE SIBLING TRACKER'S LIVE PAGE, not reasoned about. The
+        # charts and the board are painted by the same /aggregate call as the
+        # tiles, and the first shipped version moved them from that call's
+        # then/catch. A promise that neither resolves nor rejects reaches
+        # neither, so the tiles reported the timeout honestly and the other two
+        # spun underneath them forever, which is the defect this whole file
+        # exists to prevent, reintroduced by the fix for it. `make` here
+        # deliberately ignores the abort signal, because a companion whose only
+        # exit is the tracked promise settling has no deadline at all.
+        out = js_states("""
+            region('lead', 200); region('mate', 200);
+            busyTrack('lead', 'Loading the totals', function () {
+                return new Promise(function () {});
+            }, function () {}, [['mate', 'Loading the charts']]);
+            var begun = snapshot('mate');
+            await new Promise(function (res) { setTimeout(res, 120); });
+            return { begun: begun, lead: snapshot('lead'), mate: snapshot('mate') };
+        """)
+        self.assertIsNotNone(out["begun"]["overlay"],
+                             "the companion region never entered the loading state")
+        self.assertEqual(out["begun"]["overlay"]["message"], "Loading the charts")
+        self.assertTrue(out["lead"]["overlay"]["failed"])
+        self.assertIsNotNone(out["mate"]["overlay"])
+        self.assertTrue(out["mate"]["overlay"]["failed"],
+                        "the companion was still spinning after the deadline the "
+                        "request it shares had already given up on")
+        self.assertEqual(out["mate"]["ariaBusy"], "false")
+        self.assertFalse(out["mate"]["overlay"]["retryHidden"])
+
+    def test_a_companion_region_clears_with_the_request_it_shares(self):
+        # The busy snapshot is taken BEFORE the await on purpose. Without it a
+        # tree that ignores the companions argument entirely would pass for the
+        # worst possible reason: a region that was never marked busy is, at the
+        # end, indistinguishable from one that was cleared.
+        out = js_states("""
+            region('lead', 200); region('mate', 200);
+            var p = busyTrack('lead', 'Loading', function () { return Promise.resolve(1); },
+                              null, [['mate', 'Loading the charts']]);
+            var busy = snapshot('mate');
+            await p;
+            await new Promise(function (res) { setTimeout(res, 5); });
+            return { busy: busy, lead: snapshot('lead'), mate: snapshot('mate') };
+        """)
+        self.assertIsNotNone(out["busy"]["overlay"],
+                             "the companion region never entered the loading state")
+        self.assertEqual(out["busy"]["ariaBusy"], "true")
+        self.assertIsNone(out["lead"]["overlay"])
+        self.assertIsNone(out["mate"]["overlay"],
+                          "the companion outlived the data it was waiting for")
+        self.assertEqual(out["mate"]["minHeight"], "")
+
     def test_a_late_answer_cannot_resurrect_a_region_that_already_failed(self):
         out = js_states("""
             region('r', 300);
@@ -388,8 +447,15 @@ class LoadingStateMachineTests(unittest.TestCase):
 class WiringTests(unittest.TestCase):
     def test_every_async_region_is_marked_busy_by_name(self):
         for rid, what in REGIONS.items():
+            # Either tracked directly, or riding along as a companion pair,
+            # which is the ['id', 'Loading ...'] literal busyTrack takes. A
+            # companion is NOT weaker wiring: busyTrack begins, clears and fails
+            # it on the same deadline as the region it accompanies, which is the
+            # whole reason those pairs live there and not in a caller's catch.
             self.assertRegex(
-                JS, r"busy(?:Track|Begin)\(\s*(?:'%s'|AGG_REGIONS)" % re.escape(rid),
+                JS,
+                r"(busy(?:Track|Begin)\(\s*(?:'%s'|AGG_REGIONS))|(\[\s*'%s'\s*,\s*'Loading)"
+                % (re.escape(rid), re.escape(rid)),
                 "%s (#%s) starts a fetch with no loading state" % (what, rid))
 
     def test_every_async_region_exists_in_the_markup(self):
