@@ -126,6 +126,133 @@
   if (!ARCHIVE_NOTE || !ARCHIVE_NOTE.text || !ARCHIVE_NOTE.collectors) ARCHIVE_NOTE = null;
   if (!TIT.api) return;
 
+  /* Loading / loaded / failed -------------------------------------------
+     THREE STATES, AND THE THIRD ONE IS THE POINT. The owner reported this
+     dashboard looking frozen while a fetch was in flight: the previous
+     numbers stayed on screen, fully styled, looking final, for as long as
+     the host took to answer. Both halves of every catch here used to say
+     "leave the existing rows in place", which is correct as a fallback and
+     silent as a signal.
+
+     The rule this repo keeps relearning is that a mechanism which looks
+     alive while doing nothing is worse than one that visibly stops, so
+     busyTrack carries its own deadline: a request that has neither answered
+     nor failed by LOAD_TIMEOUT_MS is given up on, aborted, and the region
+     says so with a retry rather than turning forever.
+
+     Accessibility is wired two ways because they answer different
+     questions. aria-busy on the region tells a screen reader that what it
+     can see is stale. The overlay is role="status", so its wording is
+     announced politely on entry and again when it changes to the failure
+     copy. Neither depends on the spinner, which prefers-reduced-motion
+     removes (.tit-load-spin in dashboard.css).
+
+     Nothing moves. The overlay is absolutely positioned inside the region,
+     so it takes no flow space, and busyBegin freezes the region's current
+     height for the duration, with a floor for a region that is empty on
+     first paint.
+
+     busyBegin is also where a SUPERSEDED request is cancelled: starting a
+     new load on a region aborts the one it replaces, which is the abort
+     machinery the filter path used to keep by hand. A rejection from that
+     abort arrives holding a retired token and is ignored, so a fast typist
+     never sees an error for a request they themselves replaced. */
+  var LOAD_TIMEOUT_MS = 20000;
+  var LOAD_MIN_H = 132;
+  var BUSY = {};
+  var BUSY_TOKEN = 0;
+
+  function busyOverlay(el) {
+    var node = document.createElement('div');
+    node.className = 'tit-load';
+    node.setAttribute('role', 'status');
+    node.innerHTML = '<span class="tit-load-spin" aria-hidden="true"></span>' +
+      '<span class="tit-load-msg"></span>' +
+      '<button type="button" class="tit-load-retry" hidden>Try again</button>';
+    el.appendChild(node);
+    return node;
+  }
+
+  function busyBegin(id, label) {
+    var el = document.getElementById(id);
+    if (!el) return null;
+    var st = BUSY[id];
+    if (st && st.ctrl) { try { st.ctrl.abort(); } catch (e) { /* already settled */ } }
+    if (!st || !st.overlay || !st.overlay.parentNode) {
+      el.classList.add('tit-load-host');
+      el.style.minHeight = Math.max(el.offsetHeight || 0, LOAD_MIN_H) + 'px';
+      st = BUSY[id] = { el: el, overlay: busyOverlay(el), timer: null, ctrl: null };
+    }
+    st.token = ++BUSY_TOKEN;
+    el.setAttribute('aria-busy', 'true');
+    st.overlay.classList.remove('tit-load-failed');
+    st.overlay.querySelector('.tit-load-msg').textContent = label || 'Loading';
+    st.overlay.querySelector('.tit-load-retry').hidden = true;
+    return st;
+  }
+
+  function busyClear(id) {
+    var st = BUSY[id];
+    if (!st) return;
+    if (st.timer) clearTimeout(st.timer);
+    if (st.overlay && st.overlay.parentNode) st.overlay.parentNode.removeChild(st.overlay);
+    st.el.classList.remove('tit-load-host');
+    st.el.setAttribute('aria-busy', 'false');
+    // Released only after the browser has painted what replaced it, so the
+    // region never collapses and reflows between the two.
+    var el = st.el;
+    (window.requestAnimationFrame || setTimeout)(function () { el.style.minHeight = ''; });
+    delete BUSY[id];
+  }
+
+  function busyFail(id, message, retry) {
+    var st = BUSY[id];
+    if (!st) st = busyBegin(id, message);
+    if (!st) return;
+    if (st.timer) { clearTimeout(st.timer); st.timer = null; }
+    // Retire the token. An answer that arrives after we gave up belongs to a
+    // request this region no longer holds, and it must not clear an error the
+    // reader is currently looking at, nor paint its data behind their back.
+    st.token = ++BUSY_TOKEN;
+    st.el.setAttribute('aria-busy', 'false');
+    st.overlay.classList.add('tit-load-failed');
+    st.overlay.querySelector('.tit-load-msg').textContent = message;
+    var btn = st.overlay.querySelector('.tit-load-retry');
+    btn.hidden = !retry;
+    btn.onclick = retry ? function () { busyClear(id); retry(); } : null;
+  }
+
+  // Is this region showing the failed state right now? The one caller that
+  // needs it drives companion regions off a single tracked request, and has to
+  // tell "the deadline gave up" (companions fail too) from "a filter change
+  // replaced this request" (companions stay busy for the new one).
+  function busyFailed(id) {
+    var st = BUSY[id];
+    return !!(st && st.overlay && st.overlay.classList.contains('tit-load-failed'));
+  }
+
+  function busyTrack(id, label, make, retry) {
+    var st = busyBegin(id, label);
+    if (!st) return make(null);
+    var token = st.token;
+    var ctrl = null;
+    try { ctrl = new AbortController(); } catch (e) { ctrl = null; }
+    st.ctrl = ctrl;
+    var live = function () { return BUSY[id] && BUSY[id].token === token; };
+    st.timer = setTimeout(function () {
+      if (!live()) return;
+      if (ctrl) { try { ctrl.abort(); } catch (e) { /* already settled */ } }
+      busyFail(id, 'This is taking longer than usual.', retry);
+    }, LOAD_TIMEOUT_MS);
+    return make(ctrl ? ctrl.signal : null).then(function (value) {
+      if (live()) busyClear(id);
+      return value;
+    }, function (err) {
+      if (live()) busyFail(id, 'We could not load this data.', retry);
+      throw err;
+    });
+  }
+
   var tbody = document.getElementById('tit-rows');
   // Keys are the API's query parameter names, so refresh() can build the
   // querystring straight from this map without a translation layer.
@@ -300,8 +427,16 @@
   }
 
   function populateFacets() {
-    fetch(TIT.api + 'facets')
-      .then(function (r) { return r.ok ? r.json() : null; })
+    busyTrack('tit-more', 'Loading the filters', function (signal) {
+      return fetch(TIT.api + 'facets', signal ? { signal: signal } : {})
+        .then(function (r) {
+          // A non-ok response used to resolve to null and reach the same quiet
+          // fallback as success. It is a failure, so it throws and lands in the
+          // failed state like one.
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        });
+    }, populateFacets)
       .then(function (data) {
         if (!data) return;
         // Only geography is data-driven; roles and industries are closed
@@ -321,7 +456,11 @@
         fillFacetControl('site_event', data.site_events, SITE_EVENT_LABEL);
         fillPlaces(data);
       })
-      .catch(function () { /* filters degrade to what the server rendered */ });
+      // The controls still degrade to what the server rendered; what changed is
+      // that the reader is told the geography lists did not arrive, instead of
+      // being handed three empty dropdowns with no explanation. busyTrack has
+      // already put the failed state and its retry on the panel.
+      .catch(function () { /* state is on the panel; nothing further to do */ });
   }
 
   function fill(select, values, asCountries, labels) {
@@ -1065,39 +1204,68 @@
     return h;
   }
 
-  var pendingAgg = null;
+  // The three regions this one call paints. They are separate because they are
+  // three places a reader looks, and all three are stale until it answers.
+  var AGG_REGIONS = [
+    ['tit-fresh-stats', 'Loading the totals'],
+    ['tit-zone-insight', 'Loading the charts'],
+    ['tit-glance', 'Loading the at a glance board']
+  ];
+  var lastAggParams = null;
 
   function refreshAggregate(params) {
-    if (pendingAgg) pendingAgg.abort();
-    pendingAgg = new AbortController();
-    var signal = pendingAgg.signal;
-    var main = fetch(TIT.api + 'aggregate?' + params.toString(), { signal: signal })
-      .then(function (r) { return r.ok ? r.json() : null; });
-    // The current-year slice for the freshness pairing: same filters, since
-    // clamped to Jan 1, and include=fresh so the endpoint skips everything the
-    // panel does not print. Only fetched when the view has no date window of
-    // its own; a date-filtered view paints single figures. If this half fails
-    // the main paint still lands, just unpaired, which beats blanking a panel
-    // over a companion figure.
-    var ytdReq = null;
-    if (!params.get('since') && !params.get('until')) {
-      var yp = new URLSearchParams(params.toString());
-      yp.set('since', new Date().getFullYear() + '-01-01');
-      yp.set('include', 'fresh');
-      yp.delete('per_page');
-      ytdReq = fetch(TIT.api + 'aggregate?' + yp.toString(), { signal: signal })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .catch(function () { return null; });
-    }
-    Promise.all([main, ytdReq])
-      .then(function (both) { if (both[0]) paintAggregate(both[0], both[1]); })
-      .catch(function (err) {
-        // Leave the server-rendered numbers alone rather than blanking them.
-        if (err && err.name === 'AbortError') return;
+    lastAggParams = params;
+    var retry = function () { refreshAggregate(lastAggParams); };
+    // The two companion regions carry the same state as the tiles, driven by
+    // the same call. The supersede-abort that used to live in `pendingAgg`
+    // now lives in busyBegin, so a filter change still cancels the request it
+    // replaces, and the rejection that abort produces arrives holding a
+    // retired token and is ignored rather than shown as an error.
+    AGG_REGIONS.slice(1).forEach(function (r) { busyBegin(r[0], r[1]); });
+    busyTrack(AGG_REGIONS[0][0], AGG_REGIONS[0][1], function (signal) {
+      var opts = signal ? { signal: signal } : {};
+      var main = fetch(TIT.api + 'aggregate?' + params.toString(), opts)
+        .then(function (r) {
+          // A non-ok response used to resolve to null and reach the same quiet
+          // path as success. It is a failure, so it throws and is shown as one.
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        });
+      // The current-year slice for the freshness pairing: same filters, since
+      // clamped to Jan 1, and include=fresh so the endpoint skips everything
+      // the panel does not print. Only fetched when the view has no date
+      // window of its own; a date-filtered view paints single figures. If this
+      // half fails the main paint still lands, just unpaired, which beats
+      // blanking a panel over a companion figure, so it keeps swallowing its
+      // own error and is deliberately NOT part of the failed state.
+      var ytdReq = null;
+      if (!params.get('since') && !params.get('until')) {
+        var yp = new URLSearchParams(params.toString());
+        yp.set('since', new Date().getFullYear() + '-01-01');
+        yp.set('include', 'fresh');
+        yp.delete('per_page');
+        ytdReq = fetch(TIT.api + 'aggregate?' + yp.toString(), opts)
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+      // Resolves only once the data that paints all three regions is in hand,
+      // so the indicators come down with the new numbers and not before them.
+      return Promise.all([main, ytdReq]);
+    }, retry).then(function (both) {
+      AGG_REGIONS.slice(1).forEach(function (r) { busyClear(r[0]); });
+      if (both[0]) paintAggregate(both[0], both[1]);
+    }, function (err) {
+      // An abort is usually a request this page replaced, not a failure to
+      // report. The exception is the deadline's own abort, which has already
+      // put the tiles into the failed state; the companions must follow it
+      // rather than sit in a loading state nothing will ever answer.
+      if (err && err.name === 'AbortError' && !busyFailed(AGG_REGIONS[0][0])) return;
+      AGG_REGIONS.slice(1).forEach(function (r) {
+        busyFail(r[0], 'We could not load this data.', retry);
       });
+    });
   }
 
-  var pending = null;
   var lastQuery = '';
 
   // The querystring people see and share, which is not the one the API gets:
@@ -1829,11 +1997,19 @@
     // two can never disagree about what is being shown.
     refreshAggregate(params);
 
-    if (pending) pending.abort();
-    pending = new AbortController();
-
-    fetch(TIT.api + 'query?' + params.toString(), { signal: pending.signal })
-      .then(function (r) { return r.ok ? r.json() : null; })
+    // The supersede-abort moved into busyBegin, which is also where the loading
+    // state starts. `refresh` is its own retry: it rebuilds the querystring
+    // from the controls as they stand, so a retry after a failure asks for what
+    // the reader is looking at now rather than replaying a stale request.
+    busyTrack('tit-rows', 'Loading the records', function (signal) {
+      return fetch(TIT.api + 'query?' + params.toString(), signal ? { signal: signal } : {})
+        .then(function (r) {
+          // A non-ok response used to resolve to null and reach the same quiet
+          // path as success. It is a failure, so it throws and is shown as one.
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        });
+    }, refresh)
       .then(function (data) {
         if (!data) return;
         // The empty state is a statement of policy, not an apology: showing
@@ -1854,8 +2030,10 @@
         afterRowsPaint();
       })
       .catch(function (err) {
+        // An abort is a request this page replaced. Everything else has already
+        // been shown as a failure, with a retry, over the rows it could not
+        // refresh; the rows themselves stay where they are underneath it.
         if (err && err.name === 'AbortError') return;
-        /* leave the existing rows in place */
       });
   }
 
