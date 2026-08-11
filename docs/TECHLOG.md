@@ -13,6 +13,54 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-11 - two tests that went red without a code change, for opposite reasons
+
+`main` had been red for a while on four assertions in two files. Neither was a
+defect in shipped code; both were tests pinned to a moment rather than to a
+mechanism, and they are worth separating because the right repair differs.
+
+**`tests/test_ci_noise_report.py` - a fixed clock the code could not see.**
+Three `TestMain` assertions. The fixtures are stamped relative to
+`NOW = 2026-08-03 13:20Z`. `TestClassify` and `TestCompose` inject that instant
+explicitly (`SINCE`, `now=`), but `TestMain` calls `cnr.main()`, which derives
+its window from `_now()` - the wall clock, with no seam. On day eight every
+fixture run fell outside main's own 7-day window, `classify` saw zero runs, and
+`main()` took the quiet-week early return: no summary, no subject line, exit 0
+where the test wanted 1. Fix: patch `cnr._now` alongside the seams `_patch`
+already installs. No assertion, threshold or tolerance moved. Re-dating `NOW`
+was rejected for the same reason it was rejected in the sibling repo on
+2026-08-10 - it re-arms the identical expiry a week later. This is a port of
+that fix (layoff repo `6857cf6`), adapted to pytest's `monkeypatch`.
+
+**`tests/test_audit_publishers.py` - a guard that failed on success.** The
+tripwire asserted `stages["publisher_unknown"] > 0`. It was 0. The other five
+assertions in the file all passed, so no publisher had gone unanswered; the
+opposite had happened. `publisher_unknown` means "the domain is not in the
+catalogue at all", so researching a publisher necessarily empties the bucket.
+Between the 2026-08-03 and 2026-08-10 runs it went 12 -> 0 while
+`publisher_not_wired` went 12 -> 16: all 12 named on 08-03 were answered on
+08-04, 8 wired to live feeds (which is why they now classify as
+`feed_read_item_missed`, feed depth rather than a missing source) and 4 refused
+with the status code seen - renewable-carbon.eu 500, commersant.ge 404,
+ctee.com.tw 404, sharesansar.com 404. Those 4 stay in `publisher_not_wired`, so
+they are still covered by the wired-or-refused assertions.
+
+The guard was therefore asserting that this project must permanently hold at
+least one unresearched publisher, and was guaranteed to fail the moment the
+worklist was finished. What it actually protects is that the assertions below
+it iterate over something. That is now asserted directly, on the same set they
+iterate (`_audit_domains()`) plus the actionable total - strictly closer to the
+hazard than counting one bucket was, and still red if both buckets empty. Both
+of those failure modes were reproduced against a mutated audit file before the
+change was accepted. No name was removed from the audit, no publisher probe was
+skipped, and the catalogue was not touched, so `build_sources_json.py` did not
+need to run.
+
+Main: 3559 passed, 1 skipped, 421 subtests. Tests only - no plugin change, no
+version bump, no deploy.
+
+---
+
 ## 2026-08-10 - the page looked frozen while it was working (1.74.3)
 
 **The defect, as the owner reported it.** Both dashboards appear stalled while
