@@ -222,33 +222,37 @@
     btn.onclick = retry ? function () { busyClear(id); retry(); } : null;
   }
 
-  // Is this region showing the failed state right now? The one caller that
-  // needs it drives companion regions off a single tracked request, and has to
-  // tell "the deadline gave up" (companions fail too) from "a filter change
-  // replaced this request" (companions stay busy for the new one).
-  function busyFailed(id) {
-    var st = BUSY[id];
-    return !!(st && st.overlay && st.overlay.classList.contains('tit-load-failed'));
-  }
-
-  function busyTrack(id, label, make, retry) {
+  // `companions` are regions painted by the SAME call, given as [id, label]
+  // pairs. They belong here rather than in the caller, because a caller can
+  // only move them from the promise's own then/catch, and a promise that never
+  // settles never runs either. That is exactly what the deadline exists for,
+  // and it is not hypothetical: the sibling tracker shipped this with the chart
+  // zone driven from the aggregate call's catch, and a stalled fetch left the
+  // tiles correctly in the failed state with the charts spinning underneath
+  // them forever. Measured on the live page. One deadline moves every region it
+  // started, and the earlier busyFailed() probe the caller used to need is gone
+  // with the arrangement that needed it.
+  function busyTrack(id, label, make, retry, companions) {
+    companions = companions || [];
     var st = busyBegin(id, label);
     if (!st) return make(null);
+    companions.forEach(function (c) { busyBegin(c[0], c[1]); });
     var token = st.token;
     var ctrl = null;
     try { ctrl = new AbortController(); } catch (e) { ctrl = null; }
     st.ctrl = ctrl;
     var live = function () { return BUSY[id] && BUSY[id].token === token; };
+    var all = function (fn) { fn(id); companions.forEach(function (c) { fn(c[0]); }); };
     st.timer = setTimeout(function () {
       if (!live()) return;
       if (ctrl) { try { ctrl.abort(); } catch (e) { /* already settled */ } }
-      busyFail(id, 'This is taking longer than usual.', retry);
+      all(function (r) { busyFail(r, 'This is taking longer than usual.', retry); });
     }, LOAD_TIMEOUT_MS);
     return make(ctrl ? ctrl.signal : null).then(function (value) {
-      if (live()) busyClear(id);
+      if (live()) all(busyClear);
       return value;
     }, function (err) {
-      if (live()) busyFail(id, 'We could not load this data.', retry);
+      if (live()) all(function (r) { busyFail(r, 'We could not load this data.', retry); });
       throw err;
     });
   }
@@ -1216,12 +1220,14 @@
   function refreshAggregate(params) {
     lastAggParams = params;
     var retry = function () { refreshAggregate(lastAggParams); };
-    // The two companion regions carry the same state as the tiles, driven by
-    // the same call. The supersede-abort that used to live in `pendingAgg`
-    // now lives in busyBegin, so a filter change still cancels the request it
-    // replaces, and the rejection that abort produces arrives holding a
-    // retired token and is ignored rather than shown as an error.
-    AGG_REGIONS.slice(1).forEach(function (r) { busyBegin(r[0], r[1]); });
+    // The charts and the board are COMPANIONS of the tiles, handed to busyTrack
+    // rather than begun and ended here. Driving them from this call's then/catch
+    // was the bug: a fetch that neither resolves nor rejects reaches neither,
+    // so the tiles would report the timeout honestly while the other two spun
+    // underneath them forever. One deadline now moves all three.
+    // The supersede-abort that used to live in `pendingAgg` lives in busyBegin,
+    // so a filter change still cancels the request it replaces, and the
+    // rejection that abort produces arrives holding a retired token.
     busyTrack(AGG_REGIONS[0][0], AGG_REGIONS[0][1], function (signal) {
       var opts = signal ? { signal: signal } : {};
       var main = fetch(TIT.api + 'aggregate?' + params.toString(), opts)
@@ -1251,18 +1257,11 @@
       // Resolves only once the data that paints all three regions is in hand,
       // so the indicators come down with the new numbers and not before them.
       return Promise.all([main, ytdReq]);
-    }, retry).then(function (both) {
-      AGG_REGIONS.slice(1).forEach(function (r) { busyClear(r[0]); });
+    }, retry, AGG_REGIONS.slice(1)).then(function (both) {
       if (both[0]) paintAggregate(both[0], both[1]);
-    }, function (err) {
-      // An abort is usually a request this page replaced, not a failure to
-      // report. The exception is the deadline's own abort, which has already
-      // put the tiles into the failed state; the companions must follow it
-      // rather than sit in a loading state nothing will ever answer.
-      if (err && err.name === 'AbortError' && !busyFailed(AGG_REGIONS[0][0])) return;
-      AGG_REGIONS.slice(1).forEach(function (r) {
-        busyFail(r[0], 'We could not load this data.', retry);
-      });
+    }, function () {
+      // Every region's state, including an abort that was really the deadline,
+      // was already settled by busyTrack. Nothing is left to decide here.
     });
   }
 

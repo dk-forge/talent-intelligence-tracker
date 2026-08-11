@@ -13,6 +13,31 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-11 - the fix for the forever-spinner had a forever-spinner in it (1.74.4)
+
+Found by driving the sibling tracker's live page: with every API call stalled,
+the tiles reached the failed state on the deadline exactly as designed, and the
+chart zone kept spinning underneath them. Same arrangement here.
+
+**Root cause.** `refreshAggregate` began the charts and the board by hand and
+ended them from the tracked promise's `then`/`catch`. A promise that neither
+resolves nor rejects reaches neither, which is the precise case the deadline
+exists for. So the region with the deadline recovered and the two regions
+without one did not. The defect the whole change was written to prevent,
+reintroduced by the fix for it, one indirection away.
+
+**Fix.** `busyTrack` takes `companions` as `[id, label]` pairs and owns their
+whole lifecycle: begun with the request, cleared with it, failed with it, and
+failed on the deadline whether or not the promise ever settles. Callers no
+longer touch them, and the `busyFailed()` probe that existed only to let the
+caller tell a deadline abort from a supersede abort is gone with the
+arrangement that needed it.
+
+**Guard.** `test_a_companion_region_cannot_outlive_the_deadline_it_shares`,
+whose `make` deliberately ignores the abort signal, because a companion whose
+only exit is the tracked promise settling has no deadline at all. Both new
+tests fail on the shipped 1.74.3.
+
 ## 2026-08-11 - two tests that went red without a code change, for opposite reasons
 
 `main` had been red for a while on four assertions in two files. Neither was a
