@@ -1,0 +1,99 @@
+name: Rendered contrast audit
+
+# WHAT A READER SEES, not which version they were served.
+#
+# Every other front-end check in this repo reads CSS, PHP or a version string
+# as TEXT. On 2026-08-11 that was the whole defect: a rule stored in the
+# WordPress database, attached to WordPress core's `wp-block-library` handle
+# and present in NEITHER repository, declared `color:#2a2a2a !important` on
+# `.entry-content p` and beat every token the plugin owns. In light that is
+# 14.6:1. In dark it put 62 text elements on the dashboard at about 1:1, so
+# the prose and the section headings between the lists simply were not there.
+# It reads as a page that failed to load. Every check was green throughout,
+# because the defect only exists once the cascade resolves, and nothing
+# resolved a cascade.
+#
+# So this job resolves the cascade. Real headless Chrome, the BARE url, a
+# browser User-Agent, no cache buster, four theme combinations (the OS
+# preference crossed with the reader's explicit choice), two viewports, and the
+# computed colour of every visible text element composited against its real
+# background.
+#
+# THIS MEASURES THE LIVE SITE, AND THE DEPLOY IN THIS REPO IS A HUMAN STEP.
+# So between merging a CSS fix and running deploy-plugin.yml, this job is RED,
+# and that red is CORRECT: the defect is still what readers are being served.
+# Do not disarm it to get a green board. The per-push guard that does not
+# depend on a deploy is tests/test_rendered_contrast.py, which renders the
+# shipped stylesheet against a local reproduction of the site override and runs
+# in `tests` on every push and pull request.
+#
+# Read-only, no secrets, no LLM, no cost. Chrome is preinstalled on the
+# GitHub-hosted ubuntu image, and cdp.py drives it over the DevTools protocol
+# with the standard library alone, so this adds nothing to the lock that data
+# jobs install.
+#
+# Exit codes it enforces: 2 = a violation is live for readers, 3 = it could not
+# be measured. BOTH are red here. A check that could not run is UNKNOWN, and
+# absence of a signal is not a pass.
+
+on:
+  schedule:
+    - cron: '0 13 * * *'   # daily, after the morning collect
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Audit only this URL (blank = all public surfaces)'
+        required: false
+        default: ''
+      table:
+        description: 'Print every measured element, not just failures'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: contrast-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No pip install at all: contrast_audit.py and cdp.py are stdlib-only.
+      - name: Confirm a browser exists
+        run: |
+          set -euo pipefail
+          which google-chrome || which google-chrome-stable || which chromium-browser
+          google-chrome --version || google-chrome-stable --version
+
+      - name: Audit rendered contrast
+        env:
+          PYTHONUNBUFFERED: '1'
+          TIT_SITE_URL: https://asktherecruiter.com/blog
+        run: |
+          set -euo pipefail
+          ARGS=""
+          if [ -n "${{ github.event.inputs.url }}" ]; then
+            ARGS="--url ${{ github.event.inputs.url }}"
+          fi
+          if [ "${{ github.event.inputs.table }}" = "true" ]; then
+            ARGS="$ARGS --table"
+          fi
+          python3 contrast_audit.py $ARGS --json contrast.json
+
+      - name: Keep the measurement
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrast-audit
+          path: contrast.json
+          if-no-files-found: warn
+          retention-days: 30

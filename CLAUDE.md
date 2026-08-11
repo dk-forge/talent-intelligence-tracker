@@ -108,6 +108,32 @@ and `TIT_VERSION`, and reports **"pushed SHA <sha>, not deployed"**. The
 session that spawned it runs the deploy and does the live verification. If you
 are an agent and you believe you are the exception, you are not.
 
+**What the page RENDERS AS is checked by a browser, not by reading CSS.**
+Every other front-end guard here reads CSS, PHP or a version string as text. On
+2026-08-11 that was the whole defect: a rule stored in the WordPress database,
+attached to WordPress core's `wp-block-library` handle and in NEITHER repo, sets
+`color:#2a2a2a !important` on `.entry-content p` (and `#1a1a1a` on h2, `#222` on
+h3), which beats every token this plugin owns. In light it is 14.6:1 and
+invisible. In dark it put 62 text elements on the dashboard at about 1:1, plus
+the post title and every navigation label via the theme's
+`--wp--preset--color--contrast:#111`. So `contrast_audit.py` loads the bare url
+in real headless Chrome (`cdp.py`, stdlib only, no playwright in a runner that
+holds keys) and reads the computed colour of every text element composited
+against its real background, in four theme combinations at 1280 and 375.
+
+- `tests/test_rendered_contrast.py` is the per-push half: it renders the shipped
+  stylesheet against a local reproduction of the site override, needs no
+  network, and proves the audit still FAILS when each fix is taken back out.
+- `.github/workflows/contrast-audit.yml` is the live half: daily plus
+  dispatchable, plus a step at the end of `deploy-plugin.yml`. **It measures the
+  live site, and the deploy here is a human step, so between merging a CSS fix
+  and running the deploy this job is RED and that red is correct.** Do not
+  disarm it for a green board.
+- Do not fix a contrast defect by moving a token. The tokens were correct the
+  whole time; a custom property cannot win an argument it is not in. Raise the
+  plugin's own declaration to the site rule's own scope plus `.tit-wrap`, one
+  class more specific and never wider.
+
 **There is no Railway deployment.** Collection runs on Actions because the
 database must be committed back to the repo; an ephemeral container discards
 it. If you find a Railway service pointed at this repo, it is a leftover.
