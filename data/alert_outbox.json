@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "attempts": 1,
-      "key": "resolve:style-standard:claude-gifted-babbage-522ac3",
-      "kind": "resolve",
-      "last_attempt_at": "2026-08-11T05:11:11+00:00",
-      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
-      "payload": {
-        "body": "'Style standard' on claude/gifted-babbage-522ac3 passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31460783441\n\nWhatever was failing is no longer failing. Nothing to do.",
-        "resolve_scope": "style-standard:claude-gifted-babbage-522ac3",
-        "subject": "RECOVERED: Style standard is green again"
-      },
-      "raised_at": "2026-08-11T05:11:11+00:00",
-      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31460783441",
-      "scope": "style-standard:claude-gifted-babbage-522ac3",
-      "state": "pending"
-    },
-    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -82,8 +66,21 @@
       "settled_at": "2026-08-10T18:26:50+00:00",
       "settled_because": "delivered late: not emailed: nothing was open for this scope",
       "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:style-standard:claude-gifted-babbage-522ac3",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-11T05:11:11+00:00",
+      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
+      "raised_at": "2026-08-11T05:11:11+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31460783441",
+      "scope": "style-standard:claude-gifted-babbage-522ac3",
+      "settled_at": "2026-08-11T05:36:46+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-11T05:11:11+00:00",
+  "updated_at": "2026-08-11T05:36:48+00:00",
   "version": 1
 }
