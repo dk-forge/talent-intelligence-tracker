@@ -69,6 +69,7 @@ import urllib.parse
 from datetime import date, datetime, timezone
 
 import requests
+from collectors import capped_fetch
 
 ENDPOINT = "https://api.gdeltproject.org/api/v2/doc/doc"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -163,17 +164,22 @@ def fetch(query: str, *, timespan: str = "3d", timeout: int = 45,
     url = build_query_url(query, timespan=timespan, records=records,
                           startdatetime=startdatetime, enddatetime=enddatetime)
     for attempt in range(attempts):
-        resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
-        throttled = resp.status_code == 429 or b"limit requests" in resp.content[:400]
+        # Capped: GDELT is not a hostile party, but "the endpoint we query is
+        # trustworthy" is an assumption a collector should not be built on,
+        # and one shared read means one place to be wrong.
+        resp, body = capped_fetch.capped_get(
+            url, headers={"User-Agent": USER_AGENT}, timeout=timeout,
+            max_bytes=capped_fetch.FEED_BYTES)
+        throttled = resp.status_code == 429 or b"limit requests" in body[:400]
         if not throttled:
             resp.raise_for_status()
-            head = resp.content[:200].lstrip()
+            head = body[:200].lstrip()
             if head and not head.startswith(b"{") and _REFUSAL.match(head):
                 STATS["rejected_queries"] += 1
                 raise QueryRejected(
                     head.decode("utf8", "replace").strip()[:120]
                 )
-            items = parse(resp.content, query)
+            items = parse(body, query)
             if len(items) >= records:
                 # There is no pagination, so this is a coverage hole rather
                 # than a success. The caller narrows the window.

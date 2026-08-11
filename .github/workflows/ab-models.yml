@@ -2,6 +2,14 @@ name: ab-models
 
 # Compare candidate models on real captured headlines. Read-only: writes nothing
 # to the database and posts nothing to WordPress. Costs a few cents.
+#
+# `extraction` is the expensive-to-be-wrong one. cost_projection.py measures
+# extraction at $31.69 of a $75.99 monthly bill at full worldwide coverage —
+# the largest single line — and two swaps would move it to $20.52 or $4.90.
+# Neither is a routing tweak: this mode sends the PRODUCTION SCHEMA_HINT and
+# scores agreement on the fields that decide what a record is, because a
+# cheaper model that quietly loses `country` on a fifth of records reads as a
+# saving now and as a coverage regression six months from now.
 
 on:
   workflow_dispatch:
@@ -9,7 +17,7 @@ on:
       mode:
         description: 'What to compare'
         type: choice
-        options: [gate, readthrough]
+        options: [gate, readthrough, extraction, cache-check]
         default: gate
 
 jobs:
@@ -20,10 +28,43 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # Forward-first (2026-08-10). This job spends the SAME key the live
+      # collectors spend, and it was the one paid workflow with no spend step
+      # at either end, so a model comparison run late in the month could take
+      # the headroom forward collection needed. `--degrade` never fails this
+      # job: past the ceiling ab_models simply reads nothing, which is the
+      # honest outcome for a discretionary comparison, and the comparison can
+      # be re-run on the first of the month for free headroom.
+      - name: Spend guard (degrade, never halt)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
 
       - name: Compare
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          python ab_models.py ${{ inputs.mode == 'readthrough' && '--readthrough' || '' }}
+          case "${{ inputs.mode }}" in
+            readthrough) python ab_models.py --readthrough ;;
+            extraction)  python ab_models.py --extraction ;;
+            cache-check)
+              # The script speaks a three-state verdict through its exit code:
+              # 0 CACHED, 2 NOT CACHED, 3 UNKNOWN (could not measure, e.g. a
+              # dead key). For CI, a DEFINITIVE answer in either direction is a
+              # successful measurement and must be green: the first live run
+              # answered NOT CACHED, exited 2, and mailed the owner a CI RED
+              # for a diagnostic that had worked perfectly. Only "could not
+              # measure" (3) or a real crash (1) stays red.
+              set +e
+              python ab_models.py --cache-check google/gemini-2.5-flash-lite
+              code=$?
+              set -e
+              case "$code" in
+                0) echo "VERDICT: CACHED (measured; green)" >> "$GITHUB_STEP_SUMMARY" ;;
+                2) echo "VERDICT: NOT CACHED (measured; green — a no is an answer, not a failure)" >> "$GITHUB_STEP_SUMMARY" ;;
+                *) echo "VERDICT: UNKNOWN or error (exit $code) — could not measure, so this run is red" >> "$GITHUB_STEP_SUMMARY"; exit "$code" ;;
+              esac ;;
+            *)           python ab_models.py ;;
+          esac

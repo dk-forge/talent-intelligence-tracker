@@ -1,0 +1,147 @@
+name: host-watch
+
+# THE THING NOTHING WAS WATCHING.
+#
+# Every ops tool in both trackers reports on what the host SERVES — collectors,
+# link rot, spend, the writer queue, data integrity — and until 2026-07-31 not
+# one of them knew whether the host itself was answering. Bluehost 504'd for
+# about six minutes that afternoon and about seven that night, and both times
+# the outage was found by the owner in a browser. Everything the automation did
+# notice (enrich failing, drain-writers going red, the CI alerter failing four
+# times) was a symptom reported without its cause.
+#
+# This run does three things, and they belong in one job:
+#   1. probes the host (one cache-busted GET of a public REST route),
+#   2. records the answer in data/host_status.json, which ops_status.py reads
+#      offline — a status tool that reaches the network is one that can hang,
+#   3. DELIVERS any alert that was held while the host was down. The only moment
+#      worth retrying delivery is the moment the host has just been proven up,
+#      which is precisely what step 1 establishes.
+#
+# CADENCE: every 15 minutes. That is 96 requests a day of a few hundred bytes
+# each — less than a single archive run makes in a minute, and the lightest
+# thing that can distinguish a wobble from an outage. GitHub's scheduler is
+# late under load, so the failure counting is in RUNS, not in wall-clock
+# minutes: three consecutive failed runs, whenever they land, is the threshold.
+#
+# WHY THIS IS NOT IN THE `talent-collect` LOCK, AND HAS NO CONCURRENCY GROUP AT
+# ALL. It writes data/host_status.json and data/alert_outbox.json and never
+# touches the collected database, so it is not a writer and must not queue
+# behind one — a watchdog that waits behind a six-hour backfill is not a
+# watchdog. And no group of its own either: GitHub keeps exactly ONE pending run
+# per group, so a delayed schedule could evict a queued probe, and this repo has
+# an expensive record of eviction. Two overlapping probes are harmless (the
+# commit re-derives on a race), a lost one is not.
+#
+# WHY A DOWN HOST DOES NOT MAKE THIS RUN RED. A red run fires the CI failure
+# alert, which posts to /alert, which is on the host that is down — the exact
+# amplification loop this change exists to break. And a red run asserts
+# "something in this repository needs fixing", which a Bluehost outage is not.
+# host_watch.py exits non-zero only for its OWN failures: it cannot write the
+# ledger, the fallback channel is unusable, or the host is UP and held alerts
+# still will not deliver. Those a human can act on here.
+#
+# COST: zero. No model, and Actions minutes are free on a public repo.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Probe and report, but deliver nothing and commit nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # commit the ledger and the drained outbox
+  issues: write     # the host-independent fallback channel (one issue, edited)
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No `pip install`. host_watch.py, alert_outbox.py, gh_fallback.py and
+      # ci_alert.py are all stdlib-only, so the one job whose purpose is to work
+      # when things are broken cannot be broken by dependency resolution.
+      - name: Probe the host, drain what waited
+        id: watch
+        env:
+          WP_SITE_URL: https://asktherecruiter.com/blog
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          set -euo pipefail
+          python3 host_watch.py ${DRY:-}
+
+      # Only when the ledger actually said something new — a probe every 15
+      # minutes that committed every time would be 96 commits a day of one
+      # unchanged line. host_watch.py decides (HEARTBEAT_HOURS) and says so on
+      # its `commit` output; `git diff --staged --quiet` is the second belt.
+      - name: Commit the ledger
+        if: ${{ !inputs.dry_run && steps.watch.outputs.commit == 'yes' && !cancelled() }}
+        # THE SAME ENV AS THE PROBE STEP, because the retry path below RE-RUNS
+        # host_watch.py after a rejected push, and a step does not inherit
+        # another step's env. Without this the re-derivation exits 1 on
+        # "WP_SITE_URL is not set, so the host cannot be probed at all", so an
+        # ordinary push race (a drain tick landing in the same second, which
+        # happens constantly in this repo) reddened the watchdog and named a
+        # configuration problem that did not exist. Observed on run
+        # 30868552426, which had already probed the host, found it UP, and
+        # delivered a held alert successfully before this step ran.
+        env:
+          WP_SITE_URL: https://asktherecruiter.com/blog
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          for attempt in 1 2 3 4 5; do
+            # Added ONE AT A TIME. `git add a b` where b does not exist fails
+            # the whole command and stages NEITHER — which is exactly what the
+            # first live run did: it probed, wrote the ledger, and then reported
+            # "Nothing new to record" because data/alert_outbox.json (correctly)
+            # did not exist yet.
+            git add data/host_status.json 2>/dev/null || true
+            git add data/alert_outbox.json 2>/dev/null || true
+            if git diff --staged --quiet; then
+              echo "Nothing new to record."
+              exit 0
+            fi
+            git commit -q -m "host: $(python3 -c "import json;print(json.load(open('data/host_status.json'))['state'])") $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push origin HEAD:main; then
+              echo "Recorded on attempt $attempt."
+              exit 0
+            fi
+            # Re-derive rather than replay: reset onto main and run the probe
+            # bookkeeping again. Same lesson as merge_db.py and
+            # schedule-link-hygiene.yml — a hand-edited JSON diff can conflict,
+            # and re-running an idempotent step against fresh state cannot.
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            git fetch origin main
+            git reset --hard origin/main
+            python3 host_watch.py
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not record the host state after 5 attempts. The"
+          echo "::error::ledger ops_status.py reads is now out of date, and any"
+          echo "::error::alert held this run exists only on this runner."
+          exit 1
+
+      - name: What is held
+        if: ${{ always() }}
+        run: python3 alert_outbox.py status || true

@@ -37,6 +37,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Imported under an alias because `build_email` takes a parameter called
+# `guardrails` (the ledger rows), and the module and the rows are both needed
+# in the same scope. The alias is the honest fix; renaming the parameter would
+# touch every caller and every test for a shadowing that is one line deep.
+from pipeline import guardrails as guardrails_mod
+
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -61,43 +67,12 @@ MEASUREMENT_ONLY = {"recall", "tripwire", "link_check", "archive_sources"}
 BENIGN_STATUSES = {"ok", "retired", "disabled"}
 DELIBERATELY_STOPPED = {"retired", "disabled"}
 
-# How long a collector may stay quiet before it counts as stale.
-#
-# Only google_news is on the cron: collect.yml runs at 06:00 and 18:00 UTC and
-# passes --source google_news when no input is given. 36 hours is two missed
-# runs, the same threshold ops_status.py uses. The other three collectors are
-# dispatch-only today, so a short leash on them would cry wolf every week; they
-# get a long one and move to 36 the day they join the schedule.
-MAX_AGE_HOURS = {
-    "google_news": 36,
-    "gdelt": 336,
-    "sec_edgar": 336,
-    "sec_form_d": 336,
-    # SEC publishes the Form D DATA SETS once a quarter, so this source is
-    # quiet by design between them. The default 14-day leash would email the
-    # owner a false alarm every fortnight, which is how a digest teaches
-    # people to ignore it.
-    "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
-    # On the DAILY schedule (collect-structured.yml, 09:00 UTC), so 48 hours is
-    # one missed run plus slack. It had no entry until 2026-07-29 and was
-    # therefore on the 14-day default: a source whose whole value is that a day
-    # nobody records is gone permanently could have been dead for thirteen days
-    # without the digest saying a word.
-    "ats_boards": 48,
-    # The discovery tripwire ships DORMANT: nothing schedules it, so a manual
-    # run followed by weeks of silence is the expected state, not an incident.
-    # Tighten this to 336 (twice-weekly cadence, two missed runs) the day the
-    # schedule in .github/workflows/tripwire.yml is uncommented.
-    "tripwire": 2400,
-    # Link rot and archiving. Both ship DORMANT (no cron in their workflows), so
-    # a manual run followed by weeks of silence is the expected state rather
-    # than an incident. Tighten both to 200 the day their schedules are
-    # uncommented: link-check is weekly and archive-sources is daily, so two
-    # missed runs is what should start a conversation.
-    "link_check": 2400,
-    "archive_sources": 2400,
-}
-DEFAULT_MAX_AGE_HOURS = 336  # 14 days
+# How long a collector may stay quiet before it counts as stale. The map
+# lives in staleness.py because TWO tools judge this — ops_status.py and this
+# digest — and when each carried its own numbers they disagreed about every
+# collector that was not on the 2x/day cron. Re-exported here so existing
+# callers of health_digest.MAX_AGE_HOURS keep reading the shared truth.
+from staleness import DEFAULT_MAX_AGE_HOURS, MAX_AGE_HOURS  # noqa: E402
 
 # The loudest check. If the NEWEST successful collect anywhere is older than
 # this, the pipeline itself has stopped, which is the failure mode that
@@ -141,6 +116,115 @@ def read_local(db_path: Path = DB) -> dict:
     finally:
         conn.close()
     return {r["collector"]: dict(r) for r in rows}
+
+
+#: A snapshot older than this, with URLs still waiting, means archiving has
+#: STOPPED PRODUCING rather than merely slowed. The staleness leash catches an
+#: archiver that stopped RUNNING; it cannot catch one that runs green every
+#: three hours and records nothing, which is exactly what happened on
+#: 2026-07-30 (run 30507215991 went out with the dry_run default and nobody
+#: noticed for a day). Seven days is several hundred capture attempts: a queue
+#: that has not moved in that time is not being throttled, it is broken.
+ARCHIVE_STALL_DAYS = 7
+
+
+def read_link_health(db_path: Path = DB) -> dict | None:
+    """Archive coverage and rot rate, over the scope the schedule can reach.
+
+    Read LOCALLY even when the collector ledger comes from the site: the link
+    ledger is a repo artifact, and the site never sees the un-archived tail at
+    all. Never fatal — a digest that cannot read this still has collectors to
+    report.
+
+    The scoping is the whole point. `rot_summary()['archive_pct']` is over the
+    whole corpus, ~96% of which is SEC and GOV.UK filings the schedule
+    deliberately skips, so it reads about 0.5% on a perfectly healthy archiver.
+    An email that quotes that number every week teaches its reader to ignore it.
+    """
+    if not db_path.exists():
+        return None
+    try:
+        from pipeline import source_links
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            cover = source_links.archive_coverage(conn)
+            cover["rot"] = source_links.rot_summary(conn)
+        finally:
+            conn.close()
+        return cover
+    except Exception:
+        return None
+
+
+def read_landmarks(path: Path | None = None) -> dict | None:
+    """The weekly landmark result, as one summary. Never fatal.
+
+    Read from the committed report rather than recomputed, on purpose: the
+    report is the only place the LIVE lens exists, and the live lens is the one
+    that answers the owner's actual question, which is whether a reader can see
+    these events. Recomputing the stored lens here would produce a second
+    number in the same email that disagrees with the first for a good reason
+    nobody would remember.
+    """
+    import json
+
+    path = path or (ROOT / "data" / "landmarks_report.json")
+    if not path.exists():
+        return None
+    try:
+        report = json.loads(path.read_text())
+    except ValueError:
+        return None
+    summary = report.get("summary")
+    if not isinstance(summary, dict):
+        return None
+    return {
+        "checked_on": report.get("checked_on"),
+        "version": report.get("landmarks_version"),
+        "one_line": summary.get("one_line", ""),
+        "total": summary.get("total", 0),
+        "held": summary.get("held", 0),
+        "standing_gaps": summary.get("standing_gaps", 0),
+        "regressions": summary.get("regressions", 0),
+        "held_not_live": summary.get("held_not_live", 0),
+        "live_lens": summary.get("live_lens"),
+        "regressed": [
+            {"company": e.get("company"), "quarter": e.get("quarter"),
+             "amount_usd": e.get("amount_usd"), "why": "; ".join(e.get("regression") or []),
+             "source_url": e.get("source_url")}
+            for e in (report.get("entries") or []) if e.get("regression")
+        ],
+        "biggest_gaps": sorted(
+            [{"company": e.get("company"), "quarter": e.get("quarter"),
+              "amount_usd": e.get("amount_usd") or 0, "status": e.get("status")}
+             for e in (report.get("entries") or [])
+             if e.get("status") != "held" and not e.get("regression")],
+            key=lambda g: -float(g["amount_usd"]))[:5],
+    }
+
+
+def archiving_stalled(link_health: dict | None, now: datetime) -> bool:
+    """Is there work outstanding that nothing has moved in a week?
+
+    Both halves are required. No outstanding work means a quiet archiver is a
+    finished one, and saying otherwise would train the owner to ignore this.
+    """
+    if not link_health:
+        return False
+    outstanding = link_health["capture_queue"] + link_health["never_probed"]
+    if not outstanding:
+        return False
+    newest = link_health.get("newest_snapshot")
+    if not newest:
+        return True
+    try:
+        when = datetime.fromisoformat(newest)
+    except ValueError:
+        return False
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    return (now - when).days >= ARCHIVE_STALL_DAYS
 
 
 def read_guardrails(db_path: Path = DB) -> list[dict]:
@@ -297,9 +381,13 @@ PASTE_LEAD = (
 
 
 def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
-                source_label: str, guardrails: list[dict] | None = None) -> tuple[str, str]:
+                source_label: str, guardrails: list[dict] | None = None,
+                link_health: dict | None = None,
+                archive_stalled: bool = False,
+                landmarks: dict | None = None) -> tuple[str, str]:
     """Subject and plain-text body. No em-dashes: this is owner-facing copy."""
     guardrails = guardrails or []
+    landmark_regressions = (landmarks or {}).get("regressions") or 0
     stale = buckets["stale"]
     degraded = buckets["degraded"]
     unknown = buckets["unknown_age"]
@@ -310,6 +398,13 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         subject = "Pipeline may have stopped: no collect in %s" % (
             "any recorded run" if newest_hours is None
             else "%.0f hours" % newest_hours)
+    elif landmark_regressions:
+        # Ranked this high because of what it means. A landmark is an event
+        # with the company's own announcement behind it, and a regression says
+        # one that WAS on the site is not any more. Nothing else in this email
+        # can tell you that.
+        subject = ("%d landmark round(s) we used to hold have gone missing"
+                   % landmark_regressions)
     elif guardrails:
         # Ranked by what the finding actually costs, not by count. A row that is
         # already LIVE is a wrong figure on the page right now, which is the
@@ -324,6 +419,18 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         elif overdue:
             subject = ("%d quarantined row(s) unanswered past the grace window"
                        % len(overdue))
+        elif guardrails_mod.unreviewed_amounts(
+                [r for r in guardrails if "already_live" in r]):
+            # Named in the SUBJECT because this is the one the ledger showed
+            # nobody ever opening: fifteen rows, $874.2bn, `reviewed_at` NULL
+            # on every one. "Waiting on you" was true and got ignored; the
+            # dollars are what makes it read as a cost rather than a chore.
+            unreviewed = guardrails_mod.unreviewed_amounts(
+                [r for r in guardrails if "already_live" in r])
+            total = sum(r.get("value") or 0 for r in unreviewed)
+            subject = ("$%.1fbn of funding is held back, unanswered for over "
+                       "%dh" % (total / 1e9,
+                                guardrails_mod.AMOUNT_REVIEW_DEADLINE_HOURS))
         else:
             subject = "%d row(s) quarantined, waiting on you" % len(guardrails)
     elif names:
@@ -331,10 +438,31 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             len(names), ", ".join(names[:4]))
     elif spend and spend.get("at_ceiling"):
         subject = "LLM spend has reached the monthly ceiling"
+    elif archive_stalled:
+        subject = "Source archiving has produced nothing in %d days" % (
+            ARCHIVE_STALL_DAYS)
     else:
         subject = "Health digest"
 
     lines = ["The weekly health check found something that needs a human.", ""]
+
+    if landmark_regressions:
+        lines += ["LANDMARK REGRESSION: %d round(s) this tracker used to hold "
+                  "are gone." % landmark_regressions, ""]
+        for item in (landmarks or {}).get("regressed", [])[:6]:
+            lines.append("  %s  %s  $%.3gbn"
+                         % (item.get("quarter"), item.get("company"),
+                            float(item.get("amount_usd") or 0) / 1e9))
+            lines.append("    %s" % (item.get("why") or ""))
+            lines.append("    %s" % (item.get("source_url") or ""))
+        lines += [
+            "  A landmark is an event with the company's OWN announcement "
+            "behind it,",
+            "  so this is not a judgement call about coverage. Something we "
+            "published",
+            "  is not published any more.",
+            "",
+        ]
 
     if stopped:
         lines += [
@@ -396,6 +524,39 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
                 "  ($%.2fbn)" % (value / 1e9) if value >= 1e9 else "", when))
         if len(guardrails) > 6:
             lines.append("  ... and %d more" % (len(guardrails) - 6))
+
+        # THE MONEY QUEUE, IN FULL, WITH NO "AND N MORE".
+        #
+        # The six-row extract above is a summary and it is allowed to truncate.
+        # This is not, and the reason is what the ledger looked like on
+        # 2026-08-04: fifteen `amount` findings worth $874.2bn, every one
+        # `state='open'` with `reviewed_at` NULL, one of them re-seen 229 times
+        # over five days, while the site published $212.5bn. Four fifths of the
+        # money we hold had never reached a reader and no email had ever named
+        # the rows. A queue summarised as a count is a queue that stays a count.
+        #
+        # Mailed at 48h rather than at the grace window because this email is
+        # the moment of telling, and the thing being told is that real figures
+        # are being withheld - not that anything failed.
+        unreviewed = guardrails_mod.unreviewed_amounts(
+            [r for r in guardrails if "already_live" in r])
+        if unreviewed:
+            total = sum(r.get("value") or 0 for r in unreviewed)
+            lines += [
+                "",
+                "  UNREVIEWED FUNDING FIGURES (%d, $%.1fbn), every one, oldest "
+                "first:" % (len(unreviewed), total / 1e9),
+                "  These are out of the money charts, the totals and the table "
+                "until answered.",
+            ]
+            for row in sorted(unreviewed, key=lambda r: -(r.get("age_hours") or 0)):
+                lines.append("    $%8.2fbn  %-46s %.0fd unanswered  %s" % (
+                    (row.get("value") or 0) / 1e9,
+                    (row.get("label") or "")[:46],
+                    (row.get("age_hours") or 0) / 24,
+                    "ON THE LIVE SITE" if row.get("already_live") else "held back"))
+                lines.append("                %s/%s" % (
+                    row.get("check_name", ""), row.get("subject", "")))
         lines.append("")
 
     for name, hours, limit in stale:
@@ -430,6 +591,15 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'me what actually broke."'
             % ("any recorded run" if newest_hours is None
                else "%.0f hours" % newest_hours))
+    elif landmark_regressions:
+        lines.append(
+            '  "The health digest says a landmark round has gone missing. Run '
+            'python3 check_landmarks.py --live and read the REGRESSION block: '
+            'it names the company, the amount and the primary document. Find '
+            'out whether the row was retracted, superseded by a revision, or '
+            'quarantined by a publish guardrail, and tell me which before '
+            'changing anything. Do not add the row by hand: if it needs '
+            'recollecting it goes through the collector like everything else."')
     elif guardrails:
         lines.append(
             '  "The health digest says rows are quarantined by the publish '
@@ -466,6 +636,90 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'and collection is blocked. Read spend.py, confirm the month-delta '
             'snapshot in data/spend_month.json is correct, and tell me whether '
             'to wait for the month to roll over or raise the allowance."')
+    elif archive_stalled:
+        # Deliberately points at the runs rather than at the script. The script
+        # is fine every time this fires: what breaks is the path to it, and the
+        # first question is always whether the runs went out in dry_run mode.
+        lines.append(
+            '  "The health digest says source archiving has produced nothing '
+            'for a week. Run python3 ops_status.py and read section [2c], then '
+            'check the last few archive-sources runs with gh: confirm each one '
+            'said RECORDING rather than DRY RUN, and that the scheduled tickets '
+            'in data/writer_queue.json carry dry_run=false. If the runs are '
+            'recording, read what Wayback actually answered before changing any '
+            'budget: a throttle is not a refusal and raising spn_max makes it '
+            'worse."')
+
+    # LANDMARKS is reported EVERY time, for the same reason SOURCE LINKS is:
+    # it is supposed to move, and a number that only appears once it is already
+    # bad cannot show a slow slide. It is also the one line in this email that
+    # answers "are the events nobody could defend missing actually here", which
+    # is the question a human had to ask by hand on 2026-08-04.
+    if landmarks:
+        lines += ["", "LANDMARKS  (largest disclosed round per quarter, "
+                  "primary sources)", "  " + landmarks["one_line"]]
+        if landmarks.get("held_not_live"):
+            lines.append(
+                "  %d are STORED and NOT LIVE: rows we hold that no reader can "
+                "see. Check the" % landmarks["held_not_live"])
+            lines.append("  publish guardrails before anything else.")
+        if landmarks.get("biggest_gaps"):
+            lines.append("  Largest standing gaps:")
+            for gap in landmarks["biggest_gaps"]:
+                lines.append("    %-8s %-18s $%.3gbn  %s"
+                             % (gap["quarter"], gap["company"][:18],
+                                float(gap["amount_usd"]) / 1e9, gap["status"]))
+        lines.append(
+            "  A standing gap has never been held, so it is a work list and "
+            "not a fault.")
+        lines.append("  Checked %s against set %s."
+                     % (landmarks.get("checked_on") or "never",
+                        landmarks.get("version") or "unknown"))
+    else:
+        lines += ["", "LANDMARKS",
+                  "  No landmark report exists, so nothing is watching the "
+                  "largest rounds.",
+                  "  Run: python3 check_landmarks.py --live --write"]
+
+    # SOURCE LINKS is reported EVERY time, findings or none. It is the one
+    # number in this email that is supposed to move week on week, and a metric
+    # that only appears when it is already bad cannot show a slow slide. The
+    # archiver went a whole day producing nothing on 2026-07-30 and what hid it
+    # was not a wrong number, it was no number anywhere the owner reads.
+    if link_health:
+        rot = link_health.get("rot") or {}
+        lines += [
+            "",
+            "SOURCE LINKS",
+            "  %d of %d cited documents in the archived scope have a Wayback "
+            "fallback (%s%%)." % (link_health["archived"], link_health["in_scope"],
+                                  link_health["pct"]),
+            "  %d are waiting on a capture, %d have never been asked about."
+            % (link_health["capture_queue"], link_health["never_probed"]),
+            "  Newest snapshot: %s." % (link_health.get("newest_snapshot")
+                                        or "none ever recorded"),
+        ]
+        if rot.get("checked"):
+            lines.append(
+                "  Rot: %d of %d checked links are dead or drifted (%s%%)."
+                % (rot["rot"], rot["checked"], rot["rot_pct"]))
+        lines.append(
+            "  The scope is the publisher collectors on purpose. The rest of "
+            "what we")
+        lines.append(
+            "  cite is SEC and GOV.UK filings, which those governments keep "
+            "indefinitely.")
+        if archive_stalled:
+            lines += [
+                "",
+                "  STALLED. There is outstanding work and no snapshot has been "
+                "recorded",
+                "  in %d days. This is the failure that leaves no red run: the "
+                "job can" % ARCHIVE_STALL_DAYS,
+                "  exit green having captured nothing, and every source link "
+                "keeps working",
+                "  right up until the day it does not.",
+            ]
 
     lines += ["", "Ledger read from: %s" % source_label,
               "Healthy collectors: %d" % len(buckets["ok"])]
@@ -555,6 +809,9 @@ def main(argv=None) -> int:
     stopped = pipeline_stopped(collectors, now)
     spend = spend_line()
     guardrail_rows = read_guardrails()
+    link_health = read_link_health()
+    archive_stalled = archiving_stalled(link_health, now)
+    landmarks = read_landmarks()
 
     print("HEALTH DIGEST  (%s)" % source_label)
     print("  %d ok, %d degraded, %d stale, %d without a timestamp"
@@ -583,9 +840,39 @@ def main(argv=None) -> int:
         print("  ::warning:: GUARDRAIL %s: %s"
               % (row.get("check_name", ""), (row.get("label") or "")[:100]))
 
+    if link_health:
+        print("  source links: %d/%d in scope archived (%s%%), %d waiting on a "
+              "capture, %d never asked about, newest %s"
+              % (link_health["archived"], link_health["in_scope"],
+                 link_health["pct"], link_health["capture_queue"],
+                 link_health["never_probed"],
+                 link_health.get("newest_snapshot") or "never"))
+    if archive_stalled:
+        print("  ::warning:: ARCHIVING STALLED: work outstanding and no snapshot "
+              "recorded in %d days" % ARCHIVE_STALL_DAYS)
+
+    if landmarks:
+        print("  " + landmarks["one_line"] + "  (checked %s)"
+              % landmarks.get("checked_on"))
+        if landmarks["regressions"]:
+            print("  ::warning:: LANDMARK REGRESSION: %d round(s) we used to "
+                  "hold are gone" % landmarks["regressions"])
+    else:
+        print("  ::warning:: no landmark report: nothing is watching the "
+              "largest rounds")
+
     needs_human = bool(
         stopped or buckets["stale"] or buckets["degraded"] or buckets["unknown_age"]
         or guardrail_rows or (spend and spend.get("at_ceiling"))
+        # An archiver that runs green every three hours and records nothing is
+        # invisible to every other check here: it is not stale, not degraded,
+        # and costs nothing. It is also the exact failure that turns a sourced
+        # claim into an unsourced one the day a publisher deletes a page.
+        or archive_stalled
+        # A landmark that WAS held and is not any more. Standing gaps are
+        # deliberately not here: they are a backlog, and a weekly email about a
+        # backlog that only backfilling can move is an email that gets filtered.
+        or bool(landmarks and landmarks["regressions"])
     )
 
     if not needs_human and not args.send_test:
@@ -593,7 +880,8 @@ def main(argv=None) -> int:
         return 0
 
     subject, body = build_email(buckets, stopped, newest, spend, source_label,
-                                guardrail_rows)
+                                guardrail_rows, link_health, archive_stalled,
+                                landmarks)
     if args.send_test and not needs_human:
         subject = "Test alert: everything is healthy"
         body = ("This is a test of the alert path, sent on request.\n\n"

@@ -1,12 +1,13 @@
 {
-  "last_tick": "2026-07-29T19:45:27Z",
+  "last_dispatch": "2026-08-11T03:55:04Z",
+  "last_tick": "2026-08-11T03:55:04Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-29T08:08:07Z",
-      "resolved_note": "Triaged 2026-07-29: all 15 were evictions from the one-pending-slot bug. The two that mattered (correct-form-d, correct-sec-pillar) are re-queued with explicit dry_run=false; recall re-ran; collect and the backfills run on their own schedules. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:38:04Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
       "run_id": "30430391475",
       "workflow": "collect"
     },
@@ -14,8 +15,8 @@
       "created_at": "2026-07-29T06:56:12Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-29T08:08:07Z",
-      "resolved_note": "Triaged 2026-07-29: all 15 were evictions from the one-pending-slot bug. The two that mattered (correct-form-d, correct-sec-pillar) are re-queued with explicit dry_run=false; recall re-ran; collect and the backfills run on their own schedules. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:39:05Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
       "run_id": "30429827776",
       "workflow": "enrich"
     },
@@ -41,8 +42,8 @@
       "created_at": "2026-07-29T06:35:58Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-29T08:08:07Z",
-      "resolved_note": "Triaged 2026-07-29: all 15 were evictions from the one-pending-slot bug. The two that mattered (correct-form-d, correct-sec-pillar) are re-queued with explicit dry_run=false; recall re-ran; collect and the backfills run on their own schedules. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:39:30Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
       "run_id": "30428695347",
       "workflow": "recall"
     },
@@ -50,8 +51,8 @@
       "created_at": "2026-07-29T06:27:29Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-29T08:08:07Z",
-      "resolved_note": "Triaged 2026-07-29: all 15 were evictions from the one-pending-slot bug. The two that mattered (correct-form-d, correct-sec-pillar) are re-queued with explicit dry_run=false; recall re-ran; collect and the backfills run on their own schedules. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:40:10Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; correction workflow, NOT replayed because GitHub does not expose a dispatched runs inputs and these default to dry_run=true; outstanding corrections are queued separately (by dakotta-labs)",
       "run_id": "30428223266",
       "workflow": "correct-sec-pillar"
     },
@@ -68,8 +69,8 @@
       "created_at": "2026-07-29T05:55:56Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-29T08:08:07Z",
-      "resolved_note": "Triaged 2026-07-29: all 15 were evictions from the one-pending-slot bug. The two that mattered (correct-form-d, correct-sec-pillar) are re-queued with explicit dry_run=false; recall re-ran; collect and the backfills run on their own schedules. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:40:36Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; correction workflow, NOT replayed because GitHub does not expose a dispatched runs inputs and these default to dry_run=true; outstanding corrections are queued separately (by dakotta-labs)",
       "run_id": "30426534748",
       "workflow": "correct-form-d"
     },
@@ -140,8 +141,8 @@
       "created_at": "2026-07-29T07:18:22Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T09:51:29Z",
-      "resolved": "2026-07-29T10:54:16Z",
-      "resolved_note": "Both were direct (cron) dispatches evicted while the GDELT backfill held the lock. enrich already re-ran successfully from the queue at 10:51; collect national press is being re-queued through drain-writers so it cannot be evicted again. (by dakotta-labs)",
+      "resolved": "2026-07-30T05:39:49Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
       "run_id": "30431169359",
       "workflow": "enrich"
     },
@@ -153,784 +154,2451 @@
       "resolved_note": "Both were direct (cron) dispatches evicted while the GDELT backfill held the lock. enrich already re-ran successfully from the queue at 10:51; collect national press is being re-queued through drain-writers so it cannot be evicted again. (by dakotta-labs)",
       "run_id": "30441306949",
       "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-07-31T09:52:33Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-31T09:56:52Z",
+      "resolved": "2026-07-31T21:31:57Z",
+      "resolved_note": "All six failed tickets and the orphan are casualties of the 00:48-01:09 Bluehost outage, not defects. Host verified healthy. Re-queueing the two enrich tickets separately because they carry 228 archive captures that have not reached the site. (by dakotta-labs)",
+      "run_id": "30621518963",
+      "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-08-01T09:35:54Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-08-01T09:40:47Z",
+      "resolved": "2026-08-01T16:44:02Z",
+      "resolved_note": " (by dakotta-labs)",
+      "run_id": "30694055440",
+      "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-08-02T09:37:09Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-08-02T09:41:47Z",
+      "resolved": "2026-08-02T17:15:06Z",
+      "resolved_note": " (by dakotta-labs)",
+      "run_id": "30742123499",
+      "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-08-05T08:47:01Z",
+      "detail": "scheduled run displaced from the pending slot; it carries no inputs and the next cron covers the same ground",
+      "noticed_at": "2026-08-05T08:50:23Z",
+      "resolved": "2026-08-05T08:50:23Z",
+      "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
+      "run_id": "30990450867",
+      "workflow": "collect"
     }
   ],
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T10:51:16Z",
+      "dispatched_at": "2026-08-05T06:47:46Z",
       "history": [
         {
-          "at": "2026-07-29T07:25:00Z",
-          "detail": "canary: prove the queue dispatch path end to end, writing nothing",
+          "at": "2026-08-05T06:17:23Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T10:51:16Z",
+          "at": "2026-08-05T06:47:46Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T10:54:29Z",
-          "detail": "run 30445277730",
+          "at": "2026-08-05T06:54:38Z",
+          "detail": "run 30982597003",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T10:54:29Z",
-          "detail": "run 30445277730",
+          "at": "2026-08-05T06:54:38Z",
+          "detail": "run 30982597003",
           "event": "landed"
         }
       ],
-      "id": "20260729T072500Z-enrich",
-      "inputs": {
-        "dry_run": "true"
-      },
-      "landed_at": "2026-07-29T10:54:29Z",
-      "priority": 0,
-      "reason": "canary: prove the queue dispatch path end to end, writing nothing",
-      "requested_at": "2026-07-29T07:25:00Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30445277730",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T10:54:29Z",
-      "history": [
-        {
-          "at": "2026-07-29T07:48:38Z",
-          "detail": "998 retractions, 3005 corrections",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T10:54:29Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T10:55:15Z",
-          "detail": "run 30445486869",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T12:13:01Z",
-          "detail": "run 30445486869",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T074838Z-correct-form-d",
+      "id": "20260805T061723Z-link-check",
       "inputs": {
         "dry_run": "false"
       },
-      "landed_at": "2026-07-29T12:13:01Z",
+      "landed_at": "2026-08-05T06:54:38Z",
       "priority": 0,
-      "reason": "998 retractions, 3005 corrections",
-      "requested_at": "2026-07-29T07:48:38Z",
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-05T06:17:23Z",
       "requested_by": "dakotta-labs",
-      "run_id": "30445486869",
-      "state": "landed",
-      "workflow": "correct-form-d.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T12:13:01Z",
-      "history": [
-        {
-          "at": "2026-07-29T07:49:29Z",
-          "detail": "548 8-K Item 5.02 rows filed as pay events, invisible under leadership moves",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T12:13:01Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T12:58:33Z",
-          "detail": "run 30450671959",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T12:58:33Z",
-          "detail": "run 30450671959",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T074929Z-correct-sec-pillar",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-07-29T12:58:33Z",
-      "priority": 0,
-      "reason": "548 8-K Item 5.02 rows filed as pay events, invisible under leadership moves",
-      "requested_at": "2026-07-29T07:49:29Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30450671959",
-      "state": "landed",
-      "workflow": "correct-sec-pillar.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T12:58:33Z",
-      "history": [
-        {
-          "at": "2026-07-29T10:55:02Z",
-          "detail": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T12:58:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T13:40:02Z",
-          "detail": "run 30453912404",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T13:40:02Z",
-          "detail": "run 30453912404",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T105502Z-collect-press",
-      "inputs": {},
-      "landed_at": "2026-07-29T13:40:02Z",
-      "priority": 0,
-      "reason": "First real run of the 575-feed national press collector; evicted twice as a direct dispatch",
-      "requested_at": "2026-07-29T10:55:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30453912404",
-      "state": "landed",
-      "workflow": "collect-press.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T17:05:34Z",
-      "history": [
-        {
-          "at": "2026-07-29T17:05:19Z",
-          "detail": "First real link check; dry runs cleared 291 URLs at 0% rot",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T17:05:34Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T17:06:10Z",
-          "detail": "run 30473757174",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T17:12:44Z",
-          "detail": "run 30473757174",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T170519Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-07-29T17:12:44Z",
-      "priority": 0,
-      "reason": "First real link check; dry runs cleared 291 URLs at 0% rot",
-      "requested_at": "2026-07-29T17:05:19Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30473757174",
+      "run_id": "30982597003",
       "state": "landed",
       "workflow": "link-check.yml"
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T17:12:44Z",
+      "dispatched_at": "2026-08-05T08:06:53Z",
       "history": [
         {
-          "at": "2026-07-29T17:05:58Z",
-          "detail": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
+          "at": "2026-08-05T08:06:29Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 1)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T17:12:44Z",
+          "at": "2026-08-05T08:06:53Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T17:44:46Z",
-          "detail": "run 30474293718",
+          "at": "2026-08-05T08:44:51Z",
+          "detail": "run 30987698181",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T17:44:46Z",
-          "detail": "run 30474293718",
+          "at": "2026-08-05T08:44:51Z",
+          "detail": "run 30987698181",
           "event": "landed"
         }
       ],
-      "id": "20260729T170558Z-archive-sources",
+      "id": "20260805T080629Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T08:44:51Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 1)",
+      "requested_at": "2026-08-05T08:06:29Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30987698181",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T08:44:51Z",
+      "history": [
+        {
+          "at": "2026-08-05T08:44:28Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 2)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T08:44:51Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T08:50:23Z",
+          "detail": "run 30990303269",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T09:19:13Z",
+          "detail": "run 30990303269",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T084428Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T09:19:13Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 2)",
+      "requested_at": "2026-08-05T08:44:28Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30990303269",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T09:34:41Z",
+      "history": [
+        {
+          "at": "2026-08-05T09:18:42Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 3)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T09:34:41Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T09:57:40Z",
+          "detail": "run 30993856405",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T09:57:40Z",
+          "detail": "run 30993856405",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T091842Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T09:57:40Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 3)",
+      "requested_at": "2026-08-05T09:18:42Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30993856405",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T10:00:17Z",
+      "history": [
+        {
+          "at": "2026-08-05T09:34:07Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 5)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T10:00:17Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T10:05:04Z",
+          "detail": "run 30995627118",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T10:33:37Z",
+          "detail": "run 30995627118",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T093407Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T10:33:37Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 5)",
+      "requested_at": "2026-08-05T09:34:07Z",
+      "requested_by": "backfill-slices",
+      "run_id": "30995627118",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T11:19:01Z",
+      "history": [
+        {
+          "at": "2026-08-05T09:57:10Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 4)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T11:19:01Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T11:42:26Z",
+          "detail": "run 31000967582",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T11:42:26Z",
+          "detail": "run 31000967582",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T095710Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T11:42:26Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 4)",
+      "requested_at": "2026-08-05T09:57:10Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31000967582",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T10:34:43Z",
+      "history": [
+        {
+          "at": "2026-08-05T10:31:34Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T10:34:43Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T10:52:45Z",
+          "detail": "run 30997984843",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T10:52:45Z",
+          "detail": "run 30997984843",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T103134Z-enrich",
       "inputs": {
         "dry_run": "false"
       },
-      "landed_at": "2026-07-29T17:44:46Z",
+      "landed_at": "2026-08-05T10:52:45Z",
       "priority": 0,
-      "reason": "First real Wayback pass; publisher coverage is 29%, that is the tail that rots",
-      "requested_at": "2026-07-29T17:05:58Z",
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-05T10:31:34Z",
       "requested_by": "dakotta-labs",
-      "run_id": "30474293718",
+      "run_id": "30997984843",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T11:42:26Z",
+      "history": [
+        {
+          "at": "2026-08-05T10:33:11Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 6)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T11:42:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T12:03:40Z",
+          "detail": "run 31002534574",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T12:03:40Z",
+          "detail": "run 31002534574",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T103311Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T12:03:40Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 6)",
+      "requested_at": "2026-08-05T10:33:11Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31002534574",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T10:52:45Z",
+      "history": [
+        {
+          "at": "2026-08-05T10:47:45Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T10:52:45Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T11:19:01Z",
+          "detail": "run 30999189616",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T11:19:01Z",
+          "detail": "run 30999189616",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T104745Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-05T11:19:01Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-05T10:47:45Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "30999189616",
       "state": "landed",
       "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T19:41:36Z",
+      "dispatched_at": "2026-08-05T12:03:40Z",
       "history": [
         {
-          "at": "2026-07-29T18:40:06Z",
-          "detail": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
+          "at": "2026-08-05T11:41:59Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 5)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:41:22Z",
+          "at": "2026-08-05T12:03:40Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T18:46:46Z",
-          "detail": "run 30481065108",
+          "at": "2026-08-05T12:15:02Z",
+          "detail": "run 31004005610",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T18:46:46Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-07-29T19:01:42Z",
-          "detail": "it failed only because publish was blocked by the eight guardrail findings; those are answered and enforce now passes, so the slice can finish",
-          "event": "requeued"
-        },
-        {
-          "at": "2026-07-29T19:41:36Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T19:45:27Z",
-          "detail": "run 30485534927",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T19:45:27Z",
-          "detail": "run 30485534927",
+          "at": "2026-08-05T12:30:14Z",
+          "detail": "run 31004005610",
           "event": "landed"
         }
       ],
-      "id": "20260729T184006Z-backfill-funding-bulk",
+      "id": "20260805T114159Z-backfill-press-2026",
       "inputs": {
         "dry_run": "false",
-        "quarters": "2026q1..2026q2"
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
       },
-      "landed_at": "2026-07-29T19:45:27Z",
+      "landed_at": "2026-08-05T12:30:14Z",
       "priority": 10,
-      "reason": "prove the bounded-slice chain end to end (zero LLM cost: the bulk data set is columns, not classification)",
-      "requested_at": "2026-07-29T18:40:06Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30485534927",
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 5)",
+      "requested_at": "2026-08-05T11:41:59Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31004005610",
       "state": "landed",
-      "workflow": "backfill-funding-bulk.yml"
+      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:46:46Z",
+      "dispatched_at": "2026-08-05T12:30:14Z",
       "history": [
         {
-          "at": "2026-07-29T18:46:33Z",
-          "detail": "guardrail finding rejected on the filing: e008269d6b2d",
+          "at": "2026-08-05T12:03:16Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 7)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:46:46Z",
+          "at": "2026-08-05T12:30:14Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T18:47:32Z",
-          "detail": "run 30481472672",
+          "at": "2026-08-05T12:51:41Z",
+          "detail": "run 31005900209",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T18:47:32Z",
-          "detail": "run 30481472672",
+          "at": "2026-08-05T12:51:41Z",
+          "detail": "run 31005900209",
           "event": "landed"
         }
       ],
-      "id": "20260729T184633Z-retract",
+      "id": "20260805T120316Z-backfill-press-2026",
       "inputs": {
-        "reason": "Not a capital raise. The Form D reports the value of shares issued in Madison Air's pre-IPO reorganization, not money raised: the 424B4 of 2026-04-17 describes the Organizational Transactions as a reorganization of entities under common control, and 402,614,670 unregistered shares at the 27.00 USD IPO price is exactly the 10,870,596,090 USD on the form. The only cash private placement disclosed is 100.0 million USD from Holdings.",
-        "signal_id": "e008269d6b2d4981d74d30cd203c730b"
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
       },
-      "landed_at": "2026-07-29T18:47:32Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: e008269d6b2d",
-      "requested_at": "2026-07-29T18:46:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481472672",
+      "landed_at": "2026-08-05T12:51:41Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 7)",
+      "requested_at": "2026-08-05T12:03:16Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31005900209",
       "state": "landed",
-      "workflow": "retract.yml"
+      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:47:32Z",
+      "dispatched_at": "2026-08-05T13:06:56Z",
       "history": [
         {
-          "at": "2026-07-29T18:47:21Z",
-          "detail": "guardrail finding rejected on the filing: c8952c565623",
+          "at": "2026-08-05T12:29:46Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 6)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:47:32Z",
+          "at": "2026-08-05T13:06:56Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T18:48:09Z",
-          "detail": "run 30481526547",
+          "at": "2026-08-05T13:24:54Z",
+          "detail": "run 31008683070",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T18:48:09Z",
-          "detail": "run 30481526547",
+          "at": "2026-08-05T13:24:54Z",
+          "detail": "run 31008683070",
           "event": "landed"
         }
       ],
-      "id": "20260729T184721Z-retract",
+      "id": "20260805T122946Z-backfill-press-2026",
       "inputs": {
-        "reason": "Not funding. The 9.9 billion USD is what Danaher is paying to acquire Masimo at 180.00 USD per share in cash, per Masimo's own 8-K exhibit 99.1 of 2026-02-17. Acquisition consideration was counted as money raised.",
-        "signal_id": "c8952c565623b370b55ef08fe22b07d6"
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
       },
-      "landed_at": "2026-07-29T18:48:09Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: c8952c565623",
-      "requested_at": "2026-07-29T18:47:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481526547",
+      "landed_at": "2026-08-05T13:24:54Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 6)",
+      "requested_at": "2026-08-05T12:29:46Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31008683070",
       "state": "landed",
-      "workflow": "retract.yml"
+      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:48:09Z",
+      "dispatched_at": "2026-08-05T13:24:54Z",
       "history": [
         {
-          "at": "2026-07-29T18:47:58Z",
-          "detail": "guardrail finding rejected on the filing: a7ea0346ba8c",
+          "at": "2026-08-05T12:51:16Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 8)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:48:09Z",
+          "at": "2026-08-05T13:24:54Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T18:48:48Z",
-          "detail": "run 30481572578",
+          "at": "2026-08-05T13:44:17Z",
+          "detail": "run 31010084031",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T18:48:48Z",
-          "detail": "run 30481572578",
+          "at": "2026-08-05T13:44:17Z",
+          "detail": "run 31010084031",
           "event": "landed"
         }
       ],
-      "id": "20260729T184758Z-retract",
+      "id": "20260805T125116Z-backfill-press-2026",
       "inputs": {
-        "reason": "Not funding. The Form D itself answers yes to business combination transaction and explains: merger of W.D. Company, Inc. with and into Dillard's, Inc. The amount is stated as estimated based on the closing price of Dillard's Class A common stock on 2026-06-02, so it is the value of shares issued as merger consideration and no cash was raised.",
-        "signal_id": "a7ea0346ba8cb074f447a7e0f78687d3"
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
       },
-      "landed_at": "2026-07-29T18:48:48Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: a7ea0346ba8c",
-      "requested_at": "2026-07-29T18:47:58Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481572578",
+      "landed_at": "2026-08-05T13:44:17Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 8)",
+      "requested_at": "2026-08-05T12:51:16Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31010084031",
       "state": "landed",
-      "workflow": "retract.yml"
+      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:48:48Z",
+      "dispatched_at": "2026-08-05T13:44:17Z",
       "history": [
         {
-          "at": "2026-07-29T18:48:33Z",
-          "detail": "guardrail finding rejected on the filing: aab1724dffa4",
+          "at": "2026-08-05T13:24:30Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 7)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:48:48Z",
+          "at": "2026-08-05T13:44:17Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T18:49:26Z",
-          "detail": "run 30481620991",
+          "at": "2026-08-05T14:07:35Z",
+          "detail": "run 31011658000",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T18:50:13Z",
-          "detail": "run 30481620991",
+          "at": "2026-08-05T14:07:35Z",
+          "detail": "run 31011658000",
           "event": "landed"
         }
       ],
-      "id": "20260729T184833Z-retract",
+      "id": "20260805T132430Z-backfill-press-2026",
       "inputs": {
-        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Employee Benefit Plan Custody Account, the offering amount is Indefinite, it claims Investment Company Act exclusions 3C.3 and 3C.7, and it is sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
-        "signal_id": "aab1724dffa4a6620cce4214d3bf654e"
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
       },
-      "landed_at": "2026-07-29T18:50:13Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: aab1724dffa4",
-      "requested_at": "2026-07-29T18:48:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481620991",
+      "landed_at": "2026-08-05T14:07:35Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 7)",
+      "requested_at": "2026-08-05T13:24:30Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31011658000",
       "state": "landed",
-      "workflow": "retract.yml"
+      "workflow": "backfill-press-2026.yml"
     },
     {
+      "acknowledged": "2026-08-05T18:43:00Z",
       "attempts": 0,
-      "dispatched_at": "2026-07-29T18:50:13Z",
+      "dispatched_at": "2026-08-05T14:07:35Z",
       "history": [
         {
-          "at": "2026-07-29T18:49:13Z",
-          "detail": "guardrail finding rejected on the filing: e0931724fe15",
+          "at": "2026-08-05T13:43:52Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 9)",
           "event": "queued"
         },
         {
-          "at": "2026-07-29T18:50:13Z",
+          "at": "2026-08-05T14:07:35Z",
           "detail": "",
           "event": "dispatched"
         },
         {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "run 30481725300",
+          "at": "2026-08-05T14:27:56Z",
+          "detail": "run 31013599896",
           "event": "bound"
         },
         {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "run 30481725300",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184913Z-retract",
-      "inputs": {
-        "reason": "Not a capital raise. Insurance product filing: the Form D's own description of the security is Defined Contribution Plan Custody Account, the offering amount is Indefinite, with Investment Company Act exclusions 3C.3 and 3C.7, sold through MetLife Investors Distribution Company. Same separate-account class as the vehicles already withdrawn.",
-        "signal_id": "e0931724fe156dccf3d23e0899495714"
-      },
-      "landed_at": "2026-07-29T18:51:00Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: e0931724fe15",
-      "requested_at": "2026-07-29T18:49:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481725300",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T19:18:15Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:49:59Z",
-          "detail": "guardrail finding rejected on the filing: 5999b8ad31d6",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:51:00Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:51:54Z",
-          "detail": "run 30481782149",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:51:54Z",
+          "at": "2026-08-05T14:27:56Z",
           "detail": "conclusion failure",
           "event": "failed"
         },
         {
-          "at": "2026-07-29T18:59:08Z",
-          "detail": "its retraction was already re-queued and landed; this replay is a no-op that clears the failed state",
-          "event": "requeued"
-        },
-        {
-          "at": "2026-07-29T19:18:15Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T19:22:20Z",
-          "detail": "run 30483810232",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T19:22:20Z",
-          "detail": "run 30483810232",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T184959Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody.",
-        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
-      },
-      "landed_at": "2026-07-29T19:22:20Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: 5999b8ad31d6",
-      "requested_at": "2026-07-29T18:49:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30483810232",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:51:54Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:50:46Z",
-          "detail": "guardrail finding rejected on the filing: 5a104e9ca79f",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:51:54Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:54:30Z",
-          "detail": "run 30481847750",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:54:30Z",
-          "detail": "run 30481847750",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T185046Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the same class as 101 East Court Street LLC and missed by the same pattern. An Illinois LLC formed in 2025 named after the property at 3101-3121 N. Sheridan, filed under industry group Other, 21.4 million USD from 60 investors, sponsor address 2815 West Roscoe, Chicago. It employs nobody.",
-        "signal_id": "5a104e9ca79f027e85912dfc02bbd442"
-      },
-      "landed_at": "2026-07-29T18:54:30Z",
-      "priority": -1,
-      "reason": "guardrail finding rejected on the filing: 5a104e9ca79f",
-      "requested_at": "2026-07-29T18:50:46Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30481847750",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:54:30Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:51:39Z",
-          "detail": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:54:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:56:32Z",
-          "detail": "run 30482041924",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:56:32Z",
-          "detail": "run 30482041924",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T185139Z-retract",
-      "inputs": {
-        "reason": "Not a dated capital raise. The filing is a D/A, the fourteenth annual amendment to a continuous offering whose first sale was 2012-07-22, with the offering amount stated as Indefinite and the securities as debt. The 1.77 billion USD is the cumulative amount sold since 2012 through the issuer's own affiliated broker-dealer, not money raised on 2026-06-23. It is only visible now because withdrawing the seven larger errors lowered the derived ceiling onto it.",
-        "signal_id": "44d73d172ec88543cce90532bc583abe"
-      },
-      "landed_at": "2026-07-29T18:56:32Z",
-      "priority": -1,
-      "reason": "cumulative continuous-offering amendment, not a raise: 44d73d172ec88543cce90532bc583abe",
-      "requested_at": "2026-07-29T18:51:39Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30482041924",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:56:32Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:54:20Z",
-          "detail": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:56:32Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:58:30Z",
-          "detail": "run 30482192005",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T18:58:30Z",
-          "detail": "run 30482192005",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T185420Z-retract",
-      "inputs": {
-        "reason": "Single-asset street-address vehicle, the class the 998-row correction was for. A South Carolina LLC formed in 2026 and named after 101 East Court Street, filed under industry group Other, 12.65 million USD from 14 investors, sponsor address 110 E. Court Street Suite 501, Greenville SC. It employs nobody. Re-queued: the first run withdrew it on WordPress and locally but lost its push to a concurrent commit, so the withdrawal never reached the committed database.",
-        "signal_id": "5999b8ad31d6c468e2fc855a4691543c"
-      },
-      "landed_at": "2026-07-29T18:58:30Z",
-      "priority": -1,
-      "reason": "re-queue after a lost push: 5999b8ad31d6c468e2fc855a4691543c",
-      "requested_at": "2026-07-29T18:54:20Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30482192005",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "acknowledged": "2026-07-29T19:22:08Z",
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T18:58:30Z",
-      "history": [
-        {
-          "at": "2026-07-29T18:58:16Z",
-          "detail": "withdraw the 7 workforce-reduction records that breached scope (4 known + Elastic, Commerce.com, Verizon)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T18:58:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T18:59:45Z",
-          "detail": "run 30482333592",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T19:18:15Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-07-29T19:22:08Z",
-          "detail": "lost 4 withdrawals to host 504s; retract_remote now retries transient 5xx and the correction was re-queued as 20260729T191802Z (by dakotta-labs)",
+          "at": "2026-08-05T18:43:00Z",
+          "detail": "root cause fixed on main (bc9c82c): urllib3 ReadTimeoutError from a mid-body read on neweralive.na escaped head_text; capped_fetch now translates body-read errors to requests exceptions and the walker records a dead host per publisher. Re-queued to resume at cursor 9.",
           "event": "acknowledged"
         }
       ],
-      "id": "20260729T185816Z-correct-layoff-scope",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "withdraw the 7 workforce-reduction records that breached scope (4 known + Elastic, Commerce.com, Verizon)",
-      "requested_at": "2026-07-29T18:58:16Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30482333592",
-      "state": "failed",
-      "workflow": "correct-layoff-scope.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T19:22:20Z",
-      "history": [
-        {
-          "at": "2026-07-29T19:18:02Z",
-          "detail": "retry the 4 withdrawals lost to host 504s; retract_remote now retries transient 5xx",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T19:22:20Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T19:41:36Z",
-          "detail": "run 30484111321",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T19:41:36Z",
-          "detail": "run 30484111321",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T191802Z-correct-layoff-scope",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-07-29T19:41:36Z",
-      "priority": 0,
-      "reason": "retry the 4 withdrawals lost to host 504s; retract_remote now retries transient 5xx",
-      "requested_at": "2026-07-29T19:18:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "30484111321",
-      "state": "landed",
-      "workflow": "correct-layoff-scope.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-07-29T19:45:27Z",
-      "history": [
-        {
-          "at": "2026-07-29T19:42:12Z",
-          "detail": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-07-29T19:45:27Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-07-29T20:21:39Z",
-          "detail": "run 30485821825",
-          "event": "bound"
-        },
-        {
-          "at": "2026-07-29T20:21:39Z",
-          "detail": "run 30485821825",
-          "event": "landed"
-        }
-      ],
-      "id": "20260729T194212Z-backfill-funding-bulk",
+      "id": "20260805T134352Z-backfill-press-2026",
       "inputs": {
         "dry_run": "false",
-        "quarters": "2026q1..2026q2"
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
       },
-      "landed_at": "2026-07-29T20:21:39Z",
       "priority": 10,
-      "reason": "next slice of backfill-funding-bulk:2026q1..2026q2 (resumes at 2026q2)",
-      "requested_at": "2026-07-29T19:42:12Z",
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 9)",
+      "requested_at": "2026-08-05T13:43:52Z",
       "requested_by": "backfill-slices",
-      "run_id": "30485821825",
+      "run_id": "31013599896",
+      "state": "failed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T14:27:56Z",
+      "history": [
+        {
+          "at": "2026-08-05T14:06:56Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 8)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T14:27:56Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T14:36:19Z",
+          "detail": "run 31015328665",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T14:44:02Z",
+          "detail": "run 31015328665",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T140656Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T14:44:02Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 8)",
+      "requested_at": "2026-08-05T14:06:56Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31015328665",
       "state": "landed",
-      "workflow": "backfill-funding-bulk.yml"
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T14:44:02Z",
+      "history": [
+        {
+          "at": "2026-08-05T14:43:32Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 9)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T14:44:02Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T15:09:12Z",
+          "detail": "run 31016701191",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T15:09:12Z",
+          "detail": "run 31016701191",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T144332Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T15:09:12Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 9)",
+      "requested_at": "2026-08-05T14:43:32Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31016701191",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T15:09:12Z",
+      "history": [
+        {
+          "at": "2026-08-05T15:08:42Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 10)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T15:09:12Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T15:28:58Z",
+          "detail": "run 31018834561",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T15:28:58Z",
+          "detail": "run 31018834561",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T150842Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T15:28:58Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 10)",
+      "requested_at": "2026-08-05T15:08:42Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31018834561",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T15:28:58Z",
+      "history": [
+        {
+          "at": "2026-08-05T15:28:25Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 11)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T15:28:58Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T15:55:01Z",
+          "detail": "run 31020514325",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T15:55:01Z",
+          "detail": "run 31020514325",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T152825Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T15:55:01Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 11)",
+      "requested_at": "2026-08-05T15:28:25Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31020514325",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T15:55:01Z",
+      "history": [
+        {
+          "at": "2026-08-05T15:54:33Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 12)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T15:55:01Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T16:19:18Z",
+          "detail": "run 31022707791",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T16:19:18Z",
+          "detail": "run 31022707791",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T155433Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T16:19:18Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 12)",
+      "requested_at": "2026-08-05T15:54:33Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31022707791",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T16:19:18Z",
+      "history": [
+        {
+          "at": "2026-08-05T16:18:44Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 13)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T16:19:18Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T16:21:19Z",
+          "detail": "run 31024711526",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T16:43:01Z",
+          "detail": "run 31024711526",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T161844Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T16:43:01Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 13)",
+      "requested_at": "2026-08-05T16:18:44Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31024711526",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T16:43:01Z",
+      "history": [
+        {
+          "at": "2026-08-05T16:42:30Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 14)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T16:43:01Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T17:02:23Z",
+          "detail": "run 31026594541",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T17:02:23Z",
+          "detail": "run 31026594541",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T164230Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T17:02:23Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 14)",
+      "requested_at": "2026-08-05T16:42:30Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31026594541",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T17:02:23Z",
+      "history": [
+        {
+          "at": "2026-08-05T17:01:47Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 15)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T17:02:23Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T17:26:58Z",
+          "detail": "run 31028135737",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T17:26:58Z",
+          "detail": "run 31028135737",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T170147Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T17:26:58Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 15)",
+      "requested_at": "2026-08-05T17:01:47Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31028135737",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T17:26:58Z",
+      "history": [
+        {
+          "at": "2026-08-05T17:26:23Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 16)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T17:26:58Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T17:33:34Z",
+          "detail": "run 31030068601",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T17:33:34Z",
+          "detail": "run 31030068601",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T172623Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T17:33:34Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 16)",
+      "requested_at": "2026-08-05T17:26:23Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31030068601",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T18:01:53Z",
+      "history": [
+        {
+          "at": "2026-08-05T17:56:36Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T18:01:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T18:28:36Z",
+          "detail": "run 31032799885",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T18:28:36Z",
+          "detail": "run 31032799885",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T175636Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-05T18:28:36Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-05T17:56:36Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31032799885",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T19:22:26Z",
+      "history": [
+        {
+          "at": "2026-08-05T18:43:00Z",
+          "detail": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T19:22:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T19:53:18Z",
+          "detail": "run 31039107569",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T19:55:09Z",
+          "detail": "run 31039107569",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T184300Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T19:55:09Z",
+      "priority": 10,
+      "reason": "resume backfill-press-2026:2026-01-01..2026-07-30:0..16 at cursor 9 after the neweralive.na crash fix (bc9c82c)",
+      "requested_at": "2026-08-05T18:43:00Z",
+      "requested_by": "claude-fix-session",
+      "run_id": "31039107569",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T20:10:47Z",
+      "history": [
+        {
+          "at": "2026-08-05T19:54:35Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 10)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T20:10:47Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T20:32:17Z",
+          "detail": "run 31042858711",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T20:32:17Z",
+          "detail": "run 31042858711",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T195435Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T20:32:17Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 10)",
+      "requested_at": "2026-08-05T19:54:35Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31042858711",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T20:32:17Z",
+      "history": [
+        {
+          "at": "2026-08-05T20:31:40Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 11)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T20:32:17Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T20:56:18Z",
+          "detail": "run 31044538640",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T20:56:18Z",
+          "detail": "run 31044538640",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T203140Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T20:56:18Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 11)",
+      "requested_at": "2026-08-05T20:31:40Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31044538640",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T20:56:18Z",
+      "history": [
+        {
+          "at": "2026-08-05T20:55:46Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 12)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T20:56:18Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T21:02:53Z",
+          "detail": "run 31046434929",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T21:22:17Z",
+          "detail": "run 31046434929",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T205546Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T21:22:17Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 12)",
+      "requested_at": "2026-08-05T20:55:46Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31046434929",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T21:22:17Z",
+      "history": [
+        {
+          "at": "2026-08-05T21:21:46Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 13)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T21:22:17Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T21:47:54Z",
+          "detail": "run 31048345223",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T21:47:54Z",
+          "detail": "run 31048345223",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T212146Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T21:47:54Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 13)",
+      "requested_at": "2026-08-05T21:21:46Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31048345223",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T21:47:54Z",
+      "history": [
+        {
+          "at": "2026-08-05T21:47:29Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 14)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T21:47:54Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T22:12:43Z",
+          "detail": "run 31050171240",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T22:12:43Z",
+          "detail": "run 31050171240",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T214729Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T22:12:43Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 14)",
+      "requested_at": "2026-08-05T21:47:29Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31050171240",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T22:37:13Z",
+      "history": [
+        {
+          "at": "2026-08-05T22:12:17Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 15)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T22:37:13Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T23:03:00Z",
+          "detail": "run 31053436204",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T23:03:00Z",
+          "detail": "run 31053436204",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T221217Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T23:03:00Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 15)",
+      "requested_at": "2026-08-05T22:12:17Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31053436204",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-05T23:03:00Z",
+      "history": [
+        {
+          "at": "2026-08-05T23:02:38Z",
+          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 16)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-05T23:03:00Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-05T23:09:50Z",
+          "detail": "run 31054994248",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-05T23:09:50Z",
+          "detail": "run 31054994248",
+          "event": "landed"
+        }
+      ],
+      "id": "20260805T230238Z-backfill-press-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-08-05T23:09:50Z",
+      "priority": 10,
+      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 16)",
+      "requested_at": "2026-08-05T23:02:38Z",
+      "requested_by": "backfill-slices",
+      "run_id": "31054994248",
+      "state": "landed",
+      "workflow": "backfill-press-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-06T04:07:59Z",
+      "history": [
+        {
+          "at": "2026-08-06T03:44:59Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-06T04:07:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-06T04:34:27Z",
+          "detail": "run 31070379465",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-06T04:34:27Z",
+          "detail": "run 31070379465",
+          "event": "landed"
+        }
+      ],
+      "id": "20260806T034459Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-06T04:34:27Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-06T03:44:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31070379465",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "deferred_at": "2026-08-06T09:17:09Z",
+      "deferred_reason": "the monthly spend allowance was already exhausted ($10.08 of $10), so no query was bought",
+      "dispatched_at": "2026-08-06T09:16:26Z",
+      "history": [
+        {
+          "at": "2026-08-06T07:53:14Z",
+          "detail": "scheduled link hygiene (0 7 * * 1,4)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-06T09:16:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-06T09:17:09Z",
+          "detail": "run 31088398613",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-06T09:17:09Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        },
+        {
+          "at": "2026-08-06T16:27:12Z",
+          "detail": "reclassified by hand: run 31088398613 went red only because spend.py --enforce exited 1 on the budget ceiling. No query was bought and nothing was broken, so this is a deferral, not a failure. The tripwire now gates instead of enforcing and records this itself.",
+          "event": "deferred"
+        }
+      ],
+      "id": "20260806T075314Z-tripwire",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (0 7 * * 1,4)",
+      "requested_at": "2026-08-06T07:53:14Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31088398613",
+      "state": "deferred",
+      "workflow": "tripwire.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-06T09:09:39Z",
+      "history": [
+        {
+          "at": "2026-08-06T07:59:11Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-06T09:09:39Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-06T09:16:26Z",
+          "detail": "run 31087917157",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-06T09:16:26Z",
+          "detail": "run 31087917157",
+          "event": "landed"
+        }
+      ],
+      "id": "20260806T075911Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-06T09:16:26Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-06T07:59:11Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31087917157",
+      "state": "landed",
+      "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-06T11:20:29Z",
+      "history": [
+        {
+          "at": "2026-08-06T10:57:06Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-06T11:20:29Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-06T11:46:55Z",
+          "detail": "run 31096869426",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-06T11:46:55Z",
+          "detail": "run 31096869426",
+          "event": "landed"
+        }
+      ],
+      "id": "20260806T105706Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-06T11:46:55Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-06T10:57:06Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31096869426",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-06T11:50:34Z",
+      "history": [
+        {
+          "at": "2026-08-06T11:49:41Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-06T11:50:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-06T12:06:40Z",
+          "detail": "run 31098904883",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-06T12:06:40Z",
+          "detail": "run 31098904883",
+          "event": "landed"
+        }
+      ],
+      "id": "20260806T114941Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-06T12:06:40Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-06T11:49:41Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31098904883",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-07T04:49:03Z",
+      "history": [
+        {
+          "at": "2026-08-07T03:20:04Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-07T04:49:03Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-07T05:12:01Z",
+          "detail": "run 31148597586",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-07T05:15:37Z",
+          "detail": "run 31148597586",
+          "event": "landed"
+        }
+      ],
+      "id": "20260807T032004Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-07T05:15:37Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-07T03:20:04Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31148597586",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-07T07:55:34Z",
+      "history": [
+        {
+          "at": "2026-08-07T06:41:44Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-07T07:55:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-07T08:01:28Z",
+          "detail": "run 31159589866",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-07T08:01:28Z",
+          "detail": "run 31159589866",
+          "event": "landed"
+        }
+      ],
+      "id": "20260807T064144Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-07T08:01:28Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-07T06:41:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31159589866",
+      "state": "landed",
+      "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-07T09:56:40Z",
+      "history": [
+        {
+          "at": "2026-08-07T09:18:27Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-07T09:56:40Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-07T10:23:22Z",
+          "detail": "run 31168021581",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-07T10:23:22Z",
+          "detail": "run 31168021581",
+          "event": "landed"
+        }
+      ],
+      "id": "20260807T091827Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-07T10:23:22Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-07T09:18:27Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31168021581",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-07T10:51:13Z",
+      "history": [
+        {
+          "at": "2026-08-07T10:30:07Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-07T10:51:13Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-07T11:11:29Z",
+          "detail": "run 31171735761",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-07T11:11:29Z",
+          "detail": "run 31171735761",
+          "event": "landed"
+        }
+      ],
+      "id": "20260807T103007Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-07T11:11:29Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-07T10:30:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31171735761",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-07T17:44:14Z",
+      "history": [
+        {
+          "at": "2026-08-07T17:11:48Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-07T17:44:14Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-07T18:10:36Z",
+          "detail": "run 31203685162",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-07T18:10:36Z",
+          "detail": "run 31203685162",
+          "event": "landed"
+        }
+      ],
+      "id": "20260807T171148Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-07T18:10:36Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-07T17:11:48Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31203685162",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-08T03:01:13Z",
+      "history": [
+        {
+          "at": "2026-08-08T02:24:37Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-08T03:01:13Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-08T03:27:32Z",
+          "detail": "run 31236278806",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-08T03:27:32Z",
+          "detail": "run 31236278806",
+          "event": "landed"
+        }
+      ],
+      "id": "20260808T022437Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-08T03:27:32Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-08T02:24:37Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31236278806",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-08T06:56:53Z",
+      "history": [
+        {
+          "at": "2026-08-08T06:03:32Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-08T06:56:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-08T07:01:47Z",
+          "detail": "run 31245059373",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-08T07:01:47Z",
+          "detail": "run 31245059373",
+          "event": "landed"
+        }
+      ],
+      "id": "20260808T060332Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-08T07:01:47Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-08T06:03:32Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31245059373",
+      "state": "landed",
+      "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-08T09:21:01Z",
+      "history": [
+        {
+          "at": "2026-08-08T09:04:27Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-08T09:21:01Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-08T09:48:24Z",
+          "detail": "run 31250379152",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-08T09:48:24Z",
+          "detail": "run 31250379152",
+          "event": "landed"
+        }
+      ],
+      "id": "20260808T090427Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-08T09:48:24Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-08T09:04:27Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31250379152",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-08T10:50:03Z",
+      "history": [
+        {
+          "at": "2026-08-08T10:05:42Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-08T10:50:03Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-08T11:07:42Z",
+          "detail": "run 31253642889",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-08T11:07:42Z",
+          "detail": "run 31253642889",
+          "event": "landed"
+        }
+      ],
+      "id": "20260808T100542Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-08T11:07:42Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-08T10:05:42Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31253642889",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-08T17:24:28Z",
+      "history": [
+        {
+          "at": "2026-08-08T16:56:22Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-08T17:24:28Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-08T17:51:14Z",
+          "detail": "run 31269342792",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-08T17:51:14Z",
+          "detail": "run 31269342792",
+          "event": "landed"
+        }
+      ],
+      "id": "20260808T165622Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-08T17:51:14Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-08T16:56:22Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31269342792",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-09T03:58:21Z",
+      "history": [
+        {
+          "at": "2026-08-09T02:32:10Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-09T03:58:21Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-09T04:25:33Z",
+          "detail": "run 31293548881",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-09T04:25:33Z",
+          "detail": "run 31293548881",
+          "event": "landed"
+        }
+      ],
+      "id": "20260809T023210Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-09T04:25:33Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-09T02:32:10Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31293548881",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-09T06:55:50Z",
+      "history": [
+        {
+          "at": "2026-08-09T06:05:47Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-09T06:55:50Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-09T07:00:43Z",
+          "detail": "run 31299979160",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-09T07:00:43Z",
+          "detail": "run 31299979160",
+          "event": "landed"
+        }
+      ],
+      "id": "20260809T060547Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-09T07:00:43Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-09T06:05:47Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31299979160",
+      "state": "landed",
+      "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-09T09:22:45Z",
+      "history": [
+        {
+          "at": "2026-08-09T09:05:38Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-09T09:22:45Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-09T09:49:30Z",
+          "detail": "run 31305764857",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-09T09:49:30Z",
+          "detail": "run 31305764857",
+          "event": "landed"
+        }
+      ],
+      "id": "20260809T090538Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-09T09:49:30Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-09T09:05:38Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31305764857",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-09T10:52:02Z",
+      "history": [
+        {
+          "at": "2026-08-09T10:07:40Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-09T10:52:02Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-09T11:12:48Z",
+          "detail": "run 31309380110",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-09T11:12:48Z",
+          "detail": "run 31309380110",
+          "event": "landed"
+        }
+      ],
+      "id": "20260809T100740Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-09T11:12:48Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-09T10:07:40Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31309380110",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-09T17:26:04Z",
+      "history": [
+        {
+          "at": "2026-08-09T16:58:52Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-09T17:26:04Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-09T17:52:19Z",
+          "detail": "run 31326384370",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-09T17:52:19Z",
+          "detail": "run 31326384370",
+          "event": "landed"
+        }
+      ],
+      "id": "20260809T165852Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-09T17:52:19Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-09T16:58:52Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31326384370",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-10T04:17:43Z",
+      "history": [
+        {
+          "at": "2026-08-10T02:37:53Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-10T04:17:43Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-10T04:44:18Z",
+          "detail": "run 31355030866",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-10T04:44:18Z",
+          "detail": "run 31355030866",
+          "event": "landed"
+        }
+      ],
+      "id": "20260810T023753Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-10T04:44:18Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-10T02:37:53Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31355030866",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-10T07:21:53Z",
+      "history": [
+        {
+          "at": "2026-08-10T06:49:08Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-10T07:21:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-10T07:28:14Z",
+          "detail": "run 31365559377",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-10T07:28:14Z",
+          "detail": "run 31365559377",
+          "event": "landed"
+        }
+      ],
+      "id": "20260810T064908Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-10T07:28:14Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-10T06:49:08Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31365559377",
+      "state": "landed",
+      "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-10T08:44:43Z",
+      "history": [
+        {
+          "at": "2026-08-10T08:24:24Z",
+          "detail": "scheduled link hygiene (0 7 * * 1,4)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-10T08:44:43Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-10T08:45:20Z",
+          "detail": "run 31371431912",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-10T08:45:20Z",
+          "detail": "run 31371431912",
+          "event": "landed"
+        }
+      ],
+      "id": "20260810T082424Z-tripwire",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-10T08:45:20Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (0 7 * * 1,4)",
+      "requested_at": "2026-08-10T08:24:24Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31371431912",
+      "state": "landed",
+      "workflow": "tripwire.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-10T10:14:55Z",
+      "history": [
+        {
+          "at": "2026-08-10T09:52:03Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-10T10:14:55Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-10T10:41:21Z",
+          "detail": "run 31378300594",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-10T10:41:21Z",
+          "detail": "run 31378300594",
+          "event": "landed"
+        }
+      ],
+      "id": "20260810T095203Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-10T10:41:21Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-10T09:52:03Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31378300594",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-10T11:28:01Z",
+      "history": [
+        {
+          "at": "2026-08-10T10:46:09Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-10T11:28:01Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-10T11:45:15Z",
+          "detail": "run 31383632614",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-10T11:45:15Z",
+          "detail": "run 31383632614",
+          "event": "landed"
+        }
+      ],
+      "id": "20260810T104609Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-10T11:45:15Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-10T10:46:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31383632614",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-10T17:35:33Z",
+      "history": [
+        {
+          "at": "2026-08-10T17:13:02Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-10T17:35:33Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-10T18:01:58Z",
+          "detail": "run 31414791641",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-10T18:01:58Z",
+          "detail": "run 31414791641",
+          "event": "landed"
+        }
+      ],
+      "id": "20260810T171302Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-10T18:01:58Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-10T17:13:02Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31414791641",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-11T03:55:04Z",
+      "history": [
+        {
+          "at": "2026-08-11T02:31:06Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-11T03:55:04Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-11T04:22:01Z",
+          "detail": "run 31456846756",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-11T04:22:01Z",
+          "detail": "run 31456846756",
+          "event": "landed"
+        }
+      ],
+      "id": "20260811T023106Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-11T04:22:01Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-11T02:31:06Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31456846756",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1

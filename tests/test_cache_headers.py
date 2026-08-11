@@ -126,7 +126,15 @@ def test_a_bad_write_is_probed_and_rolled_back():
 
 def test_a_failed_attempt_does_not_retry_forever():
     body = php()
-    assert "tit_htaccess_lock" in body, "no throttle between attempts"
+    # The lock is an OPTION, via tit_ephemeral_* in db.php, not a transient.
+    # As `tit_htaccess_lock` it matched `_transient_tit_%`, so
+    # tit_flush_caches() could delete it mid-window on any write route and let
+    # a second request into insert_with_markers() while the first was still
+    # inside — the only mutual exclusion around a write to the site's .htaccess,
+    # dropped several times a day by our own collectors.
+    assert "tit_ephemeral_get('htaccess_lock')" in body, "no throttle between attempts"
+    assert "tit_ephemeral_set('htaccess_lock'" in body
+    assert "'tit_htaccess_lock'" not in body
     assert "'status' => 'failed'" in body
     assert "TIT_VERSION" in body, "failure state must be keyed to the version that failed"
 

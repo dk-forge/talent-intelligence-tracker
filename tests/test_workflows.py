@@ -93,6 +93,51 @@ def test_the_collect_commit_survives_a_racing_push():
     assert "::error::" in run and run.rstrip().endswith("exit 1")
 
 
+def test_the_schedule_sweeps_every_collector_this_workflow_owns():
+    """A schedule that only names google_news is a health blind spot.
+
+    collect.yml's cron passed `--source google_news` unconditionally, so gdelt,
+    sec_edgar and sec_form_d only ever ran when a human remembered to dispatch
+    them — twice each, in their whole lives — while their last manual run sat
+    in the ledger saying "ok". This pins the scheduled branch to the full
+    sweep, one invocation per source because run_collect takes exactly one.
+    """
+    from pathlib import Path
+
+    import yaml
+
+    wf = yaml.safe_load(
+        (Path(__file__).parent.parent / ".github/workflows/collect.yml").read_text())
+    step = next(s for s in wf["jobs"]["collect"]["steps"]
+                if s.get("name") == "Collect")
+    run = _code(step["run"])
+
+    assert "github.event_name" in step["run"] and "schedule" in run, (
+        "the collect step no longer branches on the schedule, so either the "
+        "sweep or the single-source dispatch is gone")
+    assert "for source in google_news gdelt sec_edgar sec_form_d" in run, (
+        "the scheduled sweep must run every built collector this workflow "
+        "owns, or the ones it skips go back to running only when a human "
+        "remembers them")
+    # Each invocation is a fresh process, so each carries its own read-through
+    # ceiling. Without these the sweep quadruples the worst-case bill instead
+    # of adding a rounding error to it.
+    assert "TIT_READTHROUGH_CAP" in run, (
+        "the sweep sets no per-source read cap, so every source gets the "
+        "google_news production ceiling")
+    # One failed source must not silence the sources after it in the loop, and
+    # must still turn the step red at the end.
+    assert "|| overall=1" in run and "exit $overall" in run
+    # The dispatch path keeps its single-source input.
+    assert "inputs.source || 'google_news'" in step["run"]
+
+    # Still exactly ONE merge-and-push per job: the sweep stores through one
+    # database connection and a second commit step would race the first.
+    commits = [s for s in wf["jobs"]["collect"]["steps"]
+               if "Commit" in (s.get("name") or "")]
+    assert len(commits) == 1
+
+
 def test_no_writer_copies_its_database_over_the_reset():
     """The reset-and-copy that cost 9,572 signal rows and the identity cache.
 
@@ -357,3 +402,178 @@ def test_the_drainer_wakes_up_for_every_writer_there_is():
     # coverage while covering nothing.
     stale = set(triggers) - members
     assert not stale, f"the drainer waits on workflows that are not writers: {sorted(stale)}"
+
+
+# --- gate labels: the same reset destroys them, so the same merge saves them --
+
+def _gate_running_workflows():
+    """Every workflow that runs an entry point which calls the paid LLM gate.
+
+    Derived from the scripts themselves rather than from a list kept here: a
+    hand-maintained list is exactly what let five backfills classify for months
+    with no label ever reaching main.
+    """
+    import re
+
+    root = Path(__file__).parent.parent
+    classifiers = {p.name for p in root.glob("*.py")
+                   if "classify.classify(" in p.read_text(encoding="utf-8")}
+    assert classifiers, "no script calls classify.classify — the scan is broken"
+
+    for path in WORKFLOWS:
+        text = path.read_text()
+        invoked = set(re.findall(r"python3?\s+([a-z_0-9]+\.py)", text))
+        if invoked & classifiers:
+            yield path.name, text
+
+
+def test_there_are_gate_running_workflows():
+    assert list(_gate_running_workflows())
+
+
+def test_every_workflow_that_classifies_merges_its_labels_back():
+    """A gate verdict costs money whoever bought it.
+
+    The commit step resets to origin/main, which throws this run's ledger away
+    exactly as it throws the database away, so the labels need the same
+    treatment the rows get: saved before the reset, merged after it, staged
+    before the commit. The daily collectors did all three. The five backfills
+    did none of them, so every verdict they paid for was collected, buffered,
+    written and then discarded by the reset — which is the most expensive way
+    to lose data, because the money was already spent.
+    """
+    missing = {}
+    for name, text in _gate_running_workflows():
+        if "git reset --hard" not in text:
+            continue          # nothing destroys the ledger, nothing to restore
+        problems = []
+        if "merge_gate_labels.py" not in text:
+            problems.append("never merges its gate labels back after the reset")
+        # The destination under $RUNNER_TEMP differs by workflow
+        # (collect-structured.yml keeps a whole `keep/` tree), so this asserts
+        # only that the ledger leaves the working copy before the reset.
+        if 'cp -R data/gate_labels "$RUNNER_TEMP' not in text:
+            problems.append("never saves data/gate_labels before the reset")
+        if "git add -A data/gate_labels" not in text:
+            problems.append("never stages data/gate_labels, so nothing is committed")
+        if problems:
+            missing[name] = problems
+
+    assert not missing, (
+        "these workflows pay for gate calls and then let `git reset --hard` "
+        f"discard the verdicts: {missing}"
+    )
+
+
+def test_the_label_merge_happens_after_the_reset_and_before_the_commit():
+    """Same ordering rule as merge_db.py, and it fails the same silent way:
+    merged before the reset it is discarded, staged after the commit it is not
+    in the commit."""
+    for name, text in _gate_running_workflows():
+        if "merge_gate_labels.py" not in text:
+            continue
+        code = "\n".join(line for line in text.splitlines()
+                         if not line.lstrip().startswith("#"))
+        assert code.index("git reset --hard") < code.index("merge_gate_labels.py"), (
+            f"{name} merges its gate labels before the reset, which discards them"
+        )
+        assert code.index("merge_gate_labels.py") < code.index("git commit"), (
+            f"{name} commits before merging its gate labels back"
+        )
+
+
+def test_no_two_scheduled_writers_queue_in_the_same_minute():
+    """Sharing one lock is necessary; queuing into it together is not free.
+
+    With `cancel-in-progress: false` GitHub keeps at most ONE run pending per
+    concurrency group. A third arrival does not join a queue — it CANCELS the
+    run already waiting. So two scheduled writers on the same cron minute are
+    not "one waits for the other": whichever queues first is the one that gets
+    thrown away as soon as anything else shows up.
+
+    collect-press.yml and collect-structured.yml both sat on '0 9 * * *'. The
+    morning press run was cancelled on 2026-07-29, 07-31, 08-01 and 08-02 while
+    its uncontended 21:00 slot succeeded every time, so a collector scheduled
+    twice a day ran once, ~24h apart, against a 14h staleness leash — and the
+    leash took the blame for a schedule that could not be kept.
+    """
+    import collections
+    from pathlib import Path
+
+    import yaml
+
+    workflows = Path(__file__).parent.parent / ".github/workflows"
+    slots = collections.defaultdict(list)
+    for path in sorted(workflows.glob("*.yml")):
+        text = path.read_text()
+        if "talent_intel.db" not in text:
+            continue
+        doc = yaml.safe_load(text) or {}
+        # PyYAML parses a bare `on:` key as the boolean True.
+        triggers = doc.get("on") or doc.get(True) or {}
+        for entry in (triggers.get("schedule") or []):
+            cron = (entry or {}).get("cron")
+            if not cron:
+                continue
+            # Compare the SLOT, not the literal string: '0 9,21 * * *' and
+            # '0 9 * * *' are different strings that both fire at 09:00, which
+            # is exactly the pair that caused this. Expand the comma lists in
+            # minute and hour; a wildcard or step in either field means the
+            # workflow is not on a fixed daily slot and is out of scope here.
+            minute, hour, *rest = cron.split()
+            if any(c in minute + hour for c in "*/-"):
+                continue
+            for mm in minute.split(","):
+                for hh in hour.split(","):
+                    slots[(f"{int(hh):02d}:{int(mm):02d}", " ".join(rest))].append(
+                        path.name)
+
+    assert slots, "no scheduled database writers found — the test is inert"
+    clashes = {slot: sorted(set(names))
+               for slot, names in slots.items() if len(set(names)) > 1}
+    assert not clashes, (
+        "these scheduled database writers queue into the shared lock in the "
+        f"same minute, so one of them will be cancelled rather than run: "
+        f"{clashes}. Move one to a free minute."
+    )
+
+
+def test_the_retraction_reason_never_reaches_the_shell_unquoted():
+    """A withdrawal must be able to state a dollar figure.
+
+    `${{ }}` is pasted into a `run` block as text before bash sees it, so bash
+    then expands what it finds. On 2026-08-04 the CXMT withdrawal was sent with
+    the reason "... an $8.6bn Shanghai STAR Market IPO ..." and `$8` expanded to
+    the empty eighth positional parameter: WordPress and the database both
+    recorded "an .6bn", losing the one figure the retraction existed to state.
+    The run was green.
+
+    `reason` is the only genuinely free-text input any writer takes — the rest
+    are dates, row limits and slugs — which makes it the only one where a `$`,
+    a backtick or a `$(...)` is likely rather than merely possible. It travels
+    through the environment, quoted, and this is what says so.
+    """
+    path = Path(__file__).parent.parent / ".github" / "workflows" / "retract.yml"
+    parsed = yaml.safe_load(path.read_text())
+
+    steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])]
+    running = [s for s in steps if "retract.py" in (s.get("run") or "")]
+    assert running, "retract.yml no longer invokes retract.py — this test is inert"
+
+    for step in running:
+        run = step["run"]
+        for field in ("reason", "signal_id", "bare_domains"):
+            assert f"inputs.{field}" not in run, (
+                f"retract.yml interpolates inputs.{field} into a run block. "
+                "bash will expand it: a reason containing $8.6bn loses the "
+                "figure, and one containing a backtick is executed. Pass it "
+                "through env: and quote the variable."
+            )
+        env = step.get("env") or {}
+        assert any("inputs.reason" in str(v) for v in env.values()), (
+            "retract.yml must carry the reason through env:, not the shell"
+        )
+        assert '"$TIT_REASON"' in run, (
+            "the reason variable must be quoted, or the shell splits it on "
+            "whitespace and the withdrawal states something else again"
+        )

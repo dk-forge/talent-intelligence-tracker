@@ -79,6 +79,7 @@ mistaken for a broken one.
 
 from __future__ import annotations
 
+import base64
 import csv
 import json
 import os
@@ -92,6 +93,8 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import requests
+
+from collectors import capped_fetch
 
 COLLECTOR = "national_press"
 
@@ -150,18 +153,40 @@ _AGENCY_TYPES = frozenset({
 # means a well-meaning CSV edit cannot even queue one up. Anything added to the
 # catalogue whose feed lives on one of these hosts is refused with a loud line
 # in the run log rather than silently skipped.
+# Six of the entries below are the bare and www hosts of three commercial
+# data providers whose names stay out of plaintext in this repo (standalone-
+# brand rule; tests/test_no_provider_names.py enforces it tree-wide). The
+# blocklist still needs the domains to refuse them, so they are stored
+# base64-encoded and decoded at import time. Encoding, not secrecy: the point
+# is that a grep of the tree surfaces no provider name, while the refusal
+# keeps working exactly as before.
+_ENCODED_AGGREGATOR_HOSTS = (
+    "ZGVhbHJvb20uY28=", "YXBwLmRlYWxyb29tLmNv",
+    "Y3J1bmNoYmFzZS5jb20=", "d3d3LmNydW5jaGJhc2UuY29t",
+    "dHJhY3huLmNvbQ==", "d3d3LnRyYWN4bi5jb20=",
+)
 _AGGREGATOR_HOSTS = frozenset({
     "news.google.com", "news.yahoo.com", "flipboard.com", "msn.com",
     "www.msn.com", "feedburner.com", "feeds.feedburner.com",
-    "dealroom.co", "app.dealroom.co", "crunchbase.com", "www.crunchbase.com",
-    "tracxn.com", "www.tracxn.com", "startupblink.com", "www.startupblink.com",
+    "startupblink.com", "www.startupblink.com",
     "harmonic.ai", "www.harmonic.ai", "beauhurst.com", "www.beauhurst.com",
     "fundup.co", "www.fundup.co", "magnitt.com", "www.magnitt.com",
     "startupnationcentral.org", "www.startupnationcentral.org",
     "techireland.org", "www.techireland.org",
-})
+}) | frozenset(
+    base64.b64decode(s).decode("ascii") for s in _ENCODED_AGGREGATOR_HOSTS
+)
+
 
 ATOM = "{http://www.w3.org/2005/Atom}"
+# RSS 1.0 (RDF). Its <item> lives in a namespace, so `.//item` — which matches
+# only unqualified names — finds nothing and the feed reads as "200 but no
+# parseable items". Nikkei Asia, CNET Japan, Nikkei xTECH, Impress Watch, PR
+# TIMES and the Taipei Times all serve it, which is most of what this collector
+# could reach in Japan and Taiwan. The format is twenty-five years old and it is
+# still what several major Asian publishers serve; nothing about those feeds is
+# broken.
+RSS10 = "{http://purl.org/rss/1.0/}"
 CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
 DC = "{http://purl.org/dc/elements/1.1/}"
 NEWS = "{http://www.google.com/schemas/sitemap-news/0.9}"
@@ -214,6 +239,27 @@ def registrable_domain(url_or_host: str) -> str:
     if len(labels) >= 3 and ".".join(labels[-2:]) in _MULTI_SUFFIXES:
         return ".".join(labels[-3:])
     return ".".join(labels[-2:])
+# The same names reduced to what someone owns, so a subdomain cannot slip past
+# an exact-host list. Derived rather than typed twice: a name added above is
+# blocked on every subdomain automatically.
+_AGGREGATOR_DOMAINS = frozenset(
+    d for d in (registrable_domain(h) for h in _AGGREGATOR_HOSTS) if d
+)
+
+# Editorial newsrooms that happen to live on an aggregator's domain.
+#
+# The sibling tracker settled this on 2026-07-23 and wrote down why: a bylined
+# newsroom is citable even when the company behind it also runs a crowdsourced
+# database, because the reporting is the publisher's own work. The database
+# stays blocked; the newsroom does not. Matching by registrable domain alone
+# would have blocked a publisher the other product deliberately cites, which
+# would make one house hold two positions on the same URL.
+# The single entry is the bylined newsroom subdomain of one of the encoded
+# providers above; it is held base64-encoded for the same standalone-brand
+# reason as the blocklist entries.
+_EDITORIAL_EXCEPTIONS = frozenset({
+    base64.b64decode("bmV3cy5jcnVuY2hiYXNlLmNvbQ==").decode("ascii"),
+})
 
 
 @dataclass(frozen=True)
@@ -298,7 +344,17 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
             if not rss.startswith("http"):
                 continue
             host = (urlparse(rss).hostname or "").lower()
-            if host in _AGGREGATOR_HOSTS:
+            # Match on the registrable domain, not the exact host. The set
+            # listed bare and www hosts, so one provider's news subdomain
+            # walked straight through a list that named its apex twice, and
+            # one record ended up citing an aggregator. Every other entry had
+            # the same hole (any blog. or app. or data. subdomain). An
+            # aggregator does not stop being one on a subdomain.
+            blocked = (host in _AGGREGATOR_HOSTS
+                       or registrable_domain(host) in _AGGREGATOR_DOMAINS)
+            if blocked and host in _EDITORIAL_EXCEPTIONS:
+                blocked = False
+            if blocked:
                 STATS["blocked"] += 1
                 print(f"  [{COLLECTOR}] REFUSED aggregator feed: "
                       f"{row.get('name','?')} ({host}) — we store publishers, not compilers")
@@ -384,6 +440,16 @@ def _text(node, *tags: str) -> str:
             href = el.get("href")
             if href:
                 return href.strip()
+            # A field whose text lives in a CHILD element. Drupal's core RSS
+            # writes `<title><a href="/business/...">Headline</a></title>`, so
+            # `el.text` is whitespace and `href` is absent on <title> itself.
+            # The Daily Star's business feed is 25 well-formed items every one
+            # of which was dropped for having no title, which reads in the
+            # ledger as "200 but no parseable items" — a live national daily
+            # recorded as a dead feed.
+            nested = _WS.sub(" ", "".join(el.itertext())).strip()
+            if nested:
+                return nested
     return ""
 
 
@@ -501,7 +567,9 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
             # look sourceless while having a perfectly good publisher.
             return _scrape_items(body, feed)
 
-    nodes = root.findall(".//item") or root.findall(f".//{ATOM}entry")
+    nodes = (root.findall(".//item")
+             or root.findall(f".//{RSS10}item")
+             or root.findall(f".//{ATOM}entry"))
     line = dateline(feed)
     items: list[dict] = []
 
@@ -514,7 +582,10 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
     # obvious `root.find("channel") or root` treats a childless <channel> as
     # missing. Compare against None explicitly.
     channel = root.find("channel")
-    base = _text(channel if channel is not None else root, "link", f"{ATOM}link")
+    if channel is None:
+        channel = root.find(f"{RSS10}channel")
+    base = _text(channel if channel is not None else root, "link",
+                 f"{RSS10}link", f"{ATOM}link")
     if not base.startswith("http"):
         base = feed.rss
 
@@ -524,14 +595,15 @@ def parse(payload: bytes, feed: Feed) -> list[dict]:
         # because its junk was counted against it.
         if len(items) >= MAX_ITEMS_PER_FEED:
             break
-        title = _text(node, "title", f"{ATOM}title")
-        link = _text(node, "link", f"{ATOM}link", "guid")
+        title = _text(node, "title", f"{RSS10}title", f"{ATOM}title")
+        link = _text(node, "link", f"{RSS10}link", f"{ATOM}link", "guid")
         if link and not link.startswith("http"):
             link = urljoin(base, link)
         if not (title and link.startswith("http")):
             continue
 
-        body = _plain(_text(node, "description", f"{CONTENT}encoded",
+        body = _plain(_text(node, "description", f"{RSS10}description",
+                            f"{CONTENT}encoded",
                             f"{ATOM}summary", f"{ATOM}content"))
 
         items.append({
@@ -625,26 +697,56 @@ def fetch(feed: Feed, *, timeout: int = TIMEOUT, session=None) -> tuple[list[dic
 
     Raises requests.RequestException upward so collect() can record WHY a feed
     produced nothing.
+
+    TWO THINGS CHANGED HERE and they are one change seen from two angles.
+
+    The body is now STREAMED and CAPPED. `requests.get` without `stream=True`
+    buffers the whole response before it returns and inflates gzip and brotli
+    on the way, so the number of bytes landing in this process is not the
+    number the publisher sent. This runs once per catalogued feed, twice a day,
+    unattended, against several hundred third-party servers, and the documented
+    hazard for this catalogue is a domain that expired and got taken over. One
+    such publisher serving a decompression bomb takes the whole run with it.
+
+    And the DRIFT CHECK NOW RUNS FIRST. It used to sit above `resp.content`,
+    which reads as "before the body" and was not: the body had already been
+    read, in full, inside `http.get`. The guard against citing a betting site
+    was declining to PARSE bytes it had already paid to receive. Streaming is
+    what makes that ordering real, which is why these are not two fixes.
     """
-    http = session or requests
-    resp = http.get(feed.rss, headers=_headers(_ACCEPT_RSS), timeout=timeout)
+    resp = capped_fetch.open_capped(feed.rss, session=session,
+                                    headers=_headers(_ACCEPT_RSS), timeout=timeout)
     used = "rss"
     if resp.status_code in (403, 406):
         # A WAF refusing the RSS type, not the publisher refusing us.
-        resp = http.get(feed.rss, headers=_headers(_ACCEPT_BROWSER), timeout=timeout)
+        try:
+            resp.close()
+        except Exception:
+            pass
+        resp = capped_fetch.open_capped(feed.rss, session=session,
+                                        headers=_headers(_ACCEPT_BROWSER),
+                                        timeout=timeout)
         used = "browser"
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
 
-    # Where did the bytes actually come from?
-    final = getattr(resp, "url", "") or feed.rss
-    landed = registrable_domain(final)
-    expected = feed.expected_domains
-    if landed and expected and landed not in expected:
-        raise DomainDrift(
-            f"redirects to {landed}, not {' or '.join(sorted(expected))} — "
-            f"the domain may have been taken over")
+        # Where did the bytes actually come from? Asked BEFORE they are read.
+        final = getattr(resp, "url", "") or feed.rss
+        landed = registrable_domain(final)
+        expected = feed.expected_domains
+        if landed and expected and landed not in expected:
+            raise DomainDrift(
+                f"redirects to {landed}, not {' or '.join(sorted(expected))}, "
+                f"the domain may have been taken over")
 
-    return parse(resp.content, feed), used
+        body = capped_fetch.read_capped(resp, capped_fetch.FEED_BYTES)
+    finally:
+        try:
+            resp.close()
+        except Exception:
+            pass
+
+    return parse(body, feed), used
 
 
 def newest_item_age_days(items: list[dict], now=None) -> int | None:

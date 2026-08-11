@@ -24,10 +24,27 @@ THE THREE RULES THAT SHAPE ALL OF IT.
 
 1. **Flag, never silently drop.** Every finding lands in the `publish_guardrails`
    ledger and is surfaced by `ops_status.py [2d]`, `guardrails.py` and the weekly
-   health digest. A genuine $8.6bn raise (ChangXin Memory, stored 2026-07-29)
-   must survive REVIEW rather than be auto-binned, so a human accepts or rejects
-   it and the decision is remembered. Silent auto-correction is how you get a
-   different invisible defect.
+   health digest. A genuine mega-round (Anthropic's $30bn, GIC and Coatue at a
+   $380bn valuation, accepted 2026-08-04) must survive REVIEW rather than be
+   auto-binned, so a human accepts or rejects it and the decision is remembered.
+   Silent auto-correction is how you get a different invisible defect.
+
+   THIS PARAGRAPH USED TO NAME A DIFFERENT EXAMPLE, and correcting it is worth
+   more than the two lines it costs. It cited ChangXin Memory's $8.6bn, stored
+   and accepted on 2026-07-29, as the genuine raise the review step exists to
+   protect. It is not one. The source says "$8.6 billion IPO" and "Shanghai
+   STAR Market IPO", and an IPO is not private funding by this product's own
+   rule. So the canonical example of review working correctly was a review that
+   got it wrong, and the row is on the live site now. It is UNRESOLVED here on
+   purpose: a local retraction alone would take it off our copy while leaving
+   it on the page and remove it from every ops surface that would otherwise
+   nag, which is worse than the defect. It needs a session with credentials to
+   run `python3 retract.py <signal_id> "an IPO is not private funding"`, which
+   withdraws it on WordPress first and locally second.
+
+   The lesson underneath is the one worth keeping: an accepted finding is a
+   human's answer and it is remembered forever, so a wrong answer is remembered
+   forever too. Accepting is the expensive direction.
 
 2. **Quarantine, not halt.** A flagged row does not publish. Everything else in
    the same batch does. The first build halted the run instead, and the first
@@ -104,6 +121,37 @@ AGGREGATE_CHECKS = (PERIOD_TOTALS, DATE_SPAN)
 # permanently-red drain-writers taught everyone to skim past it.
 LIVE_FINDING_GRACE_HOURS = 72
 HELD_FINDING_GRACE_HOURS = 192
+
+# THE AMOUNT QUEUE GETS ITS OWN, SHORTER DEADLINE, and it is not a tightening
+# of the two above - it answers a different question and it is read by
+# different tools.
+#
+# The windows above govern whether a DATA JOB exits non-zero. They are long on
+# purpose: a run that goes red every time a mega-round lands is a run people
+# learn to skim, and this project has the permanently-red drain-writers to
+# prove it. Nothing below changes them.
+#
+# This one governs the two surfaces a human actually reads: `ops_status.py`,
+# which the session ritual runs first, every session, and the weekly digest.
+# What it exists for is the state found on 2026-08-04: fifteen `amount`
+# findings, $874.2bn between them, EVERY ONE `state='open'` with `reviewed_at`
+# NULL, one of them re-seen 229 times across five days. Nothing was broken.
+# The rows were held exactly as designed, the countdown printed exactly as
+# designed, and the design's own escalation was still 192 hours away for
+# findings that had been ignored for four times that in aggregate. A check
+# whose queue is never read has been silently converted into a delete, and the
+# figures it deletes here are roughly four times everything the site publishes.
+#
+# 48 hours because that is the shortest window that cannot be triggered by an
+# ordinary absence: the collectors run twice a day, so a finding older than two
+# days has been offered to a person at least four times and refused four times.
+# It is deliberately SHORTER than either grace window, because being told twice
+# a session is cheap and a $30bn round missing from the product is not.
+#
+# Only `amount` findings, not every check. The vehicle-name queue is a handful
+# of insurance separate accounts nobody is waiting on; this is the one that
+# holds real money out of the product.
+AMOUNT_REVIEW_DEADLINE_HOURS = 48
 
 # The date a row is reported under, everywhere. Byte-identical to the plugin's
 # own expression (includes/api.php, includes/shortcodes.php) so a guardrail
@@ -281,28 +329,226 @@ def stored_amounts(conn) -> list[int]:
         f"WHERE {PUBLISHED_SQL} AND funding_amount_usd > 0")]
 
 
+# --------------------------------------------------------------------------
+# 1b. The way out of the check, and why the check needed one
+# --------------------------------------------------------------------------
+#
+# THE INVERSION. `derive_amount_threshold` asks whether the corpus's own shape
+# can explain a figure, and in 2026 the answer for every real AI mega-round is
+# no: measured 2026-08-04 over 3,928 stored amounts the ceiling is $6.55bn,
+# which sits BELOW xAI's Series E, below Waymo's round, below both of
+# Anthropic's and below OpenAI's. The check was therefore quarantining correct
+# answers at the same rate as wrong ones, and it showed:  15 rows worth $874bn
+# sat in the queue, some re-seen 229 times over five days, every one of them
+# `state='open'` with `reviewed_at` NULL. A review step with nobody on it is
+# not a review step; it is a delete with a nicer name.
+#
+# RAISING THE THRESHOLD IS NOT THE FIX and this is the evidence, not an
+# opinion. Sorted by size, the queue interleaves:
+#
+#   $539bn  Arch          "Surpasses $539 Billion In Private Market ASSETS"
+#   $100bn  Turkish Airlines  a 100bn LIRA capex programme; the story is $2.3bn
+#    $30bn  Anthropic     a real round, led by named investors
+#    $20bn  xAI           a real Series E
+#    $15bn  A16z          an investor's own fund close, not a company round
+#
+# Any threshold that lets Anthropic through lets Arch and Turkish Airlines
+# through too. Size does not separate them because size is not what is wrong
+# with them.
+#
+# WHAT DOES SEPARATE THEM, and it is two different questions that need two
+# different answers:
+#
+#   IS THE FIGURE RIGHT?  Independent outlets. A misparse is one outlet's
+#     mistake; a $30bn round is reported by everyone. Anthropic's $30bn had
+#     reuters.com, w.media and Anthropic's own newsroom all arrive within
+#     three days stating the same number - and every one of them was thrown
+#     away by dedup as "duplicate" while the row itself sat quarantined for
+#     wanting exactly that corroboration. See schema.funding_corroborations.
+#
+#   IS IT A COMPANY RAISE AT ALL?  Nothing about outlet count can answer this,
+#     and the corpus proves it: Kingswood's $4bn fund close was reported by TWO
+#     independent outlets (businesswire.com and citybiz.co) stating the same
+#     $4bn. Corroboration would have auto-published a private equity fund
+#     close as a company round. So the class test is a separate, INDEPENDENT
+#     condition, and both must hold.
+#
+# The auto-accept therefore requires corroboration AND a clean class. Anything
+# else stays exactly where it was: held, out of every figure, waiting for a
+# person - which is now a person the ops check and the digest will not let
+# alone (see AMOUNT_REVIEW_DEADLINE_HOURS).
+
+#: Independent outlets that must state the same figure before it publishes
+#: itself. Two, because two is the smallest number that can disagree: one
+#: outlet's number is a claim, and the second one is the first thing in the
+#: system capable of contradicting it. Higher would be safer and emptier - the
+#: whole corpus contains no funding figure above the threshold with three
+#: independent outlets on it today, so a 3 would be a rule that never fires and
+#: a queue that never empties.
+CORROBORATION_MIN_OUTLETS = 2
+
+#: The four things that are NOT a company raising money, in the words the
+#: sources actually use. A row whose own headline or summary says one of these
+#: can never auto-accept however many outlets repeat it, because what the
+#: outlets are agreeing on is a figure that was never a round.
+#:
+#: Every pattern was measured against the seventeen rows in the amount ledger
+#: on 2026-08-04 and against the rounds that must NOT be vetoed:
+#:
+#:   assets       Arch "Surpasses $539 Billion In Private Market Assets". The
+#:                bare word is enough here: a funding row that mentions assets
+#:                at all is the AUM confusion until a person says otherwise.
+#:   fund(s)      A16z "Raises $15B In New Funds", Blackstone "raises $6.3B
+#:                life sciences fund", Kingswood "Across Two Oversubscribed
+#:                Middle-Market Funds". `\bfunds?\b` and NOT `funding`, which
+#:                is the word every real round uses: xAI's "Series E funding
+#:                round" and Databricks' "in latest funding" both pass clean.
+#:   IPO          a public listing is not private funding.
+#:   capex        ASE "lifts 2026 capex to record US$10.5 billion" and Turkish
+#:                Airlines "injects $2bn" are money SPENT, not money raised.
+#:
+#: It is deliberately over-eager. A real round whose investor happens to be a
+#: sovereign wealth fund trips `\bfund\b` and loses its auto-accept - and that
+#: costs one human review, which is the direction this rule is allowed to be
+#: wrong in. It NEVER creates a finding of its own and never quarantines
+#: anything: it only withholds the shortcut. A new queue with nobody on it is
+#: the defect this whole change exists to remove, not one to add.
+NOT_A_COMPANY_ROUND = re.compile(
+    r"\bassets?\s+under\s+management\b|\bAUM\b|\bassets\b"
+    r"|\bfunds?\b"
+    r"|\bIPO\b|initial\s+public\s+offering|\bgoes?\s+public\b"
+    r"|\bcapex\b|capital\s+expenditure|capital\s+spending"
+    r"|\binject(?:s|ed|ing|ion)\b",
+    re.I,
+)
+
+
+def not_a_company_round(*texts: str | None) -> str | None:
+    """The phrase that says this figure is not a company raise, or None."""
+    for text in texts:
+        hit = NOT_A_COMPANY_ROUND.search(text or "")
+        if hit:
+            return hit.group(0).strip()
+    return None
+
+
+def corroborating_outlets(conn, *, company_key: str, amount_usd: int,
+                          signal_id: str = "") -> set[str]:
+    """The independent outlets that state THIS employer at THIS figure.
+
+    Two sources, unioned, because corroboration reaches us two ways and only
+    one of them survives as a row:
+
+      1. Other stored rows for the same company_key at the same amount. This
+         is what a false split leaves behind, and it is real evidence.
+      2. `funding_corroborations`, written at the moment dedup discards a
+         second outlet's article. This is the main channel and by construction
+         the only record of it - see pipeline/store.record_corroboration.
+
+    "Same amount" uses dedupe.AMOUNT_TOLERANCE and not equality, so "$29.9bn"
+    and "$30bn" are one round rounded two ways, exactly as the dedup layer
+    already reads them. ONE definition; a corroboration rule that counted
+    agreement differently from the layer that produced the agreement would be
+    two systems with one name.
+
+    Hosts are registrable domains. A count that treated `finance.example.com`
+    and `www.example.com` as two outlets would be a rule that inflates itself
+    on syndication, which is the one way this could publish a wrong figure.
+    """
+    from . import dedupe
+    from .store import registrable_host
+
+    hosts: set[str] = set()
+    for row in conn.execute(
+            "SELECT signal_id, source_url, funding_amount_usd v FROM signals "
+            " WHERE is_current = 1 AND company_key = ? "
+            "   AND funding_amount_usd IS NOT NULL", (company_key,)):
+        if dedupe._same_amount_claim(amount_usd, row["v"]) is not True:
+            continue
+        host = registrable_host(row["source_url"] or "")
+        if host:
+            hosts.add(host)
+        if not signal_id:
+            signal_id = row["signal_id"]
+
+    try:
+        for row in conn.execute(
+                "SELECT host, amount_usd FROM funding_corroborations "
+                " WHERE signal_id = ?", (signal_id,)):
+            # An outlet that reported a DIFFERENT figure is not corroboration.
+            # It was recorded because dedup matched the round; whether it
+            # matched the number is a separate question and this is where it
+            # gets asked.
+            if row["amount_usd"] is None:
+                continue
+            if dedupe._same_amount_claim(amount_usd, row["amount_usd"]) is True:
+                hosts.add(row["host"])
+    except Exception:
+        # An older database with no such table corroborates nothing, which
+        # leaves every flagged row exactly where it was: held for a human.
+        pass
+    return hosts
+
+
+def amount_auto_accept(conn, row) -> dict:
+    """Whether this over-threshold figure may publish without being asked about.
+
+    Returns the reasoning, always, so the caller can print WHY a mega-round
+    went out rather than asserting that it was fine.
+    """
+    outlets = corroborating_outlets(
+        conn, company_key=row["company_key"] or "", amount_usd=row["v"],
+        signal_id=row["signal_id"])
+    veto = not_a_company_round(row["headline"], row["summary"])
+    ok = len(outlets) >= CORROBORATION_MIN_OUTLETS and not veto
+    return {"accept": ok, "outlets": sorted(outlets), "veto": veto}
+
+
 def check_amounts(conn) -> tuple[list[Finding], dict]:
-    """Flag any single funding amount the stored distribution cannot explain."""
+    """Flag any single funding amount the stored distribution cannot explain,
+    EXCEPT one that independent outlets corroborate and no class rule vetoes.
+
+    See the block above `CORROBORATION_MIN_OUTLETS` for why the exemption is
+    two conditions and not a bigger number.
+    """
     stats = derive_amount_threshold(stored_amounts(conn))
     threshold = stats["threshold"]
     rows = conn.execute(
-        f"SELECT content_hash, company, funding_amount_usd v, collector, source_url "
+        f"SELECT content_hash, signal_id, company, company_key, headline, "
+        f"       summary, funding_amount_usd v, collector, source_url "
         f"  FROM signals WHERE {PUBLISHED_SQL} AND funding_amount_usd > ? "
         f" ORDER BY funding_amount_usd DESC", (threshold,)).fetchall()
 
-    findings = [
-        Finding(
+    findings: list[Finding] = []
+    corroborated: list[dict] = []
+    for row in rows:
+        verdict = amount_auto_accept(conn, row)
+        if verdict["accept"]:
+            corroborated.append({
+                "content_hash": row["content_hash"],
+                "label": f"{row['company']} ${row['v']:,}",
+                "outlets": verdict["outlets"],
+            })
+            continue
+        why = (f"Only {len(verdict['outlets'])} independent outlet(s) state this "
+               f"figure; {CORROBORATION_MIN_OUTLETS} would publish it "
+               f"automatically.")
+        if verdict["veto"]:
+            why = (f"Its own text says {verdict['veto']!r}, which is not a "
+                   f"company raising money, so no number of outlets can "
+                   f"publish it automatically.")
+        findings.append(Finding(
             check=AMOUNT,
             subject=row["content_hash"],
             label=f"{row['company']} ${row['v']:,}",
             detail=(f"${row['v']:,} is above the derived threshold of "
-                    f"${threshold:,} ({stats['reason']}). Collector "
+                    f"${threshold:,} ({stats['reason']}). {why} Collector "
                     f"{row['collector']}. Read the filing at {row['source_url']} "
                     f"and accept it if the figure is real."),
             value=float(row["v"]),
-        )
-        for row in rows
-    ]
+        ))
+
+    stats["corroborated"] = corroborated
     return findings, stats
 
 
@@ -943,6 +1189,32 @@ def quarantine(conn, *, today: date | None = None, live_span: dict | None = None
         "overdue": overdue,
     })
     return result
+
+
+def unreviewed_amounts(rows: list[dict],
+                       deadline_hours: float = AMOUNT_REVIEW_DEADLINE_HOURS
+                       ) -> list[dict]:
+    """The `amount` findings a person has now had long enough to answer.
+
+    ONE definition, imported by ops_status.py [2d] and health_digest.py, for
+    the same reason data_integrity has one: two tools that disagree about
+    whether the queue is neglected are two tools that can each be reassuring on
+    a day the other is not.
+
+    Takes the ledger rows the caller already has (`held` + `live` from
+    `quarantine`) rather than opening the database again, so it works
+    identically on a read-only pass. A row whose age is unknown is NOT counted
+    - absence of a timestamp is not evidence of freshness, and it would be the
+    one shape that turns this into a check that always passes.
+
+    Sorted worst money first: if a person answers exactly one of these before
+    closing the laptop, it should be the biggest.
+    """
+    out = [r for r in rows
+           if r.get("check_name") == AMOUNT
+           and r.get("age_hours") is not None
+           and r["age_hours"] > deadline_hours]
+    return sorted(out, key=lambda r: -(r.get("value") or 0))
 
 
 def as_findings(rows: list[dict]) -> list[Finding]:

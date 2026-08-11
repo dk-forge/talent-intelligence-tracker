@@ -12,6 +12,33 @@ Answers two questions with measurements rather than estimates:
 
     python ab_models.py                 # gate comparison across candidates
     python ab_models.py --readthrough   # quality comparison on survivors only
+    python ab_models.py --extraction    # the REAL schema, field by field
+    python ab_models.py --cache-check   # does the extraction prefix REALLY cache?
+
+WHY --extraction EXISTS (2026-07-30)
+------------------------------------
+`cost_projection.py` measures extraction at **$31.69 of a $75.99 monthly bill**
+at full worldwide coverage — the largest single line, larger than the frontier
+read-through. Two swaps would move it, and both are quality decisions nobody
+can take on arithmetic alone:
+
+    deepseek/deepseek-chat        $31.69/month   the incumbent
+    deepseek/deepseek-chat-v3.1   $20.52/month   its prefix cache reads at 0.5x
+    google/gemini-2.5-flash-lite   $4.90/month   already trusted as our GATE
+
+The gate comparison above cannot decide this. It asks a one-word question on a
+deliberately reduced prompt, and extraction is twenty structured fields off the
+real ~2,500-token extraction prefix (`classify.extract_stable_prefix()`;
+11,016 measured characters, 2,509 tokens at the repo's 4.39 chars/token
+calibration). A model can be an excellent gate and a
+poor extractor, so this mode sends the PRODUCTION prompt and scores field by
+field against the incumbent — because a cheaper model that quietly loses the
+country on a fifth of records would show up as a saving and read as a coverage
+regression months later.
+
+The bar is the one the repo already holds elsewhere: agreement on the fields
+that decide a record, not an average across twenty of them. `company`,
+`country` and `pillar` are what a row IS.
 """
 
 from __future__ import annotations
@@ -229,10 +256,248 @@ def _prices() -> dict[str, tuple[float, float]]:
     return out
 
 
+# Extraction candidates, incumbent first. Everything here is scored against
+# `pipeline.classify.MODEL` on `pipeline.classify.SCHEMA_HINT` — the production
+# prompt, byte for byte, because a reduced one measures a different model.
+EXTRACTION_MODELS = [
+    "deepseek/deepseek-chat",
+    "deepseek/deepseek-chat-v3.1",
+    "google/gemini-2.5-flash-lite",
+    "google/gemini-2.5-flash",
+    "openai/gpt-5-mini",
+]
+
+# The fields that decide what a record IS. An average over twenty fields hides
+# a model that gets `funding_stage` right and `company` wrong, and `company` is
+# the difference between a row and a rejection.
+DECIDING_FIELDS = ("is_talent_signal", "company", "pillar", "country",
+                   "signal_direction", "funding_amount")
+
+
+def run_extraction(key: str, headlines: list[str]) -> int:
+    """Field-by-field agreement on the PRODUCTION extraction prompt."""
+    from pipeline import classify
+
+    incumbent = EXTRACTION_MODELS[0]
+    prices = _prices()
+    answers: dict[str, list] = {}
+    spend: dict[str, float] = {}
+
+    for model in EXTRACTION_MODELS:
+        print(f"\n=== {model} ===", flush=True)
+        rows, cost = [], 0.0
+        for headline in headlines:
+            parsed, usage, err = call(model, classify.MINI_SYSTEM,
+                                      classify.SCHEMA_HINT, headline, key)
+            if model in prices and usage:
+                pin, pout = prices[model]
+                cost += (usage.get("prompt_tokens", 0) * pin
+                         + usage.get("completion_tokens", 0) * pout)
+            rows.append(parsed if not err else None)
+            if err:
+                print(f"  ERROR {err[:80]}")
+            time.sleep(0.3)
+        answers[model] = rows
+        spend[model] = cost
+        print(f"  {sum(r is not None for r in rows)}/{len(rows)} parsed, "
+              f"${cost:.5f} for the set")
+
+    print("\n" + "=" * 72)
+    print("AGREEMENT WITH THE INCUMBENT, ON THE FIELDS THAT DECIDE A RECORD")
+    print("=" * 72)
+    print(f"{'model':32} " + " ".join(f"{f[:9]:>10}" for f in DECIDING_FIELDS)
+          + f" {'$/item':>9}")
+    for model in EXTRACTION_MODELS:
+        cells = []
+        for field in DECIDING_FIELDS:
+            same = total = 0
+            for mine, theirs in zip(answers[model], answers[incumbent]):
+                if mine is None or theirs is None:
+                    continue
+                total += 1
+                same += _same_value(mine.get(field), theirs.get(field))
+            cells.append(f"{100 * same // total if total else 0:>9}%")
+        per_item = spend[model] / max(len(headlines), 1)
+        print(f"{model:32} " + " ".join(cells) + f" {per_item:9.6f}")
+
+    print("\nREAD THIS AS A FLOOR, NOT A SCORE. Disagreement with the incumbent")
+    print("is not error: the gate A/B of 2026-07-28 found the challenger")
+    print("CORRECTING the incumbent, which is why 'reject below 90% agreement'")
+    print("would have picked the wrong model there. Below, every disagreement")
+    print("on `company` or `country`, to be read rather than counted.")
+    for model in EXTRACTION_MODELS[1:]:
+        shown = 0
+        for i, headline in enumerate(headlines):
+            mine, theirs = answers[model][i], answers[incumbent][i]
+            if mine is None or theirs is None or shown >= 8:
+                continue
+            for field in ("company", "country"):
+                if not _same_value(mine.get(field), theirs.get(field)):
+                    print(f"\n  {headline[:70]}")
+                    print(f"    {incumbent:30} {field}={theirs.get(field)!r}")
+                    print(f"    {model:30} {field}={mine.get(field)!r}")
+                    shown += 1
+                    break
+    return 0
+
+
+def _same_value(a, b) -> bool:
+    """Compared the way the pipeline compares them: case and surrounding space
+    are normalised away by `vocab` before anything is stored, so counting them
+    as disagreements would manufacture a difference that never reaches a row."""
+    if isinstance(a, list) or isinstance(b, list):
+        return sorted(map(str, a or [])) == sorted(map(str, b or []))
+    return str(a or "").strip().lower() == str(b or "").strip().lower()
+
+
+# --- Does the extraction prefix ACTUALLY cache on this slug? ------------------
+#
+# The two-call procedure, executable rather than remembered. A cache_control
+# flag or a provider-order tweak that "should" cache is worth exactly nothing
+# until the provider's own usage accounting says tokens were served from cache
+# — the ledger holds 27 priced runs on `deepseek/deepseek-chat` with
+# cached_tokens = 0 on every one, which is what "no endpoint prices a cache
+# read" looks like from the billing side.
+#
+# So: send the PRODUCTION extraction prompt (the byte-stable prefix, then one
+# fixed item) twice, a few seconds apart, and read back what OpenRouter says it
+# billed. Three verdicts, and absence of a signal is never a pass:
+#
+#   CACHED      exit 0   call 2 reports cached_tokens >= the 1,024-token floor
+#   NOT CACHED  exit 2   usage came back and says no tokens were cached
+#   UNKNOWN     exit 3   the probe could not check (402, network, no usage) —
+#                        top the key up and re-run; do not treat this as a pass
+
+#: Gemini 2.5 models cache implicitly from a 1,024-token prefix; Sonnet 5's
+#: explicit floor is the same figure. The extraction prefix is ~2,509 modelled
+#: tokens, so a verdict below this floor is a miss, not a rounding error.
+CACHE_FLOOR_TOKENS = 1024
+
+#: Seconds between the two probe calls. Implicit caches populate on the first
+#: request; the gap only needs to outlast request pipelining.
+PROBE_GAP_SECONDS = 5
+
+#: Byte-stable on purpose: a probe item that changed between sessions would
+#: make two sessions' billed numbers incomparable. Synthetic, so no real
+#: company's row is ever created from a probe.
+CACHE_CHECK_ITEM = (
+    "Published by: Example Wire\n\n"
+    "Example Robotics raises $25M Series B led by Example Capital. "
+    "The Munich-based warehouse-automation firm said the round will fund its "
+    "expansion into France and the Netherlands. The company employs 140 "
+    "people and plans to open a Paris engineering office in 2027."
+)
+
+
+def _cached_tokens(usage: dict | None) -> int:
+    details = (usage or {}).get("prompt_tokens_details") or {}
+    try:
+        return int(details.get("cached_tokens") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def cache_verdict(first: dict | None, second: dict | None) -> tuple[str, int]:
+    """(verdict, exit code) from the two calls' billed usage.
+
+    PASS / FAIL / UNKNOWN are three distinct states. A probe that could not
+    read billed tokens has checked nothing, and nothing is not a pass.
+    """
+    if not first or not second or not second.get("prompt_tokens"):
+        return "UNKNOWN", 3
+    if _cached_tokens(second) >= CACHE_FLOOR_TOKENS:
+        return "CACHED", 0
+    return "NOT CACHED", 2
+
+
+def _cache_probe(model: str, key: str) -> tuple[dict, str, str]:
+    """One production-shaped extraction call. Returns (usage, provider, error).
+
+    Its own request rather than `call()` because the verdict needs OpenRouter's
+    usage accounting (`usage: {include: true}`) and the serving provider — a
+    prefix cache is per provider, so two calls that scattered across providers
+    explain their own miss.
+    """
+    from pipeline import classify
+
+    body = {
+        "model": model,
+        "temperature": 0,
+        "messages": [
+            {"role": "system", "content": classify.MINI_SYSTEM},
+            {"role": "user",
+             "content": f"{classify.SCHEMA_HINT}\n\n---\n{CACHE_CHECK_ITEM}"},
+        ],
+        "usage": {"include": True},
+    }
+    if not model.startswith("anthropic/"):
+        body["response_format"] = {"type": "json_object"}
+        body["provider"] = {"require_parameters": True}
+    try:
+        resp = requests.post(
+            ENDPOINT,
+            headers={"Authorization": f"Bearer {key}",
+                     "Content-Type": "application/json",
+                     "User-Agent": USER_AGENT},
+            json=body,
+            timeout=90,
+        )
+    except requests.RequestException as exc:
+        return {}, "", f"network: {exc}"
+    if resp.status_code >= 400:
+        return {}, "", f"HTTP {resp.status_code}: {resp.text[:160]}"
+    try:
+        payload = resp.json()
+    except ValueError as exc:
+        return {}, "", f"unparseable response: {exc}"
+    provider = payload.get("provider") or ""
+    return payload.get("usage") or {}, str(provider), ""
+
+
+def run_cache_check(key: str, model: str) -> int:
+    print(f"Two identical PRODUCTION extraction calls to {model}, "
+          f"{PROBE_GAP_SECONDS}s apart.")
+    print("The verdict is read from OpenRouter's billed usage, never assumed.\n")
+
+    results = []
+    for n in (1, 2):
+        usage, provider, err = _cache_probe(model, key)
+        if err:
+            print(f"  call {n}: FAILED — {err}")
+            print("\nVERDICT: UNKNOWN — this probe could not check. A run that")
+            print("could not check is not a pass. If the failure is HTTP 402,")
+            print("top up the OpenRouter key and re-run this exact command.")
+            return 3
+        results.append(usage)
+        print(f"  call {n}: provider={provider or '?':16} "
+              f"prompt_tokens={usage.get('prompt_tokens', '?'):>6} "
+              f"cached_tokens={_cached_tokens(usage):>6} "
+              f"completion={usage.get('completion_tokens', '?'):>5} "
+              f"cost=${float(usage.get('cost') or 0):.6f}")
+        if n == 1:
+            time.sleep(PROBE_GAP_SECONDS)
+
+    verdict, code = cache_verdict(results[0], results[1])
+    print(f"\nVERDICT: {verdict} (floor {CACHE_FLOOR_TOKENS} cached tokens on "
+          f"call 2; the prefix is ~2,509 modelled tokens)")
+    if verdict == "NOT CACHED":
+        print("If the two providers above differ, the miss may be routing")
+        print("scatter rather than a slug that cannot cache — re-run once")
+        print("before concluding. Record BOTH calls' numbers either way.")
+    return code
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="A/B candidate models on real headlines.")
     parser.add_argument("--readthrough", action="store_true",
                         help="compare read-through quality instead of gate verdicts")
+    parser.add_argument("--extraction", action="store_true",
+                        help="compare the REAL extraction schema, field by field")
+    parser.add_argument("--cache-check", nargs="?", const="google/gemini-2.5-flash-lite",
+                        default=None, metavar="MODEL",
+                        help="send the production extraction prompt twice and report "
+                             "the BILLED cached tokens (default probe: "
+                             "google/gemini-2.5-flash-lite)")
     args = parser.parse_args()
 
     key = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
@@ -240,8 +505,13 @@ def main() -> int:
         print("OPENROUTER_API_KEY is not set", file=sys.stderr)
         return 1
 
+    if args.cache_check:
+        return run_cache_check(key, args.cache_check)
+
     headlines = load_headlines()
     print(f"{len(headlines)} real headlines from live runs")
+    if args.extraction:
+        return run_extraction(key, headlines)
     return run_readthrough(key, headlines) if args.readthrough else run_gate(key, headlines)
 
 

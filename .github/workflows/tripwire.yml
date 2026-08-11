@@ -1,20 +1,44 @@
 # The discovery tripwire: ask an outside view what we are missing.
 #
-# DORMANT. The schedule below is deliberately commented out, per the standing
-# rule for a new source: it ships with dry-run diagnostics and is armed only
-# after a human has read a real run and agreed it looks right. Dispatch it by
-# hand until then — the default input is a dry run that writes nothing.
+# ARMED since 2026-07-30, twice a week, from `schedule-link-hygiene.yml` — see
+# the long note under `on:` for why the cron cannot live in this file. This
+# header said DORMANT for three days after that, and told the reader to
+# "uncomment the two schedule lines" that arming had already deleted. Two lies
+# in one paragraph, and the second is the dangerous one: it describes an arming
+# procedure nobody can follow, which is how `staleness.py` kept a 100-day leash
+# on a twice-weekly collector until 2026-08-02.
 #
-# To arm: uncomment the two schedule lines. Twice a week is what the budget in
-# analysis/tripwire/plan.py is sized on (8 runs a month, 4 countries each, plus
-# one full 18-industry sweep a month = 50 search-backed queries ~ $1.00/month at
-# the pessimistic price). Changing the cadence without changing that constant
-# changes the bill, so change both or neither.
+# Twice a week is what the budget in analysis/tripwire/plan.py is sized on (8
+# runs a month, 4 countries each, plus one full 18-industry sweep a month = 50
+# search-backed queries ~ $1.00/month at the pessimistic price, and $0.29 at the
+# price actually measured). Changing the cadence without changing that constant
+# changes the bill, so change both or neither. To DISARM, delete the
+# `0 7 * * 1,4` slot from schedule-link-hygiene.yml and widen the `tripwire`
+# leash in staleness.py back out in the same commit.
 name: tripwire
 
 on:
-  # schedule:
-  #   - cron: '0 7 * * 1,4'    # Mondays and Thursdays 07:00 UTC
+  # NO `schedule:` HERE, AND THAT IS THE ARMED STATE, NOT THE DORMANT ONE.
+  #
+  # A non-dry run files its result in source_health, so this is a database
+  # writer and it sits in the `talent-collect` group. GitHub keeps exactly one
+  # pending run per group, so a cron in this file would be an uncoordinated
+  # third body entering that group on a timer: it would either evict whatever
+  # was pending, or be evicted itself and end `cancelled` with zero jobs and
+  # inputs GitHub will not disclose, which is an orphan a human has to close by
+  # hand. There are 15 of those from 2026-07-29.
+  #
+  # The Monday+Thursday 07:00 UTC slot therefore lives in
+  # schedule-link-hygiene.yml, which is not a writer. It enqueues a TICKET and
+  # drain-writers.yml dispatches it into an EMPTY group, so this run can never
+  # be evicted and, if it somehow is, its inputs are on file and it is
+  # re-dispatched automatically.
+  #
+  # The commented-out cron that used to sit here was deleted rather than
+  # uncommented, for the same reason the link-hygiene pair's were: a `# cron:`
+  # block is an invitation to uncomment it, and uncommenting it here is the bug.
+  # tests/test_link_hygiene_schedule.py fails on either a live or a commented
+  # cron in this file.
   workflow_dispatch:
     inputs:
       dry_run:
@@ -58,21 +82,46 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # The product-wide ceiling, checked before a search-backed query is
-      # issued. run_tripwire.py checks it again itself and declines to spend
-      # rather than failing, which is the right behaviour for a discovery run;
-      # this step is here so an exhausted month is visible as a red run on the
-      # cheap path too. Skipped on an offline replay, which spends nothing and
-      # needs no key.
+      # issued. Skipped on an offline replay, which spends nothing and needs no
+      # key.
+      #
+      # THIS STEP RAN `--enforce` AND WENT RED, AND THAT WAS THE DEFECT.
+      # ---------------------------------------------------------------
+      # 2026-08-06T07:53Z: the month stood at $10.08 of the $10 allowance, so
+      # `spend.py --enforce` exited 1 and this run went red. The ticket that
+      # dispatched it was then filed `failed`, drain-writers reported "NEW items
+      # that need a human", and the owner got TWO failure emails for one event
+      # in which nothing had gone wrong — the spend guard binding exactly as
+      # designed, on a discretionary discovery job, on a schedule that will meet
+      # the same closed gate every run for the rest of the month.
+      #
+      # Hitting the allowance is expected, recurring and correct. So the ceiling
+      # is now ASKED rather than enforced: `--gate` exits 0 either way, prints
+      # the same report, emits a `::notice::` naming the spend and the
+      # allowance, and answers `over=true|false` here so the paid step below
+      # skips itself. Nothing about the ceiling moved — same $10, same 90%, and
+      # a gated run still spends exactly $0.
+      #
+      # The owner still learns about it: the "Tell the owner" step below sends
+      # ONE email per allowance month through the existing keyed /alert, deduped
+      # server-side on `spend-ceiling:<YYYY-MM>`.
+      #
+      # A GENUINE tripwire fault is still loudly red, and that distinction is
+      # pinned by tests/test_budget_stop_is_not_a_failure.py: an unreachable
+      # model, a crash or a bad key is run_tripwire.py's own non-zero exit and
+      # nothing here touches it.
       - name: Check the spend ceiling
+        id: spend
         if: ${{ !inputs.offline }}
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: python spend.py --enforce
+        run: python spend.py --gate
 
       - name: Run the tripwire
+        if: ${{ steps.spend.outputs.over != 'true' }}
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
@@ -82,9 +131,95 @@ jobs:
             ${{ inputs.countries && format('--countries {0}', inputs.countries) || '' }} \
             ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
 
+      # A BUDGET STOP IS RECORDED, NOT SWALLOWED.
+      #
+      # This run is green and did nothing, which is correct — and indistinguish-
+      # able, to the queue, from a run that did everything. Left alone the
+      # drainer would file the ticket `landed`, claiming work that was never
+      # done, and a month of closed gates would look like a month of successful
+      # discovery. So the run leaves one marker named after its own id; the next
+      # drain tick files the ticket `deferred` (not done, nothing broken) and
+      # escalates it to a person if the allowance resets and it never resumes.
+      - name: Record the deferral
+        if: ${{ steps.spend.outputs.over == 'true' && !inputs.dry_run && !inputs.offline }}
+        run: |
+          set -euo pipefail
+          python writer_queue.py mark-deferred \
+            --run-id "$GITHUB_RUN_ID" \
+            --workflow tripwire.yml \
+            --reason "the monthly spend allowance was already exhausted, so no query was bought"
+
+      # ONE email per allowance month, on the existing rails. The red run used
+      # to be what told the owner; now that stopping is green, this is. Deduped
+      # server-side on the month, so the eight remaining runs of a closed month
+      # add nothing to the inbox — and held in the outbox, never dropped, if the
+      # host is down.
+      - name: Tell the owner the ceiling is binding
+        if: ${{ steps.spend.outputs.over == 'true' && !inputs.dry_run && !inputs.offline }}
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          ALERT_ENVELOPE: ${{ runner.temp }}/alert-envelope.json
+        run: |
+          python ci_alert.py \
+            --notice-key "spend-ceiling:$(date -u +%Y-%m)" \
+            --notice-subject "Spend is at the monthly allowance" \
+            --notice-body "The monthly LLM allowance is spent, so the discovery tripwire bought nothing this run and will keep declining until the allowance resets at the start of next month.
+
+          Nothing is broken. The free collectors, the prefilter, deterministic extraction and both dedup layers are unaffected and still running.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          To spend more, raise the allowance in spend.py deliberately. To spend less, there is nothing to do." \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # An undeliverable alert is HELD, not lost — the same rule, and the same
+      # shape, as `.github/workflows/ci-alert.yml`. `/alert` is a route on the
+      # host it reports about, so it is unreachable exactly when it matters; the
+      # envelope lives OUTSIDE the workspace so the `git reset --hard` below
+      # cannot destroy the thing being saved, and alert-drain.yml delivers it.
+      # Holding exits 0: an outage must not manufacture red runs.
+      - name: Hold that notice until the host is back
+        if: ${{ steps.spend.outputs.over == 'true' && !inputs.dry_run && !inputs.offline && !cancelled() }}
+        env:
+          ALERT_ENVELOPE: ${{ runner.temp }}/alert-envelope.json
+        run: |
+          set -euo pipefail
+          if [ ! -f "$ALERT_ENVELOPE" ]; then
+            echo "The notice was delivered; there is nothing to hold."
+            exit 0
+          fi
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python alert_outbox.py enqueue --envelope "$ALERT_ENVELOPE"
+            git add data/alert_outbox.json
+            if git diff --staged --quiet; then
+              echo "This notice was already held by another run."
+              exit 0
+            fi
+            git commit -q -m "alert: held undelivered $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push origin HEAD:main; then
+              echo "Held on attempt $attempt. alert-drain.yml will deliver it."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+          echo "::error::The notice could not be delivered AND could not be held."
+          exit 1
+
       # The work list and the dated result are committed for the same reason the
       # database is: a discovery run that exists only in a job log cannot be
       # plotted, cannot be re-derived, and cannot be chased next week.
+      #
+      # `data/writer_deferrals` rides along: the marker written above is
+      # evidence, and evidence that stays on the runner is evidence nobody has.
+      # Unique filenames mean it merges by existing, so the reset-and-copy-back
+      # below cannot destroy another run's marker the way it could destroy
+      # another run's rows.
       #
       # `!cancelled()` and not success: a run that failed after asking has
       # already paid for its queries, and throwing the answers away would mean
@@ -95,7 +230,8 @@ jobs:
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
           git add data/tripwire_worklist.json analysis/tripwire/results \
-                  data/talent_intel.db data/spend_month.json 2>/dev/null || true
+                  data/talent_intel.db data/spend_month.json \
+                  data/writer_deferrals 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change."
             exit 0
@@ -117,8 +253,11 @@ jobs:
             python merge_db.py "$RUNNER_TEMP/tripwire/talent_intel.db" data/talent_intel.db
             cp "$RUNNER_TEMP/tripwire/worklist.json" data/tripwire_worklist.json
             cp -r "$RUNNER_TEMP/tripwire/results/." analysis/tripwire/results/
+            # The marker is UNTRACKED, so `git reset --hard` above leaves it
+            # on disk; re-adding it here is what puts it back in the commit.
             git add data/tripwire_worklist.json analysis/tripwire/results \
-                    data/talent_intel.db data/spend_month.json 2>/dev/null || true
+                    data/talent_intel.db data/spend_month.json \
+                    data/writer_deferrals 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this run."
               exit 0

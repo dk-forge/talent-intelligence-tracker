@@ -1,0 +1,202 @@
+name: CI failure alert
+
+# A red run becomes an email. Until this existed, a failure reached GitHub
+# Actions and stopped there, and this repo has an expensive record of exactly
+# that: thirteen evicted writer runs reported as "queued", 9,572 signal rows
+# destroyed across five commits without a single red run, eleven consecutive
+# drain ticks dispatching nothing and exiting 0. Every one of those was visible
+# somewhere no person was looking.
+#
+# WHY A workflow_run LISTENER, and not the two obvious alternatives
+# -----------------------------------------------------------------
+# 1. An `if: failure()` step in each workflow — there are 30 workflow files
+#    here. Thirty edits, thirty chances to forget one, and the one you forget is
+#    the one that breaks. Worse, a step inside the failing job runs on the SAME
+#    runner as the failure, so an OOM, a timeout kill or a cancellation takes
+#    the alerting step down with it — least reliable exactly when it matters
+#    most. And every one of those edits would collide with the other sessions
+#    working in this checkout.
+# 2. A reusable workflow / composite action — better, but still needs a `jobs:`
+#    entry in all 30, so it keeps the coverage-by-diligence problem.
+#
+# This listener subscribes to EVERY workflow from one file, so a workflow added
+# tomorrow is covered the moment it exists. It fires for `schedule` runs as well
+# as push/dispatch — `workflow_run` keys off a run COMPLETING, not off how it
+# started — which is decisive here, because `collect.yml` is cron-only and the
+# drain tick that silently dispatched nothing for eleven ticks was scheduled.
+# Running in its own job on its own runner, it cannot be taken down by whatever
+# took down the run it reports on, and can never mask that original failure.
+#
+# Cost: nothing. This repo is public, so Actions minutes are free — which is
+# also why it must stay public (CLAUDE.md).
+
+# ---------------------------------------------------------------------------
+# ARMED since 2026-07-30 (see the `on:` block below, which is the authority).
+# This header used to open with "DORMANT until the plugin carrying the new
+# /alert contract is deployed", and it kept saying so for three days after the
+# arming, which is how a session on 2026-08-02 briefed an agent that the
+# listener was dormant. A comment that contradicts the trigger it sits above
+# is worse than no comment. The arming history below is kept because the
+# two-step order still matters if this is ever disarmed and re-armed:
+#
+# THE ORIGINAL ARMING RULE, TWO STEPS IN THIS ORDER — the order is the point:
+#   1. deploy the plugin version carrying the /alert contract (done: 1.58.0)
+#   2. only then uncomment the `workflow_run` lines (done: 2026-07-30).
+#
+# WHY NOT BOTH AT ONCE. The DEPLOYED endpoint is 1.57.0 and does not know
+# `dedupe_key` or `resolve_scope`. It falls through to the legacy path, which
+# suppresses by SUBJECT — and the subject carries the failing assertion INCLUDING
+# its numbers, so two runs of one broken thing read as two different alerts. Far
+# worse, every SUCCESS posts a resolve that 1.57.0 would mail as a genuine
+# "RECOVERED" email; across ~30 workflows running constantly that is a burst of
+# mail celebrating nothing. Arming this against the old endpoint would produce
+# exactly the alarm fatigue the whole feature exists to prevent.
+#
+# `ci_alert.py`, its tests, and the shared cause extractor now used by
+# `ci_status.py` are all live, and so is the listener. This
+# follows the repo's own conventions: `deploy-plugin.yml` keeps its push trigger
+# commented out for the same class of reason, and new sources ship DORMANT with
+# dry-run diagnostics rather than half-wired.
+#
+# Prove the path by hand at any time, without arming anything:
+#   python3 ci_alert.py --run-id <a real failed run id> --workflow tests \
+#       --conclusion failure --dry-run
+# ---------------------------------------------------------------------------
+
+on:
+  # ARMED 2026-07-30, after the plugin reached 1.58.0 live. It was shipped
+  # disarmed on purpose: the deployed endpoint was 1.57.0, which ignores
+  # resolve_scope, so a green run would have mailed a "RECOVERED" for every one
+  # of ~30 workflows - the exact alarm fatigue this exists to prevent.
+  workflow_run:
+    workflows: ['*']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'a completed run id to report on (manual proof of the path)'
+        required: true
+      conclusion:
+        description: 'failure or success'
+        default: failure
+
+permissions:
+  contents: write        # commit an undeliverable alert into data/alert_outbox.json
+  actions: read          # needed to read the failed run's log
+
+jobs:
+  alert:
+    # `cancelled` is deliberately not alertable, and here that is not a style
+    # choice: this repo cancels runs BY DESIGN — the `talent-collect` lock
+    # evicts a pending run when another is dispatched past it. Alerting on those
+    # would fire constantly and bury the real failures. Evicted writer runs have
+    # their own detection in ops_status.py [2b], which can tell an eviction from
+    # a failure. This cannot, and must not pretend to.
+    #
+    # The name check is a recursion guard. GitHub does not re-trigger
+    # workflow_run for a run this token started, but a mail loop is not a
+    # failure mode worth discovering empirically.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.name != 'CI failure alert' &&
+       contains(fromJSON('["failure","timed_out","startup_failure","success"]'),
+                github.event.workflow_run.conclusion))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # `ref: main` explicitly. A workflow_run checkout can land detached, and
+      # the hold step below has to be able to commit onto main.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No pip install: ci_alert.py is stdlib-only on purpose, so the notifier
+      # cannot be broken by a dependency resolution failure — which would be an
+      # alerting path that dies exactly when the repo is unhealthy.
+      #
+      # WHAT CHANGED ON 2026-07-31, AND WHY THIS STEP CAN NOW GO GREEN WITHOUT
+      # THE OWNER HAVING BEEN TOLD ANYTHING YET.
+      #
+      # /alert is a route on the WordPress host. When Bluehost 504'd for seven
+      # minutes, enrich failed, drain-writers correctly went red, and this step
+      # then failed FOUR times reporting them — an outage manufacturing extra
+      # red runs, each falsely reading as "the alerter is broken". The alerting
+      # system depended on the host it was alerting about.
+      #
+      # An undeliverable alert is now HELD in data/alert_outbox.json (committed
+      # below), and host-watch.yml delivers it when the host answers again. That
+      # is a kept promise, so ci_alert.py exits 0 and this run stays green. It
+      # exits non-zero only when the alert can be neither delivered NOR held —
+      # the one state where nobody is ever going to hear about the failure.
+      - name: Alert on failure / clear on recovery
+        env:
+          WP_SITE_URL: https://asktherecruiter.com/blog
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
+        run: |
+          python3 ci_alert.py \
+            --run-id     "${{ inputs.run_id || github.event.workflow_run.id }}" \
+            --workflow   "${{ github.event.workflow_run.name || 'manual proof' }}" \
+            --conclusion "${{ inputs.conclusion || github.event.workflow_run.conclusion }}" \
+            --branch     "${{ github.event.workflow_run.head_branch || 'main' }}" \
+            --event      "${{ github.event.workflow_run.event || 'workflow_dispatch' }}" \
+            --run-url    "${{ github.event.workflow_run.html_url }}"
+
+      # Only runs when the step above could not deliver. `!cancelled()` rather
+      # than the default success check, because the envelope is worth committing
+      # even if that step then failed for its own reasons — an alert on a
+      # runner's disk is an alert nobody will ever read.
+      #
+      # The retry loop RE-DERIVES rather than replaying a diff: fetch, reset onto
+      # main, fold the envelope in again. `alert_outbox.py enqueue` is idempotent
+      # in the alert's key, so a race with a concurrent alert costs a retry and
+      # never a duplicate email. Same lesson as merge_db.py and
+      # schedule-link-hygiene.yml, which both learned it the expensive way.
+      - name: Hold the alert until the host is back
+        if: ${{ !cancelled() }}
+        env:
+          ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
+        run: |
+          set -euo pipefail
+          # The envelope only exists when delivery failed. `hashFiles` cannot be
+          # used to gate this step: it only sees paths inside the workspace, and
+          # the envelope is deliberately outside it so a `git reset --hard`
+          # below cannot destroy the very thing being saved.
+          if [ ! -f "$ALERT_ENVELOPE" ]; then
+            echo "The alert was delivered; there is nothing to hold."
+            exit 0
+          fi
+
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 alert_outbox.py enqueue --envelope "$ALERT_ENVELOPE"
+            git add data/alert_outbox.json
+            if git diff --staged --quiet; then
+              echo "This alert was already held by another run."
+              exit 0
+            fi
+            git commit -q -m "alert: held undelivered $(date -u +%Y-%m-%dT%H:%MZ)"
+            # HEAD:main explicitly — a workflow_run checkout can be detached,
+            # and a push that resolves to no upstream fails after the work.
+            if git push origin HEAD:main; then
+              echo "Held on attempt $attempt. host-watch.yml will deliver it."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::The alert could not be delivered AND could not be held."
+          echo "::error::It exists only on this runner, so the failure it"
+          echo "::error::describes will reach nobody. This is the ONE alerting"
+          echo "::error::failure worth a red run; every other kind is queued."
+          exit 1

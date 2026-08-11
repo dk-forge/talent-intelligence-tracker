@@ -1,0 +1,144 @@
+# Add the tracker's two sitemap lines to the live robots.txt.
+#
+# ONE-SHOT, DISPATCHED BY HAND. There is deliberately no `schedule:` here and
+# there must never be one: this is a single edit to a file that already exists,
+# not a job. A cron would re-run a no-op against the live site forever, and the
+# one thing worse than a workflow that writes robots.txt is one that does so
+# unattended.
+#
+# It is a SEPARATE workflow from deploy-plugin.yml on purpose. That one is
+# scoped to WP_PLUGIN_REMOTE_DIR and refuses to write anywhere else, which is
+# the guard that keeps it from ever touching the live sibling product. Teaching
+# it to write a file outside that directory would delete the guard to reuse the
+# credentials, and the credentials are the cheap part.
+#
+# Why so much ceremony for two lines: robots.txt is served from disk by Apache
+# before WordPress runs (CLAUDE.md gotcha 5), so it cannot be edited from the
+# plugin, and a truncated one still answers 200. Nothing errors, nothing goes
+# red, the site looks identical, and Google stops crawling the domain. That is
+# the same silent-failure class as .htaccess, so this uses the same shape
+# includes/htaccess.php proved here: keep the old bytes, write, probe the live
+# URL, restore on any doubt.
+#
+# WHAT IS ACTUALLY THERE, measured 2026-07-30. There are not two robots.txt
+# files, there is one:
+#
+#   https://asktherecruiter.com/blog/robots.txt   200  175 bytes  text/plain
+#   https://asktherecruiter.com/robots.txt        200  13,181 bytes  text/HTML
+#
+# The apex is not on this host. It answers /robots.txt, and every other
+# unmatched path, with the same "Coming soon" page built by Cloudflare (25
+# /cf-fonts/ stylesheet references); only /blog/ routes through to Bluehost. So
+# `targets: root` can never be satisfied over FTP whatever path it is given —
+# the content check would be comparing a Bluehost file against a Cloudflare
+# response — and it refuses saying exactly that.
+#
+# The blog file lives at /public_html/AskTheRecruiter.com/blog/robots.txt. The
+# mixed-case domain directory is why the first real dispatch (run 30577050236)
+# found none of the four generic candidates.
+#
+# Note also that RFC 9309 has a crawler read /robots.txt at the host root and
+# nowhere else, so the Sitemap lines in /blog/robots.txt — the existing one
+# included — are read by nothing. Adding these two is correct and will not on
+# its own get either sitemap crawled; that needs a real file at the apex, or a
+# Search Console submission, which the owner has already done.
+#
+# Dispatch:
+#   gh workflow run deploy-robots.yml -R dk-forge/talent-intelligence-tracker \
+#        --ref main -f dry_run=true
+#   # read the diff, then:
+#   gh workflow run deploy-robots.yml -R dk-forge/talent-intelligence-tracker \
+#        --ref main -f dry_run=false
+name: deploy-robots
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Fetch and print the exact before/after diff, write nothing'
+        type: boolean
+        default: true
+      targets:
+        description: 'Which copy of robots.txt to touch (root has no file: it refuses and says why)'
+        type: choice
+        options: [blog, both, root]
+        default: blog
+
+# Its own lock, not the writer lock. This touches no database and no repository
+# file, so joining that group would make it a body queueing for a lock it does
+# not need — and one more thing able to evict a pending writer.
+concurrency:
+  group: deploy-robots
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  robots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements-dev.lock
+
+      # The pure guard logic, offline, before any credential is read. These are
+      # the refusals that stand between a two-line append and a deindexed
+      # domain, and a run that cannot prove them has no business connecting.
+      #
+      # The `import yaml` is not decoration. Half this file's assertions are
+      # about the workflow YAML and open with `pytest.importorskip("yaml")`, so
+      # a missing PyYAML would SKIP the whole module and exit 0 — a green gate
+      # that checked nothing, immediately before a write to the live site.
+      - name: Prove the guards still hold
+        run: |
+          python -c "import yaml, requests"
+          python -m pytest tests/test_robots_sitemaps.py -q
+
+      # WP_PLUGIN_REMOTE_DIR is READ here, and only to derive a path to LOOK
+      # at. Run 30577050236 refused because the session is rooted somewhere
+      # none of the four hand-written candidates reach, and that secret is the
+      # one remote path known to work for these credentials — deploy-plugin.yml
+      # mirrors into it. Three levels up from it is the WordPress root, which
+      # is where a robots.txt lives.
+      #
+      # This does not widen that workflow's write path. The derived path is a
+      # candidate like any other: it must serve byte-identical content before a
+      # byte is written, and NEVER_WRITE_INSIDE refuses anything under
+      # wp-content outright, in candidate_paths, in process, and again in
+      # FtpTransport.write.
+      - name: Append the sitemap lines
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          WP_PLUGIN_REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+        run: |
+          python robots_sitemaps.py \
+            --targets '${{ inputs.targets }}' \
+            --backup-dir "$RUNNER_TEMP/robots-backup" \
+            ${{ inputs.dry_run && ' ' || '--apply' }}
+
+      # ALWAYS, and especially on failure. If a rollback ever fails to take,
+      # these bytes are the only copy of what the file used to be, and a human
+      # restoring it by hand needs them more than a green run needs tidiness.
+      - name: Keep the rollback copies
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: robots-before-${{ github.run_id }}
+          path: ${{ runner.temp }}/robots-backup
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Dry run notice
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Dry run: the diff above is what a real run would append."
+          echo "Nothing was uploaded. Re-dispatch with dry_run=false to apply."

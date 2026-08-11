@@ -77,6 +77,35 @@ FLAT_ENTRIES = " ".join(
 ANYTHING_SCHEDULED = "'status' => 'scheduled'" in ENTRIES
 
 
+def _blocks():
+    """The entries one at a time, so a tense rule can be applied to the entry it
+    is about.
+
+    Both tense tests used to read the whole list as one string, which was
+    harmless only while every entry shared a status. The first time a PENDING
+    entry joined two applied ones, "The badge is now" — a true, past-tense
+    sentence in an entry that ran on 29 July — failed the pending-entry test and
+    would have been rewritten into something false to make the suite green. The
+    property is per entry and always was.
+    """
+    parts = re.split(r"(?=\n\s*array\(\s*\n\s*'date')", ENTRIES)
+    return [p for p in parts if "'status'" in p]
+
+
+def _flat(block):
+    return " ".join(re.sub(r"//[^\n]*", "", block).split())
+
+
+SCHEDULED = [b for b in _blocks() if "'status' => 'scheduled'" in b]
+APPLIED = [b for b in _blocks() if "'status' => 'applied'" in b]
+
+
+def test_every_entry_is_either_scheduled_or_applied():
+    """A third value would silently fall out of both tense tests, which is the
+    only way this page can disagree with the data without anything failing."""
+    assert len(SCHEDULED) + len(APPLIED) == len(_blocks()) == ENTRIES.count("'status'")
+
+
 def test_every_entry_carries_a_date_a_count_and_the_fields_touched():
     for key in ("'date'", "'title'", "'rows'", "'fields'", "'body'", "'status'"):
         assert ENTRIES.count(key) >= 2, f"{key} missing from an entry"
@@ -88,12 +117,17 @@ def test_an_unapplied_correction_is_never_written_in_the_past_tense():
     """The one failure this page cannot have. It shipped for ~40 minutes saying
     "The badge is now Headcount not stated" while the correction had not run —
     exactly the plausible-but-false claim the tracker exists not to make. A
-    defect is disclosed before it is fixed. It is not backdated."""
-    if not ANYTHING_SCHEDULED:
-        return  # all applied, and then the past tense is the honest tense
-    for claim in ("The badge is now", "have been withdrawn", "records have been",
-                  "fell from roughly", "the new one does not"):
-        assert claim not in FLAT_ENTRIES, f"past tense on an unapplied correction: {claim!r}"
+    defect is disclosed before it is fixed. It is not backdated.
+
+    Scoped to the entry that is pending. An applied entry beside it is entitled
+    to the past tense, and reading them as one string made the true sentence in
+    the applied one fail for the pending one's rule."""
+    for block in SCHEDULED:
+        flat = _flat(block)
+        for claim in ("The badge is now", "have been withdrawn", "records have been",
+                      "fell from roughly", "the new one does not",
+                      "were withdrawn on", "was corrected on"):
+            assert claim not in flat, f"past tense on an unapplied correction: {claim!r}"
 
 
 def test_an_applied_correction_does_not_still_say_it_is_pending():
@@ -102,12 +136,16 @@ def test_an_applied_correction_does_not_still_say_it_is_pending():
     directions are the same failure, the page disagreeing with the data.
 
     Asserted against the ENTRY PROSE, not the template: the template keeps its
-    pending wording for the next defect, gated on status."""
-    if ANYTHING_SCHEDULED:
-        return  # something really is pending, and saying so is then correct
-    for stale in ("scheduled for withdrawal", "scheduled to be corrected",
-                  "currently overstated", "will show afterwards", "Until that runs"):
-        assert stale not in FLAT_ENTRIES, f"pending language on an applied correction: {stale!r}"
+    pending wording for the next defect, gated on status.
+
+    Scoped per entry for the same reason its opposite is: a genuinely pending
+    entry saying it is pending must not make an applied one exempt."""
+    for block in APPLIED:
+        flat = _flat(block)
+        for stale in ("scheduled for withdrawal", "scheduled to be corrected",
+                      "are scheduled to be", "currently overstated",
+                      "will show afterwards", "Until that runs", "Until this runs"):
+            assert stale not in flat, f"pending language on an applied correction: {stale!r}"
 
 
 def test_the_pending_notice_is_gated_and_not_merely_deleted():

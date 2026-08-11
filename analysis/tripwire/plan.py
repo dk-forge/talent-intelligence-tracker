@@ -49,6 +49,40 @@ TRIPWIRE_MONTHLY_USD = 1.00
 # this estimate only ever sizes the plan — it never reports the cost.
 USD_PER_QUERY_ESTIMATE = 0.02
 
+# What a query ACTUALLY costs, from OpenRouter's own `usage.cost` and not from
+# arithmetic on a price list. TWO independent live runs now, three days apart,
+# and they agree to the fourth decimal:
+#
+#   run 30506967802, 2026-07-30  17 queries  $0.0977  --dry-run
+#   run 30731489198, 2026-08-02  22 queries  $0.1248  the first WRITING run
+#   ------------------------------------------------------------------
+#                                39 queries  $0.2225  = $0.005705/query
+#
+# The per-query spread across all 39 is $0.0053 to $0.0060, so this is a stable
+# price and not an average hiding a tail. A reproduced measurement is worth more
+# than a bigger single sample: the second run asked an entirely different set
+# (AT/AZ/BD/RS plus the 18-industry sweep, against IL plus 16 industries) and
+# landed on the same figure, so the price tracks the query SHAPE rather than
+# what any one of them happened to ask.
+#
+# Lead economics, from the writing run: 22 queries -> 108 usable leads, 15
+# already held, 93 missing. $0.0012 per usable lead and $0.0013 per candidate
+# miss. Cost per CONFIRMED miss is still unmeasurable — that needs
+# collectors/tripwire_chase.py to store a row against a lead, and it has not
+# run yet.
+#
+# It is recorded and NOT substituted for the estimate above. Feeding the
+# measured price back into the sizing arithmetic would take COUNTRIES_PER_RUN
+# from 4 to 19 and quadruple the bill — the derivation would still be correct
+# and the run would still be inside its cap, but the cap would stop being the
+# thing that constrains the design. The estimate sizes the plan; this says what
+# the plan costs. Two numbers doing two jobs, and the gap between them is the
+# safety margin.
+USD_PER_QUERY_MEASURED = 0.0057
+USD_PER_QUERY_MEASURED_SOURCE = (
+    "runs 30506967802 (2026-07-30) + 30731489198 (2026-08-02): "
+    "39 queries, $0.2225 billed, perplexity/sonar")
+
 # Twice a week. Weekly makes a country come round too rarely to be a tripwire;
 # daily spends the month's budget in a week.
 RUNS_PER_MONTH = 8
@@ -307,4 +341,12 @@ def monthly_projection() -> dict:
         "usd_per_query_estimate": USD_PER_QUERY_ESTIMATE,
         "projected_usd_per_month": round(total * USD_PER_QUERY_ESTIMATE, 2),
         "cap_usd_per_month": TRIPWIRE_MONTHLY_USD,
+        # Both prices, always. A projection quoted only at the pessimistic
+        # estimate reads as the bill and is 3.5x it; one quoted only at the
+        # measured price hides the margin that makes the cap safe.
+        "usd_per_query_measured": USD_PER_QUERY_MEASURED,
+        "usd_per_query_measured_source": USD_PER_QUERY_MEASURED_SOURCE,
+        "measured_usd_per_month": round(total * USD_PER_QUERY_MEASURED, 2),
+        "estimate_over_measured": round(
+            USD_PER_QUERY_ESTIMATE / USD_PER_QUERY_MEASURED, 1),
     }

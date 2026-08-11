@@ -63,11 +63,67 @@ class Signal:
     predicted_outcome: str | None
     check_after_date: str | None
     collector: str
+    # Provenance annotation, not a fact about the story. Carries the
+    # deterministic-extraction marker (cheap_extract.EVIDENCE_NOTE) so a
+    # reader of the database can see when no model read the item; revisions
+    # overwrite it with the correction note in store.revise. Deliberately not
+    # in publish.FIELDS.
+    notes: str | None = None
 
 
 # A figure the model returns must appear in the source text. Matches 1,200 /
 # 1200 / 1.2bn / €5B / 5 billion.
-_NUMBER = re.compile(r"\d[\d,.]*\s*(?:bn|b|m|k|billion|million|thousand)?", re.I)
+#
+# THE MAGNITUDE MAY NOT BE ON THE NEXT LINE. The suffix used to sit behind a bare
+# `\s*`, and `\s` matches a newline, so the pattern swallowed a line break and
+# took the first letter of the next line as if it were a magnitude:
+#
+#   "28.07.2026\n\nK M Sugar Mills" -> '28072026k'
+#
+# That is silent record loss, because `assert_figures_are_sourced` compares the
+# model's numbers against the source's as SETS. Every collector joins its fields
+# with a blank line, so the glue lands on the SOURCE side, whose layout the model
+# does not reproduce: a figure that IS verbatim in the source then reads as
+# invented, and the whole record is discarded rather than repaired. `_sourced_int`
+# and `_sourced_figure` read the same token set, so the quieter version of the
+# same bug drops a stated headcount or funding amount off a record that still
+# stores. collectors/bse_india.py quotes its own filed description to dodge this;
+# that workaround can stay, it is belt and braces now.
+#
+# MEASURED, before and after (analysis/figures/replay.py over 15,711 current
+# rows): the glue FIRED on 465 sec_execcomp raw_texts — headline ending in a
+# filing date, body opening with a company name beginning B, M or K — and cost
+# nothing there, because that body repeats the date and the clean token survives
+# elsewhere in the text. What it cost on the sources whose bodies we no longer
+# hold is NOT KNOWABLE: a rejected candidate leaves a URL in `seen_urls` with no
+# text and no reason, so nobody can attribute those rejections, to this rule or
+# any other.
+#
+# WHAT WAS DELIBERATELY NOT CHANGED, having been tried and measured. There is no
+# `\b` after the suffix, so any word starting with b, m or k still glues INSIDE a
+# line: "hire 300 by 2027" -> '300b'. That is the same defect and it is commoner
+# (261 sites over 163 stored rows), but the obvious fix — `(?:...)\b` — is a
+# REGRESSION here: it newly rejects 14 of the 15,711 stored rows, every one a
+# foreign-language funding round. The missing boundary is doing multilingual
+# magnitude folding by accident. "500 millones", "3 millions d'euros",
+# "3,2 Millionen", "150 miliona", "25 millioner" and "411 millions" all truncate
+# to 'm', and that is what makes them compare equal to the model's English
+# "500 million". The feed set spans 43 languages (data/feeds.csv), so replacing
+# the accident on purpose means a magnitude vocabulary in 43 languages — and a
+# partial vocabulary fails silently and looks like sparse data, which is a trap
+# this repo has already paid for once. Adding `\b` alone also breaks '$4.5M' in a
+# headline against '$4.5 million' in a summary (23 rows), which is the same
+# accident in English. Both need a fold written down before a boundary can land.
+#
+# The class below is every character `\s` matches EXCEPT the ones that end a
+# line. Written out because the point of it is exactly what it excludes: NBSP and
+# the typographic spaces stay IN (scraped prose is full of them, and "5 million"
+# with an NBSP is still five million), CR/LF/FF/VT and the Unicode line and
+# paragraph separators go OUT.
+_H_SPACE = r"[^\S\r\n\f\v\x1c\x1d\x1e\x85\u2028\u2029]"
+_NUMBER = re.compile(
+    r"\d[\d,.]*" + rf"(?:{_H_SPACE}*(?:bn|b|m|k|billion|million|thousand))?",
+    re.I)
 
 # A single job advert is not market intelligence. GDELT surfaces job boards
 # freely, and one live run stored "Claims Strategy Manager - Remote at Allstate"
@@ -94,6 +150,89 @@ _BLOCKED_SOURCE_HOSTS = frozenset({
     "msn.com",
     "www.msn.com",
 })
+
+# ...and the same names reduced to what somebody OWNS, so a subdomain cannot
+# walk past an exact-host list.
+#
+# THIS IS THE HOLE THREE LIVE ROWS CAME THROUGH. `news.yahoo.com` was listed and
+# `finance.yahoo.com` and `sg.finance.yahoo.com` were not, so both passed. The
+# feed loader in collectors/national_press.py had already learned this and
+# derives its own `_AGGREGATOR_DOMAINS` the same way -- so the two layers of one
+# rule disagreed, and the layer that decides what gets STORED was the weaker of
+# the two. Derived rather than typed for the same reason it is there: a host
+# added above is now blocked on every subdomain automatically, and the two
+# lists cannot drift apart.
+#
+# registrable_domain is IMPORTED and not reimplemented. There are already two
+# copies of it in this repo (collectors/national_press.py and
+# analysis/recall/rejection_audit.py) and a third deciding what may be cited
+# would be the one that matters most and the one most likely to go stale. The
+# import is deferred into the function below so that `pipeline` does not take a
+# module-import dependency on `collectors`, which is the wrong direction.
+_BLOCKED_SOURCE_DOMAINS_CACHE: frozenset[str] | None = None
+
+
+def _blocked_domains() -> frozenset[str]:
+    global _BLOCKED_SOURCE_DOMAINS_CACHE
+    if _BLOCKED_SOURCE_DOMAINS_CACHE is None:
+        from collectors.national_press import registrable_domain
+        _BLOCKED_SOURCE_DOMAINS_CACHE = frozenset(
+            d for d in (registrable_domain(h) for h in _BLOCKED_SOURCE_HOSTS) if d
+        )
+    return _BLOCKED_SOURCE_DOMAINS_CACHE
+
+
+def is_aggregator_host(host: str) -> bool:
+    """Whether a host is a discovery pointer rather than a publisher."""
+    from collectors.national_press import registrable_domain
+    host = (host or "").lower()
+    if not host:
+        return False
+    return host in _BLOCKED_SOURCE_HOSTS or registrable_domain(host) in _blocked_domains()
+
+
+def prefer_canonical(raw: dict) -> str:
+    """Follow the document's own rel=canonical to the publisher, and store THAT.
+
+    THE RULE IS THE CANONICAL HOST, NOT THE REQUESTED ONE, and a blanket domain
+    block would have been wrong. Measured on the three `*.yahoo.com` rows that
+    were live on 2026-07-30:
+
+        finance.yahoo.com/.../7-eleven-names-ceo    -> canonical cstoredive.com
+        finance.yahoo.com/.../haus-cramer-gruppe    -> HTTP 404, no canonical
+        sg.finance.yahoo.com/news/hsbc-plans-hire   -> canonical ITSELF
+
+    So two of the three are a real publisher's article behind a syndication URL,
+    and one is the aggregator all the way down. Refusing all three on the host
+    would throw away two publishers we can name -- and we already read
+    cstoredive.com directly. CLAUDE.md's rule is that an aggregator is a
+    DISCOVERY POINTER: following the pointer and storing what it points AT is
+    the rule being obeyed, not an exception to it.
+
+    This function never fetches. The canonical has to be supplied by whatever
+    read the page, because validate runs before any money is spent and on every
+    candidate, and a network call here would be a per-candidate one. A raw dict
+    with no `canonical_url` is judged on the URL it came with, which is the
+    behaviour that has always applied.
+
+    Returns the URL to judge and to store, and rewrites `raw["source_url"]` when
+    the canonical is a publisher, so that everything downstream -- the content
+    hash, the dedupe, the link ledger, the citation on the page -- names the
+    publisher rather than the pointer.
+    """
+    source_url = (raw.get("source_url") or "").strip()
+    canonical = (raw.get("canonical_url") or "").strip()
+    if not canonical or canonical == source_url:
+        return source_url
+    host = (urlparse(canonical).hostname or "").lower()
+    # A canonical pointing at another aggregator, or at nothing parseable, is
+    # not an improvement and is ignored rather than followed.
+    if not host or is_aggregator_host(host):
+        return source_url
+    if not urlparse(canonical).path.strip("/"):
+        return source_url
+    raw["source_url"] = canonical
+    return canonical
 
 
 def _normalize_number(token: str) -> str:
@@ -384,26 +523,35 @@ def forced_pillar(collector: str, headline: str) -> str | None:
     return None
 
 
-def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
-    """Turn a classified candidate into a storable Signal, or raise Rejected.
+def precheck(raw: dict) -> None:
+    """Every rejection reachable from the RAW item alone, before any model.
 
-    `raw` is the collector's dict and is the ONLY source of truth for what the
-    article actually said. `classified` is the model's reading of it.
+    Each check below used to live inside build_signal, which runs AFTER the
+    read-through — so a candidate with no source URL, or a job-board link, or
+    a filing that announces a workforce reduction, was read at full price and
+    then rejected on facts that were sitting in the collector's dict the whole
+    time. The last real run bought 60 reads and stored 34 rows; this is one of
+    the places the other 26 went. run_collect calls this before any money is
+    spent; build_signal calls it again as its first step, so no path into the
+    store exists that skips it, and the two ends can never disagree.
 
-    `conn` is optional and is used for one thing: the employer identity cache
-    (pipeline/identity.py), which fills ticker / cik / hq / employer_type when
-    nothing above supplied them. Pass it and blanks get filled from the cache;
-    leave it out and this stays a pure function of two dicts, which is what
-    every test of it relies on.
+    Raises Rejected with the same messages build_signal always raised. Nothing
+    here reads `classified` — a check that needs the model's output cannot be
+    prechecked and stays in build_signal.
     """
     source_url = (raw.get("source_url") or "").strip()
     if not source_url:
         raise Rejected("no source_url — no source, no record")
 
+    # Follow the canonical to the publisher BEFORE judging anything, because
+    # "is this an aggregator" is a question about who published the document
+    # and not about which host happened to serve it to us.
+    source_url = prefer_canonical(raw)
+
     host = (urlparse(source_url).hostname or "").lower()
     if not host:
         raise Rejected(f"unparseable source_url: {source_url!r}")
-    if host in _BLOCKED_SOURCE_HOSTS:
+    if is_aggregator_host(host):
         raise Rejected(f"aggregator stored as source: {host}")
 
     # A homepage is not a receipt. "Every record links to a primary source" is
@@ -428,6 +576,43 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         # The sibling shipped a source that set every field except this one and
         # silently posted zero records for weeks (spec 6 rule 2).
         raise Rejected("raw_text is empty — the classifier had nothing to read")
+
+    # The scope boundary's third arm, reading the DOCUMENT. Arms one and two
+    # read headlines — one the source wrote, one the model wrote — and stay in
+    # build_signal because the model's reading is part of what they judge. This
+    # arm reads only raw_text, so it belongs here: an 8-K announcing a
+    # reduction is the sibling's record whatever the model would have said
+    # about it, and the reads this saves are precisely the sec_edgar bodies
+    # that are the most expensive texts the pipeline sends. (Measured 0.16% of
+    # filings, but each one was a full read bought and then thrown away.)
+    # prefilter.filing_reduction_plan documents why this cannot be the
+    # headline rule pointed at a body.
+    cut = prefilter.filing_reduction_plan(raw_text)
+    if cut:
+        raise Rejected(
+            "workforce reduction is the sibling tracker's scope, not ours "
+            f"(the source document announces it: {cut!r})")
+
+
+def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
+    """Turn a classified candidate into a storable Signal, or raise Rejected.
+
+    `raw` is the collector's dict and is the ONLY source of truth for what the
+    article actually said. `classified` is the model's reading of it.
+
+    `conn` is optional and is used for one thing: the employer identity cache
+    (pipeline/identity.py), which fills ticker / cik / hq / employer_type when
+    nothing above supplied them. Pass it and blanks get filled from the cache;
+    leave it out and this stays a pure function of two dicts, which is what
+    every test of it relies on.
+    """
+    # Everything checkable without the model, re-checked here even though
+    # run_collect already prechecked: build_signal is also fed by backfills
+    # and corrections that never went through run_collect's loop.
+    precheck(raw)
+    source_url = (raw.get("source_url") or "").strip()
+    host = (urlparse(source_url).hostname or "").lower()
+    raw_text = (raw.get("raw_text") or "").strip()
 
     company = (classified.get("company") or "").strip()
     if not company:
@@ -483,29 +668,15 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
                 "workforce reduction is the sibling tracker's scope, not ours "
                 f"(displacement: {cut!r})")
 
-    # The third arm reads the DOCUMENT. Both arms above read a headline — one
-    # the source wrote, one the model wrote — and `sec_edgar` writes NEITHER:
-    # it stamps the identical string "<Company> 8-K filing (Item 5.02): officer
-    # or director change" onto every document it fetches. So arm one has been
-    # matching the collector's own boilerplate against a layoff vocabulary
-    # forever, arm two only fires when the model happened to choose
-    # 'displacement', and the reduction language sat untouched in raw_text.
-    # Atlassian (~10% of its workforce), Groupon (up to 400 positions), IO
-    # Biotech and Lyra Therapeutics all reached the live page through that hole
-    # while every guard reported healthy.
-    #
-    # Running arm one over the body instead would not have closed it: every
-    # Item 5.02 filing opens with "appointed" or "resigned", and that rule lets
-    # an in-scope subject appearing EARLIER win, so a reduction announced three
-    # paragraphs later is suppressed every time. A body needs a body-shaped
-    # rule, and it has to distinguish a document that ANNOUNCES a reduction
-    # from one that merely mentions a cut, or it will reject the leadership
-    # pillar wholesale. prefilter.filing_reduction_plan is where that lives.
-    cut = prefilter.filing_reduction_plan(raw_text)
-    if cut:
-        raise Rejected(
-            "workforce reduction is the sibling tracker's scope, not ours "
-            f"(the source document announces it: {cut!r})")
+    # The third arm reads the DOCUMENT, and it moved to precheck() above:
+    # `sec_edgar` stamps one synthetic headline onto every filing, so arm one
+    # was matching the collector's own boilerplate forever, arm two only fires
+    # when the model happened to choose 'displacement', and the reduction
+    # language sat untouched in raw_text. Atlassian (~10% of its workforce),
+    # Groupon, IO Biotech and Lyra Therapeutics all reached the live page
+    # through that hole. The rule itself — announce, not mention — lives in
+    # prefilter.filing_reduction_plan; it needs nothing the model said, which
+    # is exactly why it now runs before the model is paid.
 
     # Job location: from the source text only.
     city = region = None
@@ -809,7 +980,13 @@ def _normalize_date(value, source_url: str | None = None) -> str | None:
         return None
     text = str(value).strip()
     parsed = None
-    for fmt in ("%Y-%m-%d", "%a, %d %b %Y %H:%M:%S %Z", "%a, %d %b %Y %H:%M:%S %z"):
+    for fmt in ("%Y-%m-%d", "%a, %d %b %Y %H:%M:%S %Z", "%a, %d %b %Y %H:%M:%S %z",
+                # Drupal's core RSS abbreviates the year: The Daily Star's
+                # business feed dates every item "Sun, 02 Aug 26 00:00:00
+                # +0600". Read as a four-digit year it does not parse at all,
+                # so a daily national paper published 25 items a day and every
+                # one of them stored published_date NULL.
+                "%a, %d %b %y %H:%M:%S %z", "%a, %d %b %y %H:%M:%S %Z"):
         try:
             parsed = datetime.strptime(text, fmt).strftime("%Y-%m-%d")
             break
@@ -818,7 +995,13 @@ def _normalize_date(value, source_url: str | None = None) -> str | None:
     if parsed is None:
         # Anchored: an unanchored search matched any YYYY-MM-DD anywhere in
         # arbitrary text, including one sitting inside a URL or a body quote.
-        m = re.match(r"\s*(\d{4}-\d{2}-\d{2})\b", text)
+        #
+        # The lookahead, and not `\b`: an ISO 8601 instant is "2026-08-02T12:
+        # 00:00+09:00", and `T` is a word character, so `\b` refused the single
+        # most standard datetime there is. That is what `dc:date` carries in
+        # every RSS 1.0 feed. Refusing digits and a hyphen still rejects the
+        # thing the anchor is for ("2026-08-021", "2026-08-02-03").
+        m = re.match(r"\s*(\d{4}-\d{2}-\d{2})(?![\d-])", text)
         parsed = m.group(1) if m else None
     if parsed is None:
         return None

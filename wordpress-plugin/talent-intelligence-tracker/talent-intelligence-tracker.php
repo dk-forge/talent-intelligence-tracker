@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.46.0
+ * Version: 1.74.2
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.46.0');
+define('TIT_VERSION', '1.74.2');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -41,13 +41,30 @@ function tit_require($relative) {
 tit_require('includes/db.php');
 tit_require('includes/api.php');
 tit_require('includes/export.php');
+// After export.php: the CRM presets reuse its walker, its guard and its
+// throttle, and refuse politely rather than fatalling when the FTP race has
+// not landed export.php yet.
+tit_require('includes/export_crm.php');
 tit_require('includes/shortcodes.php');
 tit_require('includes/page.php');
+// After api.php (tit_build_where, tit_cache_key) and page.php (TIT_PAGE_SLUG
+// for the head link). Same FTP-race degradation as everything else.
+tit_require('includes/feed.php');
 tit_require('includes/company.php');
+// After company.php: places.php uses its slug canonicaliser and its collision
+// refusal, and degrades to no pages at all rather than fatalling without them.
+tit_require('includes/places.php');
 tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
 tit_require('includes/recall.php');
+// After corrections.php and recall.php: the press page links to both and reads
+// tit_press_link()'s whitelist against what dashboard.js parses, so it is last
+// of the routed pages rather than first.
+tit_require('includes/press.php');
 tit_require('includes/board_series.php');
+// Reads the SIBLING's public HTTP API at render time. Ships disabled; see
+// the header of that file for the measurement that says why.
+tit_require('includes/cross_tracker.php');
 tit_require('includes/htaccess.php');
 
 // Stub fallbacks so a partial upload degrades instead of fatalling.
@@ -224,6 +241,83 @@ function tit_verify_schema() {
 }
 
 /**
+ * Every routed page module, named by the function that DECLARES its rewrite
+ * rules rather than by its file.
+ *
+ * The declaring function is the right handle for two reasons. It is what
+ * tit_require()'s partial-upload fallback leaves undefined, so its absence is
+ * the exact signal that this request must not touch the routing table. And it
+ * returns the patterns themselves, so nothing here has to restate a route.
+ */
+function tit_route_modules() {
+    return array('tit_company_rewrites', 'tit_places_rewrites');
+}
+
+/**
+ * Prove the pretty routes are actually in the rewrite table, and repair them if
+ * they are not.
+ *
+ * SAME SHAPE AS tit_verify_schema(), AND FOR THE SAME REASON, which is that a
+ * version-gated one-shot cannot survive a transport that lands files one at a
+ * time. It shipped as a live defect on 1.58.0: every /company/{slug}/ URL and
+ * /company-sitemap.xml answered 404 while ?tit_company={slug} answered 200, so
+ * the module was loaded, the query var was registered, the handler worked, and
+ * the only thing missing was the stored rule. 714 indexable pages, the sitemap
+ * that lists them, and every internal link from the dashboard and the place
+ * pages, all dead, with a green deploy behind them and nothing in any log.
+ *
+ * The cause is in the note on tit_places_maybe_flush(): a flush that ran during
+ * the window where company.php had not uploaded regenerated the table without
+ * its rules, and both version options then read "done" forever. That fix stops
+ * this particular sequence. This one stops the CLASS of it, by checking the
+ * result rather than a marker that stands in for the result.
+ *
+ * TWO REFUSALS MATTER MORE THAN THE REPAIR.
+ *
+ * It will not flush unless EVERY module is loaded. A flush regenerates from the
+ * rules registered right now, so flushing while a module is mid-upload is not a
+ * repair, it is the bug. A partial request does nothing at all and leaves the
+ * transient unset, so the next complete request checks again.
+ *
+ * It will not flush when WordPress has no rewrite rules of its own, which is
+ * what plain permalinks look like. Those routes cannot work there whatever we
+ * do, and flushing on every request of a site that will never store a rule is a
+ * write per page load.
+ *
+ * Cheap: one transient read per request. get_option('rewrite_rules') is
+ * autoloaded, so the check itself is free, and the success marker is written
+ * ONLY when the rules are genuinely present, so a real failure retries in five
+ * minutes rather than being cached as healthy for six hours.
+ */
+function tit_verify_routes() {
+    if (get_transient('tit_routes_ok')) return;
+
+    $need = array();
+    foreach (tit_route_modules() as $declares) {
+        if (!function_exists($declares)) return;   // half-uploaded: do not touch
+        $rules = call_user_func($declares);
+        if (!is_array($rules) || !$rules) return;
+        $need = array_merge($need, array_keys($rules));
+    }
+
+    $have = get_option('rewrite_rules');
+    if (!is_array($have) || !$have) return;        // plain permalinks
+
+    $missing = array_diff($need, array_keys($have));
+    if ($missing) {
+        flush_rewrite_rules(false);
+        $have = get_option('rewrite_rules');
+        $missing = is_array($have) ? array_diff($need, array_keys($have)) : $need;
+        // The repair only counts once it has actually taken, and a version
+        // option that claimed otherwise is now provably wrong.
+        if (!$missing) update_option('tit_rewrites_version', TIT_VERSION, false);
+    }
+
+    set_transient('tit_routes_ok', $missing ? 'retry' : 'ok',
+                  $missing ? 5 * MINUTE_IN_SECONDS : 6 * HOUR_IN_SECONDS);
+}
+
+/**
  * Cache-busting version for a bundled asset: the plugin version plus the
  * file's own modification time.
  *
@@ -239,6 +333,47 @@ function tit_asset_version($relative_path) {
     $file = TIT_PATH . $relative_path;
     $mtime = is_readable($file) ? filemtime($file) : 0;
     return $mtime ? TIT_VERSION . '.' . $mtime : TIT_VERSION;
+}
+
+/**
+ * US postal codes are how the data is stored and a bad thing to read.
+ *
+ * `tit-f-state` rendered 51 bare codes as option labels -- "AK", "AL", "AZ" --
+ * while every other filter on the page spells its values out, including the
+ * country list right beside it, which was changed away from codes for exactly
+ * this reason. A reader has to know the codebook before they can pick a state.
+ *
+ * THE WHOLE SET, on day one. A partial vocabulary here fails the way
+ * tit_country_names() once did: 52 of ~200 codes, so two countries printed as
+ * raw codes inside a chart of country names, and the failure looked like sparse
+ * data rather than an error. So this carries all 50 states, DC and the five
+ * inhabited territories, whether or not a row currently mentions them, and an
+ * unrecognised code falls through to itself rather than to a guess.
+ */
+function tit_state_names() {
+    return array(
+        'AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona',
+        'AR' => 'Arkansas', 'CA' => 'California', 'CO' => 'Colorado',
+        'CT' => 'Connecticut', 'DE' => 'Delaware', 'FL' => 'Florida',
+        'GA' => 'Georgia', 'HI' => 'Hawaii', 'ID' => 'Idaho',
+        'IL' => 'Illinois', 'IN' => 'Indiana', 'IA' => 'Iowa',
+        'KS' => 'Kansas', 'KY' => 'Kentucky', 'LA' => 'Louisiana',
+        'ME' => 'Maine', 'MD' => 'Maryland', 'MA' => 'Massachusetts',
+        'MI' => 'Michigan', 'MN' => 'Minnesota', 'MS' => 'Mississippi',
+        'MO' => 'Missouri', 'MT' => 'Montana', 'NE' => 'Nebraska',
+        'NV' => 'Nevada', 'NH' => 'New Hampshire', 'NJ' => 'New Jersey',
+        'NM' => 'New Mexico', 'NY' => 'New York', 'NC' => 'North Carolina',
+        'ND' => 'North Dakota', 'OH' => 'Ohio', 'OK' => 'Oklahoma',
+        'OR' => 'Oregon', 'PA' => 'Pennsylvania', 'RI' => 'Rhode Island',
+        'SC' => 'South Carolina', 'SD' => 'South Dakota', 'TN' => 'Tennessee',
+        'TX' => 'Texas', 'UT' => 'Utah', 'VT' => 'Vermont',
+        'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia',
+        'WI' => 'Wisconsin', 'WY' => 'Wyoming',
+        'DC' => 'District of Columbia',
+        'AS' => 'American Samoa', 'GU' => 'Guam',
+        'MP' => 'Northern Mariana Islands', 'PR' => 'Puerto Rico',
+        'VI' => 'US Virgin Islands',
+    );
 }
 
 /**
@@ -404,6 +539,77 @@ function tit_country_flag($code) {
 }
 
 /**
+ * The archive re-check promise, read from data/archive_promise.json.
+ *
+ * Every value in that file is DERIVED by build_archive_promise.py from the
+ * schedule that actually runs the archiver (the cron in
+ * schedule-link-hygiene.yml, the collector scope and per-run limit in
+ * archive-sources.yml). Nothing here is typed, because the sentence the file
+ * powers — "No archive snapshot yet. We re-check weekly; next check by
+ * <date>" — is a commitment, and ops_status.py [2c] in the repo goes red when
+ * reality stops keeping it.
+ *
+ * Returns null when the file is missing or unreadable (FTP deploys race
+ * mid-upload), and every caller renders NOTHING on null: an absent note is
+ * honest, a promised date pulled from thin air is not.
+ */
+function tit_archive_promise() {
+    static $promise = false;
+    if ($promise !== false) return $promise;
+    $promise = null;
+    $file = TIT_PATH . 'data/archive_promise.json';
+    if (is_readable($file)) {
+        $decoded = json_decode((string) file_get_contents($file), true);
+        if (is_array($decoded)
+            && (int) ($decoded['recheck_days'] ?? 0) > 0
+            && !empty($decoded['collectors']) && is_array($decoded['collectors'])) {
+            $promise = $decoded;
+        }
+    }
+    return $promise;
+}
+
+/**
+ * The archive state of one row, as the reader sees it. THE one renderer.
+ *
+ * Three states, and each one is said rather than implied:
+ *   archived      a second link beside the publisher's own, never instead.
+ *   pending       the row's collector is one the schedule archives, so the
+ *                 absence is temporary and the page says when it ends: "next
+ *                 check by" is now plus the promised window, both derived.
+ *   out of scope  rows whose documents a government or registry already
+ *                 preserves indefinitely (SEC, GOV.UK, the registries) render
+ *                 nothing. Promising them a re-check the schedule will never
+ *                 make would be a false sentence on every filing row.
+ *
+ * dashboard.js does not rebuild this sentence: the composed pending note
+ * travels on the root element's data-archive-note attribute, so the server and
+ * every repaint print byte-identical copy with one derivation of the date.
+ */
+function tit_archive_note_html($archive_url, $collector) {
+    if (!empty($archive_url)) {
+        return '<span class="tit-archived"><a href="' . esc_url($archive_url)
+             . '" rel="nofollow noopener" target="_blank"'
+             . ' title="Archived copy at the Internet Archive">Archived</a></span>';
+    }
+    $note = tit_archive_pending_note($collector);
+    return $note === '' ? '' : '<span class="tit-archive-wait">' . esc_html($note) . '</span>';
+}
+
+/** The pending sentence, or '' when this row is owed no promise. */
+function tit_archive_pending_note($collector) {
+    $p = tit_archive_promise();
+    if (!$p || !in_array((string) $collector, $p['collectors'], true)) return '';
+    $days = (int) $p['recheck_days'];
+    // "weekly" only when the derived window IS a week; any other window names
+    // its own length, so a schedule change cannot strand the word.
+    $cadence = ($days === 7) ? 'weekly' : sprintf('every %d days', $days);
+    $by = date_i18n('M j', strtotime(current_time('Y-m-d') . ' 00:00:00 UTC') + $days * DAY_IN_SECONDS);
+    return 'No archive snapshot yet. We re-check ' . $cadence
+         . '; next check by ' . $by . '.';
+}
+
+/**
  * Flag plus name, as markup, with the flag hidden from assistive technology.
  * One helper so no caller can forget the aria-hidden or drop the name.
  */
@@ -440,6 +646,11 @@ add_action('init', 'tit_maybe_upgrade', 1);
 // Priority 2, so it runs immediately after the version-gated migration and can
 // catch a deploy where that migration ran against a half-uploaded plugin.
 add_action('init', 'tit_verify_schema', 2);
+// Priority 100: after every module has registered its rules at 10 and after
+// both version-gated flushes at 99, so it sees the table those left behind.
+// Still on init, which is before WP parses the request, so a repair fixes the
+// request that discovered the breakage rather than only the next one.
+add_action('init', 'tit_verify_routes', 100);
 
 /**
  * The pipeline's write key. A wp-config.php constant wins over the stored

@@ -73,6 +73,58 @@ press collector's function rather than audited once and forgotten:
 
 A board the gate refuses is reported as `robots`, and is NOT counted toward the
 breakage tolerance below: a publisher's terms are a decision, not an outage.
+
+**The ATSs that are NOT here, and why**, checked 2026-07-30 so the next session
+does not spend an evening rediscovering it. Two of these answer 200 to us; the
+publisher's stated terms decide, not whether a request succeeds.
+
+    recruitee        {slug}.recruitee.com      `User-Agent: * / Disallow: /` on
+                                               the CAREER hosts, which are the
+                                               hosts we would read. The
+                                               marketing site allows; that is
+                                               not the same host, and checking
+                                               the wrong one is how a "yes" gets
+                                               invented. The API is otherwise
+                                               ideal — it 404s an unknown slug
+                                               and publishes `company_name`.
+    pinpoint         {slug}.pinpointhq.com     `User-Agent: * / Disallow: /`.
+    softgarden       {slug}.softgarden.io      `Disallow: /api/` and `/rest/`,
+                                               which is the whole of it.
+    zoho recruit     {slug}.zohorecruit.com    robots refuses the path.
+    comeet           www.comeet.co             not keyless: answers
+                                               `{"message": "Token is missing"}`.
+    teamtailor       {slug}.teamtailor.com     no public JSON found; the
+                                               documented API needs a token.
+    bamboohr         {slug}.bamboohr.com       robots allows (`/jobs/embed.php`
+                                               is the only refusal), and a real
+                                               tenant is distinguishable — it
+                                               answers JSON where a non-tenant
+                                               serves the marketing page. But no
+                                               payload with postings in it has
+                                               been captured, which is exactly
+                                               where Workable sat, so it is not
+                                               wired on a guess.
+    workday          {tenant}.wdN.myworkdayjobs.com
+                                               the jobs endpoint is a POST, the
+                                               robots.txt path answers a Workday
+                                               error object rather than a robots
+                                               file, and every tenant is its own
+                                               host with its own terms. A real
+                                               project, not an afternoon.
+    personio         {slug}.jobs.personio.de   the /xml feed works and robots
+                                               404s (fails open, like Ashby).
+    breezy           {slug}.breezy.hr          clean JSON, 403 on an unknown
+                                               slug, robots allows.
+    rippling         api.rippling.com          clean JSON, 404 on an unknown
+                                               slug, robots allows.
+
+The last three are permitted and parseable and are still not wired, because
+being allowed to read something is not a reason to. Probed against the 250
+European employers we hold signals for — the pool they exist to serve —
+Personio returned two boards and neither cleared the ten-role bar, Breezy
+returned none and Rippling returned none. The constraint is the employer pool,
+not the platform list: continental Europe is 145 employers in the whole
+database. Wire one of these the day a collector brings European employers in.
 """
 
 from __future__ import annotations
@@ -253,15 +305,44 @@ def place_key(*candidates: str) -> str:
     """
     parts: list[str] = []
     for candidate in candidates:
-        for token in _SPLIT.split(str(candidate or "")):
+        whole = str(candidate or "").strip()
+        # The WHOLE string first, before any splitting. A board writes
+        # "London, Ontario" and "Cambridge, MA" as one field, and the
+        # gazetteer holds both of those spellings precisely because the bare
+        # name belongs to two places. Splitting first threw the source's own
+        # disambiguation away and filed every London, Ontario role in England.
+        if whole:
+            hit = vocab.normalize_city(whole)
+            if hit:
+                return f"city:{hit[0]}"
+            parts.append(whole)
+        for token in _SPLIT.split(whole):
             token = token.strip()
             if token:
                 parts.append(token)
 
     for token in parts:
-        if vocab.normalize_city(token):
-            return f"city:{vocab.normalize_city(token)[0]}"
+        hit = vocab.normalize_city(token)
+        if not hit:
+            continue
+        # A qualifier beside the city that names a DIFFERENT country means this
+        # is not that city. "Paris, TX" is not Paris and "Melbourne, FL" is not
+        # Melbourne; both fall through to their country, which is the honest
+        # answer for a town we do not curate.
+        elsewhere = {code for code in
+                     (vocab.place_qualifier_country(other)
+                      for other in parts if other != token) if code}
+        if elsewhere and hit[2] not in elsewhere:
+            continue
+        return f"city:{hit[0]}"
     for token in parts:
+        # A US STATE CODE IS NOT A COUNTRY CODE, and half of them collide:
+        # "Peoria, IL" resolved to Israel, "San Jose, CA" to Canada,
+        # "Cambridge, MA" to Morocco, "Boise, ID" to Indonesia. Any two-letter
+        # token that is a US state is read as one, because a board writing two
+        # letters after a comma means the state every time.
+        if len(token) == 2 and vocab.normalize_state(token):
+            return "country:US"
         code = vocab.normalize_country(token)
         if code:
             return f"country:{code}"

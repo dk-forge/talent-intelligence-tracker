@@ -52,20 +52,21 @@ class TestClassification(unittest.TestCase):
 
 
 class TestStalenessBoundary(unittest.TestCase):
-    """36 hours is two missed runs on the 2x/day cron. One missed run is not
-    an incident; two means it stopped."""
+    """The leash is the 2x/day cadence (12h) plus queue slack. A missed run is
+    a coverage hole, and the old 36h let a collector skip three runs before
+    anything said so."""
 
     def test_just_inside_the_window_is_not_stale(self):
-        buckets = health_digest.classify({"google_news": entry(35.9)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(13.9)}, NOW)
         self.assertEqual(buckets["stale"], [])
         self.assertEqual(buckets["ok"], ["google_news"])
 
     def test_just_outside_the_window_is_stale(self):
-        buckets = health_digest.classify({"google_news": entry(36.1)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(14.1)}, NOW)
         self.assertEqual([n for n, _, _ in buckets["stale"]], ["google_news"])
 
     def test_exactly_at_the_window_is_not_stale(self):
-        buckets = health_digest.classify({"google_news": entry(36)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(14)}, NOW)
         self.assertEqual(buckets["stale"], [])
 
     def test_staleness_outranks_a_healthy_status(self):
@@ -75,13 +76,137 @@ class TestStalenessBoundary(unittest.TestCase):
         self.assertEqual([n for n, _, _ in buckets["stale"]], ["google_news"])
         self.assertEqual(buckets["ok"], [])
 
-    def test_dispatch_only_collectors_get_a_longer_leash(self):
-        """gdelt and the SEC collectors are not on the cron. Holding them to
-        the cron's 36 hours would mail the owner every single week."""
-        ledger = {"gdelt": entry(24 * 5), "sec_edgar": entry(24 * 5)}
+    def test_swept_collectors_share_the_cron_leash(self):
+        """gdelt and the SEC pair used to be dispatch-only with a 14-day
+        leash. The collect.yml schedule sweeps them now, so a five-day
+        silence from any of them means the sweep is broken, not that nobody
+        remembered to dispatch them."""
+        ledger = {"gdelt": entry(24 * 5), "sec_edgar": entry(24 * 5),
+                  "sec_form_d": entry(24 * 5)}
+        buckets = health_digest.classify(ledger, NOW)
+        self.assertEqual(sorted(n for n, _, _ in buckets["stale"]),
+                         ["gdelt", "sec_edgar", "sec_form_d"])
+
+    def test_quiet_by_design_sources_keep_a_long_leash(self):
+        """The quarterly bulk feed is quiet on purpose: SEC publishes the Form D
+        data sets four times a year. A short leash on it is how a digest trains
+        its reader to ignore it."""
+        ledger = {"sec_form_d_bulk": entry(24 * 30), "press_archive": entry(24 * 30)}
         buckets = health_digest.classify(ledger, NOW)
         self.assertEqual(buckets["stale"], [])
-        self.assertEqual(sorted(buckets["ok"]), ["gdelt", "sec_edgar"])
+        self.assertEqual(sorted(buckets["ok"]), ["press_archive", "sec_form_d_bulk"])
+
+    def test_the_tripwire_is_leashed_to_the_cadence_it_actually_runs_at(self):
+        """It was in the test above, as "the dormant tripwire", for three days
+        after it was armed.
+
+        Arming it on 2026-07-30 meant DELETING the cron from tripwire.yml and
+        putting the Mon+Thu slot in schedule-link-hygiene.yml, because a lock
+        member may not carry its own schedule. The instruction left behind in
+        staleness.py said to tighten the leash "the day the schedule in
+        tripwire.yml is uncommented" — a trigger that arming removes, so it
+        could never fire. A live twice-weekly collector kept a 100-day leash and
+        would have reported `ok` from a Monday breakage until November.
+        """
+        buckets = health_digest.classify({"tripwire": entry(24 * 30)}, NOW)
+        self.assertEqual([n for n, _, _ in buckets["stale"]], ["tripwire"])
+        buckets = health_digest.classify({"tripwire": entry(24 * 5)}, NOW)
+        self.assertEqual(buckets["ok"], ["tripwire"], (
+            "and it must not go the other way: the slot writes a ticket that "
+            "waits behind whatever holds the writer lock, so five days of "
+            "silence at a 3.5-day cadence is a queue, not a breakage"))
+
+    def test_the_monthly_structured_sources_are_not_flagged_mid_cycle(self):
+        """sec_execcomp runs on the 5th and uk_paygap on the 6th of each
+        month. The old 14-day default marked both stale every month, days
+        before their next scheduled run."""
+        ledger = {"sec_execcomp": entry(24 * 20), "uk_paygap": entry(24 * 20)}
+        buckets = health_digest.classify(ledger, NOW)
+        self.assertEqual(buckets["stale"], [])
+
+    def test_ops_status_reads_the_same_map_this_digest_does(self):
+        """Two tools judging staleness from two maps disagreed about every
+        collector off the 2x/day cron: ops_status applied a global 36h while
+        this digest gave the same collector 336h. One shared, stdlib-only
+        module is the fix, and this pins both halves of it: the digest's map
+        IS the shared one, and ops_status imports nothing beyond the standard
+        library on the way to it (it must run before any venv exists)."""
+        import staleness
+
+        self.assertIs(health_digest.MAX_AGE_HOURS, staleness.MAX_AGE_HOURS)
+
+        import ast
+        from pathlib import Path
+
+        root = Path(health_digest.__file__).parent
+        for module in ("ops_status.py", "staleness.py"):
+            tree = ast.parse((root / module).read_text())
+            # MODULE SCOPE MEANS tree.body, NOT ast.walk.
+            #
+            # This used to walk the whole tree, so it saw every import in every
+            # function body — the exact imports that are deferred BECAUSE of this
+            # promise. The allowlist below had therefore been growing into an
+            # appeasement list, one entry per deferred import, and on 2026-08-04
+            # it went red on `published_figures` and `urllib` for no better
+            # reason than that nobody had appended them yet. Neither is a
+            # module-scope import: ops_status.py:94 and :120 defer both, inside
+            # _report_published_figures(), precisely so this file still imports
+            # before any venv exists. The promise was never broken. The check was
+            # measuring something its own docstring does not claim.
+            top_level_imports = {
+                name.name.split(".")[0]
+                for node in tree.body
+                if isinstance(node, ast.Import)
+                for name in node.names
+            } | {
+                (node.module or "").split(".")[0]
+                for node in tree.body
+                if isinstance(node, ast.ImportFrom) and node.level == 0
+            }
+            # And the allowlist is a DEFINITION now, not a list. "Not
+            # third-party" means the standard library, which Python will tell us
+            # itself, plus the two repo-local modules that are proven
+            # dependency-free at import time. A repo-local module is not
+            # automatically safe here: anything else hoisted to module scope has
+            # to earn its place by being pinned stdlib-only first, and until then
+            # this fails, which is the point.
+            repo_local_and_dependency_free = {"source_registry", "staleness"}
+            third_party = top_level_imports - (
+                set(sys.stdlib_module_names) | repo_local_and_dependency_free)
+            self.assertFalse(third_party,
+                             f"{module} imports {third_party} at module scope")
+
+    def test_a_deferred_import_cannot_redden_the_import_promise(self):
+        """The guard is worth nothing if the way to keep it green is to append
+        the name of every import anyone ever defers. Written because that is
+        what was happening."""
+        import ast
+        import textwrap
+
+        tree = ast.parse(textwrap.dedent("""
+            import sqlite3
+            def later():
+                import requests
+                return requests
+        """))
+        at_module_scope = {n.name.split(".")[0] for node in tree.body
+                           if isinstance(node, ast.Import) for n in node.names}
+        walked = {n.name.split(".")[0] for node in ast.walk(tree)
+                  if isinstance(node, ast.Import) for n in node.names}
+        self.assertEqual(at_module_scope, {"sqlite3"})
+        # ast.walk, the mechanism this replaced, flags the deferred one.
+        self.assertIn("requests", walked)
+
+    def test_the_import_promise_still_catches_a_real_module_scope_import(self):
+        """The other half: relaxing the scope must not relax the rule."""
+        import ast
+
+        tree = ast.parse("import requests\nimport sqlite3\n")
+        at_module_scope = {n.name.split(".")[0] for node in tree.body
+                           if isinstance(node, ast.Import) for n in node.names}
+        offending = at_module_scope - (
+            set(sys.stdlib_module_names) | {"source_registry", "staleness"})
+        self.assertEqual(offending, {"requests"})
 
     def test_an_unreadable_timestamp_is_surfaced_not_swallowed(self):
         buckets = health_digest.classify(
@@ -269,6 +394,78 @@ class TestEmail(unittest.TestCase):
                                     "allowance": 10.0, "at_ceiling": False},
             "live /source-health")
         self.assertNotIn("—", subject + body)
+
+
+def coverage(archived=71, in_scope=656, queue=0, never=585, days_ago=1):
+    """A link-health reading, `days_ago` days since its newest snapshot."""
+    return {
+        "collectors": ["national_press"],
+        "in_scope": in_scope, "archived": archived, "unavailable": 0,
+        "capture_queue": queue, "never_probed": never,
+        "pct": round(100.0 * archived / in_scope, 1) if in_scope else 0.0,
+        "newest_snapshot": (NOW - timedelta(days=days_ago)).isoformat(),
+    }
+
+
+class TestArchiveCoverageIsReported(unittest.TestCase):
+    """The failure this closes is not a wrong number, it is no number.
+
+    On 2026-07-30 the archiver spent a day running green and recording nothing,
+    and what hid it was that nothing anybody read reported on it at all.
+    """
+
+    def test_a_stalled_archiver_is_not_stale_degraded_or_expensive(self):
+        """Which is exactly why it needs its own check.
+
+        Every other signal in this digest reads healthy while archiving has
+        stopped producing: the job is not stale (it ran), not degraded (it
+        succeeded), and costs nothing.
+        """
+        self.assertTrue(health_digest.archiving_stalled(
+            coverage(days_ago=health_digest.ARCHIVE_STALL_DAYS + 1), NOW))
+
+    def test_a_recent_snapshot_is_not_a_stall(self):
+        self.assertFalse(health_digest.archiving_stalled(coverage(days_ago=1), NOW))
+
+    def test_nothing_left_to_do_is_not_a_stall(self):
+        """A finished archiver is quiet for the same reason a broken one is.
+
+        Crying wolf here would be worse than silence: an owner who learns to
+        ignore this line ignores it on the week it means something.
+        """
+        self.assertFalse(health_digest.archiving_stalled(
+            coverage(queue=0, never=0, days_ago=90), NOW))
+
+    def test_never_having_recorded_a_snapshot_is_a_stall(self):
+        reading = coverage()
+        reading["newest_snapshot"] = None
+        self.assertTrue(health_digest.archiving_stalled(reading, NOW))
+
+    def test_coverage_is_reported_even_when_nothing_is_wrong(self):
+        """A metric that appears only once it is bad cannot show a slow slide."""
+        buckets = health_digest.classify({"google_news": entry(6)}, NOW)
+        _, body = health_digest.build_email(buckets, False, 6, None, "local",
+                                            [], coverage())
+        self.assertIn("SOURCE LINKS", body)
+        self.assertIn("71 of 656", body)
+
+    def test_a_stall_names_itself_in_the_subject(self):
+        buckets = health_digest.classify({"google_news": entry(6)}, NOW)
+        subject, body = health_digest.build_email(
+            buckets, False, 6, None, "local", [],
+            coverage(days_ago=99), archive_stalled=True)
+        self.assertIn("archiving", subject.lower())
+        self.assertIn("STALLED", body)
+        # The paste-ready instruction has to send the owner at the RUNS, not at
+        # the script. The script was fine every time this has fired; what broke
+        # was a dispatch that carried the dry_run default.
+        self.assertIn("dry_run=false", body)
+        self.assertNotIn("—", subject + body)
+
+    def test_an_unreadable_link_ledger_is_never_fatal(self):
+        from pathlib import Path
+        self.assertIsNone(health_digest.read_link_health(Path("/nope/none.db")))
+        self.assertFalse(health_digest.archiving_stalled(None, NOW))
 
 
 class TestDelivery(unittest.TestCase):

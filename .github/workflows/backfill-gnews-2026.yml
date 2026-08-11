@@ -1,0 +1,226 @@
+# Historical walker for Google News, in bounded slices.
+#
+# THE PREMISE THIS CORRECTS
+# -------------------------
+# backfill-gdelt-2026.yml opens by saying "Google News RSS has no archive, so
+# this is the only route to January-June 2026 press coverage". Measured
+# 2026-07-30, that is FALSE: the RSS endpoint honours `after:` and `before:`,
+# the pubDates come back inside the window, and the archive reaches at least to
+# 2016. See the header of backfill_gnews_2026.py for the table.
+#
+# It matters because registry.GDELT_QUERIES is English-only by design, so GDELT
+# cannot walk the history of the markets the recall worklist says hold nothing
+# (AU, CA, JP, GB, IN, BR, CN, DE, SA, SG, AE, AR, CH, CO all at 0%). The 51
+# non-English Google News editions can be walked with the same operators.
+#
+# WHAT IT COSTS, AND WHAT WAS REFUSED
+# -----------------------------------
+# Measured on three real historical days: ~395 candidates reach the gate per day
+# of history across 52 editions. Sweeping a year in full is ~$32, of which the
+# GATE ALONE is $4.34 — as much as GDELT's entire year. A full-breadth sweep is
+# therefore refused. Instead the GATE is rationed: 37 candidates a day, DERIVED
+# from MONTHLY_WALKER_BUDGET_USD, ranked by country need, everything else left
+# unmarked so a later walk of the same range reads different rows. A year is
+# then 92 slices and ~$3.02. `--plan-cost` prints all of it.
+#
+# IT RUNS IN BOUNDED SLICES AND REQUEUES ITSELF
+# ---------------------------------------------
+# Same shape as backfill-gdelt-2026.yml and for the same reason: that workflow
+# took the single `talent-collect` writer lock for 350 minutes on 2026-07-29,
+# hit its own timeout, was CANCELLED, and had its commit step skipped by
+# `if: !cancelled()`. A run here does ONE SLICE, commits it, and appends a
+# ticket for the next slice to data/writer_queue.json in the SAME commit.
+# Progress lives in data/backfill_state.json, committed. Dispatch the WHOLE
+# window you want; the cursor, not the input, decides where a run begins.
+#
+# NOT ARMED. There is no `schedule:` here and adding one is a spend decision
+# that belongs to the owner; tests/test_backfill_pace.py fails if one appears.
+name: backfill-gnews-2026
+
+on:
+  workflow_dispatch:
+    inputs:
+      historical_backfill:
+        description: 'Fund PAID reads for a window before 2026-01-01 (deferred by default under the forward-first policy)'
+        type: boolean
+        required: false
+        default: false
+      start:
+        description: 'Start date of the WHOLE backfill (YYYY-MM-DD)'
+        required: true
+      end:
+        description: 'End date inclusive of the WHOLE backfill (YYYY-MM-DD)'
+        required: true
+      dry_run:
+        description: 'Set to true to store nothing (still classifies, still costs). A dry run does NOT advance the cursor or requeue.'
+        required: false
+        default: 'false'
+      fetch_only:
+        description: 'Set to true to fetch, resolve and free-filter only — calls no model, writes nothing, spends nothing'
+        required: false
+        default: 'false'
+      ration:
+        description: 'Candidates GATED per day-window. Blank uses the budget-derived default in backfill_gnews_2026.py (37, ~$0.033 a slice). Raising this raises the bill in proportion.'
+        required: false
+        default: ''
+      locales:
+        description: 'Restrict to lang:COUNTRY pairs, comma separated (e.g. he:IL,ja:JP). Blank sweeps every edition.'
+        required: false
+        default: ''
+
+# One DB writer at a time, in the same group as every other writer. Slicing
+# changes how LONG this holds the lock; it does not change how many writers may
+# hold it, and this group must not be split or weakened
+# (tests/test_workflows.py::test_every_database_writer_shares_one_lock).
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+# Forward-first budget policy (spend.py, owner's decision 2026-08-10). Paid
+# processing prioritizes 2026-01-01 onward, so a walk over an earlier window
+# runs with PAID reads off unless the owner ticks historical_backfill on the
+# dispatch. Declaring the window here is what lets `spend.py --degrade` tell
+# forward work from historical work. Free paths are untouched: this walk still
+# fetches, parses, validates and dedups, and its cursor is recorded so a funded
+# run resumes on the first window it did not do. See docs/HANDOVER.md.
+env:
+  TIT_BACKFILL_START: ${{ inputs.start }}
+  TIT_HISTORICAL_BACKFILL: ${{ inputs.historical_backfill && 'on' || '' }}
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    # A SLICE ceiling, not a backfill ceiling. Below
+    # writer_queue.LONG_HOLD_MINUTES (120), so this workflow cannot be the thing
+    # that starves the queue. The script stops itself at SLICE_BUDGET_MINUTES,
+    # well inside this, so the run ends CLEANLY and its commit step actually
+    # runs — the one thing the 350-minute run never got to do.
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # DEGRADE, not enforce (2026-08-04). The 2026-07-28 note above approved
+      # these backfills as report-only spend, estimated $7-12 in total. What
+      # happened instead: 91 gnews-backfill dispatches on 2026-08-03 spent
+      # ~$21.5 (MEASURED by balance delta), exhausted the month's allowance AND
+      # the key's $20 credit cap, and every paid call has 402'd since
+      # 2026-08-03 08:16Z. The scheduled collectors DO run `--degrade`, so the
+      # discretionary job switched the production job off: collect.yml on
+      # 08-04 deferred 351 google_news candidates unread.
+      #
+      # `--degrade` is not `--enforce` and does not halt this job. It exits 0
+      # and sets TIT_PAID_READS=off only once the month's allowance is spent;
+      # the backfill still fetches, still prefilters, still stores everything
+      # it can close for free, and deferred candidates are left UNMARKED so a
+      # later run reads them. The backfill has a cursor, so nothing is lost -
+      # it resumes at the same slice. What it can no longer do is spend the
+      # scheduled collectors' budget.
+      - name: Spend before
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
+      - name: Backfill one slice
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # Raised for BACKFILL JOBS ONLY, so the process ceiling never binds
+          # before the run's own ration does. The ration is the real bound and
+          # the key's hard cap at OpenRouter is the backstop.
+          TIT_READTHROUGH_CAP: '5000'
+        run: |
+          python backfill_gnews_2026.py \
+            --start "${{ inputs.start }}" \
+            --end "${{ inputs.end }}" \
+            ${{ inputs.ration != '' && format('--ration {0}', inputs.ration) || '' }} \
+            ${{ inputs.locales != '' && format('--locales {0}', inputs.locales) || '' }} \
+            --slice \
+            --emit-next "$RUNNER_TEMP/slice.json" \
+            ${{ inputs.dry_run == 'true' && '--dry-run' || '' }} \
+            ${{ inputs.fetch_only == 'true' && '--fetch-only' || '' }}
+
+      - name: Spend after
+        if: ${{ !cancelled() }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py || true
+
+      # Same memory rule as the daily collector: a failed run that already
+      # stored and published rows still holds the only local record of them.
+      - name: Commit the slice, and queue the next one
+        if: ${{ inputs.dry_run != 'true' && inputs.fetch_only != 'true' && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our rows into the remote's database, never copy our file over
+          # the top of it — a copy destroys every row anyone else pushed while
+          # this run was collecting. See merge_db.py.
+          cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
+          # This slice's per-candidate gate verdicts, saved before the reset
+          # discards them. A backfill pays for exactly the same gate calls the
+          # daily run does, so its labels are worth exactly as much to the
+          # classifier that is meant to replace that gate
+          # (docs/PLAN-gate-to-five-dollars.md).
+          rm -rf "$RUNNER_TEMP/gate_labels"
+          cp -R data/gate_labels "$RUNNER_TEMP/gate_labels" 2>/dev/null || true
+          RECORD_RC=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
+            cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            # Appends only what main does not already hold, the same way
+            # merge_db.py does. It cannot fail the step: labels are
+            # bookkeeping and the rows are not.
+            python merge_gate_labels.py "$RUNNER_TEMP/gate_labels" data/gate_labels || true
+            # Applied AFTER the reset, for the same reason the database is
+            # merged rather than copied: both files have other writers and
+            # anything written before the reset is thrown away by it. `record`
+            # merges this slice into whatever main holds now, and --queue
+            # appends the next slice's ticket so the chain and the data land in
+            # ONE commit. Its exit code is carried past the push rather than
+            # allowed to abort the step, because a chain that cannot advance
+            # must still not cost us the rows we collected.
+            RECORD_RC=0
+            if [ -f "$RUNNER_TEMP/slice.json" ]; then
+              python backfill_slices.py record --from "$RUNNER_TEMP/slice.json" \
+                --queue || RECORD_RC=$?
+            fi
+            git add data/talent_intel.db
+            git add data/backfill_state.json data/writer_queue.json || true
+            git add data/spend_month.json || true
+            # `-A` and not a plain add: when a month closes the ledger gzips
+            # the old shard and deletes the plain one, and a deletion that is
+            # never staged is a file that comes back on the next reset.
+            git add -A data/gate_labels || true
+            if git diff --staged --quiet; then
+              echo "Nothing to commit."
+              break
+            fi
+            git commit -q -m "data: google news backfill slice ${{ inputs.start }}..${{ inputs.end }}"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              break
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "::error::could not push the database after 5 attempts"
+              exit 1
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$RECORD_RC" = "0" ]; then
+            exit 0
+          fi
+          echo "::error::the slice was committed but the backfill chain did not"
+          echo "::error::advance, so nothing was requeued. Read the record step"
+          echo "::error::above, then: python backfill_slices.py status"
+          exit 1

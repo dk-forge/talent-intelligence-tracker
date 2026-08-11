@@ -327,11 +327,18 @@ def test_a_stalled_chain_exits_non_zero_from_the_cli(tmp_path):
 def test_a_real_backfill_run_slices_emits_and_the_chain_advances(tmp_path, monkeypatch):
     """The whole loop through a real script: take a slice, emit, record, queue.
 
-    The window is deliberately one where every search comes back empty, so the
-    run ends by FAILING its own fail-loud check. The ticket must still be
-    emitted and the cursor must still advance: a run that collected four weeks
-    and then hit a broken search has still done four weeks, and slicing exists
-    so finished work is never the price of how a run ended.
+    The window is deliberately one where every search WORKED and returned
+    nothing, so the run ends by FAILING its own fail-loud check — a historical
+    month with no 8-K 5.02 in it is implausible enough to be worth a human. The
+    ticket must still be emitted and the cursor must still advance: a run that
+    collected four weeks and then hit a broken search has still done four
+    weeks, and slicing exists so finished work is never the price of how a run
+    ended.
+
+    Note the `0` in the stub. That is the search-failure count, and it is the
+    whole difference between this test and the one below it: an answer of "no
+    filings" is collected history and the cursor may pass it. See
+    `test_a_window_the_search_refused_does_not_move_the_cursor`.
     """
     import json
     import sys
@@ -339,7 +346,7 @@ def test_a_real_backfill_run_slices_emits_and_the_chain_advances(tmp_path, monke
     import backfill_sec_2026 as sec
     from pipeline import schema
 
-    monkeypatch.setattr(sec, "collect_window", lambda lo, hi: [])
+    monkeypatch.setattr(sec, "collect_window", lambda lo, hi: ([], 0))
     # The path, not the function: patching `connect` here would patch the real
     # pipeline.schema for everything loaded after it, and a lambda that calls
     # the name it just replaced recurses forever. See the test gotcha in
@@ -367,6 +374,83 @@ def test_a_real_backfill_run_slices_emits_and_the_chain_advances(tmp_path, monke
     job = bs.load(state_path)["jobs"][bs.job_id(sec.WORKFLOW, "2026-01-01", "2026-01-20")]
     assert job["cursor"] == "2026-01-08" and job["state"] == "running"
     assert json.loads(queue_path.read_text())["tickets"][0]["workflow"] == sec.WORKFLOW
+
+
+# --- a window nobody fetched is not a window with nothing in it ------------
+
+def test_a_fetch_that_failed_and_a_day_that_was_quiet_are_different_states():
+    """PASS / FAIL / UNKNOWN, applied to one window of one backfill.
+
+    Measured on `backfill-gnews-2026` run 30662474194: 576 of 576 queries
+    failed, three day-windows returned nothing, and "nothing came back" was
+    recorded as "there was no news on earth that day".
+    """
+    assert bs.sampled_window(items=12, fetch_errors=0) == bs.COLLECTED
+    assert bs.sampled_window(items=0, fetch_errors=0) == bs.EMPTY
+    assert bs.sampled_window(items=0, fetch_errors=576) == bs.UNREACHED
+
+    # A sampler tolerates partial failure by design: gnews rations what reaches
+    # the model and leaves the rest unmarked, so a re-walk of the same day
+    # deliberately reads different rows. One flaky edition of 52 is weather.
+    assert bs.sampled_window(items=12, fetch_errors=3) == bs.COLLECTED
+
+    # An enumerator does not. The contract is every 8-K 5.02 in the week, so a
+    # search that dies on page three leaves pages nobody asked for, and they
+    # are indistinguishable from pages that held nothing.
+    assert bs.enumerated_window(items=40, fetch_errors=1) == bs.UNREACHED
+    assert bs.enumerated_window(items=0, fetch_errors=0) == bs.EMPTY
+    assert bs.enumerated_window(items=40, fetch_errors=0) == bs.COLLECTED
+
+
+def test_a_window_the_search_refused_does_not_move_the_cursor(tmp_path, monkeypatch):
+    """The defect, end to end, in the shape that cost three days of history.
+
+    Run 30662474194 did everything the design asked of it. It printed the
+    failure, it returned 1, and the chain advanced from 2026-01-22 to
+    2026-01-25 anyway — because the ticket carrying the cursor is emitted
+    BEFORE the fail-loud check and the workflow's commit step runs
+    `if: !cancelled()`, both deliberately, so that rows already collected are
+    never the price of how a run ended.
+
+    RED IS NOT UNADVANCED. The only thing between a broken fetch and a day
+    skipped forever is that the day never sets `done_through`, so the emitted
+    cursor equals the one the run started from and `record` refuses it.
+    """
+    import json
+    import sys
+
+    import backfill_sec_2026 as sec
+    from pipeline import schema
+
+    # Every page of every window: the search itself refuses. Not "the month was
+    # quiet" — the difference is the second element and nothing else.
+    monkeypatch.setattr(sec, "collect_window", lambda lo, hi: ([], 1))
+    monkeypatch.setattr(schema, "DB_PATH", tmp_path / "t.db")
+    monkeypatch.setattr(sec.publish, "publish", lambda *a, **k: {"sent": 0})
+
+    state_path = tmp_path / "backfill_state.json"
+    queue_path = tmp_path / "writer_queue.json"
+    ticket_path = tmp_path / "slice.json"
+    writer_queue.save(writer_queue.empty_queue(), queue_path)
+
+    monkeypatch.setattr(sys, "argv", [
+        "backfill_sec_2026.py", "--start", "2026-01-01", "--end", "2026-01-20",
+        "--slice", "--state", str(state_path), "--emit-next", str(ticket_path)])
+    assert sec.main() == 1, "a window nobody could enumerate must go red"
+
+    ticket = json.loads(ticket_path.read_text())
+    assert ticket["next_cursor"] == "2026-01-01", (
+        f"the cursor moved to {ticket['next_cursor']} over a window whose "
+        "search refused every page. Nothing collected those filings and no "
+        "later run will ever be asked to: the chain only moves forwards.")
+
+    # And the chain stops itself rather than spinning: `record` sees a cursor
+    # that did not move, marks the job stalled, queues nothing, and exits 2.
+    assert bs.main(["--file", str(state_path), "record", "--from", str(ticket_path),
+                    "--queue", "--queue-file", str(queue_path)]) == 2
+    job = bs.load(state_path)["jobs"][bs.job_id(sec.WORKFLOW, "2026-01-01", "2026-01-20")]
+    assert job["state"] == "stalled" and job["cursor"] == "2026-01-01"
+    assert json.loads(queue_path.read_text())["tickets"] == []
 
 
 def test_a_publish_failure_records_the_slice_but_stops_the_chain(tmp_path):
@@ -453,3 +537,167 @@ def test_every_sliced_backfill_survives_publish_refusing(tmp_path):
         assert "halt=" in source, (
             f"{module.__name__} does not tell `record` to stop the chain, so it "
             "requeues into the same wall one slice at a time")
+
+
+# --- a cancelled chain leaves nothing behind, and used to say nothing ------
+#
+# `backfill-structured-2026` run 30594795739 was cancelled mid-run during the
+# 2026-07-31 Bluehost outage. A FAILED slice requeues — its commit step is
+# `if: !cancelled()`, so it records the ticket and appends the next one. A
+# CANCELLED slice skips that step entirely, so bse_india sat at 2026-01-29 and
+# companies_house at slice 1 of 7 for two days while `status` printed
+# `problems: []`. A stalled chain reporting no problems is a silent pass, and
+# this repo does not get to have those.
+
+def _running(state_and_job=None, **over):
+    """A chain mid-walk, with a controllable `updated_at`."""
+    state, job = _job(**over)
+    job["state"] = "running"
+    job["cursor"] = "2026-01-05"
+    job["slices"] = 1
+    return state, job
+
+
+def _stamp(hours_ago: float) -> str:
+    return bs._iso(datetime.now(timezone.utc) - timedelta(hours=hours_ago))
+
+
+def test_a_chain_with_nothing_queued_behind_it_is_a_problem_not_a_silence():
+    state, job = _running()
+    job["updated_at"] = _stamp(50)
+
+    report = bs.summary(state, queue=writer_queue.empty_queue())
+
+    assert report["problems"], (
+        "a running chain whose cursor has not moved in two days, with no run "
+        "and no ticket anywhere, reported clean. That is the exact state "
+        "bse_india and companies_house sat in on 2026-07-31.")
+    problem = report["problems"][0]
+    assert "NOTHING in the writer queue" in problem
+    # The report has to carry the way out. A session reading this should not
+    # have to work out the resume incantation from the cursor.
+    assert "drain-writers.yml" in problem and job["cursor"] in problem
+
+
+def test_a_chain_whose_next_slice_is_waiting_its_turn_is_not_stalled():
+    """The distinction the check turns on.
+
+    A backfill ticket sorts behind every correction and can legitimately wait
+    hours. Waiting in the line and having fallen out of it look identical from
+    the cursor alone, which is why this reads the queue rather than a clock.
+    """
+    state, job = _running()
+    job["updated_at"] = _stamp(50)
+
+    queue = writer_queue.empty_queue()
+    writer_queue.enqueue(queue, GDELT, bs.next_inputs(job),
+                         members={GDELT: "backfill-gdelt-2026"})
+
+    report = bs.summary(state, queue=queue)
+    assert report["problems"] == []
+    assert report["jobs"][0]["waiting_on"], "the live ticket was not reported"
+
+
+def test_a_ticket_for_a_DIFFERENT_chain_of_the_same_workflow_does_not_count():
+    """One workflow, several independent chains.
+
+    `backfill-structured-2026.yml` walks bse_india, companies_house and
+    opendart_korea over the same window. companies_house sat dead for two days
+    while the other two were moving, so a check that matched on the workflow
+    name alone would have called it healthy the entire time.
+    """
+    state, job = _job(workflow="backfill-structured-2026.yml", label="companies_house",
+                      unit="slices", start="0", end="7", slice_size=1)
+    job.update(state="running", cursor="1", slices=1, updated_at=_stamp(50),
+               inputs={"source": "companies_house", "start": "2026-01-01"})
+
+    queue = writer_queue.empty_queue()
+    writer_queue.enqueue(queue, "backfill-structured-2026.yml",
+                         {"source": "bse_india", "start": "2026-01-01"},
+                         members={"backfill-structured-2026.yml": "x"})
+
+    report = bs.summary(state, queue=queue)
+    assert report["problems"], (
+        "a ticket for bse_india was read as cover for companies_house")
+
+
+def test_a_chain_that_moved_recently_is_busy_rather_than_stalled():
+    """The grace period. A slice runs up to 90 minutes and a drain tick is
+    throttled to roughly an hour, so a gap is not immediately a death."""
+    state, job = _running()
+    job["updated_at"] = _stamp(1)
+    assert bs.summary(state, queue=writer_queue.empty_queue())["problems"] == []
+
+
+def test_a_finished_chain_is_never_reported_as_stalled():
+    state, job = _running()
+    job["state"] = "done"
+    job["cursor"] = None
+    job["updated_at"] = _stamp(500)
+    assert bs.summary(state, queue=writer_queue.empty_queue())["problems"] == []
+
+
+def test_no_queue_file_is_UNKNOWN_and_never_a_stall(tmp_path):
+    """Three states, not two. A check that could not run is not a pass — and
+    it is not a failure either, so it must not manufacture a red run."""
+    state, job = _running()
+    job["updated_at"] = _stamp(50)
+
+    report = bs.summary(state, queue_path=tmp_path / "absent.json")
+    assert report["problems"] == []
+    assert report["jobs"][0]["waiting_on"] == "unknown", (
+        "an unreadable queue was reported as an empty one")
+
+
+# --- priority has to survive the chain that carries it --------------------
+
+def test_priority_is_sticky_along_a_chain(tmp_path):
+    """`--priority 5` bought one slice and then silently expired.
+
+    `default_priority()` is a property of the WORKFLOW, so it reapplied to
+    every requeued ticket: the free, no-model structured walkers were queued
+    at 5 so they would drain ahead of the paid ones, and each chain's own next
+    slice came back at BACKFILL_PRIORITY behind the very work it was meant to
+    overtake. A parameter that looks effective and is not is worse than one
+    that is missing.
+    """
+    import json
+
+    state, job = _job()
+    state_path = tmp_path / "backfill_state.json"
+    queue_path = tmp_path / "writer_queue.json"
+    ticket_path = tmp_path / "slice.json"
+    bs.save(state, state_path)
+
+    queue = writer_queue.empty_queue()
+    writer_queue.enqueue(queue, GDELT, bs.next_inputs(job), priority=5,
+                         members={GDELT: "backfill-gdelt-2026"})
+    writer_queue.save(queue, queue_path)
+
+    bs.emit(ticket_path, bs.slice_ticket(job, "2026-01-01", "2026-01-04",
+                                         totals={"stored": 3}))
+    assert bs.main(["--file", str(state_path), "record", "--from", str(ticket_path),
+                    "--queue", "--queue-file", str(queue_path)]) == 0
+
+    tickets = json.loads(queue_path.read_text())["tickets"]
+    assert [t["priority"] for t in tickets] == [5, 5], (
+        "the chain's own next slice reverted to the workflow default, so the "
+        "override the operator typed lasted exactly one slice")
+
+
+def test_a_chain_with_no_override_still_gets_the_workflow_default(tmp_path):
+    """Stickiness must not become a way to lose the default."""
+    import json
+
+    state, job = _job()
+    state_path = tmp_path / "backfill_state.json"
+    queue_path = tmp_path / "writer_queue.json"
+    ticket_path = tmp_path / "slice.json"
+    bs.save(state, state_path)
+    writer_queue.save(writer_queue.empty_queue(), queue_path)
+    bs.emit(ticket_path, bs.slice_ticket(job, "2026-01-01", "2026-01-04"))
+
+    assert bs.main(["--file", str(state_path), "record", "--from", str(ticket_path),
+                    "--queue", "--queue-file", str(queue_path)]) == 0
+    tickets = json.loads(queue_path.read_text())["tickets"]
+    assert tickets[0]["priority"] == writer_queue.BACKFILL_PRIORITY

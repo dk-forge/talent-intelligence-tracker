@@ -107,20 +107,31 @@ function tit_company_gate_having() {
     );
 }
 
+/**
+ * The two routes this file owns, as pattern => target.
+ *
+ * Returned as data rather than only registered, because tit_verify_routes() in
+ * the bootstrap has to be able to ask "is this rule actually in the rewrite
+ * rules WordPress stored" and a second copy of the patterns over there is how
+ * the two would come to disagree. A routing table that disagrees with itself
+ * 404s pages the rest of the plugin believes exist, which is exactly what
+ * 1.58.0 shipped: see the note on tit_verify_routes().
+ */
+function tit_company_rewrites() {
+    return array(
+        '^' . TIT_COMPANY_BASE . '/([^/]+)/?$' => 'index.php?tit_company=$matches[1]',
+        // The sitemap is a sibling route rather than a child of /company/, so the
+        // profile rule above cannot swallow it. Only the dot needs escaping, and it
+        // is escaped rather than left as "any character" so nothing else can match.
+        '^' . str_replace('.', '\.', TIT_COMPANY_SITEMAP_PATH) . '$'
+            => 'index.php?tit_company_sitemap=1',
+    );
+}
+
 function tit_company_rewrite() {
-    add_rewrite_rule(
-        '^' . TIT_COMPANY_BASE . '/([^/]+)/?$',
-        'index.php?tit_company=$matches[1]',
-        'top'
-    );
-    // The sitemap is a sibling route rather than a child of /company/, so the
-    // profile rule above cannot swallow it. Only the dot needs escaping, and it
-    // is escaped rather than left as "any character" so nothing else can match.
-    add_rewrite_rule(
-        '^' . str_replace('.', '\.', TIT_COMPANY_SITEMAP_PATH) . '$',
-        'index.php?tit_company_sitemap=1',
-        'top'
-    );
+    foreach (tit_company_rewrites() as $pattern => $target) {
+        add_rewrite_rule($pattern, $target, 'top');
+    }
 }
 add_action('init', 'tit_company_rewrite');
 
@@ -134,6 +145,12 @@ add_filter('query_vars', 'tit_company_query_var');
 /**
  * Rewrite rules live in the database, and an FTP deploy runs no activation
  * hook. Flush once per version, driven by the same bump that migrates tables.
+ *
+ * THIS IS THE FAST PATH AND NOT THE GUARANTEE. A version-gated one-shot cannot
+ * survive a racy transport, for the same reason tit_verify_schema() exists
+ * beside tit_maybe_upgrade(): the option can end up current while the result it
+ * was supposed to produce is not. tit_verify_routes() is what proves the rules
+ * are actually there.
  */
 function tit_company_maybe_flush() {
     if (get_option('tit_rewrites_version') === TIT_VERSION) return;
@@ -204,20 +221,36 @@ function tit_company_legacy_slug($company_key) {
  * map at all, which is what keeps this from becoming a 7,301-entry array read
  * on every request.
  *
- * COLLISIONS ARE REFUSED, NOT RESOLVED. Three canonical slugs are claimed by
- * two keys each, and in all three cases the two keys are the same employer
- * recorded twice ("perma-fix" and "perma fix", "daré bioscience" and "dare
- * bioscience", one NHS trust filed once with "&" and once with "and"). Serving
- * either one under a shared URL would silently show half an employer's history,
- * so neither is served and neither is published. The right fix is upstream, in
- * employer identity, and it is a merge rather than a routing rule.
+ * COLLISIONS ARE REFUSED, NOT RESOLVED. A canonical slug claimed by two keys is
+ * one employer recorded twice, and serving either one under a shared URL would
+ * silently show half of a history. So neither is served and neither is
+ * published. The fix is upstream, in employer identity, and it is a merge
+ * rather than a routing rule: pipeline/vocab.py EMPLOYER_KEY_ALIASES states the
+ * merge, correct_company_key.py moves the stored rows onto the surviving key,
+ * and ops_status.py [1c] names any new pair that has not been merged yet. The
+ * refusal stays because it is what makes an unmerged pair harmless.
+ *
+ * 'moved' IS THE THIRD MAP, AND IT IS WHAT KEEPS A CORRECTED KEY'S OLD URL
+ * ALIVE. company_key is a normalised name, so a fix to the normaliser changes
+ * it, and the slug is derived from the key: correcting '-operative group' to
+ * 'co-operative group' moves /company/operative-group/ to
+ * /company/co-operative-group/, and the old URL was in the sitemap. A
+ * correction never overwrites — it appends a revision and the old row survives
+ * at is_current = 0, still carrying the old key — so the old URL is not lost
+ * information, it is stored. This maps it back to the key the same signal now
+ * carries, and tit_company_template() then issues its ordinary canonical 301.
+ *
+ * That is a property of revisions and not a list of redirects, so it covers
+ * every key correction there will ever be, including ones nobody has thought of
+ * yet. A live key always wins: nothing here can redirect away from an employer
+ * that currently holds the slug.
  */
 function tit_company_slug_index() {
     static $memo = null;
     if ($memo !== null) return $memo;
 
     $cached = get_transient('tit_company_slug_index');
-    if (is_array($cached) && isset($cached['map'])) {
+    if (is_array($cached) && isset($cached['map']) && isset($cached['moved'])) {
         $memo = $cached;
         return $memo;
     }
@@ -251,11 +284,80 @@ function tit_company_slug_index() {
         }
     }
 
-    $memo = array('map' => $map, 'collisions' => $collisions);
+    $memo = array(
+        'map'        => $map,
+        'collisions' => $collisions,
+        'moved'      => tit_company_moved_slugs($claims),
+    );
     // Dropped by tit_flush_caches() on every write, so a new employer appears
     // as soon as its row lands rather than up to two hours later.
     set_transient('tit_company_slug_index', $memo, 2 * HOUR_IN_SECONDS);
     return $memo;
+}
+
+/**
+ * slug -> the company_key that a superseded revision's slug now belongs to.
+ *
+ * One query, joining each withdrawn revision to the current revision of the
+ * same signal. Only rows where the key actually MOVED come back, so this is
+ * empty until a key correction runs and small forever after — a correction
+ * moves employers, and there have been eleven.
+ *
+ * BOTH slug forms of the old key are indexed, canonical and pre-1.46, because
+ * both were live URLs for it. The old key '-operative group' canonicalises to
+ * "operative-group" (the leading hyphen is trimmed) and legacy-slugs to
+ * "-operative-group", and the sitemap published the first.
+ *
+ * Two refusals, and they are the same refusal the collision map makes:
+ *
+ *  - a slug a CURRENT key claims is never redirected. A live employer owning
+ *    the URL outranks any history of it, and this is not hypothetical: a merge
+ *    like "perma-fix" -> "perma fix" leaves both keys on one slug, which the
+ *    surviving employer still serves.
+ *  - a slug two moved keys claim, pointing at different employers, is dropped
+ *    rather than resolved to whichever the query returned first.
+ *
+ * @param array $claims canonical slug -> the current keys claiming it.
+ */
+function tit_company_moved_slugs($claims) {
+    global $wpdb;
+    $table = tit_table_name();
+
+    // The aliases are `prev` and `live`, not the obvious `old` and `new`.
+    // MySQL has reserved both of those at one version or another for row
+    // aliases, and an unquoted reserved word here is a parse error that takes
+    // out every company page at once. The harness runs on SQLite and would not
+    // catch it, so the safe names are the ones written.
+    $pairs = $wpdb->get_results(
+        "SELECT DISTINCT prev.company_key AS old_key, live.company_key AS new_key
+           FROM {$table} prev
+           INNER JOIN {$table} live
+                   ON live.signal_id = prev.signal_id AND live.is_current = 1
+          WHERE prev.is_current = 0
+            AND prev.company_key <> live.company_key
+            AND prev.company_key <> ''",
+        ARRAY_A
+    );
+    if (!is_array($pairs) || !$pairs) return array();
+
+    $moved = array();
+    $ambiguous = array();
+    foreach ($pairs as $pair) {
+        $forms = array(
+            tit_company_slug($pair['old_key']),
+            tit_company_legacy_slug($pair['old_key']),
+        );
+        foreach (array_unique($forms) as $slug) {
+            if ($slug === '' || isset($claims[$slug]) || isset($ambiguous[$slug])) continue;
+            if (isset($moved[$slug]) && $moved[$slug] !== $pair['new_key']) {
+                unset($moved[$slug]);
+                $ambiguous[$slug] = true;
+                continue;
+            }
+            $moved[$slug] = $pair['new_key'];
+        }
+    }
+    return $moved;
 }
 
 /**
@@ -308,8 +410,16 @@ function tit_company_sitemap_url() {
  * This is still not a slug -> key conversion: the index is built by applying the
  * forward mapping to every key and remembering the result.
  *
- * The two steps are ordered this way so the common path is one indexed query
- * and touches no map at all.
+ * STEP 3 is the slug of a key that has since been CORRECTED. Nothing current
+ * claims it, but a superseded revision does, and the signal that revision
+ * belongs to is still here under its new key. Returning that employer's current
+ * rows makes tit_company_template() redirect to the canonical URL by the same
+ * comparison it already runs for a pre-1.46 slug, so the caller needs no new
+ * branch and there is no second redirect rule to keep in step with the first.
+ *
+ * The three steps are ordered this way so the common path is one indexed query
+ * and touches no map at all, and so a live employer can never be redirected
+ * away from a URL it holds.
  */
 function tit_company_rows($slug) {
     global $wpdb;
@@ -329,12 +439,15 @@ function tit_company_rows($slug) {
     if ($rows) return $rows;
 
     $index = tit_company_slug_index();
-    if (empty($index['map'][$slug])) return array();
+    $key = '';
+    if (!empty($index['map'][$slug]))        $key = $index['map'][$slug];
+    elseif (!empty($index['moved'][$slug]))  $key = $index['moved'][$slug];
+    if ($key === '') return array();
 
     return $wpdb->get_results($wpdb->prepare(
         "SELECT {$columns} FROM {$table}
           WHERE is_current = 1 AND company_key = %s {$order}",
-        $index['map'][$slug]
+        $key
     ), ARRAY_A) ?: array();
 }
 
@@ -361,7 +474,26 @@ function tit_company_profile($rows) {
         if ($r['pillar'] === 'leadership_change') $leadership++;
         if ($r['confidence'] === 'verified') $verified++;
 
-        $seen = substr((string) $r['captured_at'], 0, 10);
+        /*
+          "Tracked since" is the date of the EARLIEST DOCUMENT, not the date we
+          first read one.
+
+          It was MIN(captured_at), which is when this pipeline happened to
+          collect the row. Every one of the 15,711 current rows was captured in
+          July 2026, because that is when the backfills ran, so all 715 indexable
+          profiles said "since July 2026" -- while the same page said "last
+          update 3 months ago" a few lines away, because published_date runs back
+          to 2017. Two dates from one employer's history contradicting each other
+          on one screen, and both of them in the meta description.
+
+          COALESCE(published_date, DATE(captured_at)) is the expression the
+          dashboard's span note and the place pages already use for exactly this
+          reason (shortcodes.php's $date_expr, places.php's own). A row whose
+          source stated no date falls back to when we saw it, which is the only
+          answer left and is never earlier than the truth.
+        */
+        $dated = substr((string) ($r['published_date'] ?? ''), 0, 10);
+        $seen = $dated !== '' ? $dated : substr((string) $r['captured_at'], 0, 10);
         if ($seen && ($tracked_since === '' || $seen < $tracked_since)) $tracked_since = $seen;
 
         if ($latest_place === '') {
@@ -413,12 +545,19 @@ function tit_company_current($slug = null) {
 
 /** Reader-facing wording for the four stored directions. */
 function tit_company_direction_labels() {
-    return array(
-        'hiring'      => 'Hiring up',
-        'displacement' => 'Cutting back',
-        'comp_shift'  => 'Pay change reported',
-        'neutral'     => 'Update reported',
-    );
+    /*
+      A THIRD VOCABULARY FOR THE SAME FOUR VALUES, AND IT WAS STILL HERE.
+
+      The dashboard retired "Hiring up" and "Cutting back" and
+      tests/php/render_dashboard.php asserts they cannot come back to that page.
+      Nothing said the same about this one, so a reader who clicked an employer's
+      name went from "Cutting Roles" on the card straight to "Cutting back" on
+      their page, and had to work out that the two were one thing. That is the
+      exact defect the shared card contract exists to stop, happening inside a
+      single repo. One definition now, and it is the shared one.
+      See docs/card-contract.json.
+    */
+    return tit_direction_labels();
 }
 
 /** Reader-facing wording for the four stored pillars. */
@@ -452,8 +591,18 @@ function tit_company_status_line($rows) {
     $what = '';
     if (!empty($r['funding_stage']) && isset($stages[$r['funding_stage']])) {
         $what = 'Funding reported, ' . $stages[$r['funding_stage']];
-    } elseif (!empty($r['funding_amount'])) {
+    } elseif (!empty($r['funding_amount_usd']) && function_exists('tit_money_short')) {
+        // Our parsed dollars, never the source's string. Same rule and same
+        // reason as tit_amount_raised_html below the timeline.
+        $what = 'Funding reported, ' . tit_money_short((float) $r['funding_amount_usd']);
+    } elseif (!empty($r['funding_amount'])
+              && function_exists('tit_amount_names_a_currency')
+              && tit_amount_names_a_currency($r['funding_amount'])) {
         $what = 'Funding reported, ' . $r['funding_amount'];
+    } elseif (!empty($r['funding_amount'])) {
+        // An amount we could not read and whose string names no currency. The
+        // event is real and is still reported; the unreadable figure is not.
+        $what = 'Funding reported';
     } else {
         $directions = tit_company_direction_labels();
         $pillars    = tit_company_pillar_labels();
@@ -627,9 +776,9 @@ function tit_company_render($rows, $key, $profile) {
                 : esc_html(number_format_i18n($profile['documents'])) . ' source documents'; ?>
           on <?php echo esc_html($name); ?> so far, not because nothing else has
           happened there. We only publish what we have read on a primary source
-          and can link to, so a profile fills up as filings and reports come in
-          rather than being seeded from an estimate. Profiles at this stage are
-          left out of our sitemap and marked noindex until they carry enough to
+          and can link to. So a profile fills up as filings and reports come in,
+          and we never seed it from an estimate. We keep profiles at this stage
+          out of our sitemap and mark them noindex until they carry enough to
           be worth a search result of their own.
         </p>
       <?php endif; ?>
@@ -653,7 +802,15 @@ function tit_company_render($rows, $key, $profile) {
               <p class="tit-event-meta">
                 <?php if ($where) : ?><?php echo esc_html($where); ?> · <?php endif; ?>
                 <?php if ($r['headcount']) : ?><strong><?php echo (int) $r['headcount']; ?></strong> roles · <?php endif; ?>
-                <?php if ($r['funding_amount']) : ?><strong><?php echo esc_html($r['funding_amount']); ?></strong> raised · <?php endif; ?>
+                <?php /* Never the source's raw string. tit_amount_raised_html
+                         prints OUR parsed dollars when we have them, the
+                         source's words when they name a currency, and nothing
+                         at all otherwise - because "93.175 millones" in bold
+                         followed by "raised" told an English reader a number
+                         the source never wrote. */
+                       $tit_raised = function_exists('tit_amount_raised_html')
+                           ? tit_amount_raised_html($r) : '';
+                       if ($tit_raised) : ?><?php echo $tit_raised; ?> · <?php endif; ?>
                 <?php /* The same reader-facing labels as the dashboard table.
                          A profile page reading "rumored" while the tracker it
                          links from reads "Unconfirmed" is one product speaking
@@ -662,9 +819,20 @@ function tit_company_render($rows, $key, $profile) {
                   $conf_labels = function_exists('tit_confidence_labels') ? tit_confidence_labels() : array();
                   echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
                 · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a>
+                <?php /* Three states, one vocabulary with the dashboard cards:
+                         a snapshot link when the Internet Archive holds a copy,
+                         the derived we-re-check-by sentence when this row's
+                         collector is one the archive schedule covers, nothing
+                         on filings a government already preserves. The sentence
+                         and its date come from tit_archive_pending_note(), the
+                         single derivation. */ ?>
                 <?php if (!empty($r['archive_url'])) : ?>
                   · <a href="<?php echo esc_url($r['archive_url']); ?>" rel="nofollow noopener" target="_blank">archived copy</a>
-                <?php endif; ?>
+                <?php else :
+                    $tit_wait = tit_archive_pending_note($r['collector'] ?? '');
+                    if ($tit_wait !== '') : ?>
+                  · <span class="tit-archive-wait"><?php echo esc_html($tit_wait); ?></span>
+                <?php endif; endif; ?>
               </p>
             </div>
           </li>
@@ -706,7 +874,7 @@ function tit_company_render($rows, $key, $profile) {
                 'url'           => $r['source_url'],
             );
         }, $visible),
-      ), JSON_UNESCAPED_SLASHES);
+      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php endif;
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();

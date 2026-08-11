@@ -172,6 +172,46 @@ CREATE TABLE IF NOT EXISTS source_health (
     items_found  INTEGER NOT NULL DEFAULT 0,
     items_stored INTEGER NOT NULL DEFAULT 0,
     detail       TEXT,
+
+    -- WHAT THE RUN COST. classify.STATS has accumulated the provider's own
+    -- usage accounting since the day the gate was added, and printed it, and
+    -- then thrown it away when the process exited. So spend drift was only
+    -- visible in a month-end total, and "cost per stored row" — the one number
+    -- that says whether a change to the prompt, the cap or the model paid for
+    -- itself — could not be plotted at all.
+    --
+    -- It belongs HERE and not in a new table: a run already files exactly one
+    -- health row, the ledger is already append-only on (collector, run_at),
+    -- already merges cleanly (merge_db.py unions it), and already reaches the
+    -- weekly digest and ops_status. A parallel cost table would need its own
+    -- merge rule and its own join to answer any question worth asking.
+    --
+    -- NULL means "no model accounting was recorded" and 0 means "measured
+    -- zero", and the difference matters: a structured collector and a
+    -- retraction sweep call no model at all, and writing zeros for them would
+    -- make a genuinely free run indistinguishable from a run whose accounting
+    -- went missing.
+    model             TEXT,     -- the read-through model, as configured
+    gate_model        TEXT,     -- the one-word gate, '' when single-stage
+    prompt_tokens     INTEGER,
+    cached_tokens     INTEGER,  -- of prompt_tokens; the prefix cache's receipt
+    completion_tokens INTEGER,
+    cost_usd          REAL,     -- the PROVIDER's own figure, never arithmetic
+    reads_bought      INTEGER,  -- full read-throughs paid for this run
+    -- Rows that those read-throughs actually bought. Beside reads_bought this
+    -- IS the reads-vs-rows ratio, which is deliberately not stored as a third
+    -- number: a percentage rounded at write time can disagree with the two
+    -- integers it came from, and then nobody knows which to believe.
+    -- store.reads_to_rows_pct() is the one place it is computed.
+    rows_from_reads   INTEGER,
+
+    -- THE FUNNEL. reads_bought says what was bought; these say what was
+    -- SCREENED and what was refused for budget, which is the coverage
+    -- question rather than the cost one. See MIGRATIONS for why.
+    candidates        INTEGER,  -- reached the classifier
+    gate_calls        INTEGER,  -- one-word screens paid for
+    gate_rejects      INTEGER,  -- dropped there, at ~1/40th of a read
+    budget_deferred   INTEGER,  -- kept by the gate and NOT read: the gap
     PRIMARY KEY (collector, run_at)
 );
 
@@ -209,6 +249,18 @@ CREATE TABLE IF NOT EXISTS source_links (
     archive_state    TEXT,        -- archived | pending | unavailable
     archive_attempts INTEGER NOT NULL DEFAULT 0,
     archived_at      TEXT,
+    -- Probe accounting. `archive_attempts` counts CAPTURES tried; these two
+    -- count what we LEARNED, and the difference is what stops a throttled
+    -- fortnight from walking a capturable document to the terminal state:
+    --   archive_probes       definitive answers from the availability API
+    --                        (a hit, or an explicit "no snapshot"). 0 means we
+    --                        have never once been told anything about this URL.
+    --   archive_blind_rounds rounds that learned nothing at all — a 429, a
+    --                        timeout, a Save Page Now refusal. Never rot, never
+    --                        evidence, and never grounds for going terminal.
+    archive_probes       INTEGER NOT NULL DEFAULT 0,
+    archive_blind_rounds INTEGER NOT NULL DEFAULT 0,
+    archive_detail       TEXT,
 
     -- Reporting only. A rot rate that rises for ONE publisher means that
     -- publisher changed its URL scheme, which is actionable in a way that an
@@ -255,6 +307,41 @@ CREATE TABLE IF NOT EXISTS publish_guardrails (
     PRIMARY KEY (check_name, subject)
 );
 
+-- WHO ELSE SAID IT. One row per outlet that reported a funding figure we
+-- already hold, written at the moment dedup throws that outlet's article away.
+--
+-- WHY THIS TABLE EXISTS. Corroboration was arriving and being discarded. On
+-- 2026-08-01 the Anthropic $30bn round stored from one outlet at 14:25:39; at
+-- 14:26:21 reuters.com and at 16:53:45 w.media arrived reporting the same round
+-- and were marked `duplicate` in seen_urls, and on 2026-08-04 Anthropic's own
+-- press release for that exact round arrived and was marked `duplicate` too.
+-- Four independent reports of one figure, and the only thing the system kept
+-- was a url and the word "duplicate" - no employer, no amount, no way to ask
+-- afterwards how many outlets agreed. Meanwhile the amount guardrail was
+-- holding that same row out of the product for a fifth day because a single
+-- source could not distinguish it from a parse error.
+--
+-- Dedup is the ONLY place this can be captured. By design the second outlet's
+-- article never becomes a row (that is the whole point of dedup: one event,
+-- one record), so the fact that it existed is destroyed unless it is written
+-- down here as it goes past.
+--
+-- `amount_usd` is the figure the ARRIVING outlet stated, kept separately from
+-- the stored row's, so a later reader can see that the two agreed rather than
+-- having to trust that they did. `host` is the registrable domain, which is
+-- what makes two reports independent; the UNIQUE key is on (signal_id, host)
+-- so an outlet that republishes the same round eight times counts once.
+CREATE TABLE IF NOT EXISTS funding_corroborations (
+    signal_id   TEXT NOT NULL,   -- the row this outlet corroborates
+    host        TEXT NOT NULL,   -- registrable domain of the arriving article
+    source_url  TEXT,
+    source_name TEXT,
+    amount_usd  INTEGER,         -- what THIS outlet stated, not what we hold
+    collector   TEXT,
+    first_seen  TEXT NOT NULL,
+    PRIMARY KEY (signal_id, host)
+);
+
 CREATE TABLE IF NOT EXISTS employer_identity (
     company_key   TEXT PRIMARY KEY,
     company       TEXT,
@@ -292,6 +379,7 @@ CREATE INDEX IF NOT EXISTS idx_links_checked  ON source_links(checked_at);
 CREATE INDEX IF NOT EXISTS idx_links_archive  ON source_links(archive_state);
 CREATE INDEX IF NOT EXISTS idx_links_host     ON source_links(host);
 CREATE INDEX IF NOT EXISTS idx_guardrails_state ON publish_guardrails(state);
+CREATE INDEX IF NOT EXISTS idx_corrob_signal ON funding_corroborations(signal_id);
 -- Deliberately NO index on signals(source_url). It would help the GROUP BY in
 -- source_links.distinct_source_urls by a millisecond or two on 15k rows, and it
 -- added 1.7 MB to a database that is committed to the repo on every collect run
@@ -330,6 +418,45 @@ MIGRATIONS = (
     ("signals", "materiality", "TEXT"),
     ("signals", "deal_type", "TEXT"),
     ("signals", "site_event", "TEXT"),
+    # Per-run cost accounting on the health ledger. The committed database has
+    # thousands of health rows already, and they stay NULL here forever: no
+    # model is going to re-read a run that finished in July. That is the honest
+    # shape of a column added after the fact, and the reason this went in the
+    # same week the accounting was being printed rather than a month later.
+    ("source_health", "model", "TEXT"),
+    ("source_health", "gate_model", "TEXT"),
+    ("source_health", "prompt_tokens", "INTEGER"),
+    ("source_health", "cached_tokens", "INTEGER"),
+    ("source_health", "completion_tokens", "INTEGER"),
+    ("source_health", "cost_usd", "REAL"),
+    ("source_health", "reads_bought", "INTEGER"),
+    ("source_health", "rows_from_reads", "INTEGER"),
+    # Archive PROBE accounting, added 2026-07-29. `archive_state` alone cannot
+    # answer the question that decides whether a URL may ever go terminal:
+    # "have we ever had a real answer about this document?" A `pending` row with
+    # no definitive probe and a `pending` row Wayback has explicitly said it does
+    # not hold look identical, and only the second one is a real gap. Without the
+    # distinction a stretch of 429s reads as a growing backlog and the capture
+    # budget is spent on documents archive.org already has. NULL on every row
+    # stored before this column existed, which is why the reset below reads NULL
+    # as "never probed" rather than as zero probes.
+    ("source_links", "archive_probes", "INTEGER"),
+    ("source_links", "archive_blind_rounds", "INTEGER"),
+    ("source_links", "archive_detail", "TEXT"),
+
+    # THE FUNNEL, so the cost of coverage stays measured instead of being
+    # re-derived from a workflow log somebody happened to still have.
+    #
+    # `reads_bought` answers "what did we buy" and not "what did we DECLINE to
+    # buy", and the second number is the whole coverage question. A press run
+    # on 2026-07-30 gated 627 candidates, kept 249 and could read only 200, so
+    # 49 stories — Hebrew, German, Serbian, Vietnamese, Korean — went unread
+    # for the budget rather than for a verdict. That fact lived only in the
+    # step log, and step logs expire. cost_projection.py reads these four.
+    ("source_health", "candidates", "INTEGER"),       # reached the classifier
+    ("source_health", "gate_calls", "INTEGER"),       # one-word screens paid for
+    ("source_health", "gate_rejects", "INTEGER"),     # dropped there, cheap
+    ("source_health", "budget_deferred", "INTEGER"),  # kept and NOT read: the gap
 )
 
 

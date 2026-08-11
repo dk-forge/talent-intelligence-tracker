@@ -1,7 +1,11 @@
 # One-time 2026 catch-up for world NEWS, via GDELT DOC 2.0.
 #
-# Google News RSS has no archive, so this is the only route to January-June
-# 2026 press coverage. Mirrors backfill-2026.yml (the SEC sweep) deliberately:
+# CORRECTED 2026-07-30: this line used to say "Google News RSS has no archive,
+# so this is the only route to January-June 2026 press coverage". It is false —
+# the RSS endpoint honours after:/before: back to at least 2016. See
+# backfill-gnews-2026.yml. GDELT is still much cheaper per day of history and
+# still the right walker for English-language world news; it is not the only
+# one. Mirrors backfill-2026.yml (the SEC sweep) deliberately:
 # same concurrency group, same commit-even-on-failure rule, spend reported
 # either side.
 #
@@ -39,6 +43,11 @@ name: backfill-gdelt-2026
 on:
   workflow_dispatch:
     inputs:
+      historical_backfill:
+        description: 'Fund PAID reads for a window before 2026-01-01 (deferred by default under the forward-first policy)'
+        type: boolean
+        required: false
+        default: false
       start:
         description: 'Start date of the WHOLE backfill (YYYY-MM-DD)'
         required: true
@@ -54,9 +63,18 @@ on:
         required: false
         default: 'false'
       max_readthroughs:
-        description: 'Hard stop on FULL classifications for the whole run'
+        description: 'Hard stop on FULL classifications for the whole run. Blank uses the budget-derived default in backfill_gdelt_2026.py (35, ~$0.05 a slice).'
         required: false
-        default: '1200'
+        # LOWERED from 1200 on 2026-07-29, and the old value is why. 1200 reads
+        # is ~$1.54 a slice; a year of 2026 history is 92 slices, so this input's
+        # default alone authorised ~$142 against a ~$5/month product budget. A
+        # ceiling only spend.py can stop is not a ceiling, it is a plan to be
+        # interrupted. Blank now means "the derived default", which is computed
+        # from MONTHLY_WALKER_BUDGET_USD at one slice a day, so the budget and
+        # the ceiling cannot disagree. Type a number here for a session somebody
+        # is watching; do not raise this default without raising the budget
+        # constant beside it.
+        default: ''
 
 # One DB writer at a time, in the same group as the other backfills and enrich.
 # Slicing changes how LONG this holds the lock; it does not change how many
@@ -72,6 +90,17 @@ concurrency:
   group: talent-collect
   cancel-in-progress: false
 
+# Forward-first budget policy (spend.py, owner's decision 2026-08-10). Paid
+# processing prioritizes 2026-01-01 onward, so a walk over an earlier window
+# runs with PAID reads off unless the owner ticks historical_backfill on the
+# dispatch. Declaring the window here is what lets `spend.py --degrade` tell
+# forward work from historical work. Free paths are untouched: this walk still
+# fetches, parses, validates and dedups, and its cursor is recorded so a funded
+# run resumes on the first window it did not do. See docs/HANDOVER.md.
+env:
+  TIT_BACKFILL_START: ${{ inputs.start }}
+  TIT_HISTORICAL_BACKFILL: ${{ inputs.historical_backfill && 'on' || '' }}
+
 jobs:
   backfill:
     runs-on: ubuntu-latest
@@ -81,6 +110,14 @@ jobs:
     # that starves it. The script stops itself at SLICE_BUDGET_MINUTES, well
     # inside this, so the run ends CLEANLY and its commit step actually runs —
     # the one thing the 350-minute run never got to do.
+    #
+    # This ceiling is a lock-hold bound and does NOT move on measurement
+    # (tests/test_workflows.py enforces it repo-wide). The 2026-08-03 slices
+    # measured 58-66 min — 50 of script budget plus up to ~16 of fixed
+    # checkout/install/commit overhead — which crowded this ceiling at 73%.
+    # The fix is below: the SLICE got smaller (--budget-minutes 40), so the
+    # worst case is ~40 + ~16 = ~56 min, 62% of 90, and a cancelled-at-the-
+    # ceiling run (which loses its commit step) stays out of reach.
     timeout-minutes: 90
     permissions:
       contents: write
@@ -89,12 +126,28 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
+      # DEGRADE, not enforce (2026-08-04). The 2026-07-28 note above approved
+      # these backfills as report-only spend, estimated $7-12 in total. What
+      # happened instead: 91 gnews-backfill dispatches on 2026-08-03 spent
+      # ~$21.5 (MEASURED by balance delta), exhausted the month's allowance AND
+      # the key's $20 credit cap, and every paid call has 402'd since
+      # 2026-08-03 08:16Z. The scheduled collectors DO run `--degrade`, so the
+      # discretionary job switched the production job off: collect.yml on
+      # 08-04 deferred 351 google_news candidates unread.
+      #
+      # `--degrade` is not `--enforce` and does not halt this job. It exits 0
+      # and sets TIT_PAID_READS=off only once the month's allowance is spent;
+      # the backfill still fetches, still prefilters, still stores everything
+      # it can close for free, and deferred candidates are left UNMARKED so a
+      # later run reads them. The backfill has a cursor, so nothing is lost -
+      # it resumes at the same slice. What it can no longer do is spend the
+      # scheduled collectors' budget.
       - name: Spend before
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: python spend.py || true
+        run: python spend.py --degrade
 
       - name: Backfill one slice
         env:
@@ -110,8 +163,9 @@ jobs:
           python backfill_gdelt_2026.py \
             --start "${{ inputs.start }}" \
             --end "${{ inputs.end }}" \
-            --max-readthroughs "${{ inputs.max_readthroughs }}" \
+            ${{ inputs.max_readthroughs != '' && format('--max-readthroughs {0}', inputs.max_readthroughs) || '' }} \
             --slice \
+            --budget-minutes 40 \
             --emit-next "$RUNNER_TEMP/slice.json" \
             ${{ inputs.dry_run == 'true' && '--dry-run' || '' }} \
             ${{ inputs.fetch_only == 'true' && '--fetch-only' || '' }}
@@ -134,12 +188,23 @@ jobs:
           # this run was collecting. See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
+          # This slice's per-candidate gate verdicts, saved before the reset
+          # discards them. A backfill pays for exactly the same gate calls the
+          # daily run does, so its labels are worth exactly as much to the
+          # classifier that is meant to replace that gate
+          # (docs/PLAN-gate-to-five-dollars.md).
+          rm -rf "$RUNNER_TEMP/gate_labels"
+          cp -R data/gate_labels "$RUNNER_TEMP/gate_labels" 2>/dev/null || true
           RECORD_RC=0
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
             cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            # Appends only what main does not already hold, the same way
+            # merge_db.py does. It cannot fail the step: labels are
+            # bookkeeping and the rows are not.
+            python merge_gate_labels.py "$RUNNER_TEMP/gate_labels" data/gate_labels || true
             # Applied AFTER the reset, on purpose and for the same reason the
             # database is merged rather than copied: both of these files have
             # other writers, and anything written before the reset is thrown
@@ -156,6 +221,10 @@ jobs:
             git add data/talent_intel.db
             git add data/backfill_state.json data/writer_queue.json || true
             git add data/spend_month.json || true
+            # `-A` and not a plain add: when a month closes the ledger gzips
+            # the old shard and deletes the plain one, and a deletion that is
+            # never staged is a file that comes back on the next reset.
+            git add -A data/gate_labels || true
             if git diff --staged --quiet; then
               echo "Nothing to commit."
               break

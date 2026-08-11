@@ -1,0 +1,14 @@
+{
+ "recheck_days": 7,
+ "cadence_hours": 8,
+ "collectors": [
+  "national_press",
+  "google_news",
+  "gdelt",
+  "ats_boards"
+ ],
+ "derived_from": ".github/workflows/schedule-link-hygiene.yml + archive-sources.yml; see pipeline/source_links.py",
+ "capacity_per_window": 12600,
+ "queue_at_build": 1472,
+ "generated": "2026-08-02"
+}

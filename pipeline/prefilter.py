@@ -25,6 +25,31 @@ _EMPLOYMENT_TERMS = (
     # matches an endless supply of AI-strategy think pieces.
     r"leadership (?:structure|team|reshuffle|shake-?up|transition)",
     r"management team", r"executive team", r"board appoint\w*",
+    # C-suite acronyms, sitting in the ENGLISH block because they are not
+    # English -- they are untranslated in every language we query, which is
+    # exactly why they belong here rather than repeated eleven times below.
+    # Found 2026-07-30: "Governanca Brasil tem novo CRO" was rejected by the
+    # gate because its only signal was the acronym, and the line above only
+    # matches an acronym when an English verb ("names") precedes it. A Spanish
+    # "Nombran nuevo CMO" or a Japanese headline fails identically.
+    #
+    # Safe to match bare because these tokens are rare outside a corporate
+    # leadership context and a false positive costs $0.00003 at the gate, where
+    # a false negative costs the record. CEO/CFO/CTO were already reachable via
+    # the "names ... " pattern and are listed here so the set is complete and
+    # no future reader has to work out which four were missing and why.
+    # The (?!-\w) is load-bearing: without it "Cro-Magnon" matched, because a
+    # hyphen is a word boundary. No acronym here is ever the first half of a
+    # hyphenated word in the copy we read.
+    #
+    # KNOWN LIMIT, not fixed here: this whole term list is wrapped in \b...\b,
+    # and \b does not fire between a Japanese or Chinese character and a Latin
+    # one -- both are word characters -- so "新しいCEOが就任" does NOT match.
+    # That is a property of the wrapper, affects every term rather than these,
+    # and quietly weakens the gate for CJK markets. Fixing it means changing
+    # how the whole expression is anchored, which is a bigger change than this
+    # one and wants its own measurement against real Japanese and Korean feeds.
+    r"c(?:e|f|o|t|r|m|i|s|d|p)o\b(?!-\w)", r"chro\b(?!-\w)", r"cxo\b(?!-\w)",
     r"salar\w+", r"pay(?:rise|\srise)?", r"wages?", r"bonus\w*", r"compensation",
     r"remote work", r"hybrid work\w*", r"return to office", r"four-day week",
 )
@@ -40,14 +65,86 @@ _EMPLOYMENT_TERMS = (
 #
 # A raise is a hiring signal: it is the money that pays for the roles. That is
 # why it is a pillar, and why the page headline says "who is raising money".
+#
+# --- THE BILLION-SCALE GAP, measured 2026-08-04 ------------------------------
+#
+# This pack was built from seed-and-Series-A copy and it reads that register
+# fluently. It could not read the register the three largest private rounds of
+# 2026 were reported in, and the loss was total for four of their real
+# headlines:
+#
+#   'OpenAI Valued at $852 Billion After Completing $122 Billion Round'
+#       -- Bloomberg. A bare "$X Billion Round" is not "funding round".
+#   'Anthropic lève 65 milliards de dollars en série H'
+#       -- L'Usine Digitale. The pack had the NOUN "levée de fonds" and not the
+#          VERB "lève", which is what a French headline actually writes.
+#   'Anthropic sammelt 65 Milliarden Dollar ein'
+#       -- the separable verb in its present tense; the pack had only the
+#          participle "eingesammelt".
+#   'Anthropic、650億ドル調達で評価額9,650億ドルに到達'
+#       -- _EMPLOYMENT_TERMS_CJK had 資金調達 and not 億ドル調達.
+#
+# and for the whole class of headline whose only money noun is a VALUATION:
+# 'Anthropic hits $965 billion valuation', 'alcanza una valoración de 965.000
+# millones', 'erreicht 840 Milliarden Dollar Bewertung'.
+#
+# Every addition below is anchored to a stated amount or to a funding noun, the
+# discipline the Czech and Danish blocks already keep: bare "valuation" is every
+# market-cap column ever written, and bare "lève" lifts a weight.
+#
+# THE SERIES-LETTER CEILING is the sharpest one and the cheapest to fix. Every
+# Series pattern in this file stopped at E or F while pipeline/cheap_extract.py
+# `_STAGE` has always read `series\s+[a-k]`, so the two halves of the pipeline
+# disagreed about what a funding stage is, and the round that exposed it was a
+# Series H. They are the same class now. Raising the ceiling is what lets the
+# French "série H" through as well, since these alternatives compile into one
+# expression over every language at once.
 _FUNDING_TERMS = (
-    r"rais(?:e[sd]?|ing)", r"series [a-e]\b", r"seed (?:funding|round)",
+    r"rais(?:e[sd]?|ing)", r"series [a-k]\b", r"seed (?:funding|round)",
     r"pre-?seed", r"funding round", r"secures? (?:\$|€|£|₹|us\$)?[\d.,]+",
     r"private placement", r"venture round", r"led the round",
+    r"(?:post|pre)-?money", r"tender offer", r"secondary (?:share )?sale",
+    # An amount at scale, followed by the noun that makes it a raise. This is
+    # the Bloomberg shape, and TWO details of it are load-bearing.
+    #
+    # It ends on a WORD, because an alternative ending in `[\d.,]+` can never
+    # match "$71M" at all: the trailing \b this tuple is compiled inside lands
+    # between the digit and the M and fails, and backtracking cannot save it.
+    # (`secures? ...[\d.,]+` above has exactly that defect. Left alone here
+    # because fixing it is a separate measurement.)
+    #
+    # And it STARTS on the digits with the currency symbol optional, because
+    # the LEADING \b cannot fire in front of a '$' either -- a space and a '$'
+    # are both non-word characters, so an alternative beginning `[\$€£₹]` is
+    # unreachable in every string that writes the symbol after a space, which
+    # is all of them.
+    r"(?:[\$€£₹]\s?)?[\d.,]+\s*(?:billion|trillion|million|bn|tn|m)\s+"
+    r"(?:round|raise|financing|funding)",
+    # A valuation, in either order, and only ever beside a figure at scale.
+    # "$122,000 valuation" has no scale word and does not reach this.
+    r"valu(?:ed|ation)\s+(?:at|of)\s+(?:about |around |nearly |over |more than )?"
+    r"[\$€£₹]?\s?[\d.,]+\s*(?:billion|trillion|million|bn|tn)",
+    r"(?:[\$€£₹]\s?)?[\d.,]+\s*(?:billion|trillion|million|bn|tn)\s+valuation",
     # German, French, Spanish, Portuguese, Italian, Dutch
     r"finanzierungsrunde", r"eingesammelt", r"kapitalrunde",
     r"lev\w*e de fonds", r"tour de table",
-    r"ronda de (?:financiaci\w*n|inversi\w*n)", r"capta\w*",
+    # French: the verb, anchored to what is being raised.
+    r"l[èe]ve\s+(?:\S+\s+){0,3}?(?:millions?|milliards?)",
+    r"valorisation de\s+(?:\S+\s+){0,3}?(?:millions?|milliards?)",
+    # German: the separable verb in its present tense, and a valuation in
+    # either order. "sammelt" alone collects donations; the scale word and the
+    # trailing "ein" are what make it a round.
+    r"sammelt\s+(?:\S+\s+){0,4}?(?:millionen|milliarden|mio\.?|mrd\.?)\w*"
+    r"(?:\s+\S+){0,3}?\s+ein\b",
+    r"bewertung von\s+(?:\S+\s+){0,3}?(?:millionen|milliarden|mio\.?|mrd\.?)",
+    r"(?:millionen|milliarden|mio\.?|mrd\.?)\w*\s+(?:\S+\s+){0,2}?bewertung",
+    # Spanish
+    r"valoraci\w*n de\s+(?:\S+\s+){0,3}?(?:millon\w*|mil millones)",
+    # `financia\w+` and not `financiaci\w*n`: Latin American business copy
+    # writes "ronda de financiamiento" (El Economista, El CEO, iProUP) where
+    # Spain writes "financiación", and the narrower stem silently dropped the
+    # whole LatAm phrasing (measured on the wired AR/MX feeds, 2026-08-03).
+    r"ronda de (?:financia\w+|inversi\w*n)", r"capta\w*",
     r"rodada de (?:investimento|financiamento)",
     r"round di finanziamento", r"raccoglie",
     r"financieringsronde",
@@ -110,14 +207,46 @@ _EMPLOYMENT_TERMS_INTL = (
     r"emplois?", r"salari\w+", r"recrut\w+", r"embauch\w+", r"effectifs?",
     r"directeur g\w*n\w*ral", r"pdg", r"d\w*mission\w*", r"salaires?",
     r"lev\w*e de fonds",
-    # Spanish
+    # Spanish. Widened 2026-08-03 after a live read of the wired Argentine and
+    # Mexican feeds (137 + 130 items): the pack knew Spain's register and not
+    # Latin America's. "Fabiano Hideto Ikejiri asume la dirección de MSD Salud
+    # Animal en México" is a leadership row this gate rejected, and every
+    # funding verb LatAm newsrooms actually use (levantar, recaudar, cerrar
+    # una ronda, "financiamiento") was absent while the one phrase present
+    # ("ronda de financiación") is Spain-only. The money verbs are anchored to
+    # an amount or a round the way the Czech and Danish blocks anchor theirs:
+    # bare "levanta" is a crane and bare "recauda" is a tax office.
     r"empleos?", r"empleados?", r"contrata\w*", r"plantilla", r"puestos?",
+    r"vacantes?", r"sueldos?",
     r"consejero delegado", r"director general", r"dimit\w+", r"salarios?",
-    r"ronda de financiaci\w*n",
-    # Portuguese
+    r"nombramiento\w*", r"asume (?:la |el )?(?:direcci\w*n|presidencia|gerencia)",
+    r"asume como", r"nuev\w+ director\w*",
+    r"designad\w+ (?:como|nuev\w+|director\w*)",
+    r"renunci\w+ (?:a la |al |como )",
+    r"ronda de financia\w+", r"ronda de inversi\w*n",
+    r"ronda semilla", r"capital semilla",
+    r"levant\w+\s+(?:\S+\s+){0,3}?(?:millon\w*|mdd|mdp|capital|una ronda)",
+    r"recauda\w*\s+(?:\S+\s+){0,3}?millon\w*",
+    r"cierra (?:una |su )?ronda", r"obtien\w+ financiamiento",
+    r"millon\w+ en (?:las )?startups?",
+    # Portuguese. The hiring side was fine; the FUNDING side had exactly one
+    # phrase, "rodada de investimento", which is the formal register and not
+    # what Brazilian business copy actually writes. Measured 2026-07-30 by
+    # re-reading the 156 items the gate rejected in one Brazilian sweep: 2 were
+    # genuine misses (~1.3%), "Governanca Brasil tem novo CRO" and "GS1
+    # Ventures faz seu primeiro aporte". The verbs below are the ones those
+    # newsrooms use -- captar, aportar, levantar -- plus the round names, which
+    # appear in Portuguese copy untranslated.
+    #
+    # Deliberately NOT added: bare "rodada" (a round of talks or fixtures),
+    # bare "levanta" (levantamento is a survey) and bare "capta" without a
+    # tense ending (captura). Each would have widened the gate far past the
+    # 1.3% it is meant to recover, and a gate that lets everything through is
+    # the read budget spent on nothing.
     r"empregos?", r"funcion\w*rios?", r"contrat\w+", r"vagas?", r"quadro de pessoal",
     r"presidente-executivo", r"diretor-?geral", r"demiss\w+", r"sal\w*rios?",
-    r"rodada de investimento",
+    r"rodada de investimento", r"aportes?", r"aportou", r"capta\w*ão", r"captou",
+    r"levantou", r"s\w*rie [a-k]\b", r"pr\w*-seed", r"investimento semente",
     # Italian
     r"posti di lavoro", r"dipendenti", r"assunzion\w+", r"assumer\w+", r"organico",
     r"amministratore delegato", r"dimission\w+", r"stipend\w+",
@@ -126,9 +255,31 @@ _EMPLOYMENT_TERMS_INTL = (
     r"banen", r"medewerkers?", r"personeel", r"aannem\w+", r"vacatures?",
     r"topman", r"bestuursvoorzitter", r"stapt op", r"salaris\w*",
     r"financieringsronde",
-    # Polish
+    # Polish. Widened 2026-08-03 after a live read of the four wired Polish
+    # feeds (85 items) with MamStartup — Poland's dedicated startup-funding
+    # title — among them and one Polish-publisher row ever stored. Two kinds
+    # of gap. First, inflection: "runda finansowania" is the nominative, and
+    # a Polish headline as often writes "rundę/rundzie finansowania", so the
+    # noun is now stemmed. Second, the verbs: "ForActive dołącza do portfolio
+    # Simpact Ventures" and "TBD Solutions rozpoczyna działalność w Polsce"
+    # are a funding row and a market entry this gate rejected. The money
+    # verbs are anchored (pozyskał grant data too; zebrał a crowd), and
+    # "podwyżk" is anchored to pay because bare it is every price-rise story
+    # on Bankier's front page ("nie przewiduje podwyżek cen").
     r"prezes\w*", r"zatrudni\w*", r"miejsc pracy", r"pracownik\w+",
-    r"rezygnuje", r"wynagrodzeni\w+", r"runda finansowania",
+    r"rezygnuje", r"rezygnacj\w+", r"wynagrodzeni\w+",
+    r"rund\w+ finansowania", r"rund\w+ inwestycyjn\w+",
+    r"pozyska\w+\s+(?:\S+\s+){0,3}?(?:mln|milion\w*|finansowani\w*|inwestor\w*)",
+    r"zebra\w+\s+(?:\S+\s+){0,3}?(?:mln|milion\w*)",
+    r"od inwestorów", r"dołącza do portfolio",
+    r"dyrektor\w* generaln\w*", r"dyrektor\w* zarządzając\w*",
+    r"mianowan\w+",
+    r"powoła\w+\s+(?:\S+\s+){0,2}?(?:na stanowisko|do zarządu|na prezesa)",
+    r"obejmuje (?:stanowisko|funkcję|stery)",
+    r"odchodzi z (?:firmy|funkcji|stanowiska|zarządu)",
+    r"rekrutacj\w+", r"pensj\w+",
+    r"podwyżk\w+ (?:płac|wynagrodze\w+|pensji)",
+    r"rozpoczyna działalność",
     # Swedish
     r"\bvd\b", r"anställ\w+", r"jobb", r"medarbetare", r"personal",
     r"lämnar sin post", r"finansieringsrunda",
@@ -163,7 +314,7 @@ _EMPLOYMENT_TERMS_INTL = (
     r"od investorů", r"investic\w+\s+(?:ve výši|za|od)",
     r"vstoupil\w*\s+do\s+(?:firmy|startupu|společnosti)",
     r"kolo financování", r"investiční kolo", r"rizikový kapitál",
-    r"seed(?:ov\w+)?\s+(?:kolo|investic\w+)", r"série [a-e]\b",
+    r"seed(?:ov\w+)?\s+(?:kolo|investic\w+)", r"série [a-k]\b",
     # Danish. "rejser" and "henter" are the two verbs a Danish funding
     # headline actually uses, and both are ordinary words on their own
     # ("travels", "collects"), so each is anchored to what is being raised.
@@ -223,6 +374,219 @@ _EMPLOYMENT_TERMS_INTL = (
         r"שכר", r"משכור(?:ת|ות)", r"בונוס(?:ים)?", r"תגמול(?:ים)?",
         r"מצנח זהב",
     ),
+
+    # ---------------------------------------------------------------------
+    # THE OTHER 117 FEEDS: the languages the catalogue wires and this gate
+    # could not read (added 2026-08-01).
+    #
+    # WHAT WAS MEASURED, AND WHY THE HEADLINE NUMBER IS NOT THE ONE TO QUOTE
+    # ---------------------------------------------------------------------
+    # 117 of the 662 wired feeds publish in 23 languages that had no phrase
+    # pack, and those feeds passed the gate at 1.3% (27 of 2,119 items pulled
+    # live from all 117 on 2026-08-01) against 9.7% for a control sample of
+    # feeds whose language DOES have a pack (173 of 1,775, 95 feeds, six per
+    # covered language). A 7x gap.
+    #
+    # Most of that gap is NOT this file's fault, and the packs below therefore
+    # recover much less than the gap implies. A LANGUAGE-NEUTRAL control says
+    # so: untranslated tokens that every one of these newsrooms writes in
+    # Latin script anyway — CEO/CFO/CTO, "startup", "Series A", "seed", "VC",
+    # "unicorn", "IPO" — appear in 6.5% of the CONTROL corpus and 1.2% of the
+    # uncovered-language corpus. That ratio owes nothing to any regex here.
+    # The uncovered-language feeds are national general dailies (Blic, MRT,
+    # MIA, Nova.rs, Unimedia): politics, crime, weather and sport. The
+    # covered-language sample is disproportionately technology and business
+    # press. They are not the same population, and about five sixths of the
+    # 7x is which feeds are wired rather than which languages are read.
+    #
+    # So the honest number is the measured one: these packs move the uncovered
+    # corpus from 1.3% to 3.3%, not to 9.7%. 42 extra candidates per 2,119
+    # items; a hand-read of all 42 puts ~24 in scope, which is a better
+    # precision than the English gate's own. Cost is NOT zero and should not be
+    # quoted as zero: 42 extra candidates a run is 42 x 2/day x 30 x $0.00003
+    # ~= $0.08/month at the gate, and nothing at the read-through, which is
+    # capped by classify.READTHROUGH_CAP and reallocated rather than raised.
+    #
+    # RULES THESE OBEY, EACH ONE PAID FOR BY A FALSE POSITIVE IN THE LIVE READ
+    # -----------------------------------------------------------------------
+    # * This whole tuple compiles into ONE regex over EVERY language at once,
+    #   so a term has to survive the other 22 languages' text as well as its
+    #   own. Latvian "algas" (wages) is Estonian "algas" (began) and held two
+    #   festival listings; it is gone, and Latvian pay is anchored to
+    #   "minimala/videja alga" instead. This is the same class of bug as the
+    #   Hebrew clitic problem above, arriving from the opposite direction.
+    # * A bare everyday noun is not a term. Russian "сотрудник" is any member
+    #   of staff and held a policeman on holiday and a schoolboy with TB;
+    #   "возглавил" topped a league table; "зарплата" was a footballer's wage.
+    #   Every Russian and Ukrainian term below is anchored to an employer.
+    # * A bare resignation verb is a politics feed. Slovenian "odstopil" held
+    #   Boy George and two FIFA stories; Albanian "dorëheqje" is what a street
+    #   protest chants at the prime minister; Montenegrin "imenovana" filed
+    #   three council seats in one run. Each is anchored to a company office.
+    # * Icelandic lost every bare noun it had: "starfsmaður", "forstjóri" and
+    #   "störf" kept six crime and sport stories out of seven. What is left
+    #   matches the EVENT ("ráðinn sem", "lætur af störfum") and keeps nothing
+    #   in this sample, which is the correct answer for 50 items of Icelandic
+    #   general news rather than a failure.
+    # * Site events count. "Bingo otvorio hipermarket u Vitezu" and "Amazon
+    #   ulaže 300 milijuna eura u proširenje logističkog centra" are the
+    #   geographic hiring signal the _SITE block below reads in English only.
+    #
+    # Thai has no spaces and lives in _EMPLOYMENT_TERMS_CJK, not here: a \b
+    # cannot fire inside a Thai string, so a term placed here would compile
+    # into an alternative that can never match.
+    # Serbian / Croatian / Bosnian / Montenegrin — 30 feeds, one
+    # vocabulary under four catalogue labels, Latin script as these feeds write
+    # it.
+    r"zaposlen\w*", r"zapošljav\w+", r"zapošlj\w+", r"radnic\w+",
+    r"radnik\w*", r"radn\w+ mjest\w+", r"radn\w+ mest\w+",
+    r"generaln\w+ direktor\w*", r"izvršn\w+ direktor\w*",
+    r"nov\w+ direktor\w*", r"direktor\w* kompanije",
+    r"imenovan\w* (?:\S+\s+){0,2}?(?:direktor\w*|izvršn\w+|predsjednik\w* uprave|čelnik\w*)",
+    r"podn\w+ ostavku", r"smjenj\w+", r"konkurs za posao",
+    r"oglas\w* za posao", r"minimaln\w+ (?:plat|plać)\w*",
+    r"prosječn\w+ plać\w*", r"prosečn\w+ plat\w*", r"plate zaposlen\w+",
+    r"povećanje plat\w+", r"(?:cijen|cen)[aeiu] rada",
+    r"rund[au] finansiranja", r"rund[au] financiranja",
+    r"investicijsk\w+ rund\w+",
+    r"prikupi\w+ (?:\S+\s+){0,3}?(?:milion\w*|milijun\w*)",
+    r"nov[au] fabrik\w*", r"nov[aiu] tvornic\w*",
+    r"otvor\w+ (?:\S+\s+){0,2}?(?:pogon|fabrik\w*|tvornic\w*|hipermarket|poslovnic\w+)",
+    # Macedonian
+    r"работни места", r"вработув\w+", r"вработен\w*", r"работници",
+    r"генерален директор", r"извршен директор", r"нов директор",
+    r"именуван\w* за", r"назначен\w* за", r"назначув\w+ на",
+    r"поднесе оставка", r"огласи за работа", r"конкурс за работа",
+    r"минимална плата", r"просечна плата", r"рунда финансирање",
+    r"инвестициска рунда",
+    r"отвор\w+ (?:\S+\s+){0,2}?(?:фабрик\w*|погон\w*)",
+    # Bulgarian
+    r"работни места", r"наема\w* (?:служител|работник)\w*", r"служител\w+",
+    r"работници", r"заетост", r"пазара на труда", r"изпълнителен директор",
+    r"главен изпълнителен",
+    r"назначен\w* за (?:\S+\s+){0,2}?(?:директор|управител|шеф)\w*",
+    r"подаде оставка", r"минимална заплата", r"средна заплата",
+    r"кръг финансиране", r"инвестиционен кръг",
+    # Slovenian
+    r"delovn\w+ mest\w*", r"zaposl\w+", r"delavc\w+", r"zaposlovanj\w+",
+    r"generaln\w+ direktor\w*", r"izvršn\w+ direktor\w*",
+    r"nov\w+ direktor\w*",
+    r"imenovan\w* (?:\S+\s+){0,2}?(?:direktor\w*|predsednik\w* uprave)",
+    r"odstopil\w* (?:s|z) mesta",
+    r"na čelo (?:\S+\s+){0,2}?(?:podjetj|družb|bank)\w*",
+    r"minimaln\w+ plač\w*", r"povprečn\w+ plač\w*", r"plače zaposlen\w+",
+    r"krog financiranja", r"naložben\w+ krog",
+    r"zbral\w*\s+(?:\S+\s+){0,3}?milijon\w*",
+    # Slovak
+    r"pracovn\w+ miest\w*", r"zamestnanc\w+", r"zamestnáva\w*", r"nábor\w*",
+    r"generáln\w+ riadit\w+", r"výkonn\w+ riadit\w+", r"nov\w+ riadit\w+",
+    r"vymenova\w+ (?:\S+\s+){0,2}?(?:riadit|šéf)\w*", r"rezignova\w+",
+    r"odstúpil\w* z (?:funkcie|čela)", r"minimáln\w+ mzd\w+",
+    r"priemern\w+ mzd\w+", r"mzdy zamestnanc\w+", r"kolo financovania",
+    r"investičn\w+ kolo",
+    # Russian
+    r"рабочих мест", r"нанима\w+ сотрудник\w+",
+    r"наб(?:ор|ирает) (?:персонал|сотрудник)\w*", r"ваканси\w+",
+    r"трудоустройств\w+", r"рынок труда", r"штат сотрудник\w+",
+    r"генеральн\w+ директор\w*", r"гендиректор\w*",
+    r"исполнительн\w+ директор\w*",
+    r"назначен\w* (?:\S+\s+){0,2}?(?:директор\w*|руководител\w+)",
+    r"возглав\w+ (?:\S+\s+){0,2}?(?:компани\w+|банк\w*|холдинг\w*|корпораци\w+)",
+    r"поки(?:дает|нул) пост", r"уш[её]л с поста", r"подал в отставку",
+    r"средн\w+ зарплат\w+", r"повышени\w+ зарплат\w*",
+    r"индексаци\w+ зарплат\w*", r"раунд финансирования", r"инвестраунд\w*",
+    r"посевн\w+ раунд", r"привлек\w*\s+(?:\S+\s+){0,3}?(?:миллион\w*|млн)",
+    # Ukrainian
+    r"робочих місць",
+    r"наймає (?:\S+\s+){0,2}?(?:працівник|співробітник)\w*", r"вакансі\w+",
+    r"працевлаштуванн\w+", r"ринок праці", r"генеральн\w+ директор\w*",
+    r"гендиректор\w*", r"виконавч\w+ директор\w*",
+    r"призначен\w* (?:\S+\s+){0,2}?(?:директор\w*|керівник\w*)",
+    r"очолив (?:\S+\s+){0,2}?(?:компані\w+|банк\w*|холдинг\w*)",
+    r"подав у відставку", r"залишає посаду", r"середн\w+ зарплат\w+",
+    r"мінімальн\w+ зарплат\w+", r"раунд фінансуванн\w+",
+    r"інвестиційн\w+ раунд",
+    r"залучив\w*\s+(?:\S+\s+){0,3}?(?:мільйон\w*|млн)",
+    # Romanian
+    r"locuri de muncă", r"loc de muncă", r"angajat\w*", r"angajeaz\w+",
+    r"angajăr\w+", r"recrut\w+", r"forța de muncă", r"forţa de muncă",
+    r"director general", r"director executiv", r"nou director",
+    r"numit în funcți\w+", r"numit în funcţi\w+", r"demision\w+",
+    r"preia conducerea", r"salari[uți]\w*", r"salariul minim", r"salarii",
+    r"rundă de finanțare", r"rundă de investiți\w+", r"finanțare seed",
+    r"a atras\s+(?:\S+\s+){0,3}?(?:milioane|milion)",
+    # Greek
+    r"θέσε\w+ εργασίας", r"προσλήψ\w+", r"προσλαμβάν\w+", r"εργαζόμεν\w+",
+    r"υπάλληλ\w+", r"απασχόληση", r"στελέχωση", r"νέα στελέχη",
+    r"διευθύνων σύμβουλος", r"διευθύνοντα σύμβουλο", r"γενικός διευθυντής",
+    r"διορίστηκε", r"διορισμ\w+", r"ανέλαβε καθήκοντα",
+    r"αναλαμβάνει καθήκοντα", r"παραιτήθηκε από", r"μισθ[οόώ]\w*",
+    r"κατώτατος μισθός", r"γύρο\w* χρηματοδότησης", r"χρηματοδότηση seed",
+    # The singular has a different accented stem (πρόσληψη vs προσλήψεις), so
+    # the plural-only stem above misses it; and "άντλησε 5 εκατ." is the verb
+    # a Greek funding headline actually leads with, anchored to the amount
+    # because bare it also draws water (added 2026-08-03).
+    r"πρόσληψ\w+",
+    r"άντλησ\w+\s+(?:\S+\s+){0,3}?(?:εκατ|δισ|κεφάλαι\w+|χρηματοδότησ\w+)",
+    # Hungarian
+    r"munkahely\w*", r"munkavállaló\w*", r"alkalmazott\w*",
+    r"foglalkoztat\w+", r"toborz\w+", r"munkaerő\w*", r"vezérigazgató\w*",
+    r"ügyvezető\w*", r"kinevez\w+", r"lemondott", r"élére áll",
+    r"minimálbér\w*", r"béremelés\w*", r"finanszírozási kör\w*",
+    r"befektetési kör\w*", r"tőkebevonás\w*",
+    # Finnish
+    r"työpaikk\w+", r"työntekij\w+", r"henkilöst\w+", r"rekrytoi\w*",
+    r"rekrytoin\w+", r"toimitusjohtaj\w+", r"nimitettiin", r"nimitetty",
+    r"jättää tehtävän", r"irtisanoutu\w+", r"palkka\w*", r"palkko\w+",
+    r"palkankorotu\w+", r"rahoituskierro\w+", r"siemenrahoitu\w+",
+    r"keräsi\s+(?:\S+\s+){0,3}?miljoona\w*",
+    # Norwegian
+    r"ansatt\w*", r"ansetter", r"arbeidsplass\w*", r"rekrutter\w+",
+    r"administrerende direktør", r"konsernsjef\w*", r"utnevn\w+", r"ny sjef",
+    r"går av som", r"trekker seg som", r"lønn\w*", r"lønnsøkning\w*",
+    r"finansieringsrunde\w*", r"kapitalinnhenting\w*",
+    r"henter\s+(?:\S+\s+){0,3}?(?:millioner|milliarder)",
+    # Icelandic
+    r"nýr forstjór\w*", r"nýr framkvæmdastjór\w*", r"ráðin\w* (?:sem|til)",
+    r"ráðning\w* (?:nýs|forstjór|framkvæmdastjór)\w*", r"lætur af störfum",
+    r"hættir sem (?:forstjór|framkvæmdastjór)\w*", r"störfum fjölgar",
+    r"fjölga starfsm\w+", r"launahækkun\w*", r"kjarasamning\w*",
+    r"fjármögnun\w*", r"hlutafjáraukning\w*",
+    # Estonian
+    r"töötaja\w*", r"töökoh\w+", r"värba\w+", r"tööle võt\w+",
+    r"tegevjuh\w+", r"juhatuse esimees", r"juhatuse liige",
+    r"nimetati ametisse", r"astus tagasi", r"lahkub amet\w+", r"palga\w*",
+    r"palgad", r"palgatõus\w*", r"rahastusvoor\w*", r"investeeringuvoor\w*",
+    r"kaasas\s+(?:\S+\s+){0,3}?miljon\w*",
+    # Latvian
+    r"darbinieku?\w*", r"darbiniek\w+", r"darbavie\w+", r"vakanc\w+",
+    r"valdes priekšsēdētāj\w*", r"izpilddirektor\w*",
+    r"iecelt\w* (?:\S+\s+){0,2}?(?:direktor|vadītāj|amat)\w*",
+    r"atkāpjas no amata", r"atstāj amatu", r"minimāl\w+ alg\w+",
+    r"alg[au] (?:pieaug|kāpum|palielin)\w*", r"vidēj\w+ alg\w+",
+    r"finansējuma kārt\w+", r"investīciju kārt\w+",
+    r"piesaistīj\w*\s+(?:\S+\s+){0,3}?miljon\w*",
+    # Lithuanian
+    r"darbuotoj\w+", r"darbo viet\w+", r"įdarbin\w+",
+    r"generalinis direktori\w+", r"vadov\w+ tapo",
+    r"paskirt\w* (?:\S+\s+){0,2}?(?:direktori|vadov)\w*",
+    r"atsistatydin\w+ iš", r"traukiasi iš", r"atlyginim\w+",
+    r"minimal\w+ alg\w+", r"finansavimo raund\w+", r"investicij\w+ raund\w+",
+    r"pritraukė\s+(?:\S+\s+){0,3}?milijon\w*",
+    # Albanian
+    r"vende pune", r"vend pune", r"punonjës\w*", r"punësim\w*", r"punëson",
+    r"rekrutim\w*", r"fuqinë punëtore", r"drejtor i përgjithshëm",
+    r"drejtor ekzekutiv", r"emërohet (?:\S+\s+){0,2}?drejtor\w*",
+    r"emëruar (?:\S+\s+){0,2}?drejtor\w*", r"largohet nga detyra",
+    r"lë detyrën", r"paga minimale", r"paga mesatare", r"raund financimi",
+    r"raund investimi",
+    # Nepali
+    r"कर्मचारी", r"रोजगार\w*", r"नियुक्त", r"नियुक्ति", r"राजीनामा", r"तलब",
+    r"प्रमुख कार्यकारी", r"महाप्रबन्धक",
+    # Swahili
+    r"ajira", r"wafanyakazi", r"kuajiri", r"ameajiriwa", r"mkurugenzi mkuu",
+    r"afisa mkuu mtendaji", r"kuteuliwa", r"ameteuliwa", r"kujiuzulu",
+    r"mishahara", r"nafasi za kazi",
 )
 
 # CJK and Arabic have no spaces between words the way \b expects, so these are
@@ -230,17 +594,30 @@ _EMPLOYMENT_TERMS_INTL = (
 # be unambiguous — the risk \b guards against ("RIF" inside "tariff") does not
 # arise for 社長に就任 or تعيين رئيس تنفيذي.
 _EMPLOYMENT_TERMS_CJK = (
-    # Japanese
+    # Japanese. 億ドル調達 and 億円調達 added 2026-08-04: a Japanese headline
+    # writes the scale word, the currency and the verb as one run
+    # ("650億ドル調達"), so 資金調達 -- which is the noun, with 資金 in front --
+    # cannot reach it. Both are long enough to be unambiguous, which is the
+    # test this whole block is matched on.
     "社長", "就任", "退任", "採用", "求人", "従業員", "人員", "新拠点",
-    "資金調達", "シリーズA", "シードラウンド", "賃上げ", "給与",
+    "資金調達", "億ドル調達", "億円調達", "万ドル調達", "億ドルを調達",
+    "シリーズA", "シードラウンド", "賃上げ", "給与",
     # Korean
     "대표이사", "선임", "사임", "채용", "인력", "직원", "사무소",
-    "투자 유치", "시리즈 A", "시드 투자", "임금",
+    "투자 유치", "억 달러 투자", "억달러 투자", "시리즈 A", "시드 투자", "임금",
     # Chinese
     "首席执行官", "总裁", "任命", "辞职", "招聘", "员工", "融资", "轮融资",
+    "亿美元融资", "亿美元投资",
     # Arabic
     "الرئيس التنفيذي", "تعيين", "استقالة", "توظيف", "وظائف", "موظف",
     "جولة تمويل", "تمويل", "رواتب",
+    # Thai (added 2026-08-01 with the 23-language pass above). It belongs HERE
+    # and not in _EMPLOYMENT_TERMS_INTL for the reason this block exists: Thai
+    # writes without spaces, so a \b can never fire inside one of these
+    # strings and a term placed in the boundary-wrapped tuple would compile
+    # into an alternative that matches nothing, silently. Same trap the Danish
+    # magnitude-word note above describes, one script further along.
+    "พนักงาน", "จ้างงาน", "รับสมัครงาน", "ตำแหน่งงาน", "อัตรากำลัง", "ซีอีโอ", "ประธานเจ้าหน้าที่บริหาร", "กรรมการผู้จัดการ", "แต่งตั้ง", "ลาออก", "เงินเดือน", "ค่าจ้าง", "ระดมทุน", "รอบการลงทุน",
 )
 
 _CJK = re.compile("|".join(re.escape(t) for t in _EMPLOYMENT_TERMS_CJK))
@@ -293,6 +670,9 @@ _SITE_NOUN = (
     r"kantoren?|vestiging(?:en)?|fabriek(?:en)?|"
     r"kontore?r?|fabrikke?r?|"
     r"pobo[čc]k\w*|z[áa]vod\w*|"
+    # Polish. `fabryk\w*` carries the inflections ("fabrykę", "fabryki");
+    # bare "zakład" is NOT here because it is also a bet and a barbershop.
+    r"fabryk\w*|siedzib\w*|"
     r"ofis\w*|fabrika\w*|tesis\w*|"
     # Italian
     r"uffici(?:o)?|stabiliment\w+"
@@ -317,7 +697,9 @@ _SITE_OPEN_VERB = (
     r"ouvre|ouvrir|ouvertures?|implante|"
     r"er[öo]ffnet|er[öo]ffnung|errichtet|"
     r"apre|aprir[àe]|investe|"
-    r"opent|åbner|otev[řr]\w+|a[çc][ıi]yor|a[çc]t[ıi]|kuruyor"
+    r"opent|åbner|otev[řr]\w+|a[çc][ıi]yor|a[çc]t[ıi]|kuruyor|"
+    # Polish (2026-08-03): "Zamknęli fabrykę, wybudują bloki" was invisible.
+    r"otwiera|otworzy\w*|uruchamia|wybuduje|zbuduje"
 )
 _SITE_CLOSE_VERB = (
     r"clos(?:es|ed|ing)|shut(?:s|ting)? down|shutters?|shuttering|"
@@ -325,7 +707,7 @@ _SITE_CLOSE_VERB = (
     r"cierra|cierre|clausura|"
     r"ferme|fermeture|"
     r"schlie[ßs]t|schlie[ßs]ung|"
-    r"chiude|chiusura|sluit|lukker|zav[íi]r\w+|kapat\w+"
+    r"chiude|chiusura|sluit|lukker|zav[íi]r\w+|kapat\w+|zamyka|zamkn[ęe]\w+"
 )
 _SITE_MOVE_VERB = (
     r"relocat(?:es|ed|ing|ion)?|moves? (?:its|their)|"
@@ -349,6 +731,7 @@ _SITE_TERMS = (
     r"\bnouve(?:au|lle)\s+(?:[\w'’\-]+\s+){0,2}?(?:bureau|site|usine|si[èe]ge|centre)\w*",
     r"\bneue[rns]?\s+(?:[\w'’\-]+\s+){0,2}?(?:standort|werk|niederlassung|b[üu]ro|zentrum)\w*",
     r"\bnuov[ao]\s+(?:[\w'’\-]+\s+){0,2}?(?:sede|stabilimento|ufficio)\w*",
+    r"\bnow[aey]\s+(?:[\w'’\-]+\s+){0,2}?(?:fabryk\w*|siedzib\w*|biur[oa])\b",
     # Site types that name the event on their own.
     r"\bcapability cent(?:re|er)s?\b", r"\bcent(?:re|er)s? of excellence\b",
     r"\bdelivery cent(?:re|er)s?\b", r"\bshared services\b",
@@ -570,7 +953,16 @@ _REDUCTION_TERMS = (
     r"riduzione (?:del personale|dell[e'’]organico)",
     # Dutch, Polish, Swedish, Turkish — cheap to add, same failure if absent.
     r"ontslag\w*", r"banenverlies", r"schrapt\s+[\d.]+\s+banen",
+    # "zwolnieni\w+" reaches the noun ("zwolnienia grupowe") but not the
+    # participle a Polish headline actually uses ("200 pracowników
+    # zwolnionych"), and bare "zwolni\w+" is off the table: the same verb
+    # slows down, releases and exempts ("zwolnił tempo", "zwolnienie
+    # lekarskie"). So the participle is anchored to the people, both ways
+    # round (2026-08-03, found when the Polish site vocabulary would have
+    # passed a factory-closure-with-job-losses story to the gate).
     r"zwolnieni\w+", r"redukcj\w+ etat\w+",
+    r"zwolni\w+\s+(?:\S+\s+){0,2}?(?:pracownik\w*|osób|etat\w*)",
+    r"pracownik\w*\s+zwolnion\w+", r"zwalnia\w*\s+(?:\S+\s+){0,2}?pracownik\w*",
     r"varsl\w+", r"neddragning\w*",
     r"i̇?şten çıkar\w*", r"toplu i̇?şten",
     # Czech. The live E15 feed carried "Porsche ... zruší dalších pět tisíc
@@ -628,7 +1020,7 @@ _IN_SCOPE_SUBJECT_TERMS = (
     r"steps? down", r"resign\w*", r"succeeds?", r"promot\w+",
     r"new (?:ceo|chief executive|cfo|cto)",
     # Money
-    r"rais(?:e[sd]?|ing)", r"funding round", r"series [a-e]\b",
+    r"rais(?:e[sd]?|ing)", r"funding round", r"series [a-k]\b",
     r"secures? (?:\$|€|£|₹)?[\d.,]+", r"invest(?:s|ment|ing)\b",
     # Pay
     r"pay ris\w+", r"pay increase", r"salar\w+ (?:increase|rise)",
@@ -847,7 +1239,16 @@ def filing_reduction_plan(text: str) -> str | None:
 # the first successful live run paid for exactly that on Uzbekistan, Somalia,
 # Ohio and Anglesey. Checking here costs nothing.
 #
-# Grows automatically as source_registry.MARKETS grows: nothing to hand-edit.
+# CORRECTION 2026-07-29: this line used to read "grows automatically as
+# source_registry.MARKETS grows: nothing to hand-edit", and that was never true.
+# The function below reads `vocab.COUNTRY_NAMES`, `vocab._CITY_ALIASES`,
+# `vocab._COUNTRY_ALIASES` and the hardcoded short-code list further down. It has
+# never referenced MARKETS. The claim mattered, because it is the reason somebody
+# would believe that adding a market widens this gate — it does not, and a market
+# added on the strength of that belief would be swept by an edition whose
+# candidates this gate could still drop. What actually widens it is the country
+# and city VOCABULARY, which carries the whole world (see the 2026-07-28 lesson
+# about tit_country_names holding 52 of ~200 codes).
 
 def _geography_terms() -> tuple[re.Pattern, re.Pattern]:
     from . import vocab

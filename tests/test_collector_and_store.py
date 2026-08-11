@@ -201,6 +201,97 @@ def test_rotation_is_deterministic():
     assert registry.rotate(segments, 200, 1, 2, 4) == registry.rotate(segments, 200, 1, 2, 4)
 
 
+def test_a_market_with_terms_has_its_papers_of_record_wired():
+    """Spec 14.2: a local-language term without that country's outlets is pure
+    waste — the term can only surface a story if somebody publishes one we
+    read. Every market that carries `terms` must therefore have at least two
+    wired publisher feeds for its country in the catalogue (two, because one
+    feed for a whole country is a single point of failure the catalogue
+    already refuses elsewhere)."""
+    import csv
+
+    with registry.CATALOGUE_CSV.open(newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    wired_by_country: dict[str, int] = {}
+    for row in rows:
+        if (row.get("rss") or "").startswith("http"):
+            country = (row.get("country") or "").strip()
+            wired_by_country[country] = wired_by_country.get(country, 0) + 1
+
+    for market in registry.MARKETS:
+        if not market.terms:
+            continue
+        assert wired_by_country.get(market.name, 0) >= 2, (
+            f"{market.iso2} carries local terms but {market.name} has fewer "
+            f"than two wired feeds in the catalogue — the terms have no "
+            f"papers of record to surface stories in"
+        )
+
+
+def test_every_market_is_reachable_by_some_discovery_route():
+    """A market in MARKETS that nothing queries and nothing reads claims 'we
+    monitor news here' while no collector ever asks. Two legitimate routes
+    exist: a Google News edition in the locale rotation, or wired publisher
+    feeds in the catalogue (Luxembourg has no dedicated Google News edition
+    and is read through six national feeds instead). A market with neither is
+    a name on a page."""
+    import csv
+
+    rotated = {country for _, country in registry.GOOGLE_NEWS_LOCALES}
+    rotated.add(registry.GOOGLE_NEWS_ANCHOR[1])
+
+    with registry.CATALOGUE_CSV.open(newline="") as fh:
+        fed = {row["country"].strip() for row in csv.DictReader(fh)
+               if (row.get("rss") or "").startswith("http")}
+
+    for market in registry.MARKETS:
+        assert market.iso2 in rotated or market.name in fed, (
+            f"{market.iso2} is listed as a market but no locale queries its "
+            f"edition and no catalogue feed covers it"
+        )
+
+
+def test_the_segment_matrix_still_sweeps_inside_its_budget():
+    """A growth ceiling on MARKETS, so widening it cannot quietly stretch the
+    segment sweep past what anyone chose.
+
+    This used to assert against `recency_window_days(...)`, the window DERIVED
+    FROM THE LOCALE ROTATION, and on 2026-08-01 that coupling showed its teeth
+    on the wrong throat: withdrawing seventeen redundant Google News editions
+    shortens the locale sweep, which would have cut this ceiling from 56
+    segments to 40 and forced sixteen segments off the public coverage page as
+    a side effect of an unrelated improvement.
+
+    The two rotations are independent and only the locale one carries the
+    hazard a window exists for — a locale query carries `when:Nd` and a story
+    can age out before its edition's turn, which is the 2026-07 defect that
+    made the window derived. A segment query carries no `when:` at all
+    (asserted below, so this reasoning cannot rot), so nothing about a segment
+    ages out and the sweep length is purely a budget.
+    """
+    import math
+
+    from run_collect import RUNS_PER_DAY, SEGMENTS_PER_RUN, build_queries
+
+    segments = registry.build_segments()
+    sweep_days = math.ceil(len(segments) / SEGMENTS_PER_RUN / RUNS_PER_DAY)
+    budget = registry.SEGMENT_SWEEP_BUDGET_DAYS
+    assert sweep_days <= budget, (
+        f"{len(segments)} segments at {SEGMENTS_PER_RUN}/run x "
+        f"{RUNS_PER_DAY}/day sweep in {sweep_days}d, outside the {budget}d "
+        f"segment budget: widening MARKETS is a coverage decision with a cost "
+        f"and SEGMENT_SWEEP_BUDGET_DAYS is where that cost is stated"
+    )
+
+    # The premise the paragraph above rests on. If a segment query ever grows a
+    # `when:`, this becomes a real recency coupling again and the budget has to
+    # go back to being derived rather than chosen.
+    assert not any("when:" in q for q in build_queries(0, "national_press")), (
+        "a segment query grew a recency window; the segment budget can no "
+        "longer be a plain number"
+    )
+
+
 def test_euphemisms_are_standalone_never_segments():
     """A euphemism AND-ed with the base vocabulary can only ever match articles
     that also use the obvious word. That bug made 16 sibling terms dead on
@@ -222,3 +313,20 @@ def test_the_publisher_reaches_the_classifier():
     src = inspect.getsource(classify.classify)
     assert 'raw.get("source_name")' in src
     assert "Published by:" in src
+
+
+def test_duplicate_verdict_and_store_cannot_disagree(conn, signal):
+    """`run_collect` asks the dedup layers BEFORE buying the read-through, and
+    `store()` asks them again on the way in. Two implementations of "is this
+    already held" would eventually answer differently and either double-store a
+    record or charge for one that never lands, so there is exactly one."""
+    import inspect
+
+    assert "duplicate_verdict(conn, signal)" in inspect.getsource(store.store)
+
+    assert store.duplicate_verdict(conn, signal) is None
+    assert store.store(conn, signal) == "stored"
+    conn.commit()
+
+    assert store.duplicate_verdict(conn, signal) == "duplicate"
+    assert store.store(conn, signal) == "duplicate"

@@ -1,0 +1,97 @@
+name: correct-form-d-overcount
+
+# Withdraw the published Form D rows whose "amount sold" is not money raised:
+# securities issued as merger consideration, uncapped continuous offerings whose
+# total is years of cumulative sales, and amendments restating an offering
+# already published. See correct_form_d_overcount.py for the derivation and
+# docs/TECHLOG.md for what each rule costs.
+#
+# Runs here rather than from a laptop because this is where WP_API_KEY lives.
+#
+# DEFAULTS TO dry_run=true. A dispatch that accepts the defaults is a green run
+# that changes nothing, which is the failure mode this repo keeps walking into.
+# Queue it, never dispatch it:
+#
+#   gh workflow run drain-writers.yml -f enqueue=correct-form-d-overcount.yml \
+#      -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would be withdrawn and write nothing'
+        type: boolean
+        default: true
+      only:
+        description: 'Apply one rule only (bizcomb | continuous | superseded)'
+        type: string
+        default: ''
+      force:
+        description: 'Proceed even if an implausible share of rows looks wrong'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db. A second
+  # writer running beside this one ends with reset-to-origin-then-copy, and
+  # whichever pushes second silently destroys the other's rows.
+  group: talent-collect
+  # This WITHDRAWS published rows. A run killed halfway leaves the site and the
+  # local database disagreeing, so say so rather than resting a data-safety
+  # property on a platform default that could flip underneath us.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # 318 withdrawals are one request each with a pause between them, plus two
+    # quarter archives to download. Generous, because a timeout mid-run is the
+    # failure mode to avoid: the rows already withdrawn stay withdrawn and the
+    # database record of them is what gets lost.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Withdraw
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          ARGS=""
+          [ "${{ inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
+          [ "${{ inputs.force }}"   = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.only }}" ]          && ARGS="$ARGS --only ${{ inputs.only }}"
+          # No `|| true`: a failed withdrawal must fail the run. A row withdrawn
+          # on the site and still current in the database is read as live by the
+          # next run, and nothing else would ever say so.
+          python correct_form_d_overcount.py $ARGS
+
+      - name: Commit the database
+        # `!cancelled()` rather than success(): a run that FAILED partway still
+        # holds the only local record of the withdrawals it did land.
+        if: ${{ inputs.dry_run != true && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -q -m "data: withdraw form D rows that are not money raised $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Rebase, NOT the reset-and-copy loop the collectors use, and NOT
+          # merge_db.py. A withdrawal flips is_current on an EXISTING row rather
+          # than appending a revision, so merge_db.py has no new
+          # (content_hash, revision) to carry and would skip every one of them —
+          # turning a loud rerun into a silent no-op. retract.yml and
+          # correct-form-d.yml carry the same reasoning.
+          git pull --rebase --autostash origin main
+          git push

@@ -78,13 +78,36 @@ STATE_PATH = ROOT / "data" / "backfill_state.json"
 #: to its own timeout would reproduce it in miniature. The gap covers pip
 #: install, whatever request is in flight when the budget expires, publish, the
 #: database merge, and up to five push attempts.
+#:
+#: MEASURED AND DELIBERATELY NOT LOWERED, 2026-08-02. With five chains live, the
+#: obvious answer to "long slices starve short chains" is to shorten the slice.
+#: The queue's own history refuses it: exactly ONE chain of the five reaches
+#: this budget (gdelt, 56 minutes wall), and 56 is already inside
+#: `writer_queue.LONG_HOLD_MINUTES` (120), the line that file draws at "the
+#: queue is starved". gnews lands at 23, companies_house at 21 and bse_india at
+#: 3, so a lower ceiling would not bind on four of five chains at all. Halving
+#: it shortens a full round from ~135 minutes to ~115 while costing the chain
+#: doing the most work about 40% more runs, each paying the fixed 3-6 minutes of
+#: checkout, install, merge and push over again — and it would leave the actual
+#: defect untouched, because a three-minute chain waiting behind a 25-minute one
+#: is the same shape of unfair as waiting behind a 50-minute one. The fix went
+#: into the dispatch ORDER instead: `writer_queue.dispatch_key`.
 SLICE_BUDGET_MINUTES = 50
 
-#: What every sliced backfill workflow sets as `timeout-minutes`. Chosen to sit
-#: below `writer_queue.LONG_HOLD_MINUTES` (120), the point at which the drainer
+#: What every sliced backfill workflow sets as `timeout-minutes` (an upper
+#: bound: a workflow may set less). Chosen to sit below
+#: `writer_queue.LONG_HOLD_MINUTES` (120), the point at which the drainer
 #: reports the queue as starved: with this ceiling a sliced backfill can no
 #: longer be the thing that starves it, by construction rather than by hope.
 #: Asserted in tests/test_workflows.py.
+#:
+#: This number is a LOCK-HOLD bound, not a runtime allowance, and it does not
+#: move on measurement. On 2026-08-05 the gdelt slices (58-66 min measured,
+#: 73% of this ceiling) were briefly "fixed" by raising this to 110; that was
+#: backwards — every database writer shares ONE lock, and a backfill holding
+#: it longer starves the live collectors and the drain, which is worse than
+#: the self-timeout it was avoiding. When a slice crowds this ceiling the
+#: slice gets SMALLER (its --budget-minutes), the ceiling does not get bigger.
 SLICE_TIMEOUT_MINUTES = 90
 
 #: A chain that never ends is worse than a job that runs too long, because
@@ -93,7 +116,148 @@ SLICE_TIMEOUT_MINUTES = 90
 #: ever being reached by real work.
 MAX_SLICES_PER_JOB = 200
 
-UNITS = ("days", "quarters")
+#: How long a `running` chain may go with nothing behind it in the writer queue
+#: before it is called stalled rather than busy.
+#:
+#: A healthy chain is never in that position for long: the requeue is committed
+#: in the SAME commit as the slice, so the successor ticket exists from the
+#: moment a run ends, and while a slice is executing its own ticket is
+#: `dispatched`. Either way something is live. The gap only opens when a slice
+#: ends without running its commit step, which is what cancellation does.
+#:
+#: Three hours, then, is not a cadence estimate — it is slack. One slice is at
+#: most SLICE_TIMEOUT_MINUTES (90) and a drain tick is throttled by GitHub to
+#: roughly an hour, so three hours clears a full worst-case cycle twice over
+#: while still being two days shorter than how long the 2026-07-31 stall went
+#: unnoticed.
+CHAIN_IDLE_HOURS = 3
+
+#: `days` and `quarters` walk a calendar. `slices` walks a POPULATION: its
+#: cursor is an integer index into a deterministic partition of a roster, and
+#: the date window is a fixed input carried on the job rather than the thing
+#: being advanced. That exists because `companies_house` costs one request per
+#: COMPANY and nothing per day — its window is a filter over data the endpoint
+#: returns anyway, so widening it is free and sweeping the roster is not. A
+#: date cursor there would advance over work that had never been done.
+UNITS = ("days", "quarters", "slices")
+
+
+# --------------------------------------------------------------------------
+# A WINDOW HAS THREE OUTCOMES, AND TWO OF THEM USED TO BE ONE
+# --------------------------------------------------------------------------
+#
+# Measured on `backfill-gnews-2026` run 30662474194 (2026-07-31). Google News
+# refused every request for the whole 74-minute slice — `queries sent 576 (576
+# failed)`, `windows 3 (3 empty)` — and the run correctly went RED on its own
+# fail-loud check. The chain advanced anyway, 2026-01-22 to 2026-01-25, and
+# 2026-01-24 holds zero google_news rows to this day with nothing left that
+# would ever go back for it.
+#
+# Nothing was missing. The guard existed, fired, and did not matter:
+#
+#   * the slice ticket carrying the new cursor is emitted BEFORE the fail-loud
+#     check, deliberately, so that rows already collected are never the price
+#     of how a run ended;
+#   * the commit step runs `if: !cancelled()`, deliberately, for the same
+#     reason. So a RED run still records and still requeues.
+#
+# **Red is not the same as unadvanced.** The one thing that decides whether a
+# day is skipped forever is the cursor in that ticket, and it was computed from
+# `done_through`, which every walker set at the bottom of its loop body whether
+# or not the window had produced anything. The comment above the emit says "a
+# run that finished NOTHING emits a cursor that has not moved" — true, but
+# "finished" was measured as "completed a loop iteration", and three days that
+# were walked and could not be fetched are three iterations.
+#
+# So a window ends in one of THREE states, never two, for exactly the reason
+# ops_status keeps PASS / FAIL / UNKNOWN apart: the absence of an article and
+# the absence of an answer are different facts, and only one of them is
+# progress.
+#
+#: The fetch worked and returned something. The cursor may pass this window.
+COLLECTED = "collected"
+#: The fetch worked and there was nothing there. A real answer, so the cursor
+#: may pass — an empty day is collected history, not a hole.
+EMPTY = "empty"
+#: The fetch itself failed. We do not know what was there and nothing gathered
+#: it, so the cursor MUST NOT pass: a chain only ever moves forwards, and a day
+#: it steps over is a day no run will be asked for again.
+UNREACHED = "unreached"
+
+
+def sampled_window(items: int, fetch_errors: int) -> str:
+    """The state of a window for a walker that SAMPLES its window.
+
+    `backfill_gnews_2026` and `backfill_gdelt_2026` fetch a day across dozens
+    of editions or queries and then ration what reaches the model, so partial
+    coverage of a day is the DESIGNED outcome and a re-walk of the same range
+    deliberately reads different rows. One flaky edition out of 52 is therefore
+    not a hole, and treating it as one would stop the chain on ordinary
+    weather.
+
+    What is a hole is a window that produced NOTHING while the fetch was
+    erroring, which is the measured incident exactly: 576 of 576 queries
+    failed, so "there was no news on 2026-01-24 anywhere on earth in any
+    language" was recorded as fact.
+    """
+    if items:
+        return COLLECTED
+    return UNREACHED if fetch_errors else EMPTY
+
+
+def enumerated_window(items: int, fetch_errors: int) -> str:
+    """The state of a window for a walker that ENUMERATES its window.
+
+    `backfill_sec_2026` and `backfill_form_d_2026` page through a filing index
+    and the contract is completeness: every 8-K 5.02 in the week, every Form D
+    in the month. A search that dies on page three has enumerated part of a
+    window, and the pages it never asked for are indistinguishable from pages
+    that held nothing. So ANY fetch failure leaves the window unreached,
+    however many filings the earlier pages returned.
+
+    Re-walking is close to free here and a hole is not: `store.already_seen`
+    skips every URL a previous pass stored, before any model call.
+    """
+    if fetch_errors:
+        return UNREACHED
+    return COLLECTED if items else EMPTY
+
+
+def unreached_reason(window: str, detail: str = "") -> str:
+    """The one sentence a walker prints when it refuses to pass a window."""
+    return (f"{window} could not be FETCHED ({detail or 'the fetch failed'}). "
+            "Stopping here: the cursor does not move past a window nobody "
+            "collected, because nothing would ever come back for it.")
+
+
+# --------------------------------------------------------------------------
+# THE CURSOR ADVANCES PER RUN, NOT PER DAY, AND THAT IS A PROPERTY NOT A DETAIL
+# --------------------------------------------------------------------------
+#
+# `record()` moves the cursor from the TICKET a run emitted — `next_cursor`,
+# derived from the last window that run actually finished. It reads no clock. Two
+# runs in one hour therefore advance twice, and a run that does nothing advances
+# not at all (which `record` catches and refuses to requeue).
+#
+# The sibling tracker got this wrong in the most expensive way available. Its
+# `edgar-history-sweep` keyed its cursor on `now.toordinal()` — a DATE ordinal —
+# and ran HOURLY. Every run in a day therefore computed the identical window,
+# re-fetched the identical filings and re-extracted them at full prompt: about
+# $3.80 a day of pure waste for six days, and every one of those runs was green,
+# because from outside a run that re-does yesterday's work looks exactly like a
+# run that did work.
+#
+# So the pairing is what is dangerous, not either half. A date-keyed cursor with a
+# daily cron is fine. A run-keyed cursor with an hourly cron is fine. A date-keyed
+# cursor with a sub-daily cron silently multiplies spend by the runs per day.
+# `tests/test_backfill_pace.py` asserts the property directly — that a second
+# `record` in the same clock second still advances — rather than asserting the
+# symptom, and it also refuses to let a sliced workflow grow a cron faster than
+# daily while any cursor in this module is date-shaped.
+#
+#: Runs per day above which a date-keyed cursor becomes a spend multiplier. One:
+#: any second run in the same day repeats the first.
+DATE_CURSOR_SAFE_RUNS_PER_DAY = 1
 
 
 def _now() -> datetime:
@@ -130,6 +294,13 @@ def _quarter_index(value: str) -> int:
     return year * 4 + (quarter - 1)
 
 
+def _slice_index(value: str) -> int:
+    text = str(value).strip()
+    if not text.isdigit():
+        raise ValueError(f"not a roster slice index: {value!r} (expected e.g. 0)")
+    return int(text)
+
+
 def next_slice(cursor: str | None, end: str, unit: str, size: int) -> tuple[str, str] | None:
     """The next slice as an INCLUSIVE (lo, hi), or None when the job is done.
 
@@ -155,6 +326,12 @@ def next_slice(cursor: str | None, end: str, unit: str, size: int) -> tuple[str,
             out.append(current)
             current = _next_quarter(current)
         return (out[0], out[-1]) if out else None
+    if unit == "slices":
+        lo = _slice_index(cursor)
+        stop = _slice_index(end)
+        if lo > stop:
+            return None
+        return str(lo), str(min(lo + size - 1, stop))
     raise ValueError(f"unknown slice unit {unit!r}")
 
 
@@ -164,6 +341,8 @@ def advance(hi: str, unit: str) -> str:
         return (date.fromisoformat(hi) + timedelta(days=1)).isoformat()
     if unit == "quarters":
         return _next_quarter(hi)
+    if unit == "slices":
+        return str(_slice_index(hi) + 1)
     raise ValueError(f"unknown slice unit {unit!r}")
 
 
@@ -172,6 +351,8 @@ def past_end(cursor: str | None, end: str, unit: str) -> bool:
         return True
     if unit == "days":
         return date.fromisoformat(cursor) > date.fromisoformat(end)
+    if unit == "slices":
+        return _slice_index(cursor) > _slice_index(end)
     return _quarter_index(cursor) > _quarter_index(end)
 
 
@@ -183,6 +364,8 @@ def slice_members(lo: str, hi: str, unit: str) -> list[str]:
             out.append(current)
             current = _next_quarter(current)
         return out
+    if unit == "slices":
+        return [str(i) for i in range(_slice_index(lo), _slice_index(hi) + 1)]
     out, day = [], date.fromisoformat(lo)
     stop = date.fromisoformat(hi)
     while day <= stop:
@@ -218,13 +401,22 @@ def save(state: dict, path: Path | None = None) -> None:
     target.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
 
 
-def job_id(workflow: str, start: str, end: str) -> str:
-    """Stable across every slice of one backfill, so the chain finds itself."""
-    return f"{workflow.removesuffix('.yml')}:{start}..{end}"
+def job_id(workflow: str, start: str, end: str, label: str = "") -> str:
+    """Stable across every slice of one backfill, so the chain finds itself.
+
+    `label` exists because one workflow may walk more than one population.
+    `backfill-structured-2026.yml` takes a `source` input and runs three
+    registry collectors over the SAME 2026 window, so without it India's cursor
+    and Korea's would be the same key and each would resume where the other
+    stopped — a hole and a double-collection in one. It defaults to empty, so
+    every job written before it existed keeps its id.
+    """
+    stem = workflow.removesuffix(".yml")
+    return f"{stem}:{label}:{start}..{end}" if label else f"{stem}:{start}..{end}"
 
 
 def open_job(state: dict, *, workflow: str, unit: str, start: str, end: str,
-             slice_size: int, inputs: dict | None = None) -> dict:
+             slice_size: int, inputs: dict | None = None, label: str = "") -> dict:
     """Find this backfill's record, creating it at `start` the first time.
 
     Creating it here rather than at dispatch is what makes the FIRST run of a
@@ -234,11 +426,12 @@ def open_job(state: dict, *, workflow: str, unit: str, start: str, end: str,
     """
     if unit not in UNITS:
         raise ValueError(f"unknown slice unit {unit!r}, expected one of {UNITS}")
-    key = job_id(workflow, start, end)
+    key = job_id(workflow, start, end, label)
     job = state.setdefault("jobs", {}).get(key)
     if job is None:
         job = {
             "workflow": workflow,
+            "label": label,
             "unit": unit,
             "start": start,
             "end": end,
@@ -263,10 +456,11 @@ def open_job(state: dict, *, workflow: str, unit: str, start: str, end: str,
 
 
 def plan(state: dict, *, workflow: str, unit: str, start: str, end: str,
-         slice_size: int, inputs: dict | None = None) -> tuple[dict, tuple[str, str] | None]:
+         slice_size: int, inputs: dict | None = None,
+         label: str = "") -> tuple[dict, tuple[str, str] | None]:
     """(job, next slice) — the whole "where do I resume" question, answered."""
     job = open_job(state, workflow=workflow, unit=unit, start=start, end=end,
-                   slice_size=slice_size, inputs=inputs)
+                   slice_size=slice_size, inputs=inputs, label=label)
     return job, next_slice(job.get("cursor"), end, unit, slice_size)
 
 
@@ -284,7 +478,8 @@ def record(state: dict, ticket: dict, now: datetime | None = None) -> dict:
     if job is None:
         job = open_job(state, workflow=ticket["workflow"], unit=ticket["unit"],
                        start=ticket["start"], end=ticket["end"],
-                       slice_size=ticket["slice_size"], inputs=ticket.get("inputs"))
+                       slice_size=ticket["slice_size"], inputs=ticket.get("inputs"),
+                       label=ticket.get("label", ""))
 
     unit = job["unit"]
     was = job.get("cursor")
@@ -297,10 +492,22 @@ def record(state: dict, ticket: dict, now: datetime | None = None) -> dict:
     if not advanced:
         job["state"] = "stalled"
         job["updated_at"] = _iso(moment)
+        # NAME WHAT DID NOT ADVANCE, not just that something did not. The
+        # 2026-08-05 press run said "the cursor is still 0" and stopped there,
+        # so the actual cause (the month's allowance was spent, the walk broke
+        # out after 2 of 40 publishers) was only in the previous step's log and
+        # only if you knew to read it. The ticket carries the reason; print it.
+        why = ticket.get("stopped_early") or ticket.get("halt") or ""
         return {"job": job, "advanced": False, "complete": False,
-                "problem": (f"{key} made no progress: the cursor is still {was}. "
-                            "Not requeueing — a chain that cannot advance would "
-                            "run forever without ever going red.")}
+                "problem": (
+                    f"{key} made no progress: it walked "
+                    f"{ticket.get('slice') or '?'} and the cursor is still "
+                    f"{was}, so the chain STOPS here and will not restart "
+                    f"itself. Not requeueing — a chain that cannot advance "
+                    f"would run forever without ever going red. "
+                    + (f"The run says it ended because: {why}" if why else
+                       "The run recorded no reason for ending, which is itself "
+                       "the thing to investigate: read its walk step."))}
 
     job["cursor"] = now_cursor
     job["slices"] = int(job.get("slices", 0)) + 1
@@ -353,6 +560,12 @@ def next_inputs(job: dict, unit: str | None = None) -> dict | None:
     if job.get("state") != "running" or not job.get("cursor"):
         return None
     inputs = dict(job.get("inputs") or {})
+    if job.get("unit") == "slices":
+        # The job's start/end are ROSTER SLICE INDICES, not dates. The date
+        # window is a fixed dispatch input carried on `inputs`, so injecting
+        # start/end here would overwrite "2026-01-01".."2026-07-30" with "0"
+        # and "7" and the next run would read a one-day window.
+        return inputs
     inputs.update({"start": job["start"], "end": job["end"]})
     if job.get("unit") == "quarters":
         inputs.pop("start", None)
@@ -395,12 +608,13 @@ class Budget:
 
 
 def open_slice(*, workflow: str, unit: str, start: str, end: str, slice_size: int,
-               inputs: dict | None = None, state_path: str | Path | None = None):
+               inputs: dict | None = None, state_path: str | Path | None = None,
+               label: str = ""):
     """(job, (lo, hi) or None) for the run that is starting right now."""
     path = Path(state_path) if state_path else None
     state = load(path)
     return plan(state, workflow=workflow, unit=unit, start=start, end=end,
-                slice_size=slice_size, inputs=inputs)
+                slice_size=slice_size, inputs=inputs, label=label)
 
 
 def slice_ticket(job: dict, lo: str, hi: str, *, next_cursor: str | None = None,
@@ -422,8 +636,10 @@ def slice_ticket(job: dict, lo: str, hi: str, *, next_cursor: str | None = None,
     from the cursor.
     """
     return {
-        "job_id": job_id(job["workflow"], job["start"], job["end"]),
+        "job_id": job_id(job["workflow"], job["start"], job["end"],
+                         job.get("label", "")),
         "workflow": job["workflow"],
+        "label": job.get("label", ""),
         "unit": job["unit"],
         "start": job["start"],
         "end": job["end"],
@@ -441,23 +657,127 @@ def emit(path: str | Path, ticket: dict) -> None:
     Path(path).write_text(json.dumps(ticket, indent=2, sort_keys=True) + "\n")
 
 
-def summary(state: dict | None = None) -> dict:
+def _live_ticket(queue: dict, job: dict) -> dict | None:
+    """The queued or dispatched ticket that is this chain's next slice.
+
+    Matched on the workflow AND the inputs, because one workflow can drive
+    several independent chains: `backfill-structured-2026.yml` walks bse_india,
+    companies_house and opendart_korea over the same window, and a ticket for
+    one of them says nothing about the other two. `next_inputs` re-emits the
+    job's own inputs every slice, so the identity is an exact comparison.
+    """
+    wanted = next_inputs(job) or {}
+    for ticket in queue.get("tickets", []):
+        if ticket.get("state") not in ("queued", "dispatched"):
+            continue
+        if writer_queue.same_chain(ticket, job.get("workflow"), wanted):
+            return ticket
+    return None
+
+
+def summary(state: dict | None = None, *, queue: dict | None = None,
+            now: datetime | None = None,
+            queue_path: Path | None = None) -> dict:
     """What ops_status.py prints. Problems mean a human is needed."""
     data = state if state is not None else load()
+    moment = now or _now()
+
+    # A CANCELLED slice leaves NOTHING behind, and that used to be silent.
+    #
+    # A failed slice requeues: the workflow's commit step runs `if:
+    # !cancelled()`, records the ticket and appends the next one. A CANCELLED
+    # slice skips that step entirely, so the chain simply ends — no ticket, no
+    # run, no red anything. `backfill-structured-2026` run 30594795739 was
+    # cancelled mid-run during the 2026-07-31 Bluehost outage and bse_india sat
+    # at 2026-01-29 and companies_house at slice 1 of 7 for two days while this
+    # function returned `problems: []`.
+    #
+    # The writer queue does mark a cancelled-mid-run ticket `failed`, and does
+    # report it — but `writer_queue resolve` exists so a human can stop a red
+    # drain tick, and acknowledging that ticket clears the queue's alarm
+    # WITHOUT putting anything back in the line. The chain is then dead and
+    # every dashboard is green. So the chain has to be able to notice its own
+    # death, from its own state, rather than inheriting a signal from a queue
+    # that has legitimately moved on.
+    #
+    # DELIBERATELY NOT AN AUTO-REQUEUE, and this is the part that is a
+    # judgement rather than a bug fix:
+    #
+    #   * mid-run cancellation is what a HOST OUTAGE and what a TIMEOUT both
+    #     look like from here. Requeueing into the first is the loop this repo
+    #     already paid to break once (an alerter that posts to the host it is
+    #     reporting as down); requeueing into the second is a chain that burns
+    #     one paid slice per attempt forever and is green every time.
+    #   * `writer_queue.tick` already draws this exact line for every other
+    #     writer: cancelled-with-no-jobs is displacement and auto-requeues,
+    #     cancelled-after-starting is `failed` and "needs a human". A backfill
+    #     is not special enough to get a second policy.
+    #
+    # What was missing was never the requeue. It was somebody being told.
+    unknown_queue = False
+    if queue is None:
+        target = queue_path or writer_queue.QUEUE_PATH
+        if target.exists():
+            queue = writer_queue.load(target)
+        else:
+            # Three states, not two. No queue file is "could not check", and a
+            # check that could not run must never read as a pass.
+            unknown_queue = True
+
     jobs, problems = [], []
     for key, job in sorted(data.get("jobs", {}).items()):
         done = job.get("slices", 0)
-        jobs.append({
+        row = {
             "id": key, "state": job.get("state"), "slices": done,
             "cursor": job.get("cursor"), "end": job.get("end"),
             "unit": job.get("unit"), "updated_at": job.get("updated_at"),
             "totals": job.get("totals", {}),
-        })
+        }
         if job.get("state") in ("stalled", "halted"):
             problems.append(
                 f"backfill {key} is {job['state']} at {job.get('cursor')} after "
                 f"{done} slice(s) — it will NOT requeue itself; read the last run")
+        elif job.get("state") == "running" and job.get("cursor"):
+            row["waiting_on"] = "unknown" if unknown_queue else None
+            if unknown_queue:
+                row["idle_hours"] = None
+            else:
+                ticket = _live_ticket(queue or {}, job)
+                row["waiting_on"] = ticket["id"] if ticket else None
+                idle = _idle_hours(job.get("updated_at"), moment)
+                row["idle_hours"] = idle
+                if ticket is None and (idle is None or idle >= CHAIN_IDLE_HOURS):
+                    problems.append(_stalled_chain_problem(key, job, idle))
+        jobs.append(row)
     return {"jobs": jobs, "problems": problems}
+
+
+def _idle_hours(updated_at: str | None, moment: datetime) -> float | None:
+    if not updated_at:
+        return None
+    try:
+        last = datetime.fromisoformat(str(updated_at).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+    return max(0.0, (moment - last).total_seconds() / 3600)
+
+
+def _stalled_chain_problem(key: str, job: dict, idle: float | None) -> str:
+    since = f"{idle:.0f}h" if idle is not None else "an unknown time"
+    inputs = json.dumps(next_inputs(job) or {}, sort_keys=True)
+    return (
+        f"backfill {key} is RUNNING at {job.get('cursor')} of {job.get('end')} "
+        f"but has not moved for {since} and has NOTHING in the writer queue "
+        f"behind it. A cancelled slice skips its commit step, so it records no "
+        f"progress and queues no successor and the chain just ends. It does not "
+        f"restart itself on purpose — a mid-run cancellation is what a host "
+        f"outage and a timeout both look like. Read the last run, then:\n"
+        f"       gh workflow run drain-writers.yml "
+        f"-f enqueue={job.get('workflow')} \\\n"
+        f"            -f inputs_json='{inputs}' \\\n"
+        f"            -f reason='resume {key} at {job.get('cursor')}'")
 
 
 # --------------------------------------------------------------------------
@@ -495,10 +815,24 @@ def _cmd_record(args) -> int:
     # Same lock, same queue, same priority rule: a backfill ticket still sorts
     # behind every correction, so slicing shortens the wait without ever
     # letting a backfill jump it.
+    #
+    # Requeueing at the END of the run is also what interleaves the chains: the
+    # new ticket carries a fresh `requested_at` and therefore re-enters the line
+    # behind every chain that has been waiting, which is a round robin for free.
+    # What that ordering could NOT see is what a slice costs, so a three-minute
+    # chain took one turn per round exactly like a fifty-minute one and paid two
+    # hours of queue for it. `writer_queue.dispatch_key` adds that, measured,
+    # and leaves this FIFO underneath it untouched.
+    #
+    # Inherited rather than recomputed, though. `default_priority()` is a
+    # property of the workflow, so it reapplied here on every requeue and an
+    # operator's `--priority` survived exactly one slice — the override looked
+    # effective and was not. See writer_queue.chain_priority.
     ticket_row = writer_queue.enqueue(
         queue, job["workflow"], inputs,
         reason=f"next slice of {ticket['job_id']} (resumes at {job['cursor']})",
-        requested_by="backfill-slices")
+        requested_by="backfill-slices",
+        priority=writer_queue.chain_priority(queue, job["workflow"], inputs))
     writer_queue.prune(queue)
     writer_queue.save(queue, queue_path)
     print(f"queued {ticket_row['id']} for the next slice")
@@ -506,7 +840,8 @@ def _cmd_record(args) -> int:
 
 
 def _cmd_status(args) -> int:
-    state = summary(load(Path(args.file) if args.file else None))
+    state = summary(load(Path(args.file) if args.file else None),
+                    queue_path=Path(args.queue_file) if args.queue_file else None)
     print(json.dumps(state, indent=2, default=str))
     return 2 if state["problems"] else 0
 
@@ -538,6 +873,7 @@ def main(argv: list[str] | None = None) -> int:
     rec.set_defaults(func=_cmd_record)
 
     show = sub.add_parser("status", help="every backfill's progress, as JSON")
+    show.add_argument("--queue-file", help="writer queue file, for tests")
     show.set_defaults(func=_cmd_status)
 
     forget = sub.add_parser("reset", help="forget a job so it starts over")

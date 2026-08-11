@@ -4,6 +4,7 @@ Every test here runs offline against a recorded fixture or an in-memory feed
 list. Nothing in this file touches the network or the model.
 """
 
+import base64
 import csv
 import json
 from pathlib import Path
@@ -227,7 +228,11 @@ def test_an_aggregator_feed_is_refused_at_load_time(tmp_path):
     even queue one up."""
     path = tmp_path / "cat.csv"
     _write_catalogue(path, [
-        {"name": "Dealroom", "rss": "https://dealroom.co/feed", "country": "Netherlands"},
+        # The aggregator's domain is a banned plaintext string (standalone-
+        # brand rule), so the fixture decodes it at runtime, exactly like the
+        # blocklist itself does.
+        {"name": "An aggregator", "country": "Netherlands",
+         "rss": "https://" + base64.b64decode("ZGVhbHJvb20uY28=").decode("ascii") + "/feed"},
         {"name": "Google News", "rss": "https://news.google.com/rss", "country": "United States"},
         {"name": "Globes", "rss": "https://en.globes.co.il/feed", "country": "Israel"},
     ])
@@ -670,3 +675,132 @@ def test_only_an_encoding_we_can_decode_is_advertised():
     accept_encoding = press._headers(press._ACCEPT_RSS)["Accept-Encoding"]
     if "br" in accept_encoding.split(", "):
         assert press._HAVE_BROTLI
+
+
+def test_an_aggregator_is_blocked_on_every_subdomain():
+    """One record ended up citing an aggregator's news subdomain because the
+    blocklist named exact hosts: it listed the bare and www hosts, and a third
+    subdomain walked straight through a set that mentions the company twice.
+    Every other entry had the same hole. Matching what someone OWNS closes it
+    for names already listed and for any name added later.
+
+    Three of the probed hosts belong to providers whose names are banned in
+    plaintext (standalone-brand rule), so their apexes decode at runtime from
+    the same base64 form the blocklist uses."""
+    from collectors.national_press import _AGGREGATOR_DOMAINS, registrable_domain
+
+    encoded_apexes = ("Y3J1bmNoYmFzZS5jb20=", "ZGVhbHJvb20uY28=", "dHJhY3huLmNvbQ==")
+    news, blog, data = (base64.b64decode(s).decode("ascii") for s in encoded_apexes)
+    for host in (f"news.{news}", f"blog.{blog}", f"data.{data}",
+                 "app.magnitt.com", "www.startupnationcentral.org"):
+        assert registrable_domain(host) in _AGGREGATOR_DOMAINS, host
+
+    # Publishers we legitimately read must stay readable.
+    for host in ("www.geektime.co.il", "globes.co.il", "techcrunch.com",
+                 "www.geekwire.com"):
+        assert registrable_domain(host) not in _AGGREGATOR_DOMAINS, host
+
+
+# --- The two formats a "200 but no parseable items" verdict was hiding -------
+#
+# Both were found by re-probing all 662 wired feeds on 2026-08-02. Both looked
+# identical in the ledger to a publisher that had gone away, and neither
+# publisher had gone anywhere.
+
+RSS10 = b"""<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns="http://purl.org/rss/1.0/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <channel rdf:about="https://asia.example/">
+  <title>Asia Business Daily</title>
+  <link>https://asia.example/</link>
+ </channel>
+ <item rdf:about="https://asia.example/enigma">
+  <title>Enigma raises $71m in seed funding round</title>
+  <link>https://asia.example/enigma</link>
+  <description>The round will fund 40 hires in Tel Aviv.</description>
+  <dc:date>2026-08-02T12:00:00+09:00</dc:date>
+ </item>
+</rdf:RDF>
+"""
+
+# Drupal core's RSS. The title is an ANCHOR, not text.
+DRUPAL_RSS = b"""<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xml:base="https://star.example/">
+ <channel>
+  <title>The Daily Star</title>
+  <link>https://star.example/</link>
+  <item>
+   <title><a href="/business/enigma" hreflang="en">Enigma raises $71m in seed funding round</a></title>
+   <link>https://star.example/business/enigma</link>
+   <description>The round will fund 40 hires.</description>
+   <pubDate>Sun, 02 Aug 26 00:00:00 +0600</pubDate>
+  </item>
+ </channel>
+</rss>
+"""
+
+
+def test_an_rss_1_0_feed_is_read_rather_than_recorded_as_empty():
+    """Nikkei Asia, CNET Japan, Nikkei xTECH, Impress Watch, PR TIMES and the
+    Taipei Times all serve RDF, whose <item> is namespaced. `.//item` matches
+    unqualified names only, so all six answered 200, parsed cleanly and
+    yielded nothing, which the ledger records as "200 but no parseable items"
+    -- the wording for a publisher that has stopped."""
+    items = press.parse(RSS10, GLOBES)
+    assert len(items) == 1
+    assert items[0]["headline"] == "Enigma raises $71m in seed funding round"
+    assert items[0]["source_url"] == "https://asia.example/enigma"
+    assert "40 hires" in items[0]["raw_text"]
+
+
+def test_a_title_wrapped_in_a_link_is_still_a_title():
+    """Drupal writes `<title><a href=...>Headline</a></title>`. Reading only an
+    element's own text made every item titleless, and an item with no title is
+    dropped, so The Daily Star's business desk published 25 stories a day into
+    a row recorded as dead."""
+    items = press.parse(DRUPAL_RSS, GLOBES)
+    assert len(items) == 1
+    assert items[0]["headline"] == "Enigma raises $71m in seed funding round"
+    assert items[0]["source_url"] == "https://star.example/business/enigma"
+
+
+def test_the_dates_those_two_formats_carry_are_read_as_dates():
+    """Staleness is how a feed that dies later gets noticed, and an item whose
+    date will not parse is an item that can never make its feed look stale. So
+    recovering the items without recovering their dates would have swapped one
+    silent failure for a quieter one."""
+    assert validate._normalize_date(
+        press.parse(RSS10, GLOBES)[0]["published_date"]) == "2026-08-02"
+    assert validate._normalize_date(
+        press.parse(DRUPAL_RSS, GLOBES)[0]["published_date"]) == "2026-08-02"
+
+
+def test_the_anchored_date_match_still_refuses_what_it_was_written_for():
+    """The anchor stops a date being pulled out of arbitrary text. Loosening
+    `\\b` to a lookahead so an ISO instant parses must not loosen that."""
+    assert validate._normalize_date("2026-08-021") is None
+    assert validate._normalize_date("2026-08-02-03") is None
+    assert validate._normalize_date("see https://x.example/2021/07/a") is None
+
+
+def test_the_ordinary_rss_2_0_path_is_unchanged_by_either_repair():
+    """Both repairs sit in the reader every feed goes through, so the format
+    that 600-odd of them actually serve has to come out identical."""
+    items = press.parse(RSS, GLOBES)
+    assert len(items) == 2
+    assert items[0]["headline"] == "Enigma raises $71m in seed funding round"
+    assert "parsed_by" not in items[0]
+
+
+def test_the_feeds_withdrawn_for_robots_stay_withdrawn():
+    """The Cayman Compass row already SAID robots.txt disallowed its feed, in
+    the notes, while the rss column stayed populated -- so the collector went
+    on fetching it twice a day against the publisher's terms. A note is not a
+    withdrawal; an empty rss column is."""
+    withdrawn = {"Cayman Compass", "Monitor"}
+    with press.CATALOGUE_CSV.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            if row["name"] in withdrawn:
+                assert not row["rss"].strip(), (
+                    f"{row['name']} is wired and its publisher disallows it")

@@ -46,7 +46,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       - name: Run the digest
         env:

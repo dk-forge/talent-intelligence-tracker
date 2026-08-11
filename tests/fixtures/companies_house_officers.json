@@ -1,0 +1,259 @@
+{
+ "_provenance": {
+  "captured": "2026-07-30",
+  "how": "Every company number, officer id, officer name, role and appointment date below was read off the PUBLIC register at find-and-update.company-information.service.gov.uk, which needs no key. The JSON envelope around them is the officerList resource as the Companies House Public Data API specification documents it, because no authenticated call has ever been made from this repository: the key exists only as a GitHub secret. So the VALUES are real and the SHAPE is documented-but-unverified. Two records are marked _constructed because the register gave no live example of them, and one has its appointed_on moved into the test window; each says so on its own line.",
+  "roster_source": "gender-pay-gap.service.gov.uk/viewing/download-data/2025, the 2025 reporting year, fetched 2026-07-30",
+  "test_today": "2026-07-30, which with the 42-day derived window makes the window 2026-06-18..2026-07-30"
+ },
+ "appointment": {
+  "company": {
+   "number": "02334263",
+   "name": "LEGAL & GENERAL RESOURCES LIMITED",
+   "size_band": "5000 to 19,999",
+   "postcode": "EC2R 5AA",
+   "sic": "70100"
+  },
+  "payload": {
+   "active_count": 3,
+   "resigned_count": 8,
+   "items_per_page": 100,
+   "start_index": 0,
+   "total_results": 11,
+   "kind": "officer-list",
+   "etag": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+   "links": {
+    "self": "/company/02334263/officers"
+   },
+   "items": [
+    {
+     "name": "HOLDEN, Emma",
+     "officer_role": "director",
+     "appointed_on": "2026-07-01",
+     "nationality": "British",
+     "country_of_residence": "England",
+     "occupation": "Director",
+     "address": {
+      "premises": "One Coleman Street",
+      "locality": "London",
+      "postal_code": "EC2R 5AA",
+      "country": "United Kingdom"
+     },
+     "date_of_birth": {
+      "month": 5,
+      "year": 1975
+     },
+     "links": {
+      "self": "/company/02334263/appointments/Wz2yKYxCDi0HGbP2FWUk5kE2oaE",
+      "officer": {
+       "appointments": "/officers/Wz2yKYxCDi0HGbP2FWUk5kE2oaE/appointments"
+      }
+     }
+    },
+    {
+     "_note": "Real sitting secretary of this company, and a COMPANY rather than a person. Its live appointed_on is 2002-10-01; it is moved into the test window here so the role allowlist is exercised at the point it matters rather than being masked by the date filter. Every other field is the live record. The public web page renders this officer as plain 'Secretary', which is exactly why the allowlist reads officer_role and never a label.",
+     "name": "LEGAL & GENERAL CO SEC LIMITED",
+     "officer_role": "corporate-secretary",
+     "appointed_on": "2026-06-30",
+     "address": {
+      "premises": "One Coleman Street",
+      "locality": "London",
+      "postal_code": "EC2R 5AA",
+      "country": "United Kingdom"
+     },
+     "identification": {
+      "identification_type": "uk-limited-company",
+      "registration_number": "01327232"
+     },
+     "links": {
+      "self": "/company/02334263/appointments/wYZqQRO2Pb4_fjYp7wxGfMzINPs",
+      "officer": {
+       "appointments": "/officers/wYZqQRO2Pb4_fjYp7wxGfMzINPs/appointments"
+      }
+     }
+    },
+    {
+     "_note": "Real, and outside the window: appointed 2020, so a run in 2026 must not collect it.",
+     "name": "SHAW, Karl Simon",
+     "officer_role": "director",
+     "appointed_on": "2020-01-28",
+     "nationality": "British",
+     "country_of_residence": "England",
+     "links": {
+      "self": "/company/02334263/appointments/eW4bENqQxEQezhTnNrE8naYniWY",
+      "officer": {
+       "appointments": "/officers/eW4bENqQxEQezhTnNrE8naYniWY/appointments"
+      }
+     }
+    },
+    {
+     "_note": "Real, resigned. Its resigned_on is recent relative to its appointment and its appointed_on is 26 years old: what decides collection is appointed_on, so this must not be collected however its resignation is dated.",
+     "name": "BINDING, David Wyn",
+     "officer_role": "secretary",
+     "appointed_on": "2000-06-21",
+     "resigned_on": "2002-10-01",
+     "links": {
+      "self": "/company/02334263/appointments/2ArWGli_6EfCYUxwOt62K6mDZHU",
+      "officer": {
+       "appointments": "/officers/2ArWGli_6EfCYUxwOt62K6mDZHU/appointments"
+      }
+     }
+    }
+   ]
+  }
+ },
+ "secretary": {
+  "company": {
+   "number": "03153442",
+   "name": "ACHIEVE TOGETHER LIMITED",
+   "size_band": "5000 to 19,999",
+   "postcode": "KT22 7AH",
+   "sic": "87200"
+  },
+  "payload": {
+   "active_count": 12,
+   "resigned_count": 20,
+   "items_per_page": 100,
+   "start_index": 0,
+   "total_results": 32,
+   "kind": "officer-list",
+   "etag": "b2c3d4e5f60718293a4b5c6d7e8f901234567890",
+   "links": {
+    "self": "/company/03153442/officers"
+   },
+   "items": [
+    {
+     "name": "DIXIE, Alice Sian Rhiannon",
+     "officer_role": "secretary",
+     "appointed_on": "2026-06-25",
+     "nationality": "British",
+     "country_of_residence": "England",
+     "occupation": "Company Secretary",
+     "links": {
+      "self": "/company/03153442/appointments/Uh2X6CH4V2znffxnxn8kMXnH4mA",
+      "officer": {
+       "appointments": "/officers/Uh2X6CH4V2znffxnxn8kMXnH4mA/appointments"
+      }
+     }
+    },
+    {
+     "_note": "Real, and just outside the 42-day window (2026-03-30 against a window opening 2026-06-18).",
+     "name": "HARRIS, Ann-Marie",
+     "officer_role": "director",
+     "appointed_on": "2026-03-30",
+     "links": {
+      "self": "/company/03153442/appointments/EvGarT1pt7JG1PMWpUxsfe8Hu4Y",
+      "officer": {
+       "appointments": "/officers/EvGarT1pt7JG1PMWpUxsfe8Hu4Y/appointments"
+      }
+     }
+    }
+   ]
+  }
+ },
+ "football_club": {
+  "company": {
+   "number": "00053301",
+   "name": "SOUTHAMPTON FOOTBALL CLUB LIMITED",
+   "size_band": "1000 to 4999",
+   "postcode": "SO14 5FP",
+   "sic": "93110"
+  },
+  "payload": {
+   "active_count": 8,
+   "resigned_count": 30,
+   "items_per_page": 100,
+   "start_index": 0,
+   "total_results": 38,
+   "kind": "officer-list",
+   "etag": "c3d4e5f60718293a4b5c6d7e8f90123456789012",
+   "links": {
+    "self": "/company/00053301/officers"
+   },
+   "items": [
+    {
+     "_note": "Real, and outside the 42-day window (2026-04-22 against a window opening 2026-06-18). Its four-part name is what tests the SURNAME, Forenames reordering, which needs no date at all.",
+     "name": "LIEBHERR, Katharina Maria Mathilde",
+     "officer_role": "director",
+     "appointed_on": "2026-04-22",
+     "nationality": "Swiss",
+     "country_of_residence": "Switzerland",
+     "links": {
+      "self": "/company/00053301/appointments/eY7riZwPZlLm91ytJIF3MXNObqs",
+      "officer": {
+       "appointments": "/officers/eY7riZwPZlLm91ytJIF3MXNObqs/appointments"
+      }
+     }
+    },
+    {
+     "_note": "Real. Appointed 2026-02-23, outside the window.",
+     "name": "DICK, Katrina",
+     "officer_role": "secretary",
+     "appointed_on": "2026-02-23",
+     "links": {
+      "self": "/company/00053301/appointments/4nhnpjA8_7BYnxdc34J13MhHX8s",
+      "officer": {
+       "appointments": "/officers/4nhnpjA8_7BYnxdc34J13MhHX8s/appointments"
+      }
+     }
+    }
+   ]
+  }
+ },
+ "constructed_edges": {
+  "_constructed": "The register gave no live example of either row below inside the sampled window, so both are built from the API specification's own officer_role enum and field list rather than captured. They exist to pin two declines that must not depend on luck in a sample.",
+  "company": {
+   "number": "09214263",
+   "name": "POULTRY OPCO LIMITED",
+   "size_band": "500 to 999",
+   "postcode": "EC2R 8AJ",
+   "sic": "82990"
+  },
+  "payload": {
+   "active_count": 4,
+   "resigned_count": 2,
+   "items_per_page": 100,
+   "start_index": 0,
+   "total_results": 6,
+   "kind": "officer-list",
+   "etag": "d4e5f60718293a4b5c6d7e8f9012345678901234",
+   "links": {
+    "self": "/company/09214263/officers"
+   },
+   "items": [
+    {
+     "_constructed": "A nominee director: a formation agent's placeholder, not somebody joining an employer.",
+     "name": "NOMINEE, A Person",
+     "officer_role": "nominee-director",
+     "appointed_on": "2026-07-02",
+     "links": {
+      "self": "/company/09214263/appointments/QQ9nomineeExample1234567890",
+      "officer": {
+       "appointments": "/officers/QQ9nomineeExample1234567890/appointments"
+      }
+     }
+    },
+    {
+     "_constructed": "A pre-1992 appointment. The register carries appointed_before instead of appointed_on for these, so there is no date to place the row on.",
+     "name": "OLDHAND, Reginald",
+     "officer_role": "director",
+     "appointed_before": "1991-07-01",
+     "links": {
+      "self": "/company/09214263/appointments/QQ9pre1992Example12345678",
+      "officer": {
+       "appointments": "/officers/QQ9pre1992Example12345678/appointments"
+      }
+     }
+    },
+    {
+     "_constructed": "A well-formed director whose links block is missing the officer appointments path, so there is no register page to cite. No source URL, no record.",
+     "name": "NOLINK, Sandra",
+     "officer_role": "director",
+     "appointed_on": "2026-07-03",
+     "links": {
+      "self": "/company/09214263/appointments/QQ9nolinkExample123456789"
+     }
+    }
+   ]
+  }
+ }
+}

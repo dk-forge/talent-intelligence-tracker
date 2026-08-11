@@ -184,6 +184,35 @@ function tit_notable_where() {
 }
 
 /**
+ * WHERE A ROW IS, FOR GROUPING. One authority, because a count and the filter
+ * it drives have to agree.
+ *
+ * Every place FILTER in this file unions the job location with the employer's
+ * head office: `city = %s OR (city IS NULL AND hq_city = %s)`, written in that
+ * shape rather than as a COALESCE comparison so it can use idx_geo / idx_hq
+ * (see the note on tit_place_kinds()). Every place COUNT therefore has to group
+ * by the expression that selects the same rows, which is the COALESCE form.
+ * COALESCE(a, b) = x is true precisely when a = x OR (a IS NULL AND b = x).
+ *
+ * The dashboard's "Top cities" strip grouped by bare `city` instead, and the
+ * discrepancy was not small: the London pill read 18 while clicking it returned
+ * 1,338, because nearly every London row is placed by its employer's head
+ * office. Manchester (108) and Edinburgh (49) were missing from the strip
+ * altogether while Seattle (42) and Toronto (25) sat in it. A pill that
+ * contradicts the page it links to is worse than no pill.
+ *
+ * Grouping is a full scan either way, so the COALESCE form costs nothing here.
+ */
+function tit_city_expr() {
+    return 'COALESCE(city, hq_city)';
+}
+
+/** The same rule for countries. See tit_city_expr(). */
+function tit_country_expr() {
+    return 'COALESCE(country, hq_country)';
+}
+
+/**
  * Build the WHERE clause shared by /query and /aggregate.
  *
  * country_basis=any (the default) unions job location with employer HQ, so a
@@ -322,11 +351,26 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params = array_merge($params, $stages);
     }
 
-    // "Only updates that state a headcount." About 87% of what we hold says
-    // nothing about headcount, so filtering TO that is asking for the least
-    // informative rows; the useful control is its inverse, and nothing could
-    // express it before. hiring and displacement are exactly the directions the
-    // SOURCE stated, so this narrows on a fact, never on an inference.
+    /*
+      "Only updates that move headcount", and READ THE NAME CAREFULLY, because
+      the parameter's name is the misleading part of this control.
+
+      It selects rows where the SOURCE stated a DIRECTION of headcount movement.
+      It does not select rows carrying a headcount NUMBER, and the difference is
+      not academic: measured 2026-07-30 over 15,711 current rows, `headcount` is
+      non-null on 11 of them (0.07%) while signal_direction is hiring or
+      displacement on 53 (0.34%). Exposing the number column as a filter would
+      cut the page to eleven rows, which is why this control is the direction and
+      why the label a reader sees says "move headcount" rather than "state a
+      headcount". A comment here previously said "about 87%" of rows say nothing
+      about headcount; the real figure is 99.93%, and being an order of magnitude
+      out in the comment is how the chips bar came to describe this control as
+      "Only with a stated headcount", which is a claim about a column it does not
+      read.
+
+      hiring and displacement are exactly the directions a source stated, so this
+      narrows on a fact and never on an inference.
+    */
     if (!isset($skip['stated_headcount'])
         && $req->get_param('stated_headcount') === '1') {
         $where[] = "signal_direction IN ('hiring', 'displacement')";
@@ -386,6 +430,10 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // whichever request arrives first decides what everyone else sees.
         'min_funding_usd', 'funding_stage', 'detail', 'stated_headcount',
         'employer_type', 'work_mode', 'deal_type', 'site_event',
+        // /aggregate's response-shaping param. Read but not keyed on would let
+        // a slimmed include=fresh response be served to the full dashboard
+        // fetch, which then paints from keys that are not there.
+        'include',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -476,13 +524,17 @@ function tit_api_query(WP_REST_Request $req) {
     // The accepted-column list for /query. A column missing here is invisible
     // to every consumer of the API however well it is populated, so a new
     // field lands in this list in the same change that creates it.
+    // company_key rides along for the watchlist: the star keys on the same
+    // canonical identity the company pages and the employer filter use, so
+    // "Alphabet" and "Alphabet Inc." star as one employer rather than two.
     $rows_sql = "SELECT signal_id, headline, summary, talent_readthrough, company,
-                        ticker, cik, employer_type,
+                        company_key, ticker, cik, employer_type,
                         pillar, signal_direction, city, region, country, hq_city, hq_country,
                         state, functions, industry, headcount, headcount_scope,
                         funding_amount, funding_amount_usd, funding_stage, work_mode,
                         deal_type, site_event,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
+                        collector,
                         materiality, confidence, source_url, source_name,
                         published_date, effective_date, captured_at
                    FROM {$table} WHERE {$where}
@@ -516,6 +568,27 @@ function tit_aggregate_glance($table, $where, array $params) {
 }
 
 /**
+ * The trend chart under the caller's own filters, ALREADY RENDERED.
+ *
+ * This is the one place this endpoint returns markup, and the reason is the
+ * same one that made the matrix a single implementation. A chart is geometry:
+ * paths, a zero-based scale, a continuity gate that decides which lines may be
+ * drawn at all. Shipping the series as data means writing that geometry a
+ * second time in JavaScript, and two implementations of a gate that decides
+ * whether a line is honest is two answers to the question this page exists to
+ * answer once. So the server draws it, here and on first paint, from the same
+ * function, and the browser swaps the element's contents.
+ *
+ * Everything inside is escaped where it is built; see tit_trend_svg().
+ */
+function tit_aggregate_trend($table, $where, array $params) {
+    if (!function_exists('tit_signal_trend') || !function_exists('tit_signal_trend_html')) {
+        return '';
+    }
+    return tit_signal_trend_html(tit_signal_trend($table, $where, $params));
+}
+
+/**
  * The money views under the caller's own filters. Same guard, same reason.
  */
 function tit_aggregate_money($table, $where, array $params) {
@@ -535,6 +608,33 @@ function tit_api_aggregate(WP_REST_Request $req) {
     $params = array();
     $where  = tit_build_where($req, $params);
     $table  = tit_table_name();
+
+    /*
+      include=fresh RETURNS ONLY THE FRESHNESS PANEL'S FIGURES. The panel pairs
+      each stat with the current year's slice, which is one more /aggregate
+      call under the same filters plus since=Jan-1; making that call carry the
+      groups, the matrix and the trend would double the whole endpoint's cost
+      to fetch four scalars. A closed vocabulary of one value: anything else is
+      ignored and the full response returns, so nothing that already consumes
+      this endpoint can change shape by accident. The cache key carries the
+      param (see tit_cache_key) so slim and full responses never share an entry.
+    */
+    if (trim((string) $req->get_param('include')) === 'fresh') {
+        $one = function ($expr) use ($wpdb, $table, $where, $params) {
+            $sql = "SELECT {$expr} FROM {$table} WHERE {$where}";
+            return (int) $wpdb->get_var($params ? $wpdb->prepare($sql, $params) : $sql);
+        };
+        $out = array(
+            'total'     => $one('COUNT(*)'),
+            'companies' => $one('COUNT(DISTINCT company_key)'),
+            'countries' => $one('COUNT(DISTINCT ' . tit_country_expr() . ')'),
+            'verified'  => $one("SUM(confidence = 'verified')"),
+            'money'     => tit_aggregate_money($table, $where, $params),
+            'generated' => gmdate('c'),
+        );
+        set_transient($cache_key, $out, TIT_CACHE_TTL);
+        return tit_public_response($out);
+    }
 
     $group = function ($column) use ($wpdb, $table, $where, $params) {
         $sql = "SELECT {$column} AS k, COUNT(*) AS n FROM {$table}
@@ -604,11 +704,15 @@ function tit_api_aggregate(WP_REST_Request $req) {
         // of leaving four numbers describing a set the reader is no longer
         // looking at.
         'companies'  => $scalar('COUNT(DISTINCT company_key)'),
-        'countries'  => $scalar('COUNT(DISTINCT COALESCE(country, hq_country))'),
+        'countries'  => $scalar('COUNT(DISTINCT ' . tit_country_expr() . ')'),
         'verified'   => $scalar("SUM(confidence = 'verified')"),
         'by_pillar'  => $group('pillar'),
-        'by_country' => $coalesced('COALESCE(country, hq_country)'),
-        'by_city'    => $group('city'),
+        'by_country' => $coalesced(tit_country_expr()),
+        // by_city was $group('city'), i.e. the job location alone, while the
+        // `city` filter on this same endpoint unions it with the employer's
+        // head office. So this endpoint reported a city count that its own
+        // filter contradicted. Same fix, same reason as by_country above.
+        'by_city'    => $coalesced(tit_city_expr()),
         'by_direction' => $group('signal_direction'),
         'by_industry' => $group('industry'),
         'by_state'   => $group('state'),
@@ -619,6 +723,9 @@ function tit_api_aggregate(WP_REST_Request $req) {
         // its own summary. A dashboard that disagrees with itself is worse
         // than one that shows less.
         'glance'     => $glance,
+        // The trajectory behind those columns, rendered server-side under the
+        // same clause. See tit_aggregate_trend() for why this one is markup.
+        'trend_html' => tit_aggregate_trend($table, $where, $params),
         // Summed US dollars by place and by industry, plus the coverage the
         // page must print beside them. Never a bare total: only some rows
         // carry a dollar figure, and a total shown as if it covered
@@ -769,11 +876,59 @@ function tit_alert_recipient() {
 }
 
 /**
+ * Open CI alerts, keyed on CAUSE.
+ *
+ * Deliberately an option and not a transient: a transient can be evicted by an
+ * object cache at any moment, and an evicted "we already told them" record
+ * re-sends an alert the owner has already read, while an evicted "this is open"
+ * record silently swallows the RECOVERED notice. Neither failure announces
+ * itself, which is the property this whole feature exists to stop paying for.
+ * Stored with autoload = false, so it costs nothing on a normal page request.
+ */
+function tit_alert_state() {
+    $state = get_option('tit_ci_alert_state', array());
+    return is_array($state) ? $state : array();
+}
+
+function tit_alert_state_save($state) {
+    // A caller looping on a mutating cause key could otherwise grow wp_options
+    // without bound. Keep the newest 200 and drop the rest.
+    if (count($state) > 200) {
+        uasort($state, function ($a, $b) {
+            return ((int) ($a['first'] ?? 0)) <=> ((int) ($b['first'] ?? 0));
+        });
+        $state = array_slice($state, -200, null, true);
+    }
+    update_option('tit_ci_alert_state', $state, false);
+}
+
+/**
  * Mail the owner that something needs a human.
  *
  * Health has always been recorded and never announced: a dead collector was a
  * red run and a badge on a page nobody opens, and a stopped workflow was
  * nothing at all. This is the one route that reaches a person.
+ *
+ * THREE CALLING SHAPES, and the difference is the whole point:
+ *
+ *   {subject, body}                — legacy. Suppressed by SUBJECT for 3 days.
+ *                                    health_digest.py and link_check.py.
+ *   {subject, body, dedupe_key}    — an alarm is RAISED for that cause key. The
+ *                                    same key stays quiet until it is resolved.
+ *   {subject, body, resolve_scope} — an alarm is CLEARED. Mails once if anything
+ *                                    was open under that scope, silent if not.
+ *
+ * WHY DEDUPE BY CAUSE RATHER THAN BY RUN. The sibling repo had one assertion
+ * redden CI eight consecutive times in an afternoon. Eight identical emails
+ * would teach the owner to filter this sender, which recreates the original
+ * problem — an alarm nobody reads — in a new form. `ci_alert.py` normalises
+ * run-to-run numbers out of the message before hashing it, so a count drifting
+ * while the same thing stays broken is ONE cause and mails once, and a
+ * genuinely different assertion mails immediately.
+ *
+ * AND IT CLEARS. `resolve_scope` is posted on every green run, so a fixed
+ * breakage says so exactly once. That is what lets the owner stop worrying
+ * without going and checking, which is the actual ask.
  */
 function tit_api_alert(WP_REST_Request $req) {
     $body    = $req->get_json_params();
@@ -785,24 +940,108 @@ function tit_api_alert(WP_REST_Request $req) {
                             array('status' => 400));
     }
 
+    $to      = tit_alert_recipient();
+    $dedupe  = sanitize_text_field(is_array($body) ? ($body['dedupe_key'] ?? '') : '');
+    $resolve = sanitize_text_field(is_array($body) ? ($body['resolve_scope'] ?? '') : '');
+    $safe    = '/^[a-z0-9][a-z0-9:._-]{0,159}$/';
+
+    // ---- RECOVERY -------------------------------------------------------
+    if ($resolve !== '') {
+        if (!preg_match($safe, $resolve)) {
+            return new WP_Error('tit_bad_body', 'bad resolve_scope', array('status' => 400));
+        }
+        $state = tit_alert_state();
+        $open  = array();
+        foreach ($state as $k => $v) {
+            if (strpos($k, $resolve . ':') === 0) { $open[] = $k; }
+        }
+        if (!$open) {
+            // The overwhelmingly common case: a green run of something already
+            // green. Silence here is what makes it safe to post a resolve on
+            // EVERY success without the clear becoming noise in its own right.
+            return rest_ensure_response(array(
+                'ok' => true, 'sent' => false,
+                'reason' => 'nothing was open for this scope',
+            ));
+        }
+        $extra = "\n\nThis clears " . count($open) . " open alert(s):\n";
+        foreach ($open as $k) {
+            $extra .= '  - ' . (string) ($state[$k]['subject'] ?? $k) . "\n";
+        }
+        $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
+                        wp_strip_all_tags($message . $extra));
+        // Cleared whether or not the mail landed. The flag answers "is there an
+        // unresolved failure", and the answer is now no; leaving it open would
+        // suppress the NEXT genuine alert for this cause, which is the more
+        // expensive of the two mistakes.
+        foreach ($open as $k) { unset($state[$k]); }
+        tit_alert_state_save($state);
+        return rest_ensure_response(array(
+            'ok' => (bool) $sent, 'sent' => (bool) $sent, 'cleared' => count($open),
+        ));
+    }
+
+    // ---- CAUSE-KEYED ALARM ----------------------------------------------
+    if ($dedupe !== '') {
+        if (!preg_match($safe, $dedupe)) {
+            return new WP_Error('tit_bad_body', 'bad dedupe_key', array('status' => 400));
+        }
+        $state = tit_alert_state();
+        $now   = time();
+        $first = $now;
+        if (isset($state[$dedupe])) {
+            $first = (int) ($state[$dedupe]['first'] ?? $now);
+            $last  = (int) ($state[$dedupe]['last'] ?? $first);
+            if (($now - $last) < 14 * DAY_IN_SECONDS) {
+                return rest_ensure_response(array(
+                    'ok' => true, 'sent' => false,
+                    'reason' => 'suppressed, this exact cause is already open (raised '
+                                . human_time_diff($first, $now) . ' ago)',
+                ));
+            }
+            // One reminder a fortnight, no more. Total silence until a green run
+            // would mean a breakage the owner missed once is never mentioned
+            // again; twice a month is a reminder, not alarm fatigue.
+            $subject = 'STILL FAILING: ' . $subject;
+        }
+        $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
+                        wp_strip_all_tags($message));
+        if ($sent) {
+            // Only recorded on a successful send. An alarm that was never
+            // delivered is not "already reported" — the next failure must retry.
+            $state[$dedupe] = array('first' => $first, 'last' => $now, 'subject' => $subject);
+            tit_alert_state_save($state);
+        }
+        return rest_ensure_response(array('ok' => (bool) $sent, 'sent' => (bool) $sent));
+    }
+
+    // ---- LEGACY: suppress by subject for three days ----------------------
     // A breakage that persists would otherwise mail on every run until it is
-    // fixed, and an alert that arrives weekly forever gets filtered. Repeat the
-    // same subject at most once every three days.
-    $seen = 'tit_alert_' . md5($subject);
-    if (get_transient($seen)) {
+    // fixed, and an alert that arrives weekly forever gets filtered.
+    // An OPTION, via tit_ephemeral_* in db.php, for the same reason
+    // `tit_ci_alert_state` above is one. As a transient this key matched
+    // `_transient_tit_%`, so tit_flush_caches() wiped it on every write route:
+    // the three-day window collapsed to "until the next collector run", and a
+    // persistent breakage mailed the owner several times a day. An alarm that
+    // mails several times a day is one you learn to filter, and a filtered
+    // alarm is the original silence in a new hat - which is the whole reason
+    // this endpoint's keyed path dedupes by cause. The legacy path was quietly
+    // undoing that for every caller still on it (health_digest.py,
+    // link_check.py, process_tips.py).
+    // FTP race: fail OPEN, so the alert goes out. A duplicate email costs the
+    // owner a second read; a swallowed one costs the thing this route exists for.
+    $seen = 'alert_' . md5($subject);
+    if (function_exists('tit_ephemeral_get') && tit_ephemeral_get($seen)) {
         return rest_ensure_response(array(
             'ok' => true, 'sent' => false,
             'reason' => 'suppressed, the same alert went out within three days',
         ));
     }
 
-    $sent = wp_mail(
-        tit_alert_recipient(),
-        '[Talent Intelligence Tracker] ' . $subject,
-        wp_strip_all_tags($message)
-    );
-    if ($sent) {
-        set_transient($seen, 1, 3 * DAY_IN_SECONDS);
+    $sent = wp_mail($to, '[Talent Intelligence Tracker] ' . $subject,
+                    wp_strip_all_tags($message));
+    if ($sent && function_exists('tit_ephemeral_set')) {
+        tit_ephemeral_set($seen, 1, 3 * DAY_IN_SECONDS);
     }
     return rest_ensure_response(array('ok' => (bool) $sent, 'sent' => (bool) $sent));
 }
@@ -876,8 +1115,44 @@ function tit_api_retract(WP_REST_Request $req) {
  * (is_current = 1 is required), or blank a value — an absent or empty field is
  * "no correction for this one", never an erasure.
  */
+/*
+ * WHERE THE SOURCE PLACED IT: city, region and country, added 1.53.0.
+ *
+ * The reasoning matters, because these are the one class of column that is
+ * neither derived nor quite a quotation, and one of them is explicitly refused
+ * by the OTHER write route.
+ *
+ * `country` is deliberately not ENRICHABLE (see tit_enrichable_columns())
+ * because it is the job location as a source stated it, and writing a looked-up
+ * head office into it would turn "where the source says this happened" into
+ * "where the company is from" with no way back. That argument says the column
+ * must not be filled from a lookup. It says nothing against fixing a value we
+ * read wrong, which is what a correction is, and which had no route at all: two
+ * current rows read city Toronto with country US, and five more the same at the
+ * head office. They are Canadian issuers filing with the SEC, they are the only
+ * such contradiction in the corpus, and they are why the dashboard's Toronto
+ * pill flew an American flag.
+ *
+ * Same in-place safety as the two columns above. content_hash is md5 of
+ * company_key, pillar, published_date and the normalised headline
+ * (pipeline/validate.py), so none of these three is an input to it, and
+ * correcting one cannot move a row's fingerprint or orphan the dedup. That is
+ * what makes this preferable to a withdraw-and-republish, which for a revision
+ * carrying the SAME hash would remove both rows rather than replacing one.
+ *
+ * Still scoped to the collector the caller names, still unable to blank a value,
+ * and still unable to create or revive a row. Proved by running it:
+ * tests/php/enrich_and_correct.php.
+ *
+ * NOTE FOR THE NEXT EDITOR: tests/test_form_d_correction.py reads the BODY of
+ * the function below as text and fails if a forbidden column name appears in
+ * it, so keep prose out of it. That is why this block is up here.
+ */
 function tit_correctable_columns() {
-    return array('signal_direction', 'talent_readthrough');
+    return array(
+        'signal_direction', 'talent_readthrough',
+        'city', 'region', 'country',
+    );
 }
 
 function tit_api_correct(WP_REST_Request $req) {
@@ -987,6 +1262,33 @@ function tit_enrichable_columns() {
 }
 
 /**
+ * Columns /enrich may set back to NULL, when the caller says so EXPLICITLY.
+ *
+ * /enrich ignores an absent or empty field on purpose: absent means "we still do
+ * not know", and letting a blank erase a known value is how an enrichment pass
+ * with one missing lookup wipes a column. That guarantee is kept exactly as it
+ * was. This is the other case, and it is narrow: a value we DID compute and have
+ * since established is wrong, where leaving it there publishes a false figure.
+ *
+ * It exists because there was no route at all. Five live rows carried a
+ * funding_amount_usd off by a factor of a million (a hyphenated multiplier, and
+ * Danish kroner that the currency denylist did not recognise), and three of the
+ * five have no correct dollar value to send: the round was in kroner or euros,
+ * and this page promises those are left out rather than converted at a rate
+ * nobody published. So the only true value is no value, and neither /enrich nor
+ * /correct could write it.
+ *
+ * Deliberately NOT the whole enrichable list. `hq_city` / `hq_country` are
+ * looked-up identity that a filter depends on, `archive_url` is the fallback
+ * that outlives a dead publisher, and clearing any of those loses work rather
+ * than removing a wrong claim. Add a column here only when its wrong value would
+ * be a published falsehood and no right value exists.
+ */
+function tit_clearable_columns() {
+    return array('funding_amount_usd', 'funding_stage');
+}
+
+/**
  * Update derived fields on rows that are ALREADY published.
  *
  * publish() only sends rows with published_at IS NULL, and the server treats a
@@ -1022,6 +1324,31 @@ function tit_api_enrich(WP_REST_Request $req) {
                 $data[$col] = $row[$col];
             }
         }
+
+        // An EXPLICIT clear. Named in its own array, so it can never be the
+        // result of a field being absent or empty, which is the property the
+        // loop above exists to protect. Restricted to tit_clearable_columns().
+        if (isset($row['clear']) && is_array($row['clear'])) {
+            $clearable = tit_clearable_columns();
+            foreach ($row['clear'] as $col) {
+                $col = (string) $col;
+                if (!in_array($col, $clearable, true)) {
+                    $errors[] = array('index' => $i,
+                                      'error' => 'not clearable: ' . $col);
+                    continue;
+                }
+                // A column cannot be set and cleared in one row: that is a
+                // caller bug, and picking a winner would hide it.
+                if (array_key_exists($col, $data)) {
+                    $errors[] = array('index' => $i,
+                                      'error' => 'both set and cleared: ' . $col);
+                    unset($data[$col]);
+                    continue;
+                }
+                $data[$col] = null;
+            }
+        }
+
         if (!$data) { $skipped++; continue; }
 
         $ok = $wpdb->update(

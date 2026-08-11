@@ -1,0 +1,97 @@
+# One weekly email naming the week's CI noise, or no email at all.
+#
+# The per-failure alerting already exists (ci-alert.yml, deduped by cause).
+# This is the layer above it: did the week produce runs that went red for
+# causes already reported (repeat reds), or runs that ended cancelled with
+# zero jobs (lock displacement)? Those are the two shapes of noise measured
+# 2026-07-26..08-02, when ~180 of ~190 non-green runs were repeats of a
+# handful of facts. Structural fixes (writer_queue red-once, schedule-eviction
+# auto-resolve) remove them at the source; this report is the regression alarm
+# that says whether the fixes hold. A quiet week posts NOTHING.
+#
+# Deliberately NOT a writer: it reads run history and posts at most one alert.
+# No talent-collect lock, no database, no model spend. Its own failure is an
+# ordinary red run that ci-alert reports once.
+name: ci-noise-report
+
+on:
+  schedule:
+    # Mondays 13:20 UTC, just after the 13:00 health digest, so the owner's
+    # Monday reading is one sitting. Minute chosen to collide with nothing.
+    - cron: '20 13 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'true = print the report, post nothing'
+        default: 'true'
+
+permissions:
+  contents: write   # hold an undeliverable alert in data/alert_outbox.json
+  actions: read     # read run history and failed-run logs
+
+concurrency:
+  group: ci-noise-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Stdlib-only on purpose, like ci_alert.py: a reporting path must not be
+      # breakable by a dependency resolution failure.
+      - name: Count the week's noise, mail once only if there is any
+        env:
+          WP_SITE_URL: https://asktherecruiter.com/blog
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
+        run: |
+          EXTRA=""
+          if [ "${{ inputs.dry_run || 'false' }}" = "true" ]; then
+            EXTRA="--dry-run"
+          fi
+          python3 ci_noise_report.py $EXTRA
+
+      # Same held-alert dance as ci-alert.yml, for the same reason: /alert is a
+      # route on the host being reported about, and an undeliverable alert is
+      # HELD, never lost and never a red run of its own.
+      - name: Hold the alert until the host is back
+        if: ${{ !cancelled() }}
+        env:
+          ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
+        run: |
+          set -euo pipefail
+          if [ ! -f "$ALERT_ENVELOPE" ]; then
+            echo "Nothing to hold."
+            exit 0
+          fi
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 alert_outbox.py enqueue --envelope "$ALERT_ENVELOPE"
+            git add data/alert_outbox.json
+            if git diff --staged --quiet; then
+              echo "Already held by another run."
+              exit 0
+            fi
+            git commit -q -m "alert: held undelivered noise report $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push origin HEAD:main; then
+              echo "Held on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+          echo "::error::The noise report could not be delivered AND could not be held."
+          exit 1

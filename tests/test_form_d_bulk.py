@@ -561,9 +561,13 @@ def test_an_unrecognised_place_still_stores_nothing_rather_than_a_guess():
     """The fix reads a field, it does not invent one. A tail the vocabulary
     does not know must still come out NULL — a wrong country is worse than a
     missing one."""
+    # The city has to be unknown too, or the assertion passes for the wrong
+    # reason: the default fixture city is Vancouver, and once the gazetteer
+    # knew Vancouver the curated city's country (CA) correctly outranked the
+    # unreadable description — which is right, and not what this test is about.
     items = bulk.parse_archive(_archive([
         _foreign_row("0004-26-000003", "Nowhere Mining Ltd", "2000000",
-                     "Z9", "SOMEWHERE, NOT A COUNTRY"),
+                     "Z9", "SOMEWHERE, NOT A COUNTRY", city="Nowhereville"),
     ]))
     signal = validate.build_signal(bulk.as_classified(items[0]), items[0], bulk.COLLECTOR)
     assert signal.country is None

@@ -1,20 +1,38 @@
 #!/usr/bin/env python3
 """One-time 2026 catch-up: world news via GDELT DOC 2.0, Jan 1 to now.
 
-Why this exists at all: **Google News RSS has no archive.** It serves a recent
-window and nothing else, so January to June 2026 is unrecoverable through it.
-GDELT DOC 2.0 takes explicit `startdatetime`/`enddatetime` and holds years, and
-it returns the publisher's own URL rather than an aggregator redirect, so a
-historical row still carries a receipt. It is the only route to 2026 news, and
-`collectors/gdelt.py:34` hardcoded a rolling 3-day window, so the capability
-had never been used.
+Why this exists at all: GDELT DOC 2.0 takes explicit
+`startdatetime`/`enddatetime` and holds years, and it returns the publisher's
+own URL rather than an aggregator redirect, so a historical row still carries a
+receipt. `collectors/gdelt.py:34` hardcoded a rolling 3-day window, so the
+capability had never been used.
+
+**CORRECTION, 2026-07-30.** This paragraph used to open "Google News RSS has no
+archive; it serves a recent window and nothing else", and called GDELT "the only
+route to 2026 news". That was never tested and it is false. The RSS endpoint
+honours `after:` and `before:`, returns pubDates inside the window, and reaches
+at least to 2016; a month query truncates at 100 items with no pagination, and
+31 one-day queries return 170 of which the month's 100 are a strict subset. See
+`backfill_gnews_2026.py` for the table and for the walker built on it. GDELT is
+still worth walking — it is much cheaper per day of history, ~$4.51 for a year
+against ~$32 for a full-breadth Google News sweep — but `registry.GDELT_QUERIES`
+is English-only by design, so it cannot reach the non-English markets the recall
+worklist says hold nothing. The two walkers are complements, not substitutes.
 
 Everything goes through the SAME pipeline as the daily collector — prefilter,
 gate, read-through, validate, store, publish — so every guard applies. Nothing
 is written directly.
 
+    python backfill_gdelt_2026.py --plan-cost      # what each pace costs; no requests
     python backfill_gdelt_2026.py --start 2026-01-01 --end 2026-01-31
     python backfill_gdelt_2026.py --start 2026-01-01 --end 2026-01-31 --dry-run
+
+PACE IS THE OWNER'S DECISION AND IT IS NOT ARMED. Cost scales with slices, so the
+cron would BE the budget; there is no cron. `--plan-cost` prints the table to
+decide from, `tests/test_backfill_pace.py` refuses to let a schedule appear
+unnoticed, and the cursor advances per RUN rather than per date — which is the
+sibling's ~$3.80/day-for-six-days mistake, and the reason that test asserts the
+property rather than the symptom.
 
 COST. This is news, so unlike the SEC backfill it is not free of noise and the
 two-stage design in pipeline/classify.py is what makes it affordable:
@@ -37,6 +55,7 @@ window has to get smaller, not the query broader.
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -44,7 +63,8 @@ from datetime import date, datetime, timedelta
 import backfill_slices
 import source_registry as registry
 from collectors import gdelt
-from pipeline import classify, prefilter, publish, schema, store, validate
+from pipeline import (classify, gate_ledger, prefilter, publish, schema,
+                      store, validate)
 
 # One day. See WINDOWING above.
 WINDOW_HOURS = 24
@@ -66,6 +86,130 @@ WORKFLOW = "backfill-gdelt-2026.yml"
 SLICE_DAYS = 4
 
 
+# --------------------------------------------------------------------------
+# COST, PER WINDOW, SO THE PACE IS A DECISION AND NOT A DISCOVERY
+# --------------------------------------------------------------------------
+#
+# This walker is the biggest coverage lever available and the only one in its
+# session that touches the budget. 51 of the 81 gold-set misses are
+# `outside_our_history`: the news collectors first ran on 2026-07-27 and
+# `national_press` on 2026-07-29, against a gold window of 2026-07-01..28. Nothing
+# is broken; we simply did not exist yet. Walking history is the only fix.
+#
+# But cost scales with SLICES, so the CRON IS THE BUDGET. That makes the pace an
+# owner decision rather than an implementation detail, and a decision needs a
+# number beside it. `--plan-cost` prints these:
+#
+#   * a gate call is ~$0.00003 (141 tokens in / 35 out, measured)
+#   * a full read-through is ~$0.00128 (3,100 in / 400 out, measured)
+#   * so cost per slice ~= candidates x 0.00003 + reads x 0.00128, and the read
+#     term is ~40x the gate term. What bounds a slice is therefore the READ
+#     ceiling and nothing else.
+#
+# The default read ceiling was 1200, which is ~$1.54 a slice: a year of history at
+# four days a slice is 92 slices and up to ~$142. That is not a pace the owner can
+# choose from, it is a number spend.py would have to stop, and a ceiling only
+# spend.py can stop is a ceiling that reads as a plan. So the default is sized
+# against the product's own monthly allowance instead — see DEFAULT_MAX_READTHROUGHS
+# — and the CLI still takes any value for a session somebody is watching.
+
+#: What this walker may spend in a month, all-in. A slice of the ~$5/month
+#: product budget, chosen so a year of history can be closed without the walker
+#: ever being the reason a collect run finds the allowance gone. It is a SIZING
+#: input, not an enforcement point: enforcement is spend.py, which runs first on
+#: every job and hard-stops at 90% of the allowance, and the OpenRouter key's own
+#: cap behind that.
+MONTHLY_WALKER_BUDGET_USD = 1.50
+
+#: Measured per-item prices. Both from the ledger's own accounting, not a rate
+#: card: see docs/TECHLOG.md "cost levers, second pass".
+GATE_USD_PER_ITEM = 0.00003
+READ_USD_PER_ITEM = 0.00128
+
+#: Gate survivors screened per read bought. The measured pipeline is far kinder
+#: than this — the last real run screened ~1,050 and bought 60 — but the
+#: derivation below has to be pessimistic or the ceiling it produces is one the
+#: budget cannot actually pay for, which is the whole failure mode being avoided.
+CANDIDATES_PER_READ = 4
+
+#: The all-in price of one read: the read itself plus the gate calls it took to
+#: find. Deriving the ceiling from READ_USD_PER_ITEM alone overshot the budget by
+#: 9% — small, and exactly the kind of arithmetic that makes a stated ceiling
+#: quietly untrue.
+USD_PER_READ_ALL_IN = READ_USD_PER_ITEM + CANDIDATES_PER_READ * GATE_USD_PER_ITEM
+
+#: Read-throughs one slice may buy. DERIVED from the budget above at one slice a
+#: day (30 slices a month), so changing the budget changes this and the two can
+#: never disagree, and it is derived from the ALL-IN price of a read rather than
+#: from the read alone. Printed by --plan-cost: about $0.05 a slice, $1.50 a
+#: month at one slice a day, and a year of 2026 history in 92 slices for about
+#: $4.60 all in — one tracker's monthly budget, spent once, for everything from
+#: 1 January to the day collection started.
+DEFAULT_MAX_READTHROUGHS = max(
+    1, int(MONTHLY_WALKER_BUDGET_USD / 30 / USD_PER_READ_ALL_IN))
+
+
+def window_cost(*, candidates: int, reads: int) -> dict:
+    """What one slice costs at the measured prices. Pure; no network, no model."""
+    gate = candidates * GATE_USD_PER_ITEM
+    read = reads * READ_USD_PER_ITEM
+    return {"gate_usd": gate, "read_usd": read, "usd": gate + read}
+
+
+def year_projection(*, windows_per_run: int = SLICE_DAYS,
+                    reads_per_run: int | None = None,
+                    candidates_per_read: int = CANDIDATES_PER_READ) -> dict:
+    """Closing a year of history: how many slices, how long, how much.
+
+    `candidates_per_read` is the gate-survivors-per-read ratio, and it is
+    deliberately pessimistic — see CANDIDATES_PER_READ. It barely moves the total,
+    because a gate call is a fortieth of a read, but it is carried through rather
+    than dropped: an "about" in a budget is how a ceiling stops being one.
+    """
+    reads = reads_per_run if reads_per_run is not None else DEFAULT_MAX_READTHROUGHS
+    slices = math.ceil(366 / max(windows_per_run, 1))
+    per_slice = window_cost(candidates=reads * candidates_per_read, reads=reads)
+    return {
+        "slices": slices,
+        "reads_per_slice": reads,
+        "usd_per_slice": per_slice["usd"],
+        "usd_total": per_slice["usd"] * slices,
+        "days_at_one_slice_per_day": slices,
+        "days_at_two_slices_per_day": math.ceil(slices / 2),
+        "days_at_four_slices_per_day": math.ceil(slices / 4),
+    }
+
+
+def print_cost_plan() -> None:
+    """The table the owner needs to choose a cadence. Calls nothing."""
+    print("HISTORICAL WALKER — what a pace costs, at measured per-item prices")
+    print(f"  gate  ${GATE_USD_PER_ITEM:.5f}/item      "
+          f"read  ${READ_USD_PER_ITEM:.5f}/item")
+    print(f"  slice = {SLICE_DAYS} day-windows, ceiling "
+          f"{DEFAULT_MAX_READTHROUGHS} read-throughs "
+          f"(derived from ${MONTHLY_WALKER_BUDGET_USD:.2f}/month at 1 slice/day)")
+    print()
+    print(f"  {'pace':<22} {'wall clock':>12} {'$/month':>9} {'$ total':>9}")
+    year = year_projection()
+    for label, per_day in (("1 slice/day", 1), ("2 slices/day", 2),
+                           ("4 slices/day", 4)):
+        days = math.ceil(year["slices"] / per_day)
+        monthly = year["usd_per_slice"] * per_day * 30
+        print(f"  {label:<22} {days:>9} days {monthly:>8.2f} "
+              f"{year['usd_total']:>9.2f}")
+    print()
+    print(f"  A year of 2026 history is {year['slices']} slices and "
+          f"${year['usd_total']:.2f} at ANY pace — the pace only decides how long "
+          f"it takes and how much lands in one month.")
+    print("  It is NOT armed. Arming means a cron in "
+          ".github/workflows/backfill-gdelt-2026.yml,")
+    print("  which is a spend decision. Queue a slice by hand instead:")
+    print("    gh workflow run drain-writers.yml -f enqueue=backfill-gdelt-2026.yml \\")
+    print("         -f inputs_json='{\"start\":\"2026-01-01\",\"end\":\"2026-07-26\","
+          "\"slice\":\"true\"}' \\")
+    print("         -f reason='history walk, slice 1'")
+
+
 def iter_windows(start: date, end: date):
     """Half-open [lo, hi) day windows as GDELT stamps."""
     lo = datetime(start.year, start.month, start.day)
@@ -76,13 +220,24 @@ def iter_windows(start: date, end: date):
         lo = hi
 
 
+@gate_ledger.around_run(WORKFLOW)
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--start", required=True)
-    ap.add_argument("--end", required=True)
+    # Not `required`: --plan-cost answers a question about the pace and
+    # needs no window to answer it.
+    ap.add_argument("--start", default="2026-01-01")
+    ap.add_argument("--end", default="2026-12-31")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--max-readthroughs", type=int, default=1200,
-                    help="hard stop on FULL classifications for the whole run")
+    ap.add_argument("--max-readthroughs", type=int,
+                    default=DEFAULT_MAX_READTHROUGHS,
+                    help=f"hard stop on FULL classifications for the whole run "
+                         f"(default {DEFAULT_MAX_READTHROUGHS}, DERIVED from "
+                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month at one slice a "
+                         f"day; was 1200, which is ~$1.54 a slice and ~$142 for a "
+                         f"year of history). See --plan-cost.")
+    ap.add_argument("--plan-cost", action="store_true",
+                    help="print what each pace costs and exit. Fetches nothing, "
+                         "calls nothing, writes nothing.")
     ap.add_argument("--fetch-only", action="store_true",
                     help="fetch and prefilter, call no model, store nothing — "
                          "proves the collector without spending anything")
@@ -100,6 +255,13 @@ def main() -> int:
                                         "backfill_slices.py record")
     ap.add_argument("--state", help="slice state file (default data/backfill_state.json)")
     args = ap.parse_args()
+    # The decorator could only guess from kwargs, and this one comes from argv.
+    # A rehearsal must not leave an uncommitted shard for a real run to push.
+    gate_ledger.set_dry_run(args.dry_run)
+
+    if args.plan_cost:
+        print_cost_plan()
+        return 0
 
     requested_start = date.fromisoformat(args.start)
     requested_end = min(date.fromisoformat(args.end), date.today())
@@ -135,7 +297,7 @@ def main() -> int:
 
     fetched = candidates = 0
     stored = duplicates = rejected = skipped = errors = 0
-    windows = empty_windows = 0
+    windows = empty_windows = unreached_windows = 0
     filtered = Counter()
     outlet_countries: Counter = Counter()
     stored_countries: Counter = Counter()
@@ -143,6 +305,11 @@ def main() -> int:
     # The last day-window this run FINISHED. The cursor is derived from it, so
     # a run that stops on its budget half way through a slice resumes on the
     # exact next day rather than repeating or skipping one.
+    #
+    # A window we COULD NOT FETCH is not finished, and until 2026-08-01 this was
+    # assigned unconditionally at the bottom of the loop, so a throttling
+    # lockout advanced the cursor over days nothing had asked GDELT for. The
+    # sibling walker did exactly that on 2026-07-31 and lost 2026-01-24.
     done_through: date | None = None
 
     print(f"[gdelt] {len(queries)} queries x {(end - start).days + 1} day-windows")
@@ -152,10 +319,28 @@ def main() -> int:
             stopped_early = budget.reason()
             break
         windows += 1
+        errors_before = (gdelt.STATS["throttled_out"]
+                         + gdelt.STATS["rejected_queries"])
         items = gdelt.collect(queries, startdatetime=lo, enddatetime=hi,
                               seen_urls=seen_urls, seen_titles=seen_titles)
         fetched += len(items)
-        if not items:
+        window_errors = (gdelt.STATS["throttled_out"]
+                         + gdelt.STATS["rejected_queries"]) - errors_before
+
+        # Three states, not two. GDELT throttles erratically and drops
+        # individual queries, so a window that lost some of them still SAW the
+        # day; a window that returned nothing while every query was throttled
+        # out or rejected did not, and recording that as "the day was quiet" is
+        # a hole no later run would ever be sent back for.
+        state = backfill_slices.sampled_window(len(items), window_errors)
+        if state == backfill_slices.UNREACHED:
+            unreached_windows += 1
+            stopped_early = backfill_slices.unreached_reason(
+                f"{lo:%Y-%m-%d}",
+                f"{window_errors} queries throttled out or rejected, none answered")
+            print(f"\nSTOPPING: {stopped_early}", file=sys.stderr)
+            break
+        if state == backfill_slices.EMPTY:
             empty_windows += 1
 
         kept = []
@@ -200,13 +385,20 @@ def main() -> int:
                 # Historical news is not going anywhere: leave it unseen and a
                 # re-dispatch of the same window picks it up.
                 errors += 1
+                gate_ledger.outcome(item, "deferred")
                 continue
             except classify.ClassifyError:
                 errors += 1
+                gate_ledger.outcome(item, "error")
                 continue
 
             if classified is None:
                 rejected += 1
+                # A gate NO already closed its own line as `gate_reject` and
+                # `outcome()` refuses to overwrite it — the two rejections
+                # arrive here identically, and telling them apart is the whole
+                # point of the ledger.
+                gate_ledger.outcome(item, "model_reject")
                 if not args.dry_run:
                     store.mark_seen(conn, url, gdelt.COLLECTOR, "rejected")
                 continue
@@ -218,6 +410,7 @@ def main() -> int:
                                                conn=conn)
             except validate.Rejected:
                 rejected += 1
+                gate_ledger.outcome(item, "validate_reject")
                 if not args.dry_run:
                     store.mark_seen(conn, url, gdelt.COLLECTOR, "rejected")
                 continue
@@ -225,11 +418,13 @@ def main() -> int:
             outlet_countries[item.get("source_country") or "?"] += 1
             if args.dry_run:
                 stored += 1
+                gate_ledger.outcome(item, "would_store")
                 stored_countries[signal.country or "-"] += 1
                 print(f"  WOULD STORE  [{signal.country or '--'}] {signal.headline[:64]}")
                 continue
 
             outcome = store.store(conn, signal)
+            gate_ledger.outcome(item, outcome)
             store.mark_seen(conn, url, gdelt.COLLECTOR, outcome)
             if outcome == "stored":
                 stored += 1
@@ -246,7 +441,8 @@ def main() -> int:
 
     g = gdelt.STATS
     print(f"\nBACKFILL {start}..{end}")
-    print(f"  windows            {windows} ({empty_windows} empty)")
+    print(f"  windows            {windows} ({empty_windows} empty, "
+          f"{unreached_windows} UNREACHED)")
     print(f"  queries sent       {g['queries']}  "
           f"(throttled out {g['throttled_out']}, rejected {g['rejected_queries']}, "
           f"truncated at the 250 cap {g['truncated']})")
@@ -286,9 +482,14 @@ def main() -> int:
     # The slice ticket. Emitted BEFORE the fail-loud checks below on purpose: a
     # run that collected four days and then hit a broken fetch has still done
     # four days, and the whole point of slicing is that finished work is never
-    # thrown away by however the run ends. A run that finished NOTHING emits a
-    # cursor that has not moved, which `backfill_slices record` refuses to
-    # requeue and goes red on — so a broken chain stops itself rather than
+    # thrown away by however the run ends. The commit step runs
+    # `if: !cancelled()` for the same reason, so this ticket is recorded and
+    # requeued even when this function returns 1 — GOING RED DOES NOT UN-ADVANCE
+    # A CURSOR, and on the sibling gnews walker that cost three days of history
+    # on 2026-07-31. The only thing that keeps an unfetchable day out of the
+    # past is that it never sets `done_through`: a run that finished NOTHING
+    # emits a cursor that has not moved, which `backfill_slices record` refuses
+    # to requeue and goes red on, so a broken chain stops itself rather than
     # spinning.
     #
     # Nothing is emitted for a dry or fetch-only run: those store nothing, so a
@@ -306,11 +507,21 @@ def main() -> int:
     if blocked:
         return 1
 
-    # FAIL LOUD. A month of world news cannot be empty. If every window came
-    # back with nothing, the FETCH is broken — a rejected query, a throttling
-    # lockout, a changed endpoint — and the run must not exit green on it. The
-    # first SEC backfill dispatch exited 0 after five silent 403s and looked
-    # exactly like a successful run that found nothing (2026-07-28).
+    # FAIL LOUD on a window nobody could reach. The cursor already refused to
+    # pass it; this is what gets a human to look at why.
+    if unreached_windows:
+        print(f"\nSTOPPING: {unreached_windows} window(s) could not be fetched "
+              f"at all — every query was throttled out or rejected. The cursor "
+              f"was NOT moved past them, so the next slice starts on the same "
+              f"day and nothing is skipped.", file=sys.stderr)
+        return 1
+
+    # A month of world news cannot be empty. If every window came back with
+    # nothing and nothing errored, the FETCH is broken in a way that reports
+    # success — a changed endpoint, a parser returning [] — and the run must not
+    # exit green on it. The first SEC backfill dispatch exited 0 after five
+    # silent 403s and looked exactly like a successful run that found nothing
+    # (2026-07-28).
     if windows and empty_windows == windows:
         print("\nSTOPPING: every window returned zero articles. A historical "
               "month of world news cannot be empty, so the GDELT fetch itself "

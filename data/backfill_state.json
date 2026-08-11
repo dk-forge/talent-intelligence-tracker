@@ -49,6 +49,3105 @@
       "unit": "quarters",
       "updated_at": "2026-07-29T19:45:51Z",
       "workflow": "backfill-funding-bulk.yml"
+    },
+    "backfill-gdelt-2026:2026-01-01..2026-07-26": {
+      "cursor": "2026-06-29",
+      "end": "2026-07-26",
+      "history": [
+        {
+          "at": "2026-07-30T19:22:59Z",
+          "run": "",
+          "slice": "2026-01-01..2026-01-04",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 36,
+            "stored": 6,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-30T21:17:23Z",
+          "run": "",
+          "slice": "2026-01-05..2026-01-08",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 59,
+            "stored": 12,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-30T23:18:39Z",
+          "run": "",
+          "slice": "2026-01-09..2026-01-12",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 34,
+            "stored": 12,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-30T23:58:21Z",
+          "run": "",
+          "slice": "2026-01-13..2026-01-16",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-01-14",
+          "totals": {
+            "duplicates": 8,
+            "rejected": 41,
+            "stored": 18,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-07-31T02:28:10Z",
+          "run": "",
+          "slice": "2026-01-14..2026-01-17",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-01-17",
+          "totals": {
+            "duplicates": 5,
+            "rejected": 30,
+            "stored": 22,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T03:32:07Z",
+          "run": "",
+          "slice": "2026-01-17..2026-01-20",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 1,
+            "rejected": 23,
+            "stored": 15,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T06:16:55Z",
+          "run": "",
+          "slice": "2026-01-21..2026-01-24",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 6,
+            "rejected": 42,
+            "stored": 20,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T07:18:09Z",
+          "run": "",
+          "slice": "2026-01-25..2026-01-28",
+          "stopped_early": "slice budget of 50 minutes reached (55 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 28,
+            "stored": 12,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-07-31T10:03:33Z",
+          "run": "",
+          "slice": "2026-01-28..2026-01-31",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 41,
+            "stored": 7,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T11:53:58Z",
+          "run": "",
+          "slice": "2026-02-01..2026-02-04",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 9,
+            "rejected": 26,
+            "stored": 13,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T13:17:04Z",
+          "run": "",
+          "slice": "2026-02-05..2026-02-08",
+          "stopped_early": "slice budget of 50 minutes reached (51 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 27,
+            "stored": 12,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-07-31T14:06:52Z",
+          "run": "",
+          "slice": "2026-02-08..2026-02-11",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-02-10",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 23,
+            "stored": 27,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-07-31T15:33:06Z",
+          "run": "",
+          "slice": "2026-02-10..2026-02-13",
+          "stopped_early": "slice budget of 50 minutes reached (55 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 25,
+            "stored": 13,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-07-31T16:30:42Z",
+          "run": "",
+          "slice": "2026-02-13..2026-02-16",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 47,
+            "stored": 12,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T18:29:53Z",
+          "run": "",
+          "slice": "2026-02-17..2026-02-20",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 36,
+            "stored": 25,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T19:34:30Z",
+          "run": "",
+          "slice": "2026-02-21..2026-02-24",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 38,
+            "stored": 13,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T23:35:41Z",
+          "run": "",
+          "slice": "2026-02-25..2026-02-28",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 20,
+            "stored": 15,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T00:39:27Z",
+          "run": "",
+          "slice": "2026-03-01..2026-03-04",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-03-04",
+          "totals": {
+            "duplicates": 10,
+            "rejected": 39,
+            "stored": 13,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T02:24:38Z",
+          "run": "",
+          "slice": "2026-03-04..2026-03-07",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-03-06",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 21,
+            "stored": 23,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-01T03:18:10Z",
+          "run": "",
+          "slice": "2026-03-06..2026-03-09",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 32,
+            "stored": 5,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T04:37:43Z",
+          "run": "",
+          "slice": "2026-03-10..2026-03-13",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-03-12",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 28,
+            "stored": 19,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-01T05:41:15Z",
+          "run": "",
+          "slice": "2026-03-12..2026-03-15",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 6,
+            "rejected": 23,
+            "stored": 20,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T07:15:20Z",
+          "run": "",
+          "slice": "2026-03-16..2026-03-19",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-03-19",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 44,
+            "stored": 24,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T08:39:45Z",
+          "run": "",
+          "slice": "2026-03-19..2026-03-22",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 1,
+            "rejected": 53,
+            "stored": 16,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T10:34:07Z",
+          "run": "",
+          "slice": "2026-03-23..2026-03-26",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-03-26",
+          "totals": {
+            "duplicates": 5,
+            "rejected": 84,
+            "stored": 18,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T11:44:06Z",
+          "run": "",
+          "slice": "2026-03-26..2026-03-29",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 25,
+            "stored": 4,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T13:15:43Z",
+          "run": "",
+          "slice": "2026-03-30..2026-04-02",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 56,
+            "stored": 15,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T14:07:36Z",
+          "run": "",
+          "slice": "2026-04-03..2026-04-06",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 34,
+            "stored": 4,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T15:30:13Z",
+          "run": "",
+          "slice": "2026-04-07..2026-04-10",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 55,
+            "stored": 16,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T16:27:41Z",
+          "run": "",
+          "slice": "2026-04-11..2026-04-14",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 33,
+            "stored": 10,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T18:51:33Z",
+          "run": "",
+          "slice": "2026-04-15..2026-04-18",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 1,
+            "rejected": 45,
+            "stored": 14,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T21:44:59Z",
+          "run": "",
+          "slice": "2026-04-19..2026-04-22",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 30,
+            "stored": 8,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T00:03:24Z",
+          "run": "",
+          "slice": "2026-04-23..2026-04-26",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 48,
+            "stored": 12,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T01:40:32Z",
+          "run": "",
+          "slice": "2026-04-27..2026-04-30",
+          "stopped_early": "slice budget of 50 minutes reached (51 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 42,
+            "stored": 16,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-02T03:56:08Z",
+          "run": "",
+          "slice": "2026-04-30..2026-05-03",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 1,
+            "rejected": 43,
+            "stored": 11,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T06:34:35Z",
+          "run": "",
+          "slice": "2026-05-04..2026-05-07",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 50,
+            "stored": 17,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T09:07:28Z",
+          "run": "",
+          "slice": "2026-05-08..2026-05-11",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-05-10",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 35,
+            "stored": 11,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-02T11:38:37Z",
+          "run": "",
+          "slice": "2026-05-10..2026-05-13",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-05-12",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 34,
+            "stored": 13,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-02T13:24:40Z",
+          "run": "",
+          "slice": "2026-05-12..2026-05-15",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-05-15",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 23,
+            "stored": 24,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T14:52:35Z",
+          "run": "",
+          "slice": "2026-05-15..2026-05-18",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 31,
+            "stored": 6,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T16:12:12Z",
+          "run": "",
+          "slice": "2026-05-19..2026-05-22",
+          "stopped_early": "slice budget of 50 minutes reached (56 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 18,
+            "stored": 9,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-02T17:29:14Z",
+          "run": "",
+          "slice": "2026-05-22..2026-05-25",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 27,
+            "stored": 13,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T19:22:39Z",
+          "run": "",
+          "slice": "2026-05-26..2026-05-29",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 48,
+            "stored": 17,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T21:21:31Z",
+          "run": "",
+          "slice": "2026-05-30..2026-06-02",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 1,
+            "rejected": 52,
+            "stored": 10,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T23:00:51Z",
+          "run": "",
+          "slice": "2026-06-03..2026-06-06",
+          "stopped_early": "--max-readthroughs (35) reached at 2026-06-05",
+          "totals": {
+            "duplicates": 4,
+            "rejected": 31,
+            "stored": 22,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-03T00:17:30Z",
+          "run": "",
+          "slice": "2026-06-05..2026-06-08",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 19,
+            "stored": 8,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T01:40:46Z",
+          "run": "",
+          "slice": "2026-06-09..2026-06-12",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 43,
+            "stored": 17,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T03:33:21Z",
+          "run": "",
+          "slice": "2026-06-13..2026-06-16",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "rejected": 30,
+            "stored": 17,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T04:55:00Z",
+          "run": "",
+          "slice": "2026-06-17..2026-06-20",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 41,
+            "stored": 12,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T06:18:19Z",
+          "run": "",
+          "slice": "2026-06-21..2026-06-24",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 1,
+            "rejected": 26,
+            "stored": 17,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T07:51:13Z",
+          "run": "",
+          "slice": "2026-06-25..2026-06-28",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "rejected": 0,
+            "stored": 0,
+            "windows": 4
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "fetch_only": "false",
+        "max_readthroughs": "35"
+      },
+      "label": "",
+      "opened_at": "2026-07-30T19:22:59Z",
+      "slice_size": 4,
+      "slices": 51,
+      "start": "2026-01-01",
+      "state": "running",
+      "totals": {
+        "duplicates": 135,
+        "rejected": 1819,
+        "stored": 715,
+        "windows": 191
+      },
+      "unit": "days",
+      "updated_at": "2026-08-03T07:51:13Z",
+      "workflow": "backfill-gdelt-2026.yml"
+    },
+    "backfill-gnews-2026:2026-01-01..2026-07-26": {
+      "cursor": "2026-07-13",
+      "end": "2026-07-26",
+      "history": [
+        {
+          "at": "2026-07-30T22:10:09Z",
+          "run": "",
+          "slice": "2026-01-01..2026-01-04",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-04",
+          "totals": {
+            "duplicates": 7,
+            "left_for_later": 441,
+            "rejected": 79,
+            "stored": 50,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T01:27:28Z",
+          "run": "",
+          "slice": "2026-01-04..2026-01-07",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-07",
+          "totals": {
+            "duplicates": 6,
+            "left_for_later": 1328,
+            "rejected": 59,
+            "stored": 64,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T04:02:22Z",
+          "run": "",
+          "slice": "2026-01-07..2026-01-10",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-10",
+          "totals": {
+            "duplicates": 11,
+            "left_for_later": 1107,
+            "rejected": 48,
+            "stored": 54,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T09:05:43Z",
+          "run": "",
+          "slice": "2026-01-10..2026-01-13",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-13",
+          "totals": {
+            "duplicates": 13,
+            "left_for_later": 1423,
+            "rejected": 53,
+            "stored": 49,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T12:24:41Z",
+          "run": "",
+          "slice": "2026-01-13..2026-01-16",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-16",
+          "totals": {
+            "duplicates": 16,
+            "left_for_later": 1554,
+            "rejected": 35,
+            "stored": 65,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T14:37:05Z",
+          "run": "",
+          "slice": "2026-01-16..2026-01-19",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-19",
+          "totals": {
+            "duplicates": 13,
+            "left_for_later": 952,
+            "rejected": 65,
+            "stored": 57,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T17:03:46Z",
+          "run": "",
+          "slice": "2026-01-19..2026-01-22",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-22",
+          "totals": {
+            "duplicates": 20,
+            "left_for_later": 1521,
+            "rejected": 52,
+            "stored": 54,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-07-31T21:34:13Z",
+          "run": "",
+          "slice": "2026-01-22..2026-01-25",
+          "stopped_early": "slice budget of 50 minutes reached (74 min elapsed) \u2014 stopping at a window boundary so the commit step runs",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 0,
+            "rejected": 0,
+            "stored": 0,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-01T01:10:30Z",
+          "run": "",
+          "slice": "2026-01-25..2026-01-28",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-28",
+          "totals": {
+            "duplicates": 10,
+            "left_for_later": 1514,
+            "rejected": 62,
+            "stored": 65,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T03:47:48Z",
+          "run": "",
+          "slice": "2026-01-28..2026-01-31",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-01-31",
+          "totals": {
+            "duplicates": 12,
+            "left_for_later": 1254,
+            "rejected": 82,
+            "stored": 50,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T06:13:32Z",
+          "run": "",
+          "slice": "2026-01-31..2026-02-03",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-03",
+          "totals": {
+            "duplicates": 17,
+            "left_for_later": 1583,
+            "rejected": 68,
+            "stored": 61,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T09:07:39Z",
+          "run": "",
+          "slice": "2026-02-03..2026-02-06",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-06",
+          "totals": {
+            "duplicates": 24,
+            "left_for_later": 1780,
+            "rejected": 46,
+            "stored": 50,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T12:10:30Z",
+          "run": "",
+          "slice": "2026-02-06..2026-02-09",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 21,
+            "left_for_later": 1261,
+            "rejected": 78,
+            "stored": 48,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T14:34:10Z",
+          "run": "",
+          "slice": "2026-02-10..2026-02-13",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-13",
+          "totals": {
+            "duplicates": 18,
+            "left_for_later": 1664,
+            "rejected": 55,
+            "stored": 53,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T16:56:07Z",
+          "run": "",
+          "slice": "2026-02-13..2026-02-16",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-16",
+          "totals": {
+            "duplicates": 21,
+            "left_for_later": 841,
+            "rejected": 72,
+            "stored": 46,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T19:53:20Z",
+          "run": "",
+          "slice": "2026-02-16..2026-02-19",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-19",
+          "totals": {
+            "duplicates": 13,
+            "left_for_later": 1321,
+            "rejected": 69,
+            "stored": 57,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-01T22:42:14Z",
+          "run": "",
+          "slice": "2026-02-19..2026-02-22",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-22",
+          "totals": {
+            "duplicates": 10,
+            "left_for_later": 882,
+            "rejected": 84,
+            "stored": 48,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T00:24:08Z",
+          "run": "",
+          "slice": "2026-02-22..2026-02-25",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-25",
+          "totals": {
+            "duplicates": 11,
+            "left_for_later": 1574,
+            "rejected": 77,
+            "stored": 56,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T02:29:36Z",
+          "run": "",
+          "slice": "2026-02-25..2026-02-28",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-02-28",
+          "totals": {
+            "duplicates": 21,
+            "left_for_later": 1359,
+            "rejected": 56,
+            "stored": 41,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T04:23:00Z",
+          "run": "",
+          "slice": "2026-02-28..2026-03-03",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-03",
+          "totals": {
+            "duplicates": 16,
+            "left_for_later": 1057,
+            "rejected": 70,
+            "stored": 48,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T07:02:15Z",
+          "run": "",
+          "slice": "2026-03-03..2026-03-06",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-06",
+          "totals": {
+            "duplicates": 15,
+            "left_for_later": 1269,
+            "rejected": 65,
+            "stored": 56,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T09:56:08Z",
+          "run": "",
+          "slice": "2026-03-06..2026-03-09",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-09",
+          "totals": {
+            "duplicates": 12,
+            "left_for_later": 1045,
+            "rejected": 65,
+            "stored": 52,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T11:59:34Z",
+          "run": "",
+          "slice": "2026-03-09..2026-03-12",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-12",
+          "totals": {
+            "duplicates": 13,
+            "left_for_later": 1744,
+            "rejected": 45,
+            "stored": 52,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T13:47:53Z",
+          "run": "",
+          "slice": "2026-03-12..2026-03-15",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 16,
+            "left_for_later": 950,
+            "rejected": 83,
+            "stored": 47,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T15:14:57Z",
+          "run": "",
+          "slice": "2026-03-16..2026-03-19",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-19",
+          "totals": {
+            "duplicates": 14,
+            "left_for_later": 1699,
+            "rejected": 72,
+            "stored": 46,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T16:31:09Z",
+          "run": "",
+          "slice": "2026-03-19..2026-03-22",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-22",
+          "totals": {
+            "duplicates": 18,
+            "left_for_later": 791,
+            "rejected": 70,
+            "stored": 43,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T18:18:44Z",
+          "run": "",
+          "slice": "2026-03-22..2026-03-25",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-03-25",
+          "totals": {
+            "duplicates": 9,
+            "left_for_later": 1797,
+            "rejected": 63,
+            "stored": 53,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T20:18:49Z",
+          "run": "",
+          "slice": "2026-03-25..2026-03-28",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 17,
+            "left_for_later": 1333,
+            "rejected": 84,
+            "stored": 48,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T22:20:08Z",
+          "run": "",
+          "slice": "2026-03-29..2026-04-01",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-01",
+          "totals": {
+            "duplicates": 10,
+            "left_for_later": 2251,
+            "rejected": 72,
+            "stored": 51,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-02T23:18:46Z",
+          "run": "",
+          "slice": "2026-04-01..2026-04-04",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 13,
+            "left_for_later": 1466,
+            "rejected": 90,
+            "stored": 43,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T00:34:39Z",
+          "run": "",
+          "slice": "2026-04-05..2026-04-08",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-07",
+          "totals": {
+            "duplicates": 17,
+            "left_for_later": 1149,
+            "rejected": 33,
+            "stored": 46,
+            "windows": 3
+          }
+        },
+        {
+          "at": "2026-08-03T02:30:53Z",
+          "run": "",
+          "slice": "2026-04-07..2026-04-10",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-10",
+          "totals": {
+            "duplicates": 24,
+            "left_for_later": 1425,
+            "rejected": 49,
+            "stored": 50,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T03:55:14Z",
+          "run": "",
+          "slice": "2026-04-10..2026-04-13",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-13",
+          "totals": {
+            "duplicates": 12,
+            "left_for_later": 1094,
+            "rejected": 70,
+            "stored": 48,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T05:19:47Z",
+          "run": "",
+          "slice": "2026-04-13..2026-04-16",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-16",
+          "totals": {
+            "duplicates": 16,
+            "left_for_later": 2052,
+            "rejected": 61,
+            "stored": 53,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T06:47:06Z",
+          "run": "",
+          "slice": "2026-04-16..2026-04-19",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-19",
+          "totals": {
+            "duplicates": 19,
+            "left_for_later": 1498,
+            "rejected": 79,
+            "stored": 47,
+            "windows": 4
+          }
+        },
+        {
+          "at": "2026-08-03T08:24:22Z",
+          "run": "",
+          "slice": "2026-04-19..2026-04-22",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-20",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1360,
+            "rejected": 4,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T09:18:09Z",
+          "run": "",
+          "slice": "2026-04-20..2026-04-23",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-21",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1651,
+            "rejected": 3,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T09:32:23Z",
+          "run": "",
+          "slice": "2026-04-21..2026-04-24",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-22",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1434,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T09:39:57Z",
+          "run": "",
+          "slice": "2026-04-22..2026-04-25",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-23",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1248,
+            "rejected": 0,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:14:16Z",
+          "run": "",
+          "slice": "2026-04-23..2026-04-26",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-24",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 972,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:19:46Z",
+          "run": "",
+          "slice": "2026-04-24..2026-04-27",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-25",
+          "totals": {
+            "duplicates": 3,
+            "left_for_later": 600,
+            "rejected": 1,
+            "stored": 1,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:28:55Z",
+          "run": "",
+          "slice": "2026-04-25..2026-04-28",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-26",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 587,
+            "rejected": 2,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:35:26Z",
+          "run": "",
+          "slice": "2026-04-26..2026-04-29",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-27",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 927,
+            "rejected": 4,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:42:30Z",
+          "run": "",
+          "slice": "2026-04-27..2026-04-30",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-28",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1168,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:49:13Z",
+          "run": "",
+          "slice": "2026-04-28..2026-05-01",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-29",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1149,
+            "rejected": 3,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T10:55:51Z",
+          "run": "",
+          "slice": "2026-04-29..2026-05-02",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-04-30",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 967,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:18:47Z",
+          "run": "",
+          "slice": "2026-04-30..2026-05-03",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-01",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 696,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:24:33Z",
+          "run": "",
+          "slice": "2026-05-01..2026-05-04",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-02",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 494,
+            "rejected": 0,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:30:28Z",
+          "run": "",
+          "slice": "2026-05-02..2026-05-05",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-03",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 560,
+            "rejected": 1,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:36:51Z",
+          "run": "",
+          "slice": "2026-05-03..2026-05-06",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-04",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 839,
+            "rejected": 1,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:43:43Z",
+          "run": "",
+          "slice": "2026-05-04..2026-05-07",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-05",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1097,
+            "rejected": 5,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:51:05Z",
+          "run": "",
+          "slice": "2026-05-05..2026-05-08",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-06",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1191,
+            "rejected": 3,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T11:58:22Z",
+          "run": "",
+          "slice": "2026-05-06..2026-05-09",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-07",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1101,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T12:04:40Z",
+          "run": "",
+          "slice": "2026-05-07..2026-05-10",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-08",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 873,
+            "rejected": 0,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T12:27:56Z",
+          "run": "",
+          "slice": "2026-05-08..2026-05-11",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-09",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 619,
+            "rejected": 0,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T12:34:17Z",
+          "run": "",
+          "slice": "2026-05-09..2026-05-12",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-10",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 665,
+            "rejected": 1,
+            "stored": 1,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T12:42:27Z",
+          "run": "",
+          "slice": "2026-05-10..2026-05-13",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-11",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1083,
+            "rejected": 3,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T12:50:09Z",
+          "run": "",
+          "slice": "2026-05-11..2026-05-14",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-12",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1329,
+            "rejected": 1,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T12:57:30Z",
+          "run": "",
+          "slice": "2026-05-12..2026-05-15",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-13",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1296,
+            "rejected": 4,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:04:40Z",
+          "run": "",
+          "slice": "2026-05-13..2026-05-16",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-14",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1227,
+            "rejected": 2,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:11:21Z",
+          "run": "",
+          "slice": "2026-05-14..2026-05-17",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-15",
+          "totals": {
+            "duplicates": 3,
+            "left_for_later": 951,
+            "rejected": 0,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:17:42Z",
+          "run": "",
+          "slice": "2026-05-15..2026-05-18",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-16",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 593,
+            "rejected": 0,
+            "stored": 1,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:23:21Z",
+          "run": "",
+          "slice": "2026-05-16..2026-05-19",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-17",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 628,
+            "rejected": 2,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:31:09Z",
+          "run": "",
+          "slice": "2026-05-17..2026-05-20",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-18",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 973,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:39:49Z",
+          "run": "",
+          "slice": "2026-05-18..2026-05-21",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-19",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1189,
+            "rejected": 1,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:47:16Z",
+          "run": "",
+          "slice": "2026-05-19..2026-05-22",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-20",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1105,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T13:54:40Z",
+          "run": "",
+          "slice": "2026-05-20..2026-05-23",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-21",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 988,
+            "rejected": 1,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:01:30Z",
+          "run": "",
+          "slice": "2026-05-21..2026-05-24",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-22",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 892,
+            "rejected": 2,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:07:14Z",
+          "run": "",
+          "slice": "2026-05-22..2026-05-25",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-23",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 632,
+            "rejected": 1,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:12:53Z",
+          "run": "",
+          "slice": "2026-05-23..2026-05-26",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-24",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 523,
+            "rejected": 0,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:19:18Z",
+          "run": "",
+          "slice": "2026-05-24..2026-05-27",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-25",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 748,
+            "rejected": 3,
+            "stored": 1,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:26:39Z",
+          "run": "",
+          "slice": "2026-05-25..2026-05-28",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-26",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 977,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:32:50Z",
+          "run": "",
+          "slice": "2026-05-26..2026-05-29",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-27",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1070,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:39:45Z",
+          "run": "",
+          "slice": "2026-05-27..2026-05-30",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-28",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1145,
+            "rejected": 4,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T14:55:10Z",
+          "run": "",
+          "slice": "2026-05-28..2026-05-31",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-29",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 973,
+            "rejected": 0,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:00:48Z",
+          "run": "",
+          "slice": "2026-05-29..2026-06-01",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-30",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 550,
+            "rejected": 1,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:15:06Z",
+          "run": "",
+          "slice": "2026-05-30..2026-06-02",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-05-31",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 425,
+            "rejected": 3,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:21:41Z",
+          "run": "",
+          "slice": "2026-05-31..2026-06-03",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-01",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1017,
+            "rejected": 4,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:29:54Z",
+          "run": "",
+          "slice": "2026-06-01..2026-06-04",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-02",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1239,
+            "rejected": 3,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:37:12Z",
+          "run": "",
+          "slice": "2026-06-02..2026-06-05",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-03",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1296,
+            "rejected": 4,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:46:39Z",
+          "run": "",
+          "slice": "2026-06-03..2026-06-06",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-04",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1428,
+            "rejected": 0,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T15:54:06Z",
+          "run": "",
+          "slice": "2026-06-04..2026-06-07",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-05",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1283,
+            "rejected": 1,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:00:47Z",
+          "run": "",
+          "slice": "2026-06-05..2026-06-08",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-06",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 891,
+            "rejected": 1,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:07:38Z",
+          "run": "",
+          "slice": "2026-06-06..2026-06-09",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-07",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 904,
+            "rejected": 3,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:14:31Z",
+          "run": "",
+          "slice": "2026-06-07..2026-06-10",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-08",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1289,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:22:02Z",
+          "run": "",
+          "slice": "2026-06-08..2026-06-11",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-09",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1509,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:33:06Z",
+          "run": "",
+          "slice": "2026-06-09..2026-06-12",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-10",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1592,
+            "rejected": 2,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:41:26Z",
+          "run": "",
+          "slice": "2026-06-10..2026-06-13",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-11",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1575,
+            "rejected": 4,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:48:50Z",
+          "run": "",
+          "slice": "2026-06-11..2026-06-14",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-12",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1249,
+            "rejected": 0,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T16:55:20Z",
+          "run": "",
+          "slice": "2026-06-12..2026-06-15",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-13",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 767,
+            "rejected": 0,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T17:01:49Z",
+          "run": "",
+          "slice": "2026-06-13..2026-06-16",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-14",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 773,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T17:09:37Z",
+          "run": "",
+          "slice": "2026-06-14..2026-06-17",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-15",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1193,
+            "rejected": 6,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T17:42:21Z",
+          "run": "",
+          "slice": "2026-06-15..2026-06-18",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-16",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1452,
+            "rejected": 7,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T17:51:03Z",
+          "run": "",
+          "slice": "2026-06-16..2026-06-19",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-17",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1534,
+            "rejected": 7,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T17:59:52Z",
+          "run": "",
+          "slice": "2026-06-17..2026-06-20",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-18",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1542,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T18:08:11Z",
+          "run": "",
+          "slice": "2026-06-18..2026-06-21",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-19",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1248,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T18:15:42Z",
+          "run": "",
+          "slice": "2026-06-19..2026-06-22",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-20",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 769,
+            "rejected": 2,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T18:24:00Z",
+          "run": "",
+          "slice": "2026-06-20..2026-06-23",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-21",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 1090,
+            "rejected": 3,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T18:33:25Z",
+          "run": "",
+          "slice": "2026-06-21..2026-06-24",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-22",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1895,
+            "rejected": 6,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T18:45:12Z",
+          "run": "",
+          "slice": "2026-06-22..2026-06-25",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-23",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1934,
+            "rejected": 9,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:12:46Z",
+          "run": "",
+          "slice": "2026-06-23..2026-06-26",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-24",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1539,
+            "rejected": 4,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:20:30Z",
+          "run": "",
+          "slice": "2026-06-24..2026-06-27",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-25",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1320,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:28:37Z",
+          "run": "",
+          "slice": "2026-06-25..2026-06-28",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-26",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1100,
+            "rejected": 1,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:35:40Z",
+          "run": "",
+          "slice": "2026-06-26..2026-06-29",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-27",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 869,
+            "rejected": 1,
+            "stored": 6,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:43:50Z",
+          "run": "",
+          "slice": "2026-06-27..2026-06-30",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-28",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1086,
+            "rejected": 2,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:51:43Z",
+          "run": "",
+          "slice": "2026-06-28..2026-07-01",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-29",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1541,
+            "rejected": 4,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T19:59:27Z",
+          "run": "",
+          "slice": "2026-06-29..2026-07-02",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-06-30",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1934,
+            "rejected": 2,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T20:09:59Z",
+          "run": "",
+          "slice": "2026-06-30..2026-07-03",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-01",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 2109,
+            "rejected": 6,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T20:19:12Z",
+          "run": "",
+          "slice": "2026-07-01..2026-07-04",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-02",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1938,
+            "rejected": 2,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T20:29:15Z",
+          "run": "",
+          "slice": "2026-07-02..2026-07-05",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-03",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1449,
+            "rejected": 0,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T20:36:44Z",
+          "run": "",
+          "slice": "2026-07-03..2026-07-06",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-04",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 857,
+            "rejected": 3,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T20:43:01Z",
+          "run": "",
+          "slice": "2026-07-04..2026-07-07",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-05",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 898,
+            "rejected": 2,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T20:51:54Z",
+          "run": "",
+          "slice": "2026-07-05..2026-07-08",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-06",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 1377,
+            "rejected": 3,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:00:46Z",
+          "run": "",
+          "slice": "2026-07-06..2026-07-09",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-07",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 1525,
+            "rejected": 6,
+            "stored": 4,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:08:40Z",
+          "run": "",
+          "slice": "2026-07-07..2026-07-10",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-08",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 1298,
+            "rejected": 4,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:14:19Z",
+          "run": "",
+          "slice": "2026-07-08..2026-07-11",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-09",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 929,
+            "rejected": 2,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:19:17Z",
+          "run": "",
+          "slice": "2026-07-09..2026-07-12",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-10",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 680,
+            "rejected": 0,
+            "stored": 5,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:25:15Z",
+          "run": "",
+          "slice": "2026-07-10..2026-07-13",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-11",
+          "totals": {
+            "duplicates": 3,
+            "left_for_later": 426,
+            "rejected": 1,
+            "stored": 2,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:47:14Z",
+          "run": "",
+          "slice": "2026-07-11..2026-07-14",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-12",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 427,
+            "rejected": 3,
+            "stored": 3,
+            "windows": 2
+          }
+        },
+        {
+          "at": "2026-08-03T21:53:53Z",
+          "run": "",
+          "slice": "2026-07-12..2026-07-15",
+          "stopped_early": "--max-readthroughs (66) reached at 2026-07-13",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 733,
+            "rejected": 4,
+            "stored": 5,
+            "windows": 2
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "fetch_only": "false",
+        "ration": "37"
+      },
+      "label": "",
+      "opened_at": "2026-07-30T22:10:09Z",
+      "slice_size": 4,
+      "slices": 120,
+      "start": "2026-01-01",
+      "state": "stalled",
+      "totals": {
+        "duplicates": 543,
+        "left_for_later": 138978,
+        "rejected": 2402,
+        "stored": 2061,
+        "windows": 308
+      },
+      "unit": "days",
+      "updated_at": "2026-08-03T22:08:28Z",
+      "workflow": "backfill-gnews-2026.yml"
+    },
+    "backfill-gnews-2026:2026-01-22..2026-01-24": {
+      "cursor": null,
+      "end": "2026-01-24",
+      "history": [
+        {
+          "at": "2026-08-01T20:42:12Z",
+          "run": "",
+          "slice": "2026-01-22..2026-01-24",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 10,
+            "left_for_later": 511,
+            "rejected": 53,
+            "stored": 47,
+            "windows": 3
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "fetch_only": "false",
+        "ration": "37"
+      },
+      "label": "",
+      "opened_at": "2026-08-01T20:42:12Z",
+      "slice_size": 4,
+      "slices": 1,
+      "start": "2026-01-22",
+      "state": "done",
+      "totals": {
+        "duplicates": 10,
+        "left_for_later": 511,
+        "rejected": 53,
+        "stored": 47,
+        "windows": 3
+      },
+      "unit": "days",
+      "updated_at": "2026-08-01T20:42:12Z",
+      "workflow": "backfill-gnews-2026.yml"
+    },
+    "backfill-press-2026:2026-01-01..2026-06-30:0..16": {
+      "cursor": null,
+      "end": "16",
+      "history": [
+        {
+          "at": "2026-08-05T08:06:29Z",
+          "run": "",
+          "slice": "0..0",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 23,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 20,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T08:44:28Z",
+          "run": "",
+          "slice": "1..1",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 143,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 22,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T09:18:42Z",
+          "run": "",
+          "slice": "2..2",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 74 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 296,
+            "left_unread": 74,
+            "publishers": 40,
+            "reached": 29,
+            "rejected": 0,
+            "stored": 1
+          }
+        },
+        {
+          "at": "2026-08-05T09:57:10Z",
+          "run": "",
+          "slice": "3..3",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 74 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 104,
+            "left_unread": 74,
+            "publishers": 40,
+            "reached": 18,
+            "rejected": 0,
+            "stored": 1
+          }
+        },
+        {
+          "at": "2026-08-05T11:41:59Z",
+          "run": "",
+          "slice": "4..4",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 139,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 14,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T12:29:46Z",
+          "run": "",
+          "slice": "5..5",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 265,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 23,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T13:24:30Z",
+          "run": "",
+          "slice": "6..6",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 169,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 21,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T14:06:56Z",
+          "run": "",
+          "slice": "7..7",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 74 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 180,
+            "left_unread": 74,
+            "publishers": 40,
+            "reached": 17,
+            "rejected": 1,
+            "stored": 1
+          }
+        },
+        {
+          "at": "2026-08-05T14:43:32Z",
+          "run": "",
+          "slice": "8..8",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 165,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 15,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T15:08:42Z",
+          "run": "",
+          "slice": "9..9",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 119,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 16,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T15:28:25Z",
+          "run": "",
+          "slice": "10..10",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 72 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 24,
+            "left_unread": 72,
+            "publishers": 40,
+            "reached": 19,
+            "rejected": 0,
+            "stored": 3
+          }
+        },
+        {
+          "at": "2026-08-05T15:54:33Z",
+          "run": "",
+          "slice": "11..11",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 184,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 19,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T16:18:44Z",
+          "run": "",
+          "slice": "12..12",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 65 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 272,
+            "left_unread": 65,
+            "publishers": 40,
+            "reached": 22,
+            "rejected": 8,
+            "stored": 10
+          }
+        },
+        {
+          "at": "2026-08-05T16:42:30Z",
+          "run": "",
+          "slice": "13..13",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 70 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 205,
+            "left_unread": 70,
+            "publishers": 40,
+            "reached": 14,
+            "rejected": 0,
+            "stored": 4
+          }
+        },
+        {
+          "at": "2026-08-05T17:01:47Z",
+          "run": "",
+          "slice": "14..14",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 135,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 18,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T17:26:23Z",
+          "run": "",
+          "slice": "15..15",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 69 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 112,
+            "left_unread": 69,
+            "publishers": 40,
+            "reached": 17,
+            "rejected": 0,
+            "stored": 4
+          }
+        },
+        {
+          "at": "2026-08-05T17:33:07Z",
+          "run": "",
+          "slice": "16..16",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 47 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 0,
+            "left_unread": 47,
+            "publishers": 18,
+            "reached": 7,
+            "rejected": 0,
+            "stored": 1
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-06-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "label": "2026-01-01..2026-06-30",
+      "opened_at": "2026-08-05T06:47:16Z",
+      "slice_size": 1,
+      "slices": 17,
+      "start": "0",
+      "state": "done",
+      "totals": {
+        "duplicates": 3,
+        "left_for_later": 2535,
+        "left_unread": 1220,
+        "publishers": 658,
+        "reached": 311,
+        "rejected": 9,
+        "stored": 25
+      },
+      "unit": "slices",
+      "updated_at": "2026-08-05T17:33:07Z",
+      "workflow": "backfill-press-2026.yml"
+    },
+    "backfill-press-2026:2026-01-01..2026-07-30:0..16": {
+      "cursor": null,
+      "end": "16",
+      "history": [
+        {
+          "at": "2026-08-02T05:28:56Z",
+          "run": "",
+          "slice": "0..0",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 2,
+            "left_for_later": 109,
+            "publishers": 40,
+            "reached": 19,
+            "rejected": 60,
+            "stored": 15
+          }
+        },
+        {
+          "at": "2026-08-02T08:23:01Z",
+          "run": "",
+          "slice": "1..1",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 4,
+            "left_for_later": 232,
+            "publishers": 40,
+            "reached": 22,
+            "rejected": 70,
+            "stored": 14
+          }
+        },
+        {
+          "at": "2026-08-02T10:35:14Z",
+          "run": "",
+          "slice": "2..2",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 3,
+            "left_for_later": 407,
+            "publishers": 40,
+            "reached": 29,
+            "rejected": 58,
+            "stored": 14
+          }
+        },
+        {
+          "at": "2026-08-02T12:26:13Z",
+          "run": "",
+          "slice": "3..3",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 220,
+            "publishers": 40,
+            "reached": 21,
+            "rejected": 56,
+            "stored": 18
+          }
+        },
+        {
+          "at": "2026-08-05T09:34:07Z",
+          "run": "",
+          "slice": "4..4",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 136,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 14,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T10:33:11Z",
+          "run": "",
+          "slice": "5..5",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 299,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 27,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T12:03:16Z",
+          "run": "",
+          "slice": "6..6",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 166,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 18,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T12:51:16Z",
+          "run": "",
+          "slice": "7..7",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 74 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 196,
+            "left_unread": 74,
+            "publishers": 40,
+            "reached": 19,
+            "rejected": 0,
+            "stored": 1
+          }
+        },
+        {
+          "at": "2026-08-05T13:43:52Z",
+          "run": "",
+          "slice": "8..8",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 74 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 1,
+            "left_for_later": 173,
+            "left_unread": 74,
+            "publishers": 40,
+            "reached": 17,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T19:54:35Z",
+          "run": "",
+          "slice": "9..9",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 163,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 18,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T20:31:40Z",
+          "run": "",
+          "slice": "10..10",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 41,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 20,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T20:55:46Z",
+          "run": "",
+          "slice": "11..11",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 174,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 20,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T21:21:46Z",
+          "run": "",
+          "slice": "12..12",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 271,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 23,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T21:47:29Z",
+          "run": "",
+          "slice": "13..13",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 73 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 300,
+            "left_unread": 73,
+            "publishers": 40,
+            "reached": 20,
+            "rejected": 0,
+            "stored": 2
+          }
+        },
+        {
+          "at": "2026-08-05T22:12:17Z",
+          "run": "",
+          "slice": "14..14",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 129,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 20,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T23:02:38Z",
+          "run": "",
+          "slice": "15..15",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 75 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 166,
+            "left_unread": 75,
+            "publishers": 40,
+            "reached": 20,
+            "rejected": 0,
+            "stored": 0
+          }
+        },
+        {
+          "at": "2026-08-05T23:09:23Z",
+          "run": "",
+          "slice": "16..16",
+          "stopped_early": "read-through cap: the month's allowance is spent (TIT_PAID_READS=off, set by spend.py --degrade) \u2014 deferring this candidate to a later run; the free collectors and deterministic extraction are unaffected; the walk continued on free extraction and left 50 candidate(s) unread and UNMARKED for a later pass",
+          "totals": {
+            "duplicates": 0,
+            "left_for_later": 0,
+            "left_unread": 50,
+            "publishers": 18,
+            "reached": 7,
+            "rejected": 0,
+            "stored": 0
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "ration": "75",
+        "start": "2026-01-01"
+      },
+      "label": "2026-01-01..2026-07-30",
+      "opened_at": "2026-08-02T05:28:56Z",
+      "slice_size": 1,
+      "slices": 17,
+      "start": "0",
+      "state": "done",
+      "totals": {
+        "duplicates": 10,
+        "left_for_later": 3182,
+        "left_unread": 946,
+        "publishers": 658,
+        "reached": 334,
+        "rejected": 244,
+        "stored": 64
+      },
+      "unit": "slices",
+      "updated_at": "2026-08-05T23:09:23Z",
+      "workflow": "backfill-press-2026.yml"
+    },
+    "backfill-structured-2026:bse_india:2026-01-01..2026-07-30": {
+      "cursor": null,
+      "end": "2026-07-30",
+      "history": [
+        {
+          "at": "2026-07-30T21:20:09Z",
+          "run": "",
+          "slice": "2026-01-01..2026-01-28",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 282,
+            "fetched": 898,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 616
+          }
+        },
+        {
+          "at": "2026-08-01T17:25:15Z",
+          "run": "",
+          "slice": "2026-01-29..2026-02-25",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 503,
+            "fetched": 1368,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 865
+          }
+        },
+        {
+          "at": "2026-08-01T19:55:42Z",
+          "run": "",
+          "slice": "2026-02-26..2026-03-25",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 340,
+            "fetched": 961,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 621
+          }
+        },
+        {
+          "at": "2026-08-01T22:44:42Z",
+          "run": "",
+          "slice": "2026-03-26..2026-04-22",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 527,
+            "fetched": 1296,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 769
+          }
+        },
+        {
+          "at": "2026-08-02T00:27:19Z",
+          "run": "",
+          "slice": "2026-04-23..2026-05-20",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 561,
+            "fetched": 1482,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 921
+          }
+        },
+        {
+          "at": "2026-08-02T02:32:56Z",
+          "run": "",
+          "slice": "2026-05-21..2026-06-17",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 547,
+            "fetched": 1467,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 920
+          }
+        },
+        {
+          "at": "2026-08-02T04:01:18Z",
+          "run": "",
+          "slice": "2026-06-18..2026-07-15",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 418,
+            "fetched": 1114,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 696
+          }
+        },
+        {
+          "at": "2026-08-02T04:03:29Z",
+          "run": "",
+          "slice": "2026-07-16..2026-07-30",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 291,
+            "fetched": 697,
+            "rejected": 0,
+            "skipped": 0,
+            "stored": 406
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "bse_india",
+        "start": "2026-01-01"
+      },
+      "label": "bse_india",
+      "opened_at": "2026-07-30T21:20:09Z",
+      "slice_size": 28,
+      "slices": 8,
+      "start": "2026-01-01",
+      "state": "done",
+      "totals": {
+        "duplicates": 3469,
+        "fetched": 9283,
+        "rejected": 0,
+        "skipped": 0,
+        "stored": 5814
+      },
+      "unit": "days",
+      "updated_at": "2026-08-02T04:03:29Z",
+      "workflow": "backfill-structured-2026.yml"
+    },
+    "backfill-structured-2026:companies_house:0..7": {
+      "cursor": null,
+      "end": "7",
+      "history": [
+        {
+          "at": "2026-07-30T21:47:25Z",
+          "run": "",
+          "slice": "0..0",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 242,
+            "fetched": 755,
+            "rejected": 76,
+            "skipped": 0,
+            "stored": 437
+          }
+        },
+        {
+          "at": "2026-08-01T17:49:31Z",
+          "run": "",
+          "slice": "1..1",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 208,
+            "fetched": 690,
+            "rejected": 86,
+            "skipped": 0,
+            "stored": 396
+          }
+        },
+        {
+          "at": "2026-08-01T20:16:54Z",
+          "run": "",
+          "slice": "2..2",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 265,
+            "fetched": 716,
+            "rejected": 81,
+            "skipped": 0,
+            "stored": 370
+          }
+        },
+        {
+          "at": "2026-08-01T23:06:36Z",
+          "run": "",
+          "slice": "3..3",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 151,
+            "fetched": 607,
+            "rejected": 96,
+            "skipped": 0,
+            "stored": 360
+          }
+        },
+        {
+          "at": "2026-08-02T00:48:30Z",
+          "run": "",
+          "slice": "4..4",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 188,
+            "fetched": 732,
+            "rejected": 143,
+            "skipped": 0,
+            "stored": 401
+          }
+        },
+        {
+          "at": "2026-08-02T02:53:08Z",
+          "run": "",
+          "slice": "5..5",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 160,
+            "fetched": 619,
+            "rejected": 80,
+            "skipped": 0,
+            "stored": 379
+          }
+        },
+        {
+          "at": "2026-08-02T04:49:02Z",
+          "run": "",
+          "slice": "6..6",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 202,
+            "fetched": 688,
+            "rejected": 144,
+            "skipped": 0,
+            "stored": 342
+          }
+        },
+        {
+          "at": "2026-08-02T07:57:19Z",
+          "run": "",
+          "slice": "7..7",
+          "stopped_early": "",
+          "totals": {
+            "duplicates": 166,
+            "fetched": 628,
+            "rejected": 89,
+            "skipped": 0,
+            "stored": 373
+          }
+        }
+      ],
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-30",
+        "fetch_only": "false",
+        "source": "companies_house",
+        "start": "2026-01-01"
+      },
+      "label": "companies_house",
+      "opened_at": "2026-07-30T21:47:25Z",
+      "slice_size": 1,
+      "slices": 8,
+      "start": "0",
+      "state": "done",
+      "totals": {
+        "duplicates": 1582,
+        "fetched": 5435,
+        "rejected": 795,
+        "skipped": 0,
+        "stored": 3058
+      },
+      "unit": "slices",
+      "updated_at": "2026-08-02T07:57:19Z",
+      "workflow": "backfill-structured-2026.yml"
     }
   },
   "version": 1

@@ -51,6 +51,66 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     "efts.sec.gov",
     "www.sec.gov",
     "find-and-update.company-information.service.gov.uk",
+    # BSE is the exchange a company listed in India files its Regulation 30
+    # disclosures WITH, and it publishes that filing rather than a report of it,
+    # so it is the same class of host as sec.gov: the filing venue, not an
+    # outlet. Without this line collectors/bse_india.py caps at 'reported' and
+    # India's whole structured spine understates what it is.
+    "bseindia.com",
+    "www.bseindia.com",
+    # EDINET is the Financial Services Agency's own disclosure system, and this
+    # host serves the filing itself rather than a report of it, so it is the
+    # same class as sec.gov: the venue a Japanese issuer files WITH. Without
+    # this line collectors/edinet_japan.py caps at 'reported' and a statutory
+    # filing reads as a news story.
+    "disclosure2dl.edinet-fsa.go.jp",
+    # DART is the Financial Supervisory Service's own disclosure registry: a
+    # Korean listed company files WITH it and this host serves the filing
+    # itself. Same class as sec.gov. Without this line
+    # collectors/opendart_korea.py caps at 'reported'. Note the collector never
+    # FETCHES this host — it reads opendart.fss.or.kr/api/ — which is why
+    # robots.txt disallowing /dsaf001/main.do is a fact about link checking
+    # rather than a reason to cite something else.
+    "dart.fss.or.kr",
+    # ARES is the Czech Ministry of Finance's own register service and it
+    # republishes the courts' public register (veřejný rejstřík) rather than
+    # reporting on it, so it is the same class of host as sec.gov: the register
+    # itself. Without this line collectors/czechia_ares.py caps at 'reported'
+    # and a court-maintained register reads as a news story. The collector
+    # cites the API document under this host on purpose — the site's own
+    # /ekonomicke-subjekty/{ico} page answers 200 with an identical app shell
+    # for a real and an invented company, and or.justice.cz robots-disallows
+    # the whole register UI. See the collector's docstring.
+    "ares.gov.cz",
+    # Ariregister is the Estonian Centre of Registers and Information Systems'
+    # own publication of the business register it maintains. Same class again.
+    # Two hosts, because the collector reads the open-data files from one
+    # subdomain and cites the register's own company page on the other.
+    "ariregister.rik.ee",
+    "avaandmed.ariregister.rik.ee",
+    # The Boletín Oficial del Registro Mercantil is where a Spanish commercial
+    # register's acts are LEGALLY published, by the Agencia Estatal BOE, and
+    # this host serves that bulletin rather than a report of it. Same class as
+    # sec.gov. Without this line collectors/spain_borme.py caps at 'reported'
+    # and a statutory inscription reads as a news story.
+    "boe.es",
+    "www.boe.es",
+    # data.gov.il is the Israeli government's own portal, and the changes file
+    # on it is published BY the Registrar of Companies at the Ministry of
+    # Justice rather than reported by anybody. Same class as sec.gov: the
+    # register itself. Without this line collectors/israel_registrar.py caps at
+    # 'reported' and a statutory share allotment reads as a news story. The
+    # collector cites the portal's own datastore query for the company on
+    # purpose: the registrar's public lookup at ica.justice.gov.il is a search
+    # FORM with no per-company permalink, so there is no stabler page to cite.
+    "data.gov.il",
+    # data.gov.sg is the Singapore government's own portal and the corporate
+    # entities register on it is published BY the Accounting and Corporate
+    # Regulatory Authority, the body companies incorporate with. Same class
+    # again. Two hosts, because the collector reads the dataset through the
+    # portal's API subdomain and cites the register's own collection page.
+    "data.gov.sg",
+    "api-production.data.gov.sg",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",
@@ -262,9 +322,32 @@ US_STATES = {
 
 # Cities we already curate that imply a state, so a US signal naming only the
 # city still lands in the state filter.
+#
+# One city, one state, or it does not belong here. Portland (Oregon and Maine),
+# Columbus (Ohio and Georgia) and Kansas City (Missouri and Kansas) are in the
+# city gazetteer — their COUNTRY is unambiguous — and deliberately absent from
+# this table, because the state facet is the one place where guessing between
+# them would be visibly wrong.
 _CITY_STATE = {
     "San Francisco": "CA", "New York": "NY", "Seattle": "WA",
     "Austin": "TX", "Boston": "MA",
+    "Los Angeles": "CA", "San Diego": "CA", "Palo Alto": "CA",
+    "Mountain View": "CA", "Menlo Park": "CA", "Sunnyvale": "CA",
+    "Santa Clara": "CA", "Cupertino": "CA", "Oakland": "CA",
+    "San Jose CA": "CA", "Sacramento": "CA",
+    "Redmond": "WA", "Bellevue": "WA",
+    "Chicago": "IL", "Denver": "CO", "Boulder": "CO",
+    "Atlanta": "GA", "Miami": "FL", "Tampa": "FL", "Orlando": "FL",
+    "Dallas": "TX", "Fort Worth": "TX", "Houston": "TX", "San Antonio": "TX",
+    "Phoenix": "AZ", "Tempe": "AZ",
+    "Philadelphia": "PA", "Pittsburgh": "PA",
+    "Minneapolis": "MN", "Detroit": "MI", "Ann Arbor": "MI",
+    "Nashville": "TN", "Raleigh": "NC", "Durham": "NC", "Charlotte": "NC",
+    "Cleveland": "OH", "Cincinnati": "OH", "Indianapolis": "IN",
+    "Milwaukee": "WI", "Madison": "WI",
+    "St. Louis": "MO", "Salt Lake City": "UT", "Provo": "UT",
+    "Las Vegas": "NV", "Baltimore": "MD", "New Orleans": "LA",
+    "Cambridge MA": "MA", "Birmingham AL": "AL", "Washington DC": "DC",
 }
 
 
@@ -372,6 +455,475 @@ _CITY_ALIASES.update({
     "bengaluru urban": ("Bangalore", "Asia", "IN"),
     "city of toronto": ("Toronto", "North America", "CA"),
 })
+
+# --- The hub gazetteer -------------------------------------------------------
+#
+# WHY THIS BLOCK EXISTS. Measured 2026-07-29: 969 of 15,711 current rows
+# carried a city, in 25 distinct cities, and the world's other startup hubs —
+# Tel Aviv, Dubai, Sao Paulo, Seoul, Lagos, Nairobi, Jakarta — could not be
+# stored at all, because "normalise through a fixed vocabulary or be dropped"
+# means a place absent from THIS table is a place the product cannot report
+# even when a source states it plainly. The 45 entries above were the ceiling
+# on city coverage, not the extractor.
+#
+# It is still a fixed vocabulary and it still refuses everything not in it.
+# What changed is the defensible extent: the hubs a hiring-side reader expects
+# to filter by, each with the country a story about it belongs to.
+#
+# THREE RULES THIS TABLE KEEPS, and a test pins each:
+#
+# 1. ONE REGION PER COUNTRY. `validate._region_for_country` finds a region by
+#    scanning these values for the first city with a matching code, so two
+#    cities in one country disagreeing about their region would make the
+#    region a dictionary-order accident.
+# 2. EVERY CODE IS A COUNTRY WE CAN NAME. A code missing from COUNTRY_NAMES
+#    stores a city whose country label renders empty.
+# 3. NO CITY NAME BELONGS TO TWO COUNTRIES. This is why Cambridge (England and
+#    Massachusetts), Birmingham (England and Alabama), Newcastle (England and
+#    New South Wales) and San Jose (California and Costa Rica) are deliberately
+#    ABSENT: a bare "Cambridge-based" cannot be placed without guessing, and
+#    guessing a country is the one thing this product may never do. They are
+#    reachable only in their qualified spellings below, where the source itself
+#    resolved the ambiguity. Same-country collisions (Portland OR/ME,
+#    Columbus OH/GA) are fine — the country is right either way — so those
+#    cities are here but deliberately not in _CITY_STATE.
+#
+# Also deliberately absent: city names that are ordinary English words a
+# headline uses as words (Reading, Bath, Mobile, Nice, Orange). The cost of
+# admitting one is a company called Reading declining as "that is a place" in
+# cheap_extract._valid_name, for a market we have never had a row from.
+_CITY_ALIASES.update({
+    # -- North America ------------------------------------------------------
+    "chicago": ("Chicago", "North America", "US"),
+    "los angeles": ("Los Angeles", "North America", "US"),
+    # No bare "LA". Two letters is not enough to be a place: "La Jolla", "la
+    # ciudad" and "La Poste" all start with it, and the gazetteer is read by a
+    # scanner that only knows what it matched.
+    "san diego": ("San Diego", "North America", "US"),
+    "palo alto": ("Palo Alto", "North America", "US"),
+    "mountain view": ("Mountain View", "North America", "US"),
+    "menlo park": ("Menlo Park", "North America", "US"),
+    "sunnyvale": ("Sunnyvale", "North America", "US"),
+    "santa clara": ("Santa Clara", "North America", "US"),
+    "cupertino": ("Cupertino", "North America", "US"),
+    "oakland": ("Oakland", "North America", "US"),
+    "redmond": ("Redmond", "North America", "US"),
+    "bellevue": ("Bellevue", "North America", "US"),
+    "denver": ("Denver", "North America", "US"),
+    "boulder": ("Boulder", "North America", "US"),
+    "atlanta": ("Atlanta", "North America", "US"),
+    "miami": ("Miami", "North America", "US"),
+    "dallas": ("Dallas", "North America", "US"),
+    "fort worth": ("Fort Worth", "North America", "US"),
+    "houston": ("Houston", "North America", "US"),
+    "san antonio": ("San Antonio", "North America", "US"),
+    "phoenix": ("Phoenix", "North America", "US"),
+    "tempe": ("Tempe", "North America", "US"),
+    "philadelphia": ("Philadelphia", "North America", "US"),
+    "pittsburgh": ("Pittsburgh", "North America", "US"),
+    "portland": ("Portland", "North America", "US"),
+    "minneapolis": ("Minneapolis", "North America", "US"),
+    "detroit": ("Detroit", "North America", "US"),
+    "ann arbor": ("Ann Arbor", "North America", "US"),
+    "nashville": ("Nashville", "North America", "US"),
+    "raleigh": ("Raleigh", "North America", "US"),
+    "durham": ("Durham", "North America", "US"),
+    "charlotte": ("Charlotte", "North America", "US"),
+    "columbus": ("Columbus", "North America", "US"),
+    "cleveland": ("Cleveland", "North America", "US"),
+    "cincinnati": ("Cincinnati", "North America", "US"),
+    "indianapolis": ("Indianapolis", "North America", "US"),
+    "milwaukee": ("Milwaukee", "North America", "US"),
+    "madison": ("Madison", "North America", "US"),
+    "kansas city": ("Kansas City", "North America", "US"),
+    "st. louis": ("St. Louis", "North America", "US"),
+    "st louis": ("St. Louis", "North America", "US"),
+    "saint louis": ("St. Louis", "North America", "US"),
+    "salt lake city": ("Salt Lake City", "North America", "US"),
+    "provo": ("Provo", "North America", "US"),
+    "las vegas": ("Las Vegas", "North America", "US"),
+    "sacramento": ("Sacramento", "North America", "US"),
+    "baltimore": ("Baltimore", "North America", "US"),
+    "tampa": ("Tampa", "North America", "US"),
+    "orlando": ("Orlando", "North America", "US"),
+    "new orleans": ("New Orleans", "North America", "US"),
+    "san juan": ("San Juan", "North America", "US"),
+    # Washington DC only in its qualified spellings: a bare "Washington" is as
+    # often the state as the capital, and the state is not a city.
+    "washington dc": ("Washington DC", "North America", "US"),
+    "washington d.c.": ("Washington DC", "North America", "US"),
+    "washington, dc": ("Washington DC", "North America", "US"),
+    "washington, d.c.": ("Washington DC", "North America", "US"),
+    # The four names that belong to two countries, admitted ONLY where the
+    # source spelled out which one it meant (rule 3 above).
+    # Their display names are qualified too, and are alias keys in their own
+    # right: a value we STORE has to read back as itself, or the column cannot
+    # be re-normalised and `identity` cannot resolve an HQ it already wrote.
+    # That is also why the US San Jose displays as "San Jose CA" — a bare "San
+    # Jose" must keep meaning "we will not guess which one".
+    "cambridge, ma": ("Cambridge MA", "North America", "US"),
+    "cambridge ma": ("Cambridge MA", "North America", "US"),
+    "cambridge, massachusetts": ("Cambridge MA", "North America", "US"),
+    "cambridge, uk": ("Cambridge UK", "Europe", "GB"),
+    "cambridge uk": ("Cambridge UK", "Europe", "GB"),
+    "cambridge, england": ("Cambridge UK", "Europe", "GB"),
+    "birmingham, al": ("Birmingham AL", "North America", "US"),
+    "birmingham al": ("Birmingham AL", "North America", "US"),
+    "birmingham, alabama": ("Birmingham AL", "North America", "US"),
+    "birmingham, uk": ("Birmingham UK", "Europe", "GB"),
+    "birmingham uk": ("Birmingham UK", "Europe", "GB"),
+    "birmingham, england": ("Birmingham UK", "Europe", "GB"),
+    "san jose, ca": ("San Jose CA", "North America", "US"),
+    "san jose ca": ("San Jose CA", "North America", "US"),
+    "san jose, california": ("San Jose CA", "North America", "US"),
+    "london, ontario": ("London, Ontario", "North America", "CA"),
+    "vancouver": ("Vancouver", "North America", "CA"),
+    "montreal": ("Montreal", "North America", "CA"),
+    "montréal": ("Montreal", "North America", "CA"),
+    "ottawa": ("Ottawa", "North America", "CA"),
+    "calgary": ("Calgary", "North America", "CA"),
+    "edmonton": ("Edmonton", "North America", "CA"),
+    "waterloo": ("Waterloo", "North America", "CA"),
+    "kitchener": ("Kitchener", "North America", "CA"),
+    "halifax": ("Halifax", "North America", "CA"),
+    "quebec city": ("Quebec City", "North America", "CA"),
+    "winnipeg": ("Winnipeg", "North America", "CA"),
+    # -- Latin America ------------------------------------------------------
+    "mexico city": ("Mexico City", "Latin America", "MX"),
+    "ciudad de méxico": ("Mexico City", "Latin America", "MX"),
+    "ciudad de mexico": ("Mexico City", "Latin America", "MX"),
+    "cdmx": ("Mexico City", "Latin America", "MX"),
+    "guadalajara": ("Guadalajara", "Latin America", "MX"),
+    "monterrey": ("Monterrey", "Latin America", "MX"),
+    "sao paulo": ("Sao Paulo", "Latin America", "BR"),
+    "são paulo": ("Sao Paulo", "Latin America", "BR"),
+    "rio de janeiro": ("Rio de Janeiro", "Latin America", "BR"),
+    "belo horizonte": ("Belo Horizonte", "Latin America", "BR"),
+    "florianopolis": ("Florianopolis", "Latin America", "BR"),
+    "florianópolis": ("Florianopolis", "Latin America", "BR"),
+    "buenos aires": ("Buenos Aires", "Latin America", "AR"),
+    "cordoba": ("Cordoba", "Latin America", "AR"),
+    "córdoba": ("Cordoba", "Latin America", "AR"),
+    "santiago": ("Santiago", "Latin America", "CL"),
+    "bogota": ("Bogota", "Latin America", "CO"),
+    "bogotá": ("Bogota", "Latin America", "CO"),
+    "medellin": ("Medellin", "Latin America", "CO"),
+    "medellín": ("Medellin", "Latin America", "CO"),
+    "lima": ("Lima", "Latin America", "PE"),
+    "montevideo": ("Montevideo", "Latin America", "UY"),
+    "san jose, costa rica": ("San Jose, Costa Rica", "Latin America", "CR"),
+    "panama city": ("Panama City", "Latin America", "PA"),
+    "quito": ("Quito", "Latin America", "EC"),
+    "guayaquil": ("Guayaquil", "Latin America", "EC"),
+    "santo domingo": ("Santo Domingo", "Latin America", "DO"),
+    "guatemala city": ("Guatemala City", "Latin America", "GT"),
+    # -- Europe -------------------------------------------------------------
+    "bristol": ("Bristol", "Europe", "GB"),
+    "leeds": ("Leeds", "Europe", "GB"),
+    "glasgow": ("Glasgow", "Europe", "GB"),
+    "cardiff": ("Cardiff", "Europe", "GB"),
+    "sheffield": ("Sheffield", "Europe", "GB"),
+    "nottingham": ("Nottingham", "Europe", "GB"),
+    "liverpool": ("Liverpool", "Europe", "GB"),
+    "oxford": ("Oxford", "Europe", "GB"),
+    "brighton": ("Brighton", "Europe", "GB"),
+    "bologna": ("Bologna", "Europe", "IT"),
+    "rome": ("Rome", "Europe", "IT"),
+    "roma": ("Rome", "Europe", "IT"),
+    "turin": ("Turin", "Europe", "IT"),
+    "torino": ("Turin", "Europe", "IT"),
+    "naples": ("Naples", "Europe", "IT"),
+    "florence": ("Florence", "Europe", "IT"),
+    "firenze": ("Florence", "Europe", "IT"),
+    "cologne": ("Cologne", "Europe", "DE"),
+    "köln": ("Cologne", "Europe", "DE"),
+    "koln": ("Cologne", "Europe", "DE"),
+    "dusseldorf": ("Dusseldorf", "Europe", "DE"),
+    "düsseldorf": ("Dusseldorf", "Europe", "DE"),
+    "stuttgart": ("Stuttgart", "Europe", "DE"),
+    "leipzig": ("Leipzig", "Europe", "DE"),
+    "dresden": ("Dresden", "Europe", "DE"),
+    "karlsruhe": ("Karlsruhe", "Europe", "DE"),
+    "nuremberg": ("Nuremberg", "Europe", "DE"),
+    "nürnberg": ("Nuremberg", "Europe", "DE"),
+    "bonn": ("Bonn", "Europe", "DE"),
+    "hanover": ("Hanover", "Europe", "DE"),
+    "hannover": ("Hanover", "Europe", "DE"),
+    "bremen": ("Bremen", "Europe", "DE"),
+    "vienna": ("Vienna", "Europe", "AT"),
+    "wien": ("Vienna", "Europe", "AT"),
+    "graz": ("Graz", "Europe", "AT"),
+    "linz": ("Linz", "Europe", "AT"),
+    "geneva": ("Geneva", "Europe", "CH"),
+    "genève": ("Geneva", "Europe", "CH"),
+    "basel": ("Basel", "Europe", "CH"),
+    "lausanne": ("Lausanne", "Europe", "CH"),
+    "bern": ("Bern", "Europe", "CH"),
+    "the hague": ("The Hague", "Europe", "NL"),
+    "den haag": ("The Hague", "Europe", "NL"),
+    "utrecht": ("Utrecht", "Europe", "NL"),
+    "delft": ("Delft", "Europe", "NL"),
+    "groningen": ("Groningen", "Europe", "NL"),
+    "ghent": ("Ghent", "Europe", "BE"),
+    "gent": ("Ghent", "Europe", "BE"),
+    "leuven": ("Leuven", "Europe", "BE"),
+    "liege": ("Liege", "Europe", "BE"),
+    "liège": ("Liege", "Europe", "BE"),
+    "lyon": ("Lyon", "Europe", "FR"),
+    "marseille": ("Marseille", "Europe", "FR"),
+    "toulouse": ("Toulouse", "Europe", "FR"),
+    "bordeaux": ("Bordeaux", "Europe", "FR"),
+    "lille": ("Lille", "Europe", "FR"),
+    "nantes": ("Nantes", "Europe", "FR"),
+    "grenoble": ("Grenoble", "Europe", "FR"),
+    "montpellier": ("Montpellier", "Europe", "FR"),
+    "sophia antipolis": ("Sophia Antipolis", "Europe", "FR"),
+    "valencia": ("Valencia", "Europe", "ES"),
+    "bilbao": ("Bilbao", "Europe", "ES"),
+    "seville": ("Seville", "Europe", "ES"),
+    "sevilla": ("Seville", "Europe", "ES"),
+    "malaga": ("Malaga", "Europe", "ES"),
+    "málaga": ("Malaga", "Europe", "ES"),
+    "zaragoza": ("Zaragoza", "Europe", "ES"),
+    "porto": ("Porto", "Europe", "PT"),
+    "braga": ("Braga", "Europe", "PT"),
+    "gothenburg": ("Gothenburg", "Europe", "SE"),
+    "göteborg": ("Gothenburg", "Europe", "SE"),
+    "malmo": ("Malmo", "Europe", "SE"),
+    "malmö": ("Malmo", "Europe", "SE"),
+    "uppsala": ("Uppsala", "Europe", "SE"),
+    "aarhus": ("Aarhus", "Europe", "DK"),
+    "århus": ("Aarhus", "Europe", "DK"),
+    "odense": ("Odense", "Europe", "DK"),
+    "bergen": ("Bergen", "Europe", "NO"),
+    "trondheim": ("Trondheim", "Europe", "NO"),
+    "espoo": ("Espoo", "Europe", "FI"),
+    "tampere": ("Tampere", "Europe", "FI"),
+    "oulu": ("Oulu", "Europe", "FI"),
+    "reykjavik": ("Reykjavik", "Europe", "IS"),
+    "reykjavík": ("Reykjavik", "Europe", "IS"),
+    "wroclaw": ("Wroclaw", "Europe", "PL"),
+    "wrocław": ("Wroclaw", "Europe", "PL"),
+    "poznan": ("Poznan", "Europe", "PL"),
+    "poznań": ("Poznan", "Europe", "PL"),
+    "gdansk": ("Gdansk", "Europe", "PL"),
+    "gdańsk": ("Gdansk", "Europe", "PL"),
+    "lodz": ("Lodz", "Europe", "PL"),
+    "łódź": ("Lodz", "Europe", "PL"),
+    "brno": ("Brno", "Europe", "CZ"),
+    "bratislava": ("Bratislava", "Europe", "SK"),
+    "budapest": ("Budapest", "Europe", "HU"),
+    "cluj-napoca": ("Cluj-Napoca", "Europe", "RO"),
+    "cluj": ("Cluj-Napoca", "Europe", "RO"),
+    "timisoara": ("Timisoara", "Europe", "RO"),
+    "timișoara": ("Timisoara", "Europe", "RO"),
+    "iasi": ("Iasi", "Europe", "RO"),
+    "iași": ("Iasi", "Europe", "RO"),
+    "sofia": ("Sofia", "Europe", "BG"),
+    "plovdiv": ("Plovdiv", "Europe", "BG"),
+    "belgrade": ("Belgrade", "Europe", "RS"),
+    "novi sad": ("Novi Sad", "Europe", "RS"),
+    "zagreb": ("Zagreb", "Europe", "HR"),
+    "ljubljana": ("Ljubljana", "Europe", "SI"),
+    "athens": ("Athens", "Europe", "GR"),
+    "thessaloniki": ("Thessaloniki", "Europe", "GR"),
+    "tallinn": ("Tallinn", "Europe", "EE"),
+    "tartu": ("Tartu", "Europe", "EE"),
+    "riga": ("Riga", "Europe", "LV"),
+    "vilnius": ("Vilnius", "Europe", "LT"),
+    "kaunas": ("Kaunas", "Europe", "LT"),
+    "kyiv": ("Kyiv", "Europe", "UA"),
+    "kiev": ("Kyiv", "Europe", "UA"),
+    "lviv": ("Lviv", "Europe", "UA"),
+    "minsk": ("Minsk", "Europe", "BY"),
+    "chisinau": ("Chisinau", "Europe", "MD"),
+    "chișinău": ("Chisinau", "Europe", "MD"),
+    "nicosia": ("Nicosia", "Europe", "CY"),
+    "valletta": ("Valletta", "Europe", "MT"),
+    "skopje": ("Skopje", "Europe", "MK"),
+    "tirana": ("Tirana", "Europe", "AL"),
+    "sarajevo": ("Sarajevo", "Europe", "BA"),
+    # -- Middle East --------------------------------------------------------
+    "tel aviv": ("Tel Aviv", "Middle East", "IL"),
+    "tel aviv-yafo": ("Tel Aviv", "Middle East", "IL"),
+    "tel aviv-jaffa": ("Tel Aviv", "Middle East", "IL"),
+    "jerusalem": ("Jerusalem", "Middle East", "IL"),
+    "haifa": ("Haifa", "Middle East", "IL"),
+    "herzliya": ("Herzliya", "Middle East", "IL"),
+    "be'er sheva": ("Beersheba", "Middle East", "IL"),
+    "beersheba": ("Beersheba", "Middle East", "IL"),
+    "dubai": ("Dubai", "Middle East", "AE"),
+    "abu dhabi": ("Abu Dhabi", "Middle East", "AE"),
+    "sharjah": ("Sharjah", "Middle East", "AE"),
+    "riyadh": ("Riyadh", "Middle East", "SA"),
+    "jeddah": ("Jeddah", "Middle East", "SA"),
+    "dammam": ("Dammam", "Middle East", "SA"),
+    "neom": ("Neom", "Middle East", "SA"),
+    "doha": ("Doha", "Middle East", "QA"),
+    "kuwait city": ("Kuwait City", "Middle East", "KW"),
+    "manama": ("Manama", "Middle East", "BH"),
+    "muscat": ("Muscat", "Middle East", "OM"),
+    "amman": ("Amman", "Middle East", "JO"),
+    "beirut": ("Beirut", "Middle East", "LB"),
+    "istanbul": ("Istanbul", "Middle East", "TR"),
+    "ankara": ("Ankara", "Middle East", "TR"),
+    "izmir": ("Izmir", "Middle East", "TR"),
+    # -- Africa -------------------------------------------------------------
+    "lagos": ("Lagos", "Africa", "NG"),
+    "abuja": ("Abuja", "Africa", "NG"),
+    "nairobi": ("Nairobi", "Africa", "KE"),
+    "mombasa": ("Mombasa", "Africa", "KE"),
+    "cape town": ("Cape Town", "Africa", "ZA"),
+    "johannesburg": ("Johannesburg", "Africa", "ZA"),
+    "pretoria": ("Pretoria", "Africa", "ZA"),
+    "durban": ("Durban", "Africa", "ZA"),
+    "cairo": ("Cairo", "Africa", "EG"),
+    "alexandria": ("Alexandria", "Africa", "EG"),
+    "giza": ("Giza", "Africa", "EG"),
+    "accra": ("Accra", "Africa", "GH"),
+    "kigali": ("Kigali", "Africa", "RW"),
+    "kampala": ("Kampala", "Africa", "UG"),
+    "dar es salaam": ("Dar es Salaam", "Africa", "TZ"),
+    "addis ababa": ("Addis Ababa", "Africa", "ET"),
+    "dakar": ("Dakar", "Africa", "SN"),
+    "abidjan": ("Abidjan", "Africa", "CI"),
+    "casablanca": ("Casablanca", "Africa", "MA"),
+    "rabat": ("Rabat", "Africa", "MA"),
+    "tunis": ("Tunis", "Africa", "TN"),
+    "algiers": ("Algiers", "Africa", "DZ"),
+    "lusaka": ("Lusaka", "Africa", "ZM"),
+    "harare": ("Harare", "Africa", "ZW"),
+    "gaborone": ("Gaborone", "Africa", "BW"),
+    "port louis": ("Port Louis", "Africa", "MU"),
+    # -- Asia ---------------------------------------------------------------
+    "mumbai": ("Mumbai", "Asia", "IN"),
+    "bombay": ("Mumbai", "Asia", "IN"),
+    "new delhi": ("New Delhi", "Asia", "IN"),
+    "delhi": ("New Delhi", "Asia", "IN"),
+    "gurugram": ("Gurugram", "Asia", "IN"),
+    "gurgaon": ("Gurugram", "Asia", "IN"),
+    "noida": ("Noida", "Asia", "IN"),
+    "chennai": ("Chennai", "Asia", "IN"),
+    "kolkata": ("Kolkata", "Asia", "IN"),
+    "calcutta": ("Kolkata", "Asia", "IN"),
+    "ahmedabad": ("Ahmedabad", "Asia", "IN"),
+    "jaipur": ("Jaipur", "Asia", "IN"),
+    "chandigarh": ("Chandigarh", "Asia", "IN"),
+    "kochi": ("Kochi", "Asia", "IN"),
+    "coimbatore": ("Coimbatore", "Asia", "IN"),
+    "indore": ("Indore", "Asia", "IN"),
+    "thiruvananthapuram": ("Thiruvananthapuram", "Asia", "IN"),
+    "karachi": ("Karachi", "Asia", "PK"),
+    "lahore": ("Lahore", "Asia", "PK"),
+    "islamabad": ("Islamabad", "Asia", "PK"),
+    "dhaka": ("Dhaka", "Asia", "BD"),
+    "colombo": ("Colombo", "Asia", "LK"),
+    "kathmandu": ("Kathmandu", "Asia", "NP"),
+    "seoul": ("Seoul", "Asia", "KR"),
+    "busan": ("Busan", "Asia", "KR"),
+    "beijing": ("Beijing", "Asia", "CN"),
+    "shanghai": ("Shanghai", "Asia", "CN"),
+    "shenzhen": ("Shenzhen", "Asia", "CN"),
+    "hangzhou": ("Hangzhou", "Asia", "CN"),
+    "guangzhou": ("Guangzhou", "Asia", "CN"),
+    "chengdu": ("Chengdu", "Asia", "CN"),
+    "hong kong": ("Hong Kong", "Asia", "HK"),
+    "taipei": ("Taipei", "Asia", "TW"),
+    "hsinchu": ("Hsinchu", "Asia", "TW"),
+    "osaka": ("Osaka", "Asia", "JP"),
+    "kyoto": ("Kyoto", "Asia", "JP"),
+    "fukuoka": ("Fukuoka", "Asia", "JP"),
+    "yokohama": ("Yokohama", "Asia", "JP"),
+    "jakarta": ("Jakarta", "Asia", "ID"),
+    "bandung": ("Bandung", "Asia", "ID"),
+    "surabaya": ("Surabaya", "Asia", "ID"),
+    "kuala lumpur": ("Kuala Lumpur", "Asia", "MY"),
+    "penang": ("Penang", "Asia", "MY"),
+    "cyberjaya": ("Cyberjaya", "Asia", "MY"),
+    "bangkok": ("Bangkok", "Asia", "TH"),
+    "chiang mai": ("Chiang Mai", "Asia", "TH"),
+    "manila": ("Manila", "Asia", "PH"),
+    "cebu": ("Cebu", "Asia", "PH"),
+    "taguig": ("Taguig", "Asia", "PH"),
+    "ho chi minh city": ("Ho Chi Minh City", "Asia", "VN"),
+    "saigon": ("Ho Chi Minh City", "Asia", "VN"),
+    "hanoi": ("Hanoi", "Asia", "VN"),
+    "da nang": ("Da Nang", "Asia", "VN"),
+    "phnom penh": ("Phnom Penh", "Asia", "KH"),
+    "almaty": ("Almaty", "Asia", "KZ"),
+    "astana": ("Astana", "Asia", "KZ"),
+    "tashkent": ("Tashkent", "Asia", "UZ"),
+    "tbilisi": ("Tbilisi", "Asia", "GE"),
+    "yerevan": ("Yerevan", "Asia", "AM"),
+    "baku": ("Baku", "Asia", "AZ"),
+    # -- Oceania ------------------------------------------------------------
+    "brisbane": ("Brisbane", "Oceania", "AU"),
+    "perth": ("Perth", "Oceania", "AU"),
+    "adelaide": ("Adelaide", "Oceania", "AU"),
+    "canberra": ("Canberra", "Oceania", "AU"),
+    "auckland": ("Auckland", "Oceania", "NZ"),
+    "wellington": ("Wellington", "Oceania", "NZ"),
+    "christchurch": ("Christchurch", "Oceania", "NZ"),
+    "suva": ("Suva", "Oceania", "FJ"),
+})
+
+# Cities whose bare name belongs to two countries, so the vocabulary refuses
+# the bare form on purpose (rule 3 above). Named rather than merely omitted so
+# a future contributor adding "cambridge" has to delete a line that says why
+# not, and so the extractor can tell "a place we will not guess at" apart from
+# "not a place at all".
+AMBIGUOUS_CITY_NAMES = frozenset({
+    "cambridge", "birmingham", "san jose", "washington", "newcastle",
+    "hamilton", "richmond", "victoria", "santa cruz", "valencia city",
+    "sydney nova scotia", "st petersburg", "santiago de compostela",
+})
+
+# Sub-national names that DO fix a country, for reading a source's own
+# disambiguation: "London, Ontario" is not London, and "Cambridge,
+# Massachusetts" is not Cambridge. Only the qualifiers a newsroom actually
+# appends; US states come from US_STATES, which is already exhaustive.
+_PROVINCE_COUNTRY = {
+    # Canada
+    "ontario": "CA", "on": "CA", "quebec": "CA", "québec": "CA", "qc": "CA",
+    "british columbia": "CA", "bc": "CA", "alberta": "CA", "ab": "CA",
+    "manitoba": "CA", "saskatchewan": "CA", "nova scotia": "CA",
+    "new brunswick": "CA", "newfoundland": "CA", "newfoundland and labrador": "CA",
+    # United Kingdom
+    "england": "GB", "scotland": "GB", "wales": "GB",
+    "northern ireland": "GB", "uk": "GB", "u.k.": "GB", "britain": "GB",
+    # Australia
+    "new south wales": "AU", "nsw": "AU", "victoria state": "AU", "vic": "AU",
+    "queensland": "AU", "qld": "AU", "western australia": "AU", "wa state": "AU",
+    "south australia": "AU", "tasmania": "AU",
+    # India, Germany, Spain — the states a dateline names beside a city
+    "maharashtra": "IN", "karnataka": "IN", "tamil nadu": "IN",
+    "telangana": "IN", "gujarat": "IN", "haryana": "IN", "kerala": "IN",
+    "uttar pradesh": "IN", "west bengal": "IN", "rajasthan": "IN",
+    "bavaria": "DE", "bayern": "DE", "hesse": "DE", "saxony": "DE",
+    "north rhine-westphalia": "DE", "baden-württemberg": "DE",
+    "catalonia": "ES", "catalunya": "ES", "andalusia": "ES",
+    "basque country": "ES", "madrid region": "ES",
+}
+
+
+def place_qualifier_country(value: str):
+    """ISO2 for a trailing place qualifier — a country, a US state, or one of
+    the provinces above — or None.
+
+    This is how "London, Ontario" stops being London: the qualifier resolves to
+    CA, the gazetteer says London is GB, and a contradiction is a place the
+    source disambiguated AWAY from the one we would have stored.
+    """
+    k = _key(value)
+    if not k:
+        return None
+    hit = _PROVINCE_COUNTRY.get(k)
+    if hit:
+        return hit
+    if normalize_state(k):
+        return "US"
+    return normalize_country(k)
+
 
 REGIONS = ("North America", "Europe", "Asia", "Oceania", "Latin America", "Africa", "Middle East")
 
@@ -682,6 +1234,130 @@ def normalize_confidence(value: str):
     return k if k in CONFIDENCE_TIERS else None
 
 
+# One employer, two spellings: variant key -> the key we keep.
+#
+# WHY THIS IS A LIST AND NOT A RULE.
+#
+# Each pair below differs from its partner ONLY in punctuation, and the
+# difference comes from the filer rather than from us: SEC's EDGAR company
+# index writes "PERMA FIX ENVIRONMENTAL SERVICES INC" where the 8-K cover page
+# writes "Perma-Fix Environmental Services, Inc.", and the GOV.UK pay-gap
+# service holds one NHS trust twice, under two employer ids, once with "&" and
+# once with "and". So company_key produced two keys for one employer, both of
+# which claim the SAME profile URL (the slug transliterates "&" to "and",
+# strips accents and turns every run of punctuation into one hyphen).
+# includes/company.php detects that as a collision and refuses to serve or
+# publish either side, deliberately, rather than guessing which half of an
+# employer's history to show.
+#
+# The rule-shaped fix is to make company_key fold exactly what the slug folds,
+# so two names that produce one URL can only produce one key. That was measured
+# before it was rejected: over the 7,788 distinct stored names it changes 274
+# keys and 624 stored rows to merge THREE employers, and every one of those 274
+# would need re-issuing because company_key feeds content_hash. It also
+# contradicts the fix directly above — folding hyphens to spaces feeds "co" back
+# to the suffix strip, and CO-OPERATIVE GROUP is mangled a second way.
+#
+# So the merge is stated, one line per employer, at the cost of needing to be
+# added to. That cost is paid for by the check in ops_status.py [1c], which
+# lists any two stored keys that claim one slug and are not named here: a new
+# pair is loud rather than quietly unpublishable.
+#
+# The SURVIVING key in each pair is the one whose plain space-for-hyphen form is
+# already the canonical slug (ASCII, "and", no punctuation). That keeps the fast
+# path in tit_company_rows() — a direct REPLACE(company_key,' ','-') comparison
+# in SQL — able to find it without going through the slug index at all.
+EMPLOYER_KEY_ALIASES = {
+    # SEC filer 0000891532, one 8-K and three pay-versus-performance tables.
+    'perma-fix environmental services': 'perma fix environmental services',
+    # SEC filer 0001401914. The company spells itself Daré; EDGAR shouts DARE.
+    'daré bioscience': 'dare bioscience',
+    # GOV.UK pay-gap employers 15028 (to 2022) and 22115 (from 2023). The trust
+    # re-registered and dropped the ampersand; both ids are the same trust.
+    'barking havering & redbridge university hospitals nhs trust':
+        'barking havering and redbridge university hospitals nhs trust',
+
+    # --- 2026-08-02 slug-collision review -----------------------------------
+    # ops_status flagged 12 slugs claimed by two keys. They were three different
+    # things, and only the first is an alias:
+    #   * 5 are one employer under two spellings -> merged here;
+    #   * 2 are one employer whose every spelling is non-Latin, so no survivor
+    #     satisfies this map's own SQL-findability rule -> SAME_EMPLOYER_NO_ASCII_KEY;
+    #   * 5 are DIFFERENT employers colliding because the slug deletes non-Latin
+    #     characters -> DISTINCT_EMPLOYER_SLUG_COLLISIONS.
+    # Both lists are below. Merging the third group would have fused SK Telecom
+    # with SK Hynix and two unrelated municipal football clubs.
+    #
+    # The survivor is never a free choice: test_the_surviving_spelling_is_the_
+    # one_sql_can_find_without_the_index requires it to slugify to itself, so it
+    # has to be the ASCII-clean spelling. Where both are clean, the plainer form
+    # wins, matching the three entries above (hyphen -> space, accent -> plain).
+    'coca-cola': 'coca cola',            # news vs EDGAR's "COCA COLA CO"
+    'nestlé': 'nestle',
+    'rcf notre-dame': 'rcf notre dame',  # one appointment, two French outlets
+    # The Hebrew rendering one outlet used, against the company's own
+    # international name (IDE Technologies). Both rows report Yuri Bronstein's
+    # appointment as CEO of the same water-technology company (Calcalist and
+    # TheMarker). Noting the risk honestly: a bare 'ide' is a generic key, so
+    # if some unrelated IDE ever appears it will land here and need splitting.
+    'ide טכנולוגיות מים': 'ide',
+    # BBQ is the trading name of 제너시스BBQ (Genesis BBQ). Both rows track one
+    # executive: Park Ji-man appointed 대표이사 in January, resigning in July.
+    # The full legal name would be the better canonical, but it is not
+    # SQL-findable, so the trading name survives.
+    '제너시스bbq': 'bbq',
+}
+
+
+# One employer, two spellings, and NEITHER can be the survivor: this map
+# requires a key that slugifies to itself, and every spelling of these two is
+# non-Latin. Naming an ASCII canonical would mean inventing a company name the
+# sources do not use, so they are recorded rather than guessed at.
+#
+# They are the same defect as DISTINCT_EMPLOYER_SLUG_COLLISIONS below — the
+# published slug cannot represent a non-Latin name — and they clear the same
+# way: once tit_company_slug keeps those characters (or transliterates them),
+# each spelling gets its own URL and one of them can become the survivor.
+SAME_EMPLOYER_NO_ASCII_KEY = {
+    # NH證 is how the Korean business press abbreviates NH투자증권 (NH
+    # Investment & Securities). Both rows are the same CEO succession race.
+    'nh': ('nh證', 'nh투자증권'),
+    # One diacritic apart: "Giày" is the correct Vietnamese word for shoe,
+    # "Giầy" the variant. Same company, same Vinaconex-linked CEO appointment,
+    # reported by tuoitre.vn and vietstock.vn.
+    'giay-thuong-inh': ('giày thượng đình', 'giầy thượng đình'),
+}
+
+
+# Two keys can claim one profile URL without being one employer. The published
+# slug (tit_company_slug in the plugin) folds accents and then deletes every
+# remaining non-[a-z0-9] character, so a name written in Hangul, Han or Hebrew
+# is reduced to whatever Latin fragment it happens to contain — '오픈ai' and
+# '페르소나ai' both become 'ai'. That is a slug defect, not a duplicate
+# employer, and the fix is a plugin change to keep the two apart.
+#
+# Until then these pairs are recorded here so the collision report can say
+# "two different employers, blocked on the slug" instead of asking someone to
+# decide which spelling wins. Choosing one WOULD silently destroy an employer:
+# every pair below is two distinct companies.
+DISTINCT_EMPLOYER_SLUG_COLLISIONS = {
+    # OpenAI (US, covered by Korean press) and Persona AI, a Korean defence-
+    # tech startup raising from LIG Nex1. Unrelated.
+    'ai': ('오픈ai', '페르소나ai'),
+    # Two subsidiaries of BNK Financial Group: BNK PierX (renamed PierX Co.)
+    # and BNK Capital. Separate companies, separate CEOs.
+    'bnk': ('bnk 피어엑스', 'bnk캐피탈'),
+    # Two municipal South Korean football clubs, Changwon and Hwaseong.
+    'fc': ('창원fc', '화성fc'),
+    # IBM and IBM Japan. The Japanese row is 日本IBM's own presidency changing
+    # hands, which is not a change at the parent.
+    'ibm': ('ibm', '日本ibm'),
+    # SK Telecom and SK Hynix — two SK Group companies, and the one pair here
+    # where a careless merge would have been most expensive.
+    'sk': ('sk 电信', 'sk하이닉스'),
+}
+
+
 def company_key(name: str) -> str:
     """Stable join key for a company. Strips common legal suffixes so
     'Acme Inc.' and 'Acme, Inc' collapse to one employer.
@@ -706,7 +1382,12 @@ def company_key(name: str) -> str:
     stored names. company_key feeds content_hash, so rows already stored under a
     mangled key keep it, and a new signal for one of those six will not dedupe
     against them until a correction pass rewrites the stored keys through
-    store.revise(). That pass is a queued writer job and is not this change.
+    store.revise(). That pass is `correct_company_key.py`, and it derives its
+    worklist by calling this function rather than from a list of six, so it
+    covers the aliases below and anything a later fix here moves.
+
+    The last step applies EMPLOYER_KEY_ALIASES, three curated merges of one
+    employer recorded under two spellings. See the note above that map.
     """
     k = _key(name)
     k = re.sub(r"[^\w\s&-]", " ", k)
@@ -715,7 +1396,11 @@ def company_key(name: str) -> str:
         " ",
         k,
     )
-    return re.sub(r"\s+", " ", k).strip()
+    k = re.sub(r"\s+", " ", k).strip()
+    # After the suffix strip, never before: the alias is written in the form the
+    # rest of this function produces, so a reader can check an entry against a
+    # stored key by eye.
+    return EMPLOYER_KEY_ALIASES.get(k, k)
 
 
 # --- Funding stage ---------------------------------------------------------
@@ -957,58 +1642,779 @@ _NON_USD = re.compile(
     re.I,
 )
 
-_AMOUNT = re.compile(
-    r"(\d[\d,]*(?:\.\d+)?)\s*"
-    r"(k|m|mm|mn|bn|b|t|thousand|million|millions|billion|billions|trillion)?\b",
-    re.I,
+# --- The dollar, written as a word ------------------------------------------
+#
+# Every form below is an inflection of "dollar" in a language the catalogue
+# wires, listed rather than stemmed for the reason SCALE_WORDS_BY_LANGUAGE is
+# listed rather than stemmed: a loose stem match puts `doler` (Spanish, to hurt)
+# and `dolerite` (a rock) inside the currency, and this file has already paid
+# once for a stem that matched more than it meant.
+DOLLAR_WORDS = (
+    # English, Italian, Estonian, Finnish
+    "dollar", "dollars", "dollari", "dollaria", "dollarit", "dollaria",
+    # Spanish, Portuguese, Slovak, Hungarian
+    "dólar", "dólares", "dolar", "dolares", "dolár", "doláru", "dolárov",
+    "dollár", "dollárt", "dollárok",
+    # Turkish (doları / dolarları), Indonesian, Malay, Polish, Czech,
+    # Croatian / Serbian / Bosnian, Romanian, Lithuanian, Latvian
+    "doları", "dolari", "dolarları", "dolarlar", "dolarów", "dolarow",
+    "dolarů", "dolaru", "dolary", "dolara", "dolare", "dolarima",
+    "doleris", "doleriai", "dolāri", "dolāru",
+    # Russian, Ukrainian, Bulgarian, Macedonian, Serbian Cyrillic
+    "доллар", "доллара", "долларов", "доларів", "долар", "долара", "долари",
+    "долары",
+    # Greek
+    "δολάριο", "δολάρια", "δολαρίων",
+    # Albanian. Vietnamese is deliberately absent: it writes "đô la", two
+    # tokens, and the bare "đô" is far too short to admit as a currency.
+    "dollarë", "dollarësh",
 )
 
-_MULTIPLIERS = {
-    None: 1,
-    "k": 1_000, "thousand": 1_000,
-    "m": 1_000_000, "mm": 1_000_000, "mn": 1_000_000,
-    "million": 1_000_000, "millions": 1_000_000,
-    "b": 1_000_000_000, "bn": 1_000_000_000,
-    "billion": 1_000_000_000, "billions": 1_000_000_000,
-    "t": 1_000_000_000_000, "trillion": 1_000_000_000_000,
+#: Hebrew and Arabic glue their clitics on, so the dollar word needs the same
+#: boundary the Hebrew prefilter block spells out rather than a `\b`.
+_DOLLAR_WORDS_RTL = (
+    r"(?<![א-ת])[והבלכמש]{0,2}דולר(?:ים)?(?![א-ת])",
+    r"(?<![؀-ۿ])(?:ال|وال|بال)?دولار(?:ات|ا)?(?![؀-ۿ])",
+)
+
+#: Scripts that write the currency glued to the number, so no boundary exists
+#: to assert. 美元 and 美金 name the US dollar outright ("American money"), which
+#: is why the Chinese entries need no qualifier veto below: 港元, 加元 and 澳元
+#: are different words rather than qualified forms of this one.
+_DOLLAR_WORDS_GLUED = ("ドル", "달러", "美元", "美金")
+
+# ...and the qualifiers that make it SOMEBODY ELSE'S dollar.
+#
+# This is the word-shaped sibling of the `(?:HK|NZ|C|A|S)\s?\$` arm of _NON_USD,
+# and it carries the same honest limit: a Canadian round reported in Canadian
+# dollars without the word "Canadian" anywhere in the amount string reads as US
+# dollars, exactly as a bare `$` always has. The list is the dollars that
+# actually appear in the business copy these feeds carry; it is not every dollar
+# in ISO 4217, and it does not pretend to be.
+_DOLLAR_QUALIFIERS_BEFORE = (
+    r"canadian", r"australian", r"singapore(?:an)?", r"hong\s*kong", r"new\s*zealand",
+    r"taiwan(?:ese)?", r"jamaican", r"namibian", r"fijian", r"brunei(?:an)?",
+    r"liberian", r"guyanese", r"barbadian", r"bahamian", r"belize(?:an)?",
+    r"caribbean", r"trinidad\w*", r"zimbabwe(?:an)?", r"surinamese", r"solomon",
+    # German and Dutch put the adjective in front
+    r"kanadische\w*", r"australische\w*", r"neuseel\w+", r"hongkong\w*",
+    r"singapur\w*", r"taiwanische\w*", r"canadese", r"australische",
+    # Turkish, Indonesian and Malay put the bare country name in front
+    r"kanada", r"avustralya", r"yeni\s*zelanda", r"singapura?", r"tayvan",
+    r"australia", r"brunei",
+)
+_DOLLAR_QUALIFIERS_AFTER = (
+    r"canadiens?", r"canadiennes?", r"canadienses?", r"canadenses?",
+    r"australiens?", r"australiennes?", r"australianos?", r"australians?",
+    r"singapouriens?", r"singapurenses?", r"singapore",
+    r"n[ée]o-?z[ée]landais\w*", r"neozeland[eé]s\w*", r"neozelandeses?",
+    r"taiwan[eé]s\w*", r"taiwan", r"hong\s*kong", r"jamaicanos?",
+    r"kanadsk\w+", r"australsk\w+", r"kanadyjski\w*", r"australijski\w*",
+)
+_DOLLAR_QUALIFIERS_GLUED = (
+    "カナダドル", "豪ドル", "加ドル", "香港ドル", "台湾ドル", "NZドル",
+    "ニュージーランドドル", "シンガポールドル", "シンガポール・ドル",
+    "홍콩 달러", "캐나다 달러", "호주 달러", "싱가포르 달러", "대만 달러",
+    "홍콩달러", "캐나다달러", "호주달러", "싱가포르달러",
+)
+
+_DOLLAR_WORD_ALT = "|".join(re.escape(w) for w in DOLLAR_WORDS)
+_DOLLAR_GLUED_ALT = "|".join(re.escape(w) for w in _DOLLAR_WORDS_GLUED)
+
+#: Every way this module will accept "a dollar was named in words".
+_DOLLAR_WORD_PATTERNS = (
+    (r"\b(?:%s)\b" % _DOLLAR_WORD_ALT,)
+    + _DOLLAR_WORDS_RTL
+    + (_DOLLAR_GLUED_ALT,)
+)
+
+#: A dollar word that a qualifier has claimed for another country. Checked
+#: beside _NON_USD, so it refuses the figure rather than converting it.
+_QUALIFIED_DOLLAR = re.compile(
+    r"(?:%s)[\s\-·]{0,2}(?:%s)"
+    % ("|".join(_DOLLAR_QUALIFIERS_BEFORE), _DOLLAR_WORD_ALT)
+    + r"|(?:%s)\s+(?:de\s+|dos\s+|d[ae]\s+|di\s+)?(?:%s)"
+    % (_DOLLAR_WORD_ALT, "|".join(_DOLLAR_QUALIFIERS_AFTER))
+    + r"|(?:%s)" % "|".join(re.escape(q) for q in _DOLLAR_QUALIFIERS_GLUED),
+    re.I | re.UNICODE,
+)
+
+# A US DOLLAR HAS TO BE STATED, not merely not-contradicted.
+#
+# The rule used to be a denylist: refuse if _NON_USD matches, otherwise treat the
+# number as dollars. A denylist of currency words is guaranteed to be short by
+# exactly the currencies nobody has met yet, and absence of evidence was being
+# read as evidence of dollars. Three live rows proved it: '25 millioner kroner'
+# and '10,5 mio. kr.' are Danish (kron[ao]r? does not match "kroner", and "kr."
+# was in no list at all) and '500 millones' names no currency in the string
+# while its own summary says euros. All three sat in funding_amount_usd on a
+# page that promises amounts in other currencies are left out rather than
+# converted at a rate nobody published.
+#
+# So the test is now POSITIVE, and it is cheap to be strict: of 3,097 current
+# rows carrying a funding_amount, 3,094 name '$', 'US$' or 'USD' outright. The
+# only three that did not were these three, and all three were wrong. A currency
+# we have never seen now refuses by default instead of quietly becoming dollars.
+#
+# WHAT THIS RULE DOES *NOT* MEAN, added 2026-08-04. "Stated" was implemented as
+# "written with the symbol $, the prefix US$ or the code USD", and a headline
+# that writes the currency out in words states it just as plainly. Six real
+# strings measured that day, every one of them a 2026 AI mega-round:
+#
+#   '122.000 millones de dólares'  '65 milliards de dollars'  '30 Mrd. Dollar'
+#   '650億ドル'                     '965 מיליארד דולר'          '300亿美元'
+#
+# All six returned None, so the rows carrying them stored with
+# funding_amount_usd NULL: absent from every money chart, from "sort by raised",
+# and from the amount arm of funding_event_duplicate. The parser was not
+# refusing to guess - the source had told it, in words, and the reader could not
+# read the word.
+#
+# So a dollar WORD counts, on exactly the same terms the '$' sign already
+# counts. That is the honest symmetry: a bare '$' is written by Canada,
+# Australia, Singapore, Hong Kong and a dozen others, and this module has always
+# accepted a bare '$' as a US dollar. A bare "dollars" is ambiguous in precisely
+# the same way and to precisely the same degree, so it is admitted the same way
+# - and the NAMED other dollars are vetoed the same way too, by
+# _QUALIFIED_DOLLAR below, which is the word-shaped sibling of the `C$|A$|S$`
+# arm of _NON_USD.
+#
+# It cannot widen anything else. A string naming no currency at all still
+# returns None, which keeps the three rows this positive test was built for
+# ('500 millones', '25 millioner kroner', '10,5 mio. kr.') refusing exactly as
+# before, and keeps the live '93.175 millones' row NULL rather than guessing.
+_USD_MARKER = re.compile(
+    r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$"
+    r"|(?:%s)" % "|".join(_DOLLAR_WORD_PATTERNS)
+)
+
+# --- The scale word, in every language the catalogue wires -------------------
+#
+# `$190 Milyon Dolar` was stored as ONE HUNDRED AND NINETY DOLLARS. Turkish for
+# a million was not in the table, the token fell through to no multiplier at
+# all, and a nine-figure round landed on the money chart as pocket change. Four
+# rows went that way in one collection, and the mechanism is not Turkish: 575
+# national press feeds across 139 countries were wired into a parser whose scale
+# vocabulary was English with a handful of Romance words bolted on.
+#
+# So the vocabulary is now declared PER LANGUAGE, derived from the language
+# column of data/sources_catalogue.csv rather than from whichever string last
+# broke. tests/test_funding_amount_parsing.py reads that CSV and fails if a
+# wired language is neither covered here nor named in UNCOVERED_LANGUAGES with
+# a reason. A partial vocabulary fails silently and looks like sparse data —
+# that is the lesson the figure-guard measurement wrote down on 2026-07-30, and
+# this is the structure that makes the gap visible instead.
+#
+# Three things carried over from the Hebrew/Czech/Danish prefilter work, and all
+# three shaped the code below rather than only the word lists:
+#
+#   1. Word boundaries are not universal. `\b` is meaningless in Chinese,
+#      Japanese, Korean and Thai, which put no space between the number, the
+#      scale word and the currency: `1亿美元` is one token to a regex engine, and
+#      `亿\b` can never match it because 美 is a word character. Those scripts get
+#      GLUED_SCALE, matched as a prefix with no boundary assertion at all. The
+#      space-delimited scripts are matched by taking the WHOLE letter run after
+#      the number and looking it up, which is a boundary that cannot be got
+#      wrong and which also kills the ordering trap below.
+#   2. Hebrew and Arabic glue clitics onto the FRONT of a word, and they are
+#      word characters, so `מיליון` is often written `כמיליון`. A short list of
+#      those prefixes is stripped before lookup, and only when what is left is a
+#      word we know.
+#   3. A regex alternative ending in a magnitude word can silently never match —
+#      `mil` shadowing `milyon` inside one alternation is exactly how the
+#      Turkish rows were lost, since `mil` matched, the boundary failed, and the
+#      optional group settled for nothing. There is no alternation here any
+#      more. The letter run is read once and looked up in a dict.
+#
+# A widened vocabulary CANNOT turn a foreign amount into a dollar figure: every
+# path below runs only after _USD_MARKER has already found '$', 'US$' or 'USD'
+# in the string. It can only stop 'USD 53 millones' being stored as fifty-three
+# dollars.
+
+_THOUSAND = 1_000
+_MILLION = 1_000_000
+_MILLIARD = 1_000_000_000
+_TRILLION = 1_000_000_000_000
+
+# Which separator a language writes a DECIMAL with. '.' means the English
+# convention (dot decimal, comma thousands); ',' means the continental one
+# (comma decimal, dot thousands); None means we do not claim to know, and the
+# number falls back to the shape heuristic in _read_number.
+#
+# This is the second half of the same defect. `$150.000` from an Indonesian
+# publisher is one hundred and fifty THOUSAND dollars, and an English-tuned
+# reader stored 150. The mirror-image error is just as available: `1,5 milyon`
+# is one and a half million, and stripping the comma makes it fifteen.
+_DOT_DECIMAL = "."
+_COMMA_DECIMAL = ","
+
+_LANGUAGE_DECIMAL = {
+    "Albanian": _COMMA_DECIMAL, "Arabic": None, "Bengali": _DOT_DECIMAL,
+    "Bosnian": _COMMA_DECIMAL, "Bulgarian": _COMMA_DECIMAL,
+    "Chinese": _DOT_DECIMAL, "Croatian": _COMMA_DECIMAL,
+    "Czech": _COMMA_DECIMAL, "Danish": _COMMA_DECIMAL, "Dutch": _COMMA_DECIMAL,
+    "English": _DOT_DECIMAL, "Estonian": _COMMA_DECIMAL,
+    "Finnish": _COMMA_DECIMAL, "French": _COMMA_DECIMAL,
+    "German": _COMMA_DECIMAL, "Greek": _COMMA_DECIMAL, "Hebrew": _DOT_DECIMAL,
+    "Hungarian": _COMMA_DECIMAL, "Icelandic": _COMMA_DECIMAL,
+    "Indonesian": _COMMA_DECIMAL, "Italian": _COMMA_DECIMAL,
+    "Japanese": _DOT_DECIMAL, "Kinyarwanda": None, "Korean": _DOT_DECIMAL,
+    "Kurdish": _COMMA_DECIMAL, "Latvian": _COMMA_DECIMAL,
+    "Lithuanian": _COMMA_DECIMAL, "Macedonian": _COMMA_DECIMAL,
+    "Maltese": _DOT_DECIMAL, "Montenegrin": _COMMA_DECIMAL,
+    "Nepali": _DOT_DECIMAL, "Norwegian": _COMMA_DECIMAL,
+    "Polish": _COMMA_DECIMAL, "Portuguese": _COMMA_DECIMAL,
+    "Romanian": _COMMA_DECIMAL, "Russian": _COMMA_DECIMAL,
+    "Serbian": _COMMA_DECIMAL, "Slovak": _COMMA_DECIMAL,
+    "Slovenian": _COMMA_DECIMAL, "Spanish": _COMMA_DECIMAL,
+    "Swahili": _DOT_DECIMAL, "Swedish": _COMMA_DECIMAL, "Thai": _DOT_DECIMAL,
+    "Turkish": _COMMA_DECIMAL, "Ukrainian": _COMMA_DECIMAL,
+    "Uzbek": _COMMA_DECIMAL, "Vietnamese": _COMMA_DECIMAL,
 }
+
+# The scale words themselves, keyed by the language name the catalogue uses.
+#
+# Inflection is why these are lists rather than stems: Latvian alone writes
+# miljons / miljoni / miljonu / miljonus / miljoniem, and all five came off the
+# live Latvian feed in one fetch. A stem match with a loose tail would also
+# catch `milionário`, and the prefilter work already paid for that lesson once
+# (bare `investice` gave nine false positives in fifteen). Every form below was
+# either read off a wired feed on 2026-07-30 or is the dictionary citation form
+# of one that was.
+SCALE_WORDS_BY_LANGUAGE = {
+    "Albanian": {"milion": _MILLION, "milionë": _MILLION,
+                 "milionesh": _MILLION, "milionësh": _MILLION,
+                 "miliard": _MILLIARD, "miliardë": _MILLIARD,
+                 "mije": _THOUSAND, "mijë": _THOUSAND},
+    # Arabic plurals are broken rather than suffixed, so both stems are listed.
+    "Arabic": {"مليون": _MILLION, "ملايين": _MILLION,
+               "مليار": _MILLIARD, "مليارات": _MILLIARD,
+               "تريليون": _TRILLION, "ألف": _THOUSAND, "الف": _THOUSAND},
+    "Bengali": {"মিলিয়ন": _MILLION, "বিলিয়ন": _MILLIARD},
+    "Bosnian": {"milion": _MILLION, "miliona": _MILLION, "milione": _MILLION,
+                "milijun": _MILLION, "milijuna": _MILLION,
+                "milijarda": _MILLIARD, "milijardi": _MILLIARD,
+                "milijarde": _MILLIARD, "hiljada": _THOUSAND},
+    "Bulgarian": {"милион": _MILLION, "милиона": _MILLION, "млн": _MILLION,
+                  "милиард": _MILLIARD, "милиарда": _MILLIARD,
+                  "млрд": _MILLIARD, "хиляди": _THOUSAND},
+    # Chinese counts in ten-thousands, which is the whole reason GLUED_SCALE
+    # exists: 亿 is 10^8, not a billion, and `1亿美元` has no space anywhere in it.
+    "Chinese": {"万": 10_000, "萬": 10_000, "千万": 10_000_000,
+                "百万": _MILLION, "亿": 100_000_000, "億": 100_000_000,
+                "十亿": _MILLIARD, "兆": _TRILLION, "千": _THOUSAND},
+    "Croatian": {"milijun": _MILLION, "milijuna": _MILLION,
+                 "milijuni": _MILLION, "milijarda": _MILLIARD,
+                 "milijardi": _MILLIARD, "tisuća": _THOUSAND},
+    "Czech": {"milion": _MILLION, "milionu": _MILLION, "milionů": _MILLION,
+              "miliony": _MILLION, "miliónů": _MILLION,
+              "miliarda": _MILLIARD, "miliardy": _MILLIARD,
+              "miliard": _MILLIARD, "tisíc": _THOUSAND},
+    "Danish": {"million": _MILLION, "millioner": _MILLION, "mio": _MILLION,
+               "milliard": _MILLIARD, "milliarder": _MILLIARD,
+               "mia": _MILLIARD, "tusinde": _THOUSAND},
+    "Dhivehi": {"މިލިއަން": _MILLION},
+    "Dutch": {"miljoen": _MILLION, "mln": _MILLION, "miljard": _MILLIARD,
+              "mld": _MILLIARD, "duizend": _THOUSAND},
+    "English": {"thousand": _THOUSAND, "k": _THOUSAND,
+                "m": _MILLION, "mm": _MILLION, "mn": _MILLION,
+                "million": _MILLION, "millions": _MILLION,
+                "b": _MILLIARD, "bn": _MILLIARD,
+                "billion": _MILLIARD, "billions": _MILLIARD,
+                "t": _TRILLION, "tn": _TRILLION, "trillion": _TRILLION},
+    "Estonian": {"miljon": _MILLION, "miljonit": _MILLION,
+                 "miljardit": _MILLIARD, "miljard": _MILLIARD,
+                 "tuhat": _THOUSAND},
+    "Finnish": {"miljoona": _MILLION, "miljoonaa": _MILLION,
+                "miljoonan": _MILLION, "miljardi": _MILLIARD,
+                "miljardia": _MILLIARD, "tuhatta": _THOUSAND},
+    "French": {"million": _MILLION, "millions": _MILLION,
+               "milliard": _MILLIARD, "milliards": _MILLIARD,
+               "mille": _THOUSAND},
+    "German": {"million": _MILLION, "millionen": _MILLION, "mio": _MILLION,
+               "milliarde": _MILLIARD, "milliarden": _MILLIARD,
+               "mrd": _MILLIARD, "mia": _MILLIARD, "tausend": _THOUSAND},
+    "Greek": {"εκατομμύριο": _MILLION, "εκατομμύρια": _MILLION,
+              "εκατομμυρίων": _MILLION, "εκατ": _MILLION,
+              "δισεκατομμύριο": _MILLIARD, "δισεκατομμύρια": _MILLIARD,
+              "δισεκατομμυρίων": _MILLIARD, "δισ": _MILLIARD,
+              "χιλιάδες": _THOUSAND},
+    "Hebrew": {"מיליון": _MILLION, "מיליוני": _MILLION,
+               "מיליארד": _MILLIARD, "מיליארדי": _MILLIARD,
+               "טריליון": _TRILLION, "אלף": _THOUSAND, "אלפי": _THOUSAND},
+    "Hungarian": {"millió": _MILLION, "milliót": _MILLION,
+                  "millióval": _MILLION, "milliárd": _MILLIARD,
+                  "milliárdot": _MILLIARD, "ezer": _THOUSAND},
+    "Icelandic": {"milljón": _MILLION, "milljónir": _MILLION,
+                  "milljóna": _MILLION, "milljarður": _MILLIARD,
+                  "milljarðar": _MILLIARD, "milljarða": _MILLIARD,
+                  "þúsund": _THOUSAND},
+    "Indonesian": {"juta": _MILLION, "jt": _MILLION, "miliar": _MILLIARD,
+                   "milyar": _MILLIARD, "triliun": _TRILLION,
+                   "ribu": _THOUSAND},
+    "Italian": {"milione": _MILLION, "milioni": _MILLION, "mln": _MILLION,
+                "miliardo": _MILLIARD, "miliardi": _MILLIARD,
+                "mld": _MILLIARD, "mila": _THOUSAND},
+    "Japanese": {"万": 10_000, "百万": _MILLION, "千万": 10_000_000,
+                 "億": 100_000_000, "十億": _MILLIARD, "兆": _TRILLION,
+                 "千": _THOUSAND},
+    "Kinyarwanda": {"miliyoni": _MILLION, "miliyari": _MILLIARD},
+    "Korean": {"만": 10_000, "백만": _MILLION, "억": 100_000_000,
+               "십억": _MILLIARD, "조": _TRILLION, "천": _THOUSAND},
+    "Kurdish": {"milyon": _MILLION, "milyar": _MILLIARD},
+    "Latvian": {"miljons": _MILLION, "miljoni": _MILLION, "miljonu": _MILLION,
+                "miljonus": _MILLION, "miljoniem": _MILLION,
+                "miljards": _MILLIARD, "miljardi": _MILLIARD,
+                "miljardu": _MILLIARD, "miljardus": _MILLIARD,
+                "tūkstoši": _THOUSAND},
+    "Lithuanian": {"milijonas": _MILLION, "milijono": _MILLION,
+                   "milijonų": _MILLION, "mln": _MILLION,
+                   "milijardas": _MILLIARD, "milijardų": _MILLIARD,
+                   "mlrd": _MILLIARD, "tūkst": _THOUSAND},
+    "Macedonian": {"милион": _MILLION, "милиони": _MILLION,
+                   "милиона": _MILLION, "милијарда": _MILLIARD,
+                   "милијарди": _MILLIARD, "илјади": _THOUSAND},
+    "Maltese": {"miljun": _MILLION, "miljuni": _MILLION, "elf": _THOUSAND},
+    "Montenegrin": {"milion": _MILLION, "miliona": _MILLION,
+                    "milijarda": _MILLIARD, "milijardi": _MILLIARD,
+                    "hiljada": _THOUSAND},
+    "Nepali": {"मिलियन": _MILLION, "बिलियन": _MILLIARD},
+    "Norwegian": {"million": _MILLION, "millioner": _MILLION,
+                  "mill": _MILLION, "milliard": _MILLIARD,
+                  "milliarder": _MILLIARD, "mrd": _MILLIARD,
+                  "tusen": _THOUSAND},
+    "Polish": {"milion": _MILLION, "miliona": _MILLION, "milionów": _MILLION,
+               "mln": _MILLION, "miliard": _MILLIARD,
+               "miliardów": _MILLIARD, "mld": _MILLIARD,
+               "tysięcy": _THOUSAND, "tys": _THOUSAND},
+    # Brazilian spellings only. Portugal writes `bilião` for 10^12 and `mil
+    # milhões` for 10^9, so `bilião`/`biliões` are refused rather than read —
+    # see AMBIGUOUS_SCALE_WORDS. The wired Portuguese feeds are 15 Brazilian to
+    # 3 Portuguese, and `bi` off BitNotícias and EuQueroInvestir is Brazilian.
+    "Portuguese": {"milhão": _MILLION, "milhões": _MILLION,
+                   "milhao": _MILLION, "milhoes": _MILLION,
+                   "bilhão": _MILLIARD, "bilhões": _MILLIARD,
+                   "bilhao": _MILLIARD, "bilhoes": _MILLIARD,
+                   "bi": _MILLIARD, "trilhão": _TRILLION,
+                   "trilhões": _TRILLION},
+    "Romanian": {"milion": _MILLION, "milioane": _MILLION,
+                 "miliard": _MILLIARD, "miliarde": _MILLIARD,
+                 "mii": _THOUSAND},
+    "Russian": {"миллион": _MILLION, "миллиона": _MILLION,
+                "миллионов": _MILLION, "млн": _MILLION,
+                "миллиард": _MILLIARD, "миллиарда": _MILLIARD,
+                "миллиардов": _MILLIARD, "млрд": _MILLIARD,
+                "триллион": _TRILLION, "трлн": _TRILLION,
+                "тысяч": _THOUSAND},
+    "Serbian": {"milion": _MILLION, "miliona": _MILLION, "милион": _MILLION,
+                "милиона": _MILLION, "milijarda": _MILLIARD,
+                "milijardi": _MILLIARD, "милијарда": _MILLIARD,
+                "милијарди": _MILLIARD, "hiljada": _THOUSAND,
+                "хиљада": _THOUSAND},
+    "Slovak": {"milión": _MILLION, "milióna": _MILLION,
+               "miliónov": _MILLION, "miliarda": _MILLIARD,
+               "miliardy": _MILLIARD, "miliárd": _MILLIARD,
+               "tisíc": _THOUSAND},
+    "Slovenian": {"milijon": _MILLION, "milijona": _MILLION,
+                  "milijonov": _MILLION, "milijarda": _MILLIARD,
+                  "milijard": _MILLIARD, "tisoč": _THOUSAND},
+    # `billón`/`billones` are 10^12 in Spanish and are NOT here; see
+    # AMBIGUOUS_SCALE_WORDS for why they refuse rather than pick.
+    "Spanish": {"millón": _MILLION, "millon": _MILLION,
+                "millones": _MILLION, "milliones": _MILLION,
+                "millardo": _MILLIARD, "millardos": _MILLIARD},
+    "Swahili": {"milioni": _MILLION, "bilioni": _MILLIARD, "elfu": _THOUSAND},
+    "Swedish": {"miljon": _MILLION, "miljoner": _MILLION,
+                "miljard": _MILLIARD, "miljarder": _MILLIARD,
+                "mdr": _MILLIARD, "tusen": _THOUSAND},
+    # Thai writes no spaces and its scale words carry combining marks, which
+    # \w does not match, so \b cannot be used at any point in ล้าน. GLUED_SCALE.
+    "Thai": {"ล้าน": _MILLION, "พันล้าน": _MILLIARD,
+             "ล้านล้าน": _TRILLION, "หมื่น": 10_000, "แสน": 100_000,
+             "พัน": _THOUSAND},
+    "Turkish": {"milyon": _MILLION, "milyar": _MILLIARD,
+                "trilyon": _TRILLION, "bin": _THOUSAND},
+    "Ukrainian": {"мільйон": _MILLION, "мільйона": _MILLION,
+                  "мільйонів": _MILLION, "млн": _MILLION,
+                  "мільярд": _MILLIARD, "мільярда": _MILLIARD,
+                  "мільярдів": _MILLIARD, "млрд": _MILLIARD,
+                  "тисяч": _THOUSAND},
+    "Uzbek": {"million": _MILLION, "milliard": _MILLIARD, "ming": _THOUSAND},
+    "Vietnamese": {"triệu": _MILLION, "tỷ": _MILLIARD, "tỉ": _MILLIARD,
+                   "nghìn": _THOUSAND, "ngàn": _THOUSAND},
+}
+
+#: Languages in data/sources_catalogue.csv that have NO scale vocabulary here,
+#: and why. Named rather than omitted, because an unlisted language is
+#: indistinguishable from an oversight and the whole point of deriving the list
+#: from the catalogue is that a gap has to be visible.
+UNCOVERED_LANGUAGES = {
+    "Oshiwambo": "one feed, New Era (Namibia), whose money copy is the English "
+                 "half of an English/Oshiwambo masthead; no Oshiwambo scale "
+                 "word has ever appeared in a fetched headline",
+}
+
+#: A scale word whose meaning depends on which language the publisher was
+#: writing. No reading is safe, so the parser REFUSES and leaves the verbatim
+#: string on the row. This is the standing rule of the file: a figure only
+#: exists if the source states it, and a thousand-fold error on a summed total
+#: is worse than an absent figure.
+#:
+#: Two of these are here from earlier sweeps and stay:
+#:   `mil`  a million in Singapore and Malaysian English ('US$22 mil in
+#:          pre-Series A') and a THOUSAND in Spanish and Portuguese.
+#:   `mi`   milhões in Brazilian business press ('US$ 544 mi'), and a guess
+#:          anywhere else.
+#:
+#: The rest are the long-scale trap, and two of them were WRONG in the table
+#: this replaces rather than merely missing. `billones` and `billioner` were
+#: mapped to 10^9. A Spanish billón and a Danish billion are 10^12, so those two
+#: entries were a thousand-fold understatement waiting for its first row —
+#: exactly the defect this whole pass is about, pointing the other way. The
+#: comment that put them there had the diagnosis right and the conclusion
+#: backwards: it is `billion`, not `milliard`, that means different things in
+#: different languages.
+#:
+#: Which is why the milliard family is now READ rather than refused. `milliard`,
+#: `miliard`, `milyar`, `miljard`, `Milliarde`, `mia`, `mld`, `mrd`, `млрд`,
+#: `مليار` and `מיליארד` are 10^9 in every language that has the word — there is
+#: no long-scale/short-scale disagreement about milliard anywhere, and there
+#: never was. The earlier note excluded it alongside `billón`, whose ambiguity
+#: is real, and inherited the refusal by association. `$190 Milyar Dolar` is a
+#: hundred and ninety billion dollars in Turkish and in Turkish only, and
+#: refusing it left the same hole `milyon` left.
+AMBIGUOUS_SCALE_WORDS = {
+    "mil": "a million in Singapore and Malaysian English, a thousand in "
+           "Spanish and Portuguese",
+    "mi": "milhões in Brazilian Portuguese, and a guess in any other language",
+    "billón": "10^12 in Spanish, though Latin American copy calques the "
+              "English 10^9 often enough that neither reading is safe",
+    "billon": "unaccented billón, same problem",
+    "billones": "as billón; it was mapped to 10^9 here, which is the same "
+                "thousand-fold error this pass exists to remove",
+    "billioner": "10^12 in Danish and Swedish; also previously mapped to 10^9",
+    "billionen": "10^12 in German, and spelled almost exactly like the English "
+                 "10^9",
+    "bilião": "10^12 in European Portuguese, against bilhão at 10^9 in Brazil",
+    "biliões": "as bilião",
+    "trillón": "10^18 in Spanish long scale, against the English 10^12",
+    "billiard": "10^15 where it is used at all, and read as a typo for "
+                "milliard everywhere else",
+}
+
+#: Collisions between two languages that are resolved rather than refused, and
+#: the reason each is safe. Everything else that two languages disagree about is
+#: added to the refusal set automatically at import; see _build_scale_table.
+#:
+#: `m` and `t` are the two that matter. Indonesian writes `Rp5 M` for five
+#: miliar (10^9) and `Rp2,35 T` for triliun, so both collide with the English
+#: 10^6 and 10^12. They resolve to English because the string has already had to
+#: state US DOLLARS to get this far, and an Indonesian desk writing a dollar
+#: figure writes `US$5 juta`, never `US$5 M` — the M and T abbreviations belong
+#: to rupiah. Both are listed here rather than silently, so a future Indonesian
+#: dollar row in that shape has somewhere to be argued about.
+RESOLVED_SCALE_COLLISIONS = {
+    "m": (_MILLION, "English 10^6 over Indonesian miliar; the rupiah "
+                    "abbreviation never carries a dollar sign"),
+    "t": (_TRILLION, "English 10^12 over Indonesian triliun, which is also "
+                     "10^12 — the collision is nominal"),
+    "mia": (_MILLIARD, "Danish and German abbreviation for milliard; no other "
+                       "wired language uses the token"),
+    "mln": (_MILLION, "Dutch, Italian, Lithuanian and Polish all write 10^6"),
+    "mld": (_MILLIARD, "Dutch and Italian both write 10^9"),
+    "mrd": (_MILLIARD, "German and Norwegian both write 10^9"),
+}
+
+
+def _build_scale_table():
+    """Flatten the per-language vocabulary into one lookup, refusing conflicts.
+
+    Two languages that disagree about a token do not get to have the argument
+    settled by dict ordering. A token claimed with two different multipliers is
+    added to the refusal set unless RESOLVED_SCALE_COLLISIONS says which reading
+    wins and why. That is the mechanism that would have caught `billones` on the
+    day Spanish was wired, and it is the reason adding a language cannot quietly
+    change what an existing token means.
+
+    Returns (scale, decimal, ambiguous, glued):
+      scale     token -> multiplier
+      decimal   token -> '.' | ',' | None, the writer's decimal separator
+      ambiguous tokens that refuse
+      glued     [(token, multiplier, decimal)], longest first, for the scripts
+                that put no space between the number and the word
+    """
+    claims = {}
+    for language, words in SCALE_WORDS_BY_LANGUAGE.items():
+        for token, multiplier in words.items():
+            claims.setdefault(token.lower(), {}).setdefault(multiplier, set()
+                                                            ).add(language)
+
+    scale, decimal, ambiguous = {}, {}, set(AMBIGUOUS_SCALE_WORDS)
+    for token, readings in claims.items():
+        if token in ambiguous:
+            continue
+        if len(readings) > 1:
+            resolved = RESOLVED_SCALE_COLLISIONS.get(token)
+            if resolved is None:
+                ambiguous.add(token)
+                continue
+            multiplier = resolved[0]
+            languages = readings.get(multiplier, set())
+        else:
+            (multiplier, languages), = readings.items()
+        scale[token] = multiplier
+        # The decimal convention only carries when every language claiming the
+        # token agrees. 'million' is English and also Danish, French, German
+        # and Norwegian, and those write the decimal separator differently, so
+        # the token says nothing about it and _read_number falls back to shape.
+        conventions = {_LANGUAGE_DECIMAL.get(lang) for lang in languages}
+        decimal[token] = conventions.pop() if len(conventions) == 1 else None
+
+    glued = []
+    for language in _GLUED_SCRIPT_LANGUAGES:
+        for token in SCALE_WORDS_BY_LANGUAGE[language]:
+            key = token.lower()
+            if key in scale:
+                glued.append((token, scale[key], decimal[key]))
+    # Longest first, so 百万 is not read as 万 and พันล้าน is not read as พัน.
+    glued.sort(key=lambda item: -len(item[0]))
+    return scale, decimal, ambiguous, glued
+
+
+#: The scripts that write a number, its scale word and its currency as one
+#: unbroken run of word characters. `\b` cannot separate them and neither can a
+#: letter-run, so these are matched as plain prefixes with no boundary at all.
+_GLUED_SCRIPT_LANGUAGES = ("Chinese", "Japanese", "Korean", "Thai")
+
+_SCALE, _SCALE_DECIMAL, _AMBIGUOUS_SCALE, _GLUED_SCALE = _build_scale_table()
+
+#: Single-letter prefixes that Hebrew glues onto the front of a noun (and, the,
+#: in, to, from, that, about), plus the Arabic definite article. Stripped only
+#: when what remains is a scale word we already know, which is the narrow form
+#: of the rule the prefilter work landed on: a bare substring match puts
+#: `salary` inside `a rental`, and this does not.
+_CLITIC_PREFIXES = ("ו", "ה", "ב", "ל", "מ", "כ", "ש", "ال")
+
+#: The first number in the string, in any script's decimal digits. Groups may be
+#: separated by a dot, a comma or a space — French and Polish write 1 500 000,
+#: and NBSP and the narrow no-break space are what a CMS actually emits.
+_NUMBER = re.compile(r"\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?"
+                     r"|\d[\d.,]*\d"
+                     r"|\d")
+
+#: What may sit between the number and its scale word. The multiplier may be
+#: attached by a hyphen as well as by a space: BetaKit writes '$20-million USD',
+#: and \s* does not match '-', so that round was stored as twenty dollars. En
+#: and em dashes too, because a publisher's typographer may have been through it.
+_SCALE_GAP = re.compile(r"[\s ]*[-‐-―]?[\s ]*")
+
+#: A run of letters in any script, optionally closed by the abbreviation dot
+#: that `mio.`, `mln.`, `млн.` and `εκατ.` are usually written with.
+_LETTER_RUN = re.compile(r"[^\W\d_]+", re.UNICODE)
+
+
+def _scale_after(tail: str):
+    """Read the scale word sitting immediately after a number.
+
+    Returns (multiplier, decimal separator) or None for "no scale word here",
+    and raises _Refuse for a word we know we cannot read.
+
+    Taking the WHOLE letter run and looking it up is the boundary. It cannot be
+    got wrong the way `\\b` can, and it removes the ordering trap that lost the
+    Turkish rows: in an alternation, `mil` matches the front of `milyon`, the
+    boundary then fails, and an optional group settles for no multiplier at all.
+    A dict lookup of `milyon` has no such failure mode.
+    """
+    rest = _SCALE_GAP.sub("", tail, count=1) if tail else ""
+    if not rest:
+        return None
+
+    # Glued scripts first: their tokens sit inside a letter run that would
+    # otherwise swallow the currency word with them (`亿美元`, `ล้านบาท`).
+    for token, multiplier, convention in _GLUED_SCALE:
+        if rest.startswith(token):
+            return multiplier, convention
+
+    match = _LETTER_RUN.match(rest)
+    if not match:
+        return None
+    word = match.group(0).lower()
+
+    if word in _AMBIGUOUS_SCALE:
+        raise _Refuse(word)
+    if word in _SCALE:
+        return _SCALE[word], _SCALE_DECIMAL[word]
+
+    # Hebrew and Arabic clitics, and only when the remainder is a known word.
+    for prefix in _CLITIC_PREFIXES:
+        if word.startswith(prefix):
+            stem = word[len(prefix):]
+            if stem in _AMBIGUOUS_SCALE:
+                raise _Refuse(stem)
+            if stem in _SCALE:
+                return _SCALE[stem], _SCALE_DECIMAL[stem]
+    return None
+
+
+class _Refuse(Exception):
+    """A scale word we can see and deliberately will not read."""
+
+
+#: A number whose separators can be read as thousands GROUPS: a leading run of
+#: one to three digits, then groups of exactly three. '1.500.000' qualifies and
+#: '1234,567' does not, which is what stops a four-digit head being read as a
+#: thousands group it cannot be.
+_THOUSAND_GROUPS = {
+    ".": re.compile(r"\d{1,3}(?:\.\d{3})+$"),
+    ",": re.compile(r"\d{1,3}(?:,\d{3})+$"),
+}
+
+
+def _read_number(raw: str, convention: str | None):
+    """'1,450' -> 1450.0 and '10,5' -> 10.5, deciding which separator is which.
+
+    Two rules, and the ORDER of them is the whole design.
+
+    The first is shape, and it holds under BOTH conventions rather than
+    assuming one. A lone separator followed by exactly three digits is a
+    thousands group: that is what it means in English, and continental copy does
+    not pad a decimal fraction to three places either -- Spanish writes '1,5
+    millones' and '1.500 millones', never '1,500 millones' for one and a half.
+    Anything other than a three-digit tail is a decimal fraction, again in both
+    conventions, because a thousands separator always leaves exactly three
+    digits behind it. This is what makes an Indonesian '$150.000' a hundred and
+    fifty THOUSAND rather than a hundred and fifty, and it needs no locale.
+
+    The second is `convention`: the decimal separator written by the language of
+    the scale word beside the number, where that word named one language. It is
+    consulted only where the first rule and it DISAGREE -- a three-digit group
+    under the separator that this publisher's language writes decimals with --
+    and the answer there is not to pick. 'US$ 1,500 milhoes' is one and a half
+    million to a Brazilian desk and fifteen hundred million to an English one,
+    the two readings are a thousand-fold apart, and the string holds nothing
+    that settles it. It raises _Refuse, and the row keeps its verbatim amount
+    and no dollar figure. That is this project's standing rule: a figure only
+    exists if the source states it, and $150.000 read as 150 is worse than NULL
+    because NULL is visibly missing while 150 looks like data.
+    """
+    text = raw.strip()
+    for space in ("\u0020", "\u00a0", "\u202f"):
+        # A space is only ever a thousands separator. No locale writes a
+        # decimal fraction after one.
+        text = text.replace(space, "")
+
+    has_dot, has_comma = "." in text, "," in text
+    if not has_dot and not has_comma:
+        return float(text)
+
+    if has_dot and has_comma:
+        # Both present: whichever comes LAST is the decimal separator, under
+        # either convention. '1,000.0' is a thousand; '1.000,50' is a thousand
+        # and fifty cents. Reading it as English thousands, which is what this
+        # did before, turned the second into 1.0005.
+        decimal_sep = "." if text.rindex(".") > text.rindex(",") else ","
+    else:
+        sep = "." if has_dot else ","
+        if _THOUSAND_GROUPS[sep].fullmatch(text):
+            if convention == sep:
+                raise _Refuse("%s under a '%s' decimal convention" % (text, sep))
+            decimal_sep = ""
+        else:
+            decimal_sep = sep
+
+    if decimal_sep:
+        thousands_sep = "." if decimal_sep == "," else ","
+        text = text.replace(thousands_sep, "").replace(decimal_sep, ".")
+    else:
+        text = text.replace(".", "").replace(",", "")
+    return float(text)
+
 
 # A round larger than this is a parse failure, not news. Ten trillion dollars
 # is more than any company has ever raised, so a value above it means the
 # string was something other than a funding figure.
 _MAX_PLAUSIBLE_USD = 10_000_000_000_000
 
+# And a round SMALLER than this is a parse failure too, which had no guard at
+# all. Nobody announces raising nine hundred dollars, so a sub-thousand figure
+# means the string was cut short, the multiplier was in a word we do not know,
+# or a thousands separator was read as a decimal point. The live case was
+# '$1' -- from a headline that literally reads 'pendanaan non-dilutif $1...',
+# truncated mid-figure by the source we quoted.
+#
+# This floor is the same threshold tests/test_funding_amount_parsing.py has
+# always used to detect the failure after the fact. Enforcing it here turns a
+# post-hoc alarm into a refusal, which is the house rule: we do not guess.
+#
+# It also BLINDS that test, and that is why read_funding_figure exists. A guard
+# whose subject can no longer reach it always passes, and "the parser cannot
+# produce a sub-thousand figure" is not the property anyone wanted checked —
+# "no string we hold parses to one" is. The test reads the unclamped figure and
+# pins the strings this floor is currently swallowing, so the next language
+# whose scale word we do not know arrives as a red build rather than as six
+# rows quietly worth a hundred and ninety dollars.
+_MIN_PLAUSIBLE_USD = 1_000
 
-def parse_funding_usd(value: str):
-    """Return the figure as whole US dollars, or None.
 
-    None means "we will not guess", and covers: no digits at all, a currency
-    that is not the US dollar, and anything that parses to an implausible
-    number. Only the FIRST number is read, so a range ('$5M to $10M') stores
-    its low end, matching how headcounts are parsed on the sibling tracker.
+def read_funding_figure(value: str):
+    """The figure a funding string states, in US dollars, BEFORE plausibility.
+
+    Split out from parse_funding_usd so the plausibility bounds are the only
+    difference between them, and so a test can see what the floor is refusing.
+    Returns None where the string states no figure we are willing to read at
+    all: no digits, no stated US dollar, a currency that is not the US dollar,
+    or a scale word whose meaning depends on the publisher's language.
     """
     text = (str(value or "")).strip()
     if not text:
         return None
 
+    # A dollar must be STATED. See _USD_MARKER: the old denylist read "no
+    # foreign currency word I recognise" as "dollars", and every currency it did
+    # not recognise became one.
+    if not _USD_MARKER.search(text):
+        return None
+
     text = _USD_PREFIX.sub("$", text)
     text = _USD_CODE.sub(" ", text)
 
-    if _NON_USD.search(text):
+    # ...and it has to be OUR dollar. _NON_USD covers the symbols and the codes;
+    # _QUALIFIED_DOLLAR covers the same claim written in words, which is the
+    # only new way a non-US currency can reach here now that a dollar word is a
+    # marker. 'dollars canadiens' refuses; 'US dollars' does not.
+    if _NON_USD.search(text) or _QUALIFIED_DOLLAR.search(text):
         return None
 
-    m = _AMOUNT.search(text)
+    m = _NUMBER.search(text)
     if not m:
         return None
 
     try:
-        number = float(m.group(1).replace(",", ""))
-    except ValueError:
+        multiplier, convention = _scale_after(text[m.end():]) or (1, None)
+    except _Refuse:
         return None
 
-    suffix = (m.group(2) or "").lower() or None
-    amount = number * _MULTIPLIERS.get(suffix, 1)
-    if amount <= 0 or amount > _MAX_PLAUSIBLE_USD:
+    try:
+        number = _read_number(m.group(0), convention)
+    except (ValueError, _Refuse):
+        return None
+    return number * multiplier
+
+
+def parse_funding_usd(value: str):
+    """Return the figure as whole US dollars, or None.
+
+    None means "we will not guess", and covers: no digits at all, NO STATED US
+    DOLLAR, a currency that is not the US dollar, a scale word that means
+    different things in different languages, and anything that parses to an
+    implausible number. Only the FIRST number is read, so a range ('$5M to
+    $10M') stores its low end, matching how headcounts are parsed on the sibling
+    tracker.
+    """
+    amount = read_funding_figure(value)
+    if amount is None:
+        return None
+    if amount < _MIN_PLAUSIBLE_USD or amount > _MAX_PLAUSIBLE_USD:
         return None
     return int(round(amount))
 

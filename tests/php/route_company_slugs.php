@@ -1,0 +1,345 @@
+<?php
+/**
+ * Prove that correcting an employer's company_key does not 404 its old URL.
+ *
+ * WHY THIS IS A RUNNING HARNESS AND NOT A TEXT ASSERTION.
+ *
+ * The Python suite reads company.php as source, which is enough for "does the
+ * constant appear twice". It is not enough here. What has to hold is a
+ * behaviour across a state change — a slug that resolved yesterday still
+ * resolving today, through a different code path, after the row it pointed at
+ * was withdrawn and replaced. Three URLs that are in the live sitemap change
+ * when correct_company_key.py runs, and "the redirect looks right" is exactly
+ * the confidence that shipped 22 broken sitemap URLs on 1.45.4.
+ *
+ * So WordPress is stubbed and the SQL is real: $wpdb runs against an in-memory
+ * SQLite table with the same columns and the same rows the correction produces,
+ * so the JOIN in tit_company_moved_slugs() is executed rather than read. A
+ * query the harness does not recognise is a failure, not a silent empty result.
+ *
+ * Each phase runs in its own process. tit_company_slug_index() memoises in a
+ * static, which is correct in a request and wrong in a test that needs to see
+ * the index before and after a correction.
+ *
+ * Exits non-zero with a message on any failure.
+ * Run: php tests/php/route_company_slugs.php
+ */
+
+define('ABSPATH', __DIR__);
+define('TIT_PATH', __DIR__ . '/../../wordpress-plugin/talent-intelligence-tracker/');
+define('TIT_VERSION', 'test');
+define('HOUR_IN_SECONDS', 3600);
+define('ARRAY_A', 'ARRAY_A');   // $wpdb's "give me associative rows" flag
+
+function add_action($h, $f, $p = 10, $a = 1) {}
+function add_filter($h, $f, $p = 10, $a = 1) {}
+function add_rewrite_rule($r, $q, $w = 'bottom') {}
+function home_url($path = '') { return 'https://example.test' . $path; }
+function esc_html($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
+function esc_attr($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
+function esc_url($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
+function number_format_i18n($n) { return number_format((float) $n); }
+function date_i18n($f, $t) { return gmdate($f, $t); }
+function human_time_diff($a, $b) { return '1 hour'; }
+function get_query_var($v) { return ''; }
+function sanitize_text_field($s) { return trim((string) $s); }
+function status_header($c) {}
+function nocache_headers() {}
+function wp_safe_redirect($u, $c = 302) {}
+function get_option($k, $d = false) { return $d; }
+function update_option($k, $v, $a = null) { return true; }
+function flush_rewrite_rules($hard = true) {}
+
+// No caching in the harness. The transient is a performance detail; every
+// assertion here is about what the index CONTAINS.
+function get_transient($k) { return false; }
+function set_transient($k, $v, $t = 0) { return true; }
+
+/**
+ * WordPress ships this and company.php depends on it: the slug is only ASCII
+ * because remove_accents runs first. Latin-1 and Latin Extended-A is all the
+ * corpus needs, and it is all WordPress does for these ranges.
+ */
+function remove_accents($string) {
+    $folded = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $string);
+    return $folded === false ? $string : $folded;
+}
+
+function tit_table_name() { return 'wp_tit_signals'; }
+function tit_country_name($cc) { return (string) $cc; }
+function tit_money_short($n) { return (string) $n; }
+function tit_render_header() {}
+function tit_board_series_panel($k) { return ''; }
+function tit_funding_stage_labels() { return array(); }
+
+/**
+ * $wpdb, backed by SQLite, so the plugin's SQL is executed rather than matched.
+ *
+ * prepare() is the real thing's contract and nothing more: %s becomes a quoted
+ * literal, %d an integer. That is what company.php uses.
+ */
+class HarnessDb {
+    public $pdo;
+    public $last_error = '';
+
+    public function __construct() {
+        $this->pdo = new PDO('sqlite::memory:');
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo->exec(
+            'CREATE TABLE wp_tit_signals (
+                row_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                signal_id TEXT NOT NULL,
+                revision INTEGER NOT NULL DEFAULT 1,
+                is_current INTEGER NOT NULL DEFAULT 1,
+                headline TEXT NOT NULL DEFAULT "",
+                summary TEXT NOT NULL DEFAULT "",
+                talent_readthrough TEXT NOT NULL DEFAULT "",
+                company TEXT NOT NULL DEFAULT "",
+                company_key TEXT NOT NULL DEFAULT "",
+                pillar TEXT NOT NULL DEFAULT "rewards_comp",
+                signal_direction TEXT NOT NULL DEFAULT "neutral",
+                city TEXT, region TEXT, country TEXT,
+                hq_city TEXT, hq_country TEXT, state TEXT,
+                functions TEXT, industry TEXT,
+                headcount INTEGER, funding_amount TEXT,
+                funding_amount_usd INTEGER, funding_stage TEXT,
+                confidence TEXT NOT NULL DEFAULT "verified",
+                source_url TEXT NOT NULL DEFAULT "",
+                source_name TEXT NOT NULL DEFAULT "",
+                archive_url TEXT,
+                published_date TEXT, captured_at TEXT NOT NULL DEFAULT "2026-01-01 00:00:00",
+                collector TEXT NOT NULL DEFAULT "uk_paygap"
+            )'
+        );
+    }
+
+    public function prepare($sql, ...$args) {
+        if (count($args) === 1 && is_array($args[0])) $args = $args[0];
+        $out = '';
+        $i = 0;
+        $len = strlen($sql);
+        for ($p = 0; $p < $len; $p++) {
+            if ($sql[$p] === '%' && $p + 1 < $len && ($sql[$p + 1] === 's' || $sql[$p + 1] === 'd')) {
+                $value = $args[$i++] ?? '';
+                $out .= $sql[$p + 1] === 'd'
+                    ? (string) (int) $value
+                    : $this->pdo->quote((string) $value);
+                $p++;
+                continue;
+            }
+            $out .= $sql[$p];
+        }
+        return $out;
+    }
+
+    public function get_col($sql) {
+        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+
+    public function get_results($sql, $output = null) {
+        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function insert_signal($signal_id, $company, $company_key, $opts = array()) {
+        $row = array_merge(array(
+            'revision' => 1, 'is_current' => 1, 'pillar' => 'rewards_comp',
+            'signal_direction' => 'neutral', 'source_url' => 'https://example.test/' . $signal_id,
+            'source_name' => 'GOV.UK gender pay gap service',
+            'published_date' => '2024-04-05', 'captured_at' => '2026-01-01 00:00:00',
+            'headline' => $company . ' published a pay gap report',
+        ), $opts);
+        $row['signal_id'] = $signal_id;
+        $row['company'] = $company;
+        $row['company_key'] = $company_key;
+        $columns = implode(', ', array_keys($row));
+        $marks = implode(', ', array_fill(0, count($row), '?'));
+        $stmt = $this->pdo->prepare("INSERT INTO wp_tit_signals ({$columns}) VALUES ({$marks})");
+        $stmt->execute(array_values($row));
+    }
+
+    /** What correct_company_key.py does: withdraw, then append the revision. */
+    public function reissue_under($signal_id, $new_key) {
+        $row = $this->pdo->query(
+            "SELECT * FROM wp_tit_signals WHERE signal_id = " . $this->pdo->quote($signal_id)
+            . " AND is_current = 1")->fetch(PDO::FETCH_ASSOC);
+        if (!$row) { fwrite(STDERR, "no live row for {$signal_id}\n"); exit(1); }
+        $this->pdo->exec("UPDATE wp_tit_signals SET is_current = 0 WHERE row_id = " . (int) $row['row_id']);
+        unset($row['row_id']);
+        $row['company_key'] = $new_key;
+        $row['is_current'] = 1;
+        $columns = implode(', ', array_keys($row));
+        $marks = implode(', ', array_fill(0, count($row), '?'));
+        $stmt = $this->pdo->prepare("INSERT INTO wp_tit_signals ({$columns}) VALUES ({$marks})");
+        $stmt->execute(array_values($row));
+    }
+}
+
+$GLOBALS['wpdb'] = new HarnessDb();
+global $wpdb;
+
+require TIT_PATH . 'includes/company.php';
+
+$failures = array();
+function check($condition, $message) {
+    global $failures;
+    if (!$condition) $failures[] = $message;
+}
+
+/** The canonical URL a request for $slug would end at, or '' for a 404. */
+function resolves_to($slug) {
+    $rows = tit_company_rows($slug);
+    return $rows ? tit_company_slug($rows[0]['company_key']) : '';
+}
+
+$phase = $argv[1] ?? '';
+
+// --------------------------------------------------------------------------
+// Every phase runs in its own process: the slug index memoises in a static.
+// --------------------------------------------------------------------------
+if ($phase === '') {
+    $rc = 0;
+    foreach (array('before', 'after', 'ambiguous') as $each) {
+        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' ' . escapeshellarg($each);
+        passthru($command, $status);
+        if ($status !== 0) $rc = 1;
+    }
+    if ($rc === 0) echo "company slug routing ok: a corrected key redirects, a live key wins.\n";
+    exit($rc);
+}
+
+// The three employers whose URL actually moves, plus the merge that must NOT
+// move one. Real keys and real row counts, from data/talent_intel.db.
+$COOPS = array(
+    array('sig' => 'coop', 'name' => 'CO-OPERATIVE GROUP LIMITED',
+          'old' => '-operative group', 'new' => 'co-operative group', 'rows' => 9),
+    array('sig' => 'midc', 'name' => 'THE MIDCOUNTIES CO-OPERATIVE LIMITED',
+          'old' => 'the midcounties -operative', 'new' => 'the midcounties co-operative', 'rows' => 9),
+    array('sig' => 'cent', 'name' => 'CENTRAL ENGLAND CO-OPERATIVE LIMITED',
+          'old' => 'central england -operative', 'new' => 'central england co-operative', 'rows' => 8),
+);
+
+if ($phase === 'before' || $phase === 'after') {
+    foreach ($COOPS as $coop) {
+        for ($i = 0; $i < $coop['rows']; $i++) {
+            $wpdb->insert_signal($coop['sig'] . $i, $coop['name'], $coop['old'],
+                                 array('published_date' => (2018 + $i) . '-04-05'));
+        }
+    }
+    // The merge: one employer, two spellings, one URL. Both halves stay live;
+    // only the key changes on one of them.
+    $wpdb->insert_signal('perma-8k', 'Perma-Fix Environmental Services, Inc.',
+        'perma-fix environmental services',
+        array('pillar' => 'leadership_change', 'collector' => 'sec_edgar',
+              'published_date' => '2026-01-28'));
+    for ($i = 0; $i < 3; $i++) {
+        $wpdb->insert_signal('perma-pvp' . $i, 'PERMA FIX ENVIRONMENTAL SERVICES INC',
+            'perma fix environmental services',
+            array('collector' => 'sec_execcomp', 'published_date' => (2023 + $i) . '-12-31'));
+    }
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'before') {
+// --------------------------------------------------------------------------
+    // What the live sitemap contains today. The leading hyphen is trimmed by
+    // canonicalisation, so the published URL is not the legacy form.
+    check(resolves_to('operative-group') === 'operative-group',
+          'the mangled key must serve its own URL before the correction');
+    check(tit_company_rows('co-operative-group') === array(),
+          'the corrected URL cannot exist before the correction');
+
+    // The collision, refused rather than resolved.
+    check(tit_company_servable_slug('perma-fix environmental services') === false,
+          'a slug two live keys claim must not be servable');
+    check(tit_company_servable_slug('perma fix environmental services') === false,
+          'neither side of a collision is servable');
+    check(tit_company_profile(tit_company_rows('perma-fix-environmental-services'))['indexable'] === false,
+          'and neither side is indexable');
+
+    $index = tit_company_slug_index();
+    check($index['moved'] === array(),
+          'nothing has been corrected yet, so nothing is a moved slug');
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'after') {
+// --------------------------------------------------------------------------
+    foreach ($COOPS as $coop) {
+        for ($i = 0; $i < $coop['rows']; $i++) {
+            $wpdb->reissue_under($coop['sig'] . $i, $coop['new']);
+        }
+    }
+    $wpdb->reissue_under('perma-8k', 'perma fix environmental services');
+
+    foreach ($COOPS as $coop) {
+        $canonical = tit_company_slug($coop['new']);
+        $was = tit_company_slug($coop['old']);
+
+        // The new URL serves the whole employer, by the fast path.
+        check(count(tit_company_rows($canonical)) === $coop['rows'],
+              "{$canonical} should serve all {$coop['rows']} rows");
+
+        // The old URL still resolves, and to the new one. tit_company_template()
+        // 301s on exactly this comparison.
+        check(resolves_to($was) === $canonical,
+              "the pre-correction URL /company/{$was}/ must redirect to "
+              . "/company/{$canonical}/, not 404");
+
+        // And the pre-1.46 form of the old key, which was also a live URL.
+        check(resolves_to(tit_company_legacy_slug($coop['old'])) === $canonical,
+              "the legacy form of {$was} must redirect too");
+
+        check(tit_company_servable_slug($coop['new']) === true,
+              "{$coop['new']} must be publishable after the correction");
+    }
+
+    // THE MERGE. One key now, so the collision is gone and the employer is
+    // whole: the 8-K and the three pay tables on one page.
+    $slug = 'perma-fix-environmental-services';
+    check(count(tit_company_rows($slug)) === 4,
+          'a merged employer serves both halves of its history');
+    check(tit_company_servable_slug('perma fix environmental services') === true,
+          'the merged key is publishable, because nothing else claims its slug');
+
+    // A LIVE KEY WINS. The superseded 'perma-fix environmental services' claims
+    // this slug too, and must not be allowed to redirect the employer that
+    // currently holds it away from its own URL.
+    check(resolves_to($slug) === $slug,
+          'a slug a live key holds must be served, never redirected');
+    $index = tit_company_slug_index();
+    check(!isset($index['moved'][$slug]),
+          'a slug a live key holds must not be in the moved map at all');
+
+    // The old co-op URLs are the ONLY thing that moved.
+    check(count($index['moved']) === 6,
+          'two forms each of three moved keys, and nothing else: got '
+          . count($index['moved']));
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'ambiguous') {
+// --------------------------------------------------------------------------
+    // Two employers whose OLD keys canonicalise to one slug, corrected to two
+    // different new keys. There is no right answer, so there must be no answer.
+    $wpdb->insert_signal('amb-a', 'Northwind & Co', 'northwind and co');
+    $wpdb->insert_signal('amb-b', 'Northwind and Co', 'northwind & co');
+    $wpdb->reissue_under('amb-a', 'northwind alpha');
+    $wpdb->reissue_under('amb-b', 'northwind beta');
+
+    $index = tit_company_slug_index();
+    check(!isset($index['moved']['northwind-and-co']),
+          'a moved slug two corrections claim must be dropped, not guessed');
+    check(tit_company_rows('northwind-and-co') === array(),
+          'and it must 404 rather than serve one of the two employers');
+
+    // The unambiguous halves still work.
+    check(resolves_to('northwind-alpha') === 'northwind-alpha', 'northwind alpha serves itself');
+    check(resolves_to('northwind-beta') === 'northwind-beta', 'northwind beta serves itself');
+}
+
+if ($failures) {
+    fwrite(STDERR, "company slug routing FAILED in phase '{$phase}':\n  - "
+                   . implode("\n  - ", $failures) . "\n");
+    exit(1);
+}
+echo "  phase '{$phase}' ok\n";

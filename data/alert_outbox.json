@@ -1,0 +1,73 @@
+{
+  "entries": [
+    {
+      "attempts": 0,
+      "key": "ci-noise:2026-w32",
+      "kind": "alert",
+      "last_attempt_at": "2026-08-03T23:55:01+00:00",
+      "last_error": "",
+      "raised_at": "2026-08-03T14:05:54+00:00",
+      "repaired_at": "2026-08-04T00:00:00+00:00",
+      "repaired_because": "key ci-noise:2026-W32 was rejected 400 'bad dedupe_key' 16 times: /alert accepts ^[a-z0-9][a-z0-9:._-]{0,159}$ and the ISO week carried an uppercase W. Rewritten to ci-noise:2026-w32; ci_noise_report.py now composes %G-w%V. Attempts zeroed because this is a different, deliverable key, and leaving it past FAIL_LOUD_ATTEMPTS would keep host-watch red on an alert that is about to succeed.",
+      "run_url": "",
+      "scope": "ci-noise",
+      "settled_at": "2026-08-04T01:25:41+00:00",
+      "settled_because": "delivered late: not emailed: suppressed, this exact cause is already open (raised 3 minutes ago)",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:tests:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-04T16:26:00+00:00",
+      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
+      "raised_at": "2026-08-04T16:26:00+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/30928877574",
+      "scope": "tests:main",
+      "settled_at": "2026-08-04T16:41:20+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:deploy-plugin:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-10T17:59:23+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a290e4d59b0dc3ca',t:'MTc4NjM4NDc2MQ=='",
+      "raised_at": "2026-08-10T17:59:23+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31416655820",
+      "scope": "deploy-plugin:main",
+      "settled_at": "2026-08-10T18:26:48+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:drain-writers:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-10T18:02:15+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a290e90f8838f15d',t:'MTc4NjM4NDkzNA=='",
+      "raised_at": "2026-08-10T18:02:15+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31416997657",
+      "scope": "drain-writers:main",
+      "settled_at": "2026-08-10T18:26:49+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:archive-sources:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-10T18:02:20+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a290e928ca7382b4',t:'MTc4NjM4NDkzOA=='",
+      "raised_at": "2026-08-10T18:02:20+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31414791641",
+      "scope": "archive-sources:main",
+      "settled_at": "2026-08-10T18:26:50+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
+    }
+  ],
+  "updated_at": "2026-08-10T18:26:50+00:00",
+  "version": 1
+}

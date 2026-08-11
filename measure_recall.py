@@ -26,6 +26,20 @@ obligation exists anywhere in the world.
 
 Read-only against the live API. It never writes a signal and never spends a
 cent on the model.
+
+EXIT CODES
+    0  measured, and every quality gate passed (or this is the first run
+       against a reference set, so there is nothing to compare it with)
+    2  the gold set is not valid, so the denominator would have been wrong
+    3  a quality gate FAILED: coverage or field quality went backwards by more
+       than sampling noise on this many events. The bars are derived from the
+       measured history in analysis/recall/thresholds.py, never picked
+    4  the instrument failed: the API answered nothing anywhere, so this run
+       measured the connection and not the tracker
+
+Until 2026-07-30 this script exited 0 whatever it measured, which meant a 9%
+week and a 95% week were indistinguishable to every scheduler, alert and health
+check downstream of it.
 """
 
 from __future__ import annotations
@@ -43,7 +57,7 @@ from datetime import date, datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from analysis.recall import goldset, match, series  # noqa: E402
+from analysis.recall import goldset, match, series, thresholds  # noqa: E402
 
 API = os.environ.get(
     "TIT_API_BASE", "https://asktherecruiter.com/blog/wp-json/talent/v1"
@@ -149,6 +163,11 @@ def measure(data: dict, offline_rows: dict | None = None, verbose: bool = True) 
             "counts": goldset.counts(data),
         },
         "summary": match.summarise(results),
+        # How many stored rows the API offered across the whole set. Zero here
+        # means the query path answered nothing for any employer at all, which
+        # is indistinguishable from a tracker that holds nothing unless it is
+        # recorded — so it is recorded, and thresholds.py gates on it.
+        "candidates_seen_total": sum(r["candidates_seen"] for r in results),
         "items": [
             {
                 "id": r["gold"]["id"],
@@ -266,13 +285,19 @@ def write_worklist(worklist: dict) -> str:
     return WORKLIST_PATH
 
 
-def report_health(out: dict, worklist: dict) -> str:
+def report_health(out: dict, worklist: dict, verdict: dict | None = None) -> str:
     """File the run in the same ledger every collector reports to.
 
     `degraded` when a fresh gold set is due, because a measurement running
     happily against a converged set is the failure mode this whole design is
     guarding against, and it should look wrong in the health page rather than
     green.
+
+    `degraded` too when a quality gate failed. The gate already makes the run
+    exit non-zero, but an exit code lives in one job log and the health ledger
+    is what the weekly digest and the health page read — a regression the CI
+    knew about and the dashboard showed as green would be the same defect this
+    gate was added to fix, one layer out.
     """
     try:
         from pipeline import schema, store
@@ -287,10 +312,15 @@ def report_health(out: dict, worklist: dict) -> str:
     if due["due"]:
         detail += f" | new gold set due: {due['reason']}"
 
+    failed = [g for g in (verdict or {}).get("gates", []) if g["status"] == "FAIL"]
+    if failed:
+        detail += " | GATE FAILED: " + "; ".join(
+            f"{g['gate']}: {g['detail']}" for g in failed)
+
     conn = schema.connect()
     store.report_health(
         conn, "recall",
-        status="degraded" if due["due"] else "ok",
+        status="degraded" if (due["due"] or failed) else "ok",
         items_found=overall["total"],
         items_stored=overall["held"],
         detail=detail,
@@ -300,7 +330,11 @@ def report_health(out: dict, worklist: dict) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    # Raw, so the exit-code table in the docstring reaches --help as a table.
+    # argparse's default formatter reflows it into one paragraph, which is how a
+    # documented contract turns into prose nobody reads.
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--goldset", default=goldset.DEFAULT_PATH)
     parser.add_argument("--offline", help="JSON file of {gold_id: [rows]}, no network")
     parser.add_argument("--publish", action="store_true",
@@ -314,6 +348,9 @@ def main() -> int:
                         help="skip the source_health entry (keeps the database untouched)")
     parser.add_argument("--results-dir", default=None,
                         help="where dated results are written (default analysis/recall/results)")
+    parser.add_argument("--no-gate", action="store_true",
+                        help="compute the quality gates but always exit 0 "
+                             "(for exploring, never for the scheduled run)")
     args = parser.parse_args()
 
     data = goldset.load(args.goldset)
@@ -391,14 +428,35 @@ def main() -> int:
               f"({', '.join(c['key'] for c in zeros[:15])}"
               f"{'...' if len(zeros) > 15 else ''})")
 
+    # Judged here, printed at the very end. The health ledger needs the verdict
+    # (a failing gate must not file itself as `ok`), and the exit code must not
+    # be applied until everything below has been written and pushed.
+    verdict = thresholds.evaluate(out, results_dir=results_dir)
+
     if not args.no_health:
-        print(f"health: {report_health(out, worklist)}")
+        print(f"health: {report_health(out, worklist, verdict)}")
 
     if args.publish:
         print(f"wrote {os.path.relpath(publish(out, points), HERE)}")
     if args.push:
         print(push(out, points))
-    return 0
+
+    # LAST, deliberately. Everything above has already been written to disk and
+    # pushed to the page by now, so a failing gate reports a bad measurement
+    # rather than suppressing it. A quality alarm that also hides the evidence
+    # is worse than no alarm.
+    thresholds.report(verdict)
+
+    if args.offline:
+        # A replay's numbers come from a fixture. Gating them would fail the
+        # build over the contents of a test file, and passing them would be a
+        # green light nothing earned.
+        print("\nreplay: gates computed for inspection, exit code not applied")
+        return 0
+    if args.no_gate and verdict["exit_code"]:
+        print(f"\n--no-gate: would have exited {verdict['exit_code']}")
+        return 0
+    return verdict["exit_code"]
 
 
 if __name__ == "__main__":

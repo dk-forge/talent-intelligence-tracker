@@ -85,14 +85,23 @@ def test_a_busy_provider_is_deferred_not_rejected():
 
 
 def test_a_mostly_throttled_run_reports_degraded():
-    """Storing little because the provider was busy is not a quiet news day."""
+    """Storing little because the provider was busy is not a quiet news day.
+
+    Asserted on run_outcome() rather than on the text of run(): the two
+    questions "is the page shallower" and "does a human need to fix something"
+    were one variable until 2026-08-03 and are now separate, so the behaviour is
+    testable directly instead of by reading a boolean expression.
+    """
     import inspect
 
     import run_collect
 
     src = inspect.getsource(run_collect.run)
     assert "mostly_throttled" in src
-    assert "or mostly_throttled" in src
+    degraded, failed = run_collect.run_outcome(
+        observed=10, everything_rejected=False, mostly_throttled=True,
+        running_degraded=False)
+    assert degraded is True and failed is True
 
 
 def test_a_diff_shaped_collector_is_judged_on_what_it_read():
@@ -110,7 +119,10 @@ def test_a_diff_shaped_collector_is_judged_on_what_it_read():
     src = inspect.getsource(run_collect.run)
     assert 'getattr(module, "LAST_RUN", None)' in src
     assert "items_found=observed" in src
-    assert "broken = observed == 0" in src
+    # Reading nothing is the real breakage, and it is red as well as degraded.
+    assert run_collect.run_outcome(
+        observed=0, everything_rejected=False, mostly_throttled=False,
+        running_degraded=False) == (True, True)
     # The collector's side of the contract.
     assert "read" in ats_boards.LAST_RUN
 
@@ -125,3 +137,72 @@ def test_every_other_collector_is_unaffected_by_that():
     assert not hasattr(google_news, "LAST_RUN")
     src = inspect.getsource(run_collect.run)
     assert "observed = found if observed is None else observed" in src
+
+
+def test_already_seen_candidates_are_not_counted_as_rejections():
+    """A weekend is not a broken classifier.
+
+    sec_edgar and sec_form_d read a fixed-size window of the most recent SEC
+    filings. SEC publishes nothing on Saturday or Sunday, so both weekend runs
+    re-read Friday's filings and skip every one as already seen. No guard runs,
+    no verdict is reached, nothing is rejected — and the run still reported
+    "every candidate rejected" (next to its own "0 rejected") and exited
+    non-zero, so `collect` went red both weekend days while the Friday run had
+    stored 1 and 3 rows perfectly normally.
+
+    The test therefore has to reach a guard before it can claim they all failed.
+    """
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    assert "everything_rejected = (len(kept) > skipped" in src, (
+        "everything_rejected must exclude already-seen skips; comparing against "
+        "0 makes an all-already-seen run look like a wholesale rejection")
+
+
+def test_a_genuine_wholesale_rejection_still_degrades():
+    """The guard this protects must keep firing for the case it exists for."""
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    # Still requires nothing stored AND nothing duplicate, so a run whose
+    # candidates DID reach the guards and were all rejected is unchanged.
+    assert "and stored == 0 and duplicates == 0" in src
+    assert run_collect.run_outcome(
+        observed=10, everything_rejected=True, mostly_throttled=False,
+        running_degraded=False) == (True, True)
+
+
+def test_already_seen_is_visible_on_the_health_row():
+    """"0 dup, 0 rejected, 0 deferred" named no cause for three zeroes.
+
+    The already-seen count lived only in the step log, so the health page (and
+    ops_status, which prints detail[:70]) showed a collector that looked broken
+    and gave a reader nothing to go on.
+    """
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    assert "already seen" in src
+
+
+def test_the_already_seen_counter_is_not_rebound_later_in_the_run():
+    """`skipped` held the already-seen count and was then reused as a local for
+    a second-pass statistic. Nothing read it after that point, so it was
+    harmless — right up until the health verdict started depending on it."""
+    import inspect
+
+    import run_collect
+
+    src = inspect.getsource(run_collect.run)
+    verdict = src.index("everything_rejected = (len(kept) > skipped")
+    assert 'skipped = classify.STATS["read_skipped_strong"]' not in src, (
+        "the second-pass statistic must not rebind `skipped`")
+    assert src.count("skipped += 1") == 1
+    assert verdict > src.index("skipped += 1")

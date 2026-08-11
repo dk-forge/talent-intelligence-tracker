@@ -15,8 +15,11 @@ name: collect
 # with 6 placed and nothing deferred.
 #
 # To disarm: comment the two schedule lines out again. Nothing else changes.
-# Spend is capped independently — spend.py runs first and exits 1 at 90% of the
-# monthly allowance, and DEFAULT_CANDIDATE_CAP bounds each run at 40 candidates.
+# Spend is capped independently — spend.py runs first and DEGRADES at 90% of
+# the monthly allowance, switching paid reads off while the free collectors,
+# the prefilter and both dedup layers carry on; it does not halt the job. (This
+# line said "exits 1" for a week after the 2026-07-30 change that stopped it
+# doing that.) DEFAULT_CANDIDATE_CAP bounds each run at 40 candidates.
 on:
   schedule:
     - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC
@@ -29,7 +32,12 @@ on:
       source:
         description: 'Collector to run'
         type: choice
-        options: [google_news, gdelt, sec_edgar, sec_form_d]
+        # primary_chase is dispatch-only and never in the scheduled sweep: its
+        # population is a hand-made list of URLs, so a cron would re-fetch
+        # documents that have already been read. It is here so the run can be
+        # QUEUED through drain-writers like every other database writer, rather
+        # than dispatched past a pending run and evicted.
+        options: [google_news, gdelt, sec_edgar, sec_form_d, primary_chase]
         default: google_news
       limit:
         description: 'Cap candidates sent to the LLM (blank = no cap)'
@@ -59,7 +67,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # Which of the two daily runs this is, so the segment matrix rotates
       # instead of re-running the same slice twice.
@@ -78,17 +86,88 @@ jobs:
 
       # A budget that only warns is a forecast. This is the hard stop, and it
       # runs before any token is spent.
+      # The ceiling DEGRADES, it does not halt. --degrade never fails this
+      # step: past 90% of the monthly allowance it sets TIT_PAID_READS=off for
+      # the rest of the job, so the free prefilter, deterministic extraction
+      # and both dedup layers keep running and every candidate that would have
+      # cost money defers UNMARKED for a later run. On 2026-07-30 --enforce
+      # took the whole job red at $9.47 of $10 and nothing at all was
+      # collected for the rest of the month; that is an outage protecting a
+      # budget most of this pipeline does not spend.
       - name: Check the spend ceiling
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: python spend.py --enforce
+        run: python spend.py --degrade
 
+      # A scheduled run sweeps EVERY collector this workflow owns, because a
+      # schedule that only ever names google_news is how gdelt, sec_edgar and
+      # sec_form_d spent weeks reporting "ok" while nothing ran them: their two
+      # manual runs each were the whole history, and the health page read a
+      # dispatch somebody remembered as a source that was alive. A dispatch
+      # keeps its single-source input, for reading one collector's run alone.
+      #
+      # run_collect takes exactly one --source per invocation, so the sweep is
+      # a loop, and each invocation is a fresh process with its own read-
+      # through cap. The per-source TIT_READTHROUGH_CAP is the cost control
+      # that makes the sweep affordable, and since 2026-07-30 each number is
+      # that collector's share of what the monthly allowance buys rather than
+      # a round number: measured demand is 153 reads/run for google_news and
+      # 26 for gdelt. The SEC pair keep 40, which is headroom on a demand of
+      # one or two - rationing a collector that finds two filings saves
+      # nothing and would one day bind on the run that finds fifty.
+      #
+      # google_news went 129 -> 99 on 2026-08-01, and it is a REALLOCATION,
+      # not a cut: the total across the two collectors whose demand reaches
+      # their cap is pinned at 217, and national_press takes the 118. The
+      # split now follows measured conversion (google_news 761 reads -> 354
+      # rows = 46.5%; national_press 288 -> 160 = 55.6%) instead of the pair
+      # of numbers nobody chose, which is what 129 and an unset default were.
+      # The rule and its arithmetic live in classify.read_cap; this number is
+      # its output, and ops_status.py [3b] reads this case statement and warns
+      # when the two disagree. A cap set here WINS over the rule, which is
+      # deliberate (backfills need 5000) and is exactly why it can drift.
+      #
+      # The allowance is $5/month, not the $25 this comment used to cite. At
+      # $5 the gate alone costs $4.41 and full coverage is $49.14, so these
+      # caps are not what makes the budget fit and retuning them cannot make
+      # it fit. See the cost discipline section in CLAUDE.md.
+      #
+      #     python3 cost_projection.py     # re-derives all four from the ledger
+      #
+      # Caps are ceilings, not spends. Which stories fit inside one is decided
+      # by pipeline/candidate_rank.py, which puts the countries holding least
+      # first and gives every country's best story a place before any
+      # country's second. The spend guard above and the OpenRouter key's own
+      # hard cap still bind before any of this.
+      #
+      # One source failing must not silence the ones behind it in the loop —
+      # a dead GDELT costing us the SEC filings would be a new bug wearing a
+      # sweep as a hat — so each failure is recorded and the step goes red
+      # only after every source has had its run.
       - name: Collect
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            overall=0
+            for source in google_news gdelt sec_edgar sec_form_d; do
+              case "$source" in
+                gdelt)                export TIT_READTHROUGH_CAP=9 ;;
+                sec_edgar|sec_form_d) export TIT_READTHROUGH_CAP=40 ;;
+                google_news)          export TIT_READTHROUGH_CAP=99 ;;
+                *)                    unset TIT_READTHROUGH_CAP ;;
+              esac
+              echo "::group::collect $source"
+              python run_collect.py \
+                --run-index "${{ steps.idx.outputs.value }}" \
+                --publish \
+                --source "$source" || overall=1
+              echo "::endgroup::"
+            done
+            exit $overall
+          fi
           python run_collect.py \
             --run-index "${{ steps.idx.outputs.value }}" \
             ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
@@ -139,7 +218,14 @@ jobs:
           # spend_month.json is the month-start usage snapshot the spend guard
           # measures this month's delta against; it must persist the same way
           # the database does or the guard re-baselines every run.
+          # data/gate_labels/ is this run's per-candidate gate verdicts, the
+          # training set for the classifier that replaces most of the paid gate
+          # (docs/PLAN-gate-to-five-dollars.md). `-A` and not a plain add: when
+          # a month closes the ledger gzips the old shard and deletes the plain
+          # one, and a deletion that is never staged is a file that comes back
+          # on the next reset.
           git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
+          git add -A data/gate_labels 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No data change."
             exit 0
@@ -147,13 +233,21 @@ jobs:
 
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/gate_labels"
+          cp -R data/gate_labels "$RUNNER_TEMP/gate_labels" 2>/dev/null || true
 
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
             cp "$RUNNER_TEMP/spend_month.json" data/spend_month.json 2>/dev/null || true
+            # Appends only what main does not already hold, the same way
+            # merge_db.py does, because the reset above discarded this run's
+            # copy. It cannot fail the step: labels are bookkeeping and the
+            # rows are not.
+            python merge_gate_labels.py "$RUNNER_TEMP/gate_labels" data/gate_labels || true
             git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
+            git add -A data/gate_labels 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this data."
               exit 0

@@ -165,8 +165,155 @@ check(tit_api_recall(new WP_REST_Request($inflated)) instanceof WP_Error,
 check(tit_api_recall(new WP_REST_Request(array('measured_on' => '2026-08-03'))) instanceof WP_Error,
       'a body with no summary must be refused');
 
+// --- the whole page, and the sentence the owner misread -------------------
+//
+// "Held has gone from 9% to 19.5%, a change of +10.5 points" made the owner
+// read his own improvement as decline: on a page about what we MISS, a bare
+// metric called "Held" rising reads like more of something bad. The metric is
+// coverage of the independent gold set, a rise is good, and the sentence now
+// says both. These assertions render the full page and hold that wording, so
+// the misreading cannot ship again under a rewrite.
+
+function get_header() { echo '<!--header-->'; }
+function get_footer() { echo '<!--footer-->'; }
+// The real map lives in the plugin bootstrap, which this harness does not
+// load; the property under test is that the PAGE asks the map, so a small
+// honest stub is enough and asserting its output proves the call happens.
+function tit_country_name($code) {
+    $map = array('SG' => 'Singapore', 'AZ' => 'Azerbaijan', 'US' => 'United States',
+                 'KR' => 'South Korea', 'DE' => 'Germany', 'IT' => 'Italy',
+                 'ES' => 'Spain');
+    return $map[strtoupper(trim((string) $code))] ?? '';
+}
+
+$page_data = array(
+    'measured_on' => '2026-08-03',
+    'goldset' => array(
+        'digest' => 'abc123', 'version' => '2026-07-v1',
+        'assembled_on' => '2026-07-27',
+        'window' => array('start' => '2026-06-01', 'end' => '2026-07-25'),
+        'counts' => array('country' => array('US' => 40, 'GB' => 20, 'IN' => 29)),
+        'caveats' => array('TEST FIXTURE caveat.'),
+        'url' => 'https://example.test/goldset',
+    ),
+    'summary' => array(
+        'overall' => array('total' => 89, 'found' => 9, 'found_partial' => 4,
+                           'missed' => 76, 'held' => 13,
+                           'held_pct' => 14.6, 'clean_pct' => 10.1),
+        'by_segment' => array(
+            'US funding' => array('total' => 22, 'found' => 3, 'found_partial' => 1,
+                                  'missed' => 18, 'held' => 4,
+                                  'held_pct' => 18.2, 'clean_pct' => 13.6),
+        ),
+        'defects' => array('country_missing' => 2),
+        // One country with a live source in the generated coverage file and
+        // one with nothing catalogued at all, so both halves of the source
+        // line render: the named sources and the honest zero.
+        'by_country' => array(
+            'SG' => array('total' => 4, 'found' => 1, 'found_partial' => 0,
+                          'missed' => 3, 'held' => 1,
+                          'held_pct' => 25.0, 'clean_pct' => 25.0),
+            'AZ' => array('total' => 1, 'found' => 0, 'found_partial' => 0,
+                          'missed' => 1, 'held' => 0,
+                          'held_pct' => 0.0, 'clean_pct' => 0.0),
+        ),
+    ),
+    'items' => array(
+        array('verdict' => 'FOUND', 'company' => 'TEST FIXTURE Employer A',
+              'detail' => 'raised money', 'country' => 'US', 'event_date' => '2026-06-10',
+              'source_name' => 'TEST FIXTURE Outlet', 'source_url' => 'https://example.test/a',
+              'defects' => array()),
+        array('verdict' => 'MISSED', 'company' => 'TEST FIXTURE Employer B',
+              'detail' => 'changed CFO', 'country' => 'GB', 'event_date' => '2026-06-12',
+              'source_name' => 'TEST FIXTURE Outlet', 'source_url' => 'https://example.test/b',
+              'defects' => array()),
+    ),
+    'series' => $series,
+);
+
+ob_start();
+tit_recall_render($page_data);
+$page = ob_get_clean();
+$flat = preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($page), ENT_QUOTES, 'UTF-8'));
+
+check(strpos($flat, 'Held has gone from') === false,
+      'the bare-metric sentence is back. "Held has gone from 9% to 19.5%" made '
+      . 'the owner read a doubling of coverage as decline; the metric must be '
+      . 'named as coverage and the direction spelled out.');
+check(strpos($flat, 'Coverage of the independent gold set has gone from 9% to 14.6% '
+      . 'across 2 weekly measurements between 2026-07-28 and 2026-08-03, '
+      . 'a gain of 5.6 points') !== false,
+      'the direction sentence names coverage, the movement and its size, and '
+      . 'got: ' . substr($flat, max(0, (int) strpos($flat, 'Coverage')), 260));
+check(strpos($flat, 'Higher is better') !== false,
+      'and it says in words which way is good, because on a page about misses '
+      . 'a rising number reads as bad by default');
+check(strpos($page, 'data-label="Held"') === false
+      && strpos($page, 'data-label="Held with every field right"') === false,
+      'the mobile column labels must match the "In the tracker" headers, never '
+      . 'the bare metric name');
+check(strpos($page, "\u{2014}") === false && strpos($page, "\u{2013}") === false,
+      'no em or en dashes reach the page');
+
+// --- the country table: names, plain headers, and the why underneath ------
+
+check(strpos($page, '>Singapore<') !== false && strpos($page, '>Azerbaijan<') !== false,
+      'country rows print full names, never ISO codes: AE, AR, AT is not a '
+      . 'table a human reads');
+check(preg_match('/data-label="Category">(SG|AZ)</', $page) === 0,
+      'and no country cell falls through to its bare code');
+check(strpos($page, '<th class="tit-num">Event captured</th>') !== false
+      && strpos($page, '<th class="tit-num">Captured with every detail correct</th>') !== false,
+      'the two score headers are the plain ones. The owner had to ask what '
+      . '"And every field right" meant, which means it failed as a header');
+check(strpos($page, 'In the tracker</th>') === false
+      && strpos($page, 'And every field right</th>') === false,
+      'and the old headers are gone');
+check(strpos($flat, 'The second score is stricter') !== false
+      && strpos($flat, 'passes the first score and fails the second') !== false,
+      'one sentence above the tables says how the two scores relate');
+
+// The source line under each country: always-visible prose, never inside a
+// panel any script closes. SG has a live registry source in the generated
+// coverage file; AZ has nothing catalogued, which must render as the honest
+// sentence and not as silence.
+check(strpos($page, 'class="tit-recall-src"') !== false,
+      'each country row carries its source line');
+check(strpos($flat, 'Read today:') !== false,
+      'a country with live sources names them');
+check(strpos($flat, 'No dedicated source yet. Events here can only arrive via '
+      . 'worldwide discovery.') !== false,
+      'a country with no dedicated source says so: that sentence is the honest '
+      . 'answer to why it sits at zero');
+check(strpos($page, 'tit-chart-note') === false,
+      'nothing on this page uses .tit-chart-note, the panel dashboard.js '
+      . 'closes on load; three separate caveats have shipped invisible that way');
+
+// --- the whole-market table: external denominators, kept apart ------------
+
+check(strpos($flat, 'Against the whole market, by country') !== false,
+      'the whole-market table renders');
+check(strpos($page, '>South Korea<') !== false && strpos($flat, '8,542') !== false,
+      'with the external denominator that makes 0 of 1 stop standing in for '
+      . 'coverage');
+check(strpos($flat, 'Not comparable') !== false
+      && strpos($flat, 'counts individual fund investments; ours counts funding rounds') !== false,
+      'South Korea carries the Not comparable read: a ratio between two '
+      . 'differently defined counts must never print as a coverage score');
+check(strpos($flat, 'indicative and not a parity claim') !== false,
+      'and the table says external counts use their own definitions and dates');
+check(strpos($flat, 'Real gap') !== false && strpos($flat, 'Thin coverage') !== false,
+      'the read column carries an honest verdict per market');
+// Kept apart from the gold set: the market table must not print gold-set
+// score headers, and the gold-set country table must not print shares.
+$mkt = substr($page, strpos($page, 'Against the whole market'));
+check(strpos($mkt, 'Event captured</th>') === false,
+      'the two measures answer different questions and are never blended '
+      . 'into one table');
+
 if ($failures) {
     fwrite(STDERR, "recall page render FAILED:\n  - " . implode("\n  - ", $failures) . "\n");
     exit(1);
 }
-echo "recall page render ok: chart, history table and labels all render.\n";
+echo "recall page render ok: chart, history table, labels and the coverage "
+   . "direction sentence all render.\n";

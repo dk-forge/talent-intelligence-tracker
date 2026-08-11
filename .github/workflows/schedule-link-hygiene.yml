@@ -1,0 +1,262 @@
+name: schedule-link-hygiene
+
+# The cron for the two link-hygiene writers lives HERE, in a workflow that is
+# not a database writer, and that is a safety property rather than a filing
+# preference.
+#
+# WHY NOT A `schedule:` IN archive-sources.yml AND link-check.yml
+# ---------------------------------------------------------------
+# Both of those write the database, so both sit in the `talent-collect`
+# concurrency group, and GitHub keeps exactly ONE pending run per group. A cron
+# in those files would make each of them an uncoordinated third body entering
+# that group on a timer, which has two outcomes and no third:
+#
+#   * it evicts whatever was pending. If that was a queued ticket the drainer
+#     re-dispatches it, so the work survives — but nothing else in the group is
+#     ticketed, and a scheduled `collect` run has already been evicted this way
+#     once.
+#   * it IS the thing evicted. Then it ends `cancelled` with zero jobs, no
+#     steps, no logs and no annotation. The drainer notices and goes red, but
+#     GitHub does not expose a dispatched run's inputs, so it cannot be
+#     replayed: it becomes an ORPHAN that a human has to resolve by hand. There
+#     are 15 of those in data/writer_queue.json from 2026-07-29, all closed with
+#     one hand-written triage note.
+#
+# So a cron on those files is a job that silently skips a night and leaves a red
+# run nobody can fix by re-running. Both files say "NEVER DISPATCH THIS
+# DIRECTLY", and a `schedule:` trigger is a direct dispatch with a timer
+# attached.
+#
+# WHAT THIS DOES INSTEAD
+# ----------------------
+# It writes a TICKET to data/writer_queue.json. drain-writers.yml dispatches the
+# next ticket only into an EMPTY group, so the run this asks for can never be
+# evicted, and if it somehow is, its inputs are on file and it is re-dispatched
+# automatically. The ticket is durable and committed, so a slot that fires while
+# a six-hour backfill holds the lock waits instead of vanishing.
+#
+# This workflow is therefore deliberately NOT in `talent-collect`: it must be
+# able to run while the lock is held, exactly like the drainer. It writes one
+# JSON file and touches no collected data, so it needs no lock of its own.
+#
+# COST: zero here. The two link-hygiene jobs call no model. The tripwire slot
+# below DOES spend, and its price is measured rather than assumed: $0.0058 a
+# query on 2026-07-29's live run, ~53 queries a month, so about $0.31 against
+# the $1.00 cap in analysis/tripwire/plan.TRIPWIRE_MONTHLY_USD. The pessimistic
+# $0.02/query estimate that cap was sized on is 3.4x the real price.
+#
+# THE ARCHIVE CADENCE, AND WHY IT IS THREE TIMES A DAY
+# ----------------------------------------------------
+# It was every three hours for one day (2026-07-30) and is now every eight.
+# The arithmetic, re-measured against origin/main on 2026-07-31:
+#
+#   in scope   716 distinct source URLs across the four collectors this slot
+#              covers; 227 already archived
+#   the queue  444 confirmed absent from Wayback, plus 45 never answered about
+#   a run      examines up to 600, resolves what it can from the FREE
+#              availability API, and captures at most 40 (DEFAULT_SPN_MAX), of
+#              which roughly half land first time — so about 20 new snapshots
+#
+#   8 runs/day  ~160 snapshots/day  ->  the queue clears in ~3 days
+#   3 runs/day   ~60 snapshots/day  ->  the queue clears in ~8 days
+#
+# Eight days instead of three, for evidence that has already survived without a
+# fallback for months. That is a cheap trade, and the costs it buys down are not:
+#
+#   THE LOCK. Every run holds the single `talent-collect` slot for up to 25
+#   minutes (DEFAULT_DEADLINE in archive_sources.py). Eight runs is 200 minutes
+#   a day — a seventh of every day with collection, enrichment and every
+#   backfill slice queued behind an archiver. Three runs is 75 minutes, a
+#   twentieth. Nothing that waits on that lock is idle: it is bunched, and it
+#   lands on the WordPress host all at once when the lock clears.
+#
+#   THE HOST. Bluehost 504'd for everything under /blog/ twice on 2026-07-30/31,
+#   about six minutes in the afternoon and about seven at night. This job talks
+#   to archive.org and never to our host, so it adds no direct load — but the
+#   things it holds the lock away from (collect, enrich, the backfills) all POST
+#   to the host, and eight lock windows a day is eight times a day that their
+#   traffic is deferred and then delivered in a burst. Smoothing that is worth
+#   more right now than five days of archive latency.
+#
+# AND THE SIBLING ALREADY RAN THIS EXPERIMENT. The AI Layoff Tracker armed an
+# HOURLY archive sprint and REVERTED it on 2026-07-30: three consecutive runs
+# were handed 0, 2 and 7 candidates against a per-run limit of 1,500, and
+# coverage sat flat. Its note is worth quoting exactly because it is the trap
+# here too — "raising the CADENCE will not do it", because what is left is not a
+# backlog but the handful of brand-new rows a day that any cadence picks up.
+# Our 444 is a real backlog TODAY and will not be one next week, at which point
+# every extra slot is a 25-minute lock window spent on a no-op. Choosing the
+# cadence for the backlog we are about to no longer have is how the sibling got
+# there.
+#
+# If the queue is still long in two weeks, the lever is NOT this cron. It is
+# `spn_max` (throttled, and cranking it captures less), or the `collector`
+# default that decides which tail is in scope at all.
+#
+# `--if-absent` below is what makes a repeating slot safe. A slot that fires
+# while the previous ticket is still waiting adds nothing, so a long backfill
+# holding the lock cannot leave a ticket per slot stacked behind it.
+#
+# WHY ENRICH IS SCHEDULED HERE TOO
+# --------------------------------
+# `archive_url` is not a field of Signal and never could be: a row is built at
+# classification time and its snapshot is captured afterwards, so at publish
+# time it is always empty. It reaches the site through `/enrich`, which
+# `enrich.yml` runs — and `enrich.yml` had no schedule at all. So an archiver
+# firing all day would fill the local ledger while every reader went on seeing
+# the publisher's link alone, and the surface that carries this product's
+# promise would be the one thing the whole loop never updated.
+#
+# Daily rather than per-archive-run: /enrich pushes the whole derived allowlist,
+# it is idempotent, and there is nothing to gain from pushing the same values
+# once per archive run. 09:40 UTC, which is after the 08:20 archive slot has had
+# its 25 minutes — it moved with the cadence, because a slot placed relative to
+# a cron that has since changed is a comment describing something that no longer
+# happens.
+on:
+  schedule:
+    - cron: '20 */8 * * *'  # every 8h: a Wayback pass over the newest citations
+    - cron: '30 5 * * *'    # daily: a rot sweep, before the 13:00 Monday digest
+    - cron: '40 9 * * *'    # daily: carry the new snapshots to the live rows
+    - cron: '0 7 * * 1,4'   # Mon+Thu: ask an outside view what we are missing
+    # Weekly benchmark diff (Tuesdays). DORMANT until the owner arms a
+    # BENCHMARK_* secret: an unarmed run is one printed line and exit 0, so
+    # this slot costs nothing while the secrets are absent, which is the
+    # designed state. It is a tripwire, not a collector, hence weekly.
+    - cron: '50 7 * * 2'    # Tue: diff the benchmark list, chase the gap
+
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which pass to ask for'
+        type: choice
+        options:
+          - both
+          - archive
+          - link-check
+          - enrich
+          - tripwire
+          - benchmark
+        default: both
+
+permissions:
+  contents: write   # commit the ticket
+
+concurrency:
+  # Its own group, NOT the writers' one. See the header.
+  group: schedule-link-hygiene
+  cancel-in-progress: false
+
+jobs:
+  enqueue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Which pass this run is for. On a schedule the answer comes from the slot
+      # that fired; on a dispatch it comes from the input. An unrecognised slot
+      # goes RED rather than enqueuing nothing: the failure mode to design
+      # against is somebody editing a cron above and this mapping quietly
+      # answering "no work tonight" forever.
+      - name: Decide what to ask for
+        id: want
+        env:
+          SLOT: ${{ github.event.schedule }}
+          JOB: ${{ inputs.job }}
+        run: |
+          set -euo pipefail
+          if [ -n "${SLOT:-}" ]; then
+            case "$SLOT" in
+              '20 */8 * * *') WANT='archive-sources.yml' ;;
+              '30 5 * * *')   WANT='link-check.yml' ;;
+              '40 9 * * *')   WANT='enrich.yml' ;;
+              '0 7 * * 1,4')  WANT='tripwire.yml' ;;
+              '50 7 * * 2')   WANT='benchmark-diff.yml' ;;
+              *)
+                echo "::error::schedule slot '$SLOT' has no mapping in this"
+                echo "::error::workflow. A cron was changed above and this step"
+                echo "::error::was not, so this slot would silently queue"
+                echo "::error::nothing every time it fired."
+                exit 1 ;;
+            esac
+          else
+            case "${JOB:-both}" in
+              archive)    WANT='archive-sources.yml' ;;
+              link-check) WANT='link-check.yml' ;;
+              enrich)     WANT='enrich.yml' ;;
+              tripwire)   WANT='tripwire.yml' ;;
+              benchmark)  WANT='benchmark-diff.yml' ;;
+              # 'both' predates the tripwire and still means the two free
+              # link-hygiene passes. It deliberately does NOT include the
+              # tripwire or the benchmark diff: those can spend, and a hand
+              # dispatch of "both" should never quietly become "and bill me".
+              both)       WANT='archive-sources.yml link-check.yml' ;;
+              *) echo "::error::unknown job '${JOB:-}'"; exit 1 ;;
+            esac
+          fi
+          echo "Asking for: $WANT"
+          echo "want=$WANT" >> "$GITHUB_OUTPUT"
+
+      # Enqueue and commit in ONE step, because a rejected push has to be
+      # answered by RE-DERIVING the ticket on top of the current main rather
+      # than by replaying a diff. Same lesson as merge_db.py one file along: a
+      # rebase of a hand-edited JSON diff can conflict, and `--if-absent`
+      # re-evaluated against the freshly fetched queue is conflict-free by
+      # construction and idempotent.
+      #
+      # `--if-absent` is what stops a nightly slot stacking a ticket per night
+      # behind a long backfill, each one separately aging into "the lock is
+      # starved" and each one reporting the same single fact.
+      - name: Write the ticket
+        env:
+          WANT: ${{ steps.want.outputs.want }}
+          SLOT: ${{ github.event.schedule }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            for wf in $WANT; do
+              python writer_queue.py enqueue "$wf" \
+                --inputs '{"dry_run":"false"}' \
+                --reason "scheduled link hygiene (${SLOT:-manual})" \
+                --by "${ACTOR:-schedule}" \
+                --if-absent
+            done
+
+            git add data/writer_queue.json
+            if git diff --staged --quiet; then
+              echo "Nothing to add: the queue already holds a ticket for each."
+              exit 0
+            fi
+            git commit -q -m "queue: link hygiene $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Ticket committed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::could not commit the ticket after 5 attempts, so the"
+          echo "::error::pass this slot asked for will NOT happen. Queue it by"
+          echo "::error::hand: gh workflow run drain-writers.yml -f"
+          echo "::error::enqueue=archive-sources.yml -f"
+          echo "::error::inputs_json='{\"dry_run\":\"false\"}' -f reason='...'"
+          exit 1
+
+      - name: Show the queue
+        if: ${{ always() }}
+        run: python writer_queue.py status || true

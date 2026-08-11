@@ -95,12 +95,77 @@ class Parsing(_Boards):
         places = {p["place"] for p in self.postings(self.entry("smartrecruiters"))}
         self.assertIn("city:London", places)
         self.assertIn("city:Tokyo", places)
-        self.assertTrue(any(p.startswith("country:") for p in places))
+        # Sao Paulo, Tallinn and Kuala Lumpur used to fall back to a country
+        # key on this very board, because the gazetteer had no entry for them.
+        # The hub gazetteer places all three, which is the whole point of it:
+        # the board always said where the job was. The country fallback is
+        # still exercised — by "Japan" above and "Remote (Sweden)" below —
+        # and it is no longer reachable from THIS fixture, because every
+        # location in it now normalises to a city.
+        self.assertIn("city:Sao Paulo", places)
+        self.assertIn("city:Tallinn", places)
+        self.assertIn("city:Kuala Lumpur", places)
+        self.assertFalse(any(p.startswith("country:") for p in places))
 
     def test_remote_is_a_place_and_not_a_guess_at_a_city(self):
         self.assertEqual(ats_boards.place_key("Remote (Sweden)"), "country:SE")
         self.assertEqual(ats_boards.place_key("Remote"), "remote:")
         self.assertEqual(ats_boards.place_key("Anywhere on Mars"), "")
+
+    def test_a_us_state_code_is_never_read_as_a_country(self):
+        """Half the state codes collide with an ISO2 country code, and this
+        function was reading them as countries on live boards: "Peoria, IL"
+        filed under Israel, "San Jose, CA" under Canada, "Cambridge, MA" under
+        Morocco, "Boise, ID" under Indonesia. Two letters after a comma on a
+        US board is a state, every time."""
+        for location in ("Peoria, IL", "Boise, ID", "Wilmington, DE",
+                         "Baton Rouge, LA", "Bangor, ME", "Reno, NV"):
+            self.assertEqual(ats_boards.place_key(location), "country:US",
+                             location)
+
+    def test_the_whole_location_is_tried_before_it_is_split(self):
+        """A board writes the disambiguation the gazetteer needs into one
+        field. Splitting first threw it away and filed every London, Ontario
+        role in England."""
+        self.assertEqual(ats_boards.place_key("London, Ontario"),
+                         "city:London, Ontario")
+        self.assertEqual(ats_boards.place_key("London, UK"), "city:London")
+        self.assertEqual(ats_boards.place_key("Cambridge, MA"), "city:Cambridge MA")
+        self.assertEqual(ats_boards.place_key("Cambridge, UK"), "city:Cambridge UK")
+        self.assertEqual(ats_boards.place_key("Washington, DC"), "city:Washington DC")
+
+    def test_a_contradicting_qualifier_falls_back_to_the_country(self):
+        """Paris, Texas and Melbourne, Florida are real, and neither is the
+        city we curate. Falling back to the country is the honest answer for a
+        town we do not cover."""
+        for location in ("Paris, TX", "Melbourne, FL", "Dublin, OH",
+                         "Athens, GA", "Manchester, NH"):
+            self.assertEqual(ats_boards.place_key(location), "country:US",
+                             location)
+        # And the same names, in the countries we do curate, still resolve.
+        self.assertEqual(ats_boards.place_key("Paris, France"), "city:Paris")
+        self.assertEqual(ats_boards.place_key("Melbourne, Australia"),
+                         "city:Melbourne")
+        self.assertEqual(ats_boards.place_key("Dublin, Ireland"), "city:Dublin")
+
+    def test_the_hub_gazetteer_reaches_the_boards(self):
+        """These are ordinary ATS location strings that used to resolve to a
+        country at best. 10,357 of 17,956 postings in the committed board
+        state currently carry a country key rather than a city."""
+        for location, key in (
+                ("Tel Aviv, Israel", "city:Tel Aviv"),
+                ("Bengaluru, India", "city:Bangalore"),
+                ("Sao Paulo, Brazil", "city:Sao Paulo"),
+                ("Lagos, Nigeria", "city:Lagos"),
+                ("Nairobi, Kenya", "city:Nairobi"),
+                ("Jakarta, Indonesia", "city:Jakarta"),
+                ("Seoul, South Korea", "city:Seoul"),
+                ("Dubai, UAE", "city:Dubai"),
+                ("Chicago, IL", "city:Chicago"),
+                ("Los Angeles, CA", "city:Los Angeles"),
+                ("Mexico City, Mexico", "city:Mexico City"),
+                ("Kuala Lumpur", "city:Kuala Lumpur")):
+            self.assertEqual(ats_boards.place_key(location), key, location)
 
     def test_titles_resolve_to_functions_longest_phrase_first(self):
         self.assertEqual(ats_boards.function_for_title("Data Engineer, Payments"), "data_ai")

@@ -1,0 +1,2418 @@
+{
+ "generated_at": "2026-08-10T08:44:12+00:00",
+ "measured_on": "2026-08-10",
+ "goldset_version": "2026-07-v2",
+ "gold_events": 169,
+ "misses": 133,
+ "feed_backlog_days": 3,
+ "catalogue_rows": 1329,
+ "feeds_swept": 651,
+ "gold_countries_on_the_backstop_route": [
+  "LK",
+  "OM",
+  "QA"
+ ],
+ "first_run": {
+  "archive_sources": "2026-07-29",
+  "ats_boards": "2026-07-28",
+  "bse_india": "2026-07-30",
+  "companies_house": "2026-07-30",
+  "czechia_ares": "2026-07-31",
+  "edinet_japan": "2026-07-30",
+  "estonia_ariregister": "2026-08-01",
+  "gdelt": "2026-07-27",
+  "google_news": "2026-07-27",
+  "link_check": "2026-07-29",
+  "national_press": "2026-07-29",
+  "opendart_korea": "2026-08-05",
+  "press_archive": "2026-08-02",
+  "primary_chase": "2026-08-04",
+  "recall": "2026-07-29",
+  "sec_edgar": "2026-07-27",
+  "sec_execcomp": "2026-07-28",
+  "sec_form_d": "2026-07-27",
+  "sec_form_d_bulk": "2026-07-29",
+  "tripwire": "2026-08-02",
+  "uk_paygap": "2026-07-28"
+ },
+ "stages": {
+  "stored_unmatched": 0,
+  "stored_not_current": 0,
+  "fetched_then_dropped": 0,
+  "outside_our_history": 87,
+  "feed_read_item_missed": 30,
+  "publisher_not_wired": 16,
+  "publisher_unknown": 0
+ },
+ "answers": {
+  "stored_unmatched": "neither \u2014 a matching or field defect",
+  "stored_not_current": "neither \u2014 held, then superseded",
+  "fetched_then_dropped": "filter",
+  "outside_our_history": "history \u2014 backfill, not filters and not sources",
+  "feed_read_item_missed": "filter (plumbing: feed depth, run cadence)",
+  "publisher_not_wired": "source (researched, not connected)",
+  "publisher_unknown": "source (not researched)"
+ },
+ "split": {
+  "filter": 30,
+  "source": 16,
+  "history": 87,
+  "neither": 0
+ },
+ "sensitivity_to_feed_backlog_days": {
+  "1": {
+   "outside_our_history": 87,
+   "feed_read_item_missed": 30,
+   "publisher_not_wired": 16,
+   "publisher_unknown": 0
+  },
+  "3": {
+   "outside_our_history": 87,
+   "feed_read_item_missed": 30,
+   "publisher_not_wired": 16,
+   "publisher_unknown": 0
+  },
+  "7": {
+   "outside_our_history": 87,
+   "feed_read_item_missed": 30,
+   "publisher_not_wired": 16,
+   "publisher_unknown": 0
+  },
+  "14": {
+   "outside_our_history": 62,
+   "feed_read_item_missed": 40,
+   "publisher_not_wired": 24,
+   "publisher_unknown": 7
+  }
+ },
+ "by_country": {
+  "AE": {
+   "outside_our_history": 1
+  },
+  "AR": {
+   "feed_read_item_missed": 1
+  },
+  "AT": {
+   "publisher_not_wired": 1
+  },
+  "AU": {
+   "outside_our_history": 3
+  },
+  "AZ": {
+   "outside_our_history": 1
+  },
+  "BD": {
+   "outside_our_history": 1
+  },
+  "BH": {
+   "outside_our_history": 1
+  },
+  "BO": {
+   "feed_read_item_missed": 1
+  },
+  "BR": {
+   "outside_our_history": 1,
+   "feed_read_item_missed": 1
+  },
+  "CA": {
+   "outside_our_history": 3
+  },
+  "CH": {
+   "outside_our_history": 1
+  },
+  "CL": {
+   "feed_read_item_missed": 1,
+   "outside_our_history": 1
+  },
+  "CN": {
+   "outside_our_history": 2
+  },
+  "CR": {
+   "outside_our_history": 1
+  },
+  "CY": {
+   "outside_our_history": 1
+  },
+  "CZ": {
+   "outside_our_history": 1
+  },
+  "DE": {
+   "outside_our_history": 1,
+   "feed_read_item_missed": 1
+  },
+  "DK": {
+   "publisher_not_wired": 1
+  },
+  "EE": {
+   "outside_our_history": 1
+  },
+  "EG": {
+   "outside_our_history": 1
+  },
+  "ES": {
+   "feed_read_item_missed": 1
+  },
+  "ET": {
+   "feed_read_item_missed": 1
+  },
+  "FI": {
+   "outside_our_history": 1
+  },
+  "FR": {
+   "feed_read_item_missed": 1
+  },
+  "GB": {
+   "outside_our_history": 1,
+   "publisher_not_wired": 1
+  },
+  "GE": {
+   "publisher_not_wired": 1
+  },
+  "GH": {
+   "feed_read_item_missed": 3
+  },
+  "HR": {
+   "outside_our_history": 1
+  },
+  "HU": {
+   "feed_read_item_missed": 2
+  },
+  "ID": {
+   "feed_read_item_missed": 2
+  },
+  "IE": {
+   "publisher_not_wired": 1
+  },
+  "IL": {
+   "outside_our_history": 4,
+   "publisher_not_wired": 2
+  },
+  "IN": {
+   "feed_read_item_missed": 1
+  },
+  "IQ": {
+   "outside_our_history": 1
+  },
+  "IS": {
+   "publisher_not_wired": 1
+  },
+  "IT": {
+   "outside_our_history": 1
+  },
+  "JM": {
+   "feed_read_item_missed": 1,
+   "outside_our_history": 2
+  },
+  "JP": {
+   "outside_our_history": 3,
+   "feed_read_item_missed": 1
+  },
+  "KE": {
+   "outside_our_history": 3,
+   "feed_read_item_missed": 1
+  },
+  "KR": {
+   "outside_our_history": 1
+  },
+  "KZ": {
+   "feed_read_item_missed": 1
+  },
+  "LK": {
+   "outside_our_history": 1
+  },
+  "LT": {
+   "outside_our_history": 1
+  },
+  "MA": {
+   "outside_our_history": 1
+  },
+  "MX": {
+   "outside_our_history": 1
+  },
+  "MY": {
+   "outside_our_history": 1
+  },
+  "NA": {
+   "feed_read_item_missed": 1
+  },
+  "NG": {
+   "outside_our_history": 2
+  },
+  "NL": {
+   "outside_our_history": 1
+  },
+  "NO": {
+   "outside_our_history": 1
+  },
+  "NP": {
+   "publisher_not_wired": 1
+  },
+  "NZ": {
+   "outside_our_history": 1
+  },
+  "OM": {
+   "publisher_not_wired": 1
+  },
+  "PE": {
+   "feed_read_item_missed": 1
+  },
+  "PH": {
+   "outside_our_history": 1
+  },
+  "PL": {
+   "outside_our_history": 1,
+   "feed_read_item_missed": 2
+  },
+  "PT": {
+   "outside_our_history": 1
+  },
+  "PY": {
+   "outside_our_history": 1
+  },
+  "QA": {
+   "feed_read_item_missed": 1
+  },
+  "RO": {
+   "feed_read_item_missed": 1
+  },
+  "SA": {
+   "outside_our_history": 1
+  },
+  "SE": {
+   "outside_our_history": 1
+  },
+  "SG": {
+   "outside_our_history": 1,
+   "feed_read_item_missed": 1
+  },
+  "SI": {
+   "outside_our_history": 1
+  },
+  "SN": {
+   "outside_our_history": 1
+  },
+  "SV": {
+   "feed_read_item_missed": 1
+  },
+  "TH": {
+   "outside_our_history": 2
+  },
+  "TR": {
+   "outside_our_history": 2
+  },
+  "TW": {
+   "publisher_not_wired": 1,
+   "outside_our_history": 1
+  },
+  "UA": {
+   "outside_our_history": 1
+  },
+  "US": {
+   "outside_our_history": 15,
+   "publisher_not_wired": 5,
+   "feed_read_item_missed": 1
+  },
+  "UY": {
+   "outside_our_history": 2
+  },
+  "VN": {
+   "outside_our_history": 2,
+   "feed_read_item_missed": 1
+  },
+  "ZA": {
+   "outside_our_history": 4
+  }
+ },
+ "unwired_publishers": [
+  {
+   "domain": "globenewswire.com",
+   "misses": 4,
+   "publisher": "GlobeNewswire"
+  },
+  {
+   "domain": "calcalistech.com",
+   "misses": 2,
+   "publisher": "CTech"
+  },
+  {
+   "domain": "businesswire.com",
+   "misses": 2,
+   "publisher": "Business Wire"
+  },
+  {
+   "domain": "yahoo.com",
+   "misses": 1,
+   "publisher": "Yahoo Finance"
+  },
+  {
+   "domain": "finsmes.com",
+   "misses": 1,
+   "publisher": "FinSMEs"
+  },
+  {
+   "domain": "weareaquaculture.com",
+   "misses": 1,
+   "publisher": "WeAreAquaculture"
+  },
+  {
+   "domain": "renewable-carbon.eu",
+   "misses": 1,
+   "publisher": "Renewable Carbon News"
+  },
+  {
+   "domain": "commersant.ge",
+   "misses": 1,
+   "publisher": "Commersant.ge"
+  },
+  {
+   "domain": "ctee.com.tw",
+   "misses": 1,
+   "publisher": "Commercial Times (ctee)"
+  },
+  {
+   "domain": "muscatdaily.com",
+   "misses": 1,
+   "publisher": "Muscat Daily"
+  },
+  {
+   "domain": "sharesansar.com",
+   "misses": 1,
+   "publisher": "ShareSansar"
+  }
+ ],
+ "unknown_publishers": [],
+ "items": [
+  {
+   "id": "intl_leadership:tsuruya-yoshinobu-co-ltd:2026-07-01",
+   "country": "JP",
+   "signal_type": "leadership",
+   "event_date": "2026-07-01",
+   "publisher": "PR TIMES",
+   "domain": "prtimes.jp",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 13,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_small:queue:2026-07-01",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-01",
+   "publisher": "FinSMEs",
+   "domain": "finsmes.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 132,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "intl_leadership:northern-star-resources-limited:2026-07-02",
+   "country": "AU",
+   "signal_type": "leadership",
+   "event_date": "2026-07-02",
+   "publisher": "Northern Star Resources ASX announcement",
+   "domain": "nsrltd.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:kling-ai-kuaishou:2026-07-02",
+   "country": "CN",
+   "signal_type": "funding",
+   "event_date": "2026-07-02",
+   "publisher": "Bloomberg",
+   "domain": "bloomberg.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 14,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:alva-industries:2026-07-02",
+   "country": "NO",
+   "signal_type": "funding",
+   "event_date": "2026-07-02",
+   "publisher": "Tech.eu",
+   "domain": "tech.eu",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 15,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_small:librari:2026-07-02",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-02",
+   "publisher": "FinSMEs",
+   "domain": "finsmes.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 132,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:dconstruct-technologies:2026-07-03",
+   "country": "SG",
+   "signal_type": "funding",
+   "event_date": "2026-07-03",
+   "publisher": "TNGlobal (TechNode Global)",
+   "domain": "technode.global",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 13,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_leadership:sempra:2026-07-06",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-06",
+   "publisher": "SEC 8-K (Sempra, via StockTitan)",
+   "domain": "stocktitan.net",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "il_funding:tangos-ai:2026-07-07",
+   "country": "IL",
+   "signal_type": "funding",
+   "event_date": "2026-07-07",
+   "publisher": "Calcalist CTech",
+   "domain": "calcalistech.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:bizay:2026-07-07",
+   "country": "PT",
+   "signal_type": "funding",
+   "event_date": "2026-07-07",
+   "publisher": "Tech.eu",
+   "domain": "tech.eu",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 15,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_leadership:adherex-group:2026-07-07",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-07",
+   "publisher": "Adhesives & Sealants Industry",
+   "domain": "adhesivesmag.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_large:fore-biotherapeutics:2026-07-07",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-07",
+   "publisher": "Business Wire",
+   "domain": "businesswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 73,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:bridgement:2026-07-07",
+   "country": "ZA",
+   "signal_type": "funding",
+   "event_date": "2026-07-07",
+   "publisher": "Launch Base Africa",
+   "domain": "launchbaseafrica.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "intl_leadership:royal-bank-of-canada:2026-07-08",
+   "country": "CA",
+   "signal_type": "leadership",
+   "event_date": "2026-07-08",
+   "publisher": "Cision Newswire Canada",
+   "domain": "newswire.ca",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "il_funding:velocity:2026-07-08",
+   "country": "IL",
+   "signal_type": "funding",
+   "event_date": "2026-07-08",
+   "publisher": "Calcalist CTech",
+   "domain": "calcalistech.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:young-group:2026-07-08",
+   "country": "IT",
+   "signal_type": "funding",
+   "event_date": "2026-07-08",
+   "publisher": "I3P (Politecnico di Torino incubator)",
+   "domain": "i3p.it",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:nexu:2026-07-08",
+   "country": "MX",
+   "signal_type": "funding",
+   "event_date": "2026-07-08",
+   "publisher": "LatamList",
+   "domain": "latamlist.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_leadership:bellring-brands-inc:2026-07-08",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-08",
+   "publisher": "GlobeNewswire",
+   "domain": "globenewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_small:m1x-global:2026-07-08",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-08",
+   "publisher": "FinSMEs",
+   "domain": "finsmes.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 132,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:keyper:2026-07-09",
+   "country": "AE",
+   "signal_type": "funding",
+   "event_date": "2026-07-09",
+   "publisher": "Wamda",
+   "domain": "wamda.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 42,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:mercado-bitcoin:2026-07-09",
+   "country": "BR",
+   "signal_type": "funding",
+   "event_date": "2026-07-09",
+   "publisher": "LatamList",
+   "domain": "latamlist.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_leadership:terry-town:2026-07-09",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-09",
+   "publisher": "ASI Central",
+   "domain": "asicentral.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:helsing:2026-07-13",
+   "country": "DE",
+   "signal_type": "funding",
+   "event_date": "2026-07-13",
+   "publisher": "Tech.eu",
+   "domain": "tech.eu",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 15,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:holiday-robotics:2026-07-13",
+   "country": "KR",
+   "signal_type": "funding",
+   "event_date": "2026-07-13",
+   "publisher": "Seoul Economic Daily",
+   "domain": "sedaily.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 5,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_large:chai-discovery:2026-07-13",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-13",
+   "publisher": "Business Wire",
+   "domain": "businesswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 73,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_leadership:mbx-biosciences-inc:2026-07-13",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-13",
+   "publisher": "GlobeNewswire",
+   "domain": "globenewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_small:ravee-optics:2026-07-13",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-13",
+   "publisher": "FinSMEs",
+   "domain": "finsmes.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 132,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:limx-dynamics:2026-07-14",
+   "country": "CN",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "Caixin Global",
+   "domain": "caixinglobal.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "intl_leadership:ikea-japan-k-k:2026-07-14",
+   "country": "JP",
+   "signal_type": "leadership",
+   "event_date": "2026-07-14",
+   "publisher": "PR TIMES",
+   "domain": "prtimes.jp",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 13,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_large:brinc:2026-07-14",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "PR Newswire",
+   "domain": "prnewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 121,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_small:pact-labs:2026-07-14",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "FinSMEs",
+   "domain": "finsmes.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 132,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "intl_leadership:aegis-brands-inc:2026-07-15",
+   "country": "CA",
+   "signal_type": "leadership",
+   "event_date": "2026-07-15",
+   "publisher": "Aegis Brands press release via Yahoo Finance",
+   "domain": "yahoo.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 393,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:insidedesk:2026-07-15",
+   "country": "CA",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "BetaKit",
+   "domain": "betakit.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 16,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "intl_leadership:convatec-group-plc:2026-07-15",
+   "country": "GB",
+   "signal_type": "leadership",
+   "event_date": "2026-07-15",
+   "publisher": "Investegate (London Stock Exchange RNS)",
+   "domain": "investegate.co.uk",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 3,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "il_funding:hemispheric:2026-07-15",
+   "country": "IL",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Calcalist CTech",
+   "domain": "calcalistech.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "il_funding:oak:2026-07-15",
+   "country": "IL",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Globes",
+   "domain": "globes.co.il",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 40,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:starlight-engine:2026-07-15",
+   "country": "JP",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "BRIDGE (thebridge.jp)",
+   "domain": "thebridge.jp",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:monumental:2026-07-15",
+   "country": "NL",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Tech.eu",
+   "domain": "tech.eu",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 15,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:think:2026-07-15",
+   "country": "SA",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Wamda",
+   "domain": "wamda.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 42,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:float:2026-07-15",
+   "country": "SE",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Tech.eu",
+   "domain": "tech.eu",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 15,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_large:senra-systems:2026-07-15",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "PR Newswire",
+   "domain": "prnewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 121,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:swissto12:2026-07-16",
+   "country": "CH",
+   "signal_type": "funding",
+   "event_date": "2026-07-16",
+   "publisher": "Via Satellite (SatelliteToday)",
+   "domain": "satellitetoday.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eu_funding:hyperion-robotics:2026-07-16",
+   "country": "FI",
+   "signal_type": "funding",
+   "event_date": "2026-07-16",
+   "publisher": "Finnish AI Region (FAIR EDIH)",
+   "domain": "fairedih.fi",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "us_funding_large:fireworks-ai:2026-07-16",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-16",
+   "publisher": "Business Wire",
+   "domain": "businesswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 73,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:bluenexus:2026-07-17",
+   "country": "AU",
+   "signal_type": "funding",
+   "event_date": "2026-07-17",
+   "publisher": "SmartCompany (StartupSmart)",
+   "domain": "smartcompany.com.au",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:esgagent-ai-klean-technologies:2026-07-17",
+   "country": "AU",
+   "signal_type": "funding",
+   "event_date": "2026-07-17",
+   "publisher": "SmartCompany (StartupSmart)",
+   "domain": "smartcompany.com.au",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "apac_funding:hyades:2026-07-17",
+   "country": "NZ",
+   "signal_type": "funding",
+   "event_date": "2026-07-17",
+   "publisher": "SmartCompany (StartupSmart)",
+   "domain": "smartcompany.com.au",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "row_funding:ual:2026-07-20",
+   "country": "AR",
+   "signal_type": "funding",
+   "event_date": "2026-07-20",
+   "publisher": "LatamList",
+   "domain": "latamlist.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "eu_funding:brenus-pharma:2026-07-20",
+   "country": "FR",
+   "signal_type": "funding",
+   "event_date": "2026-07-20",
+   "publisher": "European Biotechnology Magazine",
+   "domain": "european-biotechnology.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "intl_leadership:clinigen:2026-07-20",
+   "country": "GB",
+   "signal_type": "leadership",
+   "event_date": "2026-07-20",
+   "publisher": "Clinigen press release via Yahoo Finance",
+   "domain": "yahoo.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 393,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "il_funding:asio-technologies:2026-07-20",
+   "country": "IL",
+   "signal_type": "funding",
+   "event_date": "2026-07-20",
+   "publisher": "Calcalist CTech",
+   "domain": "calcalistech.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "apac_funding:plazza:2026-07-20",
+   "country": "IN",
+   "signal_type": "funding",
+   "event_date": "2026-07-20",
+   "publisher": "Entrackr",
+   "domain": "entrackr.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 40,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "us_funding_small:empirical-security:2026-07-20",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-20",
+   "publisher": "FinSMEs",
+   "domain": "finsmes.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 132,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "apac_funding:t2:2026-07-21",
+   "country": "JP",
+   "signal_type": "funding",
+   "event_date": "2026-07-21",
+   "publisher": "BRIDGE (thebridge.jp)",
+   "domain": "thebridge.jp",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "us_funding_large:sila:2026-07-21",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-21",
+   "publisher": "Business Wire",
+   "domain": "businesswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 73,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "us_funding_small:sofab-inks:2026-07-21",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-21",
+   "publisher": "pv magazine",
+   "domain": "pv-magazine.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "intl_leadership:vale-s-a:2026-07-22",
+   "country": "BR",
+   "signal_type": "leadership",
+   "event_date": "2026-07-22",
+   "publisher": "Exame",
+   "domain": "exame.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 16,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "eu_funding:kintai:2026-07-22",
+   "country": "ES",
+   "signal_type": "funding",
+   "event_date": "2026-07-22",
+   "publisher": "Techla Media (ES)",
+   "domain": "techla.pro",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "il_funding:plantopia:2026-07-22",
+   "country": "IL",
+   "signal_type": "funding",
+   "event_date": "2026-07-22",
+   "publisher": "Calcalist CTech",
+   "domain": "calcalistech.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 36,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "us_funding_small:1872:2026-07-22",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-22",
+   "publisher": "Business Wire",
+   "domain": "businesswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 73,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "us_leadership:firstcash-holdings-inc:2026-07-22",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-22",
+   "publisher": "GlobeNewswire",
+   "domain": "globenewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "eu_funding:nernst-electric:2026-07-23",
+   "country": "IE",
+   "signal_type": "funding",
+   "event_date": "2026-07-23",
+   "publisher": "WeAreAquaculture",
+   "domain": "weareaquaculture.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "us_leadership:crb-group-inc:2026-07-23",
+   "country": "US",
+   "signal_type": "leadership",
+   "event_date": "2026-07-23",
+   "publisher": "GlobeNewswire",
+   "domain": "globenewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "intl_leadership:gd-towers-deutsche-funkturm:2026-07-24",
+   "country": "DE",
+   "signal_type": "leadership",
+   "event_date": "2026-07-24",
+   "publisher": "Presseportal (news aktuell)",
+   "domain": "presseportal.de",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [
+    "gdelt",
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "apac_funding:ropedia:2026-07-24",
+   "country": "SG",
+   "signal_type": "funding",
+   "event_date": "2026-07-24",
+   "publisher": "TNGlobal (TechNode Global)",
+   "domain": "technode.global",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 13,
+   "live_routes": [
+    "gdelt",
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "africa_funding:bridgement:2026-07-08",
+   "country": "ZA",
+   "signal_type": "funding",
+   "event_date": "2026-07-08",
+   "publisher": "TechAfrica News",
+   "domain": "techafricanews.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_funding:cue:2026-07-15",
+   "country": "ZA",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "TechFinancials",
+   "domain": "techfinancials.co.za",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_funding:hyperdev:2026-07-08",
+   "country": "ZA",
+   "signal_type": "funding",
+   "event_date": "2026-07-08",
+   "publisher": "Disrupt Africa",
+   "domain": "disruptafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_leadership:nairobi-securities-exchange:2026-07-02",
+   "country": "KE",
+   "signal_type": "leadership",
+   "event_date": "2026-07-02",
+   "publisher": "Nairobi Leo",
+   "domain": "nairobileo.co.ke",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_leadership:stanbic-bank-kenya:2026-07-16",
+   "country": "KE",
+   "signal_type": "leadership",
+   "event_date": "2026-07-16",
+   "publisher": "TechTrends Kenya",
+   "domain": "techtrendske.co.ke",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_funding:kcb-bank-kenya:2026-07-28",
+   "country": "KE",
+   "signal_type": "funding",
+   "event_date": "2026-07-28",
+   "publisher": "Business Daily",
+   "domain": "businessdailyafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 7,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "africa_funding:fuzu:2026-07-06",
+   "country": "KE",
+   "signal_type": "funding",
+   "event_date": "2026-07-06",
+   "publisher": "Disrupt Africa",
+   "domain": "disruptafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_funding:codar:2026-07-17",
+   "country": "NG",
+   "signal_type": "funding",
+   "event_date": "2026-07-17",
+   "publisher": "TechCabal",
+   "domain": "techcabal.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_funding:flutterwave:2026-07-10",
+   "country": "NG",
+   "signal_type": "funding",
+   "event_date": "2026-07-10",
+   "publisher": "Disrupt Africa",
+   "domain": "disruptafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_funding:built-financial-technologies:2026-07-23",
+   "country": "GH",
+   "signal_type": "funding",
+   "event_date": "2026-07-23",
+   "publisher": "Disrupt Africa",
+   "domain": "disruptafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "africa_funding:growforme:2026-07-23",
+   "country": "GH",
+   "signal_type": "funding",
+   "event_date": "2026-07-23",
+   "publisher": "Disrupt Africa",
+   "domain": "disruptafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "africa_funding:sayetech:2026-07-23",
+   "country": "GH",
+   "signal_type": "funding",
+   "event_date": "2026-07-23",
+   "publisher": "Disrupt Africa",
+   "domain": "disruptafrica.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "africa_leadership:paratus-group:2026-07-28",
+   "country": "NA",
+   "signal_type": "leadership",
+   "event_date": "2026-07-28",
+   "publisher": "Mining Weekly",
+   "domain": "miningweekly.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "africa_funding:senelec:2026-07-15",
+   "country": "SN",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Financial Afrik",
+   "domain": "financialafrik.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 3,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "africa_leadership:global-bank:2026-07-25",
+   "country": "ET",
+   "signal_type": "leadership",
+   "event_date": "2026-07-25",
+   "publisher": "Addis Fortune",
+   "domain": "addisfortune.news",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 9,
+   "live_routes": [
+    "gdelt",
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "cee_funding:hypefy:2026-07-01",
+   "country": "HR",
+   "signal_type": "funding",
+   "event_date": "2026-07-01",
+   "publisher": "Netokracija",
+   "domain": "netokracija.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_funding:codeplain:2026-07-03",
+   "country": "SI",
+   "signal_type": "funding",
+   "event_date": "2026-07-03",
+   "publisher": "The Recursive",
+   "domain": "therecursive.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 6,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_funding:oxylabs:2026-07-09",
+   "country": "LT",
+   "signal_type": "funding",
+   "event_date": "2026-07-09",
+   "publisher": "Warburg Pincus",
+   "domain": "warburgpincus.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_funding:black-forest-systems:2026-07-09",
+   "country": "UA",
+   "signal_type": "funding",
+   "event_date": "2026-07-09",
+   "publisher": "dev.ua",
+   "domain": "dev.ua",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_leadership:text-s-a:2026-07-09",
+   "country": "PL",
+   "signal_type": "leadership",
+   "event_date": "2026-07-09",
+   "publisher": "Bankier.pl (ESPI current report)",
+   "domain": "bankier.pl",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 14,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_funding:display-dev:2026-07-10",
+   "country": "EE",
+   "signal_type": "funding",
+   "event_date": "2026-07-10",
+   "publisher": "The Recursive",
+   "domain": "therecursive.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 6,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_funding:htg-medical:2026-07-14",
+   "country": "CZ",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "CzechCrunch",
+   "domain": "cc.cz",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 3,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "cee_leadership:metrodom:2026-07-21",
+   "country": "HU",
+   "signal_type": "leadership",
+   "event_date": "2026-07-21",
+   "publisher": "Portfolio.hu",
+   "domain": "portfolio.hu",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "cee_leadership:pstryk:2026-07-27",
+   "country": "PL",
+   "signal_type": "leadership",
+   "event_date": "2026-07-27",
+   "publisher": "MamStartup",
+   "domain": "mamstartup.pl",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "cee_funding:norofert:2026-07-27",
+   "country": "RO",
+   "signal_type": "funding",
+   "event_date": "2026-07-27",
+   "publisher": "BURSA",
+   "domain": "bursa.ro",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "cee_leadership:hipa-nemzeti-befektetesi-ugynokseg:2026-07-28",
+   "country": "HU",
+   "signal_type": "leadership",
+   "event_date": "2026-07-28",
+   "publisher": "Portfolio.hu",
+   "domain": "portfolio.hu",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "cee_leadership:zpc-otmuchow-s-a:2026-07-28",
+   "country": "PL",
+   "signal_type": "leadership",
+   "event_date": "2026-07-28",
+   "publisher": "Parkiet (ESPI current report 12/2026)",
+   "domain": "parkiet.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "eurasia_funding:extella-ai:2026-07-23",
+   "country": "KZ",
+   "signal_type": "funding",
+   "event_date": "2026-07-23",
+   "publisher": "Digital Business (digitalbusiness.kz)",
+   "domain": "digitalbusiness.kz",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "eurasia_funding:magicport:2026-07-11",
+   "country": "AZ",
+   "signal_type": "funding",
+   "event_date": "2026-07-11",
+   "publisher": "THE TECH (the-tech.kz)",
+   "domain": "the-tech.kz",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eurasia_funding:visibuilt:2026-07-27",
+   "country": "DK",
+   "signal_type": "funding",
+   "event_date": "2026-07-27",
+   "publisher": "Renewable Carbon News",
+   "domain": "renewable-carbon.eu",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "eurasia_funding:microbank-crystal:2026-07-20",
+   "country": "GE",
+   "signal_type": "funding",
+   "event_date": "2026-07-20",
+   "publisher": "Commersant.ge",
+   "domain": "commersant.ge",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "eurasia_leadership:unnamed:2026-07-23",
+   "country": "TW",
+   "signal_type": "leadership",
+   "event_date": "2026-07-23",
+   "publisher": "\u5de5\u5546\u6642\u5831 (Commercial Times)",
+   "domain": "ctee.com.tw",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "eurasia_leadership:unnamed:2026-07-17",
+   "country": "TW",
+   "signal_type": "leadership",
+   "event_date": "2026-07-17",
+   "publisher": "\u5de5\u5546\u6642\u5831 (Commercial Times)",
+   "domain": "ctee.com.tw",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "eurasia_leadership:amaroq-ltd:2026-07-21",
+   "country": "IS",
+   "signal_type": "leadership",
+   "event_date": "2026-07-21",
+   "publisher": "GlobeNewswire (Amaroq Ltd.)",
+   "domain": "globenewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "eurasia_leadership:tttech-computertechnik-ag:2026-07-20",
+   "country": "AT",
+   "signal_type": "leadership",
+   "event_date": "2026-07-20",
+   "publisher": "GlobeNewswire (TTTech Computertechnik AG)",
+   "domain": "globenewswire.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 27,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "latam_funding:terraflos:2026-07-01",
+   "country": "UY",
+   "signal_type": "funding",
+   "event_date": "2026-07-01",
+   "publisher": "Ambito Financiero",
+   "domain": "ambito.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 13,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "latam_funding:tripwip:2026-07-14",
+   "country": "UY",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "El Observador",
+   "domain": "elobservador.com.uy",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 3,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "latam_funding:blanco:2026-07-26",
+   "country": "CL",
+   "signal_type": "funding",
+   "event_date": "2026-07-26",
+   "publisher": "El Ecosistema Startup",
+   "domain": "ecosistemastartup.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "latam_leadership:itau-administradora-general-de-fondos-agf-de-itau:2026-07-01",
+   "country": "CL",
+   "signal_type": "leadership",
+   "event_date": "2026-07-01",
+   "publisher": "Diario Financiero",
+   "domain": "df.cl",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "latam_funding:abaco-technologies:2026-07-23",
+   "country": "SV",
+   "signal_type": "funding",
+   "event_date": "2026-07-23",
+   "publisher": "Startups Latam",
+   "domain": "startupslatam.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "latam_funding:smartsoil:2026-07-12",
+   "country": "PY",
+   "signal_type": "funding",
+   "event_date": "2026-07-12",
+   "publisher": "El Click",
+   "domain": "elclick.com.py",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "latam_leadership:autostar-costa-rica:2026-07-15",
+   "country": "CR",
+   "signal_type": "leadership",
+   "event_date": "2026-07-15",
+   "publisher": "Revista Vida y Exito",
+   "domain": "vidayexito.net",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "latam_leadership:boliviana-de-aviacion-boa:2026-07-24",
+   "country": "BO",
+   "signal_type": "leadership",
+   "event_date": "2026-07-24",
+   "publisher": "Aviacionline",
+   "domain": "aviacionline.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [
+    "gdelt",
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "latam_leadership:citibank-del-peru:2026-07-27",
+   "country": "PE",
+   "signal_type": "leadership",
+   "event_date": "2026-07-27",
+   "publisher": "El Comercio",
+   "domain": "elcomercio.pe",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "latam_leadership:different-capital-limited:2026-07-26",
+   "country": "JM",
+   "signal_type": "leadership",
+   "event_date": "2026-07-26",
+   "publisher": "Jamaica Observer",
+   "domain": "jamaicaobserver.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 9,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "latam_leadership:pan-jamaica-group:2026-07-05",
+   "country": "JM",
+   "signal_type": "leadership",
+   "event_date": "2026-07-05",
+   "publisher": "Our Today",
+   "domain": "our.today",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "latam_leadership:petrojam:2026-07-05",
+   "country": "JM",
+   "signal_type": "leadership",
+   "event_date": "2026-07-05",
+   "publisher": "Our Today",
+   "domain": "our.today",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_funding:mylerz:2026-07-15",
+   "country": "EG",
+   "signal_type": "funding",
+   "event_date": "2026-07-15",
+   "publisher": "Wamda",
+   "domain": "wamda.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 42,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_funding:ora-technologies:2026-07-13",
+   "country": "MA",
+   "signal_type": "funding",
+   "event_date": "2026-07-13",
+   "publisher": "Wamda",
+   "domain": "wamda.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 42,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_funding:skipcash:2026-07-27",
+   "country": "QA",
+   "signal_type": "funding",
+   "event_date": "2026-07-27",
+   "publisher": "Wamda",
+   "domain": "wamda.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 42,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press",
+    "news_backstop"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "mena_leadership:pwc-cyprus:2026-07-01",
+   "country": "CY",
+   "signal_type": "leadership",
+   "event_date": "2026-07-01",
+   "publisher": "Cyprus Business News (CBN)",
+   "domain": "cbn.com.cy",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_leadership:region-trade-bank:2026-07-01",
+   "country": "IQ",
+   "signal_type": "leadership",
+   "event_date": "2026-07-01",
+   "publisher": "Gulf Times",
+   "domain": "gulf-times.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_leadership:oman-duty-free:2026-07-22",
+   "country": "OM",
+   "signal_type": "leadership",
+   "event_date": "2026-07-22",
+   "publisher": "Muscat Daily",
+   "domain": "muscatdaily.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news",
+    "news_backstop"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "mena_leadership:bahrain-bourse:2026-07-17",
+   "country": "BH",
+   "signal_type": "leadership",
+   "event_date": "2026-07-17",
+   "publisher": "The Daily Tribune (Bahrain)",
+   "domain": "newsofbahrain.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_leadership:manas-enerji-yonetimi-sanayi-ve-ticaret-a-s:2026-07-02",
+   "country": "TR",
+   "signal_type": "leadership",
+   "event_date": "2026-07-02",
+   "publisher": "Borsatek (reporting the company's KAP material-event disclosure)",
+   "domain": "borsatek.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "mena_leadership:sabanc-holding:2026-07-01",
+   "country": "TR",
+   "signal_type": "leadership",
+   "event_date": "2026-07-01",
+   "publisher": "Patronlar D\u00fcnyas\u0131 (reporting Sabanc\u0131 Holding's KAP disclosure)",
+   "domain": "patronlardunyasi.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_funding:amity-robotics:2026-07-02",
+   "country": "TH",
+   "signal_type": "funding",
+   "event_date": "2026-07-02",
+   "publisher": "East Ventures",
+   "domain": "east.vc",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_funding:kalguroo:2026-07-07",
+   "country": "TH",
+   "signal_type": "funding",
+   "event_date": "2026-07-07",
+   "publisher": "The Story Thailand",
+   "domain": "thestorythailand.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_funding:every-half-coffee-roasters:2026-07-16",
+   "country": "VN",
+   "signal_type": "funding",
+   "event_date": "2026-07-16",
+   "publisher": "Vietnam Investment Review",
+   "domain": "vir.com.vn",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_leadership:cong-ty-co-phan-au-tu-nam-long:2026-07-28",
+   "country": "VN",
+   "signal_type": "leadership",
+   "event_date": "2026-07-28",
+   "publisher": "CafeF",
+   "domain": "cafef.vn",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 26,
+   "live_routes": [
+    "gdelt",
+    "google_news",
+    "national_press"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "seasia_leadership:tap-oan-vingroup:2026-07-10",
+   "country": "VN",
+   "signal_type": "leadership",
+   "event_date": "2026-07-10",
+   "publisher": "CafeBiz",
+   "domain": "cafebiz.vn",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_funding:aerion-motors:2026-07-21",
+   "country": "ID",
+   "signal_type": "funding",
+   "event_date": "2026-07-21",
+   "publisher": "Youngster.id",
+   "domain": "youngster.id",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 1,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "seasia_leadership:pt-pos-indonesia-persero:2026-07-20",
+   "country": "ID",
+   "signal_type": "leadership",
+   "event_date": "2026-07-20",
+   "publisher": "Liputan6",
+   "domain": "liputan6.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 4,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "feed_read_item_missed"
+  },
+  {
+   "id": "seasia_leadership:govtech-sri-lanka-pvt-ltd:2026-07-02",
+   "country": "LK",
+   "signal_type": "leadership",
+   "event_date": "2026-07-02",
+   "publisher": "Newswire.lk",
+   "domain": "newswire.lk",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 2,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-08",
+   "widest_route": "news_backstop"
+  },
+  {
+   "id": "seasia_leadership:machhapuchchhre-bank-limited:2026-07-21",
+   "country": "NP",
+   "signal_type": "leadership",
+   "event_date": "2026-07-21",
+   "publisher": "ShareSansar",
+   "domain": "sharesansar.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [
+    "google_news"
+   ],
+   "stage": "publisher_not_wired"
+  },
+  {
+   "id": "seasia_funding:policystreet:2026-07-14",
+   "country": "MY",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "TechNode Global",
+   "domain": "technode.global",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 13,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_funding:etaily:2026-07-02",
+   "country": "PH",
+   "signal_type": "funding",
+   "event_date": "2026-07-02",
+   "publisher": "DealStreetAsia",
+   "domain": "dealstreetasia.com",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 26,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  },
+  {
+   "id": "seasia_funding:dubotech-digital-limited:2026-07-14",
+   "country": "BD",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "ExitStack",
+   "domain": "exitstack.co",
+   "domain_is_swept_feed": false,
+   "domain_in_catalogue": false,
+   "urls_fetched_from_this_domain": 0,
+   "live_routes": [],
+   "stage": "outside_our_history",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news"
+  }
+ ],
+ "verdict": "NEITHER, yet: 87 of 133 misses predate the day any route could have carried them, and exactly 0 were fetched and dropped \u2014 so on today's evidence this is a HISTORY problem (backfill), with 16 genuinely unsourced publishers behind it and 30 inside feeds we already read. HIGH confidence on the 0: it is an exact-URL lookup. MEDIUM on the split between the rest, which rests on publication dates and feed reach rather than on a record of what each run saw.",
+ "limits": [
+  "No rejection reason is persisted: seen_urls holds a URL and the word 'rejected'. A fetched-and-dropped item cannot be attributed to the keyword gate, the gate model, extraction, validate or dedupe.",
+  "Nothing records the items a feed carried and a run did not reach, so 'feed_read_item_missed' is inferred from the publisher being swept, not observed.",
+  "Both limits can only UNDERSTATE the filter side.",
+  "The gold set's own answers were never consulted to decide which publishers we sweep: the feed list comes from data/sources_catalogue.csv, which predates this measurement."
+ ]
+}

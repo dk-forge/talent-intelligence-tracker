@@ -101,8 +101,18 @@ function tit_htaccess_ensure() {
     if (get_transient('tit_htaccess_ok')) return;
     $state = get_option('tit_htaccess_state', array());
     if (($state['status'] ?? '') === 'failed' && ($state['version'] ?? '') === TIT_VERSION) return;
-    if (get_transient('tit_htaccess_lock')) return;
-    set_transient('tit_htaccess_lock', 1, MINUTE_IN_SECONDS);
+    // THE LOCK IS AN OPTION, not a transient, and of the four keys moved out of
+    // the flushed namespace this is the one with teeth: it is the only mutual
+    // exclusion around a write to the site's own .htaccess. As a transient it
+    // matched `_transient_tit_%`, so tit_flush_caches() could delete it
+    // mid-window on any write route and admit a second request into
+    // insert_with_markers() while the first was still inside it.
+    // `tit_htaccess_ok` on the line above stays a transient on purpose: losing
+    // that costs one re-verification and nothing else.
+    if (function_exists('tit_ephemeral_get')) {
+        if (tit_ephemeral_get('htaccess_lock')) return;
+        tit_ephemeral_set('htaccess_lock', 1, MINUTE_IN_SECONDS);
+    }
 
     $desired = tit_htaccess_block_lines();
     if (!$desired) {

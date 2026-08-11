@@ -12,27 +12,438 @@
      own container, never the page body.
 */
 
-/* Tokens are the AI Layoff Tracker's, copied from its live layoffs.css rather
+/* ===========================================================================
+   THE TOKEN BLOCK. EVERY COLOUR IN THIS FILE COMES FROM HERE.
+
+   Tokens are the AI Layoff Tracker's, copied from its live layoffs.css rather
    than approximated, so the two products are one family and not two dialects.
    Its blue is #2a78d6 and its secondary is #D55E00.
 
    One deliberate divergence: the sibling's --alt-muted (#868a93) is about
    3.4:1 on white, which fails AA for body text. It is kept here as --tit-faint
    for genuinely decorative labels only, and anything you have to read uses
-   --tit-mut (#4a4d55, the sibling's own --alt-ink-2) at 8.6:1. */
-.tit-wrap {
-  --tit-fg:#16181d;         /* alt-ink      15.9:1 on white */
+   --tit-mut (#4a4d55, the sibling's own --alt-ink-2) at 8.6:1.
+
+   THE COLOUR DISCIPLINE (audience spec, 2026-08-02): a neutral ground, ONE
+   interactive accent, and the semantic green/red pair reserved for DIRECTION
+   alone. The accent is the audited #0072B2 (5.2:1 on white, the lead chart
+   blue on the sibling too), declared once as --tit-blue so controls, links,
+   chips and primary bars share one hue. The direction pair is text-safe:
+   green #006B4F (6.5:1) for hiring, red #B3402A (5.7:1) for cutting, a
+   blue-green against a red-orange, which is the Okabe-Ito design's own
+   CVD-safe opposition. Chart SERIES keep their categorical palette; inside a
+   chart is the one place more hues are allowed.
+
+   THREE BLOCKS, AND WHAT DECIDES BETWEEN THEM.
+     :root                                        the light values
+     @media (prefers-color-scheme: dark)
+       :root:not([data-theme="light"])            the OS asked, nobody overrode
+     :root[data-theme="dark"]                     the reader asked, explicitly
+
+   An explicit choice beats the media query in BOTH directions: data-theme
+   "light" excludes the media block, data-theme "dark" is a later rule of equal
+   weight so it wins on order. The attribute is stamped on <html> before first
+   paint by the inline script in page.php, and set by the Light / Dark / Auto
+   control dashboard.js injects. Auto REMOVES the attribute, which hands the
+   decision back to the media query.
+
+   NOTHING BUT CUSTOM PROPERTIES MAY LIVE IN THE TWO DARK BLOCKS. A component
+   rule in there is a second description of the same layout that only one theme
+   ever reads, and the two descriptions stop agreeing. Every token named in
+   :root is redefined in BOTH dark blocks, in the same order: a token defined
+   light-only keeps its light value in dark and paints a white card in a dark
+   page, which is the failure mode that is invisible until a reader reports it.
+   tests/test_theme_light_dark.py asserts all three of those properties.
+
+   The dark values are arithmetic, not taste. Every text pair is >= 4.5:1 and
+   every bar, tick and border >= 3:1 against the surface it sits on, and the
+   categorical hues are >= 15 dE2000 apart pairwise (contrast ratio is the
+   wrong tool there: an equal-luminance palette reads as a collision to it).
+   The ratios are recomputed from these declarations by the test, so the
+   palette cannot regress quietly.
+   =========================================================================== */
+:root {
+  color-scheme: light;
+
+  /* --- Ink ------------------------------------------------------------- */
+  --tit-fg:#1b2130;         /* ink-navy (owner's design, 2026-08-02), 15.4:1 on white */
+  --tit-ink:#1b2130;        /* alias: the board figures read this name */
   --tit-mut:#4a4d55;        /* alt-ink-2     8.6:1 on white */
-  --tit-faint:#868a93;      /* alt-muted    decorative only */
+  --tit-faint:#696d77;      /* alt-muted    4.78:1 on the dimmest ground */
+  --tit-ink-invert:#ffffff; /* text and icons ON a filled accent */
+
+  /* --- Surfaces -------------------------------------------------------- */
+  --tit-surface-1:#ffffff;  /* cards, controls, anything raised */
+  --tit-surface:#f7f8fa;    /* alt-surface-2: stripes, table heads, quiet panels */
+  --tit-ground:#faf9f6;     /* warm paper ground (owner's design, 2026-08-02) */
+  --tit-quiet:#f4f6f8;      /* the quietest chip ground */
+  --tit-hover:#f9fbfd;      /* row and card hover */
   --tit-line:#e2e3e8;       /* alt-border  */
   --tit-grid:#e7e8ec;       /* alt-grid    */
-  --tit-surface:#f7f8fa;    /* alt-surface-2 */
-  --tit-ground:#fafaf8;     /* atr-bg, the off-white page ground */
-  --tit-hiring:#2a78d6;     /* alt-blue    */
-  --tit-cutting:#D55E00;    /* alt-red     */
+  --tit-track:#e6eaef;      /* pillar bar track */
+  --tit-track-2:#eef1f5;    /* rank bar track, neutral tag ground */
+
+  /* --- The one interactive accent -------------------------------------- */
+  --tit-blue:#0072B2; --tit-blue-strong:#084BB5;
+  --tit-blue-tint:#eef4fc; --tit-blue-ring:#b9d3f2; --tit-blue-edge:#cfe0f4;
+  --tit-accent-ink:#1c5cab;
+  --tit-link:#1a5fb4; --tit-link-hover:#12447f;
+  --tit-on-accent:rgba(255,255,255,.26);  /* a count inside a filled pill */
+
+  /* --- Direction and status -------------------------------------------- */
+  --tit-hiring:#006B4F;     /* direction: adding roles. NEVER an accent. */
+  --tit-cutting:#B3402A;    /* direction: cutting roles. NEVER an accent. */
+  --tit-warn:#8A6A00;       /* caveats and pending states, text-safe amber */
   --tit-pay:#4a3aa7;        /* violet, third series */
   --tit-neutral:#52607a;
+  --tit-neutral-bar:#6b7684; --tit-neutral-fg:#41485a; --tit-neutral-ring:#d8dde5;
+  --tit-green-tint:#e9f3ef; --tit-green-ring:#bfdccf;
+  --tit-red-tint:#fdeeee;   --tit-red-ring:#ecc4ba;
+  --tit-violet-tint:#eae7f7; --tit-violet-ring:#cbc4ec;
+  --tit-verified-line:#d0d5dd;
+
+  /* --- The chart palette ----------------------------------------------- */
+  --tit-orange:#D55E00; --tit-violet:#4a3aa7; --tit-teal:#18a271;
+  --tit-ink-blue:#0072B2; --tit-ink-orange:#8c3d00;
+  --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
+  --tit-teal-tint:#e4f6ee; --tit-teal-ring:#b9e6d3;
+  --tit-teal-glow:rgba(24,162,113,.22);
+  --tit-trust-k:#17624a; --tit-stat-5:#5b6570;
+
+  /* OCHRE IS THE MONEY HUE AND NOTHING ELSE'S (owner's design, 2026-08-02):
+     every dollar figure, the money row's heat, the money bars. Where ochre
+     and the interactive accent could collide the rule is fixed: money wins
+     on figures, blue wins on controls. Text form 5.6:1 on white. */
+  --tit-ochre:#b07c00; --tit-ink-ochre:#7a5800; --tit-ochre-line:#e3d3a6;
+
+  /* --- The trend series, one hue per signal ---------------------------- */
+  --tit-tc-hiring:#1f7a4d; --tit-tc-funded:#a8560f;
+  /* market-trend marks: gained, shrank, unchanged. The grey was #9aa1ab,
+     which is 2.61:1 on the card and under the 3:1 bar for a swatch that
+     carries meaning by its fill. */
+  --tit-mk-g:#1f7a4d; --tit-mk-s:#a83d2a; --tit-mk-u:#868d99;
+  --tit-tc-leadership:#7a3fa8; --tit-tc-pay:#c2417e; --tit-tc-total:#1c5cab;
+  /* The recall chart's two lines: what we hold, and what we hold correctly. */
+  --tit-rc-held:#1c5cab; --tit-rc-clean:#1f7a4d;
+
+  /* --- Heat channels. Triplets, because the alpha is set per cell ------ */
+  --tit-heat-rgb:28,92,171;
+  --tit-heat-money-rgb:176,124,0;
+  --tit-tick-default-rgb:82,96,122;
+  --tit-tick-hiring-rgb:42,120,214;
+  --tit-tick-funded-rgb:74,58,167;
+  --tit-tick-leadership-rgb:13,124,128;
+  --tit-tick-pay-rgb:213,94,0;
+  --tit-tick-total-rgb:22,24,29;
+
+  /* --- Zones, bands and the hero wash ---------------------------------- */
+  --tit-hero-1:#f4f8fe; --tit-hero-2:#fdf6f2; --tit-hero-3:#f7f4fd;
+  --tit-zone-bg:#eef3f9; --tit-zone-line:#d7e1ec;
+  --tit-region-n-bg:#f1f4f8;
+  --tit-sticky-bg:rgba(238,244,252,.94);
+  --tit-header-bg:#ffffff; --tit-header-line:rgba(16,18,24,.12);
+
+  /* --- Named states ----------------------------------------------------- */
+  --tit-degraded-bg:#fdf3e8; --tit-degraded-fg:#8c3d00; --tit-degraded-line:#f0cfae;
+  --tit-partial-bg:#fff8e6;  --tit-partial-fg:#7a5300;  --tit-partial-line:#efdca6;
+  --tit-toast-bg:#eaf6ec;    --tit-toast-fg:#1f4620;    --tit-toast-line:#bfe0c4;
+  --tit-star:#a9790a;        --tit-star-bg:rgba(169,121,10,.13);
+  --tit-solid-hover:#000000;
+
+  /* --- The theme control, which owns its colours -------------------------
+     THE CONTROL THAT CHANGES THE THEME IS THE LAST THING ALLOWED TO
+     DISAPPEAR IN ANY THEME, so it does not borrow the general surface and
+     border tokens any more. It borrowed --tit-surface over --tit-ground and
+     --tit-line as its edge, and in the dark scheme those measure 1.19:1 and
+     1.56:1 against the page: a control with no perceivable boundary, which
+     is what the owner reported. These eight are sized to the bars the test
+     enforces from these very declarations: the two edges clear 3:1 against
+     BOTH neighbours, every label clears 4.5:1 on the fill it actually sits
+     on, and the selected fill clears 3:1 against the well and against an
+     unselected chip. Nothing here leans on a single hairline. */
+  --tit-theme-bg:#eceef2;      /* the well the three chips sit in */
+  --tit-theme-line:#6f7681;    /* the well's edge, against the page ground */
+  --tit-theme-b-bg:#ffffff;    /* an unselected chip: a fill, not nothing */
+  --tit-theme-b-line:#6f7681;  /* an unselected chip's own edge */
+  --tit-theme-b-fg:#2f3540;    /* an unselected chip's label */
+  --tit-theme-on-bg:#0072B2;   /* the selected chip */
+  --tit-theme-on-fg:#ffffff;   /* the selected chip's label */
+  --tit-theme-focus:#084BB5;   /* the keyboard ring, on the well or the page */
+
+  /* --- Roo -------------------------------------------------------------- */
+  --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#ffffff;
+  --roo-soft:#dbe9fb; --roo-tint:#eef4fd; --roo-zzz:#8a93a0;
+
+  /* --- Shadows carry colour, so they are tokens too --------------------- */
   --tit-shadow:0 1px 2px rgba(16,18,24,.04), 0 4px 14px rgba(16,18,24,.05);
+  --tit-shadow-bar:0 2px 10px rgba(16,18,24,.06);
+  --tit-shadow-pop:0 6px 24px rgba(16,18,24,.14);
+  --tit-shadow-float:0 4px 10px rgba(16,18,24,.14), 0 10px 26px rgba(16,18,24,.16);
+  /* The opaque stop of a mask gradient. Not a theme colour: a mask reads
+     luminance, so this stays the same in both schemes. It is a token so that
+     "no colour literal outside the token block" is true without an exception. */
+  --tit-mask-ink:#000000;
+}
+
+/* The OS asked for dark, and the reader has not overridden it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --tit-fg:#e8eaee;
+    --tit-ink:#e8eaee;
+    --tit-mut:#b0b6c0;
+    --tit-faint:#8b929d;
+    --tit-ink-invert:#0b1016;
+
+    --tit-surface-1:#1b1e25;
+    --tit-surface:#22262e;
+    --tit-ground:#14161b;
+    --tit-quiet:#20242b;
+    --tit-hover:#242932;
+    --tit-line:#333944;
+    --tit-grid:#2c313a;
+    --tit-track:#2f353f;
+    --tit-track-2:#2a2f38;
+
+    --tit-blue:#6cb6ff; --tit-blue-strong:#9cccff;
+    --tit-blue-tint:#16273a; --tit-blue-ring:#2f5a85; --tit-blue-edge:#2a4c70;
+    --tit-accent-ink:#7fb8f5;
+    --tit-link:#7fb8f5; --tit-link-hover:#a9d1ff;
+    --tit-on-accent:rgba(11,16,22,.22);
+
+    --tit-hiring:#4fc99a;
+    --tit-cutting:#ff8f7a;
+    --tit-warn:#e0b64f;
+    --tit-pay:#b9a3ff;
+    --tit-neutral:#a3adbd;
+    --tit-neutral-bar:#8791a1; --tit-neutral-fg:#c3cbd8; --tit-neutral-ring:#3b414c;
+    --tit-green-tint:#16281f; --tit-green-ring:#2f5a45;
+    --tit-red-tint:#2e1c19;   --tit-red-ring:#6b3a30;
+    --tit-violet-tint:#221d33; --tit-violet-ring:#4a3f70;
+    --tit-verified-line:#3b414c;
+
+    --tit-orange:#ff9d52; --tit-violet:#b9a3ff; --tit-teal:#4ecfa5;
+    --tit-ink-blue:#7fb8f5; --tit-ink-orange:#f0a35c;
+    --tit-ink-violet:#c19bef; --tit-ink-teal:#4ecfa5;
+    --tit-teal-tint:#132a23; --tit-teal-ring:#2c5b4a;
+    --tit-teal-glow:rgba(78,207,165,.22);
+    --tit-trust-k:#4fc99a; --tit-stat-5:#8791a1;
+
+    --tit-ochre:#e3b341; --tit-ink-ochre:#e8c368; --tit-ochre-line:#6b5623;
+
+    --tit-tc-hiring:#4fc99a; --tit-tc-funded:#f0a35c;
+    --tit-mk-g:#4fc99a; --tit-mk-s:#ff8f7a; --tit-mk-u:#8791a1;
+    --tit-tc-leadership:#c19bef; --tit-tc-pay:#f582b4; --tit-tc-total:#7fb8f5;
+    --tit-rc-held:#7fb8f5; --tit-rc-clean:#4fc99a;
+
+    --tit-heat-rgb:124,178,255;
+    --tit-heat-money-rgb:227,179,65;
+    --tit-tick-default-rgb:163,173,189;
+    --tit-tick-hiring-rgb:108,182,255;
+    --tit-tick-funded-rgb:185,163,255;
+    --tit-tick-leadership-rgb:78,207,165;
+    --tit-tick-pay-rgb:255,157,82;
+    --tit-tick-total-rgb:232,234,238;
+
+    --tit-hero-1:#161d28; --tit-hero-2:#221c18; --tit-hero-3:#1d1930;
+    --tit-zone-bg:#181d26; --tit-zone-line:#2c3542;
+    --tit-region-n-bg:#262b34;
+    --tit-sticky-bg:rgba(22,29,40,.94);
+    --tit-header-bg:#14161b; --tit-header-line:rgba(232,234,238,.14);
+
+    --tit-degraded-bg:#2a2118; --tit-degraded-fg:#f0b47a; --tit-degraded-line:#5c452a;
+    --tit-partial-bg:#2a2618;  --tit-partial-fg:#e8cf82;  --tit-partial-line:#5c5228;
+    --tit-toast-bg:#1f3326;    --tit-toast-fg:#bde8c6;    --tit-toast-line:#395c43;
+    --tit-star:#e8b93d;        --tit-star-bg:rgba(232,185,61,.16);
+    --tit-solid-hover:#ffffff;
+
+    /* The theme control's own colours. The general surface and border
+       tokens measure 1.19:1 and 1.56:1 against this ground, which is how
+       the control that changes the theme became the hardest thing on the
+       page to find once the page went dark. Here the well is darker than
+       the chips and both edges are a light grey, so the boundary survives
+       without a hairline having to carry it alone. */
+    --tit-theme-bg:#1b1f26;
+    --tit-theme-line:#98a1b0;
+    --tit-theme-b-bg:#2f3540;
+    --tit-theme-b-line:#98a1b0;
+    --tit-theme-b-fg:#e8eaee;
+    --tit-theme-on-bg:#6cb6ff;
+    --tit-theme-on-fg:#0b1016;
+    --tit-theme-focus:#9cccff;
+
+    --roo-deep:#7fb8f5; --roo-accent:#ff9d52; --roo-surface:#1b1e25;
+    --roo-soft:#2a3d55; --roo-tint:#1c2531; --roo-zzz:#8b929d;
+
+    --tit-shadow:0 1px 2px rgba(0,0,0,.34), 0 4px 14px rgba(0,0,0,.42);
+    --tit-shadow-bar:0 2px 10px rgba(0,0,0,.42);
+    --tit-shadow-pop:0 6px 24px rgba(0,0,0,.55);
+    --tit-shadow-float:0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.5);
+    --tit-mask-ink:#000000;
+  }
+}
+
+/* The reader asked for dark, whatever the OS says. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --tit-fg:#e8eaee;
+  --tit-ink:#e8eaee;
+  --tit-mut:#b0b6c0;
+  --tit-faint:#8b929d;
+  --tit-ink-invert:#0b1016;
+
+  --tit-surface-1:#1b1e25;
+  --tit-surface:#22262e;
+  --tit-ground:#14161b;
+  --tit-quiet:#20242b;
+  --tit-hover:#242932;
+  --tit-line:#333944;
+  --tit-grid:#2c313a;
+  --tit-track:#2f353f;
+  --tit-track-2:#2a2f38;
+
+  --tit-blue:#6cb6ff; --tit-blue-strong:#9cccff;
+  --tit-blue-tint:#16273a; --tit-blue-ring:#2f5a85; --tit-blue-edge:#2a4c70;
+  --tit-accent-ink:#7fb8f5;
+  --tit-link:#7fb8f5; --tit-link-hover:#a9d1ff;
+  --tit-on-accent:rgba(11,16,22,.22);
+
+  --tit-hiring:#4fc99a;
+  --tit-cutting:#ff8f7a;
+  --tit-warn:#e0b64f;
+  --tit-pay:#b9a3ff;
+  --tit-neutral:#a3adbd;
+  --tit-neutral-bar:#8791a1; --tit-neutral-fg:#c3cbd8; --tit-neutral-ring:#3b414c;
+  --tit-green-tint:#16281f; --tit-green-ring:#2f5a45;
+  --tit-red-tint:#2e1c19;   --tit-red-ring:#6b3a30;
+  --tit-violet-tint:#221d33; --tit-violet-ring:#4a3f70;
+  --tit-verified-line:#3b414c;
+
+  --tit-orange:#ff9d52; --tit-violet:#b9a3ff; --tit-teal:#4ecfa5;
+  --tit-ink-blue:#7fb8f5; --tit-ink-orange:#f0a35c;
+  --tit-ink-violet:#c19bef; --tit-ink-teal:#4ecfa5;
+  --tit-teal-tint:#132a23; --tit-teal-ring:#2c5b4a;
+  --tit-teal-glow:rgba(78,207,165,.22);
+  --tit-trust-k:#4fc99a; --tit-stat-5:#8791a1;
+
+  --tit-ochre:#e3b341; --tit-ink-ochre:#e8c368; --tit-ochre-line:#6b5623;
+
+  --tit-tc-hiring:#4fc99a; --tit-tc-funded:#f0a35c;
+  --tit-mk-g:#4fc99a; --tit-mk-s:#ff8f7a; --tit-mk-u:#8791a1;
+  --tit-tc-leadership:#c19bef; --tit-tc-pay:#f582b4; --tit-tc-total:#7fb8f5;
+  --tit-rc-held:#7fb8f5; --tit-rc-clean:#4fc99a;
+
+  --tit-heat-rgb:124,178,255;
+  --tit-heat-money-rgb:227,179,65;
+  --tit-tick-default-rgb:163,173,189;
+  --tit-tick-hiring-rgb:108,182,255;
+  --tit-tick-funded-rgb:185,163,255;
+  --tit-tick-leadership-rgb:78,207,165;
+  --tit-tick-pay-rgb:255,157,82;
+  --tit-tick-total-rgb:232,234,238;
+
+  --tit-hero-1:#161d28; --tit-hero-2:#221c18; --tit-hero-3:#1d1930;
+  --tit-zone-bg:#181d26; --tit-zone-line:#2c3542;
+  --tit-region-n-bg:#262b34;
+  --tit-sticky-bg:rgba(22,29,40,.94);
+  --tit-header-bg:#14161b; --tit-header-line:rgba(232,234,238,.14);
+
+  --tit-degraded-bg:#2a2118; --tit-degraded-fg:#f0b47a; --tit-degraded-line:#5c452a;
+  --tit-partial-bg:#2a2618;  --tit-partial-fg:#e8cf82;  --tit-partial-line:#5c5228;
+  --tit-toast-bg:#1f3326;    --tit-toast-fg:#bde8c6;    --tit-toast-line:#395c43;
+  --tit-star:#e8b93d;        --tit-star-bg:rgba(232,185,61,.16);
+  --tit-solid-hover:#ffffff;
+
+  /* The theme control's own colours. The general surface and border
+     tokens measure 1.19:1 and 1.56:1 against this ground, which is how
+     the control that changes the theme became the hardest thing on the
+     page to find once the page went dark. Here the well is darker than
+     the chips and both edges are a light grey, so the boundary survives
+     without a hairline having to carry it alone. */
+  --tit-theme-bg:#1b1f26;
+  --tit-theme-line:#98a1b0;
+  --tit-theme-b-bg:#2f3540;
+  --tit-theme-b-line:#98a1b0;
+  --tit-theme-b-fg:#e8eaee;
+  --tit-theme-on-bg:#6cb6ff;
+  --tit-theme-on-fg:#0b1016;
+  --tit-theme-focus:#9cccff;
+
+  --roo-deep:#7fb8f5; --roo-accent:#ff9d52; --roo-surface:#1b1e25;
+  --roo-soft:#2a3d55; --roo-tint:#1c2531; --roo-zzz:#8b929d;
+
+  --tit-shadow:0 1px 2px rgba(0,0,0,.34), 0 4px 14px rgba(0,0,0,.42);
+  --tit-shadow-bar:0 2px 10px rgba(0,0,0,.42);
+  --tit-shadow-pop:0 6px 24px rgba(0,0,0,.55);
+  --tit-shadow-float:0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.5);
+  --tit-mask-ink:#000000;
+}
+
+/* The wrapper keeps its NON-colour declarations: the type stack, the reading
+   measure, the smoothing. Every colour it used to declare is a token above. */
+.tit-wrap {
+  /* =======================================================================
+     THE FONT DECISION, SETTLED, WITH THE MEASUREMENT THAT SETTLED IT.
+
+     The Claude Design mock's character rests on three Google webfonts:
+     Source Serif 4 for display, Public Sans for body, IBM Plex Mono for
+     labels and figures. The first design pass held the whole re-skin on
+     this question and substituted nothing rather than guess. Measured
+     2026-07-30, rather than argued:
+
+       stylesheet from fonts.googleapis.com          17,959 bytes
+       latin woff2 from fonts.gstatic.com           179,036 bytes
+         Source Serif 4  122,168   (68% of it, headings only)
+         Public Sans      26,636
+         IBM Plex Mono    30,232   (three static faces, 400/500/600)
+       ----------------------------------------------------------
+       total added to first paint                  ~196,995 bytes
+
+     Against: a live origin TTFB of 2.72s measured on the deployed page the
+     same day, and a whole-markup budget of 156KB. The fonts would weigh
+     more than the page they set.
+
+     They also arrive on a SERIALISED two-origin path. The gstatic requests
+     cannot begin until the googleapis stylesheet has been fetched and
+     parsed, so it is DNS + TCP + TLS to one new host, then DNS + TCP + TLS
+     to a second, before the first glyph is asked for. That is the shape
+     that hurts on a phone, and it is not visible in a byte count.
+
+     And the site runs Complianz (`cmplz-manage-consent` is in the live
+     markup). Google Fonts is one of the third-party services a consent
+     layer blocks before consent, so the design's character would be
+     delivered to some readers and not others, decided by a cookie banner.
+     Turning that block off is the owner's privacy call, not a design one.
+
+     SELF-HOSTING FROM THE PLUGIN IS THE RIGHT LONG-TERM ANSWER and is NOT
+     done here. It removes the CDN objection, both extra origins and the
+     consent problem outright, and this plugin's assets are already excluded
+     from Autoptimize's CSS aggregation, so relative url() paths in an
+     @font-face would resolve rather than break — the one thing that would
+     have made it unsafe is already handled. What it needs is 179KB of
+     third-party font binaries plus their OFL licence downloaded and
+     committed into a public repository that deploys to the owner's
+     production site. That is the owner's decision to make, and it is a
+     one-line yes: the five latin woff2 files are named in the tech log.
+
+     WHAT SHIPS INSTEAD is the mock's typographic STRUCTURE at zero bytes
+     and zero requests: a serif for display against a grotesque for body
+     against a mono for labels and figures. That contrast is what carries
+     the character; the specific cut of the serif is what it does not get,
+     and Source Serif's personality at 54px is a real loss honestly stated
+     rather than a substitution pretended to be equivalent.
+
+     The body face needed no change at all, which is worth writing down: the
+     stack below was already here, and Public Sans is a neo-grotesque close
+     enough to system-ui on both platforms that the mock's body text and
+     this page's are hard to tell apart.
+     ======================================================================= */
+  --tit-serif:ui-serif,"New York",Georgia,"Iowan Old Style","Times New Roman",serif;
+  --tit-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Cascadia Mono",
+             "Segoe UI Mono","Roboto Mono","Liberation Mono",monospace;
+
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;
   color:var(--tit-fg); font-size:16px; line-height:1.6; max-width:100%;
@@ -75,8 +486,8 @@
   font-size:15px; margin-bottom:6px; color:var(--tit-fg); }
 .tit-pillar-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 .tit-pillar-n { font-variant-numeric:tabular-nums; color:var(--tit-mut); flex:none; font-weight:600; }
-.tit-bar { background:#e6eaef; border-radius:99px; height:9px; overflow:hidden; }
-.tit-bar span { display:block; height:100%; background:var(--tit-hiring); border-radius:99px; }
+.tit-bar { background:var(--tit-track); border-radius:99px; height:9px; overflow:hidden; }
+.tit-bar span { display:block; height:100%; background:var(--tit-blue); border-radius:99px; }
 
 /* --- Filters ---------------------------------------------------------- */
 /* `align-items:start` so a SHORT control is not stretched to the height of the
@@ -91,9 +502,9 @@
 .tit-filters select, .tit-filters input {
   width:100%; min-width:0; padding:11px 12px; font-size:15px;
   border:1px solid var(--tit-line); border-radius:9px;
-  background:#fff; color:var(--tit-fg); appearance:auto; }
+  background:var(--tit-surface-1); color:var(--tit-fg); appearance:auto; }
 .tit-filters select:focus-visible, .tit-filters input:focus-visible {
-  outline:2px solid var(--tit-hiring); outline-offset:1px; }
+  outline:2px solid var(--tit-blue); outline-offset:1px; }
 
 .tit-note { font-size:14px; color:var(--tit-mut); margin:0 0 16px; max-width:70ch; }
 
@@ -113,31 +524,118 @@
 .tit-wrap .tit-rt { display:block; margin-top:5px; font-size:14px; color:var(--tit-mut);
   border-left:3px solid var(--tit-line); padding-left:9px; }
 
+/* ---------------------------------------------------------------------------
+   THE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.
+
+   This is the same card the sibling AI Layoff Tracker renders, and the contract
+   file is byte-identical in both repos. The two products show the same kind of
+   fact and had drifted into two designs; this is the one design.
+
+   The results used to be a seven-column table that turned into cards below
+   860px through a stack of @media rules. Two descriptions of one layout is two
+   things to keep in agreement, and they did not stay in agreement. It is one
+   card at every width now. The .tit-table rules above stay because the sources,
+   recall and trend pages still use them.
+
+   Each card is a two-part shape: a left RAIL saying who and where, and a BODY
+   saying what happened, on what evidence, and where that evidence lives. On a
+   phone the rail stacks above the body and nothing else changes, because the
+   reading order was already the order a reader needs. Nothing here sets a
+   min-width, so there is nothing to side-scroll and nothing to clip.
+   --------------------------------------------------------------------------- */
+.tit-cards { list-style:none; margin:0; padding:0; }
+
+.tit-card { display:grid; grid-template-columns:1fr; gap:4px 20px;
+  border:1px solid var(--tit-line); border-radius:12px; background:var(--tit-surface-1);
+  box-shadow:var(--tit-shadow); padding:14px 16px; margin:0 0 10px; }
+/* The rail becomes a fixed column so every employer name starts at the same x
+   and the eye can run straight down them, which is the one thing the table
+   genuinely did well. */
+@media (min-width:700px){ .tit-card { grid-template-columns:190px minmax(0,1fr); } }
+.tit-card:hover { background:var(--tit-hover); }
+
+/* --- The rail: who, and where ------------------------------------------- */
+.tit-card-rail { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.tit-wrap .tit-card-employer { font-family:var(--tit-serif); font-size:17px;
+  font-weight:600; line-height:1.25; color:var(--tit-fg); overflow-wrap:anywhere; }
+.tit-wrap .tit-card-employer a { color:inherit; text-decoration:none; border-bottom:0; }
+.tit-wrap .tit-card-employer a:hover { text-decoration:underline; }
+.tit-card-industry { font-size:12px; font-weight:600; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--tit-faint); }
+.tit-card-where { font-size:13px; line-height:1.35; color:var(--tit-mut); }
+/* A record we could not place, or could not date. Said out loud rather than
+   left blank, and never guessed. */
+.tit-card-nowhere { color:var(--tit-faint); font-style:italic; }
+
+/* --- The body: what happened, on what evidence -------------------------- */
+.tit-card-body { min-width:0; }
+.tit-card-badges { display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+  margin:0 0 7px; }
+/* The amount is the number a reader scans for, and the one thing a table did
+   better than a card. It gets the weight a headline figure deserves without
+   becoming the headline. */
+.tit-card-amt { font-size:15px; font-weight:700; letter-spacing:-.01em;
+  color:var(--tit-fg); font-variant-numeric:tabular-nums;
+  background:var(--tit-surface); border:1px solid var(--tit-grid);
+  border-radius:7px; padding:2px 9px; white-space:nowrap; }
+/* Real text, not a CSS ::after: a bare "$12M" tells a screen reader nothing
+   about what was raised, and generated content is not a dependable substitute
+   for saying so. */
+.tit-card-amt-unit { font-size:12px; font-weight:600; color:var(--tit-mut);
+  letter-spacing:0; }
+
+.tit-wrap .tit-card-h { display:block; font-size:16px; font-weight:600;
+  line-height:1.35; color:var(--tit-fg); overflow-wrap:anywhere; }
+/* Our plain-English read of the record, visually separated from the sourced
+   fact above it so the two are never mistaken for each other. */
+.tit-wrap .tit-card-rt { display:block; margin:6px 0 0; font-size:13.5px;
+  line-height:1.5; color:var(--tit-mut); border-left:3px solid var(--tit-line);
+  padding-left:10px; }
+
+/* --- The footer: when, and the receipts --------------------------------- */
+/* Short self-describing values sharing one wrapping row, separated by spacing
+   and not by punctuation: a middot rendered as each item's ::before lands at
+   the START of a wrapped line, where it reads as a bullet that lost its text. */
+.tit-card-foot { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;
+  margin:9px 0 0; font-size:12.5px; line-height:1.35; color:var(--tit-mut); }
+.tit-card-when { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tit-card-src { min-width:0; overflow-wrap:anywhere; }
+.tit-wrap .tit-card-src a { color:var(--tit-blue); font-weight:600; }
+
+/* --- The empty state ---------------------------------------------------- */
+.tit-cards-empty { border:1px solid var(--tit-line); border-radius:12px;
+  background:var(--tit-surface-1); box-shadow:var(--tit-shadow); }
+
 /* Colour never carries meaning alone: each tag also carries its words. */
 .tit-tag, .tit-conf { display:inline-block; padding:3px 9px; border-radius:99px;
   font-size:13px; white-space:nowrap; font-weight:500; }
-.tit-tag { background:#eef1f5; color:var(--tit-fg); }
-.tit-hiring     { background:var(--tit-blue-tint); color:#1c5cab; box-shadow:inset 0 0 0 1px #b9d3f2; }
-.tit-displacement { background:var(--tit-red-tint); color:#8c3d00; box-shadow:inset 0 0 0 1px #f3c6ab; }
-.tit-comp_shift { background:#eae7f7; color:#332874; box-shadow:inset 0 0 0 1px #cbc4ec; }
+.tit-tag { background:var(--tit-track-2); color:var(--tit-fg); }
+/* Direction wears the semantic pair and NOTHING ELSE does: green means the
+   source said roles are being added, red that they are being cut. The words
+   are still on every badge, so a reader who cannot see the hue loses nothing. */
+.tit-hiring     { background:var(--tit-green-tint); color:var(--tit-hiring); box-shadow:inset 0 0 0 1px var(--tit-green-ring); }
+.tit-displacement { background:var(--tit-red-tint); color:var(--tit-cutting); box-shadow:inset 0 0 0 1px var(--tit-red-ring); }
+.tit-comp_shift { background:var(--tit-violet-tint); color:var(--tit-ink-violet); box-shadow:inset 0 0 0 1px var(--tit-violet-ring); }
 /* "Other change" really is neutral, but it should say so on purpose rather
    than by falling through to the base tag with no rule of its own. */
-.tit-neutral    { background:#eef1f5; color:#41485a; box-shadow:inset 0 0 0 1px #d8dde5; }
+.tit-neutral    { background:var(--tit-track-2); color:var(--tit-neutral-fg); box-shadow:inset 0 0 0 1px var(--tit-neutral-ring); }
 
 /* No text-transform. These carry real labels now ("Official filing", "News
    report"), and capitalize would title-case them into a third style the page
    uses nowhere else. */
 .tit-conf { border:1px solid var(--tit-line); color:var(--tit-fg); }
-.tit-c-verified { background:var(--tit-blue-tint); color:#1c5cab; border-color:#b9d3f2; }
+/* Verified stands out by WEIGHT, not by wearing the interactive accent: a
+   blue badge beside blue buttons read as something to press. */
+.tit-c-verified { background:var(--tit-track-2); color:var(--tit-fg); border-color:var(--tit-verified-line); font-weight:600; }
 /* `reported` had no rule at all, so it fell through to the bare .tit-conf and
    sat unstyled next to a coloured `verified`. It is also the commonest value we
    hold by a distance, which made the default the thing most rows wore. Muted on
    purpose: reported is the floor, not a distinction worth colouring. */
-.tit-c-reported { background:#f4f6f8; color:var(--tit-mut); border-color:var(--tit-line); }
-.tit-c-rumored  { background:#f4f6f8; color:var(--tit-mut); font-style:italic; }
+.tit-c-reported { background:var(--tit-quiet); color:var(--tit-mut); border-color:var(--tit-line); }
+.tit-c-rumored  { background:var(--tit-quiet); color:var(--tit-mut); font-style:italic; }
 
 .tit-hq { font-size:12px; padding:2px 6px; border-radius:5px;
-  background:#eef1f5; color:var(--tit-fg); }
+  background:var(--tit-track-2); color:var(--tit-fg); }
 .tit-when { font-size:12.5px; color:var(--tit-mut); }
 .tit-cite { margin:16px 0 0; font-size:13.5px; color:var(--tit-mut); }
 
@@ -154,23 +652,31 @@
   stroke:currentColor; stroke-width:1.9; stroke-linecap:round;
   stroke-linejoin:round; flex:none; }
 .tit-wrap a.tit-export-link:hover { border-color:var(--tit-blue);
-  color:var(--tit-blue); background:#fff; }
+  color:var(--tit-blue); background:var(--tit-surface-1); }
 .tit-wrap a.tit-export-link:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
 .tit-export-scope { font-weight:500; color:var(--tit-mut); }
 .tit-wrap a.tit-export-link:hover .tit-export-scope { color:var(--tit-blue); }
 .tit-export-note { font-size:12.5px; color:var(--tit-mut); }
 
-.tit-wrap a { color:#1a5fb4; text-decoration:underline; }
-.tit-wrap a:hover { color:#12447f; }
+.tit-wrap a { color:var(--tit-link); text-decoration:underline; }
+.tit-wrap a:hover { color:var(--tit-link-hover); }
 
-/* NO prefers-color-scheme block, deliberately.
+/* THERE IS A prefers-color-scheme BLOCK NOW, AND WHY IT IS SAFE THIS TIME.
 
-   The parent WordPress theme paints a white page background regardless of the
-   OS setting. Honouring prefers-color-scheme here produced light text on that
-   white background — the exact unreadability this rewrite set out to fix.
-   Our surface is not ours to control, so we style for the surface we are
-   actually given. Revisit only if the theme gains a real dark mode. */
+   The first attempt at this failed and the failure is worth keeping written
+   down: the parent WordPress theme paints a white page background regardless
+   of the OS setting, so honouring the preference by re-inking TEXT alone put
+   light text on a white page. That was read as "we cannot do dark mode here".
+   It was really "we cannot re-ink text without also owning the surface under
+   it".
+
+   So this version owns the surface. Every container in this stylesheet that
+   holds text states its own background from a token, the wrapper paints the
+   ground it sits on, and the sticky site header is repainted too, so nothing
+   we ink is ever sitting on a colour the theme chose. The tokens at the top of
+   the file are the only place a value changes; nothing below this line knows
+   which scheme is in force. */
 
 /* --- Company profile pages -------------------------------------------- */
 .tit-company h1 { font-size:32px; margin:6px 0 8px; color:var(--tit-fg); }
@@ -201,8 +707,7 @@
 
 /* --- Sources page ------------------------------------------------------ */
 .tit-sources h1 { font-size:32px; margin:6px 0 10px; color:var(--tit-fg); }
-.tit-src-cat { font-size:19px; margin:28px 0 10px; color:var(--tit-fg); }
-.tit-callout { border:1px solid var(--tit-line); border-left:4px solid var(--tit-hiring);
+.tit-callout { border:1px solid var(--tit-line); border-left:4px solid var(--tit-blue);
   background:var(--tit-surface); border-radius:10px; padding:14px 16px;
   margin:6px 0 22px; font-size:14.5px; color:var(--tit-mut); max-width:78ch; }
 .tit-callout strong { color:var(--tit-fg); }
@@ -226,7 +731,9 @@
 /* An outstanding defect is not a neutral note, so it does not get the neutral
    left border. The colour is always paired with the words "not yet applied"
    and with the heading, so it never carries the meaning on its own. */
-.tit-callout.tit-pending { border-left-color:var(--tit-cutting); }
+/* A pending state is a caveat, not a cut: amber, so the direction red keeps
+   meaning direction and nothing else. */
+.tit-callout.tit-pending { border-left-color:var(--tit-warn); }
 /* The before/after table. Styled standalone rather than reusing .tit-table:
    below 860px that class turns rows into cards and visually hides thead, and
    these cells are numbers whose whole meaning is which column they are in.
@@ -262,29 +769,24 @@
    always paired with a word or an icon so it never carries meaning alone.
    ====================================================================== */
 
-.tit-wrap {
-  --tit-blue:#2a78d6; --tit-orange:#D55E00; --tit-violet:#4a3aa7;
-  --tit-teal:#1baf7a; --tit-ink-blue:#1c5cab; --tit-ink-orange:#8c3d00;
-  --tit-ink-violet:#332874; --tit-ink-teal:#0c6349;
-  --tit-blue-tint:#eef4fc; --tit-red-tint:#fdeeee;
-}
+/* --tit-blue IS the single interactive accent (spec value #0072B2,
+   hover/active #084BB5). Everything that acts -- links, chips, active filters,
+   focus rings, primary bars -- reads that one token. It used to be declared in
+   a SECOND `.tit-wrap` block here, which meant the palette had two homes and a
+   dark value would have had to be written twice. Every one of those tokens is
+   in the :root block at the top of the file now, with the rest of them. */
 
 /* --- Hero -------------------------------------------------------------- */
 .tit-hero { border:1px solid var(--tit-line); border-radius:16px;
   padding:22px 22px 20px; margin:0 0 22px;
-  background:linear-gradient(140deg,#f4f8fe 0%,#fdf6f2 55%,#f7f4fd 100%); }
+  background:linear-gradient(140deg,var(--tit-hero-1) 0%,var(--tit-hero-2) 55%,var(--tit-hero-3) 100%); }
 .tit-hero h2 { margin:0 0 6px; font-size:23px; color:var(--tit-fg); font-weight:650; }
 .tit-hero p { margin:0; color:var(--tit-mut); font-size:15px; max-width:62ch; }
 .tit-live { display:inline-flex; align-items:center; gap:7px; font-size:13px;
-  font-weight:600; color:var(--tit-ink-teal); background:#e4f6ee;
-  border:1px solid #b9e6d3; border-radius:99px; padding:4px 11px; margin:0 0 12px; }
+  font-weight:600; color:var(--tit-ink-teal); background:var(--tit-teal-tint);
+  border:1px solid var(--tit-teal-ring); border-radius:99px; padding:4px 11px; margin:0 0 12px; }
 .tit-live-dot { width:8px; height:8px; border-radius:50%; background:var(--tit-teal);
-  box-shadow:0 0 0 3px rgba(27,175,122,.22); }
-.tit-hero-figs { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
-.tit-hero-fig { background:#fff; border:1px solid var(--tit-line); border-radius:10px;
-  padding:9px 13px; font-size:14px; color:var(--tit-mut); }
-.tit-hero-fig strong { color:var(--tit-fg); font-size:17px; margin-right:5px;
-  font-variant-numeric:tabular-nums; }
+  box-shadow:0 0 0 3px var(--tit-teal-glow); }
 
 /* --- Stat tiles get their own accent ---------------------------------- */
 /* An absolutely positioned bar cannot follow a rounded corner: clipping it with
@@ -295,7 +797,7 @@
 .tit-stat:nth-child(2) { box-shadow:inset 4px 0 0 var(--tit-orange); }
 .tit-stat:nth-child(3) { box-shadow:inset 4px 0 0 var(--tit-violet); }
 .tit-stat:nth-child(4) { box-shadow:inset 4px 0 0 var(--tit-teal); }
-.tit-stat:nth-child(5) { box-shadow:inset 4px 0 0 #5b6570; }
+.tit-stat:nth-child(5) { box-shadow:inset 4px 0 0 var(--tit-stat-5); }
 
 /* --- Pillar bars, one hue each, with a label chip ---------------------- */
 .tit-pillar-name::before { content:""; display:inline-block; width:9px; height:9px;
@@ -311,15 +813,47 @@
 .tit-charts { display:grid; grid-template-columns:1fr; gap:16px; margin:0 0 24px; }
 @media (min-width:820px){ .tit-charts { grid-template-columns:1fr 1fr; } }
 .tit-chart { border:1px solid var(--tit-line); border-radius:12px; padding:16px 18px;
-  background:#fff; }
+  background:var(--tit-surface-1); }
 .tit-chart h3 { margin:0 0 3px; font-size:15px; color:var(--tit-fg); font-weight:650; }
-.tit-chart .tit-sub { margin:0 0 14px; font-size:13px; color:var(--tit-mut); }
+.tit-chart .tit-sub { margin:0; font-size:13px; color:var(--tit-mut); }
+
+/* --- What the (i) opens -------------------------------------------------
+   Every explanatory line a card carries lives in here: what it counts, what it
+   cannot say, and which figure is based on how much. It is not decoration and
+   it is not a tooltip.
+
+   IT SHIPS OPEN. dashboard.js closes it and reveals the button, in that order,
+   so a reader whose script never ran gets the caveats as plain prose rather
+   than an (i) that opens nothing. Set apart from the chart it describes, so
+   nobody reads the caveat as one of the bars. */
+.tit-chart-note { margin:6px 0 12px; padding:8px 10px; border-radius:8px;
+  background:var(--tit-surface); border-left:3px solid var(--tit-line); }
+.tit-chart-note[hidden] { display:none; }
+.tit-chart-note > :first-child { margin-top:0; }
+.tit-chart-note > :last-child { margin-bottom:0; }
+/* Inside the panel these two are already set apart from the chart by the panel
+   itself, so they drop the rule and the tinted box they used to need out in
+   the open. A box inside a box reads as two levels of caveat. */
+.tit-chart-note .tit-money-note { margin:6px 0 0; padding-top:0; border-top:0; }
+.tit-chart-note .tit-chart-caveat { margin:6px 0 0; padding:0; background:none;
+  border-left:0; border-radius:0; color:var(--tit-ink-orange); }
+.tit-chart-note .tit-trend-refused { background:none; border-left:0; padding:0;
+  margin:6px 0 0; }
+/* Open, the (i) is lit the way the expand control is: two toggles on one head
+   that behaved differently would read as two different kinds of control. */
+.tit-wrap .tit-chart-info[aria-expanded="true"] { background:var(--tit-blue);
+  border-color:var(--tit-blue); color:var(--tit-ink-invert); opacity:1; }
 
 /* Head row: titles on the left, the expand control on the right. */
 .tit-chart-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .tit-chart-titles { min-width:0; }
-/* Each card carries its own controls and each one acts on that card alone. */
-.tit-chart-tools { flex:none; display:flex; align-items:center; gap:6px; }
+/* Each card carries its own controls and each one acts on that card alone.
+   Four of them now, and the cards are a third of the page wide, so they are
+   smaller here than the page's default control: at 32px with 6px gaps the row
+   took 146px of a 350px card and pushed every heading onto two lines. */
+.tit-chart-tools { flex:none; display:flex; align-items:center; gap:4px; }
+.tit-wrap .tit-chart-tools .tit-ctl { width:28px; height:28px; border-radius:8px; }
+.tit-wrap .tit-chart-tools .tit-ctl svg { width:15px; height:15px; }
 .tit-wrap .tit-ctl { flex:none; display:inline-flex; align-items:center;
   justify-content:center; width:32px; height:32px; padding:0;
   border:1px solid var(--tit-line); border-radius:9px; background:var(--tit-surface);
@@ -327,13 +861,13 @@
 .tit-wrap .tit-ctl svg { width:16px; height:16px; fill:none; stroke:currentColor;
   stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
 .tit-wrap .tit-ctl:hover { border-color:var(--tit-blue); color:var(--tit-blue);
-  background:#fff; }
+  background:var(--tit-surface-1); }
 .tit-wrap .tit-ctl:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 .tit-wrap .tit-chart.is-expanded .tit-expand { background:var(--tit-blue);
-  border-color:var(--tit-blue); color:#fff; }
+  border-color:var(--tit-blue); color:var(--tit-ink-invert); }
 /* Copy and download give no visible result of their own, so the button says so. */
 .tit-wrap .tit-ctl.is-done { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; }
+  color:var(--tit-ink-invert); }
 
 /* ---------------------------------------------------------------------------
    Scroll in place, never truncate.
@@ -356,7 +890,7 @@
   align-items:center; font-size:14px; }
 .tit-rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:var(--tit-fg); }
-.tit-rank-track { background:#eef1f5; border-radius:99px; height:10px; overflow:hidden; }
+.tit-rank-track { background:var(--tit-track-2); border-radius:99px; height:10px; overflow:hidden; }
 .tit-rank-fill { display:block; height:100%; border-radius:99px; background:var(--tit-blue); }
 .tit-rank-n { font-variant-numeric:tabular-nums; color:var(--tit-mut);
   font-weight:600; min-width:22px; text-align:right; }
@@ -369,13 +903,13 @@
    different colour depending on where you read it. Blue for growth and orange
    for contraction is also the Okabe-Ito pair, so the two series stay
    distinguishable without relying on hue alone. */
-.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-blue); }
-.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-orange); }
+.tit-rank-row[data-dir="hiring"]       .tit-rank-fill { background:var(--tit-hiring); }
+.tit-rank-row[data-dir="displacement"] .tit-rank-fill { background:var(--tit-cutting); }
 .tit-rank-row[data-dir="comp_shift"]   .tit-rank-fill { background:var(--tit-violet); }
-.tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:#6b7684; }
+.tit-rank-row[data-dir="neutral"]      .tit-rank-fill { background:var(--tit-neutral-bar); }
 
 /* --- Table: colour the direction column, keep the words ---------------- */
-.tit-table tbody tr:hover { background:#f9fbfd; }
+.tit-table tbody tr:hover { background:var(--tit-hover); }
 .tit-h a { text-decoration:none; }
 .tit-h a:hover { text-decoration:underline; }
 
@@ -390,39 +924,29 @@
 .tit-wrap .ez-toc-title-container,
 #tit-dashboard #ez-toc-container { display:none !important; }
 
-/* The honest footnote to the glance tiles: how much history is behind them. */
-.tit-wrap .tit-span { margin:9px 0 0; font-size:12.5px; color:var(--tit-faint); }
-.tit-hero-fine { margin:14px 0 0 !important; font-size:13.5px; }
-/* The counts that lead the fine print, and the one part of it JavaScript
-   rewrites when a filter changes. They read as the summary, so they carry the
-   foreground colour while the sentence after them stays muted. */
-.tit-fine-figures { color:var(--tit-fg); font-weight:600; }
 
 /* Region strip ----------------------------------------------------------- */
 .tit-regions { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px; }
 .tit-wrap .tit-region { display:inline-flex; align-items:center; gap:8px;
   padding:8px 13px; border:1px solid var(--tit-line); border-radius:99px;
-  background:#fff; color:var(--tit-fg); font-size:14px; font-weight:550;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-size:14px; font-weight:550;
   cursor:pointer; line-height:1.2; font-family:inherit; }
 .tit-wrap .tit-region:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-region:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 /* Selection is a filled pill plus a weight change, never colour alone. */
 .tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; font-weight:700; }
+  color:var(--tit-ink-invert); font-weight:700; }
 .tit-region-flag { font-size:15px; }
 .tit-region-n { font-size:12.5px; font-variant-numeric:tabular-nums;
-  color:var(--tit-mut); background:#f1f4f8; border-radius:99px; padding:1px 7px; }
-.tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.24); color:#fff; }
+  color:var(--tit-mut); background:var(--tit-region-n-bg); border-radius:99px; padding:1px 7px; }
+.tit-wrap .tit-region.is-on .tit-region-n { background:var(--tit-on-accent); color:var(--tit-ink-invert); }
 
 /* The theme tracks its headings wide, which turns "11" into "1 1". Numerals in
    our own figures opt out. */
 .tit-wrap .tit-n, .tit-rank-n, .tit-region-n { letter-spacing:0; }
 
-.tit-chart-wide { grid-column:1 / -1; }
-.tit-chart-wide .tit-pillars { margin:0; }
 
 @media (min-width:560px){ .tit-rank-row { grid-template-columns:170px 1fr auto; } }
-.tit-wrap .tit-chart-wide { margin:0 0 16px; }
 
 /* ---------------------------------------------------------------------------
    Narrow screens: the table becomes cards.
@@ -442,7 +966,7 @@
   .tit-table tbody { display:block; }
   .tit-table tr { display:flex; flex-wrap:wrap; align-items:center; gap:9px 10px;
     border:1px solid var(--tit-line); border-radius:12px;
-    padding:13px 15px; margin:0 0 10px; background:#fff; }
+    padding:13px 15px; margin:0 0 10px; background:var(--tit-surface-1); }
 
   /* Full width is the DEFAULT, and that matters more than it looks.
      These rules used to name the dashboard's own columns
@@ -547,7 +1071,7 @@
 /* Filters read as one control panel rather than eight loose boxes. */
 .tit-filters { background:var(--tit-surface); border:1px solid var(--tit-line);
   border-radius:12px; padding:14px; }
-.tit-filters select, .tit-filters input { background:#fff; }
+.tit-filters select, .tit-filters input { background:var(--tit-surface-1); }
 
 /* ---------------------------------------------------------------------------
    Measure, on every route.
@@ -601,19 +1125,265 @@
 
 /* --- Hero: title and status on one line, four figures in a row ----------- */
 .tit-hero { padding:16px 18px 14px; margin:0 0 16px; border-radius:14px; }
-.tit-hero-top { display:flex; flex-wrap:wrap; align-items:baseline;
-  justify-content:space-between; gap:10px 18px; margin:0 0 14px; }
-.tit-wrap .tit-hero-top h2 { margin:0; font-size:20px; line-height:1.25; }
+.tit-hero-top { display:flex; flex-wrap:wrap; align-items:flex-start;
+  justify-content:space-between; gap:14px 22px; margin:0 0 10px; }
+.tit-hero-head { flex:1 1 380px; }
 .tit-live { margin:0; flex:none; }
 
 /* The at-a-glance strip is now the signal-by-period matrix; its styles live
    at the end of this file with the other interactive-filter styling. The
    container keeps the card treatment (border, radius, family shadow). */
 .tit-glance { display:block; margin:0; border:1px solid var(--tit-line);
-  border-radius:10px; background:#fff; overflow:hidden; }
+  border-radius:10px; background:var(--tit-surface-1); overflow:hidden; }
 
-.tit-wrap .tit-hero-fine { margin:12px 0 0 !important; font-size:13px;
-  max-width:none; line-height:1.5; }
+
+/* --- The trend, drawn inside a card one of nine -------------------------
+   It was a full-width panel with its own border, heading and box shadow. It is
+   a chart card now, so the card owns all three and this owns the plot alone.
+
+   THE TEXT IS NOT IN THE DRAWING. The axis values and the two dates are the
+   HTML either side of the SVG, so they are set in CSS pixels and stay the same
+   size in the small card, in the expanded card and at 375px. The plot is given
+   a height here and stretches to whatever width the card has, which is why the
+   lines carry vector-effect in the markup: a stretched box would otherwise
+   thin them horizontally and fatten them vertically. */
+.tit-trend-box { margin:0; }
+.tit-tc { display:grid; grid-template-columns:auto 1fr; gap:4px 7px; margin:2px 0 0; }
+/* Half a line of negative margin top and bottom is what centres the first and
+   last value on the grid lines they name: the column is then the plot plus one
+   line tall, and space-between puts five labels on five lines. Sized by its own
+   widest value, so it pins no width at any viewport. */
+.tit-tc-ys { grid-column:1; grid-row:1;
+  display:flex; flex-direction:column; justify-content:space-between;
+  margin:-9px 0; font-size:11px; line-height:18px; color:var(--tit-mut);
+  font-variant-numeric:tabular-nums; text-align:right; }
+.tit-tc-box { grid-column:2; grid-row:1; position:relative; height:118px; }
+.tit-trend-chart { display:block; width:100%; height:100%; }
+/* Over the plot, in the same box, sized in CSS pixels because it carries no
+   viewBox. The last point sits at 100%, so half the dot is outside. */
+.tit-tc-dots { position:absolute; inset:0; width:100%; height:100%;
+  overflow:visible; pointer-events:none; }
+.tit-tc-xs { grid-column:2; grid-row:2; display:flex; justify-content:space-between;
+  margin:0; font-size:11px; color:var(--tit-mut); font-variant-numeric:tabular-nums; }
+.tit-tc-grid { stroke:var(--tit-line); stroke-width:1; }
+.tit-tc-line { stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+/* Nothing to draw for this view. The reason is in the (i) beside the heading;
+   this is only the placeholder that keeps the card the shape of a card. */
+.tit-trend-none { margin:14px 0; font-size:13px; color:var(--tit-mut); }
+
+/* Expanded, the plot gets height as well as width. Capped, because a ninety
+   point series stretched across the whole page is a chart with more white in
+   it than line. */
+.tit-chart-trend.is-expanded .tit-tc { max-width:780px; }
+.tit-chart-trend.is-expanded .tit-tc-box { height:250px; }
+
+/* One line of the legend per signal, each wrapping as a unit: a swatch that
+   wraps away from the label it names is a legend that names nothing. */
+.tit-trend-legend { margin:8px 0 0; font-size:12.5px; line-height:1.6;
+  color:var(--tit-mut); display:flex; flex-wrap:wrap; gap:2px 14px; }
+
+/* The market trend: stacked weekly bars, drawn server-side. Green is adding
+   roles, the warm red is cutting, and not-stated is the quiet grey, because
+   most updates say nothing about headcount and the chart must read that way
+   at a glance. The SVG scrolls inside the shared scroll container on narrow
+   screens rather than shrinking its axis text below reading size. */
+.tit-market-chart { display:block; width:100%; min-width:520px; height:auto; }
+.tit-mk-grid { stroke:var(--tit-line); stroke-width:1; }
+.tit-mk-axis { font-size:11px; fill:var(--tit-mut); }
+rect.tit-mk-g, .tit-mk-swatch.tit-mk-g { fill:var(--tit-mk-g); background:var(--tit-mk-g); }
+rect.tit-mk-s, .tit-mk-swatch.tit-mk-s { fill:var(--tit-mk-s); background:var(--tit-mk-s); }
+rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:var(--tit-mk-u); background:var(--tit-mk-u); }
+.tit-market-legend { margin:8px 0 0; font-size:12.5px; line-height:1.6;
+  color:var(--tit-mut); display:flex; flex-wrap:wrap; gap:2px 14px; }
+.tit-mk-key { white-space:nowrap; }
+.tit-mk-swatch { display:inline-block; width:10px; height:10px; border-radius:2px;
+  margin-right:5px; vertical-align:baseline; }
+.tit-trend-key { display:inline-block; white-space:normal; }
+.tit-trend-swatch { display:inline-block; width:14px; height:3px; margin:0 6px 3px 0;
+  vertical-align:middle; border-radius:2px; }
+.tit-trend-legend b { color:var(--tit-fg); font-variant-numeric:tabular-nums; }
+
+/* The signals that could not honestly be drawn, and why. Set apart from the
+   legend, because it is the opposite claim: the legend says what a line means
+   and this says what the absence of one means. */
+.tit-trend-refused { margin:8px 0 0; padding:8px 10px; font-size:12.5px;
+  line-height:1.55; color:var(--tit-mut); background:var(--tit-surface);
+  border-left:3px solid var(--tit-line); border-radius:6px; }
+.tit-trend-nodraw { display:block; margin-top:3px; }
+
+/* What the line counts, which is updates WE HOLD. It is the sentence that stops
+   the chart being read as a claim about the market on its own, and it sits in
+   the (i) with the rest of this card's prose. */
+.tit-trend-basis, .tit-trend-then { margin:6px 0 0; font-size:12px;
+  line-height:1.55; color:var(--tit-mut); }
+
+/* --- The signal board ----------------------------------------------------
+   The owner's "colored narratives" (2026-08-02): one head (the date, the heat
+   legend, Copy as Post), the signal-by-period matrix, one footnote line. It
+   replaced the dated strip's four text sentences; nothing in it scrolls
+   sideways at 375px because the matrix stacks below 860px. */
+.tit-board { border:1px solid var(--tit-line); border-radius:10px; background:var(--tit-surface-1);
+  overflow:hidden; box-shadow:var(--tit-shadow); }
+.tit-board-head { display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px;
+  padding:10px 14px 9px; border-bottom:1px solid var(--tit-grid); }
+/* The display serif, which is where the mock's character actually lives. */
+.tit-wrap .tit-board-title { font-family:var(--tit-serif); font-size:16px;
+  font-weight:600; margin:0; color:var(--tit-fg); letter-spacing:-.2px;
+  flex:1 1 auto; }
+/* The heat scale, named in words with the swatches as decoration between. */
+.tit-board-legend { flex:none; display:inline-flex; align-items:center; gap:3px;
+  font-size:11px; color:var(--tit-mut); }
+.tit-lg { display:inline-block; width:12px; height:12px; border-radius:3px;
+  border:1px solid var(--tit-grid);
+  background:rgba(var(--tit-heat-rgb), calc(var(--i, 0) * .3)); }
+.tit-lg:first-of-type { margin-left:5px; }
+.tit-lg:last-of-type { margin-right:5px; }
+.tit-dg-copy { flex:none; font:inherit; font-size:12.5px; font-weight:600;
+  padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
+  background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }
+.tit-dg-copy:hover { background:var(--tit-blue-tint); border-color:var(--tit-blue-ring); }
+.tit-dg-copy:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
+/* Inside the board the matrix wrapper sheds its own card chrome: one card. */
+.tit-board .tit-glance { border:0; border-radius:0; box-shadow:none; }
+
+/* --- "Why you can trust this", with the FAQ as its second tab -----------
+   PROGRESSIVE ENHANCEMENT, AND IT IS THE LOAD-BEARING PART.
+
+   Both panels are in the initial HTML in full, and this file hides one of
+   them ONLY under `.is-tabbed`, which dashboard.js adds. So the default
+   state — no JavaScript, JavaScript not yet run, or Autoptimize having
+   swallowed the file, which has happened here before — is both panels
+   stacked with their own headings. Nothing an FAQ says is ever behind a
+   click for a crawler, which is the whole reason this is not a fetch.
+
+   The tab strip is hidden by the same rule in reverse: a row of buttons
+   that cannot switch anything is worse than no buttons, so it appears only
+   once the thing that makes it work has arrived. */
+.tit-trust { margin:24px 0 0; padding:18px; border:1px solid var(--tit-line);
+  border-radius:14px; background:var(--tit-ground);
+  display:grid; gap:18px; }
+@media (min-width:900px){
+  .tit-trust { grid-template-columns:minmax(240px,1fr) minmax(0,2fr); gap:28px; }
+}
+.tit-wrap .tit-trust h3 { font-family:var(--tit-serif); font-size:20px;
+  font-weight:600; margin:0 0 8px; letter-spacing:-.3px; color:var(--tit-fg); }
+.tit-wrap .tit-trust-lede p { margin:0 0 12px; font-size:14px;
+  color:var(--tit-mut); max-width:46ch; }
+.tit-trust-btns { display:flex; flex-wrap:wrap; gap:8px; margin:0 !important; }
+.tit-wrap .tit-btn { display:inline-block; font-size:13px; font-weight:600;
+  padding:9px 14px; border-radius:8px; border:1px solid var(--tit-line);
+  background:var(--tit-surface-1); color:var(--tit-fg); text-decoration:none; }
+.tit-wrap .tit-btn-solid { background:var(--tit-fg); border-color:var(--tit-fg); color:var(--tit-ink-invert); }
+.tit-wrap .tit-btn:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-btn-solid:hover { background:var(--tit-solid-hover); border-color:var(--tit-solid-hover); }
+.tit-wrap .tit-btn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+
+.tit-tabs { display:none; gap:4px; margin:0 0 14px;
+  border-bottom:1px solid var(--tit-line); }
+.tit-trust.is-tabbed .tit-tabs { display:flex; }
+.tit-wrap .tit-tab { font:inherit; font-size:13px; font-weight:600;
+  padding:8px 13px; border:0; background:none; color:var(--tit-mut);
+  cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+.tit-wrap .tit-tab[aria-selected="true"] { color:var(--tit-fg);
+  border-bottom-color:var(--tit-blue); }
+.tit-wrap .tit-tab:hover { color:var(--tit-fg); }
+/* Visible focus, and it must not be the selected-tab underline doing double
+   duty: a keyboard reader arrowing across tabs needs to see where they are
+   even when that tab is not the selected one. */
+.tit-wrap .tit-tab:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:-2px; border-radius:6px 6px 0 0; }
+
+.tit-tabpanel + .tit-tabpanel { margin-top:18px; }
+.tit-trust.is-tabbed .tit-tabpanel { margin-top:0; }
+.tit-trust.is-tabbed .tit-tabpanel[hidden] { display:none !important; }
+/* Once a tab labels the panel, the panel's own heading is a duplicate. It
+   stays in the markup because it is what labels the panel with no
+   JavaScript at all. */
+.tit-wrap .tit-tabpanel-h { font-size:15px; margin:0 0 10px; color:var(--tit-fg); }
+.tit-trust.is-tabbed .tit-tabpanel-h { position:absolute; width:1px; height:1px;
+  overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+.tit-wrap .tit-tabpanel:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:3px; border-radius:8px; }
+
+/* FOUR ITEMS, NEVER THREE-PLUS-ONE.
+   The mock puts them in `repeat(auto-fit, minmax(210px, 1fr))`, which at most
+   desktop widths resolves to three columns and strands the fourth alone on a
+   second row. Explicit counts instead: one column on a phone, two from 560px,
+   four from 1100px. There is no width at which one item sits by itself. */
+.tit-trust-items { list-style:none; margin:0; padding:0;
+  display:grid; grid-template-columns:1fr; gap:16px; }
+@media (min-width:560px){ .tit-trust-items { grid-template-columns:repeat(2,1fr); } }
+@media (min-width:1100px){ .tit-trust-items { grid-template-columns:repeat(4,1fr); } }
+.tit-trust-items li { min-width:0; }
+.tit-wrap .tit-trust-k { display:block; font-family:var(--tit-mono);
+  font-size:10.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--tit-trust-k); margin-bottom:6px; }
+.tit-wrap .tit-trust-t { display:block; font-size:13.5px; line-height:1.55;
+  color:var(--tit-mut); }
+
+/* --- The press page ------------------------------------------------------
+   Its own table class rather than .tit-table, and the reason is the same one
+   corrections.php gives for .tit-projection: below 860px .tit-table hides its
+   thead and relies on each cell carrying a data-label, so a six-column table
+   of numbers borrowed from it would render as a stack of unlabelled figures
+   on the one page whose entire job is to be quotable.
+
+   These cells DO carry data-labels, so the same stacking is safe here, and it
+   is used below 760px rather than a horizontal scroller: a container that
+   scrolls sideways beats the body scrolling and still hides half the columns
+   behind a gesture, which is the verdict the matrix already reached. */
+.tit-press-scroll { border:1px solid var(--tit-line); border-radius:12px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 18px; }
+.tit-press-table { width:100%; border-collapse:collapse; font-size:14.5px;
+  min-width:640px; }
+.tit-press-table th, .tit-press-table td { padding:11px 14px; text-align:left;
+  vertical-align:top; border-bottom:1px solid var(--tit-line); }
+.tit-wrap .tit-press-table thead th { font-size:12px; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--tit-mut); background:var(--tit-surface);
+  font-weight:600; white-space:nowrap; }
+.tit-press-table th[scope="row"] { font-weight:650; color:var(--tit-fg);
+  white-space:nowrap; }
+.tit-press-table td { font-variant-numeric:tabular-nums; }
+.tit-press-table tbody tr:last-child th,
+.tit-press-table tbody tr:last-child td { border-bottom:0; }
+
+@media (max-width:759px){
+  /* One card per row, every figure keeping its column name. Nothing is behind
+     a swipe and nothing is an unlabelled number. */
+  .tit-press-scroll { overflow-x:visible; border:0; border-radius:0; }
+  .tit-wrap .tit-press-table { min-width:0; display:block; }
+  .tit-press-table thead { position:absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+  .tit-press-table tbody, .tit-press-table tr { display:block; }
+  .tit-press-table tr { border:1px solid var(--tit-line); border-radius:10px;
+    padding:11px 13px; margin:0 0 9px; background:var(--tit-surface-1); }
+  .tit-wrap .tit-press-table th[scope="row"] { display:block; border:0; padding:0 0 6px;
+    font-size:15px; white-space:normal; }
+  .tit-wrap .tit-press-table td { display:flex; justify-content:space-between;
+    gap:12px; border:0; padding:3px 0; }
+  .tit-press-table td::before { content:attr(data-label); color:var(--tit-mut);
+    font-size:12.5px; }
+}
+
+.tit-press-facts { margin:0 0 18px; padding-left:20px; max-width:78ch; }
+.tit-press-facts li { margin:0 0 12px; font-size:14px; line-height:1.6;
+  color:var(--tit-mut); }
+.tit-wrap .tit-press-facts strong { color:var(--tit-fg); }
+/* `.tit-wrap.tit-press`, NOT `.tit-wrap .tit-press`. The press page's root
+   element carries BOTH classes, so the descendant form matches nothing and the
+   headings quietly kept the body stack. Caught by reading the computed
+   font-family in a browser rather than by reading the selector, which is the
+   only way this kind of miss is ever caught. */
+.tit-wrap.tit-press h2 { font-family:var(--tit-serif); font-size:20px;
+  font-weight:600; letter-spacing:-.3px; margin:26px 0 8px; color:var(--tit-fg); }
+.tit-wrap.tit-press h1 { font-family:var(--tit-serif); letter-spacing:-.6px; }
+
+.tit-faq { max-width:78ch; }
+.tit-wrap .tit-faq-q { font-size:14px; font-weight:650; margin:14px 0 4px;
+  color:var(--tit-fg); }
+.tit-wrap .tit-faq .tit-faq-q:first-child { margin-top:0; }
+.tit-wrap .tit-faq-a { font-size:13.5px; line-height:1.6; margin:0;
+  color:var(--tit-mut); }
 
 /* --- Section headers: one line, no rule, no dead space ------------------- */
 .tit-sec { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px;
@@ -634,7 +1404,7 @@
 @media (min-width:900px){ .tit-charts { grid-template-columns:repeat(3,1fr); } }
 .tit-chart { padding:13px 14px; }
 .tit-wrap .tit-chart h3 { font-size:14px; }
-.tit-chart .tit-sub { margin:0 0 10px; font-size:12.5px; }
+.tit-chart .tit-sub { margin:0; font-size:12.5px; }
 .tit-rank { gap:7px; }
 /* The label column, widened.
    It was 96px, then 110px, and the bar lists were rendering "Headcount n..."
@@ -688,9 +1458,9 @@
 .tit-board { margin:0 0 14px; padding:14px 16px; border:1px solid var(--tit-line);
   border-left:4px solid var(--tit-line); border-radius:12px;
   background:var(--tit-surface); max-width:78ch; }
-.tit-board-rising  { border-left-color:#1f7a4d; color:#1f7a4d; }
-.tit-board-falling { border-left-color:#a8560f; color:#a8560f; }
-.tit-board-flat    { border-left-color:#1c5cab; color:#1c5cab; }
+.tit-board-rising  { border-left-color:var(--tit-tc-hiring); color:var(--tit-tc-hiring); }
+.tit-board-falling { border-left-color:var(--tit-tc-funded); color:var(--tit-tc-funded); }
+.tit-board-flat    { border-left-color:var(--tit-tc-total); color:var(--tit-tc-total); }
 .tit-board-unknown { border-left-color:var(--tit-line); color:var(--tit-mut); }
 .tit-board-head { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
 .tit-board-head .tit-n { font-size:26px; font-weight:800;
@@ -708,25 +1478,20 @@
    Family styling, taken from the sibling tracker's live stylesheet.
    =========================================================================== */
 
-/* Its pill: white ground, a 2px border in the tab's own colour, 22px radius.
-   Each region carries a hue exactly as .alt-tab-usa / -europe / -asia do. */
+/* Its pill: white ground, a 2px border, 22px radius. The per-region rainbow
+   (a hue per tab, the sibling's .alt-tab-usa pattern) is gone on purpose: the
+   audience spec's colour rule is ONE interactive accent outside the charts,
+   and seven saturated hues on the first screenful were most of the noise.
+   Every pill is neutral; the active one wears the accent. The emoji flag each
+   pill already carries keeps them tellable at a glance. */
 .tit-wrap .tit-region {
-  --tabc:#52607a;
-  padding:7px 14px; border:2px solid var(--tabc); border-radius:22px;
-  background:#fff; color:var(--tabc); font-weight:700; font-size:13.5px;
+  --tabc:var(--tit-neutral);
+  padding:7px 14px; border:2px solid var(--tit-line); border-radius:22px;
+  background:var(--tit-surface-1); color:var(--tabc); font-weight:700; font-size:13.5px;
 }
-.tit-wrap .tit-region:nth-child(1) { --tabc:#52607a; }
-.tit-wrap .tit-region:nth-child(2) { --tabc:#2a78d6; }
-.tit-wrap .tit-region:nth-child(3) { --tabc:#c2417e; }
-.tit-wrap .tit-region:nth-child(4) { --tabc:#7a3fa8; }
-.tit-wrap .tit-region:nth-child(5) { --tabc:#6b4bd6; }
-.tit-wrap .tit-region:nth-child(6) { --tabc:#c62f2e; }
-.tit-wrap .tit-region:nth-child(7) { --tabc:#b8860b; }
-.tit-wrap .tit-region:nth-child(8) { --tabc:#2e8b57; }
-.tit-wrap .tit-region:nth-child(9) { --tabc:#d2691e; }
-.tit-wrap .tit-region:hover { background:var(--tit-surface); border-color:var(--tabc); }
-.tit-wrap .tit-region.is-on { background:var(--tabc); border-color:var(--tabc); color:#fff; }
-.tit-wrap .tit-region.is-on .tit-region-n { background:rgba(255,255,255,.26); color:#fff; }
+.tit-wrap .tit-region:hover { background:var(--tit-surface); border-color:var(--tit-blue); }
+.tit-wrap .tit-region.is-on { background:var(--tit-blue); border-color:var(--tit-blue); color:var(--tit-ink-invert); }
+.tit-wrap .tit-region.is-on .tit-region-n { background:var(--tit-on-accent); color:var(--tit-ink-invert); }
 .tit-region-n { color:var(--tit-mut); background:var(--tit-surface); }
 
 /* Cards sit on white with the family's two-stop shadow, on an off-white ground. */
@@ -734,7 +1499,7 @@
   box-shadow:var(--tit-shadow);
 }
 .tit-hero { background:var(--tit-ground); border-color:var(--tit-line); }
-.tit-chart, .tit-table-scroll { background:#fff; }
+.tit-chart, .tit-table-scroll { background:var(--tit-surface-1); }
 .tit-filters { background:var(--tit-ground); }
 .tit-table th, .tit-table td { border-color:var(--tit-grid); }
 .tit-wrap .tit-table th { background:var(--tit-surface); }
@@ -766,11 +1531,75 @@
    story is. */
 .tit-nowhere { color:var(--tit-faint); font-style:italic; font-size:13.5px; }
 
-/* The archived copy sits quietly beside the publisher's own link. It is a
+/* The archived copy sits quietly beside the publisher's own link. It is the
    fallback for a reader whose click landed on a moved or removed page, not a
-   competing citation, so it is deliberately the smaller of the two. */
-.tit-archived { color:var(--tit-mut); font-size:12.5px; white-space:nowrap; }
-.tit-archived a { color:var(--tit-mut); }
+   competing citation, so it is SUBORDINATE to the source: the same size, in the
+   muted ink rather than the link blue, with a hairline underline instead of a
+   full one.
+   Same size on purpose. It used to be 12.5px against the cell's 14.5px, which
+   made it read as a footnote to the row rather than as a second link a reader
+   could actually click; smaller was doing the work that colour should do.
+   The source link is already weight 400, so there is no lighter numeral to drop
+   to that system-ui will render consistently: a sub-400 weight resolves to Light
+   on a variable face and back to 400 on everything else, so the same word would
+   be two different colours of grey across two phones. Colour and underline
+   carry the subordination instead. */
+.tit-archived { color:var(--tit-mut); font-size:inherit; font-weight:400;
+  white-space:nowrap; }
+.tit-archived a { color:var(--tit-mut); text-decoration-color:var(--tit-faint);
+  text-underline-offset:2px; }
+.tit-archived a:hover { color:var(--tit-fg); text-decoration-color:currentColor; }
+/* THE SEPARATOR, AND WHY IT IS SHAPED LIKE THIS.
+   It lives in CSS rather than in the markup so the two renderers (shortcodes.php
+   server-side and dashboard.js after a filter) cannot disagree about it, and so
+   the card layout can take it away.
+   The content is a NO-BREAK space, the middot, then an ordinary space held by
+   `pre-wrap`. That is three deliberate characters. The Source column is about
+   174px wide, so "Business Standard · Archived" does not fit on one line and
+   has to break somewhere; a plain " · " lets it break BEFORE the middot, which
+   arrives at the start of the next line reading as a bullet whose text went
+   missing. The no-break space glues the middot to the publisher's name, and the
+   ordinary space after it is the only break opportunity, so the line always
+   divides as "Business Standard ·" / "Archived".
+   `pre-wrap` is needed because .tit-archived is nowrap and a trailing space
+   would otherwise be collapsed away along with the break it carries. */
+.tit-archived::before { content:"\00A0\00B7 "; white-space:pre-wrap;
+  color:var(--tit-faint); }
+
+/* On a card this cell shares one wrapping line with the rest of the meta, where
+   the established rule is that spacing separates items and no punctuation does:
+   see the meta-line comment in the 860px block above, which is there because a
+   middot rendered as a ::before landed at the start of a wrapped line and read
+   as a bullet list that had lost its text. The archived link is the third item
+   in that cell on the narrowest screen we support, so how it wraps is a decision
+   rather than an accident: it may take its own line, and it never carries
+   punctuation up there with it. Pinning it to the source name instead was the
+   alternative, and a long publisher name plus "Archived" on one unbreakable line
+   is what pushes a 390px card into a horizontal scroll. This page is at zero of
+   those and stays there.
+   This block sits AFTER the base rules on purpose. At equal specificity source
+   order decides, and the same override written up in the earlier 860px block
+   lost to the `content` declaration above it and did nothing at all. */
+@media (max-width:860px){
+  .tit-archived::before { content:none; }
+  .tit-archived { margin-left:10px; }
+}
+
+/* THE PENDING STATE, quieter than the link it will become. Same separator
+   mechanics as .tit-archived (a ::before the card layout can take away), but
+   the sentence WRAPS: it is a full clause, and nowrap here is what pushes a
+   390px card into a horizontal scroll. It is plain text on purpose — a link
+   that goes nowhere yet is the one thing this footer must never offer. */
+.tit-archive-wait { color:var(--tit-mut); font-size:12px; font-weight:400; }
+/* Scoped to the card footer: the company and place pages print their own
+   literal "· " before this span (their meta lines separate every item that
+   way), and an unscoped ::before would double it there. */
+.tit-card-src .tit-archive-wait::before { content:"\00A0\00B7 ";
+  white-space:pre-wrap; color:var(--tit-faint); }
+@media (max-width:860px){
+  .tit-card-src .tit-archive-wait::before { content:none; }
+  .tit-card-src .tit-archive-wait { display:block; margin-top:2px; }
+}
 
 /* A chart with nothing in it says so. A blank card reads as broken. */
 .tit-rank-empty { margin:0; font-size:13.5px; color:var(--tit-mut); font-style:italic; }
@@ -781,18 +1610,18 @@
 .tit-quick-label { font-size:12px; font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--tit-mut); margin-right:2px; }
 .tit-wrap .tit-qv { padding:6px 12px; border:1px solid var(--tit-line);
-  border-radius:8px; background:#fff; color:var(--tit-fg); font-size:13.5px;
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-fg); font-size:13.5px;
   font-weight:600; font-family:inherit; cursor:pointer; line-height:1.25; }
 .tit-wrap .tit-qv:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-qv:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 .tit-wrap .tit-qv.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
-  color:#fff; }
+  color:var(--tit-ink-invert); }
 /* The quick views now hold only what the matrix cannot express, so the strip
    has to say where the periods went rather than leave them looking dropped. */
 .tit-quick-hint { font-size:12.5px; color:var(--tit-mut); }
 @media (max-width:700px){ .tit-quick-hint { flex:1 0 100%; } }
 .tit-wrap .tit-sort { margin-left:auto; padding:6px 10px; font-size:13.5px;
-  border:1px solid var(--tit-line); border-radius:8px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:8px; background:var(--tit-surface-1);
   color:var(--tit-fg); font-family:inherit; }
 @media (max-width:700px){ .tit-wrap .tit-sort { margin-left:0; width:100%; } }
 
@@ -835,12 +1664,12 @@
    scrolled away with them. */
 .tit-active { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap;
   align-items:center; gap:8px; margin:0 0 12px; padding:9px 12px;
-  border:1px solid #cfe0f4; border-radius:10px; background:var(--tit-blue-tint); }
+  border:1px solid var(--tit-blue-edge); border-radius:10px; background:var(--tit-blue-tint); }
 .tit-active-label { font-size:12px; font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; color:#1c5cab; }
+  text-transform:uppercase; color:var(--tit-accent-ink); }
 .tit-active-chips { display:flex; flex-wrap:wrap; gap:6px; min-width:0; }
 .tit-wrap .tit-chip { display:inline-flex; align-items:center; gap:6px;
-  padding:4px 9px; border:1px solid #b9d3f2; border-radius:99px; background:#fff;
+  padding:4px 9px; border:1px solid var(--tit-blue-ring); border-radius:99px; background:var(--tit-surface-1);
   color:var(--tit-fg); font-family:inherit; font-size:13px; line-height:1.3;
   cursor:pointer; }
 .tit-wrap .tit-chip:hover { border-color:var(--tit-blue); }
@@ -850,10 +1679,10 @@
 .tit-chip-v { font-weight:600; }
 .tit-chip-x { font-size:15px; line-height:1; color:var(--tit-mut); }
 .tit-wrap .tit-chip:hover .tit-chip-x { color:var(--tit-blue); }
-.tit-wrap .tit-reset { margin-left:auto; padding:5px 11px; border:1px solid #b9d3f2;
-  border-radius:8px; background:#fff; color:#1c5cab; font-family:inherit;
+.tit-wrap .tit-reset { margin-left:auto; padding:5px 11px; border:1px solid var(--tit-blue-ring);
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-accent-ink); font-family:inherit;
   font-size:13px; font-weight:650; cursor:pointer; }
-.tit-wrap .tit-reset:hover { border-color:var(--tit-blue); background:#fff; }
+.tit-wrap .tit-reset:hover { border-color:var(--tit-blue); background:var(--tit-surface-1); }
 .tit-wrap .tit-reset:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 @media (max-width:700px){ .tit-wrap .tit-reset { margin-left:0; } }
 
@@ -871,8 +1700,10 @@
    --------------------------------------------------------------------------- */
 .tit-roo-row { display:flex; align-items:center; gap:9px; margin:12px 0 0; }
 .tit-roo-wrap { position:relative; display:inline-flex; align-items:center; flex:none; }
-.tit-roo { --roo-deep:#1c5cab; --roo-accent:#d55e00; --roo-surface:#fff;
-  --roo-soft:#dbe9fb; --roo-tint:#eef4fd; flex:none; overflow:visible; }
+/* The mascot's five colours are tokens in the :root block like everything
+   else, so he greys correctly in the dark scheme instead of staying a bright
+   white robot in a dark card. Nothing here declares a value. */
+.tit-roo { flex:none; overflow:visible; }
 .tit-roo-say { font-size:13px; color:var(--tit-mut); }
 /* The next-run note is the quietest part of the freshness line: smaller, same
    AA-passing colour. On a phone it wraps to its own line as a unit rather
@@ -891,7 +1722,7 @@
 .tit-roo-sleeping .roo-body-group { animation:roo-breathe 4s ease-in-out infinite; }
 
 .tit-zzz { position:absolute; top:-6px; right:-8px; display:none;
-  font:700 10px/1 system-ui, sans-serif; color:#8a93a0; }
+  font:700 10px/1 system-ui, sans-serif; color:var(--roo-zzz); }
 .tit-roo-wrap.is-sleeping .tit-zzz { display:inline-block; }
 .tit-zzz i { font-style:normal; display:inline-block; opacity:0;
   animation:tit-zzz 3.2s ease-in-out infinite; }
@@ -942,7 +1773,7 @@
 
 .tit-lastrun { font-size:13px; color:var(--tit-mut); white-space:nowrap; }
 .tit-lastrun .tit-rt { white-space:normal; font-size:12px; margin-top:2px; }
-.tit-c-degraded { background:#fdf3e8; color:#8c3d00; border-color:#f0cfae; }
+.tit-c-degraded { background:var(--tit-degraded-bg); color:var(--tit-degraded-fg); border-color:var(--tit-degraded-line); }
 
 /* ===========================================================================
    Zebra striping + row hover, the sibling tracker's table pattern.
@@ -951,8 +1782,9 @@
    with no help. The sources table filters rows with display:none, which
    nth-child cannot see, so its stripes are class-driven from the same filter
    loop that hides the rows (see sources.php).
-   All text keeps AA contrast: ink #16181d and muted #4a4d55 both clear 7:1 on
-   the stripe (--tit-surface) and on the hover tint (--tit-blue-tint).
+   All text keeps AA contrast in both schemes: --tit-fg and --tit-mut are
+   checked against --tit-surface and --tit-blue-tint, light and dark, by
+   tests/test_theme_light_dark.py rather than by anyone's eye.
    =========================================================================== */
 #tit-rows tr:nth-child(even) { background:var(--tit-surface); }
 #tit-s-rows tr.tit-even { background:var(--tit-surface); }
@@ -965,7 +1797,7 @@
 @media (max-width:860px) {
   /* Below the card breakpoint each row is its own bordered card; stripes
      there would read as two different components alternating. */
-  #tit-rows tr:nth-child(even), #tit-s-rows tr.tit-even { background:#fff; }
+  #tit-rows tr:nth-child(even), #tit-s-rows tr.tit-even { background:var(--tit-surface-1); }
   .tit-table tbody tr:hover,
   #tit-rows tr:hover, #tit-s-rows tr:hover { background:var(--tit-surface); }
 }
@@ -980,9 +1812,9 @@
    chips readable over whatever scrolls beneath them.
    =========================================================================== */
 .tit-active { top:0; z-index:40;
-  background:rgba(238, 244, 252, 0.94);
+  background:var(--tit-sticky-bg);
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  box-shadow:0 2px 10px rgba(16, 18, 24, 0.06); }
+  box-shadow:var(--tit-shadow-bar); }
 body.admin-bar .tit-active { top:32px; }
 @media (max-width:782px) { body.admin-bar .tit-active { top:46px; } }
 @media (max-width:600px) {
@@ -1034,7 +1866,7 @@ body.admin-bar .tit-active { top:32px; }
 .tit-wrap .tit-rank-row:focus-visible, .tit-wrap .tit-pillar:focus-visible {
   outline:2px solid var(--tit-blue); outline-offset:1px; }
 .tit-wrap .tit-rank-row.is-on, .tit-wrap .tit-pillar.is-on {
-  background:var(--tit-blue-tint); box-shadow:inset 0 0 0 1px #b9d3f2; }
+  background:var(--tit-blue-tint); box-shadow:inset 0 0 0 1px var(--tit-blue-ring); }
 .tit-wrap .tit-rank-row.is-on .tit-rank-name,
 .tit-wrap .tit-pillar.is-on .tit-pillar-name {
   font-weight:700; color:var(--tit-ink-blue); }
@@ -1051,6 +1883,8 @@ body.admin-bar .tit-active { top:32px; }
    The table scrolls inside its own container on phones; the page body never
    scrolls sideways.
    =========================================================================== */
+/* The scroller stays for the band between "stacked" and "comfortable": it is
+   the fallback, not the mobile design. See the stacked rules below. */
 .tit-matrix-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .tit-matrix { width:100%; border-collapse:collapse; min-width:560px; font-size:13.5px; }
 .tit-matrix th, .tit-matrix td { border-bottom:1px solid var(--tit-grid); }
@@ -1058,6 +1892,9 @@ body.admin-bar .tit-active { top:32px; }
   letter-spacing:.05em; color:var(--tit-mut); background:var(--tit-surface);
   text-align:right; white-space:nowrap; padding:7px 10px; }
 .tit-matrix thead th:first-child { text-align:left; }
+/* The week's own dates under its header: quiet, lowercase, never shouted. */
+.tit-matrix thead .tit-th-range { display:block; font-weight:500;
+  letter-spacing:0; text-transform:none; color:var(--tit-faint); }
 .tit-matrix tbody th { font-weight:600; color:var(--tit-fg); text-align:left;
   white-space:nowrap; font-size:13px; padding:4px 10px; }
 .tit-matrix td { text-align:right; padding:2px 4px; }
@@ -1071,30 +1908,34 @@ body.admin-bar .tit-active { top:32px; }
   font:inherit; color:var(--tit-fg); font-weight:600;
   font-variant-numeric:tabular-nums; letter-spacing:0; text-align:right;
   padding:4px 8px; border-radius:7px; cursor:pointer; line-height:1.3; }
-/* Heat map. One hue per signal, held across the whole product, and the tint
-   scaled by --i (set per cell in PHP, relative to that row's own maximum).
-   Colour is always a SECOND read: the number is printed in every cell, so a
-   colourblind or high-contrast reader loses nothing. Alpha tops out at .30 so
-   ink #16181d stays far above AA on the strongest cell, and the hues are the
-   product's existing colourblind-checked blue/violet/teal/orange set. */
-.tit-matrix-row { --row-rgb:82,96,122; }                 /* neutral fallback  */
-.tit-matrix-row[data-signal="hiring"]     { --row-rgb:42,120,214; }   /* blue   */
-.tit-matrix-row[data-signal="funded"]     { --row-rgb:74,58,167; }    /* violet */
-.tit-matrix-row[data-signal="leadership"] { --row-rgb:13,124,128; }   /* teal   */
-.tit-matrix-row[data-signal="pay"]        { --row-rgb:213,94,0; }     /* orange */
-.tit-matrix-row[data-signal="total"]      { --row-rgb:22,24,29; }     /* ink    */
+/* Heat map, in the design's muted blue (2026-08-02): every counting row
+   tints the SAME blue, scaled by --i (set per cell, relative to that row's
+   own maximum, since rows differ by orders of magnitude), and the money row
+   alone tints ochre, because money reads as money everywhere. What tells the
+   signals apart is the colored left-edge tick on each row label (--tick-rgb,
+   one hue per signal, the same hues the trend chart draws with). Colour is
+   always a SECOND read: the number is printed in every cell, so a
+   colourblind or high-contrast reader loses nothing. Alpha tops out at .30
+   so ink stays far above AA on the strongest cell. */
+.tit-matrix-row { --row-rgb:var(--tit-heat-rgb); --tick-rgb:var(--tit-tick-default-rgb); }
+.tit-matrix-row[data-signal="hiring"]     { --tick-rgb:var(--tit-tick-hiring-rgb); }   /* blue   */
+.tit-matrix-row[data-signal="funded"]     { --tick-rgb:var(--tit-tick-funded-rgb); }    /* violet */
+.tit-matrix-row[data-signal="leadership"] { --tick-rgb:var(--tit-tick-leadership-rgb); }   /* teal   */
+.tit-matrix-row[data-signal="pay"]        { --tick-rgb:var(--tit-tick-pay-rgb); }     /* orange */
+.tit-matrix-row[data-signal="total"]      { --tick-rgb:var(--tit-tick-total-rgb); }     /* ink    */
 .tit-wrap .tit-cell { background:rgba(var(--row-rgb), calc(var(--i, 0) * 0.30)); }
-/* The row label carries the same hue as a bar, so the colour is decodable
-   without reading the cells left to right. */
-.tit-matrix-row > th { box-shadow:inset 3px 0 0 rgb(var(--row-rgb)); padding-left:11px; }
+/* The row label carries its signal's own hue, so a row is decodable without
+   reading the cells left to right. */
+.tit-matrix-row > th { box-shadow:inset 3px 0 0 rgb(var(--tick-rgb)); padding-left:11px; }
 .tit-wrap .tit-cell:hover { background:rgba(var(--row-rgb), calc(var(--i, 0) * 0.30 + 0.12)); }
 .tit-wrap .tit-cell:focus-visible { outline:2px solid var(--tit-blue); outline-offset:1px; }
 .tit-wrap .tit-cell.is-on { background:var(--tit-blue-tint);
-  box-shadow:inset 0 0 0 1px #b9d3f2; color:var(--tit-ink-blue); }
+  box-shadow:inset 0 0 0 1px var(--tit-blue-ring); color:var(--tit-ink-blue); }
 /* Muted, still AA: --tit-mut at lighter weight, never --tit-faint (3.4:1). */
 .tit-wrap .tit-cell-zero { color:var(--tit-mut); font-weight:500; background:none; }
 .tit-wrap .tit-cell-zero:hover { background:var(--tit-surface); }
-.tit-matrix-note { margin:0; padding:7px 12px; font-size:12px;
+/* The board's one footnote line. */
+.tit-board-note { margin:0; padding:7px 12px; font-size:12px;
   color:var(--tit-mut); border-top:1px solid var(--tit-grid);
   background:var(--tit-surface); }
 
@@ -1111,26 +1952,24 @@ body.admin-bar .tit-active { top:32px; }
    =========================================================================== */
 
 /* --- The money row inside the at-a-glance matrix ------------------------- */
-.tit-matrix-row[data-signal="money"] { --row-rgb:74,58,167; }   /* violet */
+.tit-matrix-row[data-signal="money"] { --row-rgb:var(--tit-heat-money-rgb); --tick-rgb:var(--tit-heat-money-rgb); }   /* ochre */
 /* The unit, printed under the row label rather than implied by the $ alone.
    Violet ink at 11.6:1 on white, so it is quiet without being decorative. */
 .tit-matrix-unit { display:block; margin-top:1px; font-size:10.5px;
   font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--tit-ink-violet); }
+  color:var(--tit-ink-ochre); }
 .tit-matrix-money th, .tit-matrix-money td { border-bottom:2px solid var(--tit-line); }
-.tit-wrap .tit-cell-money { color:var(--tit-ink-violet); font-weight:700; }
+.tit-wrap .tit-cell-money { color:var(--tit-ink-ochre); font-weight:700; }
 .tit-wrap .tit-cell-money.tit-cell-zero { color:var(--tit-mut); font-weight:500; }
-/* The clause that names the odd row out, given its own emphasis in the note. */
-.tit-matrix-money-note { display:block; margin-top:3px; color:var(--tit-ink-violet); }
 
 /* --- The three money cards ---------------------------------------------- */
 /* Same grid as the activity charts, so the two rows of cards line up. */
 .tit-charts-money { margin:0 0 4px; }
 /* Bars in the funding hue, matching the matrix row they expand on. */
-.tit-chart-money .tit-rank-fill { background:var(--tit-violet); }
+.tit-chart-money .tit-rank-fill { background:var(--tit-ochre); }
 /* Money figures are wider than counts and must not shunt the bar about as the
    ranking changes, so the column is reserved rather than fitted. */
-.tit-chart-money .tit-rank-n { min-width:56px; color:var(--tit-ink-violet);
+.tit-chart-money .tit-rank-n { min-width:56px; color:var(--tit-ink-ochre);
   font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:0; }
 .tit-chart-money .tit-rank { margin-bottom:2px; }
 /* The coverage line. Not fine print to be styled away: a dollar total without
@@ -1162,7 +2001,7 @@ body.admin-bar .tit-active { top:32px; }
 }
 .tit-wrap .tit-primary select, .tit-wrap .tit-primary input[type="search"] {
   width:100%; min-width:0; padding:9px 11px; font-size:14.5px; font-weight:600;
-  border:1px solid var(--tit-line); border-radius:9px; background:#fff;
+  border:1px solid var(--tit-line); border-radius:9px; background:var(--tit-surface-1);
   color:var(--tit-fg); font-family:inherit; }
 .tit-wrap .tit-primary select:hover,
 .tit-wrap .tit-primary input[type="search"]:hover { border-color:var(--tit-blue); }
@@ -1176,7 +2015,7 @@ body.admin-bar .tit-active { top:32px; }
    that clears 40px rather than being a bare checkbox floating in a row. */
 .tit-check { display:flex; align-items:center; gap:8px; min-height:38px;
   padding:8px 11px; border:1px solid var(--tit-line); border-radius:9px;
-  background:#fff; cursor:pointer; }
+  background:var(--tit-surface-1); cursor:pointer; }
 .tit-check:hover { border-color:var(--tit-blue); }
 .tit-check input { flex:none; width:16px; height:16px; margin:0;
   accent-color:var(--tit-blue); cursor:pointer; }
@@ -1189,19 +2028,10 @@ body.admin-bar .tit-active { top:32px; }
   background:var(--tit-blue-tint); border-radius:99px; padding:2px 8px; }
 
 
-/* More filters. Native details, so it collapses with no JavaScript at all. */
+/* The filter panel. A plain container: it stopped being a <details> when the
+   owner asked for the "More filters" wording to go, so nothing here styles a
+   summary or an [open] state any more. */
 .tit-more { margin:0 0 12px; }
-.tit-wrap .tit-more > summary { display:inline-flex; align-items:center; gap:7px;
-  width:auto; padding:7px 13px; border:1px solid var(--tit-line);
-  border-radius:9px; background:#fff; color:var(--tit-fg); font-size:13.5px;
-  font-weight:650; cursor:pointer; list-style:none; }
-.tit-wrap .tit-more > summary::-webkit-details-marker { display:none; }
-.tit-wrap .tit-more > summary::before { content:"+"; font-weight:700;
-  color:var(--tit-mut); line-height:1; }
-.tit-wrap .tit-more[open] > summary::before { content:"\2212"; }
-.tit-wrap .tit-more > summary:hover { border-color:var(--tit-blue); }
-.tit-wrap .tit-more > summary:focus-visible { outline:2px solid var(--tit-blue);
-  outline-offset:2px; }
 .tit-more .tit-filters { margin-top:8px; }
 
 /* The hidden state the two front controls drive. Not focusable, not read: the
@@ -1226,7 +2056,7 @@ body.admin-bar .tit-active { top:32px; }
   text-transform:uppercase; color:var(--tit-mut); flex:none; }
 .tit-wrap .tit-detail select { max-width:100%; min-width:0; padding:7px 10px;
   font-size:14px; font-weight:600; border:1px solid var(--tit-line);
-  border-radius:8px; background:#fff; color:var(--tit-fg); font-family:inherit; }
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; }
 .tit-wrap .tit-detail select:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-detail select:focus-visible { outline:2px solid var(--tit-blue);
   outline-offset:2px; }
@@ -1294,6 +2124,61 @@ main:has(#tit-dashboard) {
 }
 
 /* ---------------------------------------------------------------------------
+   THE SITE HEADER, WHICH IS STICKY AND WAS TRANSPARENT.
+
+   Read off the live page at 375px. The site's own mobile rule is
+
+     @media (max-width:781px){
+       header.wp-block-template-part { position:sticky; top:0; z-index:999 }
+       header .wp-block-group.alignfull { background:rgba(255,255,255,.92); ... }
+     }
+
+   and those are two different elements. The header group on this site carries
+   `atr-header`, never `alignfull`, so the second selector matched nothing and
+   the bar pinned itself over the page with no background at all. Two failures
+   came out of that one mismatch, and they are not the same failure:
+
+     1. IT WAS UNREADABLE. Page text scrolled under the wordmark and printed
+        letter on letter.
+     2. IT ATE EVERY TAP. A sticky bar is a hit target whether or not anything
+        was painted into it, so elementFromPoint anywhere in the top 64px of a
+        375px viewport returned the header rather than the page under it.
+
+   So there are two fixes here, because a background alone would have fixed only
+   the first one:
+
+     1. AN OPAQUE BACKGROUND AND A HAIRLINE, ON THE STICKY ELEMENT ITSELF. Not
+        on a descendant. A descendant is precisely the mistake above: painting a
+        child does not paint the sticky parent's own box, and it is the parent
+        that the page scrolls under.
+     2. `position:static` BELOW THE SAME BREAKPOINT the site sticks at, which is
+        what stops the interception. A static header scrolls away with the page,
+        so nothing invisible is left sitting over the content and the top 64px
+        belongs to the page again.
+
+   The background is declared OUTSIDE the media query and stays declared even
+   though the header is static inside it. It costs nothing at desktop widths,
+   where the header is static anyway, and it means that anything re-sticking
+   this bar later cannot take the page back to text printed over text.
+
+   Scoped with :has() to the pages this stylesheet is loaded for, which is the
+   only part of the site this repo owns: the dashboard (#tit-dashboard) and the
+   routed pages that render the block theme's header around .tit-main. Every
+   other page keeps whatever the theme gives it.
+   --------------------------------------------------------------------------- */
+body:has(#tit-dashboard) header.wp-block-template-part,
+body:has(.tit-main) header.wp-block-template-part {
+  background:var(--tit-surface-1);
+  border-bottom: 1px solid var(--tit-header-line);
+}
+@media (max-width:781px){
+  body:has(#tit-dashboard) header.wp-block-template-part,
+  body:has(.tit-main) header.wp-block-template-part {
+    position: static;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    The results header: what orders the rows, sitting with the rows.
    The sort control used to live up in the quick-views strip, three screens
    above the table it orders, which is where a reader looks to CHOOSE a view and
@@ -1323,24 +2208,11 @@ main:has(#tit-dashboard) {
 
 .tit-when { font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; }
 
-/* Reset, with the affordance the action deserves: clearly a button, clearly
-   not the loudest thing on the page. It sits at the end of the filter block
-   with the date range rather than alone in a bar of its own. */
-.tit-reset-field { display:flex; align-items:flex-end; }
-.tit-wrap .tit-reset-btn { width:100%; padding:9px 12px; border:1px solid #d7c0b4;
-  border-radius:9px; background:#fff; color:var(--tit-ink-orange);
-  font-family:inherit; font-size:13.5px; font-weight:650; cursor:pointer;
-  line-height:1.25; }
-.tit-wrap .tit-reset-btn:hover { border-color:var(--tit-orange);
-  background:var(--tit-red-tint); }
-.tit-wrap .tit-reset-btn:focus-visible { outline:2px solid var(--tit-orange);
-  outline-offset:2px; }
-
 /* The money figure in the summary line. A link, because the total is only
    honest next to the coverage sentence the money section prints. */
-.tit-wrap .tit-fine-money { color:var(--tit-ink-violet); font-weight:700;
-  text-decoration-color:#cbc4ec; }
-.tit-wrap .tit-fine-money:hover { color:var(--tit-violet); }
+.tit-wrap .tit-fine-money { color:var(--tit-ink-ochre); font-weight:700;
+  text-decoration-color:var(--tit-ochre-line); }
+.tit-wrap .tit-fine-money:hover { color:var(--tit-ochre); }
 
 /* ===========================================================================
    Final pass: the hero headline, section anchors, and the filter block.
@@ -1348,9 +2220,51 @@ main:has(#tit-dashboard) {
 
 /* --- Hero: benefit first, proof under it -------------------------------- */
 .tit-hero-head { min-width:0; }
-.tit-wrap .tit-hero-head h2 { margin:0; font-size:26px; line-height:1.15;
-  font-weight:750; letter-spacing:-.015em; color:var(--tit-fg); }
-@media (min-width:900px){ .tit-wrap .tit-hero-head h2 { font-size:30px; } }
+.tit-wrap .tit-hero-head h2 { margin:0; font-size:28px; line-height:1.12;
+  font-family:var(--tit-serif); font-weight:700; letter-spacing:-.015em;
+  color:var(--tit-fg); }
+@media (min-width:900px){ .tit-wrap .tit-hero-head h2 { font-size:34px; } }
+/* Exactly two actions under the thesis, per the design. The search button is
+   the accent (a control, so blue); the methodology link is the quiet twin. */
+.tit-hero-cta { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 0; }
+.tit-wrap .tit-cta { display:inline-flex; align-items:center; gap:6px;
+  font:inherit; font-size:14px; font-weight:650; line-height:1.2;
+  padding:9px 15px; border-radius:9px; cursor:pointer; text-decoration:none; }
+.tit-wrap .tit-cta-search { background:var(--tit-blue); border:1px solid var(--tit-blue);
+  color:var(--tit-ink-invert); }
+.tit-wrap .tit-cta-search:hover { background:var(--tit-blue-strong);
+  border-color:var(--tit-blue-strong); }
+.tit-wrap .tit-cta-how { background:var(--tit-surface-1); border:1px solid var(--tit-line);
+  color:var(--tit-fg); }
+.tit-wrap .tit-cta-how:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
+.tit-wrap .tit-cta:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+
+/* --- The freshness panel, top-right of the hero -------------------------
+   Absorbs the status line and the old all-time figures: the Live pill, four
+   figures, the promise line, and Roo's last/next-run sentence. A card, so it
+   reads as one fact block beside the thesis rather than four strays. */
+.tit-fresh { flex:1 1 300px; max-width:380px; min-width:250px;
+  border:1px solid var(--tit-line); border-radius:12px; background:var(--tit-surface-1);
+  padding:12px 14px; box-shadow:var(--tit-shadow); }
+.tit-fresh .tit-live { margin:0 0 10px; }
+.tit-fresh-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
+.tit-fstat { min-width:0; font-size:12px; color:var(--tit-mut); line-height:1.3; }
+.tit-fstat > b, .tit-fstat a > b { display:block; font-size:21px; font-weight:750;
+  color:var(--tit-fg); font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
+.tit-fstat > span, .tit-fstat a > span { display:block; }
+.tit-fstat a { text-decoration:none; color:inherit; }
+.tit-fstat a:hover span { text-decoration:underline; }
+/* Money wins on figures: the raised total is the one ochre number here. */
+.tit-wrap .tit-fstat-money b { color:var(--tit-ink-ochre); }
+/* The all-time line under each figure. Each stat leads with the current year
+   (the big number) and keeps the entire record beneath it, smaller and muted,
+   because the whole-record totals alone read as this year's numbers. */
+.tit-fstat .tit-fstat-all { display:block; font-size:11px; color:var(--tit-mut);
+  font-variant-numeric:tabular-nums; margin-top:1px; }
+.tit-fresh .tit-fine-say { display:block; margin:10px 0 0; font-size:12px;
+  color:var(--tit-mut); font-weight:500; }
+.tit-fresh .tit-roo-row { margin:8px 0 0; }
+@media (max-width:700px){ .tit-fresh { max-width:none; } }
 /* The trust line, quieter than the promise but never decorative: AA at 8.6:1
    and set at reading size, because it is the claim the whole page rests on. */
 .tit-wrap .tit-hero-sub { margin:5px 0 0 !important; font-size:15px;
@@ -1359,11 +2273,9 @@ main:has(#tit-dashboard) {
   .tit-wrap .tit-hero-head h2 { font-size:22px; }
   .tit-wrap .tit-hero-sub { font-size:14px; }
 }
-/* Two beats in the fine print, not one run-on line. */
-.tit-fine-figures, .tit-fine-say { display:block; }
-.tit-fine-say { color:var(--tit-mut); font-weight:500; margin-top:2px; }
-/* The links stop competing with the promise by leaving its paragraph. */
-.tit-hero-links { margin:7px 0 0 !important; font-size:13px; color:var(--tit-mut); }
+/* The coverage ribbon: one quiet line of derived facts and trust links. */
+.tit-hero-links { margin:10px 0 0 !important; font-size:13px; color:var(--tit-mut); }
+.tit-hero-links .tit-ribbon-cov { font-weight:600; color:var(--tit-fg); }
 
 /* --- Section anchors ----------------------------------------------------
    Each section carries the hue its content already uses elsewhere, as a rule
@@ -1372,18 +2284,15 @@ main:has(#tit-dashboard) {
    four already validated for CVD separation, and each is paired with words. */
 .tit-sec { --sec:var(--tit-blue); padding-left:12px; border-left:4px solid var(--sec);
   border-radius:2px; }
-.tit-sec--money { --sec:var(--tit-violet); }
+.tit-sec--money { --sec:var(--tit-ochre); }
 .tit-wrap .tit-sec h3 { color:var(--tit-fg); }
-.tit-sec-eyebrow { display:block; font-size:11px; font-weight:800;
-  letter-spacing:.09em; text-transform:uppercase; color:var(--sec);
-  margin-bottom:1px; }
 
 /* Chart cards get the same anchor at card scale: a swatch on the heading, in
    the hue that card's own bars already use. */
 .tit-chart { --sec:var(--tit-blue); }
 #chart-place { --sec:var(--tit-teal); }
 #chart-direction { --sec:var(--tit-orange); }
-.tit-chart-money { --sec:var(--tit-violet); }
+.tit-chart-money { --sec:var(--tit-ochre); }
 .tit-wrap .tit-chart-head h3::before { content:""; display:inline-block;
   width:9px; height:9px; border-radius:2px; background:var(--sec);
   margin-right:7px; vertical-align:middle; }
@@ -1393,12 +2302,7 @@ main:has(#tit-dashboard) {
    it at roughly three of the five columns while the table beside it ran the
    full width. A block that stops short of the thing it describes reads as
    unfinished markup, which is exactly how it read. */
-.tit-wrap .tit-matrix-note { padding:8px 12px; border-top:1px solid var(--tit-grid);
-  background:var(--tit-surface); }
-.tit-wrap .tit-matrix-note p { margin:0; max-width:none; font-size:12px;
-  line-height:1.5; color:var(--tit-mut); }
-.tit-wrap .tit-matrix-note p + p { margin-top:4px; }
-.tit-wrap .tit-matrix-money-note { color:var(--tit-ink-violet); }
+.tit-wrap .tit-board-note { max-width:none; }
 
 /* --- Primary row -------------------------------------------------------- */
 .tit-primary { align-items:start; }
@@ -1415,13 +2319,9 @@ main:has(#tit-dashboard) {
    beside it. The offset is written as the label's own metrics rather than as a
    number, so it stays right if the label size changes, and it only applies
    where the row actually has more than one column. */
-.tit-primary-toggle { display:flex; align-items:flex-start; }
-@media (min-width:640px){
-  .tit-primary-toggle { padding-top:calc((12px * 1.35) + 3px); }
-}
 .tit-check { display:flex; align-items:flex-start; gap:9px; width:100%;
   min-height:42px; padding:10px 12px; border:1px solid var(--tit-line);
-  border-radius:9px; background:#fff; cursor:pointer; }
+  border-radius:9px; background:var(--tit-surface-1); cursor:pointer; }
 .tit-check:hover { border-color:var(--tit-blue); }
 .tit-check:has(input:checked) { border-color:var(--tit-blue);
   background:var(--tit-blue-tint); }
@@ -1447,8 +2347,15 @@ main:has(#tit-dashboard) {
 /* Multi-selects scroll in place. A native list box is keyboard reachable with
    no code of ours, and each choice becomes its own chip in the filtering bar,
    so a reader can drop one of three without clearing all three. */
-.tit-wrap .tit-filters select[multiple] { height:auto; min-height:96px;
-  padding:4px; font-size:13.5px; font-weight:500; overflow-y:auto; }
+/* Height is NOT pinned here any more, and that is the point.
+   It was 96px, kept in step BY HAND with a pill row of the same height, because
+   dashboard.js swapped one for the other after paint and any difference was a
+   layout shift the reader watched. The select is display:none the moment the
+   script runs now, and the checkbox box that replaces it has its own capped
+   height, so there is no swap to match and no pair of numbers to keep in step.
+   A visitor with no JavaScript keeps the native list box at its own height. */
+.tit-wrap .tit-filters select[multiple] { padding:4px; font-size:13.5px;
+  font-weight:500; overflow-y:auto; }
 .tit-wrap .tit-filters select[multiple] option { padding:4px 7px;
   border-radius:5px; }
 .tit-wrap .tit-filters select[multiple] option:checked {
@@ -1463,14 +2370,18 @@ main:has(#tit-dashboard) {
    the only thing saying which box was the start, it was decoration to a screen
    reader, and at 375px it was competing for width with the two controls it was
    separating. */
+/* Year / Quarter / Month, the shorthand row above the two date boxes. Same
+   part layout as the boxes beneath so the cell reads as one control with two
+   grains. The selects are full-width inside their thirds, so at 375px the row
+   stays three tidy columns rather than bleeding. */
+.tit-period { display:flex; align-items:flex-end; gap:10px; min-width:0;
+  margin:0 0 8px; }
+.tit-period select { width:100%; min-width:0; }
 .tit-daterange { display:flex; align-items:flex-end; gap:10px; min-width:0; }
 .tit-daterange-part { flex:1 1 0; min-width:0; display:grid; gap:3px; }
 .tit-wrap .tit-daterange-l { font-size:11.5px; font-weight:650;
   color:var(--tit-mut); line-height:1.3; }
 .tit-wrap .tit-daterange input { width:100%; min-width:0; }
-
-.tit-reset-field { grid-column:1 / -1; justify-content:flex-start; }
-.tit-wrap .tit-reset-btn { width:auto; min-width:180px; }
 
 /* At 375px the two date inputs are the tightest thing in the panel. Trimming
    their padding keeps them on ONE row, which is the whole point of the control:
@@ -1480,11 +2391,6 @@ main:has(#tit-dashboard) {
   .tit-daterange { gap:7px; }
   .tit-wrap .tit-daterange input { padding:7px 6px; font-size:13px; }
   .tit-wrap .tit-daterange-l { font-size:11px; }
-}
-/* Seven stacked list boxes is a lot of height on a phone, and each one still
-   shows five rows before it scrolls in place. */
-@media (max-width:560px){
-  .tit-wrap .tit-filters select[multiple] { min-height:84px; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1497,7 +2403,7 @@ main:has(#tit-dashboard) {
 .tit-help { margin:0 0 8px; }
 .tit-wrap .tit-help-s { display:inline-flex; align-items:center; gap:7px;
   width:auto; padding:5px 11px 5px 6px; border:1px solid var(--tit-line);
-  border-radius:99px; background:#fff; color:var(--tit-mut); font-size:12.5px;
+  border-radius:99px; background:var(--tit-surface-1); color:var(--tit-mut); font-size:12.5px;
   font-weight:600; cursor:pointer; list-style:none; }
 .tit-wrap .tit-help-s::-webkit-details-marker { display:none; }
 .tit-wrap .tit-help-s:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
@@ -1537,8 +2443,13 @@ main:has(#tit-dashboard) {
 
 /* Held-but-wrong is neither a pass nor a miss, and colouring it as either
    would be the whole point of this page lost in a palette. */
-.tit-c-partial { background:#fff8e6; color:#7a5300; border-color:#efdca6; }
+.tit-c-partial { background:var(--tit-partial-bg); color:var(--tit-partial-fg); border-color:var(--tit-partial-line); }
 
+/* The source line under each country in the recall table: always-visible
+   quiet prose. Never a collapsed control; this page has shipped caveats that
+   computed display:none and were never seen. */
+.tit-recall-src td { font-size:12px; color:var(--tit-mut); line-height:1.5;
+  border-top:0; padding-top:0; }
 .tit-recall-gaps { margin:0 0 16px; padding-left:20px; }
 .tit-recall-gaps li { margin:0 0 6px; line-height:1.5; }
 
@@ -1573,14 +2484,14 @@ main:has(#tit-dashboard) {
    down. */
 .tit-wrap .tit-cbtn { display:inline-flex; align-items:center; gap:6px;
   padding:4px 9px; border:1px solid var(--tit-line); border-radius:7px;
-  background:#fff; color:var(--tit-fg); font-family:inherit; font-size:12.5px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; font-size:12.5px;
   font-weight:600; line-height:1.3; cursor:pointer; }
 .tit-wrap .tit-cbtn:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-cbtn:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 /* Selection is a tint plus a ring plus a weight change, never colour alone,
    and aria-pressed carries it for anyone not seeing any of it. */
 .tit-wrap .tit-cbtn.is-on { background:var(--tit-blue-tint);
-  border-color:#b9d3f2; box-shadow:inset 0 0 0 1px #b9d3f2;
+  border-color:var(--tit-blue-ring); box-shadow:inset 0 0 0 1px var(--tit-blue-ring);
   color:var(--tit-ink-blue); font-weight:750; }
 .tit-cbtn-n { font-size:11.5px; font-variant-numeric:tabular-nums;
   letter-spacing:0; color:var(--tit-mut); }
@@ -1603,24 +2514,28 @@ main:has(#tit-dashboard) {
    share the cell rather than the flag pushing the name out of it. */
 .tit-rank-name { display:flex; align-items:center; gap:6px; }
 
+/* THE GEO STRIPS WRAP. THEY USED TO SIDE-SCROLL, AND THAT WAS WRONG.
+   This block previously set flex-wrap:nowrap with overflow-x:auto on the
+   country and city rows below 560px, on the reasoning that a container
+   scrolling is better than the body scrolling. Both parts of that are true and
+   the conclusion still did not follow: it put TWO horizontal scrollbars,
+   stacked, on the first screen of a phone, with "Glasgo" and "Birmingha" cut
+   mid-word and no affordance saying anything was there. The owner's words were
+   "not a good mobile experience", and the sibling reached the same conclusion
+   about its own pill strips: hiding options behind a swipe is the failure that
+   pills exist to fix.
+
+   So they wrap. Three or four rows of pills is more vertical space than one
+   scrolling row and it needs no gesture, every option is reachable by tapping,
+   and the strip label stays visible instead of being clipped away to make room
+   for the scroll. The counts are already the cue for which ones matter, and the
+   Location select below lists every place we hold for anyone who wants one that
+   is not in the strip. */
 @media (max-width:560px){
-  /* Scroll the country row in its own box rather than stacking it four deep.
-     The page body never scrolls sideways; this container does. */
-  .tit-countries { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
-    padding-bottom:2px; }
-  .tit-wrap .tit-cbtn { flex:none; }
-  .tit-countries-label { position:absolute; width:1px; height:1px;
-    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .tit-countries { flex-wrap:wrap; }
+  .tit-wrap .tit-cbtn { flex:0 1 auto; }
 }
 
-/* The filter panel no longer discloses, so its summary is a plain caption
-   rather than a control: no chevron, no hover affordance, nothing suggesting
-   there is a second state to find. */
-.tit-wrap .tit-more--open > summary { cursor:default; border:0; padding:0 0 6px;
-  background:none; font-size:11px; font-weight:800; letter-spacing:.07em;
-  text-transform:uppercase; color:var(--tit-faint); }
-.tit-wrap .tit-more--open > summary::before { content:none; }
-.tit-wrap .tit-more--open > summary:hover { border-color:transparent; }
 .tit-more--open .tit-filters { margin-top:0; }
 
 /* A caveat printed where the chart is read, not in a footnote. Muted but AA at
@@ -1636,21 +2551,979 @@ main:has(#tit-dashboard) {
 .tit-recall-chart { display:block; width:100%; min-width:520px; height:auto; }
 .tit-rc-grid { stroke:var(--tit-line); stroke-width:1; }
 .tit-rc-axis { fill:var(--tit-mut); font-size:12px; font-variant-numeric:tabular-nums; }
-.tit-rc-held { stroke:#1c5cab; stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
-.tit-rc-clean { stroke:#1f7a4d; stroke-width:2.5; stroke-dasharray:6 4;
+.tit-rc-held { stroke:var(--tit-rc-held); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+.tit-rc-clean { stroke:var(--tit-rc-clean); stroke-width:2.5; stroke-dasharray:6 4;
   stroke-linejoin:round; stroke-linecap:round; }
-.tit-rc-dot-held { fill:#1c5cab; }
-.tit-rc-dot-clean { fill:#1f7a4d; }
+.tit-rc-dot-held { fill:var(--tit-rc-held); }
+.tit-rc-dot-clean { fill:var(--tit-rc-clean); }
 
 .tit-recall-legend { font-size:13px; color:var(--tit-mut); margin:6px 0 18px; }
 .tit-rc-key { display:inline-block; width:14px; height:3px; margin:0 6px 0 14px;
   vertical-align:middle; border-radius:2px; }
 .tit-recall-legend .tit-rc-key:first-child { margin-left:0; }
-.tit-rc-k-held { background:#1c5cab; }
-.tit-rc-k-clean { background:#1f7a4d; }
+.tit-rc-k-held { background:var(--tit-rc-held); }
+.tit-rc-k-clean { background:var(--tit-rc-clean); }
 
 /* The history tables grow a column per measurement, so they are the one thing
    here that genuinely will not fit. They scroll inside their own container like
    every other table on the site; the page itself never scrolls sideways. */
 .tit-recall-history th, .tit-recall-history td { white-space:nowrap; }
 .tit-recall-history td:first-child, .tit-recall-history th:first-child { white-space:normal; }
+
+/* ===========================================================================
+   THE FILTER PANEL.
+
+   The owner's two sentences about it were "Fix the sapce all this" and "it's
+   still not designed well", and both were fair. Seven groups of options sat in
+   a three-column grid with 8px between rows and no boundary of any kind between
+   one group and the next, so every group's options ran straight into the
+   following group's heading. There was no visual unit called "a group" at all:
+   only a heading, then some options, then another heading, at the same weight,
+   in the same colour, in one continuous field. That is why it read as dumped
+   rather than designed.
+
+   Three changes, in the order they matter.
+
+   1. EACH GROUP IS A BOUNDED THING. A heading, then its options inside a box
+      with its own border, its own background and a capped height. A box has an
+      edge, and an edge is the cheapest possible way to say "these options
+      belong to that heading and not to the next one".
+
+   2. THE OPTIONS ARE CHECKBOXES, ONE PER LINE, AND THE BOX SCROLLS. The owner
+      asked for exactly this: "I like scrolling and check boxes." A checkbox is
+      the only control in HTML that means "several of these, independently"
+      without having to be taught, and a capped scrolling box is what lets seven
+      groups fit in a column at all. See the note above pillify() in
+      dashboard.js for why this replaced both a native list box and a pill row.
+
+   3. THE CONTROLS ARE A COMPACT BAR ABOVE THE ROWS, FROZEN TO THE TOP.
+
+      This REPLACES the sticky 262px sidebar that shipped in 1.54.0. The owner
+      saw that on the live page and asked for its opposite: "move those to above
+      the stuff and compact and have it frozen on top when you scroll down". The
+      sidebar's real cost was width -- 262px plus a 20px gap is 282 of a 1340px
+      content width, and the seven-column table left in the remainder squeezed
+      What Happened to about 210px, which wraps a headline to one word per line.
+
+      Each group is now a BUTTON carrying its own name and its count, and its
+      checkboxes live in a panel that exists only while it is open. Point 2 above
+      still holds inside that panel -- the options are still real checkboxes, one
+      per line, and the panel still scrolls when a vocabulary is long. What went
+      is the requirement that all seven be scrollable AT ONCE, which is what made
+      the column tall, and the pre-emptive 168px cap that made each list feel
+      like a keyhole.
+
+   The aesthetic is taken from the record cards, which the owner endorsed: the
+   same paper (--tit-surface on the ground, --tit-surface-1 for anything
+   interactive), the
+   same 12px card radius with 8px on the parts inside it, the same small-caps
+   mono-ish eyebrow, the same 8.6:1 muted ink for supporting text.
+   =========================================================================== */
+
+/* The feed is a stack now, not two columns: bar, then rows at full width.
+   `min-width:0` survives on the results because the table inside it must still
+   be allowed to be narrower than its own content rather than forcing the page
+   wider than the viewport. */
+.tit-feed { display:block; margin:0 0 24px; }
+.tit-results { min-width:0; }
+
+/* THE BAR, AND WHAT MAKES IT STICK.
+
+   `top` is a variable so the value has one home: a theme with a fixed header,
+   or the WordPress admin bar on a logged-in view, needs the bar to start below
+   it, and every rule that reads the offset reads this.
+
+   z-index sits above the table's own sticky header and below the phone jump
+   bar. An OPEN dropdown panel is a child of the bar, so the bar's stacking
+   context is what keeps a panel over the rows.
+
+   Sticky is cancelled outright by a scrollable ANCESTOR. html and body are held
+   at overflow-x:clip elsewhere in this file for that reason, .tit-feed sets no
+   overflow at all, and .tit-filterbar itself must not either -- an `overflow:hidden`
+   here would also clip every dropdown panel to the height of the bar, which is
+   the silent version of the same bug. Verify in a live DOM after any theme
+   change: sticky fails without erroring. */
+.tit-filterbar { --tit-filterbar-top:0px;
+  position:sticky; top:var(--tit-filterbar-top); z-index:30;
+  margin:0 0 16px; border:1px solid var(--tit-line); border-radius:12px;
+  background:var(--tit-surface); box-shadow:var(--tit-shadow); }
+.admin-bar .tit-filterbar { --tit-filterbar-top:32px; }
+@media (max-width:782px){ .admin-bar .tit-filterbar { --tit-filterbar-top:46px; } }
+
+/* Anyone who asked for less motion gets a bar that simply sits still. A sticky
+   element is not an animation, but it is unrequested movement relative to the
+   page, which is the thing the preference is about. */
+@media (prefers-reduced-motion: reduce){
+  .tit-filterbar { position:static; }
+}
+
+.tit-panel-head { display:flex; align-items:center; gap:10px;
+  padding:5px 12px; border-bottom:1px solid var(--tit-line); background:var(--tit-surface-1);
+  border-radius:12px 12px 0 0; }
+/* The card eyebrow, same treatment the record cards use for their tag row. */
+.tit-panel-t { font-size:11px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--tit-mut); }
+/* Reset goes to the far end of the head, whatever else is in it. */
+.tit-wrap .tit-panel-reset { margin-left:auto; }
+.tit-wrap .tit-panel-reset { padding:4px 0; border:0; background:none;
+  color:var(--tit-ink-blue); font-family:inherit; font-size:12.5px;
+  font-weight:650; cursor:pointer; }
+.tit-wrap .tit-panel-reset:hover { color:var(--tit-blue); text-decoration:underline;
+  text-underline-offset:2px; }
+.tit-wrap .tit-panel-reset:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; border-radius:4px; }
+/* The gutter is 8px and the control ceiling 140px, and both are load-bearing
+   rather than taste. Measured at 1280px with every facet control present: the
+   fourteen cells total 2,007px of content, the bar's inner width is 1,134px,
+   and at a 10px gutter with a 158px ceiling the last cell missed the second row
+   by THREE pixels and wrapped alone onto a third. Two rows is 150px of frozen
+   chrome; three is 178px. Nothing breaks if a longer vocabulary pushes it back
+   to three -- it is a bar, it wraps -- but do not widen either number without
+   re-measuring, because the slack here is single digits. */
+.tit-panel-body { display:flex; flex-wrap:wrap; align-items:flex-end;
+  gap:8px 8px; padding:10px 12px; }
+
+/* THE TWO CONTAINERS DISSOLVE.
+   .tit-primary and .tit-filters are two server-rendered groupings that used to
+   be two grids. Making them `display:contents` lets every field become a direct
+   flex item of the bar, so one wrap algorithm packs all thirteen controls
+   instead of two grids each padding out its own last row. It also means the PHP
+   did not have to be re-nested to change the layout, which keeps this a
+   presentation change: the same fields, in the same order, in the same DOM.
+
+   `display:contents` is safe on exactly these three because none of them paints
+   anything -- no border, no background, no padding. Give any of them a box and
+   this rule silently drops it. */
+.tit-filterbar .tit-primary,
+.tit-filterbar .tit-more,
+.tit-filterbar .tit-filters { display:contents; }
+
+/* EVERY CONTROL IS ONE LINE HIGH, and that is what makes the bar compact
+   enough to freeze.
+
+   The label sits BESIDE its control rather than above it. Stacked, each cell is
+   a 14px label over a 30px control and the bar came out 280px tall on a 1280px
+   viewport -- 31% of the window pinned under chrome, which is not an
+   improvement on the sidebar, it is the same mistake rotated. Inline, a cell is
+   32px, the bar wraps to two rows and measures 122px including its head.
+
+   No floor and no ceiling on width: a cell is exactly as wide as its label plus
+   its control, so the wrap packs by real width instead of by a guess. `nowrap`
+   on the label is what keeps that honest -- a label allowed to wrap makes its
+   own cell two lines tall and takes the whole row with it. */
+.tit-filterbar .tit-field { display:flex; flex-direction:row; align-items:center;
+  gap:6px; margin:0; padding:0; min-width:0; max-width:none; flex:0 0 auto; }
+.tit-filterbar .tit-field[hidden] { display:none !important; }
+/* --wide meant "span two grid columns". There is no grid here, so it means
+   nothing, and left unhandled it inherits a grid-column that does not apply. */
+.tit-filterbar .tit-field--wide { grid-column:auto; }
+.tit-filterbar .tit-field-l { display:block; flex:none; margin:0; font-size:11.5px;
+  font-weight:700; letter-spacing:.01em; color:var(--tit-mut);
+  text-transform:none; white-space:nowrap; }
+.tit-filterbar select, .tit-filterbar input[type=search],
+.tit-filterbar input[type=date] {
+  width:auto; max-width:140px; min-width:0; padding:5px 7px; font-size:13px; }
+
+/* Location is a label, a select and the qualifier that changes what the select
+   MEANS, so all three stay on one line and in that order. */
+.tit-filterbar .tit-where-label { display:flex; align-items:center; gap:6px;
+  min-width:0; }
+.tit-filterbar .tit-basis-check { display:flex; align-items:center; gap:5px;
+  margin:0 0 0 8px; font-size:12px; white-space:nowrap; }
+/* Inside the date panel the two inputs go back to being stacked and labelled,
+   which is the one place there is room for it. */
+.tit-filterbar .tit-daterange { display:flex; gap:8px; }
+.tit-filterbar .tit-daterange-part { display:flex; flex-direction:column; gap:2px;
+  min-width:0; }
+.tit-filterbar .tit-daterange-l { font-size:10.5px; color:var(--tit-mut); }
+
+/* --- A GROUP'S OPTIONS: real checkboxes, inside a dropdown -----------------
+   The cap is now a ceiling on a panel that is only ever open on purpose, not a
+   keyhole the reader is permanently looking through. 168px was five rows and a
+   sliver, chosen so seven boxes could coexist in a column; nothing coexists
+   with an open panel, so the cap can be generous and only the genuinely long
+   vocabularies (Industry has twenty) ever reach it. */
+.tit-wrap .tit-select-hidden { display:none; }
+.tit-optbox { max-height:min(320px, 60vh); overflow-y:auto;
+  overscroll-behavior:contain; background:var(--tit-surface-1); padding:4px; }
+/* Inside a dropdown the panel draws the edge, so the box must not draw a second
+   one 4px inside it. Standalone (no JS dropdown, or a future flat use) it keeps
+   its own border, which is what gives the group a boundary at all. */
+.tit-dd-panel > .tit-optbox { border:0; border-radius:0; max-height:none; }
+.tit-filterbar .tit-optbox { border:1px solid var(--tit-line); border-radius:8px; }
+.tit-optbox:focus-within { border-color:var(--tit-blue); }
+.tit-wrap .tit-optrow { display:flex; align-items:flex-start; gap:9px;
+  padding:7px 8px; border-radius:6px; font-size:13.5px; line-height:1.35;
+  color:var(--tit-fg); cursor:pointer; }
+.tit-wrap .tit-optrow:hover { background:var(--tit-surface); }
+.tit-wrap .tit-optrow input { flex:none; width:16px; height:16px; margin:1px 0 0;
+  accent-color:var(--tit-blue); cursor:pointer; }
+.tit-wrap .tit-optrow input:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* Selection is fill AND weight, never colour alone, and the checkbox itself is
+   the primary signal in any case. */
+.tit-wrap .tit-optrow.is-on { background:var(--tit-blue-tint); }
+.tit-wrap .tit-optrow.is-on .tit-optrow-t { font-weight:650;
+  color:var(--tit-ink-blue); }
+.tit-optrow-t { min-width:0; }
+
+/* WITHOUT JAVASCRIPT the native select IS the control, and it already is one:
+   .tit-select-hidden is applied by pillify() at RUNTIME, so a page whose script
+   never ran never gets the class and keeps a working native multiple select.
+   That is precisely why the select is hidden by a JS-applied class rather than
+   by an attribute or a server-rendered class. Do not move this to the server.
+   The same reasoning covers the whole dropdown layer below: every part of it is
+   built by script, so a page whose script never ran shows the bar with plain
+   native controls in it and nothing missing. */
+.tit-wrap .tit-filters select[multiple] { width:100%; }
+
+/* --- THE DROPDOWN LAYER ---------------------------------------------------
+   A trigger that states its own name and how many of its options are on, and a
+   panel that exists only while it is open.
+
+   The positioning context is the field, so the panel hangs off the control it
+   belongs to and needs no measuring code. It is `position:absolute` rather than
+   the Popover API because a popover is in the top layer, outside the bar's
+   stacking context, and would then need its coordinates computed on scroll --
+   for a bar that is itself sticky that is a scroll listener we do not want. */
+.tit-filterbar .tit-dd { position:relative; }
+.tit-wrap .tit-dd-btn { display:flex; align-items:center; gap:6px; width:100%;
+  box-sizing:border-box; padding:5px 8px; border:1px solid var(--tit-line);
+  border-radius:8px; background:var(--tit-surface-1); color:var(--tit-fg);
+  font-family:inherit; font-size:13px; font-weight:500; line-height:1.3;
+  text-align:left; cursor:pointer; }
+.tit-wrap .tit-dd-btn:hover { border-color:var(--tit-blue); }
+.tit-wrap .tit-dd-btn:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+/* The name ellipsizes; the count and the caret never do, or a control with
+   three things chosen would hide the fact that anything is. */
+.tit-dd-btn-t { flex:1 1 auto; min-width:0; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.tit-dd-caret { flex:none; width:9px; height:9px; border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor; transform:translateY(-2px) rotate(45deg);
+  opacity:.55; }
+.tit-dd-btn[aria-expanded="true"] .tit-dd-caret {
+  transform:translateY(1px) rotate(225deg); }
+/* Selection is fill AND weight AND a printed number, never colour alone. */
+.tit-wrap .tit-dd-btn.is-on { border-color:var(--tit-blue);
+  background:var(--tit-blue-tint); font-weight:650; color:var(--tit-ink-blue); }
+.tit-dd-n { flex:none; min-width:18px; padding:0 5px; border-radius:9px;
+  background:var(--tit-blue); color:var(--tit-ink-invert); font-size:11px; font-weight:700;
+  line-height:18px; text-align:center; }
+/* On the bar a trigger is sized by its own text rather than stretched to a
+   cell, because the cells have no fixed width to stretch to. AFTER the base
+   rule and at the same specificity, which is what makes it win -- `.tit-wrap
+   .tit-dd-btn` above sets width:100% and an equally specific earlier rule would
+   simply lose. The ceiling stops a long group name taking a third of a row. */
+.tit-wrap .tit-filterbar .tit-dd-btn { width:auto; max-width:210px; }
+
+.tit-dd-panel { position:absolute; z-index:60; top:calc(100% + 4px); left:0;
+  min-width:100%; width:max-content; max-width:min(300px, calc(100vw - 24px));
+  box-sizing:border-box; border:1px solid var(--tit-line); border-radius:10px;
+  background:var(--tit-surface-1); box-shadow:var(--tit-shadow-pop); padding:4px; }
+/* Stated rather than relied on: `hidden` is a user agent rule and .tit-dd-panel
+   would otherwise be beaten by any author display. This is the bug that leaves
+   every panel on the page permanently open, and it looks like a layout fault
+   rather than a specificity one. */
+.tit-wrap .tit-dd-panel[hidden] { display:none; }
+/* A panel on the right-hand end of the bar would otherwise run off the page and
+   put a horizontal scrollbar on the body. Flipped by script, which is the only
+   thing that can know where the trigger actually sits. */
+.tit-dd-panel.is-flipped { left:auto; right:0; }
+/* Two panels hold inputs rather than a checkbox group, so they need the padding
+   the option rows provide for themselves. */
+.tit-dd-panel .tit-daterange { padding:6px; }
+.tit-dd-panel .tit-where-label { padding:8px 8px 0; }
+.tit-dd-panel .tit-basis-check { margin:0; padding:8px; }
+.tit-dd-panel .tit-where-label select { max-width:none; width:100%; }
+
+/* The visible field label becomes the trigger's own text, so the span is hidden
+   rather than removed -- the date range still names its group through it with
+   aria-labelledby, and an aria reference resolves to a hidden element.
+   Stated explicitly because `.tit-filterbar .tit-field-l` above sets `display:block`,
+   and an author rule beats the user agent's `[hidden]`. That is the same
+   specificity trap that once rendered an empty facet control as a blank box. */
+.tit-wrap .tit-field-l[hidden] { display:none; }
+
+/* The (i) sits in the bar head beside the title, not in the control flow.
+
+   ANCHORED TO THE HEAD, NOT TO THE <details>. Anchored to the details it starts
+   wherever that summary happens to sit -- x=104 on a 390px screen once the
+   Filters toggle is beside it -- and a 366px panel from there ends at 470,
+   which is 80px of the page hanging off the right edge. From the head's own
+   left edge it starts at the bar's gutter at every width.
+
+   AND HIDDEN WHEN THE DISCLOSURE IS CLOSED, EXPLICITLY. A closed <details>
+   hides its non-summary children through the UA's slot, and taking a child out
+   of flow with position:absolute escapes that: the panel rendered permanently,
+   over the controls, on a disclosure that said it was shut. It measured as two
+   overflowing elements at 390px, which is how it was caught rather than by
+   looking. */
+.tit-filterbar .tit-help { margin:0; }
+.tit-filterbar .tit-panel-head { position:relative; }
+.tit-filterbar .tit-help-b { position:absolute; z-index:60; left:0;
+  top:calc(100% + 6px);
+  width:min(420px, calc(100vw - 24px)); box-sizing:border-box; padding:12px 14px;
+  border:1px solid var(--tit-line); border-radius:10px; background:var(--tit-surface-1);
+  box-shadow:var(--tit-shadow-pop); max-width:none; }
+.tit-filterbar .tit-help:not([open]) .tit-help-b { display:none; }
+
+/* --- THE PHONE: one button, and a sheet in normal flow --------------------
+   Thirteen controls at 150px minimum is four rows on a 390px screen. A sticky
+   bar four rows tall pins most of the viewport under chrome, which is worse
+   than the sidebar it replaced. So below 900px the bar is its head only, and
+   the body opens beneath it.
+
+   The sheet is IN FLOW, not fixed: a fixed sheet on a phone either traps the
+   page scroll or floats over the rows it is filtering, and the jump bar already
+   occupies the fixed-position budget at the bottom of this page.
+
+   The bar also stops being sticky here. Two pinned bars fight -- the sibling
+   tracker recorded exactly that, and de-stickied one of them. */
+@media (max-width:899px){
+  .tit-filterbar { position:static; }
+  .tit-filterbar .tit-panel-t { display:none; }
+  .tit-filterbar:not(.is-open) .tit-panel-body { display:none; }
+  .tit-filterbar .tit-field, .tit-filterbar .tit-field--wide { max-width:none;
+    flex:1 1 220px; }
+  .tit-dd-panel { max-width:calc(100vw - 40px); }
+}
+/* The toggle is revealed by script; `hidden` in the markup is what a no-JS
+   reader keeps, and they keep the open bar with it. */
+.tit-wrap .tit-bar-toggle { display:inline-flex; align-items:center; gap:7px;
+  padding:7px 12px; border:1px solid var(--tit-line); border-radius:8px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; font-size:13.5px;
+  font-weight:650; cursor:pointer; }
+.tit-wrap .tit-bar-toggle[hidden] { display:none; }
+.tit-wrap .tit-bar-toggle:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+.tit-bar-n { min-width:18px; padding:0 5px; border-radius:9px;
+  background:var(--tit-blue); color:var(--tit-ink-invert); font-size:11px; font-weight:700;
+  line-height:18px; text-align:center; }
+.tit-wrap .tit-bar-n[hidden] { display:none; }
+@media (min-width:900px){
+  /* Never on a desktop, whatever script did: the bar is always open there. */
+  .tit-wrap .tit-bar-toggle { display:none; }
+}
+
+/* The 620-999px two-column grid that used to live here is GONE. It re-declared
+   `.tit-filters` as a grid at the width where the old sidebar wrapped into a
+   block, and a grid at any width now beats the `display:contents` above and
+   rebuilds the two containers this layout dissolves. The bar's own flex-wrap
+   already fills every width between 390px and 1340px without a breakpoint. */
+
+/* 390px: nothing here may scroll the body sideways, so every box is width-100%
+   and the option text wraps rather than the row scrolling. */
+@media (max-width:430px){
+  .tit-optbox { max-height:min(260px, 50vh); }
+  .tit-wrap .tit-optrow { font-size:13px; padding:8px; }
+}
+
+/* The quick views carry one count, on the one view narrow enough that its size
+   is part of what it means. See the $quick_views note in shortcodes.php. */
+/* NO margin-left. The separator is a real space in the markup now, because a
+   margin separates the two words for an eye and for nothing else: the
+   accessible name, the copied text and anything scraping the page all read
+   "Moves Headcount(1,869)". Putting the margin back re-doubles the gap. */
+.tit-qv-n { font-variant-numeric:tabular-nums; letter-spacing:0;
+  font-weight:700; color:var(--tit-mut); }
+.tit-wrap .tit-qv.is-on .tit-qv-n { color:inherit; }
+
+/* ===========================================================================
+   From the design proposal, translated into the family's own palette.
+   Three ideas survived its review: the pulsing live dot, the empty state
+   that states a policy instead of apologising, and the phone jump bar (its
+   bottom-sheet idea at a tenth of the cost). Everything else it proposed --
+   the cream ground, the navy header band, the serif display face, the
+   webfonts -- was rejected for fighting the sibling family or the no-CDN
+   rule. See the decision table in the commit message.
+   =========================================================================== */
+
+/* --- The live dot breathes -------------------------------------------------
+   "Live" is a claim about NOW, and a static dot makes it read like a printed
+   label. A slow pulse is the smallest possible way to say the page is being
+   kept, and anyone who asked for less motion gets the still dot back. */
+@keyframes tit-pulse { 0%,100%{opacity:1; transform:scale(1)}
+  50%{opacity:.45; transform:scale(.8)} }
+.tit-live-dot { animation:tit-pulse 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce){ .tit-live-dot { animation:none; } }
+
+/* --- The empty state -------------------------------------------------------
+   A one-line "nothing matches" in a seven-column table read as a rendering
+   fault. This reads as an answer: what happened, why it is deliberate, and
+   the way out. Centred in the space the rows would have filled so the page
+   does not collapse to a sliver when a filter combination returns nothing. */
+.tit-empty-tr td { padding:0; }
+.tit-table-empty { padding:34px 18px; text-align:center; }
+.tit-table-empty-h { margin:0 0 5px; font-size:18px; font-weight:700;
+  color:var(--tit-fg); }
+.tit-table-empty-p { margin:0 0 14px; font-size:14px; color:var(--tit-mut); }
+.tit-wrap .tit-empty-clear { padding:9px 16px; border:1px solid var(--tit-line);
+  border-radius:9px; background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit;
+  font-size:13.5px; font-weight:650; cursor:pointer; }
+.tit-wrap .tit-empty-clear:hover { border-color:var(--tit-blue);
+  color:var(--tit-blue); }
+.tit-wrap .tit-empty-clear:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+@media (max-width:860px){
+  /* Below the card breakpoint the row is a flex card; let the block span it. */
+  .tit-wrap .tit-table .tit-empty-tr td { flex:1 0 100%; }
+}
+
+/* --- The phone jump bar ----------------------------------------------------
+   Exists only below the full-bleed breakpoint, where the charts-first order
+   puts the filters several screens from a thumb. Fixed to the viewport, so
+   the wrap reserves its height underneath and the citation line can never be
+   trapped behind it. Two buttons, no sheet: the filters themselves stay the
+   one copy of the filter UI. */
+.tit-jump { display:none; }
+@media (max-width:700px){
+  .tit-jump { position:fixed; left:50%; transform:translateX(-50%);
+    bottom:calc(10px + env(safe-area-inset-bottom, 0px)); z-index:50;
+    display:flex; gap:8px; }
+  /* Reserve the bar's height only when the bar exists: it is built by
+     JavaScript, and a page without JavaScript should not carry blank space
+     for chrome it will never get. :has() is already load-bearing elsewhere
+     in this stylesheet, so it is safe to lean on here. */
+  #tit-dashboard:has(.tit-jump) { padding-bottom:74px; }
+}
+.tit-wrap .tit-jump-btn { display:inline-flex; align-items:center; gap:6px;
+  padding:10px 16px; border:1px solid var(--tit-line); border-radius:99px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; font-size:14px;
+  font-weight:650; line-height:1.2; cursor:pointer;
+  box-shadow:var(--tit-shadow-float); }
+/* The Filters button leads, in the family blue; selection state elsewhere
+   uses the same fill, so the bar speaks the page's existing language. */
+.tit-wrap .tit-jump-btn:first-child { background:var(--tit-blue);
+  border-color:var(--tit-blue); color:var(--tit-ink-invert); }
+.tit-wrap .tit-jump-btn:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+.tit-jump-n { font-size:12px; font-weight:700;
+  font-variant-numeric:tabular-nums; letter-spacing:0;
+  background:var(--tit-on-accent); border-radius:99px; padding:1px 7px; }
+
+/* --- Country, city and industry pages, and their directory -----------------
+   Almost nothing new: these pages reuse .tit-stats, .tit-callout, .tit-note,
+   .tit-pillars, .tit-timeline and .tit-cite exactly as the dashboard and the
+   employer profiles already use them. What is here is the handful of rules
+   those pages cannot borrow, and the list needs no media query beyond the grid
+   below: it is a flow layout that reflows by itself.
+
+   Nothing scrolls the page body sideways. The one wide thing a place page can
+   carry is a long employer name, and it wraps. */
+.tit-place h1 { font-size:32px; margin:6px 0 8px; color:var(--tit-fg); }
+.tit-wrap .tit-place-h2 { font-size:21px; margin:30px 0 8px; color:var(--tit-fg);
+  line-height:1.3; }
+/* The count beside a heading is subordinate to it, never the same weight. */
+.tit-wrap .tit-place-h2 .tit-place-n { font-size:14px; font-weight:500; }
+.tit-place .tit-span { font-size:14px; color:var(--tit-mut); margin:0 0 16px; }
+.tit-place .tit-h { font-size:18px; margin:8px 0 0; font-weight:600; }
+.tit-place .tit-rt { margin:7px 0 0; border-left:3px solid var(--tit-line);
+  padding-left:12px; }
+
+.tit-place-list { list-style:none; margin:0 0 8px; padding:0; }
+.tit-place-list li { display:flex; flex-wrap:wrap; align-items:baseline;
+  gap:4px 10px; padding:11px 0; border-bottom:1px solid var(--tit-line); }
+.tit-place-list li:last-child { border-bottom:0; }
+.tit-place-n { color:var(--tit-mut); font-size:13.5px;
+  font-variant-numeric:tabular-nums; }
+
+/* The directory's three lists are long and their items are short, so they read
+   as columns rather than as one tall stack. auto-fill, so the column count
+   follows the viewport with no breakpoint to keep in step. */
+@media (min-width:620px){
+  .tit-place-grid { display:grid; gap:0 26px;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); }
+}
+
+/* --- Cross-tracker pairs -------------------------------------------------
+   Hidden on the live page today: includes/cross_tracker.php ships disabled
+   because the employer matching across the two trackers is not good enough to
+   publish. The rules are here so that turning it on is a switch rather than a
+   design exercise, and so the section cannot arrive unstyled the way the
+   sources page once did. */
+.tit-cross-list { list-style: none; margin: 0; padding: 0; }
+.tit-cross-list li {
+  display: flex; flex-wrap: wrap; gap: .35rem .6rem; align-items: baseline;
+  padding: .7rem 0; border-bottom: 1px solid var(--tit-line);
+}
+.tit-cross-list li:last-child { border-bottom: 0; }
+.tit-cross-co { font-weight: 650; }
+.tit-cross-cut { color: var(--tit-cutting); }
+.tit-cross-hire { color: var(--tit-hiring); }
+/* Each part wraps as a unit rather than the row scrolling sideways: at 390px a
+   three-clause sentence has to become three lines, not a horizontal scrollbar. */
+@media (max-width: 560px) {
+  .tit-cross-list li { flex-direction: column; gap: .2rem; }
+}
+
+
+/* ===========================================================================
+   THE MATRIX ON A PHONE: one card per signal, no horizontal gesture.
+
+   Five columns (a label plus four periods) cannot fit 390px, so the table had
+   a `min-width:560px` inside an `overflow-x:auto` box. That stops the BODY
+   scrolling sideways, which is why it was done, and it is still the wrong
+   answer: the header rendered as "THIS WEEK | THIS M..." with a scrollbar under
+   it, and the matrix is the first thing on the page and the thing whose own
+   copy says "Click any number to filter the page". A promise you have to swipe
+   to reach is not one a reader will act on.
+
+   So below 860px each row becomes a card: the signal name as its heading, then
+   its four periods as label-and-number lines. Every cell is still the same
+   <button> with the same data-filter and data-since, so click-to-filter is
+   untouched -- this is a display change and nothing else.
+
+   TWO TRAPS, both of which the sibling documented and both of which are avoided
+   here rather than worked around:
+
+   1. The period label is REAL TEXT in the markup (.tit-cell-p, rendered by both
+      shortcodes.php and matrixHtml() in dashboard.js), not a CSS ::after
+      carrying a data attribute. `display:block` on a table drops the implicit
+      table roles, so the column header a sighted reader was getting from the
+      grid stops being announced at all; generated content cannot replace it,
+      because it is not in the accessibility tree in every engine and it is not
+      selectable or findable. On desktop the same span is hidden, where the
+      real <th> is doing the job.
+   2. Nothing here is keyed to nth-child. Column order is a property of the
+      periods array and would silently reassign every label the day a period is
+      added or reordered.
+   =========================================================================== */
+@media (max-width:860px){
+  /* No scroller, because there is nothing left to scroll. */
+  .tit-wrap .tit-matrix-scroll { overflow-x:visible; }
+  .tit-wrap .tit-matrix { min-width:0; display:block; }
+  /* The header row is redundant once each cell carries its own period label,
+     and it cannot be laid out as a row of a block table anyway. */
+  .tit-wrap .tit-matrix thead { display:none; }
+  .tit-wrap .tit-matrix tbody { display:block; }
+  .tit-wrap .tit-matrix-row { display:block; margin:0 0 10px;
+    border:1px solid var(--tit-line); border-radius:10px; background:var(--tit-surface-1);
+    overflow:hidden; }
+  .tit-wrap .tit-matrix-row > th[scope="row"] { display:block; width:auto;
+    padding:10px 12px; border:0; border-bottom:1px solid var(--tit-grid);
+    background:var(--tit-surface); font-size:14px; text-align:left; }
+  .tit-wrap .tit-matrix-row > td { display:block; padding:0; border:0;
+    border-top:1px solid var(--tit-grid); }
+  .tit-wrap .tit-matrix-row > td:first-of-type { border-top:0; }
+  /* The cell fills its line and states which period it is. The heat tint still
+     applies, so the visual read survives the reflow. */
+  .tit-wrap .tit-matrix .tit-cell { display:flex; align-items:center;
+    justify-content:space-between; gap:12px; width:100%; padding:9px 12px;
+    text-align:left; border-radius:0; }
+  .tit-wrap .tit-cell-p { display:inline; font-size:12px; font-weight:600;
+    color:var(--tit-mut); }
+}
+/* Desktop: the real <th> is the column header, so the in-cell label would be a
+   second copy of it in every cell. */
+.tit-cell-p { display:none; }
+
+/* ===========================================================================
+   THE THREE PARAGRAPHS UNDER THE MATRIX: one disclosure on a phone, open on
+   desktop.
+
+   All three are honesty surfaces and not one word of them is cut. They explain
+   what the columns count, that the rows overlap so the columns do not add up,
+   and that one row sums dollars while the rest count updates. On a 390px screen
+   they were roughly fifteen lines of prose between the reader and any content,
+   which is how a true statement ends up unread.
+
+   A native <details>, and the content is in the initial HTML either way: the
+   panels are rendered server-side and hidden with CSS, never fetched, so a
+   crawler and a reader with no JavaScript both get every word. `open` is set in
+   the markup and only REMOVED by the stylesheet below the breakpoint, which
+   means the desktop behaviour needs no script and the phone behaviour degrades
+   to an ordinary open block if the attribute rule ever fails.
+   =========================================================================== */
+/* ===========================================================================
+   COLOUR SCHEME: this page is light OR dark, and says which to the browser.
+
+   THIS IS THE PLACE THE OLD NOTE SAID TO REVISIT, AND IT HAS BEEN REVISITED.
+   It read `color-scheme: only light` with a hard white background, and the
+   reasoning behind that was sound for what it was fixing: the owner's dark
+   screenshot showed "Narrow It Down" almost invisible and the region note dark
+   grey on near black, because without a stated `color-scheme` a user agent in
+   dark mode is free to repaint form controls, scrollbars and any background we
+   did not set ourselves, and our own inked text ended up on surfaces the UA had
+   darkened underneath us. Opting out fixed that. It also ruled out, for good,
+   the thing a reader in a dark room actually wants.
+
+   What replaces it keeps every guarantee the opt-out was buying. `color-scheme`
+   is still STATED rather than implied: `light` in :root, `dark` in each of the
+   two dark blocks, so the UA is never guessing and never repainting a control
+   against us. The difference is that it is now told the truth in both
+   directions instead of one. And the tokens at the top of the file are the only
+   thing that had to change, which is exactly what the old note promised.
+
+   The background here is still stated rather than inherited, which was the
+   load-bearing half of the old rule. It is a token now, so it follows the
+   scheme instead of pinning it.
+   =========================================================================== */
+.tit-wrap, .tit-sources, .tit-company, .tit-corrections, .tit-recall {
+  background:var(--tit-ground);
+  color:var(--tit-fg);
+}
+/* Headings inside our subtree take the ink explicitly. .tit-sec h3 was styled
+   only for colour via a single-class rule and lost to a theme heading rule in
+   the dark scheme, which is why "Narrow It Down" went nearly invisible. */
+.tit-wrap .tit-sec h3, .tit-wrap .tit-chart-head h3, .tit-wrap .tit-hero h2 {
+  color:var(--tit-fg) !important;
+}
+.tit-wrap .tit-places-note, .tit-wrap .tit-board-note,
+.tit-wrap .tit-quick-hint {
+  color:var(--tit-mut) !important;
+}
+
+
+/* ===========================================================================
+   THE THREE-CARD PANEL: one bar pattern, and cards that end where their
+   content does.
+
+   The owner's verdict was "bad spacing", and the screenshot showed why.
+
+   1. TWO BAR LAYOUTS IN ONE PANEL. "What Is Moving" put the label and the
+      figure on a line ABOVE a full-width bar; the two cards beside it put
+      label, bar and figure on one line. Same panel, same data shape, two
+      components. The inline form is the better of the two and is what the design
+      mock uses, so the odd one out is converted -- IN CSS, not in markup.
+      `display:contents` on .tit-pillar-head promotes its two children into the
+      button's own grid, so name / bar / figure become three columns without
+      touching a single element or attribute. That matters because .tit-pillar is
+      the click-to-filter handler's selector: restructuring the markup would have
+      put a working control at risk to fix a visual inconsistency.
+
+   2. UNEQUAL DEAD SPACE. The grid stretched every card to the tallest, so a card
+      with four categories (and there are only ever four) carried ~200px of empty
+      paper. `align-items:start` lets each card end where its content does. A
+      short card is not a broken card; a short card padded out to match a long
+      one is.
+
+   3. INTROS OF THREE, FOUR AND FIVE LINES meant the bars began at a different
+      height in each card and nothing lined up across the panel. All six are one
+      line now, and the "Click a row to filter" every one of them ended with is
+      gone: the panel header already says "Click any row to narrow the whole page
+      to it", so it was printed seven times on one screen.
+
+   4. A HALF ROW AT THE SCROLL EDGE read as a rendering fault ("India" sliced
+      horizontally). The list still scrolls, because the owner asked for that and
+      a country list is long, but the edge now fades so a clipped row says "more
+      below" instead of looking broken.
+
+   5. THE TOOLBAR ICONS were heavier than the heading they sat beside and sat at
+      three different heights across the three cards. Aligned to the heading's
+      first line and quieted.
+   =========================================================================== */
+
+/* 1. One bar pattern. */
+.tit-wrap .tit-pillars { display:grid; gap:9px; }
+.tit-wrap .tit-pillar { display:grid; align-items:center; gap:4px 10px;
+  grid-template-columns:minmax(0,1fr) minmax(56px,90px) auto; }
+.tit-wrap .tit-pillar-head { display:contents; }
+.tit-wrap .tit-pillar-name { grid-column:1; margin:0; }
+.tit-wrap .tit-pillar .tit-filterbar { grid-column:2; margin:0; }
+.tit-wrap .tit-pillar-n { grid-column:3; text-align:right; }
+/* Where `display:contents` is unavailable the old stacked form is still legible,
+   so this degrades rather than breaks. */
+
+/* 2. Cards end where their content ends. */
+.tit-charts { align-items:start; }
+
+/* 3. The intro used to be capped at two lines here, because a longer sentence
+      on one card pushed its bars out of line with its neighbours'. There is no
+      intro in the head to cap now: every card's prose is in its (i) panel,
+      which is the same fix taken all the way. */
+
+/* 4. A fade at the scroll edge instead of a bisected row. */
+.tit-chart .tit-rank, .tit-chart .tit-pillars {
+  -webkit-mask-image:linear-gradient(to bottom, var(--tit-mask-ink) calc(100% - 18px), transparent);
+          mask-image:linear-gradient(to bottom, var(--tit-mask-ink) calc(100% - 18px), transparent); }
+/* No fade when there is nothing hidden: a list shorter than its box would get a
+   faded last row for no reason. :has() scopes it to the scrolling case only. */
+.tit-chart .tit-rank:not(:has(> :nth-child(6))),
+.tit-chart .tit-pillars:not(:has(> :nth-child(6))) {
+  -webkit-mask-image:none; mask-image:none; }
+
+/* 5. Quieter tools, aligned to the heading's first line. */
+.tit-chart-head { align-items:flex-start; }
+.tit-wrap .tit-chart-tools { align-items:flex-start; }
+.tit-wrap .tit-ctl { opacity:.55; }
+.tit-wrap .tit-ctl:hover, .tit-wrap .tit-ctl:focus-visible { opacity:1; }
+
+
+/* ===========================================================================
+   THE THREE ZONES (audience spec, 2026-08-02): controls, insight, updates.
+   One background tint per zone so the page reads as bands rather than as one
+   continuous scroll of equal-weight boxes. The controls band is a SHARED
+   CLASS on its elements rather than a wrapper, because the filter bar is
+   position:sticky and its sticking range is its parent; a wrapper ending at
+   the chips would stop it sticking right where the reader needs it most.
+   =========================================================================== */
+.tit-wrap .tit-quick.tit-zone-controls,
+.tit-wrap .tit-filterbar.tit-zone-controls,
+.tit-wrap .tit-active.tit-zone-controls {
+  background:var(--tit-zone-bg); border-color:var(--tit-zone-line);
+}
+.tit-wrap .tit-quick.tit-zone-controls { padding:10px 12px; margin:0 0 10px;
+  border:1px solid var(--tit-zone-line); border-radius:12px; }
+/* The chips keep their accent border inside the shared tint: they are the
+   live statement of state, and the tint is the zone. */
+.tit-wrap .tit-active.tit-zone-controls .tit-active-label { color:var(--tit-blue); }
+
+/* Insight zone: the page ground itself, white cards on it. No box of its
+   own on purpose: nine chart cards inside one more bordered box is a frame
+   around frames. */
+.tit-zone-insight { margin:0 0 26px; }
+
+/* Updates zone: one white band holding the sort bar, the cards and the
+   export, so the record reads as one object with its controls attached. */
+.tit-zone-updates { background:var(--tit-surface-1); border:1px solid var(--tit-line);
+  border-radius:14px; padding:14px 14px 10px; margin:0 0 22px; }
+.tit-zone-updates .tit-card { box-shadow:none; }
+@media (max-width:700px){ .tit-zone-updates { padding:8px 8px 6px; } }
+
+/* The question headings the chart groups sit under, the sibling's
+   "Where the cuts are / How it is trending" pattern ported here. */
+.tit-charts-h { margin:22px 0 10px; font-size:15.5px; font-weight:700;
+  color:var(--tit-fg); font-family:var(--tit-serif); letter-spacing:.01em; }
+.tit-charts-h:first-of-type { margin-top:14px; }
+
+/* Group grids: a lone card (the place ranking, the trend) takes the full
+   row; the four-card group is 2x2 rather than three-plus-an-orphan. */
+.tit-wrap .tit-charts--one { grid-template-columns:minmax(0,1fr); }
+@media (min-width:900px){ .tit-wrap .tit-charts--four { grid-template-columns:1fr 1fr; } }
+
+/* The shared caveat notes (About The Money Figures, About Job Board
+   Readings): native disclosures, closed by default, openable with no
+   JavaScript, every word in the initial HTML. */
+.tit-note-details { margin:0 0 12px; padding:8px 12px;
+  border:1px solid var(--tit-line); border-radius:10px;
+  background:var(--tit-surface); font-size:13px; color:var(--tit-mut); }
+.tit-note-details summary { cursor:pointer; font-weight:650; font-size:13px;
+  color:var(--tit-fg); }
+.tit-note-details summary:hover { color:var(--tit-blue); }
+.tit-note-details p { margin:8px 0 0; max-width:78ch; line-height:1.55; }
+.tit-note-details[open] { background:var(--tit-surface-1); }
+
+
+/* The trend plot filters on tap now (see the trend handler in dashboard.js),
+   so it advertises it the way every other chart row does. */
+.tit-wrap .tit-tc-box { cursor:pointer; }
+
+/* Columns of figures align on tabular numerals. Deliberately NOT applied to
+   standalone inline figures (see gotcha 14 in docs/HANDOVER.md: a lone "13"
+   at full advance width reads as "1 3"). */
+.tit-rank-n, .tit-pillar-n, .tit-matrix .tit-cell, .tit-tc-ys span {
+  font-variant-numeric:tabular-nums;
+}
+
+/* --- Watchlist (browser-local; injected after paint, so no rule here may
+   touch the card contract's own classes) --------------------------------- */
+.tit-wrap .tit-watch-star { display:inline-block; margin-left:6px; padding:0 4px;
+  border:0; background:none; cursor:pointer; font-size:15px; line-height:1;
+  color:var(--tit-mut); vertical-align:baseline; }
+.tit-wrap .tit-watch-star:hover { color:var(--tit-blue); }
+/* The starred state differs from the unstarred one by SHAPE first: the glyph is
+   filled rather than hollow (dashboard.js), which reads on a monochrome screen
+   and in print. The tinted pill here is a second, independent signal, so no
+   reader has to tell two shades apart to know which state they are in. */
+.tit-wrap .tit-watch-star.is-on { color:var(--tit-star); background:var(--tit-star-bg);
+  border-radius:5px; }
+
+/* The one-line explanation, on its own row under the chips. Full width so it
+   never squeezes between two buttons, and it carries no colour of its own: it
+   is the quick-strip hint style, which the zone rule above already sets. */
+.tit-wrap .tit-watch-hint { flex:1 0 100%; margin:1px 0 0; line-height:1.45; }
+.tit-wrap .tit-watch-short { font-weight:650; color:var(--tit-fg); }
+
+/* The star confirmation. It is ALWAYS in the DOM (an aria-live region that is
+   created on demand is one several screen readers never announce), so :empty
+   carries the whole cost of not being there: no box, no space, nothing. */
+.tit-wrap .tit-watch-toast { margin:0 0 10px; padding:7px 11px; font-size:13px;
+  color:var(--tit-toast-fg); background:var(--tit-toast-bg); border:1px solid var(--tit-toast-line); border-radius:8px;
+  opacity:0; transition:opacity .18s ease; }
+.tit-wrap .tit-watch-toast.is-on { opacity:1; }
+.tit-wrap .tit-watch-toast:empty { margin:0; padding:0; border:0; background:none; }
+@media (prefers-reduced-motion:reduce) {
+  /* The fade goes, the message does not. A reader who asks for no motion gets
+     the same sentence, at full opacity, immediately. */
+  .tit-wrap .tit-watch-toast { transition:none; }
+}
+.tit-wrap .tit-watch-star:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; border-radius:4px; }
+.tit-watch-new { margin-left:6px; padding:1px 7px; border-radius:999px;
+  background:var(--tit-blue); color:var(--tit-ink-invert); font-size:11px; font-weight:700; }
+.tit-watch-hide { display:none; }
+
+/* --- The card / table view toggle --------------------------------------- */
+.tit-viewtoggle { display:inline-flex; align-items:center; gap:6px;
+  margin-left:auto; }
+.tit-wrap .tit-vt { padding:5px 12px; border:1px solid var(--tit-line);
+  border-radius:8px; background:var(--tit-surface-1); font-size:13px; font-weight:650;
+  color:var(--tit-mut); cursor:pointer; }
+.tit-wrap .tit-vt:hover { border-color:var(--tit-blue); color:var(--tit-blue); }
+.tit-wrap .tit-vt.is-on { background:var(--tit-blue); border-color:var(--tit-blue);
+  color:var(--tit-ink-invert); }
+.tit-wrap .tit-vt:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:2px; }
+
+/* --- The compact updates table ------------------------------------------
+   Its own scroll container at EVERY width, deliberately not .tit-table-scroll:
+   that class drops its overflow below 860px for other pages' tables, and this
+   one must keep scrolling inside itself on a phone rather than bleeding the
+   page. The min-width lives on the table INSIDE the scroller, which is the
+   allowed place for one. */
+.tit-updates-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch;
+  border:1px solid var(--tit-line); border-radius:12px; background:var(--tit-surface-1);
+  margin:0 0 14px; }
+.tit-updates-scroll .tit-ut { min-width:880px; font-size:14px; }
+.tit-updates-scroll .tit-ut th, .tit-updates-scroll .tit-ut td {
+  padding:10px 12px; }
+.tit-ut-when { white-space:nowrap; font-variant-numeric:tabular-nums; }
+.tit-ut-emp { font-weight:650; }
+.tit-ut-signal { min-width:260px; }
+.tit-ut-amt { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tit-wrap .tit-ut th.tit-ts { padding:0; }
+.tit-wrap .tit-ut th.tit-ts button { display:flex; align-items:center; gap:5px;
+  width:100%; padding:10px 12px; border:0; background:none; cursor:pointer;
+  font:inherit; font-size:12.5px; font-weight:inherit; text-transform:inherit;
+  letter-spacing:inherit; color:inherit; text-align:left; }
+.tit-wrap .tit-ut th.tit-ts button:hover { color:var(--tit-blue); }
+.tit-wrap .tit-ut th.tit-ts button:focus-visible { outline:2px solid var(--tit-blue);
+  outline-offset:-2px; }
+.tit-ts-arrow { font-size:10px; }
+
+/* Below 860px the generic .tit-table rules stack every row into a card, which
+   is right for the pages that read narrow and WRONG for this one: the compact
+   table's whole contract is that it scrolls inside its own container at every
+   width, 375px included, and never stacks and never bleeds the page. These
+   put the table back to being a table inside its own scroller. */
+@media (max-width:860px){
+  .tit-updates-scroll { overflow-x:auto; border:1px solid var(--tit-line);
+    border-radius:12px; }
+  .tit-wrap .tit-updates-scroll .tit-ut { display:table; min-width:880px; }
+  .tit-updates-scroll .tit-ut thead { position:static; width:auto; height:auto;
+    overflow:visible; clip:auto; white-space:normal; }
+  .tit-updates-scroll .tit-ut tbody { display:table-row-group; }
+  .tit-updates-scroll .tit-ut tr { display:table-row; border:0; border-radius:0;
+    padding:0; margin:0; background:none; }
+  .tit-wrap .tit-updates-scroll .tit-ut td { display:table-cell;
+    border-bottom:1px solid var(--tit-line); padding:10px 12px; flex:none; }
+  .tit-updates-scroll .tit-ut tr:last-child td { border-bottom:0; }
+}
+
+/* ===========================================================================
+   THE PAGE GROUND, on our routes only.
+
+   The wrapper paints its own ground, but the theme paints the document behind
+   it and does not know about the scheme. Left alone, a dark dashboard sat in a
+   white page with a white margin around every edge, which is worse than either
+   scheme on its own. :has() keeps this to the pages this stylesheet is loaded
+   for, exactly as the overflow rules above do; every other page keeps whatever
+   the theme gives it.
+   =========================================================================== */
+html:has(#tit-dashboard), body:has(#tit-dashboard),
+html:has(.tit-main), body:has(.tit-main) {
+  background:var(--tit-ground);
+}
+
+/* ===========================================================================
+   THE TREND SERIES, DRAWN THROUGH TOKENS RATHER THAN INLINE ATTRIBUTES.
+
+   The plot is server-rendered PHP, and the server does not know which scheme
+   the reader is in -- it cannot, the choice lives in the browser. It used to
+   write `stroke="#1f7a4d"` straight onto each path from tit_trend_colours(),
+   which pins a light-mode hue into the markup, and the card is ALSO replaced
+   wholesale by dashboard.js on every filter change (trend_html from the same
+   server), so the wrong hue would have arrived twice.
+
+   Each series carries a CLASS instead and the value lives here. That fixes
+   first paint and the client-side swap in one move, with no theme knowledge on
+   the server and no second copy of the palette in the JavaScript. The light
+   values are the ones the function has always returned.
+   =========================================================================== */
+.tit-tc-s-hiring     { stroke:var(--tit-tc-hiring); }
+.tit-tc-s-funded     { stroke:var(--tit-tc-funded); }
+.tit-tc-s-leadership { stroke:var(--tit-tc-leadership); }
+.tit-tc-s-pay        { stroke:var(--tit-tc-pay); }
+.tit-tc-s-total      { stroke:var(--tit-tc-total); }
+/* The endpoint dots are a second SVG laid over the plot (see the note in
+   shortcodes.php about why), so they need the same hue as a fill. */
+.tit-tc-d-hiring     { fill:var(--tit-tc-hiring); }
+.tit-tc-d-funded     { fill:var(--tit-tc-funded); }
+.tit-tc-d-leadership { fill:var(--tit-tc-leadership); }
+.tit-tc-d-pay        { fill:var(--tit-tc-pay); }
+.tit-tc-d-total      { fill:var(--tit-tc-total); }
+/* And the legend swatch that names each line. */
+.tit-tc-w-hiring     { background:var(--tit-tc-hiring); }
+.tit-tc-w-funded     { background:var(--tit-tc-funded); }
+.tit-tc-w-leadership { background:var(--tit-tc-leadership); }
+.tit-tc-w-pay        { background:var(--tit-tc-pay); }
+.tit-tc-w-total      { background:var(--tit-tc-total); }
+
+/* ===========================================================================
+   THE THEME CONTROL.
+
+   THREE BUTTONS, NOT A SWITCH. "Follow my device" is a real answer and a
+   two-state switch cannot express it: a reader who has never touched the
+   control and a reader who chose light are in the same visual state and want
+   different things the day their phone flips to dark at sunset. Auto REMOVES
+   the attribute, which hands the decision back to prefers-color-scheme.
+
+   It is injected by dashboard.js into the container rather than written into
+   each template, so the dashboard and the recall page share one control and
+   there is no markup in two files to keep in step. Every button is a real
+   <button> with aria-pressed, so it is tab-reachable, announced and operable
+   with no role wiring of ours, and the group states the current theme in its
+   own accessible name.
+
+   IT IS THE LAST THING ALLOWED TO DISAPPEAR IN ANY THEME, and it was one of
+   the first. The control borrowed the general tokens: --tit-surface for the
+   well over a --tit-ground page, --tit-line for its edge, and for the three
+   buttons `border:0; background:none`, which is no boundary at all. Measured
+   in the dark scheme those are 1.19:1 for the well against the page and
+   1.56:1 for its edge, so in dark mode the whole control collapsed to three
+   floating words and one blue pill. Nothing was under the text bar, which is
+   why every check read green: the failure was 1.4.11, the boundary of the
+   component, and nothing was measuring that.
+
+   So the control now owns its colours (--tit-theme-*), and the boundary is
+   carried three times over rather than by one hairline: the well has a fill
+   AND an edge that clears 3:1 against the page ground and against the fill,
+   and every chip has a fill of its own AND an edge that clears 3:1 against
+   both the well and that fill. The edge may not be the only cue, because an
+   edge is exactly what vanished.
+
+   SELECTED IS NEVER COLOUR. It is a fill, a weight, aria-pressed, and a dot
+   that is present or absent. The dot's footprint is reserved in every state,
+   so pressing a button cannot reflow the group or change its width.
+   =========================================================================== */
+.tit-wrap .tit-theme-row { display:flex; justify-content:flex-end; margin:0 0 10px; }
+.tit-wrap .tit-theme { display:inline-flex; align-items:center; gap:3px; padding:3px;
+  border:1px solid var(--tit-theme-line); border-radius:99px;
+  background:var(--tit-theme-bg); }
+.tit-wrap .tit-theme-b { flex:none; padding:4px 11px;
+  border:1px solid var(--tit-theme-b-line);
+  border-radius:99px; background:var(--tit-theme-b-bg); color:var(--tit-theme-b-fg);
+  font-family:inherit; font-size:12.5px; font-weight:650; line-height:1.35;
+  cursor:pointer; transition:background-color .14s ease, color .14s ease; }
+.tit-wrap .tit-theme-b:hover { color:var(--tit-fg); }
+/* The shape cue. currentColor, so it is the label's own ink in every state and
+   can never be the one thing a reader cannot see. Reserved, never inserted:
+   the box is in the layout on all three buttons and only the paint changes. */
+.tit-wrap .tit-theme-b::before { content:""; display:inline-block;
+  width:7px; height:7px; margin-right:6px; border-radius:50%;
+  background:currentColor; opacity:0; }
+/* Pressed is a fill AND a weight AND a dot AND aria-pressed, never colour. */
+.tit-wrap .tit-theme-b[aria-pressed="true"] { background:var(--tit-theme-on-bg);
+  border-color:var(--tit-theme-on-bg);
+  color:var(--tit-theme-on-fg); font-weight:750; }
+.tit-wrap .tit-theme-b[aria-pressed="true"]::before { opacity:1; }
+.tit-wrap .tit-theme-b:focus-visible { outline:2px solid var(--tit-theme-focus);
+  outline-offset:2px; }
+/* The fade goes, the state does not. This is the only transition the control
+   has, so removing it leaves an instant, fully painted button. The dot is
+   deliberately not in it: an appearing state marker that fades is a state
+   marker that is briefly wrong, so it never animates for anybody. */
+@media (prefers-reduced-motion: reduce) {
+  .tit-wrap .tit-theme-b { transition:none; }
+}

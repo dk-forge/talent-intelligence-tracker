@@ -45,10 +45,18 @@ on:
       - backfill-funding-2026
       - backfill-funding-bulk
       - backfill-gdelt-2026
+      - backfill-gnews-2026
+      - backfill-press-2026
+      - backfill-structured-2026
+      - benchmark-diff
       - collect
       - collect national press
       - collect-structured
+      - correct-city-country
+      - correct-company-key
       - correct-form-d
+      - correct-form-d-overcount
+      - correct-funding-amount
       - correct-layoff-scope
       - correct-sec-pillar
       - enrich
@@ -164,7 +172,11 @@ jobs:
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
+          # `-A` on the deferral directory, because the tick DELETES the markers
+          # it has applied and a deletion that is never committed is a marker
+          # that re-applies on every tick forever.
           git add data/writer_queue.json
+          git add -A data/writer_deferrals 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Queue unchanged."
             exit 0
@@ -182,56 +194,171 @@ jobs:
           echo "::error::could not commit the writer queue after 5 attempts"
           exit 1
 
+      # THE DISPATCH MUST NEVER FAIL QUIETLY, AND IT DID.
+      #
+      # 2026-07-30T17:42Z: this step ran `gh api .../dispatches` under
+      # `set -euo pipefail`. The API answered
+      #     Unexpected inputs provided: ["slice"] (HTTP 422)
+      # because the ticket carried an input backfill-gdelt-2026.yml does not
+      # declare. `set -e` killed the step ON THAT LINE — so the verification
+      # loop below it never ran, the requeue below THAT never ran, and the
+      # ticket was left in state `dispatched` bound to a run that does not
+      # exist. Every tick for the next several hours then found zero tickets in
+      # state `queued`, emitted no plan, skipped this step and exited GREEN.
+      #
+      # Three things changed. The API call no longer runs under `set -e`, so
+      # its refusal is caught and recorded instead of aborting the step. A
+      # refusal on the INPUTS is permanent, so the ticket is marked failed
+      # rather than retried forever. And the queue write that records either
+      # outcome is pushed with the same retry loop as the main commit, because
+      # `git push || true` on a rejected push is another way to lose the record.
       - name: Dispatch it
         if: ${{ steps.tick.outputs.planned == '1' }}
         env:
           GH_TOKEN: ${{ secrets.WRITER_QUEUE_TOKEN || secrets.GITHUB_TOKEN }}
+          HAVE_PAT: ${{ secrets.WRITER_QUEUE_TOKEN != '' && 'yes' || 'no' }}
         run: |
           set -euo pipefail
+
+          # Record whatever we decided about the ticket, then go red. Shared by
+          # both failure paths so neither can forget to persist it.
+          # Written with `if` rather than `&&` on purpose: under `set -e` a
+          # failing left-hand side of `&&` aborts the whole step, which is the
+          # class of accident that lost the requeue in the first place.
+          record () {
+            git config user.name  'talent-intel-bot'
+            git config user.email 'bot@users.noreply.github.com'
+            git add data/writer_queue.json
+            if git diff --staged --quiet; then
+              echo "::warning::nothing to record for $1 — the queue did not change"
+              return 0
+            fi
+            git commit -q -m "queue: $1"
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                echo "Recorded: $1"
+                return 0
+              fi
+              git pull --rebase --autostash origin main || true
+              sleep $((attempt * 3))
+            done
+            echo "::error::could not push the queue after recording: $1"
+            return 1
+          }
+
           WF=$(python -c "import json;print(json.load(open('$RUNNER_TEMP/plan.json'))['workflow'])")
           TICKET=$(python -c "import json;print(json.load(open('$RUNNER_TEMP/plan.json'))['ticket'])")
           python -c "import json;d=json.load(open('$RUNNER_TEMP/plan.json'));print(json.dumps(d['body']))" \
             > "$RUNNER_TEMP/body.json"
 
-          echo "Dispatching $WF for ticket $TICKET"
+          echo "Dispatching $WF for ticket $TICKET (WRITER_QUEUE_TOKEN present: $HAVE_PAT)"
+          if [ "$HAVE_PAT" != "yes" ]; then
+            echo "::warning::WRITER_QUEUE_TOKEN is not set, so this dispatch uses the"
+            echo "::warning::default GITHUB_TOKEN, which GitHub forbids from creating"
+            echo "::warning::workflow runs in many configurations. If the dispatch is"
+            echo "::warning::refused below, that is the first thing to fix."
+          fi
+
+          # Run ids increase monotonically, so "did a NEW dispatch-triggered run
+          # appear for this workflow" is answerable exactly, without a time
+          # window that a scheduled run can wander into.
+          BEFORE=$(gh run list --workflow "$WF" -L 1 --json databaseId --jq '.[0].databaseId // 0')
+          # A non-numeric answer would make the jq comparison below nonsense and
+          # the `-gt` test noisy; 0 means "any new run counts", which is safe.
+          case "$BEFORE" in ''|*[!0-9]*) BEFORE=0 ;; esac
+
           # --input keeps the recorded inputs as JSON end to end; nothing from a
           # ticket is ever interpolated into a shell command.
-          gh api "repos/${{ github.repository }}/actions/workflows/$WF/dispatches" \
-            --input "$RUNNER_TEMP/body.json"
+          set +e
+          RESP=$(gh api "repos/${{ github.repository }}/actions/workflows/$WF/dispatches" \
+                   --input "$RUNNER_TEMP/body.json" 2>&1)
+          RC=$?
+          set -e
+
+          if [ "$RC" -ne 0 ]; then
+            echo "::error::the dispatch of $WF for ticket $TICKET was REFUSED"
+            echo "::error::(gh exit $RC). The API said: $RESP"
+            # A refusal about the inputs is deterministic: the same ticket will
+            # be refused identically on every future tick, so requeueing it is
+            # an infinite silent retry. Anything else (a token that may not
+            # create runs, a 5xx) is worth another go.
+            case "$RESP" in
+              *"Unexpected inputs"*|*"Required input"*|*"Invalid input"*|*"Unexpected input"*)
+                echo "::error::These inputs do not match what $WF declares under"
+                echo "::error::workflow_dispatch. Re-queue it with the declared names;"
+                echo "::error::writer_queue.py enqueue now refuses this at typing time."
+                python writer_queue.py dispatch-failed "$TICKET" --permanent \
+                  --note "API refused the inputs: $RESP"
+                record "$TICKET refused (bad inputs)"
+                ;;
+              *)
+                if [ "$HAVE_PAT" != "yes" ]; then
+                  echo "::error::No WRITER_QUEUE_TOKEN is set. Add a fine-grained PAT"
+                  echo "::error::with actions:write as that secret; the default"
+                  echo "::error::GITHUB_TOKEN cannot create workflow runs."
+                fi
+                python writer_queue.py dispatch-failed "$TICKET" \
+                  --note "dispatch refused: $RESP"
+                record "$TICKET requeued (dispatch refused)"
+                ;;
+            esac
+            exit 1
+          fi
 
           # VERIFY. `gh api` answering 204 is not proof a run exists, and a
           # dispatch that creates nothing would be silent in exactly the way
           # this workflow exists to prevent.
           for attempt in 1 2 3 4 5 6; do
             sleep 10
-            FOUND=$(gh run list --workflow "$WF" -L 5 \
-                      --json databaseId,createdAt --jq 'length')
-            RECENT=$(gh run list --workflow "$WF" -L 5 --json createdAt,status \
-                      --jq "[.[] | select(.createdAt > \"$(date -u -d '3 minutes ago' +%Y-%m-%dT%H:%M:%SZ)\")] | length")
-            if [ "${RECENT:-0}" -gt 0 ]; then
+            NEW=$(gh run list --workflow "$WF" -L 10 --json databaseId,event \
+                    --jq "[.[] | select(.databaseId > $BEFORE) | select(.event==\"workflow_dispatch\")] | length")
+            if [ "${NEW:-0}" -gt 0 ]; then
               echo "Run created for $WF."
               exit 0
             fi
-            echo "No run yet for $WF (attempt $attempt, $FOUND recent runs listed)."
+            echo "No run yet for $WF (attempt $attempt; newest before dispatch was $BEFORE)."
           done
 
-          echo "::error::dispatched $WF but no run appeared. If GH_TOKEN is the"
-          echo "::error::default GITHUB_TOKEN and the repository forbids it from"
-          echo "::error::creating runs, add a fine-grained PAT with actions:write"
-          echo "::error::as the WRITER_QUEUE_TOKEN secret. Ticket $TICKET is going"
-          echo "::error::back in the queue, not being dropped."
-          python writer_queue.py requeue "$TICKET" --note "dispatch created no run"
-          git add data/writer_queue.json
-          git commit -q -m "queue: requeue $TICKET (dispatch created no run)" || true
-          git pull --rebase --autostash origin main || true
-          git push || true
+          echo "::error::dispatched $WF and the API accepted it, but no run ever"
+          echo "::error::appeared. If GH_TOKEN is the default GITHUB_TOKEN and the"
+          echo "::error::repository forbids it from creating runs, add a fine-grained"
+          echo "::error::PAT with actions:write as the WRITER_QUEUE_TOKEN secret."
+          echo "::error::(WRITER_QUEUE_TOKEN present: $HAVE_PAT.) Ticket $TICKET is"
+          echo "::error::going back in the queue, not being dropped — and the second"
+          echo "::error::time this happens to it, the queue reports it as a problem."
+          python writer_queue.py dispatch-failed "$TICKET" \
+            --note "accepted by the API but no run appeared"
+          record "$TICKET requeued (dispatch created no run)"
           exit 1
 
       # Last, so the queue is always committed and the dispatch always
       # attempted before the run is allowed to go red.
-      - name: Fail loudly if anything needs a human
+      #
+      # WHAT COUNTS AS "NEEDS A HUMAN" (2026-08-06). Exactly the set
+      # `writer_queue.summary()` puts in `problems`: unacknowledged failed and
+      # abandoned tickets whose chain did not recover on its own, tickets stuck
+      # past STUCK_AFTER_HOURS, a dispatch that produced no run twice, an
+      # unresolved orphan, the idle stall — and a `deferred` ticket ONLY once
+      # the allowance it was waiting on has reset and the grace has passed.
+      #
+      # `deferred` is deliberately NOT in that set the rest of the time. A run
+      # that stopped because the monthly spend allowance was exhausted did no
+      # work and broke nothing; filing it `failed` is what made one budget event
+      # produce two red workflows and two emails on 2026-08-06. The ticket stays
+      # visible in `writer_queue.py status` and in ops_status [2b] throughout —
+      # it is excluded from RED, not from sight.
+      #
+      # rc=2 means a NEW needs-human item (or one ignored for RE_RED_HOURS) —
+      # red once per item, not once per tick. An item already reported on an
+      # earlier tick keeps the tick GREEN and is printed as a warning instead:
+      # it stays listed in `writer_queue.py status` and ops_status [2b] until a
+      # human acknowledges or resolves it. 2026-07-26..08-02 the old
+      # every-tick red produced 180 red runs (one GitHub failure email each)
+      # for a handful of causes; writer_queue.select_red is the fix and
+      # tests/test_writer_queue.py pins it.
+      - name: Fail loudly if anything NEW needs a human
         if: ${{ always() && steps.tick.outputs.rc != '0' }}
         run: |
-          echo "::error::the writer queue has items that need a human — see the"
+          echo "::error::the writer queue has NEW items that need a human — see the"
           echo "::error::reconcile step above, or run: python writer_queue.py status"
           exit 1

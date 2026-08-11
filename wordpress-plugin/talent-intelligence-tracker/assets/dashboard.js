@@ -1,3 +1,88 @@
+/* THE THEME CONTROL.
+
+   FIRST, AND IN ITS OWN FUNCTION, because the dashboard's own script below
+   returns immediately when #tit-dashboard is absent -- and the recall page is
+   exactly that case. A control built inside that function would exist on one
+   of the two pages this file loads on. Nothing here reads TIT, the API or any
+   dashboard element, so it has nothing to wait for either.
+
+   THE ATTRIBUTE IS ALREADY SET BY THE TIME THIS RUNS. tit_theme_head() in
+   includes/page.php stamps <html data-theme> from localStorage before first
+   paint; this file is deferred and arrives long after. So this never has to
+   apply the stored theme on load, only to READ it back, light the right
+   button, and write both when the reader presses one. The two must not both
+   claim to be the loader, or a reader on auto gets one of them guessing.
+
+   "auto" is the ABSENCE of the attribute rather than a value of it, which is
+   what makes it real: with nothing on <html>, the prefers-color-scheme block
+   in dashboard.css governs, and the page follows the device from then on,
+   including when the device flips at sunset with the tab still open. */
+
+(function () {
+  'use strict';
+
+  var host = document.querySelector('#tit-dashboard, #tit-recall');
+  if (!host) return;
+
+  var KEY = 'tit-theme';
+  var MODES = ['light', 'dark', 'auto'];
+  var LABELS = { light: 'Light', dark: 'Dark', auto: 'Auto' };
+
+  // Storage is a preference, never a requirement. Private windows, a full
+  // quota and a browser with storage switched off all throw on the plain call,
+  // and none of them is a reason for the control to stop working for the rest
+  // of the page's life: without storage the choice simply lasts one page.
+  function read() {
+    try {
+      var v = localStorage.getItem(KEY);
+      return MODES.indexOf(v) > -1 ? v : 'auto';
+    } catch (e) { return 'auto'; }
+  }
+  function write(mode) {
+    try { localStorage.setItem(KEY, mode); } catch (e) { /* the choice lasts one page */ }
+  }
+
+  var row = document.createElement('div');
+  row.className = 'tit-theme-row';
+  var group = document.createElement('div');
+  group.className = 'tit-theme';
+  group.setAttribute('role', 'group');
+  row.appendChild(group);
+
+  var buttons = {};
+  MODES.forEach(function (mode) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tit-theme-b';
+    b.textContent = LABELS[mode];
+    // A real button with aria-pressed: tab-reachable, announced as a toggle,
+    // and operable by Space and Enter with no key handling of ours.
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () { apply(mode, true); });
+    buttons[mode] = b;
+    group.appendChild(b);
+  });
+
+  function apply(mode, persist) {
+    if (MODES.indexOf(mode) < 0) mode = 'auto';
+    if (mode === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', mode);
+    }
+    MODES.forEach(function (m) {
+      buttons[m].setAttribute('aria-pressed', m === mode ? 'true' : 'false');
+    });
+    // The group names its own current state, so a screen reader landing on the
+    // control is told what the page is set to before reading three buttons.
+    group.setAttribute('aria-label', 'Colour theme: ' + mode);
+    if (persist) write(mode);
+  }
+
+  apply(read(), false);
+  host.insertBefore(row, host.firstChild);
+})();
+
 /* Filters talk to talent/v1/query. The table is already server-rendered, so
    this only ever replaces rows that are already there. If the API is
    unreachable the page keeps working with what the server sent. */
@@ -15,11 +100,30 @@
   // Bailing on that read is what made every control on the live page inert.
   var TIT = window.TIT;
   if (!TIT || !TIT.api) {
-    TIT = { api: root.getAttribute('data-api') || '', countries: {} };
+    TIT = { api: root.getAttribute('data-api') || '', countries: {}, states: {} };
     try {
       TIT.countries = JSON.parse(root.getAttribute('data-countries') || '{}');
     } catch (e) { /* names degrade to the raw country codes */ }
+    try {
+      TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
+    } catch (e) { /* names degrade to the raw postal codes */ }
   }
+  // The localized object may predate this attribute by one deploy.
+  if (!TIT.states) {
+    try {
+      TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
+    } catch (e) { TIT.states = {}; }
+  }
+  // The pending-archive note, composed by the SERVER (the collectors the
+  // schedule covers, plus the finished sentence with its derived next-check
+  // date). This script only ever prints it, so a repaint is byte-identical to
+  // the first paint and the date has exactly one derivation. Absent attribute
+  // means no promise file on the server, and then no note is rendered at all.
+  var ARCHIVE_NOTE = null;
+  try {
+    ARCHIVE_NOTE = JSON.parse(root.getAttribute('data-archive-note') || 'null');
+  } catch (e) { ARCHIVE_NOTE = null; }
+  if (!ARCHIVE_NOTE || !ARCHIVE_NOTE.text || !ARCHIVE_NOTE.collectors) ARCHIVE_NOTE = null;
   if (!TIT.api) return;
 
   var tbody = document.getElementById('tit-rows');
@@ -75,24 +179,44 @@
     work_mode: 'Work Setup', deal_type: 'Deal Type', site_event: 'Site Change',
     confidence: 'Evidence', country_basis: 'Places', company: 'Employer',
     min_funding_usd: 'Amount Raised', funding_stage: 'Funding Stage',
-    q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View'
+    q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View',
+    // The period shorthand's chips. year/quarter/month are not API parameters:
+    // the selects write real dates into since/until, and when the window
+    // exactly spans a period the chips name the period instead of two raw
+    // dates, because "Year: 2026" is what the reader chose.
+    year: 'Year', quarter: 'Quarter', month: 'Month'
   };
 
   // Saved views that no longer have a button of their own but can still be
   // switched on (by a matrix cell, or by a shared link).
   var QV_LABEL = { 'funding=1': 'Funding updates' };
 
+  // "Educational Institution", not "Education". The bare word also names an
+  // INDUSTRY in the panel above, so the same string appeared in two groups
+  // meaning two different things: the sector an employer trades in, and the
+  // kind of organisation it is. A university filing a pay-gap return is an
+  // educational institution; an ed-tech startup is in the education industry
+  // and is a Startup. The stored value (`education` in
+  // pipeline/vocab.EMPLOYER_TYPES) is untouched.
   var EMPLOYER_TYPE_LABEL = {
     'public': 'Public Company', 'private': 'Private Company', startup: 'Startup',
-    government: 'Government', nonprofit: 'Nonprofit', education: 'Education'
+    government: 'Government', nonprofit: 'Nonprofit',
+    education: 'Educational Institution'
   };
   var WORK_MODE_LABEL = {
     remote: 'Remote', hybrid: 'Hybrid', onsite: 'Onsite',
     rto_mandate: 'Return To Office', flexible: 'Flexible'
   };
+  // "Initial Public Offering" spelled out, because "IPO" is ALSO a funding
+  // stage in the panel above and the two groups sat one above the other
+  // offering the identical three letters. They are genuinely different
+  // questions -- Funding Stage asks what round this was, Deal Type asks what
+  // kind of transaction it was -- so the fix is to say the deal one at length
+  // rather than to drop either. Stored value (`ipo`) unchanged.
   var DEAL_TYPE_LABEL = {
     acquisition: 'Acquisition', acquired: 'Acquired', merger: 'Merger',
-    divestiture: 'Divestiture', joint_venture: 'Joint Venture', ipo: 'IPO'
+    divestiture: 'Divestiture', joint_venture: 'Joint Venture',
+    ipo: 'Initial Public Offering'
   };
 
   // What an employer did with a place of work. "Announced" is its own value
@@ -105,9 +229,9 @@
 
   // Round names as a reader says them. Mirrors tit_funding_stage_labels().
   var STAGE_LABEL = {
-    pre_seed: 'Pre-seed', seed: 'Seed', series_a: 'Series A',
+    pre_seed: 'Pre-Seed', seed: 'Seed', series_a: 'Series A',
     series_b: 'Series B', series_c: 'Series C',
-    series_d_plus: 'Series D or later', growth: 'Growth', debt: 'Debt',
+    series_d_plus: 'Series D or Later', growth: 'Growth', debt: 'Debt',
     grant: 'Grant', ipo: 'IPO', other: 'Other'
   };
 
@@ -115,34 +239,64 @@
   // reported, rumored) are our vocabulary: "verified" reads as a badge we
   // awarded rather than a statement about the source.
   var CONFIDENCE_LABEL = {
-    verified: 'Official filing',
-    reported: 'News report',
+    verified: 'Official Filing',
+    reported: 'News Report',
     rumored: 'Unconfirmed'
   };
 
+  // Mirrors the `tit-{signal_direction}` class tit_card_html() prints. `neutral`
+  // was missing and fell through to the bare tag, which put a different class on
+  // a repainted card than on the one the server sent.
   var DIRECTION_CLASS = {
     hiring: 'tit-hiring',
     displacement: 'tit-displacement',
-    comp_shift: 'tit-comp_shift'
+    comp_shift: 'tit-comp_shift',
+    neutral: 'tit-neutral'
   };
 
   // Recruiter language. Colour never carries the meaning on its own, so the
   // words have to be right.
+  // MIRRORS $directions IN shortcodes.php AND MUST STAY IDENTICAL TO IT. The
+  // server prints these on the first paint and this map reprints them on every
+  // repaint, so a divergence shows up as a label that changes the first time a
+  // reader touches a filter. See the one-vocabulary note beside $labels there
+  // for why "Adding Roles" replaced "Hiring up".
   var DIRECTION_LABEL = {
-    hiring: 'Hiring up',
-    displacement: 'Cutting back',
-    comp_shift: 'Pay change',
+    hiring: 'Adding Roles',
+    displacement: 'Cutting Roles',
+    comp_shift: 'Pay Change',
     // Matches the PHP label. This bucket is "the source says nothing about
     // headcount" (a funding round with no hiring plan, a CEO succession), not
     // a vague other-category, and naming it that way is truer to the rule that
     // we never infer a direction the source did not state.
-    neutral: 'Headcount not stated'
+    neutral: 'Headcount Not Stated'
   };
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
+  }
+
+  // esc() for an href is entity escaping, and entity escaping does not make a
+  // URL safe: `javascript:alert(1)` contains no character esc() touches, so it
+  // survives intact and the browser runs it on click. The SERVER paint of the
+  // same links uses esc_url(), which enforces a scheme allowlist, so a poisoned
+  // source_url was inert on first paint and live the moment a filter change
+  // repainted the card in JS. Two paints of one field disagreeing about what is
+  // safe is the defect; this is the client half agreeing with esc_url.
+  //
+  // Returns '' for anything that is not http(s), and the callers drop the
+  // anchor entirely rather than render a dead one. Defence in depth: every
+  // source_url is validated on the way in and this is a page the server also
+  // renders. Depth is the point.
+  function escUrl(value) {
+    var raw = String(value == null ? '' : value).trim();
+    // Strip the control characters a URL may not contain but a string may:
+    // "java\tscript:" is parsed as "javascript:" by browsers.
+    var probe = raw.replace(/[\u0000-\u0020\u007f]/g, '').toLowerCase();
+    if (!/^https?:\/\//.test(probe)) return '';
+    return esc(raw);
   }
 
   function populateFacets() {
@@ -156,7 +310,7 @@
         // codes, and a dropdown reading "AE, AR, AT" asks the reader to know
         // the codebook before they can pick a country.
         fill(inputs.country, data.countries, true);
-        fill(inputs.state, data.states);
+        fill(inputs.state, data.states, false, TIT.states);
         fill(inputs.city, data.cities);
         // Only the rounds we actually hold, so the control cannot offer a
         // stage that returns an empty page.
@@ -166,7 +320,6 @@
         fillFacetControl('deal_type', data.deal_types, DEAL_TYPE_LABEL);
         fillFacetControl('site_event', data.site_events, SITE_EVENT_LABEL);
         fillPlaces(data);
-        syncMore();
       })
       .catch(function () { /* filters degrade to what the server rendered */ });
   }
@@ -211,7 +364,9 @@
         var flag = countryFlag(v);
         return { v: v, l: countryLabel(v), t: (flag ? flag + ' ' : '') + countryLabel(v) };
       }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
-      ['US states', 'state', (data.states || []).map(function (v) { return { v: v, l: v }; })],
+      ['US states', 'state', (data.states || []).map(function (v) {
+        return { v: v, l: stateLabel(v) };
+      }).sort(function (a, b) { return a.l.localeCompare(b.l); })],
       ['Cities', 'city', (data.cities || []).map(function (v) { return { v: v, l: v }; })]
     ];
     groups.forEach(function (g) {
@@ -237,10 +392,15 @@
   // said out loud when there is not one. Parsed by hand from YYYY-MM-DD rather
   // than through Date(), which reads a bare date as UTC midnight and can show
   // the previous day to anyone west of Greenwich.
+  // A real <time datetime> when there is a date, and the shared not-stated
+  // string wrapped in the contract's card-nowhere class when there is not.
+  // Mirrors tit_card_html() in shortcodes.php.
   function whenCell(r) {
-    var d = (r.published_date || '').slice(0, 10).split('-');
-    if (d.length !== 3) return '<span class="tit-nowhere">Date not stated</span>';
-    return esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]);
+    var iso = (r.published_date || '').slice(0, 10);
+    var d = iso.split('-');
+    if (d.length !== 3) return '<span class="tit-card-when tit-card-nowhere">Date not stated</span>';
+    return '<time class="tit-card-when" datetime="' + esc(iso) + '">' +
+      esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]) + '</time>';
   }
 
   // The archived copy, and only ever as a SECOND link beside the publisher's
@@ -250,14 +410,74 @@
   // snapshot keeps the evidence reachable without ever replacing the citation.
   // Must render identically to shortcodes.php, or a filtered row would differ
   // from the row it replaced.
-  function archivedLink(r) {
-    if (!r.archive_url) return '';
-    return '<span class="tit-archived"> · <a href="' + esc(r.archive_url) +
-      '" rel="nofollow noopener" target="_blank" title="A copy saved by the ' +
-      'Internet Archive, for when the publisher\'s own page has moved or gone">archived</a></span>';
+  // Three states, mirroring tit_archive_note_html(): the link where a snapshot
+  // exists; on a publisher-sourced row without one, the server-composed
+  // pending sentence with its derived next-check date (ARCHIVE_NOTE, printed
+  // verbatim so both paints agree); nothing on rows whose documents a
+  // government already preserves, because promising those a re-check the
+  // schedule never makes would be a false sentence. Still never a dead link.
+  // The middot before either is a CSS ::before rather than a text node here,
+  // so it cannot wrap to the start of a line in the card layout.
+  // The one place a source link becomes an anchor. Two call sites painted this
+  // by hand and both used esc(); a single definition is what stops the next
+  // one from doing it a third way. A row whose URL fails the scheme check
+  // still shows its publisher, as plain text: dropping the name would hide
+  // that we hold the record at all, which is a worse answer than a dead link.
+  function srcAnchor(r) {
+    var href = escUrl(r.source_url);
+    var name = esc(r.source_name);
+    if (!href) return '<span class="tit-card-src-name">' + name + '</span>';
+    return '<a href="' + href + '" rel="nofollow noopener" target="_blank">' +
+      name + '</a>';
   }
 
-  function renderRow(r) {
+  function archivedLink(r) {
+    if (!r.archive_url) {
+      if (ARCHIVE_NOTE && r.collector &&
+          ARCHIVE_NOTE.collectors.indexOf(r.collector) !== -1) {
+        return '<span class="tit-archive-wait">' + esc(ARCHIVE_NOTE.text) + '</span>';
+      }
+      return '';
+    }
+    var archiveHref = escUrl(r.archive_url);
+    if (!archiveHref) return '';
+    return '<span class="tit-archived"><a href="' + archiveHref +
+      '" rel="nofollow noopener" target="_blank" ' +
+      'title="Archived copy at the Internet Archive">Archived</a></span>';
+  }
+
+  // Read-throughs the board collector stamps VERBATIM on every row it emits.
+  // The page explains the category once (the About Job Board Readings note
+  // over the cards); a card whose read-through is one of these prints only its
+  // fact. EXACT match, whole string, so anything the model wrote about one
+  // record renders untouched. MIRRORS tit_boilerplate_readthroughs() in
+  // shortcodes.php character for character; collectors/ats_boards.py is the
+  // source of both strings.
+  var BOILERPLATE_RT = [
+    'A board that grows week on week is the earliest public evidence ' +
+    'of hiring intent an employer produces: it moves before any ' +
+    'announcement and before any filing. Treat the direction as the ' +
+    'signal and the exact count as approximate, since roles are ' +
+    'reposted, split across locations and withdrawn without notice.',
+    'Advertised bands move before published pay data does, because ' +
+    'they are set by what an employer thinks it must offer to fill ' +
+    'a role today. Read the direction across postings rather than ' +
+    'any one band, and remember this is the ask, not the settlement.'
+  ];
+
+  // ONE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.
+  //
+  // This MUST produce the same markup tit_card_html() produces in
+  // shortcodes.php, or a filtered card would lay out differently from the card
+  // it replaced, and the same shape the sibling AI Layoff Tracker renders:
+  // same regions, same class suffixes, same badge order, same four direction
+  // words. tests/test_card_contract.py pins all of it.
+  //
+  // Reading order, and it is the order a person needs:
+  //   rail  who they are, what sector, where
+  //   body  what kind of move (direction, evidence, amount), the fact, our read
+  //   foot  when, and the document it came from
+  function renderCard(r) {
     // Fall back to headquarters when the source named no place, and say so.
     var isHq = !r.city && !r.country;
     var place = r.city || r.hq_city || '';
@@ -265,28 +485,54 @@
     var country = countryLabel(code);
     var where = esc([place, country].filter(Boolean).join(', '));
     if (!where) {
-      where = '<span class="tit-nowhere">Location not stated</span>';
+      where = '<span class="tit-card-nowhere">Location not stated</span>';
     } else if (isHq) {
       where += ' <span class="tit-hq" title="Employer headquarters, not a location named in the source">HQ</span>';
     }
 
-    // data-label mirrors the header text. Below the table breakpoint each row
-    // becomes a card and the labels are the only thing naming the fields.
-    // The classes here must match what shortcodes.php renders, or a filtered
-    // row would lay out differently from the row it replaced.
-    return '<tr>' +
-      '<td class="tit-eyebrow" data-label="Employer">' + esc(r.company) + '</td>' +
-      '<td class="tit-headline" data-label="What happened"><span class="tit-h">' + esc(r.headline) + '</span>' +
-      '<span class="tit-rt">' + esc(r.talent_readthrough) + '</span></td>' +
-      '<td class="tit-meta" data-label="Where">' + where + '</td>' +
-      '<td class="tit-meta" data-label="What it means"><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || '') + '">' +
-        esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
-      '<td class="tit-meta" data-label="Evidence"><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
-        esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
-      '<td class="tit-meta tit-when" data-label="When">' + whenCell(r) + '</td>' +
-      '<td class="tit-meta" data-label="Source"><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">' +
-        esc(r.source_name) + '</a>' + archivedLink(r) + '</td>' +
-      '</tr>';
+    // Omitted entirely when the record carries none. Never an empty line and
+    // never a placeholder: the contract asks for the field to be absent.
+    var industry = r.industry
+      ? '<span class="tit-card-industry">' + esc(INDUSTRY_LABEL[r.industry] || r.industry) + '</span>'
+      : '';
+
+    // Badge three, and ONLY when there is an amount. There is no "no funding
+    // stated" pill: the direction badge already says what the source did and
+    // did not tell us, and a second badge repeating it was the duplicate the
+    // shared contract removed. Real text for the unit, never a CSS ::after: a
+    // bare "$12M" tells a screen reader nothing about what was raised.
+    var usd = Number(r.funding_amount_usd || 0);
+    var amount = usd > 0
+      ? '<span class="tit-card-amt">' + esc(moneyShort(usd)) +
+        '<span class="tit-card-amt-unit"> raised</span></span>'
+      : '';
+
+    return '<li class="tit-card">' +
+      '<div class="tit-card-rail">' +
+        '<span class="tit-card-employer">' + esc(r.company) + '</span>' +
+        industry +
+        '<span class="tit-card-where">' + where + '</span>' +
+      '</div>' +
+      '<div class="tit-card-body">' +
+        // Contract badge order: direction, evidence, amount.
+        '<div class="tit-card-badges">' +
+          '<span class="tit-card-dir tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || 'tit-neutral') + '">' +
+            esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span>' +
+          '<span class="tit-card-ev tit-conf tit-c-' + esc(r.confidence) + '">' +
+            esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span>' +
+          amount +
+        '</div>' +
+        '<span class="tit-card-h tit-h">' + esc(r.headline) + '</span>' +
+        (r.talent_readthrough &&
+         BOILERPLATE_RT.indexOf(String(r.talent_readthrough).trim()) === -1
+          ? '<p class="tit-card-rt tit-rt">' + esc(r.talent_readthrough) + '</p>' : '') +
+        '<div class="tit-card-foot">' +
+          whenCell(r) +
+          '<span class="tit-card-src">' + srcAnchor(r) +
+            archivedLink(r) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '</li>';
   }
 
   // --- The rest of the page follows the filters -----------------------------
@@ -295,25 +541,27 @@
   // showed one region. The page implied the filter applied to everything, and
   // that implication is exactly what a dashboard must not get wrong.
 
+  // Mirrors $labels in shortcodes.php. Keep identical: see the one-vocabulary
+  // note there. Display only -- every chart row carries its key on data-k.
   var PILLAR_LABEL = {
-    company_development: 'Growing and expanding',
-    leadership_change: 'Leadership moves',
-    rewards_comp: 'Pay and benefits',
-    how_we_work: 'Ways of working'
+    company_development: 'Growing and Expanding',
+    leadership_change: 'Leadership Moves',
+    rewards_comp: 'Pay and Benefits',
+    how_we_work: 'Ways of Working'
   };
 
   var INDUSTRY_LABEL = {
-    technology: 'Technology', financial_services: 'Financial services',
-    healthcare: 'Healthcare', pharma_biotech: 'Pharma & biotech',
-    retail_ecommerce: 'Retail & e-commerce', manufacturing: 'Manufacturing',
-    energy_utilities: 'Energy & utilities', telecom: 'Telecom',
-    media_entertainment: 'Media & entertainment',
-    transport_logistics: 'Transport & logistics',
-    professional_services: 'Professional services',
-    public_sector: 'Public sector', hospitality_travel: 'Hospitality & travel',
-    education: 'Education', food_beverage: 'Food & beverage',
-    automotive: 'Automotive', aerospace_defence: 'Aerospace & defence',
-    real_estate_construction: 'Real estate & construction'
+    technology: 'Technology', financial_services: 'Financial Services',
+    healthcare: 'Healthcare', pharma_biotech: 'Pharma & Biotech',
+    retail_ecommerce: 'Retail & E-commerce', manufacturing: 'Manufacturing',
+    energy_utilities: 'Energy & Utilities', telecom: 'Telecom',
+    media_entertainment: 'Media & Entertainment',
+    transport_logistics: 'Transport & Logistics',
+    professional_services: 'Professional Services',
+    public_sector: 'Public Sector', hospitality_travel: 'Hospitality & Travel',
+    education: 'Education', food_beverage: 'Food & Beverage',
+    automotive: 'Automotive', aerospace_defence: 'Aerospace & Defence',
+    real_estate_construction: 'Real Estate & Construction'
   };
 
   function nfmt(n) { return Number(n || 0).toLocaleString(); }
@@ -339,10 +587,12 @@
 
   function moneyFull(n) { return '$' + nfmt(Math.round(Number(n) || 0)); }
 
-  // The coverage sentence, mirroring tit_money_coverage_note(). Never a
-  // hardcoded pair of numbers: a dollar total that does not say what share of
-  // the data it covers is the one number this product must not print.
-  function coverageNote(money, dim) {
+  // The FULL coverage sentence, mirroring tit_money_coverage_sentence(). It
+  // has ONE home on the page now (the About The Money Figures note over the
+  // money cards, #tit-usd-note); everything else carries the short pointer.
+  // Never a hardcoded pair of numbers: a dollar total that does not say what
+  // share of the data it covers is the one number this product must not print.
+  function coverageFull(money) {
     if (!money || !money.coverage) return '';
     var withUsd = Number(money.coverage.with) || 0;
     var all = Number(money.coverage.all) || 0;
@@ -350,7 +600,7 @@
 
     // "the 3,992 of 3,992" reads as a mistake. Say so plainly when coverage is
     // complete; keep the two numbers only when they actually differ.
-    var note = (withUsd >= all
+    return (withUsd >= all
         ? 'All ' + nfmt(all) + (all === 1 ? ' funding update states' : ' funding updates state') +
           ' a US dollar amount'
         : 'Totals cover the ' + nfmt(withUsd) + ' of ' + nfmt(all) +
@@ -358,6 +608,19 @@
           ' a US dollar amount') +
       '; amounts in other currencies are left out rather than converted at a' +
       ' rate nobody published.';
+  }
+
+  // The per-card note, mirroring tit_money_coverage_note(): the short pointer
+  // plus the one fact that differs per card, how many summable updates this
+  // dimension cannot place.
+  function coverageNote(money, dim) {
+    if (!money || !money.coverage) return '';
+    var withUsd = Number(money.coverage.with) || 0;
+    var all = Number(money.coverage.all) || 0;
+    var note = all
+      ? 'USD-stated amounts only; the About The Money Figures note above' +
+        ' says what share of funding updates that covers.'
+      : coverageFull(money);
 
     var placed = (money.placed && dim && money.placed[dim] != null)
       ? Number(money.placed[dim]) : withUsd;
@@ -397,50 +660,73 @@
       var pct = Math.max(4, Math.round(100 * r.n / max));
       return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
         (dirKey ? ' data-dir="' + esc(r.k) + '"' : '') + ' aria-pressed="false">' +
-        '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span>' +
-        '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span> ' +
+        '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span> ' +
         '<span class="tit-rank-n">' + nfmt(r.n) + '</span></button>';
     }).join('');
   }
 
-  function paintAggregate(data) {
+  // Strongest evidence first, always, whatever order the endpoint returned.
+  // CONFIDENCE_LABEL is declared in the vocabulary's own order and mirrors
+  // tit_confidence_labels(), so one list decides it on both sides.
+  function confidenceOrder(rows) {
+    var rank = Object.keys(CONFIDENCE_LABEL);
+    var at = function (k) {
+      var i = rank.indexOf(k);
+      // A value the vocabulary does not know goes last rather than first, which
+      // is where -1 would have put it.
+      return i < 0 ? rank.length : i;
+    };
+    return rows.slice().sort(function (a, b) { return at(a.k) - at(b.k); });
+  }
+
+  function paintAggregate(data, ytd) {
     var total = +data.total || 0;
 
-    // Hero fine print: restate the view, do not describe a set the reader is
-    // no longer looking at.
-    var fine = root.querySelector('.tit-hero-fine');
-    if (fine) {
-      var lead = fine.querySelector('.tit-fine-figures');
-      if (!lead) {
-        lead = document.createElement('span');
-        lead.className = 'tit-fine-figures';
-        fine.insertBefore(lead, fine.firstChild);
-      }
-      var bits = [
-        esc(plural(total, 'update')),
-        esc(plural(data.companies, 'employer')),
-        esc(plural(data.countries, 'country', 'countries'))
-      ];
-      // A sum of dollars beside three counts, sitting WITH the other headline
-      // figures rather than trailing the sentence, and a link rather than a
-      // bare total: it lands on the money section, which prints what share of
-      // the funding updates it covers. Both read the same aggregate, so the
-      // figure and its caveat cannot drift apart.
-      var mt = data.money && data.money.total;
-      if (mt > 0) {
-        bits.push('<a class="tit-fine-money" href="#chart-money-country" title="' +
-          esc(moneyFull(mt) + '. ' + coverageNote(data.money, '')) + '">' +
-          esc(moneyShort(mt)) + ' raised</a>');
-      }
-      bits.push(esc(nfmt(data.verified)) + ' from official filings');
-      lead.innerHTML = bits.join(' · ');
-    }
+    // The freshness panel restates the view, exactly as the old hero fine
+    // print did: a filtered page must never carry worldwide totals in its own
+    // header. freshStatsHtml mirrors tit_fresh_stats_html() in shortcodes.php.
+    // `ytd` (the current-year slice under the same filters) keeps the
+    // this-year/all-time pairing through every repaint; it is null whenever
+    // the view is date-narrowed and the pairing would lie.
+    var fresh = document.getElementById('tit-fresh-stats');
+    if (fresh) fresh.innerHTML = freshStatsHtml(data, total, ytd);
+
+    // The Search button's own count is a promise about the table under it.
+    var ctaN = document.getElementById('tit-cta-n');
+    if (ctaN) ctaN.textContent = nfmt(total);
+
+    // The ribbon's country count moves with the filters like its date span.
+    var ribbonC = document.getElementById('tit-ribbon-c');
+    if (ribbonC) ribbonC.textContent = nfmt(data.countries);
 
     // The at-a-glance matrix moves with the filters like everything else. It
     // used to be the one part of the hero that did not, so a filtered page
     // had its own summary contradicting its own strip. Markup mirrors
     // tit_glance_matrix_html() in shortcodes.php, the same contract renderRow
     // has with the table.
+    // The trend chart moves with the filters too, and it arrives as markup
+    // rather than as a series. See tit_aggregate_trend() in api.php: the chart
+    // carries a continuity gate that decides which lines may honestly be drawn,
+    // and a second copy of that decision written here could disagree with the
+    // server's. A blank string is a real answer (nothing in this view clears
+    // the gate), so it is assigned rather than skipped.
+    // The box carries the card's (i) panel as well as the plot, because both
+    // move with the filters: a narrower view redraws the lines AND changes
+    // which signals could honestly be drawn at all. Its panel arrives open
+    // (the server always ships them open, see tit_chart_head), so the (i) is
+    // told to reassert itself or every filter change would reopen it.
+    var trendBox = document.getElementById('tit-trend-box');
+    if (trendBox && typeof data.trend_html === 'string') {
+      trendBox.innerHTML = data.trend_html;
+      syncChartNotes();
+    }
+
+    // The caveat's one home follows the filters like every figure it governs:
+    // the About The Money Figures note always describes the view on screen.
+    var usdNote = document.getElementById('tit-usd-note-p');
+    if (usdNote && data.money) usdNote.textContent = coverageFull(data.money);
+
     var glance = root.querySelector('.tit-glance');
     if (glance && data.glance && data.glance.rows) {
       glance.innerHTML = matrixHtml(data.glance);
@@ -460,7 +746,7 @@
         var pct = total ? Math.round(100 * r.n / total) : 0;
         return '<button type="button" class="tit-pillar" data-k="' + esc(r.k) + '" aria-pressed="false">' +
           '<span class="tit-pillar-head">' +
-          '<span class="tit-pillar-name">' + esc(PILLAR_LABEL[r.k] || r.k) + '</span>' +
+          '<span class="tit-pillar-name">' + esc(PILLAR_LABEL[r.k] || r.k) + '</span> ' +
           '<span class="tit-pillar-n">' + nfmt(r.n) + '</span></span>' +
           '<span class="tit-bar"><span style="width:' + pct + '%"></span></span></button>';
       }).join('') : '<p class="tit-rank-empty">Nothing in this view.</p>';
@@ -470,6 +756,20 @@
     paintRank(document.getElementById('chart-direction'), data.by_direction || [], function (k) {
       return DIRECTION_LABEL[k] || k;
     }, true);
+    // How solid the evidence is, in the vocabulary's own order rather than by
+    // size. /aggregate returns it biggest-first like every other group, and a
+    // ladder whose rungs reorder themselves under a filter is a ladder nobody
+    // can read twice. The server's first paint orders it the same way.
+    paintRank(document.getElementById('chart-confidence'),
+      confidenceOrder(data.by_confidence || []), function (k) {
+        return CONFIDENCE_LABEL[k] || k;
+      });
+    // By count, and deliberately not the same numbers as the money card of
+    // nearly the same name: that one can only see rows carrying a dollar
+    // figure.
+    paintRank(document.getElementById('chart-industry'), data.by_industry || [], function (k) {
+      return INDUSTRY_LABEL[k] || k;
+    });
 
     // The money cards move with the filters like everything else, coverage
     // sentence included: the sentence describes the filtered set, so it has to
@@ -569,7 +869,20 @@
   function spanNote(lo, hi) {
     var a = niceDate(lo), b = niceDate(hi);
     if (!a || !b) return '';
-    return a === b ? 'Covering ' + b + '.' : 'Covering ' + a + ' to ' + b + '.';
+    return a === b ? 'Covering ' + b : 'Covering ' + a + ' to ' + b;
+  }
+
+  // Mirrors tit_state_names(). `tit-f-state` rendered 51 bare postal codes as
+  // its option labels while the country control beside it spelled every value
+  // out, so the one filter on the page that still asked a reader to know a
+  // codebook was the American one. Unlike countryLabel() an unknown code falls
+  // through silently to itself: the map covers all 50 states, DC and the five
+  // inhabited territories, but `state` is populated from whatever the pipeline
+  // stored, and a Canadian province arriving there should read as itself rather
+  // than as "(unmapped)".
+  function stateLabel(k) {
+    if (!k) return '';
+    return (TIT.states && TIT.states[k]) || k;
   }
 
   function countryLabel(k) {
@@ -585,9 +898,15 @@
   // Mirrors tit_detail_note(). Both counts, always, plus what routine means:
   // that sentence is the reason the default is allowed to hold rows back at
   // all. A reader can see exactly how many and change it in one click.
-  // Definition FIRST, then the numbers, and all three of them, so a reader can
-  // check that hidden plus shown equals total instead of taking our word.
-  var ROUTINE_MEANS = 'Some SEC filings record only an officer or director' +
+  //
+  // COUNT FIRST NOW, definition trailing. The owner could not parse this note
+  // where it sat, and the cause was that the reader met a 17-word definition
+  // before any number. The three figures are unchanged and still all printed,
+  // so hidden plus shown still visibly equals total. Keep this wording IDENTICAL
+  // to tit_detail_note() in shortcodes.php: the server prints one of these
+  // sentences on the first paint and this function reprints it on every filter
+  // change, so a divergence shows up as the sentence rewriting itself.
+  var ROUTINE_MEANS = ' A routine filing records only an officer or director' +
     ' change, with no headcount, no money and no location.';
 
   function detailNote(mode, notable, routine) {
@@ -595,15 +914,16 @@
     routine = Number(routine) || 0;
     var total = notable + routine;
     if (!routine) {
-      return ROUTINE_MEANS + ' None of the ' + nfmt(total) +
-        (total === 1 ? ' update here is one of those.' : ' updates here are one of those.');
+      return 'None of the ' + nfmt(total) +
+        (total === 1 ? ' update here is a routine filing.'
+                     : ' updates here are routine filings.') + ROUTINE_MEANS;
     }
     if (mode === 'all') {
-      return ROUTINE_MEANS + ' All ' + nfmt(routine) +
-        ' of those are included, so you are seeing all ' + nfmt(total) + ' updates.';
+      return 'You are seeing all ' + nfmt(total) + ' updates, including the ' +
+        nfmt(routine) + ' routine ones.' + ROUTINE_MEANS;
     }
-    return ROUTINE_MEANS + ' ' + nfmt(routine) + ' of those are hidden, so you are' +
-      ' seeing ' + nfmt(notable) + ' of ' + nfmt(total) + ' updates.';
+    return 'You are seeing ' + nfmt(notable) + ' of ' + nfmt(total) +
+      ' updates. ' + nfmt(routine) + ' routine filings are hidden.' + ROUTINE_MEANS;
   }
 
   // Mirrors tit_money_chart() in shortcodes.php: same classes, same
@@ -622,8 +942,8 @@
           var pct = Math.max(4, Math.round(100 * r.v / max));
           return '<button type="button" class="tit-rank-row" data-k="' + esc(r.k) + '"' +
             ' data-v="' + esc(Math.round(Number(r.v) || 0)) + '" aria-pressed="false">' +
-            '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span>' +
-            '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span>' +
+            '<span class="tit-rank-name">' + (html ? label(r.k) : esc(label(r.k))) + '</span> ' +
+            '<span class="tit-rank-track"><span class="tit-rank-fill" style="width:' + pct + '%"></span></span> ' +
             '<span class="tit-rank-n" title="' + esc(moneyFull(r.v)) + '">' +
             esc(moneyShort(r.v)) + '</span></button>';
         }).join('');
@@ -633,10 +953,72 @@
     if (note) note.textContent = coverageNote(money, dim);
   }
 
+  // Mirrors tit_fresh_stats_html() in shortcodes.php: the freshness panel's
+  // four figures, updates / employers / dollars raised / official filings. The
+  // dollar figure keeps its link-plus-title honesty so the sum never travels
+  // without its caveat.
+  //
+  // `ytd` is the same aggregate under the same filters plus since=Jan-1
+  // (include=fresh), and when it is present each stat leads with this year's
+  // figure and keeps the whole record small beneath it, exactly as the server
+  // renders the plain page. It is absent whenever the reader has set a date
+  // window of their own, because "all time" under a date filter would be a
+  // false label; then the single filtered figure returns.
+  function freshStatsHtml(data, total, ytd) {
+    var year = new Date().getFullYear();
+    var all = function (text) {
+      return '<span class="tit-fstat-all">' + text + ' all time</span>';
+    };
+    var h;
+    if (ytd) {
+      h = '<span class="tit-fstat"><b>' + nfmt(ytd.total) + '</b><span>' +
+        (+ytd.total === 1 ? 'update' : 'updates') + ' in ' + year + '</span>' +
+        all(nfmt(total)) + '</span>' +
+        '<span class="tit-fstat"><b>' + nfmt(ytd.companies) + '</b><span>' +
+        (+ytd.companies === 1 ? 'employer' : 'employers') + ' in ' + year + '</span>' +
+        all(nfmt(data.companies)) + '</span>';
+    } else {
+      h = '<span class="tit-fstat"><b>' + nfmt(total) + '</b><span>' +
+        (+total === 1 ? 'update' : 'updates') + '</span></span>' +
+        '<span class="tit-fstat"><b>' + nfmt(data.companies) + '</b><span>' +
+        (+data.companies === 1 ? 'employer' : 'employers') + '</span></span>';
+    }
+    var mt = data.money && data.money.total;
+    if (mt > 0) {
+      // Same rule as the server: the dollar pair only pairs when this year
+      // actually holds a stated sum, so a thin January never prints $0 over a
+      // real all-time figure.
+      var yt = ytd && ytd.money && ytd.money.total > 0 ? ytd.money.total : 0;
+      var title = yt > 0
+        ? moneyFull(yt) + ' in ' + year + '; ' + moneyFull(mt) + ' all time. ' +
+          coverageFull(data.money)
+        : moneyFull(mt) + '. ' + coverageFull(data.money);
+      h += '<span class="tit-fstat tit-fstat-money"><a class="tit-fine-money" ' +
+        'href="#chart-money-country" title="' + esc(title) + '"><b>' +
+        esc(moneyShort(yt > 0 ? yt : mt)) + '</b><span>' +
+        (yt > 0 ? 'raised in ' + year : 'raised') + '</span></a>' +
+        (yt > 0 ? all(esc(moneyShort(mt))) : '') + '</span>';
+    }
+    if (ytd) {
+      return h + '<span class="tit-fstat"><b>' + nfmt(ytd.verified) +
+        '</b><span>official filings in ' + year + '</span>' +
+        all(nfmt(data.verified)) + '</span>';
+    }
+    return h + '<span class="tit-fstat"><b>' + nfmt(data.verified) +
+      '</b><span>from official filings</span></span>';
+  }
+
   function matrixHtml(m) {
     var h = '<div class="tit-matrix-scroll"><table class="tit-matrix"><thead><tr>' +
       '<th scope="col"><span class="tit-sr">Signal</span></th>';
-    m.periods.forEach(function (p) { h += '<th scope="col">' + esc(p) + '</th>'; });
+    m.periods.forEach(function (p, i) {
+      // The week names its own dates, mirroring tit_glance_matrix_html(): the
+      // string is server-derived (m.week_range) so both paints agree.
+      h += '<th scope="col">' + esc(p) +
+        (i === 0 && m.week_range
+          ? '<span class="tit-th-range">' + esc(m.week_range) + '</span>' : '') +
+        '</th>';
+    });
     h += '</tr></thead><tbody>';
     m.rows.forEach(function (r) {
       var money = r.kind === 'money';
@@ -663,18 +1045,23 @@
           '" data-since="' + esc(m.starts[i]) + '"' +
           (money ? ' title="' + esc(full) + '"' : '') +
           ' aria-pressed="false" aria-label="' + esc(spoken) + '">' +
+          // Mirrors the .tit-cell-p span in tit_glance_matrix_html(). Below
+          // 860px the table is laid out as one card per row, which drops the
+          // implicit table roles and with them the column header; this is the
+          // real text that replaces it. Hidden by CSS on desktop.
+          '<span class="tit-cell-p">' + esc(m.periods[i]) + '</span>' +
           esc(text) + '</button></td>';
       });
       h += '</tr>';
     });
+    // ONE FOOTNOTE LINE, IDENTICAL to the server's (tit_glance_matrix_html):
+    // what a cell counts and that it filters, that rows overlap, and the USD
+    // pointer to the caveat's one home (#tit-usd-note).
     h += '</tbody></table></div>' +
-      '<div class="tit-matrix-note">' +
-      '<p>Colour shows how much activity, scaled within each row. Rows can ' +
-      'overlap: a funded employer may also be hiring, so the columns do not ' +
-      'add up. <strong>Click any number to filter the page.</strong></p>' +
-      '<p class="tit-matrix-money-note">Money raised is the exception. It sums ' +
-      'dollars while every other row counts updates. ' +
-      esc(coverageNote({ coverage: m.coverage }, '')) + '</p></div>';
+      '<p class="tit-board-note">Each cell counts updates dated inside its ' +
+      'window; tap a number to filter the page. Rows overlap, so columns do ' +
+      'not add up, and Total Raised sums <a href="#tit-usd-note">USD-stated ' +
+      'dollars only</a>.</p>';
     return h;
   }
 
@@ -683,9 +1070,27 @@
   function refreshAggregate(params) {
     if (pendingAgg) pendingAgg.abort();
     pendingAgg = new AbortController();
-    fetch(TIT.api + 'aggregate?' + params.toString(), { signal: pendingAgg.signal })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) { if (data) paintAggregate(data); })
+    var signal = pendingAgg.signal;
+    var main = fetch(TIT.api + 'aggregate?' + params.toString(), { signal: signal })
+      .then(function (r) { return r.ok ? r.json() : null; });
+    // The current-year slice for the freshness pairing: same filters, since
+    // clamped to Jan 1, and include=fresh so the endpoint skips everything the
+    // panel does not print. Only fetched when the view has no date window of
+    // its own; a date-filtered view paints single figures. If this half fails
+    // the main paint still lands, just unpaired, which beats blanking a panel
+    // over a companion figure.
+    var ytdReq = null;
+    if (!params.get('since') && !params.get('until')) {
+      var yp = new URLSearchParams(params.toString());
+      yp.set('since', new Date().getFullYear() + '-01-01');
+      yp.set('include', 'fresh');
+      yp.delete('per_page');
+      ytdReq = fetch(TIT.api + 'aggregate?' + yp.toString(), { signal: signal })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+    Promise.all([main, ytdReq])
+      .then(function (both) { if (both[0]) paintAggregate(both[0], both[1]); })
       .catch(function (err) {
         // Leave the server-rendered numbers alone rather than blanking them.
         if (err && err.name === 'AbortError') return;
@@ -825,6 +1230,338 @@
     });
   }
 
+  // --- Checkboxes over the multi selects ------------------------------------
+  //
+  // WHY CHECKBOXES AND NOT PILLS, AND NOT A NATIVE LIST BOX.
+  //
+  // This control has now been three things. It shipped as a native
+  // <select multiple size="5">: keyboard reachable for free, but a five-row
+  // scroll window that hides fifteen of Industry's twenty options behind a
+  // scrollbar with no affordance saying so, and one that needs ctrl-click to
+  // add a second value -- an interaction most readers do not know exists.
+  // It then became a row of toggle pills, which solved the discoverability
+  // and lost the thing that made the list box worth keeping: a pill row is
+  // not a list, so seven of them wrapping into a panel read as one
+  // undifferentiated wall of options with no boundary between groups. That is
+  // the exact complaint this rewrite answers.
+  //
+  // So: a real checkbox per option, one per line, inside a box with a capped
+  // height that SCROLLS. A checkbox is the only control in HTML that says
+  // "several of these, independently" without being taught, it is hit-target
+  // sized on a phone, it announces its own state to a screen reader with no
+  // aria of ours, and a capped scrolling box gives the group a visible edge so
+  // one group cannot run into the next.
+  //
+  // The <select multiple> IS STILL THE STATE and nothing about that moved.
+  // The querystring, the chips bar, resets, the matrix cells, click-to-filter,
+  // the exports and the facet refills all read and write the select exactly as
+  // before; this function re-renders from it after every change. The select is
+  // presentation-hidden rather than removed, which is also what keeps a
+  // JavaScript-off visitor with a native control (see the <noscript> rule in
+  // dashboard.css).
+  function pillify(el) {
+    if (!el || !el.multiple) return;
+    var host = el.closest('label') || el.parentElement;
+    if (!host) return;
+    host = asDropdown(host, el.getAttribute('aria-describedby'));
+    // Before the early return below, not after it: the option set is unchanged
+    // on most repaints and that is exactly when a value was just ticked.
+    dropCount(host, multiValues(el).length);
+    var group = host.querySelector('.tit-optbox');
+    if (!group) {
+      group = document.createElement('div');
+      group.className = 'tit-optbox';
+      group.setAttribute('role', 'group');
+      // The select carries the group's accessible name (the visible
+      // .tit-field-l beside it), so hand the same name to the box that has
+      // replaced it rather than leaving a bare scroll container.
+      if (el.id) group.setAttribute('data-for', el.id);
+      (host.querySelector('.tit-dd-panel') || host).appendChild(group);
+      el.classList.add('tit-select-hidden');
+      el.tabIndex = -1;
+      el.setAttribute('aria-hidden', 'true');
+      // `change`, not `click`: a checkbox toggled with the spacebar fires
+      // change and not click in every engine, and a keyboard user is exactly
+      // who the native control was protecting.
+      group.addEventListener('change', function (e) {
+        var box = e.target;
+        if (!box || box.type !== 'checkbox') return;
+        var opt = quickFind(Array.prototype.slice.call(el.options), function (o) {
+          return o.value === box.value;
+        });
+        if (!opt) return;
+        opt.selected = box.checked;
+        el.dispatchEvent(new Event('change', { bubbles: false }));
+        // Re-render from the select, so the boxes can never disagree with the
+        // state they drive.
+        pillify(el);
+      });
+    }
+    /*
+      Re-rendering the whole box would throw away focus mid-keyboard-run, so
+      when the option set has not changed only the checked flags are updated.
+      The option set DOES change on a facet refill, which is the case the
+      rebuild is for.
+    */
+    var values = Array.prototype.filter.call(el.options, function (o) { return o.value; });
+    var existing = group.querySelectorAll('input[type=checkbox]');
+    if (existing.length === values.length) {
+      var same = true;
+      for (var i = 0; i < values.length; i++) {
+        if (existing[i].value !== values[i].value) { same = false; break; }
+      }
+      if (same) {
+        for (var j = 0; j < values.length; j++) {
+          existing[j].checked = values[j].selected;
+          var row = existing[j].closest('.tit-optrow');
+          if (row) row.classList.toggle('is-on', values[j].selected);
+        }
+        return;
+      }
+    }
+    group.innerHTML = values.map(function (o) {
+      return '<label class="tit-optrow' + (o.selected ? ' is-on' : '') + '">' +
+        '<input type="checkbox" value="' + esc(o.value) + '"' +
+        (o.selected ? ' checked' : '') + '>' +
+        '<span class="tit-optrow-t">' + esc(o.textContent) + '</span></label>';
+    }).join('');
+  }
+
+  /* --- CHECKBOX DROPDOWNS ----------------------------------------------------
+     WHY THE CHECKBOXES MOVED BEHIND A BUTTON.
+
+     They did not stop being checkboxes. Everything written above pillify() about
+     why a checkbox beats a native list box and beats a pill row still holds, and
+     the checkboxes it renders are the same checkboxes. What changed is that all
+     seven groups no longer have to be on screen AT ONCE.
+
+     That was the whole cost of the sidebar. Seven capped scrolling boxes stacked
+     in a column is 262px of width the table cannot have, and the owner read the
+     result on the live page: the What Happened column, which carries a headline
+     and a read-through, wrapped to one word per line. A group that is a button
+     until you want it costs one line of a wrapped bar.
+
+     THE NATIVE SELECT IS STILL THE STATE, and this layer adds no new state
+     channel of any kind. The querystring, the chips bar, resets, the matrix
+     cells, click-to-filter, the exports and the facet refills all read and write
+     the select exactly as before, and pillify() re-renders from it. Everything
+     here is built at RUNTIME, so a reader whose script never ran gets the bar
+     with plain native controls in it and nothing missing.
+
+     Three things the sibling tracker's version of this control does not do, each
+     one a real defect rather than a preference: Escape does not close it and
+     focus is never returned to the trigger; the trigger has no :focus-visible
+     ring; and the panel is absolutely positioned at left:0 with no flip, so the
+     rightmost control on a row pushes a scrollbar onto the body. All three are
+     handled below. Its trigger also claims aria-haspopup="listbox" over a panel
+     that contains no listbox roles at all; ours does not claim one, because what
+     is in there is a group of checkboxes and that is what it says.
+  */
+  var openDrop = null;
+
+  function closeDrop(returnFocus) {
+    if (!openDrop) return;
+    var was = openDrop;
+    openDrop = null;
+    was.panel.hidden = true;
+    was.panel.classList.remove('is-flipped');
+    was.btn.setAttribute('aria-expanded', 'false');
+    if (returnFocus) was.btn.focus();
+  }
+
+  function openDrop_(rec) {
+    closeDrop(false);
+    rec.panel.hidden = false;
+    rec.btn.setAttribute('aria-expanded', 'true');
+    openDrop = rec;
+    /* Flip only when it would actually run off, and measure rather than guess:
+       the trigger's position depends on how the bar happened to wrap, which no
+       breakpoint can know. `clientWidth` excludes the scrollbar, which is the
+       measurement that decides whether the body gets a SECOND one. */
+    var room = document.documentElement.clientWidth;
+    if (rec.panel.getBoundingClientRect().right > room - 8) {
+      rec.panel.classList.add('is-flipped');
+    }
+  }
+
+  /* Turn a filter cell into a trigger plus a panel, once. Idempotent: pillify()
+     runs on every repaint and must find the dropdown it built last time. */
+  function asDropdown(field, describedBy) {
+    if (!field) return field;
+    if (field.classList.contains('tit-dd')) return field;
+
+    /* A <label> forwards a click on itself to its own control, so a <button>
+       inside one activates the hidden select as well as the trigger. The
+       wrapper therefore stops being a label the moment it contains a button.
+       The select it labelled is display:none, tabindex -1 and aria-hidden by
+       then, so it is out of the accessibility tree and has no name to lose. */
+    if (field.tagName === 'LABEL') {
+      var div = document.createElement('div');
+      /* EVERY attribute, not a chosen few. Copying only class and id lost
+         `hidden`, and `hidden` is what keeps a facet control whose column is
+         still empty off the page: five always-empty controls -- Employer Type,
+         Work Setup, Funding Stage, Deal Type, Site Change -- appeared on the
+         bar offering nothing, which is the exact failure the hidden attribute
+         was added to prevent. `for` is dropped because it means nothing on a
+         div and would be a dangling reference. */
+      for (var a = 0; a < field.attributes.length; a++) {
+        var at = field.attributes[a];
+        if (at.name !== 'for') div.setAttribute(at.name, at.value);
+      }
+      while (field.firstChild) div.appendChild(field.firstChild);
+      field.parentNode.replaceChild(div, field);
+      field = div;
+    }
+    field.classList.add('tit-dd');
+
+    var lab = field.querySelector('.tit-field-l');
+    var name = lab ? lab.textContent.trim() : 'Filter';
+    /* The visible label is now the button's own text. Kept in the DOM rather
+       than deleted because the date range names its group through it with
+       aria-labelledby, and an aria reference resolves to a hidden element. */
+    if (lab) lab.hidden = true;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tit-dd-btn';
+    // Set at construction, not on first interaction: a trigger that reports no
+    // expanded state until somebody has already used it is telling a screen
+    // reader nothing at exactly the moment it matters.
+    btn.setAttribute('aria-expanded', 'false');
+    if (describedBy) btn.setAttribute('aria-describedby', describedBy);
+    btn.innerHTML = '<span class="tit-dd-btn-t"></span>' +
+      '<span class="tit-dd-n" hidden></span>' +
+      '<span class="tit-dd-caret" aria-hidden="true"></span>';
+    btn.querySelector('.tit-dd-btn-t').textContent = name;
+
+    var panel = document.createElement('div');
+    panel.className = 'tit-dd-panel';
+    panel.hidden = true;
+    if (field.id) {
+      panel.id = field.id + '-panel';
+      btn.setAttribute('aria-controls', panel.id);
+    }
+
+    field.appendChild(btn);
+    field.appendChild(panel);
+
+    var rec = { field: field, btn: btn, panel: panel };
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (openDrop === rec) closeDrop(false);
+      else openDrop_(rec);
+    });
+    // Ticking a checkbox must not close the panel it is in; one at a time is
+    // enforced by openDrop_ rather than by an overlay.
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+    // Tabbing out of the panel closes it. Only when there IS a new focus
+    // target: a click on the panel's own padding reports relatedTarget null,
+    // and closing on that would shut the panel under the reader's finger.
+    field.addEventListener('focusout', function (e) {
+      if (openDrop !== rec) return;
+      if (e.relatedTarget && !field.contains(e.relatedTarget)) closeDrop(false);
+    });
+    return field;
+  }
+
+  document.addEventListener('click', function () { closeDrop(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && openDrop) {
+      e.stopPropagation();
+      closeDrop(true);
+    }
+  });
+  /* A resize closes whatever is open, and this is not tidiness.
+     `is-flipped` is decided ONCE, from where the trigger stood when it opened,
+     because deciding it continuously would mean measuring on every scroll of a
+     sticky bar. So a panel that survives a resize keeps a decision made about a
+     viewport that no longer exists: measured here, a panel opened at 390px and
+     then widened to 1280px sat at left:0 of a trigger that had wrapped to the
+     right-hand end, ran 59px past the edge and put a horizontal scrollbar on
+     the BODY -- the one thing this page is not allowed to do. Closing is also
+     the honest response to the reader's viewport changing under them.
+     Orientation change fires `resize` in every engine we care about. */
+  window.addEventListener('resize', function () { closeDrop(false); });
+
+  /* The count is printed, and the trigger also changes fill and weight. Never
+     colour alone, and never the fill alone either: "3" answers "how many" where
+     a tinted button only answers "some". */
+  function dropCount(field, n) {
+    if (!field) return;
+    var btn = field.querySelector('.tit-dd-btn');
+    var badge = field.querySelector('.tit-dd-n');
+    if (!btn || !badge) return;
+    badge.textContent = String(n);
+    badge.hidden = n === 0;
+    btn.classList.toggle('is-on', n > 0);
+  }
+
+  /* The one dropdown whose panel is not a checkbox group.
+
+     Two date inputs are about 260px side by side, and on a bar they would say
+     "no dates chosen" in that space on almost every page view. Behind a trigger
+     they cost one slot and still open to the same two labelled inputs, which is
+     the sibling tracker's From/To pattern unchanged. The count is a count of
+     BOUNDS set, so a reader who set only a start sees 1 and knows why the page
+     narrowed. */
+  var dateField = document.getElementById('tit-field-daterange');
+
+  function syncDateDrop() {
+    if (!dateField) return;
+    asDropdown(dateField);
+    var panel = dateField.querySelector('.tit-dd-panel');
+    var range = dateField.querySelector('.tit-daterange');
+    var period = dateField.querySelector('.tit-period');
+    // The inputs are server-rendered inside the cell, so unlike the checkbox
+    // groups they are moved rather than built. The Year/Quarter/Month
+    // shorthand rides into the same panel, ABOVE the two boxes it writes, so
+    // picking a year visibly fills From and To right underneath it and the
+    // bar still spends one slot on dates.
+    if (panel && period && period.parentNode !== panel) panel.appendChild(period);
+    if (panel && range && range.parentNode !== panel) panel.appendChild(range);
+    var n = 0;
+    if (inputs.since && inputs.since.value) n++;
+    if (inputs.until && inputs.until.value) n++;
+    dropCount(dateField, n);
+  }
+
+  /* Location is a dropdown too, and it is the one where the trade is worth
+     stating. Its current value stops being readable ON the bar, which is a real
+     loss for the most-used filter here. It buys two things: the qualifier that
+     changes what the select MEANS travels with it instead of sitting on the bar
+     as a 200px sentence next to an unrelated control, and the bar drops from
+     three wrapped rows to two -- 193px of frozen chrome to 150px. The chips bar
+     directly under it already names the chosen place in words and offers the
+     way out of it, so the value is still on screen, once, where every other
+     applied filter is also named. */
+  var placeField = document.querySelector('.tit-primary-where');
+
+  function syncPlaceDrop() {
+    if (!placeField) return;
+    asDropdown(placeField);
+    var panel = placeField.querySelector('.tit-dd-panel');
+    if (!panel) return;
+    ['.tit-where-label', '.tit-basis-check'].forEach(function (sel) {
+      var el = placeField.querySelector(sel);
+      if (el && el.parentNode !== panel) panel.appendChild(el);
+    });
+    var n = 0;
+    if (placeSel && placeSel.value) n++;
+    // Counted, because it narrows the page on its own. A reader who ticked it
+    // and chose no place would otherwise see an untouched-looking control.
+    var basis = document.getElementById('tit-basis-chk');
+    if (basis && basis.checked) n++;
+    dropCount(placeField, n);
+  }
+
+  function syncAllPills() {
+    Object.keys(MULTI).forEach(function (k) { if (inputs[k]) pillify(inputs[k]); });
+    syncDateDrop();
+    syncPlaceDrop();
+  }
+
   function optionText(el, value) {
     if (!el) return value;
     var hit = quickFind(Array.prototype.slice.call(el.options), function (o) {
@@ -843,6 +1580,7 @@
     fill(el, values || [], false, labels);
     var has = Array.prototype.some.call(el.options, function (o) { return !!o.value; });
     if (field) field.hidden = !has;
+    if (has) pillify(el);
   }
 
   // --- The two front controls ----------------------------------------------
@@ -991,60 +1729,31 @@
     });
   }
 
-  // --- More filters ---------------------------------------------------------
-  // Native <details>, so it collapses with no JavaScript at all. What JS adds
-  // is the count, and opening the panel when something inside it is already on:
-  // a shared link must never narrow the page with the control that did it
-  // folded out of sight.
-  var moreBox = document.getElementById('tit-more');
-  var moreLabel = document.getElementById('tit-more-label');
-  // `direction` is NOT here any more. It was rendering as a second control also
-  // labelled "Headcount", beside the primary-row checkbox, with different
-  // behaviour: one label, two controls, which is worse than either alone.
-  var MORE_KEYS = ['function', 'industry', 'employer_type', 'work_mode',
-                   'min_funding_usd', 'funding_stage', 'deal_type', 'site_event',
-                   'confidence', 'q', 'since', 'until'];
-
-  // The NAMES of what is on, not a count of it. "More filters (1)" tells a
-  // reader that something is narrowing the page and refuses to say what, which
-  // is the one thing they needed to know.
-  function moreActive() {
-    var on = [];
-    MORE_KEYS.forEach(function (k) {
-      var el = inputs[k];
-      if (!el) return;
-      if (MULTI[k]) {
-        if (multiValues(el).length) on.push(FILTER_LABEL[k] || k);
-        return;
-      }
-      var v = (el.value || '').trim();
-      if (v && v !== NEUTRAL[k]) on.push(FILTER_LABEL[k] || k);
-    });
-    return on;
-  }
-
-  // $open is passed only when restoring a shared link. Opening on every
-  // refresh would throw the panel open each time a matrix cell set a date,
-  // which is a panel fighting the reader rather than serving them.
-  // The panel is always open now, so there is nothing to disclose and nothing
-  // to count. Naming the active filters here was standing in for showing them;
-  // the controls themselves are the better answer, and the chips bar already
-  // says what is applied. Kept as a function so every call site stays valid.
-  function syncMore() {
-    if (moreBox && !moreBox.open) moreBox.open = true;
-  }
+  // --- The filter panel -----------------------------------------------------
+  // Nothing to do here any more, deliberately. It shipped as a <details> whose
+  // summary read "More filters (1)"; the owner asked three times for that
+  // wording to go, so it became a plain <div> that is always open. What was left
+  // behind was a syncMore() setting .open on an element that has no .open, a
+  // moreActive() nothing called, and a lookup for an id no markup carries. The
+  // panel discloses nothing, and the chips bar above the table names what is
+  // applied, which is what the summary was standing in for.
 
   // The CSV and JSON links under the table download exactly what is on screen:
   // the current filters ride along as query params, and the scope word says
   // which set the file will hold. Server-rendered hrefs point at the whole
   // dataset, so a reader without JavaScript still gets a working download.
   function updateExportLinks() {
-    ['tit-export-csv', 'tit-export-json'].forEach(function (id) {
+    // One updater for every download and the feed, so no link can hand over a
+    // different set than the page is showing. The admin-post bases already
+    // carry ?action=, the REST feed base carries nothing, hence the joiner.
+    ['tit-export-csv', 'tit-export-json', 'tit-export-hubspot',
+     'tit-export-salesforce', 'tit-export-rss'].forEach(function (id) {
       var a = document.getElementById(id);
       if (!a) return;
       var base = a.getAttribute('data-base');
       if (!base) return;
-      a.href = base + (lastQuery ? '&' + lastQuery : '');
+      a.href = base + (lastQuery
+        ? (base.indexOf('?') >= 0 ? '&' : '?') + lastQuery : '');
       var scope = document.getElementById(id + '-scope');
       if (scope) scope.textContent = lastQuery ? ' · filtered' : ' · all';
     });
@@ -1097,9 +1806,9 @@
     syncLooking();
     syncPlace();
     syncCountryButtons();
+    syncCityButtons();
     syncBasis();
-    syncMore();
-    syncSortHeads();
+    syncPeriodSelects();
 
     paintActive();
     syncChartStates();
@@ -1109,11 +1818,10 @@
     // idea what they were meant to be looking at. replaceState, not pushState,
     // so typing in the search box does not bury the back button under a history
     // entry per keystroke.
+    // Through writeUrl(), which is also where the expanded card is added, so
+    // narrowing the page cannot silently drop the card a link was sent to open.
     lastQuery = shareQuery(params);
-    try {
-      history.replaceState(null, '',
-        location.pathname + (lastQuery ? '?' + lastQuery : '') + location.hash);
-    } catch (e) { /* a URL we cannot write is not worth failing the render for */ }
+    writeUrl();
 
     updateExportLinks();
 
@@ -1128,9 +1836,22 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data) return;
+        // The empty state is a statement of policy, not an apology: showing
+        // nothing beats guessing, and it says so where the rows would be.
+        // A one-line "nothing matches" in a seven-column table read as a
+        // rendering fault; this reads as an answer, and it carries its own
+        // way out (handled by delegation on the list, since this markup is
+        // re-created on every empty render).
+        lastRows = data.rows;
         tbody.innerHTML = data.rows.length
-          ? data.rows.map(renderRow).join('')
-          : '<tr><td colspan="7">Nothing matches those filters yet.</td></tr>';
+          ? data.rows.map(renderCard).join('')
+          : '<li class="tit-cards-empty">' +
+            '<div class="tit-table-empty">' +
+            '<p class="tit-table-empty-h">Nothing matches those filters</p>' +
+            '<p class="tit-table-empty-p">We would rather show you nothing than guess.</p>' +
+            '<button type="button" class="tit-empty-clear">Reset all filters</button>' +
+            '</div></li>';
+        afterRowsPaint();
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
@@ -1161,6 +1882,106 @@
       debounced();
     });
   });
+
+  // --- Year / Quarter / Month, shorthand for the date boxes ----------------
+  //
+  // The sibling tracker's period selects, wired as SHORTHAND rather than as
+  // state: picking one writes a real window into the since/until inputs where
+  // the reader can see it, so the querystring, the chips, the exports, Reset
+  // All and the signal board's cells all keep reading the one pair of dates
+  // they always read. syncPeriodSelects() is the reverse mapping, run on every
+  // refresh: dates that exactly span a year, quarter or month light the
+  // selects up (which is what makes a shared link round trip), and any other
+  // window blanks them, so hand-editing a date box visibly releases the
+  // shorthand.
+  var periodSel = {
+    year: document.getElementById('tit-f-yearsel'),
+    quarter: document.getElementById('tit-f-quartersel'),
+    month: document.getElementById('tit-f-monthsel')
+  };
+  var MONTH_LABEL = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function daysInMonth(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+
+  // The window a year / quarter / month choice means, as [since, until].
+  // Month and quarter are two grains of one question, so a month wins when
+  // both are somehow set; applyPeriod() never lets that happen from the UI.
+  function periodWindow(y, q, m) {
+    if (!y) return null;
+    if (m) return [y + '-' + pad2(m) + '-01',
+                   y + '-' + pad2(m) + '-' + pad2(daysInMonth(y, m))];
+    if (q) {
+      var m2 = q * 3;
+      return [y + '-' + pad2(q * 3 - 2) + '-01',
+              y + '-' + pad2(m2) + '-' + pad2(daysInMonth(y, m2))];
+    }
+    return [y + '-01-01', y + '-12-31'];
+  }
+
+  function applyPeriod(changed) {
+    if (!periodSel.year) return;
+    // A month names a quarter's worth of window more precisely, so picking
+    // either blanks the other rather than silently ANDing two grains.
+    if (changed === 'month' && periodSel.month.value && periodSel.quarter) {
+      periodSel.quarter.value = '';
+    }
+    if (changed === 'quarter' && periodSel.quarter.value && periodSel.month) {
+      periodSel.month.value = '';
+    }
+    // A quarter or month with no year means the newest year we hold, and it is
+    // SELECTED rather than assumed, so the reader sees exactly what happened.
+    if (!periodSel.year.value &&
+        ((periodSel.quarter && periodSel.quarter.value) ||
+         (periodSel.month && periodSel.month.value))) {
+      var opts = periodSel.year.options;
+      if (opts.length > 1) periodSel.year.value = opts[1].value;
+    }
+    var w = periodWindow(+periodSel.year.value || 0,
+                         periodSel.quarter ? +periodSel.quarter.value || 0 : 0,
+                         periodSel.month ? +periodSel.month.value || 0 : 0);
+    if (inputs.since) inputs.since.value = w ? w[0] : '';
+    if (inputs.until) inputs.until.value = w ? w[1] : '';
+    refresh();
+  }
+
+  Object.keys(periodSel).forEach(function (key) {
+    if (!periodSel[key]) return;
+    periodSel[key].addEventListener('change', function () { applyPeriod(key); });
+  });
+
+  // The reverse read: which year/quarter/month the current window IS, or
+  // blanks. Only a value the year select actually offers lights up — the list
+  // is derived from the data's own bounds, and a shared link asking for a year
+  // we hold nothing in stays a plain From/To.
+  function syncPeriodSelects() {
+    if (!periodSel.year) return;
+    var s = inputs.since ? inputs.since.value : '';
+    var u = inputs.until ? inputs.until.value : '';
+    var y = '', q = '', m = '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(u)) {
+      var ys = +s.slice(0, 4);
+      var ms = +s.slice(5, 7);
+      if (s === ys + '-01-01' && u === ys + '-12-31') {
+        y = String(ys);
+      } else if (s.slice(8) === '01') {
+        if (u === ys + '-' + pad2(ms) + '-' + pad2(daysInMonth(ys, ms))) {
+          y = String(ys); m = String(ms);
+        } else if (ms % 3 === 1) {
+          var me = ms + 2;
+          if (u === ys + '-' + pad2(me) + '-' + pad2(daysInMonth(ys, me))) {
+            y = String(ys); q = String((ms + 2) / 3);
+          }
+        }
+      }
+    }
+    var has = y && Array.prototype.some.call(periodSel.year.options,
+      function (o) { return o.value === y; });
+    periodSel.year.value = has ? y : '';
+    if (periodSel.quarter) periodSel.quarter.value = has ? q : '';
+    if (periodSel.month) periodSel.month.value = has ? m : '';
+  }
 
   var region = null;
   var tabs = Array.prototype.slice.call(root.querySelectorAll('.tit-region'));
@@ -1218,6 +2039,34 @@
     });
   });
 
+  // The city row, wired like the country row through the same city input the
+  // Where picker uses. Picking a city clears country and region: a city inside
+  // a conflicting country filter is the guaranteed-empty page.
+  var citybtns = Array.prototype.slice.call(root.querySelectorAll('.tit-citybtn'));
+
+  function syncCityButtons() {
+    var current = inputs.city ? inputs.city.value : '';
+    citybtns.forEach(function (b) {
+      var on = current !== '' && b.getAttribute('data-city') === current;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  citybtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var name = b.getAttribute('data-city');
+      var was = inputs.city && inputs.city.value === name;
+      setRegion(null);
+      if (inputs.country) inputs.country.value = '';
+      if (inputs.city) {
+        ensureOption(inputs.city, name, name);
+        inputs.city.value = was ? '' : name;
+      }
+      refresh();
+    });
+  });
+
   var quickView = null;
   var quickButtons = Array.prototype.slice.call(root.querySelectorAll('.tit-qv'));
 
@@ -1269,11 +2118,19 @@
   // $value is passed only for the multi-value filters, so a chip removes the
   // ONE choice it names rather than the whole filter. Picking three industries
   // and being able to drop only all three would make multi-select pointless.
+  // THE SPACES BETWEEN THESE SPANS ARE LOAD-BEARING AND COST NOTHING.
+  // .tit-chip is an inline-flex with a gap, so a whitespace-only text node
+  // between two flex items is dropped by layout and changes no pixel. It
+  // changes the three things layout cannot reach: the accessible name a screen
+  // reader announces, the text a reader copies, and what an answer engine
+  // scrapes. Without them this chip is "IndustryTechnology x, remove this
+  // filter". Same defect the quick views had with "Moves Headcount(1,869)";
+  // see the note beside .tit-qv-n in dashboard.css.
   function chip(key, text, value) {
     return '<button type="button" class="tit-chip" data-clear="' + esc(key) + '"' +
       (value == null ? '' : ' data-value="' + esc(value) + '"') + '>' +
-      '<span class="tit-chip-k">' + esc(FILTER_LABEL[key] || key) + '</span>' +
-      '<span class="tit-chip-v">' + esc(text) + '</span>' +
+      '<span class="tit-chip-k">' + esc(FILTER_LABEL[key] || key) + '</span> ' +
+      '<span class="tit-chip-v">' + esc(text) + '</span> ' +
       '<span class="tit-chip-x" aria-hidden="true">&#215;</span>' +
       '<span class="tit-sr">, remove this filter</span></button>';
   }
@@ -1288,7 +2145,12 @@
       chips.push(chip('region', name ? name.textContent : region));
     }
     if (stated) {
-      chips.push(chip('stated_headcount', 'Only with a stated headcount'));
+      /* The SAME words as the checkbox. This read "Only with a stated
+         headcount", which is a claim about the headcount column: that column is
+         non-null on 11 of 15,711 current rows, and this control does not read it
+         at all -- it reads signal_direction. One control had three names (the
+         checkbox, this chip, and the SQL), and only the checkbox was right. */
+      chips.push(chip('stated_headcount', 'Only Updates That Move Headcount'));
     }
     if (quickView) {
       // A view with no button of its own still has to appear here. funding=1
@@ -1299,12 +2161,32 @@
       chips.push(chip('quickview', qb ? qb.textContent.trim()
                                       : (QV_LABEL[quickView] || quickView)));
     }
+    // When the date window IS a period pick, the chips say so in the reader's
+    // own words: "Year: 2026", "Quarter: Q3", never two raw dates for a click
+    // on a dropdown. syncPeriodSelects() has already run this refresh, so the
+    // selects are the derived truth about the window; any hand-made window
+    // leaves them blank and the plain From/To chips return.
+    var periodChipped = false;
+    if (periodSel.year && periodSel.year.value) {
+      chips.push(chip('year', periodSel.year.value));
+      if (periodSel.quarter && periodSel.quarter.value) {
+        chips.push(chip('quarter', 'Q' + periodSel.quarter.value));
+      }
+      if (periodSel.month && periodSel.month.value) {
+        chips.push(chip('month', MONTH_LABEL[+periodSel.month.value - 1] || periodSel.month.value));
+      }
+      periodChipped = true;
+    }
+
     Object.keys(inputs).forEach(function (key) {
       var el = inputs[key];
       // `detail` gets no chip: the bar above the table states it in full, with
       // both counts and what routine means. A chip would be a quieter copy of
       // something already impossible to miss.
       if (!el || key === 'sort' || key === 'detail') return;
+      // The dates behind a period chip are that chip; two more chips
+      // restating them as From/To would be three names for one narrowing.
+      if (periodChipped && (key === 'since' || key === 'until')) return;
       if (MULTI[key]) {
         multiValues(el).forEach(function (v) {
           chips.push(chip(key, optionText(el, v), v));
@@ -1323,7 +2205,25 @@
     });
 
     activeChips.innerHTML = chips.join('');
+    syncAllPills();
     activeBar.hidden = chips.length === 0;
+
+    // The phone jump bar's Filters button carries the same count the chips
+    // bar shows, so a reader scrolled past the chips still knows the page is
+    // narrowed. Looked up per paint: the bar is built later in this file.
+    var jumpN = document.getElementById('tit-jump-n');
+    if (jumpN) {
+      jumpN.textContent = String(chips.length);
+      jumpN.hidden = chips.length === 0;
+    }
+    // The collapsed bar's own count. On a phone the controls are behind this
+    // button, so without it a reader who collapsed the bar has no reading of
+    // how narrowed the page is except the chips, which scroll away.
+    var barN = document.getElementById('tit-bar-n');
+    if (barN) {
+      barN.textContent = String(chips.length);
+      barN.hidden = chips.length === 0;
+    }
   }
 
   function quickFind(list, test) {
@@ -1335,6 +2235,18 @@
     if (key === 'region') setRegion(null);
     else if (key === 'quickview') setQuickView(null);
     else if (key === 'stated_headcount') setStated(false);
+    else if (key === 'year') {
+      // The quarter and month hang off the year, so dropping the year drops
+      // the whole window.
+      if (inputs.since) inputs.since.value = '';
+      if (inputs.until) inputs.until.value = '';
+    } else if (key === 'quarter' || key === 'month') {
+      // Dropping the finer grain widens back to the whole year it sat in.
+      var yv = periodSel.year ? periodSel.year.value : '';
+      var w = periodWindow(+yv || 0, 0, 0);
+      if (inputs.since) inputs.since.value = w ? w[0] : '';
+      if (inputs.until) inputs.until.value = w ? w[1] : '';
+    }
     else if (MULTI[key] && inputs[key]) {
       setMulti(inputs[key], multiValues(inputs[key]).filter(function (v) {
         return v !== value;
@@ -1350,19 +2262,93 @@
     });
   }
 
+  // One reset, two doors: the button in the filter panel and the Clear
+  // Filters button inside the empty state. They must do the identical thing,
+  // so they are the same function rather than two loops that drift apart.
+  function resetAll() {
+    Object.keys(inputs).forEach(function (k) {
+      if (!inputs[k] || k === 'sort') return;
+      if (MULTI[k]) { setMulti(inputs[k], []); return; }
+      inputs[k].value = NEUTRAL[k] || '';
+    });
+    setRegion(null);
+    setQuickView(null);
+    setStated(false);
+    refresh();
+  }
+
   if (resetBtn) {
-    resetBtn.addEventListener('click', function () {
-      Object.keys(inputs).forEach(function (k) {
-        if (!inputs[k] || k === 'sort') return;
-        if (MULTI[k]) { setMulti(inputs[k], []); return; }
-        inputs[k].value = NEUTRAL[k] || '';
-      });
-      setRegion(null);
-      setQuickView(null);
-      setStated(false);
-      refresh();
+    resetBtn.addEventListener('click', resetAll);
+  }
+
+  // The empty state's own way out. The button is re-created on every empty
+  // render, so the listener lives on the tbody and finds it by class.
+  if (tbody) {
+    tbody.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.tit-empty-clear') : null;
+      if (btn) resetAll();
     });
   }
+
+  // --- The bar's phone form: one button, one sheet --------------------------
+  //
+  // Thirteen controls at a 150px floor is four wrapped rows on a 390px screen,
+  // and a sticky four-row bar pins most of the viewport under chrome. So on a
+  // phone the bar is its head, and the controls open beneath it in normal flow.
+  //
+  // The button is revealed HERE rather than shipped visible, and the collapsing
+  // is a class this adds rather than a CSS default, so the served markup is a
+  // fully open bar: a reader whose script never ran can never end up looking at
+  // a "Filters" button that does not open anything. The stylesheet decides at
+  // which width any of it applies, so this code runs identically on a desktop
+  // and does nothing there.
+  var filterBar = document.getElementById('tit-panel');
+  var barToggle = document.getElementById('tit-bar-toggle');
+  if (filterBar && barToggle) {
+    barToggle.hidden = false;
+    barToggle.addEventListener('click', function () {
+      var open = filterBar.classList.toggle('is-open');
+      barToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      // An open dropdown belongs to a bar that is about to close under it.
+      if (!open) closeDrop(false);
+    });
+  }
+
+  // --- The phone jump bar ----------------------------------------------------
+  // With twelve chart cards sitting between the filters and the rows, a phone
+  // reader is several screens from the controls by the time they reach the
+  // updates, and further since 1.63.0 than before it. The design proposal
+  // solves this with a bottom-sheet filter panel, which would mean a second
+  // copy of every control; this is the same reach-it-with-a-thumb idea at
+  // none of that cost: a fixed bar, phones only (the stylesheet decides where
+  // it exists), that jumps to the filter block or the rows. Built here rather
+  // than shipped in markup so a page without JavaScript never shows chrome
+  // that does nothing. paintActive() keeps the count on the Filters button in
+  // step with the chips it already paints.
+  var jumpBar = document.createElement('div');
+  jumpBar.className = 'tit-jump';
+  jumpBar.innerHTML =
+    '<button type="button" class="tit-jump-btn" data-jump="#tit-filter-sec">Filters' +
+    '<span class="tit-jump-n" id="tit-jump-n" hidden></span></button>' +
+    '<button type="button" class="tit-jump-btn" data-jump=".tit-detail">Updates</button>';
+  jumpBar.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-jump]') : null;
+    if (!btn) return;
+    var target = root.querySelector(btn.getAttribute('data-jump'));
+    if (!target) return;
+    /* Scrolling a reader to a collapsed bar and leaving them to find the button
+       is two taps for one intention. Filters OPENS the bar as well as reaching
+       it; Updates does not touch it. */
+    if (btn.getAttribute('data-jump') === '#tit-filter-sec' && filterBar
+        && barToggle && !filterBar.classList.contains('is-open')) {
+      filterBar.classList.add('is-open');
+      barToggle.setAttribute('aria-expanded', 'true');
+    }
+    var still = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  });
+  root.appendChild(jumpBar);
 
   // --- Per-chart controls ---------------------------------------------------
   // Every card gets its own expand, share and download, and each one acts on
@@ -1426,19 +2412,128 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
+  /*
+    THE (i), AND WHY IT IS NOT A title= ATTRIBUTE.
+
+    Every chart card's explanatory prose is in a panel of its own now: what it
+    counts, what it cannot say, and which figure is based on how much. Nine
+    cards each printing two to six lines of that was a page a reader scrolled
+    past to reach the bars, and the three money cards printed one identical
+    currency sentence three times.
+
+    NONE OF IT BECAME UNREACHABLE, which is the part that matters, because the
+    lines in there are the ones that stop each chart overclaiming. Four things
+    hold that open:
+
+      1. The panel ships OPEN from the server and the button ships hidden. This
+         closes the panel and reveals the button, in that order. A reader whose
+         script never ran gets every caveat as plain prose rather than a button
+         that opens nothing.
+      2. It is a real <button> with aria-expanded, so it is a keyboard control.
+      3. The chart's own group carries aria-describedby pointing at the panel,
+         so a screen reader reads the caveat as the chart's description whether
+         the panel is open or shut. That is the whole reason it is not a title=
+         attribute, which is reachable by neither a keyboard nor a screen
+         reader and which this repo's card contract already forbids as the only
+         home for anything a reader needs.
+      4. The button carries no aria-label. Its name is the visually hidden text
+         inside it, so the two cannot say different things.
+  */
+  function noteOf(chart) {
+    var btn = chart.querySelector('.tit-chart-info');
+    var id = btn && btn.getAttribute('aria-controls');
+    // Looked up by id at call time, never cached: the trend card's panel is
+    // replaced wholesale on every filter change.
+    return id ? document.getElementById(id) : null;
+  }
+
+  function setNote(chart, open) {
+    var btn = chart.querySelector('.tit-chart-info');
+    var note = noteOf(chart);
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (note) note.hidden = !open;
+  }
+
+  // Re-assert every panel's state after a repaint has handed us a fresh one.
+  function syncChartNotes() {
+    Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
+      var btn = chart.querySelector('.tit-chart-info');
+      if (!btn || btn.hidden) return;
+      setNote(chart, btn.getAttribute('aria-expanded') === 'true');
+    });
+  }
+
+  /*
+    EXPANDING IS PART OF THE VIEW, SO IT IS PART OF THE LINK.
+
+    The address bar already carries every filter (see refresh()), and the share
+    button already carried the card as a hash. What it could not carry was the
+    card being OPEN, so a link sent to show somebody a chart landed them on the
+    small version of it and left them to find the control.
+
+    `card` is that state, and it is deliberately NOT one of the API parameters:
+    shareQuery() builds what /query and /aggregate are asked, and expansion is
+    a property of the page rather than of the query. So it is appended here, in
+    one place, and every writer of the address bar goes through pageUrl().
+  */
+  // Read HERE, at wiring time, and not inside openCardFromUrl() below. The
+  // first refresh() rewrites the address bar from the filters alone, and this
+  // is what stops that rewrite dropping the very parameter the link was sent
+  // to carry. A card id we do not have is cleared when it is looked up.
+  var expandedCard = new URLSearchParams(location.search).get('card') || '';
+
+  function pageUrl(cardId) {
+    var qs = lastQuery;
+    if (cardId) qs += (qs ? '&' : '') + 'card=' + encodeURIComponent(cardId);
+    return location.pathname + (qs ? '?' + qs : '') + (cardId ? '#' + cardId : '');
+  }
+
+  function writeUrl() {
+    try {
+      // replaceState, not pushState: expanding a card is not a page a reader
+      // wants the back button to walk through.
+      history.replaceState(null, '', pageUrl(expandedCard) +
+        (expandedCard ? '' : location.hash));
+    } catch (e) { /* a URL we cannot write is not worth failing the render for */ }
+  }
+
+  function setExpanded(chart, on) {
+    var expand = chart.querySelector('.tit-expand');
+    var label = expand && expand.querySelector('.tit-expand-t');
+    chart.classList.toggle('is-expanded', on);
+    if (expand) {
+      expand.setAttribute('aria-expanded', on ? 'true' : 'false');
+      expand.title = on ? 'Collapse this chart' : 'Expand this chart';
+    }
+    if (label) label.textContent = on ? 'Collapse' : 'Expand';
+    // One card at a time. Two expanded cards in a three-column grid is a
+    // layout, not a view, and it could not be described by one `card` value.
+    if (on) {
+      Array.prototype.slice.call(root.querySelectorAll('.tit-chart.is-expanded'))
+        .forEach(function (other) { if (other !== chart) setExpanded(other, false); });
+    }
+    expandedCard = on ? chart.id : (expandedCard === chart.id ? '' : expandedCard);
+  }
+
   Array.prototype.slice.call(root.querySelectorAll('.tit-chart')).forEach(function (chart) {
     var expand = chart.querySelector('.tit-expand');
     var share = chart.querySelector('.tit-chart-share');
     var dl = chart.querySelector('.tit-chart-dl');
+    var info = chart.querySelector('.tit-chart-info');
+
+    if (info) {
+      info.hidden = false;
+      setNote(chart, false);
+      info.addEventListener('click', function () {
+        setNote(chart, info.getAttribute('aria-expanded') !== 'true');
+      });
+    }
 
     if (expand) {
       expand.hidden = false;
-      var label = expand.querySelector('.tit-expand-t');
       expand.addEventListener('click', function () {
-        var on = chart.classList.toggle('is-expanded');
-        expand.setAttribute('aria-expanded', on ? 'true' : 'false');
-        expand.title = on ? 'Collapse this chart' : 'Expand this chart';
-        if (label) label.textContent = on ? 'Collapse' : 'Expand';
+        setExpanded(chart, !chart.classList.contains('is-expanded'));
+        writeUrl();
       });
     }
 
@@ -1446,14 +2541,27 @@
       share.hidden = false;
       share.addEventListener('click', function () {
         // The filters live in the querystring, so the link reproduces the view
-        // rather than just the page, and the hash lands on this card.
-        var url = location.origin + location.pathname +
-          (lastQuery ? '?' + lastQuery : '') + (chart.id ? '#' + chart.id : '');
+        // rather than just the page; the hash lands on this card; and `card`
+        // carries it open when it is open. Read off the class rather than off
+        // expandedCard, so the link describes THIS card whichever one is open.
+        var open = chart.classList.contains('is-expanded');
+        var url = location.origin +
+          (open ? pageUrl(chart.id)
+                : location.pathname + (lastQuery ? '?' + lastQuery : '') +
+                  (chart.id ? '#' + chart.id : ''));
         copyText(url, function () { flash(share); });
       });
     }
 
-    if (dl) {
+    // A card carrying tit-chart-nodl (the market trend; formerly the
+    // collection-rate card via tit-chart-trend) keeps its download HIDDEN,
+    // and that is the honest answer rather than an omission. chartCsv() reads
+    // the rendered bar rows, and these cards have none: it would hand over a
+    // file containing a header and nothing else, which is worse than no
+    // button. The whole page's numbers are the CSV and JSON under Download
+    // This View.
+    if (dl && !chart.classList.contains('tit-chart-trend')
+           && !chart.classList.contains('tit-chart-nodl')) {
       dl.hidden = false;
       dl.addEventListener('click', function () {
         download('talent-' + (dl.dataset.chart || 'chart') + '.csv', chartCsv(chart));
@@ -1461,6 +2569,27 @@
       });
     }
   });
+
+  // A shared link that named a card opens it, and scrolls to it, once the
+  // controls above are wired. Called after applyUrlState() so it sees the same
+  // querystring the filters were restored from.
+  function openCardFromUrl() {
+    var want = expandedCard;
+    if (!want) return;
+    var chart = document.getElementById(want);
+    // An id we do not have is dropped rather than guessed at, the same rule
+    // applyUrlState() follows for every other parameter. Dropped from the
+    // address bar too, so a stale link does not keep rewriting itself.
+    if (!chart || !chart.classList.contains('tit-chart')) {
+      expandedCard = '';
+      writeUrl();
+      return;
+    }
+    setExpanded(chart, true);
+    var still = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    chart.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  }
 
   // --- Clickable chart rows -------------------------------------------------
   // Each bar row is a filter. A click routes through the SAME state the
@@ -1479,6 +2608,13 @@
     { el: document.getElementById('chart-money-country'), key: 'country' },
     { el: document.getElementById('chart-money-city'), key: 'city' },
     { el: document.getElementById('chart-money-industry'), key: 'industry',
+      label: function (k) { return INDUSTRY_LABEL[k] || k; } },
+    // The two cards that took the grid to nine. Same wiring as the rest, so a
+    // click on "Official Filing" narrows the table, the chips bar, the address
+    // bar, the other eight charts and both export links in one pass.
+    { el: document.getElementById('chart-confidence'), key: 'confidence',
+      label: function (k) { return CONFIDENCE_LABEL[k] || k; } },
+    { el: document.getElementById('chart-industry'), key: 'industry',
       label: function (k) { return INDUSTRY_LABEL[k] || k; } }
   ];
 
@@ -1589,76 +2725,686 @@
     });
   }
 
-  // --- Sortable table headers ----------------------------------------------
-  // A header click sets the SAME `sort` parameter the select above uses, so it
-  // orders the whole filtered set on the server, round-trips through the URL,
-  // and rides along with the exports. Two keys per column so a second click
-  // reverses it, and the select gains an option for whatever the headers chose
-  // so the two controls can never contradict each other.
-  var COL_SORT = {
-    employer: ['employer', 'employer_desc'],
-    place: ['place', 'place_desc'],
-    evidence: ['evidence', 'evidence_desc'],
-    when: ['newest', 'oldest']
-  };
-  // 'when' is the odd one: newest first IS descending by date.
-  var COL_DIR = {
-    employer: ['ascending', 'descending'],
-    place: ['ascending', 'descending'],
-    evidence: ['ascending', 'descending'],
-    when: ['descending', 'ascending']
-  };
+  // --- The hero's Search button ---------------------------------------------
+  // It is a focus, not a navigation: the employer search in the primary filter
+  // row is the control the button promises, so it scrolls there and hands the
+  // keyboard over. The count on the button is repainted with the aggregate.
+  var ctaSearch = document.getElementById('tit-cta-search');
+  if (ctaSearch) {
+    ctaSearch.addEventListener('click', function () {
+      var f = document.getElementById('tit-f-company') ||
+              document.getElementById('tit-f-q');
+      if (!f) return;
+      if (f.scrollIntoView) f.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      f.focus({ preventScroll: true });
+    });
+  }
+
+  // --- Tap-a-date on the trend plot -----------------------------------------
+  // The one chart that broke the click contract: its lines and dates were
+  // inert while every sibling chart row filters the page. A tap on the plot
+  // maps its x position to a day (the .tit-tc wrapper carries data-start,
+  // data-n and data-avg from the server, see tit_trend_svg) and narrows the
+  // page to the avg-day window ending that day, which is exactly the window
+  // the plotted point summarises. Tapping the same spot again clears it. The
+  // window goes through the SAME since/until inputs the Date Range control
+  // writes, so the chips bar, the address bar, the exports and every other
+  // chart follow in one pass, and the Date Range control is the keyboard
+  // route (the note panel says so). Delegated to the stable box, because the
+  // plot inside it is replaced wholesale on every filter change.
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function isoAddDays(iso, days) {
+    var p = (iso || '').split('-');
+    if (p.length !== 3) return '';
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]) + days * 86400000);
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+
+  var trendTap = document.getElementById('tit-trend-box');
+  if (trendTap) {
+    trendTap.addEventListener('click', function (e) {
+      // Only a tap on the plot itself; the note panel and the legend live in
+      // the same box and their clicks mean nothing here.
+      var plot = e.target && e.target.closest ? e.target.closest('.tit-tc-box') : null;
+      if (!plot || !trendTap.contains(plot)) return;
+      var tc = plot.closest('.tit-tc');
+      if (!tc) return;
+      var start = tc.getAttribute('data-start') || '';
+      var n = parseInt(tc.getAttribute('data-n'), 10) || 0;
+      var avg = parseInt(tc.getAttribute('data-avg'), 10) || 7;
+      if (!start || n < 2) return;
+      var rect = plot.getBoundingClientRect();
+      if (!rect.width) return;
+      var frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+      var until = isoAddDays(start, Math.round(frac * (n - 1)));
+      // NOT clamped to the plot's left edge: the point plotted there averages
+      // days the server deliberately reads before the plot starts (the warm-up
+      // in tit_signal_trend), so the honest window may begin before data-start.
+      var since = isoAddDays(until, -(avg - 1));
+      if (!since || !until) return;
+      var same = inputs.since && inputs.until &&
+        inputs.since.value === since && inputs.until.value === until;
+      if (inputs.since) inputs.since.value = same ? '' : since;
+      if (inputs.until) inputs.until.value = same ? '' : until;
+      refresh();
+    });
+  }
+
+  /*
+    COPY AS POST, BUILT FROM WHAT IS ON SCREEN.
+
+    The rule this button has to satisfy is that it can never hand somebody a
+    figure the page is not showing. The sibling's version is scoped only by its
+    region tab and ignores the rest of its filter bar, so a reader looking at one
+    country could copy a worldwide total; that is a quote-out-of-context bug with
+    our own name on it.
+
+    Two things make it honest here. It reads the RENDERED rows out of the DOM
+    rather than rebuilding them from an aggregate, so whatever is copied is
+    literally what is displayed. And it names the active filters, read from the
+    chips bar the page already maintains, so the numbers arrive with the view
+    they describe attached rather than as bare worldwide-looking totals. The
+    panel itself repaints from /aggregate under those filters (see
+    paintAggregate), so the two halves cannot drift.
+
+    The button is rendered `hidden` and revealed here. Its entire function is
+    navigator.clipboard, so with no JavaScript, or on a browser without the
+    clipboard API, it would be a control that visibly does nothing — worse than
+    no control at all.
+  */
+  var canCopy = !!(navigator.clipboard && navigator.clipboard.writeText);
+
+  /*
+    COPY AS POST, off the signal board, as clean text lines.
+
+    The rule is unchanged from the strip it replaces: the button can never
+    hand somebody a figure the page is not showing. It reads the RENDERED
+    matrix rows out of the DOM at click time (each cell already carries its
+    period as real text, .tit-cell-p, for the stacked mobile layout), and the
+    board repaints from /aggregate under the active filters, so what is
+    copied is literally what is displayed. It names the active filters from
+    the chips bar for the same reason.
+
+    Bound once: the button lives in the board's static head, outside the
+    #tit-glance element the repaint rewrites, so it survives every filter
+    change. Revealed here because its entire function is navigator.clipboard.
+  */
+  var boardCopy = document.getElementById('tit-dg-copy');
+  var boardEl = document.getElementById('tit-board');
+  if (boardCopy && boardEl && canCopy) {
+    boardCopy.hidden = false;
+    boardCopy.addEventListener('click', function () {
+      var lines = [];
+      var title = boardEl.querySelector('.tit-board-title');
+      if (title) lines.push(title.textContent.replace(/\s+/g, ' ').trim());
+
+      Array.prototype.forEach.call(boardEl.querySelectorAll('.tit-matrix-row'), function (row) {
+        var th = row.querySelector('th');
+        if (!th) return;
+        var label = th.childNodes[0] ? String(th.childNodes[0].textContent).trim()
+                                     : th.textContent.trim();
+        var cells = Array.prototype.map.call(row.querySelectorAll('.tit-cell'), function (b) {
+          var p = b.querySelector('.tit-cell-p');
+          var period = p ? p.textContent.trim() : '';
+          var n = (b.textContent || '').replace(p ? p.textContent : '', '').trim();
+          return period + ' ' + n;
+        }).filter(Boolean);
+        if (cells.length) lines.push(label + ': ' + cells.join(' · '));
+      });
+
+      // The all-time figures live in the freshness panel, collected by name.
+      var allFig = document.getElementById('tit-fresh-stats');
+      if (allFig) {
+        lines.push('Everything we hold: ' +
+                   allFig.textContent.replace(/\s+/g, ' ').trim());
+      }
+
+      // The view these figures describe, from the chips the page is already
+      // showing; "no filters" is said out loud rather than left ambiguous.
+      var chipEls = activeChips ? activeChips.querySelectorAll('.tit-chip') : [];
+      var applied = Array.prototype.map.call(chipEls, function (c) {
+        return c.textContent.replace(/\s*×\s*$/, '').replace(/\s+/g, ' ').trim();
+      }).filter(Boolean);
+      lines.push(applied.length
+        ? 'View: ' + applied.join('; ')
+        : 'View: everything we hold, unfiltered.');
+
+      lines.push('No figure appears unless its source states it. ' +
+                 'Talent Intelligence Tracker: ' + location.origin + location.pathname +
+                 (location.search || ''));
+
+      navigator.clipboard.writeText(lines.join('\n')).then(function () {
+        var was = boardCopy.textContent;
+        boardCopy.textContent = 'Copied';
+        setTimeout(function () { boardCopy.textContent = was; }, 1500);
+      });
+    });
+  }
+
+  /*
+    --- "Why you can trust this" / Questions, as real tabs -------------------
+
+    THE PANELS ARE ALREADY ON THE PAGE. Both of them, in full, rendered by the
+    server. This function does not fetch, build or inject a single word: it puts
+    `is-tabbed` on the container and sets `hidden` on the panel that is not
+    selected. That ordering is the point — an FAQ that arrives on click is an
+    FAQ a crawler never sees, and it is one of the most valuable blocks on the
+    page for search. Before this runs, and if it never runs, a reader gets both
+    panels stacked under their own headings.
+
+    Full tab semantics, because half of them is worse than none: roving
+    tabindex so the strip is one stop rather than two, Left/Right to move
+    between tabs, Home/End to jump, and the selected panel focusable so a
+    reader who tabs out of the strip lands in the content it just revealed.
+  */
+  var trust = document.getElementById('tit-trust');
+  if (trust) {
+    var tabs2 = Array.prototype.slice.call(trust.querySelectorAll('[role="tab"]'));
+    var panels = tabs2.map(function (t) {
+      return document.getElementById(t.getAttribute('aria-controls'));
+    });
+    if (tabs2.length > 1 && panels.every(Boolean)) {
+      var selectTab = function (i, focus) {
+        tabs2.forEach(function (t, j) {
+          var on = (i === j);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.tabIndex = on ? 0 : -1;
+          panels[j].hidden = !on;
+        });
+        if (focus) tabs2[i].focus();
+      };
+      // The class first, so the stylesheet's hiding rules are in force before
+      // anything is hidden. The other order paints one panel, hides it, and
+      // then reveals the strip, which a reader sees as a flicker.
+      trust.classList.add('is-tabbed');
+      selectTab(0, false);
+
+      tabs2.forEach(function (t, i) {
+        t.addEventListener('click', function () { selectTab(i, false); });
+        t.addEventListener('keydown', function (e) {
+          var next = null;
+          if (e.key === 'ArrowRight') next = (i + 1) % tabs2.length;
+          else if (e.key === 'ArrowLeft') next = (i - 1 + tabs2.length) % tabs2.length;
+          else if (e.key === 'Home') next = 0;
+          else if (e.key === 'End') next = tabs2.length - 1;
+          if (next === null) return;
+          e.preventDefault();
+          selectTab(next, true);
+        });
+      });
+    }
+  }
+
+  // --- Sort orderings that no longer have a column header --------------------
+  // Four sortable <th> buttons used to set the SAME `sort` parameter the select
+  // uses. The results are cards now and have no column headers, so every one of
+  // those orderings is a server-rendered <option> in that select instead: the
+  // values are unchanged, so a link somebody saved from the old page still
+  // lands on the ordering it names.
+  //
+  // This map stays because applyUrlState() still needs it. A shared link can
+  // carry a sort value that arrived before its option did, and dropping the
+  // value because the option does not exist YET is what once made every shared
+  // link to a single country come back as the whole world.
   var SORT_OPTION_LABEL = {
     employer_desc: 'Employer Z to A',
-    place: 'By place', place_desc: 'By place, reversed',
-    evidence: 'Strongest evidence first', evidence_desc: 'Weakest evidence first'
+    place: 'By Place', place_desc: 'By Place, Reversed',
+    evidence: 'Strongest Evidence First', evidence_desc: 'Weakest Evidence First'
   };
 
-  var sortHeads = Array.prototype.slice.call(root.querySelectorAll('th.tit-th-sort'));
 
-  function syncSortHeads() {
-    var current = inputs.sort ? inputs.sort.value : '';
-    sortHeads.forEach(function (th) {
-      var pair = COL_SORT[th.getAttribute('data-col')] || [];
+  /*
+    --- WATCHLIST AND THE CARD / TABLE VIEW, both browser-local ---------------
+
+    NO ACCOUNTS, NO SERVER STORAGE, NO PII. The watchlist and the view choice
+    live in this browser's localStorage and nowhere else. When localStorage is
+    unavailable (private mode on some engines, storage disabled), `store` is
+    null and the whole watchlist surface stays hidden: no star, no chip,
+    nothing that could be pressed to no effect. The view toggle still works for
+    the session; only the memory of it degrades.
+
+    WHY THE WATCHLIST FILTERS CLIENT-SIDE, stated because it is a real limit:
+    /query's `company` parameter is a single LIKE over company_key and does not
+    take a comma list, so there is no one request that returns "these nine
+    employers". Merging nine sequential fetches would hammer the origin and
+    still lie about ordering, so the chip narrows what is already on the page
+    (the newest 50 of the current view) and the (i) panel says exactly that.
+
+    WHY THE STARS ARE INJECTED AFTER PAINT rather than rendered by
+    tit_card_html()/renderCard(): the card markup is a shared contract with the
+    sibling tracker (docs/card-contract.json) and both renderers are pinned by
+    tests. A runtime enhancement that decorates the rendered card leaves the
+    contract untouched, and a reader without JavaScript, who could not use a
+    watchlist anyway, never sees a dead control.
+  */
+  var store = (function () {
+    try {
+      var probe = '__tit_probe__';
+      localStorage.setItem(probe, '1');
+      localStorage.removeItem(probe);
+      return {
+        get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+        set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) { /* full or gone: degrade */ } }
+      };
+    } catch (e) { return null; }
+  })();
+
+  var lastRows = null;
+
+  var watchChip = document.getElementById('tit-watch-chip');
+  var watchNEl = document.getElementById('tit-watch-n');
+  var watchNewEl = document.getElementById('tit-watch-new');
+  var watchHint = document.getElementById('tit-watch-hint');
+  var watchShort = document.getElementById('tit-watch-short');
+  var watchToast = document.getElementById('tit-watch-toast');
+  var watchOn = false;
+  var watchSet = {};
+  var lastVisit = 0;
+  if (store) {
+    try { watchSet = JSON.parse(store.get('tit_watchlist') || '{}') || {}; }
+    catch (e) { watchSet = {}; }
+    lastVisit = parseInt(store.get('tit_last_visit') || '0', 10) || 0;
+    // Written now, read next time: "new since your last visit" means since the
+    // moment this page last loaded, which is the reading a person expects.
+    store.set('tit_last_visit', String(Date.now()));
+  }
+
+  function watchCount() { return Object.keys(watchSet).length; }
+  function saveWatch() { if (store) store.set('tit_watchlist', JSON.stringify(watchSet)); }
+
+  // The star, on every card's employer. Idempotent per paint: the button is
+  // created once per card and re-synced afterwards, and the employer name is
+  // captured onto the card BEFORE the button joins the span, so the name can
+  // never include the star's own glyph.
+  function decorateCards() {
+    if (!store || !tbody) return;
+    Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
+      var emp = li.querySelector('.tit-card-employer');
+      if (!emp) return;
+      if (!li.getAttribute('data-employer')) {
+        li.setAttribute('data-employer', emp.textContent.trim());
+      }
+      var name = li.getAttribute('data-employer');
+      var btn = emp.querySelector('.tit-watch-star');
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tit-watch-star';
+        emp.appendChild(btn);
+      }
+      var on = !!watchSet[name];
+      // TWO GLYPHS, not two shades of one. The filled and the hollow star differ
+      // in SHAPE, so the state survives a monochrome screen, a colour vision
+      // difference, and a print. The colour and the tinted pill on .is-on are
+      // reinforcement; neither of them is load bearing on its own.
+      btn.textContent = on ? '★' : '☆';
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      // PLAIN WORDS, and the word "watchlist" is not among them. A first-time
+      // reader is told what pressing this does and what pressing it again does;
+      // "Watch" alone was a label that only made sense to somebody who already
+      // knew the feature by name.
+      btn.setAttribute('aria-label', on
+        ? 'Following ' + name + '. Press to unfollow.'
+        : 'Star ' + name + ' to follow it.');
+      btn.title = on ? 'Following. Click to unfollow.' : 'Star this company to follow it';
+    });
+  }
+
+  /*
+    THE CONFIRMATION after a star is pressed.
+
+    WHERE IT IS SAVED IS THE MESSAGE, not decoration on it. The owner read the
+    star and assumed a cookie. It is not one, and the difference is a privacy
+    claim rather than a technicality: a cookie is sent to the server on every
+    single request, and localStorage is never transmitted anywhere. So the
+    sentence says "Saved in this browser only" and the word cookie appears
+    nowhere, because it would be false.
+
+    ONE TIMER, ONE REGION. Starring six employers quickly replaces the text five
+    times and leaves one timer running, so nothing stacks and nothing queues.
+    The region is aria-live="polite" and permanent in the DOM (see the note in
+    shortcodes.php): it is written, never created, which is what makes it
+    reliably announced.
+
+    REDUCED MOTION is honoured by the stylesheet, and the message is the part
+    that never depends on it: the class that fades is added here regardless and
+    the media query drops only the transition. A reader who asks for no motion
+    still gets the confirmation, instantly.
+  */
+  var watchToastTimer = 0;
+  function sayWatch(msg) {
+    if (!watchToast) return;
+    watchToast.textContent = msg;
+    watchToast.classList.add('is-on');
+    if (watchToastTimer) clearTimeout(watchToastTimer);
+    watchToastTimer = setTimeout(function () {
+      watchToastTimer = 0;
+      watchToast.classList.remove('is-on');
+      // Emptied as well as un-tinted: an :empty region takes no space and says
+      // nothing to a screen reader that lands on it later.
+      watchToast.textContent = '';
+    }, 4000);
+  }
+
+  // Updates from watched employers dated after the previous visit, counted
+  // from the fetched rows when there are any and from the served cards on the
+  // first paint. Dates compare as UTC midnights, which is how they render.
+  function watchNewCount() {
+    if (!watchCount() || !lastVisit) return 0;
+    var n = 0;
+    if (lastRows) {
+      lastRows.forEach(function (r) {
+        if (!watchSet[String(r.company || '').trim()]) return;
+        var t = Date.parse(String(r.published_date || '').slice(0, 10));
+        if (t && t > lastVisit) n++;
+      });
+      return n;
+    }
+    Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
+      if (!watchSet[li.getAttribute('data-employer')]) return;
+      var tm = li.querySelector('time[datetime]');
+      var t = tm ? Date.parse(tm.getAttribute('datetime')) : 0;
+      if (t && t > lastVisit) n++;
+    });
+    return n;
+  }
+
+  function applyWatchFilter() {
+    if (!tbody) return;
+    var total = 0, hidden = 0, seen = {}, matched = 0;
+    Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card'), function (li) {
+      total++;
+      var name = li.getAttribute('data-employer');
+      var hide = watchOn && !watchSet[name];
+      li.classList.toggle('tit-watch-hide', hide);
+      if (hide) { hidden++; return; }
+      // Distinct STARRED employers still on the page. Counting rows would say
+      // "5 of your 3" the moment one employer had three updates in the window.
+      if (watchSet[name] && !seen[name]) { seen[name] = 1; matched++; }
+    });
+    /*
+      THE 50-ROW LIMIT IS SAID WHERE IT IS MET, which is the empty or thin list
+      in front of the reader, not in a panel they would have to go and open.
+
+      TWO STATES, because the confusing one is not only the empty one. Star four
+      employers, filter, see one card, and the page looks like it lost three
+      stars. It did not: the watchlist narrows the rows already loaded (the
+      newest 50 of this view) and the other three simply have nothing in that
+      window. So the shortfall is named with both numbers whenever fewer starred
+      employers appear than are starred, and the empty case is just the shortfall
+      at zero, told in the list itself where the missing cards would have been.
+    */
+    var starred = watchCount();
+    var note = document.getElementById('tit-watch-empty');
+    var need = watchOn && total > 0 && hidden === total;
+    if (need && !note) {
+      note = document.createElement('li');
+      note.id = 'tit-watch-empty';
+      note.className = 'tit-cards-empty';
+      note.textContent = 'No loaded update is from an employer you starred. '
+        + 'The watchlist narrows the newest 50 updates of this view, so a '
+        + 'starred employer with nothing in that window does not appear here. '
+        + 'Widen the filters or clear one to reach further back.';
+      tbody.appendChild(note);
+    } else if (!need && note && note.parentNode) {
+      note.parentNode.removeChild(note);
+    }
+    if (watchShort) {
+      var short = watchOn && total > 0 && matched < starred;
+      watchShort.textContent = short
+        ? 'Showing ' + matched + ' of the ' + starred + ' employers you starred. '
+          + 'The watchlist narrows the newest 50 updates of this view; widen the '
+          + 'filters to reach further back.'
+        : '';
+      watchShort.hidden = !short;
+    }
+    if (tableWrap) {
+      Array.prototype.forEach.call(
+        tableWrap.querySelectorAll('tbody tr[data-employer]'), function (tr) {
+          tr.classList.toggle('tit-watch-hide',
+            watchOn && !watchSet[tr.getAttribute('data-employer')]);
+        });
+    }
+  }
+
+  function setWatchOn(on) {
+    watchOn = !!on && watchCount() > 0;
+    if (watchChip) {
+      watchChip.classList.toggle('is-on', watchOn);
+      watchChip.setAttribute('aria-pressed', watchOn ? 'true' : 'false');
+    }
+    applyWatchFilter();
+  }
+
+  function paintWatch() {
+    if (!store || !watchChip) return;
+    watchChip.hidden = false;
+    // The sentence that says what the star does is revealed by the SAME pass
+    // that reveals the chip, and by nothing else. It is never collapsed, never
+    // behind a disclosure, and never conditional on having starred anything:
+    // the reader who most needs it has starred nothing yet.
+    if (watchHint) watchHint.hidden = false;
+    if (watchNEl) watchNEl.textContent = '(' + watchCount() + ')';
+    decorateCards();
+    var fresh = watchNewCount();
+    if (watchNewEl) {
+      watchNewEl.textContent = fresh > 0 ? fresh + ' new' : '';
+      watchNewEl.hidden = fresh <= 0;
+      if (fresh > 0) {
+        watchNewEl.title = fresh + (fresh === 1 ? ' update' : ' updates')
+          + ' from watched employers since your last visit';
+      }
+    }
+    // A watchlist that just lost its last employer stops filtering: an "on"
+    // chip over zero stars would hide every row and look like an outage.
+    if (watchOn && watchCount() === 0) setWatchOn(false);
+    else applyWatchFilter();
+  }
+
+  if (store && watchChip) {
+    watchChip.addEventListener('click', function () { setWatchOn(!watchOn); });
+  }
+  if (store && tbody) {
+    // Delegated: the cards are re-created on every repaint.
+    tbody.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.tit-watch-star') : null;
+      if (!btn) return;
+      e.preventDefault();
+      var li = btn.closest('li.tit-card');
+      var name = li && li.getAttribute('data-employer');
+      if (!name) return;
+      var added = !watchSet[name];
+      if (added) watchSet[name] = 1; else delete watchSet[name];
+      saveWatch();
+      paintWatch();
+      sayWatch(added
+        ? 'Added to your watchlist. Saved in this browser only.'
+        : 'Removed from your watchlist.');
+    });
+  }
+
+  /*
+    --- THE COMPACT TABLE, a sibling rendering of the same rows ---------------
+
+    Built entirely client-side from the SAME /query rows the cards render, so
+    the two views can never show different sets. The card markup is not touched
+    and not restyled: docs/card-contract.json governs the card, and this is a
+    second rendering beside it, not a variant of it.
+
+    The sortable headers write the SAME `sort` parameter the select and the
+    shared links use, so a header click orders the whole filtered set on the
+    server, never the fifty rows on screen. Names here deliberately do NOT
+    reuse the retired table-header names; the contract test pins those as gone.
+  */
+  var viewWrap = document.getElementById('tit-viewtoggle');
+  var vtCards = document.getElementById('tit-vt-cards');
+  var vtTable = document.getElementById('tit-vt-table');
+  var tableWrap = document.getElementById('tit-tablewrap');
+  var viewMode = (store && store.get('tit_view')) === 'table' ? 'table' : 'cards';
+
+  var UT_SORT = {
+    when: ['newest', 'oldest'], employer: ['employer', 'employer_desc'],
+    place: ['place', 'place_desc'], evidence: ['evidence', 'evidence_desc'],
+    raised: ['raised']
+  };
+  // 'when' is the odd one out: newest first IS descending by date. 'raised'
+  // has one server ordering (NULL amounts must stay at the bottom either way),
+  // so its header is a one-way sort and says so by never flipping.
+  var UT_DIR = {
+    when: ['descending', 'ascending'], employer: ['ascending', 'descending'],
+    place: ['ascending', 'descending'], evidence: ['ascending', 'descending'],
+    raised: ['descending']
+  };
+  var UT_COLS = [
+    ['when', 'Date'], ['employer', 'Employer'], ['', 'Signal'],
+    ['', 'What It Means'], ['raised', 'Amount'], ['place', 'Country'],
+    ['evidence', 'Evidence'], ['', 'Source']
+  ];
+
+  function utWhen(r) {
+    var iso = String(r.published_date || '').slice(0, 10);
+    var d = iso.split('-');
+    if (d.length !== 3) return '<span class="tit-card-nowhere">Not stated</span>';
+    return '<time datetime="' + esc(iso) + '">' +
+      esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]) + '</time>';
+  }
+
+  function utRow(r) {
+    var code = r.country || r.hq_country || '';
+    var usd = Number(r.funding_amount_usd || 0);
+    return '<tr data-employer="' + esc(String(r.company || '').trim()) + '">' +
+      '<td class="tit-ut-when">' + utWhen(r) + '</td>' +
+      '<td class="tit-ut-emp">' + esc(r.company) + '</td>' +
+      '<td class="tit-ut-signal">' + esc(r.headline) + '</td>' +
+      '<td><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || 'tit-neutral') + '">' +
+        esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
+      '<td class="tit-ut-amt">' + (usd > 0 ? esc(moneyShort(usd)) : '') + '</td>' +
+      '<td>' + (code ? esc(countryLabel(code)) : '<span class="tit-card-nowhere">Not stated</span>') + '</td>' +
+      '<td><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
+        esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
+      '<td class="tit-ut-src">' + srcAnchor(r) + '</td>' +
+      '</tr>';
+  }
+
+  function syncTableSort() {
+    if (!tableWrap || !inputs.sort) return;
+    var current = inputs.sort.value;
+    Array.prototype.forEach.call(tableWrap.querySelectorAll('th.tit-ts'), function (th) {
+      var pair = UT_SORT[th.getAttribute('data-ts')] || [];
       var at = pair.indexOf(current);
-      var dir = at < 0 ? 'none' : (COL_DIR[th.getAttribute('data-col')] || [])[at];
+      var dir = at < 0 ? 'none' : (UT_DIR[th.getAttribute('data-ts')] || [])[at];
       th.setAttribute('aria-sort', dir || 'none');
-      var arrow = th.querySelector('.tit-th-arrow');
+      var arrow = th.querySelector('.tit-ts-arrow');
       if (arrow) {
-        arrow.textContent = dir === 'ascending' ? '\u25B2'
-                          : (dir === 'descending' ? '\u25BC' : '\u21C5');
+        arrow.textContent = dir === 'ascending' ? '▲'
+                          : (dir === 'descending' ? '▼' : '⇅');
       }
     });
   }
 
-  sortHeads.forEach(function (th) {
-    var btn = th.querySelector('button');
-    if (!btn || !inputs.sort) return;
-    btn.addEventListener('click', function () {
-      var pair = COL_SORT[th.getAttribute('data-col')] || [];
+  function renderTable() {
+    if (!tableWrap || lastRows === null) return;
+    var head = UT_COLS.map(function (col) {
+      if (!col[0] || !inputs.sort) {
+        return '<th scope="col">' + esc(col[1]) + '</th>';
+      }
+      return '<th scope="col" class="tit-ts" aria-sort="none" data-ts="' + col[0] + '">' +
+        '<button type="button">' + esc(col[1]) +
+        '<span class="tit-ts-arrow" aria-hidden="true"></span></button></th>';
+    }).join('');
+    tableWrap.innerHTML = '<table class="tit-table tit-ut">' +
+      '<caption class="tit-sr">The same updates as the cards, one per row. ' +
+      'Sortable headers order the whole filtered set.</caption>' +
+      '<thead><tr>' + head + '</tr></thead><tbody>' +
+      (lastRows.length ? lastRows.map(utRow).join('')
+        : '<tr><td colspan="8"><div class="tit-table-empty">' +
+          '<p class="tit-table-empty-h">Nothing matches those filters</p>' +
+          '<p class="tit-table-empty-p">We would rather show you nothing than guess.</p>' +
+          '<button type="button" class="tit-empty-clear">Reset all filters</button>' +
+          '</div></td></tr>') +
+      '</tbody></table>';
+    syncTableSort();
+    applyWatchFilter();
+  }
+
+  if (tableWrap) {
+    // Delegated: the table is re-created on every repaint.
+    tableWrap.addEventListener('click', function (e) {
+      var clear = e.target && e.target.closest ? e.target.closest('.tit-empty-clear') : null;
+      if (clear) { resetAll(); return; }
+      var th = e.target && e.target.closest ? e.target.closest('th.tit-ts') : null;
+      if (!th || !inputs.sort) return;
+      var pair = UT_SORT[th.getAttribute('data-ts')] || [];
       if (!pair.length) return;
-      var next = inputs.sort.value === pair[0] ? pair[1] : pair[0];
-      // The select must be able to SAY what the headers chose, or it would sit
-      // there reading "Most useful first" over a table sorted by employer.
+      var next = (pair.length > 1 && inputs.sort.value === pair[0]) ? pair[1] : pair[0];
+      // The select must be able to SAY what the header chose, or it would sit
+      // there reading "Most Useful First" over a table sorted by employer.
       ensureOption(inputs.sort, next, SORT_OPTION_LABEL[next] || next);
       inputs.sort.value = next;
       refresh();
     });
-  });
+  }
 
+  function setView(mode, fetchIfEmpty) {
+    viewMode = mode === 'table' ? 'table' : 'cards';
+    if (store) store.set('tit_view', viewMode);
+    var isTable = viewMode === 'table';
+    if (vtCards) {
+      vtCards.classList.toggle('is-on', !isTable);
+      vtCards.setAttribute('aria-pressed', isTable ? 'false' : 'true');
+    }
+    if (vtTable) {
+      vtTable.classList.toggle('is-on', isTable);
+      vtTable.setAttribute('aria-pressed', isTable ? 'true' : 'false');
+    }
+    if (tbody) tbody.hidden = isTable;
+    if (tableWrap) tableWrap.hidden = !isTable;
+    if (isTable) {
+      if (lastRows !== null) renderTable();
+      else if (fetchIfEmpty) refresh();
+    }
+  }
+
+  // Everything a fresh set of rows has to touch, in one place, so the cards,
+  // the table, the stars and the watch badge can never disagree about which
+  // rows arrived.
+  function afterRowsPaint() {
+    decorateCards();
+    if (viewMode === 'table') renderTable();
+    paintWatch();
+    syncTableSort();
+  }
+
+  if (viewWrap && vtCards && vtTable) {
+    viewWrap.hidden = false;
+    vtCards.addEventListener('click', function () { setView('cards', false); });
+    vtTable.addEventListener('click', function () { setView('table', true); });
+  }
+
+  syncAllPills();
   populateFacets();
 
   // Last, because it needs the inputs, the region tabs and refresh() to exist.
   // Only fetches when the link actually carried a view; the plain page is
   // already rendered by the server.
   applyUrlState();
-  // A link that narrows the page with a control folded out of sight is a link
-  // whose recipient cannot see why they are looking at what they are looking
-  // at. Open the panel once, here, and never again on its own.
-  syncMore(true);
   syncLooking();
   syncPlace();
   syncCountryButtons();
+  syncCityButtons();
   syncBasis();
   if (location.search) refresh();
+  // AFTER refresh(), because refresh() rewrites the address bar from the
+  // filters alone and would drop the `card` this is about to read if it ran
+  // first. It sets expandedCard, so every later write keeps it.
+  openCardFromUrl();
+
+  // The browser-local surfaces, last: the stars decorate the served cards, the
+  // remembered view may need a fetch (only when no shared link already
+  // triggered one; afterRowsPaint() covers that path), and the watch chip
+  // reveals itself only when storage is real.
+  paintWatch();
+  if (viewMode === 'table') setView('table', !location.search);
 })();

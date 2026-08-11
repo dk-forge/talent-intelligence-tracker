@@ -246,13 +246,43 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
     errors: list[dict] = []
     for start in range(0, len(rows), BATCH_SIZE):
         batch = rows[start:start + BATCH_SIZE]
-        resp = session.post(
-            f"{site}/wp-json/talent/v1/enrich",
-            json={"rows": batch},
-            headers={"X-Talent-API-Key": key, "User-Agent": USER_AGENT,
-                     "Content-Type": "application/json"},
-            timeout=TIMEOUT,
-        )
+        # Same retry as _post_batch above, and for the same reason. That
+        # function's comment -- "shared hosting 500s at random under load, a
+        # single bad response must not abort the run" -- was written about the
+        # publish path and never applied here, so enrich stayed a bare post
+        # with a 30s timeout where publish uses 60. It died on
+        # `ReadTimeoutError ... read timeout=30` against asktherecruiter.com on
+        # 2026-07-30 while carrying archive snapshots, losing the whole run to
+        # one slow minute on somebody else's server.
+        #
+        # A retry is safe here specifically because /enrich is idempotent: it
+        # writes derived values onto rows matched by content hash, so sending
+        # the same batch twice sets the same values twice. The publish path
+        # could not be retried this casually and is not.
+        last_error = ""
+        resp = None
+        for attempt in range(4):
+            try:
+                resp = session.post(
+                    f"{site}/wp-json/talent/v1/enrich",
+                    json={"rows": batch},
+                    headers={"X-Talent-API-Key": key, "User-Agent": USER_AGENT,
+                             "Content-Type": "application/json"},
+                    timeout=60,
+                )
+            except requests.RequestException as exc:
+                last_error = str(exc)
+                resp = None
+                time.sleep(2 ** attempt)
+                continue
+            if resp.status_code in RETRY_STATUSES:
+                last_error = f"{resp.status_code}: {resp.text[:200]}"
+                time.sleep(2 ** attempt)
+                continue
+            break
+        if resp is None or resp.status_code in RETRY_STATUSES:
+            raise PublishError(
+                f"/enrich did not answer after 4 attempts: {last_error}")
         resp.raise_for_status()
         result = resp.json() or {}
         updated += int(result.get("updated", 0))

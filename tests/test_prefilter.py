@@ -476,3 +476,76 @@ def test_a_work_policy_change_survives_in_more_than_english():
         "Seznam ruší hybridní režim, zaměstnanci se vrací",
     ]:
         assert prefilter.passes(headline)[0], headline
+
+
+# --- The Spanish, Polish and Greek widening (2026-08-03) --------------------
+#
+# Measured on the wired feeds for the four thinnest wired markets, fetched
+# live through the collector's own parse: Argentina 137 items, Mexico 130,
+# Poland 85, Greece 100, with Germany (265) as the covered-language control.
+# Pass rates moved 11.7% -> 12.4% (AR), 9.2% -> 10.0% (MX), 7.1% -> 12.9%
+# (PL); the control did not move at all (8.3% before and after), and every
+# newly passing item was hand-read — all seven were genuine signals or a
+# funding teaser. The LIVE items are below verbatim; the historical rounds
+# are real events, spelled the way those newsrooms spelled them, standing in
+# for the funding vocabulary today's corpus happened not to exercise.
+LATAM_AND_POLISH_SIGNALS = [
+    # live, Expansión (MX) — leadership, rejected by the old pack
+    "Fabiano Hideto Ikejiri asume la dirección de MSD Salud Animal en México",
+    # live, iProUP (AR) — a fund putting $10m into startups
+    "Un fondo argentino apuesta u$s10 millones en las startups con mayor potencial en IA",
+    # real rounds, LatAm register: financiamiento / levantar / recaudar / cerrar
+    "Kavak levanta 700 millones de dólares en nueva ronda de inversión",
+    "La startup mexicana Stori recauda 50 millones de dólares",
+    "Clara cierra una ronda de financiamiento por 80 millones de dólares",
+    "Ualá levantó una ronda serie E de 300 millones de dólares",
+    # live, ITwiz — a market entry
+    "TBD Solutions rozpoczyna działalność w Polsce",
+    # live, MamStartup — a VC investment stated as a portfolio join
+    "ForActive dołącza do portfolio Simpact Ventures",
+    # real rounds, Polish register: pozyskać / zebrać, and the inflected round
+    "Booksy pozyskało 70 mln dolarów finansowania",
+    "ICEYE zebrał 93 mln dolarów w rundzie finansowania",
+    "Nowy prezes Allegro. Rada nadzorcza powołała go na stanowisko w poniedziałek",
+]
+
+GREEK_SIGNALS = [
+    "Η ελληνική startup άντλησε 5 εκατ. ευρώ για την επέκτασή της",
+    "Ανακοινώθηκε η πρόσληψη νέου γενικού διευθυντή",
+]
+
+
+@pytest.mark.parametrize("headline", LATAM_AND_POLISH_SIGNALS + GREEK_SIGNALS)
+def test_latam_polish_and_greek_signals_survive(headline):
+    keep, reason = prefilter.passes(headline)
+    assert keep, f"dropped a genuine signal ({reason}): {headline}"
+
+
+@pytest.mark.parametrize("headline", [
+    # live, Bankier.pl — price rises, not pay rises. "podwyżk" is anchored to
+    # pay precisely because of this front page.
+    "Inflacja w Polsce wzrosła, ale handel nie przewiduje podwyżek cen",
+    # a crowd gathering is "zebrać" too; the verb is anchored to an amount
+    "Przed Sejmem zebrały się tysiące protestujących",
+    # government infrastructure money is not a funding round
+    "El Gobierno anunció una inversión de 500 millones en carreteras",
+    # drawing water is "αντλώ" as well; the verb is anchored to an amount
+    "Η πυροσβεστική άντλησε νερό από τη λίμνη",
+])
+def test_the_anchors_on_the_new_verbs_hold(headline):
+    keep, reason = prefilter.passes(headline)
+    assert not keep, f"would have paid to classify: {headline}"
+
+
+def test_a_polish_factory_closure_with_job_losses_is_still_the_siblings():
+    """The new Polish site vocabulary must not leak a cut past the boundary:
+    a closure that states job losses is the sibling's record, exactly like the
+    Enpal case above."""
+    with_cut = "Zamknęli fabrykę w Poznaniu. 200 pracowników zwolnionych"
+    assert prefilter.workforce_reduction_term(with_cut)
+    assert not prefilter.passes(with_cut)[0]
+
+    # live, Bankier.pl — the closure alone is a site event and stays ours
+    without_cut = "Zamknęli fabrykę, wybudują bloki. Zaskakujący plan firmy meblarskiej"
+    assert prefilter.workforce_reduction_term(without_cut) is None
+    assert prefilter.passes(without_cut)[0]

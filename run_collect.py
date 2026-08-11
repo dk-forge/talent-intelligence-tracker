@@ -16,10 +16,14 @@ from dataclasses import asdict
 from datetime import date
 
 import source_registry as registry
-from collectors import (ats_boards, gdelt, google_news, national_press,
-                        sec_edgar, sec_execcomp, sec_form_d, tripwire_chase,
-                        uk_paygap)
-from pipeline import classify, prefilter, publish, schema, store, validate
+from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
+                        czechia_ares, edinet_japan, estonia_ariregister, gdelt,
+                        google_news, israel_registrar, national_press,
+                        opendart_korea, primary_chase, sec_edgar,
+                        sec_execcomp, sec_form_d, singapore_acra, spain_borme,
+                        tripwire_chase, uk_paygap)
+from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
+                      gate_ledger, prefilter, publish, schema, store, validate)
 
 # Registration. A collector that exposes `as_classified` derives its own
 # record from structured fields and never calls the model, so it skips the
@@ -32,11 +36,89 @@ SOURCES = {
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,
     "uk_paygap": uk_paygap,
+    # The UK's leadership spine. Officer appointments off the Companies House
+    # register, so it exposes `as_classified` and spends nothing. The population
+    # is NOT the register: it is the 9,230 employers the gender pay gap duty
+    # covers, which is the only free primary list of UK companies keyed on
+    # employees. Unfiltered the register offers ~28,100 appointments a week,
+    # mostly at dormant micro-companies. See the docstring for the measurement.
+    "companies_house": companies_house,
+    # India's leadership spine. Derived from SEBI's mandated Regulation 30
+    # category, so it exposes `as_classified` and spends nothing.
+    "bse_india": bse_india,
+    # Japan's chief-executive spine. Derived from the typed statutory reason on
+    # an EDINET extraordinary report (第19条第2項第9号, change of representative
+    # director), so it exposes `as_classified` and spends nothing. Narrower than
+    # bse_india on purpose: that clause is the only officer clause Japan types.
+    "edinet_japan": edinet_japan,
+    # Korea's leadership spine. Derived from the Korea Exchange's own report
+    # TITLE — a change of representative director, or the appointment,
+    # dismissal or early retirement of an independent director — because DART's
+    # typed detail codes stop one level too coarse. Exposes `as_classified` and
+    # spends nothing. See the docstring for why the periodic-report roster
+    # endpoints are refused rather than diffed into events.
+    "opendart_korea": opendart_korea,
+    # Czechia's leadership spine, and the only registry in the tracker that
+    # states BOTH directions per person: `vznikClenstvi` and `zanikClenstvi` are
+    # the dates the office itself began and ended, separately from the dates the
+    # court registered either, so nothing here is diffed out of two snapshots.
+    # Keyless, so it exposes `as_classified` and spends nothing. The population
+    # is not the register: it is the companies the change feed says moved,
+    # narrowed to the 1.0% whose statistical employee band is 250 or more.
+    "czechia_ares": czechia_ares,
+    # Estonia's leadership spine, and it is HALF a spine on purpose: the daily
+    # open-data file lists current office-holders only, so `lopp_kpv` is null on
+    # all 520,895 rows and this source reports appointments and never
+    # departures. That sentence is on every row it stores. Keyless, derived,
+    # spends nothing. Filtered to employers reporting 50 full-time equivalents
+    # or more, the Commission's own small-enterprise boundary.
+    "estonia_ariregister": estonia_ariregister,
+    # Israel's FUNDING spine, and the only registry here that is not a
+    # leadership one. The registrar's daily changes file is an event stream,
+    # not a company list: 558,617 rows across 96 act types, and four of those
+    # codes are the act a company files when it issues new shares or raises
+    # registered capital. That is the Israeli SH01, 6,694 rows a year.
+    # Keyless, derived, spends nothing. There is NO size filter available:
+    # Israel publishes no employee count in any registrar dataset, so the act
+    # type is the only filter and a share allotment is self-filtering in a way
+    # a company list is not. The file carries no amount, so a row is the fact
+    # that capital was raised and never a figure for how much.
+    "israel_registrar": israel_registrar,
+    # Singapore's INCORPORATION signal, and the narrowest source here on
+    # purpose. ACRA's register is a monthly SNAPSHOT rather than a filing feed,
+    # so there are no dated officer-change events and no funding on it at all.
+    # What it does state is a dated incorporation plus an SSIC industry code,
+    # which is what stops it being a bare company-name list: the code selects
+    # software and IT rather than every company in the country. Keyless,
+    # derived, spends nothing.
+    "singapore_acra": singapore_acra,
+    # Spain's chief-executive spine, and the second source here that reports a
+    # DEPARTURE. Every act inscribed in a Spanish commercial register is
+    # published in BORME Section A under a fixed heading, with the office as a
+    # fixed abbreviation, so the direction and the office are the bulletin's own
+    # words. Keyless, derived, spends nothing. The population is not the
+    # bulletin: Spain publishes no headcount to threshold on, so the filter is
+    # the OFFICE — the consejero delegado, the director the board has delegated
+    # its powers to — for the same reason edinet_japan reads one clause of 44
+    # and opendart_korea reads the representative director alone. Everything
+    # board-grade is 123,455 rows a year; this is ~12,700.
+    "spain_borme": spain_borme,
     "ats_boards": ats_boards,
     # Dormant: nothing schedules it. It reads the tripwire's work list and
     # searches for each lead's PUBLISHER, so the model's claims never reach the
     # store — only the article does. See collectors/tripwire_chase.py.
     "tripwire_chase": tripwire_chase,
+    # Dormant until the owner arms a BENCHMARK_* secret. It diffs an external
+    # reference list against our stored employers and chases the gap to each
+    # employer's OWN press and filings; the reference is a discovery pointer
+    # and is never cited or named. Its log carries counts only, never a name.
+    # Entry point is run_benchmark_diff.py; see collectors/benchmark_chase.py.
+    "benchmark_chase": benchmark_chase,
+    # Dormant: nothing schedules it, and nothing should. It reads a hand-made
+    # list of URLs and stores what the EMPLOYER'S OWN announcement (or the
+    # regulator's own filing) says, so the list is a place to look and never
+    # a fact. See collectors/primary_chase.py.
+    "primary_chase": primary_chase,
 }
 
 RUNS_PER_DAY = 2
@@ -57,9 +139,9 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
         # Precise phrases plus `when:` recency. The old broad sweep returned
         # political job-creation stories with no employer in them.
         return list(registry.GOOGLE_NEWS_QUERIES)
-    if source == "tripwire_chase":
-        # The tripwire's work list IS the population: one targeted query per
-        # lead, built from the employer's name inside the collector.
+    if source in ("tripwire_chase", "benchmark_chase", "primary_chase"):
+        # These three have no search vocabulary: the tripwire's work list, the
+        # benchmark diff and the primary-chase URL list ARE the population.
         return []
 
     base = " OR ".join(f'"{term}"' for term in registry.BASE_VOCABULARY[:12])
@@ -78,12 +160,31 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     return queries
 
 
-# Five editions a run, twice a day, sweeps the 49-edition list in about five
-# days (was 3/run over 36 editions = six days). The recency window derives from
-# this, so widening the list without raising the rate would just have stretched
-# the window rather than covering more ground per day. Fetching is free; the
-# gate makes looking cheap; the read-through cap bounds the money.
-LOCALES_PER_RUN = 5
+# Four editions a run, twice a day, sweeps the 34-edition list in 4.25 days
+# (was 3/run over 36 editions = six days; he:IL made it 51 on 2026-07-29; the
+# seventeen English non-US editions were withdrawn on 2026-08-01, see
+# source_registry.WITHDRAWN_ENGLISH_EDITIONS). The recency window derives from
+# this — 34 editions at 4/run put it at 6d — so nothing ages out between
+# visits. The honest cost of a wide list is LATENCY, not loss: a non-anchor
+# market's new story waits up to ~4 days for its edition's turn. The fix would
+# be a third daily cron slot (RUNS_PER_DAY=3 sweeps in 2.8d), but that is +50%
+# on every per-run spend ceiling, and raising spend is the owner's decision,
+# the same rule that pins READTHROUGH_CAP. Raise RUNS_PER_DAY and the cron
+# together or not at all: the rotation arithmetic reads this constant.
+#
+# WHY 5 -> 4 AND NOT 5. This is the reallocation, and it is deliberately not a
+# free lunch. The withdrawn editions were cheap per visit precisely because
+# they returned the anchor again: measured 2026-08-01, an English non-US
+# edition adds ~71 prefilter-passing candidates on top of the anchor while a
+# non-English one adds ~189. Keeping 5/run over an all-non-English list would
+# have swapped ~3.3 cheap visits a day for ~3.3 expensive ones and raised the
+# daily candidate load from ~1,497 to ~1,890 — a 26% rise in gate spend that
+# nobody asked for, at a ceiling that is already degrading. Four holds the load
+# at ~1,512, within 1% of what the rotation costs today, and every one of those
+# visits now goes to an edition that returns local publishers instead of a
+# thirteenth copy of the US wire. Same money, 8 productive visits a day where
+# there were 6.7.
+LOCALES_PER_RUN = 4
 
 # Candidates are what cost money, so the run carries its own cap rather than
 # relying on --limit being passed.
@@ -126,13 +227,18 @@ LOCALES_PER_RUN = 5
 #
 # Worst case per month at the new defaults:
 #   gate  1500 x 2/day x 30 x $0.00003  ~$2.70  (was ~$0.30)
-#   full    60 x 2/day x 30 x $0.00128  ~$4.60  UNCHANGED - the readthrough cap
-#           is what actually bounds the money, and it is untouched here.
+#   full   200 x 2/day x 30 x $0.00128 ~$15.40  a per-run CEILING, not a
+#          forecast: real demand is gate survivors minus the deterministic
+#          closes, clustering set-asides and known rounds, and the run that
+#          motivated the raise wanted 155. The month's guarantee has never
+#          been this number - it is spend.py, which runs first and hard-stops,
+#          and the OpenRouter key's own cap behind it.
 #
-# So this buys SELECTION, not throughput: the gate now screens everything the
-# prefilter passed and the same 60 best get read, instead of 60 out of an
-# arbitrary first-150. Raising READTHROUGH_CAP is the separate, genuinely
-# expensive decision and is the owner's to make.
+# So this buys SELECTION, not throughput: the gate screens everything the
+# prefilter passed and only what it keeps gets read. Raising READTHROUGH_CAP
+# was the separate, genuinely expensive decision, and the owner made it on
+# 2026-07-30 (60 -> 200, see classify.py) so that every qualified candidate
+# is read rather than queueing behind a cap sized for the single-stage era.
 # The OpenRouter key's own limit still binds before any of this.
 DEFAULT_CANDIDATE_CAP = 1500
 
@@ -185,11 +291,158 @@ def fair_share(items: list[dict], limit: int) -> list[dict]:
     return out
 
 
+def cluster_stories(items: list[dict]) -> tuple[list[dict], list[dict], int]:
+    """Story clustering, before anything is paid for (cost lever 2).
+
+    URL dedup and the syndicated-title check catch verbatim copies; what
+    survives them is the same round REWRITTEN by six outlets — six distinct
+    URLs, six distinct headlines, one event, and until this existed six paid
+    reads. Gate-survivors whose headlines state the same (employer, amount)
+    are one story: read ONE representative, and the rest are not re-read.
+
+    The key is deterministic (cheap_extract.cluster_key) and requires both
+    the employer and the amount stated outright, so a false merge needs two
+    different companies with colliding normalised names raising an identical
+    stated amount inside one run's fetch window. Items whose headline states
+    no (employer, amount) pair are never clustered.
+
+    The representative is the member the deterministic extractor can close
+    (the whole cluster then costs $0), else the one with the most text for
+    the model.
+
+    Two tiers. The STRICT key needs a validly named employer, so its set-aside
+    copies are marked seen and never fetched again. The LOOSE key (final token
+    before the verb — "…startup Fixxly raises $5.5 Mn", where the strict name
+    rules rightly refuse the descriptor phrase) is only trusted within this
+    run: its copies are set aside unmarked, so a false merge costs a deferred
+    read, never a lost story.
+
+    Returns (kept, removed_strict, removed_loose, clusters_formed).
+    """
+    strict: dict[tuple, list[int]] = {}
+    loose: dict[tuple, list[int]] = {}
+    for i, item in enumerate(items):
+        key = cheap_extract.cluster_key(item)
+        if key is not None:
+            strict.setdefault(key, []).append(i)
+            continue
+        key = cheap_extract.loose_cluster_key(item)
+        if key is not None:
+            loose.setdefault(key, []).append(i)
+
+    def representative(members: list[int]) -> int:
+        rep = next((i for i in members
+                    if cheap_extract.extract(items[i], count=False) is not None),
+                   None)
+        if rep is None:
+            rep = max(members, key=lambda i: len(items[i].get("raw_text") or ""))
+        return rep
+
+    drop_strict: set[int] = set()
+    drop_loose: set[int] = set()
+    clusters = 0
+    for groups, drop in ((strict, drop_strict), (loose, drop_loose)):
+        for members in groups.values():
+            if len(members) < 2:
+                continue
+            clusters += 1
+            rep = representative(members)
+            drop.update(i for i in members if i != rep)
+
+    kept = [it for i, it in enumerate(items)
+            if i not in drop_strict and i not in drop_loose]
+    removed_strict = [items[i] for i in sorted(drop_strict)]
+    removed_loose = [items[i] for i in sorted(drop_loose)]
+    return kept, removed_strict, removed_loose, clusters
+
+
+#: Open and close the gate-label ledger around a whole collect run.
+#:
+#: A DECORATOR rather than five calls inside `run`, because `run` has five
+#: exits — a fetch failure, a bad key, exhausted credits, a dry run and the
+#: normal end — plus an unhandled exception as a sixth, and a flush at each is
+#: five chances to forget one. `finally` is none.
+#:
+#: It is also a decorator rather than a rename-and-wrap so that `run` stays ONE
+#: function: several tests in this repo read `inspect.getsource(run_collect.run)`
+#: to assert that an ordering rule is still in the code, and splitting the body
+#: into a private `_run` would quietly make every one of those assertions
+#: inspect the wrong function. `functools.wraps` sets `__wrapped__`, which
+#: `inspect.getsource` follows, so those tests keep reading the real body.
+#:
+#: The body now lives in `gate_ledger.around_run` because the backfills need
+#: exactly the same pairing and had none: they classified, so they BUFFERED
+#: labels, and with no flush every one was dropped at process exit in silence.
+#: Two copies of a reset/flush pair is how one of them keeps being forgotten.
+#:
+#: Nothing here can fail a run: every gate_ledger entry point swallows its own
+#: exceptions (see pipeline/gate_ledger).
+_with_gate_labels = gate_ledger.around_run(
+    lambda kwargs: kwargs.get("source", "collect"))
+
+
+def run_outcome(*, observed: int, everything_rejected: bool,
+                mostly_throttled: bool, running_degraded: bool,
+                mostly_errored: bool = False) -> tuple[bool, bool]:
+    """-> (health_is_degraded, the_run_failed). TWO QUESTIONS, TWO ANSWERS.
+
+    "Is the page as deep as usual?" is the health status. "Does a human need to
+    fix something?" is the exit code. These were ONE variable, and the
+    allowance degradation answered yes to both.
+
+    Measured 2026-08-03: BOTH scheduled `collect` runs and both `collect-press`
+    runs concluded FAILURE while every collector reported the designed
+    degradation and nothing was broken (`google_news` deferred 253 candidates,
+    `gdelt` 14, `sec_edgar` 3, at $9.94 of the $10 allowance). Four red runs a
+    day for the rest of the month is well over a hundred GitHub failure
+    notifications about a budget decision the owner made on purpose. Both
+    trackers already carry this rule in writing: an alarm that cries every day
+    is one you learn to filter, and a filtered alarm is the original silence in
+    a new hat. It would also have gone off in exactly the wrong month, because
+    the allowance is spent every month by design.
+
+    So `running_degraded` colours the HEALTH ROW and not the exit code. It is
+    the one condition here that is somebody's decision rather than somebody's
+    bug: the guard chose to defer paid reads, said so in the ledger, and the
+    free prefilter, deterministic extraction and both dedup layers ran exactly
+    as designed. Depth was rationed; coverage was not.
+
+    Every genuine failure keeps its red, including DURING a degraded month:
+    they are tested independently, so a degraded run that also read zero, or
+    that had everything rejected, or that was mostly throttled, is still a
+    broken collector and still exits non-zero.
+
+    `mostly_errored` joins them on 2026-08-04, and it is a GENUINE failure
+    rather than a rationing: a gate that errored on a fifth of its candidates
+    judged none of them, which is a provider outage and not a budget decision.
+    On 2026-08-03 the rate was 85.7% for eight hours, every collector reported
+    an ordinary run because errors and NOs were the same number in `rejected`,
+    and all three copies of Anthropic's $65bn Series H died in that window.
+    """
+    failed = bool(observed == 0 or everything_rejected or mostly_throttled
+                  or mostly_errored)
+    return failed or bool(running_degraded), failed
+
+
+@_with_gate_labels
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
     module = SOURCES.get(source, google_news)
     collector = module.COLLECTOR
+
+    # The batch read-through path, off unless TIT_READ_BATCH is set. Two calls,
+    # both outside the candidate loop, because that is all the flag needs:
+    # collect finished answers before anything is read, submit whatever this run
+    # queued after everything has been. The control flow inside the loop is
+    # unchanged — a queued interpretation raises the same ReadThroughUnavailable
+    # a failed one does, so the record defers and the next run finds its answer.
+    classify.set_dry_run(dry_run)
+    if classify.read_batch_enabled():
+        harvested, notes = classify.harvest_batches()
+        print(f"[{collector}] batch read-through: {harvested} answer(s) collected")
+        for note in notes:
+            print(f"[{collector}]   {note}")
     # Structured source: the fields are columns, so the `classified` half is
     # derived instead of generated. No model is called anywhere on this path.
     derive = getattr(module, "as_classified", None)
@@ -208,6 +461,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             print(f"[{collector}] searching SEC filings")
         elif source == "tripwire_chase":
             print(f"[{collector}] one targeted query per lead, from the work list")
+        elif source == "primary_chase":
+            print(f"[{collector}] one primary document per lead, from the work list")
+        elif source == "benchmark_chase":
+            print(f"[{collector}] one targeted query per lead, from the diff")
         else:
             print(f"[{collector}] {len(queries)} queries")
         try:
@@ -273,9 +530,74 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if not offline and source == "google_news":
         kept = [google_news.resolve_source_url(item) for item in kept]
 
+    # Cost lever 2: one story, one read. Six outlets rewriting the same round
+    # survive URL and title dedup as six candidates; cluster them on the
+    # stated (employer, amount) and pay for one. Strict-tier copies are marked
+    # seen so the next run does not fetch them back into the queue; loose-tier
+    # copies stay unmarked (see cluster_stories). Never for a derived source:
+    # its rows are structured facts, not stories.
+    away_strict, away_loose, clusters_formed = [], [], 0
+    if not derive:
+        kept, away_strict, away_loose, clusters_formed = cluster_stories(kept)
+    clustered_away = away_strict + away_loose
+
+    # Cost lever 4: spend the read budget in a DELIBERATE order (2026-07-29).
+    #
+    # classify.READTHROUGH_CAP bounds full read-throughs per run, and when it
+    # binds every later candidate defers unmarked and returns next run. Which
+    # candidates got read first was arrival order — feed order, edition order —
+    # and nothing about that was ever chosen. The last run before the cap was
+    # raised bought all 60 of its reads and deferred 95 gate survivors on it.
+    #
+    # This is an ORDER and not a filter: `rank` returns a permutation, so the
+    # same candidates are eligible, the same guards apply to each, and no score
+    # can make or unmake a record. It costs no model call and no network call.
+    # `top` must be the ceiling this collector will ACTUALLY hit, not the
+    # module default: the explanation is what a reader uses to judge whether a
+    # capped run bought breadth, and one describing 88 reads while the run
+    # buys 118 describes a run that did not happen.
+    ranking = candidate_rank.Context.for_conn(conn)
+    note = candidate_rank.explain(kept, ranking,
+                                  top=classify.read_cap(source))
+    kept = candidate_rank.rank(kept, ranking)
+
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
+    cheap_closed = known_rounds = unread_duplicates = month_deferred = 0
+    # Candidates the gate ERRORED on: not judged, not rejected, not marked
+    # seen. Counted apart from `rejected` for the reason set out at the
+    # ClassifyError handler below.
+    gate_errored = 0
+
+    def _stop_run(detail: str, exc: Exception) -> int:
+        """End the run on a permanent condition, having recorded what it cost.
+
+        A bad key and an exhausted balance both end the run whichever stage
+        meets them, and both may have already paid for the candidates read
+        before it happened. A cost that is only recorded on the happy path is
+        a cost that disappears exactly when somebody is looking for it, so the
+        health row with the usage snapshot lands either way.
+        """
+        print(f"\nSTOPPING: {exc}", file=sys.stderr)
+        store.report_health(conn, collector, status="error",
+                            items_found=found, items_stored=stored,
+                            detail=detail,
+                            usage=classify.usage_snapshot())
+        conn.commit()
+        return 1
+
     print(f"\n[{collector}] {found} fetched, {filtered} filtered out, "
           f"{len(kept)} going to the classifier\n")
+    if note:
+        print(f"[{collector}] {note}\n")
+    if clusters_formed:
+        print(f"[{collector}] clustering: {clusters_formed} stories seen from "
+              f"multiple outlets, {len(clustered_away)} rewrites will not be "
+              f"re-read ({len(away_loose)} held back this run only)\n")
+        if not dry_run:
+            for extra in away_strict:
+                extra_url = extra.get("source_url") or extra.get("discovery_url") or ""
+                if extra_url:
+                    store.mark_seen(conn, extra_url, collector, "clustered")
 
     for item in kept:
         url = item.get("source_url") or item.get("discovery_url") or ""
@@ -292,32 +614,110 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             skipped += 1
             continue
 
+        # Read only what can store. Every rejection build_signal can reach
+        # from the raw item alone — no source URL, an aggregator or job-board
+        # link, an empty body, a filing that announces a reduction — fires
+        # here, before a cent is spent, instead of after the read-through it
+        # used to be discovered behind. Same verdicts, same messages, same
+        # seen-marking; only the timing of the money moved. A derived source
+        # spends nothing, so it keeps its checks inside build_signal alone.
+        if not derive:
+            try:
+                validate.precheck(item)
+            except validate.Rejected as exc:
+                rejected += 1
+                print(f"  REJECT  {item.get('headline','')[:70]}\n"
+                      f"          {exc} (before any model call)")
+                if url and not dry_run:
+                    store.mark_seen(conn, url, collector, "rejected")
+                continue
+
+        # Cost lever 2, across runs: a round we already stored, resurfacing
+        # from yet another outlet days later, is recognisable from its stated
+        # (employer, amount) before any model is paid. fuzzy_duplicate would
+        # catch it too — after the read-through was bought.
+        cheap = None
+        if not derive:
+            parsed = cheap_extract.parse_funding(item)
+            if parsed is not None:
+                known = dedupe.funding_event_duplicate(
+                        conn, parsed.company_key, parsed.amount_usd,
+                        parsed.amount_canon,
+                        # The window belongs to the CANDIDATE. Anchored on
+                        # today it was dead for every round we discover late,
+                        # which is most of them (median google_news lag: 130
+                        # days). validate._normalize_date is the same reader
+                        # the stored rows went through, so the two agree.
+                        published_date=validate._normalize_date(
+                            item.get("published_date"), item.get("source_url")))
+                if known:
+                    known_rounds += 1
+                    duplicates += 1
+                    print(f"  SKIP    {item.get('headline','')[:66]}\n"
+                          f"          round already stored, matched before any read")
+                    if url and not dry_run:
+                        # The article is dropped; the FACT that a second outlet
+                        # reported this round is not. It is the only evidence
+                        # that separates a real mega-round from a parse error,
+                        # and this is the last moment it exists. See
+                        # pipeline/guardrails.CORROBORATION_MIN_OUTLETS.
+                        store.record_corroboration(
+                            conn, known, source_url=url,
+                            source_name=item.get("source_name") or "",
+                            amount_usd=parsed.amount_usd, collector=collector)
+                        store.mark_seen(conn, url, collector, "duplicate")
+                    continue
+            # Cost lever 1: when the headline/teaser states every field, the
+            # record is built deterministically — no gate call, no read-
+            # through, $0. extract() declines anything ambiguous, and its
+            # output goes through the SAME validate/store path below, marked
+            # on `notes` so a reader can see no model read it.
+            cheap = cheap_extract.extract(item)
+
+        # Whether this record, if it stores, was bought with a full read.
+        # Feeds the reads-vs-rows ratio: a deterministic close, a derived row
+        # and an offline stub all cost nothing, so counting them would flatter
+        # the number the ratio exists to keep honest.
+        paid_read = cheap is None and not derive and not offline
+
         try:
-            if derive:
+            if cheap is not None:
+                classified = cheap
+                cheap_closed += 1
+            elif derive:
                 classified = derive(item)
             else:
-                classified = _stub_classify(item) if offline else classify.classify(item)
+                # interpret_now=False: extraction only. The interpretation is
+                # bought below, after build_signal and both dedup layers have
+                # said this record will actually store. Cost lever, measured:
+                # 477 interpretations bought against 320 rows over the nine
+                # runs in the ledger to 2026-07-30, so a third of the priciest
+                # call in the pipeline went to records the page never got.
+                classified = (_stub_classify(item) if offline
+                              else classify.classify(item, interpret_now=False))
         except classify.AuthFailed as exc:
             # A bad key is permanent for this run. The first live run printed
             # the same 401 twenty-five times before anyone learned anything.
-            print(f"\nSTOPPING: {exc}", file=sys.stderr)
-            store.report_health(conn, collector, status="error",
-                                items_found=found, items_stored=stored,
-                                detail=f"auth failed: {str(exc)[:200]}")
-            conn.commit()
-            return 1
+            return _stop_run(f"auth failed: {str(exc)[:200]}", exc)
         except classify.CreditsExhausted as exc:
-            print(f"\nSTOPPING: {exc}", file=sys.stderr)
-            store.report_health(conn, collector, status="error",
-                                items_found=found, items_stored=stored,
-                                detail="OpenRouter credits exhausted")
-            conn.commit()
-            return 1
+            # The one run whose cost is least optional: a 402 means the spend
+            # ceiling was reached, so this row is the evidence of what reached it.
+            return _stop_run("OpenRouter credits exhausted", exc)
+        except classify.BudgetExhausted as exc:
+            # The MONTH's allowance, not this run's cap. Caught first or the
+            # BudgetDeferred arm below shadows it. Printed once and then
+            # counted silently: one line per candidate for the rest of a
+            # degraded month is noise that hides everything else in the log.
+            month_deferred += 1
+            if month_deferred == 1:
+                print(f"  DEGRADED  {exc}")
+            continue
         except classify.BudgetDeferred as exc:
             # The per-run spend ceiling, not a busy provider. Same retry-next-
             # run handling, counted apart so a run that deferred work ON
             # PURPOSE cannot trip the mostly-throttled breakage alarm below.
             budget_deferred += 1
+            gate_ledger.outcome(item, "deferred")
             print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
             continue
         except classify.Throttled as exc:
@@ -326,15 +726,39 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # up instead of losing it. A busy provider must never look like a
             # quiet news day.
             throttled += 1
+            gate_ledger.outcome(item, "deferred")
             print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
             continue
         except classify.ClassifyError as exc:
-            rejected += 1
-            print(f"  REJECT  {item.get('headline','')[:70]}\n          classify: {exc}")
+            # A gate that ERRORED did not judge this candidate, so counting it
+            # as `rejected` is the pipeline telling itself a verdict was
+            # reached. On 2026-08-03 that arithmetic hid a total provider
+            # outage: 4,849 of 5,656 gate calls errored (85.7%, against 0.0% on
+            # each of the two preceding days) and every collector still
+            # reported an ordinary run, because a wall of errors is
+            # indistinguishable from a wall of NOs in the only number the
+            # health check reads. All three copies of Anthropic's $65bn Series
+            # H arrived in that window and none survived it.
+            #
+            # It is counted with the deferrals instead - which is what it is:
+            # the URL is deliberately NOT marked seen (contrast the
+            # model_reject and validate_reject paths below), so the next
+            # healthy run picks it up. `mostly_errored` below turns a run that
+            # could not judge its candidates into a `degraded` health row
+            # instead of a quiet one.
+            gate_errored += 1
+            gate_ledger.outcome(item, "error", str(exc))
+            print(f"  DEFER   {item.get('headline','')[:70]}\n"
+                  f"          gate could not judge it: {exc}")
             continue
 
         if classified is None:
             rejected += 1
+            # Two different rejections arrive here — the gate's NO and
+            # extraction's `is_talent_signal: false` — and this branch cannot
+            # tell them apart. gate_ledger can: it already wrote `gate_reject`
+            # for a gate NO and refuses to let a later stage relabel it.
+            gate_ledger.outcome(item, "model_reject")
             # Never reject silently. A run that stores nothing must say why for
             # every candidate — this exact silence hid three funding filings
             # being discarded because the prompt did not list funding.
@@ -367,21 +791,76 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             signal = validate.build_signal(classified, item, collector, conn=conn)
         except validate.Rejected as exc:
             rejected += 1
+            gate_ledger.outcome(item, "validate_reject", str(exc))
             print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")
             if url and not dry_run:
                 store.mark_seen(conn, url, collector, "rejected")
             continue
 
+        if cheap is not None:
+            # The evidence marker: this row was parsed from stated text, no
+            # model read it. Confidence is unchanged — the source is exactly
+            # as credible either way and stays capped at "reported".
+            signal.notes = cheap_extract.EVIDENCE_NOTE
+
+        # Cost lever: the read-through is bought LAST.
+        #
+        # Both dedup layers are indexed reads over a database we already hold,
+        # so asking them BEFORE the priciest call in the pipeline costs nothing
+        # and settles a third of the candidates for free. Measured over the
+        # nine runs in the ledger to 2026-07-30: 477 interpretations bought,
+        # 320 rows stored. `store.store` asks the same question again through
+        # the same function, so the two can never disagree.
+        verdict = store.duplicate_verdict(conn, signal)
+        if verdict:
+            duplicates += 1
+            unread_duplicates += 1
+            gate_ledger.outcome(item, verdict)
+            if verdict == "retracted":
+                print(f"  SKIP    {signal.headline[:66]}\n"
+                      f"          previously retracted, not re-stored "
+                      f"(before the read-through was bought)")
+            else:
+                print(f"  SKIP    {signal.headline[:66]}\n"
+                      f"          already stored, matched before the "
+                      f"read-through was bought")
+            if url and not dry_run:
+                store.mark_seen(conn, url, collector, verdict)
+            continue
+
+        if paid_read:
+            # Only now is the interpretation worth its price. A failure here
+            # raises ReadThroughUnavailable — a Throttled — exactly as it did
+            # when the call lived inside classify(), so the record defers whole
+            # and the next run retries it un-marked.
+            try:
+                classify.interpret_late(signal, classified, item)
+            except classify.AuthFailed as exc:
+                return _stop_run(f"auth failed: {str(exc)[:200]}", exc)
+            except classify.CreditsExhausted as exc:
+                return _stop_run("OpenRouter credits exhausted", exc)
+            except classify.Throttled as exc:
+                throttled += 1
+                gate_ledger.outcome(item, "deferred")
+                print(f"  DEFER   {item.get('headline','')[:70]}\n          {exc}")
+                continue
+
         if dry_run:
             stored += 1
+            gate_ledger.outcome(item, "would_store")
+            if paid_read:
+                classify.STATS["read_stored"] += 1
             if _should_print(stored):
                 _print_signal(signal)
             continue
 
         outcome = store.store(conn, signal)
+        gate_ledger.outcome(item, outcome)
         store.mark_seen(conn, url, collector, outcome)
         if outcome == "stored":
             stored += 1
+            if paid_read:
+                classify.STATS["read_stored"] += 1
             if _should_print(stored):
                 _print_signal(signal)
         else:
@@ -396,10 +875,33 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         f"\n[{collector}] found={found} "
         f"{'would store' if dry_run else 'stored'}={stored} "
         f"duplicate={duplicates} rejected={rejected} "
-        f"deferred={throttled} budget-deferred={budget_deferred} already-seen={skipped}"
+        f"deferred={throttled} budget-deferred={budget_deferred} "
+        f"gate-errored={gate_errored} already-seen={skipped}"
     )
-    # Spend visibility: the gate is the cost-avoidance stage, so say what it
-    # did. gate_rejects is money NOT spent on full read-throughs.
+    if month_deferred:
+        print(
+            f"[{collector}] DEGRADED: the month's allowance is spent, so "
+            f"{month_deferred} candidate(s) were deferred unread and unmarked. "
+            f"They are read on a later run — this costs depth, not coverage. "
+            f"Free collectors, deterministic extraction and both dedup layers "
+            f"ran as normal. Raise MONTHLY_ALLOWANCE_USD in spend.py to change it."
+        )
+    # Spend visibility, cheapest stage first. Every line here is money NOT
+    # spent: deterministic closes and known rounds cost nothing at all,
+    # clustered rewrites never reach the gate, gate rejects never reach the
+    # read-through.
+    if cheap_closed or known_rounds or clusters_formed:
+        print(
+            f"[{collector}] deterministic: {cheap_closed} closed with no "
+            f"model call, {known_rounds} known rounds skipped pre-read, "
+            f"{len(clustered_away)} outlet rewrites clustered away"
+        )
+    if unread_duplicates:
+        print(
+            f"[{collector}] dedup before the read-through: {unread_duplicates} "
+            f"record(s) extracted, found already held, and settled without "
+            f"buying an interpretation"
+        )
     if classify.STATS["gate_calls"]:
         print(
             f"[{collector}] gate: {classify.STATS['gate_calls']} screened, "
@@ -407,23 +909,127 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"{classify.STATS['full_calls']} full read-throughs "
             f"(cap {classify.READTHROUGH_CAP}/run)"
         )
+    # Stage 3, printed even when it wrote nothing — especially then. A run whose
+    # extraction worked and whose interpretation failed stores no rows and must
+    # say why in the step log, not leave a reader to infer it from a row count.
+    # Every deferral here cost an extraction call that bought nothing.
+    if classify.STATS["read_skipped_strong"] or classify.STATS["read_bought_weak"]:
+        # NOT `skipped` — that name holds the already-seen count, which the
+        # health verdict below now depends on. Rebinding it here silently fed
+        # the wrong number to anything added after this point.
+        strong = classify.STATS["read_skipped_strong"]
+        bought = classify.STATS["read_bought_weak"]
+        print(
+            f"[{collector}] second pass: {bought} bought, {strong} skipped "
+            f"because extraction's own sentence stood on its own "
+            f"({100 * bought // max(bought + strong, 1)}% of records needed a "
+            f"frontier read-through; TIT_READ_ALWAYS=1 buys them all)"
+        )
+    if classify.STATS["read_calls"] or classify.STATS["read_served"]:
+        print(
+            f"[{collector}] read-through ({classify.READ_MODEL}): "
+            f"{classify.STATS['read_written']} written, "
+            f"{classify.STATS['read_unavailable']} unavailable, "
+            f"{classify.STATS['read_ungrounded']} refused as ungrounded, "
+            f"{classify.STATS['read_hedged']} hedged"
+        )
+        deferred_reads = (classify.STATS["read_unavailable"]
+                          + classify.STATS["read_ungrounded"])
+        if deferred_reads:
+            print(
+                f"[{collector}] {deferred_reads} record(s) deferred whole: "
+                "extraction was paid for and no read-through could be written. "
+                "Nothing was stored with a blank differentiator; the next run "
+                "retries them (TIT_READ_MODEL=off reverts to the fused call)"
+            )
+    if classify.STATS["full_calls"]:
+        n = classify.STATS["full_calls"]
+        print(
+            f"[{collector}] read size: avg {classify.STATS['full_chars_sent'] // n} "
+            f"chars sent of {classify.STATS['full_chars_raw'] // n} fetched "
+            f"(cap {classify.FULL_READ_CHARS})"
+        )
+        # The waste ratio, measured on every run rather than discovered in a
+        # month-end audit. The gap between the two numbers is reads that
+        # stored nothing: a model NO after the gate said yes, a validate
+        # rejection the precheck could not see, or a post-read duplicate.
+        # Each of those is ~$0.00128 spent on a row the page never got.
+        kept_rows = classify.STATS["read_stored"]
+        print(
+            f"[{collector}] reads bought vs rows stored: {n} read-throughs, "
+            f"{kept_rows} rows "
+            f"({store.reads_to_rows_pct(n, kept_rows)}% of reads became rows)"
+        )
+    if classify.STATS["prompt_tokens"]:
+        cached = classify.STATS["cached_tokens"]
+        total = classify.STATS["prompt_tokens"]
+        line = (f"[{collector}] tokens: {total} prompt "
+                f"({cached} cached, {cached * 100 // max(total, 1)}%), "
+                f"{classify.STATS['completion_tokens']} completion")
+        if classify.STATS["usd"]:
+            line += f", ${classify.STATS['usd']:.4f} this run"
+        print(line)
 
     if dry_run:
         print("\nDRY RUN — nothing was written.")
         conn.rollback()
         return 0
 
+    # Everything this run queued goes as one batch. Deliberately after the dry
+    # run returns: a rehearsal must not spend, and must not leave a queue behind
+    # for a real run to submit on its behalf.
+    if classify.read_batch_enabled():
+        sent, note = classify.submit_pending()
+        if note:
+            print(f"[{collector}] {note}")
+        if sent:
+            print(f"[{collector}] those {sent} record(s) publish on a LATER run: "
+                  "the batch window is 24h, which is what batching costs")
+
     # Fail loud (spec 6 rule 4). Two distinct breakages, both of which look
     # like a quiet day if you only count stored rows:
     #   - found nothing at all: the feed or the query is broken
     #   - found plenty and kept none of it, with nothing even landing as a
     #     duplicate: the classifier or a guard is broken, not the news
-    everything_rejected = len(kept) > 0 and stored == 0 and duplicates == 0
+    # A degraded month is not a broken collector. Paid reads being off is a
+    # budget decision the owner made, working exactly as designed, so a run
+    # that stored only its free rows must not read as an outage — but it must
+    # not read as "ok" either, because the depth on the page is not the depth
+    # the product normally has. It reports `degraded` with the reason named,
+    # and it does not trip `everything_rejected`: no guard rejected anything.
+    running_degraded = month_deferred > 0
+    # `skipped` (already seen) is NOT a rejection, and leaving it out of this
+    # test is what made the SEC pair cry wolf every weekend. sec_edgar and
+    # sec_form_d read a fixed-size window of the most recent filings; SEC
+    # publishes nothing Saturday or Sunday, so both runs re-read Friday's
+    # filings, every one of them already in the seen-ledger. That is the
+    # quietest possible healthy run — no guard rejected anything, the classifier
+    # was never even reached — and it reported "every candidate rejected" beside
+    # its own "0 rejected", and exited non-zero, so `collect` went red both
+    # weekend days (2026-08-01 and 08-02; the Friday run stored 1 and 3 rows
+    # normally). A collector that is red two days in seven for a calendar it
+    # cannot control is a collector nobody reads the health of.
+    #
+    # So the test is now "did anything actually REACH a guard": at least one
+    # candidate must have got past the already-seen skip. Nothing here loosens a
+    # filter — no verdict, threshold or guard changes, and a run that truly
+    # reaches the guards and is rejected wholesale still degrades exactly as
+    # before.
+    everything_rejected = (len(kept) > skipped and stored == 0 and duplicates == 0
+                           and not running_degraded)
     # A run that mostly hit a busy provider stored little through no fault of
     # the pipeline. That is still not "ok": it means coverage has a hole that
     # only the next run can fill, and silence about it is how a throttled
     # source looks like a quiet news day for a month.
     mostly_throttled = throttled > 0 and throttled >= max(1, len(kept) // 2)
+    # And a run whose GATE errored on a fifth of its candidates did not have a
+    # quiet news day either - it had an outage. The ceiling is deliberately
+    # lower than the throttle one: a throttle is the provider saying "later",
+    # an error is the provider saying nothing at all, and on 2026-08-03 the
+    # rate was 85.7% for eight hours with nothing anywhere reporting it.
+    GATE_ERROR_CEILING = 0.2
+    mostly_errored = (gate_errored > 0
+                      and gate_errored >= max(1, int(GATE_ERROR_CEILING * len(kept))))
 
     # A DIFF-shaped collector emits a row only when something MOVED, so counting
     # emitted rows as `items_found` marks a perfectly healthy quiet day
@@ -434,23 +1040,81 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # and a run that reads nothing is still degraded.
     observed = (getattr(module, "LAST_RUN", None) or {}).get("read")
     observed = found if observed is None else observed
-    broken = observed == 0 or everything_rejected or mostly_throttled
 
+    # NOT named `verdict`: `run()` binds a local `verdict` for the per-candidate
+    # duplicate check a few hundred lines up, which shadows any module-level
+    # function of that name and turns this call into a TypeError at the very
+    # end of a run that has already spent its money.
+    broken, failed = run_outcome(observed=observed,
+                                 everything_rejected=everything_rejected,
+                                 mostly_throttled=mostly_throttled,
+                                 mostly_errored=mostly_errored,
+                                 running_degraded=running_degraded)
+
+    # The health row is also the spend ledger now. Every number printed above
+    # is persisted with it, so drift shows up the next time anyone runs
+    # ops_status instead of in a month-end total, and cost per stored row is
+    # something you can plot rather than something you can remember.
     store.report_health(
         conn, collector,
         status="degraded" if broken else "ok",
         items_found=observed, items_stored=stored,
-        detail=(f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
+        # The funnel goes into the ledger with the cost, so the coverage gap
+        # (what the gate KEPT and the budget would not read) survives the step
+        # log it used to live in. cost_projection.py reads exactly this.
+        usage=classify.usage_snapshot(
+            candidates=len(kept),
+            budget_deferred=budget_deferred + month_deferred),
+        # The read-through model rides in `detail` rather than a column of its
+        # own: source_health has `model` and `gate_model`, adding a third would
+        # be a migration, and a health row that cannot say WHICH model wrote the
+        # prose is a ledger that cannot answer "when did the read-throughs
+        # change" later.
+        # DEGRADED goes FIRST, and that is not cosmetic: ops_status prints
+        # `detail[:70]` per collector, so a marker appended at the end is
+        # exactly the marker nobody sees. The one thing a reader must not have
+        # to scroll for is "this run was rationed, the page is shallower than
+        # usual".
+        detail=((f"DEGRADED: monthly allowance spent, {month_deferred} "
+                 "candidate(s) deferred unread; free collectors unaffected | "
+                 if running_degraded else "")
+                + f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
+                # already-seen lived only in the step log, so the health page
+                # showed "0 dup, 0 rejected, 0 deferred" for a run that had in
+                # fact skipped all 10 candidates as already held — three zeroes
+                # that read like a broken collector and named no cause. It is
+                # the difference between "nothing came back" and "nothing came
+                # back that we do not already have", so it belongs here.
+                + (f", {skipped} already seen" if skipped else "")
+                + (f" | read-through {classify.READ_MODEL}: "
+                   f"{classify.STATS['read_written']} written, "
+                   f"{classify.STATS['read_unavailable'] + classify.STATS['read_ungrounded']}"
+                   " deferred"
+                   if classify.STATS["read_calls"] or classify.STATS["read_served"] else "")
+                + (f", {gate_errored} gate-errored" if gate_errored else "")
                 + (" | every candidate rejected" if everything_rejected else "")
                 + (f" | {throttled} deferred to the next run, provider was busy"
-                   if mostly_throttled else "")),
+                   if mostly_throttled else "")
+                + (f" | GATE ERRORING: {gate_errored} of {len(kept)} candidates "
+                   "were never judged, they retry next run"
+                   if mostly_errored else "")),
     )
     conn.commit()
 
     if everything_rejected:
         print(f"\n[{collector}] DEGRADED: {found} candidates, none stored, none duplicate.",
               file=sys.stderr)
-    return 1 if broken else 0
+    if mostly_errored:
+        print(f"\n[{collector}] DEGRADED: the gate errored on {gate_errored} of "
+              f"{len(kept)} candidates and judged none of them. They are NOT "
+              f"marked seen and retry on the next healthy run.", file=sys.stderr)
+    if running_degraded and not failed:
+        # Said on stdout, not stderr, and it exits 0: the run is a success that
+        # was rationed. ops_status and the health page still show `degraded`.
+        print(f"\n[{collector}] DEGRADED but not failed: the monthly allowance "
+              f"deferred {month_deferred} paid read(s). Everything free ran. "
+              "This is the budget guard working, so the run is green.")
+    return 1 if failed else 0
 
 
 # A news run stores a dozen rows and every one of them is worth reading. A

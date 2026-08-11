@@ -1,0 +1,574 @@
+{
+  "checked_on": "2026-08-10",
+  "checked_at": "2026-08-10T09:36:04+00:00",
+  "landmarks_version": "2026-08-v1",
+  "landmarks_digest": "ea0fb9518b3e51cf",
+  "summary": {
+    "total": 20,
+    "held": 6,
+    "held_not_live": 0,
+    "wrong_amount": 0,
+    "missing": 14,
+    "standing_gaps": 14,
+    "regressions": 0,
+    "live_lens": "not read",
+    "one_line": "landmarks: 6 of 20 held, 14 standing gaps, 0 regressions"
+  },
+  "by_quarter": {
+    "2025Q1": {
+      "total": 4,
+      "held": 0,
+      "missing": 4,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    },
+    "2025Q2": {
+      "total": 2,
+      "held": 0,
+      "missing": 2,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    },
+    "2025Q3": {
+      "total": 3,
+      "held": 1,
+      "missing": 2,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    },
+    "2025Q4": {
+      "total": 3,
+      "held": 0,
+      "missing": 3,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    },
+    "2026Q1": {
+      "total": 4,
+      "held": 4,
+      "missing": 0,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    },
+    "2026Q2": {
+      "total": 2,
+      "held": 1,
+      "missing": 1,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    },
+    "2026Q3": {
+      "total": 2,
+      "held": 0,
+      "missing": 2,
+      "wrong_amount": 0,
+      "held_not_live": 0
+    }
+  },
+  "entries": [
+    {
+      "id": "2025q1-databricks-10b",
+      "quarter": "2025Q1",
+      "company": "Databricks",
+      "event_date": "2025-01-22",
+      "amount_usd": 10000000000,
+      "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-announces-15B-financing-ai-talent-global-expansion",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q1-anthropic-3-5b",
+      "quarter": "2025Q1",
+      "company": "Anthropic",
+      "event_date": "2025-03-03",
+      "amount_usd": 3500000000,
+      "source_url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q1-openai-40b",
+      "quarter": "2025Q1",
+      "company": "OpenAI",
+      "event_date": "2025-03-31",
+      "amount_usd": 40000000000,
+      "source_url": "https://openai.com/index/march-funding-updates/",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q1-isomorphic-labs-600m",
+      "quarter": "2025Q1",
+      "company": "Isomorphic Labs",
+      "event_date": "2025-03-31",
+      "amount_usd": 600000000,
+      "source_url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q2-anysphere-900m",
+      "quarter": "2025Q2",
+      "company": "Anysphere",
+      "event_date": "2025-06-06",
+      "amount_usd": 900000000,
+      "source_url": "https://cursor.com/blog/series-c",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q2-helsing-600m-eur",
+      "quarter": "2025Q2",
+      "company": "Helsing",
+      "event_date": "2025-06-17",
+      "amount_usd": 694000000,
+      "source_url": "https://helsing.ai/newsroom/helsing-raises-eur600m-to-invest-in-european-technological-sovereignty",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q3-anthropic-13b",
+      "quarter": "2025Q3",
+      "company": "Anthropic",
+      "event_date": "2025-09-02",
+      "amount_usd": 13000000000,
+      "source_url": "https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "held",
+      "matched": {
+        "signal_id": "c57aa505bf744c7591dab8e6d59d167c",
+        "company": "Anthropic",
+        "headline": "Qatar Investment Authority backs Anthropic’s record $13 billion round as AI firm hits $183 billion valuation",
+        "funding_amount_usd": 13000000000,
+        "published_date": "2025-09-02",
+        "source_url": "https://www.menabytes.com/anthropic-series-f/?utm_source=rss&utm_medium=rss&utm_campaign=anthropic-series-f"
+      },
+      "ever_stored": true,
+      "ever_live": true,
+      "regression": []
+    },
+    {
+      "id": "2025q3-mistral-1-7b-eur",
+      "quarter": "2025Q3",
+      "company": "Mistral AI",
+      "event_date": "2025-09-09",
+      "amount_usd": 1990000000,
+      "source_url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q3-figure-1b",
+      "quarter": "2025Q3",
+      "company": "Figure",
+      "event_date": "2025-09-16",
+      "amount_usd": 1000000000,
+      "source_url": "https://www.figure.ai/news/series-c",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q4-reflection-ai-2b",
+      "quarter": "2025Q4",
+      "company": "Reflection AI",
+      "event_date": "2025-10-09",
+      "amount_usd": 2000000000,
+      "source_url": "https://reflection.ai/blog/reflection-ai-raises-2b",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q4-anysphere-2-3b",
+      "quarter": "2025Q4",
+      "company": "Anysphere",
+      "event_date": "2025-11-13",
+      "amount_usd": 2300000000,
+      "source_url": "https://cursor.com/blog/series-d",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2025q4-databricks-4b",
+      "quarter": "2025Q4",
+      "company": "Databricks",
+      "event_date": "2025-12-16",
+      "amount_usd": 4000000000,
+      "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2026q1-xai-20b",
+      "quarter": "2026Q1",
+      "company": "xAI",
+      "event_date": "2026-01-06",
+      "amount_usd": 20000000000,
+      "source_url": "https://x.ai/news/series-e",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "held",
+      "matched": {
+        "signal_id": "18632944f2a0b3544bdd8016e5abcebb",
+        "company": "xAI",
+        "headline": "Elon Musk's xAI raises $20 billion in Series E funding round, exceeding $15 billion target",
+        "funding_amount_usd": 20000000000,
+        "published_date": "2026-01-06",
+        "source_url": "https://www.cnbc.com/video/2026/01/06/elon-musks-xai-raises-20-billion-in-series-e-funding-round.html"
+      },
+      "ever_stored": true,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2026q1-waymo-16b",
+      "quarter": "2026Q1",
+      "company": "Waymo",
+      "event_date": "2026-02-02",
+      "amount_usd": 16000000000,
+      "source_url": "https://waymo.com/blog/2026/02/waymo-raises-usd16-billion-investment-round/",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "held",
+      "matched": {
+        "signal_id": "c4c069729a62ae4a5443ccd66b66e12e",
+        "company": "Waymo",
+        "headline": "Waymo raises $16 billion to take its robotaxi business ‘global’ - The Verge",
+        "funding_amount_usd": 16000000000,
+        "published_date": "2026-02-02",
+        "source_url": "https://www.theverge.com/transportation/872651/waymo-raises-16-billion-investment-value-robotaxi"
+      },
+      "ever_stored": true,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2026q1-anthropic-30b",
+      "quarter": "2026Q1",
+      "company": "Anthropic",
+      "event_date": "2026-02-12",
+      "amount_usd": 30000000000,
+      "source_url": "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "held",
+      "matched": {
+        "signal_id": "34108bb42f1a2c0b38da6913275fed6c",
+        "company": "Anthropic",
+        "headline": "Anthropic raises $30bn led by GIC, Coatue at $380bn valuation - Silicon Republic",
+        "funding_amount_usd": 30000000000,
+        "published_date": "2026-02-13",
+        "source_url": "https://www.siliconrepublic.com/business/anthropic-raises-30bn-led-by-gic-coatue-at-380bn-valuation"
+      },
+      "ever_stored": true,
+      "ever_live": true,
+      "regression": []
+    },
+    {
+      "id": "2026q1-openai-122b",
+      "quarter": "2026Q1",
+      "company": "OpenAI",
+      "event_date": "2026-03-31",
+      "amount_usd": 122000000000,
+      "source_url": "https://openai.com/index/accelerating-the-next-phase-ai/",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "held",
+      "matched": {
+        "signal_id": "f583c603dd9f3a45513bf0f131888982",
+        "company": "OpenAI",
+        "headline": "OpenAI raises $122 billion to accelerate the next phase of AI",
+        "funding_amount_usd": 122000000000,
+        "published_date": "2026-03-31",
+        "source_url": "https://openai.com/index/accelerating-the-next-phase-ai/"
+      },
+      "ever_stored": true,
+      "ever_live": true,
+      "regression": []
+    },
+    {
+      "id": "2026q2-anduril-5b",
+      "quarter": "2026Q2",
+      "company": "Anduril",
+      "event_date": "2026-05-13",
+      "amount_usd": 5000000000,
+      "source_url": "https://www.anduril.com/news/anduril-announces-usd5b-series-h-raise",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2026q2-anthropic-65b",
+      "quarter": "2026Q2",
+      "company": "Anthropic",
+      "event_date": "2026-05-28",
+      "amount_usd": 65000000000,
+      "source_url": "https://www.anthropic.com/news/series-h",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "held",
+      "matched": {
+        "signal_id": "0b9b5d4b142efd406cc9959ea72aa601",
+        "company": "Anthropic",
+        "headline": "Anthropic raises $65B in Series H funding at $965B post-money valuation",
+        "funding_amount_usd": 65000000000,
+        "published_date": "2026-05-28",
+        "source_url": "https://www.anthropic.com/news/series-h"
+      },
+      "ever_stored": true,
+      "ever_live": true,
+      "regression": []
+    },
+    {
+      "id": "2026q3-helsing-1-8b",
+      "quarter": "2026Q3",
+      "company": "Helsing",
+      "event_date": "2026-07-13",
+      "amount_usd": 1800000000,
+      "source_url": "https://helsing.ai/newsroom/helsing-raises-1-8bn-in-series-e",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    },
+    {
+      "id": "2026q3-fireworks-1-5b",
+      "quarter": "2026Q3",
+      "company": "Fireworks AI",
+      "event_date": "2026-07-16",
+      "amount_usd": 1505000000,
+      "source_url": "https://fireworks.ai/blog/series-d-announcement",
+      "stored_verdict": "MISSING",
+      "stored_detail": "no row for this event",
+      "live_verdict": "UNKNOWN",
+      "live_detail": "the live lens did not run",
+      "status": "missing",
+      "matched": null,
+      "ever_stored": false,
+      "ever_live": false,
+      "regression": []
+    }
+  ],
+  "history": {
+    "2025q1-databricks-10b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q1-anthropic-3-5b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q1-openai-40b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q1-isomorphic-labs-600m": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q2-anysphere-900m": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q2-helsing-600m-eur": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q3-anthropic-13b": {
+      "ever_stored": true,
+      "ever_live": true,
+      "first_held_on": "2026-08-03",
+      "last_held_on": "2026-08-10"
+    },
+    "2025q3-mistral-1-7b-eur": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q3-figure-1b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q4-reflection-ai-2b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q4-anysphere-2-3b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2025q4-databricks-4b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2026q1-xai-20b": {
+      "ever_stored": true,
+      "ever_live": false,
+      "first_held_on": "2026-08-03",
+      "last_held_on": "2026-08-10"
+    },
+    "2026q1-waymo-16b": {
+      "ever_stored": true,
+      "ever_live": false,
+      "first_held_on": "2026-08-03",
+      "last_held_on": "2026-08-10"
+    },
+    "2026q1-anthropic-30b": {
+      "ever_stored": true,
+      "ever_live": true,
+      "first_held_on": "2026-08-03",
+      "last_held_on": "2026-08-10"
+    },
+    "2026q1-openai-122b": {
+      "ever_stored": true,
+      "ever_live": true,
+      "first_held_on": "2026-08-03",
+      "last_held_on": "2026-08-10"
+    },
+    "2026q2-anduril-5b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2026q2-anthropic-65b": {
+      "ever_stored": true,
+      "ever_live": true,
+      "first_held_on": "2026-08-03",
+      "last_held_on": "2026-08-10"
+    },
+    "2026q3-helsing-1-8b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    },
+    "2026q3-fireworks-1-5b": {
+      "ever_stored": false,
+      "ever_live": false,
+      "first_held_on": null,
+      "last_held_on": null
+    }
+  }
+}

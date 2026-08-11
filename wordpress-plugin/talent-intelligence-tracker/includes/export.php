@@ -22,7 +22,19 @@ add_action('admin_post_nopriv_tit_export_json', 'tit_export_json');
  */
 function tit_csv_guard($value) {
     $value = (string) $value;
-    if ($value !== '' && in_array($value[0], array('=', '+', '-', '@'), true)) {
+    if ($value === '') return $value;
+    // TAB and CR belong in this list because Excel and LibreOffice STRIP
+    // leading whitespace before deciding what a cell IS. So "\t=cmd|..." is
+    // read as "=cmd|...", and the guard that only inspected $value[0] saw a
+    // tab, judged it harmless, and passed the formula through unchanged. A
+    // leading CR additionally lets a value forge a row break inside a quoted
+    // field. Defence in depth: every value reaching here is normalised through
+    // a fixed vocabulary or is a number. Depth is the point.
+    $lead = ltrim($value, " \t\r\n");
+    if ($lead !== '' && in_array($lead[0], array('=', '+', '-', '@'), true)) {
+        return "'" . $value;
+    }
+    if (in_array($value[0], array('=', '+', '-', '@', "\t", "\r"), true)) {
         return "'" . $value;
     }
     return $value;
@@ -98,8 +110,17 @@ function tit_export_walk($cb) {
  */
 function tit_export_throttle() {
     $ip = isset($_SERVER['REMOTE_ADDR']) ? preg_replace('/[^0-9a-f:.]/i', '', (string) $_SERVER['REMOTE_ADDR']) : '0';
-    $key = 'tit_export_rl_' . md5($ip);
-    $n = (int) get_transient($key);
+    // An OPTION, via tit_ephemeral_* in db.php, not a transient. As a transient
+    // this key matched `_transient_tit_%`, so tit_flush_caches() deleted it on
+    // every write route - four-plus times a day - and the counter a caller had
+    // to stay under was reset for them, on a schedule, by our own collectors.
+    // A throttle that resets four times a day is not a throttle.
+    // Same FTP-race degradation as every other cross-file call here: db.php can
+    // be missing for a few seconds mid-upload, and an unthrottled export for
+    // those seconds is a far better outcome than a fatal on the route.
+    if (!function_exists('tit_ephemeral_get')) return;
+    $key = 'export_rl_' . md5($ip);
+    $n = (int) tit_ephemeral_get($key);
     if ($n >= 20) {
         status_header(429);
         nocache_headers();
@@ -108,7 +129,7 @@ function tit_export_throttle() {
         echo 'Export rate limit reached. The data is free to reuse (CC BY 4.0). Please wait a few minutes, filter your export, or use the public API.';
         exit;
     }
-    set_transient($key, $n + 1, 10 * MINUTE_IN_SECONDS);
+    tit_ephemeral_set($key, $n + 1, 10 * MINUTE_IN_SECONDS);
 }
 
 function tit_export_filename($ext) {

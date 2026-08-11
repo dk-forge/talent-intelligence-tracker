@@ -40,6 +40,7 @@ than no checker at all, because it comes with a reassuring number attached.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 
 # States link_check.py may record. Only two of them are rot:
@@ -73,6 +74,27 @@ ARCHIVE_STATES = frozenset({"archived", "pending", "unavailable"})
 # than retried forever. Wayback genuinely cannot capture some pages (hard bot
 # walls, login gates), and a queue that never drains hides the ones it could.
 MAX_ARCHIVE_ATTEMPTS = 5
+
+# 'unavailable' is TERMINAL: archive_candidates drops the URL and only a
+# hand-written UPDATE puts it back. So it may only ever be reached from
+# EVIDENCE, and this is the whole of that rule: at least one round in which
+# archive.org actually answered us and said it holds no snapshot.
+#
+# The bug this constant exists to make impossible has now shipped twice in this
+# family, in two different guises, and both times the run stayed green:
+#
+#   1. A 429 from the availability API was read as "no snapshot exists", so a
+#      throttled afternoon manufactured a gap and then spent the capture budget
+#      on it. Fixed in check_availability on 2026-07-30.
+#   2. A 429 from Save Page Now still SPENT one of the five attempts, so five
+#      throttled nights walked a perfectly capturable document to terminal
+#      'unavailable' having never once been told it was uncapturable. Fixed
+#      2026-07-29 (this file) by counting blind rounds apart from attempts.
+#
+# Both are the same error: treating "we did not learn anything" as a finding.
+# One probe is a low bar deliberately — it is a floor against blindness, not a
+# confidence threshold. The attempts ceiling above is what bounds the retries.
+MIN_PROBES_BEFORE_TERMINAL = 1
 
 
 def _now() -> str:
@@ -165,27 +187,125 @@ def check_candidates(conn: sqlite3.Connection, *, limit: int,
 
 def archive_candidates(conn: sqlite3.Connection, *, limit: int,
                        collector: str | None = None) -> list[dict]:
-    """URLs with no usable snapshot yet, newest capture first.
+    """URLs with no usable snapshot yet, NEVER-ANSWERED first, then newest.
 
     Resumable by construction: a URL drops out of this list the moment it is
     'archived' or 'unavailable', and a brand new row's URL appears in it
     automatically. Running the job daily therefore guarantees forward coverage
     with no bookkeeping of its own.
+
+    THE ORDERING, which is the part that decides whether coverage can climb
+    -----------------------------------------------------------------------
+    Two tiers, and the tiering is what keeps `pending` from becoming terminal by
+    accident. `pending` has always been re-examined — the sibling's defect, where
+    a pending URL never re-entered its candidate list and 3,965 of them sat
+    unreachable, does not exist in this function. But re-examined is not the same
+    as REACHED: `limit` truncates this list, and a strict newest-first order
+    means a URL that has never had an answer from archive.org sinks a little
+    further every time a collect run stores something newer. At 12,970 distinct
+    URLs and a 600-row window that is the same outcome by a slower route.
+
+    So a URL with no definitive probe sorts ahead of one that has had a real
+    answer and is merely awaiting a capture. Every brand-new URL has zero
+    probes, so the ingest-time property the module docstring defends is
+    preserved exactly: within tier 1 the order is still newest-capture first.
+    What changes is that the never-answered tail rides in the same tier as the
+    new rows instead of behind every one of them.
+
+    `archive_probes` is NULL for every row written before the column existed,
+    and NULL reads as 0 here on purpose: those rows genuinely predate any record
+    of what we were told, so treating them as never-answered is the honest
+    reading and costs one free availability call each.
     """
     rows = distinct_source_urls(conn, collector=collector)
     known = {r["source_url"]: dict(r) for r in conn.execute(
-        "SELECT source_url, archive_state, archive_attempts FROM source_links")}
-    out = []
+        "SELECT source_url, archive_state, archive_attempts, archive_probes, "
+        "       archive_blind_rounds FROM source_links")}
+    tier_unprobed, tier_probed = [], []
     for row in rows:
         seen = known.get(row["source_url"]) or {}
         state = seen.get("archive_state")
         if state == "archived" or state == "unavailable":
             continue
         row["archive_attempts"] = int(seen.get("archive_attempts") or 0)
-        out.append(row)
-        if len(out) >= limit:
-            break
-    return out
+        row["archive_probes"] = int(seen.get("archive_probes") or 0)
+        row["archive_blind_rounds"] = int(seen.get("archive_blind_rounds") or 0)
+        (tier_unprobed if row["archive_probes"] == 0 else tier_probed).append(row)
+    return (tier_unprobed + tier_probed)[:limit]
+
+
+def archive_gap(conn: sqlite3.Connection) -> dict:
+    """How the un-archived population splits, which the percentage cannot say.
+
+    `archive_pct` climbing slowly is the design (Save Page Now is rate-limited
+    and a backfill takes about a week). `archive_pct` climbing slowly because
+    nothing can get an answer out of archive.org looks identical from outside,
+    and that is what these counts separate:
+
+      never_probed   we have never once been told anything about this URL. Not
+                     a gap in Wayback: a gap in what we know.
+      probed_absent  archive.org answered and said it holds no snapshot. THIS is
+                     the real capture queue and the only population a capture
+                     budget should be sized against.
+      blind_recently at least one round on this URL learned nothing.
+      terminal_blind recorded 'unavailable' without a single definitive probe —
+                     a document dropped from the queue forever on the strength
+                     of a throttle. Must always be zero; reset_blinded_terminal
+                     is how it gets there.
+    """
+    def count(where: str) -> int:
+        return conn.execute(
+            f"SELECT COUNT(*) FROM source_links WHERE {where}").fetchone()[0]
+
+    unarchived = ("IFNULL(archive_state, 'pending') != 'archived' "
+                  "AND IFNULL(archive_state, 'pending') != 'unavailable'")
+    total = conn.execute(
+        "SELECT COUNT(DISTINCT source_url) FROM signals WHERE is_current = 1"
+    ).fetchone()[0]
+    ledger = count("1=1")
+    return {
+        # URLs on a current signal that have no ledger row at all have never
+        # been probed either, so they belong in the same bucket as a pending row
+        # with no probe. Counting only the ledger would understate it by 12,700.
+        "never_probed": (total - ledger) + count(
+            f"{unarchived} AND IFNULL(archive_probes, 0) = 0"),
+        "probed_absent": count(f"{unarchived} AND IFNULL(archive_probes, 0) > 0"),
+        "blind_recently": count(
+            f"{unarchived} AND IFNULL(archive_blind_rounds, 0) > 0"),
+        "terminal_blind": count(
+            "archive_state = 'unavailable' AND IFNULL(archive_probes, 0) < ?"
+            .replace("?", str(MIN_PROBES_BEFORE_TERMINAL))),
+    }
+
+
+def reset_blinded_terminal(conn: sqlite3.Connection, *,
+                           dry_run: bool = False) -> list[str]:
+    """Put back every URL that reached 'unavailable' without a real negative.
+
+    A one-time repair by intent and an idempotent one by construction: after the
+    guard in `classify_archive_outcome` no new row can qualify, so a later run
+    finds nothing and says so. It is kept rather than deleted because the two
+    ways into this state (the availability 429, the Save Page Now 429) both
+    shipped as green runs, and a third route would need exactly this again.
+
+    Returns the URLs it moved (or would move). Never touches `signals`, never
+    touches a snapshot we already hold, and cannot reach a claim.
+    """
+    urls = [r[0] for r in conn.execute(
+        "SELECT source_url FROM source_links "
+        " WHERE archive_state = 'unavailable' "
+        "   AND IFNULL(archive_probes, 0) < ? "
+        "   AND IFNULL(archive_url, '') = ''",
+        (MIN_PROBES_BEFORE_TERMINAL,))]
+    if urls and not dry_run:
+        conn.executemany(
+            "UPDATE source_links "
+            "   SET archive_state = 'pending', archive_attempts = 0, "
+            "       archive_detail = 'reset: went terminal with no definitive "
+            "probe', updated_at = ? "
+            " WHERE source_url = ?",
+            [(_now(), url) for url in urls])
+    return urls
 
 
 # --- writing ---------------------------------------------------------------
@@ -235,8 +355,16 @@ def record_check(conn: sqlite3.Connection, url: str, *, state: str,
 
 def record_archive(conn: sqlite3.Connection, url: str, *, state: str,
                    archive_url: str = "", attempts: int = 0,
-                   source_name: str = "", host: str = "") -> None:
-    """Record the outcome of one archiving round for one URL."""
+                   source_name: str = "", host: str = "",
+                   probes: int | None = None, blind_rounds: int | None = None,
+                   detail: str = "") -> None:
+    """Record the outcome of one archiving round for one URL.
+
+    `probes` and `blind_rounds` are the round's running totals for this URL, not
+    increments, so a caller that recomputes them from the row it read stays
+    correct under the merge (merge_db keeps the later write wholesale) and a
+    caller that does not pass them leaves the counters alone.
+    """
     if state not in ARCHIVE_STATES:
         raise ValueError(f"unknown archive state {state!r}")
     values = {
@@ -247,6 +375,12 @@ def record_archive(conn: sqlite3.Connection, url: str, *, state: str,
         "source_name": source_name or None,
         "host": host or None,
     }
+    if probes is not None:
+        values["archive_probes"] = int(probes)
+    if blind_rounds is not None:
+        values["archive_blind_rounds"] = int(blind_rounds)
+    if detail:
+        values["archive_detail"] = detail[:400]
     if state != "archived":
         # Never blank a permalink we already hold because a later round failed.
         values.pop("archive_url")
@@ -255,18 +389,23 @@ def record_archive(conn: sqlite3.Connection, url: str, *, state: str,
 
 
 def classify_archive_outcome(availability_url: str | None, save_url: str | None,
-                             attempts: int) -> tuple[str, str]:
+                             attempts: int, probes: int = 1) -> tuple[str, str]:
     """The status to record for one URL from one round's results.
 
     Pure, so the decision is tested without a network. 'archived' when either
-    pass found a snapshot; 'unavailable' once the attempts are spent, so a page
-    Wayback genuinely cannot capture stops being retried and starts being
-    reported; 'pending' otherwise, which is a retry on a later run.
+    pass found a snapshot; 'unavailable' once the attempts are spent AND
+    archive.org has actually told us at least once that it holds nothing;
+    'pending' otherwise, which is a retry on a later run.
+
+    `probes` defaults to 1 so an existing caller keeps the old behaviour rather
+    than silently never going terminal — a queue that can never drain is the
+    other failure this function sits between. Every caller in this repo passes
+    it; the default exists for the reader, and the test table pins both ends.
     """
     for candidate in (availability_url, save_url):
         if candidate and str(candidate).lower().startswith("http"):
             return "archived", str(candidate)
-    if attempts >= MAX_ARCHIVE_ATTEMPTS:
+    if attempts >= MAX_ARCHIVE_ATTEMPTS and probes >= MIN_PROBES_BEFORE_TERMINAL:
         return "unavailable", ""
     return "pending", ""
 
@@ -331,6 +470,232 @@ def rot_summary(conn: sqlite3.Connection) -> dict:
         "archive_unavailable": archive.get("unavailable", 0),
         "archive_pct": (round(100.0 * archive.get("archived", 0) / total, 1)
                         if total else 0.0),
+    }
+
+
+#: Fallback if the workflow cannot be read. Kept in step with the shell default
+#: in .github/workflows/archive-sources.yml by scheduled_archive_scope's test.
+DEFAULT_ARCHIVE_SCOPE = ("national_press", "google_news", "gdelt", "ats_boards")
+
+#: THE PUBLIC RE-CHECK PROMISE, IN DAYS. The listing surfaces print, on every
+#: in-scope row that has no snapshot yet, "No archive snapshot yet. We re-check
+#: weekly; next check by <date>". That sentence is a commitment, and this
+#: constant is the single definition of it: the plugin's shipped
+#: data/archive_promise.json is generated from it (build_archive_promise.py),
+#: ops_status.py [2c] goes RED when any in-scope unarchived URL has not been
+#: re-attempted within it, and the test suite refuses a schedule that cannot
+#: meet it. Change it HERE or nowhere; a second copy is how the page ends up
+#: promising a cadence nothing keeps.
+#:
+#: Seven days is a deliberate UNDER-promise. The real schedule (the
+#: '20 */8 * * *' slot in schedule-link-hygiene.yml) runs the archiver three
+#: times a day over a 600-URL window, so today's whole in-scope queue is
+#: re-examined roughly daily. Weekly is what survives a bad stretch: Wayback
+#: throttling every pass for days, the writer lock held by a long backfill, a
+#: host outage. Promising the median instead of the floor is how a true
+#: sentence becomes a false one without any code changing.
+RECHECK_PROMISE_DAYS = 7
+
+
+def scheduled_archive_cadence_hours(root=None) -> int | None:
+    """Hours between scheduled archive passes, read from the REAL schedule.
+
+    The cron lives in schedule-link-hygiene.yml (the writers may not carry
+    their own; see that file's header), on the slot that maps to
+    archive-sources.yml. Parsed rather than typed for the same reason
+    scheduled_archive_scope() is: a promise derived from a schedule that
+    changed is a promise nobody is keeping. Returns None when the slot cannot
+    be found or is not armed, and None must never render as a cadence.
+    """
+    from pathlib import Path
+    root = Path(root) if root else Path(__file__).resolve().parent.parent
+    path = root / ".github" / "workflows" / "schedule-link-hygiene.yml"
+    if not path.exists():
+        return None
+    text = path.read_text()
+    # The slot-to-workflow mapping is the `case "$SLOT"` block; the schedule
+    # list holds the same cron strings. The archive slot is the one the case
+    # maps to archive-sources.yml.
+    import re
+    for match in re.finditer(r"'([^']+)'\)\s*WANT='archive-sources\.yml'", text):
+        cron = match.group(1)
+        hour_field = cron.split()[1] if len(cron.split()) == 5 else ""
+        if hour_field.startswith("*/"):
+            try:
+                return int(hour_field[2:])
+            except ValueError:
+                return None
+        return 24  # a fixed hour = one pass a day
+    return None
+
+
+def scheduled_archive_limit(root=None) -> int:
+    """Candidate URLs a scheduled archive run examines, from the shell fallback.
+
+    Read from `${LIMIT:-...}` in archive-sources.yml for the same reason
+    scheduled_archive_scope() reads `${COLLECTOR:-...}`: a queued ticket carries
+    only dry_run, so the fallback is what a scheduled run actually gets, and the
+    capacity arithmetic behind the re-check promise must be sized against that
+    rather than against a constant that can drift from it.
+    """
+    from pathlib import Path
+    root = Path(root) if root else Path(__file__).resolve().parent.parent
+    path = root / ".github" / "workflows" / "archive-sources.yml"
+    if path.exists():
+        for line in path.read_text().splitlines():
+            if "LIMIT:-" in line:
+                raw = line.split("LIMIT:-", 1)[1].split("}", 1)[0]
+                try:
+                    return int(raw)
+                except ValueError:
+                    break
+    return 600
+
+
+def archive_promise(root=None) -> dict:
+    """The one statement of the reader-facing re-check promise.
+
+    Everything the plugin needs to render the pending state, and everything the
+    integrity check needs to enforce it, derived from the same two files the
+    schedule actually runs from. build_archive_promise.py writes this verbatim
+    into the plugin's data directory; tests/test_archive_promise.py fails when
+    the shipped copy no longer matches this derivation, which is what makes a
+    cron edit that breaks the promise a red test rather than a quiet lie.
+    """
+    cadence = scheduled_archive_cadence_hours(root)
+    return {
+        "recheck_days": RECHECK_PROMISE_DAYS,
+        "cadence_hours": cadence,
+        "collectors": scheduled_archive_scope(root),
+        "derived_from": ".github/workflows/schedule-link-hygiene.yml + "
+                        "archive-sources.yml; see pipeline/source_links.py",
+    }
+
+
+def archive_recheck_overdue(conn: sqlite3.Connection,
+                            collectors: Sequence[str] | None = None,
+                            days: int = RECHECK_PROMISE_DAYS) -> list[dict]:
+    """Every in-scope unarchived URL the promise has been broken for.
+
+    The listing surfaces tell a reader "we re-check weekly". This is the check
+    that keeps that sentence true: an in-scope URL with no snapshot whose last
+    archiving round (ledger `updated_at`) is older than the promise window —
+    or that has NO ledger row at all despite being stored longer ago than the
+    window — is a row the page is lying about. ops_status.py [2c] goes red on
+    any result here; a healthy schedule keeps this list empty with days to
+    spare, because the 8-hourly pass re-touches the whole queue roughly daily.
+
+    Brand-new URLs are not violations: a URL stored an hour ago has simply not
+    had its first pass yet, and the promise it renders under ("next check by"
+    seven days out) is still ahead of it.
+    """
+    names = list(collectors) if collectors is not None else scheduled_archive_scope()
+    if not names:
+        return []
+    cutoff = (datetime.now(timezone.utc)
+              - timedelta(days=days)).isoformat(timespec="seconds")
+    placeholders = ", ".join("?" for _ in names)
+    rows = conn.execute(
+        f"""SELECT s.source_url,
+                   MAX(s.captured_at) AS newest_capture,
+                   l.archive_state, l.updated_at
+              FROM signals s
+              LEFT JOIN source_links l ON l.source_url = s.source_url
+             WHERE s.is_current = 1
+               AND s.source_url IS NOT NULL AND s.source_url != ''
+               AND s.collector IN ({placeholders})
+               AND IFNULL(l.archive_state, 'pending') NOT IN
+                   ('archived', 'unavailable')
+             GROUP BY s.source_url""", names).fetchall()
+    overdue = []
+    for r in rows:
+        last = r["updated_at"] or r["newest_capture"] or ""
+        if last and last[:19] < cutoff[:19]:
+            overdue.append({"source_url": r["source_url"],
+                            "last_attempt": last,
+                            "state": r["archive_state"] or "never probed"})
+    return overdue
+
+
+def scheduled_archive_scope(root=None) -> list[str]:
+    """The collectors a SCHEDULED archive run actually covers.
+
+    Read from the SHELL FALLBACK in the workflow rather than from the input
+    default, because a queued ticket carries only `dry_run` and the fallback is
+    what applies on that path.
+
+    This lives here rather than in ops_status.py because two tools now report
+    archive coverage and both must scope it the same way. The same reasoning
+    that moved the staleness leashes into one module applies exactly: a session
+    reading "0.5% archived" from the dashboard and "11% archived" from the
+    weekly email would have no way to tell which one was lying.
+    """
+    from pathlib import Path
+    root = Path(root) if root else Path(__file__).resolve().parent.parent
+    path = root / ".github" / "workflows" / "archive-sources.yml"
+    if not path.exists():
+        return list(DEFAULT_ARCHIVE_SCOPE)
+    for line in path.read_text().splitlines():
+        if "COLLECTOR:-" in line:
+            names = line.split("COLLECTOR:-", 1)[1].split("}", 1)[0]
+            return [n.strip() for n in names.split(",") if n.strip()]
+    return list(DEFAULT_ARCHIVE_SCOPE)
+
+
+def archive_coverage(conn: sqlite3.Connection,
+                     collectors: Sequence[str] | None = None) -> dict:
+    """Archive coverage over the population the schedule can actually reach.
+
+    `rot_summary()['archive_pct']` is over the WHOLE corpus, which is the right
+    number for "how much of what we cite has a fallback" and the wrong one for
+    "is the archiver working". Roughly 96% of that corpus is SEC and GOV.UK
+    filings the schedule deliberately does not touch, so the corpus percentage
+    has a ceiling near 4% and a healthy archiver reads as a stalled one. The
+    ratio here has a ceiling of 100% and moves when the job does.
+
+    `capture_queue` is the count archive.org has answered about and declined to
+    hold: the only population a capture budget should ever be sized against.
+    `never_probed` is not a gap in Wayback, it is a gap in what we know.
+    """
+    names = list(collectors) if collectors is not None else scheduled_archive_scope()
+    if not names:
+        names = list(DEFAULT_ARCHIVE_SCOPE)
+    placeholders = ", ".join("?" for _ in names)
+    urls = {r[0] for r in conn.execute(
+        f"""SELECT source_url FROM signals
+             WHERE is_current = 1 AND source_url IS NOT NULL AND source_url != ''
+               AND collector IN ({placeholders})
+             GROUP BY source_url""", names)}
+    known = {r["source_url"]: dict(r) for r in conn.execute(
+        "SELECT source_url, archive_state, archive_probes, archived_at "
+        "  FROM source_links")}
+
+    archived = unavailable = capture_queue = never = 0
+    newest = None
+    for url in urls:
+        row = known.get(url) or {}
+        state = row.get("archive_state")
+        if state == "archived":
+            archived += 1
+            when = row.get("archived_at")
+            if when and (newest is None or when > newest):
+                newest = when
+        elif state == "unavailable":
+            unavailable += 1
+        elif int(row.get("archive_probes") or 0) > 0:
+            capture_queue += 1
+        else:
+            never += 1
+    total = len(urls)
+    return {
+        "collectors": names,
+        "in_scope": total,
+        "archived": archived,
+        "unavailable": unavailable,
+        "capture_queue": capture_queue,
+        "never_probed": never,
+        "pct": round(100.0 * archived / total, 1) if total else 0.0,
+        "newest_snapshot": newest,
     }
 
 

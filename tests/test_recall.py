@@ -257,13 +257,24 @@ def test_offline_replay_produces_a_dated_measurement(tmp_path, gold):
 
 def _shaped(**over):
     """A minimally valid set, deliberately spread, as any future set must be."""
+    # Twenty-one countries across all seven of the project's regions, none of
+    # them dominant. "Minimally valid" got much harder on 2026-07-30: the first
+    # measurement found 27 of 29 countries scoring zero, which is what made a
+    # set that is really the US and western Europe worth refusing outright.
     plan = [("US", "funding", "large", "filing"), ("US", "leadership", "small", "press_release"),
+            ("CA", "funding", "small", "filing"),
             ("GB", "funding", "small", "trade_press"), ("DE", "leadership", "small", "national_news"),
-            ("IN", "funding", "small", "trade_press"), ("BR", "funding", "large", "press_release"),
-            ("JP", "leadership", "small", "trade_press"), ("CA", "funding", "small", "filing"),
-            ("FR", "funding", "large", "national_news"), ("AU", "leadership", "large", "press_release")]
+            ("FR", "funding", "large", "national_news"), ("PL", "leadership", "small", "trade_press"),
+            ("IN", "funding", "small", "trade_press"), ("JP", "leadership", "small", "trade_press"),
+            ("SG", "funding", "large", "press_release"), ("ID", "funding", "small", "national_news"),
+            ("BR", "funding", "large", "press_release"), ("MX", "leadership", "small", "national_news"),
+            ("CL", "funding", "small", "trade_press"),
+            ("ZA", "leadership", "large", "filing"), ("NG", "funding", "small", "trade_press"),
+            ("KE", "funding", "small", "national_news"),
+            ("IL", "funding", "large", "trade_press"), ("AE", "leadership", "small", "press_release"),
+            ("AU", "leadership", "large", "press_release"), ("NZ", "funding", "small", "trade_press")]
     items = []
-    for i in range(50):
+    for i in range(63):
         country, signal, band, source = plan[i % len(plan)]
         items.append({
             "id": f"g{i}", "company": f"Company {i}", "signal_type": signal,
@@ -298,6 +309,104 @@ def test_a_set_rebuilt_out_of_easy_us_filings_is_refused():
     assert any("non-US" in p for p in problems)
     assert any("small" in p for p in problems)
     assert any("kinds of document" in p for p in problems)
+
+
+def test_a_set_that_is_broad_on_paper_and_one_country_in_practice_is_refused():
+    """The way "widen the gold set" gets satisfied without widening anything:
+    keep the US events, bolt one event each onto forty countries. Every country
+    count goes up, the map fills in, and the headline number is still a US
+    number."""
+    fake = _shaped()
+    filler = ["PE", "UY", "EC", "CR", "PA", "GT", "DO", "PY", "BO", "JM",
+              "TT", "SV", "HN", "IS", "LU", "MT", "CY", "AL", "MD", "MK"]
+    for index, item in enumerate(fake["items"]):
+        item["country"] = filler[index] if index < len(filler) else "US"
+    problems = goldset.validate(fake)
+    assert any("of the set: above the" in p for p in problems)
+    assert any("cannot measure a country" in p for p in problems)
+
+
+def test_a_set_confined_to_two_regions_is_refused():
+    """Twenty-one countries, all of them in Europe and North America. This is
+    what "use what was easy to find" produces once somebody has been told to
+    add countries, and it measures the feeds we already had."""
+    fake = _shaped()
+    western = ["US", "CA", "GB", "DE", "FR", "PL", "ES", "IT", "NL", "SE",
+               "NO", "FI", "DK", "IE", "PT", "AT", "BE", "CZ", "RO", "GR", "HU"]
+    for index, item in enumerate(fake["items"]):
+        item["country"] = western[index % len(western)]
+    problems = goldset.validate(fake)
+    assert any("regions carry" in p for p in problems), problems
+
+
+def test_the_regions_come_from_the_projects_own_vocabulary():
+    """Not a second geography invented in the benchmark. A country the pipeline
+    cannot place lands under None, which is a finding rather than an error."""
+    shape = goldset.counts({"items": [
+        {"signal_type": "funding", "country": c, "source_type": "filing",
+         "size_band": "small"}
+        for c in ("US", "NG", "JP", "BR", "IL", "AU", "PL")]})
+    assert set(goldset.regions(shape)) == {
+        "North America", "Africa", "Asia", "Latin America", "Middle East",
+        "Oceania", "Europe"}
+
+
+def test_a_new_set_may_not_be_narrower_than_the_widest_one_already_on_disk():
+    """The ratchet. The failure it prevents is not malice: an ordinary month
+    where only the easy countries answer, the next set quietly comes back at 30
+    of them, and the published figure rises because the world got smaller."""
+    wide = goldset.breadth(goldset.counts(goldset.load(goldset.latest_path())))
+    narrow = _shaped()
+    problems = goldset._ratchet_problems(narrow, [wide])
+    assert any("not supposed to be reversible" in p for p in problems), problems
+
+
+def test_the_ratchet_never_reaches_backwards():
+    """A ratchet comparing against LATER sets would invalidate the history it
+    exists to protect: the day the 169-event set landed, the 89-event set it
+    superseded would have stopped validating and its published 9.0% would have
+    become underivable."""
+    paths = goldset.all_paths()
+    if len(paths) < 2:
+        pytest.skip("needs two sets on disk")
+    oldest = goldset.load(paths[0])
+    peers = goldset.peer_breadths(paths[0], assembled_on=oldest["assembled_on"])
+    assert peers == []
+    assert goldset.validate(oldest) == []
+
+
+def test_a_set_built_in_memory_is_judged_on_the_fixed_bars_only():
+    """Unit tests must not be graded against whatever happens to be in the
+    repository that week."""
+    assert goldset.validate(_shaped()) == []
+
+
+def test_an_undisclosed_round_must_say_so_rather_than_just_omit_the_number():
+    """A set that cannot admit an undisclosed round measures only the events
+    that came with a number, and that bias points straight at the markets this
+    benchmark exists to cover."""
+    silent = _shaped()
+    for item in silent["items"]:
+        if item["signal_type"] == "funding":
+            item["amount_usd"] = None
+    assert any("amount_disclosed=false" in p for p in goldset.validate(silent))
+
+    declared = _shaped()
+    funding = [i for i in declared["items"] if i["signal_type"] == "funding"]
+    for item in funding[:2]:
+        item["amount_usd"] = None
+        item["amount_disclosed"] = False
+    assert goldset.validate(declared) == []
+
+
+def test_undisclosed_cannot_become_the_easy_way_in():
+    declared = _shaped()
+    for item in declared["items"]:
+        if item["signal_type"] == "funding":
+            item["amount_usd"] = None
+            item["amount_disclosed"] = False
+    assert any("cannot be checked on the number" in p
+               for p in goldset.validate(declared))
 
 
 def test_every_gold_set_on_disk_is_valid():
