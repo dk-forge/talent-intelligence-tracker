@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "attempts": 1,
-      "key": "tests:fix-companion-region-deadline:e368a81987e7b608",
-      "kind": "alert",
-      "last_attempt_at": "2026-08-11T05:38:28+00:00",
-      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
-      "payload": {
-        "body": "The workflow 'tests' failed on GitHub Actions and nothing else would have told you.\n\n  repo:     dk-forge/talent-intelligence-tracker\n  workflow: tests\n  branch:   fix/companion-region-deadline\n  trigger:  pull_request\n  run:      https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31462117064\n\nWHAT FAILED:\n  assert (0 == 1)\n\nContext from the failed step:\n  FAILED tests/test_ci_noise_report.py::TestMain::test_a_noisy_week_posts_exactly_one_alert - AssertionError: one summary, never one post per run\n  FAILED tests/test_ci_noise_report.py::TestMain::test_dry_run_posts_nothing_even_when_noisy - AssertionError: assert (0 == 0 and not [] and '--- subject ---' in 'window: 0 completed runs / 7 days\\nfailed: 0  repeats: 0  evictions: 0  noise: 0\\nquiet week: no repeat reds, no evictions \u2014 nothing to send, and that silence is the product working.\\n')\n  FAILED tests/test_ci_noise_report.py::TestMain::test_noise_with_no_credentials_is_loud_not_silent - assert (0 == 1)\n  +  where 0 = len([])\n  AssertionError: assert (0 == 0 and not [] and '--- subject ---' in 'window: 0 completed runs / 7 days\\nfailed: 0  repeats: 0  evictions: 0  noise: 0\\nquiet week: no repeat reds, no evictions \u2014 nothing to send, and that silence is the product working.\\n')\n\nWhat to do: open a Claude Code session in the talent-intelligence-tracker repo and paste this line:\n  \"The GitHub Actions workflow 'tests' is failing on fix/companion-region-deadline with: assert (0 == 1). The run is https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31462117064. Reproduce it locally with `.venv/bin/pytest -q`, find the root cause, and fix it.\"\n\nYou will get ONE more email about this workflow: a RECOVERED notice on its next green run. We suppress repeats of this same failure deliberately. An alarm that mails eight times in an afternoon is one you learn to filter, and a filtered alarm is how a wrong number stays live for hours.",
-        "dedupe_key": "tests:fix-companion-region-deadline:e368a81987e7b608",
-        "subject": "CI RED: tests: assert (0 == 1)"
-      },
-      "raised_at": "2026-08-11T05:38:28+00:00",
-      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31462117064",
-      "scope": "tests:fix-companion-region-deadline",
-      "state": "pending"
-    },
-    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -95,8 +79,21 @@
       "settled_at": "2026-08-11T05:36:46+00:00",
       "settled_because": "delivered late: not emailed: nothing was open for this scope",
       "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "tests:fix-companion-region-deadline:e368a81987e7b608",
+      "kind": "alert",
+      "last_attempt_at": "2026-08-11T05:38:28+00:00",
+      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
+      "raised_at": "2026-08-11T05:38:28+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31462117064",
+      "scope": "tests:fix-companion-region-deadline",
+      "settled_at": "2026-08-11T06:37:55+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-11T05:38:28+00:00",
+  "updated_at": "2026-08-11T06:37:56+00:00",
   "version": 1
 }
