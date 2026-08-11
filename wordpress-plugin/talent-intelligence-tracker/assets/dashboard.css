@@ -89,7 +89,15 @@
   --tit-blue-tint:#eef4fc; --tit-blue-ring:#b9d3f2; --tit-blue-edge:#cfe0f4;
   --tit-accent-ink:#1c5cab;
   --tit-link:#1a5fb4; --tit-link-hover:#12447f;
-  --tit-on-accent:rgba(255,255,255,.26);  /* a count inside a filled pill */
+  /* A count inside a filled pill. It was a WHITE wash, and a white wash on a
+     blue chip lightens the ground the white numeral is standing on: the chip
+     itself reads 5.19:1 and the count inside it read 3.25:1, under the 4.5
+     bar, measured in LIGHT where nobody was looking for a contrast defect.
+     So the wash goes the other way, exactly as the dark scheme's already
+     does. Alpha .28 was chosen to hold the pill's boundary against the chip
+     at 1.62:1, which is what the white .26 gave, so the count still reads as
+     its own pill; the numeral on it goes from 3.25:1 to 8.42:1. */
+  --tit-on-accent:rgba(0,0,0,.28);
 
   /* --- Direction and status -------------------------------------------- */
   --tit-hiring:#006B4F;     /* direction: adding roles. NEVER an accent. */
@@ -141,6 +149,14 @@
   --tit-hero-1:#f4f8fe; --tit-hero-2:#fdf6f2; --tit-hero-3:#f7f4fd;
   --tit-zone-bg:#eef3f9; --tit-zone-line:#d7e1ec;
   --tit-region-n-bg:#f1f4f8;
+  /* The matrix period label on a phone. It reads --tit-mut everywhere else in
+     the file, but this one instance sits ON the heat tint rather than on the
+     card, and the tint runs to alpha .30 of the channel colour. In dark that
+     put #b0b6c0 on rgb(56,74,102) at 4.40:1 and on the money channel at
+     4.58:1 -- one side of the bar in a place a token named "muted" gives no
+     hint it is near. Named separately so the value is sized to the hottest
+     cell instead of to a plain surface. */
+  --tit-cell-p-ink:#4a4d55;
   --tit-sticky-bg:rgba(238,244,252,.94);
   --tit-header-bg:#ffffff; --tit-header-line:rgba(16,18,24,.12);
 
@@ -251,6 +267,7 @@
     --tit-hero-1:#161d28; --tit-hero-2:#221c18; --tit-hero-3:#1d1930;
     --tit-zone-bg:#181d26; --tit-zone-line:#2c3542;
     --tit-region-n-bg:#262b34;
+    --tit-cell-p-ink:#c3c9d3;
     --tit-sticky-bg:rgba(22,29,40,.94);
     --tit-header-bg:#14161b; --tit-header-line:rgba(232,234,238,.14);
 
@@ -350,6 +367,7 @@
   --tit-hero-1:#161d28; --tit-hero-2:#221c18; --tit-hero-3:#1d1930;
   --tit-zone-bg:#181d26; --tit-zone-line:#2c3542;
   --tit-region-n-bg:#262b34;
+  --tit-cell-p-ink:#c3c9d3;
   --tit-sticky-bg:rgba(22,29,40,.94);
   --tit-header-bg:#14161b; --tit-header-line:rgba(232,234,238,.14);
 
@@ -3115,7 +3133,7 @@ body:has(.tit-main) header.wp-block-template-part {
     justify-content:space-between; gap:12px; width:100%; padding:9px 12px;
     text-align:left; border-radius:0; }
   .tit-wrap .tit-cell-p { display:inline; font-size:12px; font-weight:600;
-    color:var(--tit-mut); }
+    color:var(--tit-cell-p-ink); }
 }
 /* Desktop: the real <th> is the column header, so the in-cell label would be a
    second copy of it in every cell. */
@@ -3586,4 +3604,122 @@ html:has(.tit-main), body:has(.tit-main) {
 .tit-load-failed .tit-load-msg { font-weight:600; }
 @media (prefers-reduced-motion: reduce) {
   .tit-load-spin { animation:none; border-top-color:var(--tit-line); }
+}
+
+/* ===========================================================================
+   THE SITE DECLARES INK OF ITS OWN, AND IN DARK IT WAS THE WHOLE PAGE.
+
+   Everything above this line is correct and was correct the whole time. The
+   tokens resolve, they are applied, and --tit-ink computes to #e8eaee on the
+   very elements that were rendering at 1.04:1. A custom property cannot win
+   an argument it is not in.
+
+   WHAT WINS INSTEAD. A site-level snippet, stored in the WordPress database
+   and in neither repository, is attached to WordPress core's
+   `wp-block-library` stylesheet handle. It declares, with !important:
+
+       .entry-content p , .wp-block-post-content p  { color:#2a2a2a !important }
+       .entry-content h2, .wp-block-post-content h2 { color:#1a1a1a !important;
+                                    border-bottom:2px solid #eef3ee !important }
+       .entry-content h3, .wp-block-post-content h3 { color:#222    !important }
+
+   Every surface this plugin renders sits inside .entry-content, so those three
+   rules flatten every paragraph and section heading we own, in BOTH themes. In
+   light, #2a2a2a on the paper ground is 14.6:1 and the override is invisible
+   as a problem. In dark it IS the problem: measured in a clean, extension-free
+   browser on 2026-08-11, 62 text elements on the dashboard at 375px rendered
+   between 1.04:1 and 1.4:1, and the same override reached every permalink and
+   secondary page. A reader with a dark OS did not get a hard-to-read page,
+   they got a page where the headings and the prose between the lists were
+   simply absent.
+
+   AND IT IS THE DEFAULT. It reproduces with no data-theme attribute set at
+   all, under prefers-color-scheme: dark, which is what every dark-OS visitor
+   gets, because Auto is the default and Auto is the absence of the attribute.
+
+   SO OUR DECLARATION IS RAISED, NOT THE TOKENS. The selector is the site
+   rule's own scope plus .tit-wrap: exactly one class more specific, and never
+   wider. It cannot reach markup the site rule does not already reach, so it
+   cannot flatten a colour that is currently surviving. !important is there
+   because it is the only currency the other side is spending.
+
+   WHY THE THREE TAGS AND NOT A LIST OF PLUGIN CLASSES. The override is not
+   per-class: it flattens every p, h2 and h3 in the wrapper to one ink, and it
+   has been doing that in light for as long as it has existed. Mirroring that
+   flattening with the dark ink is parity, not a new decision, and it cannot
+   regress light, which this block does not touch.
+   =========================================================================== */
+:root[data-theme="dark"] .entry-content .tit-wrap p,
+:root[data-theme="dark"] .entry-content .tit-wrap h2,
+:root[data-theme="dark"] .entry-content .tit-wrap h3,
+:root[data-theme="dark"] .wp-block-post-content .tit-wrap p,
+:root[data-theme="dark"] .wp-block-post-content .tit-wrap h2,
+:root[data-theme="dark"] .wp-block-post-content .tit-wrap h3 {
+  color: var(--tit-ink) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .entry-content .tit-wrap p,
+  :root:not([data-theme="light"]) .entry-content .tit-wrap h2,
+  :root:not([data-theme="light"]) .entry-content .tit-wrap h3,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-wrap p,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-wrap h2,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-wrap h3 {
+    color: var(--tit-ink) !important;
+  }
+}
+
+/* The same rule draws a 2px line under every h2 and declares that line's
+   colour as a literal too. On the dark page #eef3ee is a near-white band
+   under every section heading. It is the same defect as the ink and it was
+   invisible to a contrast sweep, which reads text and not borders. The dark
+   value is --tit-line, this stylesheet's own token for a rule between things,
+   rather than the dark end of the green tint the light literal happens to be:
+   a hairline separator is what the declaration is FOR, and a 2px tint in dark
+   would be a colour decision nobody made. Light keeps its literal untouched. */
+:root[data-theme="dark"] .entry-content .tit-wrap h2,
+:root[data-theme="dark"] .wp-block-post-content .tit-wrap h2 {
+  border-bottom-color: var(--tit-line) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .entry-content .tit-wrap h2,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-wrap h2 {
+    border-bottom-color: var(--tit-line) !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   THE SITE CHROME AROUND US: THE POST TITLE AND THE NAVIGATION.
+
+   Those are not ours and they are not inside .tit-wrap, so the block above
+   cannot reach them and should not try. They were black on the dark page all
+   the same -- h1.wp-block-post-title at 1.04:1, and every navigation label
+   with it -- and the reason is one variable: the theme's global-styles block
+   defines --wp--preset--color--contrast:#111 on :root, and the theme's own
+   rules read it for both.
+
+   So the variable is re-pointed rather than the rules overridden. The paint is
+   still done entirely by the theme's own declarations; we change only what
+   they resolve to, and only on the pages this stylesheet loads on. No
+   !important is needed, because :root[data-theme="dark"] is already more
+   specific than the :root the theme sets it on.
+
+   --base is re-pointed with it, and that pairing is the point rather than a
+   bonus. The two are a light/dark PAIR: any block that paints
+   has-base-background-color and inks has-contrast-color would become dark ink
+   on a white band if only one of them moved. --tit-ground is the same
+   #14161b that this stylesheet already paints html and body with a few
+   hundred lines up, so re-pointing base states the colour the page is
+   already wearing and cannot introduce a seam.
+   --------------------------------------------------------------------------- */
+:root[data-theme="dark"],
+:root[data-theme="dark"] body {
+  --wp--preset--color--base: var(--tit-ground);
+  --wp--preset--color--contrast: var(--tit-fg);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]),
+  :root:not([data-theme="light"]) body {
+    --wp--preset--color--base: var(--tit-ground);
+    --wp--preset--color--contrast: var(--tit-fg);
+  }
 }

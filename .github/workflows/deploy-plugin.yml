@@ -188,3 +188,33 @@ jobs:
         if: ${{ inputs.dry_run && !inputs.probe }}
         run: |
           echo "Dry run: lint and guards passed, nothing was uploaded."
+
+      # The upload proves bytes moved. It does not prove what those bytes
+      # RENDER as, and on 2026-08-11 that gap was the whole defect: a rule in
+      # the WordPress database beat every token this plugin owns, and only in
+      # the dark scheme, so every check in the repo read green while dozens of
+      # text elements shipped at about 1:1. This resolves the cascade in real
+      # Chrome against the bare url. It runs after the mirror, so a deploy that
+      # publishes a contrast regression says so in its own run.
+      #
+      # Not gated on dry_run alone: there is nothing new to measure when
+      # nothing was uploaded. Chrome is preinstalled on the runner and both
+      # scripts are stdlib-only, so this installs nothing.
+      - name: Check what the deployed page renders as
+        if: ${{ !inputs.dry_run && !inputs.probe }}
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: |
+          set -euo pipefail
+          # The CDN edge holds the previous build for a few minutes.
+          sleep 60
+          python3 contrast_audit.py --json contrast.json
+
+      - name: Keep the contrast measurement
+        if: ${{ always() && !inputs.dry_run && !inputs.probe }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrast-after-deploy
+          path: contrast.json
+          if-no-files-found: warn
+          retention-days: 30
