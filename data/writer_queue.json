@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-11T07:45:20Z",
-  "last_tick": "2026-08-11T07:45:20Z",
+  "last_dispatch": "2026-08-11T08:36:12Z",
+  "last_tick": "2026-08-11T08:36:12Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -195,12 +195,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-11T08:36:12Z",
       "history": [
         {
           "at": "2026-08-11T08:13:19Z",
           "detail": "scheduled link hygiene (50 7 * * 2)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-11T08:36:12Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260811T081319Z-benchmark-diff",
@@ -212,7 +217,7 @@
       "requested_at": "2026-08-11T08:13:19Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "benchmark-diff.yml"
     },
     {
