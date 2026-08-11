@@ -17,6 +17,22 @@
       "state": "pending"
     },
     {
+      "attempts": 1,
+      "key": "resolve:host-watch:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-11T17:44:47+00:00",
+      "last_error": "HTTP 502 from /alert: error code: 502\n",
+      "payload": {
+        "body": "'host-watch' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31518958133\n\nWhatever was failing is no longer failing. Nothing to do.",
+        "resolve_scope": "host-watch:main",
+        "subject": "RECOVERED: host-watch is green again"
+      },
+      "raised_at": "2026-08-11T17:44:47+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31518958133",
+      "scope": "host-watch:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -110,6 +126,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-11T17:41:55+00:00",
+  "updated_at": "2026-08-11T17:44:47+00:00",
   "version": 1
 }
