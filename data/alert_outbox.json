@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "attempts": 1,
+      "key": "resolve:drain-writers:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-11T17:41:55+00:00",
+      "last_error": "HTTP 504 from /alert: error code: 504\n",
+      "payload": {
+        "body": "'drain-writers' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31518740745\n\nWhatever was failing is no longer failing. Nothing to do.",
+        "resolve_scope": "drain-writers:main",
+        "subject": "RECOVERED: drain-writers is green again"
+      },
+      "raised_at": "2026-08-11T17:41:55+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31518740745",
+      "scope": "drain-writers:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -94,6 +110,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-11T06:37:56+00:00",
+  "updated_at": "2026-08-11T17:41:55+00:00",
   "version": 1
 }
