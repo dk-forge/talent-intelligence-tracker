@@ -1,18 +1,23 @@
 {
-  "_committed_at": "2026-08-11T13:25:10+00:00",
+  "_committed_at": "2026-08-11T17:43:04+00:00",
   "announced": false,
-  "consecutive_failures": 0,
+  "consecutive_failures": 1,
   "history": [
     {
       "at": "2026-07-31T01:31:33+00:00",
       "detail": "HTTP 200 in 2102ms",
       "state": "up"
+    },
+    {
+      "at": "2026-08-11T17:43:04+00:00",
+      "detail": "HTTP 502 from /wp-json/talent/v1/source-health",
+      "state": "down"
     }
   ],
-  "last_detail": "HTTP 200 in 1061ms",
+  "last_detail": "HTTP 502 from /wp-json/talent/v1/source-health",
   "last_ok_at": "2026-08-11T13:25:10+00:00",
-  "last_probe_at": "2026-08-11T13:25:10+00:00",
-  "since": "2026-07-31T01:31:33+00:00",
-  "state": "up",
+  "last_probe_at": "2026-08-11T17:43:04+00:00",
+  "since": "2026-08-11T17:43:04+00:00",
+  "state": "down",
   "version": 1
 }
