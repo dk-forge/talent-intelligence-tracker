@@ -196,10 +196,44 @@ function tit_theme_head() {
         . "if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);"
         . "}catch(e){}})();";
 
+    /*
+      MARKED "DO NOT OPTIMIZE", because on the live site something was.
+
+      Measured on 2026-08-11 against the bare url at 1.74.5: this tag reaches a
+      reader as `<script defer src="data:text/javascript;base64,...">`, and the
+      decoded payload is byte-for-byte the $js below. Some layer between this
+      function and the browser rewrites plain inline scripts into deferred
+      external ones. That is a reasonable thing to do to almost every script on
+      a page and it is precisely wrong for this one: `defer` means "run after
+      the document is parsed", and the ONLY reason this script exists is to set
+      the attribute BEFORE the first paint. Deferred, it sets data-theme at the
+      end of parsing (measured on that page: domInteractive 1317ms,
+      DOMContentLoaded 2341ms), so a reader who chose Light on a dark-scheme
+      device gets a dark page first and a flip afterwards, on every load. The
+      served markup carries no data-theme of its own, so during that whole
+      window the prefers-color-scheme block is what governs.
+
+      It is NOT the theme buttons: those are built by assets/dashboard.js and
+      all three render and work at 1.74.5, verified in a browser. Reading the
+      SERVED HTML for the strings "Light" and "Dark" finds neither, because
+      nothing server-side ever prints them; that is the control being
+      client-side, not the control being broken.
+
+      Both attributes below are opt-outs, not behaviour: an optimizer that does
+      not recognise one ignores it, and a browser ignores both.
+      VERIFY AFTER THE NEXT DEPLOY, because which layer is doing the rewriting
+      was not identified and these are the two standard ways to ask it to stop:
+      fetch the bare url and confirm this tag is still a plain inline <script>
+      with no defer and no data: src. If it is still being rewritten, the
+      remaining lever is the optimizer's own exclusion setting, which lives in
+      wp-admin and not in this repo.
+    */
+    $attrs = array('data-noptimize' => '1', 'data-cfasync' => 'false');
+
     if (function_exists('wp_print_inline_script_tag')) {
-        wp_print_inline_script_tag($js);
+        wp_print_inline_script_tag($js, $attrs);
         return;
     }
-    echo '<script>' . $js . '</script>' . "\n";
+    echo '<script data-noptimize="1" data-cfasync="false">' . $js . '</script>' . "\n";
 }
 add_action('wp_head', 'tit_theme_head', 2);

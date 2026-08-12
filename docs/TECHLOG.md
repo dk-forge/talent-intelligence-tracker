@@ -13,6 +13,94 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-11 - the rename reached the chart and not its twin (1.74.6)
+
+The place chart was retitled "Updates by Country" on 2026-08-05 because "Where
+the Jobs Are" over a ranking of record counts is a wrong number written in
+words. The filter ribbon sitting directly ABOVE that chart, over the same
+numbers, kept the captions "Top Countries" and "Top Cities", with flags and a
+descending sort. So the page said both things at once, and the owner read the
+ribbon the way a list called "Top Countries" asks to be read: he asked why the
+United Kingdom outranks the United States.
+
+**It does not.** The UK leads (7,982 against 7,493 US and 6,439 India) because
+Companies House publishes structured filings for very nearly every UK company
+and we ingest them wholesale, while the US equivalent reaches public companies
+only. London 2,268 against New York 478 is the same fact about cities. The
+ordering is a picture of our collection method. Nothing about it is wrong, and
+**no number, threshold, sort or filter semantic was touched here** - only the
+words around them.
+
+**Fix.** Both captions now name their unit in the chart's own vocabulary:
+"Top Countries" -> "Countries by Updates Held", "Top Cities" -> "Cities by
+Updates Held". Above both rows, visible, a basis line that states the cause
+rather than only hedging: "These counts are updates we hold, not a ranking of
+the market. Some countries publish a company registry we can read in full. We
+hold many more updates per employer there than in countries where we rely on
+news and filings."
+
+**Visible prose, not a disclosure, and above the rows.** Both placements are
+inherited arguments this page has already paid for: every `.tit-chart-note` is
+closed by dashboard.js on load, which is how three caveats here computed
+display:none and were read by nobody, and a correction printed under a
+descending list arrives after the misreading, because the surprising country is
+by definition near the top of it. Measured rendered rather than read as markup:
+223 characters, 821x90 at 1280 and 309x179 at 375, contrast 8.03:1 in light and
+15.03:1 in dark, `scrollWidth === clientWidth` at 375.
+
+The caption also moved to its own line (`flex:1 0 100%`). It was a non-shrinking
+flex item beside the chips, which was safe while it read "TOP COUNTRIES" and is
+an overflow hazard once it names a unit: a `flex:none` item cannot give width
+back.
+
+**Guard: `tests/test_place_ribbon_names_its_unit.py`, 8 assertions, 5 of them
+proven red against the pre-fix tree.** The other three (no jobs/people claim, no
+dash punctuation, two captions present) held before and after and are pinned
+against a future edit, not against this one. Comments are stripped before
+anything is matched, and that is load-bearing here rather than tidy: the commit
+that fixes this adds a note above the ribbon which quotes "Top Countries"
+verbatim to explain the defect, so a checker that read comments would pass
+against the broken tree and fail against the fixed one. Two of the five first
+failed with a bare `ValueError: substring not found`, which names nothing a
+reader of CI can act on; they asserted the paragraph's presence first after that.
+
+Byte budget: the paragraph, wrapped the pretty way at that indentation depth,
+put the page 79 bytes over TIT_DASH_BYTE_BUDGET. The budget was NOT raised. The
+copy is printed on one source line and two aria-labels that had grown were put
+back to what they were, which is 184,579 against a 184,600 ceiling.
+
+### The theme control is not broken, and the thing near it that is
+
+Reported this session as a live defect: only "Auto" reaches the page, "Light"
+and "Dark" absent, suspected collateral from the 1.74.5 contrast work. **It is
+not a defect.** The measurement behind the report read the SERVED HTML, and
+nothing server-side has ever printed those words: `assets/dashboard.js` builds
+all three buttons. Driven in a browser against the live page at 1.74.5, all
+three render (69x27, 66x27, 67x27), `aria-pressed` tracks the choice, Light and
+Dark both set `data-theme` and persist to localStorage, and Auto removes the
+attribute. The three "Auto" hits in that HTML are the substring inside
+"Automotive" in the industry dropdown. No file was changed on that account.
+
+**What IS wrong, found while checking it:** `tit_theme_head()` prints the
+before-first-paint stamp as a plain inline script, and it reaches a reader as
+`<script defer src="data:text/javascript;base64,...">`. Decoded, the payload is
+byte-for-byte ours. Something between the function and the browser rewrites
+inline scripts into deferred external ones, which is sensible for nearly every
+script on a page and precisely wrong for the one whose entire purpose is to run
+BEFORE first paint. Deferred, it lands at the end of parsing (domInteractive
+1317ms, DOMContentLoaded 2341ms on that load) and the served markup carries no
+`data-theme` of its own, so a reader who chose Light on a dark-scheme device
+gets a dark page first and a flip afterwards, every load. The tag now carries
+`data-noptimize="1"` and `data-cfasync="false"`, the two standard opt-outs.
+**This one is not yet proven fixed:** which layer does the rewriting was not
+identified, and the paint-timing API was unavailable in the browser used, so the
+flash is argued from the `defer` attribute plus the absent server-side attribute
+rather than captured. After the next deploy, fetch the bare url and confirm the
+tag is a plain inline `<script>` again; if it is still rewritten, the remaining
+lever is the optimizer's exclusion setting in wp-admin, which is not in this repo.
+
+---
+
 ## 2026-08-11 - the fix for the forever-spinner had a forever-spinner in it (1.74.4)
 
 Found by driving the sibling tracker's live page: with every API call stalled,
