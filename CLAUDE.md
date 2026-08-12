@@ -284,6 +284,49 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
     a human step by design, and the page says so.
   - **Never re-use one set forever.** It converges, and then it measures memory
     rather than reach. The run detects that and asks for a replacement.
+- **Coverage is measured PER POPULATION, and the populations stay separate.**
+  `analysis/recall/family.py` is the ONE definition of which populations are
+  measured and where each one's gold sets, results, page data and health entry
+  live. `measure_recall.py --family <id>`, `ops_status.py [3e]`,
+  `health_digest.py` and `includes/recall.php` all read it, so nothing can
+  disagree about where a number came from. Two families today:
+  - **`world`** — `analysis/recall/`, 169 events, cells are countries.
+  - **`us`** — `analysis/recall/us/`, 51 events, cells are hiring markets. It
+    exists because the worldwide set's US cell is 34 events of a set assembled
+    to be global, which is an impression rather than a measurement of the
+    American market. First result, 2026-08-11: **held 21/51, 41.2%, 95%
+    interval 28.8 to 54.8**.
+
+  They NEVER share a directory. `goldset.latest_path()` takes the newest
+  `goldset-*.json` in a directory and `goldset-us-*.json` sorts after every
+  worldwide set there will ever be, so one file in the wrong folder silently
+  turns the published worldwide figure into a US figure with no code change and
+  nothing in the diff saying so.
+  `tests/test_recall_us.py::test_a_us_set_cannot_hijack_the_worldwide_measurement`
+  is that guard, and it is the reason for the subdirectory.
+- **Every rate is published with its interval.** `analysis/recall/stats.py` is
+  the single Wilson implementation and `thresholds.wilson` re-exports it, so the
+  floor and the page can never round the same interval two ways. This matters
+  most on the smaller set: 21/51 is 41% and it is also anything from 29% to
+  55%. The US metro cells are 8 to 16 events, where two cells forty points apart
+  still have overlapping intervals, so **a metro cell is a work list and never a
+  rate.**
+- **The US set covers FUNDING ONLY, and that is a finding rather than a
+  shortcut.** US leadership events at privately held employers could not be
+  enumerated from original sources. Open web search returns executive-moves
+  databases, which are discovery pointers and may never be cited. The only free
+  chronological index left is SEC EDGAR full-text search, which is exactly what
+  our own `sec_edgar` collector walks, so a set built from it scores the tracker
+  against its own feed. Four independent research passes reached for EDGAR
+  unprompted, all four came back over 90% exchange-listed filings, and all four
+  were discarded. `US_REQUIRED_SHAPE["max_source_type_share"]` makes that
+  discard mechanical rather than a judgement somebody has to remember.
+  **A wire-dateline walk DID work** (searching a press-release service for the
+  literal string `DENVER, June` and walking the results in date order) and
+  produced 34 private-employer leadership rows across Austin and the rest of the
+  country. They are the seed for the next US set and are NOT in this one: a
+  wire-only block would put one document type at 60% of the denominator and
+  leave the San Francisco and New York leadership cells empty.
 - **Landmarks are named, and their absence is a check.** Recall measures a
   representative sample; it cannot notice one enormous event going missing, and
   on 2026-08-04 the three largest private rounds ever recorded were absent for

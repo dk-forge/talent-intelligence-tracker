@@ -30,6 +30,11 @@ _NOT_SOURCES = {
     "archive_sources": "archives URLs we already cite",
     "link_check": "re-checks URLs we already cite",
     "recall": "measures what we miss",
+    # One row per measured population, for the same reason `recall` is here: it
+    # grades what we hold and reads nothing new. Two rows and not one, because
+    # they are separate reference sets with separate floors, and a single row
+    # would let one population's staleness hide behind the other's freshness.
+    "recall_us": "measures what we miss in the United States",
     "sec_form_d_bulk": "backfills SEC EDGAR Form D, which is listed",
     # It asks a model what we are missing and emits a WORK LIST. Every field it
     # returns is prefixed `claimed_` and dies there; a lead becomes a record

@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-08-12: US recall measured, 21/51 with a range (1.76.0). ON A BRANCH, NOT MERGED, NOT DEPLOYED.
+
+Branch `measure/us-recall`, PR open. Nothing here is on `main` or on the site.
+
+**The headline: we hold 21 of 51 independently listed US funding events from
+2026-06-01 to 2026-07-31. That is 41.2%, and the 95% interval is 28.8 to 54.8.**
+By hiring market: Austin 5/8, New York 8/16, rest of US 5/14, San Francisco
+3/13. Those cells carry 8 to 16 events each, so their ranges overlap almost
+entirely and they are a work list rather than a league table.
+
+Two findings to read before anything else:
+
+1. **US leadership coverage could not be measured, and that is the result
+   rather than unfinished work.** Executive appointments at privately held US
+   employers cannot be enumerated from original sources. Open web search returns
+   commercial people databases, which we never cite, and the only free
+   chronological index left is SEC EDGAR full-text search, which is exactly what
+   our own collector walks. Four independent research passes reached for EDGAR
+   unprompted, all four came back over 90% exchange-listed filings, and all four
+   were discarded rather than measured against.
+2. **There is a way through, and 34 rows of it are already banked.** Searching a
+   press-release wire for the literal dateline text (`DENVER, June`) enumerates
+   private employers chronologically without touching any of our own feeds.
+   Three re-run passes produced 34 verified rows that way. They are parked as a
+   draft the measurement ignores, at
+   `analysis/recall/us/goldset-us-2026-06-leadership.draft.json`. They need a San
+   Francisco pass and a New York pass, which stopped only because the session's
+   web-search budget ran out.
+
+**The one thing that is a defect in the tracker rather than in the
+measurement:** of the 21 events we do hold, 13 carry no country at all. That
+makes them invisible to every geographic filter on the site even though we have
+them. It needs an extractor fix, not a new source.
+
+### To publish this
+
+Review and merge the PR, then run the weekly measurement or wait for Monday. The
+deploy is separate and is still the owner's call:
+
+```bash
+gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
+```
+
+The site is now behind by three versions: 1.74.6, 1.75.0 and this 1.76.0.
+
+---
+
 ## 2026-08-12: filter controls standardised, panel ships open, phone pass (1.75.0). MERGED, NOT DEPLOYED.
 
 **The site is behind by two versions now.** `main` was already carrying 1.74.6

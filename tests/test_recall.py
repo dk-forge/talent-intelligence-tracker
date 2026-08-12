@@ -215,11 +215,34 @@ def test_every_percentage_carries_its_counts():
     assert summary["overall"] == {
         "total": 2, "found": 1, "found_partial": 0, "missed": 1,
         "held": 1, "held_pct": 50.0, "clean_pct": 50.0,
+        # Every rate now travels with its interval as well as its counts, for
+        # the same reason it travels with its counts: 50% of two events and 50%
+        # of two hundred print identically and are not the same claim.
+        "held_interval": {"pct": 50.0, "low_pct": 9.5, "high_pct": 90.5,
+                          "width_pct": 81.1, "successes": 1, "total": 2},
     }
     for group in ("by_geography", "by_country", "by_signal_type", "by_source_type"):
         for cell in summary[group].values():
             assert cell["total"] > 0
-            assert set(cell) >= {"total", "found", "missed", "held_pct", "clean_pct"}
+            assert set(cell) >= {"total", "found", "missed", "held_pct", "clean_pct",
+                                 "held_interval"}
+
+
+def test_a_worldwide_summary_grows_no_empty_metro_group():
+    """`by_metro` exists only where the reference set carries metros.
+
+    An always-present empty group is a group that can never collapse, so the
+    cell-collapse gate would silently stop being able to notice a dead metro on
+    the family that has them.
+    """
+    worldwide = match.summarise(
+        [{"verdict": "FOUND", "defects": [], "gold": dict(GOLD_FUNDING)}])
+    assert "by_metro" not in worldwide
+
+    us = match.summarise([{"verdict": "FOUND", "defects": [],
+                           "gold": dict(GOLD_FUNDING, country="US",
+                                        metro="Austin")}])
+    assert us["by_metro"]["Austin"]["held"] == 1
 
 
 def test_a_rate_with_no_denominator_is_none_not_zero():
