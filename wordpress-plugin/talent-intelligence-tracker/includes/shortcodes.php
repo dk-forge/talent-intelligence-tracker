@@ -1206,7 +1206,7 @@ function tit_dashboard_html() {
                      nothing -- they get the whole bar, uncollapsed, which is
                      the markup as served. */ ?>
             <button type="button" class="tit-bar-toggle" id="tit-bar-toggle"
-                    aria-expanded="false" aria-controls="tit-panel-body" hidden>
+                    aria-expanded="true" aria-controls="tit-panel-body" hidden>
               <span class="tit-bar-toggle-t">Filters</span>
               <span class="tit-bar-n" id="tit-bar-n" hidden></span>
             </button>

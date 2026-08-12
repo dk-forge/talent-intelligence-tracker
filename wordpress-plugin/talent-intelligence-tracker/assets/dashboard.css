@@ -81,6 +81,25 @@
   --tit-line:#e2e3e8;       /* alt-border  */
   --tit-grid:#e7e8ec;       /* alt-grid    */
   --tit-load-scrim:rgba(255,255,255,.8);
+
+  /* --- A CONTROL'S EDGE IS NOT A HAIRLINE -------------------------------
+     The owner said the filter controls "get lost". They were right, and
+     --tit-line is why: as a control edge it measures 1.28:1 against the
+     bar in light and 1.56:1 in dark. Every TEXT check was green the whole
+     time, because text contrast and BOUNDARY contrast are different
+     questions and only one of them was ever asked.
+
+     Crossing a control's edge a reader meets at most three colours: what
+     is outside, the border, and the fill. The edge is perceivable when the
+     border stands off ONE of its neighbours, so the bar is
+     max(border vs outside, border vs fill) >= 3, and where no border
+     paints the only edge left is fill against outside.
+
+     These are the SAME two values the theme control was given at 1.74.2
+     for exactly this reason (see --tit-theme-line below); they are already
+     measured to clear 3:1 against both the page ground and a white fill,
+     so this is one proven edge colour reused, not a second guess. */
+  --tit-ctl-line:#6f7681;   /* every control's edge, in every state */
   --tit-track:#e6eaef;      /* pillar bar track */
   --tit-track-2:#eef1f5;    /* rank bar track, neutral tag ground */
 
@@ -219,6 +238,7 @@
     --tit-quiet:#20242b;
     --tit-hover:#242932;
     --tit-line:#333944;
+    --tit-ctl-line:#98a1b0;   /* see the light block: boundary, not hairline */
     --tit-grid:#2c313a;
     --tit-load-scrim:rgba(18,20,26,.82);
     --tit-track:#2f353f;
@@ -319,6 +339,7 @@
   --tit-quiet:#20242b;
   --tit-hover:#242932;
   --tit-line:#333944;
+  --tit-ctl-line:#98a1b0;   /* see the light block: boundary, not hairline */
   --tit-grid:#2c313a;
   --tit-load-scrim:rgba(18,20,26,.82);
   --tit-track:#2f353f;
@@ -2020,10 +2041,15 @@ body.admin-bar .tit-active { top:32px; }
 @media (min-width:1000px){
   .tit-primary { grid-template-columns:1.2fr 1fr 1.15fr 1fr; align-items:end; }
 }
+/* The lead controls are the SAME control, at the same height, radius, type
+   size and edge as every other one. They keep a heavier weight, because
+   weight distinguishes them without adding a fourth type size to the bar. */
 .tit-wrap .tit-primary select, .tit-wrap .tit-primary input[type="search"] {
-  width:100%; min-width:0; padding:9px 11px; font-size:14.5px; font-weight:600;
-  border:1px solid var(--tit-line); border-radius:9px; background:var(--tit-surface-1);
-  color:var(--tit-fg); font-family:inherit; }
+  width:100%; min-width:0; box-sizing:border-box;
+  min-height:var(--tit-ctl-h); padding:var(--tit-ctl-pad);
+  font-size:var(--tit-ctl-fs); font-weight:600;
+  border:1px solid var(--tit-ctl-line); border-radius:var(--tit-ctl-r);
+  background:var(--tit-surface-1); color:var(--tit-fg); font-family:inherit; }
 .tit-wrap .tit-primary select:hover,
 .tit-wrap .tit-primary input[type="search"]:hover { border-color:var(--tit-blue); }
 .tit-wrap .tit-primary select:focus-visible,
@@ -2753,9 +2779,49 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-filterbar .tit-field-l { display:block; flex:none; margin:0; font-size:11.5px;
   font-weight:700; letter-spacing:.01em; color:var(--tit-mut);
   text-transform:none; white-space:nowrap; }
+/* --- ONE CONTROL STANDARD, AND IT IS TOKENS RATHER THAN FIVE GUESSES -------
+   Before this block the bar carried four type sizes (12.5, 13, 13.5, 14.5),
+   three heights (23, 27-29, 37-39) and two radii (8 and 9) across controls
+   that do the same job, and five hand-picked max-widths. None of that was a
+   decision anybody made; it accumulated. A reader scanning the bar has to
+   work out what is a control and what is decoration, which is the other half
+   of the owner's "they get lost".
+
+   The label stays BESIDE its control, not above it. That is a measured
+   decision recorded above this rule -- stacked, the bar was 280px tall on a
+   1280px viewport -- and it matters more now that the panel ships open.
+
+   Height is a MINIMUM, never a fixed height: a control that is exactly its
+   token tall cannot grow for a longer label or a larger text setting, and
+   min-height lets the touch floor below simply raise the same number. */
+/* On .tit-wrap and not on .tit-filterbar, because the lead controls (Looking
+   For, Employer) are `.tit-primary` descendants whose own rule outranks a
+   `.tit-filterbar select` selector, and they have to reach the same numbers
+   or the standard has two exceptions in it and is not a standard. */
+.tit-wrap {
+  --tit-ctl-h:32px;      /* one height  */
+  --tit-ctl-r:9px;       /* one radius  */
+  --tit-ctl-fs:13.5px;   /* one type size */
+  --tit-ctl-pad:5px 8px;
+  --tit-ctl-w:140px;     /* the standard control */
+  --tit-ctl-w-wide:210px;/* a control whose value is a list of names */
+}
+.tit-filterbar select, .tit-filterbar input[type=search],
+.tit-filterbar input[type=date], .tit-wrap .tit-filterbar .tit-dd-btn,
+.tit-wrap .tit-filterbar .tit-panel-reset,
+.tit-wrap .tit-filterbar .tit-bar-toggle {
+  box-sizing:border-box; min-height:var(--tit-ctl-h);
+  padding:var(--tit-ctl-pad); font-size:var(--tit-ctl-fs);
+  border:1px solid var(--tit-ctl-line); border-radius:var(--tit-ctl-r);
+  background:var(--tit-surface-1); color:var(--tit-fg); }
 .tit-filterbar select, .tit-filterbar input[type=search],
 .tit-filterbar input[type=date] {
-  width:auto; max-width:140px; min-width:0; padding:5px 7px; font-size:13px; }
+  width:auto; max-width:var(--tit-ctl-w); min-width:0; }
+/* Reset is a control, so it has an edge like one. It was border:0 on no fill,
+   which measured 1.00:1 -- the exact "no boundary at all" case, and the worst
+   thing on the bar in all three theme states. */
+.tit-wrap .tit-filterbar .tit-panel-reset { margin-left:auto; padding:5px 10px;
+  text-decoration:none; }
 
 /* Location is a label, a select and the qualifier that changes what the select
    MEANS, so all three stay on one line and in that order. */
@@ -2848,7 +2914,8 @@ body:has(.tit-main) header.wp-block-template-part {
    rule and at the same specificity, which is what makes it win -- `.tit-wrap
    .tit-dd-btn` above sets width:100% and an equally specific earlier rule would
    simply lose. The ceiling stops a long group name taking a third of a row. */
-.tit-wrap .tit-filterbar .tit-dd-btn { width:auto; max-width:210px; }
+.tit-wrap .tit-filterbar .tit-dd-btn { width:auto;
+  max-width:var(--tit-ctl-w-wide); }
 
 .tit-dd-panel { position:absolute; z-index:60; top:calc(100% + 4px); left:0;
   min-width:100%; width:max-content; max-width:min(300px, calc(100vw - 24px));
@@ -2863,6 +2930,12 @@ body:has(.tit-main) header.wp-block-template-part {
    put a horizontal scrollbar on the body. Flipped by script, which is the only
    thing that can know where the trigger actually sits. */
 .tit-dd-panel.is-flipped { left:auto; right:0; }
+/* The vertical pair of is-flipped. openDrop_() measures the room under the
+   trigger and writes max-height inline; these two make that height mean
+   something -- the list scrolls inside the popover instead of running off the
+   screen, and is-up hangs the panel above a trigger low on the page. */
+.tit-dd-panel { overflow-y:auto; overscroll-behavior:contain; }
+.tit-dd-panel.is-up { top:auto; bottom:calc(100% + 4px); }
 /* Two panels hold inputs rather than a checkbox group, so they need the padding
    the option rows provide for themselves. */
 .tit-dd-panel .tit-daterange { padding:6px; }
@@ -2916,10 +2989,34 @@ body:has(.tit-main) header.wp-block-template-part {
 @media (max-width:899px){
   .tit-filterbar { position:static; }
   .tit-filterbar .tit-panel-t { display:none; }
-  .tit-filterbar:not(.is-open) .tit-panel-body { display:none; }
+  /* OPEN BY DEFAULT, and collapsing is the class rather than opening.
+     The owner: "i like when both filters are just showing so it's obvious
+     and not hidden on both trackers." It used to be `:not(.is-open)`, so
+     the bar shipped shut and a reader had to know a panel was there before
+     they could find out what it filtered. Now the served markup renders
+     open, exactly as it does with JavaScript off, and `.is-collapsed` is
+     something the reader asks for. */
+  .tit-filterbar.is-collapsed .tit-panel-body { display:none; }
+  /* ON A PHONE THE LABEL GOES BACK ABOVE ITS CONTROL, and that is not a
+     reversal of the note above this media query. Beside is right for the
+     DESKTOP bar because that bar is sticky and 280px of pinned chrome was
+     the defect. This bar is `position:static` (three rules up), so it costs
+     nobody a pinned viewport, and beside is what was stopping the panel from
+     being short: a nowrap label plus its control is a min-content floor wider
+     than half the screen, so every cell claimed a whole row and an open panel
+     was twelve rows deep. Stacked, two cells fit per row -- a 14px label over
+     a 44px control, paired, is shorter than two 44px rows. */
   .tit-filterbar .tit-field, .tit-filterbar .tit-field--wide { max-width:none;
-    flex:1 1 220px; }
+    flex:1 1 148px; display:flex; flex-direction:column; align-items:stretch;
+    gap:3px; }
+  .tit-filterbar .tit-field-l { white-space:normal; }
   .tit-dd-panel { max-width:calc(100vw - 40px); }
+  /* THE TOUCH FLOOR. Every control on the bar is a 44px target on a phone,
+     which is the one width where these are hit with a thumb. The tokens are
+     raised rather than the rules rewritten, so there is still one height. */
+  .tit-filterbar { --tit-ctl-h:44px; --tit-ctl-pad:9px 12px; }
+  .tit-filterbar select, .tit-filterbar input[type=search],
+  .tit-filterbar input[type=date] { max-width:none; width:100%; min-width:0; }
 }
 /* The toggle is revealed by script; `hidden` in the markup is what a no-JS
    reader keeps, and they keep the open bar with it. */
@@ -3560,6 +3657,41 @@ html:has(.tit-main), body:has(.tit-main) {
 @media (prefers-reduced-motion: reduce) {
   .tit-wrap .tit-theme-b { transition:none; }
 }
+/* THE TOUCH FLOOR, on the one control a reader hits before anything else.
+   These measured 26.9px tall on a phone. The pill keeps its shape; only the
+   box it is hit in grows, so nothing about the design changes and the target
+   stops being half the size of a thumb.
+
+   The region strip and the country/city chips are on the same floor: they are
+   how a reader picks a place, they measured 36.0px and 26.3px, and a control
+   being small is not made acceptable by there being a lot of them. Their edge
+   moves to the control token for the same reason every other control's did --
+   --tit-line as a chip edge is the 1.28:1 hairline. */
+@media (max-width:899px){
+  .tit-wrap .tit-theme-b { min-height:44px; padding:4px 16px; }
+  .tit-wrap .tit-region, .tit-wrap .tit-cbtn { min-height:44px; }
+  /* The rest of the controls a reader actually drives on a phone. The two
+     selects above the updates are FILTERS that happen to live outside the
+     panel, so they belong to the same standard -- a control being somewhere
+     else on the page is not a reason for it to be a different size.
+     Measured before this rule: sort 34px, routine filings 35px, quick views
+     30.9px, the view toggle 27px, the jump bar 30.9px. */
+  .tit-wrap .tit-qv, .tit-wrap .tit-watch-chip, .tit-wrap .tit-vt,
+  .tit-wrap .tit-jump-btn, .tit-wrap #tit-f-sort, .tit-wrap #tit-f-detail {
+    min-height:44px; }
+  /* A star with no box around it was a 15px glyph on 8px of padding. */
+  .tit-wrap .tit-watch-star { min-width:44px; min-height:44px; padding:0 8px; }
+  /* The one button offered to a reader whose data did not load. It is the
+     worst possible moment to hand somebody a 36px target. */
+  .tit-wrap .tit-load-retry { min-height:44px; }
+}
+/* One edge for these too: --tit-line as a control border is the 1.28:1
+   hairline the whole of this pass is about. */
+.tit-wrap .tit-region, .tit-wrap .tit-cbtn, .tit-wrap .tit-qv,
+.tit-wrap .tit-vt { border-color:var(--tit-ctl-line); }
+.tit-wrap #tit-f-sort, .tit-wrap #tit-f-detail {
+  border:1px solid var(--tit-ctl-line); border-radius:var(--tit-ctl-r);
+  font-size:var(--tit-ctl-fs); }
 
 /* ---------------------------------------------------------------------------
    LOADING, LOADED, FAILED. The owner reported both dashboards looking frozen
@@ -3606,7 +3738,9 @@ html:has(.tit-main), body:has(.tit-main) {
   font:inherit;
   padding:7px 14px;
   border-radius:7px;
-  border:1px solid var(--tit-blue-edge);
+  /* --tit-blue-edge measured 1.32:1 against its own tint in light: a button
+     the reader is being asked to press, with no perceivable edge. */
+  border:1px solid var(--tit-ctl-line);
   background:var(--tit-blue-tint);
   color:var(--tit-accent-ink);
   cursor:pointer;

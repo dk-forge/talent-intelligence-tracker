@@ -2,6 +2,68 @@
 
 ---
 
+## 2026-08-12: filter controls standardised, panel ships open, phone pass (1.75.0). MERGED, NOT DEPLOYED.
+
+**The site is behind by two versions now.** `main` was already carrying 1.74.6
+undeployed; this adds 1.75.0. Everything below is on `main` and none of it is
+on the live site.
+
+**To publish it — this is the owner's call, and a subagent does not make it:**
+
+```bash
+gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
+```
+
+Then verify the live page renders the new bar, and match the **commit SHA**,
+not "the latest run".
+
+**`contrast-audit.yml` is RED against the live site and that red is correct** —
+it measures production, and production is two versions old. CLAUDE.md says not
+to disarm it for a green board. It should go green after the deploy.
+
+### What changed
+
+Full reasoning, numbers and the two handover claims that turned out to be wrong
+are in TECHLOG under 1.75.0. In short:
+
+1. **Every control has a visible edge in all three theme states.** Worst
+   boundary went 1.00:1 -> 4.48:1 (light) and 1.00:1 -> 6.40:1 (dark, and auto
+   on a dark OS). The cause was `--tit-line`, a row-divider hairline, doing a
+   control edge's job; a new `--tit-ctl-line` reuses the two values the theme
+   control was already proven on at 1.74.2. One height, one radius, one type
+   size (was four), one edge, width tokens instead of five pixel guesses.
+2. **The filter panel ships open**, per the owner. Collapsing is still there,
+   remembered for the session only, and a deep-linked filtered view forces it
+   open. Cost at 375px: the first data row moves 348.8px, which is less than
+   the 360.6px the old panel cost when opened by hand, and it buys 44px targets.
+   At 1280px it costs nothing; the bar was already open there.
+3. **The phone.** Tap targets under 44px went 345 -> 226 (the remainder is 93
+   inline text links, which WCAG 2.5.8 exempts, plus ranking rows, matrix cells
+   and per-chart controls — named, not silently done). Dropdown popovers no
+   longer run off the bottom: two of them opened 590px and 624px tall on an
+   812px screen, and `openDrop_()` now measures vertical room at open the same
+   way it already measured horizontal. Usable width 347 of 375px (92.5%).
+
+### The guard, and the trap in it
+
+`tests/test_control_boundaries.py` — four tests, proved red against the pre-fix
+tree before they were green. It drives the REAL shortcode markup (via
+`render_dashboard.php`'s `TIT_DUMP_HTML` hook) in headless Chrome, so it cannot
+drift from what ships. No php or no Chrome **skips loudly**.
+
+**If you write another test like this, do not assert on `innerText` of the
+element you are hiding.** For a non-rendered subtree `innerText` falls back to
+`textContent`, so the collapsed panel reported 5,239 readable characters. Read
+it off the RENDERED ancestor instead: 42 collapsed, 377 open.
+
+### Budget
+
+Markup is **184,578 of 184,600 bytes** and went DOWN by one. The ceiling was
+not raised and must not be: almost all of this is CSS, which the budget does
+not count.
+
+---
+
 ## 2026-08-10: FORWARD-FIRST budget policy. Read this before dispatching a backfill.
 
 **The owner's decision, arrived at with a second AI advisor.** It is a policy

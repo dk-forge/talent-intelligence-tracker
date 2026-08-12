@@ -948,10 +948,12 @@ check(strpos($html, 'id="tit-bar-toggle"') !== false,
 check(preg_match('/id="tit-bar-toggle"[^>]*\shidden/', $html) === 1,
       'and it must ship `hidden`, because script is what makes it do anything. '
       . 'A no-JS reader gets the whole bar open instead');
-check(preg_match('/id="tit-bar-toggle"[^>]*aria-expanded="false"/', $html) === 1,
+check(preg_match('/id="tit-bar-toggle"[^>]*aria-expanded="true"/', $html) === 1,
       'with aria-expanded set at construction rather than on first use: a '
       . 'trigger that reports no state until somebody has already pressed it '
-      . 'tells a screen reader nothing at the moment it matters');
+      . 'tells a screen reader nothing at the moment it matters. It ships '
+      . '"true" because the panel ships OPEN -- collapsing is a class the '
+      . 'reader adds, so the served markup and the no-JS render agree');
 
 /*
  * THE DATE RANGE IS ADDRESSABLE.

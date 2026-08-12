@@ -1532,6 +1532,8 @@
     openDrop = null;
     was.panel.hidden = true;
     was.panel.classList.remove('is-flipped');
+    was.panel.classList.remove('is-up');
+    was.panel.style.maxHeight = '';
     was.btn.setAttribute('aria-expanded', 'false');
     if (returnFocus) was.btn.focus();
   }
@@ -1548,6 +1550,24 @@
     var room = document.documentElement.clientWidth;
     if (rec.panel.getBoundingClientRect().right > room - 8) {
       rec.panel.classList.add('is-flipped');
+    }
+    /* THE SAME MEASUREMENT, VERTICALLY, and for the same reason.
+       Team Or Function opened 590px tall and Industry 624px on an 812px
+       phone: tapped from the middle of the screen both ran off the bottom,
+       and the options past the fold were unreachable because the page behind
+       had already scrolled to the trigger. A viewport-unit cap in CSS cannot
+       fix that on its own -- it does not know where the trigger is -- so the
+       room is measured here, once at open, exactly as `is-flipped` is. */
+    rec.panel.style.maxHeight = '';
+    var vh = document.documentElement.clientHeight;
+    var br = rec.btn.getBoundingClientRect();
+    var below = vh - br.bottom - 12;
+    var above = br.top - 12;
+    if (above > below) {
+      rec.panel.classList.add('is-up');
+      rec.panel.style.maxHeight = Math.max(140, above) + 'px';
+    } else {
+      rec.panel.style.maxHeight = Math.max(140, below) + 'px';
     }
   }
 
@@ -2481,13 +2501,39 @@
   // and does nothing there.
   var filterBar = document.getElementById('tit-panel');
   var barToggle = document.getElementById('tit-bar-toggle');
+
+  /* A COLLAPSE IS "NOT RIGHT NOW", NOT A PREFERENCE.
+     So it is remembered in sessionStorage and not localStorage: the reader
+     who folds the bar away to read a long list gets it to stay folded while
+     they are here, and the next visit starts from the state the owner asked
+     for rather than from a decision they made once, months ago, about one
+     page of results. */
+  var COLLAPSE_KEY = 'tit-filters-collapsed';
+  function setCollapsed(on) {
+    filterBar.classList.toggle('is-collapsed', !!on);
+    barToggle.setAttribute('aria-expanded', on ? 'false' : 'true');
+    try {
+      if (on) sessionStorage.setItem(COLLAPSE_KEY, '1');
+      else sessionStorage.removeItem(COLLAPSE_KEY);
+    } catch (e) {}
+    if (on) closeDrop(false);  // a dropdown belongs to a bar that is open
+  }
+
   if (filterBar && barToggle) {
     barToggle.hidden = false;
+    /* A DEEP-LINKED FILTERED VIEW FORCES THE PANEL OPEN, and it beats the
+       remembered collapse. Someone opening a shared link lands on a page
+       that is already narrowed, and the controls saying so are the only
+       thing explaining why the numbers are not the ones on the front page.
+       Hiding them there is how a filtered view reads as a broken one. */
+    var deepLinked = /[?&](q|country|state|city|pillar|direction|function|industry|confidence|company|since|until|employer_type|work_mode|funding_stage|deal_type|site_event|min_funding_usd|looking|place)=/
+      .test(location.search);
+    var remembered = false;
+    try { remembered = sessionStorage.getItem(COLLAPSE_KEY) === '1'; } catch (e) {}
+    setCollapsed(deepLinked ? false : remembered);
+
     barToggle.addEventListener('click', function () {
-      var open = filterBar.classList.toggle('is-open');
-      barToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      // An open dropdown belongs to a bar that is about to close under it.
-      if (!open) closeDrop(false);
+      setCollapsed(!filterBar.classList.contains('is-collapsed'));
     });
   }
 
@@ -2517,9 +2563,8 @@
        is two taps for one intention. Filters OPENS the bar as well as reaching
        it; Updates does not touch it. */
     if (btn.getAttribute('data-jump') === '#tit-filter-sec' && filterBar
-        && barToggle && !filterBar.classList.contains('is-open')) {
-      filterBar.classList.add('is-open');
-      barToggle.setAttribute('aria-expanded', 'true');
+        && barToggle && filterBar.classList.contains('is-collapsed')) {
+      setCollapsed(false);
     }
     var still = window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -13,6 +13,155 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-12 - the controls had no edges, and the panel was shut (1.75.0)
+
+Three things the owner asked for, in one pass over the filter bar. **Merged,
+NOT deployed** — the deploy here is a human step and a subagent does not take
+it (CLAUDE.md).
+
+### 1. A control's boundary is not its text, and only one of them was measured
+
+The owner said the filter controls "get lost". Every contrast check in this
+repository was green while he was saying it, because they all ask "can this
+text be read" and none of them asks "can this be seen as a control". Measured
+in a real browser against the resolved cascade:
+
+| control | before | after |
+|---|---|---|
+| Reset All | **1.00:1** (no border, no fill) | 4.58 light / 6.40 dark |
+| every bordered control | 1.28 light / 1.56 dark | 4.58 light / 6.95 dark |
+| worst on the bar, light | **1.00:1** | **4.48:1** |
+| worst on the bar, dark | **1.00:1** | **6.40:1** |
+| worst, auto on a dark OS | **1.00:1** | **6.40:1** |
+
+**The bar is max(border vs outside, border vs fill), falling back to fill vs
+outside where no border paints.** Crossing a control's edge a reader meets at
+most three colours. A border matching the fill still shows against the page and
+one matching the page still shows against the fill, so scoring against a single
+neighbour would fail correct designs; scoring the fill alone would pass Reset
+All, which is the case that actually shipped.
+
+**The cause was `--tit-line`, used as a control edge.** It is a hairline for
+dividing rows and it measures 1.28:1 / 1.56:1 as a boundary. The fix reuses the
+two values the theme control was already given at 1.74.2 for this exact reason
+(`#6f7681` / `#98a1b0`, both already proven to clear 3:1 against the ground and
+against a white fill) as a new `--tit-ctl-line`. **No token was moved** — a new
+one was added, and the tokens that were correct stayed correct.
+
+Alongside it, one standard where there had been an accumulation: the bar
+carried **four type sizes** (12.5, 13, 14, 14.5), **three heights** (23, 27-29,
+37-39) and two radii across controls doing the same job. Now one height, one
+radius, one type size, one edge, and width TOKENS rather than five hand-picked
+pixel values. The lead controls keep a heavier weight, because weight
+distinguishes them without adding a fourth size.
+
+**The label stays BESIDE its control on the desktop bar.** The note above that
+rule records why (stacked, the sticky bar was 280px tall on a 1280px viewport)
+and that reasoning still holds. On a phone the bar is `position:static`, so it
+costs nobody a pinned viewport, and there the label goes back above — see below.
+
+**Two claims in the handover were wrong and are recorded here so nobody
+re-derives them.** (a) "Six selects render with the browser default border
+`rgb(118,118,118)`" — no control on the page renders with a UA border; those
+six ids are hidden querystring mirrors that render nothing, and every visible
+select already carried a styled 1px border. The defect was that the styled
+border was too weak, which is a different fix. (b) "Search needs a real
+`<label>`" — it already has one; the input sits inside
+`<label class="tit-field tit-field--stack">` with a visible span. The theme
+buttons at 27px were right (measured 26.9px).
+
+### 2. The panel ships open
+
+> "i like when both filters are just showing so it's obvious and not hidden on
+> both trackers."
+
+It was `:not(.is-open)` below 900px, so the bar shipped shut and a reader had
+to know a panel was there before they could find out what it filtered. It is
+`.is-collapsed` now: the served markup renders open, which is also exactly what
+a reader with no JavaScript already got, so the two agree for the first time.
+`aria-expanded` ships `true` to match, and `render_dashboard.php` asserts it.
+
+- **A collapse is "not right now", not a preference**, so it is remembered in
+  `sessionStorage` and not `localStorage`.
+- **A deep-linked filtered view forces it open** and beats the remembered
+  collapse. Someone opening a shared link lands on a page that is already
+  narrowed, and the controls are the only thing explaining why the numbers are
+  not the front page's.
+
+**What it costs, measured rather than assumed.** At 1280px, nothing: the bar
+was already open there. At 375px the first data row moves **348.8px**, 43% of
+an 812px viewport. That is LESS than the 360.6px the old panel cost when a
+reader opened it by hand, and it now buys 44px targets instead of 27-29px ones,
+because the phone layout changed to pay for it: labels stack above their
+controls so two cells fit per row, and the panel went 545px -> 413.8px.
+
+### 3. The phone
+
+Driven with real clicks at 375px, not read out of the stylesheet.
+
+- **Usable content width 347px of 375, 92.5%.** `scrollWidth === clientWidth`
+  the whole time, which on its own proves nothing — the sibling once rendered
+  in 219px of a 375px phone while that equality held perfectly.
+- **Tap targets under 44x44: 345 -> 226.** Every filter, the quick views, the
+  view toggle, the region strip, the country and city chips, the watchlist
+  stars, the jump bar, the theme buttons and both sort selects now clear 44px.
+  The 226 that remain are **93 inline text links** (WCAG 2.5.8 exempts links
+  inside a block of text), 58 ranking rows, 31 per-chart controls and 24 matrix
+  cells. Those are dense data affordances; raising them is a layout decision
+  about the charts, not a control-standard one, and it is left named rather
+  than silently done.
+- **The two sort selects above the updates were filters living outside the
+  panel**, at 34 and 35px and on the old hairline. A control being somewhere
+  else on the page is not a reason for it to be a different size.
+- **Dropdown popovers ran off the bottom of the screen.** Team Or Function
+  opened **590px** tall and Industry **624px** on an 812px phone, because
+  `.tit-dd-panel > .tit-optbox` lifts the option list's max-height — correct on
+  a desktop, and the options past the fold were unreachable since the page
+  behind had already scrolled to the trigger. A viewport-unit cap cannot fix it
+  alone: CSS does not know where the trigger is. So `openDrop_()` now measures
+  the room above and below **once at open**, exactly as `is-flipped` already
+  measured horizontally, writes `max-height` inline and adds `is-up` for a
+  trigger low on the page. All four popovers now fit on both axes. Horizontal
+  fit and clipping were never broken.
+- **Nothing is hidden behind sticky chrome.** The one fixed element is the
+  phone jump bar (39px), and `#tit-dashboard:has(.tit-jump)` already reserves
+  74px for it.
+- **The search field stays visible with a keyboard open** (emulated at
+  375x475): it sits at top=215, bottom=259.
+
+### The guard
+
+`tests/test_control_boundaries.py`, four tests, in the `pytest` job where php
+and Chrome both already exist. It renders the **real** shortcode through
+`tests/php/render_dashboard.php` (that harness's `TIT_DUMP_HTML` hook exists
+for this) rather than a hand-copied fixture that can drift, then measures the
+resolved cascade in headless Chrome in all three theme states. No php or no
+Chrome **skips loudly**; absence of a signal is not a pass.
+
+Proved red against the pre-fix tree, all four:
+
+```
+1 not greater than or equal to 3.0 : light at 1280px: the control 'tit-reset'
+  has a boundary of 1.00:1 (no border painted, so fill vs outside) ...
+4 not less than or equal to 2 : the filter controls use 4 type sizes
+  (12.5px, 13px, 14.5px, 14px) ...
+False is not true : the filter panel body is not rendered at 375px, so a
+  reader has to know the filters are there before they can find out what
+  they filter
+Lists differ: [{'name': 'tit-bar-toggle', ...}] != []   (under 44x44)
+```
+
+**A note on asserting this kind of thing.** `innerText` is not a safe reader-
+visible test on the element you are hiding: for a **non-rendered** subtree it
+falls back to `textContent`, so the collapsed panel's own `innerText` returned
+5,239 characters. The honest reading is `innerText` off the **rendered**
+ancestor, which excludes non-rendered descendants — 42 characters collapsed
+against 377 open. The test does it that way.
+
+**Byte budget: 184,578 of 184,600, and it went DOWN by 1.** Nothing was raised.
+Almost all of this is CSS, which the budget does not count; the only markup
+change was `aria-expanded="false"` -> `"true"`, which is a byte shorter.
+
 ## 2026-08-11 - the rename reached the chart and not its twin (1.74.6)
 
 The place chart was retitled "Updates by Country" on 2026-08-05 because "Where
