@@ -2,6 +2,38 @@
 
 ---
 
+## 2026-08-12: the 30 US misses are placed. It is the budget. ON A BRANCH, NOT MERGED, NOT DEPLOYED.
+
+Branch `triage/us-recall-misses`, stacked on `measure/us-recall` (PR #15), which
+is itself unmerged. No plugin change, no version bump, no deploy.
+
+**Read this before planning any coverage work.** Full reasoning and every number
+is in TECHLOG under this date. The four things a next session needs:
+
+1. **26 of the 30 misses are the read ration, not a missing source.** Zero of
+   the 30 are a publisher no route can reach. `rejection_audit.py` now reads
+   `data/backfill_state.json`, so a day a walker has FINISHED no longer reads
+   as a day we could not reach — which moved the US set from 28
+   `outside_our_history` to 2, and the WORLDWIDE set from 87 to 9. Dispatching
+   more slices walks past these events again; only depth reaches them, and
+   depth is money.
+2. **The missing-country defect does not understate the 41.2%.** Checked two
+   ways, both in TECHLOG. What it does is worse: the number a reader sees under
+   a US filter is **5 of 51**, not 21 of 51. Closing that gap needs no new
+   event and buys more than any walk.
+3. **There is no free fix for the missing place.** Measured, not assumed:
+   `pipeline/identity.py` resolves 2 of the 16 defective employers and gets one
+   of those two wrong. Wikidata does not know seed-stage private companies.
+4. **90% is not substantiable.** `candidate_rank` deliberately ranks the US
+   last, since it scores by country need and the US is the least needy country,
+   so US recall is low partly by design. The bound nobody can narrow from here
+   is 41.2% to 96%; plan against 65 to 70% and read it as the assumption it is.
+   The defensible next number is whatever a full-depth re-walk of the 61-day
+   window measures, and that walk costs $5.35 at the walker's own published
+   prices.
+
+---
+
 ## 2026-08-12: US recall measured, 21/51 with a range (1.76.0). ON A BRANCH, NOT MERGED, NOT DEPLOYED.
 
 Branch `measure/us-recall`, PR open. Nothing here is on `main` or on the site.
