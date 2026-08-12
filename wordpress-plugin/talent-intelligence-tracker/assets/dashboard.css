@@ -2497,9 +2497,21 @@ body:has(.tit-main) header.wp-block-template-part {
 
 .tit-countries { display:flex; flex-wrap:wrap; align-items:center; gap:6px;
   padding-left:2px; }
-.tit-countries-label { flex:none; font-size:11px; font-weight:800;
+/* The caption takes its own line. It was `flex:none` beside the pills, which
+   was fine while it read "TOP COUNTRIES" and is a horizontal-overflow risk now
+   that it names its unit: a non-shrinking flex item cannot give width back, so
+   a caption long enough to beat the viewport pushes the row past it at 375.
+   Its own line costs one line of height, cannot overflow at any width, and
+   reads as a caption over the row rather than as the first chip in it. */
+.tit-countries-label { flex:1 0 100%; min-width:0; font-size:11px; font-weight:800;
   letter-spacing:.07em; text-transform:uppercase; color:var(--tit-faint);
-  margin-right:2px; }
+  margin:0 0 1px; }
+
+/* The basis line above the two rows. Same treatment as .tit-places-note, which
+   it shares a class with, so the 1.74.5 explicit-colour rule for that class
+   covers it in both themes and it cannot inherit the site override the audit
+   went after. */
+.tit-places-basis { margin:0 0 7px !important; }
 /* Deliberately NOT the region pill: lighter border, square-ish corners, normal
    weight. Same information architecture as the region row, visibly one level
    down. */

@@ -854,9 +854,47 @@ function tit_dashboard_html() {
               </button>
             <?php endforeach; ?>
           </div>
+          <?php
+          /*
+            THE BASIS, ABOVE THE TWO ROWS IT QUALIFIES.
+
+            "Top Countries" over a descending list of flags is a leaderboard,
+            and it was read as one: the owner asked why the United Kingdom
+            outranks the United States. It does not. Companies House publishes
+            structured filings for very nearly every UK company and we ingest
+            the lot; the US equivalent reaches public companies only. The
+            ordering is a picture of how we collect, so the label has to say
+            so, in the same vocabulary the chart below already uses ("a count
+            of updates we hold, never a count of jobs").
+
+            VISIBLE PROSE, and deliberately NOT a .tit-chart-note. Every one of
+            those panels is closed by dashboard.js on load, which is how three
+            caveats on this page ended up computing display:none and being read
+            by nobody; the two nearest guards in
+            tests/test_chart_titles_and_basis.py exist because of exactly that.
+            This is a plain <p> in the flow, styled by .tit-places-note, which
+            the 1.74.5 contrast pass already gave an explicit colour in both
+            themes.
+
+            ABOVE the rows rather than below them, for the reason the place
+            chart's caveat is: the misread country is by definition near the
+            front of a descending list, so a correction printed after the list
+            arrives after the misreading it exists to prevent.
+          */
+          ?>
+          <?php /* Printed on ONE source line on purpose. This template's
+                   indentation is emitted, and tit_chart_head() already records
+                   the measurement behind that: the page has a byte budget
+                   (TIT_DASH_BYTE_BUDGET in tests/php/render_dashboard.php) and
+                   five wrapped lines of copy at this depth cost about sixty
+                   bytes of leading spaces no reader ever sees. Wrapping this
+                   paragraph the pretty way put the page over the ceiling. */ ?>
+          <?php if ($tit_top || $tit_cities) : ?>
+            <p class="tit-places-note tit-places-basis">These counts are updates we hold, not a ranking of the market. Some countries publish a company registry we can read in full. We hold many more updates per employer there than in countries where we rely on news and filings.</p>
+          <?php endif; ?>
           <?php if ($tit_top) : ?>
             <div class="tit-countries" role="group" aria-label="Filter by country">
-              <span class="tit-countries-label">Top Countries</span>
+              <span class="tit-countries-label">Countries by Updates Held</span>
               <?php foreach ($tit_top as $c) : ?>
                 <button type="button" class="tit-cbtn" data-code="<?php echo esc_attr($c['code']); ?>"
                         aria-pressed="false">
@@ -871,7 +909,7 @@ function tit_dashboard_html() {
           <?php endif; ?>
           <?php if ($tit_cities) : ?>
             <div class="tit-countries" role="group" aria-label="Filter by city">
-              <span class="tit-countries-label">Top Cities</span>
+              <span class="tit-countries-label">Cities by Updates Held</span>
               <?php foreach ($tit_cities as $c) : ?>
                 <button type="button" class="tit-cbtn tit-citybtn" data-city="<?php echo esc_attr($c['k']); ?>"
                         aria-pressed="false">
