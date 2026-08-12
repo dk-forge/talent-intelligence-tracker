@@ -13,6 +13,110 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-12 - the allowance goes to $18, and the measurement says that is not enough
+
+The owner raised this tracker's OpenRouter key to a **$30/month provider limit**
+and found it bought nothing. It could not: the **policy** cap in `spend.py` was
+$10 and it is the one that binds, so the provider headroom above $10 was
+unreachable. `MONTHLY_ALLOWANCE_USD` is now **18.0**.
+
+**Why $18 and not $20.** Two ceilings exist and only one can be the one that
+fires. The provider cap is a HARD stop - the next paid call fails, wherever the
+run happens to be. The policy cap is a GRACEFUL stop - `--degrade` switches paid
+reads off, every free collector keeps running, each deferred candidate is left
+unread and UNMARKED for a later run, and the writer-queue ticket is filed as
+DEFERRED rather than failed. **At parity the graceful stop can never fire**, and
+a disclosed degradation becomes a failed call mid-batch. The $2 gap is the whole
+point of the number. If the provider limit moves, move this to stay under it;
+do not match it. `test_the_allowance_is_the_number_the_owner_set` now asserts
+`< 20.0` with that reason, so "use the whole key" goes red.
+
+### The measurement: what August actually bought
+
+There is **no per-job spend ledger in this repo** (no equivalent of the layoff
+tracker's `railway/spend_jobs.json`), so none of this is estimated from one -
+it is read back out of what the run logs already print. Two signals: every run
+prints `spent on this key $X (lifetime)`, and `run_collect.py` prints
+`$X.XXXX this run` from `classify.STATS['usd']`.
+
+**The month did not spend $10.08 at a rate. It spent it in 2.5 days and then
+stopped dead.**
+
+| reading | lifetime | month-to-date |
+|---|---:|---:|
+| `data/spend_month.json` month start (08-01) | $16.8634 | $0.00 |
+| 08-01 06:59 collect | | $1.1411 |
+| 08-01 18:26 collect | | $2.6229 |
+| 08-02 07:01 collect | | $5.0477 |
+| 08-02 18:26 collect | | $7.3275 |
+| 08-03 12:04 collect-press | $26.8070 | $9.9436 |
+| 08-10 19:06 → 08-12 11:40 (9 readings) | **$26.9480, unchanged** | $10.0846 |
+
+Lifetime usage has not moved since 08-03. The guard tripped on day 3 and paid
+reads have been off for the nine days since. **Dividing $10.08 by 12 days is an
+average over nine days that bought nothing**, which is why $0.84/day looked
+survivable and $1.87/day looked alarming and neither is a rate.
+
+**One-off vs recurring.** August's paid runs were overwhelmingly hand-dispatched
+backfill walkers: **33 of 39 paid runs on 08-01, 36 of 41 on 08-02**, dozens of
+`backfill-gnews-2026` through 08-03, and 19 `backfill-press-2026` on 08-05. All
+six `backfill-*` workflows are `workflow_dispatch:` only and their headers
+forbid a `schedule:`, so they are one-off by construction.
+
+| | August | share |
+|---|---:|---:|
+| ONE-OFF (backfill walkers, tripwire, ab-models, benchmark-diff) | ~$8.87 | **88%** |
+| RECURRING (collect + collect-press) | ~$1.21 | 12% |
+
+### The recurring figure, and why $18 does not hold
+
+Measured per-run, from the six scheduled runs that completed on 08-01/08-02 -
+the only two days this month with the budget open (the ~09:35 press run on each
+day was **cancelled**, so it is excluded, not counted as a zero):
+
+| workflow | runs | mean |
+|---|---:|---:|
+| `collect` | 4 | $0.1379 |
+| `collect national press` | 2 | $0.1642 |
+
+At the real cadence (`collect` 2x/day, `collect-press` 2x/day):
+**$0.6042/day = ~$18.1/month, recurring, before the tripwire or any backfill.**
+
+**This is not a busy-week artifact, and it was checked for one.** The sibling
+tracker's precedent is a measured "$0.43/day, ~$13/month" that turned out to
+straddle a model swap. The same check here points the other way:
+
+* **July was 3-5x dearer** ($0.7969, $0.6046, $0.5610 per run on 07-30), so the
+  read-cap reallocation that landed 07-31/08-01 is already in these numbers.
+  The August figure is the POST-optimisation one.
+* **The cap is reached on every run**, so this is structural, not demand. Run
+  30737018299: `[google_news] gate: 208 screened, 69 dropped cheap, 99 full
+  read-throughs (cap 99/run)` for `$0.1815 this run`. Demand exceeds the ration
+  every time, so the cost is the ration.
+* **The window understates it if anything.** These two days sat inside the
+  backfill campaign, whose stored rows the collectors then skip for free.
+
+At $18 the 90% stop line is $16.20, so recurring alone crosses it around day 27
+and exhausts the allowance at month end. **$18 buys a full month of the
+scheduled collectors and nothing else** - no tripwire (~$1.00/month), no
+backfill walkers (~$3.00/month declared across the three), no catch-up.
+
+**This conversation repeats in September**, and the answer then is not a bigger
+number: it is `docs/PLAN-gate-to-five-dollars.md`, or a smaller
+`BINDING_READ_BUDGET`, or a slower cadence. Raising the policy cap again would
+put it at or above the $20 provider cap, which is the one thing this entry says
+not to do.
+
+**A note on the deferral everyone is reading.** The
+`the monthly spend allowance was already exhausted ($10.08 of $10)` ticket is
+dated **2026-08-06T09:17:09Z**, not today. A session seeing it on 08-12 is
+seeing `ops_status.py` re-display a six-day-old writer-queue ticket, correctly.
+
+Tests: RED before on three real assertions (`assert 18.0 == 10.0` at
+`test_budget_stop_is_not_a_failure.py:422` and `test_forward_first.py:264`,
+plus `test_spend_degrades.test_the_allowance_is_the_number_the_owner_set`),
+green after. Full suite **3642 passed**. No workflow was run and no model was
+called: every figure above comes from run logs and committed files.
 ## 2026-08-12 - the 30 US misses, placed. It is the budget, and it was never the sources
 
 **No deploy. No plugin change.** This is measurement and it moves no version.

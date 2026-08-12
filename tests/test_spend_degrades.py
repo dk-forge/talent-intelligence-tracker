@@ -38,15 +38,26 @@ def stats():
 # --- the allowance -----------------------------------------------------------
 
 def test_the_allowance_is_the_number_the_owner_set():
-    """$10. Policy, in a diff, not a secret.
+    """$18. Policy, in a diff, not a secret.
 
-    $10 -> $25 on 2026-07-30, $25 -> $5 on 2026-07-31, both by the owner. This
-    test exists because the file kept $25 for a day after the owner had gone
-    back to $5, and every cost decision taken in that window was measured
-    against a ceiling five times too high.
+    $10 -> $25 on 2026-07-30, $25 -> $5 on 2026-07-31, $5 -> $10 on 2026-08-01,
+    $10 -> $18 on 2026-08-12, all by the owner. This test exists because the
+    file kept $25 for a day after the owner had gone back to $5, and every cost
+    decision taken in that window was measured against a ceiling five times too
+    high.
+
+    $18 and not $20 is deliberate and load-bearing: the provider key's own cap
+    is $20 and it is a HARD stop, so the policy cap has to sit below it for our
+    graceful degrade to be the one that fires. Anyone raising this to $20 to
+    "use the whole key" is removing the guard, not widening it — read the
+    comment above the constant first.
     """
-    assert spend.MONTHLY_ALLOWANCE_USD == 10.0
+    assert spend.MONTHLY_ALLOWANCE_USD == 18.0
     assert spend.STOP_AT_FRACTION == 0.9
+    assert spend.MONTHLY_ALLOWANCE_USD < 20.0, (
+        "the policy allowance must stay strictly under the $20 provider cap on "
+        "the key; at parity the provider hard-stops a run mid-call instead of "
+        "spend.py degrading it cleanly")
 
 
 def test_the_allowance_is_stated_once():

@@ -261,7 +261,12 @@ def test_ops_status_prints_three_states_and_escalates():
 # --- nothing underneath the policy moved ------------------------------------
 
 def test_the_cap_is_unchanged_and_is_a_utc_calendar_month():
-    assert spend.MONTHLY_ALLOWANCE_USD == 10.0
+    """This file's subject is that the cap is a UTC CALENDAR MONTH, not a
+    rolling window. The value itself is pinned by
+    test_spend_degrades.test_the_allowance_is_the_number_the_owner_set; here it
+    only has to be a real ceiling under the $20 provider cap (raised 10.0 ->
+    18.0 by the owner on 2026-08-12)."""
+    assert 0 < spend.MONTHLY_ALLOWANCE_USD < 20.0
     assert spend.STOP_AT_FRACTION == 0.9
     src = (ROOT / "spend.py").read_text()
     body = src[src.index("def month_delta("):src.index("def degrade(")]
