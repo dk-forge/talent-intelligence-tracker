@@ -92,7 +92,42 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # opinion: run `python cost_projection.py`. Do not raise this to make a red
 # run green — degrading is the designed response, and the free collectors,
 # the free prefilter and both dedup layers do not spend a cent.
-MONTHLY_ALLOWANCE_USD = 10.0
+#
+# RAISED 10.0 -> 18.0 on 2026-08-12, by the owner, after raising this tracker's
+# OpenRouter key to a $20/month PROVIDER limit and finding it bought nothing.
+#
+# WHY $18 AND NOT $20 — THE TWO CEILINGS
+# --------------------------------------
+# This tracker's key is its own (the layoff tracker has a separate key with a
+# separate $20; they do not share). So two ceilings exist, and only one of them
+# can be the one that binds:
+#
+#   * the PROVIDER cap is a HARD STOP. It does not degrade. The next paid call
+#     simply fails, at whatever arbitrary point the run had reached.
+#   * the POLICY cap here is a GRACEFUL STOP. `--degrade` switches paid reads
+#     off, every free collector keeps running, and each deferred candidate is
+#     left unread and UNMARKED so a later run picks it up. The stop is
+#     disclosed, the ticket is filed as DEFERRED rather than failed, and no
+#     coverage is lost.
+#
+# Setting the policy cap EQUAL to the provider cap means our own guard can
+# never fire first — the provider hard-stops us instead, and a clean disclosed
+# degradation becomes a failed call mid-run. The $2 of headroom is what keeps
+# our graceful stop ahead of the provider's hard one. If the provider limit
+# moves, move this to stay under it; do not match it.
+#
+# WHY IT WAS RAISED AT ALL: $10 was the cap actually binding. August's spend hit
+# $10.08 on 2026-08-03 and paid reads have been OFF ever since — lifetime key
+# usage sat unchanged at $26.9480 from 08-03 to 08-12 — so the provider headroom
+# above $10 was unreachable.
+#
+# READ THIS BEFORE ASSUMING $18 IS ENOUGH. It probably is not. RECURRING spend
+# (collect + collect-press at their current read caps) MEASURES at ~$0.60/day,
+# i.e. ~$18/month on its own, before the tripwire or any backfill. The caps are
+# reached on every run, so that figure is structural rather than a busy week.
+# See docs/TECHLOG.md 2026-08-12 for the measurement and its basis. The route
+# back under is docs/PLAN-gate-to-five-dollars.md, not a bigger number here.
+MONTHLY_ALLOWANCE_USD = 18.0
 
 # Stop collecting with headroom left, so a long run cannot overshoot mid-batch.
 STOP_AT_FRACTION = 0.9

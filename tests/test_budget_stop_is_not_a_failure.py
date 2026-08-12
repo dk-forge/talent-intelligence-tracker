@@ -416,10 +416,22 @@ def test_no_workflow_is_hard_stopped_by_the_spend_guard():
 
 
 def test_the_guard_itself_is_untouched():
-    """Nothing here may raise a cap or soften the ceiling. The allowance is the
-    same $10 the owner set, the stop is at the same 90%, and --degrade still
-    exits 0 with paid reads off."""
-    assert spend.MONTHLY_ALLOWANCE_USD == 10.0
+    """Nothing in THIS file's subject may soften the ceiling. The allowance is
+    whatever the owner last set (see test_the_allowance_is_the_number_the_owner_set,
+    which is the one place that pins the value), the stop is at the same 90%,
+    and --degrade still exits 0 with paid reads off.
+
+    The allowance moved 10.0 -> 18.0 on 2026-08-12 by the owner's decision. This
+    test used to pin the literal too, which meant a legitimate budget change had
+    to edit three files that each claimed to be the single source of the number.
+    It now asserts the SHAPE it actually cares about — a real ceiling, stopping
+    short of it, below the provider's hard cap — so it goes red for a softened
+    guard and not for a decision the owner took.
+    """
+    assert 0 < spend.MONTHLY_ALLOWANCE_USD < 20.0, (
+        "the allowance must be a real ceiling and must stay under the $20 "
+        "provider cap on the key, so that spend.py degrades before the "
+        "provider fails a call mid-run")
     assert spend.STOP_AT_FRACTION == 0.9
 
 
