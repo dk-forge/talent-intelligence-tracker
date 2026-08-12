@@ -13,6 +13,106 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-12 - how good are we in America, with a number and a range (1.76.0)
+
+**Merged, NOT deployed** — the deploy here is a human step and a subagent does
+not take it (CLAUDE.md).
+
+The sibling layoff tracker can say exactly how good it is: 24 of 57 held-out
+SEC Item 2.05 filings, with an interval, on its health page, behind a floor that
+can go red. This tracker could not. The worldwide set has a US cell, it reads
+38%, and it is 34 events of a set assembled to be global, so it is an impression
+wearing a percentage.
+
+**Result: held 21 of 51, 41.2%, 95% interval 28.8 to 54.8**, against a US
+funding set for 2026-06-01 to 2026-07-31, assembled without consulting our own
+data. Per metro: Austin 5/8, New York 8/16, rest of US 5/14, San Francisco 3/13.
+Only 4 of the 21 are clean, and the dominant defect is `country_missing` on 13
+of them, which is an extractor problem rather than a collection one.
+
+### The number that matters is the range, and it was never published
+
+`wilson()` had been in `thresholds.py` since 2026-07-30, used to derive a floor
+and shown to nobody. On 51 events 41.2% is also 28.8% to 54.8%, and on a metro
+cell of eight it is 30.6% to 86.3%. Publishing the point estimate alone invites
+exactly the comparison the counts cannot support. It moved to
+`analysis/recall/stats.py` as a leaf, `thresholds.wilson` re-exports it so the
+floor and the page cannot round one interval two ways, and every cell in every
+family now carries `held_interval`.
+
+### Two populations, two directories, and why that is load-bearing
+
+`analysis/recall/family.py` is the one definition of what is measured and where
+each population's gold sets, results, page data and health entry live.
+`measure_recall.py --family`, `ops_status.py [3e]`, `health_digest.py` and
+`includes/recall.php` all read it.
+
+The separate directory is not tidiness. `goldset.latest_path()` takes the newest
+`goldset-*.json` in a directory, and `goldset-us-2026-06.json` sorts after every
+worldwide set that will ever exist. One file in the wrong folder would have made
+the published WORLDWIDE figure a US figure, with no code change and nothing in
+any diff to notice. Asserted by
+`test_a_us_set_cannot_hijack_the_worldwide_measurement`.
+
+### Four passes independently walked into our own feed
+
+The set was assembled by eight isolated research passes, one per metro and
+signal type, each forbidden from consulting this tracker. Every one of the four
+LEADERSHIP passes reached, unprompted, for SEC EDGAR full-text search, and for a
+good reason: it is the only free, chronologically enumerable index of US
+corporate events that is not a commercial database, and commercial databases are
+discovery pointers we may never cite. It is also precisely what
+`collectors/sec_edgar.py` walks. All four came back over 90% exchange-listed
+filings. Measuring against them would have scored the tracker against its own
+supply and produced a flattering number that meant nothing.
+
+All four were discarded. The guard that makes that mechanical is
+`US_REQUIRED_SHAPE["max_source_type_share"] = 0.50`: no single kind of document
+may be a majority of the denominator. It is the sharp instrument here because
+`size_band` is not one, being "500+ employees OR listed", which bands a
+twelve-person listed biotech as large.
+
+**A wire-dateline walk did work.** Searching a press-release service for the
+literal dateline string (`DENVER, June`, `SALT LAKE CITY, July`) returns exactly
+the releases datelined in that city that month, and walks in date order. Three
+re-run passes produced 34 verified private-employer leadership rows with no
+EDGAR at all. They are NOT in the sealed set: San Francisco and New York ran out
+of search budget before their passes could run, so two of four metro cells would
+be empty, and 30 of the 34 are press releases, which would put one document type
+at 60%. They are parked at
+`analysis/recall/us/goldset-us-2026-06-leadership.draft.json`, which
+`all_paths()` skips by name, with the enumerator written down inside it.
+
+### So the US set covers funding only, and says so where the number is
+
+That is a real limitation and the page carries it in a callout beside the
+figure, not in a method note further down. `signal_types` is declared in the file
+and enforced against the items, so the scope cannot quietly widen into a
+half-measured second signal type while the headline looks like the same number.
+
+### Bars, and where each came from
+
+`min_items: 45` and `max_interval_width: 0.28` are anchored to the sibling's
+published benchmark, which resolves to about 25 points. A second number in the
+same house that resolved much worse than the first would not be readable the
+same way. The assembled set came in at 51 events and 26.5 points.
+
+A higher small-employer floor was drafted and withdrawn. The passes showed the
+small share is capped by publisher behaviour rather than by effort: the single
+largest cause of a verified event being dropped was that no fetchable page
+stated the company's headquarters, coverage of small rounds has largely stopped
+writing "San Francisco-based", and a row with no verifiable metro cannot enter a
+set whose cells are metros. A bar nothing honest can clear is a bar that gets
+edited on the day it fires, so the floor stayed at the worldwide 30% and the
+under-representation is declared in the set's own caveats instead.
+
+### What is not done
+
+The San Francisco and New York leadership passes, which need search budget.
+Until they land, US leadership coverage is unmeasured and the page says so.
+
+---
+
 ## 2026-08-12 - the controls had no edges, and the panel was shut (1.75.0)
 
 Three things the owner asked for, in one pass over the filter bar. **Merged,

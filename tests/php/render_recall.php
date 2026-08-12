@@ -306,14 +306,136 @@ check(strpos($flat, 'Real gap') !== false && strpos($flat, 'Thin coverage') !== 
       'the read column carries an honest verdict per market');
 // Kept apart from the gold set: the market table must not print gold-set
 // score headers, and the gold-set country table must not print shares.
+// Sliced to END at the next population's heading. The United States section
+// renders after the market table and has its own score headers, which are
+// correct there and would be a false positive here.
 $mkt = substr($page, strpos($page, 'Against the whole market'));
+if (($stop = strpos($mkt, 'id="united-states"')) !== false) {
+    $mkt = substr($mkt, 0, $stop);
+}
 check(strpos($mkt, 'Event captured</th>') === false,
       'the two measures answer different questions and are never blended '
       . 'into one table');
+
+// --- a second measured population ----------------------------------------
+//
+// The United States set is 51 events against the worldwide set's 169, which is
+// the whole reason it renders differently: at 51 events the interval IS the
+// finding and a bare percentage misleads. These checks are that the page cannot
+// lose the interval, cannot merge the two populations into one table, and
+// cannot quietly drop a population that has never been measured.
+
+$us = array(
+    'measured_on' => '2026-08-11',
+    'family' => 'us',
+    'goldset' => array(
+        'digest' => 'usdigest1', 'version' => '2026-06-us-v1',
+        'window' => array('start' => '2026-06-01', 'end' => '2026-07-31'),
+        'assembled_on' => '2026-08-12',
+        'signal_types' => array('funding'),
+        'caveats' => array('This set covers FUNDING ONLY.'),
+    ),
+    'summary' => array(
+        'overall' => array('total' => 51, 'found' => 4, 'found_partial' => 17,
+                           'missed' => 30, 'held' => 21, 'held_pct' => 41.2,
+                           'clean_pct' => 7.8,
+                           'held_interval' => array('pct' => 41.2, 'low_pct' => 28.8,
+                                                    'high_pct' => 54.8,
+                                                    'width_pct' => 26.1,
+                                                    'successes' => 21, 'total' => 51)),
+        'by_metro' => array(
+            'Austin' => array('total' => 8, 'found' => 1, 'found_partial' => 4,
+                              'missed' => 3, 'held' => 5, 'held_pct' => 62.5,
+                              'clean_pct' => 12.5,
+                              'held_interval' => array('pct' => 62.5, 'low_pct' => 30.6,
+                                                       'high_pct' => 86.3, 'width_pct' => 55.7,
+                                                       'successes' => 5, 'total' => 8)),
+            'San Francisco' => array('total' => 13, 'found' => 0, 'found_partial' => 3,
+                                     'missed' => 10, 'held' => 3, 'held_pct' => 23.1,
+                                     'clean_pct' => 0.0,
+                                     'held_interval' => array('pct' => 23.1, 'low_pct' => 8.2,
+                                                              'high_pct' => 50.3, 'width_pct' => 42.1,
+                                                              'successes' => 3, 'total' => 13)),
+        ),
+        'by_source_type' => array(), 'by_size_band' => array(),
+    ),
+    'items' => array(),
+);
+
+$GLOBALS['tit_options']['tit_recall_us'] = $us;
+
+ob_start();
+tit_recall_family_section('us');
+$block = ob_get_clean();
+$flat_us = preg_replace('/\s+/', ' ',
+    html_entity_decode(strip_tags($block), ENT_QUOTES, 'UTF-8'));
+
+check(strpos($block, 'id="united-states"') !== false,
+      'the second population gets its own anchored heading');
+check(strpos($flat_us, '21 of 51') !== false,
+      'the headline carries its counts, as every figure on this page does');
+check(strpos($flat_us, '28.8% to 54.8%') !== false,
+      'the headline carries its interval. At 51 events a bare 41% invites a '
+      . 'reader to compare it against a number it has not been shown to '
+      . 'differ from');
+check(strpos($flat_us, '30.6% to 86.3%') !== false
+      && strpos($flat_us, '8.2% to 50.3%') !== false,
+      'and so does every metro cell, whose ranges overlap almost entirely');
+check(strpos($flat_us, 'Read the range, not just the percentage') !== false,
+      'the page says in words what the range is for');
+check(strpos($flat_us, 'Funding rounds only') !== false,
+      'a set that tests one of four signal types must say so where the '
+      . 'number is, not only in a method note further down');
+check(strpos($flat_us, 'This set covers FUNDING ONLY') !== false,
+      'the set\'s own caveats reach the page rather than staying in the repo');
+
+// The two populations are never blended. Different reference sets, different
+// windows, different denominators: one table holding both would be a number
+// that is true of nothing.
+check(strpos($block, 'Recall by category') === false,
+      'the second population must not reuse the worldwide tables');
+
+// A population with no measurement says so rather than vanishing.
+unset($GLOBALS['tit_options']['tit_recall_us']);
+ob_start();
+tit_recall_family_section('us', array());
+$empty = preg_replace('/\s+/', ' ',
+    html_entity_decode(strip_tags(ob_get_clean()), ENT_QUOTES, 'UTF-8'));
+check(strpos($empty, 'No united states measurement has been published') !== false,
+      'an unmeasured population reads as unmeasured, never as absent');
+check(strpos($empty, '%') === false,
+      'and it invents no encouraging percentage while it waits');
+
+// The keyed endpoint routes by the family named in the BODY, and refuses one
+// the page cannot render: a result stored under a name nothing reads is a
+// result nobody will ever see.
+$stored = tit_api_recall(new WP_REST_Request(array(
+    'measured_on' => '2026-08-11', 'family' => 'us',
+    'goldset' => array('digest' => 'usdigest1'),
+    'summary' => array('overall' => array('total' => 2, 'held' => 1, 'missed' => 1,
+                                          'found' => 1, 'found_partial' => 0,
+                                          'held_pct' => 50.0, 'clean_pct' => 50.0)),
+    'items' => array(array('id' => 'a'), array('id' => 'b')),
+)));
+check(is_array($stored) && ($stored['family'] ?? '') === 'us',
+      'a measurement stores under the family it declares');
+check(isset($GLOBALS['tit_options']['tit_recall_us']),
+      'and lands in that family\'s option rather than over the worldwide one');
+
+$bad = tit_api_recall(new WP_REST_Request(array(
+    'measured_on' => '2026-08-11', 'family' => 'martian',
+    'goldset' => array('digest' => 'x'),
+    'summary' => array('overall' => array('total' => 1, 'held' => 1, 'missed' => 0,
+                                          'found' => 1, 'found_partial' => 0,
+                                          'held_pct' => 100.0, 'clean_pct' => 100.0)),
+    'items' => array(array('id' => 'a')),
+)));
+check($bad instanceof WP_Error && $bad->code === 'tit_recall_bad_family',
+      'an unknown family is refused rather than stored where nothing renders it');
 
 if ($failures) {
     fwrite(STDERR, "recall page render FAILED:\n  - " . implode("\n  - ", $failures) . "\n");
     exit(1);
 }
-echo "recall page render ok: chart, history table, labels and the coverage "
-   . "direction sentence all render.\n";
+echo "recall page render ok: chart, history table, labels, the coverage "
+   . "direction sentence and the second measured population all render.\n";

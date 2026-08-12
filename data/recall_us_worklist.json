@@ -1,0 +1,323 @@
+{
+ "generated_at": "2026-08-11T23:49:43-07:00",
+ "measured_on": "2026-08-11",
+ "goldset_version": "2026-06-us-v1",
+ "overall": {
+  "total": 51,
+  "found": 4,
+  "found_partial": 17,
+  "missed": 30,
+  "held": 21,
+  "held_pct": 41.2,
+  "clean_pct": 7.8,
+  "held_interval": {
+   "pct": 41.2,
+   "low_pct": 28.8,
+   "high_pct": 54.8,
+   "width_pct": 26.1,
+   "successes": 21,
+   "total": 51
+  }
+ },
+ "spread_group": "by_metro",
+ "zero_countries": [],
+ "weak_countries": [
+  {
+   "key": "Rest of US",
+   "total": 14,
+   "held": 5,
+   "held_pct": 35.7
+  },
+  {
+   "key": "San Francisco",
+   "total": 13,
+   "held": 3,
+   "held_pct": 23.1
+  }
+ ],
+ "weak_source_types": [
+  {
+   "key": "press_release",
+   "total": 25,
+   "held": 12,
+   "held_pct": 48.0
+  },
+  {
+   "key": "trade_press",
+   "total": 24,
+   "held": 9,
+   "held_pct": 37.5
+  },
+  {
+   "key": "national_news",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  }
+ ],
+ "weak_segments": [
+  {
+   "key": "US funding",
+   "total": 51,
+   "held": 21,
+   "held_pct": 41.2
+  }
+ ],
+ "field_defects": {
+  "country_missing": 13,
+  "country_wrong": 3,
+  "amount_mismatch": 1
+ },
+ "missed_examples": [
+  {
+   "company": "Bland",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Fortune",
+   "source_url": "https://fortune.com/2026/06/16/voice-ai-bland-50-million-after-being-rejected-by-180-investors/",
+   "event_date": "2026-06-16"
+  },
+  {
+   "company": "Odyssey",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/17/world-model-maker-odyssey-nabs-1-45b-valuation-backed-by-amazon-and-other-big-names/",
+   "event_date": "2026-06-17"
+  },
+  {
+   "company": "Peregrine Technologies",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Peregrine Technologies",
+   "source_url": "https://peregrine.io/resources/peregrine-technologies-raises-250-million-series-d-at-68-billion-valuation",
+   "event_date": "2026-06-22"
+  },
+  {
+   "company": "Osanni Bio",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Osanni Bio (press release carried by BioSpace)",
+   "source_url": "https://www.biospace.com/press-releases/osanni-bio-closes-190-million-series-b-financing-led-by-patient-square-capital",
+   "event_date": "2026-06-23"
+  },
+  {
+   "company": "Hang Ten Systems",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/24/former-infosys-chief-has-a-new-startup-that-wants-to-challenge-the-it-services-world/",
+   "event_date": "2026-06-24"
+  },
+  {
+   "company": "Patronus AI",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/25/patronus-ai-lands-50m-to-build-digital-worlds-that-stress-test-ai-agents/",
+   "event_date": "2026-06-25"
+  },
+  {
+   "company": "Aseon Labs",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/26/this-silicon-valley-startup-has-raised-10m-to-build-pitstops-to-clean-and-charge-robotaxis/",
+   "event_date": "2026-06-26"
+  },
+  {
+   "company": "Queue",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "The Robot Report",
+   "source_url": "https://www.therobotreport.com/queue-raises-funding-fully-autonomous-pharmacy/",
+   "event_date": "2026-06-30"
+  },
+  {
+   "company": "Prime Intellect",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/07/08/prime-intellect-raises-130m-series-a-to-help-enterprises-build-their-own-ai-agents/",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "Chai Discovery",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Pulse 2.0",
+   "source_url": "https://pulse2.com/chai-discovery-raises-400-million-series-c-to-advance-ai-driven-molecular-design/",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "Taktile",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Fortune",
+   "source_url": "https://fortune.com/2026/06/24/exclusive-taktile-goldman-sachs-ai-bank-insurance-funding/",
+   "event_date": "2026-06-24"
+  },
+  {
+   "company": "Norm Ai",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/norm-ai-raises-120-million-at-a-1-2-billion-valuation-led-by-khosla-ventures-to-deliver-the-full-stack-model-for-legal-ai-302819152.html",
+   "event_date": "2026-07-07"
+  },
+  {
+   "company": "Pearl Health",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/pearl-health-raises-110-million-to-expand-its-ai-platform-helping-providers-deliver-better-outcomes-at-lower-cost-for-medicare-patients-302820795.html",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "Vendelux",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Vendelux newsroom",
+   "source_url": "https://vendelux.com/series-b-announcement",
+   "event_date": "2026-07-08"
+  },
+  {
+   "company": "InstaLILY AI",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "ACCESS Newswire",
+   "source_url": "https://www.accessnewswire.com/newsroom/en/computers-technology-and-internet/instalily-raises-60-million-series-b-and-launches-lily-the-worlds-1190835",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "Speakeasy",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/speakeasy-announces-8-8mm-raise-to-power-the-growing-irl-economy--live-experience-industry-302825648.html",
+   "event_date": "2026-07-15"
+  },
+  {
+   "company": "Wonder",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/wonder-announces-650-million-series-d-round-at-a-9-billion-pre-money-valuation-302827208.html",
+   "event_date": "2026-07-16"
+  },
+  {
+   "company": "Fora",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/fora-raises-60m-at-1-billion-valuation-defining-a-new-category-of-entrepreneurs-302827629.html",
+   "event_date": "2026-07-16"
+  },
+  {
+   "company": "Traysar",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Traysar",
+   "source_url": "https://traysar.com/news/traysar-raises-25m-seed",
+   "event_date": "2026-06-16"
+  },
+  {
+   "company": "Intellectible",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/intellectible-closes-3-million-seed-round-to-scale-ai-revenue-operations-for-enterprise-service-providers-302803624.html",
+   "event_date": "2026-06-17"
+  },
+  {
+   "company": "Adaptive Insurance",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Insurance Innovation Reporter",
+   "source_url": "https://iireporter.com/adaptive-raises-5m-for-specialty-climate-products/",
+   "event_date": "2026-07-09"
+  },
+  {
+   "company": "Arpio",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Arpio newsroom",
+   "source_url": "https://arpio.io/series-a-announcement/",
+   "event_date": "2026-06-03"
+  },
+  {
+   "company": "Hydra Host",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Refresh Miami",
+   "source_url": "https://refreshmiami.com/news/hydra-host-raises-100m-to-turn-overlooked-data-centers-into-ai-powerhouses/",
+   "event_date": "2026-06-15"
+  },
+  {
+   "company": "Mantle Energy",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "Dallas Innovates",
+   "source_url": "https://dallasinnovates.com/hunt-energys-dallas-based-subsidiary-mantle-energy-raises-5m-seed-funding/",
+   "event_date": "2026-06-24"
+  },
+  {
+   "company": "Auger",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/supply-chain-startup-auger-led-by-ex-amazon-operations-chief-raises-50m-and-lands-big-customers/",
+   "event_date": "2026-07-09"
+  },
+  {
+   "company": "Auxilium Health",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/auxilium-health-closes-oversubscribed-3-4-million-seed-round-to-advance-its-aer-biomaterial-platform-302824986.html",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "Brinc Drones",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/motorola-leads-125m-round-for-brinc-fueling-911-drone-expansion-amid-u-s-import-crackdown/",
+   "event_date": "2026-07-14"
+  },
+  {
+   "company": "logcat.ai",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/the-code-ai-forgot-logcat-ai-raises-2-55m-to-put-agents-to-work-on-device-operating-systems/",
+   "event_date": "2026-07-16"
+  },
+  {
+   "company": "Atoms",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "dot.LA",
+   "source_url": "https://dot.la/hadrian-valar-ai-infrastructure-funding-2677671747.html",
+   "event_date": "2026-07-24"
+  },
+  {
+   "company": "TYBR Health",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "InnovationMap",
+   "source_url": "https://houston.innovationmap.com/tybr-health-30m-series-a-2677279203.html",
+   "event_date": "2026-07-28"
+  }
+ ],
+ "missed_total": 30,
+ "next_goldset": {
+  "due": false,
+  "reason": "the current set is still current and still moving",
+  "suggested_window": {
+   "start": "2026-07-01",
+   "end": "2026-07-31"
+  },
+  "instruction": "Build a new UNITED STATES recall gold set for 2026-07-01 to 2026-07-31 and seal it. Run eight INDEPENDENT research passes, one per metro and event type (San Francisco Bay Area, New York City, Austin, rest of the United States, each for funding and for leadership), every pass forbidden from consulting asktherecruiter.com, this repository, our database or our source registry: a set drawn from the feeds we already watch measures memory rather than reach. Enumerate candidates CHRONOLOGICALLY within the window and take them in that order rather than picking the interesting ones. A commercial deal database or people-data service may be used to FIND a candidate and must never be stored, named or linked: every item cites the original publisher, which is the company's own announcement, the filing, or a named news outlet's own article, and no commercial service's name may appear anywhere in the repository. Fetch every source URL and confirm the company, the date, the metro and the amount on the page itself before writing the row down; drop what will not verify and record why. Write it to analysis/recall/us/goldset-us-2026-07.json with sealed=true, family=\"us\", a metro on every item and an assembled_on date. `python3 measure_recall.py --family us --check` must pass before it is used; analysis/recall/goldset.py US_REQUIRED_SHAPE is the guard that stops the set being quietly rebuilt out of large SEC filers, which is the one part of the US this tracker already reads well."
+ }
+}

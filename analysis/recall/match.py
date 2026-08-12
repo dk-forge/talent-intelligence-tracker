@@ -15,6 +15,8 @@ from __future__ import annotations
 import re
 from datetime import date, datetime, timedelta
 
+from analysis.recall import stats
+
 # Same legal-suffix stripping the pipeline uses for `company_key`
 # (pipeline/vocab.py). Duplicated rather than imported so this module stays a
 # leaf with no pipeline import chain, and so a pipeline refactor cannot quietly
@@ -257,7 +259,19 @@ def _bucket(items, key_fn):
 
 
 def summarise(results: list) -> dict:
-    """Overall and per-cell recall. Every cell carries its raw counts."""
+    """Overall and per-cell recall. Every cell carries its raw counts.
+
+    And, since the US family landed, its INTERVAL. A cell of 9 events and a cell
+    of 90 print identically as percentages and mean entirely different things,
+    and a breakdown is exactly the place a reader is invited to compare one
+    against another. The interval is what stops "Austin is worse than New York"
+    being read off two ranges that overlap almost completely.
+
+    Computed for every family, including the worldwide one, because the
+    argument for publishing it does not depend on which set produced the
+    number. It is added beside the existing keys and never in place of one, so
+    every historical result stays readable by the same code.
+    """
 
     def cell(rows):
         found = sum(1 for r in rows if r["verdict"] == "FOUND")
@@ -272,6 +286,7 @@ def summarise(results: list) -> dict:
             "held": found + partial,
             "held_pct": rate(found + partial, total),
             "clean_pct": rate(found, total),
+            "held_interval": stats.interval(found + partial, total),
         }
 
     def breakdown(key_fn):
@@ -282,7 +297,7 @@ def summarise(results: list) -> dict:
         for d in r["defects"]:
             defect_counts[d] = defect_counts.get(d, 0) + 1
 
-    return {
+    out = {
         "overall": cell(results),
         "by_signal_type": breakdown(lambda r: r["gold"]["signal_type"]),
         "by_geography": breakdown(
@@ -296,3 +311,14 @@ def summarise(results: list) -> dict:
         "defects": dict(sorted(defect_counts.items(),
                                key=lambda kv: -kv[1])),
     }
+
+    # Only when the reference set actually carries metros. A worldwide result
+    # must not grow an empty `by_metro` key: the collapse gate reads the groups
+    # a summary has, and an always-present empty group is a group that can never
+    # collapse and can never be noticed missing.
+    if any(r["gold"].get("metro") for r in results):
+        out["by_metro"] = breakdown(lambda r: r["gold"].get("metro") or "unplaced")
+        out["by_metro_segment"] = breakdown(
+            lambda r: f"{r['gold'].get('metro') or 'unplaced'} "
+                      f"{r['gold']['signal_type']}")
+    return out

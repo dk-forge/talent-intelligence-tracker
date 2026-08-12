@@ -14,6 +14,8 @@ import json
 import os
 from datetime import datetime
 
+from analysis.recall.stats import widest_possible_width
+
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -110,6 +112,119 @@ REQUIRED_SHAPE = {
     # Past this share the set stops being checkable on amounts at all, and
     # "undisclosed" becomes the easy way to admit an event nobody pinned down.
     "max_undisclosed_amount_share": 0.15,
+
+    # Which dimension the spread guards above are measured over, and whether
+    # the project's seven-region vocabulary applies. Named here rather than
+    # assumed, because a second family measures spread over metros inside one
+    # country and every rule below has to know which it is looking at.
+    "spread_key": "country",
+    "spread_label": "countries",
+    "spread_singular": "country",
+    "regional": True,
+    "single_country": None,
+}
+
+# The same anti-flattery job, for a reference set that is the United States on
+# purpose.
+#
+# WHY A SECOND SHAPE AND NOT A `country == US` FILTER ON THE FIRST. Every
+# geographic bar above exists to stop a set being quietly rebuilt out of large
+# US filings. Point those bars at a US set and they all fail by construction:
+# 20 countries, six regions, no country over 45%. Deleting them for the US
+# family would delete the guard, so the guard is REPLACED with the same idea
+# measured over the dimension that actually varies inside one country, which is
+# the hiring market.
+#
+# The failure being guarded against is specific, and it is the easy one to fall
+# into here. This tracker's US spine is SEC EDGAR: 8-K officer changes,
+# pay-versus-performance tables and Form D. Every one of those is a large or
+# listed employer filing a mandatory document. A US reference set assembled
+# from "what is easy to enumerate in the United States" is a set of SEC
+# filings, we would score well against it, and the number would say nothing
+# about the startup and hiring markets it is supposed to describe.
+#
+# That is not a hypothetical. Assembling the first US set, three of the eight
+# research passes independently reached for EDGAR full-text search, because it
+# is the only chronologically enumerable index of US corporate events that is
+# free and not an aggregator. All three came back over 90% exchange-listed
+# filings and all three were discarded. `max_source_type_share` is the bar that
+# makes that discard mechanical instead of a judgement somebody has to remember
+# to make.
+US_REQUIRED_SHAPE = {
+    # ANCHORED TO A NUMBER THE OWNER ALREADY READS, not to a round figure. The
+    # sibling layoff tracker publishes recall against 57 held-out SEC filings,
+    # which resolves to a Wilson interval about 25 points wide. A US set that
+    # resolved much worse than that would be a second number in the same house
+    # that cannot be read the same way. A proportion on n events has a
+    # worst-case width of roughly 2 * 0.98 / sqrt(n), so 45 events is where 28
+    # points lands, and that is the floor.
+    #
+    # Stated plainly because it is the kind of thing that gets quietly forgotten:
+    # the first set assembled under this bar came in at 51 events and 26.5
+    # points, so there is real but not generous headroom. A future set that
+    # scrapes in at 45 is admissible and noticeably blunter, and the page prints
+    # the interval so a reader can see which they are looking at.
+    "min_items": 45,
+    "max_interval_width": 0.28,
+
+    "min_countries": 1,
+    "min_share": {
+        # The same floor the worldwide set carries, for the same reason and not
+        # a higher one. A higher bar was drafted here and then withdrawn: the
+        # research passes showed the small-employer share is capped by publisher
+        # behaviour rather than by effort, since small rounds are routinely
+        # written up in 300 words that never state where the company sits, and
+        # a row with no verifiable metro cannot enter a set whose cells ARE
+        # metros. A bar nothing honest can clear is a bar that gets edited on
+        # the day it fires. The under-representation is real and is declared in
+        # the set's own caveats instead of being papered over by a number.
+        ("size_band", "small"): 0.30,
+    },
+
+    # TWO document types, eight events each, and no type over half the set.
+    #
+    # The worldwide bar is three types at four events. It is relaxed to two and
+    # tightened to eight here on purpose. Inside the United States the reachable
+    # original publishers for a privately held employer's event are the company's
+    # own announcement and the trade press; a general-audience daily covers the
+    # large ones and a filing exists only for the listed ones. Demanding four
+    # kinds would be satisfied most easily by going back to EDGAR, which is the
+    # failure this whole shape exists to refuse. `max_source_type_share` is what
+    # carries the real weight: no single kind of document may be a majority, so
+    # a set cannot be one collector wearing four labels.
+    "min_source_types": 2,
+    "min_per_source_type": 8,
+    "max_source_type_share": 0.50,
+
+    # Metro is this family's spread dimension. Four cells, each carrying at
+    # least eight events. Eight is not enough to call a metro cell a rate and it
+    # is not meant to be: it is the floor at which a cell is worth printing
+    # beside its interval, which at eight events is about fifty points wide and
+    # says so.
+    "min_countries_with_repeats": 4,
+    "repeat_country_events": 8,
+    "max_country_share": 0.45,
+
+    "min_regions": 0,
+    "min_per_region": 0,
+
+    "max_undisclosed_amount_share": 0.15,
+
+    "spread_key": "metro",
+    "spread_label": "metros",
+    "spread_singular": "metro",
+    "regional": False,
+    # Every item must be this country. A US reference set that quietly grew a
+    # Toronto row is measuring something else under a US heading.
+    "single_country": "US",
+    # And every item must be a kind of signal the set DECLARES it covers. The
+    # first US set covers funding alone, because US leadership events at private
+    # employers could not be enumerated from original sources without either a
+    # commercial people-data service or EDGAR, and both are refused. Scope that
+    # narrow has to be declared in the file and enforced against the items, or
+    # a later set grows a half-measured second signal type and the headline
+    # silently changes population.
+    "declared_signal_types": True,
 }
 
 # How much narrower than the widest set already on disk a new one may be.
@@ -143,7 +258,18 @@ def load(path: str = DEFAULT_PATH) -> dict:
     return data
 
 
-def validate(data: dict, peers: list | None = None) -> list:
+def shape_for(data: dict) -> dict:
+    """Which set of bars this reference set is judged against.
+
+    Declared BY THE FILE, in its own `family` key, and never inferred from what
+    is inside it. Inference would mean a worldwide set that happened to come
+    back all-US one month quietly got judged by the US bars and passed, which is
+    precisely the retreat REQUIRED_SHAPE exists to refuse.
+    """
+    return SHAPES.get(str(data.get("family") or "world"), REQUIRED_SHAPE)
+
+
+def validate(data: dict, peers: list | None = None, shape: dict | None = None) -> list:
     """Every rule the gold set must satisfy. Returns a list of problems.
 
     Empty list means the file is fit to measure against. This runs in the test
@@ -158,12 +284,14 @@ def validate(data: dict, peers: list | None = None) -> list:
     """
     problems = []
     items = data.get("items", [])
+    shape = shape_for(data) if shape is None else shape
 
     if peers is None and data.get("_path"):
         peers = peer_breadths(data["_path"],
-                              assembled_on=data.get("assembled_on"))
+                              assembled_on=data.get("assembled_on"),
+                              shape=shape)
     if items and peers:
-        problems.extend(_ratchet_problems(data, peers))
+        problems.extend(_ratchet_problems(data, peers, shape))
 
     if not items:
         return ["gold set is empty"]
@@ -175,7 +303,25 @@ def validate(data: dict, peers: list | None = None) -> list:
     if not data.get("assembled_on"):
         problems.append("no assembled_on date, so independence cannot be dated")
 
-    problems.extend(_shape_problems(items))
+    # What this set claims to cover, enforced against what is in it. A set that
+    # measures one signal type has to say so, and then may not quietly acquire
+    # a second: a half-covered signal type dilutes the headline while looking
+    # like added breadth.
+    declared = data.get("signal_types")
+    if shape.get("declared_signal_types"):
+        if not declared:
+            problems.append(
+                "no signal_types declared: a set that covers some of what the "
+                "tracker collects must name which, or the headline is a claim "
+                "about a population nobody wrote down")
+        else:
+            stray = sorted({i.get("signal_type") for i in items} - set(declared))
+            if stray:
+                problems.append(
+                    f"items carry signal types the set does not declare: "
+                    f"{', '.join(stray)}. Declared: {', '.join(declared)}")
+
+    problems.extend(_shape_problems(items, shape))
 
     window_start = datetime.strptime(data["window"]["start"], "%Y-%m-%d").date()
     window_end = datetime.strptime(data["window"]["end"], "%Y-%m-%d").date()
@@ -198,6 +344,14 @@ def validate(data: dict, peers: list | None = None) -> list:
         country = item.get("country") or ""
         if len(country) != 2 or not country.isupper():
             problems.append(f"{label}: country must be an ISO alpha-2 code, got {country!r}")
+        only = shape.get("single_country")
+        if only and country != only:
+            problems.append(
+                f"{label}: country is {country!r} in a set declared as {only} only, "
+                f"so it is measuring a different population under this heading")
+        if shape.get("spread_key") == "metro" and not item.get("metro"):
+            problems.append(
+                f"{label}: missing metro, which is this set's whole cell structure")
 
         url = item.get("source_url") or ""
         if not url.startswith("http"):
@@ -240,23 +394,42 @@ def validate(data: dict, peers: list | None = None) -> list:
     return problems
 
 
-def _shape_problems(items: list) -> list:
-    """Enforce REQUIRED_SHAPE. See the comment on it for why this is a failure
-    and not a warning."""
+def _shape_problems(items: list, bars: dict = REQUIRED_SHAPE) -> list:
+    """Enforce the family's shape. See the comment on REQUIRED_SHAPE for why
+    this is a failure and not a warning."""
     shape = counts({"items": items})
     total = shape["total"]
+    spread_key = bars.get("spread_key", "country")
+    spread_label = bars.get("spread_label", "countries")
+    by_spread = shape[spread_key]
     problems = []
 
-    if total < REQUIRED_SHAPE["min_items"]:
+    if total < bars["min_items"]:
         problems.append(
-            f"only {total} events: below {REQUIRED_SHAPE['min_items']}, too few to "
+            f"only {total} events: below {bars['min_items']}, too few to "
             "break down by cell")
-    if len(shape["country"]) < REQUIRED_SHAPE["min_countries"]:
-        problems.append(
-            f"only {len(shape['country'])} countries: below "
-            f"{REQUIRED_SHAPE['min_countries']}, so geography cannot be measured")
 
-    for (group, key), share in REQUIRED_SHAPE["min_share"].items():
+    # The count bar and the interval bar say the same thing two ways on
+    # purpose: the count is what an assembler works to, and the width is what
+    # the number has to survive being read as. A family that does not declare a
+    # width is unchanged.
+    ceiling = bars.get("max_interval_width")
+    if ceiling is not None and total:
+        width = widest_possible_width(total)
+        if width > ceiling:
+            problems.append(
+                f"{total} events give a worst-case 95% interval "
+                f"{width * 100:.1f} points wide, above the "
+                f"{ceiling * 100:.0f}-point ceiling: a rate this uncertain "
+                f"cannot be broken down by cell and should not be published as "
+                f"a figure")
+
+    if len(by_spread) < bars["min_countries"]:
+        problems.append(
+            f"only {len(by_spread)} {spread_label}: below "
+            f"{bars['min_countries']}, so spread cannot be measured")
+
+    for (group, key), share in bars["min_share"].items():
         got = shape[group].get(key, 0)
         if total and got / total < share:
             problems.append(
@@ -264,46 +437,68 @@ def _shape_problems(items: list) -> list:
                 f"required {share:.0%}, which would flatter the result")
 
     kinds = {k: n for k, n in shape["source_type"].items()
-             if n >= REQUIRED_SHAPE["min_per_source_type"]}
-    if len(kinds) < REQUIRED_SHAPE["min_source_types"]:
+             if n >= bars["min_per_source_type"]}
+    if len(kinds) < bars["min_source_types"]:
         problems.append(
             f"only {len(kinds)} kinds of document carry at least "
-            f"{REQUIRED_SHAPE['min_per_source_type']} events "
+            f"{bars['min_per_source_type']} events "
             f"({shape['source_type']}): a set of one document type measures one "
             "collector, not the tracker")
 
+    # The sharp instrument. A single document type past half the set means one
+    # collector's own supply is most of the denominator, whatever the type
+    # count says.
+    type_ceiling = bars.get("max_source_type_share")
+    if type_ceiling is not None and total and shape["source_type"]:
+        kind, count = max(shape["source_type"].items(),
+                          key=lambda kv: (kv[1], kv[0]))
+        if count / total > type_ceiling:
+            problems.append(
+                f"{kind} is {count}/{total} ({count / total:.0%}) of the set: "
+                f"above the {type_ceiling:.0%} ceiling, so most of the "
+                f"denominator is one kind of document and the figure is that "
+                f"collector's figure")
+
     funding = [i for i in items if i.get("signal_type") == "funding"]
     undisclosed = [i for i in funding if not i.get("amount_usd")]
-    ceiling = REQUIRED_SHAPE["max_undisclosed_amount_share"]
-    if funding and len(undisclosed) / len(funding) > ceiling:
+    undisclosed_ceiling = bars["max_undisclosed_amount_share"]
+    if funding and len(undisclosed) / len(funding) > undisclosed_ceiling:
         problems.append(
             f"{len(undisclosed)}/{len(funding)} funding events have no amount "
-            f"({len(undisclosed) / len(funding):.0%}): above the {ceiling:.0%} "
-            "ceiling, so most of the set cannot be checked on the number")
+            f"({len(undisclosed) / len(funding):.0%}): above the "
+            f"{undisclosed_ceiling:.0%} ceiling, so most of the set cannot be "
+            "checked on the number")
 
-    problems.extend(_geography_problems(shape, total))
+    problems.extend(_geography_problems(shape, total, bars))
     return problems
 
 
-def breadth(shape: dict) -> dict:
+def breadth(shape: dict, bars: dict = REQUIRED_SHAPE) -> dict:
     """The four numbers the ratchet compares, in one place so that the guard and
-    the message can never describe a set two ways."""
-    by_country = shape["country"]
+    the message can never describe a set two ways.
+
+    The keys keep their worldwide names across both families. They are the
+    ratchet's own vocabulary rather than a claim about geography, and renaming
+    them per family would mean a stored breadth could not be compared with the
+    one beside it.
+    """
+    by_spread = shape[bars.get("spread_key", "country")]
     total = shape["total"] or 1
     return {
         "events": shape["total"],
-        "countries": len(by_country),
+        "countries": len(by_spread),
         "countries_with_repeats": sum(
-            1 for n in by_country.values()
-            if n >= REQUIRED_SHAPE["repeat_country_events"]),
-        "regions": sum(1 for key, n in regions(shape).items()
-                       if key and n >= REQUIRED_SHAPE["min_per_region"]),
-        "largest_country_share": (max(by_country.values()) / total
-                                  if by_country else 0.0),
+            1 for n in by_spread.values()
+            if n >= bars["repeat_country_events"]),
+        "regions": (sum(1 for key, n in regions(shape).items()
+                        if key and n >= bars["min_per_region"])
+                    if bars.get("regional") else 0),
+        "largest_country_share": (max(by_spread.values()) / total
+                                  if by_spread else 0.0),
     }
 
 
-def _ratchet_problems(data: dict, peers: list) -> list:
+def _ratchet_problems(data: dict, peers: list, bars: dict = REQUIRED_SHAPE) -> list:
     """A new set may not be narrower than the widest one already on disk.
 
     This is what makes the geographic guard a ratchet rather than a note asking
@@ -315,17 +510,18 @@ def _ratchet_problems(data: dict, peers: list) -> list:
     """
     if not peers:
         return []
-    mine = breadth(counts(data))
+    mine = breadth(counts(data), bars)
     best = {key: max(p[key] for p in peers)
             for key in ("events", "countries", "countries_with_repeats", "regions")}
     tightest = min(p["largest_country_share"] for p in peers)
 
+    spread_label = bars.get("spread_label", "countries")
     problems = []
     labels = {
         "events": "events",
-        "countries": "countries",
-        "countries_with_repeats": f"countries carrying "
-                                  f"{REQUIRED_SHAPE['repeat_country_events']}+ events",
+        "countries": spread_label,
+        "countries_with_repeats": f"{spread_label} carrying "
+                                  f"{bars['repeat_country_events']}+ events",
         "regions": "regions",
     }
     for key, was in best.items():
@@ -338,14 +534,16 @@ def _ratchet_problems(data: dict, peers: list) -> list:
                 f"reversible")
     if mine["largest_country_share"] > tightest + (1 - RATCHET_FLOOR):
         problems.append(
-            f"the largest country is {mine['largest_country_share']:.0%} of this "
+            f"the largest {bars.get('spread_singular', 'country')} is "
+            f"{mine['largest_country_share']:.0%} of this "
             f"set against {tightest:.0%} in the most evenly spread set on disk: "
             f"a concentration the ratchet does not allow back")
     return problems
 
 
 def peer_breadths(path: str, directory: str | None = None,
-                  assembled_on: str | None = None) -> list:
+                  assembled_on: str | None = None,
+                  shape: dict = REQUIRED_SHAPE) -> list:
     """The breadth of every set on disk assembled BEFORE this one.
 
     Strictly earlier, because a ratchet that looked at later sets would reach
@@ -370,7 +568,7 @@ def peer_breadths(path: str, directory: str | None = None,
         if assembled_on and not (when and when < assembled_on):
             continue
         try:
-            out.append(breadth(counts(peer)))
+            out.append(breadth(counts(peer), shape))
         except KeyError:
             continue
     return out
@@ -398,50 +596,66 @@ def regions(shape: dict) -> dict:
     return out
 
 
-def _geography_problems(shape: dict, total: int) -> list:
-    """Is the set actually global, or global-looking?
+def _geography_problems(shape: dict, total: int,
+                        bars: dict = REQUIRED_SHAPE) -> list:
+    """Is the set actually spread, or spread-looking?
 
     See REQUIRED_SHAPE for where each bar comes from. All three of these can be
     satisfied on paper by a set that is really one market, which is why they are
     three rules and not one.
+
+    Worldwide the spread dimension is the country and the third rule is the
+    project's region vocabulary. Inside one country it is the metro and there is
+    no third rule, so the region bar is set to zero rather than reinterpreted:
+    a guard that quietly changes meaning between families is a guard nobody can
+    read off the constant.
     """
     problems = []
-    by_country = shape["country"]
+    spread_key = bars.get("spread_key", "country")
+    spread_label = bars.get("spread_label", "countries")
+    singular = bars.get("spread_singular", "country")
+    by_spread = shape[spread_key]
 
-    repeats = [c for c, n in by_country.items()
-               if n >= REQUIRED_SHAPE["repeat_country_events"]]
-    if len(repeats) < REQUIRED_SHAPE["min_countries_with_repeats"]:
+    repeats = [c for c, n in by_spread.items()
+               if n >= bars["repeat_country_events"]]
+    if len(repeats) < bars["min_countries_with_repeats"]:
         problems.append(
-            f"only {len(repeats)} countries carry "
-            f"{REQUIRED_SHAPE['repeat_country_events']}+ events: below "
-            f"{REQUIRED_SHAPE['min_countries_with_repeats']}, so most of the "
-            "breadth is single events that cannot measure a country")
+            f"only {len(repeats)} {spread_label} carry "
+            f"{bars['repeat_country_events']}+ events: below "
+            f"{bars['min_countries_with_repeats']}, so most of the "
+            f"breadth is thin cells that cannot measure a {singular}")
 
-    if total and by_country:
-        biggest, count = max(by_country.items(), key=lambda kv: (kv[1], kv[0]))
+    if total and by_spread:
+        biggest, count = max(by_spread.items(), key=lambda kv: (kv[1], kv[0]))
         share = count / total
-        if share > REQUIRED_SHAPE["max_country_share"]:
+        if share > bars["max_country_share"]:
             problems.append(
                 f"{biggest} is {count}/{total} ({share:.0%}) of the set: above "
-                f"the {REQUIRED_SHAPE['max_country_share']:.0%} ceiling, so the "
-                "headline figure would be that one country's figure")
+                f"the {bars['max_country_share']:.0%} ceiling, so the "
+                f"headline figure would be that one {singular}'s figure")
 
-    per_region = {k: n for k, n in regions(shape).items()
-                  if k and n >= REQUIRED_SHAPE["min_per_region"]}
-    if per_region and len(per_region) < REQUIRED_SHAPE["min_regions"]:
-        problems.append(
-            f"only {len(per_region)} regions carry "
-            f"{REQUIRED_SHAPE['min_per_region']}+ events ({per_region}): below "
-            f"{REQUIRED_SHAPE['min_regions']}, so whole regions the tracker "
-            "claims to reach go unmeasured")
+    if bars.get("regional"):
+        per_region = {k: n for k, n in regions(shape).items()
+                      if k and n >= bars["min_per_region"]}
+        if per_region and len(per_region) < bars["min_regions"]:
+            problems.append(
+                f"only {len(per_region)} regions carry "
+                f"{bars['min_per_region']}+ events ({per_region}): below "
+                f"{bars['min_regions']}, so whole regions the tracker "
+                "claims to reach go unmeasured")
     return problems
 
 
 def counts(data: dict) -> dict:
-    """Shape of the gold set, for the method section of the public page."""
+    """Shape of the gold set, for the method section of the public page.
+
+    `metro` is counted only where an item declares one, so a worldwide set is
+    unaffected and its `metro` bucket stays empty rather than growing a column
+    of nulls.
+    """
     items = data.get("items", [])
     out = {"total": len(items), "signal_type": {}, "geography": {},
-           "country": {}, "source_type": {}, "size_band": {}}
+           "country": {}, "source_type": {}, "size_band": {}, "metro": {}}
     for item in items:
         for key, value in (
             ("signal_type", item["signal_type"]),
@@ -449,6 +663,16 @@ def counts(data: dict) -> dict:
             ("country", item["country"]),
             ("source_type", item["source_type"]),
             ("size_band", item["size_band"]),
+            ("metro", item.get("metro")),
         ):
+            if value is None:
+                continue
             out[key][value] = out[key].get(value, 0) + 1
     return out
+
+
+# Declared after both shapes exist, so `shape_for` can route a file to its bars
+# by the family it names. Anything unrecognised falls back to the worldwide
+# bars, which are the stricter ones: an unknown family must not be a way to be
+# judged by nothing.
+SHAPES = {"world": REQUIRED_SHAPE, "us": US_REQUIRED_SHAPE}

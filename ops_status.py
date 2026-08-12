@@ -10,6 +10,7 @@ Exit codes: 0 healthy | 2 something needs a human
 
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 import sys
@@ -60,6 +61,7 @@ def main() -> int:
     _report_coverage()
     _report_discovery()
     _report_rejection_audit()
+    problems += _report_recall(conn)
     problems += _report_landmarks(conn)
     problems += _report_published_figures()
     _report_surfaces()
@@ -74,6 +76,97 @@ def main() -> int:
 
     print("All clear.")
     return 0
+
+
+def _report_recall(conn) -> list[str]:
+    """What each measured population's latest recall figure actually says.
+
+    Read from the committed result files, offline. Two families now, so the one
+    thing this section must never do is print one number: a worldwide figure and
+    a United States figure are measurements of different populations against
+    different reference sets, and a session that read one as the other would
+    draw the wrong conclusion in both directions.
+
+    Every line carries the INTERVAL. The US set is 51 events wide, so its
+    headline resolves to about 26 points, and a session comparing this week's
+    41% with next week's 35% needs to see that those are the same number before
+    it goes looking for a regression that is not there.
+
+    PASS / FAIL / UNKNOWN are three states. A family whose results directory is
+    empty, or whose newest result cannot be read, is UNKNOWN and is an action
+    item: it means nothing has measured that population, which is exactly the
+    state this whole loop exists to make visible. It is never a pass.
+    """
+    print("\n[3e] MEASURED RECALL  (what we hold, against held-out reference sets)")
+    problems: list[str] = []
+    try:
+        from analysis.recall import family as families
+        from analysis.recall import stats, thresholds
+    except Exception as e:                                  # noqa: BLE001
+        print(f"    UNKNOWN — could not load the measurement ({e}). NOT a pass.")
+        return ["RECALL: the measurement could not be loaded (UNKNOWN, not a pass)"]
+
+    for fam in families.ALL:
+        results = thresholds.load_results(fam.results_dir)
+        if not results:
+            print(f"    UNKNOWN {fam.label}: no measurement has ever been recorded")
+            print(f"            python3 measure_recall.py --family {fam.id}")
+            problems.append(
+                f"RECALL {fam.label}: never measured (UNKNOWN, not a pass)")
+            continue
+
+        latest = results[-1]
+        overall = (latest.get("summary") or {}).get("overall") or {}
+        span = overall.get("held_interval")
+        if not span:
+            # A result from before the interval was published. Recomputed here
+            # from its own counts rather than left blank, using the same one
+            # function, so an old file reads like a new one.
+            span = stats.interval(overall.get("held") or 0, overall.get("total") or 0)
+
+        verdict = thresholds.evaluate(latest, history=results[:-1])
+        mark = {"PASS": "PASS   ", "FAIL": "FAIL   ",
+                "BASELINE": "BASELINE"}.get(verdict["verdict"], "UNKNOWN")
+        print(f"    {mark} {fam.label}: held {overall.get('held')}/"
+              f"{overall.get('total')} ({span['pct']}%), 95% interval "
+              f"{span['low_pct']} to {span['high_pct']}, "
+              f"measured {latest.get('measured_on')} against "
+              f"{(latest.get('goldset') or {}).get('version')}")
+
+        for gate in verdict["gates"]:
+            if gate["status"] == thresholds.FAIL:
+                print(f"            {gate['gate']}: {gate['detail']}")
+                problems.append(f"RECALL {fam.label}: {gate['gate']} FAILED")
+
+        # The cell breakdown is the work list, so the worst cell is named here
+        # rather than left in a JSON file somebody has to open.
+        group = "by_metro" if "by_metro" in (latest.get("summary") or {}) \
+            else "by_source_type"
+        cells = (latest.get("summary") or {}).get(group) or {}
+        ranked = sorted((c for c in cells.items() if c[1]["total"] >= 4),
+                        key=lambda kv: kv[1]["held_pct"] or 0)
+        if ranked:
+            key, cell = ranked[0]
+            print(f"            weakest {group.replace('by_', '')}: {key}, "
+                  f"held {cell['held']}/{cell['total']} ({cell['held_pct']}%)")
+
+        # A set that has aged out or converged is still being measured, and a
+        # measurement against a converged set measures memory. The run itself
+        # says so; this repeats it where a session actually looks.
+        worklist = ROOT / "data" / (
+            "recall_worklist.json" if fam.is_default
+            else f"recall_{fam.id}_worklist.json")
+        try:
+            due = json.loads(worklist.read_text())["next_goldset"]
+        except Exception:                                   # noqa: BLE001
+            continue
+        if due.get("due"):
+            print(f"            NEW REFERENCE SET DUE: {due['reason']}")
+            problems.append(
+                f"RECALL {fam.label}: a fresh reference set is due, and until "
+                f"one lands the figure measures memory rather than reach")
+
+    return problems
 
 
 def _report_published_figures() -> list[str]:
