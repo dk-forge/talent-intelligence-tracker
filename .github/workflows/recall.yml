@@ -113,10 +113,16 @@ jobs:
       # corpus the measurement just scored, and never fatal -- an audit that
       # failed is a lost diagnosis, while a failed step here would throw away
       # the recall measurement that is the point of the job.
+      # One per family, because the answer differs by family: the worldwide
+      # misses are spread across publishers with no feed, and the US ones are
+      # almost entirely days a rationed walker has already finished. Auditing
+      # only the worldwide set would have said nothing about either.
       - name: Audit why the misses are misses
         if: ${{ always() }}
         continue-on-error: true
-        run: python -m analysis.recall.rejection_audit --write
+        run: |
+          python -m analysis.recall.rejection_audit --family world --write
+          python -m analysis.recall.rejection_audit --family us --write
 
       # Push the run into the site's health ledger so the health page shows the
       # measurement's own state. Never fatal: a stale health timestamp is a much
@@ -154,7 +160,7 @@ jobs:
           db=data/talent_intel.db
           # Snapshot files, copied back whole. The database is handled separately
           # below because it is the one thing here that merges.
-          paths="analysis/recall/results analysis/recall/us/results data/recall_worklist.json data/recall_us_worklist.json data/recall_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json wordpress-plugin/talent-intelligence-tracker/data/recall-us.json"
+          paths="analysis/recall/results analysis/recall/us/results data/recall_worklist.json data/recall_us_worklist.json data/recall_rejection_audit.json data/recall_us_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json wordpress-plugin/talent-intelligence-tracker/data/recall-us.json"
           git add $paths $db 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change to commit."
