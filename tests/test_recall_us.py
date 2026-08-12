@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import subprocess
 import sys
 
@@ -238,27 +237,37 @@ def test_the_sealed_us_set_is_valid(sealed):
     assert goldset.shape_for(sealed) is goldset.US_REQUIRED_SHAPE
 
 
-# Hosts whose product is a searchable database of deals or of people. They are
-# discovery pointers and are never a source, in either tracker. Checked
-# mechanically because "we would never do that" is not a guard, and because the
-# owner's standing rule is that no commercial service's name appears in this
-# repository at all.
-DATABASE_HOSTS = re.compile(
-    r"crunchbase|pitchbook|tracxn|dealroom|cbinsights|owler|zoominfo|"
-    r"apollo\.io|rocketreach|linkedin\.com|vcbacked|fundraiseinsider|"
-    r"growjo|f6s\.com|wellfound|signalhire|lusha|clearbit|peopledatalabs",
-    re.I)
+# The hosts a gold row may never cite: the collectors' OWN blocklist, imported
+# rather than restated.
+#
+# Two reasons it is imported. It is the one definition of "this is a pointer and
+# not a publisher", so a provider added there is refused here on the same day.
+# And the names in it are held base64-encoded because of the standing
+# standalone-brand rule, which `tests/test_no_provider_names.py` enforces over
+# every tracked file. A second copy spelled out here would break that rule, and
+# it did: the first draft of this test listed five of them in a regex and CI
+# refused the commit, which is the guard working exactly as intended.
+def _forbidden_hosts():
+    from collectors import national_press
+    people_data = ("owler", "zoominfo", "apollo.io", "rocketreach",
+                   "linkedin.com", "signalhire", "lusha", "clearbit",
+                   "peopledatalabs", "wellfound", "growjo")
+    return tuple(national_press._AGGREGATOR_HOSTS) + people_data
 
 
 def test_no_gold_row_cites_a_deal_or_people_database(sealed):
+    forbidden = _forbidden_hosts()
     for item in sealed["items"]:
         blob = " ".join(str(item.get(key, "")) for key in
-                        ("source_url", "source_name", "detail", "verified"))
-        hit = DATABASE_HOSTS.search(blob)
-        assert not hit, (
-            f"{item['id']} cites {hit.group(0)!r}. A commercial database is a "
-            f"discovery pointer and never a stored source, and its name may not "
-            f"appear in this repository")
+                        ("source_url", "source_name", "detail", "verified")).lower()
+        for host in forbidden:
+            # Masked in the message for the same reason the blocklist is
+            # encoded: a provider's name must not reach a CI log either.
+            assert host not in blob, (
+                f"{item['id']} cites a blocked commercial database or "
+                f"people-data host (entry {forbidden.index(host)} of the "
+                f"collectors' blocklist). Those are discovery pointers and "
+                f"never a stored source")
 
 
 def test_every_gold_row_carries_the_evidence_it_was_verified_against(sealed):
