@@ -86,8 +86,14 @@ class OpsStatusPrintsIt(unittest.TestCase):
         out = subprocess.run([sys.executable, str(OPS)], cwd=ROOT,
                              capture_output=True, text=True).stdout
         if int(stages.get("fetched_then_dropped") or 0) == 0:
-            self.assertIn("no filter has ever rejected a gold event", out)
-            self.assertIn("young, not leaky", out)
+            # The sentence used to end "the corpus is young, not leaky". That
+            # was the 2026-07-29 diagnosis and it stopped being true when the
+            # audit learned to read the walkers' cursors: most of what looked
+            # like a young corpus is days a rationed walker has since FINISHED.
+            # The zero itself has not moved and is still the point, so what is
+            # read aloud is the zero rather than a diagnosis that has.
+            self.assertIn("no filter rejected a gold event in this set", out)
+            self.assertIn("it is not the filters", out)
 
     def test_every_percentage_is_computed_from_the_file(self):
         if not AUDIT_JSON.exists():

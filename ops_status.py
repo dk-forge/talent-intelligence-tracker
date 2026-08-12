@@ -1519,34 +1519,61 @@ def _report_rejection_audit() -> None:
 
         fetched_then_dropped = 0
 
-    Not one gold event has ever been fetched and then rejected by a filter. The
-    prefilter, the gate, the vocabularies and the guards are not what is losing
-    coverage — and "our filters are too aggressive" is the intuitive diagnosis
-    that this measurement refutes. Meanwhile the largest bucket by a distance is
-    `outside_our_history`: events that predate the collector that would have
-    caught them. That is a YOUNG CORPUS, not a leaky one, and it is fixed by
-    backfilling rather than by loosening anything.
+    Almost no gold event has ever been fetched and then rejected by a filter.
+    The prefilter, the gate, the vocabularies and the guards are not what is
+    losing coverage — and "our filters are too aggressive" is the intuitive
+    diagnosis that this measurement refutes.
 
-    So this section prints the four causes with what each one means you should
-    DO. It is deliberately not an ACTION NEEDED item: a young corpus is not a
-    fault, and a permanent red on a number that only time can move would train
-    the next session to ignore the exit code.
+    WHAT THE LARGEST BUCKET IS HAS CHANGED ONCE, and the change is the reason
+    to keep reading this section rather than remembering it. Until the
+    historical walkers ran it was `outside_our_history`: events that predate
+    the collector that would have caught them, a YOUNG CORPUS rather than a
+    leaky one. Since 2026-08-12 the audit reads the walkers' committed cursors
+    too, and most of those events turn out to fall on days a walker has since
+    FINISHED. That is `walked_never_read`, and it is a different bill: the day
+    was swept at whatever depth its ration bought, so dispatching more slices
+    walks past the same events again and only depth closes them.
+
+    So this section prints the causes with what each one means you should DO,
+    for every reference set that has an audit. It is deliberately not an ACTION
+    NEEDED item: a rationed walk is the designed behaviour at this ceiling, and
+    a permanent red on the budget would train the next session to ignore the
+    exit code.
     """
     import json
 
-    path = ROOT / "data" / "recall_rejection_audit.json"
     print("\n[3c] WHY WE MISS WHAT WE MISS  (the feed roadmap, from the gold set)")
 
-    if not path.exists():
-        print("    No audit yet. It is produced beside the recall measurement:")
-        print("      python -m analysis.recall.rejection_audit")
-        return
     try:
-        data = json.loads(path.read_text())
-    except ValueError:
-        print("    Audit file is unreadable. Re-run analysis/recall/rejection_audit.py.")
-        return
+        from analysis.recall import family as families
+        from analysis.recall.rejection_audit import out_path_for
+        paths = [(f.label, out_path_for(f)) for f in families.ALL]
+    except Exception:                                # pragma: no cover
+        paths = [("Worldwide", ROOT / "data" / "recall_rejection_audit.json")]
 
+    printed = False
+    for label, path in paths:
+        # A family with no audit file is skipped rather than reported empty.
+        # The worldwide one is the historical file every earlier session read;
+        # a second family that has never been audited must not make this
+        # section look like the first one has gone missing.
+        if not path.exists():
+            continue
+        printed = True
+        if len(paths) > 1:
+            print(f"    -- {label} --")
+        try:
+            _print_one_rejection_audit(json.loads(path.read_text()))
+        except ValueError:
+            print("    Audit file is unreadable. Re-run "
+                  "analysis/recall/rejection_audit.py.")
+    if not printed:
+        print("    No audit yet. It is produced beside the recall measurement:")
+        print("      python -m analysis.recall.rejection_audit [--family us]")
+
+
+def _print_one_rejection_audit(data: dict) -> None:
+    """One family's block, so the section can carry more than one."""
     stages = data.get("stages") or {}
     misses = int(data.get("misses") or 0)
     gold = int(data.get("gold_events") or 0)
@@ -1562,6 +1589,9 @@ def _report_rejection_audit() -> None:
          "a filter rejected it", "LOOSEN something — this is the only bucket that means that"),
         ("outside_our_history",
          "older than the collector", "BACKFILL. Not filters, not sources"),
+        ("walked_never_read",
+         "a walker finished this day", "DEPTH, which is money. Dispatching more "
+         "slices walks past these again"),
         ("publisher_not_wired",
          "researched, not connected", "wire the feed that is already in the catalogue"),
         ("publisher_unknown",
@@ -1578,8 +1608,8 @@ def _report_rejection_audit() -> None:
 
     dropped = int(stages.get("fetched_then_dropped") or 0)
     if dropped == 0:
-        print("    READ THE ZERO: no filter has ever rejected a gold event. The "
-              "corpus is young, not leaky.")
+        print("    READ THE ZERO: no filter rejected a gold event in this set. "
+              "Whatever is losing coverage, it is not the filters.")
 
     split = data.get("split") or {}
     if split:

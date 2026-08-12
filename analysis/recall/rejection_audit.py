@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Where the recall misses died: a filter problem, or a source problem?
 
-    python3 -m analysis.recall.rejection_audit            # print the funnel
-    python3 -m analysis.recall.rejection_audit --write    # ...and update data/
+    python3 -m analysis.recall.rejection_audit               # print the funnel
+    python3 -m analysis.recall.rejection_audit --write       # ...and update data/
+    python3 -m analysis.recall.rejection_audit --family us   # a different population
 
 `measure_recall.py` says we hold 8 of 89 gold events. It does not say whether
 the other 81 were in a feed we read and got dropped, or were never in any feed
@@ -27,13 +28,20 @@ WHAT DECIDES EACH VERDICT, in order, first match wins:
                          not `stored`. The pipeline saw this document and let it
                          go: keyword gate, gate model, extraction, validate or
                          dedupe. THE FILTER ANSWER.
-  outside_our_history    we were not collecting when this was publishable. Every
-                         news route has a reach — a run date minus a recency
-                         window — and this event predates all of them. Neither a
-                         filter problem nor a source problem: a HISTORY problem,
-                         whose fix is a backfill, and it is reported first
-                         because it is not one of the two answers anybody asked
-                         for and it is the biggest bucket.
+  outside_our_history    we were not collecting when this was publishable, and
+                         no historical walker has reached back to it since.
+                         Every news route has a reach — a run date minus a
+                         recency window — and this event predates all of them.
+                         Neither a filter problem nor a source problem: a
+                         HISTORY problem, whose fix is to dispatch slices.
+  walked_never_read      outside every LIVE route's reach, but a historical
+                         walker's cursor has since finished this day. That walk
+                         was rationed, so the day was swept at a fraction of
+                         its depth and the event was available to us and never
+                         looked at. Not a history problem: more slices walk
+                         past it again. THE BUDGET ANSWER, and since the
+                         walkers started it is the biggest bucket in both
+                         families.
   feed_read_item_missed  a route was already reaching this far back, the
                          publisher's own feed is one we sweep, and the article
                          never arrived. Each item names the routes that were
@@ -48,18 +56,22 @@ WHAT DECIDES EACH VERDICT, in order, first match wins:
   publisher_unknown      the publisher is not in the catalogue at all. THE
                          SOURCE ANSWER.
 
-WHAT THIS CANNOT DO. It cannot say WHY a fetched document was dropped: no
-rejection reason is persisted anywhere, only the URL and the word `rejected`.
-And it cannot see a document that a feed carried and a run never reached,
-because nothing records the items a collector skipped. Both limits push in the
-same direction — they can only understate the filter side — so the verdict at
-the bottom is stated with that asymmetry named.
+WHAT THIS CANNOT DO. It cannot see a document that a feed carried and a run
+never reached, because nothing records the items a collector skipped. It cannot
+say that a walker which finished a day WOULD have surfaced a given event, only
+that the day is finished and was swept at the ration's depth. And it can only
+attribute a fetched-and-dropped item as far back as 2026-08-01, which is when
+`pipeline/gate_ledger.py` began recording a per-candidate outcome; before that
+`seen_urls` holds a URL and the word `rejected` and nothing else. Every one of
+those limits pushes the same way — they can only understate the filter side —
+so the verdict at the bottom is stated with that asymmetry named.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import sqlite3
 import sys
@@ -72,11 +84,25 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 DEFAULT_DB = ROOT / "data" / "talent_intel.db"
 CATALOGUE = ROOT / "data" / "sources_catalogue.csv"
+BACKFILL_STATE = ROOT / "data" / "backfill_state.json"
+GATE_LABELS = ROOT / "data" / "gate_labels"
 RESULTS_DIR = HERE / "results"
 # Beside data/recall_worklist.json, produced the same way and for the same
 # reason: a measurement that only produces a number is a report, one that
 # produces a work list is a loop.
 OUT_PATH = ROOT / "data" / "recall_rejection_audit.json"
+
+
+def out_path_for(family) -> Path:
+    """One audit file per family, beside that family's own work list.
+
+    A US audit written over the worldwide one would delete the country roadmap
+    that `ops_status [3c]` reads, for the same reason
+    `measure_recall.worklist_path` is per-family.
+    """
+    suffix = "" if family.is_default else f"_{family.id}"
+    return ROOT / "data" / f"recall{suffix}_rejection_audit.json"
+
 
 # --- how far back each route could ever see ---------------------------------
 #
@@ -95,6 +121,27 @@ OUT_PATH = ROOT / "data" / "recall_rejection_audit.json"
 #   gdelt            15 minutes to a few days; treated as national_press.
 ROUTE_WINDOW_DAYS = {"google_news": 7, "news_backstop": 21, "gdelt": 3}
 DEFAULT_FEED_BACKLOG_DAYS = 3
+
+# --- and how far back a HISTORICAL WALKER has actually got -------------------
+#
+# The live windows above are the whole story only for a tracker that has never
+# run a backfill, which stopped being true on 2026-07-30. A walker's cursor is
+# a fact on disk (`data/backfill_state.json`), so "we were not collecting yet"
+# has to be read off it rather than off the first live run, or a day a walker
+# finished a week ago is still reported as beyond our reach.
+#
+# It changes the ANSWER and not just the arithmetic. A date no route has
+# reached is a HISTORY problem whose fix is to dispatch more slices. A date a
+# walker HAS passed is not: that walk was rationed — `backfill_gnews_2026`
+# gates `DAILY_GATE_RATION` candidates of a measured ~395 a day and prints the
+# rest as `left_for_later` — so the day was swept at a fraction of its depth
+# and the fix is depth, which is money. Reporting the second as the first sends
+# the owner to dispatch slices that will walk past the same events again.
+WALKER_ROUTES = {
+    "backfill-gnews-2026": "google_news",
+    "backfill-gdelt-2026": "gdelt",
+    "backfill-press-2026": "press_archive",
+}
 
 # Countries whose press is reached by search rather than by a named feed. Read
 # from the catalogue's `feed_role` column, the same field news_backstop reads.
@@ -207,6 +254,89 @@ def load_seen(db: Path) -> tuple[dict, Counter, dict]:
         conn.close()
 
 
+def load_walked(path: Path = BACKFILL_STATE) -> dict:
+    """{route: the last event date a historical walker has finished}.
+
+    Read off the committed cursors, never guessed. A `days` job's cursor is the
+    NEXT day to walk, so it is finished through the day before; a job whose
+    state is `done` is finished through its declared end. A job whose unit is
+    not days carries its window on `inputs` instead — `backfill_press_2026`
+    walks the publisher ROSTER and takes the date range as a fixed input,
+    because a sitemap costs the same fetch for one day as for six months — and
+    it counts only once the roster pass is `done`, since a half-walked roster
+    has not covered the window for anybody.
+
+    Missing file, unknown job or unparseable cursor all return nothing for that
+    route. Absence of a walker record is not evidence that a day was walked.
+    """
+    walked: dict[str, date] = {}
+    try:
+        jobs = json.loads(path.read_text()).get("jobs") or {}
+    except (OSError, ValueError):
+        return walked
+    for key, job in jobs.items():
+        route = WALKER_ROUTES.get(str(key).split(":", 1)[0])
+        if not route:
+            continue
+        if (job.get("unit") or "") == "days":
+            through = (_as_date(job.get("end")) if job.get("state") == "done"
+                       else _shift(_as_date(job.get("cursor")), -1))
+        elif job.get("state") == "done":
+            through = _as_date((job.get("inputs") or {}).get("end"))
+        else:
+            through = None
+        if through and through > walked.get(route, date.min):
+            walked[route] = through
+    return walked
+
+
+def _shift(day: date | None, days: int) -> date | None:
+    return None if day is None else day + timedelta(days=days)
+
+
+def load_gate_outcomes(directory: Path = GATE_LABELS) -> dict:
+    """{url key: (outcome, reason)} from the gate ledger's own shards.
+
+    This module's oldest stated limit is that a fetched-and-dropped item cannot
+    be attributed: `seen_urls` holds a URL and the word `rejected`, and the
+    prefilter, the gate model, `validate.precheck`, `validate.build_signal` and
+    the dedupe layers all write exactly that. `pipeline/gate_ledger.py` records
+    a per-candidate outcome, and since it learned to carry `reason` it records
+    the rule too — and its `key()` is a sha1 of the same URL `seen_urls`
+    deduplicates on, so the join needs nothing new on either side.
+
+    It is a strict improvement and never a substitute: the ledger began on
+    2026-08-01 and nothing before that is in it, so a miss with no line here
+    stays exactly as attributable as it was, which is not at all.
+    """
+    out: dict[str, tuple[str, str]] = {}
+    if not directory.is_dir():
+        return out
+    for shard in sorted(directory.glob("*.jsonl")):
+        try:
+            text = shard.read_text()
+        except OSError:                              # pragma: no cover
+            continue
+        for line in text.splitlines():
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            # A later line for the same key supersedes an earlier one: a
+            # deferred candidate is gated again on a later run and writes a
+            # second line, and the last terminal outcome is the real one.
+            if row.get("key") and row.get("outcome"):
+                out[row["key"]] = (row["outcome"], row.get("reason") or "")
+    return out
+
+
+def url_key(url: str) -> str:
+    """`gate_ledger.key()` for a URL. Duplicated rather than imported so this
+    module stays a leaf with no pipeline import chain, exactly as `match.py`
+    duplicates the company-key rule."""
+    return hashlib.sha1((url or "").encode("utf-8", "replace")).hexdigest()[:16]
+
+
 def load_cited(db: Path) -> dict:
     """{source_url: is_current} for every row we hold, current or superseded."""
     conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
@@ -264,7 +394,8 @@ def reach_start(item: dict, first_run: dict, backstop_countries: set,
 
 def classify_miss(item: dict, *, seen: dict, cited: dict, catalogue: dict,
                   by_domain: Counter, first_run: dict,
-                  feed_backlog_days: int) -> dict:
+                  feed_backlog_days: int, walked: dict | None = None,
+                  gate_outcomes: dict | None = None) -> dict:
     """One gold miss, placed in the funnel. Pure: no I/O, no clock."""
     url = item.get("source_url") or ""
     domain = domain_of(url)
@@ -289,6 +420,21 @@ def classify_miss(item: dict, *, seen: dict, cited: dict, catalogue: dict,
         out["stage"] = "fetched_then_dropped"
         out["dropped_by"] = collector
         out["outcome"] = outcome
+        # The gate ledger keys on a hash of this same URL, so if it saw this
+        # candidate it can name the stage that refused it and, where the
+        # refusing code passed one, the rule. A miss the ledger never saw
+        # carries nothing here rather than a guess.
+        # A ledger line that only repeats the seen_urls verdict is not an
+        # attribution and must not read like one. `bootstrap_gate_labels.py`
+        # back-filled the ledger FROM seen_urls to give the classifier a weak
+        # training set, so those lines say `rejected` and nothing more; echoing
+        # them as `dropped_at: rejected` would dress the oldest limit in this
+        # module up as an answer.
+        stage, reason = (gate_outcomes or {}).get(url_key(url)) or ("", "")
+        if stage and stage != outcome:
+            out["dropped_at"] = stage
+            if reason:
+                out["dropped_because"] = reason
         return out
 
     event = _as_date(item.get("event_date"))
@@ -301,8 +447,29 @@ def classify_miss(item: dict, *, seen: dict, cited: dict, catalogue: dict,
         name for start, name in routes_for(
             item, first_run, catalogue["backstop_countries"], feed_backlog_days)
         if event and start <= event)
+    # Historical walkers that have already finished this day. Named, because
+    # "the gnews walker passed this date on a 9.4% ration" and "nothing has
+    # been here" are different findings with different bills.
+    #
+    # `press_archive` is the one walker with a ROSTER rather than a query: it
+    # reads the sitemaps of the publishers in the catalogue and nobody else's,
+    # so a publisher the catalogue has never heard of is outside its reach as a
+    # matter of fact and not of guesswork. Google News and GDELT are searches
+    # and carry no such restriction.
+    out["walkers_past_this_date"] = sorted(
+        route_name for route_name, through in (walked or {}).items()
+        if event and event <= through
+        and (route_name != "press_archive" or domain in catalogue["known"]))
+
     if event and earliest and event < earliest:
-        out["stage"] = "outside_our_history"
+        if out["walkers_past_this_date"]:
+            # A walker has swept this day. It swept it at whatever depth its
+            # ration bought, so the event was available to us and was not
+            # looked at. That is a budget finding, and dispatching more slices
+            # will walk straight past it again.
+            out["stage"] = "walked_never_read"
+        else:
+            out["stage"] = "outside_our_history"
         out["earliest_reachable"] = earliest.isoformat()
         out["widest_route"] = route
         return out
@@ -323,25 +490,36 @@ ANSWER = {
     "stored_not_current": "neither — held, then superseded",
     "fetched_then_dropped": "filter",
     "outside_our_history": "history — backfill, not filters and not sources",
+    "walked_never_read": "budget — a walker swept this day at a fraction of "
+                         "its depth",
     "feed_read_item_missed": "filter (plumbing: feed depth, run cadence)",
     "publisher_not_wired": "source (researched, not connected)",
     "publisher_unknown": "source (not researched)",
 }
 
 STAGE_ORDER = ("stored_unmatched", "stored_not_current", "fetched_then_dropped",
-               "outside_our_history", "feed_read_item_missed",
-               "publisher_not_wired", "publisher_unknown")
+               "outside_our_history", "walked_never_read",
+               "feed_read_item_missed", "publisher_not_wired",
+               "publisher_unknown")
 
 
 def audit(result: dict, *, seen: dict, cited: dict, catalogue: dict,
           by_domain: Counter, first_run: dict,
-          feed_backlog_days: int = DEFAULT_FEED_BACKLOG_DAYS) -> dict:
+          feed_backlog_days: int = DEFAULT_FEED_BACKLOG_DAYS,
+          walked: dict | None = None, gate_outcomes: dict | None = None,
+          cells: dict | None = None, cell_label: str = "") -> dict:
     items = result.get("items") or []
     misses = [i for i in items if i.get("verdict") == "MISSED"]
     placed = [classify_miss(i, seen=seen, cited=cited, catalogue=catalogue,
                             by_domain=by_domain, first_run=first_run,
-                            feed_backlog_days=feed_backlog_days)
+                            feed_backlog_days=feed_backlog_days, walked=walked,
+                            gate_outcomes=gate_outcomes)
               for i in misses]
+    # The cell a miss belongs to, joined from the gold set by id. The result
+    # file carries the verdicts and not the breakdown dimension, and a US
+    # audit broken out `by_country` is one row saying US.
+    for p in placed:
+        p["cell"] = (cells or {}).get(p["id"])
     stages = Counter(p["stage"] for p in placed)
 
     filter_side = sum(stages[s] for s in
@@ -349,6 +527,7 @@ def audit(result: dict, *, seen: dict, cited: dict, catalogue: dict,
     source_side = sum(stages[s] for s in
                       ("publisher_not_wired", "publisher_unknown"))
     history = stages["outside_our_history"]
+    budget = stages["walked_never_read"]
 
     # Sensitivity: the only judgement call in the whole funnel is how many days
     # of backlog a publisher's RSS holds. Printed at four settings so a reader
@@ -362,10 +541,12 @@ def audit(result: dict, *, seen: dict, cited: dict, catalogue: dict,
         counts = Counter(
             classify_miss(i, seen=seen, cited=cited, catalogue=catalogue,
                           by_domain=by_domain, first_run=first_run,
-                          feed_backlog_days=days)["stage"]
+                          feed_backlog_days=days, walked=walked,
+                          gate_outcomes=gate_outcomes)["stage"]
             for i in misses)
         sensitivity[str(days)] = {
             "outside_our_history": counts["outside_our_history"],
+            "walked_never_read": counts["walked_never_read"],
             "feed_read_item_missed": counts["feed_read_item_missed"],
             "publisher_not_wired": counts["publisher_not_wired"],
             "publisher_unknown": counts["publisher_unknown"],
@@ -387,16 +568,23 @@ def audit(result: dict, *, seen: dict, cited: dict, catalogue: dict,
         "gold_countries_on_the_backstop_route": sorted(
             {i.get("country") for i in misses} & catalogue["backstop_countries"]),
         "first_run": {k: v.isoformat() for k, v in sorted(first_run.items())},
+        "walked_through": {k: v.isoformat()
+                           for k, v in sorted((walked or {}).items())},
         "stages": {s: stages[s] for s in STAGE_ORDER},
         "answers": {s: ANSWER[s] for s in STAGE_ORDER},
         "split": {"filter": filter_side, "source": source_side,
-                  "history": history,
+                  "history": history, "budget": budget,
                   "neither": stages["stored_unmatched"] + stages["stored_not_current"]},
         "sensitivity_to_feed_backlog_days": sensitivity,
         "by_country": {
             country: dict(Counter(p["stage"] for p in placed
                                   if p["country"] == country))
             for country in sorted({p["country"] for p in placed})
+        },
+        "cell_label": cell_label,
+        "by_cell": {
+            cell: dict(Counter(p["stage"] for p in placed if p["cell"] == cell))
+            for cell in sorted({p["cell"] for p in placed if p["cell"]})
         },
         "unwired_publishers": [
             {"domain": d, "misses": n, "publisher": catalogue["known"].get(d, "")}
@@ -412,14 +600,20 @@ def audit(result: dict, *, seen: dict, cited: dict, catalogue: dict,
         "items": placed,
         "verdict": verdict(stages, len(misses)),
         "limits": [
-            "No rejection reason is persisted: seen_urls holds a URL and the "
-            "word 'rejected'. A fetched-and-dropped item cannot be attributed "
-            "to the keyword gate, the gate model, extraction, validate or "
-            "dedupe.",
+            "A fetched-and-dropped item can be attributed only as far back as "
+            "2026-08-01, when pipeline/gate_ledger.py began recording a "
+            "per-candidate outcome. Before that seen_urls holds a URL and the "
+            "word 'rejected', and the keyword gate, the gate model, "
+            "extraction, validate and dedupe all write exactly that.",
             "Nothing records the items a feed carried and a run did not reach, "
             "so 'feed_read_item_missed' is inferred from the publisher being "
             "swept, not observed.",
             "Both limits can only UNDERSTATE the filter side.",
+            "'walked_never_read' says a walker's cursor is past this day. It "
+            "does not say the walker's query set would have surfaced this "
+            "event, only that the day was swept at the ration's depth and the "
+            "day is finished. The fix it points at is depth, and depth is "
+            "money.",
             "The gold set's own answers were never consulted to decide which "
             "publishers we sweep: the feed list comes from "
             "data/sources_catalogue.csv, which predates this measurement.",
@@ -435,6 +629,18 @@ def verdict(stages: Counter, misses: int) -> str:
     dropped = stages["fetched_then_dropped"]
     source = stages["publisher_not_wired"] + stages["publisher_unknown"]
     plumbing = stages["feed_read_item_missed"]
+    budget = stages["walked_never_read"]
+    if budget >= misses / 2:
+        return (
+            f"BUDGET, not sources: {budget} of {misses} misses fall on days a "
+            f"historical walker has already finished, so the event was "
+            f"available to us and the ration did not reach it. Only {source} "
+            f"are publishers no collector reads and only {history} predate "
+            f"every route. HIGH confidence that the day was walked, since a "
+            f"cursor is a fact on disk. MEDIUM that a deeper walk would hold "
+            f"the event: nothing records which candidates a rationed day left "
+            f"behind, so this names the stage and not the outcome."
+        )
     if history >= misses / 2:
         return (
             f"NEITHER, yet: {history} of {misses} misses predate the day any "
@@ -457,34 +663,63 @@ def verdict(stages: Counter, misses: int) -> str:
 
 # --- the runner --------------------------------------------------------------
 
-def build(db: Path, feed_backlog_days: int) -> dict:
+def cells_for(family) -> tuple[dict, str]:
+    """{gold id: the cell it belongs to} for whichever dimension this family
+    breaks out over, plus that dimension's label. Empty when the set carries
+    no such field, which is how the worldwide family behaves."""
+    try:
+        data = json.loads(Path(family.latest_goldset()).read_text())
+    except (OSError, ValueError, SystemExit):
+        return {}, ""
+    key = family.spread_key
+    return ({i["id"]: i.get(key) for i in data.get("items") or []
+             if i.get(key)}, family.spread_label)
+
+
+def build(db: Path, feed_backlog_days: int, family=None) -> dict:
+    from analysis.recall import family as families
+    family = family or families.DEFAULT
     seen, by_domain, first_run = load_seen(db)
-    return audit(latest_result(), seen=seen, cited=load_cited(db),
-                 catalogue=load_catalogue(), by_domain=by_domain,
-                 first_run=first_run, feed_backlog_days=feed_backlog_days)
+    cells, cell_label = cells_for(family)
+    return audit(latest_result(Path(family.results_dir)), seen=seen,
+                 cited=load_cited(db), catalogue=load_catalogue(),
+                 by_domain=by_domain, first_run=first_run,
+                 feed_backlog_days=feed_backlog_days, walked=load_walked(),
+                 gate_outcomes=load_gate_outcomes(),
+                 cells=cells, cell_label=cell_label)
 
 
 def main(argv=None) -> int:
+    from analysis.recall import family as families
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--db", type=Path, default=DEFAULT_DB)
+    ap.add_argument("--family", default=families.DEFAULT.id,
+                    choices=sorted(families.BY_ID),
+                    help="which reference set's misses to explain")
     ap.add_argument("--feed-backlog-days", type=int,
                     default=DEFAULT_FEED_BACKLOG_DAYS)
     ap.add_argument("--write", action="store_true",
-                    help=f"write {OUT_PATH.relative_to(ROOT)}")
+                    help="write data/recall[_<family>]_rejection_audit.json")
     ap.add_argument("--examples", type=int, default=6)
     args = ap.parse_args(argv)
 
     if not args.db.exists():
         print(f"no database at {args.db}", file=sys.stderr)
         return 2
-    out = build(args.db, args.feed_backlog_days)
+    family = families.by_id(args.family)
+    out_path = out_path_for(family)
+    out = build(args.db, args.feed_backlog_days, family)
+    print(f"reference set: {family.label}")
 
     print(f"gold set {out['goldset_version']}, measured {out['measured_on']}: "
           f"{out['misses']} misses of {out['gold_events']} events")
     print(f"catalogue {out['catalogue_rows']} rows, {out['feeds_swept']} "
           f"publisher domains swept by feed")
     print("first run: " + ", ".join(f"{k} {v}" for k, v in out["first_run"].items()))
+    if out["walked_through"]:
+        print("historical walkers finished through: " + ", ".join(
+            f"{k} {v}" for k, v in out["walked_through"].items()))
     print()
     width = max(len(s) for s in STAGE_ORDER)
     for stage in STAGE_ORDER:
@@ -494,11 +729,19 @@ def main(argv=None) -> int:
     print()
     split = out["split"]
     print(f"  filter {split['filter']}   source {split['source']}   "
-          f"history {split['history']}   neither {split['neither']}")
+          f"history {split['history']}   budget {split['budget']}   "
+          f"neither {split['neither']}")
     print()
+    if out["by_cell"]:
+        print(f"by {out['cell_label']}:")
+        for cell, counts in out["by_cell"].items():
+            print(f"  {cell:<18} " + ", ".join(
+                f"{k} {v}" for k, v in sorted(counts.items())))
+        print()
     print("sensitivity to the one guess (days of RSS backlog a publisher holds):")
     for days, counts in out["sensitivity_to_feed_backlog_days"].items():
         print(f"  {days:>2}d -> history {counts['outside_our_history']}, "
+              f"walked-not-read {counts['walked_never_read']}, "
               f"feed-read {counts['feed_read_item_missed']}, "
               f"not-wired {counts['publisher_not_wired']}, "
               f"unknown {counts['publisher_unknown']}")
@@ -517,11 +760,11 @@ def main(argv=None) -> int:
         print(f"  limit: {line}")
 
     if args.write:
-        OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with OUT_PATH.open("w", encoding="utf-8") as fh:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with out_path.open("w", encoding="utf-8") as fh:
             json.dump(out, fh, indent=1)
             fh.write("\n")
-        print(f"\nwrote {OUT_PATH}")
+        print(f"\nwrote {out_path}")
     return 0
 
 
