@@ -47,6 +47,10 @@ def _point(result: dict) -> dict:
         "by_geography": summary.get("by_geography", {}),
         "by_source_type": summary.get("by_source_type", {}),
         "by_country": summary.get("by_country", {}),
+        # Present only on the US family's results, and absent rather than empty
+        # elsewhere, so a trend line for a metro cannot be drawn through the
+        # months before metros existed.
+        **({"by_metro": summary["by_metro"]} if "by_metro" in summary else {}),
         "defects": summary.get("defects", {}),
     }
 
@@ -131,7 +135,7 @@ def next_window(current: dict, today: date | None = None) -> dict:
 
 
 def build_worklist(result: dict, series: list, goldset: dict,
-                   today: date | None = None) -> dict:
+                   today: date | None = None, family=None) -> dict:
     """What this measurement says somebody should go and fix.
 
     Ordered by how much of the gold set a cell accounts for, because a country
@@ -140,6 +144,13 @@ def build_worklist(result: dict, series: list, goldset: dict,
     percentage on the page does.
     """
     summary = result.get("summary", {})
+
+    # Which group carries this family's geography. Worldwide it is the country;
+    # inside one country it is the metro, and reading `by_country` there would
+    # produce a work list of one cell called US that can never be a gap and can
+    # never be an instruction. The keys keep their names so every consumer of
+    # this file, including the health digest, reads one schema.
+    spread_group = "by_metro" if "by_metro" in summary else "by_country"
 
     def cells(group, predicate):
         out = []
@@ -162,8 +173,9 @@ def build_worklist(result: dict, series: list, goldset: dict,
 
         # Countries where we found nothing at all. This is the feed roadmap:
         # a zero here means we have no working route into that country's press.
-        "zero_countries": cells("by_country", lambda c: c["held"] == 0),
-        "weak_countries": cells("by_country",
+        "spread_group": spread_group,
+        "zero_countries": cells(spread_group, lambda c: c["held"] == 0),
+        "weak_countries": cells(spread_group,
                                 lambda c: c["held"] and (c["held_pct"] or 0) < 50),
 
         # Which kind of document we are failing to read. A filing we miss is a
@@ -194,25 +206,60 @@ def build_worklist(result: dict, series: list, goldset: dict,
             # needs to be reconstructed from memory is a step that gets skipped,
             # and a skipped step here means the number quietly stops meaning
             # anything while continuing to be published.
-            "instruction": (
-                "Build a new recall gold set for "
-                f"{window['start']} to {window['end']} and seal it. Run several "
-                "INDEPENDENT research passes, one per segment (US large funding, "
-                "US small funding, Europe, Asia-Pacific, Israel, rest of world, "
-                "US leadership, non-US leadership), each forbidden from "
-                "consulting asktherecruiter.com or any of our own data: a set "
-                "drawn from what we already hold measures nothing. Every item "
-                "needs a source URL that a stranger can open, and quotas must be "
-                "filled per segment rather than taking whatever was easy to "
-                "find. Check every URL resolves, drop only the unreachable ones, "
-                "and drop nothing at all once matching has begun. Write it to "
-                f"analysis/recall/goldset-{window['start'][:7]}.json with "
-                "sealed=true and an assembled_on date, matching the shape of the "
-                "previous set. `python3 measure_recall.py --check` must pass "
-                "before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is "
-                "the guard that stops a set being quietly rebuilt out of easy US "
-                "filings. The newest set on disk is the one measured, so nothing "
-                "else needs changing."
-            ),
+            "instruction": (US_INSTRUCTION if spread_group == "by_metro" else
+                WORLD_INSTRUCTION).format(
+                    start=window["start"], end=window["end"],
+                    month=window["start"][:7]),
         },
     }
+
+
+# The paste-ready instruction, one per family. Separated from the code that
+# chooses between them because the choice is one line and the text is the part
+# somebody actually has to follow: a US set assembled to the worldwide recipe
+# would be judged by the US bars and fail on every one of them.
+WORLD_INSTRUCTION = (
+    "Build a new recall gold set for "
+    "{start} to {end} and seal it. Run several "
+    "INDEPENDENT research passes, one per segment (US large funding, "
+    "US small funding, Europe, Asia-Pacific, Israel, rest of world, "
+    "US leadership, non-US leadership), each forbidden from "
+    "consulting asktherecruiter.com or any of our own data: a set "
+    "drawn from what we already hold measures nothing. Every item "
+    "needs a source URL that a stranger can open, and quotas must be "
+    "filled per segment rather than taking whatever was easy to "
+    "find. Check every URL resolves, drop only the unreachable ones, "
+    "and drop nothing at all once matching has begun. Write it to "
+    "analysis/recall/goldset-{month}.json with "
+    "sealed=true, family=\"world\" and an assembled_on date, matching the shape "
+    "of the previous set. `python3 measure_recall.py --check` must pass "
+    "before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is "
+    "the guard that stops a set being quietly rebuilt out of easy US "
+    "filings. The newest set on disk is the one measured, so nothing "
+    "else needs changing."
+)
+
+US_INSTRUCTION = (
+    "Build a new UNITED STATES recall gold set for "
+    "{start} to {end} and seal it. Run eight INDEPENDENT research passes, one "
+    "per metro and event type (San Francisco Bay Area, New York City, Austin, "
+    "rest of the United States, each for funding and for leadership), every "
+    "pass forbidden from consulting asktherecruiter.com, this repository, our "
+    "database or our source registry: a set drawn from the feeds we already "
+    "watch measures memory rather than reach. Enumerate candidates "
+    "CHRONOLOGICALLY within the window and take them in that order rather than "
+    "picking the interesting ones. A commercial deal database or people-data "
+    "service may be used to FIND a candidate and must never be stored, named "
+    "or linked: every item cites the original publisher, which is the "
+    "company's own announcement, the filing, or a named news outlet's own "
+    "article, and no commercial service's name may appear anywhere in the "
+    "repository. Fetch every source URL and confirm the company, the date, the "
+    "metro and the amount on the page itself before writing the row down; drop "
+    "what will not verify and record why. Write it to "
+    "analysis/recall/us/goldset-us-{month}.json with sealed=true, "
+    "family=\"us\", a metro on every item and an assembled_on date. "
+    "`python3 measure_recall.py --family us --check` must pass before it is "
+    "used; analysis/recall/goldset.py US_REQUIRED_SHAPE is the guard that "
+    "stops the set being quietly rebuilt out of large SEC filers, which is the "
+    "one part of the US this tracker already reads well."
+)

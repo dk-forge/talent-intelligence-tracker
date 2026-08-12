@@ -60,7 +60,18 @@ DIGEST_NAME = "health_digest"
 # `newest_run_hours` look fresh while every real collector was dead - which is
 # precisely the blind spot pipeline_stopped() exists to close. They are still
 # classified for staleness and degradation like anything else.
-MEASUREMENT_ONLY = {"recall", "tripwire", "link_check", "archive_sources"}
+#
+# The recall entries are DERIVED from the family definitions rather than typed,
+# so adding a measured population cannot leave its health entry classified as a
+# collector by omission. A US recall run counted as a collector would make
+# `newest_run_hours` look fresh on a week when every real collector was dead,
+# which is precisely the blind spot named above.
+MEASUREMENT_ONLY = {"tripwire", "link_check", "archive_sources"}
+try:
+    from analysis.recall import family as _recall_families
+    MEASUREMENT_ONLY |= {f.health_source for f in _recall_families.ALL}
+except Exception:                              # pragma: no cover - import guard
+    MEASUREMENT_ONLY |= {"recall", "recall_us"}
 
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.

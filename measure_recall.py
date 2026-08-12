@@ -57,7 +57,8 @@ from datetime import date, datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from analysis.recall import goldset, match, series, thresholds  # noqa: E402
+from analysis.recall import (  # noqa: E402
+    family as families, goldset, match, series, stats, thresholds)
 
 API = os.environ.get(
     "TIT_API_BASE", "https://asktherecruiter.com/blog/wp-json/talent/v1"
@@ -69,12 +70,29 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RESULTS_DIR = os.path.join(HERE, "analysis", "recall", "results")
-PLUGIN_DATA = os.path.join(
-    HERE, "wordpress-plugin", "talent-intelligence-tracker", "data", "recall.json")
-# Stable path, committed, so the health machinery and any future session can
-# read the measurement's own to-do list without knowing this script exists.
-WORKLIST_PATH = os.path.join(HERE, "data", "recall_worklist.json")
+
+# Every path that used to be a module constant now comes off the FAMILY, which
+# is the one place that knows where a population's gold sets, results, page data
+# and health entry live. Kept as names because callers and tests refer to them,
+# and because the worldwide family's paths must not move: a results directory
+# that changed would orphan every published figure measured against it.
+RESULTS_DIR = families.WORLD.results_dir
+PLUGIN_DATA = families.WORLD.plugin_data
+
+
+def worklist_path(family) -> str:
+    """The measurement's own to-do list, at a path other tooling can rely on.
+
+    Stable and committed, so the health machinery and any future session can
+    read it without knowing this script exists. One per family: a US work list
+    that overwrote the worldwide one would delete the country roadmap that is
+    the whole point of the worldwide run.
+    """
+    suffix = "" if family.is_default else f"_{family.id}"
+    return os.path.join(HERE, "data", f"recall{suffix}_worklist.json")
+
+
+WORKLIST_PATH = worklist_path(families.WORLD)
 
 
 def api_query(params: dict, attempts: int = 3):
@@ -157,6 +175,12 @@ def measure(data: dict, offline_rows: dict | None = None, verbose: bool = True) 
             "window": data.get("window"),
             "assembled_on": data.get("assembled_on"),
             "url": data.get("public_url"),
+            # Which of the four signal types this reference set actually
+            # covers. Carried to the page because a set that tests one of them
+            # must not be read as a verdict on all four, and the page has no
+            # other way to know.
+            "signal_types": data.get("signal_types"),
+            "held_out": data.get("held_out"),
             # Known weaknesses of the reference set itself, carried through to
             # the page. A benchmark that hides its own caveats is a brochure.
             "caveats": data.get("caveats", []),
@@ -190,24 +214,32 @@ def measure(data: dict, offline_rows: dict | None = None, verbose: bool = True) 
 
 
 def _line(label, cell):
+    span = cell.get("held_interval") or {}
+    band = (f"  [{span['low_pct']:>5.1f} to {span['high_pct']:>5.1f}]"
+            if span.get("total") else "")
     return (f"  {label:<26} held {cell['held']:>3}/{cell['total']:<3} "
             f"({cell['held_pct'] if cell['held_pct'] is not None else 'n/a'}%)   "
             f"clean {cell['found']:>3}/{cell['total']:<3} "
-            f"({cell['clean_pct'] if cell['clean_pct'] is not None else 'n/a'}%)")
+            f"({cell['clean_pct'] if cell['clean_pct'] is not None else 'n/a'}%)"
+            f"{band}")
 
 
-def report(out: dict) -> None:
+def report(out: dict, family=families.WORLD) -> None:
     summary = out["summary"]
     print("\n" + "=" * 72)
-    print(f"RECALL, measured {out['measured_on']} against gold set "
-          f"{out['goldset']['version']} ({out['goldset']['digest']})")
+    print(f"RECALL ({family.label}), measured {out['measured_on']} against gold "
+          f"set {out['goldset']['version']} ({out['goldset']['digest']})")
     print(f"window {out['goldset']['window']['start']} to {out['goldset']['window']['end']}")
     print("=" * 72)
     print("\n'held' = the event is in the tracker at all.")
-    print("'clean' = it is there with country, amount, date and source all right.\n")
+    print("'clean' = it is there with country, amount, date and source all right.")
+    print("[low to high] = the Wilson 95% interval on 'held'. Two cells whose")
+    print("intervals overlap have not been shown to differ on this many events.\n")
     print(_line("OVERALL", summary["overall"]))
-    for group in ("by_segment", "by_signal_type", "by_geography", "by_source_type",
-                  "by_size_band", "by_country"):
+    for group in ("by_metro", "by_metro_segment", "by_segment", "by_signal_type",
+                  "by_geography", "by_source_type", "by_size_band", "by_country"):
+        if group not in summary:
+            continue
         print(f"\n{group.replace('by_', 'by ').replace('_', ' ')}:")
         for key, cell in summary[group].items():
             print(_line(key, cell))
@@ -223,7 +255,7 @@ def report(out: dict) -> None:
                   f"{item['source_type']}) {item['event_date']}")
 
 
-def publish(out: dict, points: list) -> str:
+def publish(out: dict, points: list, family=families.WORLD) -> str:
     """Write the page's data file: the latest measurement plus the whole trend.
 
     The page renders this and nothing else, so what a reader sees is exactly
@@ -232,14 +264,14 @@ def publish(out: dict, points: list) -> str:
     """
     payload = dict(out)
     payload["series"] = points
-    os.makedirs(os.path.dirname(PLUGIN_DATA), exist_ok=True)
-    with open(PLUGIN_DATA, "w", encoding="utf-8") as handle:
+    os.makedirs(os.path.dirname(family.plugin_data), exist_ok=True)
+    with open(family.plugin_data, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=1, sort_keys=False)
         handle.write("\n")
-    return PLUGIN_DATA
+    return family.plugin_data
 
 
-def push(out: dict, points: list) -> str:
+def push(out: dict, points: list, family=families.WORLD) -> str:
     """Send the measurement to the live page.
 
     The page prefers a stored measurement over the file that ships with the
@@ -259,6 +291,12 @@ def push(out: dict, points: list) -> str:
 
     payload = dict(out)
     payload["series"] = points
+    # Named in the body, never in the route. One endpoint that stores a
+    # measurement under the family it declares cannot drift out of step with a
+    # second endpoint that does the same thing for the other family, and a
+    # payload with no family is the worldwide one, which is what every already
+    # deployed caller sends.
+    payload["family"] = family.id
     request = urllib.request.Request(
         f"{site}/wp-json/talent/v1/recall",
         data=json.dumps(payload).encode("utf-8"),
@@ -270,22 +308,24 @@ def push(out: dict, points: list) -> str:
         return f"pushed: {resp.read().decode('utf-8')[:200]}"
 
 
-def write_worklist(worklist: dict) -> str:
-    """The measurement's own to-do list, at a path other tooling can rely on.
+def write_worklist(worklist: dict, family=families.WORLD) -> str:
+    """Write the work list out.
 
-    This is what makes the loop a loop. A country scoring zero is not a fact to
-    display, it is an instruction to go and find a route into that country's
+    This is what makes the loop a loop. A cell scoring zero is not a fact to
+    display, it is an instruction to go and find a route into that market's
     press, and it belongs somewhere the health machinery can read rather than
     only in a report somebody has to remember to open.
     """
-    os.makedirs(os.path.dirname(WORKLIST_PATH), exist_ok=True)
-    with open(WORKLIST_PATH, "w", encoding="utf-8") as handle:
+    path = worklist_path(family)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
         json.dump(worklist, handle, indent=1)
         handle.write("\n")
-    return WORKLIST_PATH
+    return path
 
 
-def report_health(out: dict, worklist: dict, verdict: dict | None = None) -> str:
+def report_health(out: dict, worklist: dict, verdict: dict | None = None,
+                  family=families.WORLD) -> str:
     """File the run in the same ledger every collector reports to.
 
     `degraded` when a fresh gold set is due, because a measurement running
@@ -319,7 +359,7 @@ def report_health(out: dict, worklist: dict, verdict: dict | None = None) -> str
 
     conn = schema.connect()
     store.report_health(
-        conn, "recall",
+        conn, family.health_source,
         status="degraded" if (due["due"] or failed) else "ok",
         items_found=overall["total"],
         items_stored=overall["held"],
@@ -335,7 +375,15 @@ def main() -> int:
     # documented contract turns into prose nobody reads.
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--goldset", default=goldset.DEFAULT_PATH)
+    parser.add_argument("--family", default=families.DEFAULT.id,
+                        choices=sorted(families.BY_ID),
+                        help="which population to measure. 'world' is the "
+                             "worldwide set; 'us' is the United States, broken "
+                             "out by metro. They are separate reference sets "
+                             "with separate results and separate floors")
+    parser.add_argument("--goldset", default=None,
+                        help="a specific reference set (default: the newest one "
+                             "in the chosen family's directory)")
     parser.add_argument("--offline", help="JSON file of {gold_id: [rows]}, no network")
     parser.add_argument("--publish", action="store_true",
                         help="write the public page's data file too")
@@ -352,8 +400,13 @@ def main() -> int:
                         help="compute the quality gates but always exit 0 "
                              "(for exploring, never for the scheduled run)")
     args = parser.parse_args()
+    family = families.by_id(args.family)
 
-    data = goldset.load(args.goldset)
+    data = goldset.load(args.goldset or family.latest_goldset())
+    # The bars come from the FILE's declared family, never from the flag, so
+    # `--family us --goldset <the worldwide set>` is judged by the worldwide
+    # bars and fails loudly rather than being quietly graded on the easier
+    # shape. The flag chooses where the result goes; the file chooses what it is.
     problems = goldset.validate(data)
     if problems:
         print("gold set is not valid:", file=sys.stderr)
@@ -362,18 +415,25 @@ def main() -> int:
         return 2
 
     shape = goldset.counts(data)
-    print(f"gold set {data['version']} ({data['_digest']}): {shape['total']} events, "
+    spread = (f"{len(shape['metro'])} metros" if shape["metro"]
+              else f"{len(shape['country'])} countries")
+    print(f"gold set {data['version']} ({data['_digest']}), family "
+          f"{family.id}: {shape['total']} events, "
           f"{shape['geography'].get('US', 0)} US / "
           f"{shape['geography'].get('non-US', 0)} non-US, "
           f"{shape['signal_type'].get('funding', 0)} funding / "
           f"{shape['signal_type'].get('leadership', 0)} leadership, "
-          f"{len(shape['country'])} countries")
+          f"{spread}")
+    # What the set can and cannot resolve, printed BEFORE any result exists so
+    # that it cannot be read as a comment on the answer.
+    print(f"  worst-case 95% interval on this many events: "
+          f"{stats.widest_possible_width(shape['total']) * 100:.1f} points wide")
     if args.check:
         print("gold set is valid.")
         return 0
 
     offline_rows = None
-    results_dir = args.results_dir or RESULTS_DIR
+    results_dir = args.results_dir or family.results_dir
     if args.offline:
         with open(args.offline, encoding="utf-8") as handle:
             offline_rows = json.load(handle)
@@ -388,7 +448,8 @@ def main() -> int:
         print(f"measuring against {API}")
 
     out = measure(data, offline_rows=offline_rows, verbose=not args.quiet)
-    report(out)
+    out["family"] = family.id
+    report(out, family)
 
     os.makedirs(results_dir, exist_ok=True)
     stamp = out["measured_on"]
@@ -404,8 +465,8 @@ def main() -> int:
     worklist = series.build_worklist(out, points, data)
     # A replay's work list would name the whole world as a gap. Only a real
     # measurement gets to overwrite the file other tooling reads.
-    if results_dir == RESULTS_DIR:
-        print(f"wrote {os.path.relpath(write_worklist(worklist), HERE)}")
+    if results_dir == family.results_dir:
+        print(f"wrote {os.path.relpath(write_worklist(worklist, family), HERE)}")
     else:
         print("work list not written: this was a replay, not a measurement")
 
@@ -424,7 +485,7 @@ def main() -> int:
 
     zeros = worklist["zero_countries"]
     if zeros:
-        print(f"\nwork list: {len(zeros)} countries held nothing "
+        print(f"\nwork list: {len(zeros)} {family.spread_label} held nothing "
               f"({', '.join(c['key'] for c in zeros[:15])}"
               f"{'...' if len(zeros) > 15 else ''})")
 
@@ -434,12 +495,12 @@ def main() -> int:
     verdict = thresholds.evaluate(out, results_dir=results_dir)
 
     if not args.no_health:
-        print(f"health: {report_health(out, worklist, verdict)}")
+        print(f"health: {report_health(out, worklist, verdict, family)}")
 
     if args.publish:
-        print(f"wrote {os.path.relpath(publish(out, points), HERE)}")
+        print(f"wrote {os.path.relpath(publish(out, points, family), HERE)}")
     if args.push:
-        print(push(out, points))
+        print(push(out, points, family))
 
     # LAST, deliberately. Everything above has already been written to disk and
     # pushed to the page by now, so a failing gate reports a bad measurement

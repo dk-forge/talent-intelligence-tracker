@@ -57,8 +57,10 @@ jobs:
       # The gold set is checked before the API is touched. An invalid reference
       # set produces a wrong denominator, and a wrong recall number is worse
       # than no recall number.
-      - name: Check the gold set
-        run: python measure_recall.py --check
+      - name: Check every gold set
+        run: |
+          python measure_recall.py --family world --check
+          python measure_recall.py --family us --check
 
       # --push is what makes this visible. The committed file is only the seed
       # the plugin ships with, and the plugin deploy is deliberately NOT armed
@@ -70,7 +72,31 @@ jobs:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
-          python measure_recall.py --quiet --push \
+          python measure_recall.py --family world --quiet --push \
+            ${{ inputs.publish == false && ' ' || '--publish' }}
+
+      # The United States, measured separately against its own reference set.
+      #
+      # A SECOND STEP AND NOT A SECOND WORKFLOW. Both populations read the same
+      # API in the same run, file into the same health ledger and commit under
+      # the same `talent-collect` lock, so a second workflow would be a second
+      # database writer racing this one for a lock it already holds, which is
+      # the eviction this repository has been bitten by thirteen times.
+      #
+      # This step is allowed to fail the job, and the first draft of it was not.
+      # It carried a skip-on-failure flag, reasoning that a US failure should
+      # not throw away the worldwide measurement. It cannot: the worldwide step
+      # has already pushed by the time this runs, and the commit step below is
+      # `if: !cancelled()`, so nothing is lost either way. All that flag would
+      # have bought is a US quality gate that goes red and shows green, which
+      # tests/test_recall_thresholds.py rejects by name and duly did.
+      - name: Measure the United States
+        if: ${{ !cancelled() }}
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python measure_recall.py --family us --quiet --push \
             ${{ inputs.publish == false && ' ' || '--publish' }}
 
       # WHY the misses are misses, beside the measurement that counts them.
@@ -87,10 +113,16 @@ jobs:
       # corpus the measurement just scored, and never fatal -- an audit that
       # failed is a lost diagnosis, while a failed step here would throw away
       # the recall measurement that is the point of the job.
+      # One per family, because the answer differs by family: the worldwide
+      # misses are spread across publishers with no feed, and the US ones are
+      # almost entirely days a rationed walker has already finished. Auditing
+      # only the worldwide set would have said nothing about either.
       - name: Audit why the misses are misses
         if: ${{ always() }}
         continue-on-error: true
-        run: python -m analysis.recall.rejection_audit --write
+        run: |
+          python -m analysis.recall.rejection_audit --family world --write
+          python -m analysis.recall.rejection_audit --family us --write
 
       # Push the run into the site's health ledger so the health page shows the
       # measurement's own state. Never fatal: a stale health timestamp is a much
@@ -128,7 +160,7 @@ jobs:
           db=data/talent_intel.db
           # Snapshot files, copied back whole. The database is handled separately
           # below because it is the one thing here that merges.
-          paths="analysis/recall/results data/recall_worklist.json data/recall_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json"
+          paths="analysis/recall/results analysis/recall/us/results data/recall_worklist.json data/recall_us_worklist.json data/recall_rejection_audit.json data/recall_us_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json wordpress-plugin/talent-intelligence-tracker/data/recall-us.json"
           git add $paths $db 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change to commit."
@@ -179,15 +211,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           python - <<'PY'
-          import json, sys
-          with open("data/recall_worklist.json") as fh:
-              work = json.load(fh)
-          due = work["next_goldset"]
-          if due["due"]:
-              window = due["suggested_window"]
-              print(f"::warning::A fresh gold set is due. {due['reason']}")
-              print(f"::warning::Window to cover: {window['start']} to {window['end']}")
-              print(due["instruction"])
-          else:
-              print("Gold set still current:", due["reason"])
+          import json, os
+          for label, path in (("worldwide", "data/recall_worklist.json"),
+                              ("United States", "data/recall_us_worklist.json")):
+              if not os.path.exists(path):
+                  print(f"::warning::no {label} work list: nothing measured that "
+                        f"population this run, which is UNKNOWN and not a pass")
+                  continue
+              with open(path) as fh:
+                  work = json.load(fh)
+              due = work["next_goldset"]
+              if due["due"]:
+                  window = due["suggested_window"]
+                  print(f"::warning::A fresh {label} gold set is due. {due['reason']}")
+                  print(f"::warning::Window to cover: {window['start']} to {window['end']}")
+                  print(due["instruction"])
+              else:
+                  print(f"{label} gold set still current:", due["reason"])
           PY

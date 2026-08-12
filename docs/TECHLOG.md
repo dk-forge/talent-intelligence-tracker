@@ -15,7 +15,7 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ## 2026-08-12 - the allowance goes to $18, and the measurement says that is not enough
 
-The owner raised this tracker's OpenRouter key to a **$20/month provider limit**
+The owner raised this tracker's OpenRouter key to a **$30/month provider limit**
 and found it bought nothing. It could not: the **policy** cap in `spend.py` was
 $10 and it is the one that binds, so the provider headroom above $10 was
 unreachable. `MONTHLY_ALLOWANCE_USD` is now **18.0**.
@@ -117,6 +117,314 @@ Tests: RED before on three real assertions (`assert 18.0 == 10.0` at
 plus `test_spend_degrades.test_the_allowance_is_the_number_the_owner_set`),
 green after. Full suite **3642 passed**. No workflow was run and no model was
 called: every figure above comes from run logs and committed files.
+## 2026-08-12 - the 30 US misses, placed. It is the budget, and it was never the sources
+
+**No deploy. No plugin change.** This is measurement and it moves no version.
+
+`measure_recall.py --family us` says 21 of 51. It does not say what the other
+30 need, and a percentage is not a work list. This places every one of them at
+the stage it was lost, prices each stage, and answers the question the owner
+actually asked, which was what it would take to reach 90%.
+
+**The answer is that 26 of the 30 are the read ration, 0 are a source we do not
+have, and 90% is not a number this project can substantiate at this budget. A
+defensible target is the one a full-depth re-walk of one 61-day window
+measures, and that walk costs $5.35.**
+
+### What each of the 30 was lost to
+
+| stage | n | what closes it |
+|---|---|---|
+| stored, not matched | 0 | nothing — we hold none of them |
+| fetched, then rejected | 1 | a filter, and nobody can say which |
+| read the feed, never took the item | 1 | plumbing |
+| walked, never read | 26 | depth, which is money |
+| never walked | 2 | dispatch the remaining slices |
+| no source at all | 0 | — |
+
+`analysis/recall/rejection_audit.py` already asked this question of the
+worldwide set and had been surfaced in `ops_status [3c]` since 2026-07-29. It
+now takes `--family`, writes one file per family
+(`data/recall_us_rejection_audit.json`), breaks the misses out over the
+family's own spread dimension rather than `by_country` (which for a US set is
+one row saying US), and — the substantive change — **reads the historical
+walkers' cursors**.
+
+### The bucket that was wrong, in both families
+
+Until today the audit knew only the LIVE routes: a route's reach was the day it
+first ran minus the window it asks for. That was the whole story on 2026-07-28,
+when it produced the finding this repo built `press_archive` and three walkers
+on the back of: 51 of 81 misses `outside_our_history`, and 0 fetched and
+dropped. It stopped being the whole story on 2026-07-30, when the walkers
+started.
+
+A walker's cursor is a fact on disk, in `data/backfill_state.json`. Reading it
+moves the US set from **28 `outside_our_history`** to **2**, and the worldwide
+set from **87** to **9**, with the difference landing in a new bucket,
+`walked_never_read`.
+
+**That is not arithmetic, it is a different bill.** A date no route has reached
+is closed by dispatching slices. A date a walker has FINISHED is not:
+`backfill_gnews_2026` gates `DAILY_GATE_RATION` candidates of a measured ~395 a
+day, prints the rest as `left_for_later`, and advances `done_through` anyway —
+"a window that spent its whole ration is FINISHED" is its own comment. That job
+records **138,978 left for later** over 2026-01-01 to 2026-07-12. So more
+slices walk straight past the same events, and only depth reaches them. Sending
+the owner to dispatch slices would have been the wrong week's work, recommended
+with confidence, off a number that was correct when it was written.
+
+Three rules hold the cursor reading up, each with a test in
+`tests/test_rejection_audit_walkers.py`, each proved red first:
+
+- A `days` walker's cursor is the NEXT day to walk, so it is finished through
+  the day before. Reading it as the last day done credits a day it has not
+  started.
+- `backfill_press_2026` walks the publisher ROSTER and takes the date range as
+  a fixed input, because a sitemap costs the same fetch for one day as for six
+  months. It counts only once the roster pass is `done`, and only for a
+  publisher the catalogue knows, since its roster IS the catalogue. Google News
+  and GDELT are searches and carry no such restriction — which is exactly what
+  moves two of the US misses back into `outside_our_history`.
+- A missing, broken or unrecognised state file credits nothing. Absence of a
+  walker record is not evidence that a day was walked.
+
+And the limit is written into the file it produces: a cursor says the day was
+swept at the ration's depth, not that the query set would have surfaced this
+event. It names the stage and never the outcome.
+
+### The category that is empty, and it is the interesting one
+
+**Not one of the 30 is a source we do not have.** Every one was published by
+somebody Google News indexes, and Google News is the route that produced 14 of
+the 21 we DO hold. The citation domain in the gold set is a red herring for
+this: 11 of the 21 holds cite a publisher the catalogue has never heard of,
+because we came by the event through a different document. Wiring PR Newswire,
+which is 7 of the 30 citations and sits in the catalogue with no feed, is a
+cheap and sensible thing to do and it is not what is losing these events.
+
+### The one filter finding, and the limit that was half solved on the way
+
+One event, TYBR Health on 2026-07-28, is in `seen_urls` with outcome
+`rejected` — google_news resolved that exact URL on 2026-07-30 and let it go.
+**Nothing records why**, and that is this module's oldest stated limit: the
+prefilter, the gate model, `validate.precheck`, `validate.build_signal` and
+both dedupe layers all write the same word.
+
+It turns out to be half solved already and nobody had joined it up.
+`pipeline/gate_ledger.py` has recorded a per-candidate outcome since
+2026-08-01 (`gate_reject`, `model_reject`, `validate_reject`, `deferred`,
+`duplicate`, `stored`, `error`) and carries a `reason` string where the
+refusing code passes one, and its `key()` is a **sha1 of the same URL
+`seen_urls` deduplicates on**. So the join needs nothing new on either side and
+is now made: a `fetched_then_dropped` item gains `dropped_at` and, where there
+is one, `dropped_because`.
+
+It does not rescue TYBR. The ledger began two days after that rejection, and
+the only line under that key comes from `bootstrap_gate_labels.py`, which
+back-filled the ledger FROM `seen_urls` to give the classifier a weak training
+set — so it says `rejected` and nothing more. **A ledger line that only echoes
+the `seen_urls` verdict is deliberately not reported**, because
+`dropped_at: rejected` would dress the limit up as an answer, and that is
+exactly how the one bucket that means "loosen something" stops being read.
+Tested. From here on the attribution is real.
+
+Worth a look on the way past: 4,850 of 11,824 lines in the August shard carry
+outcome `error`, which is 41% and is not a coverage question but is not nothing
+either.
+
+### The missing-country defect does NOT understate the measurement
+
+PR #15 found 13 of the 21 held events carrying no country and called it the
+most actionable thing in that PR. It is real. It does **not** move the 41.2%,
+and the temptation to hope it did is why this was checked two ways:
+
+- `measure_recall.rows_for` calls `/query?company=<term>&per_page=200`. There
+  is no country parameter, and `tit_build_where` adds no country clause unless
+  one is passed.
+- A second, independent lens over the committed corpus — direct SQL, no
+  geographic predicate of any kind — reproduces the published split exactly:
+  **30 MISSED, 17 FOUND_PARTIAL, 4 FOUND**. Had country-blindness been hiding
+  events, that lens would have found them.
+
+So 41.2% is what we hold. **9.8% is what a reader sees.** Applying the
+plugin's own clause, `country IN ('US') OR (country IS NULL AND hq_country IN
+('US'))`, to the 21 rows we hold: 5 visible, 13 invisible because they carry no
+place at all, 3 filed under another country. That gap is the finding, and it is
+larger than any coverage number in either PR.
+
+The 3 misfiled are one nameable bug and it is not a model error. `prompts.py`
+defines `country` as the country IN THE TEXT, and says in as many words that
+the publisher's own country counts. So a US round written up by ventureburn.com
+is stored `ZA`, and one by Startups.com.br is `BR`; the model did what it was
+told. The employer's country lives in `headquarters_country`, which is blank on
+81% of news rows. Two consequences worth writing down before anybody "fixes"
+either:
+
+- `country_basis=any` in `includes/api.php` is a FALLBACK, not a union: HQ is
+  consulted only when `country` is NULL. The sibling layoff tracker's `any`
+  is a real union of job location OR employer HQ. Making this one match would
+  recover the misfiled rows — but only once `hq_country` is filled, and today
+  it is not.
+- There is **no free way to fill it** for this population, and that was
+  measured rather than assumed. `pipeline/identity.py` is free, deterministic
+  and keyless, and resolving the 16 defective employers through it returns
+  hq_country for **2**, one of which (Premier Lacrosse League as CA) is wrong.
+  Wikidata does not know seed-stage private US companies. Joining to Form D by
+  name is worse: 4 of 16 match and two of those four are collisions (Harmony to
+  Harmony Biosciences, Throne Science to Science Corp), which is exactly the
+  failure `identity.py`'s own docstring warns about. The place has to come out
+  of the article text, which means the read, which is paid.
+
+### What it costs, in the walkers' own measured prices
+
+Read off `--plan-cost`, not from memory:
+
+| lever | money | work |
+|---|---|---|
+| finish the stalled Google News walk to 2026-07-26 | ~$0.13 | dispatch 4 slices |
+| re-walk 2026-06-01..2026-07-31 at FULL depth, every edition | **$5.35** (61 days at $0.0877) | one dispatch, plus an edition filter if it is to be US-only |
+| a full-depth press-archive pass over the window | ~$1.56 | the window is free on this route; only the ration bills |
+| attribute a rejection (done here, from 2026-08-01 forward) | $0 | joined `gate_ledger` to the audit |
+| wire PR Newswire into the catalogue | $0 to add | the reads it generates are not $0 |
+| fill the place on 1,674 country-less news rows | ~$2.14 at $0.00128 a read | a re-read pass, one-off |
+
+For scale, from the same tool: a full-breadth Google News sweep of a whole year
+is $32.09, of which the gate alone is $4.34.
+
+### The ceiling, stated before anybody plans against 90%
+
+**US recall is low partly BY DESIGN, and the design is defensible.**
+`pipeline/candidate_rank.py` spends the read budget by country need:
+`W_COUNTRY_EMPTY = 6.0`, `W_COUNTRY_THIN = 3.0`, and a country over
+`COUNTRY_THIN_ROWS = 25` scores zero. The US holds thousands of rows. The most
+a US candidate can score on everything else is 4.5. **So no US candidate can
+ever outrank a candidate from a country that holds nothing**, and under a
+ration that is the same as saying the US is read last. That is the right call
+for a worldwide product and it is the direct cause of this number.
+
+Which makes the honest position:
+
+- **90% is not substantiable.** Not because the events are unreachable — none
+  of them is — but because sustaining it means reversing the country-need
+  ranking that the worldwide figure depends on, or buying full depth for one
+  country every day forever, and nobody has measured what full depth yields.
+- **The bound nobody can narrow from here is 41.2% to 96%.** 29 of the 30 were
+  reachable, so depth could in principle close 28 of them (49 of 51); and the
+  floor is what we hold today. That band is 55 points wide and it is honest.
+  Any single number named today is a hope with a decimal point.
+- **If a number is needed to plan against, plan against 65 to 70%,** and read
+  it as the assumption it is: full depth removes the stage 26 of the 30 died
+  at, and if it converts HALF of them that is 34 of 51, 66.7%. Half is a
+  guess. The two non-ration losses (one filter, one plumbing) are 7% of the
+  misses and depth does not touch either.
+- **What CAN be defended is the next measurement.** Re-walk the window at full
+  depth for $5.35, re-run `measure_recall.py --family us` against the same
+  sealed set, and publish whatever it says. That number will be earned, and it
+  costs half of one month's allowance to find out.
+- The one thing worth doing first is not a coverage fix at all. Getting the
+  reader-visible figure from 5 of 51 up to the 21 of 51 we already hold buys
+  more than any walk, and it needs no new event.
+
+---
+
+## 2026-08-12 - how good are we in America, with a number and a range (1.76.0)
+
+**Merged, NOT deployed** — the deploy here is a human step and a subagent does
+not take it (CLAUDE.md).
+
+The sibling layoff tracker can say exactly how good it is: 24 of 57 held-out
+SEC Item 2.05 filings, with an interval, on its health page, behind a floor that
+can go red. This tracker could not. The worldwide set has a US cell, it reads
+38%, and it is 34 events of a set assembled to be global, so it is an impression
+wearing a percentage.
+
+**Result: held 21 of 51, 41.2%, 95% interval 28.8 to 54.8**, against a US
+funding set for 2026-06-01 to 2026-07-31, assembled without consulting our own
+data. Per metro: Austin 5/8, New York 8/16, rest of US 5/14, San Francisco 3/13.
+Only 4 of the 21 are clean, and the dominant defect is `country_missing` on 13
+of them, which is an extractor problem rather than a collection one.
+
+### The number that matters is the range, and it was never published
+
+`wilson()` had been in `thresholds.py` since 2026-07-30, used to derive a floor
+and shown to nobody. On 51 events 41.2% is also 28.8% to 54.8%, and on a metro
+cell of eight it is 30.6% to 86.3%. Publishing the point estimate alone invites
+exactly the comparison the counts cannot support. It moved to
+`analysis/recall/stats.py` as a leaf, `thresholds.wilson` re-exports it so the
+floor and the page cannot round one interval two ways, and every cell in every
+family now carries `held_interval`.
+
+### Two populations, two directories, and why that is load-bearing
+
+`analysis/recall/family.py` is the one definition of what is measured and where
+each population's gold sets, results, page data and health entry live.
+`measure_recall.py --family`, `ops_status.py [3e]`, `health_digest.py` and
+`includes/recall.php` all read it.
+
+The separate directory is not tidiness. `goldset.latest_path()` takes the newest
+`goldset-*.json` in a directory, and `goldset-us-2026-06.json` sorts after every
+worldwide set that will ever exist. One file in the wrong folder would have made
+the published WORLDWIDE figure a US figure, with no code change and nothing in
+any diff to notice. Asserted by
+`test_a_us_set_cannot_hijack_the_worldwide_measurement`.
+
+### Four passes independently walked into our own feed
+
+The set was assembled by eight isolated research passes, one per metro and
+signal type, each forbidden from consulting this tracker. Every one of the four
+LEADERSHIP passes reached, unprompted, for SEC EDGAR full-text search, and for a
+good reason: it is the only free, chronologically enumerable index of US
+corporate events that is not a commercial database, and commercial databases are
+discovery pointers we may never cite. It is also precisely what
+`collectors/sec_edgar.py` walks. All four came back over 90% exchange-listed
+filings. Measuring against them would have scored the tracker against its own
+supply and produced a flattering number that meant nothing.
+
+All four were discarded. The guard that makes that mechanical is
+`US_REQUIRED_SHAPE["max_source_type_share"] = 0.50`: no single kind of document
+may be a majority of the denominator. It is the sharp instrument here because
+`size_band` is not one, being "500+ employees OR listed", which bands a
+twelve-person listed biotech as large.
+
+**A wire-dateline walk did work.** Searching a press-release service for the
+literal dateline string (`DENVER, June`, `SALT LAKE CITY, July`) returns exactly
+the releases datelined in that city that month, and walks in date order. Three
+re-run passes produced 34 verified private-employer leadership rows with no
+EDGAR at all. They are NOT in the sealed set: San Francisco and New York ran out
+of search budget before their passes could run, so two of four metro cells would
+be empty, and 30 of the 34 are press releases, which would put one document type
+at 60%. They are parked at
+`analysis/recall/us/goldset-us-2026-06-leadership.draft.json`, which
+`all_paths()` skips by name, with the enumerator written down inside it.
+
+### So the US set covers funding only, and says so where the number is
+
+That is a real limitation and the page carries it in a callout beside the
+figure, not in a method note further down. `signal_types` is declared in the file
+and enforced against the items, so the scope cannot quietly widen into a
+half-measured second signal type while the headline looks like the same number.
+
+### Bars, and where each came from
+
+`min_items: 45` and `max_interval_width: 0.28` are anchored to the sibling's
+published benchmark, which resolves to about 25 points. A second number in the
+same house that resolved much worse than the first would not be readable the
+same way. The assembled set came in at 51 events and 26.5 points.
+
+A higher small-employer floor was drafted and withdrawn. The passes showed the
+small share is capped by publisher behaviour rather than by effort: the single
+largest cause of a verified event being dropped was that no fetchable page
+stated the company's headquarters, coverage of small rounds has largely stopped
+writing "San Francisco-based", and a row with no verifiable metro cannot enter a
+set whose cells are metros. A bar nothing honest can clear is a bar that gets
+edited on the day it fires, so the floor stayed at the worldwide 30% and the
+under-representation is declared in the set's own caveats instead.
+
+### What is not done
+
+The San Francisco and New York leadership passes, which need search budget.
+Until they land, US leadership coverage is unmeasured and the page says so.
 
 ---
 

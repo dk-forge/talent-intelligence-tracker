@@ -2,6 +2,85 @@
 
 ---
 
+## 2026-08-12: the 30 US misses are placed. It is the budget. ON A BRANCH, NOT MERGED, NOT DEPLOYED.
+
+Branch `triage/us-recall-misses`, stacked on `measure/us-recall` (PR #15), which
+is itself unmerged. No plugin change, no version bump, no deploy.
+
+**Read this before planning any coverage work.** Full reasoning and every number
+is in TECHLOG under this date. The four things a next session needs:
+
+1. **26 of the 30 misses are the read ration, not a missing source.** Zero of
+   the 30 are a publisher no route can reach. `rejection_audit.py` now reads
+   `data/backfill_state.json`, so a day a walker has FINISHED no longer reads
+   as a day we could not reach — which moved the US set from 28
+   `outside_our_history` to 2, and the WORLDWIDE set from 87 to 9. Dispatching
+   more slices walks past these events again; only depth reaches them, and
+   depth is money.
+2. **The missing-country defect does not understate the 41.2%.** Checked two
+   ways, both in TECHLOG. What it does is worse: the number a reader sees under
+   a US filter is **5 of 51**, not 21 of 51. Closing that gap needs no new
+   event and buys more than any walk.
+3. **There is no free fix for the missing place.** Measured, not assumed:
+   `pipeline/identity.py` resolves 2 of the 16 defective employers and gets one
+   of those two wrong. Wikidata does not know seed-stage private companies.
+4. **90% is not substantiable.** `candidate_rank` deliberately ranks the US
+   last, since it scores by country need and the US is the least needy country,
+   so US recall is low partly by design. The bound nobody can narrow from here
+   is 41.2% to 96%; plan against 65 to 70% and read it as the assumption it is.
+   The defensible next number is whatever a full-depth re-walk of the 61-day
+   window measures, and that walk costs $5.35 at the walker's own published
+   prices.
+
+---
+
+## 2026-08-12: US recall measured, 21/51 with a range (1.76.0). ON A BRANCH, NOT MERGED, NOT DEPLOYED.
+
+Branch `measure/us-recall`, PR open. Nothing here is on `main` or on the site.
+
+**The headline: we hold 21 of 51 independently listed US funding events from
+2026-06-01 to 2026-07-31. That is 41.2%, and the 95% interval is 28.8 to 54.8.**
+By hiring market: Austin 5/8, New York 8/16, rest of US 5/14, San Francisco
+3/13. Those cells carry 8 to 16 events each, so their ranges overlap almost
+entirely and they are a work list rather than a league table.
+
+Two findings to read before anything else:
+
+1. **US leadership coverage could not be measured, and that is the result
+   rather than unfinished work.** Executive appointments at privately held US
+   employers cannot be enumerated from original sources. Open web search returns
+   commercial people databases, which we never cite, and the only free
+   chronological index left is SEC EDGAR full-text search, which is exactly what
+   our own collector walks. Four independent research passes reached for EDGAR
+   unprompted, all four came back over 90% exchange-listed filings, and all four
+   were discarded rather than measured against.
+2. **There is a way through, and 34 rows of it are already banked.** Searching a
+   press-release wire for the literal dateline text (`DENVER, June`) enumerates
+   private employers chronologically without touching any of our own feeds.
+   Three re-run passes produced 34 verified rows that way. They are parked as a
+   draft the measurement ignores, at
+   `analysis/recall/us/goldset-us-2026-06-leadership.draft.json`. They need a San
+   Francisco pass and a New York pass, which stopped only because the session's
+   web-search budget ran out.
+
+**The one thing that is a defect in the tracker rather than in the
+measurement:** of the 21 events we do hold, 13 carry no country at all. That
+makes them invisible to every geographic filter on the site even though we have
+them. It needs an extractor fix, not a new source.
+
+### To publish this
+
+Review and merge the PR, then run the weekly measurement or wait for Monday. The
+deploy is separate and is still the owner's call:
+
+```bash
+gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
+```
+
+The site is now behind by three versions: 1.74.6, 1.75.0 and this 1.76.0.
+
+---
+
 ## 2026-08-12: filter controls standardised, panel ships open, phone pass (1.75.0). MERGED, NOT DEPLOYED.
 
 **The site is behind by two versions now.** `main` was already carrying 1.74.6

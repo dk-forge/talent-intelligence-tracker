@@ -52,11 +52,15 @@ import json
 import math
 import os
 
+from analysis.recall.stats import Z, wilson  # noqa: F401  (re-exported, see below)
+
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
 
-# 95%, two-sided. Not tunable per-run on purpose: a threshold whose confidence
-# level is an argument is a threshold somebody widens on the day it fires.
-Z = 1.959963984540054
+# `wilson` and `Z` moved to analysis/recall/stats.py the day the interval
+# stopped being a private input to a gate and started being published beside
+# the figure. They are re-exported here rather than moved and forgotten, so
+# that `thresholds.wilson` keeps resolving to the ONE implementation instead of
+# tempting a second one into existence next to the page that renders it.
 
 # A cell that held this many events and now holds none is a dead collector
 # rather than noise. Derived from the reference set's own arithmetic: the
@@ -83,23 +87,6 @@ BASELINE = "BASELINE"
 EXIT_OK = 0
 EXIT_REGRESSION = 3
 EXIT_INSTRUMENT = 4
-
-
-def wilson(successes: int, total: int, z: float = Z) -> tuple[float, float]:
-    """Wilson score interval for a proportion, as (low, high).
-
-    Used instead of `p +/- z*sqrt(p(1-p)/n)` because that interval is nonsense
-    at the rates this project actually measures: at 8/89 it reaches below zero,
-    and a floor below zero is not a floor.
-    """
-    if total <= 0:
-        return 0.0, 1.0
-    p = successes / total
-    z2 = z * z
-    denom = 1.0 + z2 / total
-    centre = p + z2 / (2 * total)
-    spread = z * math.sqrt(p * (1 - p) / total + z2 / (4 * total * total))
-    return max(0.0, (centre - spread) / denom), min(1.0, (centre + spread) / denom)
 
 
 def load_results(results_dir: str = RESULTS_DIR) -> list:
@@ -278,7 +265,13 @@ def _defect_gate(result: dict, history: list) -> dict:
         bar=round(ceiling, 4), observed=round(got, 4))
 
 
-CELL_GROUPS = ("by_source_type", "by_signal_type", "by_geography", "by_segment")
+# A group absent from a summary is skipped, so this is the union across
+# families rather than a per-family list. `by_metro` exists only on the US
+# family's results; naming it here means a metro that used to hold events and
+# now holds none reds the collapse gate exactly like a dead source type, with
+# no second copy of the gate and no family lookup inside a leaf module.
+CELL_GROUPS = ("by_source_type", "by_signal_type", "by_geography", "by_segment",
+               "by_metro")
 
 
 def _collapse_gate(result: dict, history: list) -> dict:

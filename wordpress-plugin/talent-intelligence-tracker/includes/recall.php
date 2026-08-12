@@ -45,14 +45,39 @@ function tit_recall_url() {
  * accumulated newer ones. The number on a page about honesty being the stalest
  * thing in the system is not a joke anybody needs.
  */
-function tit_recall_data() {
-    $stored = get_option('tit_recall');
+function tit_recall_data($family = 'world') {
+    $option = ($family === 'world') ? 'tit_recall' : 'tit_recall_' . $family;
+    $stored = get_option($option);
     if (is_array($stored) && !empty($stored['summary'])) return $stored;
 
-    $file = TIT_PATH . 'data/recall.json';
+    $file = TIT_PATH . 'data/' . (($family === 'world') ? 'recall.json'
+                                                       : 'recall-' . $family . '.json');
     if (!is_readable($file)) return array();
     $data = json_decode(file_get_contents($file), true);
     return is_array($data) ? $data : array();
+}
+
+/**
+ * Which measured populations this page knows about, and what to call each.
+ *
+ * The keys are the family ids in analysis/recall/family.py and the option and
+ * file names are derived from them by tit_recall_data(), so adding a population
+ * on the Python side needs one line here and nothing else. A family with no
+ * stored measurement renders as "not measured yet" rather than being skipped:
+ * an unmeasured population that simply does not appear reads as a population
+ * that does not exist, which is the more flattering of the two errors.
+ */
+function tit_recall_families() {
+    return array(
+        'world' => array(
+            'label'  => 'Worldwide',
+            'anchor' => 'worldwide',
+        ),
+        'us' => array(
+            'label'  => 'United States',
+            'anchor' => 'united-states',
+        ),
+    );
 }
 
 /**
@@ -99,11 +124,27 @@ function tit_api_recall(WP_REST_Request $req) {
             'held plus missed does not equal total.', array('status' => 400));
     }
 
-    update_option('tit_recall', $body, false);
+    // Which population this measurement is OF. Named in the body rather than
+    // in the route, so one endpoint stores every family and two endpoints
+    // cannot drift apart on what a valid measurement looks like. A payload with
+    // no family is the worldwide one, which is what every caller sent before
+    // there was a second population.
+    $family = isset($body['family']) ? (string) $body['family'] : 'world';
+    $families = tit_recall_families();
+    if (!isset($families[$family])) {
+        return new WP_Error('tit_recall_bad_family',
+            'Unknown measurement family ' . $family . '. A result stored under a '
+            . 'name this page does not render is a result nobody will ever read.',
+            array('status' => 400));
+    }
+
+    update_option(($family === 'world') ? 'tit_recall' : 'tit_recall_' . $family,
+                  $body, false);
     if (function_exists('tit_flush_caches')) tit_flush_caches();
 
     return rest_ensure_response(array(
         'stored'      => true,
+        'family'      => $family,
         'measured_on' => $body['measured_on'],
         'held'        => (int) $overall['held'],
         'total'       => (int) $overall['total'],
@@ -635,6 +676,193 @@ function tit_recall_weakest($cells, $min_total = 4, $limit = 3) {
     return array_slice($ranked, 0, $limit, true);
 }
 
+/**
+ * A percentage with the range it could plausibly be, in words a reader can use.
+ *
+ * The whole reason for a second, smaller reference set is that a smaller set
+ * answers less precisely, and a bare "41%" hides that completely. 21 of 51 is
+ * 41% and it is also anything from 29% to 55%, and a reader comparing this
+ * quarter with next needs to see the second number to avoid reading noise as
+ * progress. Rendered from the interval the measurement computed, never
+ * recomputed here, so the page and the floor can never disagree.
+ */
+function tit_recall_range($cell) {
+    $span = $cell['held_interval'] ?? null;
+    if (!is_array($span) || empty($span['total'])) return '';
+    return sprintf('%s%% to %s%%', $span['low_pct'], $span['high_pct']);
+}
+
+/**
+ * A cell table that shows the interval, for a reference set small enough that
+ * the interval is the point.
+ *
+ * A separate function from tit_recall_table() rather than a flag on it: the
+ * worldwide tables are 169 events and their per-cell ranges would be a column
+ * of noise, while these cells are 8 to 16 events and their ranges are the
+ * finding. One table that behaved two ways would end up showing the column
+ * where it does not help and hiding it where it does.
+ */
+function tit_recall_interval_table($title, $cells, $note = '') {
+    if (empty($cells)) return;
+    ?>
+    <h3><?php echo esc_html($title); ?></h3>
+    <?php if ($note) : ?><p class="tit-note"><?php echo esc_html($note); ?></p><?php endif; ?>
+    <div class="tit-table-scroll">
+      <table class="tit-table tit-recall-table">
+        <thead><tr>
+          <th>Category</th>
+          <th class="tit-num">Event captured</th>
+          <th class="tit-num">Could plausibly be</th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($cells as $key => $cell) :
+            $held  = (int) ($cell['held'] ?? 0);
+            $total = (int) ($cell['total'] ?? 0);
+        ?>
+          <tr>
+            <td data-label="Category"><?php echo esc_html(tit_recall_label($key)); ?></td>
+            <td class="tit-num" data-label="Event captured">
+              <strong><?php echo $cell['held_pct'] === null ? 'n/a'
+                  : esc_html($cell['held_pct']) . '%'; ?></strong>
+              <span class="tit-rt"><?php echo esc_html("$held of $total"); ?></span>
+            </td>
+            <td class="tit-num" data-label="Could plausibly be">
+              <span class="tit-rt"><?php echo esc_html(tit_recall_range($cell) ?: 'n/a'); ?></span>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <?php
+}
+
+/**
+ * A second measured population, rendered under its own heading.
+ *
+ * Its own heading and its own counts, never merged into the tables above.
+ * A worldwide figure and a United States figure are measurements of different
+ * populations against different reference sets with different windows, and
+ * averaging them or placing them in one table would produce a number that is
+ * true of nothing.
+ *
+ * If nothing has been published for the family, this says so. An unmeasured
+ * population that simply does not render reads as one that does not exist,
+ * which is the more flattering of the two mistakes.
+ */
+function tit_recall_family_section($family, $data = null) {
+    $families = tit_recall_families();
+    if (!isset($families[$family])) return;
+    $meta = $families[$family];
+    // Looking the measurement up and rendering it are separated by this one
+    // argument, so the "nothing published yet" branch can be exercised in the
+    // render test. It is otherwise unreachable the moment a measurement ships
+    // with the plugin, and an untested empty state is how a fresh install ends
+    // up showing a blank where an honest sentence belongs.
+    if ($data === null) $data = tit_recall_data($family);
+    ?>
+    <h2 id="<?php echo esc_attr($meta['anchor']); ?>">
+      <?php echo esc_html($meta['label']); ?>, measured separately
+    </h2>
+    <?php
+    if (empty($data) || empty($data['summary']['overall'])) {
+        ?>
+        <p class="tit-note">
+          No <?php echo esc_html(strtolower($meta['label'])); ?> measurement has
+          been published yet. The worldwide set above contains
+          <?php echo esc_html($meta['label']); ?> events, but it was assembled to
+          be global, so its
+          <?php echo esc_html($meta['label']); ?> cell is too small to say much
+          about that market on its own. Until a dedicated reference set is
+          measured there is no figure here to quote.
+        </p>
+        <?php
+        return;
+    }
+
+    $summary = $data['summary'];
+    $overall = $summary['overall'];
+    $gold    = $data['goldset'];
+    $window  = $gold['window'];
+    $covers  = $gold['signal_types'] ?? array();
+    ?>
+    <p class="tit-note">
+      A separate reference set, assembled the same way and measured the same
+      way, for one country. Its cells are hiring markets rather than countries.
+      We held
+      <strong><?php echo (int) $overall['held']; ?> of
+        <?php echo (int) $overall['total']; ?></strong>
+      events announced between <?php echo esc_html($window['start']); ?> and
+      <?php echo esc_html($window['end']); ?>, measured
+      <?php echo esc_html($data['measured_on']); ?> against set
+      <code><?php echo esc_html($gold['digest']); ?></code>.
+    </p>
+
+    <div class="tit-stats">
+      <div class="tit-stat">
+        <span class="tit-n"><?php echo $overall['held_pct'] === null ? 'n/a'
+            : esc_html($overall['held_pct']) . '%'; ?></span>
+        <span class="tit-l">events captured<br><?php
+            echo esc_html($overall['held'] . ' of ' . $overall['total']); ?></span>
+      </div>
+      <div class="tit-stat">
+        <span class="tit-n"><?php echo esc_html(tit_recall_range($overall) ?: 'n/a'); ?></span>
+        <span class="tit-l">what that figure could plausibly be<br>95% confidence</span>
+      </div>
+      <div class="tit-stat">
+        <span class="tit-n"><?php echo (int) $overall['missed']; ?></span>
+        <span class="tit-l">missed entirely</span>
+      </div>
+    </div>
+
+    <div class="tit-callout">
+      <strong>Read the range, not just the percentage.</strong>
+      <?php echo (int) $overall['total']; ?> events is enough to say roughly
+      where we are and not enough to separate two cells that differ by ten
+      points. Where two ranges below overlap, we have not shown that those two
+      markets differ at all.
+    </div>
+
+    <?php if ($covers) : ?>
+    <div class="tit-callout">
+      <strong>This set covers <?php
+        echo esc_html(implode(' and ', array_map('tit_recall_label', $covers)));
+      ?> only.</strong>
+      Leadership changes, pay actions and ways of working are not tested here.
+      Their coverage in this market is unmeasured. The reason is worth stating
+      plainly. Executive appointments at privately held US employers could not
+      be enumerated from original sources. Open search returns commercial
+      people databases, which we will not cite. The only free index left is the
+      filings system we already read, so a set built from it would be scoring
+      us against our own feed.
+    </div>
+    <?php endif; ?>
+
+    <?php
+    tit_recall_interval_table('By hiring market', $summary['by_metro'] ?? array(),
+        'Each market carries between eight and sixteen events, so treat these as indications and not as rates. This table is a work list.');
+    tit_recall_interval_table('By what kind of document announced it',
+        $summary['by_source_type'] ?? array());
+    tit_recall_interval_table('By size of the employer',
+        $summary['by_size_band'] ?? array());
+    ?>
+
+    <?php if (!empty($gold['caveats'])) : ?>
+    <h3>What is wrong with this test set</h3>
+    <p class="tit-note">
+      Every sampling method has biases. These are ours, written down before the
+      result was known, because a benchmark that hides its own caveats is a
+      brochure.
+    </p>
+    <ul class="tit-recall-gaps">
+      <?php foreach ($gold['caveats'] as $caveat) : ?>
+        <li><?php echo esc_html($caveat); ?></li>
+      <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+    <?php
+}
+
 function tit_recall_render($data) {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
 
@@ -832,6 +1060,7 @@ function tit_recall_render($data) {
       tit_recall_country_table('By country', $summary['by_country'] ?? array(),
           'Most countries carry only a handful of events, so treat a single country cell as an indication and not a rate. Under each score is why it is what it is: the sources we read there, the publishers we probed and could not wire, and the queue.');
       tit_recall_market_table();
+      tit_recall_family_section('us');
       ?>
 
       <?php if (count($points) > 1) : ?>
