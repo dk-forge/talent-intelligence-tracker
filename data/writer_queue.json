@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-13T01:40:39Z",
-  "last_tick": "2026-08-13T01:40:39Z",
+  "last_dispatch": "2026-08-13T02:07:30Z",
+  "last_tick": "2026-08-13T02:07:30Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -197,6 +197,33 @@
     "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T02:07:30Z",
+      "history": [
+        {
+          "at": "2026-08-13T02:07:25Z",
+          "detail": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T02:07:30Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260813T020725Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
+      "requested_at": "2026-08-13T02:07:25Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "enrich.yml"
+    },
     {
       "acknowledged": "2026-08-05T18:43:00Z",
       "attempts": 0,
