@@ -13,6 +13,150 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - a bond is not a round: the capital-event classification. 1.79.0, merged, NOT deployed
+
+**A deterministic classifier at extraction, and a home for its verdict in
+`deal_type`. No published row was changed; the rows already in public are
+listed at the bottom for the owner to decide about.** Plugin 1.78.0 -> 1.79.0.
+
+### The defect
+
+Four large-company capital events in one month were stored as venture funding
+rounds:
+
+| what it was | figure | what it actually is |
+|---|---|---|
+| ChangXin Memory | $8.6bn | a STAR Market IPO, retracted after publication |
+| Oracle | $25bn | a corporate bond issue |
+| Intel | $20bn | a public stock sale by a listed company |
+| Nvidia | $709bn | an infrastructure financing arrangement |
+
+Every one was caught by `guardrails.check_amounts`, and that is the actual
+problem rather than the reassurance it looks like. `check_amounts` is a
+MAGNITUDE check: it asks whether the corpus's own log-normal shape can explain a
+figure. It has no idea what a bond, an IPO, a secondary offering or a project
+financing IS. So the four were caught for a reason that **does not generalise
+downward**, and the corpus proves it — Zions Bancorporation's
+
+> "Zions Bancorporation has raised US$ 500 million in a senior notes issuance."
+
+is the same class of event, is on the live page as a funding round, and sits
+four orders of magnitude below any threshold the corpus could ever derive.
+Nothing has ever asked about it and nothing was going to.
+
+`deal_type` is NULL on all four of the rows above, which is the tell: the column
+for "what kind of transaction is this" existed the whole time and nothing was
+filling it for capital events.
+
+### The blast radius, measured before anything changed
+
+`pipeline/capital_event.classify` run read-only over every current row carrying
+a funding figure (4,407 rows, 4,396 of them already published):
+
+    REFUSED   29 rows
+      public_offering    9    $20.41bn
+      bond_issue         8     $5.80bn
+      ipo                8     $2.01bn
+      project_finance    4   $714.06bn
+    already published    28   ($31.27bn)
+    never published       1   (Nvidia, held by the amount guardrail)
+
+So this is a **small fix with a correction decision attached**: 29 rows out of
+4,407 is 0.66% of the funding corpus, and 28 of them are already in public.
+
+### The rule, and why precision beats recall here
+
+A rule that refuses a real venture round loses coverage silently and for ever —
+the row is never stored, nothing counts it, and `measure_recall.py` reads the
+loss as a market we do not reach. A rule that lets a bond through costs ONE
+guardrail decision by somebody already reading that queue. Those are not
+symmetric, so the rule refuses only instruments that exist nowhere but the
+public and lender markets.
+
+Three traps are wired into its shape, all of them already paid for here:
+
+- **"raises" means nothing.** It is in all four headlines and in every real
+  round. No pattern reads a verb.
+- **Debt is a legitimate venture instrument.** "Kids2 Raises $225M in Debt
+  Funding", "Karta Raises $140M in Debt and Equity Funding" and "Wonder Raises
+  USD 12 Million Venture Debt from HSBC Innovation Banking" are all real stored
+  rounds. `\bdebt\b` is not disqualifying and neither is `convertible note` — a
+  convertible note is how a seed round is papered. `debt OFFERING`, `SENIOR
+  notes` and `notes due 20xx` are, because those are sold to a market.
+- **Employer identity cannot decide it.** A company can raise venture money in
+  the same week it issues a bond, so no ticker, CIK or employer_type is read.
+
+The measurement that matters most: run over the `publish_guardrails` amount
+ledger, the rule fires on **none of the nine rounds a human has ACCEPTED** —
+Anthropic x3, OpenAI, xAI, X.AI Holdings, Waymo, DeepSeek, Databricks — and on
+Nvidia, Intel, ChangXin and AirTrunk. It also fires on none of the human
+REJECTIONS that belong to other rules (Arch's AUM, A16z's and Blackstone's and
+Kingswood's fund closes, Turkish Airlines' capex, Masimo's and Dillard's merger
+consideration). Two vocabularies, two tolerances, no overlap.
+
+One pattern was retracted during the measurement rather than shipped: a bare
+`credit facilit(y|ies)` refused "Danish Entravel Group raises €6.5 million to
+secure larger supplier credit facilities", a real round whose USE OF PROCEEDS is
+a credit line. A purpose clause is not an instrument.
+
+### What is deliberately let through
+
+**Oracle.** "Oracle raises $25 billion and reassures skeptical investors",
+summary "Oracle has raised $25 billion." Neither sentence names an instrument.
+There is no honest deterministic verdict there and the classifier returns None
+rather than guess from the fact that Oracle is large and listed. It stays the
+amount guardrail's problem, and `test_capital_event.py` asserts the gap so it
+stays a decision. At extraction the classifier also reads `raw_text`, so a
+teaser that says "bond" catches the next one; the stored row no longer holds
+that text, so the replay above could not test it.
+
+**Fund closes, AUM and capex.** Already held, over-eagerly and harmlessly, by
+`guardrails.NOT_A_COMPANY_ROUND`. Widening a REFUSAL to `\bfunds?\b` would
+refuse "Emergent raises $70M from Khosla Ventures and SoftBank Vision Fund 2".
+
+**Anything IPO-adjacent.** "IPO-bound ... raises $100m in Series D", "eyes IPO",
+"pre-IPO financing" and "$50 Million Follow-On Series A" are all real rounds and
+all pass clean, because the listing has to be near the money AND nothing may put
+it in the future AND no private-round marker may be present.
+
+### Where the verdict is written
+
+In `deal_type`, and NOT in a fifth parallel refusal path. Three new values
+(`bond_issue`, `public_offering`, `project_finance`) join `ipo`, which was
+already there. One verdict does two things:
+
+- **the FIGURE is refused** — `funding_amount`, `funding_amount_usd` and
+  `funding_stage` are all left NULL, so the money never reaches the "Funding
+  raised" tile, the money total, or anything computed from them;
+- **the ROW survives, saying what it actually was** — which is what makes the
+  refusal countable. `SELECT deal_type, COUNT(*)` is the tally and
+  `capital_event.STATS` is the same fact per run. A silent drop is how a source
+  posts zero while reporting healthy, and this project has shipped that once.
+
+It never displaces a `deal_type` the model already read: Compass's 8-K says
+"completed its acquisition of Anywhere Real Estate Inc. and issued $1,000.0
+million ... Convertible Senior Notes due 2031", and the acquisition is the
+better answer to "what kind of transaction". Both halves hold.
+
+Three consumers, one definition:
+
+- `validate.build_signal` — the store path, gated on a figure having been
+  accepted. A leadership row that mentions a bond is not a bond row.
+- `cheap_extract.parse_funding` — where Intel and Oracle were actually minted.
+  That parser read only the HEADLINE for the class question while the teaser sat
+  in `raw_text` unread; it now declines and the item takes the paid path.
+- `guardrails.not_a_company_round` — so the auto-accept cannot publish a
+  mega-bond the store itself would have refused.
+
+### The already-published rows, which are the owner's decision
+
+**Nothing was retracted and nothing was quietly corrected.** Retraction is a
+credentialed act (`python3 retract.py <signal_id> "why"`) and this project
+retracts rather than correcting in place, on purpose. The 28 published rows are
+listed in the PR body.
+
+---
+
 ## 2026-08-13 - the money charts' empty state said nothing useful. 1.78.0, merged, NOT deployed
 
 **Copy, plus one probe query that runs only when a chart is empty. No data

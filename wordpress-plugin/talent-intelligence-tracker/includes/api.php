@@ -165,9 +165,19 @@ function tit_allowed_site_events() {
     return array('opened', 'closed', 'expanded', 'relocated', 'announced');
 }
 
-/** Corporate events, when a source names one. */
+/**
+ * Corporate events, when a source names one.
+ *
+ * The last three are CAPITAL EVENTS. They exist because a bond issue, a public
+ * share offering and a project financing were all being stored as venture
+ * funding rounds, and the only thing that ever noticed was the amount
+ * guardrail's magnitude check — which by construction cannot see a $500m bond.
+ * pipeline/capital_event.py decides them; keeping this list in step is what
+ * lets a reader filter them out of the funding view.
+ */
 function tit_allowed_deal_types() {
-    return array('acquisition', 'acquired', 'merger', 'divestiture', 'joint_venture', 'ipo');
+    return array('acquisition', 'acquired', 'merger', 'divestiture', 'joint_venture', 'ipo',
+                 'bond_issue', 'public_offering', 'project_finance');
 }
 
 /**

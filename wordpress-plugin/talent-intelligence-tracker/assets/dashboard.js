@@ -344,10 +344,16 @@
   // questions -- Funding Stage asks what round this was, Deal Type asks what
   // kind of transaction it was -- so the fix is to say the deal one at length
   // rather than to drop either. Stored value (`ipo`) unchanged.
+  // The last three are capital events rather than deals: a company taking money
+  // in somewhere other than a venture round. They carry NO funding figure by
+  // design -- the pipeline refuses to store one on them -- so a reader
+  // filtering to them is asking "who is financing, and how", not "who raised".
   var DEAL_TYPE_LABEL = {
     acquisition: 'Acquisition', acquired: 'Acquired', merger: 'Merger',
     divestiture: 'Divestiture', joint_venture: 'Joint Venture',
-    ipo: 'Initial Public Offering'
+    ipo: 'Initial Public Offering',
+    bond_issue: 'Bond Issue', public_offering: 'Public Share Offering',
+    project_finance: 'Project Financing'
   };
 
   // What an employer did with a place of work. "Announced" is its own value

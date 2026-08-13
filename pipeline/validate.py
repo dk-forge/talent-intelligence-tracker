@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from . import identity, prefilter, vocab
+from . import capital_event, identity, prefilter, vocab
 
 
 class Rejected(Exception):
@@ -756,6 +756,50 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # source states a number, and inferring otherwise is the same mistake as
     # inferring a headcount.
     deal_type = vocab.normalize_deal_type(classified.get("deal_type", "") or "")
+
+    # AND THE CAPITAL EVENTS, which the text decides and the model does not.
+    #
+    # A bond, an IPO, a secondary offering and a project financing are all a
+    # company receiving money, and all four were being stored in the funding
+    # columns as if they were venture rounds. Four in one month — ChangXin
+    # $8.6bn, Oracle $25bn, Intel $20bn, Nvidia $709bn — every one caught by
+    # `guardrails.check_amounts`, which is a MAGNITUDE check and therefore
+    # caught them for a reason that does not generalise downward: Zions
+    # Bancorporation's "$500 million in a senior notes issuance" is the same
+    # event and is on the live page as a funding round right now.
+    #
+    # `deal_type` is NULL on all four of those rows, which is the tell. So the
+    # verdict is written HERE, into the column that already exists for "what
+    # kind of transaction is this", rather than into a fifth parallel refusal
+    # path. Two things follow from one verdict:
+    #
+    #   the FIGURE is refused. A bond issue is not a funding round, so it does
+    #     not enter funding_amount, funding_amount_usd or funding_stage, and
+    #     therefore not the "Funding raised" tile, the money total, or any
+    #     figure computed from them.
+    #   the ROW survives, saying what it actually was. That is what makes the
+    #     refusal countable: `SELECT deal_type, COUNT(*)` is the tally, and
+    #     capital_event.STATS is the same fact per run. A silent drop is how a
+    #     source posts zero while reporting healthy, which this project has
+    #     already shipped once.
+    #
+    # It runs only where a figure was accepted. A leadership row that mentions
+    # a bond somewhere is not a bond row, and labelling it one would be the
+    # over-reach this rule is written to avoid.
+    #
+    # It never DISPLACES a deal_type the model already read. Compass's 8-K
+    # says "completed its acquisition of Anywhere Real Estate AND issued
+    # $1,000.0 million of Convertible Senior Notes": the acquisition is the
+    # better answer to "what kind of transaction", and the notes are still not
+    # a funding round. Both halves are honoured.
+    if funding or funding_usd is not None:
+        kind = capital_event.classify(headline, summary, raw_text)
+        if kind:
+            capital_event.note(kind)
+            funding = None
+            funding_usd = None
+            funding_stage = None
+            deal_type = deal_type or kind
 
     # What the employer did with a place of work, when the source says so.
     # Treated exactly like deal_type and for the same reason: it is an event
