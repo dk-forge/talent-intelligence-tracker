@@ -60,6 +60,20 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    # SIZED FROM MEASUREMENT, 2026-08-13: median 20.0 min, max 101.5 over the
+    # last 44 successful runs. Highly variable, and deliberately sized for the
+    # tail rather than the middle: everything since 2026-08-03 sits between 12
+    # and 27 minutes, but 2026-07-30 to 08-02 produced 67.3, 88.3, 96.2 and
+    # 101.5, and a ceiling fitted to the quiet fortnight would redden a run that
+    # was only slow. 180 is ~1.8x the honest maximum and ~9x the median, and
+    # matches collect-structured.yml, the sibling collector on the same lock.
+    #
+    # It carried no ceiling at all until now, so it inherited GitHub's 6-hour
+    # default while holding OPENROUTER_API_KEY. Spend is capped independently
+    # (spend.py DEGRADES at 90% of the monthly allowance, DEFAULT_CANDIDATE_CAP
+    # bounds each run at 40 candidates), so what this bounds is a HUNG RUN
+    # sitting on a live key and on the single writer lock, not the bill.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 

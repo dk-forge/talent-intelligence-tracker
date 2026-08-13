@@ -39,6 +39,14 @@ concurrency:
 jobs:
   retract:
     runs-on: ubuntu-latest
+    # MEASURED 2026-08-13: median 0.3 min, max 0.5 over 13 successful runs — but
+    # every one of those retracted a handful of rows, and `bare_domains: true`
+    # walks every row whose source link is an outlet homepage, which no measured
+    # run did. So the observed distribution does not describe the expensive case
+    # and this is sized generously on purpose: 15 bounds a hung run without
+    # putting a clock on a human-dispatched correction that may be large.
+    # Re-derive it if a bare_domains sweep is ever actually timed.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

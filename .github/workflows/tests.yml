@@ -9,6 +9,13 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    # SIZED FROM MEASUREMENT, 2026-08-13: median 3.5 min, max 5.1 over the last
+    # 38 successful runs, and the spread is narrow (3.0 to 5.1). 15 is ~3x the
+    # maximum and ~4x the median, which is the same ceiling the sibling repo's
+    # identical pytest job carries. Generous for a suite this steady, because
+    # this one gates every PR: a red here from a slow runner is a wolf cried at
+    # the person least able to ignore it.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
