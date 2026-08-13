@@ -58,6 +58,16 @@ the amount in the result slug against the amount in the gold row.
 The four it did not cover: Wonder ($650M, New York), Mantle Energy ($5M,
 Dallas), Auger ($50M, Seattle), logcat.ai ($2.55M, Seattle).
 
+**A hit on the company is not a hit on the event, and the count above is on
+events.** Pulse 2.0 has written about most of these companies more than once, so
+the amount in the result slug was compared against the amount in the gold row
+and an earlier round was scored as a miss: its Bland article at $16M and its
+Patronus AI article at $17M do not count, and the $50M Bland Series C and $50M
+Patronus Series B, which are separate articles, do. One row needed reading
+rather than matching: Pearl Health's gold `amount_usd` is $50M because the set
+records the equity portion of a $110M total, so the Pulse 2.0 article headlined
+$110M is the same event and counts.
+
 Examples, all fetched:
 
 - `pulse2.com/peregrine-technologies-raises-250-million-series-d-at-6-8-billion...`
