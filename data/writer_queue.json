@@ -193,79 +193,10 @@
     }
   ],
   "red_marks": {
-    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z"
+    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z",
+    "ticket:20260813T004456Z-place-unplaced": "2026-08-13T01:01:44Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-13T00:44:59Z",
-      "history": [
-        {
-          "at": "2026-08-13T00:44:56Z",
-          "detail": "re-queued after the 1633 attempt was cancelled for being 3h against a 2h timeout (#21 fixed that); 400 employers fits the lock window",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T00:44:59Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260813T004456Z-place-unplaced",
-      "inputs": {
-        "dry_run": "false",
-        "limit": "400"
-      },
-      "priority": 0,
-      "reason": "re-queued after the 1633 attempt was cancelled for being 3h against a 2h timeout (#21 fixed that); 400 employers fits the lock window",
-      "requested_at": "2026-08-13T00:44:56Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "place-unplaced.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T13:06:56Z",
-      "history": [
-        {
-          "at": "2026-08-05T12:29:46Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 6)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T13:06:56Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T13:24:54Z",
-          "detail": "run 31008683070",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T13:24:54Z",
-          "detail": "run 31008683070",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T122946Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-06-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T13:24:54Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 6)",
-      "requested_at": "2026-08-05T12:29:46Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31008683070",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-05T13:24:54Z",
@@ -2596,6 +2527,44 @@
       "requested_at": "2026-08-13T00:39:09Z",
       "requested_by": "dakotta-labs",
       "run_id": "31655143239",
+      "state": "failed",
+      "workflow": "place-unplaced.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T00:44:59Z",
+      "history": [
+        {
+          "at": "2026-08-13T00:44:56Z",
+          "detail": "re-queued after the 1633 attempt was cancelled for being 3h against a 2h timeout (#21 fixed that); 400 employers fits the lock window",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T00:44:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T01:01:44Z",
+          "detail": "run 31655474133",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-13T01:01:44Z",
+          "detail": "cancelled after starting; needs a human",
+          "event": "cancelled-mid-run"
+        }
+      ],
+      "id": "20260813T004456Z-place-unplaced",
+      "inputs": {
+        "dry_run": "false",
+        "limit": "400"
+      },
+      "priority": 0,
+      "reason": "re-queued after the 1633 attempt was cancelled for being 3h against a 2h timeout (#21 fixed that); 400 employers fits the lock window",
+      "requested_at": "2026-08-13T00:44:56Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31655474133",
       "state": "failed",
       "workflow": "place-unplaced.yml"
     }
