@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     # The floor is `wbsearchentities`, which has no batch form: one search per
     # employer at three requests a second, plus one SPARQL call per twelve.
-    timeout-minutes: 120
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -79,7 +79,17 @@ jobs:
       # string comparison the step above uses to add --dry-run. A `${{ inputs.x
       # == false }}` guard is a coin flip on whether the dispatch API delivered
       # a boolean or the string "false", and the two coerce differently.
+      # `always()`, and that is the point. Resolution is a long serial walk
+      # against a free public endpoint — measured at about 7 seconds an
+      # employer, so 1,633 of them is over three hours — and it commits each
+      # employer to the local database as it goes. Without this the job's
+      # timeout would throw away every one of them and report nothing, which is
+      # the worst of both: hours of somebody else's bandwidth spent, and no
+      # row placed. Run it repeatedly with a limit instead of once without one:
+      # the pass is idempotent, a placed employer is no longer a target, and a
+      # resolution is cached for ever.
       - name: Commit the database
+        if: always()
         run: |
           if [ "${{ inputs.dry_run }}" != "false" ]; then
             echo "Dry run. Nothing to commit."
@@ -103,6 +113,7 @@ jobs:
       # step the local database is right and every reader still sees a row with
       # no place, which is the state this whole workflow is about.
       - name: Carry the values to the site
+        if: always()
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
