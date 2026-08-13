@@ -96,6 +96,42 @@ USER_AGENT = "TalentIntelligenceTracker/1.0 (+https://asktherecruiter.com)"
 # knows the difference between an eviction and a failure. This does not.
 ALERTABLE = {"failure", "timed_out", "startup_failure"}
 
+# ...BUT A JOB THAT KILLS ITSELF ON `timeout-minutes` ALSO REPORTS `cancelled`,
+# and that is a different animal entirely. GitHub reserves the `timed_out`
+# conclusion for a handful of cases; a step that simply runs past its job's own
+# `timeout-minutes` ends the run `cancelled`, indistinguishable at the
+# conclusion level from an evicted writer run. So the blanket "cancelled is
+# noise" rule made a whole class of permanent failure silent in BOTH channels:
+# ci_status.py only reports a cancelled run that created ZERO jobs (the eviction
+# signature), and a self-timeout creates jobs, so it is not there either.
+#
+# The sibling repo paid for this. "Archive WARN sources to Wayback" (weekly,
+# timeout-minutes: 20) was killed at ~20m on EVERY run it ever had, 2026-07-27
+# and 2026-08-03, never once completing, and no email ever fired — while the
+# archive re-check invariant drifted to 8.6 days against its 10-day bound.
+#
+# It matters here now because PR #32 gave collect, collect-press, deploy-plugin,
+# retract and tests a `timeout-minutes` they never had. Those ceilings are
+# generous precisely because hitting one was quiet, and a generous ceiling that
+# reports nothing when it binds is a wall with no alarm on it.
+#
+# A self-timeout is never routine: nothing outside the job cancelled it, it ran
+# into a wall this repository set. So `cancelled` is still not alertable BY
+# CONCLUSION. It is alertable by EVIDENCE, and the evidence is NOT in the log: a
+# self-killed job's log ends on a bare "##[error]The operation was canceled.",
+# character-for-character what an evicted or externally cancelled job prints,
+# and `--log-failed` returns nothing at all because a cancelled run has no
+# failed STEP. The distinguishing line lives in the job's CHECK-RUN ANNOTATIONS:
+#
+#   failure  The job has exceeded the maximum execution time of 20m0s
+#   failure  The operation was canceled.
+#
+# Only a self-timeout produces the first line, so that is what is matched, and
+# everything else — every eviction — returns 0 and says why.
+_SELF_TIMEOUT = re.compile(
+    r"has exceeded the maximum (?:execution|operation) time of\s*(.+?)\.?$",
+    re.IGNORECASE)
+
 # Actions log lines arrive as "<job>\t<step>\t<ISO timestamp> <content>".
 _TS = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?")
 
@@ -257,16 +293,68 @@ def fetch_failed_log(repo: str, run_id: str) -> str:
     return proc.stdout or ""
 
 
+def fetch_annotations(repo: str, run_id: str) -> str:
+    """Every job annotation for a run, one message per line. "" on any problem.
+
+    Two `gh api` calls, and neither may raise: this runs on the failure path,
+    and a notifier that dies while handling a failure has told nobody anything.
+    Same contract as `fetch_failed_log` — a missing annotation must degrade the
+    verdict to "routine cancellation", never crash the alerter.
+    """
+    def _api(path: str, jq: str) -> str:
+        try:
+            proc = subprocess.run(["gh", "api", path, "-q", jq],
+                                  capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError) as exc:
+            print(f"could not read {path} ({exc})")
+            return ""
+        if proc.returncode != 0:
+            print(f"gh api {path} exited {proc.returncode}: "
+                  f"{proc.stderr.strip()[:200]}")
+        return proc.stdout or ""
+
+    jobs = _api(f"repos/{repo}/actions/runs/{run_id}/jobs", ".jobs[].id")
+    return "\n".join(_api(f"repos/{repo}/check-runs/{job_id}/annotations",
+                          ".[].message")
+                     for job_id in jobs.split())
+
+
+def self_timeout_cause(text: str) -> str | None:
+    """-> the runner's own timeout line, or None if this run was cancelled by
+    something OUTSIDE itself — an eviction from the `talent-collect` lock, a
+    superseded push, a human.
+
+    Returning None is the common case here and it MUST stay silent. This repo
+    evicts runs by design, ops_status.py [2b] is what tells an eviction from a
+    failure, and mailing on every cancellation is the alarm fatigue the whole
+    module exists to prevent — not a bar it may trade away for this class.
+    """
+    for raw in (text or "").splitlines():
+        found = _SELF_TIMEOUT.search(strip_prefix(raw))
+        if found:
+            return ("the job cancelled ITSELF on timeout-minutes: it exceeded "
+                    f"the maximum execution time of {found.group(1).strip()}")
+    return None
+
+
 def build_alert(*, repo: str, workflow: str, branch: str, event: str,
-                run_url: str, cause: str, context: list[str]) -> tuple[str, str, str]:
-    """Compose the email and the cause key it is deduped on."""
+                run_url: str, cause: str, context: list[str],
+                label: str = "CI RED") -> tuple[str, str, str]:
+    """Compose the email and the cause key it is deduped on.
+
+    `label` names the CLASS of red in the subject. The scope is deliberately
+    unchanged across classes: a self-timeout and a failed assertion in the same
+    workflow both clear on that workflow's next green run, so the resolve path
+    needs no new vocabulary. The cause fingerprint is what keeps them distinct
+    emails.
+    """
     scope = f"{slug(workflow)}:{slug(branch, 32)}"
     fingerprint = hashlib.md5(
         f"{scope}\n{normalise(cause)}".encode("utf-8")).hexdigest()[:16]
     dedupe_key = f"{scope}:{fingerprint}"
 
     headline = cause or "no error line could be extracted from the log"
-    subject = f"CI RED: {workflow}: {headline}"[:180]
+    subject = f"{label}: {workflow}: {headline}"[:180]
 
     lines = [
         f"The workflow '{workflow}' failed on GitHub Actions and nothing else would "
@@ -559,14 +647,38 @@ def main(argv=None) -> int:
                         note=note, transient=transient, run_url=args.run_url)
         return 0
 
-    if conclusion not in ALERTABLE:
+    label = "CI RED"
+    if conclusion == "cancelled":
+        # See _SELF_TIMEOUT. A cancelled run stays silent UNLESS it killed
+        # itself, in which case nothing outside the job cancelled it: it ran
+        # past a wall this repository set, and on a schedule that is permanent
+        # and was, until now, invisible in both channels.
+        timeout_cause = self_timeout_cause(
+            fetch_annotations(args.repo, args.run_id))
+        if not timeout_cause:
+            print("cancelled by something outside the job (an eviction from the "
+                  "talent-collect lock, a superseded push, or a human): "
+                  "deliberately not alertable. ops_status.py [2b] is what tells "
+                  "an eviction from a failure")
+            return 0
+        label = "CI SELF-TIMEOUT"
+        cause, context = timeout_cause, [
+            "The job was not evicted, superseded or cancelled by a human. It ran "
+            "past its own `timeout-minutes` and the runner killed it.",
+            "GitHub reports this as `cancelled`, not `timed_out`, which is why it "
+            "produced no email and no ci_status.py line before now.",
+            "Raise the ceiling with the measured reason written down, or make the "
+            "job fit inside it. Do not simply retry.",
+        ]
+    elif conclusion not in ALERTABLE:
         print(f"conclusion '{conclusion}' is not alertable, nothing to do")
         return 0
+    else:
+        cause, context = extract_cause(fetch_failed_log(args.repo, args.run_id))
 
-    cause, context = extract_cause(fetch_failed_log(args.repo, args.run_id))
     subject, body, dedupe_key = build_alert(
         repo=args.repo, workflow=args.workflow, branch=args.branch, event=args.event,
-        run_url=args.run_url, cause=cause, context=context)
+        run_url=args.run_url, cause=cause, context=context, label=label)
 
     print(f"cause:      {cause or '(none extracted)'}")
     print(f"normalised: {normalise(cause)}")

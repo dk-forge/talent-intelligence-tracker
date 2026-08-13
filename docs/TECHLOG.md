@@ -748,7 +748,20 @@ P17 of the entity itself. The errors live in the fallback. Queried from
                Google Ventures (GV)"
 
 That is the Czech chemical works, filed over the UK AI company, on a public
-page. Two rows of it. `Ash Games` is a German namesake; `CFS` is filed CA and
+page. It sits on page 2 of the 80 rows a reader gets from a Czechia filter,
+because `country_basis=any` unions job location with employer HQ and this row
+carries no job location at all.
+
+**36 of the 37 are on the site; the 37th never published.** Checked one row at
+a time against `talent/v1/query` by `signal_id`, which is the `content_hash`.
+The exception is the SECOND Synthesia row, `89aae556...` from `press_archive`:
+it is in the committed database carrying CZ and it is not in the live table. So
+the reversal is 37 rows of local work and 36 rows of live work, and a run
+reporting 37 changed locally against 36 changed on the site is the expected
+shape rather than a discrepancy. Nothing else in the list has drifted since it
+was written: zero rows have since picked up a city or a different country.
+
+`Ash Games` is a German namesake; `CFS` is filed CA and
 appears three rows later as Commonwealth Fusion Systems, US. All 37 are named
 by content_hash in `data/cityless_hq_to_reverse.json`, a file and not a derived
 query, so the pass takes back exactly what that one run wrote and not the

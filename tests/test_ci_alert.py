@@ -126,6 +126,8 @@ class TestBehaviour:
         pending run whenever another is dispatched past it. Alerting on those
         would fire constantly and bury the failures that matter. Evictions have
         their own detection in ops_status [2b], which can tell them apart."""
+        monkeypatch.setattr(ci_alert, "fetch_annotations",
+                            lambda *a, **k: "The operation was canceled.")
         code, out = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "cancelled"],
             monkeypatch)
@@ -229,6 +231,120 @@ class TestBehaviour:
         assert code == 0
         assert calls[0]["resolve_scope"] == "collect:main"
         assert "dedupe_key" not in calls[0]
+
+
+class TestSelfTimeoutIsNotAnEviction:
+    """A job killed by its own `timeout-minutes` concludes `cancelled`, not
+    `timed_out`. Until this, that was silent in BOTH channels: ci_alert filtered
+    every `cancelled`, and ci_status only reports a cancelled run that created
+    ZERO jobs (the eviction signature) — a self-timeout creates jobs.
+
+    Both directions are pinned here on purpose. The quiet on evictions is
+    load-bearing (this repo evicts by design and an undeduped alarm is a
+    filtered alarm), so a fix that bought the timeout class by mailing on every
+    cancellation would be a regression wearing a fix's clothes.
+    """
+
+    def _run(self, argv, monkeypatch, **env):
+        for k in ("WP_SITE_URL", "WP_API_KEY", "ALERT_ENVELOPE"):
+            monkeypatch.delenv(k, raising=False)
+        for k, v in env.items():
+            monkeypatch.setenv(k, v)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            code = ci_alert.main(argv)
+        return code, buf.getvalue()
+
+    def test_an_eviction_is_still_silent(self, monkeypatch):
+        """The thirteen writer runs evicted on 2026-07-28/29 would each have
+        mailed. ops_status.py [2b] is what reports those, and it can tell an
+        eviction from a failure; this cannot, and must not pretend to."""
+        monkeypatch.setattr(ci_alert, "fetch_annotations",
+                            lambda *a, **k: "The operation was canceled.")
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "correct-form-d",
+             "--conclusion", "cancelled"], monkeypatch)
+        assert code == 0
+        assert "outside the job" in out
+        assert "SELF-TIMEOUT" not in out
+
+    def test_a_cancelled_run_with_no_annotations_at_all_stays_silent(self, monkeypatch):
+        """Fail QUIET here, not open. `gh` missing, unauthenticated, or a
+        check-runs call that 403s must degrade to 'routine cancellation' — the
+        alternative is mailing on every eviction the moment a token narrows."""
+        monkeypatch.setattr(ci_alert, "fetch_annotations", lambda *a, **k: "")
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "collect", "--conclusion", "cancelled"],
+            monkeypatch)
+        assert code == 0 and "SELF-TIMEOUT" not in out
+
+    def test_a_self_timeout_alerts_even_though_it_reads_as_cancelled(self, monkeypatch):
+        """THE HOLE THIS CLOSES. PR #32 gave collect, collect-press,
+        deploy-plugin, retract and tests a `timeout-minutes` they never had, and
+        those ceilings are generous precisely because hitting one was quiet. In
+        the sibling repo an archive job died at its 20-minute ceiling on every
+        run it ever had, never once completing, and no email ever fired."""
+        monkeypatch.setattr(
+            ci_alert, "fetch_annotations",
+            lambda *a, **k: ("The job has exceeded the maximum execution time "
+                             "of 45m0s\nThe operation was canceled."))
+        code, out = self._run(
+            ["--run-id", "1", "--workflow", "collect", "--conclusion", "cancelled",
+             "--dry-run"], monkeypatch)
+        assert code == 0
+        assert "CI SELF-TIMEOUT" in out
+        assert "45m0s" in out and "cancelled ITSELF" in out
+
+    def test_the_marker_is_read_from_annotations_and_not_from_the_log(self):
+        """It is NOT in the log. A self-killed job's log ends on a bare
+        '##[error]The operation was canceled.', character-for-character what an
+        evicted run prints, and `--log-failed` returns nothing at all because a
+        cancelled run has no failed STEP."""
+        assert ci_alert.self_timeout_cause(
+            "2026-08-12T09:26:01.3465610Z ##[error]The operation was canceled.") is None
+        assert ci_alert.self_timeout_cause(
+            "The job has exceeded the maximum execution time of 20m0s") is not None
+        assert ci_alert.self_timeout_cause("") is None
+        assert ci_alert.self_timeout_cause(None) is None
+
+    def test_the_self_timeout_path_never_reads_the_failed_log(self, monkeypatch):
+        """A cancelled run has no failed step, so `gh run view --log-failed`
+        returns nothing and costs a 180-second subprocess to say so."""
+        monkeypatch.setattr(
+            ci_alert, "fetch_annotations",
+            lambda *a, **k: "The job has exceeded the maximum execution time of 20m0s")
+        monkeypatch.setattr(ci_alert, "fetch_failed_log", lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("the self-timeout path must not read the failed log")))
+        code, _ = self._run(
+            ["--run-id", "1", "--workflow", "tests", "--conclusion", "cancelled",
+             "--dry-run"], monkeypatch)
+        assert code == 0
+
+    def test_a_self_timeout_clears_on_the_same_workflows_green_run(self):
+        """The scope must not fork by class, or a workflow that starts passing
+        again leaves its self-timeout alert open forever — the permanently red
+        alarm this whole module exists to abolish."""
+        _s, _b, key = ci_alert.build_alert(
+            repo="dk-forge/talent-intelligence-tracker", workflow="collect",
+            branch="main", event="schedule", run_url="",
+            cause="the job cancelled ITSELF on timeout-minutes", context=[],
+            label="CI SELF-TIMEOUT")
+        scope = f"{ci_alert.slug('collect')}:{ci_alert.slug('main', 32)}"
+        assert key.startswith(scope + ":"), \
+            f"{key!r} would never be cleared by resolve_scope {scope!r}"
+
+    def test_the_listener_admits_cancelled_so_the_script_can_judge_it(self):
+        """The YAML filter and the script have to agree. A `cancelled` run
+        screened out in YAML never reaches the annotation check at all, and the
+        class goes back to being invisible with the code to handle it still
+        sitting here, tested and never run."""
+        yml = (Path(__file__).resolve().parents[1] / ".github" / "workflows"
+               / "ci-alert.yml").read_text()
+        assert '"cancelled"' in yml, \
+            "the listener screens cancelled out before ci_alert can judge it"
+        assert "checks: read" in yml, (
+            "annotations need checks:read; without it the self-timeout marker "
+            "cannot be read and every cancellation reads as routine")
 
 
 class TestSharedWithCiStatus:

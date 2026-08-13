@@ -271,7 +271,15 @@ purpose: 6 honest beats 7 where one is accidentally right. It returns at 7
 city-backed (Boston) once `enrich.yml` carries the 33 waiting placements.
 AlphaSense reads `hq_city=New York` and is not affected.
 
-Synthesia still reads `hq_country=CZ` on the live page as of this handover.
+Synthesia still reads `hq_country=CZ` on the live page as of this handover, on
+page 2 of a Czechia filter.
+
+**36 of the 37 are live; the 37th never published.** Checked row by row against
+`talent/v1/query` on `signal_id` (which is the `content_hash`). The exception is
+the second Synthesia row, `89aae556`, from `press_archive`. So expect the run to
+report 37 reversed locally and 36 changed on the site, and read that as the
+expected shape rather than a discrepancy. Nothing in the list has drifted since
+it was written: no row has since gained a city or a different country.
 
 **The refusal test was inverted, not deleted.**
 `test_the_refusal_is_still_correct` asserted `not rev.site_can_clear()`; it now

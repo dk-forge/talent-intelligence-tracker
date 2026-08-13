@@ -34,9 +34,18 @@ completing (one `workflow_run` listener, not an `if: failure()` step in each of
 30 files) and runs `ci_alert.py`, which extracts the real failing assertion and
 POSTs it to the keyed `talent/v1/alert`. Deduped **by cause, not by run**
 (numbers normalised out before hashing; open/resolved state held in the
-endpoint), and it mails **RECOVERED once** on the next green run. `cancelled` is
-deliberately never alerted: this repo evicts runs by design, and `ci_status.py`
-is what tells an eviction from a failure. Do not "fix" the quiet on a repeat — an
+endpoint), and it mails **RECOVERED once** on the next green run. An **evicted**
+run is deliberately never alerted: this repo evicts runs by design, and
+`ci_status.py` is what tells an eviction from a failure. That quiet is decided on
+EVIDENCE, not on the conclusion string — a job killed by its own
+`timeout-minutes` also reports `cancelled`, and it was invisible in both channels
+until 2026-08-12. The listener now admits `cancelled` and `ci_alert.py` alerts
+only when the job's check-run annotations carry "has exceeded the maximum
+execution time of ...", which nothing but a self-timeout produces (hence
+`checks: read`). Everything else returns 0 and says why. Do not narrow this back
+to a conclusion-string filter: the ceilings PR #32 put on collect, collect-press,
+deploy-plugin, retract and tests are generous precisely because hitting one used
+to be silent. Do not "fix" the quiet on a repeat — an
 alarm that mails eight times in an afternoon is one you learn to filter, and a
 filtered alarm is the original problem in a new hat. `ci_status.py` shares
 `ci_alert.extract_cause` so the dashboard and the email can never describe one
