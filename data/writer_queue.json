@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-13T01:08:05Z",
-  "last_tick": "2026-08-13T01:08:05Z",
+  "last_tick": "2026-08-13T01:27:20Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -210,6 +210,11 @@
           "at": "2026-08-13T01:08:05Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T01:27:20Z",
+          "detail": "run 31656728236",
+          "event": "bound"
         }
       ],
       "id": "20260813T010801Z-place-unplaced",
@@ -221,7 +226,7 @@
       "reason": "place the unplaced, with the city-backed bar from #22; free, no model",
       "requested_at": "2026-08-13T01:08:01Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "31656728236",
       "state": "dispatched",
       "workflow": "place-unplaced.yml"
     },
