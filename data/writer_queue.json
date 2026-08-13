@@ -193,85 +193,9 @@
     }
   ],
   "red_marks": {
-    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z",
-    "ticket:20260813T004456Z-place-unplaced": "2026-08-13T01:01:44Z"
+    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-13T01:08:05Z",
-      "history": [
-        {
-          "at": "2026-08-13T01:08:01Z",
-          "detail": "place the unplaced, with the city-backed bar from #22; free, no model",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T01:08:05Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-13T01:27:20Z",
-          "detail": "run 31656728236",
-          "event": "bound"
-        }
-      ],
-      "id": "20260813T010801Z-place-unplaced",
-      "inputs": {
-        "dry_run": "false",
-        "limit": "400"
-      },
-      "priority": 0,
-      "reason": "place the unplaced, with the city-backed bar from #22; free, no model",
-      "requested_at": "2026-08-13T01:08:01Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31656728236",
-      "state": "dispatched",
-      "workflow": "place-unplaced.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T13:24:54Z",
-      "history": [
-        {
-          "at": "2026-08-05T12:51:16Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 8)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T13:24:54Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T13:44:17Z",
-          "detail": "run 31010084031",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T13:44:17Z",
-          "detail": "run 31010084031",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T125116Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T13:44:17Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 8)",
-      "requested_at": "2026-08-05T12:51:16Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31010084031",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-05T13:44:17Z",
@@ -2599,6 +2523,45 @@
       "requested_by": "dakotta-labs",
       "run_id": "31655474133",
       "state": "failed",
+      "workflow": "place-unplaced.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T01:08:05Z",
+      "history": [
+        {
+          "at": "2026-08-13T01:08:01Z",
+          "detail": "place the unplaced, with the city-backed bar from #22; free, no model",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T01:08:05Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T01:27:20Z",
+          "detail": "run 31656728236",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-13T01:28:40Z",
+          "detail": "run 31656728236",
+          "event": "landed"
+        }
+      ],
+      "id": "20260813T010801Z-place-unplaced",
+      "inputs": {
+        "dry_run": "false",
+        "limit": "400"
+      },
+      "landed_at": "2026-08-13T01:28:40Z",
+      "priority": 0,
+      "reason": "place the unplaced, with the city-backed bar from #22; free, no model",
+      "requested_at": "2026-08-13T01:08:01Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31656728236",
+      "state": "landed",
       "workflow": "place-unplaced.yml"
     }
   ],
