@@ -195,75 +195,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-13T04:20:07Z",
-      "history": [
-        {
-          "at": "2026-08-13T04:20:02Z",
-          "detail": "take back the 37 cityless hq_country values that reached the live site",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T04:20:07Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260813T042002Z-reverse-cityless-hq",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "take back the 37 cityless hq_country values that reached the live site",
-      "requested_at": "2026-08-13T04:20:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "reverse-cityless-hq.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T14:44:02Z",
-      "history": [
-        {
-          "at": "2026-08-05T14:43:32Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 9)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T14:44:02Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T15:09:12Z",
-          "detail": "run 31016701191",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T15:09:12Z",
-          "detail": "run 31016701191",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T144332Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-06-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T15:09:12Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 9)",
-      "requested_at": "2026-08-05T14:43:32Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31016701191",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-05T15:09:12Z",
       "history": [
         {
@@ -2587,6 +2518,44 @@
       "run_id": "31664676421",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T04:20:07Z",
+      "history": [
+        {
+          "at": "2026-08-13T04:20:02Z",
+          "detail": "take back the 37 cityless hq_country values that reached the live site",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T04:20:07Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T04:20:55Z",
+          "detail": "run 31666694680",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-13T04:20:55Z",
+          "detail": "run 31666694680",
+          "event": "landed"
+        }
+      ],
+      "id": "20260813T042002Z-reverse-cityless-hq",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-13T04:20:55Z",
+      "priority": 0,
+      "reason": "take back the 37 cityless hq_country values that reached the live site",
+      "requested_at": "2026-08-13T04:20:02Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31666694680",
+      "state": "landed",
+      "workflow": "reverse-cityless-hq.yml"
     }
   ],
   "version": 1
