@@ -8,7 +8,8 @@ Branch `fix/place-the-unplaced`. **No plugin change, no version bump, no
 deploy.** No model was called and no money was spent. Full reasoning and every
 number is in TECHLOG under this date.
 
-**The headline: 5 of 51, and the free pass has taken it to 7.** Applying the plugin's own clause — `country IN
+**The headline: 5 of 51, now 7 on the live site, and 6 once the reversal
+below runs.** Free bought one event that survives its own bar: AlphaSense. Applying the plugin's own clause — `country IN
 ('US') OR (country IS NULL AND hq_country IN ('US'))` — to the 21 US funding
 events the sealed recall set says we hold: 5 visible, 13 carrying no place at
 all, 3 filed under the publisher's country (BR, ZA, ZA). Site-wide the

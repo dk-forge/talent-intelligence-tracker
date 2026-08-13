@@ -220,10 +220,17 @@ the session's call and not a delegated one. **Stated, not made.**
 
 ### Reader-visible, before and after
 
-**Before: 5 of 51. After the free pass: 7 of 51**, measured against the live
-corpus and not projected. That is the whole of what free buys — AlphaSense
-(New York) and Databento (Boston), both from a headquarters Wikidata actually
-records.
+**Before: 5 of 51. Now: 7 of 51**, verified on the live API and not projected
+— AlphaSense and Databento both answer `hq_country: US` today.
+
+**And the honest number is 6, because Databento is one of the 37.** Its US came
+with no headquarters city behind it, so the reversal below takes it back, and
+what free actually bought that survives its own bar is **one event**:
+AlphaSense, New York, from a headquarters Wikidata records properly.
+
+One of 51 is a small number and it is the true one. Writing 7 and quietly
+keeping a value the same session decided was not good enough to keep would be
+the more comfortable sentence and the less honest one.
 
 The remaining 14 break down honestly. 10 are employers Wikidata has never heard
 of and whose own coverage states no place, so only a paid re-read of the source
