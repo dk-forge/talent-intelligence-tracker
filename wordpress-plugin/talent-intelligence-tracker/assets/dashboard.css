@@ -1280,6 +1280,13 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:var(--tit-mk-u); background:var(--
   background:rgba(var(--tit-heat-rgb), calc(var(--i, 0) * .3)); }
 .tit-lg:first-of-type { margin-left:5px; }
 .tit-lg:last-of-type { margin-right:5px; }
+/* WHAT A ROW IS. A sibling of the repaint target, never inside it, and never
+   inside a disclosure: a definition behind a click is a definition nobody
+   reads. No display rule may hide it, so there is no :empty guard and no
+   media query here. Contrast is a real token, not a lighter grey: this line
+   is the one a first-time reader most needs to get through. */
+.tit-board-def { margin:7px 2px 0; font-size:12.5px; line-height:1.5;
+  color:var(--tit-mut); }
 .tit-dg-copy { flex:none; font:inherit; font-size:12.5px; font-weight:600;
   padding:5px 11px; border:1px solid var(--tit-line); border-radius:8px;
   background:var(--tit-surface); color:var(--tit-fg); cursor:pointer; }

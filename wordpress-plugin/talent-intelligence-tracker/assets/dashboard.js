@@ -600,7 +600,7 @@
     'A board that grows week on week is the earliest public evidence ' +
     'of hiring intent an employer produces: it moves before any ' +
     'announcement and before any filing. Treat the direction as the ' +
-    'signal and the exact count as approximate, since roles are ' +
+    'reliable part and the exact count as approximate, since roles are ' +
     'reposted, split across locations and withdrawn without notice.',
     'Advertised bands move before published pay data does, because ' +
     'they are set by what an employer thinks it must offer to fill ' +
@@ -1153,7 +1153,7 @@
 
   function matrixHtml(m) {
     var h = '<div class="tit-matrix-scroll"><table class="tit-matrix"><thead><tr>' +
-      '<th scope="col"><span class="tit-sr">Signal</span></th>';
+      '<th scope="col"><span class="tit-sr">Measure</span></th>';
     m.periods.forEach(function (p, i) {
       // The week names its own dates, mirroring tit_glance_matrix_html(): the
       // string is server-derived (m.week_range) so both paints agree.
@@ -3480,7 +3480,7 @@
     raised: ['descending']
   };
   var UT_COLS = [
-    ['when', 'Date'], ['employer', 'Employer'], ['', 'Signal'],
+    ['when', 'Date'], ['employer', 'Employer'], ['', 'What Happened'],
     ['', 'What It Means'], ['raised', 'Amount'], ['place', 'Country'],
     ['evidence', 'Evidence'], ['', 'Source']
   ];

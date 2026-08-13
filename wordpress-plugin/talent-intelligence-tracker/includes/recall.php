@@ -1050,8 +1050,8 @@ function tit_recall_render($data) {
       </p>
       <?php
       tit_recall_table('Recall by category', $summary['by_segment'] ?? array(),
-          'The four cells that matter most. "Event captured" means the event is here at all. "Captured with every detail correct" also requires the country, the amount, the date and a working source link to be right.');
-      tit_recall_table('By signal type', $summary['by_signal_type'] ?? array());
+          'The four cells that matter most. "Event captured" means we hold an entry for it. "Captured with every detail correct" also requires the country, the amount, the date and a working source link to be right.');
+      tit_recall_table('By kind of update', $summary['by_signal_type'] ?? array());
       tit_recall_table('By where the event happened', $summary['by_geography'] ?? array());
       tit_recall_table('By what kind of document announced it', $summary['by_source_type'] ?? array(),
           'A mandatory filing is a different collection problem from a press release in a local outlet. This row is the honest measure of that difference.');
