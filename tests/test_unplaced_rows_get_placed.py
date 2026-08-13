@@ -44,7 +44,7 @@ import os
 
 import pytest
 
-from pipeline import cheap_extract, identity, schema, validate
+from pipeline import cheap_extract, identity, schema, store, validate
 
 
 @pytest.fixture
@@ -302,3 +302,35 @@ def test_the_suite_runs_with_the_lookup_off():
     """conftest.py is load-bearing: five older tests hand build_signal a real
     connection, and any of them could otherwise reach Wikidata."""
     assert os.environ.get("TIT_IDENTITY_LOOKUP") == "off"
+
+
+def test_the_placement_worklist_shrinks(conn):
+    """`--limit 400` must not walk the same 400 employers on every run.
+
+    RED BEFORE: the first live run examined the 400 employers holding the most
+    placeless rows, found 393 of them already cached from the general backfill,
+    finished in thirty seconds and placed two. The worklist has to ask who has
+    NO cache row, which is the question `_employers_needing_identity` already
+    asks one function up.
+    """
+    for n, key in enumerate(("alpha", "beta")):
+        raw = item(f"{key.title()} Raises $12M in Seed Funding",
+                   url=f"https://o.example/{key}")
+        signal = validate.build_signal(cheap_extract.extract(raw), raw,
+                                       "google_news")
+        signal.company_key = key
+        store.store(conn, signal)
+    conn.commit()
+
+    assert {k for k, _n in identity._employers_with_placeless_rows(conn, None)} \
+        == {"alpha", "beta"}
+
+    identity.cache_put(conn, identity.Identity(
+        company_key="alpha", company="Alpha", resolved=False,
+        detail="no wikidata search hit"))
+    conn.commit()
+
+    assert {k for k, _n in identity._employers_with_placeless_rows(conn, None)} \
+        == {"beta"}, "an employer already asked about is not a target again"
+    assert {k for k, _n in identity._employers_with_placeless_rows(
+        conn, None, retry_negative=True)} == {"alpha", "beta"}

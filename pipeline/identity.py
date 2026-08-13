@@ -1167,23 +1167,39 @@ def apply_cache(conn: sqlite3.Connection, *, dry_run: bool = False) -> dict:
 PLACEMENT_FIELDS = ("hq_city", "hq_country")
 
 
-def _employers_with_placeless_rows(conn: sqlite3.Connection,
-                                   limit: int | None) -> list[tuple[str, str]]:
+def _employers_with_placeless_rows(conn: sqlite3.Connection, limit: int | None,
+                                   *, retry_negative: bool = False
+                                   ) -> list[tuple[str, str]]:
     """(company_key, company) for employers holding a row with NO place at all.
 
     Not "missing some identity column" — `_employers_needing_identity` asks
     that, and most employers keep a NULL `hq_city` for ever because the curated
     city list is 422 aliases long. This asks the one question a reader can
     feel: which employers have a current row that no country filter on the site
-    can return. Ordered by how many such rows they hold.
+    can return.
+
+    ALREADY-ASKED EMPLOYERS ARE EXCLUDED, and that is what makes `--limit`
+    work. The first run of this pass walked the 400 employers holding the most
+    placeless rows, found 393 of them already cached from the general backfill,
+    finished in thirty seconds and placed two. Every subsequent run with the
+    same limit would have walked the same 400. It is the lesson
+    `_employers_needing_identity` already wrote down one function up — ask who
+    has NO cache row, because that is a question whose answer shrinks — and
+    this function was written without it.
+
+    Ordered by how many placeless rows each employer holds, so an interrupted
+    run has already fixed the ones that appear most.
     """
-    rows = conn.execute("""
+    unresolved_clause = "" if retry_negative else " AND i.company_key IS NULL"
+    rows = conn.execute(f"""
         SELECT s.company_key, MIN(s.company) AS company, COUNT(*) AS n
           FROM signals s
+     LEFT JOIN employer_identity i ON i.company_key = s.company_key
          WHERE s.is_current = 1
            AND s.company_key IS NOT NULL AND s.company_key != ''
            AND (s.country IS NULL OR s.country = '')
            AND (s.hq_country IS NULL OR s.hq_country = '')
+               {unresolved_clause}
       GROUP BY s.company_key
       ORDER BY n DESC, s.company_key
     """).fetchall()
@@ -1208,7 +1224,8 @@ def place_backfill(conn: sqlite3.Connection, *, limit: int | None = None,
     a place we could reach with a better source rather than one nobody knows.
     """
     ensure_cache(conn)
-    todo = _employers_with_placeless_rows(conn, limit)
+    todo = _employers_with_placeless_rows(conn, limit,
+                                          retry_negative=retry_negative)
     stats = {"employers": len(todo), "placed": 0, "unresolved": 0,
              "declined": 0, "rows": {f: 0 for f in PLACEMENT_FIELDS},
              "samples": [], "declined_samples": []}
