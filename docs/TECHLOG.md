@@ -13,6 +13,121 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - three provider names were on the public main for eight hours, and main's own CI could not have told anyone
+
+**No deploy, no version bump, nothing armed, nothing spent.** One module added
+(`pipeline/provider_names.py`), one test file added, three write paths changed,
+11 committed data lines rewritten, one workflow trigger added. Full suite green,
+**3,790 passed, 431 subtests**.
+
+### What was actually wrong
+
+`tests/test_no_provider_names.py` was failing on `origin/main`:
+
+```
+Banned data-provider name(s) found in tracked files (pattern numbers index the
+base64 list in tests/test_no_provider_names.py):
+data/gate_labels/labels-2026-08.jsonl (banned pattern #1);
+data/gate_labels/labels-2026-08.jsonl (banned pattern #2);
+data/gate_labels/labels-2026-08.jsonl (banned pattern #3)
+```
+
+Three different commercial data providers, 15 occurrences across 8 of the
+shard's 13,455 lines, in `host` (7), `headline` (7) and `teaser` (1). Not on a
+branch - on **main**, on a **public** repo. They arrived in two bot commits:
+`3691ea6` (2026-08-13 08:34Z, patterns #2 and #3) and `9c92c61` (12:26Z, which
+added #1). Nobody typed them. A collector read a real headline off a real feed,
+`gate_ledger.record` wrote it down, and `collect.yml` committed it.
+
+A full sweep of every remote ref found the shard on **main only**. Ten other
+branches also hold names, all of them abandoned snapshots from 2026-07-29..31 -
+1,100 to 1,500 commits behind, every one predating the `scrub:` commits that
+anonymized those same files on main. They are the pre-scrub tree, not new
+leaks. `scope/us-pay-filings` (PR #39) carries none of its own; it was red
+because a `pull_request` run tests the merge with main.
+
+### The hole that matters more than the leak
+
+**Main's `tests` workflow did not run on either commit, and could not have.**
+
+`on: push: branches: [main]` reads like "every commit on main is tested". It is
+not. Nearly every commit on main is pushed by a job in this repo using the
+default `actions/checkout` credential, and **GitHub does not start workflows for
+a push authenticated with GITHUB_TOKEN** - by design, to stop a workflow
+triggering itself forever. So the unreviewed commits, the ones no human ever
+looks at, were exactly the commits the suite never ran on. The last `tests` run
+on main before this was 06:45Z, two hours before the first leak.
+
+The failure surfaced on somebody else's pull request, because a `pull_request`
+run checks out the merge of the branch and main, so the PR inherited main's
+tree. A guard that fires only when an unrelated contributor opens a PR is a
+guard pointed the wrong way. `schedule: '43 * * * *'` on tests.yml closes it -
+the suite is ~3.5 minutes and this repo's Actions minutes are free.
+
+### Why the text was redacted and not dropped
+
+PR #36 hit the same rule the day before, in `data/gold_bucket_sweep.json`, and
+fixed it by dropping the headline and publisher at write time and keeping an
+opaque sha1 prefix. Right there, wrong here, and the difference is what the text
+is for. In the gold sweep the headline was context for a verdict. In the gate
+ledger the headline and teaser **are** the payload: `train_gate_classifier.
+features(headline, teaser)` is the only thing the local classifier is ever
+fitted on, and that classifier is the whole route to the $5 target. Dropping the
+text would satisfy the rule and leave 13,455 verdicts attached to nothing to
+learn from.
+
+So `pipeline/provider_names.redact` replaces each banned occurrence with an
+opaque tag derived from that name's own sha1 - `[dp-xxxxxx]` - and leaves the
+sentence around it standing. The observation survives, two different providers
+stay two different tokens, and no name is recoverable from the file. The
+patterns are held base64-encoded, the same convention
+`collectors/national_press.py` uses for its aggregator blocklist.
+
+### The write path, closed
+
+The redactor is called from `gate_ledger._clean()`, which is the one function
+every free-text field of a label line passes through (headline, teaser), plus
+`_host()` and the rejection `reason` - the latter is not a formality, because
+`validate` refuses aggregator hosts BY NAME, so the rejection message for the
+candidates most likely to mention a provider is the one most likely to spell its
+domain. `bootstrap_gate_labels.py` builds its lines by hand rather than through
+`record()`, so `slug_text` and `host_of` redact there too.
+
+Structure rather than a filter, for the reason PR #36 gave: a filter is only as
+good as somebody remembering to call it, and this file is appended to twice a
+day by a bot.
+
+### The exemption that was doing the opposite of its job
+
+`data/gate_labels/bootstrap-weak.jsonl` was EXEMPT from the guard, on the
+reasoning that collected records are observations and rewriting them is
+falsification. It held three provider names, publicly, for as long as it has
+existed, and the one test that exists to find them was looking away by
+construction. Redaction makes the argument moot - the record survives, only the
+name goes - so the exemption is gone and only the binary database remains.
+
+### What is still in git history, and it is the owner's call
+
+The names remain in the history of both shards: `labels-2026-08.jsonl` at
+`3691ea6` and `9c92c61` today, `bootstrap-weak.jsonl` since its introduction,
+and the ten stale branches hold the whole pre-scrub tree. **Nothing here rewrote
+published history** - on a public repo that invalidates every clone, breaks
+every open PR and is not a subagent's decision. The options, for the owner:
+
+1. **Leave it.** The working tree is clean, the guard runs hourly, and the
+   history is a technical artifact nobody greps. Cheapest and reversible.
+2. **Delete the ten stale branches.** They are 1,100+ commits behind, every one
+   superseded, and deleting a ref does not rewrite anything. This removes the
+   bulk of the exposure (the pre-scrub tree, dozens of occurrences across eight
+   files each) for essentially no cost. Recommended first step whatever else is
+   decided.
+3. **Rewrite history** (`git filter-repo` over the two shards). Removes the
+   remaining traces at the cost of invalidating every clone and every open PR,
+   and GitHub keeps unreachable objects reachable by SHA until a support-side
+   GC. Highest cost, incomplete benefit.
+
+---
+
 ## 2026-08-13 - the US was never in a late bucket. The country-need remedy is aimed at the wrong mechanism
 
 **Measurement only. Nothing was armed, dispatched, deployed or written.** No

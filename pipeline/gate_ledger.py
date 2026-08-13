@@ -98,6 +98,8 @@ import shutil
 import sys
 from datetime import datetime, timezone
 
+from . import provider_names
+
 LEDGER_DIR = os.environ.get("TIT_GATE_LEDGER_DIR") or os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "data", "gate_labels")
@@ -215,8 +217,22 @@ _FOLD = re.compile(r"[^0-9a-zÀ-￿]+")
 
 
 def _clean(text: str) -> str:
-    """Markup out, whitespace collapsed. Strictly reduces what the gate saw."""
-    return _WS.sub(" ", _TAG.sub(" ", html.unescape(text or ""))).strip()
+    """Markup out, whitespace collapsed, provider names redacted.
+
+    Strictly reduces what the gate saw, which is the invariant this whole
+    module rests on, and the redaction is one more reduction of the same kind.
+
+    It lives HERE, in the one function every free-text field on a label line
+    passes through, rather than in a check before the write: this file is
+    appended to twice a day by a bot, and on 2026-08-13 three provider names
+    reached `origin/main` inside real headlines and publisher hosts because
+    nothing between the RSS item and the commit could refuse them. A filter is
+    only as good as somebody remembering to call it; a chokepoint is not
+    optional. See `pipeline/provider_names.py` for why this redacts rather
+    than drops the text the way `analysis/ranking/gold_bucket.py` does.
+    """
+    cleaned = _WS.sub(" ", _TAG.sub(" ", html.unescape(text or ""))).strip()
+    return provider_names.redact(cleaned)
 
 
 def _fold(text: str) -> str:
@@ -256,7 +272,11 @@ def _host(item: dict) -> str:
     url = item.get("source_url") or item.get("discovery_url") or ""
     try:
         rest = url.split("://", 1)[-1]
-        return rest.split("/", 1)[0].split("@")[-1].split(":")[0].lower()[:80]
+        host = rest.split("/", 1)[0].split("@")[-1].split(":")[0].lower()[:80]
+        # A provider's own domain is a provider name in plaintext, and 7 of the
+        # 15 hits on 2026-08-13 were exactly that. Redacted for the same reason
+        # and by the same function as the headline.
+        return provider_names.redact(host)
     except Exception:
         return ""
 
@@ -365,7 +385,11 @@ def outcome(item: dict, value: str, reason: str = "") -> None:
             # at all, which is the one class the classifier most needs.
             return
         line["outcome"] = value
-        text = " ".join(str(reason or "").split())
+        # Redacted like every other free text here, and not as a formality:
+        # `validate` refuses aggregator hosts BY NAME, so the rejection message
+        # for the one class of candidate most likely to mention a provider is
+        # the one most likely to spell its domain.
+        text = provider_names.redact(" ".join(str(reason or "").split()))
         if text:
             line["reason"] = text[:REASON_MAX]
         STATS["outcomes"] += 1

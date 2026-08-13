@@ -4,8 +4,8 @@ The four banned patterns are stored base64-encoded so that this file itself
 carries none of them, and failure output masks the match so CI logs stay
 clean too.
 
-Every git-tracked file is scanned, case-insensitive, except two collected
-data files (exemptions below). Code that functionally needs one of the
+Every git-tracked file is scanned, case-insensitive, except the database
+(exemption below). Code that functionally needs one of the
 strings (the aggregator blocklist must spell a domain to refuse it) stores
 it base64-encoded and decodes at import time, so plaintext never appears in
 a tracked source file.
@@ -38,8 +38,18 @@ _BANNED = tuple(base64.b64decode(s).decode("ascii") for s in _ENCODED)
 # mention these companies are observations captured as they occurred, and
 # rewriting records is falsification. Everything else in the tree is authored
 # and must stay name-free.
+#
+# NARROWED 2026-08-13 to the database alone. `data/gate_labels/
+# bootstrap-weak.jsonl` was exempt on the reasoning above and the exemption was
+# doing the opposite of its job: three provider names sat in that file, on a
+# public repo, for as long as it has existed, and the one test that exists to
+# find them was looking away by construction. They are gone now and no record
+# went with them — `pipeline/provider_names.redact` swaps the name for an
+# opaque tag and leaves the rest of the line standing, so the observation
+# survives intact and the falsification argument never has to be made. The
+# database stays exempt because it is binary (the scan skips it regardless) and
+# because it is the system's memory rather than a published artifact.
 _EXEMPT = frozenset({
-    "data/gate_labels/bootstrap-weak.jsonl",
     "data/talent_intel.db",
 })
 
