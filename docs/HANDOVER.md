@@ -75,6 +75,18 @@ cannot blank `hq_country`:
 `tests/test_reverse_cityless_hq.py::test_the_refusal_is_still_correct` goes red
 the moment step 1 lands, which is the signal to do step 3.
 
+**And 33 employers are placed locally and NOT on the site.** The second
+placement run's own `/enrich` hit a WordPress 503, and the retry was cancelled
+on purpose rather than re-run: `/enrich` sends every enrichable column for
+every row, so re-running it before the reversal would push MORE of the 37
+cityless values to readers. Those 34 rows are all city-backed and correct;
+they are waiting on the same deploy. Once the reversal has run:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=enrich.yml \
+  -f inputs_json='{"dry_run":"false"}' -f reason='carry the city-backed places'
+```
+
 **The 3 misfiled rows need a plugin change and this session did not make one.**
 `country_basis=any` in `includes/api.php` is a FALLBACK; making it a real union
 of job location OR employer HQ, as the sibling's already is, would recover
