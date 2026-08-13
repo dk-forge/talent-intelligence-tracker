@@ -1,18 +1,28 @@
 name: retract
 
-# Withdraw a published record. Nothing is deleted: the row is marked
+# Withdraw published records. Nothing is deleted: the row is marked
 # not-current with a reason, so the corrections log can show what was published
 # and when it was withdrawn.
+#
+# ONE RUN WITHDRAWS A LIST. `signal_id` takes a comma-separated list, and it
+# must, because the alternative does not work: the concurrency group below
+# keeps ONE pending run, so dispatching a 27-row correction as 27 runs silently
+# drops most of them, and running them one at a time would be 27 rebase-and-push
+# commits against a 72MB binary database — 27 chances at the binary conflict the
+# push step's own comment says goes red. The list rides the EXISTING string
+# input, so this adds no new `${{ }}` surface at all.
+#
+# One reason applies to the whole list. A correction is one editorial act.
 
 on:
   workflow_dispatch:
     inputs:
       signal_id:
-        description: 'signal_id to retract (leave blank to use bare_domains)'
+        description: 'signal_id, or a comma-separated list (blank to use bare_domains)'
         type: string
         default: ''
       reason:
-        description: 'Why it is being withdrawn (shown in the corrections log)'
+        description: 'Why they are being withdrawn (one reason, shown in the corrections log)'
         type: string
         required: true
       bare_domains:
@@ -39,14 +49,29 @@ concurrency:
 jobs:
   retract:
     runs-on: ubuntu-latest
-    # MEASURED 2026-08-13: median 0.3 min, max 0.5 over 13 successful runs — but
-    # every one of those retracted a handful of rows, and `bare_domains: true`
-    # walks every row whose source link is an outlet homepage, which no measured
-    # run did. So the observed distribution does not describe the expensive case
-    # and this is sized generously on purpose: 15 bounds a hung run without
-    # putting a clock on a human-dispatched correction that may be large.
-    # Re-derive it if a bare_domains sweep is ever actually timed.
-    timeout-minutes: 15
+    # RE-DERIVED 2026-08-13 for lists. The 15 here was measured over runs that
+    # withdrew a handful of rows (median 0.3 min, max 0.5 over 13 runs); a
+    # 27-row list is a case nothing had timed, so the arithmetic, stated:
+    #
+    #   nominal   fixed overhead (checkout + hashed pip + the 72MB commit and
+    #             push) is what the 0.5 min max is nearly all of; the rows add
+    #             one POST each, ~1s, so 27 rows nominal is about 1 minute.
+    #   worst     a row that exhausts RETRY_PAUSES costs 5 attempts x 45s
+    #             timeout + 49s of pauses ~= 4.6 min. Twenty-seven of those is
+    #             ~2 hours, which no timeout-minutes should ever cover.
+    #
+    # So the SCRIPT bounds itself rather than being killed here: retract.py's
+    # RUN_BUDGET_SECONDS (20 min) stops starting rows past the budget, reports
+    # the rest by name as "not attempted", and exits non-zero — which keeps the
+    # commit step below running, and that step holds the only local record of
+    # withdrawals the site has already applied. Being killed by the platform
+    # mid-list is the outcome that loses that record.
+    #
+    # Ceiling = budget (20) + one row's full ladder (4.6) + overhead (0.5)
+    # ~= 25.1 min. 30 is that with headroom, so the self-imposed budget always
+    # wins the race against the platform's clock. Raise BOTH together or not at
+    # all: a timeout under the budget hands the kill back to GitHub.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -67,6 +92,14 @@ jobs:
       # drain-writers.yml has passed dispatch inputs through the environment
       # since it was written, and says why in its own comment; the lesson was
       # never carried across to the workflow it dispatches.
+      #
+      # The LIST rides the same env var, quoted the same way. A comma-separated
+      # list needed no new input and gets no new interpolation: `"$TIT_SIGNAL_ID"`
+      # reaches python as one argument whatever is in it, and retract.py splits
+      # it — the shell never sees the separators. Do not "improve" this into a
+      # for-loop over the ids in bash; that puts every id back through word
+      # splitting, and the retry, the per-row report and the single commit all
+      # live on the python side anyway.
       - name: Retract
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}

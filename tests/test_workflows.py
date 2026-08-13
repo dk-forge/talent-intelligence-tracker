@@ -577,3 +577,34 @@ def test_the_retraction_reason_never_reaches_the_shell_unquoted():
             "the reason variable must be quoted, or the shell splits it on "
             "whitespace and the withdrawal states something else again"
         )
+        assert '"$TIT_SIGNAL_ID"' in run, (
+            "the id list must reach python as ONE quoted argument. A bash loop "
+            "over the ids puts every one of them back through word splitting, "
+            "which is the defect this whole test exists for"
+        )
+
+
+def test_the_retraction_timeout_outlasts_the_scripts_own_budget():
+    """retract.py stops itself before GitHub kills the run, and only if the
+    workflow's clock is the longer of the two.
+
+    A run killed mid-list never reaches the commit step, and that step holds
+    the ONLY local record of withdrawals the site has already applied — the
+    row is gone from the page and still current in the database, so the next
+    collect reads it as live. So the budget is the binding limit and the
+    timeout is the backstop, never the other way round.
+    """
+    import retract
+
+    path = Path(__file__).parent.parent / ".github" / "workflows" / "retract.yml"
+    parsed = yaml.safe_load(path.read_text())
+    timeout = parsed["jobs"]["retract"]["timeout-minutes"]
+
+    budget_min = retract.RUN_BUDGET_SECONDS / 60
+    worst_row_min = (5 * 45 + sum(retract.RETRY_PAUSES)) / 60
+    assert timeout > budget_min + worst_row_min, (
+        f"timeout-minutes={timeout} does not outlast retract.py's own "
+        f"{budget_min:.0f} min budget plus the {worst_row_min:.1f} min a "
+        f"single row's retry ladder can still cost after it — GitHub would "
+        f"win the race and kill the run before it can commit"
+    )
