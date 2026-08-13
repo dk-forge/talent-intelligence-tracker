@@ -2,6 +2,55 @@
 
 ---
 
+## 2026-08-13: the SF gap is not a local-publisher gap, and one publisher covers 26 of the 30. RESEARCH ONLY — NOTHING WIRED, NOTHING DEPLOYED.
+
+Branch `research/us-metro-publishers`. Two new files, no code change, no plugin
+change, no version bump. **$0 spent — no model was called.** Everything below is
+an HTTP fetch, and every feed named was fetched with the collector's own
+`national_press.fetch`/`robots_allows` so a verdict cannot drift from what a
+run would see. Full write-up in
+[docs/CATALOGUE-us-metro-publishers.md](CATALOGUE-us-metro-publishers.md);
+the per-feed evidence is `data/us_metro_publishers.csv`, 70 rows.
+
+**Nothing is armed and nothing can accidentally arm.** `load_feeds()` sweeps
+rows in `data/sources_catalogue.csv` carrying an `rss` value; this pass added no
+row to that file. `data/feeds.csv` is byte-identical. The suite is green
+(3,754 passed).
+
+**Four things a next session needs.**
+
+1. **Catalogueing the Bay Area local press would not have moved San Francisco.**
+   Checked, not assumed: the on-site archives of Mission Local, SFist, Palo Alto
+   Online, The San Francisco Examiner and The San Francisco Standard contain no
+   article naming any of the nine SF gold companies I could query. They did not
+   report these rounds. 24 of the 30 live feeds this pass verified would add
+   candidates and reach zero known misses — which, with reading as the
+   bottleneck, is worse than nothing.
+2. **`pulse2.com` covered 26 of the 30 US misses at the matching amount, and
+   10 of the 10 in San Francisco.** Free, robots-permitted, not on the
+   aggregator blocklist, not in our catalogue. We already fetch it
+   opportunistically (121 URLs in the audit) and never walk it.
+3. **But its RSS feed is a trap.** 20 items spanning **29 minutes**, against 67
+   to 103 posts a day. A 2x/day poll would have caught almost none of those 26.
+   The route that works is its sitemap — 47 dated post-sitemaps — plus a free
+   slug-level prefilter (`...-raises-190-million-in-series-b-...`) before any
+   spend. That needs a sitemap-paging collector we do not have, and
+   `Crawl-Delay: 20` honoured.
+4. **The PR Newswire tombstone in `sources_catalogue.csv` is wrong.**
+   `2026-07-30 no feed published (15 paths)` used the wrong path shape;
+   17 feeds of the form `/rss/<slug>/<slug>-list.rss` answer 200, robots
+   permits them. It is still not wireable — every category returns the same 20
+   items, covering 4 hours against ~1,300 releases a day — but the record should
+   say "reachable and unaffordable", not "absent". That domain is 8 of the 30
+   misses.
+
+**None of this contradicts the 2026-08-12 triage; it sharpens it.** The 26 were
+`walked_never_read` and still are. Being reachable was never what was missing.
+What Pulse 2.0 changes is precision per dollar, and that is a claim to measure
+before believing.
+
+---
+
 ## 2026-08-13: the leadership parser now reads eight more languages, the duplicate pre-check is in SHADOW, and the 25.9% gate ERROR was one outage that was already fixed
 
 Branch `feat/throughput-levers`. **No plugin change, no version bump, no
