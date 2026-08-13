@@ -193,8 +193,7 @@
     }
   ],
   "red_marks": {
-    "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z",
-    "ticket:20260813T020725Z-enrich": "2026-08-13T02:09:32Z"
+    "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z"
   },
   "tickets": [
     {
@@ -2521,6 +2520,7 @@
       "workflow": "place-unplaced.yml"
     },
     {
+      "acknowledged": "2026-08-13T02:27:45Z",
       "attempts": 0,
       "dispatched_at": "2026-08-13T02:07:30Z",
       "history": [
@@ -2543,6 +2543,11 @@
           "at": "2026-08-13T02:09:32Z",
           "detail": "cancelled after starting; needs a human",
           "event": "cancelled-mid-run"
+        },
+        {
+          "at": "2026-08-13T02:27:45Z",
+          "detail": "cancelled on purpose: 37 cityless hq_country values must be reversed before any further enrich, and the site cannot accept the reversal until tit_clearable_columns() is widened (#27) (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260813T020725Z-enrich",
