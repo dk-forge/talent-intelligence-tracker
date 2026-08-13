@@ -192,9 +192,6 @@
       "workflow": "collect"
     }
   ],
-  "red_marks": {
-    "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z"
-  },
   "tickets": [
     {
       "attempts": 0,
@@ -2482,6 +2479,7 @@
       "workflow": "place-unplaced.yml"
     },
     {
+      "acknowledged": "2026-08-13T02:28:37Z",
       "attempts": 0,
       "dispatched_at": "2026-08-13T01:40:39Z",
       "history": [
@@ -2504,6 +2502,11 @@
           "at": "2026-08-13T02:02:54Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-08-13T02:28:37Z",
+          "detail": "placed 33 employers and committed them; its enrich step hit a WordPress 503 maintenance window. The data landed; carrying it waits on the reversal in #27 (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260813T014035Z-place-unplaced",
