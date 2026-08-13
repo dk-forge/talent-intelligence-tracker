@@ -46,7 +46,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from . import leadership_intl, prefilter, vocab
+from . import capital_event, leadership_intl, prefilter, vocab
 from .validate import (_ANONYMITY_MARKERS, _GENERIC_ORG_NOUNS,
                        _GENERIC_QUALIFIERS)
 
@@ -675,6 +675,17 @@ def parse_funding(item: dict) -> Funding | None:
         return None
     if _NOT_A_ROUND.search(headline):
         return None
+
+    # The same question `_NOT_A_ROUND` asks, asked of the WHOLE item and with
+    # the instruments it never learned. Two of the four capital events stored
+    # as rounds this month were minted right here — "Intel Raises $20 Billion
+    # From New Stock Sale" and "Oracle raises $25 billion" — because this
+    # parser reads only the HEADLINE for the class question while the teaser
+    # sits in `raw_text` unread. A capital event goes to the paid path, which
+    # can read the nuance, and `STATS["declined"]` counts the decline.
+    if capital_event.classify(headline, raw_text):
+        return None
+
     if ";" in headline:                      # two stories in one line
         return None
     if prefilter.workforce_reduction_term(raw_text):

@@ -2455,6 +2455,17 @@ def normalize_materiality(value: str):
 # buyer is usually hiring integration staff, the bought company is where the
 # duplicate roles are. The value is always recorded from the perspective of the
 # `company` on the row.
+#
+# The last three are CAPITAL EVENTS, and they were added for a measured reason.
+# A company raising money in the public and lender markets was being stored as
+# a venture round: ChangXin's IPO, Oracle's bond, Intel's stock sale and
+# Nvidia's infrastructure financing, four in one month, each caught late by the
+# amount guardrail's MAGNITUDE check and each costing a human decision. That
+# reason does not generalise downward — Zions Bancorporation's $500m senior
+# notes issuance is the same event four orders of magnitude below any derived
+# threshold, and it is on the live page as a funding round. So the KIND of
+# event gets a value here, and pipeline/capital_event.py decides it from the
+# source's own words. See that module for why it refuses what it refuses.
 DEAL_TYPES = (
     "acquisition",    # this employer is BUYING
     "acquired",       # this employer is BEING bought
@@ -2462,6 +2473,9 @@ DEAL_TYPES = (
     "divestiture",    # selling a unit, spin-off, carve-out
     "joint_venture",
     "ipo",
+    "bond_issue",       # bonds, sukuk, debentures, senior notes
+    "public_offering",  # equity sold by an already-listed issuer
+    "project_finance",  # a loan or facility advanced against an asset
 )
 
 DEAL_TYPE_LABELS = {
@@ -2471,6 +2485,9 @@ DEAL_TYPE_LABELS = {
     "divestiture": "Divestiture",
     "joint_venture": "Joint venture",
     "ipo": "IPO",
+    "bond_issue": "Bond issue",
+    "public_offering": "Public offering",
+    "project_finance": "Project financing",
 }
 
 _DEAL_TYPE_ALIASES = {

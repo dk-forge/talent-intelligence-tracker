@@ -424,12 +424,33 @@ NOT_A_COMPANY_ROUND = re.compile(
 
 
 def not_a_company_round(*texts: str | None) -> str | None:
-    """The phrase that says this figure is not a company raise, or None."""
+    r"""The phrase that says this figure is not a company raise, or None.
+
+    TWO VOCABULARIES, ON PURPOSE, and what separates them is what a mistake
+    costs.
+
+    The regex above vetoes an AUTO-ACCEPT and never refuses anything. Being
+    wrong costs one human review, so it can afford `\bassets\b` and `\bfunds?\b`
+    bare and be wrong about a sovereign wealth fund in an investor list.
+
+    `pipeline/capital_event` decides what gets STORED. Being wrong there loses
+    a real round silently and for ever, so it refuses only instruments that
+    exist nowhere but the public and lender markets — and it therefore knows
+    words this regex never learned, because they never appeared on a figure
+    large enough to reach the amount queue: senior notes, sukuk, registered
+    direct offerings, syndicated facilities, stock sales.
+
+    Consulted here as well so the auto-accept cannot publish a mega-bond the
+    store itself would have refused. Asked in cost order: the cheap over-eager
+    one first, the careful one second.
+    """
     for text in texts:
         hit = NOT_A_COMPANY_ROUND.search(text or "")
         if hit:
             return hit.group(0).strip()
-    return None
+    from . import capital_event
+    verdict = capital_event.explain(*texts)
+    return verdict[1] if verdict else None
 
 
 def corroborating_outlets(conn, *, company_key: str, amount_usd: int,
