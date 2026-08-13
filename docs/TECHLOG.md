@@ -220,9 +220,10 @@ the session's call and not a delegated one. **Stated, not made.**
 
 ### Reader-visible, before and after
 
-**Before: 5 of 51. After the free pass: 7 of 51**, and that is the whole of
-what free buys — AlphaSense and Databento, both New York and Boston, both from
-a headquarters Wikidata actually records.
+**Before: 5 of 51. After the free pass: 7 of 51**, measured against the live
+corpus and not projected. That is the whole of what free buys — AlphaSense
+(New York) and Databento (Boston), both from a headquarters Wikidata actually
+records.
 
 The remaining 14 break down honestly. 10 are employers Wikidata has never heard
 of and whose own coverage states no place, so only a paid re-read of the source
@@ -232,6 +233,38 @@ Lacrosse League) is deliberately left blank rather than filed under Canada.
 
 `measure_recall.py --family us` re-run after the pass is what settles it, and
 it costs nothing.
+
+### APPLIED, and what the run actually did
+
+Queued through `drain-writers`, twice, and it took two more defects with it.
+
+| | |
+|---|---:|
+| placeless rows before | 1,666 |
+| placeless rows after | **1,573** |
+| rows placed | **93** |
+| placeless employers | 1,633 → 1,545 |
+| rows carried to the live site by `/enrich` | 71 on the first pass |
+| **money spent** | **$0.00** |
+
+The two defects, both found by running it rather than by reading it:
+
+* **A three hour job with its commit at the end.** Resolution is a serial walk
+  at about 7 seconds an employer, so `--limit 1633` is over three hours against
+  a two hour timeout, and every resolution would have been thrown away. Both
+  write steps are `always()` now and the lock ceiling is 90 minutes. The pass
+  is meant to be run repeatedly with a limit.
+* **The worklist did not shrink.** The first live run walked the 400 employers
+  holding the most placeless rows, found 393 of them already cached by the
+  general backfill, finished in thirty seconds and placed two. Every later run
+  with the same limit would have walked the same 400.
+  `_employers_needing_identity` had written that lesson down one function up —
+  ask who has no cache row, because that is a question whose answer shrinks —
+  and the placement worklist was written without it.
+
+**1,545 employers are still placeless and the free route is finished with
+them.** Wikidata does not know them, and their own coverage does not say where
+they are.
 
 ---
 

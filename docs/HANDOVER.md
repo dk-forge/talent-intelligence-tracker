@@ -8,7 +8,7 @@ Branch `fix/place-the-unplaced`. **No plugin change, no version bump, no
 deploy.** No model was called and no money was spent. Full reasoning and every
 number is in TECHLOG under this date.
 
-**The headline: 5 of 51, and free takes it to 7.** Applying the plugin's own clause — `country IN
+**The headline: 5 of 51, and the free pass has taken it to 7.** Applying the plugin's own clause — `country IN
 ('US') OR (country IS NULL AND hq_country IN ('US'))` — to the 21 US funding
 events the sealed recall set says we hold: 5 visible, 13 carrying no place at
 all, 3 filed under the publisher's country (BR, ZA, ZA). Site-wide the
@@ -32,16 +32,19 @@ Four things a next session needs:
    resolutions contains **Premier Lacrosse League as Canada**, which is one of
    the 13 US events a reader cannot see. The general `--backfill` is unchanged;
    only the placement paths refuse.
-3. **The backfill is a QUEUED job, and it has not been run.**
+3. **The backfill HAS been run, twice, and it is finished with the free
+   route.** 1,666 placeless rows became 1,573; 93 rows placed; 71 carried to
+   the live site by `/enrich`; $0.00 spent. Re-run it any time — the worklist
+   shrinks now — but 1,545 employers remain and Wikidata does not know them.
 
    ```bash
    gh workflow run drain-writers.yml -f enqueue=place-unplaced.yml \
-     -f inputs_json='{"dry_run":"false","limit":"1633"}' \
-     -f reason='the 1,666 rows no country filter can return'
+     -f inputs_json='{"dry_run":"false","limit":"700"}' \
+     -f reason='why'
    ```
 
-   Dry run, all 1,633 employers: 82 placed (5.0%), 1,412 unknown to Wikidata,
-   139 resolved and declined at the bar. Cost $0.00. It fills
+   Never dispatch it directly, and keep the limit inside the 90 minute lock
+   window: resolution is about 7 seconds an employer. It fills
    `hq_city`/`hq_country`, both already in `tit_enrichable_columns()`, so the
    values reach readers through `/enrich` with **no deploy**.
 4. **The $2.14 the owner authorised was NOT spent, and the honest next step is
