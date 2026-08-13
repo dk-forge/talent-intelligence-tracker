@@ -180,7 +180,11 @@ def main(argv=None) -> int:
     payload = {"rows": [{"content_hash": r["content_hash"],
                          "clear": list(REQUIRED_CLEARABLE)} for r in work]}
     resp = requests.post(f"{base}/wp-json/talent/v1/enrich", json=payload,
-                         headers={"X-TIT-Key": key,
+                         # X-Talent-API-Key, not X-TIT-Key: the keyed routes read
+                         # the former (includes/api.php), and every other script
+                         # here sends it. The wrong name 403s, which reads as a
+                         # permission problem rather than a typo.
+                         headers={"X-Talent-API-Key": key,
                                   "User-Agent": "TalentIntel/1.0 "
                                                 "(+https://asktherecruiter.com)"},
                          timeout=120)
