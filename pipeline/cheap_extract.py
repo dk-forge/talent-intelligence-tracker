@@ -46,7 +46,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from . import prefilter, vocab
+from . import leadership_intl, prefilter, vocab
 from .validate import (_ANONYMITY_MARKERS, _GENERIC_ORG_NOUNS,
                        _GENERIC_QUALIFIERS)
 
@@ -1255,6 +1255,17 @@ def extract(item: dict, *, count: bool = True) -> dict | None:
     if leadership is not None:
         _tally("closed")
         return leadership
+
+    # Rule 4 is unchanged for everything above this line: those parsers are
+    # English only and stay that way. `leadership_intl` carries its own
+    # per-language grammars and its own name-span rules, and it declines every
+    # language it was not written for, so the rule is now enforced by a module
+    # boundary rather than by an early return. It is last because a candidate
+    # any English parser can close is already closed.
+    intl = leadership_intl.extract(item, count=False)
+    if intl is not None:
+        _tally("closed")
+        return intl
 
     _tally("declined")
     return None

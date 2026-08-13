@@ -7,6 +7,7 @@ not part of the write path.
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from datetime import date, timedelta
 
@@ -190,6 +191,80 @@ def funding_event_duplicate(conn: sqlite3.Connection, company_key: str,
             return row["signal_id"]
         stored_canon = cheap_extract._canon_amount(row["funding_amount"] or "")
         if stored_canon and stored_canon == amount_canon:
+            return row["signal_id"]
+    return None
+
+
+def leadership_event_duplicate(conn: sqlite3.Connection, company_key: str,
+                               person: str, days: int = 21,
+                               published_date: str | None = None) -> str | None:
+    """An appointment we already hold, matched BEFORE any model is paid.
+
+    The cross-language sibling of `funding_event_duplicate`, and it exists
+    because the measured waste is overwhelmingly this shape rather than that
+    one. Of the 612 paid extractions in `data/gate_labels/labels-2026-08.jsonl`
+    that turned out to be events already held — 20.3% of every paid
+    extraction — **60.9% are chief-executive appointments and only 13.7% carry
+    a currency amount at all**, and 78% are not in English. PayPal's
+    appointment of Enrique Lores was bought twice more after it was stored,
+    once in Turkish and once in Spanish; Disney's of Josh D'Amaro three times,
+    in Italian, Japanese and Turkish.
+
+    Matched on EMPLOYER PLUS PERSON, and both are required. Employer alone
+    would collapse two genuinely different appointments at one company — a CEO
+    in March and a CFO in April are two records, and a large employer has
+    several a year.
+
+    The person is matched against the stored row's own English prose rather
+    than a column, because there is no person column: the row records that an
+    appointment happened and names the person in `summary` and
+    `talent_readthrough`. That is exactly what makes this work across
+    languages — "Josh D'Amaro" is spelled the same in the Italian headline and
+    the English summary, while every other word differs.
+
+    Returns the existing signal_id, or None. None on any doubt: a miss costs
+    one paid read, a false match silently drops a real appointment, and there
+    is no later stage that can notice.
+
+    THE WINDOW IS THE CANDIDATE'S, NOT TODAY'S — the same fix
+    `funding_event_duplicate` needed on 2026-08-04, for the same reason
+    (google_news's median discovery lag is 130 days).
+    """
+    if not company_key or not person:
+        return None
+    tokens = [t for t in re.split(r"[\s'’-]+", person) if len(t) > 1]
+    if len(tokens) < 2:
+        # One token is not a person. "Lores" alone would match any story
+        # naming him, including one about a different employer's board.
+        return None
+    anchor = date.today()
+    if published_date:
+        try:
+            anchor = date.fromisoformat(published_date)
+        except ValueError:
+            pass
+    since = (anchor - timedelta(days=days)).isoformat()
+    until = (anchor + timedelta(days=days)).isoformat()
+    rows = conn.execute(
+        """
+        SELECT signal_id, headline, summary, talent_readthrough
+          FROM signals
+         WHERE is_current = 1
+           AND company_key = ?
+           AND pillar = 'leadership_change'
+           AND published_date >= ?
+           AND published_date <= ?
+        """,
+        (company_key, since, until),
+    ).fetchall()
+
+    for row in rows:
+        prose = " ".join(str(row[field] or "") for field in
+                         ("headline", "summary", "talent_readthrough")).lower()
+        # EVERY token of the name, not any: "Enrique Lores" must not match a
+        # row about Enrique Garcia, and a surname shared with the employer
+        # ("Tânia Bulhões") must not match on its own.
+        if all(token.lower() in prose for token in tokens):
             return row["signal_id"]
     return None
 

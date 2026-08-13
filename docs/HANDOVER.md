@@ -2,6 +2,82 @@
 
 ---
 
+## 2026-08-13: the leadership parser now reads eight more languages, the duplicate pre-check is in SHADOW, and the 25.9% gate ERROR was one outage that was already fixed
+
+Branch `feat/throughput-levers`. **No plugin change, no version bump, no
+deploy.** Nothing was spent: there is no `OPENROUTER_API_KEY` in a subagent
+session, so every figure below is read out of committed state. Full reasoning
+and every number is in TECHLOG under this date.
+
+**Reproduce all of it, read-only, no keys:**
+
+```bash
+python3 analysis/throughput/measure_levers.py
+```
+
+### The three answers a next session needs
+
+1. **The gate `ERROR` rate is not 25.9% and there is nothing to triage.** All
+   2,356 fall on 2026-08-03 between 07:00 and 21:00 UTC; the two other days in
+   the window are 0.0%. That is the provider outage TECHLOG already records on
+   2026-08-04, and the guards that came out of it are still in place: the URLs
+   are not marked seen, so those candidates returned. `docs/MEASURE-throughput-levers.md`
+   (PR #26, still OPEN, not merged) ranks this above both levers on the
+   strength of the three-day average. It is worth zero reads.
+
+2. **Lever 1 is built and is worth about a quarter of what was modelled.**
+   $0.99/month and **25 extra reads/day** MODELLED from a 5.5% MEASURED share
+   of paid extraction volume, against the doc's $3.66 and 92. The doc assumed
+   leadership would close at funding's measured 53.8%; a precision-first
+   grammar reaches 11.4% of leadership volume. 97.6% employer agreement and
+   100% person agreement with the paid model over 124 closes, all hand-read,
+   zero wrong extractions.
+
+3. **Lever 2 is worth $0 once lever 1 exists, and that is a finding rather
+   than a failure.** 15 of the 15 duplicates the pre-check catches are already
+   closed for $0 by lever 1, and a free close costs nothing. The doc's separate
+   $3.01/month for it does not survive lever 1 being built. The code is kept
+   because it is where the code belongs; the module says so in writing.
+
+### What is still open
+
+**The pre-check is in SHADOW and the default is guarded by a test.** The
+false-drop audit measured 15 correct skips and 1 labelled false drop, and
+hand-reading that one shows it is the same person, employer and seat as the row
+it matched, so the coverage-losing rate is **0 of 16**. The Wilson upper bound
+on 0/16 is **19.4%**, which is not a bound to arm a silent skip on. Shadow mode
+records what it would have dropped and drops nothing, so the ledger narrows the
+interval for free.
+
+```bash
+TIT_LEADERSHIP_PRECHECK=on   # arms it. Do not, until the shadow ledger bounds
+                             # the false-drop rate. Say what the bound was.
+```
+
+**Two things this session did not do and a next one should weigh.**
+
+- **The extraction A/B is still the largest item on the board and it is now
+  half-answered.** The layoff tracker ran `ab-models --extraction` today and
+  measured `gemini-2.5-flash-lite` at 2.4x cheaper but **84% agreement on
+  company and 81% on country**. If talent's own A/B lands anywhere near that,
+  the $27.23 to $4.78 line in `cost_projection [4]` is not available at the
+  accuracy this product is measured on, and full coverage stays out of reach.
+  Nobody has run talent's.
+- **The month's money still goes to backfill first.** `source_health` accounts
+  for $0.88 of August's $18 and paid reads have been off since 2026-08-03. No
+  engineering lever changes anything while that is true. It is a scheduling
+  decision.
+
+### The honest read-budget number
+
+Today's $18 buys **373 reads/day** (`cost_projection [5]`) against a demand of
+768. Lever 1 adds **25**, taking it to about **398 of 768, 52% of full
+coverage**. The levers do not close the gap and were never going to: the doc's
+own combined $6.67/month and 168 reads/day was 22% of the gap, and the measured
+figure is 3%.
+
+---
+
 ## 2026-08-12: the door for the wrong-country correction is open in the code (1.77.0). PUSHED, NOT DEPLOYED. The 37 are still wrong on the live page.
 
 Branch `main`. Plugin change plus version bump plus one TECHLOG entry. **No

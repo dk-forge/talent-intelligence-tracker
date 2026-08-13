@@ -24,7 +24,20 @@ from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         sec_execcomp, sec_form_d, singapore_acra, spain_borme,
                         tripwire_chase, uk_paygap)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
-                      gate_ledger, prefilter, publish, schema, store, validate)
+                      gate_ledger, leadership_intl, prefilter, publish, schema,
+                      store, validate)
+
+
+def leadership_precheck_arms() -> bool:
+    """Whether the cross-language appointment pre-check may actually SKIP.
+
+    Default is no. `TIT_LEADERSHIP_PRECHECK=on` arms it; anything else,
+    including unset, leaves it in shadow — it computes the same verdict, prints
+    what it would have dropped, and drops nothing. See the block that calls it
+    for why the default is that way round and what would change it.
+    """
+    return (os.environ.get("TIT_LEADERSHIP_PRECHECK") or "shadow"
+            ).strip().lower() in ("1", "on", "true", "yes", "arm", "armed")
 
 # Registration. A collector that exposes `as_classified` derives its own
 # record from structured fields and never calls the model, so it skips the
@@ -564,6 +577,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
 
     stored = duplicates = rejected = skipped = throttled = budget_deferred = 0
     cheap_closed = known_rounds = unread_duplicates = month_deferred = 0
+    known_appointments = 0
     # Candidates the gate ERRORED on: not judged, not rejected, not marked
     # seen. Counted apart from `rejected` for the reason set out at the
     # ClassifyError handler below.
@@ -668,6 +682,46 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                             amount_usd=parsed.amount_usd, collector=collector)
                         store.mark_seen(conn, url, collector, "duplicate")
                     continue
+            # The same lever, in the language the duplicates are actually
+            # written in. 20.3% of paid extractions bought an event already
+            # held, 60.9% of those are chief-executive appointments and 78%
+            # are not English, so this recognises the seventh outlet's
+            # translation of an appointment we stored on Monday.
+            #
+            # SHADOW BY DEFAULT, and that is the point rather than timidity.
+            # The audit that sets this check's bar is in
+            # `analysis/throughput/false_drop_audit.py`: over the priced
+            # window it would have skipped 16 candidates, 15 of them events we
+            # genuinely held, and the sixteenth is the same appointment at the
+            # same employer by the same person that the existing layers failed
+            # to collapse. That is 0 coverage-losing drops in 16 — and the
+            # Wilson interval on 0/16 reaches 19.4%, which is not a bound
+            # anybody should ship a silent skip on. A skipped candidate leaves
+            # no trace by construction: extraction never runs, so nothing
+            # downstream can contradict the decision. Shadow mode records what
+            # it WOULD have skipped and skips nothing, which is how the
+            # interval gets narrow enough to arm on evidence rather than on
+            # this paragraph's optimism.
+            appointment = leadership_intl.parse_appointment(item)
+            if appointment is not None:
+                held = dedupe.leadership_event_duplicate(
+                    conn, appointment.company_key, appointment.person,
+                    published_date=validate._normalize_date(
+                        item.get("published_date"), item.get("source_url")))
+                if held:
+                    known_appointments += 1
+                    if leadership_precheck_arms():
+                        duplicates += 1
+                        print(f"  SKIP    {item.get('headline','')[:66]}\n"
+                              f"          appointment already stored, matched"
+                              f" before any read")
+                        if url and not dry_run:
+                            store.mark_seen(conn, url, collector, "duplicate")
+                        continue
+                    print(f"  SHADOW  {item.get('headline','')[:66]}\n"
+                          f"          would skip: {appointment.person} at"
+                          f" {appointment.company} is already held ({held})")
+
             # Cost lever 1: when the headline/teaser states every field, the
             # record is built deterministically — no gate call, no read-
             # through, $0. extract() declines anything ambiguous, and its
@@ -802,7 +856,9 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # The evidence marker: this row was parsed from stated text, no
             # model read it. Confidence is unchanged — the source is exactly
             # as credible either way and stays capped at "reported".
-            signal.notes = cheap_extract.EVIDENCE_NOTE
+            # `leadership_intl` supplies its own marker naming its own module;
+            # everything else gets cheap_extract's.
+            signal.notes = cheap.get("notes") or cheap_extract.EVIDENCE_NOTE
 
         # Cost lever: the read-through is bought LAST.
         #
@@ -896,6 +952,12 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"[{collector}] deterministic: {cheap_closed} closed with no "
             f"model call, {known_rounds} known rounds skipped pre-read, "
             f"{len(clustered_away)} outlet rewrites clustered away"
+        )
+    if known_appointments:
+        armed = "skipped" if leadership_precheck_arms() else "SHADOW, not skipped"
+        print(
+            f"[{collector}] cross-language appointments already held: "
+            f"{known_appointments} ({armed})"
         )
     if unread_duplicates:
         print(
