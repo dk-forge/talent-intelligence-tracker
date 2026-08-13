@@ -4,6 +4,32 @@ on:
   push:
     branches: [main]
   pull_request:
+  # MAIN'S GUARD HAD A HOLE AND IT WAS THIS TRIGGER LIST, 2026-08-13.
+  #
+  # `push: [main]` reads like "every commit on main is tested". It is not.
+  # Almost every commit on main is pushed by a job in this repo using the
+  # default `actions/checkout` credential, and GitHub does not start workflows
+  # for a push authenticated with GITHUB_TOKEN — by design, so a workflow
+  # cannot trigger itself forever. So the data commits, which are the majority
+  # of main and the ONLY commits nobody reviews, were the exact commits the
+  # suite never ran on.
+  #
+  # It showed: two bot commits eight hours apart put three commercial
+  # data-provider names into `data/gate_labels/labels-2026-08.jsonl` on the
+  # PUBLIC main, `tests/test_no_provider_names.py` would have caught either one
+  # instantly, and main stayed green because it never ran. The failure surfaced
+  # on an unrelated pull request, whose merge commit carries main's tree — a
+  # guard that only fires on somebody else's PR is a guard pointed the wrong
+  # way.
+  #
+  # Hourly, on main, is the smallest thing that closes it: the suite is ~3.5
+  # minutes, this repo's Actions minutes are free (public), and the alternative
+  # is a rule enforced only when a human happens to open a PR. It is a BACKSTOP,
+  # not the fix — the write path itself refuses these names now
+  # (`pipeline/provider_names.py`) — but a structural guard with an eye on it is
+  # worth more than either alone.
+  schedule:
+    - cron: '43 * * * *'
   workflow_dispatch:
 
 jobs:

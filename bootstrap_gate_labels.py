@@ -51,7 +51,7 @@ import sqlite3
 import sys
 from collections import Counter
 
-from pipeline import gate_ledger
+from pipeline import gate_ledger, provider_names
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "data", "talent_intel.db")
@@ -106,12 +106,18 @@ def slug_text(url: str) -> str:
         words = _WORD.findall(_SPLIT.sub(" ", segment))
         if len(words) > best_score:
             best, best_score = " ".join(words), len(words)
-    return best if best_score >= MIN_SLUG_TOKENS else ""
+    if best_score < MIN_SLUG_TOKENS:
+        return ""
+    # A slug is a headline with the punctuation taken out, so it carries the
+    # same provider names a headline does. Redacted at the point the string is
+    # built, for the reason `pipeline/gate_ledger._clean` gives at length.
+    return provider_names.redact(best)
 
 
 def host_of(url: str) -> str:
     rest = (url or "").split("://", 1)[-1]
-    return rest.split("/", 1)[0].split("@")[-1].split(":")[0].lower()[:80]
+    host = rest.split("/", 1)[0].split("@")[-1].split(":")[0].lower()[:80]
+    return provider_names.redact(host)
 
 
 def rows(conn: sqlite3.Connection):
