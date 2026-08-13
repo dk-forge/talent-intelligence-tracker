@@ -34,23 +34,29 @@ wrong on a public page right now:
 `pipeline.identity.is_placeable` refuses this whole class since the bar moved,
 so nothing new joins the list. This takes back what landed before it moved.
 
-WHY THIS REFUSES TO RUN, AND WHAT HAS TO CHANGE FIRST
------------------------------------------------------
-`tit_clearable_columns()` in includes/api.php returns exactly
+WHY THIS REFUSED TO RUN, AND WHAT CHANGED
+-----------------------------------------
+`tit_clearable_columns()` in includes/api.php used to return exactly
 `funding_amount_usd` and `funding_stage`. `/enrich` cannot blank anything else:
 an absent or empty field means "we still do not know", deliberately, so that a
 gap can never erase a known value. There is no other door — `/correct` does not
 carry `hq_country` and ignores empty values for the same reason.
 
-So the site cannot accept this correction yet, and this script REFUSES to make
-it locally while that is true. A corrected database in front of an uncorrected
+So the site could not accept this correction, and this script REFUSED to make it
+locally while that was true. A corrected database in front of an uncorrected
 page is a divergence nobody would notice, which is the rule
 `correct_city_country.py` already states and the reason it is stated there.
 
-What has to change, in order, and the deploy is the owner's call and not a
+Plugin 1.77.0 added `hq_city` and `hq_country` to that allowlist, for the reason
+written out in the function's own docblock: the only true value here is no
+value, so a clear was the only correction available. `site_can_clear()` below
+still reads the plugin source rather than trusting this paragraph, so if the
+allowlist is ever trimmed back this refuses again on its own.
+
+The order is still the order, and the deploy is the owner's call and not a
 delegated one:
 
-    1. tit_clearable_columns() must return 'hq_city' and 'hq_country' too.
+    1. tit_clearable_columns() returns 'hq_city' and 'hq_country'.  [1.77.0]
     2. Bump Version: and TIT_VERSION, deploy the plugin, verify the page.
     3. Queue this with --apply.
 

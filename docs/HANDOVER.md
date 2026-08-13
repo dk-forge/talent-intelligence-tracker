@@ -2,6 +2,74 @@
 
 ---
 
+## 2026-08-12: the door for the wrong-country correction is open in the code (1.77.0). PUSHED, NOT DEPLOYED. The 37 are still wrong on the live page.
+
+Branch `main`. Plugin change plus version bump plus one TECHLOG entry. **No
+deploy was run and no reversal was run**, because the deploy is the owner's
+call and not an agent's (CLAUDE.md says so by name, and the 2026-08-01 incident
+is why). Nothing was spent; this correction removes values and never looks one
+up.
+
+**Three commands, in this order, and nothing else is outstanding.**
+
+```bash
+gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker \
+  --ref main -f dry_run=false
+# then bare URL, browser UA, NO cache buster; assets stamp TIT_VERSION.mtime,
+# so match the "1.77.0." prefix
+
+gh workflow run drain-writers.yml -f enqueue=reverse-cityless-hq.yml \
+  -f inputs_json='{"dry_run":"false"}' -f reason='take back the cityless hq'
+# then check the live page: Synthesia must no longer read CZ
+
+gh workflow run drain-writers.yml -f enqueue=enrich.yml \
+  -f inputs_json='{"dry_run":"false"}' -f reason='carry the city-backed places'
+# LAST. Running it before the reversal pushes MORE of the 37 to readers.
+```
+
+**What changed in the code.** `tit_clearable_columns()` in `includes/api.php`
+now returns `hq_city` and `hq_country` as well as the two funding columns, so
+`/enrich` has a route to blank a headquarters that was never really looked up.
+The reasoning is in the function's docblock: these 37 came off the entity-P17
+fallback with no headquarters city behind them, there is no right value to send
+instead, and the only correction available was a clear. A clear still has to be
+named explicitly, so an absent or empty field still erases nothing, and
+`archive_url` stays outside the allowlist.
+
+**The measured numbers, read off the LIVE endpoint and not from the database.**
+
+| | events |
+|---|---:|
+| a US-filtered reader sees today | **7 of 51** |
+| after the reversal | **6 of 51** |
+
+AlphaSense, Ramp, Ollin Biosciences, Databento, RapidPulse, Singularity,
+Crystalys Therapeutics. **Databento is one of the 37** and reads
+`hq_city=None, hq_country=US` live, so the reversal costs a visible row on
+purpose: 6 honest beats 7 where one is accidentally right. It returns at 7
+city-backed (Boston) once `enrich.yml` carries the 33 waiting placements.
+AlphaSense reads `hq_city=New York` and is not affected.
+
+Synthesia still reads `hq_country=CZ` on the live page as of this handover.
+
+**The refusal test was inverted, not deleted.**
+`test_the_refusal_is_still_correct` asserted `not rev.site_can_clear()`; it now
+asserts `rev.site_can_clear()` and guards the door against being shut again.
+Keep it until every row in `data/cityless_hq_to_reverse.json` is reversed on
+the site and the file is retired.
+
+**The lesson from the incident, which is the part worth carrying forward:** a
+cancelled GitHub job still completes the step it is already running. The
+placement run was cancelled within minutes and its commit step had already
+started, so the bad rows landed on main anyway. Cancel is a promise about the
+NEXT step.
+
+`is_placeable` was not widened and the placement backfill was not re-run. A
+better placement pass is separate work and needs the owner's sign-off on the
+bar.
+
+---
+
 ## 2026-08-12: a US reader sees 5 of the 21 events we hold. The ingest cause is fixed; the backfill is queued, not run.
 
 Branch `fix/place-the-unplaced`. **No plugin change, no version bump, no

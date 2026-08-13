@@ -271,16 +271,31 @@ check($visibuilt['funding_amount'] === '25 millioner kroner',
 check($visibuilt['hq_country'] === 'DK',
       'and clearing one column does not disturb another');
 
-// The allowlist. hq_country is enrichable and NOT clearable, because clearing
-// looked-up identity loses work rather than removing a wrong claim.
-$before = $wpdb->fetch('h-terminal');
+// hq_city and hq_country joined the allowlist in 1.77.0. A looked-up country
+// with no headquarters city behind it is a guess, and 37 of them reached the
+// live page; the only true value is no value, and this is the route for it.
 $out = tit_api_enrich(new WP_REST_Request(array('rows' => array(
-    array('content_hash' => 'h-terminal', 'clear' => array('hq_country')),
+    array('content_hash' => 'h-terminal', 'clear' => array('hq_city', 'hq_country')),
 ))));
 $after = $wpdb->fetch('h-terminal');
-check($after['hq_country'] === $before['hq_country'],
-      'a column outside tit_clearable_columns() is refused, and hq_country went from '
-      . var_export($before['hq_country'], true) . ' to ' . var_export($after['hq_country'], true));
+check($after['hq_country'] === null,
+      'a wrong headquarters country can be taken back rather than left on the page, '
+      . 'and hq_country is ' . var_export($after['hq_country'], true));
+check(($out['updated'] ?? 0) === 1, 'and it reports the row it changed');
+check((int) $after['funding_amount_usd'] === 20000000,
+      'and clearing identity does not disturb the figure');
+
+// The allowlist still is one. archive_url is enrichable and NOT clearable: it
+// is the fallback that outlives a dead publisher, so clearing it loses work
+// rather than removing a wrong claim.
+$before = $wpdb->fetch('h-visibuilt');
+$out = tit_api_enrich(new WP_REST_Request(array('rows' => array(
+    array('content_hash' => 'h-visibuilt', 'clear' => array('archive_url')),
+))));
+$after = $wpdb->fetch('h-visibuilt');
+check($after['archive_url'] === $before['archive_url'],
+      'a column outside tit_clearable_columns() is refused, and archive_url went from '
+      . var_export($before['archive_url'], true) . ' to ' . var_export($after['archive_url'], true));
 check(!empty($out['errors']),
       'and the refusal is reported rather than silently skipped');
 

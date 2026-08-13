@@ -13,6 +13,144 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-12 - the door for taking back a wrong country, and the lesson that a cancelled job still finishes its step (1.77.0)
+
+**Plugin change and version bump only. PUSHED, NOT DEPLOYED.** The deploy is
+the owner's call and this session was an agent, so the live correction has not
+run yet and every "before" number below is measured off the live site as it
+stands. No model was called and nothing was spent: this correction removes
+values, it never looks one up.
+
+### The lesson worth keeping: a cancelled job still completes its current step
+
+The first live run of `place-unplaced.yml` used a placement bar that declined
+only AMBIGUOUS names. It was cancelled a few minutes in, deliberately, the
+moment a check against the US recall set showed it resolving Premier Lacrosse
+League to Canada. The cancellation was right and it was not enough. **GitHub
+cancels a job by refusing to start further steps; the step already running is
+allowed to finish.** The step already running was the commit, so the run's
+output landed on `main`, and a later `/enrich` carried it to readers.
+
+37 rows now hold an `hq_country` with no headquarters city behind it. `Cancel
+workflow` is not a stop button; it is a promise about the NEXT step. Anything
+whose commit step is the thing you would want to take back has to be stopped
+before that step starts, or reversed afterwards, and reversing is what this
+entry is about. This is the second time this repo has learned that a run's
+visible status says nothing about what it already wrote (the other is the
+eviction signature: `cancelled` with zero jobs, `ci_status.py`).
+
+### What is wrong on the live page, quoted from it
+
+`hq_country` is read from P17 of the entity's HEADQUARTERS and falls back to
+P17 of the entity itself. The errors live in the fallback. Queried from
+`talent/v1/query` today, no cache buster needed to see it:
+
+    Synthesia   country=None  hq_city=None  hq_country='CZ'
+    headline: "Synthesia secures GBP 146 million Series E investment led by
+               Google Ventures (GV)"
+
+That is the Czech chemical works, filed over the UK AI company, on a public
+page. Two rows of it. `Ash Games` is a German namesake; `CFS` is filed CA and
+appears three rows later as Commonwealth Fusion Systems, US. All 37 are named
+by content_hash in `data/cityless_hq_to_reverse.json`, a file and not a derived
+query, so the pass takes back exactly what that one run wrote and not the
+cityless values that were there before and are nobody's mistake.
+
+### The reader-visible number, measured rather than repeated
+
+Applying the plugin's own clause (`country IN ('US') OR (country IS NULL AND
+hq_country IN ('US'))`) to the 21 US funding events the sealed recall set says
+we hold, read one row at a time off the LIVE endpoint:
+
+| | events |
+|---|---:|
+| a US-filtered reader sees TODAY | **7 of 51** |
+| after the reversal runs | **6 of 51** |
+
+The seven are AlphaSense, Ramp, Ollin Biosciences, Databento, RapidPulse,
+Singularity and Crystalys Therapeutics. **Databento is one of the 37**: live it
+reads `hq_city=None, hq_country='US'`, so its visibility rests on the same
+weak fallback, and taking it back costs a row a reader can currently see. That
+is the right trade and it is worth stating plainly: 6 honest is better than 7
+where one of the seven is only accidentally right. AlphaSense is NOT one of the
+37 and stays: it reads `hq_city='New York'`, which is the bar `is_placeable`
+now requires.
+
+Databento comes back at 7 later and correctly, city-backed: the second, tighter
+placement run resolved it to Boston locally, and that row is one of the 33
+employers still waiting on `enrich.yml`.
+
+### The change: `tit_clearable_columns()` gains `hq_city` and `hq_country`
+
+`/enrich` ignores an absent or empty field on purpose, so that an enrichment
+pass with one missing lookup cannot wipe a column. The explicit `clear` array
+is the narrow exception, and its allowlist was `funding_amount_usd` and
+`funding_stage` only. The old comment said `hq_city` / `hq_country` were
+deliberately outside it, because clearing looked-up identity loses work rather
+than removing a wrong claim.
+
+That reasoning held only while every stored value had actually been looked up.
+These 37 were not: they are a hint the pipeline printed as a fact. There is no
+right value to send instead, because the right value is that we do not know,
+and `/correct` does not carry `hq_country` either. So the only correction
+available was a clear, and there was no route for it at all. The allowlist is
+widened, and the reasoning is written into the function's own docblock rather
+than only here. What is NOT widened: a clear still has to be named explicitly,
+so an absent or empty field can no more erase a headquarters than it could
+erase a funding figure, and `archive_url` stays out (it is the fallback that
+outlives a dead publisher, and clearing it really does only lose work).
+
+`is_placeable` is untouched and the placement backfill was NOT re-run. A better
+placement pass is separate work and needs the owner's sign-off on the bar.
+
+### The test that was designed to go red, went red, and was inverted rather than deleted
+
+`tests/test_reverse_cityless_hq.py::test_the_refusal_is_still_correct`
+asserted, before: `not rev.site_can_clear()`, with the failure message "the
+reversal has a door: queue reverse-cityless-hq.yml". It existed as an alarm for
+the allowlist being widened. Widening it is exactly what happened, so the alarm
+fired as designed.
+
+It asserts, after: `rev.site_can_clear()`, and it now guards the door against
+being SHUT again. Same divergence, other direction: a later edit trimming the
+allowlist back would leave `reverse_cityless_hq.py` refusing with nothing in
+the diff saying a live correction route had been removed. Keep it until every
+row in `cityless_hq_to_reverse.json` is reversed on the site and the file is
+retired.
+
+Two neighbours moved with it, and both kept their subject rather than being
+dropped:
+
+- `test_applying_without_the_door_exits_two_and_writes_nothing` became
+  `test_applying_with_no_credentials_exits_two_and_writes_nothing`. Its point
+  was never the refusal text: it was that `--apply` must not move the local
+  database when the site cannot be written, because the site is written FIRST.
+  Missing `WP_SITE_URL` / `WP_API_KEY` is the failure that still reaches that
+  path, and it now seeds a temp database and asserts the row is untouched.
+- `tests/php/enrich_and_correct.php` asserted `hq_country` was refused by the
+  allowlist. It now asserts `hq_city` and `hq_country` clear, and uses
+  `archive_url` for the refusal case, so "the allowlist is still an allowlist"
+  is still covered by a live assertion and not by a comment.
+
+Full suite: 3,701 passed, 1 skipped, 431 subtests. `php tests/php/enrich_and_correct.php` green.
+
+### What is NOT done, and the exact order for whoever holds the deploy
+
+1. `gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false`,
+   then check a reader's view: bare URL, browser User-Agent, no cache buster.
+   Assets stamp as `TIT_VERSION.mtime`, so match the `1.77.0.` prefix.
+2. ```
+   gh workflow run drain-writers.yml -f enqueue=reverse-cityless-hq.yml \
+     -f inputs_json='{"dry_run":"false"}' -f reason='take back the cityless hq'
+   ```
+   Queued, never dispatched. Then confirm on the live page that Synthesia reads
+   no country, and re-measure the US-filtered count expecting 6 of 51.
+3. Only then `enqueue=enrich.yml`, which carries the 33 city-backed placements
+   that a WordPress 503 left behind. Running it BEFORE the reversal would push
+   more of the 37 cityless values to readers, which is why it was held.
+
+---
+
 ## 2026-08-12 - the rows we hold and no reader can find: 5 of 51, and the cache nothing fills
 
 **No deploy, no plugin change, no version bump. No model was called and no

@@ -1278,14 +1278,29 @@ function tit_enrichable_columns() {
  * nobody published. So the only true value is no value, and neither /enrich nor
  * /correct could write it.
  *
- * Deliberately NOT the whole enrichable list. `hq_city` / `hq_country` are
- * looked-up identity that a filter depends on, `archive_url` is the fallback
- * that outlives a dead publisher, and clearing any of those loses work rather
- * than removing a wrong claim. Add a column here only when its wrong value would
- * be a published falsehood and no right value exists.
+ * Deliberately NOT the whole enrichable list. `archive_url` is the fallback that
+ * outlives a dead publisher, and clearing it loses work rather than removing a
+ * wrong claim. Add a column here only when its wrong value would be a published
+ * falsehood and no right value exists.
+ *
+ * `hq_city` and `hq_country` were on the other side of that line until
+ * 2026-08-12, on the reasoning that looked-up identity is work and clearing it
+ * throws work away. That reasoning held only while every stored value was
+ * actually looked up. `hq_country` is read from P17 of the entity's
+ * HEADQUARTERS and falls back to P17 of the entity itself, and one cancelled
+ * placement run committed 37 rows off that weaker fallback with no headquarters
+ * city behind them. Synthesia, the UK company, went live filed under Czechia:
+ * the Czech chemical works of the same name. There is no right value to send
+ * instead, because the right value is that we do not know, and this page would
+ * rather show a blank than a country it made up. So the only correction is a
+ * clear, and without these two entries there was no route for it at all --
+ * `/correct` does not carry `hq_country` and `/enrich` ignores an empty field by
+ * design. The narrowness is kept where it matters: a clear still has to be named
+ * explicitly in `clear`, so an absent or empty field can no more erase a
+ * headquarters than it could erase a funding figure.
  */
 function tit_clearable_columns() {
-    return array('funding_amount_usd', 'funding_stage');
+    return array('funding_amount_usd', 'funding_stage', 'hq_city', 'hq_country');
 }
 
 /**
