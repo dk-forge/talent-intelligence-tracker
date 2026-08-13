@@ -99,7 +99,7 @@ RED before, on the real assertion:
     United States cannot see it
 
 `tests/test_unplaced_rows_get_placed.py`, 11 tests, green after; full suite
-3,693 passed, 1 skipped, 427 subtests.
+3,694 passed, 1 skipped, 427 subtests.
 
 ### The guard that stops the cheap fix becoming the expensive mistake
 
@@ -142,16 +142,41 @@ re-asked:
 
 | | employers | share |
 |---|---:|---:|
-| would be placed | 56 | 12.4% |
-| Wikidata does not know them | 390 | 86.7% |
-| declined, two organisations of that name | 4 | 0.9% |
-| **read so far** | **450 of 1,633** | |
+| would be placed | 82 | 5.0% |
+| Wikidata does not know them | 1,412 | 86.5% |
+| resolved, and declined at the bar | 139 | 8.5% |
+| **all 1,633** | | |
 
 Cost: **$0.00.** No model is on this path.
 
-**So the free route places roughly one placeless employer in eight, and that is
-the honest ceiling on free.** Wikidata does not know seed-stage private
-companies; it was never going to.
+**One placeless employer in twenty, and that is the honest ceiling on free.**
+Wikidata does not know seed-stage private companies; it was never going to.
+
+### The bar moved once, and the reason is a row from the recall set
+
+The first version of this pass declined only ambiguous names and would have
+placed 190 employers. Checking it against the 13 US events a reader cannot see
+is what stopped it: it resolves 3 of the 13, and one of the 3 is **Premier
+Lacrosse League as Canada.** A US league, filed under Canada, on a public page.
+Two right and one wrong is not a rate to ship.
+
+The discriminator turned out to be cheap and sharp. `hq_country` is read from
+P17 of the entity's HEADQUARTERS and falls back to P17 of the entity itself,
+and the errors live in the fallback:
+
+| | employers | what the sample reads like |
+|---|---:|---|
+| a curated headquarters CITY came with it | 82 | Accel/Palo Alto, Databricks/San Francisco, Cyera/Tel Aviv, DeepSeek/Hangzhou, AlphaSense/New York |
+| a bare country, no city | 108 | Premier Lacrosse League/CA, Synthesia/CZ, AirTrunk/AU, African Bank/ZA |
+
+So `is_placeable` requires the city, on both the ingest path and the backfill.
+It costs 108 employers of recall and it is the right trade: "this employer sits
+in this city, which is in this country" is a fact, and "this entity is
+associated with this country" is a hint.
+
+Of the 13, that leaves **AlphaSense (New York) and Databento (Boston)** placed,
+and Premier Lacrosse League correctly left blank. The other 10 are names
+Wikidata has never heard of.
 
 ### What CANNOT be filled, and what the paid pass would buy
 
@@ -195,11 +220,18 @@ the session's call and not a delegated one. **Stated, not made.**
 
 ### Reader-visible, before and after
 
-**Before: 5 of 51.** After this lands and the placement pass runs, the honest
-statement is a range and not a number: the 3 misfiled need the plugin change
-above, 6 of the 16 sources may never be fetched, and the free spine places
-about one employer in eight. The measurement that settles it is
-`measure_recall.py --family us` re-run after the pass, and it costs nothing.
+**Before: 5 of 51. After the free pass: 7 of 51**, and that is the whole of
+what free buys — AlphaSense and Databento, both New York and Boston, both from
+a headquarters Wikidata actually records.
+
+The remaining 14 break down honestly. 10 are employers Wikidata has never heard
+of and whose own coverage states no place, so only a paid re-read of the source
+can reach them, and 6 of the 16 sources may not be fetched at all. 3 are filed
+under the publisher's country and need the plugin change above. 1 (Premier
+Lacrosse League) is deliberately left blank rather than filed under Canada.
+
+`measure_recall.py --family us` re-run after the pass is what settles it, and
+it costs nothing.
 
 ---
 
