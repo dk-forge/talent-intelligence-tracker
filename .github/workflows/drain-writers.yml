@@ -64,6 +64,7 @@ on:
       - place-unplaced
       - recall
       - retract
+      - reverse-cityless-hq
       - tripwire
 
   workflow_dispatch:

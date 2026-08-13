@@ -1,0 +1,261 @@
+[
+ {
+  "content_hash": "1f6353c284456d92228f440804101085",
+  "company": "Boca Helping Hands",
+  "company_key": "boca helping hands",
+  "hq_country": "US",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "76823fe73591c8c281265a2d5d1e96bf",
+  "company": "Canopy",
+  "company_key": "canopy",
+  "hq_country": "SG",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "0f028d4615719c2224d58e8daf050f02",
+  "company": "Beretta holding",
+  "company_key": "beretta holding",
+  "hq_country": "IT",
+  "collector": "national_press"
+ },
+ {
+  "content_hash": "b1e3dc95a5f6d5b667185fa65e9b9ba0",
+  "company": "AirTrunk",
+  "company_key": "airtrunk",
+  "hq_country": "AU",
+  "collector": "national_press"
+ },
+ {
+  "content_hash": "816ecf31890097f1270dc688ff7e0de4",
+  "company": "Ash Games",
+  "company_key": "ash games",
+  "hq_country": "DE",
+  "collector": "national_press"
+ },
+ {
+  "content_hash": "01389174fb262f50d5dadd7d48906675",
+  "company": "Commonwealth Fusion Systems",
+  "company_key": "commonwealth fusion systems",
+  "hq_country": "US",
+  "collector": "national_press"
+ },
+ {
+  "content_hash": "caa9e53b417d8e62c97fbbd60c301096",
+  "company": "Artipelag",
+  "company_key": "artipelag",
+  "hq_country": "SE",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "87e4ca054324b954544e71a3e1edb712",
+  "company": "CyrusOne",
+  "company_key": "cyrusone",
+  "hq_country": "US",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "045b81452bfc292c0b33d61511dcd2ad",
+  "company": "Ash Games",
+  "company_key": "ash games",
+  "hq_country": "DE",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "fa6b9ebc0a764eb464bd8b01192eff89",
+  "company": "Clicars",
+  "company_key": "clicars",
+  "hq_country": "ES",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "c6b631185518d3a1f7207ff08303272e",
+  "company": "Byggherrarna",
+  "company_key": "byggherrarna",
+  "hq_country": "SE",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "6e521c30318a898498ee8665aaf16323",
+  "company": "Atland",
+  "company_key": "atland",
+  "hq_country": "ES",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "5af1557aa6ecec2974d011166b30870f",
+  "company": "Civitatis",
+  "company_key": "civitatis",
+  "hq_country": "ES",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "882bb6713836c0f13a3f2ad9890296f0",
+  "company": "Claroty",
+  "company_key": "claroty",
+  "hq_country": "IL",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "0e933c1b5db61b12befc47db6de028fc",
+  "company": "Synthesia",
+  "company_key": "synthesia",
+  "hq_country": "CZ",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "9df489ee6148ba88ad4fc838e8f89e87",
+  "company": "CFS",
+  "company_key": "cfs",
+  "hq_country": "CA",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "2915eb7e19ab10785cf05ca655a78cfb",
+  "company": "Avenia",
+  "company_key": "avenia",
+  "hq_country": "RS",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "c83a2ea7b1f0744209130cc94d773131",
+  "company": "Civitatis",
+  "company_key": "civitatis",
+  "hq_country": "ES",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "6590a9058759a0c77a375cbe004a5cf6",
+  "company": "Alithea Genomics",
+  "company_key": "alithea genomics",
+  "hq_country": "CH",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "72ec84ec9747bb6f5500a69f14a0e5c6",
+  "company": "African Bank",
+  "company_key": "african bank",
+  "hq_country": "ZA",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "1e3e08fe9ea25686634f168773407552",
+  "company": "Carsome",
+  "company_key": "carsome",
+  "hq_country": "MY",
+  "collector": "press_archive"
+ },
+ {
+  "content_hash": "ceabfe471f0508bddbbf528d02e10ad4",
+  "company": "CelcomDigi",
+  "company_key": "celcomdigi",
+  "hq_country": "MY",
+  "collector": "press_archive"
+ },
+ {
+  "content_hash": "324c3e4443f02eb17da42e9477a5abb5",
+  "company": "Combat Medical",
+  "company_key": "combat medical",
+  "hq_country": "ES",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "c331d416be6181256cc3ed403ff013bf",
+  "company": "Avo",
+  "company_key": "avo",
+  "hq_country": "US",
+  "collector": "press_archive"
+ },
+ {
+  "content_hash": "794c267638d7afb45ddbeb91dcde5ff3",
+  "company": "Banque de D\u00e9veloppement Local",
+  "company_key": "banque de d\u00e9veloppement local",
+  "hq_country": "DZ",
+  "collector": "national_press"
+ },
+ {
+  "content_hash": "97c28274d334f8c6291e854ee5babb4c",
+  "company": "Byggherrarna",
+  "company_key": "byggherrarna",
+  "hq_country": "SE",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "f68f910ce68183361af420a1c36dc7d0",
+  "company": "Blue Energy",
+  "company_key": "blue energy",
+  "hq_country": "FR",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "cc7dd818236fa0c32d6181770c1efe87",
+  "company": "Chance",
+  "company_key": "chance",
+  "hq_country": "CZ",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "f969206823040cc207f9f2626fd2bae9",
+  "company": "Bathhouse",
+  "company_key": "bathhouse",
+  "hq_country": "CA",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "7c3df69ba09024a4b1d623cad2caeee8",
+  "company": "Astrada",
+  "company_key": "astrada",
+  "hq_country": "DE",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "a09866865a6b0095daf07a51564408fa",
+  "company": "Coralogix",
+  "company_key": "coralogix",
+  "hq_country": "IL",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "8197b3afb85592ce8b915c88d8705caa",
+  "company": "Aligned",
+  "company_key": "aligned",
+  "hq_country": "GB",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "b0e4e93d0334ce3d8d4bdf8c4e0a11b1",
+  "company": "Databento",
+  "company_key": "databento",
+  "hq_country": "US",
+  "collector": "google_news"
+ },
+ {
+  "content_hash": "89aae55647a9ba5c455ae44b8c4cab84",
+  "company": "Synthesia",
+  "company_key": "synthesia",
+  "hq_country": "CZ",
+  "collector": "press_archive"
+ },
+ {
+  "content_hash": "5caf4f6f0d09cc1983ff53000b1ce49c",
+  "company": "AirTrunk",
+  "company_key": "airtrunk",
+  "hq_country": "AU",
+  "collector": "ats_boards"
+ },
+ {
+  "content_hash": "e5b9add296467ea077ede41ba2b5345f",
+  "company": "Athene",
+  "company_key": "athene",
+  "hq_country": "DE",
+  "collector": "national_press"
+ },
+ {
+  "content_hash": "7649e64b1423636ec6d8cc6d3bf2dbd3",
+  "company": "CodeRabbit",
+  "company_key": "coderabbit",
+  "hq_country": "US",
+  "collector": "google_news"
+ }
+]

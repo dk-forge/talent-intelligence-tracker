@@ -1,0 +1,78 @@
+name: reverse-cityless-hq
+
+# Take back the 37 headquarters countries that had no city behind them.
+#
+# The first live run of place-unplaced.yml used a bar that declined only
+# ambiguous names. It was cancelled on purpose a few minutes in, because
+# checking it against the US recall set showed it resolving Premier Lacrosse
+# League to Canada. The cancellation was right and it was late: the commit step
+# had already run, and /enrich carried the values to the live site. Synthesia,
+# the UK company that raised GBP 146m from GV, is filed under Czechia on the
+# public page as a result.
+#
+# PREREQUISITE, and this workflow REFUSES and exits 2 until it is met.
+# tit_clearable_columns() in includes/api.php returns funding_amount_usd and
+# funding_stage only, so /enrich cannot blank hq_country: an absent or empty
+# field means "we still do not know", deliberately, so a gap can never erase a
+# known value. Add 'hq_city' and 'hq_country' to that function, bump the
+# version, deploy, THEN run this. The deploy is the owner's call.
+#
+# Queue it, never dispatch it:
+#   gh workflow run drain-writers.yml -f enqueue=reverse-cityless-hq.yml \
+#     -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would be reversed and write nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: talent-collect
+  cancel-in-progress: false
+
+jobs:
+  reverse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Reverse
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
+          # No `|| true`. A refusal is exit 2 and it must redden the run: the
+          # whole point of the refusal is that somebody reads it.
+          python reverse_cityless_hq.py $ARGS
+
+      - name: Commit the database
+        if: always()
+        run: |
+          if [ "${{ inputs.dry_run }}" != "false" ]; then
+            echo "Dry run. Nothing to commit."
+            exit 0
+          fi
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: reverse the cityless hq_country $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase --autostash origin main
+          git push
