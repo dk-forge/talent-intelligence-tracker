@@ -11,11 +11,16 @@ name: reverse-cityless-hq
 # public page as a result.
 #
 # PREREQUISITE, and this workflow REFUSES and exits 2 until it is met.
-# tit_clearable_columns() in includes/api.php returns funding_amount_usd and
-# funding_stage only, so /enrich cannot blank hq_country: an absent or empty
-# field means "we still do not know", deliberately, so a gap can never erase a
-# known value. Add 'hq_city' and 'hq_country' to that function, bump the
-# version, deploy, THEN run this. The deploy is the owner's call.
+# tit_clearable_columns() in includes/api.php has to admit 'hq_city' and
+# 'hq_country', or /enrich cannot blank them: an absent or empty field means
+# "we still do not know", deliberately, so a gap can never erase a known value.
+# It admits them as of plugin 1.77.0, so the code half is met. The other half
+# is NOT automatic and NOT checkable from here: the plugin must actually be
+# DEPLOYED first, or this corrects the database and leaves the page wrong,
+# which is the exact divergence the refusal exists to prevent.
+# reverse_cityless_hq.py reads the allowlist out of the checkout and cannot see
+# what is running on the host, so that step is on the human, and the deploy is
+# the owner's call.
 #
 # Queue it, never dispatch it:
 #   gh workflow run drain-writers.yml -f enqueue=reverse-cityless-hq.yml \
