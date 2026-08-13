@@ -111,6 +111,15 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # portal's API subdomain and cites the register's own collection page.
     "data.gov.sg",
     "api-production.data.gov.sg",
+    # The IRS's own Tax Exempt Organization Search serves the FILED RETURN from
+    # this host: /pub/epostcard/cor/<ein>_<period>_990_<id>.pdf is the copy of
+    # the Form 990 the organisation filed, not a report of it. Same class as
+    # sec.gov, the venue an employer files WITH. Without this line
+    # collectors/irs_form_990.py caps at 'reported' and a disclosure Congress
+    # made public specifically so it would be read comes out as a news story.
+    # The collector never touches /app/eos on this host, which is the one path
+    # that refuses automated clients; it reads /teos/ and /pub/, both 200.
+    "apps.irs.gov",
     "idaireland.com",
     "www.idaireland.com",
     "investni.com",

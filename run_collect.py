@@ -19,7 +19,8 @@ from datetime import date
 import source_registry as registry
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         czechia_ares, edinet_japan, estonia_ariregister, gdelt,
-                        google_news, israel_registrar, national_press,
+                        google_news, irs_form_990, israel_registrar,
+                        national_press,
                         opendart_korea, primary_chase, sec_edgar,
                         sec_execcomp, sec_form_d, singapore_acra, spain_borme,
                         tripwire_chase, uk_paygap)
@@ -50,6 +51,17 @@ SOURCES = {
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,
     "uk_paygap": uk_paygap,
+    # DORMANT: nothing schedules it, and arming it is a separate decision with
+    # its own cost (about 3GB of batch zips a year, plus one lookup per
+    # organisation). The pay pillar's tax exempt half: named officer pay at the
+    # hospitals, universities and research institutes the SEC route cannot see,
+    # off a mandatory annual filing. Derived, so it exposes `as_classified` and
+    # spends nothing. The population is not the 376,920 long form returns filed
+    # a year -- unfiltered that is thirteen times this database -- it is the
+    # ~1,900 above a $100M revenue floor. See collectors/irs_form_990.py for
+    # the receipt problem and how it is solved, which is the whole reason this
+    # source took two passes to reach.
+    "irs_form_990": irs_form_990,
     # The UK's leadership spine. Officer appointments off the Companies House
     # register, so it exposes `as_classified` and spends nothing. The population
     # is NOT the register: it is the 9,230 employers the gender pay gap duty

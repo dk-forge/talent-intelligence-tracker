@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Trimmed from the real 202511609349300976_public.xml inside
+     2025_TEOS_XML_06A.zip: same element names, same namespace, same shapes,
+     with the Part VII list cut to four rows. The top-paid row is deliberately
+     NOT the president, because that is the case this source gets wrong if
+     anybody assumes the highest number is the chief executive. -->
+<Return returnVersion="2023v6.0" xmlns="http://www.irs.gov/efile" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ReturnHeader binaryAttachmentCnt="0">
+    <ReturnTs>2025-06-09T07:49:37-07:00</ReturnTs>
+    <TaxPeriodEndDt>2024-07-31</TaxPeriodEndDt>
+    <ReturnTypeCd>990</ReturnTypeCd>
+    <TaxPeriodBeginDt>2023-08-01</TaxPeriodBeginDt>
+    <Filer>
+      <EIN>310707369</EIN>
+      <BusinessName>
+        <BusinessNameLine1Txt>FRANKLIN UNIVERSITY</BusinessNameLine1Txt>
+      </BusinessName>
+      <PhoneNum>6149476002</PhoneNum>
+      <USAddress>
+        <AddressLine1Txt>201 South Grant Avenue</AddressLine1Txt>
+        <CityNm>Columbus</CityNm>
+        <StateAbbreviationCd>OH</StateAbbreviationCd>
+        <ZIPCd>432155399</ZIPCd>
+      </USAddress>
+    </Filer>
+    <BusinessOfficerGrp>
+      <PersonNm>Marv Briskey</PersonNm>
+      <PersonTitleTxt>Treasurer/CFO</PersonTitleTxt>
+      <SignatureDt>2025-06-14</SignatureDt>
+    </BusinessOfficerGrp>
+    <TaxYr>2023</TaxYr>
+  </ReturnHeader>
+  <ReturnData documentCnt="1">
+    <IRS990 documentId="R000001">
+      <PrincipalOfficerNm>Dr David Decker</PrincipalOfficerNm>
+      <GrossReceiptsAmt>178541190</GrossReceiptsAmt>
+      <Organization501c3Ind>X</Organization501c3Ind>
+      <TotalEmployeeCnt>1239</TotalEmployeeCnt>
+      <Form990PartVIISectionAGrp>
+        <PersonNm>Dr David R Decker</PersonNm>
+        <TitleTxt>President</TitleTxt>
+        <AverageHoursPerWeekRt>55</AverageHoursPerWeekRt>
+        <OfficerInd>X</OfficerInd>
+        <ReportableCompFromOrgAmt>1378789</ReportableCompFromOrgAmt>
+        <ReportableCompFromRltdOrgAmt>0</ReportableCompFromRltdOrgAmt>
+        <OtherCompensationAmt>48312</OtherCompensationAmt>
+      </Form990PartVIISectionAGrp>
+      <Form990PartVIISectionAGrp>
+        <PersonNm>Alex Rivera</PersonNm>
+        <TitleTxt>HEAD COACH, BASKETBALL</TitleTxt>
+        <AverageHoursPerWeekRt>40</AverageHoursPerWeekRt>
+        <HighestCompensatedEmployeeInd>X</HighestCompensatedEmployeeInd>
+        <ReportableCompFromOrgAmt>1502004</ReportableCompFromOrgAmt>
+        <ReportableCompFromRltdOrgAmt>250000</ReportableCompFromRltdOrgAmt>
+        <OtherCompensationAmt>51110</OtherCompensationAmt>
+      </Form990PartVIISectionAGrp>
+      <Form990PartVIISectionAGrp>
+        <PersonNm>Dr Christopher Washington</PersonNm>
+        <TitleTxt>Provost and SVP-Academic Affairs</TitleTxt>
+        <AverageHoursPerWeekRt>50</AverageHoursPerWeekRt>
+        <KeyEmployeeInd>X</KeyEmployeeInd>
+        <ReportableCompFromOrgAmt>369620</ReportableCompFromOrgAmt>
+        <OtherCompensationAmt>55849</OtherCompensationAmt>
+      </Form990PartVIISectionAGrp>
+      <!-- A corporate trustee, copied in shape from the Bank of America
+           Charitable Gift Fund's 2023 return, where this row is $20,052,864
+           and forty times the largest real pay figure in the same batch. The
+           return distinguishes it: BusinessName instead of PersonNm. -->
+      <Form990PartVIISectionAGrp>
+        <BusinessName>
+          <BusinessNameLine1Txt>A BANK</BusinessNameLine1Txt>
+        </BusinessName>
+        <TitleTxt>TRUSTEE</TitleTxt>
+        <InstitutionalTrusteeInd>X</InstitutionalTrusteeInd>
+        <ReportableCompFromOrgAmt>20052864</ReportableCompFromOrgAmt>
+        <ReportableCompFromRltdOrgAmt>0</ReportableCompFromRltdOrgAmt>
+        <OtherCompensationAmt>0</OtherCompensationAmt>
+      </Form990PartVIISectionAGrp>
+      <Form990PartVIISectionAGrp>
+        <PersonNm>Pat Unpaid</PersonNm>
+        <TitleTxt>Trustee</TitleTxt>
+        <AverageHoursPerWeekRt>2</AverageHoursPerWeekRt>
+        <IndividualTrusteeOrDirectorInd>X</IndividualTrusteeOrDirectorInd>
+        <ReportableCompFromOrgAmt>0</ReportableCompFromOrgAmt>
+        <OtherCompensationAmt>0</OtherCompensationAmt>
+      </Form990PartVIISectionAGrp>
+      <CYSalariesCompEmpBnftPaidAmt>54360597</CYSalariesCompEmpBnftPaidAmt>
+      <CYTotalRevenueAmt>194699869</CYTotalRevenueAmt>
+    </IRS990>
+  </ReturnData>
+</Return>

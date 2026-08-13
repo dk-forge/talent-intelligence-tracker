@@ -38,6 +38,61 @@ Rebased onto the provider-name scrub that landed the same afternoon, so the
 
 ---
 
+## 2026-08-13: Form 990 has a citable URL after all, the employer join is zero and that is the argument FOR it. COLLECTOR BUILT, DORMANT, NOTHING SCHEDULED, NOTHING DEPLOYED.
+
+Branch `feat/form-990`. New collector `collectors/irs_form_990.py`, 32 new
+tests, one new doc. **No plugin change, no version bump, no deploy.**
+**$0.00 spent: no model was called and this collector cannot call one** — every
+field is a tagged XML element, so it exposes `as_classified` and skips the
+gate, the model and the spend cap alike. Suite green: 3,786 passed.
+
+Full evidence in [docs/SOURCE-irs-form-990.md](SOURCE-irs-form-990.md). The
+four answers a next session needs:
+
+1. **The receipt exists and the scoping pass could not have found it.** The
+   per filing XML 404s, the AWS bucket `irs-form-990` is publicly listable and
+   **empty**, and `/app/eos` 403s to everything. The organisation page also has
+   no URL: it renders in a real browser and `location.href` is
+   `https://apps.irs.gov/app/eos/details/` with no parameters, so it is
+   unlinkable even for a human. What works is
+   `GET /teos/details/returnsSearch/{EIN}`, which answers our own descriptive
+   User-Agent with HTTP 200 and hands back `STATICFILEPATH` for the filed
+   return: a PDF under `/pub/epostcard/cor/` that answers 200 as
+   `application/pdf`. The filename cannot be composed (its posting date is in
+   no published file), so it is looked up once per organisation and a filing
+   with no copy posted is dropped. Receipt rate 100/100 for index year 2025,
+   19/100 for the open 2026, which is why the default year is `year - 1`.
+2. **The join is 0 correct matches in 526 and one false one, and no EIN column
+   was added.** The scoping pass measured random filers; this measured the
+   population that would actually ship. `Midwest Energy Inc`, a Kansas electric
+   cooperative, is the only "match" and it collides with a different company we
+   hold. There is no second EIN carrying source built, so a column plus a
+   resolution pass would join one source to nothing. The EIN is the first field
+   of the receipt URL, so the door stays open for free and a test guards it.
+3. **About 1,750 rows a year at the default $100M revenue floor**, measured by
+   running the shipped parser over two whole batches, 31,706 long form returns,
+   8.4% of the year. That moves rewards_comp from 30.1% of the database to
+   34.0%, which is depth. **Three years of backfill takes it to 40.7%, and that
+   is a product decision rather than a setting.** Revenue rather than employee
+   count on purpose: at a 1,000 employee floor 40% of the population is YMCAs
+   and Goodwills, because that field counts seasonal staff. At $100M it is
+   20.4% hospitals, 16.8% universities and colleges, 2.7% research institutes.
+4. **The live dry run earned its keep twice.** It cited a 990-T (a different
+   form, no Part VII in it) on eleven rows, because matching `RETURN_TYPE` on
+   the prefix `990` also matches `990T`. And it put $20,052,864 on the Bank of
+   America Charitable Gift Fund, which is a corporate trustee's FEE filed on
+   Part VII in the same column as a salary. Both are fixed, both have tests,
+   and neither was findable by reading.
+
+**Nothing is armed and nothing can accidentally arm.** `irs_form_990` is in
+`run_collect.SOURCES` and in `tests/test_sources_page.py::_DORMANT_COLLECTORS`,
+so the sources page must not claim IRS coverage until somebody moves it out of
+that set in the same change that schedules it. Arming costs about 3.5GB of
+batch zips a year plus half an hour of lookups, wants an annual cadence rather
+than the daily rotation, and needs a `staleness.py` ceiling that matches it.
+
+---
+
 ## 2026-08-13: the country-need remedy is aimed at the wrong mechanism. DO NOT re-weight, DO NOT add a US floor.
 
 Branch `audit/gold-country-buckets`. **Measurement only** - two new files, one
@@ -97,6 +152,8 @@ window the reference set was drawn from, so it diagnoses these 51 events in
 2026-06/07 and generalises to no other window, signal type or country. It is
 not a recall figure and must never be published as one. Four further limits are
 in the module docstring and the TECHLOG entry.
+
+---
 
 ## 2026-08-13: the SF gap is not a local-publisher gap, and one publisher covers 26 of the 30. RESEARCH ONLY — NOTHING WIRED, NOTHING DEPLOYED.
 
