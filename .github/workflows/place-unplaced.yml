@@ -75,9 +75,16 @@ jobs:
           if [ -n "${{ inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ inputs.limit }}"; fi
           python -m pipeline.identity $ARGS
 
+      # ONE test decides whether this run writes, and it is the same shell
+      # string comparison the step above uses to add --dry-run. A `${{ inputs.x
+      # == false }}` guard is a coin flip on whether the dispatch API delivered
+      # a boolean or the string "false", and the two coerce differently.
       - name: Commit the database
-        if: ${{ inputs.dry_run == false }}
         run: |
+          if [ "${{ inputs.dry_run }}" != "false" ]; then
+            echo "Dry run. Nothing to commit."
+            exit 0
+          fi
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
           git add data/talent_intel.db
@@ -96,11 +103,14 @@ jobs:
       # step the local database is right and every reader still sees a row with
       # no place, which is the state this whole workflow is about.
       - name: Carry the values to the site
-        if: ${{ inputs.dry_run == false }}
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
+          if [ "${{ inputs.dry_run }}" != "false" ]; then
+            echo "Dry run. Nothing to carry."
+            exit 0
+          fi
           python - <<'PY'
           import sys
           from pipeline import publish, schema
