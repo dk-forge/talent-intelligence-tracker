@@ -13,6 +13,156 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - the US was never in a late bucket. The country-need remedy is aimed at the wrong mechanism
+
+**Measurement only. Nothing was armed, dispatched, deployed or written.** No
+model was called, no row was stored, no ledger line was written, no cent was
+spent, and nothing under `analysis/recall/` was touched. Two files added, both
+measurement: `analysis/ranking/gold_bucket.py` and `tests/test_gold_bucket.py`.
+Full suite green, **3,711 passed, 1 skipped**.
+
+### The question, and why it had to be answered before anything was changed
+
+The 2026-08-12 audit (PR #24) established that `interleave_by_country` gives
+every country's best candidate a place before any country's second, that the
+stored news population holds **77 country buckets**, that the **US bucket sits
+50th**, and that at `DAILY_GATE_RATION` the US therefore takes **zero** places.
+It then corrected itself in a way that undermined the conclusion drawn from it:
+`candidate_rank.candidate_country` reads the Google News EDITION or the
+publisher's country, never where the event happened, so the ranking
+deprioritises US-SOURCED candidates and not US EVENTS. Which left
+"country-need ranking caused the 26 walked-never-read misses" an **inference**,
+and how many of the 51 gold events were ever in the US bucket **UNKNOWN**.
+
+**It is not what happened.** Of the 51 US funding gold events, **45 were in the
+US bucket, 6 never surfaced at all, and NOT ONE was in a foreign bucket only.**
+Of the 26 classified `walked_never_read`, **21 were in the US bucket, 5 never
+surfaced, none was foreign-only and none is undetermined.**
+
+### Why the 77-bucket model does not describe the walker
+
+`read_share.py --model` replays over `measure.stored_population`, which sets
+`source_country` from the catalogue and **no `locale`**. That is the
+`national_press` shape. The google_news walker's items always carry a `locale`,
+`candidate_country` reads it first, and `fetch_day` de-duplicates by
+`discovery_url` keeping the **first** edition that answered - and
+`all_locales()` puts the `("en","US")` anchor **first**. So an article the US
+edition surfaces is stamped `US:en` before any other edition can claim it. The
+Sao Paulo case is real and it is rare: three events also appeared in an Italian,
+German or Vietnamese edition, and in every one of them a US copy existed too and
+ranked better.
+
+Measured over 37 day-windows, 35 editions, 3,959 queries, **0 query errors**:
+
+| | measured |
+|---|---|
+| country buckets in a day of the walk | **16 to 25**, never 77 |
+| US bucket's position in the visiting order | **1st (median), never worse than 5th** |
+| edition countries holding no rows at all | **2** (SN, UY) |
+| US bucket size | median **126** candidates, **19.6%** of the day |
+| candidates past the free prefilter | median **677/day** (274 to 1,149) |
+| the ration | **37**, i.e. **5.5%** of a median day |
+
+The US bucket is visited FIRST. The round robin was handing the US its place in
+pass one on 33 of 37 days, which is the opposite of the finding it was about to
+be re-weighted for.
+
+### So what is starving it: depth, and the in-bucket order
+
+The gold events are not the best candidate in the US bucket. Their in-bucket
+depth runs 1 to 147, median 28, so they lose the ration to about 25 other US
+candidates that scored higher, not to Brazil. Both levers, measured over the
+same 26:
+
+| policy | of the 26 |
+|---|---|
+| today, cut 37 | **2** |
+| cut 99 | 5 |
+| cut 118 | 5 |
+| cut 217 | 7 |
+| cut 395 (a full day) | 13 |
+| whole day, no cut | 21 |
+
+| a US floor | US places of 37 | of the 26 |
+|---|---|---|
+| 10% | 3 | 3 |
+| 20% | 7 | 5 |
+| 35% | 12 | 7 |
+| 50% | 18 | 7 |
+| the ENTIRE ration | 37 | **10** |
+
+**Handing the US every single place in the ration collects 10 of 26. Leaving
+the ordering exactly as it is and buying a full day's depth collects 13, and
+the whole day collects 21.** A floor is not a cheaper route to the same place;
+it is a smaller route, and it is the one that charges the other countries. The
+audit's own last line was right for a reason it could not yet demonstrate:
+**this is a money problem wearing a ranking problem's clothes.**
+
+### Two things the ranking never touched, found on the way
+
+- **6 of the 51 never surfaced at all** under the walker's own query set on the
+  days around their announcement (Arpio, Adaptive Insurance, Speakeasy, Brinc
+  Drones, logcat.ai, InstaLILY AI). 5 of those 6 are inside the 26. No cut and
+  no floor reaches a candidate the query set never produced.
+- **88 of 3,959 queries came back at the 100-item `RESULT_CAP`**, so those
+  windows were truncated at a width the walker already warns about.
+- **6 of the 26 are dated after 2026-07-12**, and the google_news cursor stands
+  at **2026-07-13**. That walker never reached them; their `walked` credit comes
+  from `press_archive`. The gnews ration cannot be the mechanism for those six
+  whatever the ordering does.
+
+### What this probe can and cannot generalise to
+
+It re-walks the window the reference set was drawn from, so it says what
+happened to **these 51 events, in 2026-06/07, in one signal type, in one
+country**, and nothing about any other window. It is a diagnosis and never a
+recall figure, and no number in it may be published as coverage.
+
+Four more limits, each written into the module:
+
+- Google News was **re-queried today** for historical days. The index churns, so
+  a NOT-SURFACED row is weaker evidence than a bucketed one and is reported as
+  its own state rather than folded into a bucket.
+- The free reducers between the prefilter and the ration (`already_seen`,
+  `validate.precheck`, the funding-duplicate check) are **not replayed**, and
+  `already_seen` today reflects rows stored since. The pool is therefore larger
+  than the walker's, so every rank here is a **pessimistic bound**: the real
+  position is this one or better.
+- An event that surfaced on several days is credited with its **best** day.
+- A place inside the cut buys a **gate call**, never a stored row. Nothing here
+  converts a place into a row and the tables say so.
+
+The ranking context is built from rows captured by **2026-08-04**, when the
+walker actually swept this window, rather than from today's database - a country
+that was empty during the walk outranked the US and may hold rows now precisely
+because that bonus worked. It changes nothing here (US 10,376 then against
+10,437 now, the same 2 empty and 12 thin edition countries), and it is built
+that way so the next session does not have to wonder.
+
+### What should be done differently
+
+**Do not re-weight the country need, do not add a US floor, and do not remove
+the round robin.** The premise those rest on is measured false: the US is not in
+a late bucket in the walker's own population, and the biggest floor available
+recovers fewer events than simply reading deeper. The three things this
+measurement does support, in order of what they buy per dollar:
+
+1. **Depth is the only lever that moves this and takes nothing from any other
+   country.** The audit priced it: $0.0877/day of history, $5.35 for this
+   61-day window, $32.09/year. That is a spend decision and belongs to the
+   owner.
+2. **The in-bucket order is worth looking at before any of that**, and it is
+   free. The gold events sit at median depth 28 inside a bucket the robin
+   already visits first, so what decides them is `score()` among US candidates,
+   where the country term is constant and only `employer_new` and
+   `keyword_force` separate anything.
+3. **The 6 that never surfaced are a query-set question, not a budget one**, and
+   the 88 truncated queries are a window-width question. Both are free to
+   investigate and neither is touched by any ranking change.
+
+`python3 -m analysis.ranking.gold_bucket --report` reproduces every number above
+from the committed `data/gold_bucket_sweep.json` without a network call.
+
 ## 2026-08-13 - the leadership parser closed zero because it was never shown a sentence it could read; the 25.9% gate ERROR was one outage, already fixed
 
 **No plugin change, no version bump, no deploy. Nothing was spent: no
