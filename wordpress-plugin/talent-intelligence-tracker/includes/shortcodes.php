@@ -4082,7 +4082,7 @@ function tit_amount_raised_html($row) {
  * same COALESCE(location, headquarters) rule as the rest of the dashboard, so
  * the money charts and the activity charts put an employer in the same place.
  */
-function tit_money_aggregate($table, $where = 'is_current = 1', array $params = array(), $limit = 40) {
+function tit_money_aggregate($table, $where = 'is_current = 1', array $params = array(), $limit = 40, $pillar = '') {
     global $wpdb;
     $limit = max(1, min(200, (int) $limit));
 
@@ -4137,10 +4137,131 @@ function tit_money_aggregate($table, $where = 'is_current = 1', array $params = 
             'city'     => (int) ($head['placed_city'] ?? 0),
             'industry' => (int) ($head['placed_industry'] ?? 0),
         ),
+        // What an EMPTY money chart is allowed to say about itself. Costs a
+        // query only when there is an empty chart to explain; see
+        // tit_money_pillar_reach().
+        'empty'    => ($with > 0)
+            ? array('pillar' => '', 'pillar_placed' => null)
+            : tit_money_pillar_reach($table, $pillar, $country_expr, $city_expr),
         'by_country'  => $by($country_expr),
         'by_city'     => $by($city_expr),
         'by_industry' => $by('industry'),
     );
+}
+
+/**
+ * How far the SELECTED Looking For pillar could ever fill a money chart, with
+ * every other filter taken off.
+ *
+ * WHY A SECOND QUERY EXISTS AT ALL. An empty money chart has more than one
+ * cause and they need different sentences. "Switch your filters" is the wrong
+ * answer when the honest answer is that this kind of update never carries a
+ * funding amount, and it is also the wrong answer when we hold the money and
+ * not the place. Only a measurement can tell those apart, so this takes one.
+ *
+ * Scoped to `is_current = 1 AND pillar = ?` and NOTHING else on purpose. Every
+ * other control on the page narrows within that set, so a zero here means the
+ * chart cannot fill under this pillar whatever else the reader picks, which is
+ * exactly the claim the copy makes. A wider probe could not support it and a
+ * narrower one would not be worth the sentence.
+ *
+ * It runs ONLY when the current view holds no dollar amount at all, which is
+ * the only state whose explanation needs it. A page whose money charts are
+ * drawing pays nothing for this.
+ */
+function tit_money_pillar_reach($table, $pillar, $country_expr, $city_expr) {
+    global $wpdb;
+    $none = array('pillar' => '', 'pillar_placed' => null);
+
+    $pillar = (string) $pillar;
+    if ($pillar === '') return $none;
+    if (function_exists('tit_allowed_pillars')
+        && !in_array($pillar, tit_allowed_pillars(), true)) return $none;
+
+    // The reader-facing name, and it is the CONTROL's own word for it, taken
+    // from the Looking For options a click actually sets. A sentence that named
+    // the pillar something the dropdown does not say would send the reader
+    // looking for a filter that is not there.
+    $label = '';
+    $looking = function_exists('tit_looking_options') ? tit_looking_options() : array();
+    if (isset($looking['pillar=' . $pillar])) {
+        $label = $looking['pillar=' . $pillar];
+    } elseif (function_exists('tit_company_pillar_labels')) {
+        $labels = tit_company_pillar_labels();
+        $label = $labels[$pillar] ?? '';
+    }
+    if ($label === '') return $none;
+
+    $sql = "SELECT SUM(funding_amount_usd IS NOT NULL
+                       AND {$country_expr} IS NOT NULL AND {$country_expr} <> '') AS country,
+                   SUM(funding_amount_usd IS NOT NULL
+                       AND {$city_expr} IS NOT NULL AND {$city_expr} <> '') AS city,
+                   SUM(funding_amount_usd IS NOT NULL
+                       AND industry IS NOT NULL AND industry <> '') AS industry
+              FROM {$table} WHERE is_current = 1 AND pillar = %s";
+    $row = $wpdb->get_row($wpdb->prepare($sql, array($pillar)), ARRAY_A) ?: array();
+
+    return array(
+        'pillar' => $label,
+        'pillar_placed' => array(
+            'country'  => (int) ($row['country'] ?? 0),
+            'city'     => (int) ($row['city'] ?? 0),
+            'industry' => (int) ($row['industry'] ?? 0),
+        ),
+    );
+}
+
+/**
+ * WHY THIS MONEY CHART HAS NOTHING ON IT, in the reader's terms.
+ *
+ * It used to say "No US dollar amounts in this view yet." for all of it. That
+ * sentence is true and it is useless: it reads as data we are missing, and the
+ * owner hit the case where it is not. He set Looking For to Pay and Benefits
+ * and Where to United States, and all three money charts said it. Pay and
+ * benefits updates do not carry funding amounts, so no money chart can ever
+ * fill under that pillar; the data was fine and the filters disagreed.
+ *
+ * Three causes, three sentences, because telling a reader to change a filter
+ * when the real answer is "we hold the money but not the place" would be a
+ * confidently wrong explanation, which is worse than a vague one.
+ *
+ *   unplaced  the view HAS dollar amounts and this dimension cannot place any
+ *             of them. A coverage gap in what the sources said, and no filter
+ *             fixes it. Says how many, computed.
+ *   pillar    the view has no amount at all, and the selected pillar could not
+ *             fill this chart with every other filter removed. So the pillar
+ *             is the cause, and it is named with the word the control uses.
+ *   filters   the view has no amount and the pillar is not the reason, so it
+ *             is this combination of filters. Points at the widest ones.
+ *
+ * No figure here is typed. The only number that appears is the view's own
+ * count of dollar-stated updates, straight off the same query the totals use.
+ * moneyEmptyNote() in dashboard.js mirrors this word for word.
+ */
+function tit_money_empty_note(array $money, $dimension = '') {
+    $names = array('country' => 'a country', 'city' => 'a city', 'industry' => 'an industry');
+    $name  = $names[$dimension] ?? 'a place';
+
+    $with = (int) ($money['coverage']['with'] ?? 0);
+    if ($with > 0) {
+        return sprintf(
+            _n('This view holds %1$s update with a US dollar amount, and it does not name %2$s.',
+               'This view holds %1$s updates with a US dollar amount, and not one of them names %2$s.',
+               $with, 'tit'),
+            number_format_i18n($with), $name
+        ) . ' That is missing detail in the sources, not a filter you can widen.';
+    }
+
+    $label  = (string) ($money['empty']['pillar'] ?? '');
+    $placed = $money['empty']['pillar_placed'] ?? null;
+    if ($label !== '' && is_array($placed) && (int) ($placed[$dimension] ?? 1) === 0) {
+        return 'No ' . $label . ' update we hold pairs a US dollar amount with '
+             . $name . ', so this chart stays empty under that setting.'
+             . ' Try Looking For: Raised Money.';
+    }
+
+    return 'No update in this view states a US dollar amount.'
+         . ' Try a wider country or date range.';
 }
 
 /**
@@ -4617,7 +4738,11 @@ function tit_money_chart($id, $title, $sub, array $rows, array $money, $dimensio
       <div class="tit-rank" tabindex="0" role="group" aria-label="<?php echo esc_attr($title); ?>"
            aria-describedby="<?php echo esc_attr(tit_chart_note_id('money-' . $id)); ?>">
         <?php if (!$rows) : ?>
-          <p class="tit-rank-empty">No US dollar amounts in this view yet.</p>
+          <?php /* The empty state EXPLAINS ITSELF. See tit_money_empty_note():
+                   three causes, three sentences, and the only number in any of
+                   them is measured. */ ?>
+          <p class="tit-rank-empty"><?php
+            echo esc_html(tit_money_empty_note($money, $dimension)); ?></p>
         <?php else : foreach ($rows as $r) :
           $v = (float) $r['v']; ?>
           <button type="button" class="tit-rank-row" data-k="<?php echo esc_attr($r['k']); ?>"

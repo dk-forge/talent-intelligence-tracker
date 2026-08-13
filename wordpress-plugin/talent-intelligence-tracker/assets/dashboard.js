@@ -776,6 +776,52 @@
       (missing === 1 ? ', so it is not on this chart.' : ', so they are not on this chart.');
   }
 
+  // WHY AN EMPTY MONEY CHART IS EMPTY, mirroring tit_money_empty_note() in
+  // shortcodes.php word for word. Keep the two identical: the server prints one
+  // of these on the first paint and this reprints it on every filter change, so
+  // a divergence shows up as the sentence rewriting itself.
+  //
+  // It replaced "No US dollar amounts in this view yet.", which was true of all
+  // three causes and useful for none of them. It reads as data we are missing,
+  // and the owner hit the case where it is not: Pay and Benefits plus United
+  // States, where pay updates carry no funding amount, so no money chart can
+  // fill under that pillar however the rest of the page is set.
+  //
+  //   unplaced  the view HAS amounts and this dimension places none of them. A
+  //             gap in the sources, and no filter change touches it. Says how
+  //             many, from the same figure the totals are built on.
+  //   pillar    no amount here, and the selected pillar could not fill this
+  //             chart with every other filter off (money.empty.pillar_placed,
+  //             measured by the server). So the pillar is the cause, and it is
+  //             named with the word the Looking For control uses.
+  //   filters   no amount here and the pillar is not the reason.
+  //
+  // Never a typed figure. The only number is money.coverage.with.
+  function moneyEmptyNote(money, dim) {
+    var NAMES = { country: 'a country', city: 'a city', industry: 'an industry' };
+    var name = NAMES[dim] || 'a place';
+    var withUsd = (money && money.coverage) ? (Number(money.coverage.with) || 0) : 0;
+
+    if (withUsd > 0) {
+      return 'This view holds ' + nfmt(withUsd) +
+        (withUsd === 1
+          ? ' update with a US dollar amount, and it does not name '
+          : ' updates with a US dollar amount, and not one of them names ') +
+        name + '. That is missing detail in the sources, not a filter you can widen.';
+    }
+
+    var empty = (money && money.empty) || {};
+    var placed = empty.pillar_placed;
+    if (empty.pillar && placed && Number(placed[dim]) === 0) {
+      return 'No ' + empty.pillar + ' update we hold pairs a US dollar amount with ' +
+        name + ', so this chart stays empty under that setting.' +
+        ' Try Looking For: Raised Money.';
+    }
+
+    return 'No update in this view states a US dollar amount.' +
+      ' Try a wider country or date range.';
+  }
+
   // Filtering to a single country produced "1 countries" in the hero, which is
   // a small thing that reads as carelessness on a page whose whole argument is
   // that the details are checked.
@@ -1078,7 +1124,9 @@
     var wrap = chart.querySelector('.tit-rank');
     if (wrap) {
       if (!rows.length) {
-        wrap.innerHTML = '<p class="tit-rank-empty">No US dollar amounts in this view yet.</p>';
+        // The empty state explains itself; see moneyEmptyNote().
+        wrap.innerHTML = '<p class="tit-rank-empty">' +
+          esc(moneyEmptyNote(money, dim)) + '</p>';
       } else {
         var max = Math.max.apply(null, rows.map(function (r) { return +r.v; })) || 1;
         wrap.innerHTML = rows.map(function (r) {

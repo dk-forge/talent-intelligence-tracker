@@ -13,6 +13,83 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - the money charts' empty state said nothing useful. 1.78.0, merged, NOT deployed
+
+**Copy, plus one probe query that runs only when a chart is empty. No data
+changed, no filter semantics changed, no number moved.** Plugin 1.77.1 -> 1.78.0.
+
+### The defect, from the owner's own use
+
+He set Looking For to **Pay and Benefits** and Where to **United States**, and
+all three money charts said:
+
+> No US dollar amounts in this view yet.
+
+True, and useless. It reads as data we failed to collect, so he asked why no
+cities were showing. Nothing was missing. Measured on the live endpoint the same
+day: `pillar=rewards_comp` alone returns **one** dollar-stated update out of
+**8,838**, and it names no country, no city and no industry, so all three charts
+are structurally empty there; `pillar=rewards_comp&country=US` holds **no
+funding update at all**. Meanwhile `company_development` puts real millions
+against New York, San Francisco, Austin, Boston, Seattle and Los Angeles. The
+data was fine. The filters disagreed, and the page would not say so.
+
+### Three causes, three sentences, because two of them want opposite advice
+
+"Change your filters" is a CONFIDENTLY WRONG answer to one of the three, which
+is worse than a vague one.
+
+- **unplaced** - the view HAS amounts and this dimension places none of them.
+  Real here: **655 of 4,094** amount-bearing rows carry a city. A coverage gap,
+  and no filter touches it, so the copy says so and points at nothing:
+  *"This view holds 4,094 updates with a US dollar amount, and not one of them
+  names a city. That is missing detail in the sources, not a filter you can
+  widen."*
+- **pillar** - no amount in the view, and the selected pillar could not fill
+  this chart with every other filter taken off. The pillar is the cause, so it
+  is named in the CONTROL's own word for it (`tit_looking_options()`):
+  *"No Pay and Benefits update we hold pairs a US dollar amount with a city, so
+  this chart stays empty under that setting. Try Looking For: Raised Money."*
+- **filters** - no amount, and the pillar is not the reason:
+  *"No update in this view states a US dollar amount. Try a wider country or
+  date range."*
+
+The only number in any of them is the view's own `coverage.with`, off the query
+the totals already run. Nothing is typed.
+
+### What tells them apart, and what it costs
+
+`tit_money_pillar_reach()` measures the selected pillar under
+`is_current = 1 AND pillar = ?` and **nothing else**, deliberately: every other
+control narrows within that set, so a zero there means the chart cannot fill
+under this pillar whatever else the reader picks, which is exactly the claim the
+copy makes. It runs **only when the view holds no dollar amount at all**, so a
+page whose money charts are drawing pays nothing for it. Measured on the render
+harness: **184,535 bytes and 15 cold queries, unchanged in both directions.**
+
+The pillar travels to `tit_money_aggregate()` beside the WHERE clause and is
+read for this and nothing else. The sums, the coverage figures and the rankings
+are still the caller's own clause and nothing but it.
+
+### The guard
+
+`tests/test_money_empty_state_explains_itself.py`, and it asserts on
+**`innerText` read off the rendered chart ancestor in headless Chrome**, never
+on markup: this page hides text in closed `<details>`, and `textContent` reports
+that as present. The browser half runs the shipped `paintMoney()` and
+`moneyEmptyNote()`; the PHP half executes the shipped `tit_money_empty_note()`
+and asserts the two say the same words, because the server prints one of these
+on first paint and the browser reprints it on every filter change. One test
+feeds four different counts and requires four different sentences, so a figure
+written into a string cannot pass. `TheSentenceThisReplacedTests` needs neither
+Chrome nor PHP, so the defect reds everywhere.
+
+**NOT DEPLOYED.** The session runs
+`gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false`
+and verifies the page.
+
+---
+
 ## 2026-08-13 - three provider names were on the public main for eight hours, and main's own CI could not have told anyone
 
 **No deploy, no version bump, nothing armed, nothing spent.** One module added
