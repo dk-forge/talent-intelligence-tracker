@@ -860,6 +860,296 @@ Full suite: 3,701 passed, 1 skipped, 431 subtests. `php tests/php/enrich_and_cor
    that a WordPress 503 left behind. Running it BEFORE the reversal would push
    more of the 37 cityless values to readers, which is why it was held.
 
+## 2026-08-12 - "US recall is low by design": true, but the design is the round robin and not the weights
+
+**AUDIT. No behaviour change, no plugin change, no version bump, no deploy. No
+model was called and nothing was written to the database.** Two files are added
+and both are measurement: `analysis/ranking/read_share.py` and
+`tests/test_country_need_ceiling.py`. Every number below is reproducible from
+the two files this repo already commits (`data/gate_labels/labels-2026-08.jsonl`
+and `data/talent_intel.db`).
+
+The gap-map entry below states, as the reason 90% is out of reach, that
+`candidate_rank` scores by country need and therefore reads the US last. That
+sentence came from reading the weights. This checks it against what runs.
+
+### The claim is TRUE, and it names the weaker of the two mechanisms
+
+The weights part is exactly right, and here is the enforcing code:
+
+```python
+W_COUNTRY_EMPTY = 6.0      # we hold zero rows for this country
+W_COUNTRY_THIN = 3.0       # we hold some, but under COUNTRY_THIN_ROWS
+W_EMPLOYER_NEW = 1.5
+W_KEYWORD_FORCE = 1.0      # per class of stated evidence, up to three
+W_SOURCE_TIER = 2.0
+COUNTRY_THIN_ROWS = 25
+```
+
+The US holds 10,437 current rows, so `score()` adds nothing for its country. A
+news candidate's remaining ceiling is `W_EMPLOYER_NEW + 3 * W_KEYWORD_FORCE =
+4.5`, against 6.0 for the first story about a country holding nothing. So no US
+news candidate can outscore an empty country's, whatever its headline says.
+Pinned in `test_a_saturated_country_cannot_outscore_an_empty_one_on_a_news_run`.
+
+Two corrections to the claim as written, neither of which rescues the US:
+
+- **"Never" is false by 0.5.** A FILING adds `W_SOURCE_TIER`, reaching 6.5. It
+  is inert because a run collects from one collector at a time, which
+  `candidate_rank`'s own docstring already says of that signal ("Inert in
+  practice today"). It stops being inert in a backfill that mixes sources.
+- **The score is not what binds.** `interleave_by_country` runs after the sort
+  and gives every country's best candidate a place before any country's second.
+  At the cuts this project runs at, that round robin — not the 6.0 — is what
+  decides whether the US is read at all.
+
+### The round robin is the binding one, and it makes the share ZERO, not small
+
+Measured over the 4,060 stored news candidates
+(`python3 -m analysis.ranking.read_share --model`): 77 country buckets, the US
+bucket's best candidate scores 2.0, which places it **50th of 77** in the round
+robin's visiting order.
+
+| read cut | what that cut is | US places, ranked | US places, arrival |
+|---|---|---|---|
+| 37 | `backfill_gnews_2026.DAILY_GATE_RATION` | **0** | 3 |
+| 99 | `classify` cap, google_news | 1 | 6 |
+| 118 | `classify` cap, national_press | 2 | 6 |
+| 217 | `BINDING_READ_BUDGET`, both | 5 | 9 |
+| 395 | `MEASURED_CANDIDATES_PER_DAY`, full depth | 18 | 17 |
+
+**A cut smaller than the number of countries present never finishes pass one**,
+so a bucket sitting after the cut receives nothing that run — not a smaller
+share, nothing. That is the whole mechanism, and it explains the shape of the
+last column: at full depth the ranking is neutral for the US (18 against 17),
+because the round robin has reached everybody by then.
+
+### What the budget actually bought, counted rather than modelled
+
+`python3 -m analysis.ranking.read_share --ledger` over all 11,824 real gate
+decisions in `labels-2026-08.jsonl` (2026-08-01 to 08-03; the 03rd is the gate
+outage day, so treat its volumes as retries):
+
+| collector | candidates | US | gate survivors | US | places under the cap | US |
+|---|---|---|---|---|---|---|
+| google_news | 8,853 | 1.6% | 2,137 | 4.0% | 1,993 | 3.5% |
+| national_press | 903 | 11.3% | 290 | 23.4% | 224 | 14.3% |
+| gdelt | 1,703 | 31.5% | 726 | 30.4% | 696 | 30.7% |
+| ALL | 11,824 | 7.1% | 3,262 | 12.5% | 3,019 | 11.6% |
+
+"Places under the cap" and not "reads": the cap counts `STATS["full_calls"]`,
+incremented on entering stage 2 inside `classify.classify()`, which is upstream
+of the dedup layers and of the conditional second pass. A candidate later found
+duplicate still spent a place. 612 of the 3,019 did.
+
+The share on its own understates it, because a country that supplies few
+candidates should receive few reads. **The asymmetry is the finding:**
+
+    national_press   52.9% of US gate survivors DEFERRED, against 13.5% of
+                     everywhere else's  (n = 68 vs 222)
+    google_news      17.6% against 6.2%  (n = 85 vs 2,052)
+
+A deferral is not a loss — the candidate is left unmarked and returns — but
+under a standing ration "returns next run" and "read four times less often" are
+the same sentence.
+
+**gdelt is the control that proves this is the ranking and not something about
+American stories.** It is 31.5% US and gives 30.7% of its places to the US,
+because its demand does not reach its ceiling, so nothing is rationed and the
+ordering never binds.
+
+### Against an even split and against a volume-weighted one
+
+The question "is the US starved" has three different answers and they are all
+correct, which is why the argument about it goes round in circles:
+
+| yardstick | what the US would get | what it gets |
+|---|---|---|
+| even split over the 77 countries present | 1.3% | 11.6% of live places, **0%** of the walker's ration |
+| volume-weighted (its 6.9% share of candidates) | 6.9% | same |
+| share of gate SURVIVORS (12.5%) | 12.5% | 11.6% |
+
+**The round robin already IS an even split**, so "give every market an equal
+share" is not a change to ask for — it is what runs. On the live path the US
+does slightly better than even, because the collectors whose demand never
+reaches their ceiling (gdelt, press_archive) are 30-34% American and nothing
+rations them.
+
+Where the design bites is the two places a cut is smaller than the country
+count: `national_press`, where 52.9% of US gate survivors defer, and the
+historical walker, where the ration of 37 does not reach bucket 50. **The gold
+set is June 2026 history, so the walker is the path that matters for the US
+recall number, and on that path the measured share is zero.**
+
+### Deliberate, or emergent? Deliberate, argued, and the argument is good
+
+There is a written rationale and it should be read before anybody changes a
+weight. `pipeline/candidate_rank.py` under WHY THESE SIGNALS AND NOT OTHERS:
+
+> 57 of 200 countries hold any row at all, so 143 hold nothing; of the 55 that
+> are neither US nor GB the median holds ONE row, and 15,140 of 15,711 current
+> rows are US or GB. That concentration is the product's largest measured defect
+
+and `interleave_by_country`, on why a round robin and not a quota:
+
+> what is scarce is the FIRST row about a place, and each additional row about
+> the same place is worth much less
+
+`CLAUDE.md` says the same thing from the other end — "a country scoring zero is
+an instruction rather than a statistic" — and `classify.READTHROUGH_CAP` cites
+the ranking as what makes rationing acceptable. So this is not drift. **What it
+buys is the worldwide claim**: 104 countries hold rows today against 57 when the
+weights were set, and no other lever in this repo produces that.
+
+What was NOT chosen is the consequence for the home market. Nothing in any
+comment or entry weighs "the US is the largest market and the sibling tracker's
+audience" against country need. The tradeoff is real, it is defensible, and it
+was never stated as a tradeoff until the gap map hit it.
+
+### One correction that changes what any of this can claim
+
+`candidate_country` reads the Google News EDITION or the publisher's own
+country, and says so:
+
+> A hint, never a claim: `source_country` is the publisher's own country and
+> `locale` is the Google News edition, and neither is what the story is about
+
+So the ranking does not deprioritise US EVENTS. It deprioritises candidates
+surfaced by US editions and US publishers. **A US funding round written up in
+Sao Paulo is ranked as Brazil and collects the full 6.0.** Which means the
+sentence "country-need ranking caused the 26 walked-but-never-read misses" is an
+inference and not a measurement: **how many of the 51 gold events sat in the US
+bucket is UNKNOWN**, and until it is known, the size of the prize from any
+re-weighting is unknown with it. Pinned in
+`test_the_penalty_falls_on_the_PUBLISHER_country_and_not_the_story`.
+
+It is cheap to settle. `backfill_gnews_2026.py --fetch-only` sets
+`writes = not (args.dry_run or args.fetch_only)`, gates nothing and calls no
+model, so a re-walk of 2026-06-01..2026-07-31 with `--fetch-only` costs **$0**
+and prints the country bucket of every candidate it would have gated. Match its
+output against the sealed set and the causal question is answered before a cent
+is spent.
+
+### The options, with what each costs the other 104 countries
+
+Modelled on the same 4,060-candidate population, `--model`. `countries` and
+`thin` are the price: a place given to a market that already reads well is a
+place taken from one that does not.
+
+| policy | US at cut 37 | US at 118 | countries at 37 | countries at 118 |
+|---|---|---|---|---|
+| current | 0 (0.0%) | 2 (1.7%) | 37 | 77 |
+| arrival (no ranking) | 3 (8.1%) | 6 (5.1%) | 2 | 15 |
+| score, robin removed | 0 | 0 | 19 | 47 |
+| floor: US 10% of every cut | 3 (8.1%) | 11 (9.3%) | 35 | 77 |
+| floor: US 20% | 7 (18.9%) | 23 (19.5%) | 31 | 77 |
+| volume-weighted | 2 (5.4%) | 9 (7.6%) | **2** | **4** |
+
+Read that table twice before choosing:
+
+- **Leave it alone.** $0. US stays where it is; repeat walks skip what stored
+  and spend the ration on the next-best candidate, but the US bucket is 50th of
+  77, so what it gets on the next walk is 0 again. The worldwide figure is
+  protected. Nothing improves for the home market, ever, without a separate
+  decision.
+- **Volume weighting is the trap.** It is the rule most people reach for and at
+  these cuts it collapses breadth from 37 countries to 2. It would raise US
+  recall and demolish the thing the product sells. Refuse it.
+- **Removing the round robin and keeping the score is worse than either.** 0
+  for the US AND fewer countries (19 at cut 37). The robin is not the problem.
+- **A floor is the honest cheap option, and its cost is exact.** US 10% at cut
+  37 is 3 or 4 places, taken from the buckets sitting at positions 34-37 — the
+  marginal country of that day, which loses its only story. Distinct countries
+  in the cut drop 37 to 35; thin-country candidates drop 30 to 27. That cost is
+  small in the table and large in kind, because those are FIRST rows about a
+  place.
+- **Raising the ration is the only option that takes nothing from anybody.** At
+  a cut of 395 the ranking is already neutral (18 vs 17 arrival) and every
+  country keeps its place. It is the only lever here that is not zero-sum, and
+  it is priced: $0.0877 per day of history, $5.35 for the 61-day window,
+  $32.09 for a year, against a $10 monthly allowance of which the LLM gate
+  already takes $4.41-$5.70.
+
+**So the honest framing is: this is a money problem wearing a ranking problem's
+clothes.** Every non-monetary option moves the same fixed 37 places around.
+
+### The realistic US ceiling under each, and 90% under none
+
+The measurement is 21/51, 41.2%, Wilson 28.8-54.8. The bound the gap map
+established is 41.2% to 96%, and nothing here narrows it. What can be said per
+option, with the guesswork labelled:
+
+| option | US recall | confidence |
+|---|---|---|
+| leave alone | ~41%, flat | measured floor; the flatness follows from bucket position 50/77 |
+| floor 10% | UNKNOWN, and bounded by how many of the 51 are in the US bucket at all | that fraction is unmeasured, so no number can be given |
+| floor 20% | UNKNOWN, same reason; and it costs the marginal country its only story roughly every fifth read | — |
+| volume weighting | higher than a floor | at a cost to the worldwide figure that makes it unusable |
+| full depth over the window | at most 96% (49/51), plan against 65-70% | the 65-70% is the gap map's stated assumption that depth converts half the 26, and half is a guess |
+
+**90% is not substantiable under ANY of these options.** Under the ranking
+options it is arithmetically unavailable — a floor redistributes 37 places and
+cannot manufacture reads for events whose candidates were never gated. Under
+full depth it is inside the 41-96% band but nobody has measured what full depth
+converts, and 90% of 51 is 46 events, which requires depth to convert 25 of the
+26 ration losses AND to fix the one filter loss and the one plumbing loss it
+does not touch. Anyone quoting 90% is quoting a hope.
+
+### How to tell a real improvement from teaching to the test
+
+This is the part that matters, because **any change here alters the population
+the recall measurement is computed over.** The gold set is sealed and was
+assembled without consulting our database, which protects the DENOMINATOR. It
+does not protect against pointing the collector at the measured window.
+
+Three specific ways the number could rise while coverage does not:
+
+1. **Temporal.** Re-walking exactly 2026-06-01..2026-07-31 at full depth
+   improves the one window the US set is drawn from and leaves the other ten
+   months untouched. The figure would move for a reason that does not
+   generalise a day beyond the window.
+2. **Route.** The set is FUNDING ONLY and its citations lean on wire services.
+   Raising US-edition priority raises exactly the route those publishers are
+   indexed in, so the score can rise by aligning collection with the set's
+   sampling frame rather than with the American market.
+3. **Compositional.** A US floor changes what stores everywhere, so the
+   worldwide family's number moves at the same time and in the opposite
+   direction, and attributing either to the change is guesswork after the fact.
+
+The protocol that separates them, and none of it is expensive:
+
+- **Pre-register the delta before spending.** Say what US recall should reach
+  and why, in a commit, before the walk runs. A prediction written afterwards
+  is not evidence.
+- **Hold out a window.** Walk the gold set's window AND a second, disjoint
+  window of equal length at the same depth. Assemble the next US set from the
+  held-out window under the existing `US_REQUIRED_SHAPE` protocol. A gain that
+  appears in both is coverage; a gain only in the walked window is the test
+  being taught.
+- **Watch the control.** The worldwide family measures the same collector under
+  the same budget. A US gain that arrives with a worldwide loss of similar size
+  is redistribution, and must be reported as one. `family.py` already keeps
+  these separate, which is exactly what makes this check available.
+- **Report two denominators, not one.** Reads bought and rows stored per
+  country, before and after. A policy that raises US recall while lowering
+  rows-per-read is buying the metric, not coverage.
+- **Free first.** The `--fetch-only` re-walk above settles which bucket the gold
+  events are in for $0. If most of the 51 were never in the US bucket, the
+  entire re-weighting question is moot and no money should be spent on it.
+
+**If those cannot be run, the sentence to keep is this one:** a US recall figure
+measured over a window the collector was just pointed at, with no held-out
+window and no control, cannot be distinguished from teaching to the test, and
+should be published with that caveat attached to the number rather than in a
+method note underneath it.
+
+### What this session did NOT do
+
+No weight was changed, no cap was raised, no workflow was dispatched, nothing
+was walked, nothing was written and nothing was deployed. The two files added
+are a measurement and a test. The decision belongs to the owner and it is a
+spend decision, not a ranking one.
+
 ---
 
 ## 2026-08-12 - the rows we hold and no reader can find: 5 of 51, and the cache nothing fills
