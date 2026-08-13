@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.77.0
+ * Version: 1.77.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.77.0');
+define('TIT_VERSION', '1.77.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -743,7 +743,7 @@ function tit_render_admin_page() {
     ?>
     <div class="wrap">
         <h1>Talent Intelligence Tracker</h1>
-        <p><strong><?php echo esc_html(number_format_i18n($total)); ?></strong> current signals.</p>
+        <p><strong><?php echo esc_html(number_format_i18n($total)); ?></strong> current entries.</p>
         <p>Plugin version <?php echo esc_html(TIT_VERSION); ?>, table <code><?php echo esc_html($table); ?></code>.</p>
 
         <h2>Pipeline API key</h2>

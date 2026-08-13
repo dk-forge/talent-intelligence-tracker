@@ -485,7 +485,7 @@ function tit_dashboard_html() {
         ?>
         <div class="tit-wrap">
           <div class="tit-empty">
-            <h2>No signals published yet</h2>
+            <h2>No entries published yet</h2>
             <p>Collection has not been switched on. Every record here has to
                link to the article that makes the claim, and we are still
                proving that sourcing out. So an empty table is the honest state
@@ -961,6 +961,29 @@ function tit_dashboard_html() {
           <div class="tit-glance" id="tit-glance">
             <?php echo tit_glance_matrix_html($glance); ?>
           </div>
+          <?php /* WHAT A ROW IS, UNDER THE BOARD THAT COUNTS THEM.
+
+                   The sibling layoff tracker learned this the hard way: the
+                   owner could not tell what a count of rows was counting, and
+                   no amount of correct arithmetic above the number fixes a
+                   word nobody can parse. So the board says it.
+
+                   It names Total Raised on purpose. Five of the six rows are
+                   counts of records and one is a sum of dollars, and a reader
+                   who assumes the sixth works like the other five reads a
+                   money figure as a headcount. The sub-label inside that row
+                   says "sum of dollars"; this says which row is the odd one.
+
+                   Deliberately a SIBLING of #tit-glance and not a child:
+                   dashboard.js rewrites #tit-glance on every repaint, exactly
+                   like the head and the legend above, so a definition inside
+                   it would survive until the reader's first filter and then
+                   vanish. It is also outside any disclosure, because a closed
+                   <details> still carries textContent for text nobody can
+                   read, and innerText on a subtree that is not rendered falls
+                   back to textContent too. Asserted on the rendered page in
+                   tests/test_reader_copy_says_entries.py. */ ?>
+          <p class="tit-board-def" id="tit-board-def">An entry is one update about one employer. Total Raised counts dollars, and every other row counts entries.</p>
         </div>
 
       </div>
@@ -1096,7 +1119,7 @@ function tit_dashboard_html() {
                  above this strip, but it was above it the last time somebody
                  wrote "at the top" here too, and that line survived the move
                  that made it wrong (see the note by the region strip). */ ?>
-        <span class="tit-quick-hint">For a time period, tap a number in the signal table.</span>
+        <span class="tit-quick-hint">For a time period, tap a number in the board above.</span>
       </div>
       <?php
       /*
@@ -1146,7 +1169,13 @@ function tit_dashboard_html() {
 
         No internal vocabulary is reachable from here. "Pillar", "signal",
         "direction", "confidence" and "basis" appear in the code and never on
-        the page.
+        the page. That claim was FALSE until 2026-08-13: "signal" was on the
+        page in nine places, three of them counting rows. A count of rows is
+        now "entries"; the axis the four kinds sit on is a kind, a line or a
+        measure; and the word survives only as the name of the subject
+        matter ("Sourced Talent Signals Worldwide"), which counts nothing.
+        tests/test_reader_copy_says_entries.py is what keeps it true now,
+        because a comment could not.
       */
       ?>
       <?php
@@ -2367,7 +2396,7 @@ function tit_trust_panel_html(array $facts) {
                     . 'headcount is going, which is true of %s of the %s '
                     . 'updates in this view. A funding round with no hiring '
                     . 'plan and a chief executive succession are both real '
-                    . 'signals that state no direction. Guessing a direction '
+                    . 'updates that state no direction. Guessing a direction '
                     . 'from them would be our claim rather than the document\'s.',
                     $n($unstated), $n($notable))),
         array('Why are some updates hidden by default?',
@@ -3100,7 +3129,7 @@ function tit_signal_trend_html(array $trend, $interactive = true) {
 
     ob_start(); ?>
     <div class="tit-chart-note" id="<?php echo esc_attr($note_id); ?>">
-      <p class="tit-sub">Each line is how many updates of that signal we recorded
+      <p class="tit-sub">Each line is how many updates of that kind we recorded
         per day, smoothed over the
         <?php echo $avg; ?> days ending on the day it is plotted, from
         <?php echo esc_html((string) ($trend['start'] ?? '')); ?>
@@ -3216,7 +3245,7 @@ function tit_signal_trend_html(array $trend, $interactive = true) {
         <p class="tit-trend-refused"><?php
           // Named, and with the reason, because a signal silently missing from a
           // chart of signals reads as a signal with nothing happening in it.
-          echo esc_html(count($refused) === 1 ? 'One signal is not drawn.' : 'Some signals are not drawn.');
+          echo esc_html(count($refused) === 1 ? 'One line is not drawn.' : 'Some lines are not drawn.');
           ?>
           <?php foreach ($refused as $r) : ?>
             <span class="tit-trend-nodraw"><b><?php echo esc_html($r['label']); ?></b>:
@@ -3778,7 +3807,7 @@ function tit_glance_matrix_html(array $m) {
       <table class="tit-matrix">
         <thead>
           <tr>
-            <th scope="col"><span class="tit-sr">Signal</span></th>
+            <th scope="col"><span class="tit-sr">Measure</span></th>
             <?php foreach ($m['periods'] as $pi => $p) : ?>
               <th scope="col"><?php echo esc_html($p);
                 // The week names its own dates; see 'week_range' above.
@@ -4349,7 +4378,7 @@ function tit_boilerplate_readthroughs() {
         'A board that grows week on week is the earliest public evidence '
         . 'of hiring intent an employer produces: it moves before any '
         . 'announcement and before any filing. Treat the direction as the '
-        . 'signal and the exact count as approximate, since roles are '
+        . 'reliable part and the exact count as approximate, since roles are '
         . 'reposted, split across locations and withdrawn without notice.',
         'Advertised bands move before published pay data does, because '
         . 'they are set by what an employer thinks it must offer to fill '

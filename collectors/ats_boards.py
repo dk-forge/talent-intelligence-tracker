@@ -994,7 +994,7 @@ def as_classified(item: dict) -> dict:
             "A board that grows week on week is the earliest public evidence "
             "of hiring intent an employer produces: it moves before any "
             "announcement and before any filing. Treat the direction as the "
-            "signal and the exact count as approximate, since roles are "
+            "reliable part and the exact count as approximate, since roles are "
             "reposted, split across locations and withdrawn without notice."
         ),
         "city": city,

@@ -448,7 +448,7 @@ function tit_sources_render($sources) {
       <div class="tit-table-scroll">
         <table class="tit-table">
           <thead><tr>
-            <th>Source</th><th>Status</th><th>Last run</th><th>Covers</th><th>Signals</th><th>Where</th>
+            <th>Source</th><th>Status</th><th>Last run</th><th>Covers</th><th>Entries</th><th>Where</th>
           </tr></thead>
           <tbody id="tit-s-rows">
           <?php foreach ($sources as $s) :
@@ -504,7 +504,7 @@ function tit_sources_render($sources) {
                    descriptive text, not the short self-describing values that
                    belong on the meta line. -->
               <td data-label="Covers"><?php echo esc_html($s['coverage'] ?? ''); ?></td>
-              <td data-label="Signals"><?php echo esc_html($sig); ?></td>
+              <td data-label="Entries"><?php echo esc_html($sig); ?></td>
               <td class="tit-meta" data-label="Where"><?php echo esc_html($s['country'] ?: 'Worldwide'); ?></td>
             </tr>
           <?php endforeach; ?>
