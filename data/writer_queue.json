@@ -193,7 +193,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z",
     "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z",
     "ticket:20260813T020725Z-enrich": "2026-08-13T02:09:32Z"
   },
@@ -2363,6 +2362,7 @@
       "workflow": "archive-sources.yml"
     },
     {
+      "acknowledged": "2026-08-13T02:27:28Z",
       "attempts": 0,
       "dispatched_at": "2026-08-13T00:39:12Z",
       "history": [
@@ -2385,6 +2385,11 @@
           "at": "2026-08-13T00:40:30Z",
           "detail": "cancelled after starting; needs a human",
           "event": "cancelled-mid-run"
+        },
+        {
+          "at": "2026-08-13T02:27:28Z",
+          "detail": "cancelled on purpose mid-run: the bar it used placed Premier Lacrosse League in Canada. Replaced by the city-backed bar (#22) and re-run (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20260813T003909Z-place-unplaced",
