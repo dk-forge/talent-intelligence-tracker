@@ -193,79 +193,10 @@
     }
   ],
   "red_marks": {
-    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z"
+    "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z",
+    "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-13T01:40:39Z",
-      "history": [
-        {
-          "at": "2026-08-13T01:40:35Z",
-          "detail": "place the unplaced, worklist now shrinks (#23); 700 employers fits the 90 minute lock window",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T01:40:39Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260813T014035Z-place-unplaced",
-      "inputs": {
-        "dry_run": "false",
-        "limit": "700"
-      },
-      "priority": 0,
-      "reason": "place the unplaced, worklist now shrinks (#23); 700 employers fits the 90 minute lock window",
-      "requested_at": "2026-08-13T01:40:35Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "place-unplaced.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T13:44:17Z",
-      "history": [
-        {
-          "at": "2026-08-05T13:24:30Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 7)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T13:44:17Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T14:07:35Z",
-          "detail": "run 31011658000",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T14:07:35Z",
-          "detail": "run 31011658000",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T132430Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-06-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T14:07:35Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 7)",
-      "requested_at": "2026-08-05T13:24:30Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31011658000",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
-    },
     {
       "acknowledged": "2026-08-05T18:43:00Z",
       "attempts": 0,
@@ -2590,6 +2521,44 @@
       "requested_by": "dakotta-labs",
       "run_id": "31656728236",
       "state": "landed",
+      "workflow": "place-unplaced.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T01:40:39Z",
+      "history": [
+        {
+          "at": "2026-08-13T01:40:35Z",
+          "detail": "place the unplaced, worklist now shrinks (#23); 700 employers fits the 90 minute lock window",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T01:40:39Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T02:02:54Z",
+          "detail": "run 31658458962",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-13T02:02:54Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260813T014035Z-place-unplaced",
+      "inputs": {
+        "dry_run": "false",
+        "limit": "700"
+      },
+      "priority": 0,
+      "reason": "place the unplaced, worklist now shrinks (#23); 700 employers fits the 90 minute lock window",
+      "requested_at": "2026-08-13T01:40:35Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31658458962",
+      "state": "failed",
       "workflow": "place-unplaced.yml"
     }
   ],
