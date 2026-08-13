@@ -69,10 +69,20 @@
   "completion": 5e-05,
   "prompt": 1e-05
  },
+ "anthropic/claude-fable-5:batch": {
+  "cache_read": 5e-07,
+  "completion": 2.5e-05,
+  "prompt": 5e-06
+ },
  "anthropic/claude-haiku-4.5": {
   "cache_read": 1e-07,
   "completion": 5e-06,
   "prompt": 1e-06
+ },
+ "anthropic/claude-haiku-4.5:batch": {
+  "cache_read": 5e-08,
+  "completion": 2.5e-06,
+  "prompt": 5e-07
  },
  "anthropic/claude-opus-4": {
   "cache_read": 1.5e-06,
@@ -84,15 +94,30 @@
   "completion": 7.5e-05,
   "prompt": 1.5e-05
  },
+ "anthropic/claude-opus-4.1:batch": {
+  "cache_read": 7.5e-07,
+  "completion": 3.75e-05,
+  "prompt": 7.5e-06
+ },
  "anthropic/claude-opus-4.5": {
   "cache_read": 5e-07,
   "completion": 2.5e-05,
   "prompt": 5e-06
  },
+ "anthropic/claude-opus-4.5:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.25e-05,
+  "prompt": 2.5e-06
+ },
  "anthropic/claude-opus-4.6": {
   "cache_read": 5e-07,
   "completion": 2.5e-05,
   "prompt": 5e-06
+ },
+ "anthropic/claude-opus-4.6:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.25e-05,
+  "prompt": 2.5e-06
  },
  "anthropic/claude-opus-4.7": {
   "cache_read": 5e-07,
@@ -104,6 +129,11 @@
   "completion": 0.00015,
   "prompt": 3e-05
  },
+ "anthropic/claude-opus-4.7:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.25e-05,
+  "prompt": 2.5e-06
+ },
  "anthropic/claude-opus-4.8": {
   "cache_read": 5e-07,
   "completion": 2.5e-05,
@@ -113,6 +143,11 @@
   "cache_read": 1e-06,
   "completion": 5e-05,
   "prompt": 1e-05
+ },
+ "anthropic/claude-opus-4.8:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.25e-05,
+  "prompt": 2.5e-06
  },
  "anthropic/claude-opus-5": {
   "cache_read": 5e-07,
@@ -124,6 +159,11 @@
   "completion": 5e-05,
   "prompt": 1e-05
  },
+ "anthropic/claude-opus-5:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.25e-05,
+  "prompt": 2.5e-06
+ },
  "anthropic/claude-sonnet-4": {
   "cache_read": 3e-07,
   "completion": 1.5e-05,
@@ -134,15 +174,30 @@
   "completion": 1.5e-05,
   "prompt": 3e-06
  },
+ "anthropic/claude-sonnet-4.5:batch": {
+  "cache_read": 1.5e-07,
+  "completion": 7.5e-06,
+  "prompt": 1.5e-06
+ },
  "anthropic/claude-sonnet-4.6": {
   "cache_read": 3e-07,
   "completion": 1.5e-05,
   "prompt": 3e-06
  },
+ "anthropic/claude-sonnet-4.6:batch": {
+  "cache_read": 1.5e-07,
+  "completion": 7.5e-06,
+  "prompt": 1.5e-06
+ },
  "anthropic/claude-sonnet-5": {
   "cache_read": 2e-07,
   "completion": 1e-05,
   "prompt": 2e-06
+ },
+ "anthropic/claude-sonnet-5:batch": {
+  "cache_read": 1e-07,
+  "completion": 5e-06,
+  "prompt": 1e-06
  },
  "arcee-ai/trinity-large-thinking": {
   "cache_read": 6e-08,
@@ -168,6 +223,16 @@
   "cache_read": null,
   "completion": 3e-07,
   "prompt": 7.5e-08
+ },
+ "bytedance-seed/seed-2-1-turbo": {
+  "cache_read": null,
+  "completion": 2.5e-06,
+  "prompt": 5e-07
+ },
+ "bytedance-seed/seed-2.0-code": {
+  "cache_read": null,
+  "completion": 3e-06,
+  "prompt": 5e-07
  },
  "bytedance-seed/seed-2.0-lite": {
   "cache_read": null,
@@ -250,8 +315,8 @@
   "prompt": 8e-07
  },
  "deepseek/deepseek-v3.1-terminus": {
-  "cache_read": 1.35e-07,
-  "completion": 1e-06,
+  "cache_read": 1.3e-07,
+  "completion": 9.5e-07,
   "prompt": 2.7e-07
  },
  "deepseek/deepseek-v3.2": {
@@ -270,11 +335,16 @@
   "prompt": 1.4e-07
  },
  "deepseek/deepseek-v4-flash-0731": {
-  "cache_read": 2.8e-09,
-  "completion": 2.8e-07,
-  "prompt": 1.4e-07
+  "cache_read": 1.6e-08,
+  "completion": 1.8e-07,
+  "prompt": 8e-08
  },
  "deepseek/deepseek-v4-pro": {
+  "cache_read": 9.855e-08,
+  "completion": 2.336e-06,
+  "prompt": 1.168e-06
+ },
+ "deepseek/deepseek-v4-pro-0813": {
   "cache_read": 3.625e-09,
   "completion": 8.7e-07,
   "prompt": 4.35e-07
@@ -294,6 +364,16 @@
   "completion": 4e-07,
   "prompt": 1e-07
  },
+ "google/gemini-2.5-flash-lite:batch": {
+  "cache_read": 1e-08,
+  "completion": 2e-07,
+  "prompt": 5e-08
+ },
+ "google/gemini-2.5-flash:batch": {
+  "cache_read": 3e-08,
+  "completion": 1.25e-06,
+  "prompt": 1.5e-07
+ },
  "google/gemini-2.5-pro": {
   "cache_read": 1.25e-07,
   "completion": 1e-05,
@@ -309,10 +389,20 @@
   "completion": 1e-05,
   "prompt": 1.25e-06
  },
+ "google/gemini-2.5-pro:batch": {
+  "cache_read": 1.25e-07,
+  "completion": 5e-06,
+  "prompt": 6.25e-07
+ },
  "google/gemini-3-flash-preview": {
   "cache_read": 5e-08,
   "completion": 3e-06,
   "prompt": 5e-07
+ },
+ "google/gemini-3-flash-preview:batch": {
+  "cache_read": null,
+  "completion": 1.5e-06,
+  "prompt": 2.5e-07
  },
  "google/gemini-3-pro-image": {
   "cache_read": 2e-07,
@@ -349,6 +439,11 @@
   "completion": 1.5e-06,
   "prompt": 2.5e-07
  },
+ "google/gemini-3.1-flash-lite:batch": {
+  "cache_read": 1.25e-08,
+  "completion": 7.5e-07,
+  "prompt": 1.25e-07
+ },
  "google/gemini-3.1-pro-preview": {
   "cache_read": 2e-07,
   "completion": 1.2e-05,
@@ -358,6 +453,11 @@
   "cache_read": 2e-07,
   "completion": 1.2e-05,
   "prompt": 2e-06
+ },
+ "google/gemini-3.1-pro-preview:batch": {
+  "cache_read": null,
+  "completion": 6e-06,
+  "prompt": 1e-06
  },
  "google/gemini-3.5-flash": {
   "cache_read": 1.5e-07,
@@ -369,10 +469,25 @@
   "completion": 2.5e-06,
   "prompt": 3e-07
  },
+ "google/gemini-3.5-flash-lite:batch": {
+  "cache_read": 1.5e-08,
+  "completion": 1.25e-06,
+  "prompt": 1.5e-07
+ },
+ "google/gemini-3.5-flash:batch": {
+  "cache_read": 7.5e-08,
+  "completion": 4.5e-06,
+  "prompt": 7.5e-07
+ },
  "google/gemini-3.6-flash": {
   "cache_read": 1.5e-07,
   "completion": 7.5e-06,
   "prompt": 1.5e-06
+ },
+ "google/gemini-3.6-flash:batch": {
+  "cache_read": 7.5e-08,
+  "completion": 3.75e-06,
+  "prompt": 7.5e-07
  },
  "google/gemma-2-27b-it": {
   "cache_read": null,
@@ -400,9 +515,9 @@
   "prompt": 6e-08
  },
  "google/gemma-4-26b-a4b-it": {
-  "cache_read": null,
-  "completion": 3.4e-07,
-  "prompt": 7e-08
+  "cache_read": 5e-08,
+  "completion": 4e-07,
+  "prompt": 1.2e-07
  },
  "google/gemma-4-26b-a4b-it:free": {
   "cache_read": null,
@@ -459,7 +574,12 @@
   "completion": 3e-08,
   "prompt": 1e-08
  },
- "inclusionai/ling-3.0-flash:free": {
+ "inclusionai/ling-3.0-flash": {
+  "cache_read": 4.2e-09,
+  "completion": 6.3e-08,
+  "prompt": 2.1e-08
+ },
+ "inclusionai/ling-3.0-tiny:free": {
   "cache_read": null,
   "completion": 0.0,
   "prompt": 0.0
@@ -483,6 +603,11 @@
   "cache_read": 1.5e-07,
   "completion": 2.96e-06,
   "prompt": 7.4e-07
+ },
+ "liquid/lfm-2.5-2.6b:free": {
+  "cache_read": null,
+  "completion": 0.0,
+  "prompt": 0.0
  },
  "mancer/weaver": {
   "cache_read": null,
@@ -516,12 +641,12 @@
  },
  "meta-llama/llama-3.3-70b-instruct": {
   "cache_read": null,
-  "completion": 4e-07,
-  "prompt": 1.3e-07
+  "completion": 3.2e-07,
+  "prompt": 1e-07
  },
  "meta-llama/llama-4-maverick": {
   "cache_read": null,
-  "completion": 8e-07,
+  "completion": 6.96e-07,
   "prompt": 2e-07
  },
  "meta-llama/llama-4-scout": {
@@ -534,7 +659,17 @@
   "completion": 1.8e-07,
   "prompt": 1.8e-07
  },
+ "meta/muse-glimmer-30b": {
+  "cache_read": 4e-08,
+  "completion": 1.5e-06,
+  "prompt": 3.5e-07
+ },
  "meta/muse-spark-1.1": {
+  "cache_read": 1.5e-07,
+  "completion": 4.25e-06,
+  "prompt": 1.25e-06
+ },
+ "meta/muse-spark-1.2": {
   "cache_read": 1.5e-07,
   "completion": 4.25e-06,
   "prompt": 1.25e-06
@@ -577,17 +712,22 @@
  "minimax/minimax-m2.5": {
   "cache_read": 5e-08,
   "completion": 9e-07,
-  "prompt": 1.5e-07
+  "prompt": 2.2e-07
  },
  "minimax/minimax-m2.7": {
-  "cache_read": 5e-08,
-  "completion": 1e-06,
-  "prompt": 2.5e-07
+  "cache_read": 6e-08,
+  "completion": 1.2e-06,
+  "prompt": 3e-07
  },
  "minimax/minimax-m3": {
   "cache_read": 6e-08,
   "completion": 1.2e-06,
   "prompt": 3e-07
+ },
+ "minimax/minimax-m3:batch": {
+  "cache_read": 3e-08,
+  "completion": 6e-07,
+  "prompt": 1.5e-07
  },
  "mistralai/codestral-2508": {
   "cache_read": 3e-08,
@@ -666,8 +806,8 @@
  },
  "mistralai/mistral-small-3.2-24b-instruct": {
   "cache_read": null,
-  "completion": 2e-07,
-  "prompt": 7.5e-08
+  "completion": 2.5e-07,
+  "prompt": 9.375e-08
  },
  "mistralai/mixtral-8x22b-instruct": {
   "cache_read": 2e-07,
@@ -700,14 +840,19 @@
   "prompt": 5.7e-07
  },
  "moonshotai/kimi-k2.6": {
-  "cache_read": 2e-07,
-  "completion": 3.41e-06,
-  "prompt": 6e-07
+  "cache_read": 1.6e-07,
+  "completion": 4e-06,
+  "prompt": 9.5e-07
  },
  "moonshotai/kimi-k2.7-code": {
   "cache_read": 1.5e-07,
-  "completion": 3.5e-06,
-  "prompt": 7.3e-07
+  "completion": 3.4e-06,
+  "prompt": 6.7e-07
+ },
+ "moonshotai/kimi-k2.7-code:batch": {
+  "cache_read": 9.5e-08,
+  "completion": 2e-06,
+  "prompt": 4.75e-07
  },
  "moonshotai/kimi-k3": {
   "cache_read": 3e-07,
@@ -755,7 +900,7 @@
   "prompt": 1.3e-07
  },
  "nvidia/nemotron-3-nano-30b-a3b": {
-  "cache_read": 3e-08,
+  "cache_read": 2.5e-08,
   "completion": 2e-07,
   "prompt": 5e-08
  },
@@ -784,12 +929,27 @@
   "completion": 3.6e-06,
   "prompt": 6e-07
  },
+ "nvidia/nemotron-3-ultra-550b-a55b:batch": {
+  "cache_read": 1e-07,
+  "completion": 1.8e-06,
+  "prompt": 3e-07
+ },
  "nvidia/nemotron-3-ultra-550b-a55b:free": {
   "cache_read": null,
   "completion": 0.0,
   "prompt": 0.0
  },
  "nvidia/nemotron-3.5-content-safety:free": {
+  "cache_read": null,
+  "completion": 0.0,
+  "prompt": 0.0
+ },
+ "nvidia/nemotron-3.5-lightning": {
+  "cache_read": 5e-08,
+  "completion": 2.5e-07,
+  "prompt": 1e-07
+ },
+ "nvidia/nemotron-3.5-lightning:free": {
   "cache_read": null,
   "completion": 0.0,
   "prompt": 0.0
@@ -824,6 +984,11 @@
   "completion": 2e-06,
   "prompt": 1.5e-06
  },
+ "openai/gpt-3.5-turbo:batch": {
+  "cache_read": null,
+  "completion": 7.5e-07,
+  "prompt": 2.5e-07
+ },
  "openai/gpt-4": {
   "cache_read": null,
   "completion": 6e-05,
@@ -839,6 +1004,11 @@
   "completion": 3e-05,
   "prompt": 1e-05
  },
+ "openai/gpt-4-turbo:batch": {
+  "cache_read": null,
+  "completion": 1.5e-05,
+  "prompt": 5e-06
+ },
  "openai/gpt-4.1": {
   "cache_read": 5e-07,
   "completion": 8e-06,
@@ -849,10 +1019,25 @@
   "completion": 1.6e-06,
   "prompt": 4e-07
  },
+ "openai/gpt-4.1-mini:batch": {
+  "cache_read": 5e-08,
+  "completion": 8e-07,
+  "prompt": 2e-07
+ },
  "openai/gpt-4.1-nano": {
   "cache_read": 2.5e-08,
   "completion": 4e-07,
   "prompt": 1e-07
+ },
+ "openai/gpt-4.1-nano:batch": {
+  "cache_read": 1.25e-08,
+  "completion": 2e-07,
+  "prompt": 5e-08
+ },
+ "openai/gpt-4.1:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 4e-06,
+  "prompt": 1e-06
  },
  "openai/gpt-4o": {
   "cache_read": 1.25e-06,
@@ -884,10 +1069,25 @@
   "completion": 6e-07,
   "prompt": 1.5e-07
  },
+ "openai/gpt-4o-mini:batch": {
+  "cache_read": 3.75e-08,
+  "completion": 3e-07,
+  "prompt": 7.5e-08
+ },
+ "openai/gpt-4o:batch": {
+  "cache_read": 6.25e-07,
+  "completion": 5e-06,
+  "prompt": 1.25e-06
+ },
  "openai/gpt-5": {
   "cache_read": 1.25e-07,
   "completion": 1e-05,
   "prompt": 1.25e-06
+ },
+ "openai/gpt-5-codex:batch": {
+  "cache_read": 6.25e-08,
+  "completion": 5e-06,
+  "prompt": 6.25e-07
  },
  "openai/gpt-5-image": {
   "cache_read": 1.25e-06,
@@ -904,15 +1104,30 @@
   "completion": 2e-06,
   "prompt": 2.5e-07
  },
+ "openai/gpt-5-mini:batch": {
+  "cache_read": 1.25e-08,
+  "completion": 1e-06,
+  "prompt": 1.25e-07
+ },
  "openai/gpt-5-nano": {
   "cache_read": 5e-09,
   "completion": 4e-07,
   "prompt": 5e-08
  },
+ "openai/gpt-5-nano:batch": {
+  "cache_read": 2.5e-09,
+  "completion": 2e-07,
+  "prompt": 2.5e-08
+ },
  "openai/gpt-5-pro": {
   "cache_read": null,
   "completion": 0.00012,
   "prompt": 1.5e-05
+ },
+ "openai/gpt-5-pro:batch": {
+  "cache_read": null,
+  "completion": 6e-05,
+  "prompt": 7.5e-06
  },
  "openai/gpt-5.1": {
   "cache_read": 1.25e-07,
@@ -934,6 +1149,11 @@
   "completion": 2e-06,
   "prompt": 2.5e-07
  },
+ "openai/gpt-5.1:batch": {
+  "cache_read": 6.25e-08,
+  "completion": 5e-06,
+  "prompt": 6.25e-07
+ },
  "openai/gpt-5.2": {
   "cache_read": 1.75e-07,
   "completion": 1.4e-05,
@@ -954,10 +1174,15 @@
   "completion": 0.000168,
   "prompt": 2.1e-05
  },
- "openai/gpt-5.3-chat": {
-  "cache_read": 1.75e-07,
-  "completion": 1.4e-05,
-  "prompt": 1.75e-06
+ "openai/gpt-5.2-pro:batch": {
+  "cache_read": null,
+  "completion": 8.4e-05,
+  "prompt": 1.05e-05
+ },
+ "openai/gpt-5.2:batch": {
+  "cache_read": 8.75e-08,
+  "completion": 7e-06,
+  "prompt": 8.75e-07
  },
  "openai/gpt-5.3-codex": {
   "cache_read": 1.75e-07,
@@ -979,15 +1204,35 @@
   "completion": 4.5e-06,
   "prompt": 7.5e-07
  },
+ "openai/gpt-5.4-mini:batch": {
+  "cache_read": 3.75e-08,
+  "completion": 2.25e-06,
+  "prompt": 3.75e-07
+ },
  "openai/gpt-5.4-nano": {
   "cache_read": 2e-08,
   "completion": 1.25e-06,
   "prompt": 2e-07
  },
+ "openai/gpt-5.4-nano:batch": {
+  "cache_read": 1e-08,
+  "completion": 6.25e-07,
+  "prompt": 1e-07
+ },
  "openai/gpt-5.4-pro": {
   "cache_read": null,
   "completion": 0.00018,
   "prompt": 3e-05
+ },
+ "openai/gpt-5.4-pro:batch": {
+  "cache_read": null,
+  "completion": 9e-05,
+  "prompt": 1.5e-05
+ },
+ "openai/gpt-5.4:batch": {
+  "cache_read": 1.25e-07,
+  "completion": 7.5e-06,
+  "prompt": 1.25e-06
  },
  "openai/gpt-5.5": {
   "cache_read": 5e-07,
@@ -999,14 +1244,34 @@
   "completion": 0.00018,
   "prompt": 3e-05
  },
+ "openai/gpt-5.5-pro:batch": {
+  "cache_read": null,
+  "completion": 9e-05,
+  "prompt": 1.5e-05
+ },
+ "openai/gpt-5.5:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.5e-05,
+  "prompt": 2.5e-06
+ },
  "openai/gpt-5.6-luna": {
   "cache_read": 1e-08,
-  "completion": 6.000000000000001e-07,
+  "completion": 6e-07,
   "prompt": 1e-07
  },
  "openai/gpt-5.6-luna-pro": {
   "cache_read": 1e-08,
-  "completion": 6.000000000000001e-07,
+  "completion": 6e-07,
+  "prompt": 1e-07
+ },
+ "openai/gpt-5.6-luna-pro:batch": {
+  "cache_read": 1e-08,
+  "completion": 6e-07,
+  "prompt": 1e-07
+ },
+ "openai/gpt-5.6-luna:batch": {
+  "cache_read": 1e-08,
+  "completion": 6e-07,
   "prompt": 1e-07
  },
  "openai/gpt-5.6-sol": {
@@ -1019,15 +1284,40 @@
   "completion": 3e-05,
   "prompt": 5e-06
  },
+ "openai/gpt-5.6-sol-pro:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.5e-05,
+  "prompt": 2.5e-06
+ },
+ "openai/gpt-5.6-sol:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 1.5e-05,
+  "prompt": 2.5e-06
+ },
  "openai/gpt-5.6-terra": {
   "cache_read": 1e-07,
   "completion": 6e-06,
-  "prompt": 1.0000000000000002e-06
+  "prompt": 1e-06
  },
  "openai/gpt-5.6-terra-pro": {
   "cache_read": 1e-07,
   "completion": 6e-06,
-  "prompt": 1.0000000000000002e-06
+  "prompt": 1e-06
+ },
+ "openai/gpt-5.6-terra-pro:batch": {
+  "cache_read": 1e-07,
+  "completion": 6e-06,
+  "prompt": 1e-06
+ },
+ "openai/gpt-5.6-terra:batch": {
+  "cache_read": 1e-07,
+  "completion": 6e-06,
+  "prompt": 1e-06
+ },
+ "openai/gpt-5:batch": {
+  "cache_read": 6.25e-08,
+  "completion": 5e-06,
+  "prompt": 6.25e-07
  },
  "openai/gpt-audio": {
   "cache_read": null,
@@ -1045,13 +1335,13 @@
   "prompt": 5e-06
  },
  "openai/gpt-oss-120b": {
-  "cache_read": null,
+  "cache_read": 3e-08,
   "completion": 1.7e-07,
-  "prompt": 3.7e-08
+  "prompt": 3e-08
  },
  "openai/gpt-oss-20b": {
-  "cache_read": null,
-  "completion": 1.4e-07,
+  "cache_read": 3e-08,
+  "completion": 1.3e-07,
   "prompt": 3e-08
  },
  "openai/gpt-oss-20b:free": {
@@ -1074,6 +1364,16 @@
   "completion": 0.0006,
   "prompt": 0.00015
  },
+ "openai/o1-pro:batch": {
+  "cache_read": null,
+  "completion": 0.0003,
+  "prompt": 7.5e-05
+ },
+ "openai/o1:batch": {
+  "cache_read": 3.75e-06,
+  "completion": 3e-05,
+  "prompt": 7.5e-06
+ },
  "openai/o3": {
   "cache_read": 5e-07,
   "completion": 8e-06,
@@ -1089,10 +1389,30 @@
   "completion": 4.4e-06,
   "prompt": 1.1e-06
  },
+ "openai/o3-mini-high:batch": {
+  "cache_read": 2.75e-07,
+  "completion": 2.2e-06,
+  "prompt": 5.5e-07
+ },
+ "openai/o3-mini:batch": {
+  "cache_read": 2.75e-07,
+  "completion": 2.2e-06,
+  "prompt": 5.5e-07
+ },
  "openai/o3-pro": {
   "cache_read": null,
   "completion": 8e-05,
   "prompt": 2e-05
+ },
+ "openai/o3-pro:batch": {
+  "cache_read": null,
+  "completion": 4e-05,
+  "prompt": 1e-05
+ },
+ "openai/o3:batch": {
+  "cache_read": 2.5e-07,
+  "completion": 4e-06,
+  "prompt": 1e-06
  },
  "openai/o4-mini": {
   "cache_read": 2.75e-07,
@@ -1103,6 +1423,16 @@
   "cache_read": 2.75e-07,
   "completion": 4.4e-06,
   "prompt": 1.1e-06
+ },
+ "openai/o4-mini-high:batch": {
+  "cache_read": 1.375e-07,
+  "completion": 2.2e-06,
+  "prompt": 5.5e-07
+ },
+ "openai/o4-mini:batch": {
+  "cache_read": 1.375e-07,
+  "completion": 2.2e-06,
+  "prompt": 5.5e-07
  },
  "openrouter/auto": {
   "cache_read": null,
@@ -1215,14 +1545,14 @@
   "prompt": 4e-07
  },
  "qwen/qwen2.5-vl-72b-instruct": {
-  "cache_read": 4e-07,
-  "completion": 1e-06,
-  "prompt": 8e-07
+  "cache_read": null,
+  "completion": 7.5e-07,
+  "prompt": 2.5e-07
  },
  "qwen/qwen3-14b": {
   "cache_read": null,
-  "completion": 9.1e-07,
-  "prompt": 2.275e-07
+  "completion": 2.4e-07,
+  "prompt": 1.2e-07
  },
  "qwen/qwen3-235b-a22b": {
   "cache_read": null,
@@ -1300,9 +1630,9 @@
   "prompt": 7.8e-07
  },
  "qwen/qwen3-next-80b-a3b-instruct": {
-  "cache_read": 7e-08,
+  "cache_read": null,
   "completion": 1.1e-06,
-  "prompt": 1e-07
+  "prompt": 9e-08
  },
  "qwen/qwen3-next-80b-a3b-thinking": {
   "cache_read": null,
@@ -1310,9 +1640,9 @@
   "prompt": 1.5e-07
  },
  "qwen/qwen3-vl-235b-a22b-instruct": {
-  "cache_read": 1e-07,
-  "completion": 1.9e-06,
-  "prompt": 2.1e-07
+  "cache_read": null,
+  "completion": 1.04e-06,
+  "prompt": 2.6e-07
  },
  "qwen/qwen3-vl-235b-a22b-thinking": {
   "cache_read": null,
@@ -1321,8 +1651,8 @@
  },
  "qwen/qwen3-vl-30b-a3b-instruct": {
   "cache_read": null,
-  "completion": 5.2e-07,
-  "prompt": 1.3e-07
+  "completion": 6e-07,
+  "prompt": 1.5e-07
  },
  "qwen/qwen3-vl-30b-a3b-thinking": {
   "cache_read": null,
@@ -1346,8 +1676,8 @@
  },
  "qwen/qwen3.5-122b-a10b": {
   "cache_read": null,
-  "completion": 2.08e-06,
-  "prompt": 2.6e-07
+  "completion": 2.4e-06,
+  "prompt": 2.9e-07
  },
  "qwen/qwen3.5-27b": {
   "cache_read": null,
@@ -1355,14 +1685,14 @@
   "prompt": 1.95e-07
  },
  "qwen/qwen3.5-35b-a3b": {
-  "cache_read": null,
-  "completion": 1e-06,
-  "prompt": 1.4e-07
+  "cache_read": 2.5e-07,
+  "completion": 1.25e-06,
+  "prompt": 2.5e-07
  },
  "qwen/qwen3.5-397b-a17b": {
-  "cache_read": null,
-  "completion": 2.34e-06,
-  "prompt": 3.9e-07
+  "cache_read": 4.5e-08,
+  "completion": 3e-06,
+  "prompt": 4.5e-07
  },
  "qwen/qwen3.5-9b": {
   "cache_read": null,
@@ -1385,14 +1715,14 @@
   "prompt": 3e-07
  },
  "qwen/qwen3.6-27b": {
-  "cache_read": 1.5e-07,
-  "completion": 2e-06,
-  "prompt": 3e-07
+  "cache_read": 1.2e-07,
+  "completion": 3.6e-06,
+  "prompt": 6e-07
  },
  "qwen/qwen3.6-35b-a3b": {
-  "cache_read": null,
+  "cache_read": 5e-08,
   "completion": 1e-06,
-  "prompt": 1.4e-07
+  "prompt": 1.5e-07
  },
  "qwen/qwen3.6-flash": {
   "cache_read": null,
@@ -1424,6 +1754,16 @@
   "completion": 1.28e-06,
   "prompt": 3.2e-07
  },
+ "qwen/qwen3.8-2.4t-a95b": {
+  "cache_read": 2e-07,
+  "completion": 6e-06,
+  "prompt": 2e-06
+ },
+ "qwen/qwen3.8-max": {
+  "cache_read": 2.5e-07,
+  "completion": 6e-06,
+  "prompt": 2e-06
+ },
  "rekaai/reka-edge": {
   "cache_read": null,
   "completion": 1e-07,
@@ -1448,6 +1788,11 @@
   "cache_read": 5e-07,
   "completion": 3e-05,
   "prompt": 5e-06
+ },
+ "sakana/sakana-namazu": {
+  "cache_read": 1.5e-07,
+  "completion": 4e-06,
+  "prompt": 9.5e-07
  },
  "sao10k/l3-lunaris-8b": {
   "cache_read": null,
@@ -1510,13 +1855,18 @@
   "prompt": 4e-07
  },
  "thinkingmachines/inkling": {
-  "cache_read": 1.7e-07,
+  "cache_read": 1.6e-07,
   "completion": 4.05e-06,
-  "prompt": 1e-06
+  "prompt": 9.5e-07
  },
  "thinkingmachines/inkling-small": {
   "cache_read": 1e-07,
   "completion": 1.2e-06,
+  "prompt": 4.5e-07
+ },
+ "thinkingmachines/inkling:batch": {
+  "cache_read": 8.5e-08,
+  "completion": 2.025e-06,
   "prompt": 5e-07
  },
  "undi95/remm-slerp-l2-13b": {
@@ -1528,6 +1878,11 @@
   "cache_read": 1.5e-08,
   "completion": 6e-07,
   "prompt": 1.5e-07
+ },
+ "upstage/solar-pro4": {
+  "cache_read": 6e-09,
+  "completion": 1.2e-07,
+  "prompt": 3e-08
  },
  "writer/palmyra-x5": {
   "cache_read": null,
@@ -1551,6 +1906,11 @@
  },
  "x-ai/grok-4.5": {
   "cache_read": 3e-07,
+  "completion": 6e-06,
+  "prompt": 2e-06
+ },
+ "x-ai/grok-4.6": {
+  "cache_read": 5e-07,
   "completion": 6e-06,
   "prompt": 2e-06
  },
@@ -1615,14 +1975,19 @@
   "prompt": 1.2e-06
  },
  "z-ai/glm-5.1": {
-  "cache_read": 1.794e-07,
-  "completion": 3.036e-06,
-  "prompt": 9.66e-07
+  "cache_read": 2.6e-07,
+  "completion": 4.4e-06,
+  "prompt": 1.4e-06
  },
  "z-ai/glm-5.2": {
-  "cache_read": 2.08e-07,
-  "completion": 3.52e-06,
-  "prompt": 1.12e-06
+  "cache_read": 1e-07,
+  "completion": 3.15e-06,
+  "prompt": 5e-07
+ },
+ "z-ai/glm-5.2:batch": {
+  "cache_read": 1.3e-07,
+  "completion": 2.2e-06,
+  "prompt": 7e-07
  },
  "z-ai/glm-5v-turbo": {
   "cache_read": 2.4e-07,
@@ -1649,6 +2014,11 @@
   "completion": 1e-05,
   "prompt": 2e-06
  },
+ "~deepseek/deepseek-v4-flash-latest": {
+  "cache_read": 2.52e-08,
+  "completion": 2.52e-07,
+  "prompt": 7.9996e-08
+ },
  "~google/gemini-flash-latest": {
   "cache_read": 1.5e-07,
   "completion": 7.5e-06,
@@ -1662,7 +2032,7 @@
  "~moonshotai/kimi-latest": {
   "cache_read": 2.9e-07,
   "completion": 1.4e-05,
-  "prompt": 2.9e-06
+  "prompt": 2.8e-06
  },
  "~openai/gpt-latest": {
   "cache_read": 5e-07,
@@ -1675,7 +2045,7 @@
   "prompt": 7.5e-07
  },
  "~x-ai/grok-latest": {
-  "cache_read": 3e-07,
+  "cache_read": 5e-07,
   "completion": 6e-06,
   "prompt": 2e-06
  }
