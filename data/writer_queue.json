@@ -195,75 +195,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-13T06:54:56Z",
-      "history": [
-        {
-          "at": "2026-08-13T06:54:01Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T06:54:56Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260813T065401Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-08-13T06:54:01Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T15:09:12Z",
-      "history": [
-        {
-          "at": "2026-08-05T15:08:42Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 10)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T15:09:12Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T15:28:58Z",
-          "detail": "run 31018834561",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T15:28:58Z",
-          "detail": "run 31018834561",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T150842Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-06-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T15:28:58Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-06-30:0..16 (resumes at 10)",
-      "requested_at": "2026-08-05T15:08:42Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31018834561",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-05T15:28:58Z",
       "history": [
         {
@@ -2583,6 +2514,44 @@
       "run_id": "31666694680",
       "state": "landed",
       "workflow": "reverse-cityless-hq.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T06:54:56Z",
+      "history": [
+        {
+          "at": "2026-08-13T06:54:01Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T06:54:56Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T07:00:09Z",
+          "detail": "run 31675654154",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-13T07:00:09Z",
+          "detail": "run 31675654154",
+          "event": "landed"
+        }
+      ],
+      "id": "20260813T065401Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-13T07:00:09Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-13T06:54:01Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31675654154",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
