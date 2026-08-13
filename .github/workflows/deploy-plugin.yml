@@ -24,6 +24,16 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # SIZED FROM MEASUREMENT, 2026-08-13: over the last 60 successful runs the
+    # median is 0.8 min, but that median is two eras averaged. Everything before
+    # 2026-08-10 ran in 0.6 to 1.4; the four runs since the rendered-contrast
+    # step was added ran 6.4, 6.4, 6.5 and 6.7. So the honest maximum is 6.7 and
+    # the honest median is the current era's ~6.45. 20 is ~3x both.
+    #
+    # Deliberately generous rather than snug: this job is dispatched by hand at
+    # the moment someone wants the site updated, and a ceiling that clips a slow
+    # FTP session would turn a live deploy into a half-uploaded plugin tree.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 

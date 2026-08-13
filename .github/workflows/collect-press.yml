@@ -77,6 +77,13 @@ permissions:
 jobs:
   collect-press:
     runs-on: ubuntu-latest
+    # SIZED FROM MEASUREMENT, 2026-08-13: median 19.1 min, max 66.2 over the
+    # last 24 successful runs. Same shape as collect.yml — a tight recent band
+    # (13.8 to 24.3 since 2026-08-02) over an older tail at 56.7, 60.4 and 66.2
+    # — so again sized on the tail: 120 is ~1.8x the honest maximum and ~6x the
+    # median. Unbounded until now, and this one also holds OPENROUTER_API_KEY.
+    # READTHROUGH_CAP bounds the spend per run; this bounds the hung run.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
