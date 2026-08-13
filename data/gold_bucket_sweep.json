@@ -694,51 +694,46 @@
      {
       "bucket": "US",
       "bucket_rank": 80,
-      "headline": "Austin startup Intellectible raises $3M to automate revenue workflows for service providers - The Business Journals",
+      "id": "d256818d04d9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 583,
-      "source_name": "The Business Journals"
+      "rank": 583
      }
     ],
     "nyc_funding-01-alphasense": [
      {
       "bucket": "US",
       "bucket_rank": 28,
-      "headline": "AlphaSense secures $350m funding, reaches $7.5bn valuation - Yahoo Finance",
+      "id": "7dc330bfebfa",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 381,
-      "source_name": "Yahoo Finance"
+      "rank": 381
      },
      {
       "bucket": "US",
       "bucket_rank": 91,
-      "headline": "Exclusive | Market-Research Firm AlphaSense Clinches $7.5 Billion Valuation in New Funding Round - WSJ",
+      "id": "b80ce8f94f90",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 594,
-      "source_name": "WSJ"
+      "rank": 594
      }
     ],
     "nyc_funding-02-ramp": [
      {
       "bucket": "US",
       "bucket_rank": 84,
-      "headline": "Ramp Raises Series F at $44 Billion Valuation - PR Newswire",
+      "id": "c86e852d9ce9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 587,
-      "source_name": "PR Newswire"
+      "rank": 587
      },
      {
       "bucket": "US",
       "bucket_rank": 22,
-      "headline": "Ramp raises $750M at $44B valuation as investors hunger for fintechs with an AI story - TechCrunch",
+      "id": "619a6f3a804f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 320,
-      "source_name": "TechCrunch"
+      "rank": 320
      }
     ]
    },
@@ -1417,62 +1412,56 @@
      {
       "bucket": "US",
       "bucket_rank": 69,
-      "headline": "Allen Control Systems Raises $200 Million Series B at $2.2 Billion Post-Money Valuation to Scale Manufacturing and Accelerate Deployment of Bullfrog - Business Wire",
+      "id": "933e10c201a4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 572,
-      "source_name": "Business Wire"
+      "rank": 572
      },
      {
       "bucket": "US",
       "bucket_rank": 88,
-      "headline": "Allen Control Systems Raises $200 Million Series B At $2.2 Billion Valuation To Scale Bullfrog Autonomous Weapon Systems - Pulse 2.0",
+      "id": "deb88d6fedda",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 611,
-      "source_name": "Pulse 2.0"
+      "rank": 611
      }
     ],
     "austin_funding-04-intellectible": [
      {
       "bucket": "US",
       "bucket_rank": 55,
-      "headline": "Austin startup Intellectible raises $3M to automate revenue workflows for service providers - The Business Journals",
+      "id": "d256818d04d9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 507,
-      "source_name": "The Business Journals"
+      "rank": 507
      }
     ],
     "nyc_funding-01-alphasense": [
      {
       "bucket": "US",
       "bucket_rank": 16,
-      "headline": "AlphaSense secures $350m funding, reaches $7.5bn valuation - Yahoo Finance",
+      "id": "7dc330bfebfa",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 243,
-      "source_name": "Yahoo Finance"
+      "rank": 243
      }
     ],
     "nyc_funding-02-ramp": [
      {
       "bucket": "US",
       "bucket_rank": 58,
-      "headline": "Ramp Raises Series F at $44 Billion Valuation - PR Newswire",
+      "id": "c86e852d9ce9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 522,
-      "source_name": "PR Newswire"
+      "rank": 522
      },
      {
       "bucket": "US",
       "bucket_rank": 13,
-      "headline": "Ramp raises $750M at $44B valuation as investors hunger for fintechs with an AI story - TechCrunch",
+      "id": "619a6f3a804f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 205,
-      "source_name": "TechCrunch"
+      "rank": 205
      }
     ]
    },
@@ -1966,20 +1955,18 @@
      {
       "bucket": "US",
       "bucket_rank": 29,
-      "headline": "Allen Control Systems Raises $200 Million Series B at $2.2 Billion Post-Money Valuation to Scale Manufacturing and Accelerate Deployment of Bullfrog - Business Wire",
+      "id": "933e10c201a4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 305,
-      "source_name": "Business Wire"
+      "rank": 305
      },
      {
       "bucket": "US",
       "bucket_rank": 45,
-      "headline": "Allen Control Systems Raises $200 Million Series B At $2.2 Billion Valuation To Scale Bullfrog Autonomous Weapon Systems - Pulse 2.0",
+      "id": "deb88d6fedda",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 385,
-      "source_name": "Pulse 2.0"
+      "rank": 385
      }
     ]
    },
@@ -3049,47 +3036,42 @@
      {
       "bucket": "US",
       "bucket_rank": 112,
-      "headline": "Standard Bots Raises $200M in Series C Funding at $1 Billion Valuation - FinSMEs",
+      "id": "901e0132b5af",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 662,
-      "source_name": "FinSMEs"
+      "rank": 662
      },
      {
       "bucket": "US",
       "bucket_rank": 114,
-      "headline": "Standard Bots Raises $200 Million Series C at $1 Billion Valuation to Scale American-Made, AI-Native Industrial Robots - AiThority",
+      "id": "165a1cb94d6d",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 664,
-      "source_name": "AiThority"
+      "rank": 664
      },
      {
       "bucket": "US",
       "bucket_rank": 123,
-      "headline": "America first as Standard Bots secures $200 million Series C funding round at $1 billion valuation - Retail Technology Innovation Hub",
+      "id": "f3e10798faba",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 673,
-      "source_name": "Retail Technology Innovation Hub"
+      "rank": 673
      },
      {
       "bucket": "US",
       "bucket_rank": 126,
-      "headline": "Standard Bots Raises $200M in Series C Funding at $1B Valuation to Scale American-Made, AI-Native Industrial Robots - AI Insider",
+      "id": "77c318616147",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 676,
-      "source_name": "AI Insider"
+      "rank": 676
      },
      {
       "bucket": "US",
       "bucket_rank": 137,
-      "headline": "Standard Bots Raises $200 Million Series C at $1 Billion Valuation to Scale AI-Native Industrial Robotics - Unite.AI",
+      "id": "32de71356dcd",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 687,
-      "source_name": "Unite.AI"
+      "rank": 687
      }
     ]
    },
@@ -3913,40 +3895,36 @@
      {
       "bucket": "US",
       "bucket_rank": 33,
-      "headline": "Artis Raises $7.3 Million Seed Round - citybiz",
+      "id": "459571793ce3",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 440,
-      "source_name": "citybiz"
+      "rank": 440
      }
     ],
     "nyc_funding-03-standard-bots": [
      {
       "bucket": "US",
       "bucket_rank": 119,
-      "headline": "GiantLeap Capital Backs Standard Bots in $200 Million Series C Round - citybiz",
+      "id": "036f9355e770",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 739,
-      "source_name": "citybiz"
+      "rank": 739
      },
      {
       "bucket": "US",
       "bucket_rank": 122,
-      "headline": "Standard Bots Raises $200M in Series C Funding at $1 Billion Valuation - FinSMEs",
+      "id": "901e0132b5af",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 742,
-      "source_name": "FinSMEs"
+      "rank": 742
      },
      {
       "bucket": "US",
       "bucket_rank": 133,
-      "headline": "America first as Standard Bots secures $200 million Series C funding round at $1 billion valuation - Retail Technology Innovation Hub",
+      "id": "f3e10798faba",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 753,
-      "source_name": "Retail Technology Innovation Hub"
+      "rank": 753
      }
     ]
    },
@@ -4704,31 +4682,28 @@
      {
       "bucket": "US",
       "bucket_rank": 26,
-      "headline": "Artis Raises $7.3 Million Seed Round - citybiz",
+      "id": "459571793ce3",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 371,
-      "source_name": "citybiz"
+      "rank": 371
      },
      {
       "bucket": "US",
       "bucket_rank": 85,
-      "headline": "Artis: $7.3 Million Seed Round To Expand AI-Powered Brand Platform For Residential Design Firms - Pulse 2.0",
+      "id": "8cbeec51d7d0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 660,
-      "source_name": "Pulse 2.0"
+      "rank": 660
      }
     ],
     "nyc_funding-03-standard-bots": [
      {
       "bucket": "US",
       "bucket_rank": 86,
-      "headline": "GiantLeap Capital Backs Standard Bots in $200 Million Series C Round - citybiz",
+      "id": "036f9355e770",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 663,
-      "source_name": "citybiz"
+      "rank": 663
      }
     ]
    },
@@ -5298,58 +5273,52 @@
      {
       "bucket": "US",
       "bucket_rank": 21,
-      "headline": "Artis Raises $7.3M in Seed Funding - FinSMEs",
+      "id": "c7993b11fb44",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 273,
-      "source_name": "FinSMEs"
+      "rank": 273
      },
      {
       "bucket": "US",
       "bucket_rank": 92,
-      "headline": "Artis: $7.3 Million Seed Round To Expand AI-Powered Brand Platform For Residential Design Firms - Pulse 2.0",
+      "id": "8cbeec51d7d0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 504,
-      "source_name": "Pulse 2.0"
+      "rank": 504
      }
     ],
     "nyc_funding-04-digital-asset": [
      {
       "bucket": "US",
       "bucket_rank": 18,
-      "headline": "Digital Asset lands $355m in a16z crypto-led funding round - FinTech Futures",
+      "id": "59709fd473ab",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 242,
-      "source_name": "FinTech Futures"
+      "rank": 242
      },
      {
       "bucket": "US",
       "bucket_rank": 63,
-      "headline": "Digital Asset Raises $355m - Markets Media",
+      "id": "ffde90ac5043",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 468,
-      "source_name": "Markets Media"
+      "rank": 468
      },
      {
       "bucket": "US",
       "bucket_rank": 19,
-      "headline": "Digital Asset raises $355 million to expand Canton Network as institutional on-chain infrastructure - The TRADE",
+      "id": "870f42d1d5f0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 253,
-      "source_name": "The TRADE"
+      "rank": 253
      },
      {
       "bucket": "US",
       "bucket_rank": 29,
-      "headline": "Digital Asset raises $355m to make Canton the onchain infrastructure for capital markets - Finextra Research",
+      "id": "7709a6017824",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 339,
-      "source_name": "Finextra Research"
+      "rank": 339
      }
     ]
    },
@@ -6152,78 +6121,70 @@
      {
       "bucket": "US",
       "bucket_rank": 84,
-      "headline": "GPU infrastructure management startup Hydra Host raises $100M - SiliconANGLE",
+      "id": "f1467e598e60",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 679,
-      "source_name": "SiliconANGLE"
+      "rank": 679
      },
      {
       "bucket": "US",
       "bucket_rank": 97,
-      "headline": "Hydra Host Raises $100 Million Series A to Expand Global AI Factory Capacity - Business Wire",
+      "id": "221bae1bf55c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 695,
-      "source_name": "Business Wire"
+      "rank": 695
      },
      {
       "bucket": "US",
       "bucket_rank": 120,
-      "headline": "Hydra Host Raises $100 Million Series A To Expand Global AI Factory Capacity - Pulse 2.0",
+      "id": "b63b32eb7297",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 718,
-      "source_name": "Pulse 2.0"
+      "rank": 718
      },
      {
       "bucket": "US",
       "bucket_rank": 123,
-      "headline": "Hydra Host Raises $100 Million Series A Led by Kindred Ventures to Expand Global AI Infrastructure Network - citybiz",
+      "id": "ce44504e0e99",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 721,
-      "source_name": "citybiz"
+      "rank": 721
      }
     ],
     "rest_funding-03-mantle-energy": [
      {
       "bucket": "US",
       "bucket_rank": 98,
-      "headline": "MANTLE ENERGY SECURES $5 MILLION SEED ROUND FUNDING LED BY 17SHOALS INC. - PR Newswire",
+      "id": "50eadfca9643",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 696,
-      "source_name": "PR Newswire"
+      "rank": 696
      }
     ],
     "sf_funding-01-bland": [
      {
       "bucket": "US",
       "bucket_rank": 11,
-      "headline": "Bland Raises $50M in Series C Funding - FinSMEs",
+      "id": "11f05e8c8938",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 178,
-      "source_name": "FinSMEs"
+      "rank": 178
      },
      {
       "bucket": "US",
       "bucket_rank": 105,
-      "headline": "Exclusive: Voice AI startup Bland raises $50 million after being rejected by 180 investors - Fortune",
+      "id": "baa04df50c32",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 703,
-      "source_name": "Fortune"
+      "rank": 703
      },
      {
       "bucket": "US",
       "bucket_rank": 19,
-      "headline": "Bland Raises $50 Million Series C And Surpasses $100 Million In Total Funding To Expand Voice AI Platform - Pulse 2.0",
+      "id": "09404dfae977",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 285,
-      "source_name": "Pulse 2.0"
+      "rank": 285
      }
     ]
    },
@@ -7043,111 +7004,100 @@
      {
       "bucket": "US",
       "bucket_rank": 147,
-      "headline": "Traysar Emerges from Stealth with $25 Million Seed Round to Pioneer Subterranean Defense Technology - citybiz",
+      "id": "c984987b7ba9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 752,
-      "source_name": "citybiz"
+      "rank": 752
      }
     ],
     "austin_funding-04-intellectible": [
      {
       "bucket": "US",
       "bucket_rank": 5,
-      "headline": "Intellectible Closes $3 Million Seed Round to Scale AI Revenue Operations for Enterprise Service Providers - PR Newswire",
+      "id": "1383039d155b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 85,
-      "source_name": "PR Newswire"
+      "rank": 85
      }
     ],
     "rest_funding-02-hydra-host": [
      {
       "bucket": "US",
       "bucket_rank": 47,
-      "headline": "Hydra Host raises $100m in Series A funding round - Data Center Dynamics",
+      "id": "0a6d7a315c34",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 538,
-      "source_name": "Data Center Dynamics"
+      "rank": 538
      },
      {
       "bucket": "US",
       "bucket_rank": 143,
-      "headline": "Hydra Host Raises $100 Million Series A Led by Kindred Ventures to Expand Global AI Infrastructure Network - citybiz",
+      "id": "ce44504e0e99",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 748,
-      "source_name": "citybiz"
+      "rank": 748
      },
      {
       "bucket": "US",
       "bucket_rank": 144,
-      "headline": "Hydra Host Raises $100 Million Series A to Expand Global AI Factory Capacity - Business Wire",
+      "id": "221bae1bf55c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 749,
-      "source_name": "Business Wire"
+      "rank": 749
      }
     ],
     "rest_funding-03-mantle-energy": [
      {
       "bucket": "US",
       "bucket_rank": 132,
-      "headline": "MANTLE ENERGY SECURES $5 MILLION SEED ROUND FUNDING LED BY 17SHOALS INC. - PR Newswire",
+      "id": "50eadfca9643",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 737,
-      "source_name": "PR Newswire"
+      "rank": 737
      }
     ],
     "sf_funding-01-bland": [
      {
       "bucket": "US",
       "bucket_rank": 130,
-      "headline": "Exclusive: Voice AI startup Bland raises $50 million after being rejected by 180 investors - Fortune",
+      "id": "baa04df50c32",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 735,
-      "source_name": "Fortune"
+      "rank": 735
      },
      {
       "bucket": "US",
       "bucket_rank": 133,
-      "headline": "Voice AI Startup Bland Closes $50M New Series C Led by Dell Technologies - citybiz",
+      "id": "e07f6ccd938d",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 738,
-      "source_name": "citybiz"
+      "rank": 738
      },
      {
       "bucket": "US",
       "bucket_rank": 22,
-      "headline": "Bland Raises $50 Million Series C And Surpasses $100 Million In Total Funding To Expand Voice AI Platform - Pulse 2.0",
+      "id": "09404dfae977",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 319,
-      "source_name": "Pulse 2.0"
+      "rank": 319
      },
      {
       "bucket": "US",
       "bucket_rank": 30,
-      "headline": "Bland Raises $50M in Series C Funding - FinSMEs",
+      "id": "11f05e8c8938",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 410,
-      "source_name": "FinSMEs"
+      "rank": 410
      }
     ],
     "sf_funding-02-odyssey": [
      {
       "bucket": "US",
       "bucket_rank": 57,
-      "headline": "Odyssey Raises $310 Million to Accelerate World Simulation - Business Wire",
+      "id": "96f22a492f20",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 598,
-      "source_name": "Business Wire"
+      "rank": 598
      }
     ]
    },
@@ -7997,93 +7947,84 @@
      {
       "bucket": "US",
       "bucket_rank": 141,
-      "headline": "Traysar Emerges from Stealth with $25 Million Seed Round to Pioneer Subterranean Defense Technology - citybiz",
+      "id": "c984987b7ba9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 778,
-      "source_name": "citybiz"
+      "rank": 778
      }
     ],
     "austin_funding-04-intellectible": [
      {
       "bucket": "US",
       "bucket_rank": 2,
-      "headline": "Intellectible Closes $3 Million Seed Round to Scale AI Revenue Operations for Enterprise Service Providers - PR Newswire",
+      "id": "1383039d155b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 37,
-      "source_name": "PR Newswire"
+      "rank": 37
      },
      {
       "bucket": "US",
       "bucket_rank": 9,
-      "headline": "Intellectible Raises $3 Million Seed Round To Scale AI Revenue Operations Platform - Pulse 2.0",
+      "id": "01f55c88a8c4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 142,
-      "source_name": "Pulse 2.0"
+      "rank": 142
      }
     ],
     "nyc_funding-06-general-intuition": [
      {
       "bucket": "US",
       "bucket_rank": 155,
-      "headline": "General Intuition in talks to raise $300M at around $2B valuation - TechCrunch",
+      "id": "57975abb2cab",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 792,
-      "source_name": "TechCrunch"
+      "rank": 792
      }
     ],
     "rest_funding-02-hydra-host": [
      {
       "bucket": "US",
       "bucket_rank": 28,
-      "headline": "Hydra Host raises $100m in Series A funding round - Data Center Dynamics",
+      "id": "0a6d7a315c34",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 382,
-      "source_name": "Data Center Dynamics"
+      "rank": 382
      }
     ],
     "sf_funding-01-bland": [
      {
       "bucket": "US",
       "bucket_rank": 129,
-      "headline": "Voice AI Startup Bland Closes $50M New Series C Led by Dell Technologies - citybiz",
+      "id": "e07f6ccd938d",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 766,
-      "source_name": "citybiz"
+      "rank": 766
      }
     ],
     "sf_funding-02-odyssey": [
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "The Week\u2019s 10 Biggest Funding Rounds: World-Model Startup Odyssey Leads With $310M In Slower Week For Large Deals - Crunchbase News",
+      "id": "1a3e2838d977",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Crunchbase News"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 33,
-      "headline": "Odyssey Raises $310M in Series B Funding at $1.45 Billion Valuation - FinSMEs",
+      "id": "8ad816dcf985",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 432,
-      "source_name": "FinSMEs"
+      "rank": 432
      },
      {
       "bucket": "US",
       "bucket_rank": 53,
-      "headline": "Odyssey Raises $310 Million to Accelerate World Simulation - Business Wire",
+      "id": "96f22a492f20",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 558,
-      "source_name": "Business Wire"
+      "rank": 558
      }
     ]
    },
@@ -8936,60 +8877,54 @@
      {
       "bucket": "US",
       "bucket_rank": 5,
-      "headline": "Intellectible Raises $3 Million Seed Round To Scale AI Revenue Operations Platform - Pulse 2.0",
+      "id": "01f55c88a8c4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 88,
-      "source_name": "Pulse 2.0"
+      "rank": 88
      }
     ],
     "nyc_funding-06-general-intuition": [
      {
       "bucket": "US",
       "bucket_rank": 131,
-      "headline": "General Intuition in talks to raise $300M at around $2B valuation - TechCrunch",
+      "id": "57975abb2cab",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 766,
-      "source_name": "TechCrunch"
+      "rank": 766
      }
     ],
     "sf_funding-02-odyssey": [
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "The Week\u2019s 10 Biggest Funding Rounds: World-Model Startup Odyssey Leads With $310M In Slower Week For Large Deals - Crunchbase News",
+      "id": "1a3e2838d977",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Crunchbase News"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 25,
-      "headline": "Odyssey Raises $310M in Series B Funding at $1.45 Billion Valuation - FinSMEs",
+      "id": "8ad816dcf985",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 342,
-      "source_name": "FinSMEs"
+      "rank": 342
      },
      {
       "bucket": "US",
       "bucket_rank": 46,
-      "headline": "Odyssey Closes $310M Series B at $1.45B Valuation as Amazon Backs World Model AI Push - AI Insider",
+      "id": "a5be0786818c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 500,
-      "source_name": "AI Insider"
+      "rank": 500
      },
      {
       "bucket": "US",
       "bucket_rank": 146,
-      "headline": "World Models Startup Odyssey Raises $310M in Series B Funding, Valued at $1.45B - AI Insider",
+      "id": "09c7ba2d7862",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 781,
-      "source_name": "AI Insider"
+      "rank": 781
      }
     ]
    },
@@ -10180,58 +10115,52 @@
      {
       "bucket": "US",
       "bucket_rank": 107,
-      "headline": "Peregrine Technologies Raises $250 Million Series D at $6.8 Billion Valuation - PR Newswire",
+      "id": "edce9cbc7637",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 984,
-      "source_name": "PR Newswire"
+      "rank": 984
      }
     ],
     "sf_funding-04-osanni-bio": [
      {
       "bucket": "US",
       "bucket_rank": 133,
-      "headline": "Osanni Bio Raises $190M Series B Funding - AllSci",
+      "id": "5b0473463873",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 1062,
-      "source_name": "AllSci"
+      "rank": 1062
      },
      {
       "bucket": "US",
       "bucket_rank": 136,
-      "headline": "Osanni Bio Raises $190 Million In Series B Funding - Pulse 2.0",
+      "id": "fc184fc7bb05",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 1071,
-      "source_name": "Pulse 2.0"
+      "rank": 1071
      },
      {
       "bucket": "US",
       "bucket_rank": 144,
-      "headline": "Discreet biotech Osanni Bio starts making noise with $190M series B for clinical push - Fierce Biotech",
+      "id": "dd6dd0651a03",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 1095,
-      "source_name": "Fierce Biotech"
+      "rank": 1095
      },
      {
       "bucket": "US",
       "bucket_rank": 151,
-      "headline": "Osanni Bio Raises $190 Million Series B to Advance Therapeutics Pipeline and Scale Drug Discovery Platform - citybiz",
+      "id": "0a3a82b742c9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 1112,
-      "source_name": "citybiz"
+      "rank": 1112
      },
      {
       "bucket": "US",
       "bucket_rank": 165,
-      "headline": "Osanni Bio Raises $190M in Series B Funding - FinSMEs",
+      "id": "58bd9fe2429a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 1129,
-      "source_name": "FinSMEs"
+      "rank": 1129
      }
     ]
    },
@@ -11223,120 +11152,108 @@
      {
       "bucket": "US",
       "bucket_rank": 109,
-      "headline": "Ollin Biosciences Raises $330M in Series B Funding - FinSMEs",
+      "id": "1ad7d5c7708f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 869,
-      "source_name": "FinSMEs"
+      "rank": 869
      },
      {
       "bucket": "US",
       "bucket_rank": 124,
-      "headline": "Ollin Biosciences Announces Oversubscribed $330 Million Series B Financing to Advance Global Phase 3 Development of OLN324 in DME and Wet AMD; Studies Commencing in Second Half of 2026 - Business Wire",
+      "id": "a35410598a2a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 892,
-      "source_name": "Business Wire"
+      "rank": 892
      },
      {
       "bucket": "US",
       "bucket_rank": 146,
-      "headline": "Innovent's Partner Ollin Biosciences Announces Oversubscribed $330 Million Series B Financing to Advance Global Phase 3 Development of IBI324 (OLN324) in DME and Wet AMD; Studies Commencing in Second Half of 2026 - finance.yahoo.com",
+      "id": "49906e6bdff4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 914,
-      "source_name": "finance.yahoo.com"
+      "rank": 914
      }
     ],
     "nyc_funding-05-taktile": [
      {
       "bucket": "US",
       "bucket_rank": 125,
-      "headline": "Thoma Bravo invests in padoa, Taktile raises $110M, Stegra raises \u20ac1.4B - Axios",
+      "id": "624806b61c37",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 893,
-      "source_name": "Axios"
+      "rank": 893
      }
     ],
     "rest_funding-03-mantle-energy": [
      {
       "bucket": "US",
       "bucket_rank": 130,
-      "headline": "Hunt Energy\u2019s Dallas-Based Subsidiary Mantle Energy Raises $5M Seed Funding - Dallas Innovates",
+      "id": "e33ed707d844",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 898,
-      "source_name": "Dallas Innovates"
+      "rank": 898
      }
     ],
     "sf_funding-03-peregrine-technologies": [
      {
       "bucket": "US",
       "bucket_rank": 105,
-      "headline": "Peregrine Technologies Raises $250 Million Series D at $6.8 Billion Valuation - PR Newswire",
+      "id": "edce9cbc7637",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 857,
-      "source_name": "PR Newswire"
+      "rank": 857
      }
     ],
     "sf_funding-04-osanni-bio": [
      {
       "bucket": "US",
       "bucket_rank": 7,
-      "headline": "Osanni Bio raises $190 million Series B to advance therapeutics platform - The Pharma Letter",
+      "id": "711fe6e19084",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 125,
-      "source_name": "The Pharma Letter"
+      "rank": 125
      },
      {
       "bucket": "US",
       "bucket_rank": 145,
-      "headline": "Osanni Bio Raises $190 Million In Series B Funding - Pulse 2.0",
+      "id": "fc184fc7bb05",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 913,
-      "source_name": "Pulse 2.0"
+      "rank": 913
      },
      {
       "bucket": "US",
       "bucket_rank": 149,
-      "headline": "Discreet biotech Osanni Bio starts making noise with $190M series B for clinical push - Fierce Biotech",
+      "id": "dd6dd0651a03",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 917,
-      "source_name": "Fierce Biotech"
+      "rank": 917
      },
      {
       "bucket": "US",
       "bucket_rank": 159,
-      "headline": "Osanni Bio Raises $190 Million Series B to Advance Therapeutics Pipeline and Scale Drug Discovery Platform - citybiz",
+      "id": "0a3a82b742c9",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 927,
-      "source_name": "citybiz"
+      "rank": 927
      },
      {
       "bucket": "US",
       "bucket_rank": 165,
-      "headline": "Osanni Bio reemerges with $190m Series B after three year build - BioXconomy",
+      "id": "6c09cf80c64f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 933,
-      "source_name": "BioXconomy"
+      "rank": 933
      }
     ],
     "sf_funding-05-hang-ten-systems": [
      {
       "bucket": "US",
       "bucket_rank": 156,
-      "headline": "Hang Ten Systems Raises $32 Million Seed Round to Accelerate Enterprise AI Adoption - citybiz",
+      "id": "0489c42ec89a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 924,
-      "source_name": "citybiz"
+      "rank": 924
      }
     ]
    },
@@ -12177,176 +12094,158 @@
      {
       "bucket": "US",
       "bucket_rank": 109,
-      "headline": "Ollin Biosciences Raises $330M in Series B Funding - FinSMEs",
+      "id": "1ad7d5c7708f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 741,
-      "source_name": "FinSMEs"
+      "rank": 741
      },
      {
       "bucket": "US",
       "bucket_rank": 119,
-      "headline": "Ollin Biosciences Announces Oversubscribed $330 Million Series B Financing to Advance Global Phase 3 Development of OLN324 in DME and Wet AMD; Studies Commencing in Second Half of 2026 - Business Wire",
+      "id": "a35410598a2a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 751,
-      "source_name": "Business Wire"
+      "rank": 751
      },
      {
       "bucket": "US",
       "bucket_rank": 134,
-      "headline": "Ollin Biosciences Raises $330 Million Series B To Advance OLN324 - Pulse 2.0",
+      "id": "ee3e4b8ebb57",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 766,
-      "source_name": "Pulse 2.0"
+      "rank": 766
      },
      {
       "bucket": "US",
       "bucket_rank": 142,
-      "headline": "Innovent's Partner Ollin Biosciences Announces Oversubscribed $330 Million Series B Financing to Advance Global Phase 3 Development of IBI324 (OLN324) in DME and Wet AMD; Studies Commencing in Second Half of 2026 - Yahoo Finance",
+      "id": "5f27fd880048",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 774,
-      "source_name": "Yahoo Finance"
+      "rank": 774
      }
     ],
     "nyc_funding-05-taktile": [
      {
       "bucket": "US",
       "bucket_rank": 110,
-      "headline": "Thoma Bravo invests in padoa, Taktile raises $110M, Stegra raises \u20ac1.4B - Axios",
+      "id": "624806b61c37",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 742,
-      "source_name": "Axios"
+      "rank": 742
      },
      {
       "bucket": "US",
       "bucket_rank": 128,
-      "headline": "Goldman Sachs (GS) Led Taktile\u2019s $110 Million Series C Round For AI Finance - Yahoo Finance",
+      "id": "e161111b1a88",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 760,
-      "source_name": "Yahoo Finance"
+      "rank": 760
      },
      {
       "bucket": "US",
       "bucket_rank": 12,
-      "headline": "Taktile Raises $110 Million Series C Led By Goldman Sachs Alternatives - Pulse 2.0",
+      "id": "c9b43708ea85",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 193,
-      "source_name": "Pulse 2.0"
+      "rank": 193
      },
      {
       "bucket": "US",
       "bucket_rank": 22,
-      "headline": "Taktile bags $110m Series C led by Goldman Sachs - FinTech Futures",
+      "id": "7449ae9b7572",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 320,
-      "source_name": "FinTech Futures"
+      "rank": 320
      },
      {
       "bucket": "IT",
       "bucket_rank": 28,
-      "headline": "Taktile si aggiudica 110 milioni di dollari in un round di finanziamento di serie C guidato da Goldman Sachs per realizzare la trasformazione dell'AI nelle istituzioni finanziarie - ANSA",
+      "id": "a4726dc4d5c3",
       "locale": "IT:it",
       "prefilter": true,
-      "rank": 390,
-      "source_name": "ANSA"
+      "rank": 390
      }
     ],
     "rest_funding-03-mantle-energy": [
      {
       "bucket": "US",
       "bucket_rank": 121,
-      "headline": "Hunt Energy\u2019s Dallas-Based Subsidiary Mantle Energy Raises $5M Seed Funding - Dallas Innovates",
+      "id": "e33ed707d844",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 753,
-      "source_name": "Dallas Innovates"
+      "rank": 753
      }
     ],
     "sf_funding-04-osanni-bio": [
      {
       "bucket": "US",
       "bucket_rank": 13,
-      "headline": "Osanni Bio raises $190 million Series B to advance therapeutics platform - The Pharma Letter",
+      "id": "711fe6e19084",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 206,
-      "source_name": "The Pharma Letter"
+      "rank": 206
      },
      {
       "bucket": "US",
       "bucket_rank": 19,
-      "headline": "Osanni Bio closes $190M Series B led by Patient Square Capital - Dealroom",
+      "id": "e89d2dc2323b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 284,
-      "source_name": "Dealroom"
+      "rank": 284
      },
      {
       "bucket": "US",
       "bucket_rank": 154,
-      "headline": "Osanni Bio reemerges with $190m Series B after three year build - BioXconomy",
+      "id": "6c09cf80c64f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 786,
-      "source_name": "BioXconomy"
+      "rank": 786
      }
     ],
     "sf_funding-05-hang-ten-systems": [
      {
       "bucket": "US",
       "bucket_rank": 140,
-      "headline": "Hang Ten Systems Raises $32 Million Seed Round To Help Enterprises Adopt AI - Pulse 2.0",
+      "id": "1b61d6c786d8",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 772,
-      "source_name": "Pulse 2.0"
+      "rank": 772
      },
      {
       "bucket": "US",
       "bucket_rank": 148,
-      "headline": "Hang Ten Systems Raises $32 Million Seed Round to Accelerate Enterprise AI Adoption - citybiz",
+      "id": "0489c42ec89a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 780,
-      "source_name": "citybiz"
+      "rank": 780
      }
     ],
     "sf_funding-06-patronus-ai": [
      {
       "bucket": "US",
       "bucket_rank": 131,
-      "headline": "Patronus AI Raises $50 Million Series B and Unveils First Digital World Models for AI Agent Training and Simulation - Yahoo Finance",
+      "id": "cf1fb389f7fd",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 763,
-      "source_name": "Yahoo Finance"
+      "rank": 763
      }
     ],
     "sf_funding-07-mirendil": [
      {
       "bucket": "DE",
       "bucket_rank": 17,
-      "headline": "Ehemalige Anthropic-Forscher gr\u00fcnden Mirendil mit einer Bewertung von 1 Milliarde US-Dollar und einer Seed-Finanzierungsrunde von 200 Millionen US-Dollar - Unite.AI",
+      "id": "3f58154b4b1e",
       "locale": "DE:de",
       "prefilter": true,
-      "rank": 259,
-      "source_name": "Unite.AI"
+      "rank": 259
      },
      {
       "bucket": "IT",
       "bucket_rank": null,
-      "headline": "Ricercatori ex Anthropic lanciano Mirendil con una valutazione di 1 miliardo di dollari e un round di seed di 200 milioni di dollari - Unite.AI",
+      "id": "ad7e28d0842f",
       "locale": "IT:it",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Unite.AI"
+      "rank": null
      }
     ]
    },
@@ -13127,167 +13026,150 @@
      {
       "bucket": "US",
       "bucket_rank": 118,
-      "headline": "Ollin Biosciences Raises $330 Million Series B To Advance OLN324 - Pulse 2.0",
+      "id": "ee3e4b8ebb57",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 691,
-      "source_name": "Pulse 2.0"
+      "rank": 691
      }
     ],
     "nyc_funding-05-taktile": [
      {
       "bucket": "US",
       "bucket_rank": 137,
-      "headline": "Goldman Sachs (GS) Led Taktile\u2019s $110 Million Series C Round For AI Finance - Yahoo Finance",
+      "id": "e161111b1a88",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 710,
-      "source_name": "Yahoo Finance"
+      "rank": 710
      },
      {
       "bucket": "US",
       "bucket_rank": 11,
-      "headline": "Taktile Raises $110 Million Series C Led By Goldman Sachs Alternatives - Pulse 2.0",
+      "id": "c9b43708ea85",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 169,
-      "source_name": "Pulse 2.0"
+      "rank": 169
      },
      {
       "bucket": "US",
       "bucket_rank": 16,
-      "headline": "Taktile bags $110m Series C led by Goldman Sachs - FinTech Futures",
+      "id": "7449ae9b7572",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 235,
-      "source_name": "FinTech Futures"
+      "rank": 235
      },
      {
       "bucket": "US",
       "bucket_rank": 18,
-      "headline": "Taktile raises $110M for AI finance platform \u2014 plus 7 more NYC VC deals to know - The Business Journals",
+      "id": "86eb1cd46a00",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 260,
-      "source_name": "The Business Journals"
+      "rank": 260
      },
      {
       "bucket": "US",
       "bucket_rank": 19,
-      "headline": "Taktile raises $110M to put AI in charge of bank decisions - The Next Web",
+      "id": "c3b3f061b7fc",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 272,
-      "source_name": "The Next Web"
+      "rank": 272
      },
      {
       "bucket": "IT",
       "bucket_rank": 35,
-      "headline": "Taktile si aggiudica 110 milioni di dollari in un round di finanziamento di serie C guidato da Goldman Sachs per realizzare la trasformazione dell'AI nelle istituzioni finanziarie - ANSA",
+      "id": "a4726dc4d5c3",
       "locale": "IT:it",
       "prefilter": true,
-      "rank": 451,
-      "source_name": "ANSA"
+      "rank": 451
      }
     ],
     "nyc_funding-06-general-intuition": [
      {
       "bucket": "US",
       "bucket_rank": 28,
-      "headline": "General Intuition raises $320 million to develop AI from gaming - Axios",
+      "id": "0d0aff957bde",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 376,
-      "source_name": "Axios"
+      "rank": 376
      },
      {
       "bucket": "US",
       "bucket_rank": 61,
-      "headline": "General Intuition bags $320M Series A at $2.3B to build the AI that learns to act from gamers - Tech Funding News",
+      "id": "400b847fa800",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 586,
-      "source_name": "Tech Funding News"
+      "rank": 586
      }
     ],
     "sf_funding-05-hang-ten-systems": [
      {
       "bucket": "US",
       "bucket_rank": 123,
-      "headline": "Hang Ten Systems Raises $32 Million Seed Round To Help Enterprises Adopt AI - Pulse 2.0",
+      "id": "1b61d6c786d8",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 696,
-      "source_name": "Pulse 2.0"
+      "rank": 696
      }
     ],
     "sf_funding-06-patronus-ai": [
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Patronus AI lands $50M to build \u2018digital worlds\u2019 that stress-test AI agents - TechCrunch",
+      "id": "16e79f575458",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "TechCrunch"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 122,
-      "headline": "Patronus AI Raises $50 Million Series B and Unveils First Digital World Models for AI Agent Training and Simulation - Yahoo Finance",
+      "id": "cf1fb389f7fd",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 695,
-      "source_name": "Yahoo Finance"
+      "rank": 695
      },
      {
       "bucket": "US",
       "bucket_rank": 145,
-      "headline": "Patronus AI Raises $50 Million Series B To Build Digital World Models - Pulse 2.0",
+      "id": "133051fcd3af",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 718,
-      "source_name": "Pulse 2.0"
+      "rank": 718
      }
     ],
     "sf_funding-07-mirendil": [
      {
       "bucket": "US",
       "bucket_rank": 42,
-      "headline": "Mirendil raises $200M to speed up scientific research with AI - SiliconANGLE",
+      "id": "7f9dee5491c8",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 501,
-      "source_name": "SiliconANGLE"
+      "rank": 501
      },
      {
       "bucket": "DE",
       "bucket_rank": 16,
-      "headline": "Ehemalige Anthropic-Forscher gr\u00fcnden Mirendil mit einer Bewertung von 1 Milliarde US-Dollar und einer Seed-Finanzierungsrunde von 200 Millionen US-Dollar - Unite.AI",
+      "id": "3f58154b4b1e",
       "locale": "DE:de",
       "prefilter": true,
-      "rank": 236,
-      "source_name": "Unite.AI"
+      "rank": 236
      },
      {
       "bucket": "IT",
       "bucket_rank": null,
-      "headline": "Ricercatori ex Anthropic lanciano Mirendil con una valutazione di 1 miliardo di dollari e un round di seed di 200 milioni di dollari - Unite.AI",
+      "id": "ad7e28d0842f",
       "locale": "IT:it",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Unite.AI"
+      "rank": null
      }
     ],
     "sf_funding-08-aseon-labs": [
      {
       "bucket": "US",
       "bucket_rank": 119,
-      "headline": "Aseon Labs Raises $10 Million Seed Round to Build the Robotic Pit Stop Network Powering Autonomous Transportation - Yahoo Finance",
+      "id": "c28af17d21d4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 692,
-      "source_name": "Yahoo Finance"
+      "rank": 692
      }
     ]
    },
@@ -13861,100 +13743,90 @@
      {
       "bucket": "US",
       "bucket_rank": 4,
-      "headline": "Taktile raises $110M for AI finance platform \u2014 plus 7 more NYC VC deals to know - bizjournals.com",
+      "id": "f329557f2295",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 63,
-      "source_name": "bizjournals.com"
+      "rank": 63
      }
     ],
     "nyc_funding-06-general-intuition": [
      {
       "bucket": "US",
       "bucket_rank": 10,
-      "headline": "General Intuition raises $320 million to develop AI from gaming - Axios",
+      "id": "0d0aff957bde",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 148,
-      "source_name": "Axios"
+      "rank": 148
      },
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "General Intuition raises $320M to use video game data to train robots - The Robot Report",
+      "id": "2c94fcf25e7f",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "The Robot Report"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 76,
-      "headline": "General Intuition Raises $320 Million Series A At $2.3 Billion Valuation - Pulse 2.0",
+      "id": "0107d1ba8f8c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 501,
-      "source_name": "Pulse 2.0"
+      "rank": 501
      },
      {
       "bucket": "US",
       "bucket_rank": 33,
-      "headline": "General Intuition bags $320M Series A at $2.3B to build the AI that learns to act from gamers - Tech Funding News",
+      "id": "400b847fa800",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 366,
-      "source_name": "Tech Funding News"
+      "rank": 366
      }
     ],
     "sf_funding-06-patronus-ai": [
      {
       "bucket": "US",
       "bucket_rank": 73,
-      "headline": "Patronus AI Raises $50 Million Series B To Build Digital World Models - Pulse 2.0",
+      "id": "133051fcd3af",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 498,
-      "source_name": "Pulse 2.0"
+      "rank": 498
      },
      {
       "bucket": "US",
       "bucket_rank": 2,
-      "headline": "Patronus AI raises $50M to stress-test AI agents - The Next Web",
+      "id": "934ab648046a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 33,
-      "source_name": "The Next Web"
+      "rank": 33
      },
      {
       "bucket": "US",
       "bucket_rank": 79,
-      "headline": "Patronus AI Raises $50M to Expand AI Testing Platform Amid Growing Demand - citybiz",
+      "id": "b87912149710",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 504,
-      "source_name": "citybiz"
+      "rank": 504
      }
     ],
     "sf_funding-07-mirendil": [
      {
       "bucket": "US",
       "bucket_rank": 29,
-      "headline": "Mirendil Raises $200 Million Seed Round To Build Self-Accelerating AI R&D Systems - Pulse 2.0",
+      "id": "4e2da57fa1f7",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 346,
-      "source_name": "Pulse 2.0"
+      "rank": 346
      }
     ],
     "sf_funding-08-aseon-labs": [
      {
       "bucket": "US",
       "bucket_rank": 62,
-      "headline": "Aseon Labs Raises $10 Million Seed Round to Build the Robotic Pit Stop Network Powering Autonomous Transportation - Yahoo Finance",
+      "id": "c28af17d21d4",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 483,
-      "source_name": "Yahoo Finance"
+      "rank": 483
      }
     ]
    },
@@ -14418,22 +14290,20 @@
      {
       "bucket": "US",
       "bucket_rank": 25,
-      "headline": "General Intuition Raises $320 Million Series A At $2.3 Billion Valuation - Pulse 2.0",
+      "id": "0107d1ba8f8c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 254,
-      "source_name": "Pulse 2.0"
+      "rank": 254
      }
     ],
     "sf_funding-07-mirendil": [
      {
       "bucket": "US",
       "bucket_rank": 7,
-      "headline": "Mirendil Raises $200 Million Seed Round To Build Self-Accelerating AI R&D Systems - Pulse 2.0",
+      "id": "4e2da57fa1f7",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 100,
-      "source_name": "Pulse 2.0"
+      "rank": 100
      }
     ]
    },
@@ -15544,69 +15414,62 @@
      {
       "bucket": "US",
       "bucket_rank": 82,
-      "headline": "Premier Lacrosse League Raises $100 Million In Series E Funding Round - Forbes",
+      "id": "d46b809ad8a7",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 808,
-      "source_name": "Forbes"
+      "rank": 808
      },
      {
       "bucket": "US",
       "bucket_rank": 36,
-      "headline": "Premier Lacrosse League closes $100 million financing round led by Ares, Joe Tsai - The Athletic - The New York Times",
+      "id": "411e13fec424",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 508,
-      "source_name": "The New York Times"
+      "rank": 508
      },
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Premier Lacrosse League lands $100 million to chase Olympic moment - Yahoo Sports",
+      "id": "91e991794db4",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Yahoo Sports"
+      "rank": null
      }
     ],
     "sf_funding-06-patronus-ai": [
      {
       "bucket": "US",
       "bucket_rank": 134,
-      "headline": "Patronus AI Raises $50M Series B and Unveils 1st Digital World Models for AI Agents - HPCwire",
+      "id": "1d80b41952ff",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 993,
-      "source_name": "HPCwire"
+      "rank": 993
      }
     ],
     "sf_funding-09-queue": [
      {
       "bucket": "US",
       "bucket_rank": 83,
-      "headline": "Queue raises funding to build fully autonomous pharmacy - The Robot Report",
+      "id": "724ccfed6531",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 812,
-      "source_name": "The Robot Report"
+      "rank": 812
      },
      {
       "bucket": "US",
       "bucket_rank": 1,
-      "headline": "Queue Raises $12.6 Million to Launch the World\u2019s First Fully Autonomous Robotic Pharmacy - Business Wire",
+      "id": "6916b4e1c733",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 19,
-      "source_name": "Business Wire"
+      "rank": 19
      },
      {
       "bucket": "US",
       "bucket_rank": 17,
-      "headline": "Queue Raises $12.6 Million To Launch Autonomous Robotic Pharmacy - Pulse 2.0",
+      "id": "03bdd8f6d317",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 267,
-      "source_name": "Pulse 2.0"
+      "rank": 267
      }
     ]
    },
@@ -16786,22 +16649,20 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Goldman and MIT-founded LinqAlpha bags $22M: Can it compete with AlphaSense's $1.74B head start? - Tech Funding News",
+      "id": "d399fdace41d",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Tech Funding News"
+      "rank": null
      }
     ],
     "sf_funding-09-queue": [
      {
       "bucket": "US",
       "bucket_rank": 11,
-      "headline": "Queue Raises $12.6 Million To Launch Autonomous Robotic Pharmacy - Pulse 2.0",
+      "id": "03bdd8f6d317",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 179,
-      "source_name": "Pulse 2.0"
+      "rank": 179
      }
     ]
    },
@@ -17834,98 +17695,88 @@
      {
       "bucket": "US",
       "bucket_rank": 101,
-      "headline": "EDX Markets Closes $76 Million Series C Funding Round Led by SBI Holdings to Enhance Institutional Digital Asset Infrastructure - PR Newswire",
+      "id": "257502c0a884",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 838,
-      "source_name": "PR Newswire"
+      "rank": 838
      }
     ],
     "nyc_funding-08-norm-ai": [
      {
       "bucket": "US",
       "bucket_rank": 61,
-      "headline": "Norm Ai Announces $120M Series C Including Investment From Fenwick, Ex-Kirkland Chair. - Law.com",
+      "id": "bab327e9d484",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 674,
-      "source_name": "Law.com"
+      "rank": 674
      },
      {
       "bucket": "US",
       "bucket_rank": 117,
-      "headline": "Norm Ai Hits Unicorn Status with $120M Series C at $1.2 Billion Valuation | LawSites - LawSites | by Robert Ambrogi",
+      "id": "96a7985a4cde",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 886,
-      "source_name": "LawSites | by Robert Ambrogi"
+      "rank": 886
      },
      {
       "bucket": "US",
       "bucket_rank": 128,
-      "headline": "Norm Ai Raises $120M Series C At $1.2B Valuation - Law360",
+      "id": "4633bc7ddb72",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 919,
-      "source_name": "Law360"
+      "rank": 919
      },
      {
       "bucket": "US",
       "bucket_rank": 144,
-      "headline": "New York City legal startup Norm Ai reaches unicorn status with $120M raise - bizjournals.com",
+      "id": "9dc7496c4162",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 951,
-      "source_name": "bizjournals.com"
+      "rank": 951
      },
      {
       "bucket": "US",
       "bucket_rank": 147,
-      "headline": "Norm Ai Raises $120 Million Series C to Expand AI Legal Platform - Ventureburn",
+      "id": "23ff69d748a1",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 957,
-      "source_name": "Ventureburn"
+      "rank": 957
      }
     ],
     "nyc_funding-09-pearl-health": [
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Pearl Health raises $110M to expand Medicare-focused AI platform - Modern Healthcare",
+      "id": "63ddfb7a4bbb",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Modern Healthcare"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 109,
-      "headline": "Pearl Health Raises $110M in Funding - FinSMEs",
+      "id": "a058412da365",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 862,
-      "source_name": "FinSMEs"
+      "rank": 862
      }
     ],
     "sf_funding-10-prime-intellect": [
      {
       "bucket": "US",
       "bucket_rank": 24,
-      "headline": "Prime Intellect raises $130M Series A to help enterprises build their own AI agents - TechCrunch",
+      "id": "0af0d769c752",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 364,
-      "source_name": "TechCrunch"
+      "rank": 364
      },
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Prime Intellect's $1b valuation, Ardian's HR software stake, and Paradigm's new fund - Axios",
+      "id": "49ac88b5c735",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Axios"
+      "rank": null
      }
     ]
    },
@@ -18826,163 +18677,146 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Pearl Health raises $110M to expand Medicare-focused AI platform - Modern Healthcare",
+      "id": "63ddfb7a4bbb",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Modern Healthcare"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 121,
-      "headline": "Pearl Health Raises $110M in Funding - FinSMEs",
+      "id": "a058412da365",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 808,
-      "source_name": "FinSMEs"
+      "rank": 808
      },
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Pearl Health lands $110M to expand AI platform for Medicare providers - MobiHealthNews",
+      "id": "494ab632a496",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "MobiHealthNews"
+      "rank": null
      }
     ],
     "nyc_funding-11-gauntlet": [
      {
       "bucket": "US",
       "bucket_rank": 104,
-      "headline": "DeFi veteran Gauntlet raises $125 million from Japanese financial giant SBI Holdings - Fortune",
+      "id": "b9e6f38c6ac0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 766,
-      "source_name": "Fortune"
+      "rank": 766
      },
      {
       "bucket": "US",
       "bucket_rank": 115,
-      "headline": "Tarun Chitra's Gauntlet raises $125 million Series C from sole investor SBI Holdings - The Block",
+      "id": "fbfd444ee31c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 796,
-      "source_name": "The Block"
+      "rank": 796
      },
      {
       "bucket": "US",
       "bucket_rank": 44,
-      "headline": "Gauntlet Raises $125M Series C From SBI Holdings - The Defiant",
+      "id": "b9097c46489e",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 520,
-      "source_name": "The Defiant"
+      "rank": 520
      }
     ],
     "rest_funding-04-auger": [
      {
       "bucket": "US",
       "bucket_rank": 126,
-      "headline": "Supply chain startup Auger, led by ex-Amazon operations chief, raises $50M and lands big customers - GeekWire",
+      "id": "917e5d19dbe8",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 814,
-      "source_name": "GeekWire"
+      "rank": 814
      }
     ],
     "rest_funding-05-databento": [
      {
       "bucket": "US",
       "bucket_rank": 26,
-      "headline": "Databento Raises $97 Million Series B Led by NEA - PR Newswire",
+      "id": "7b2718a766ae",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 369,
-      "source_name": "PR Newswire"
+      "rank": 369
      },
      {
       "bucket": "US",
       "bucket_rank": 27,
-      "headline": "Databento Raises $97 Million Series B To Expand Global Market Data Infrastructure - Pulse 2.0",
+      "id": "2b52d5f2a976",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 381,
-      "source_name": "Pulse 2.0"
+      "rank": 381
      },
      {
       "bucket": "US",
       "bucket_rank": 109,
-      "headline": "Market data platform startup Databento closes $97M round after drawing $300M in investor demand - SiliconANGLE",
+      "id": "da3d3373e65d",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 781,
-      "source_name": "SiliconANGLE"
+      "rank": 781
      },
      {
       "bucket": "US",
       "bucket_rank": 33,
-      "headline": "Salt Lake City\u2019s Databento raises $97M Series B led by NEA - Utah Business",
+      "id": "d57d8773c848",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 442,
-      "source_name": "Utah Business"
+      "rank": 442
      }
     ],
     "sf_funding-10-prime-intellect": [
      {
       "bucket": "US",
       "bucket_rank": 23,
-      "headline": "Prime Intellect raises $130M Series A to help enterprises build their own AI agents - TechCrunch",
+      "id": "0af0d769c752",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 331,
-      "source_name": "TechCrunch"
+      "rank": 331
      },
      {
       "bucket": "US",
       "bucket_rank": 32,
-      "headline": "Prime Intellect raises $130M at $1B valuation for its AI training platform - SiliconANGLE",
+      "id": "91888cb126f5",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 434,
-      "source_name": "SiliconANGLE"
+      "rank": 434
      },
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Prime Intellect's $1b valuation, Ardian's HR software stake, and Paradigm's new fund - Axios",
+      "id": "49ac88b5c735",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Axios"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 134,
-      "headline": "Prime Intellect Raises $130 Million Series A To Build Open Superintelligence Stack - Pulse 2.0",
+      "id": "6e255b5fe5ab",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 822,
-      "source_name": "Pulse 2.0"
+      "rank": 822
      },
      {
       "bucket": "US",
       "bucket_rank": 148,
-      "headline": "Prime Intellect Raises $130 Million to Help Companies Train AI Agents - PYMNTS.com",
+      "id": "0b970c330868",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 836,
-      "source_name": "PYMNTS.com"
+      "rank": 836
      },
      {
       "bucket": "US",
       "bucket_rank": 160,
-      "headline": "AI infra firm Prime Intellect raises $130M Series A to build \u2018open superintelligence stack\u2019 - CryptoRank",
+      "id": "a4419492a68b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 848,
-      "source_name": "CryptoRank"
+      "rank": 848
      }
     ]
    },
@@ -19819,185 +19653,166 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Pearl Health banks $110M in fresh funding to build out tech and AI for Medicare providers - Fierce Healthcare",
+      "id": "21c28ebe9d34",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Fierce Healthcare"
+      "rank": null
      }
     ],
     "nyc_funding-10-vendelux": [
      {
       "bucket": "US",
       "bucket_rank": 7,
-      "headline": "Vendelux Raises $50M in Series B Funding - FinSMEs",
+      "id": "9b2f81f9e4ce",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 111,
-      "source_name": "FinSMEs"
+      "rank": 111
      },
      {
       "bucket": "US",
       "bucket_rank": 8,
-      "headline": "Vendelux Raises $50 Million Series B To Scale AI-Powered B2B Event Intelligence - Pulse 2.0",
+      "id": "1463622b9736",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 125,
-      "source_name": "Pulse 2.0"
+      "rank": 125
      },
      {
       "bucket": "US",
       "bucket_rank": 22,
-      "headline": "Vendelux raises $50M for AI events management platform \u2014 plus 5 more NYC VC deals to know - bizjournals.com",
+      "id": "8caa1969caa5",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 308,
-      "source_name": "bizjournals.com"
+      "rank": 308
      }
     ],
     "nyc_funding-11-gauntlet": [
      {
       "bucket": "US",
       "bucket_rank": 88,
-      "headline": "DeFi veteran Gauntlet raises $125 million from Japanese financial giant SBI Holdings - Fortune",
+      "id": "b9e6f38c6ac0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 678,
-      "source_name": "Fortune"
+      "rank": 678
      },
      {
       "bucket": "US",
       "bucket_rank": 100,
-      "headline": "Tarun Chitra's Gauntlet raises $125 million Series C from sole investor SBI Holdings - The Block",
+      "id": "fbfd444ee31c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 725,
-      "source_name": "The Block"
+      "rank": 725
      },
      {
       "bucket": "US",
       "bucket_rank": 45,
-      "headline": "Gauntlet Raises $125M Series C From SBI Holdings - The Defiant",
+      "id": "b9097c46489e",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 493,
-      "source_name": "The Defiant"
+      "rank": 493
      }
     ],
     "nyc_funding-14-wonder": [
      {
       "bucket": "US",
       "bucket_rank": 93,
-      "headline": "Wonder plans another $600M funding round - Restaurant Dive",
+      "id": "30c910fb1393",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 698,
-      "source_name": "Restaurant Dive"
+      "rank": 698
      }
     ],
     "rest_funding-04-auger": [
      {
       "bucket": "US",
       "bucket_rank": 110,
-      "headline": "Supply chain startup Auger, led by ex-Amazon operations chief, raises $50M and lands big customers - GeekWire",
+      "id": "917e5d19dbe8",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 749,
-      "source_name": "GeekWire"
+      "rank": 749
      },
      {
       "bucket": "US",
       "bucket_rank": 126,
-      "headline": "Ex-Amazon exec's supply chain startup Auger raises $50M Series B - Dealroom",
+      "id": "0f1851b69b65",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 765,
-      "source_name": "Dealroom"
+      "rank": 765
      }
     ],
     "rest_funding-05-databento": [
      {
       "bucket": "US",
       "bucket_rank": 26,
-      "headline": "Databento Raises $97 Million Series B Led by NEA - PR Newswire",
+      "id": "7b2718a766ae",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 356,
-      "source_name": "PR Newswire"
+      "rank": 356
      },
      {
       "bucket": "US",
       "bucket_rank": 27,
-      "headline": "Databento Raises $97 Million Series B To Expand Global Market Data Infrastructure - Pulse 2.0",
+      "id": "2b52d5f2a976",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 366,
-      "source_name": "Pulse 2.0"
+      "rank": 366
      },
      {
       "bucket": "US",
       "bucket_rank": 94,
-      "headline": "Market data platform startup Databento closes $97M round after drawing $300M in investor demand - SiliconANGLE",
+      "id": "da3d3373e65d",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 702,
-      "source_name": "SiliconANGLE"
+      "rank": 702
      },
      {
       "bucket": "US",
       "bucket_rank": 31,
-      "headline": "Salt Lake City\u2019s Databento raises $97M Series B led by NEA - Utah Business",
+      "id": "d57d8773c848",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 404,
-      "source_name": "Utah Business"
+      "rank": 404
      },
      {
       "bucket": "US",
       "bucket_rank": 49,
-      "headline": "Databento Raises $97M in Series B To Expand Institutional-Grade Market Data To Crypto - ventureburn.com",
+      "id": "5f566f6fe8ba",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 515,
-      "source_name": "ventureburn.com"
+      "rank": 515
      },
      {
       "bucket": "IT",
       "bucket_rank": null,
-      "headline": "Dati che valgono come oro. Round da 97 milioni di dollari per Databento. Espander\u00e0 la sua piattaforma alle cripto - StartupItalia",
+      "id": "e4ada9cd8a67",
       "locale": "IT:it",
       "prefilter": false,
-      "rank": null,
-      "source_name": "StartupItalia"
+      "rank": null
      }
     ],
     "sf_funding-10-prime-intellect": [
      {
       "bucket": "US",
       "bucket_rank": 117,
-      "headline": "Prime Intellect Raises $130 Million Series A To Build Open Superintelligence Stack - Pulse 2.0",
+      "id": "6e255b5fe5ab",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 756,
-      "source_name": "Pulse 2.0"
+      "rank": 756
      },
      {
       "bucket": "US",
       "bucket_rank": 125,
-      "headline": "Prime Intellect Raises $130M in Series A Funding - FinSMEs",
+      "id": "27a295c9287e",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 764,
-      "source_name": "FinSMEs"
+      "rank": 764
      },
      {
       "bucket": "US",
       "bucket_rank": 136,
-      "headline": "AI infra firm Prime Intellect raises $130M Series A to build \u2018open superintelligence stack\u2019 - CryptoRank",
+      "id": "a4419492a68b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 775,
-      "source_name": "CryptoRank"
+      "rank": 775
      }
     ]
    },
@@ -20619,95 +20434,86 @@
      {
       "bucket": "US",
       "bucket_rank": 65,
-      "headline": "Norm AI Raises $120 Mn In Series C Round Led By Khosla Ventures, Reaches Unicorn Valuation - BWDisrupt",
+      "id": "3addca6becfb",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 527,
-      "source_name": "BWDisrupt"
+      "rank": 527
      }
     ],
     "nyc_funding-09-pearl-health": [
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Pearl Health banks $110M in fresh funding to build out tech and AI for Medicare providers - Fierce Healthcare",
+      "id": "21c28ebe9d34",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Fierce Healthcare"
+      "rank": null
      }
     ],
     "nyc_funding-10-vendelux": [
      {
       "bucket": "US",
       "bucket_rank": 3,
-      "headline": "Vendelux Raises $50M in Series B Funding - FinSMEs",
+      "id": "9b2f81f9e4ce",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 48,
-      "source_name": "FinSMEs"
+      "rank": 48
      },
      {
       "bucket": "US",
       "bucket_rank": 4,
-      "headline": "Vendelux Raises $50 Million Series B To Scale AI-Powered B2B Event Intelligence - Pulse 2.0",
+      "id": "1463622b9736",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 63,
-      "source_name": "Pulse 2.0"
+      "rank": 63
      },
      {
       "bucket": "US",
       "bucket_rank": 9,
-      "headline": "Vendelux raises $50M for AI events management platform \u2014 plus 5 more NYC VC deals to know - bizjournals.com",
+      "id": "8caa1969caa5",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 128,
-      "source_name": "bizjournals.com"
+      "rank": 128
      }
     ],
     "nyc_funding-11-gauntlet": [
      {
       "bucket": "VN",
       "bucket_rank": 27,
-      "headline": "Gauntlet huy \u0111\u1ed9ng 125 tri\u1ec7u USD v\u00f2ng Series C, m\u1edf r\u1ed9ng r\u1ed5 ti\u1ec1n t\u1ec7 b\u1ea3o ch\u1ee9ng cho stablecoin - \ub514\uc9c0\ud138\ud22c\ub370\uc774",
+      "id": "83aac80fc198",
       "locale": "VN:vi",
       "prefilter": true,
-      "rank": 319,
-      "source_name": "\ub514\uc9c0\ud138\ud22c\ub370\uc774"
+      "rank": 319
      }
     ],
     "nyc_funding-14-wonder": [
      {
       "bucket": "US",
       "bucket_rank": 42,
-      "headline": "Wonder plans another $600M funding round - Restaurant Dive",
+      "id": "30c910fb1393",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 409,
-      "source_name": "Restaurant Dive"
+      "rank": 409
      }
     ],
     "rest_funding-05-databento": [
      {
       "bucket": "IT",
       "bucket_rank": null,
-      "headline": "Dati che valgono come oro. Round da 97 milioni di dollari per Databento. Espander\u00e0 la sua piattaforma alle cripto - StartupItalia",
+      "id": "e4ada9cd8a67",
       "locale": "IT:it",
       "prefilter": false,
-      "rank": null,
-      "source_name": "StartupItalia"
+      "rank": null
      }
     ],
     "sf_funding-10-prime-intellect": [
      {
       "bucket": "US",
       "bucket_rank": 56,
-      "headline": "Prime Intellect Raises $130M in Series A Funding - FinSMEs",
+      "id": "27a295c9287e",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 485,
-      "source_name": "FinSMEs"
+      "rank": 485
      }
     ]
    },
@@ -21152,71 +20958,64 @@
      {
       "bucket": "US",
       "bucket_rank": 9,
-      "headline": "TerraFirma Raises $115M to Accelerate Construction on Earth and Beyond - Business Wire",
+      "id": "e2510a9cc7a6",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 129,
-      "source_name": "Business Wire"
+      "rank": 129
      }
     ],
     "rest_funding-06-auxilium-health": [
      {
       "bucket": "US",
       "bucket_rank": 57,
-      "headline": "Auxilium Health Closes Oversubscribed $3.4 Million Seed Round to Advance Its Aer\u2122 Biomaterial Platform - PR Newswire",
+      "id": "b4c49fd24bb6",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 365,
-      "source_name": "PR Newswire"
+      "rank": 365
      }
     ],
     "sf_funding-11-chai-discovery": [
      {
       "bucket": "US",
       "bucket_rank": 37,
-      "headline": "Chai Discovery, an A.I. Drug Start-Up, Raises $400 Million - The New York Times",
+      "id": "e48b489220fb",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 306,
-      "source_name": "The New York Times"
+      "rank": 306
      },
      {
       "bucket": "US",
       "bucket_rank": 8,
-      "headline": "Chai Discovery nabs $400M Series C as AI-designed antibodies reach Big Pharma - SiliconANGLE",
+      "id": "f0ce8bcc0b46",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 116,
-      "source_name": "SiliconANGLE"
+      "rank": 116
      },
      {
       "bucket": "US",
       "bucket_rank": 72,
-      "headline": "Chai Discovery Raises $400 Million Series C to Scale AI Drug Discovery Platform - citybiz",
+      "id": "7479c32fbd0a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 380,
-      "source_name": "citybiz"
+      "rank": 380
      }
     ],
     "sf_funding-12-rime": [
      {
       "bucket": "US",
       "bucket_rank": 35,
-      "headline": "Rime picks up $24M Series A to help enterprises field customer calls - TechCrunch",
+      "id": "0440775afd7f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 298,
-      "source_name": "TechCrunch"
+      "rank": 298
      },
      {
       "bucket": "US",
       "bucket_rank": 10,
-      "headline": "Rime Raises $24 Million Series A to Build the World\u2019s First Enterprise-Ready Speech-to-Speech Model - Yahoo Finance",
+      "id": "af256ad3af25",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 141,
-      "source_name": "Yahoo Finance"
+      "rank": 141
      }
     ]
    },
@@ -21687,71 +21486,64 @@
      {
       "bucket": "US",
       "bucket_rank": 40,
-      "headline": "Wonder Announces $650 Million Series D Round at a $9 Billion Pre-Money Valuation - PR Newswire",
+      "id": "b253ef320798",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 345,
-      "source_name": "PR Newswire"
+      "rank": 345
      }
     ],
     "nyc_funding-15-fora": [
      {
       "bucket": "US",
       "bucket_rank": 49,
-      "headline": "AI-powered travel agency Fora hits unicorn status, raises $60M - TechCrunch",
+      "id": "0c8d932ebfdc",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 368,
-      "source_name": "TechCrunch"
+      "rank": 368
      },
      {
       "bucket": "US",
       "bucket_rank": 76,
-      "headline": "Fora Travel the Unicorn: It Raised $60 Million at a $1 Billion Valuation - Skift",
+      "id": "5ff96e37b5a0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 403,
-      "source_name": "Skift"
+      "rank": 403
      }
     ],
     "rest_funding-08-rapidpulse": [
      {
       "bucket": "US",
       "bucket_rank": 18,
-      "headline": "RapidPulse raises $48M for thrombectomy tech as Medtronic invests - MassDevice",
+      "id": "0c1726d8213a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 235,
-      "source_name": "MassDevice"
+      "rank": 235
      },
      {
       "bucket": "US",
       "bucket_rank": 86,
-      "headline": "RapidPulse Secures Oversubscribed $48M Series B Financing to Advance Clinical Development of Next-Generation Stroke Aspiration Technology - The Manila Times",
+      "id": "a0bd46e9fe83",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 413,
-      "source_name": "The Manila Times"
+      "rank": 413
      }
     ],
     "sf_funding-12-rime": [
      {
       "bucket": "US",
       "bucket_rank": 46,
-      "headline": "Rime picks up $24M Series A to help enterprises field customer calls - TechCrunch",
+      "id": "0440775afd7f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 362,
-      "source_name": "TechCrunch"
+      "rank": 362
      },
      {
       "bucket": "US",
       "bucket_rank": 19,
-      "headline": "Rime Raises $24 Million Series A to Build the World\u2019s First Enterprise-Ready Speech-to-Speech Model - Yahoo Finance",
+      "id": "af256ad3af25",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 242,
-      "source_name": "Yahoo Finance"
+      "rank": 242
      }
     ]
    },
@@ -22233,60 +22025,54 @@
      {
       "bucket": "US",
       "bucket_rank": 94,
-      "headline": "Wonder's $650m raise, Crypto.com's $20b valuation, Angelini Pharma seals rare disease buy - Axios",
+      "id": "e4dbd84521d1",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 432,
-      "source_name": "Axios"
+      "rank": 432
      }
     ],
     "nyc_funding-15-fora": [
      {
       "bucket": "US",
       "bucket_rank": 56,
-      "headline": "AI-powered travel agency Fora hits unicorn status, raises $60M - TechCrunch",
+      "id": "0c8d932ebfdc",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 380,
-      "source_name": "TechCrunch"
+      "rank": 380
      },
      {
       "bucket": "US",
       "bucket_rank": 72,
-      "headline": "Fora Travel the Unicorn: It Raised $60 Million at a $1 Billion Valuation - Skift",
+      "id": "5ff96e37b5a0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 410,
-      "source_name": "Skift"
+      "rank": 410
      }
     ],
     "rest_funding-08-rapidpulse": [
      {
       "bucket": "US",
       "bucket_rank": 30,
-      "headline": "Miami-based RapidPulse secures $48M Series B co-led by Medtronic to transform stroke treatment - Refresh Miami",
+      "id": "c9fc435ba32a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 301,
-      "source_name": "Refresh Miami"
+      "rank": 301
      },
      {
       "bucket": "US",
       "bucket_rank": 31,
-      "headline": "RapidPulse raises $48M for thrombectomy tech as Medtronic invests - MassDevice",
+      "id": "0c1726d8213a",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 305,
-      "source_name": "MassDevice"
+      "rank": 305
      },
      {
       "bucket": "US",
       "bucket_rank": 87,
-      "headline": "RapidPulse Secures Oversubscribed $48M Series B Financing to Advance Clinical Development of Next-Generation Stroke Aspiration Technology - The Manila Times",
+      "id": "a0bd46e9fe83",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 425,
-      "source_name": "The Manila Times"
+      "rank": 425
      }
     ]
    },
@@ -23559,75 +23345,68 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "New Orleans secures funding to repair Broad Street on-ramp after lengthy delays - fox8live.com",
+      "id": "58ca16f35565",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "fox8live.com"
+      "rank": null
      }
     ],
     "rest_funding-05-databento": [
      {
       "bucket": "US",
       "bucket_rank": 78,
-      "headline": "Utah-based AI-FinTech, Databento, has Landed a $97 Million Series B Funding to Build-out its Global Market-data Infrastructure - Utah Money Watch",
+      "id": "f21efa07e424",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 502,
-      "source_name": "Utah Money Watch"
+      "rank": 502
      }
     ],
     "rest_funding-11-crystalys-therapeutics": [
      {
       "bucket": "US",
       "bucket_rank": 50,
-      "headline": "Crystalys Therapeutics Announces $130 Million Series B Financing to Advance Global Phase 3 Development and Commercialization of Dotinurad for Gout - PR Newswire",
+      "id": "5b4bd3cf7dcf",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 410,
-      "source_name": "PR Newswire"
+      "rank": 410
      }
     ],
     "rest_funding-12-atoms": [
      {
       "bucket": "US",
       "bucket_rank": 61,
-      "headline": "Atoms raises $1.2B, Nestle water deal nears, and Penske's buyout. - Axios",
+      "id": "fa647cdefcc0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 459,
-      "source_name": "Axios"
+      "rank": 459
      },
      {
       "bucket": "US",
       "bucket_rank": 73,
-      "headline": "Uber co-founder raises $1.7B for new robotics startup ATOMS - The Robot Report",
+      "id": "7255ab0fd63c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 495,
-      "source_name": "The Robot Report"
+      "rank": 495
      }
     ],
     "rest_funding-13-tybr-health": [
      {
       "bucket": "US",
       "bucket_rank": 76,
-      "headline": "TYBR Health Raises $30 Million Series A To Expand B3 GEL System - Pulse 2.0",
+      "id": "734ff1344294",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 500,
-      "source_name": "Pulse 2.0"
+      "rank": 500
      }
     ],
     "sf_funding-09-queue": [
      {
       "bucket": "US",
       "bucket_rank": 7,
-      "headline": "Photon Queue raises $4m in Seed round for quantum memory devices - Data Center Dynamics",
+      "id": "0323b9df980f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 100,
-      "source_name": "Data Center Dynamics"
+      "rank": 100
      }
     ]
    },
@@ -24207,53 +23986,48 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "New Orleans secures funding to repair Broad Street on-ramp after lengthy delays - fox8live.com",
+      "id": "58ca16f35565",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "fox8live.com"
+      "rank": null
      }
     ],
     "rest_funding-10-singularity": [
      {
       "bucket": "US",
       "bucket_rank": 78,
-      "headline": "Weekly Digest: Lakestar closes $300M Resilience I fund, the Ukrainian MoD reshuffle, Greenjets raises $40M, and the Singularity $80M Series A - resiliencemedia.co",
+      "id": "fdb8ba0336f0",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 508,
-      "source_name": "resiliencemedia.co"
+      "rank": 508
      }
     ],
     "rest_funding-12-atoms": [
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "The Week\u2019s 10 Biggest Funding Rounds: Physical AI Startup Atoms Leads In Varied Week For Large Deals - Crunchbase News",
+      "id": "e40538851d80",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Crunchbase News"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 68,
-      "headline": "Uber co-founder raises $1.7B for new robotics startup ATOMS - The Robot Report",
+      "id": "7255ab0fd63c",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 487,
-      "source_name": "The Robot Report"
+      "rank": 487
      }
     ],
     "sf_funding-09-queue": [
      {
       "bucket": "US",
       "bucket_rank": 4,
-      "headline": "Photon Queue raises $4m in Seed round for quantum memory devices - Data Center Dynamics",
+      "id": "0323b9df980f",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 67,
-      "source_name": "Data Center Dynamics"
+      "rank": 67
      }
     ]
    },
@@ -24767,20 +24541,18 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "The Week\u2019s 10 Biggest Funding Rounds: Physical AI Startup Atoms Leads In Varied Week For Large Deals - Crunchbase News",
+      "id": "e40538851d80",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "Crunchbase News"
+      "rank": null
      },
      {
       "bucket": "US",
       "bucket_rank": 46,
-      "headline": "Travis Kalanick's Atoms raises USD 1.7 billion in a16z-led funding round; Ben Horowitz joins board - ANI News",
+      "id": "2a90ae330be6",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 380,
-      "source_name": "ANI News"
+      "rank": 380
      }
     ]
    },
@@ -25184,22 +24956,20 @@
      {
       "bucket": "US",
       "bucket_rank": 14,
-      "headline": "Digital Asset raises additional $10 million from Shinhan Financial, SC Ventures - \ub514\uc9c0\ud138\ud22c\ub370\uc774",
+      "id": "1e9a62fc39d3",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 166,
-      "source_name": "\ub514\uc9c0\ud138\ud22c\ub370\uc774"
+      "rank": 166
      }
     ],
     "rest_funding-12-atoms": [
      {
       "bucket": "US",
       "bucket_rank": 10,
-      "headline": "Kalanick's Atoms Raised $1.7B to Own the Machines, Not Sell Them - techi.com",
+      "id": "aa913ba33827",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 135,
-      "source_name": "techi.com"
+      "rank": 135
      }
     ]
    },
@@ -25979,80 +25749,72 @@
      {
       "bucket": "US",
       "bucket_rank": 72,
-      "headline": "Throne Science, Maker of Smart Toilet Sensor, Announces $10 Million Series A Fundraise - Business Wire",
+      "id": "d51e10f3d38b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 596,
-      "source_name": "Business Wire"
+      "rank": 596
      },
      {
       "bucket": "US",
       "bucket_rank": 103,
-      "headline": "Throne Science, Maker of Smart Toilet Sensor, Announces $10 Million Series A Fundraise - The Joplin Globe",
+      "id": "729df4054908",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 703,
-      "source_name": "The Joplin Globe"
+      "rank": 703
      }
     ],
     "nyc_funding-16-harmony": [
      {
       "bucket": "US",
       "bucket_rank": 26,
-      "headline": "Harmony Raises $34 Million Seed Round Led By Lightspeed To Scale AI Employee Support Platform - Pulse 2.0",
+      "id": "b090dbe23ae7",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 330,
-      "source_name": "Pulse 2.0"
+      "rank": 330
      }
     ],
     "rest_funding-14-buildforce": [
      {
       "bucket": "US",
       "bucket_rank": 11,
-      "headline": "Buildforce Raises $10M Series A to Staff Electricians Nationally - PR Newswire",
+      "id": "7e6fdd33bd42",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 162,
-      "source_name": "PR Newswire"
+      "rank": 162
      },
      {
       "bucket": "US",
       "bucket_rank": 35,
-      "headline": "Buildforce Secures $10 Million Series A to Accelerate National Electrician Staffing Platform - tipranks.com",
+      "id": "62a3a5c36fd1",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 408,
-      "source_name": "tipranks.com"
+      "rank": 408
      }
     ],
     "sf_funding-13-fish-audio": [
      {
       "bucket": "US",
       "bucket_rank": 7,
-      "headline": "Fish Audio raises $52M seed to build AI voice models for creators and enterprises - TechCrunch",
+      "id": "c2a5c2c4f319",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 111,
-      "source_name": "TechCrunch"
+      "rank": 111
      },
      {
       "bucket": "US",
       "bucket_rank": 82,
-      "headline": "Fish Audio Raises $52M in Seed Funding After Turning Passion Project Into One of Voice AI's Fastest-Growing Companies - PR Newswire",
+      "id": "7099bac69567",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 636,
-      "source_name": "PR Newswire"
+      "rank": 636
      },
      {
       "bucket": "US",
       "bucket_rank": 24,
-      "headline": "Fish Audio raises $50 million in seed funding to build AI voice models - The American Bazaar",
+      "id": "336b6d215f18",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 310,
-      "source_name": "The American Bazaar"
+      "rank": 310
      }
     ]
    },
@@ -26905,11 +26667,10 @@
      {
       "bucket": "US",
       "bucket_rank": 103,
-      "headline": "Soter Insure Secures Series B Funding Led by Galaxy to Scale Its Digital Asset Insurance Solutions - PR Newswire",
+      "id": "106f4395fada",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 751,
-      "source_name": "PR Newswire"
+      "rank": 751
      }
     ]
    },
@@ -27627,22 +27388,20 @@
      {
       "bucket": "US",
       "bucket_rank": null,
-      "headline": "Peninsula Energy Withdraws 2026 Guidance but Secures Funding for Lance Uranium Ramp\u2011Up - The Globe and Mail",
+      "id": "0a08aa8ef0b0",
       "locale": "US:en",
       "prefilter": false,
-      "rank": null,
-      "source_name": "The Globe and Mail"
+      "rank": null
      }
     ],
     "nyc_funding-04-digital-asset": [
      {
       "bucket": "US",
       "bucket_rank": 55,
-      "headline": "Soter Insure Secures Series B Funding Led By Galaxy To Scale Its Digital Asset Insurance Solutions - Pulse 2.0",
+      "id": "2ef847a39182",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 537,
-      "source_name": "Pulse 2.0"
+      "rank": 537
      }
     ]
    },
@@ -28054,11 +27813,10 @@
      {
       "bucket": "US",
       "bucket_rank": 24,
-      "headline": "Buildforce: $10 Million Series A Raised To Staff Electricians Nationally - Pulse 2.0",
+      "id": "7617f0782d3b",
       "locale": "US:en",
       "prefilter": true,
-      "rank": 247,
-      "source_name": "Pulse 2.0"
+      "rank": 247
      }
     ]
    },

@@ -144,3 +144,26 @@ def test_the_probe_opens_the_database_read_only():
     with pytest.raises(sqlite3.OperationalError):
         conn.execute("CREATE TABLE probe_should_not_be_able_to (x INT)")
     conn.close()
+
+
+def test_no_free_text_survives_into_the_committed_sweep():
+    """The first attempt to commit this sweep went red on
+    `test_no_provider_names.py`: two matched HEADLINES named a commercial data
+    service, which is banned repo-wide. Free text is dropped at write time
+    rather than filtered — a filter is only as good as the list behind it, and
+    this file grows every time the sweep is run."""
+    payload = {"days": {"2026-06-16": {"hits": {"x": [{
+        "headline": "Acme raises $10M, says a data service",
+        "source_name": "Example Wire", "bucket": "US", "rank": 3}]}}}}
+    out = gold_bucket.scrub(payload)
+    hit = out["days"]["2026-06-16"]["hits"]["x"][0]
+    assert "headline" not in hit and "source_name" not in hit
+    assert hit["bucket"] == "US" and hit["rank"] == 3
+    assert len(hit["id"]) == 12 and "acme" not in hit["id"].lower()
+
+
+def test_the_committed_sweep_carries_no_free_text_key():
+    if not gold_bucket.CACHE.exists():
+        pytest.skip("no committed sweep in this tree")
+    raw = gold_bucket.CACHE.read_text()
+    assert '"headline"' not in raw and '"source_name"' not in raw

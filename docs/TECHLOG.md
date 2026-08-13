@@ -160,6 +160,17 @@ measurement does support, in order of what they buy per dollar:
    the 88 truncated queries are a window-width question. Both are free to
    investigate and neither is touched by any ranking change.
 
+### One thing the committed artifact does not carry, and why
+
+The first attempt to commit the sweep went RED on
+`tests/test_no_provider_names.py`: two of the matched HEADLINES named a
+commercial data service, which is banned in every tracked file. The headline
+and the publisher name are now dropped **at write time** (`scrub()`), leaving
+each hit an opaque sha1 prefix so a later sweep can recognise the same article
+without the file carrying anybody's name. Dropped rather than filtered on
+purpose - a filter is only ever as good as the list behind it, and this file
+grows every time the sweep is run. Two tests pin it.
+
 `python3 -m analysis.ranking.gold_bucket --report` reproduces every number above
 from the committed `data/gold_bucket_sweep.json` without a network call.
 

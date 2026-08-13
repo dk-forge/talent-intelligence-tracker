@@ -250,6 +250,37 @@ def fetch(argv_dates: list[str], *, ration: int, pause: float,
     return out
 
 
+#: Fields a hit carries in memory that must NEVER reach the committed file.
+#: A headline is a publisher's own words about somebody else's company, and on
+#: 2026-08-13 the first attempt to commit this sweep went red on
+#: `tests/test_no_provider_names.py`: two of the matched headlines named a
+#: commercial data service, which is banned repo-wide. The measurement never
+#: needed them — the report prints buckets and ranks — so they are dropped at
+#: write time rather than filtered, because a filter is only ever as good as
+#: the list behind it and this file grows every time it is run.
+UNCOMMITTABLE = ("headline", "source_name")
+
+
+def scrub(payload: dict) -> dict:
+    """The sweep with every free-text field removed, ready to commit.
+
+    Each hit keeps an opaque `id`, the sha1 prefix of the headline it matched,
+    so a later sweep can tell whether it met the same article without the file
+    ever carrying anybody's name.
+    """
+    import hashlib
+
+    for day in payload.get("days", {}).values():
+        for hits in day.get("hits", {}).values():
+            for hit in hits:
+                text = "".join(str(hit.get(f) or "") for f in UNCOMMITTABLE)
+                if text:
+                    hit["id"] = hashlib.sha1(text.encode()).hexdigest()[:12]
+                for field in UNCOMMITTABLE:
+                    hit.pop(field, None)
+    return payload
+
+
 def bucket_visiting_order(bucket_order: list[str]) -> list[str]:
     """The round robin's visiting order, recovered from the ranked sequence."""
     seen: list[str] = []
@@ -412,7 +443,8 @@ def main(argv=None) -> int:
             old = json.loads(cache_path.read_text())
             old["days"].update(payload["days"])
             payload = old
-        cache_path.write_text(json.dumps(payload, indent=1, sort_keys=True))
+        cache_path.write_text(json.dumps(scrub(payload), indent=1,
+                                         sort_keys=True))
         print(f"\nwrote {cache_path}")
     if args.report or not args.fetch:
         if not cache_path.exists():
