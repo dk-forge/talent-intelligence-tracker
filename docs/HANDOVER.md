@@ -2,6 +2,66 @@
 
 ---
 
+## 2026-08-13: the country-need remedy is aimed at the wrong mechanism. DO NOT re-weight, DO NOT add a US floor.
+
+Branch `audit/gold-country-buckets`. **Measurement only** - two new files, one
+TECHLOG entry, one committed sweep artifact. Nothing armed, dispatched,
+deployed or written; no model called, **$0 spent**; nothing under
+`analysis/recall/` touched. Suite green, 3,711 passed, 1 skipped.
+
+**The finding, in one line.** Of the 51 US funding gold events, **45 were in
+the US country bucket, 6 never surfaced at all, and none was in a foreign
+bucket only**; of the 26 `walked_never_read`, **21 US, 5 never surfaced, 0
+foreign, 0 undetermined**. The US bucket is visited **first** in the round
+robin on a median day of the walk and never worse than fifth. **The US is not
+starved by country-need ranking.**
+
+**Why the earlier model said otherwise, and it is not a mistake anybody should
+feel bad about.** `read_share.py --model` replays over the stored population,
+which carries `source_country` from the catalogue and no `locale` - the
+`national_press` shape, 77 buckets. The google_news walker's items always carry
+a `locale`, and the `("en","US")` anchor is swept first with dedup on
+`discovery_url`, so a US-sourced article is stamped `US:en` before any other
+edition can claim it. A day of the walk holds **16 to 25** buckets, not 77.
+
+**What binds instead is depth.** The ration is 37 against a median **677**
+candidates a day. The gold events sit at median depth **28 inside** the US
+bucket, so they lose to other US candidates and not to Brazil.
+
+| lever | of the 26 |
+|---|---|
+| today (cut 37) | 2 |
+| cut 395, a full day's depth, ordering untouched | **13** |
+| the whole day | 21 |
+| a US floor at 20% of the ration | 5 |
+| **the ENTIRE ration handed to the US** | **10** |
+
+**Nothing is outstanding and nothing needs running.** No workflow was
+dispatched and none needs to be. The report reproduces offline:
+
+```bash
+python3 -m analysis.ranking.gold_bucket --report     # no network, no spend
+```
+
+**What the next session should NOT do:** re-weight `W_COUNTRY_*`, add a US
+floor, or remove the round robin. All three rest on a premise this measured
+false, and the largest floor available recovers fewer events than reading
+deeper does.
+
+**What is worth doing, in order:** (1) depth is the only lever that takes
+nothing from another country, and it is a spend decision for the owner
+($5.35 for this window, $32.09/year at the audit's prices); (2) the in-bucket
+order is free to look at and is what actually decides these events; (3) six
+events never surfaced under the walker's query set and 88 of 3,959 queries came
+back at the 100-item cap - both are query/window questions, free, and untouched
+by any ranking change.
+
+**The caveat that travels with every number here:** this re-walks the same
+window the reference set was drawn from, so it diagnoses these 51 events in
+2026-06/07 and generalises to no other window, signal type or country. It is
+not a recall figure and must never be published as one. Four further limits are
+in the module docstring and the TECHLOG entry.
+
 ## 2026-08-13: the SF gap is not a local-publisher gap, and one publisher covers 26 of the 30. RESEARCH ONLY — NOTHING WIRED, NOTHING DEPLOYED.
 
 Branch `research/us-metro-publishers`. Two new files, no code change, no plugin
