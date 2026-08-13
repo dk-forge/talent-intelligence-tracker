@@ -108,7 +108,10 @@ def test_live_sources_are_only_the_ones_with_collectors():
 # run has actually stored from it. See CLAUDE.md on the dormant-source pattern.
 # benchmark_chase is doubly excused: dormant here, and in _NOT_SOURCES above
 # because even armed it is a pointer-chaser whose rows cite the publisher.
-_DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase"}
+# irs_form_990 ships dormant too: it is built, tested and dry-run, and nothing
+# schedules it, so the page must not claim IRS coverage the tracker has not
+# collected. Move it out of this set in the same change that schedules it.
+_DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase", "irs_form_990"}
 
 
 def _registered_collector_keys():
