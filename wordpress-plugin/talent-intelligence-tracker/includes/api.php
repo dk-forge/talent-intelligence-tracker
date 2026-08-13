@@ -590,12 +590,23 @@ function tit_aggregate_trend($table, $where, array $params) {
 
 /**
  * The money views under the caller's own filters. Same guard, same reason.
+ *
+ * The pillar travels separately from the WHERE clause, and only so that an
+ * EMPTY money chart can say which filter emptied it. tit_money_aggregate()
+ * reads it for nothing else: the sums, the coverage figures and the rankings
+ * are still the caller's own clause and nothing but it.
  */
-function tit_aggregate_money($table, $where, array $params) {
+function tit_aggregate_money($table, $where, array $params, $pillar = '') {
     if (!function_exists('tit_money_aggregate')) {
         return null;
     }
-    return tit_money_aggregate($table, $where, $params);
+    return tit_money_aggregate($table, $where, $params, 40, $pillar);
+}
+
+/** The request's pillar, validated, or '': one place, both callers. */
+function tit_request_pillar(WP_REST_Request $req) {
+    $pillar = sanitize_text_field($req->get_param('pillar') ?? '');
+    return ($pillar !== '' && in_array($pillar, tit_allowed_pillars(), true)) ? $pillar : '';
 }
 
 function tit_api_aggregate(WP_REST_Request $req) {
@@ -629,7 +640,7 @@ function tit_api_aggregate(WP_REST_Request $req) {
             'companies' => $one('COUNT(DISTINCT company_key)'),
             'countries' => $one('COUNT(DISTINCT ' . tit_country_expr() . ')'),
             'verified'  => $one("SUM(confidence = 'verified')"),
-            'money'     => tit_aggregate_money($table, $where, $params),
+            'money'     => tit_aggregate_money($table, $where, $params, tit_request_pillar($req)),
             'generated' => gmdate('c'),
         );
         set_transient($cache_key, $out, TIT_CACHE_TTL);
@@ -662,7 +673,7 @@ function tit_api_aggregate(WP_REST_Request $req) {
     // based on. Computed once and handed to BOTH the money cards and the
     // at-a-glance matrix, so a dollar total can never appear next to a
     // coverage sentence describing a different set of rows.
-    $money = tit_aggregate_money($table, $where, $params);
+    $money = tit_aggregate_money($table, $where, $params, tit_request_pillar($req));
     $glance = tit_aggregate_glance($table, $where, $params);
     if (is_array($glance) && is_array($money)) {
         $glance['coverage'] = $money['coverage'];

@@ -2,6 +2,42 @@
 
 ---
 
+## 2026-08-13: the money charts now say WHY they are empty. 1.78.0 is merged and NOT deployed.
+
+Branch `fix/money-chart-empty-state`. Copy plus one probe query that runs only
+when a chart is empty. **No data changed, no filter semantics changed, no number
+moved.** Render harness unchanged in both directions: 184,535 bytes, 15 cold
+queries.
+
+**The defect.** Looking For: Pay and Benefits plus Where: United States made all
+three money charts say "No US dollar amounts in this view yet.", which reads as
+missing data. It is not: `pillar=rewards_comp` holds one dollar-stated update in
+8,838 and it names no place, so no money chart can fill under that pillar at
+all.
+
+**Three causes, three sentences,** because telling a reader to widen a filter
+when the true answer is "we hold the money but not the place" is a wrong
+explanation rather than a vague one. Coverage gap (**655 of 4,094**
+amount-bearing rows carry a city) says so and points at nothing; a pillar that
+cannot fill the chart names itself and points at Looking For: Raised Money; a
+filter combination points at country and date. The only figure in any of them is
+the view's own `coverage.with`.
+
+**Guard:** `tests/test_money_empty_state_explains_itself.py`, asserting on
+`innerText` off the rendered ancestor in headless Chrome, plus the shipped PHP
+executed and compared word for word.
+
+**THE DEPLOY IS THE SESSION'S CALL AND HAS NOT BEEN MADE:**
+
+```bash
+gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
+```
+
+Rebased onto the provider-name scrub that landed the same afternoon, so the
+`test_no_provider_names` red this branch was carrying is gone.
+
+---
+
 ## 2026-08-13: the country-need remedy is aimed at the wrong mechanism. DO NOT re-weight, DO NOT add a US floor.
 
 Branch `audit/gold-country-buckets`. **Measurement only** - two new files, one
