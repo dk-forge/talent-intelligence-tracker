@@ -13,6 +13,121 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - the 8-K filer name was parsed by a rule that read neither end of the string. 127 live headlines wrong, correction NOT run
+
+**Parser fixed and merged. No stored row was changed, and no published row was
+corrected: `correct_sec_filer_name.py` exists, its dry run is clean, and the
+owner runs it.**
+
+### The defect
+
+`collectors/sec_edgar.py` writes its own headline, because an 8-K is dense legal
+prose with no headline in it:
+
+    {filer name} 8-K filing (Item 5.02): officer or director change
+
+The filer name comes off EDGAR's `display_names`, and the rule that cut EDGAR's
+own ticker and CIK groups off it was:
+
+    re.sub(r"\s*\((?:[A-Z0-9.\-]{1,10})\)\s*", " ", name)
+
+which hunts for one parenthesised ticker-shaped token ANYWHERE in the string. It
+was wrong in two opposite directions at once, and both were live:
+
+1. **It accepts one ticker, not a list.** `(BBBY, BBBY-WT)` has a comma in it,
+   so nothing matched and the block stayed in the name with a doubled space
+   behind it. **126 published headlines** read
+   `BED BATH & BEYOND, INC.  (BBBY, BBBY-WT) 8-K filing ...`.
+2. **It eats a legitimate parenthetical.** `Jerash Holdings (US), Inc.` had
+   `(US)` deleted out of the middle of a real company's name.
+
+### The rule that replaced it, and why it is anchored
+
+EFTS renders one rigid shape and appends its own two groups to the filer's
+conformed name:
+
+    {conformed name}  ({ticker}[, {ticker}...])  (CIK {digits})
+
+joined by exactly **two** spaces — 771 of 771 separators in
+`tests/fixtures/sec_edgar_display_names.json` — and always ending in the CIK
+group. So the parser now reads the string's END, and the two-space delimiter is
+what does the work: a company's own parenthetical is joined by ONE space.
+
+That distinction is not cosmetic, because at one space the two are spelled
+identically. `ACUITY INC. (DE)  (AYI)`, `Super Group (SGHC) Ltd  (SGHC)`,
+`Grayscale Decentraland Trust (MANA)  (MANA)` and
+`Western Asset Diversified Income Fund (WDI)  (CIK 0001819559)` are all real,
+and no test of the TOKEN could ever tell the name's part from EDGAR's. Reading
+the structure can.
+
+### Tested against real names, on purpose
+
+507 real EFTS `display_names` are committed as a fixture, pulled from EDGAR
+full-text search and cross-checked against `company_tickers.json` — never
+invented, because a rule tested only against names somebody made up is a rule
+tested against its own assumptions. Three fabricated CIKs were caught and
+replaced during the writing of the test. The new rule changes the answer for 93
+of the 507: **63** had a ticker list left in, **30** had a legitimate
+parenthetical restored, **0** regressions, and the CIK is identical on all 507.
+`tests/test_sec_edgar_filer_name.py` holds it, including the assertion that
+matters most — the output must be a literal PREFIX of the input, so nothing
+inside the name can ever be deleted again.
+
+### What the already-published rows are, and what they are not
+
+**127 live rows, and every one of them is display-only.** `company`,
+`company_key`, `cik` and `ticker` are not built from this value: `company` is
+what the model read out of the filing itself. Checked across all 127 — not one
+stored company carries a leftover ticker, and the eaten-parenthetical row stores
+its company correctly as `Jerash Holdings (US), Inc.`. So no join key, employer
+page or dedup key was ever built on the mangled name. **Identity-wrong: 0.**
+
+Three shapes, because what is recoverable differs:
+
+| shape | rows | recoverable from the stored string? |
+|---|---|---|
+| ticker block, EDGAR's two spaces | 122 | yes, nothing was deleted |
+| ticker block, delimiter collapsed to one space | 4 | yes |
+| parenthetical eaten | 1 | no, characters are gone |
+
+The four collapsed ones are the model's echo: `build_signal` takes
+`classified.get("headline") or raw.get("headline")`, so where the model repeated
+the collector's headline it sometimes normalised the double space away. The
+correction accepts a one-space block only when it is a ticker LIST, because no
+company is named `Something (CCLD, CCLDO)`; a single collapsed token stays
+unprovable, which is the `ACUITY INC. (DE)` shape and exactly the guess this
+whole change exists to stop making.
+
+### Why a revision and not a correction in place
+
+`headline` is an input to `content_hash` —
+`md5(company_key|pillar|published_date|normalised_headline)`. So `/correct` is
+both the wrong door (it writes `signal_direction` and `talent_readthrough`,
+nothing else) and the wrong shape: an in-place change leaves a row whose stored
+hash disagrees with its own contents, and the next collection of that filing
+hashes to the new value, finds no match, and publishes a second copy.
+`correct_sec_filer_name.py` re-issues each row exactly as `correct_sec_pillar.py`
+does — `/retract`, then `store.revise()`, then `publish()` — and imports that
+script's near-duplicate helpers rather than restating them. Dry run on the
+committed database: **127 to re-issue, 0 duplicates, 0 unprovable, nothing
+written.**
+
+One thing the owner should know before running it: the committed database
+already holds **11 rows revised and unpublished** from some earlier interrupted
+run, and a real run of any of these scripts publishes those too. That is
+pre-existing state, not something this pass created.
+
+### Note for PR #35
+
+PR #35 widens this collector from 20 URLs per run off a relevance-ordered search
+to enumerating Item 5.02 as EFTS's structured item field. It should land AFTER
+the correction runs, not before. Re-enumeration reaches filings whose stored
+headline still carries the mangled name, and their fingerprints have moved;
+`seen_urls` is what stops a second copy, so the widening's safety there rests
+entirely on the URL being byte-identical rather than on the hash.
+
+---
+
 ## 2026-08-13 - a bond is not a round: the capital-event classification. 1.79.0, merged, NOT deployed
 
 **A deterministic classifier at extraction, and a home for its verdict in
