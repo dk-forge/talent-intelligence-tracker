@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-12T17:28:41Z",
-  "last_tick": "2026-08-12T17:28:41Z",
+  "last_dispatch": "2026-08-13T00:39:12Z",
+  "last_tick": "2026-08-13T00:39:12Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -193,6 +193,34 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T00:39:12Z",
+      "history": [
+        {
+          "at": "2026-08-13T00:39:09Z",
+          "detail": "fill hq_country on the 1,666 rows no country filter can return; free, unambiguous names only",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T00:39:12Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260813T003909Z-place-unplaced",
+      "inputs": {
+        "dry_run": "false",
+        "limit": "1633"
+      },
+      "priority": 0,
+      "reason": "fill hq_country on the 1,666 rows no country filter can return; free, unambiguous names only",
+      "requested_at": "2026-08-13T00:39:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "place-unplaced.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-05T12:30:14Z",
