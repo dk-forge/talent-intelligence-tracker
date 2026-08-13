@@ -83,15 +83,39 @@ on:
 permissions:
   contents: write        # commit an undeliverable alert into data/alert_outbox.json
   actions: read          # needed to read the failed run's log
+  checks: read           # check-run annotations: the ONLY place the runner
+                         # records "has exceeded the maximum execution time",
+                         # which is how a self-timeout is told from an eviction.
+                         # Without this the marker cannot be read, every
+                         # cancellation reads as routine, and the self-timeout
+                         # class silently returns to being invisible — the bug
+                         # this closes, with the code to handle it still here.
 
 jobs:
   alert:
-    # `cancelled` is deliberately not alertable, and here that is not a style
-    # choice: this repo cancels runs BY DESIGN — the `talent-collect` lock
-    # evicts a pending run when another is dispatched past it. Alerting on those
-    # would fire constantly and bury the real failures. Evicted writer runs have
-    # their own detection in ops_status.py [2b], which can tell an eviction from
-    # a failure. This cannot, and must not pretend to.
+    # `cancelled` is admitted here and ALMOST ALWAYS discarded by ci_alert.py a
+    # few seconds later. This repo cancels runs BY DESIGN — the `talent-collect`
+    # lock evicts a pending run when another is dispatched past it — and mailing
+    # on those would fire constantly and bury the real failures. Evicted writer
+    # runs have their own detection in ops_status.py [2b], which can tell an
+    # eviction from a failure. So the quiet is kept exactly as it was; it is now
+    # decided on EVIDENCE rather than on the conclusion string.
+    #
+    # WHAT THE CONCLUSION STRING COULD NOT SAY: a job killed by its own
+    # `timeout-minutes` also reports `cancelled`, so the blanket filter made
+    # that class permanently silent in BOTH channels — ci_status.py only reports
+    # a cancelled run that created ZERO jobs (the eviction signature), and a
+    # self-timeout creates jobs. In the sibling repo an archive job died at its
+    # 20-minute ceiling on every run it ever had, for weeks, with no email.
+    # PR #32 gave collect, collect-press, deploy-plugin, retract and tests a
+    # ceiling they never had, and those ceilings are generous precisely because
+    # hitting one was quiet.
+    #
+    # ci_alert.py reads the job's check-run annotations and alerts only when it
+    # finds "has exceeded the maximum execution time of ...", which nothing but
+    # a self-timeout produces. Every eviction returns 0 and says why. The cost
+    # of admitting `cancelled` is one cheap run per cancellation, and Actions
+    # minutes are free on a public repo.
     #
     # The name check is a recursion guard. GitHub does not re-trigger
     # workflow_run for a run this token started, but a mail loop is not a
@@ -99,7 +123,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.name != 'CI failure alert' &&
-       contains(fromJSON('["failure","timed_out","startup_failure","success"]'),
+       contains(fromJSON('["failure","timed_out","startup_failure","cancelled","success"]'),
                 github.event.workflow_run.conclusion))
     runs-on: ubuntu-latest
     timeout-minutes: 10
