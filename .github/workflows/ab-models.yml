@@ -23,6 +23,12 @@ on:
 jobs:
   ab:
     runs-on: ubuntu-latest
+    # Without this the job inherits GitHub's 6-hour default. The `extraction`
+    # run on 2026-08-13 sat in Compare past 17 minutes with no way to tell a
+    # slow provider from a hung one, because a step's logs do not stream until
+    # the step ends. 45 minutes is well above the longest honest run and far
+    # below six hours of a held runner against an unbounded model bill.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
