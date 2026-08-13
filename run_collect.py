@@ -1204,6 +1204,12 @@ def main() -> int:
     if args.offline and not args.dry_run:
         parser.error("--offline is only meaningful with --dry-run")
 
+    if args.offline:
+        # --offline means what it says. `build_signal` otherwise resolves one
+        # employer over the network for a row that would store placeless, and a
+        # dry run whose whole promise is "no network call" must not make one.
+        os.environ.setdefault("TIT_IDENTITY_LOOKUP", "off")
+
     code = run(dry_run=args.dry_run, offline=args.offline,
                run_index=args.run_index, limit=args.limit, source=args.source)
 

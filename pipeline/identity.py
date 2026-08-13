@@ -697,9 +697,20 @@ def _best_candidate(candidates: list[str], props: dict) -> tuple[str | None, int
     British fashion house in France. Search rank breaks ties, so where
     notability says nothing this behaves exactly as before.
 
-    Returns (qid or None, how many candidates were rejected as non-organisations).
+    Returns (qid or None, how many candidates were rejected as
+    non-organisations, how many organisations were in the running).
+
+    That third number is the honest measure of how much this function guessed.
+    `_names_agree` has already thrown out every hit whose name merely BEGINS
+    with the employer's, so two survivors are two organisations with the SAME
+    name, and sitelinks then hand it to the more written-about one. For a
+    listed company that is right. For a seed-stage startup sharing a name with
+    an established firm it is systematically wrong, always in the same
+    direction, and it is confident: the AI video company Synthesia resolves to
+    the Czech chemical works, and Fluidstack to a French namesake. Callers that
+    cannot afford that read it and decline — see `place_if_unplaced`.
     """
-    rejected = 0
+    rejected = organisations = 0
     best, best_rank = None, None
     for index, qid in enumerate(candidates):
         entry = props.get(qid)
@@ -708,10 +719,11 @@ def _best_candidate(candidates: list[str], props: dict) -> tuple[str | None, int
         if not is_organization(entry["roots"]):
             rejected += 1
             continue
+        organisations += 1
         rank = (entry.get("sitelinks") or 0, -index)
         if best_rank is None or rank > best_rank:
             best, best_rank = qid, rank
-    return best, rejected
+    return best, rejected, organisations
 
 
 def _identity_from_props(name: str, candidates: list[str], props: dict) -> Identity:
@@ -724,7 +736,7 @@ def _identity_from_props(name: str, candidates: list[str], props: dict) -> Ident
         ident.detail = "sparql returned nothing"
         return ident
 
-    qid, rejected = _best_candidate(candidates, props)
+    qid, rejected, organisations = _best_candidate(candidates, props)
     if qid is None:
         ident.detail = f"no organisation among {len(candidates)} candidates"
         return ident
@@ -744,6 +756,11 @@ def _identity_from_props(name: str, candidates: list[str], props: dict) -> Ident
     ident.employer_type = employer_type_from(entry.get("instances"), entry["roots"])
     ident.resolved = bool(ident.hq_country or city or ident.employer_type)
     ident.detail = f"wikidata {qid}" + (f", skipped {rejected} non-org" if rejected else "")
+    if organisations > 1:
+        # Recorded, not suppressed. The existing backfill has always taken the
+        # most-written-about of a set of same-named organisations and it keeps
+        # doing so; this only lets a caller SEE that it was a choice.
+        ident.detail += f", {organisations} {AMBIGUOUS_MARKER}"
     return ident
 
 
@@ -848,6 +865,121 @@ def resolve_many(pairs, conn: sqlite3.Connection, *, batch_size: int = 12,
 # Which Signal fields this module is allowed to touch, and where each comes
 # from. Nothing outside this tuple is ever written by enrichment.
 ENRICHED_FIELDS = ("ticker", "cik", "hq_city", "hq_country", "employer_type")
+
+
+# --- The one lookup ingestion is allowed to pay latency for -----------------
+#
+# WHY THIS EXISTS. `enrich()` is cache-only on the ingestion path, for a good
+# reason: a slow or blocked lookup must never cost a record. The cost of that
+# choice was invisible until it was measured, because NOTHING FILLS THE CACHE
+# ON ITS OWN. `--backfill` is a command a human types, no workflow has ever run
+# it, and 12,881 of 16,597 employer keys have no cache row at all. So for a
+# newly seen employer the ingestion lookup is not "usually a hit, sometimes a
+# miss" — it is a guaranteed miss, every time, for ever.
+#
+# What that costs is one specific class of row and nothing else. A row with no
+# `country` and no `hq_country` is not merely thinner than its neighbours: the
+# site's geographic clause is `country IN (...) OR (country IS NULL AND
+# hq_country IN (...))`, so it is invisible to EVERY place filter on a product
+# whose whole organising idea is place. Measured 2026-08-12: 1,666 current rows
+# in that state, and of the 21 US funding events the recall set says we hold,
+# 13 were invisible to a reader filtering the site to the United States.
+#
+# So exactly those rows, and no others, get one resolution attempt with the
+# network on. It is free (Wikidata + SEC, no model, ever), it is cached for
+# that employer for ever, it fails open like everything else here, and it is
+# bounded per process so a bad day cannot turn a collect run into a crawl.
+# Every other caller stays cache-only and pays nothing.
+#
+# A note for whoever reads this next: the fix is NOT to let a model guess a
+# headquarters from a company name. That is the plausible-but-wrong fact this
+# product cannot carry, it is why the ticker authority here is SEC and not an
+# LLM, and a confidently wrong country on a public page is worse than an
+# honest blank.
+PLACEMENT_LOOKUP_BUDGET = int(os.environ.get("TIT_PLACEMENT_LOOKUPS") or 150)
+
+#: Written into `Identity.detail` when more than one organisation carried the
+#: employer's exact name, and read back off the cached row by `is_ambiguous`.
+#: A marker in `detail` rather than a new column because `detail` is already
+#: the place this module records how it got there ("skipped 1 non-org"), it is
+#: already cached, and a new column would need a migration on a table that
+#: exists on every checkout.
+AMBIGUOUS_MARKER = "same-named organisations"
+
+#: Set `TIT_IDENTITY_LOOKUP=off` to keep ingestion strictly cache-only — the
+#: behaviour before 2026-08-12. The offline dry run sets it, and so does the
+#: test suite, because a unit test that reaches Wikidata is not a unit test.
+_LOOKUP_DISABLED = ("off", "0", "no", "false")
+
+_placement_lookups = 0
+
+
+def placement_lookups_used() -> int:
+    """How many network placement lookups this process has spent."""
+    return _placement_lookups
+
+
+def reset_placement_budget() -> None:
+    """Forget the per-process count. For tests, and for a long-lived caller."""
+    global _placement_lookups
+    _placement_lookups = 0
+
+
+def placement_lookup_enabled() -> bool:
+    if (os.environ.get("TIT_IDENTITY_LOOKUP") or "on").strip().lower() in _LOOKUP_DISABLED:
+        return False
+    return _placement_lookups < PLACEMENT_LOOKUP_BUDGET
+
+
+def is_ambiguous(ident) -> bool:
+    """Did more than one organisation of that exact name exist?
+
+    Then the resolution is a notability coin flip and this path declines it.
+    Precision over recall, the same rule `cheap_extract` states: a blank
+    country is honestly blank, and a wrong one is indistinguishable on the page
+    from a right one. Measured on the committed corpus, the wrong ones are not
+    rare or random — BKV Corporation resolves to a Hungarian political party,
+    Capital Bancorp to a Nigerian bank, AWARE, INC. to a French namesake — and
+    they are wrong in the direction of whichever organisation the encyclopedia
+    happens to care about more.
+    """
+    return AMBIGUOUS_MARKER in (getattr(ident, "detail", "") or "")
+
+
+def place_if_unplaced(signal, conn: sqlite3.Connection | None = None) -> list[str]:
+    """Resolve ONE employer over the network, but only to rescue a placeless row.
+
+    Returns the fields it filled, and `[]` for everything else — a row that
+    already carries a country in either column, an ambiguous resolution, a
+    spent budget, a disabled lookup, a missing connection, and every failure
+    mode there is.
+    """
+    global _placement_lookups
+    if conn is None or signal is None:
+        return []
+    if getattr(signal, "country", None) or getattr(signal, "hq_country", None):
+        return []
+    company = getattr(signal, "company", "")
+    if not company:
+        return []
+    if not placement_lookup_enabled():
+        return []
+    _placement_lookups += 1
+    try:
+        ident = resolve(company, conn=conn, allow_network=True)
+    except Exception:
+        return []                                    # rule 3, as everywhere else
+    if is_ambiguous(ident):
+        return []
+    filled = []
+    for field in ENRICHED_FIELDS:
+        if getattr(signal, field, None):
+            continue                                 # rule 1: sourced beats derived
+        value = getattr(ident, field, None)
+        if value:
+            setattr(signal, field, value)
+            filled.append(field)
+    return filled
 
 
 def enrich(signal, conn: sqlite3.Connection | None = None, *,
@@ -995,6 +1127,93 @@ def apply_cache(conn: sqlite3.Connection, *, dry_run: bool = False) -> dict:
     return stats
 
 
+#: The two columns a PLACEMENT pass may write, and no others. `ticker`, `cik`
+#: and `employer_type` are perfectly good values and they are not what a
+#: placeless row is missing; keeping them out means the pass that runs against
+#: history has one job and one failure mode.
+PLACEMENT_FIELDS = ("hq_city", "hq_country")
+
+
+def _employers_with_placeless_rows(conn: sqlite3.Connection,
+                                   limit: int | None) -> list[tuple[str, str]]:
+    """(company_key, company) for employers holding a row with NO place at all.
+
+    Not "missing some identity column" — `_employers_needing_identity` asks
+    that, and most employers keep a NULL `hq_city` for ever because the curated
+    city list is 422 aliases long. This asks the one question a reader can
+    feel: which employers have a current row that no country filter on the site
+    can return. Ordered by how many such rows they hold.
+    """
+    rows = conn.execute("""
+        SELECT s.company_key, MIN(s.company) AS company, COUNT(*) AS n
+          FROM signals s
+         WHERE s.is_current = 1
+           AND s.company_key IS NOT NULL AND s.company_key != ''
+           AND (s.country IS NULL OR s.country = '')
+           AND (s.hq_country IS NULL OR s.hq_country = '')
+      GROUP BY s.company_key
+      ORDER BY n DESC, s.company_key
+    """).fetchall()
+    out = [(r[0], r[1] or r[0]) for r in rows]
+    return out[:limit] if limit else out
+
+
+def place_backfill(conn: sqlite3.Connection, *, limit: int | None = None,
+                   dry_run: bool = False, retry_negative: bool = False,
+                   verbose: bool = True) -> dict:
+    """Fill hq_city/hq_country on rows that carry no place in either column.
+
+    The backward half of `place_if_unplaced`, under the same two rules and for
+    the same reason: free, no model, and an AMBIGUOUS resolution writes
+    nothing. History is where a wrong country does the most damage — it is
+    already on the public page — so this pass declines more readily than the
+    general backfill, not less.
+
+    Reports `declined_ambiguous` separately from `unresolved`, because they are
+    different findings. Unresolved means Wikidata does not know the employer.
+    Declined means it knows two of them and we will not guess which.
+    """
+    ensure_cache(conn)
+    todo = _employers_with_placeless_rows(conn, limit)
+    stats = {"employers": len(todo), "placed": 0, "unresolved": 0,
+             "declined_ambiguous": 0, "rows": {f: 0 for f in PLACEMENT_FIELDS},
+             "samples": [], "declined": []}
+
+    for index, ident in enumerate(resolve_many(todo, conn,
+                                               retry_negative=retry_negative), 1):
+        if is_ambiguous(ident):
+            stats["declined_ambiguous"] += 1
+            if len(stats["declined"]) < 10:
+                stats["declined"].append(ident)
+        elif not ident.hq_country:
+            stats["unresolved"] += 1
+        else:
+            stats["placed"] += 1
+            if not dry_run:
+                for field in PLACEMENT_FIELDS:
+                    value = getattr(ident, field, None)
+                    if not value:
+                        continue
+                    cur = conn.execute(
+                        f"UPDATE signals SET {field} = ? WHERE company_key = ? "
+                        f"AND ({field} IS NULL OR {field} = '')",
+                        (value, ident.company_key))
+                    stats["rows"][field] += cur.rowcount
+            if len(stats["samples"]) < 10:
+                stats["samples"].append(ident)
+        if not dry_run:
+            conn.commit()
+        if verbose and (index % 25 == 0 or index == len(todo)):
+            print(f"  {index}/{len(todo)} employers "
+                  f"({stats['placed']} placed, {stats['unresolved']} unknown, "
+                  f"{stats['declined_ambiguous']} declined)", flush=True)
+        if _consecutive_failures >= _FAILURE_BUDGET:
+            print("  network is failing; stopping early and keeping what resolved",
+                  flush=True)
+            break
+    return stats
+
+
 def backfill(conn: sqlite3.Connection, *, limit: int | None = None,
              allow_network: bool = True, retry_negative: bool = False,
              dry_run: bool = False, verbose: bool = True) -> dict:
@@ -1046,6 +1265,9 @@ def main(argv=None) -> int:
                         help="resolve employers in the database and fill their blanks")
     parser.add_argument("--apply-cache", action="store_true",
                         help="fill blanks from already-cached resolutions; no network")
+    parser.add_argument("--place-unplaced", action="store_true",
+                        help="fill hq_city/hq_country on rows carrying NO place "
+                             "at all; declines every ambiguous name")
     parser.add_argument("--limit", type=int, default=None,
                         help="stop after N employers (they are ordered by row count)")
     parser.add_argument("--dry-run", action="store_true",
@@ -1072,10 +1294,32 @@ def main(argv=None) -> int:
         }, indent=2))
         return 0
 
-    if not (args.backfill or args.apply_cache):
-        parser.error("nothing to do: pass --backfill, --apply-cache or --name")
+    if not (args.backfill or args.apply_cache or args.place_unplaced):
+        parser.error("nothing to do: pass --backfill, --apply-cache, "
+                     "--place-unplaced or --name")
 
     conn = schema.connect(args.db)
+
+    if args.place_unplaced:
+        print("place the unplaced" + (" (dry run)" if args.dry_run else ""))
+        stats = place_backfill(conn, limit=args.limit, dry_run=args.dry_run,
+                               retry_negative=args.retry_negative)
+        conn.commit()
+        print(f"\nemployers with a placeless row : {stats['employers']}")
+        print(f"placed                         : {stats['placed']}")
+        print(f"wikidata does not know them    : {stats['unresolved']}")
+        print(f"declined, two of that name     : {stats['declined_ambiguous']}")
+        for field in PLACEMENT_FIELDS:
+            print(f"rows gained {field:<16}: {stats['rows'][field]}")
+        for label, group in (("placed", stats["samples"]),
+                             ("declined", stats["declined"])):
+            if group:
+                print(f"\n{label}:")
+                for ident in group:
+                    print(f"  {ident.company[:38]:<38} {ident.hq_city or '-':<14} "
+                          f"{ident.hq_country or '-':<3}  {ident.detail}")
+        return 0
+
     label = "apply cached identities" if args.apply_cache else "identity backfill"
     print(f"{label}{' (dry run)' if args.dry_run else ''}")
     if args.apply_cache:
