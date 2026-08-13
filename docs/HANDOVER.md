@@ -55,6 +55,25 @@ Four things a next session needs:
    than assume. And never ask a model where a company is headquartered from its
    name alone — it will answer for all 1,666 and sound certain.
 
+**THE ONE THING THAT NEEDS THE OWNER, and it needs a deploy.** 37 rows are
+live carrying an `hq_country` with no headquarters city behind it, written by
+the first run of the pass before its bar was tightened and cancelled too late
+to stop the commit. Synthesia, the UK company that raised GBP 146m from GV, is
+filed under Czechia on the public page. The correction exists
+(`reverse_cityless_hq.py`, `reverse-cityless-hq.yml`, all 37 named in
+`data/cityless_hq_to_reverse.json`) and it REFUSES to run, because `/enrich`
+cannot blank `hq_country`:
+
+```
+1. tit_clearable_columns() in includes/api.php must return 'hq_city', 'hq_country'
+2. bump Version: and TIT_VERSION, deploy, verify the page
+3. gh workflow run drain-writers.yml -f enqueue=reverse-cityless-hq.yml \
+     -f inputs_json='{"dry_run":"false"}' -f reason='take back the cityless hq'
+```
+
+`tests/test_reverse_cityless_hq.py::test_the_refusal_is_still_correct` goes red
+the moment step 1 lands, which is the signal to do step 3.
+
 **The 3 misfiled rows need a plugin change and this session did not make one.**
 `country_basis=any` in `includes/api.php` is a FALLBACK; making it a real union
 of job location OR employer HQ, as the sibling's already is, would recover

@@ -245,6 +245,7 @@ Queued through `drain-writers`, twice, and it took two more defects with it.
 | rows placed | **93** |
 | placeless employers | 1,633 → 1,545 |
 | rows carried to the live site by `/enrich` | 71 on the first pass |
+| **rows that must be taken back** | **37, and the site cannot yet accept it** |
 | **money spent** | **$0.00** |
 
 The two defects, both found by running it rather than by reading it:
@@ -265,6 +266,51 @@ The two defects, both found by running it rather than by reading it:
 **1,545 employers are still placeless and the free route is finished with
 them.** Wikidata does not know them, and their own coverage does not say where
 they are.
+
+### AND ONE THING WENT WRONG, and it is this session's own doing
+
+The FIRST live run of the pass used the bar before it was tightened, the one
+that declined only ambiguous names. It was cancelled a few minutes in, on
+purpose, because checking it against the US recall set is what turned up
+Premier Lacrosse League as Canada. **The cancellation was correct and it was
+late.** A cancelled job still runs its current step: the commit had already
+happened, and the `/enrich` in the next run then carried the values to the
+live site.
+
+**37 rows carry an `hq_country` with no headquarters city behind it, and they
+are on the public page now.** Some are right (Beretta IT, CyrusOne US). Some
+are not, and one of them is exactly the failure this whole entry is about:
+
+    Synthesia   CZ   the Czech chemical works. The live row is the UK
+                     company's GBP 146m Series E led by GV. Twice.
+    Ash Games   DE   a German namesake
+    CFS         CA   the same employer that also appears as
+                     Commonwealth Fusion Systems, US
+
+Nothing new can join that list — `is_placeable` refuses the whole class — and
+the correction is written, in `reverse_cityless_hq.py` with
+`reverse-cityless-hq.yml` behind it, listing all 37 by content_hash in
+`data/cityless_hq_to_reverse.json`.
+
+**It REFUSES to run, and that refusal is the honest state.**
+`tit_clearable_columns()` returns `funding_amount_usd` and `funding_stage`
+only, so `/enrich` cannot blank `hq_country`: an absent or empty field means
+"we still do not know", deliberately, so a gap can never erase a known value.
+There is no other door. A corrected database in front of an uncorrected page
+is the divergence `correct_city_country.py` already refuses to create, so this
+refuses too, exits 2, and prints what has to change:
+
+    1. tit_clearable_columns() must return 'hq_city' and 'hq_country'.
+    2. Bump Version: and TIT_VERSION, deploy, verify the page.
+    3. Queue reverse-cityless-hq.yml with dry_run=false.
+
+`test_the_refusal_is_still_correct` goes RED the moment somebody widens that
+allowlist, which is exactly when the pass becomes runnable.
+
+**The lesson, and it is not the one it looks like.** The bar was measured
+before it shipped and the measurement caught the defect; what failed was
+running the pass while the measurement was still being read. A cancelled
+writer is not an unwritten one.
 
 ---
 
