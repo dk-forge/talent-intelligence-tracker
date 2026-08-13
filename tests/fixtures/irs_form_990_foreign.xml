@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A foreign filer, which is not a rare shape: Oxford University Press, the
+     University of Calgary and the Hebrew University of Jerusalem all file a US
+     Form 990 and all appear above the revenue floor in the batch this source
+     was measured on. Assuming the United States would put them on the American
+     map. Below the default revenue floor on purpose as well, so one fixture
+     covers both guards. -->
+<Return returnVersion="2023v6.0" xmlns="http://www.irs.gov/efile">
+  <ReturnHeader>
+    <TaxPeriodEndDt>2024-12-31</TaxPeriodEndDt>
+    <ReturnTypeCd>990</ReturnTypeCd>
+    <Filer>
+      <EIN>980123456</EIN>
+      <BusinessName>
+        <BusinessNameLine1Txt>OVERSEAS RESEARCH TRUST</BusinessNameLine1Txt>
+      </BusinessName>
+      <ForeignAddress>
+        <AddressLine1Txt>1 Example Road</AddressLine1Txt>
+        <CityNm>Oxford</CityNm>
+        <CountryCd>UK</CountryCd>
+      </ForeignAddress>
+    </Filer>
+  </ReturnHeader>
+  <ReturnData>
+    <IRS990>
+      <TotalEmployeeCnt>478</TotalEmployeeCnt>
+      <Form990PartVIISectionAGrp>
+        <PersonNm>Somebody Else</PersonNm>
+        <TitleTxt>Chief Executive</TitleTxt>
+        <OfficerInd>X</OfficerInd>
+        <ReportableCompFromOrgAmt>817491</ReportableCompFromOrgAmt>
+      </Form990PartVIISectionAGrp>
+      <CYSalariesCompEmpBnftPaidAmt>31000000</CYSalariesCompEmpBnftPaidAmt>
+      <CYTotalRevenueAmt>40750000</CYTotalRevenueAmt>
+    </IRS990>
+  </ReturnData>
+</Return>

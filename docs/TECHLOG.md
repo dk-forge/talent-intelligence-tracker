@@ -347,6 +347,85 @@ every open PR and is not a subagent's decision. The options, for the owner:
    and GitHub keeps unreachable objects reachable by SHA until a support-side
    GC. Highest cost, incomplete benefit.
 
+## 2026-08-13 - Form 990 built and shipped dormant; the receipt was never missing, it was one route away
+
+**No plugin change, no version bump, no deploy. $0.00 spent: no model was
+called, and `collectors/irs_form_990.py` cannot call one.** Suite 3,786 passed.
+Full write-up in [SOURCE-irs-form-990.md](SOURCE-irs-form-990.md).
+
+`docs/SCOPE-us-pay-filings.md` ranked IRS Form 990 first and blocked it on "no
+verified reader-facing URL for an individual filing". That was right about the
+routes it tried and wrong about the source, and the difference is worth
+recording because the same shape will recur.
+
+**What was actually dead.** The documented per filing XML path 404s, verified
+on object IDs taken from a batch zip that contains the file. The AWS S3 bucket
+`irs-form-990` is publicly listable and returns **zero keys** with
+`IsTruncated=false`, so that route is gone rather than moved. `/app/eos` 403s
+to a descriptive agent and to a browser User-Agent alike.
+
+**What the scoping pass could not have found from curl.** Driving the interface
+in a real browser shows it renders fine and that its organisation page has no
+URL at all: `location.href` on the details view is
+`https://apps.irs.gov/app/eos/details/` with no parameters, state held server
+side. So the page a reader would supposedly open was never linkable. But the
+page loads its content from `GET /teos/details/returnsSearch/{EIN}`, which
+answers our own descriptive User-Agent with HTTP 200 and returns
+`STATICFILEPATH` per tax period: the filed return as a PDF under
+`/pub/epostcard/cor/`, which also answers 200. Neither is behind the wall that
+stops `/app/eos`.
+
+**The filename cannot be composed and that is a finding, not an inconvenience.**
+`310707369_202407_990_2025081423655359.pdf` ends in an IRS posting date plus
+`RETURN_ID`. The return id is in `index_2025.csv`; the posting date is in no
+published file (`SUB_DATE` is the year alone, and the return's own `ReturnTs`,
+`BuildTS`, `SignatureDt` and DLN all encode different days). So the URL is
+looked up once per organisation and a filing with no copy posted is dropped
+rather than cited to the 210MB batch zip. Receipt rate: 100/100 for index year
+2025, 55/60 for 2024, **19/100 for the open 2026**, which is the measurement
+behind `latest_complete_year()`.
+
+**Two defects the live dry run caught and no amount of reading would have.**
+
+- Matching `RETURN_TYPE` on the prefix `990` also matches `990T`, the unrelated
+  business income tax return: a different form with no Part VII, filed for the
+  same tax period by many health systems. Eleven rows in the first dry run,
+  nine of them McLaren hospitals, cited a real IRS document that does not
+  contain the row's figure. Now matched against `{"990", "990O"}` exactly, and
+  where two copies exist for one period the most recently posted one wins.
+- The largest Part VII figure is not always a person. The Bank of America
+  Charitable Gift Fund's 2023 return carries $20,052,864 against
+  `<BusinessName>BANK OF AMERICA` with `InstitutionalTrusteeInd` set: a
+  corporate trustee's fee, in the same column as an officer's salary, forty
+  times the largest real pay figure in the batch. The return draws the
+  distinction itself, so the parser reads it and skips any group without a
+  `PersonNm`. Five filings in one batch were nothing but such rows.
+
+**The join was measured on the wrong population and is still zero.** The
+scoping pass ran 100 random filers and got 0. Re-run on what would actually
+ship: 0 of 96 at 1,000 employees, 0 of 227 at 500, 1 of 526 at 250 - and that
+one is `Midwest Energy Inc`, a Kansas electric cooperative colliding with a
+different `Midwest Energy Ltd` we hold. **No EIN column was added to
+`employer_identity`:** there is no second EIN carrying source built, so the
+column would join one source to nothing, and the EIN survives inside the
+receipt URL so the decision costs nothing to reverse.
+
+**Sizing.** 376,920 long form 990s a year unfiltered is thirteen times the
+database. At `CYTotalRevenueAmt >= $100M`, measured by running the shipped
+parser over two whole batches (31,706 returns, 8.4% of the year, 147 storable,
+0.464%), it is about 1,750 rows a year: rewards_comp 30.1% -> 34.0%. A three
+year backfill would take it to 40.7% and is deliberately not the default.
+Revenue rather than `TotalEmployeeCnt` because that field counts seasonal
+staff: at a 1,000 employee floor 40% of the population is YMCAs and Goodwills,
+and at the $100M revenue floor it is 20.4% hospitals, 16.8% universities and
+2.7% research institutes.
+
+**Dormant.** Registered in `run_collect.SOURCES`, excused from the sources page
+by `tests/test_sources_page.py::_DORMANT_COLLECTORS`, scheduled by nothing.
+Arming it costs ~3.5GB of batch zips a year plus ~1,750 lookups, wants an
+annual cadence, and needs a `staleness.py` ceiling that matches that cadence
+rather than the daily rotation's.
+
 ---
 
 ## 2026-08-13 - the US was never in a late bucket. The country-need remedy is aimed at the wrong mechanism
@@ -509,6 +588,8 @@ grows every time the sweep is run. Two tests pin it.
 
 `python3 -m analysis.ranking.gold_bucket --report` reproduces every number above
 from the committed `data/gold_bucket_sweep.json` without a network call.
+
+---
 
 ## 2026-08-13 - the leadership parser closed zero because it was never shown a sentence it could read; the 25.9% gate ERROR was one outage, already fixed
 
