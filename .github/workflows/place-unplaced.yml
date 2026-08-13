@@ -1,0 +1,112 @@
+name: place-unplaced
+
+# Give a place to the rows that have none, from the free identity spine.
+#
+# WHY. The site's geographic clause is
+#     country IN (...) OR (country IS NULL AND hq_country IN (...))
+# so a row holding neither is invisible to every place filter on a product
+# whose whole organising idea is place. Measured 2026-08-12: 1,666 current
+# rows, held by 1,633 employers, and 13 of the 21 US funding events the sealed
+# US recall set says we hold. A reader filtering the site to the United States
+# saw 5 of those 51 events rather than 21.
+#
+# WHAT IT COSTS. Nothing. No model is called anywhere on this path: the
+# authorities are SEC company_tickers.json and Wikidata, both free and keyless,
+# and `pipeline/identity.py` forbids an LLM by design — a model guessing a
+# headquarters from a company name is the plausible-but-wrong fact this product
+# cannot carry, and a confidently wrong country on a public page is worse than
+# an honest blank.
+#
+# WHAT IT REFUSES. Every name that resolves to more than ONE organisation.
+# `_names_agree` has already dropped every hit whose name merely begins with
+# the employer's, so two survivors are two organisations with the SAME name and
+# notability decides — which for a seed-stage startup sharing a name with an
+# established firm is wrong, systematically, and confidently. Those rows stay
+# blank and the run says how many.
+#
+# Queue it, never dispatch it (CLAUDE.md, "Never dispatch a database writer
+# directly"):
+#
+#   gh workflow run drain-writers.yml -f enqueue=place-unplaced.yml \
+#     -f inputs_json='{"dry_run":"false"}' \
+#     -f reason='the 1,666 rows no country filter can return'
+#
+# Bounded and safe to interrupt: every employer commits as it resolves, a
+# resolution is cached for ever, and a second run skips what is already placed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would be placed and write nothing'
+        type: boolean
+        default: true
+      limit:
+        description: 'Stop after N employers (blank = all of them)'
+        type: string
+        default: '400'
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db.
+  group: talent-collect
+  cancel-in-progress: false
+
+jobs:
+  place:
+    runs-on: ubuntu-latest
+    # The floor is `wbsearchentities`, which has no batch form: one search per
+    # employer at three requests a second, plus one SPARQL call per twelve.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Place the unplaced
+        run: |
+          set -o pipefail
+          ARGS="--place-unplaced"
+          if [ "${{ inputs.dry_run }}" != "false" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ -n "${{ inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ inputs.limit }}"; fi
+          python -m pipeline.identity $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: place the unplaced $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Rebase, never reset-and-copy: this fills blank columns in place and
+          # a copy would discard every row anyone else pushed while it ran.
+          git pull --rebase --autostash origin main
+          git push
+
+      # hq_city and hq_country are already in tit_enrichable_columns(), so the
+      # values reach the live table through the route that exists. Without this
+      # step the local database is right and every reader still sees a row with
+      # no place, which is the state this whole workflow is about.
+      - name: Carry the values to the site
+        if: ${{ inputs.dry_run == false }}
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python - <<'PY'
+          import sys
+          from pipeline import publish, schema
+          result = publish.enrich_published(schema.connect())
+          print("enrich:", result)
+          if result.get("sent") and not result.get("updated"):
+              print("::error::sent rows but updated none - check /enrich and the hashes")
+              sys.exit(1)
+          PY

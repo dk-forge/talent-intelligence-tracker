@@ -2,6 +2,62 @@
 
 ---
 
+## 2026-08-12: a US reader sees 5 of the 21 events we hold. The ingest cause is fixed; the backfill is queued, not run.
+
+Branch `fix/place-the-unplaced`. **No plugin change, no version bump, no
+deploy.** No model was called and no money was spent. Full reasoning and every
+number is in TECHLOG under this date.
+
+**The headline: 5 of 51.** Applying the plugin's own clause — `country IN
+('US') OR (country IS NULL AND hq_country IN ('US'))` — to the 21 US funding
+events the sealed recall set says we hold: 5 visible, 13 carrying no place at
+all, 3 filed under the publisher's country (BR, ZA, ZA). Site-wide the
+placeless state is 1,666 rows held by 1,633 employers.
+
+Four things a next session needs:
+
+1. **The ingest cause was a cache nothing fills.** `build_signal` consulted the
+   employer identity cache and never filled it; no workflow has ever run
+   `python -m pipeline.identity --backfill`, so 12,881 of 16,597 employer keys
+   have no cache row and the lookup was a guaranteed miss for every new
+   employer. Fixed by `identity.place_if_unplaced` — one free network
+   resolution, but only for a row that would otherwise carry no country in
+   either column. Red-then-green in
+   `tests/test_unplaced_rows_get_placed.py`.
+2. **Do not let the identity spine loose on history without the ambiguity
+   guard.** Measured: it resolves Synthesia to the Czech chemical works,
+   Fluidstack to a French namesake, BKV Corporation to a Hungarian political
+   party. Two organisations of the same name is a notability coin flip, and it
+   is now declined on both placement paths. The general `--backfill` is
+   unchanged.
+3. **The backfill is a QUEUED job, and it has not been run.**
+
+   ```bash
+   gh workflow run drain-writers.yml -f enqueue=place-unplaced.yml \
+     -f inputs_json='{"dry_run":"false","limit":"1633"}' \
+     -f reason='the 1,666 rows no country filter can return'
+   ```
+
+   Dry run, over the first 450 of 1,633 employers: 56 placed (12.4%), 390
+   unknown to Wikidata, 4 declined as ambiguous. Cost $0.00. It fills
+   `hq_city`/`hq_country`, both already in `tit_enrichable_columns()`, so the
+   values reach readers through `/enrich` with **no deploy**.
+4. **The $2.14 the owner authorised was NOT spent, and the honest next step is
+   $0.13.** No `OPENROUTER_API_KEY` exists in a subagent session, so a paid
+   re-read must run on Actions. Before buying 1,666 of them, buy 100: a free
+   probe of the 16 US rows found 6 of them **robots-disallowed** and 5 whose
+   page states no place, so the fetchable yield is the thing to measure rather
+   than assume. And never ask a model where a company is headquartered from its
+   name alone — it will answer for all 1,666 and sound certain.
+
+**The 3 misfiled rows need a plugin change and this session did not make one.**
+`country_basis=any` in `includes/api.php` is a FALLBACK; making it a real union
+of job location OR employer HQ, as the sibling's already is, would recover
+them. Stated, not made: a plugin change is a deploy, and the deploy is the
+owner's call.
+
+---
+
 ## 2026-08-12: the 30 US misses are placed. It is the budget. ON A BRANCH, NOT MERGED, NOT DEPLOYED.
 
 Branch `triage/us-recall-misses`, stacked on `measure/us-recall` (PR #15), which

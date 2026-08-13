@@ -13,6 +13,196 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-12 - the rows we hold and no reader can find: 5 of 51, and the cache nothing fills
+
+**No deploy, no plugin change, no version bump. No model was called and no
+money was spent: every number below is free, and the one paid pass this needs
+is priced and NOT run.**
+
+PR #15 found that 13 of the 21 US funding events we hold carry no country. This
+places that finding, fixes the ingest path it keeps coming from, and says
+plainly which rows cannot be filled at all.
+
+### The number the owner asked about
+
+Applying the plugin's own geographic clause — `country IN ('US') OR (country IS
+NULL AND hq_country IN ('US'))` — to the 21 events the sealed US recall set
+says we hold:
+
+| | events |
+|---|---:|
+| a US-filtered reader sees | **5 of 51** |
+| held, but carrying NO place in either column | 13 |
+| held, but filed under another country | 3 |
+
+The 13 are Mirendil, Rime, AlphaSense, Digital Asset, General Intuition,
+Premier Lacrosse League, Gauntlet, Harmony, Artis, TerraFirma, Throne Science,
+Databento and Buildforce. The 3 are Fish Audio (BR), Standard Bots (ZA) and
+Allen Control Systems (ZA) — the publisher's country, which is what
+`prompts.py` defines `country` to mean, so the model did as it was told.
+
+Site-wide the same state is **1,666 current rows**, held by **1,633 employers**
+— close to one row each, which is itself the finding: these are employers seen
+once.
+
+### Where the place went. Three parts, and none of them is a validation bug
+
+**It is never extracted.** A free scan of `headline + summary` over all 1,666
+— country names, US states, and the `X-based` frame the deterministic extractor
+already reads — placed exactly **zero** of them. The stored columns are
+exhausted. `raw_text` is not persisted, so the sentence that might have carried
+a place is gone.
+
+**887 of the 1,666 never met a model at all.** They carry
+`cheap_extract.EVIDENCE_NOTE`: the free deterministic extractor closed them,
+and it returns `headquarters_city` and `headquarters_country` as the empty
+string by construction. That is correct — a regex cannot know where an employer
+is seated — but it means 93% of everything that path stores (887 of 950 rows)
+comes out with no place.
+
+**The one free mechanism that CAN answer it was wired to a cache nothing
+fills.** `validate.build_signal` calls `identity.enrich(signal, conn)`
+cache-only, with the comment "the cache is filled by `python -m
+pipeline.identity --backfill`". That command has never been run by any
+workflow. There is no `identity` job in `.github/workflows/`. So **12,881 of
+16,597 employer keys have no cache row**, and the ingestion lookup for a newly
+seen employer is not usually a miss — it is a guaranteed miss, every time, for
+ever. The row stores placeless and nothing ever comes back for it.
+
+That is why the share is going UP and not down: 4.8% of July's rows are
+placeless, and 8.8% of August's.
+
+### The forward fix
+
+`identity.place_if_unplaced`, called from `build_signal` immediately after the
+cache-only `enrich`. A signal that would be stored with no country in EITHER
+column buys ONE resolution with the network on. Everything else stays exactly
+as it was.
+
+- Free. SEC + Wikidata, no model, ever. `test_the_spine_is_never_allowed_to_ask_a_model`
+  fails if a future edit reaches for the classifier to fill a headquarters from
+  a company name.
+- Bounded: `PLACEMENT_LOOKUP_BUDGET`, 150 per process, so an unusual day cannot
+  turn a collect run into a crawl.
+- Fail-open, like every other line in `identity.py`. A dead Wikidata is a blank
+  column and never a lost record.
+- `TIT_IDENTITY_LOOKUP=off` restores the previous behaviour exactly.
+  `run_collect --offline` sets it, because a dry run that promises no network
+  call must not make one, and `tests/conftest.py` sets it for the suite —
+  five existing tests hand `build_signal` a real connection and any of them
+  could otherwise reach the open internet.
+
+RED before, on the real assertion:
+
+    AssertionError: 'Mirendil Raises $200 Million Seed Round' stored with
+    country=None and hq_country=None, so a reader filtering the site to the
+    United States cannot see it
+
+`tests/test_unplaced_rows_get_placed.py`, 11 tests, green after; full suite
+3,693 passed, 1 skipped, 427 subtests.
+
+### The guard that stops the cheap fix becoming the expensive mistake
+
+Turning the identity spine on over this population was measured before it was
+shipped, and the first reading was a warning rather than a result. Over 300
+placeless employers it resolves 57 — and the sample includes the AI video
+company **Synthesia** resolved to the Czech chemical works, **Fluidstack** to a
+French namesake, **BKV Corporation** to a Hungarian political party and
+**Capital Bancorp** to a Nigerian bank.
+
+That is not random error and it does not average out. `_names_agree` already
+throws away every hit whose name merely BEGINS with the employer's, so two
+survivors are two organisations with the **same** name, and `_best_candidate`
+then hands it to whichever one the encyclopedia has more articles about. For a
+listed company that is right. For a seed-stage startup sharing a name with an
+established firm it is wrong, systematically, in one direction, and
+confidently. On the public page it would be indistinguishable from a right
+answer — and this project has already relabelled three rows into the wrong
+country once.
+
+So `_best_candidate` now returns how many organisations were in the running,
+`_identity_from_props` records it in `Identity.detail` (which is cached, so the
+marker survives a cache hit), and **`place_if_unplaced` declines every
+ambiguous name.** The general `--backfill` is unchanged and still takes the
+best candidate; only the placement paths refuse. Precision over recall, the
+rule `cheap_extract` already states: a blank country is honestly blank.
+
+### The backward half, and its dry run
+
+`python -m pipeline.identity --place-unplaced`, and `place-unplaced.yml` to run
+it — queued through `drain-writers`, never dispatched. It fills `hq_city` and
+`hq_country` only, only on rows carrying no place at all, only from
+unambiguous resolutions, and then pushes them with `publish.enrich_published`:
+both columns are already in `tit_enrichable_columns()`, so **no plugin change
+and no deploy is needed for the values to reach a reader.**
+
+DRY RUN, measured on a copy of the committed database, ordered by how many
+placeless rows each employer holds, `--retry-negative` so cached negatives are
+re-asked:
+
+| | employers | share |
+|---|---:|---:|
+| would be placed | 56 | 12.4% |
+| Wikidata does not know them | 390 | 86.7% |
+| declined, two organisations of that name | 4 | 0.9% |
+| **read so far** | **450 of 1,633** | |
+
+Cost: **$0.00.** No model is on this path.
+
+**So the free route places roughly one placeless employer in eight, and that is
+the honest ceiling on free.** Wikidata does not know seed-stage private
+companies; it was never going to.
+
+### What CANNOT be filled, and what the paid pass would buy
+
+Re-reading the source document is the only route left, and it was probed on the
+16 US rows above, free and deterministic (dateline, then the `X-based` frame):
+
+| outcome | n |
+|---|---:|
+| placed from the publisher's own text | 2 (Rime → San Francisco, Allen Control Systems → Austin) |
+| fetched, and the page states no place | 5 |
+| **robots.txt disallows the fetch** | **6** |
+| HTTP 403 / 404 | 3 |
+
+**Six of sixteen may not be fetched at all**, and that is a ceiling no budget
+moves: we do not crawl what a publisher's robots.txt refuses and we do not
+bypass a paywall. Those rows stay null, permanently, unless the same event is
+found through another document.
+
+The owner authorised about **$2.14** for a paid re-read (1,674 rows at
+$0.00128). **It was not spent, and nothing about it is estimated as if it
+had been.** Two reasons, both plain: this environment holds no
+`OPENROUTER_API_KEY`, so a paid pass must run on Actions; and the fetchable
+half of the sample suggests the document often does not state a place either,
+which is a thing to measure on a priced sample before buying 1,666 of them. The
+next session's first move should be a 100-row paid sample at about **$0.13**,
+which prices the whole pass honestly instead of assuming it.
+
+**The one thing that must NOT be done to close this gap is ask a model where a
+company is headquartered from its name alone.** It would answer for all 1,666,
+it would sound certain, and nobody could tell the wrong ones from the right
+ones.
+
+### The 3 filed under another country: a plugin change nobody may make from here
+
+They carry `country` = BR/ZA, so the fallback clause never reaches
+`hq_country` and filling HQ does not recover them. Recovering them means
+`country_basis=any` in `includes/api.php` becoming a real union of job location
+OR employer HQ — which is what the sibling layoff tracker's `any` already is —
+and that is a plugin change, and a plugin change is a deploy, and the deploy is
+the session's call and not a delegated one. **Stated, not made.**
+
+### Reader-visible, before and after
+
+**Before: 5 of 51.** After this lands and the placement pass runs, the honest
+statement is a range and not a number: the 3 misfiled need the plugin change
+above, 6 of the 16 sources may never be fetched, and the free spine places
+about one employer in eight. The measurement that settles it is
+`measure_recall.py --family us` re-run after the pass, and it costs nothing.
+
+---
+
 ## 2026-08-12 - the allowance goes to $18, and the measurement says that is not enough
 
 The owner raised this tracker's OpenRouter key to a **$30/month provider limit**

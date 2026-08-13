@@ -840,6 +840,21 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # passes `conn` this line does nothing at all.
     identity.enrich(signal, conn)
 
+    # AND THEN, for one class of row only, the cache is allowed to be wrong.
+    #
+    # "Cache-only, the backfill fills the cache" was true of the mechanism and
+    # false of the world: no workflow has ever run that backfill, so 12,881 of
+    # 16,597 employer keys have no cache row and a newly seen employer's lookup
+    # is a guaranteed miss rather than an occasional one. A row that comes out
+    # of here with no `country` AND no `hq_country` is invisible to every
+    # geographic filter the site has — 1,666 current rows, and 13 of the 21 US
+    # funding events the recall set says we hold. So that row, and only that
+    # row, buys one free network resolution: no model, no money, cached for
+    # that employer for ever, bounded per process, and fail-open like every
+    # other line in identity.py. `TIT_IDENTITY_LOOKUP=off` restores the old
+    # behaviour exactly, and the offline dry run and the test suite set it.
+    identity.place_if_unplaced(signal, conn)
+
     # Recomputed after enrichment, because a ticker or CIK the identity spine
     # filled is exactly the "large or well-known employer" input the rule reads.
     # Computing it once before this line would grade a row on less than we know.
