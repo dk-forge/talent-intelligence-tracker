@@ -13,6 +13,207 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - the leadership parser closed zero because it was never shown a sentence it could read; the 25.9% gate ERROR was one outage, already fixed
+
+**No plugin change, no version bump, no deploy. Nothing was spent: no
+`OPENROUTER_API_KEY` exists in a subagent session, so every number below is
+read out of committed state.** Reproduce all of it with:
+
+```bash
+python3 analysis/throughput/measure_levers.py     # read-only, no keys
+```
+
+### The gate ERROR rate is not a standing loss, and the triage already happened
+
+`docs/MEASURE-throughput-levers.md` (PR #26, still open) flags **2,356 of 9,089
+candidates at gate `ERROR`, 25.9%**, as the cheapest item on the board and says
+it should be triaged before any lever is built. The count is right. The reading
+is not.
+
+| day | total | YES | NO | ERROR | ERROR% |
+|---|---:|---:|---:|---:|---:|
+| 2026-08-01 | 2,426 | 1,098 | 1,328 | 0 | **0.0%** |
+| 2026-08-02 | 3,514 | 1,504 | 2,010 | 0 | **0.0%** |
+| 2026-08-03 | 3,149 | 418 | 375 | **2,356** | **74.8%** |
+
+Every single one falls on 2026-08-03, between 07:00 and 21:00 UTC. That is the
+provider outage this repo already diagnosed and already guarded, in the entry
+above dated 2026-08-04: `classify.gate_verdict` returns `ERROR` on
+`Throttled`/`ClassifyError`, `run_collect`'s `ClassifyError` arm counts it with
+the DEFERRALS and **deliberately does not mark the URL seen**, and
+`run_outcome(mostly_errored=)` turns a run that could not judge its candidates
+into a failure instead of a quiet one. Those candidates were not lost. They
+were deferred, unmarked, and the next healthy run picks them up.
+
+**So the 25.9% is a three-day window that contains one bad day, and there is no
+bug to fix and no reads to win.** Worth saying plainly because the doc ranks it
+above both levers on the strength of that number, and a session reading the doc
+alone would go looking for a defect that was closed the day after it happened.
+
+### Why `_parse_leadership` closed zero for the entire priced window
+
+Shipped 2026-07-29, ran the whole window, closed **zero** of 1,328 google_news
+leadership rows. Replaying it over the 1,085 stored leadership rows that join to
+their own ledger line: **1,033 of them, 95.2%, die at
+`_LEADERSHIP_SHAPE.match(headline)`** — the English appoints/names/taps/hires
+verb list. The languages behind them are French 140, Spanish 118, Swedish 102,
+Portuguese 85, Italian 71, German 68, Korean 61, Hebrew 54, Turkish 54, Dutch
+36, against English 144.
+
+Nothing was wrong with the parser. `cheap_extract` rule 4 says English only,
+deliberately, and 64.3% of everything that reaches paid extraction is not
+English. The parser was never shown a sentence it could read, and no amount of
+tuning it would have changed that.
+
+### `pipeline/leadership_intl.py` — the same parser, eight more grammars
+
+French, Spanish, Portuguese, Italian, German, Swedish, Dutch, Turkish. Only the
+chief-executive seat, because `directeur général`, `amministratore delegato`,
+`consejero delegado`, `vd`, `Vorstandsvorsitzender` and the literal `CEO` all
+mean one seat and one title label, while `Geschäftsführer` of a subsidiary and
+`genel müdür yardımcısı` shade into descriptions exactly as the English list's
+"head of" and "VP" do.
+
+**Rule 4 is moved, not removed.** Korean, Hebrew, Japanese and Vietnamese
+appointments — 176 of the 922 google_news leadership rows — still take the paid
+path. A Latin-script name grammar has nothing to say about them, and getting
+them wrong is worse than paying for them. The rule is now enforced by a module
+boundary and a `LANGUAGES` set rather than by an early return.
+
+**Measured against the paid model's own reading of the same URLs**, over the
+124 candidates the grammar closes:
+
+| | | Wilson 95% |
+|---|---:|---|
+| employer key agrees with the model | **121/124, 97.6%** | [93.1, 99.2] |
+| person agrees | **124/124, 100%** | [97.0, 100.0] |
+| pillar agrees | **124/124, 100%** | [97.0, 100.0] |
+
+All 124 were hand-read, and all three disagreements are the parser being MORE
+literal than the model's `company` column and agreeing with the model's own
+summary: `Colliers France` vs `Colliers`, `Siemens USA` vs `Siemens`,
+`Orchestre National de Lille` vs `l'Orchestre National de Lille`. **Zero wrong
+extractions.**
+
+**Every decline in the test file is a real headline that parsed WRONG at some
+point while this was being measured**, and each one bought a specific guard:
+
+- `Ecotel-CEO Markus Hendrich tritt zurück` — a departure read as an
+  appointment inverts the record. `tritt zurück`, `quitte ses fonctions`,
+  `dimite`, `avgår`, `istifa` all decline. 76 of 1,085.
+- `Marc Schuler wird CEO bei Blaser Swisslube ab März 2026` — the stated start
+  month welded itself onto the employer's name. The row has no column for a
+  start date, so rule 3 declines it.
+- `Swisscom Banking-Spezialist wird CEO von Inacta` — German capitalises every
+  noun, so two capitalised tokens are not a name. `_DESCRIPTOR_PARTS` is
+  checked against every hyphen-separated part of a token, which catches
+  `Banking-Spezialist` without rejecting `Jean-Baptiste`.
+- `Diego Escalada, nuevo CEO de Alkemy en España` and `Cambio al vertice in
+  Alstom: Martin Sion...` — a LOWERCASE token that is not a name particle means
+  the span crossed a clause boundary. That one check fixed five separate
+  disagreements and took the employer agreement from 87.5% to 97.6%.
+- `CHRISTOPHE PINARD-LEGRY NOMMÉ ... DE CANA L EUROPE` — an all-caps headline
+  erases every capitalisation boundary the span checks depend on, and this one
+  also carries the publisher's own typo.
+- The German genitive `des` is deliberately absent from the pattern: `CEO des
+  Basler Energieversorgers IWB` takes a descriptive noun phrase as readily as a
+  name, and no rule can tell them apart in that language.
+
+**No place is ever claimed.** These grammars have no place span they could read
+without guessing, so `city` and `country` are empty and
+`identity.place_if_unplaced` does the one free resolution it already does. An
+invented country is the defect that had a US-filtered reader seeing 5 of 51
+events, and a blank is honest.
+
+### What lever 1 is actually worth, and it is a quarter of what was modelled
+
+| | doc's figure | measured here |
+|---|---:|---:|
+| share of paid extraction volume closed for $0 | 24.7% MODELLED | **5.5% MEASURED** |
+| $/month at today's caps | $3.66 | **$0.99** |
+| extra reads/day | 92 | **25** |
+
+167 of the 3,020 candidates that reached paid extraction in the window. The doc
+modelled leadership closing at funding's own measured 53.8%; a precision-first
+grammar reaches 11.4% of leadership volume, and 18.3% of the volume in a
+language it reads at all. The gap is not tuning — it is the 37.6% in an
+unsupported script, the 25.4% whose sentence shape nobody has written a pattern
+for, and the 7.0% that are departures and must decline.
+
+A free close skips the GATE as well as the extraction, because `cheap_extract`
+runs before `classify.classify` and the gate lives inside it, so the saving is
+`5.5% x ($14.82 extraction + $3.09 gate)`.
+
+### Lever 2 is real, measured, and worth $0 once lever 1 exists
+
+What the 612 wasted extractions actually are: **372 of 612 (60.8%) are
+chief-executive appointments and only 87 (14.2%) carry a currency amount at
+all.** The cross-language duplicate is an appointment, not a round — PayPal's
+appointment of Enrique Lores was bought twice more after it was stored, once in
+Turkish and once in Spanish; Disney's of Josh D'Amaro three times.
+
+`dedupe.leadership_event_duplicate` matches **employer plus person, both
+required**, against the stored row's own English prose rather than a column,
+because there is no person column. That is exactly what makes it work across
+languages: "Josh D'Amaro" is spelled the same in the Italian headline and the
+English summary while every other word differs. Employer alone would collapse a
+CEO in March and a CFO in April, which are two records.
+
+**And then it saves nothing.** 15 of the 15 correct skips are also closed for
+$0 by lever 1, and a free close already costs nothing — no gate, no extraction,
+no read — after which the existing content-hash and fuzzy layers drop the row.
+The doc's separate $3.01/month for lever 2 does not survive lever 1 being
+built. The two were called "one piece of work"; they are closer than that. They
+are one population.
+
+It is kept because it is where the code belongs and because it records the skip
+as a duplicate rather than as a dedup-suppressed store. Not because it saves
+money, and the module says so.
+
+### The false-drop audit, which is why the pre-check is in SHADOW
+
+The precondition neither tracker had done. Ground truth is the ledger's own
+terminal outcome: `duplicate` means we did hold it and skipping is the saving;
+`stored` means we did not and skipping is a coverage loss that is **invisible
+by construction** once it ships, because extraction never runs and nothing
+downstream can contradict the decision.
+
+Replayed with the candidate's own row excluded and every row captured after it
+excluded:
+
+| | |
+|---|---:|
+| correct skips (it WAS already held) | **15** |
+| false drops (it was NOT held) | **1** |
+| false-drop rate | **6.2%, 1/16, Wilson [1.1, 28.3]** |
+
+The one false drop is `Norbert Pulin nommé Directeur Général de Colliers
+France`, matched against `Réseau de conseil immobilier : Norbert Pulin nommé
+Directeur Général de Colliers France`. Same person, same employer, same seat.
+It is the same appointment, and the ledger label is wrong: the pre-check caught
+a duplicate the existing layers missed. So the **coverage-losing** false-drop
+rate hand-reads as **0 of 16**.
+
+**0/16 has a Wilson upper bound of 19.4%, and nobody should arm a silent skip
+on that.** `TIT_LEADERSHIP_PRECHECK` defaults to `shadow`: the check computes
+the same verdict, prints what it WOULD have dropped, and drops nothing. That is
+the task's own stated fallback and it is the right one — the ledger will bound
+the rate properly in a few weeks of collection, for free, and the decision can
+then be taken on evidence rather than on an interval.
+`test_the_precheck_is_in_shadow_until_something_measures_it` guards the default
+and says what would change it.
+
+### Tests
+
+`tests/test_leadership_intl.py`, 52 cases. Red before: `ImportError: cannot
+import name 'leadership_intl' from 'pipeline'`, and with the module present but
+unwired, `AttributeError: module 'pipeline.dedupe' has no attribute
+'leadership_event_duplicate'`, `AttributeError: module 'run_collect' has no
+attribute 'leadership_precheck_arms'` and `assert None is not None` on the
+cheap_extract routing test. Green after, and the full suite is 3,701 passed.
+
+---
+
 ## 2026-08-12 - the door for taking back a wrong country, and the lesson that a cancelled job still finishes its step (1.77.0)
 
 **Plugin change and version bump only. PUSHED, NOT DEPLOYED.** The deploy is
