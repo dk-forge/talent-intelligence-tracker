@@ -356,6 +356,48 @@ bar.
 
 ---
 
+## 2026-08-12: the country-need claim, audited. It holds, and the fix is money rather than weights.
+
+Branch `audit/country-need-read-budget`. **Audit only — no behaviour change, no
+weight touched, no cap raised, no workflow dispatched, no plugin change, no
+deploy.** No model was called, nothing was written to the database, nothing
+under `analysis/recall/` was touched. Two files added, both measurement:
+`analysis/ranking/read_share.py` and `tests/test_country_need_ceiling.py`. Every
+number is in TECHLOG under this date.
+
+Five things a next session needs:
+
+1. **"US recall is low by design" is TRUE, and it names the weaker mechanism.**
+   The weights are as described (US scores 0 for country, ceiling 4.5 against
+   6.0 for a country holding nothing). But what binds is
+   `interleave_by_country`: a read cut smaller than the number of countries
+   present never finishes pass one, and the US bucket sits **50th of 77**. So
+   at the walker's ration of 37 the US share is **zero**, not small. At a cut of
+   395 the ranking is neutral for the US (18 places against 17 in arrival
+   order).
+2. **Measured, not modelled:** of `national_press` gate survivors, **52.9% of US
+   candidates deferred against 13.5% of everywhere else**; google_news 17.6%
+   against 6.2%. `gdelt`, whose demand never reaches its ceiling, shows no gap
+   at all — which is the control.
+3. **The penalty is on the PUBLISHER's country, not the story's.** A US round
+   written up in Sao Paulo ranks as Brazil and gets the full bonus. So **how
+   many of the 51 US gold events were ever in the US bucket is UNKNOWN**, and
+   the size of any re-weighting prize is unknown with it. Settle it for **$0**:
+   `backfill_gnews_2026.py --fetch-only` writes nothing and calls no model.
+   Do that before spending anything on this question.
+4. **Every option except depth is zero-sum over the same 37 places.** A US floor
+   of 10% costs the marginal country of each day its only story (distinct
+   countries in the cut 37 → 35). Volume weighting collapses breadth from 37
+   countries to 2 and must be refused. Raising the ration takes nothing from
+   anybody and is priced: $0.0877/day of history, $5.35 for the 61-day window.
+5. **90% is not substantiable under any option**, and a floor cannot manufacture
+   reads for candidates that were never gated. If a US number is published after
+   a targeted walk, it needs a held-out window and the worldwide family as a
+   control, or it cannot be told apart from teaching to the test. The protocol
+   is written out in TECHLOG and it is cheap.
+
+---
+
 ## 2026-08-12: a US reader sees 5 of the 21 events we hold. The ingest cause is fixed; the backfill is queued, not run.
 
 Branch `fix/place-the-unplaced`. **No plugin change, no version bump, no
