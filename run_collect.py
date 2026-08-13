@@ -11,6 +11,7 @@ Nothing is stored until a dry run looks right (spec 11 step 2).
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from dataclasses import asdict
 from datetime import date
