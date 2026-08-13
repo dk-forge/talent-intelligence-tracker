@@ -194,83 +194,10 @@
   ],
   "red_marks": {
     "ticket:20260813T003909Z-place-unplaced": "2026-08-13T00:40:30Z",
-    "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z"
+    "ticket:20260813T014035Z-place-unplaced": "2026-08-13T02:02:54Z",
+    "ticket:20260813T020725Z-enrich": "2026-08-13T02:09:32Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-13T02:07:30Z",
-      "history": [
-        {
-          "at": "2026-08-13T02:07:25Z",
-          "detail": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T02:07:30Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260813T020725Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
-      "requested_at": "2026-08-13T02:07:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "acknowledged": "2026-08-05T18:43:00Z",
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T14:07:35Z",
-      "history": [
-        {
-          "at": "2026-08-05T13:43:52Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 9)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T14:07:35Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T14:27:56Z",
-          "detail": "run 31013599896",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T14:27:56Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-08-05T18:43:00Z",
-          "detail": "root cause fixed on main (bc9c82c): urllib3 ReadTimeoutError from a mid-body read on neweralive.na escaped head_text; capped_fetch now translates body-read errors to requests exceptions and the walker records a dead host per publisher. Re-queued to resume at cursor 9.",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20260805T134352Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 9)",
-      "requested_at": "2026-08-05T13:43:52Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31013599896",
-      "state": "failed",
-      "workflow": "backfill-press-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-05T14:27:56Z",
@@ -2587,6 +2514,43 @@
       "run_id": "31658458962",
       "state": "failed",
       "workflow": "place-unplaced.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-13T02:07:30Z",
+      "history": [
+        {
+          "at": "2026-08-13T02:07:25Z",
+          "detail": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-13T02:07:30Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-13T02:09:32Z",
+          "detail": "run 31659860522",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-13T02:09:32Z",
+          "detail": "cancelled after starting; needs a human",
+          "event": "cancelled-mid-run"
+        }
+      ],
+      "id": "20260813T020725Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
+      "requested_at": "2026-08-13T02:07:25Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31659860522",
+      "state": "failed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
