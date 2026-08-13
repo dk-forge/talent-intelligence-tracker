@@ -946,6 +946,39 @@ def is_ambiguous(ident) -> bool:
     return AMBIGUOUS_MARKER in (getattr(ident, "detail", "") or "")
 
 
+def is_placeable(ident) -> bool:
+    """May this resolution put a country on a row a reader will see?
+
+    Two bars, and the second one was bought with a near miss.
+
+    1. Not `is_ambiguous`: one organisation of that name, not two.
+    2. **A curated headquarters CITY came with the country.** `hq_country` is
+       read from P17 of the entity's headquarters and FALLS BACK to P17 of the
+       entity itself, and that fallback is where the errors live. It is a much
+       weaker fact — "this thing is associated with country X" rather than
+       "this employer sits in this city, which is in country X" — and on the
+       committed corpus the two halves behave completely differently:
+
+           with a curated hq_city   82 employers, and the sample reads
+                                    Accel/Palo Alto, Databricks/San Francisco,
+                                    Cyera/Tel Aviv, DeepSeek/Hangzhou
+           country only            108 employers, and the sample reads
+                                    Premier Lacrosse League/CA (a US league),
+                                    Synthesia/CZ (the chemical works, not the
+                                    AI company), AirTrunk/AU, African Bank/ZA
+
+       The Premier Lacrosse League row is not hypothetical: it is one of the 13
+       US funding events a reader could not find, and the cityless fallback
+       would have moved it from invisible to Canadian. That is strictly worse.
+
+    The cost of the bar is recall, and it is paid knowingly: 190 employers
+    become 82. A blank country is honestly blank.
+    """
+    return bool(getattr(ident, "hq_country", None)
+                and getattr(ident, "hq_city", None)
+                and not is_ambiguous(ident))
+
+
 def place_if_unplaced(signal, conn: sqlite3.Connection | None = None) -> list[str]:
     """Resolve ONE employer over the network, but only to rescue a placeless row.
 
@@ -969,7 +1002,7 @@ def place_if_unplaced(signal, conn: sqlite3.Connection | None = None) -> list[st
         ident = resolve(company, conn=conn, allow_network=True)
     except Exception:
         return []                                    # rule 3, as everywhere else
-    if is_ambiguous(ident):
+    if not is_placeable(ident):
         return []
     filled = []
     for field in ENRICHED_FIELDS:
@@ -1163,30 +1196,31 @@ def place_backfill(conn: sqlite3.Connection, *, limit: int | None = None,
                    verbose: bool = True) -> dict:
     """Fill hq_city/hq_country on rows that carry no place in either column.
 
-    The backward half of `place_if_unplaced`, under the same two rules and for
-    the same reason: free, no model, and an AMBIGUOUS resolution writes
-    nothing. History is where a wrong country does the most damage — it is
-    already on the public page — so this pass declines more readily than the
-    general backfill, not less.
+    The backward half of `place_if_unplaced`, under the same bar and for the
+    same reason: free, no model, and only what `is_placeable` admits. History
+    is where a wrong country does the most damage, because it is already on the
+    public page, so this pass declines more readily than the general backfill
+    rather than less.
 
-    Reports `declined_ambiguous` separately from `unresolved`, because they are
-    different findings. Unresolved means Wikidata does not know the employer.
-    Declined means it knows two of them and we will not guess which.
+    Reports the three outcomes separately, because they are three different
+    findings. `unresolved` means Wikidata has never heard of the employer.
+    `declined` means it answered and the answer did not clear the bar, which is
+    a place we could reach with a better source rather than one nobody knows.
     """
     ensure_cache(conn)
     todo = _employers_with_placeless_rows(conn, limit)
     stats = {"employers": len(todo), "placed": 0, "unresolved": 0,
-             "declined_ambiguous": 0, "rows": {f: 0 for f in PLACEMENT_FIELDS},
-             "samples": [], "declined": []}
+             "declined": 0, "rows": {f: 0 for f in PLACEMENT_FIELDS},
+             "samples": [], "declined_samples": []}
 
     for index, ident in enumerate(resolve_many(todo, conn,
                                                retry_negative=retry_negative), 1):
-        if is_ambiguous(ident):
-            stats["declined_ambiguous"] += 1
-            if len(stats["declined"]) < 10:
-                stats["declined"].append(ident)
-        elif not ident.hq_country:
+        if not ident.hq_country:
             stats["unresolved"] += 1
+        elif not is_placeable(ident):
+            stats["declined"] += 1
+            if len(stats["declined_samples"]) < 10:
+                stats["declined_samples"].append(ident)
         else:
             stats["placed"] += 1
             if not dry_run:
@@ -1206,7 +1240,7 @@ def place_backfill(conn: sqlite3.Connection, *, limit: int | None = None,
         if verbose and (index % 25 == 0 or index == len(todo)):
             print(f"  {index}/{len(todo)} employers "
                   f"({stats['placed']} placed, {stats['unresolved']} unknown, "
-                  f"{stats['declined_ambiguous']} declined)", flush=True)
+                  f"{stats['declined']} declined)", flush=True)
         if _consecutive_failures >= _FAILURE_BUDGET:
             print("  network is failing; stopping early and keeping what resolved",
                   flush=True)
@@ -1308,11 +1342,11 @@ def main(argv=None) -> int:
         print(f"\nemployers with a placeless row : {stats['employers']}")
         print(f"placed                         : {stats['placed']}")
         print(f"wikidata does not know them    : {stats['unresolved']}")
-        print(f"declined, two of that name     : {stats['declined_ambiguous']}")
+        print(f"declined, the answer is too weak: {stats['declined']}")
         for field in PLACEMENT_FIELDS:
             print(f"rows gained {field:<16}: {stats['rows'][field]}")
         for label, group in (("placed", stats["samples"]),
-                             ("declined", stats["declined"])):
+                             ("declined", stats["declined_samples"])):
             if group:
                 print(f"\n{label}:")
                 for ident in group:

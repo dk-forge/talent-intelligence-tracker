@@ -129,7 +129,7 @@ def test_a_placeless_funding_row_is_placed_by_the_identity_spine(conn, lookup_on
 
 def test_the_reader_visible_clause_now_admits_the_row(conn, lookup_on, monkeypatch):
     """The assertion the owner actually asked about, written as the site writes it."""
-    resolver(monkeypatch, hq_country="US")
+    resolver(monkeypatch, hq_city="Boston", hq_country="US")
     raw = item("Databento Raises $50 Million Series B")
     signal = validate.build_signal(cheap_extract.extract(raw), raw,
                                    "google_news", conn=conn)
@@ -147,7 +147,7 @@ def test_a_row_that_already_has_a_country_buys_no_lookup(conn, lookup_on, monkey
     would be latency for nothing, and it would put a derived value one bug
     away from a sourced one.
     """
-    calls = resolver(monkeypatch, hq_country="GB")
+    calls = resolver(monkeypatch, hq_city="London", hq_country="GB")
     raw = item("Boston-based Acme raised $12.5M in seed funding")
     signal = validate.build_signal(cheap_extract.extract(raw), raw,
                                    "national_press", conn=conn)
@@ -162,7 +162,7 @@ def test_the_lookup_can_be_switched_off_entirely(conn, monkeypatch):
     network call must not make one.
     """
     monkeypatch.setenv("TIT_IDENTITY_LOOKUP", "off")
-    calls = resolver(monkeypatch, hq_country="US")
+    calls = resolver(monkeypatch, hq_city="New York", hq_country="US")
     raw = item("Mirendil Raises $200 Million Seed Round")
     signal = validate.build_signal(cheap_extract.extract(raw), raw,
                                    "google_news", conn=conn)
@@ -173,7 +173,7 @@ def test_the_lookup_can_be_switched_off_entirely(conn, monkeypatch):
 def test_the_budget_bounds_a_bad_run(conn, lookup_on, monkeypatch):
     """A collect run must not become a crawl because a day was unusual."""
     monkeypatch.setattr(identity, "PLACEMENT_LOOKUP_BUDGET", 2)
-    calls = resolver(monkeypatch, hq_country="US")
+    calls = resolver(monkeypatch, hq_city="New York", hq_country="US")
     for n in range(5):
         raw = item(f"Company{n} Raises $10 Million Seed Round",
                    url=f"https://outlet.example/story-{n}")
@@ -199,7 +199,7 @@ def test_a_failing_lookup_costs_the_record_nothing(conn, lookup_on, monkeypatch)
 def test_no_connection_means_no_lookup(conn, lookup_on, monkeypatch):
     """`build_signal` without a conn stays a pure function of two dicts, which
     is what every older test of it relies on."""
-    calls = resolver(monkeypatch, hq_country="US")
+    calls = resolver(monkeypatch, hq_city="New York", hq_country="US")
     raw = item("Mirendil Raises $200 Million Seed Round")
     signal = validate.build_signal(cheap_extract.extract(raw), raw, "google_news")
     assert signal.hq_country is None
@@ -233,6 +233,36 @@ def test_two_organisations_of_the_same_name_place_nothing(conn, lookup_on,
                                    "google_news", conn=conn)
     assert signal.hq_country is None, "a coin flip is not a country"
     assert signal.hq_city is None
+
+
+def test_a_country_with_no_headquarters_city_behind_it_places_nothing(
+        conn, lookup_on, monkeypatch):
+    """The near miss that bought this bar, written down as the row it was.
+
+    `hq_country` is read from P17 of the entity's HEADQUARTERS and falls back
+    to P17 of the entity itself. The fallback is where the errors live: on the
+    committed corpus the 108 cityless resolutions include Premier Lacrosse
+    League as Canada, and that row is one of the 13 US funding events a reader
+    could not find. Filing it under Canada is not an improvement on filing it
+    nowhere.
+    """
+    def cityless(name, *, conn=None, allow_network=True, **kwargs):
+        if not allow_network:
+            return identity.Identity(company_key=name.lower(), company=name,
+                                     detail="cache miss")
+        return identity.Identity(company_key=name.lower(), company=name,
+                                 resolved=True, hq_country="CA", hq_city=None,
+                                 detail="wikidata Q60750165")
+
+    monkeypatch.setattr(identity, "resolve", cityless)
+    raw = item("Lacrosse Raises $35M in Series B")
+    signal = validate.build_signal(cheap_extract.extract(raw), raw,
+                                   "google_news", conn=conn)
+    assert signal.hq_country is None
+    assert not identity.is_placeable(
+        identity.Identity(company_key="x", hq_country="CA"))
+    assert identity.is_placeable(
+        identity.Identity(company_key="x", hq_country="CA", hq_city="Toronto"))
 
 
 def test_the_ambiguity_is_recorded_where_the_cache_keeps_it():

@@ -8,7 +8,7 @@ Branch `fix/place-the-unplaced`. **No plugin change, no version bump, no
 deploy.** No model was called and no money was spent. Full reasoning and every
 number is in TECHLOG under this date.
 
-**The headline: 5 of 51.** Applying the plugin's own clause — `country IN
+**The headline: 5 of 51, and free takes it to 7.** Applying the plugin's own clause — `country IN
 ('US') OR (country IS NULL AND hq_country IN ('US'))` — to the 21 US funding
 events the sealed recall set says we hold: 5 visible, 13 carrying no place at
 all, 3 filed under the publisher's country (BR, ZA, ZA). Site-wide the
@@ -24,12 +24,14 @@ Four things a next session needs:
    resolution, but only for a row that would otherwise carry no country in
    either column. Red-then-green in
    `tests/test_unplaced_rows_get_placed.py`.
-2. **Do not let the identity spine loose on history without the ambiguity
-   guard.** Measured: it resolves Synthesia to the Czech chemical works,
-   Fluidstack to a French namesake, BKV Corporation to a Hungarian political
-   party. Two organisations of the same name is a notability coin flip, and it
-   is now declined on both placement paths. The general `--backfill` is
-   unchanged.
+2. **Do not let the identity spine loose on history without `is_placeable`.**
+   Two bars, both bought by measurement. Two organisations of the same name is
+   a notability coin flip (Synthesia resolves to the Czech chemical works, BKV
+   Corporation to a Hungarian political party). And a country with no curated
+   headquarters city behind it is a hint rather than a fact: that half of the
+   resolutions contains **Premier Lacrosse League as Canada**, which is one of
+   the 13 US events a reader cannot see. The general `--backfill` is unchanged;
+   only the placement paths refuse.
 3. **The backfill is a QUEUED job, and it has not been run.**
 
    ```bash
@@ -38,8 +40,8 @@ Four things a next session needs:
      -f reason='the 1,666 rows no country filter can return'
    ```
 
-   Dry run, over the first 450 of 1,633 employers: 56 placed (12.4%), 390
-   unknown to Wikidata, 4 declined as ambiguous. Cost $0.00. It fills
+   Dry run, all 1,633 employers: 82 placed (5.0%), 1,412 unknown to Wikidata,
+   139 resolved and declined at the bar. Cost $0.00. It fills
    `hq_city`/`hq_country`, both already in `tit_enrichable_columns()`, so the
    values reach readers through `/enrich` with **no deploy**.
 4. **The $2.14 the owner authorised was NOT spent, and the honest next step is
