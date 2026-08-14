@@ -243,6 +243,7 @@ function tit_dashboard_facts($table) {
         'by_confidence' => array(),
         'by_industry' => array(),
         'counts_by_country' => array(),
+        'held_by_country' => array(),
         'countries' => 0,
         'by_country' => array(),
         'glance'    => array(),
@@ -345,14 +346,40 @@ function tit_dashboard_facts($table) {
       here. That equality is the whole reason the query could go, and it is why
       the two must stay in one place: a filter added to one and not the other
       would put a country count next to a country chart that disagreed with it.
+
+      TWO MAPS OFF THE ONE SCAN, because two surfaces here count two different
+      things and both of them say so.
+
+        `n`    rows in the DEFAULT VIEW (the notable clause). The region strip,
+               the country ranking and the concentration caveat read this,
+               because each of those is a figure about the set the table below
+               is showing, and the region badge is asserted to equal what its
+               own tab returns (tests/test_region_badge_reconciles.py).
+        `held` EVERY CURRENT ROW. The country ribbon reads this, because its
+               caption is "Countries by Updates Held" and a routine officer
+               change is an update we hold. Under the notable clause that
+               caption was false by 3,023 US rows, 3,020 of them sec_edgar
+               leadership_change, which put the United Kingdom above the United
+               States on a ribbon that /aggregate had the other way round
+               (US 10,570 against GB 8,047, measured 2026-08-13).
+
+      The conditional aggregation is the same shape the head scan above uses,
+      so the second map costs no second query.
+
+      ZEROES ARE DROPPED FROM `n` DELIBERATELY: a country holding nothing but
+      routine rows is a key in the scan and not a country in the default view,
+      and $facts['countries'] is COUNT(DISTINCT ...) under the notable clause.
+      Leaving it in would print one more country than the hero counts.
     */
-    $counts = array_column($wpdb->get_results(
-        "SELECT COALESCE(country, hq_country) k, COUNT(*) n FROM {$table}
-          WHERE {$base} AND COALESCE(country, hq_country) IS NOT NULL
-          GROUP BY k", ARRAY_A) ?: array(), 'n', 'k');
-    $counts = array_map('intval', $counts);
+    $per_country = $wpdb->get_results(
+        "SELECT COALESCE(country, hq_country) k, SUM({$notable_sql}) n, COUNT(*) held
+           FROM {$table}
+          WHERE is_current = 1 AND COALESCE(country, hq_country) IS NOT NULL
+          GROUP BY k", ARRAY_A) ?: array();
+    $counts = array_filter(array_map('intval', array_column($per_country, 'n', 'k')));
     $facts['counts_by_country'] = $counts;
     $facts['countries'] = count($counts);
+    $facts['held_by_country'] = array_map('intval', array_column($per_country, 'held', 'k'));
 
     // 40, matching /aggregate, not 6. The chart scrolls and expands, so a short
     // list is no longer what keeps the card small -- and a hard six meant the
@@ -402,7 +429,8 @@ function tit_dashboard_facts($table) {
     ) ?: array();
 
     /*
-      TOP CITIES, counted under the clause the pill actually filters by.
+      CITIES BY UPDATES HELD, which is what the caption over this strip says and
+      is therefore every current row, routine filings included.
 
       Three things were wrong with this one query, and each of them put a number
       on the page that the page itself contradicted one click later.
@@ -415,17 +443,22 @@ function tit_dashboard_facts($table) {
          that carried Seattle (42) and Toronto (25). It groups by
          tit_city_expr() now, which is the same rule the filter uses.
 
-      2. It was the ONE strip on this page counted under a bare `is_current = 1`
-         instead of {$base}, so it silently included the routine officer filings
-         every other figure in the hero sets aside. A pill counting a set the
-         table is not showing is the same defect as the first, from the other
-         direction.
-
-      3. `cc` was a non-aggregated column under GROUP BY city, so the flag was
+      2. `cc` was a non-aggregated column under GROUP BY city, so the flag was
          whichever row the engine happened to reach first -- and MySQL and SQLite
          need not agree. Toronto (22 Canadian rows, 2 American) flew a US flag.
          It is now the MODAL country for that city, ties broken alphabetically,
          so it is deterministic and it is the answer a reader would give.
+
+      THE THIRD FIX WAS TAKEN BACK OUT, on purpose, and this is the note that
+      says why. The strip was moved onto {$base} so that a pill counted the set
+      the table was showing. That made the number honest against the table and
+      false against the pill's own caption: San Francisco holds routine officer
+      filings and nearly nothing else, and a strip captioned "Cities by Updates
+      Held" that cannot see them is counting something narrower than its own
+      words. The caption is the contract, so the count is every current row and
+      matches /aggregate's own by_city, which applies no detail filter either.
+      The basis line above the strip states that these counts include the
+      routine filings the table sets aside.
 
       Still one query. The scalar subquery runs once per pill, ten times, on a
       render that is cached for TIT_CACHE_TTL.
@@ -435,11 +468,11 @@ function tit_dashboard_facts($table) {
     $facts['cities'] = $wpdb->get_results(
         "SELECT c.k, c.n,
                 (SELECT {$country_expr} FROM {$table}
-                  WHERE {$base} AND {$city_expr} = c.k AND {$country_expr} IS NOT NULL
+                  WHERE is_current = 1 AND {$city_expr} = c.k AND {$country_expr} IS NOT NULL
                   GROUP BY {$country_expr}
                   ORDER BY COUNT(*) DESC, {$country_expr} ASC LIMIT 1) cc
            FROM (SELECT {$city_expr} k, COUNT(*) n FROM {$table}
-                  WHERE {$base} AND {$city_expr} IS NOT NULL AND {$city_expr} <> ''
+                  WHERE is_current = 1 AND {$city_expr} IS NOT NULL AND {$city_expr} <> ''
                   GROUP BY k ORDER BY n DESC, k ASC LIMIT 10) c
           ORDER BY c.n DESC, c.k ASC", ARRAY_A) ?: array();
 
@@ -528,6 +561,13 @@ function tit_dashboard_html() {
     $by_confidence    = $facts['by_confidence'] ?? array();
     $by_industry_n    = $facts['by_industry'] ?? array();
     $counts_by_country = $facts['counts_by_country'];
+    // The ribbon's own map: every current row, which is what its caption says.
+    // See the two-maps note in tit_dashboard_facts(). The fallback is for a
+    // transient written by an older build, which carries no such key: the cache
+    // key holds TIT_VERSION so a deploy cannot actually serve one, and a ribbon
+    // that vanishes for a cache lifetime is a worse way to find that out.
+    $held_by_country  = !empty($facts['held_by_country'])
+        ? $facts['held_by_country'] : $counts_by_country;
     $countries        = (int) $facts['countries'];
     $by_country       = $facts['by_country'];
     $glance           = $facts['glance'];
@@ -841,7 +881,7 @@ function tit_dashboard_html() {
         // so its badge has to be that, not the sum of a country map that skips
         // every row with no geography.
         $tit_regions = tit_regions($counts_by_country, $total);
-        $tit_top = tit_top_countries($counts_by_country);
+        $tit_top = tit_top_countries($held_by_country);
         ?>
         <div class="tit-places">
           <div class="tit-regions" role="group" aria-label="Filter by region">
@@ -867,6 +907,27 @@ function tit_dashboard_html() {
             so, in the same vocabulary the chart below already uses ("a count
             of updates we hold, never a count of jobs").
 
+            AND THE COUNT UNDER THE LABEL IS NOW THE THING THE LABEL NAMES.
+            Both rows were built under the notable clause while saying "Updates
+            Held", which silently dropped 3,023 United States rows, 3,020 of
+            them routine sec_edgar officer changes. That alone was what put the
+            United Kingdom above the United States here: the UK holds 14 routine
+            rows in total, because its bulk is Companies House pay gap filings
+            graded medium. So one country's dominant collector was graded out of
+            the ribbon and another's was not, and /aggregate, which applies no
+            detail filter, reported the pair the other way round (US 10,570
+            against GB 8,047 on 2026-08-13). Both rows now count every current
+            row and agree with that endpoint.
+
+            THE PRICE, AND IT IS REAL. The region strip above still counts the
+            default view, because its badge is asserted to equal what its own
+            tab returns, and the table below the ribbon still opens on the
+            notable clause. So a country pill can read higher than the region
+            containing it and higher than the rows a click returns. The basis
+            line says the ribbon counts routine filings; it does not make the
+            two strips one number, and only widening the detail control's reach
+            would.
+
             VISIBLE PROSE, and deliberately NOT a .tit-chart-note. Every one of
             those panels is closed by dashboard.js on load, which is how three
             caveats on this page ended up computing display:none and being read
@@ -890,7 +951,7 @@ function tit_dashboard_html() {
                    bytes of leading spaces no reader ever sees. Wrapping this
                    paragraph the pretty way put the page over the ceiling. */ ?>
           <?php if ($tit_top || $tit_cities) : ?>
-            <p class="tit-places-note tit-places-basis">These counts are updates we hold, not a ranking of the market. Some countries publish a company registry we can read in full. We hold many more updates per employer there than in countries where we rely on news and filings.</p>
+            <p class="tit-places-note tit-places-basis">These counts are updates we hold, not a ranking of the market, and they count the routine filings the table sets aside. Where a country publishes a company registry we read in full, we hold far more updates per employer than we do where we rely on news.</p>
           <?php endif; ?>
           <?php if ($tit_top) : ?>
             <div class="tit-countries" role="group" aria-label="Filter by country">
