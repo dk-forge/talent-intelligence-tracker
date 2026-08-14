@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-14T18:03:15Z",
-  "last_tick": "2026-08-14T18:03:15Z",
+  "last_dispatch": "2026-08-14T18:08:13Z",
+  "last_tick": "2026-08-14T18:08:13Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -195,39 +195,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-14T18:03:15Z",
-      "history": [
-        {
-          "at": "2026-08-14T17:57:44Z",
-          "detail": "127 published 8-K headlines carry a mangled EDGAR filer name; verified safe 2026-08-14, guardrails re-quarantine anything withheld",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-14T18:03:15Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260814T175744Z-correct-sec-filer-name",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "127 published 8-K headlines carry a mangled EDGAR filer name; verified safe 2026-08-14, guardrails re-quarantine anything withheld",
-      "requested_at": "2026-08-14T17:57:44Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-sec-filer-name.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-14T18:08:13Z",
       "history": [
         {
           "at": "2026-08-14T17:58:05Z",
           "detail": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-14T18:08:13Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260814T175805Z-place-unplaced",
@@ -239,50 +217,8 @@
       "requested_at": "2026-08-14T17:58:05Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "place-unplaced.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T20:32:17Z",
-      "history": [
-        {
-          "at": "2026-08-05T20:31:40Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 11)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T20:32:17Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T20:56:18Z",
-          "detail": "run 31044538640",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T20:56:18Z",
-          "detail": "run 31044538640",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T203140Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T20:56:18Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 11)",
-      "requested_at": "2026-08-05T20:31:40Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31044538640",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
     },
     {
       "attempts": 0,
@@ -2569,6 +2505,44 @@
       "run_id": "31824821842",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-14T18:03:15Z",
+      "history": [
+        {
+          "at": "2026-08-14T17:57:44Z",
+          "detail": "127 published 8-K headlines carry a mangled EDGAR filer name; verified safe 2026-08-14, guardrails re-quarantine anything withheld",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-14T18:03:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-14T18:08:13Z",
+          "detail": "run 31826857112",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-14T18:08:13Z",
+          "detail": "run 31826857112",
+          "event": "landed"
+        }
+      ],
+      "id": "20260814T175744Z-correct-sec-filer-name",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-14T18:08:13Z",
+      "priority": 0,
+      "reason": "127 published 8-K headlines carry a mangled EDGAR filer name; verified safe 2026-08-14, guardrails re-quarantine anything withheld",
+      "requested_at": "2026-08-14T17:57:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31826857112",
+      "state": "landed",
+      "workflow": "correct-sec-filer-name.yml"
     }
   ],
   "version": 1
