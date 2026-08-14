@@ -278,8 +278,12 @@ check($wpdb->reads === 0,
 
 /* --------------------------------------------------- the page's own claims -- */
 
-check(strpos($html, '<h1>Press and Media Kit</h1>') !== false,
-      'the press page has to render its heading');
+/* The heading now carries data-tit-route-heading, which is what names this
+   route's item in the site navigation. Asserted through tit_route_heading()
+   rather than against a typed copy of the string, so the page, the menu and
+   this check can never describe the route three ways. */
+check(preg_match('#<h1[^>]*\bdata-tit-route-heading\b[^>]*>Press and Media Kit</h1>#', $html) === 1,
+      'the press page has to render its heading, marked as the route heading');
 foreach (array('press-numbers', 'press-archive', 'press-limits', 'press-cite',
                'press-contact') as $id) {
     check(strpos($html, 'id="' . $id . '"') !== false,

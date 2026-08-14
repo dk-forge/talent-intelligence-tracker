@@ -266,7 +266,7 @@ function tit_sources_render($sources) {
         <span aria-hidden="true">›</span> Sources
       </nav>
 
-      <h1>Where this data comes from</h1>
+      <h1 data-tit-route-heading>Where this data comes from</h1>
       <p class="tit-note">
         <?php
         // Lead with what is READ versus merely researched. "160 sources" was

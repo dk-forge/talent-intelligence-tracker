@@ -646,8 +646,10 @@ $GLOBALS['tit_query_vars'] = array('tit_places' => 1);
 tit_place_forget();
 ob_start(); tit_places_render(); $directory = ob_get_clean();
 
-check(strpos($directory, '<h1>Countries, Cities And Industries We Cover</h1>') !== false,
-      'the directory has an h1');
+/* Marked data-tit-route-heading: this is the h1 that names the route in the
+   site navigation, and places.php renders a second h1 for a place cell. */
+check(preg_match('#<h1[^>]*\bdata-tit-route-heading\b[^>]*>Countries, Cities And Industries We Cover</h1>#', $directory) === 1,
+      'the directory has an h1, marked as the route heading');
 check(strpos($directory, '/country/united-kingdom/') !== false, 'and lists the gated cells');
 check(strpos($directory, '/city/london/') !== false, 'across all three kinds');
 check(strpos($directory, '/industry/technology/') !== false, 'including industries');

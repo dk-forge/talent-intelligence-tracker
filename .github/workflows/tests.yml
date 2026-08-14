@@ -139,6 +139,14 @@ jobs:
       - name: Feed and CRM export presets, run for real
         run: php tests/php/feed_and_crm.php
 
+      # The header submenu rewrites the one artefact both trackers write, the
+      # site's wp_navigation post. The two properties that matter are about
+      # what the code does to that document TWICE (a second run must write
+      # nothing) and about what it removes (a retired route's item), neither of
+      # which reading the source can show.
+      - name: The header submenu under the tracker, run for real
+        run: php tests/php/nav_submenu.php
+
       - name: Run tests
         run: python -m pytest -q
 

@@ -119,6 +119,89 @@ surfaces.
 
 ---
 
+## 2026-08-13 - the header said "Talent Intelligence Tracker" and stopped there (1.81.0)
+
+**Plugin change, NOT DEPLOYED.** Pushed as `agent-submenu-nav`; the deploy here
+is a human step and was not this session's to take.
+
+The owner asked for "a submenu under each tracker in WP admin". What he wanted
+is the outcome and the plugin already owns the routes, so `includes/nav_submenu.php`
+does it from the plugin.
+
+### What the header menu actually is
+
+Twenty Twenty-Five is a block theme, so the site's header nav is a
+`core/navigation` block and the menu is **not** the classic `nav_menu`
+taxonomy. It is block markup in the `post_content` of a `wp_navigation` post
+("ATR Main Menu"). Read live 2026-08-13 its top level was Pricing, Blog (a
+submenu of six), AI Layoff Tracker, Talent Intelligence Tracker, with both
+trackers flat and nothing under either.
+
+### The four, and what is out
+
+`/sources/` (Where this data comes from), `/places/` (Countries, Cities And
+Industries We Cover), `/recall/` (How much do we miss?), `/press/` (Press and
+Media Kit) -- where did this come from, what does it cover, how much does it
+miss, what may I quote.
+
+`/corrections/` is out: it is a report-an-error form, reached at the moment a
+reader spots something, and every data surface links to it from there. Company
+pages and individual place cells are out because there are thousands of them
+and they are the data, not the explanation of it; `/places/` is the directory
+that reaches them.
+
+### The labels have one author, and it needed a marker
+
+Each label is `tit_route_heading()` off the file that renders the route. Two of
+those files render more than one `<h1>` -- `recall.php` has an empty-state
+"Measured recall" above the real "How much do we miss?", and `places.php` has
+the per-cell heading above the directory's -- so "the first h1" would have
+quietly labelled the menu with the wrong one. The canonical heading now carries
+`data-tit-route-heading`, and `render_press.php` / `render_place_pages.php`
+were changed to assert through that attribute instead of against a typed copy
+of the string, so the page, the menu and the check cannot describe one route
+three ways.
+
+### Two traps
+
+**`innerContent` is not decoration.** `serialize_block()` walks `innerContent`
+and substitutes the next `innerBlock` for each `null`; it never reads
+`innerBlocks` directly. A submenu built with `innerContent => array()`
+serialises with every child dropped: a toggle with nothing behind it.
+
+**Both plugins write this one post.** The sibling's item sits next to ours and
+its plugin does the same thing on the same `init`. Two writers that each read,
+edit their own subtree and write the whole post back can drop each other's
+children, and each would have verified its own write and set its own done-flag,
+so neither would retry. The lock is `add_option('atr_nav_children_lock', ...)`:
+`wp_options.option_name` is UNIQUE, so of two concurrent callers exactly one
+gets `true`. **That literal is shared with the layoff tracker's
+`ALT_NAV_LOCK_OPTION` on purpose** and
+`test_the_lock_name_matches_the_sibling_plugin` is the only thing holding the
+two repos to it.
+
+### How it is verified
+
+`tests/php/nav_submenu.php` drives the real include against a WordPress shim
+(in `tests.yml`), and `tests/test_nav_submenu.py` adds the rendered half in
+real headless Chrome against `tests/fixtures/site_nav.json` -- the live header
+nav's markup plus the CSS core prints for it -- with the submenu built by
+cloning the "Blog" item core itself rendered on that page. Measured open:
+
+| | 1280x900 | 375x812 |
+|---|---|---|
+| container | visible, opacity 1 | visible, opacity 1 |
+| items | 217x67.9 x3, 217x42.9 | 215.5 / 294.5 / 184.1 / 160.6, all x66 |
+| document scrollWidth | 1280 (= viewport) | 375 (= viewport) |
+
+Proven red twice: with the include absent, and behaviourally with
+`tit_nav_routes()` cut to sources and press, which fails with "the menu would
+read ['Where this data comes from', 'Press and Media Kit'] while the routes
+head themselves [...]". The expectation is read from the `<h1>` tags, not from
+the plugin's output.
+
+---
+
 ## 2026-08-13 - two pots: the month had a total and never had an owner, so catch-up work spent the collectors' budget
 
 **No deploy. No plugin change.** Budget architecture and a measurement.

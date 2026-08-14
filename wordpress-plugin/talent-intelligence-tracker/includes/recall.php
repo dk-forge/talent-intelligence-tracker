@@ -899,7 +899,7 @@ function tit_recall_render($data) {
         <span aria-hidden="true">›</span> Measured recall
       </nav>
 
-      <h1>How much do we miss?</h1>
+      <h1 data-tit-route-heading>How much do we miss?</h1>
 
       <p class="tit-note">
         Every tracker claims to be comprehensive. This one publishes the test.

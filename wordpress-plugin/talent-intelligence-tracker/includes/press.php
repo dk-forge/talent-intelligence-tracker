@@ -265,7 +265,7 @@ function tit_press_render(array $f) {
         <span aria-hidden="true">&rsaquo;</span> Press
       </nav>
 
-      <h1>Press and Media Kit</h1>
+      <h1 data-tit-route-heading>Press and Media Kit</h1>
 
       <p class="tit-note">
         We compute every figure on this page when you request it. Every one
