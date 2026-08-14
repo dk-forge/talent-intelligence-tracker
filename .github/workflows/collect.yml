@@ -22,7 +22,12 @@ name: collect
 # doing that.) DEFAULT_CANDIDATE_CAP bounds each run at 40 candidates.
 on:
   schedule:
-    - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC
+    # Once daily since 2026-08-14, the owner's call: the product updates daily,
+    # a 24h freshness window is acceptable, and the second run cost ~$0.43/day
+    # (~$13/month) at today's caps. Revisit after the model migration lands -
+    # at migrated prices the second run costs ~$0.10/day and buys same-day
+    # capture of morning announcements. This comment is the measured reason.
+    - cron: '0 6 * * *'   # 06:00 UTC, once daily
   workflow_dispatch:
     inputs:
       dry_run:

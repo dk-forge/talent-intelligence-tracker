@@ -25,3 +25,5 @@ analysis/.cache/
 .pytest_cache/
 .ruff_cache/
 .scratch/
+
+.worktrees/

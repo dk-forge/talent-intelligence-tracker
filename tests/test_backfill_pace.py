@@ -358,7 +358,7 @@ def test_a_job_written_before_labels_existed_keeps_its_id():
 
 def test_the_cron_parser_reads_the_shapes_that_actually_appear():
     assert _runs_per_day("0 6 * * *") == 1
-    assert _runs_per_day("0 6,18 * * *") == 2      # collect.yml
+    assert _runs_per_day("0 6,18 * * *") == 2      # the shape collect.yml used until 2026-08-14
     assert _runs_per_day("0 * * * *") == 24        # the sibling's hourly sweep
     assert _runs_per_day("*/30 * * * *") == 48
     assert _runs_per_day("30 5 * * 1") == 1        # weekly, once on its day
