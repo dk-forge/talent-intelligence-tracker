@@ -667,13 +667,108 @@ def run(label_dir: str | None = None, out_dir: str | None = None,
     return 0
 
 
+def score_goldset(label_dir: str | None = None, fit_fn=fit) -> int:
+    """The trained gate against the SAME hand labels the model A/B uses.
+
+    `ab_models.py --gate-gold` prices and grades every candidate LLM on
+    `analysis/models/goldset-gate-2026-08.json`; this puts the free classifier
+    in that table. Three honesty rules:
+
+    * NO LEAKAGE: the gold set's ledger half exists in the training ledger, so
+      those keys are dropped from the fit before anything is scored.
+    * THREE ROUTES, not two. `uncertain` is not an answer — in production it
+      goes to the LLM gate and pays. It is reported as its own column, and
+      accuracy is computed only over the confident routes, with its Wilson
+      interval and the coverage beside it.
+    * THE DROPS ARE THE NUMBER THAT MATTERS. A gold-YES routed irrelevant is
+      the class the shipping bar exists to hold at zero; each one is printed.
+    """
+    from analysis.models import gate_goldset
+    from analysis.recall.stats import wilson
+
+    doc = gate_goldset.load()
+    items = gate_goldset.scoreable(doc)
+    real, weak = load_labels(label_dir)
+
+    gold_keys = {i["provenance"].split("key=", 1)[1].split()[0]
+                 for i in items if "key=" in i.get("provenance", "")}
+    by_key = {l.get("key"): l for l in real}
+    fit_real = [l for l in real if l.get("key") not in gold_keys]
+    rows = training_rows(fit_real, weak)
+    if not rows:
+        print("no training rows in the ledger — nothing to score")
+        return 2
+    model = build_model(rows, language_roster(fit_real), fit_fn, real=fit_real)
+    print(f"[score-goldset] fitted on {len(fit_real)} ledger lines "
+          f"({len(gold_keys & set(by_key))} gold-set keys excluded), "
+          f"t_lo={model.t_lo:.3f}, t_hi={model.t_hi:.3f}, "
+          f"{len(model.langs)} languages, skip band open for "
+          f"{len(model.relevant_langs)}")
+
+    routed = {"relevant": [], "uncertain": [], "irrelevant": []}
+    for item in items:
+        line = by_key.get(
+            item["provenance"].split("key=", 1)[1].split()[0]
+            if "key=" in item.get("provenance", "") else "")
+        if line is not None:
+            headline = line.get("headline") or ""
+            teaser = line.get("teaser") or ""
+            lang = lang_key(line.get("lang") or "")
+        else:
+            parts = (item["text"] or "").split("\n\n", 1)
+            headline, teaser = parts[0], parts[1] if len(parts) > 1 else ""
+            lang = "en"                     # the fixture half is English
+        if lang in model.langs:
+            s = model.score(headline, teaser)
+            verdict = ("relevant" if s >= model.t_hi
+                       and lang in model.relevant_langs else
+                       "irrelevant" if s <= model.t_lo else "uncertain")
+        else:
+            verdict = "uncertain"           # fail-open, same as the runtime
+        routed[verdict].append(item)
+
+    confident = routed["relevant"] + routed["irrelevant"]
+    correct = (sum(1 for i in routed["relevant"] if i["gold_is_talent_signal"])
+               + sum(1 for i in routed["irrelevant"]
+                     if not i["gold_is_talent_signal"]))
+    n_conf = len(confident)
+    lo, hi = wilson(correct, n_conf) if n_conf else (0.0, 0.0)
+    print(f"\nTRAINED GATE ON THE GOLD SET ({len(items)} scoreable items)")
+    print(f"  confident on {n_conf}/{len(items)} "
+          f"({100 * n_conf / len(items):.0f}% coverage): "
+          f"{correct}/{n_conf} correct"
+          + (f" = {correct / n_conf:.1%} (Wilson 95% {lo:.1%}-{hi:.1%})"
+             if n_conf else ""))
+    print(f"  uncertain on {len(routed['uncertain'])} — in production these "
+          f"go to the LLM gate and pay; they are NOT graded here")
+    drops = [i for i in routed["irrelevant"] if i["gold_is_talent_signal"]]
+    print(f"  gold-YES items DROPPED (the recall class the shipping bar "
+          f"holds): {len(drops)}")
+    for item in drops:
+        print(f"    DROPPED: {item['text'].splitlines()[0][:70]}")
+    bought = [i for i in routed["relevant"] if not i["gold_is_talent_signal"]]
+    print(f"  gold-NO items routed relevant (buys a wasted extraction): "
+          f"{len(bought)}")
+    print("\nRead this beside `ab_models.py --gate-gold`: the classifier's "
+          "$/item is $0,\nbut only its CONFIDENT band replaces the paid gate "
+          "— the uncertain share keeps paying.")
+    print("KNOWN_LIMITS of the set apply unchanged (English-heavy scoring of "
+          "a 43-language gate).")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--labels", default=None,
                         help="label directory (default data/gate_labels)")
     parser.add_argument("--out", default=None,
                         help="artifact directory (default data/gate_classifier)")
+    parser.add_argument("--score-goldset", action="store_true",
+                        help="score the trained classifier against the gate "
+                             "gold set (no artifact written, nothing armed)")
     args = parser.parse_args(argv)
+    if args.score_goldset:
+        return score_goldset(label_dir=args.labels)
     return run(label_dir=args.labels, out_dir=args.out)
 
 

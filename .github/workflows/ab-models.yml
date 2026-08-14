@@ -17,7 +17,7 @@ on:
       mode:
         description: 'What to compare'
         type: choice
-        options: [gate, readthrough, extraction, cache-check]
+        options: [gate, gate-gold, readthrough, extraction, cache-check]
         default: gate
 
 jobs:
@@ -61,6 +61,10 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           case "${{ inputs.mode }}" in
+            # ACCURACY against the hand labels (analysis/models/), not
+            # agreement with the incumbent. The one mode a swap may be
+            # taken on — see ab_models.py's header.
+            gate-gold)   python ab_models.py --gate-gold ;;
             readthrough) python ab_models.py --readthrough ;;
             extraction)  python ab_models.py --extraction ;;
             cache-check)

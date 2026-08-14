@@ -1001,6 +1001,15 @@ def classify(raw: dict, *, timeout: int = 45,
     STATS["full_chars_raw"] += len(text)
     STATS["full_chars_sent"] += min(len(text), FULL_READ_CHARS)
 
+    # The extraction-input capture: persist (sampled, capped, provider-name
+    # redacted) the exact text the call below sends, on the candidate's own
+    # ledger line. It is the input half of the extraction gold set that
+    # PLAN-gate-to-five-dollars' 2026-08-14 correction names as the blocker —
+    # nothing else in this repo holds raw_text. Beside the call so what is
+    # captured can never drift from what was sent; gate_ledger swallows its
+    # own failures, so it cannot cost the run.
+    gate_ledger.capture_extract_input(raw, text[:FULL_READ_CHARS])
+
     # PROMPT-CACHE SHAPE — do not reorder this call. The prefix
     # (MINI_SYSTEM, then SCHEMA_HINT at the head of the user message) is
     # byte-identical on every read-through, and the per-item text comes LAST.
