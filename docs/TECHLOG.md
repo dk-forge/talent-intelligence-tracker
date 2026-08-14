@@ -77,6 +77,142 @@ it** — this fixes the second, smaller cause, forward-looking, for free.
 
 ---
 
+## 2026-08-14 - a register knows where it is, and a city total says what it counts
+
+**Plugin 1.81.0 -> 1.81.1. Pushed, NOT deployed. Nothing armed, nothing
+dispatched, nothing spent.**
+
+Three things, all downstream of the 2026-08-13 city audit: 1,158 of 29,569
+current rows carry a city (3.9%), 887 of them (77%) American, and Cambridge MA,
+Shanghai, Hangzhou, New Delhi, Bangkok, Copenhagen, Durham, Osaka and Taipei
+hold zero.
+
+### 1. Two registers were downloading an address and throwing it away
+
+`sec_form_d_bulk` places 21.1% of its rows and `sec_edgar` 8.6%; between them
+they are 892 of the 1,158. Every non-US register placed nothing into `city`,
+and `edinet_japan` (348 rows) and `opendart_korea` (31) placed nothing into
+`hq_city` either. Both were downloading the address already.
+
+**Every non-US register's address is a REGISTERED OFFICE, so every one of them
+goes to `hq_city` and none of them to `city`.** That is the whole finding and
+it is not the one the brief expected. `city` in this product is a stated job
+location, `pipeline/classify.py` forbids inferring one, and a legal seat is not
+where the work is. Per register:
+
+| register | what the address is | verdict |
+|---|---|---|
+| SEC Form D (both routes) | Item 1, principal place of business | `city`, unchanged |
+| EDINET Japan | 提出者の所在地, registered office | **`hq_city`, newly wired** |
+| OpenDART Korea | `adres`, the legal seat | **`hq_city`, newly wired** |
+| Companies House | registered office | `hq_city`, already wired via the postcode map |
+| UK gender pay gap | employer's registered address | `hq_city`, already wired |
+| Czechia ARES | `sidlo`, registered seat | `hq_city`, already wired |
+| Singapore ACRA | registered office | `hq_city` = Singapore, a city-state |
+| Israel Registrar | the changes file carries no address | nothing to wire |
+| Estonia e-äriregister | the persons file carries no company address | nothing to wire |
+| BSE India | the announcements API carries no address at all | not free: it needs a second fetch per company |
+
+Measured gain, joining the real EDINET code list of 2026-08-14 against the
+stored rows: **261 of 348 Japanese rows (75%) gain an `hq_city`**. 3,169 of the
+4,359 filers that carry an English name (72.7%) place, and 5,455 of all 11,379
+rows on the list (47.9%). 21 more rows are blocked only by the curated
+gazetteer not holding Nagoya, Sapporo, Kobe, Hiroshima, Kawasaki or Saitama;
+the collector emits the name and `vocab` decides, so adding one there is the
+only step that would take.
+
+**The parse is a lookup, and two measurements made it one.** 24 distinct ward
+tokens appear in that file with no city and no prefecture in front of them; 23
+are Tokyo's special wards and the 24th is `淀川区`, which is Osaka's and which
+appears 45 times WITH `大阪市` and once without. So "a bare 区 means Tokyo" is
+wrong on a real row. And 1,720 addresses write the ward AFTER its city, where
+`中央区` and `北区` belong to Tokyo and to half the designated cities alike, so
+the leading `市` has to win. Both are enumerated in `WARD_CITY` and
+`MUNICIPALITY_CITY` rather than inferred.
+
+Korea reads `adres` off the `company.json` this collector already fetches once
+per company for `corp_name_eng`, so it is one response and no extra request.
+`tests/test_register_head_office_city.py` holds all of it, including that a
+filed address never reaches `city` through either collector's `as_classified`.
+
+### 2. Discovery never asked about a place
+
+`GOOGLE_NEWS_VOCAB` is sixteen packs of intent and contained zero city terms,
+so no city was ever the SUBJECT of a query. `google_news_city_queries` adds
+city-led queries in the shape `backstop_query` already proved: the place first,
+then one intent group. Leading with the phrase pack was measured on 2026-07-28
+to return 0 to 5 items of which none named the place.
+
+**No new vocabulary in any language.** The intent group is derived from the
+first two phrases of the edition's own pack, which are the single OR groups;
+index 2 and after are AND-ed pairs and flattening one would leave "raises" or
+"capta" standing alone. The cities come from the curated gazetteer, so nothing
+is asked about that could not be stored, and alias spellings ride in the SAME
+OR group, which widens recall at exactly zero extra volume.
+
+**MEASURED, because a query is free and a read is not.**
+`measure_city_queries.py` fetches the RSS and counts, classifying nothing. Two
+rotation slices of a five-edition run, 2026-08-14:
+
+    day 225 run 0   queries 17 -> 30   candidates   850 -> 1,019  (+169, +20%)
+    day 225 run 1   queries 17 -> 32   candidates 1,030 -> 1,099  (+69,   +7%)
+    day 226 run 0   queries 17 -> 28   candidates 1,024 -> 1,155  (+131, +13%)
+
+**+7% to +20% of candidate volume, and the third of those was measured after
+the native-script aliases landed in #50.** That is the honest range and it
+lands on a budget already oversubscribed, which
+is why the slice is capped at `CITY_QUERIES_PER_EDITION = 3` and rotated.
+**Nothing is armed by this commit**; the queries exist and the collector will
+use them on its next scheduled run, and raising the cap is a spend decision.
+
+**The native-script half of #50 is most of the yield outside Latin script, and
+it was measured here before and after that PR merged.** Asked in Latin only,
+three Hebrew city queries returned **0 items between them**. With #50's
+spellings riding in the same OR group, ja-JP returns **103 items from three
+queries** and ko-KR **69 from two**, and Tel Aviv over a fortnight returns 54.
+The two changes compose: #50 made the names storable, this makes them askable.
+`test_the_gazetteers_native_spellings_actually_reach_the_query` fails if that
+link is ever broken.
+
+One negative result worth keeping. Widening
+the en-US anchor to all 202 gazetteer cities drew Noida, Pune and
+Thiruvananthapuram and returned **one item between them**, while pushing any US
+city to once every 34 days, so the anchor asks about US cities only and
+`unedited_countries()` NAMES the gap instead of pretending to cover it.
+
+### 3. London read 2,296 and 22 of them were London
+
+`tit_city_expr()` is `COALESCE(city, hq_city)`, so the ribbon unions a stated
+job location with an employer's base. Measured 2026-08-13: London 2,296 = 22
+stated + 2,274 based; Manchester 179 = 5 + 174; Edinburgh 107 = 2 + 105; Prague
+26 = 0 + 26. A reader takes "London 2,296" as 2,296 events in London.
+
+**The count is not the defect.** The pill under it resolves as
+`city = %s OR (city IS NULL AND hq_city = %s)`, so counting only stated cities
+would print a number its own click contradicts, which is the defect the strip
+already carries a comment about arriving from the other side; and the union is
+what `/aggregate`'s `by_city` applies and what the sibling exposes as
+`country_basis=any`. So this follows the country ribbon's own fix of 2026-08-13
+rather than inventing a pattern: when a surface's words and its number
+disagree, change whichever is wrong. There it was the query. Here it is the
+words.
+
+The basis line now names both halves, and `tit_city_basis_note()` prints the
+leading city's split COMPUTED, the way `tit_place_caveat` does, so no figure is
+typed into copy. It disappears when the leader is mostly stated, and prints
+nothing at all rather than "0 state it" when a cached bundle predates the new
+column. Same-session: the Money Raised by City card groups by the same
+expression and its subtitle now says so.
+
+**London before 2,296. London after 2,296.** The number was never the thing to
+move. What changed is that the page says what it is.
+
+Note for whoever reads the by_city chart next: wiring the registers in item 1
+adds `hq_city` and no stated city at all, so it grows the union side of exactly
+these totals. Item 3 is a precondition for item 1, not an afterthought to it.
+
+---
+
 ## 2026-08-14 - a share is not a budget, and agreement is not accuracy
 
 **No deploy. No plugin change. Nothing was dispatched and nothing was spent.**

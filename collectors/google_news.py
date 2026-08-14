@@ -284,6 +284,23 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
     return item
 
 
+def _queries_for(callback, lang: str, country: str) -> list[str]:
+    """Call a per-edition query callback, one argument or two.
+
+    The arity is READ, never discovered by catching TypeError: a two-argument
+    callback that raises TypeError inside itself would then be retried with one
+    argument and either fail differently or, worse, succeed and quietly ask the
+    wrong questions for the rest of the run.
+    """
+    import inspect
+
+    try:
+        arity = len(inspect.signature(callback).parameters)
+    except (TypeError, ValueError):
+        arity = 1
+    return list(callback(lang, country) if arity >= 2 else callback(lang))
+
+
 def collect(queries: list[str], *, pause: float = 1.0,
             locales: list[tuple[str, str]] | None = None,
             queries_for=None) -> list[dict]:
@@ -309,7 +326,14 @@ def collect(queries: list[str], *, pause: float = 1.0,
         # Each edition asks in its own language. Reusing the English phrases
         # everywhere returned 2 items from the German edition against 20 for
         # the German phrasing, and 0 from Brazil.
-        for query in (queries_for(lang) if queries_for else queries):
+        # `queries_for` takes the EDITION, not just its language. City-led
+        # queries differ between two editions of one language (es-MX must ask
+        # about Monterrey and es-CL about Santiago), so a callback that saw only
+        # `lang` would ask every Spanish edition about the same three cities.
+        # The one-argument form is still accepted, because that is what every
+        # caller passed before city terms existed.
+        for query in (_queries_for(queries_for, lang, country)
+                      if queries_for else queries):
             try:
                 items = fetch(query, lang=lang, country=country)
             except requests.RequestException:

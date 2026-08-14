@@ -13,6 +13,7 @@ Two honesty mechanisms live here:
 from __future__ import annotations
 
 import csv
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -439,6 +440,199 @@ def google_news_queries(lang: str, *, window_days: int = 7) -> list[str]:
     """Phrases for one edition. English is the fallback and the anchor."""
     phrases = GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"])
     return [f"{p} when:{window_days}d" for p in phrases]
+
+
+# --- City-led discovery ----------------------------------------------------
+#
+# EVERY PACK ABOVE IS AN INTENT AND NOT A PLACE. Sixteen languages, forty-nine
+# phrases, and no city term in any of them: no city is ever the SUBJECT of a
+# query, so a city reaches this tracker only when a story we asked for on other
+# grounds happens to name one. A coverage audit on 2026-08-13 measured what that
+# costs. 1,158 of 29,569 current rows carry a city (3.9%), 887 of them (77%) are
+# American, and Cambridge MA, Shanghai, Hangzhou, New Delhi, Bangkok,
+# Copenhagen, Durham, Osaka and Taipei hold zero.
+#
+# THE SHAPE IS THE BACKSTOP'S, AND THAT IS NOT A STYLE CHOICE. `backstop_query`
+# leads with the PLACE and follows with one intent group, because leading with
+# the phrase pack was measured on 2026-07-28 to return 0 to 5 items of which
+# none named the place, while leading with the place returned 28 to 54 of which
+# most did. A city query built the other way round would look like city coverage
+# and deliver the same global stories under a city heading.
+#
+# NO NEW VOCABULARY IS WRITTEN HERE, IN ANY LANGUAGE. The intent group is
+# DERIVED from the pack the edition already uses, by taking the alternatives out
+# of its leadership and hiring phrases. Every term in a city query has therefore
+# already been fetched live in that language before it was committed, which is
+# the standing rule for this file, and a later change to a pack carries into the
+# city queries with it rather than leaving a second copy to drift.
+#
+# Only the first two phrases, and that bound is load-bearing: index 2 and after
+# are AND-ed groups (`("raises" OR ...) ("funding" OR ...)`), and flattening one
+# into a single OR group would leave "raises", "capta" and "raccoglie" standing
+# alone. A bare high-frequency token is the Czech `investice` trap this file
+# already carries a warning about.
+CITY_INTENT_PHRASES = 2
+
+# Cities asked about per edition per run. The cities of one country are a
+# rotating slice for the same reason the segment matrix is: a fixed cost per
+# run, and everything comes round. Three against a pack of three doubles an
+# edition's query count and no more.
+CITY_QUERIES_PER_EDITION = 3
+
+_QUOTED = re.compile(r'"([^"]+)"')
+
+
+def city_intent_group(lang: str) -> str:
+    """The edition's own leadership and hiring terms, as one OR group."""
+    pack = GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"])
+    terms: list[str] = []
+    for phrase in pack[:CITY_INTENT_PHRASES]:
+        for term in _QUOTED.findall(phrase):
+            if term not in terms:
+                terms.append(term)
+    return " OR ".join(f'"{term}"' for term in terms)
+
+
+def _city_alias_table() -> dict:
+    """The curated gazetteer's alias table, whichever module holds it.
+
+    Read rather than written down again, so a city can never be ASKED about
+    that a stored record could not be placed in. Both homes are tried because
+    the table is being split into its own module, and a registry every workflow
+    imports must not raise over which one is present.
+    """
+    try:                                            # after the gazetteer split
+        from pipeline import city_gazetteer         # noqa: PLC0415
+        table = getattr(city_gazetteer, "CITY_ALIASES", None)
+        if table:
+            return table
+    except ImportError:
+        pass
+    try:
+        from pipeline import vocab                  # noqa: PLC0415
+        return getattr(vocab, "_CITY_ALIASES", None) or {}
+    except ImportError:
+        return {}
+
+
+def _worth_querying(alias: str, canonical: str) -> bool:
+    """Whether an alias spelling belongs in the query beside the canonical one.
+
+    Two kept, everything else dropped:
+
+      * ANY non-ASCII spelling. 東京 and תל אביב are how the Japanese and
+        Hebrew press actually write those cities, and an edition asked in its
+        own language about a Latin-script name returns nothing. Measured on
+        2026-08-14, before and after the gazetteer gained native script: three
+        Hebrew city queries asked in Latin only returned 0 items between them,
+        and with the native spellings in the same OR group ja-JP returned 103
+        items from three queries and ko-KR 69 from two. Tel Aviv over a
+        fortnight returns 54.
+      * A single Latin token of five characters or more. That keeps Bengaluru
+        beside Bangalore and Bombay beside Mumbai, and drops "sf", "nyc",
+        "bay area" and "silicon valley", which are not what a newsroom calls a
+        place and would drag half of California into a San Francisco query.
+
+    This widens a query without adding one: the spellings go into ONE OR group,
+    so the volume cost is exactly zero.
+    """
+    text = (alias or "").strip()
+    if not text or text.lower() == canonical.lower():
+        return False
+    if not text.isascii():
+        return True
+    return len(text) >= 5 and " " not in text
+
+
+def gazetteer_city_terms() -> dict:
+    """ISO2 -> canonical city -> the spellings to ask about, canonical first."""
+    out: dict = {}
+    for alias, value in _city_alias_table().items():
+        if not isinstance(value, tuple) or len(value) < 3:
+            continue
+        canonical, _region, iso2 = value[0], value[1], value[2]
+        if not canonical or not iso2:
+            continue
+        spellings = out.setdefault(iso2, {}).setdefault(canonical, [canonical])
+        if _worth_querying(alias, canonical) and alias not in spellings:
+            spellings.append(alias)
+    return {iso2: {city: tuple(spellings) for city, spellings in cities.items()}
+            for iso2, cities in out.items()}
+
+
+def gazetteer_cities() -> dict:
+    """ISO2 -> the canonical city names the site can actually store."""
+    return {iso2: tuple(sorted(cities))
+            for iso2, cities in gazetteer_city_terms().items()}
+
+
+def unedited_countries() -> tuple:
+    """Countries with cities on file and no Google News edition of their own.
+
+    Shanghai, Hangzhou, New Delhi, Bangkok, Copenhagen and Taipei are all here,
+    and all six hold zero rows. THEY ARE NOT ADDED TO THE ANCHOR, and this
+    function exists to name the gap rather than to paper over it. Two reasons,
+    one measured and one structural:
+
+      * Measured 2026-08-14. The anchor's rotation was briefly widened to all
+        202 cities, drew Noida, Pune and Thiruvananthapuram, and returned ONE
+        item between the three. The en-US edition does not carry the local
+        business press of a country it has no edition for.
+      * A 202-city rotation at three a run puts any given city on the anchor
+        once every 34 days, which would have cost Cambridge and Durham, two of
+        the US cities the audit found holding zero, the coverage this change is
+        for.
+
+    Reaching them properly needs a zh, hi, th or da phrase pack, and every pack
+    in this file was fetched live in its own language before it was committed.
+    That is a session's work with a network, not a line added here.
+    """
+    edition_countries = {country for _lang, country in GOOGLE_NEWS_LOCALES}
+    edition_countries.add(GOOGLE_NEWS_ANCHOR[1])
+    return tuple(sorted(iso2 for iso2 in gazetteer_cities()
+                        if iso2 not in edition_countries))
+
+
+def city_terms_for_edition(lang: str, country: str, *, day_of_year: int,
+                           run_index: int, runs_per_day: int = 2) -> list[str]:
+    """The rotating slice of city names this edition asks about on this run.
+
+    An edition asks about its OWN country's cities, and only those. See
+    `unedited_countries` for the ones no edition reaches and why the anchor is
+    not made to pretend it reaches them.
+    """
+    cities = list(gazetteer_cities().get(country, ()))
+    return rotate(cities, day_of_year=day_of_year, run_index=run_index,
+                  runs_per_day=runs_per_day, per_run=CITY_QUERIES_PER_EDITION)
+
+
+def google_news_city_queries(lang: str, country: str, *, day_of_year: int,
+                             run_index: int, runs_per_day: int = 2,
+                             window_days: int = 7) -> list[str]:
+    """City-led discovery queries for one edition on one run.
+
+    A QUERY IS FREE AND A READ IS NOT. Google News is fetched over RSS and
+    nothing here calls a model, so adding these costs no money at all. What they
+    change is what ARRIVES, and the candidate budget is already oversubscribed,
+    which is why the slice is capped and rotated rather than exhaustive. Raising
+    CITY_QUERIES_PER_EDITION is a spend decision and reads like one: measure it
+    first with `python3 measure_city_queries.py`, which fetches the RSS and
+    counts items without classifying any of them.
+    """
+    group = city_intent_group(lang)
+    if not group:
+        return []
+    spellings = {}
+    for cities in gazetteer_city_terms().values():
+        spellings.update(cities)
+
+    queries = []
+    for city in city_terms_for_edition(
+            lang, country, day_of_year=day_of_year, run_index=run_index,
+            runs_per_day=runs_per_day):
+        names = " OR ".join(f'"{name}"' for name in spellings.get(city, (city,)))
+        queries.append(f"({names}) ({group}) when:{window_days}d")
+    return queries
 
 
 # --- The discovery backstop's query ----------------------------------------
