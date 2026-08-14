@@ -1378,7 +1378,7 @@ function tit_places_render() {
         <span aria-hidden="true">&rsaquo;</span> Countries, Cities And Industries
       </nav>
 
-      <h1>Countries, Cities And Industries We Cover</h1>
+      <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
       <p class="tit-note">
         <?php printf(
           esc_html('%1$s of the %2$s we hold updates for have a page of their own.'),

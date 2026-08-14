@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.80.0
+ * Version: 1.81.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.80.0');
+define('TIT_VERSION', '1.81.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -66,6 +66,10 @@ tit_require('includes/board_series.php');
 // the header of that file for the measurement that says why.
 tit_require('includes/cross_tracker.php');
 tit_require('includes/htaccess.php');
+// LAST of the routed includes on purpose: it reads every other route's
+// url helper and heading to build the header submenu, so a partial upload
+// leaves it with nothing to do rather than a half set to publish.
+tit_require('includes/nav_submenu.php');
 
 // Stub fallbacks so a partial upload degrades instead of fatalling.
 if (!function_exists('tit_table_name')) {
