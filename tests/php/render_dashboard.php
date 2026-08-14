@@ -198,6 +198,30 @@ function remove_accents($string) {
 function get_header() { echo '<!--header-->'; }
 function get_footer() { echo '<!--footer-->'; }
 
+/*
+ * ENOUGH OF THE REST SURFACE TO CALL /aggregate, and nothing more.
+ *
+ * The place ribbon's whole contract is that its counts equal what the endpoint
+ * a reader's browser calls reports for the same country and the same city. A
+ * test that re-wrote the endpoint's GROUP BY by hand would prove the two agree
+ * with each other's copies. So the endpoint itself is invoked, out of the same
+ * api.php the render loaded, against the same fixture, and the answer is
+ * written out for tests/test_place_ribbon_counts_updates_held.py to read.
+ */
+class WP_REST_Request {
+    private $params;
+    public function __construct(array $params = array()) { $this->params = $params; }
+    public function get_param($key) { return $this->params[$key] ?? null; }
+}
+class WP_REST_Response {
+    public $data;
+    public function __construct($data) { $this->data = $data; }
+    public function header($key, $value) {}
+}
+function rest_ensure_response($data) {
+    return $data instanceof WP_REST_Response ? $data : new WP_REST_Response($data);
+}
+
 /**
  * $wpdb, backed by SQLite, COUNTING EVERY READ. Same class the place-page
  * harness uses, for the same reason: the count is as much the point as the SQL.
@@ -1002,18 +1026,25 @@ check(strpos($html, 'tit-citybtn') !== false, 'and the top cities row below them
 /* --- every city pill has to return what it promises ----------------------- */
 
 /*
- * A PILL THAT CONTRADICTS THE PAGE IT LINKS TO IS WORSE THAN NO PILL.
+ * A PILL THAT CONTRADICTS ITS OWN CAPTION IS WORSE THAN NO PILL.
  *
  * Clicking one writes city=<name>, which api.php resolves with the clause
- * below. So the number printed on the pill must equal the number of rows that
- * clause selects under the same base clause the rest of the hero uses. Three
- * separate defects lived in the one query that builds this strip, and each of
- * them shows up here as a pill whose count is not the count you get:
+ * below. Two defects lived in the one query that builds this strip, and each
+ * showed up here as a pill whose count is not the count of the thing it names:
  *
  *   grouping by bare `city`       -- London printed 18 and returned 1,338
- *   WHERE is_current = 1 only     -- San Francisco printed 1,800 routine
- *                                    filings the table was not showing
  *   a non-aggregated country      -- the flag was whichever row came first
+ *
+ * A THIRD FIX WAS REVERSED, and this is where that is written down. The strip
+ * was moved onto the notable clause so its number matched the table below it.
+ * The caption over it says "Cities by Updates Held", and under that clause it
+ * could not see a routine officer filing, which is an update we hold. So the
+ * count is every current row again, which is also what /aggregate's by_city
+ * returns, and the assertion below is against that. What the strip must NOT go
+ * back to is the OTHER two defects, which are what the London and Ottawa checks
+ * pin. The reader-facing consequence, that a pill can now read higher than the
+ * rows a click returns while the detail control sits on notable, is stated in
+ * the basis line above the strip.
  *
  * The clause is read from tit_place_kinds() rather than written here, and
  * test_place_pages.py already asserts that string is identical to the API's.
@@ -1024,24 +1055,30 @@ $city_clause = $city_kind['where'];
 // many arguments as tit_place_kinds() says it does. Hardcoding one silently
 // bound the second %s to an empty string and every count came back 0.
 $city_args   = (int) $city_kind['args'];
+// TWO CLAUSES, and which one a figure is checked against is the whole point of
+// this pass. $base_where is the DEFAULT VIEW, which the hero, the board and the
+// rows all print. $held_where is EVERY CURRENT ROW, which is what a surface
+// captioned "Updates Held" counts. Later assertions in this file use both.
 $base_where = 'is_current = 1 AND ' . tit_notable_where();
+$held_where = 'is_current = 1';
 
 preg_match_all(
     '/data-city="([^"]*)".*?class="tit-cbtn-n">([\d,]+)</s',
     $html, $pills, PREG_SET_ORDER
 );
-check(count($pills) > 0, 'the top cities strip has to carry pills to check');
+check(count($pills) > 0, 'the cities strip has to carry pills to check');
 foreach ($pills as $pill) {
     $name = html_entity_decode($pill[1], ENT_QUOTES, 'UTF-8');
     $printed = (int) str_replace(',', '', $pill[2]);
     $actual = (int) $wpdb->get_var(
-        "SELECT COUNT(*) FROM wp_tit_signals WHERE {$base_where} AND "
+        "SELECT COUNT(*) FROM wp_tit_signals WHERE {$held_where} AND "
         . $wpdb->prepare($city_clause, array_fill(0, $city_args, $name))
     );
     check($printed === $actual,
-          "the {$name} pill prints " . number_format($printed) . ' and clicking it '
-          . 'returns ' . number_format($actual)
-          . '. The strip has to be counted under the clause it filters by.');
+          "the {$name} pill prints " . number_format($printed) . ' and we hold '
+          . number_format($actual)
+          . ' updates for it. The strip is captioned by updates held, so it has '
+          . 'to be counted over every current row.');
 }
 
 $city_names = array_map(fn($p) => html_entity_decode($p[1], ENT_QUOTES, 'UTF-8'), $pills);
@@ -1049,9 +1086,10 @@ check(in_array('Edinburgh', $city_names, true),
       'Edinburgh is placed only by its employers\' head offices and has 120 rows '
       . 'here, so it belongs in a strip that carries cities with fewer: '
       . implode(', ', $city_names));
-check(!in_array('San Francisco', $city_names, true),
+check(in_array('San Francisco', $city_names, true),
       'San Francisco holds 1,800 routine officer filings and nothing else, and '
-      . 'the default view sets those aside, so it cannot lead this strip');
+      . 'they are updates we hold, so a strip captioned by updates held has to '
+      . 'carry it: ' . implode(', ', $city_names));
 
 // The flag is the MODAL country for the city, ties broken alphabetically, which
 // is deterministic and is also the answer a reader would give.
@@ -1811,6 +1849,24 @@ function finish($phase) {
     if ($dump) {
         file_put_contents($dump, $GLOBALS['tit_dump_html']);
         fwrite(STDERR, "wrote markup to {$dump}\n");
+    }
+
+    /*
+     * OPTIONAL: the SAME fixture through /aggregate, for the browser test that
+     * checks the place ribbon against the endpoint rather than against a
+     * re-implementation of it. No parameters at all, which is the request the
+     * ribbon's counts have to match: /aggregate applies the detail filter only
+     * when asked for it, and the ribbon counts every update we hold.
+     *
+     * After the byte and query assertions on purpose. This is one more read of
+     * the table and the budget is measured in a separate process anyway, but a
+     * diagnostic that can move a budget is a diagnostic that gets deleted.
+     */
+    $agg = getenv('TIT_DUMP_AGGREGATE');
+    if ($agg) {
+        $response = tit_api_aggregate(new WP_REST_Request(array()));
+        file_put_contents($agg, json_encode($response->data));
+        fwrite(STDERR, "wrote /aggregate to {$agg}\n");
     }
 
     // The budget needs a process where nothing has rendered yet.
