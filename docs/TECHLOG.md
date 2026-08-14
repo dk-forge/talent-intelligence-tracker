@@ -13,6 +13,117 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-14 - the gate A/B ran against the gold set; nothing pinned, and the numbers say why
+
+**Owner-authorized spend (~$0.04 total across three ab-models runs, from the
+discretionary pot). No model swap taken, no sweep dispatched, nothing armed.**
+
+### Gate accuracy against the hand labels (run 31829967808, reasoning off)
+
+75 scoreable items of `analysis/models/goldset-gate-2026-08.json`. The live
+gate's free baseline: 32/36 = 88.9% (Wilson 74.7-95.6), recall 95.0%.
+
+| model | acc | Wilson 95% | recall | prec | $/item |
+|---|---|---|---|---|---|
+| google/gemini-2.5-flash-lite (incumbent) | 90.7% | 82.0-95.4 | 94.6% | 93.0% | $0.000022 |
+| deepseek/deepseek-chat | 80.0% | 69.6-87.5 | 75.0% | 97.7% | $0.000060 |
+| meta-llama/llama-3.3-70b-instruct | 94.7% | 87.1-97.9 | 100.0% | 93.3% | $0.000025 |
+| deepseek/deepseek-v4-flash | 93.3% | 85.3-97.1 | 96.4% | 94.7% | $0.000032 |
+| openai/gpt-5-nano | NOT MEASURED (0/75 answered, see below) | | | | |
+| openai/gpt-oss-120b | NOT MEASURED (0/75 answered) | | | | |
+| google/gemini-3.7-flash | NOT MEASURED (reasoning mandatory, see below) | | | | |
+
+**Why no pin.** The bar was: interval overlaps-or-beats the incumbent AND
+materially cheaper AND no more than ~2 points of recall given up. llama-3.3
+and deepseek-v4-flash BEAT the incumbent on accuracy and recall but cost 14%
+and 45% more per item — nothing was cheaper. And KNOWN_LIMITS applies with
+full force: the set is English-only while 75% of gate traffic is not, so an
+accuracy-motivated swap would gamble most of the bill's traffic on a surface
+the set says nothing about. The incumbent stays; the honest summary is that
+the gold set was unable to find a cheaper model that is not worse, and found
+two better models that are not cheaper.
+
+### The reasoning-model trap, measured twice
+
+Run 31828465350 sent the PRODUCTION gate call shape (max_tokens=4):
+gpt-5-nano, gpt-oss-120b and gemini-3.7-flash answered **0 of 75** (whole
+budget spent thinking, empty content back) and deepseek-v4-flash 27 of 75.
+The production gate reads empty content as NO — **a reasoning model pinned as
+the gate today scores 0% recall in production, silently.** The probe now
+sends `reasoning: {enabled: false}` (ab_models.py documents that any winning
+reasoning model requires the same field in `classify._call` BEFORE a pin);
+that fixed deepseek-v4-flash, while gemini-3.7-flash refused it — its
+endpoint answers `Reasoning is mandatory ... cannot be disabled`, so at
+$1.875/M output it pays for thinking tokens on every one-word verdict and is
+structurally priced out of the gate whatever its accuracy. The two OpenAI
+models still returned nothing and stay unmeasured.
+
+`google/gemini-3.7-flash` price verified on OpenRouter's own listing
+2026-08-14: $0.375/M in, $1.875/M out — half of gemini-3.6-flash, listed
+through 2026-08-27. `deepseek/deepseek-v4-flash` verified $0.14/M in,
+$0.28/M out.
+
+### Read-through: no honest score exists
+
+The gold set labels YES/NO on headline+teaser; it cannot grade a prose
+read-through, so THAT surface has no accuracy measurement and no swap was
+taken (`anthropic/claude-sonnet-5` stays). Run 31830029953 is a side-by-side
+of 9 models on 4 real items for reading, not counting — noted there that
+gemini-3.7-flash correctly named an employer (International Tower Hill Mines)
+where two cheap models attributed the story to its outlet. A read-through
+swap needs its own gold set; the extraction-input capture shipped today (see
+below) is the prerequisite for building one.
+
+### The trained gate, graded on the same set
+
+`train_gate_classifier.py --score-goldset` (new): fitted on 12,317 ledger
+lines with the 36 gold-set keys excluded, the classifier routes **all 75 gold
+items UNCERTAIN** — confident coverage 0%, so today it saves $0 and risks 0
+recall. Replay bar out of sample: 99.955% of 2,236 stored rows kept, but the
+ledger spans 14 days against the 30-day minimum, so the weekly workflow
+correctly reports `not ready` and nothing is armed. The cutover stays the
+plan's own pre-authorized bar (>=30 days AND >=99.5% replay), enforced by
+`gate-classifier.yml`; no human flag-flip was added and none is needed.
+
+### The YTD catch-up sweep: priced, NOT dispatched
+
+At the rejection audit's measured full-depth price ($0.0877/day of history =
+gate $0.0119 + reads $0.0758, on incumbent models):
+
+| window | days | price | modelled recovery* |
+|---|---|---|---|
+| 2026-06-01..07-31 (already priced) | 61 | $5.35 | ~2,200 rows |
+| 2026-01-01..05-31 (virgin) | 151 | $13.24 | ~5,400 rows |
+| full YTD 2026-01-01..08-14 | 226 | **$19.82** | ~8,100 rows |
+
+*59 reads/day of history x 60.7% measured store rate — MODELLED from MEASURED
+inputs; virgin-history dedup measured at 0 already-seen across 1,262
+candidates on three test days, so dedup shrinks this little.
+
+The authorization capped the sweep at $15.00 total: full YTD is $19.82, so it
+was **not dispatched** and the overage is the owner's decision. No A/B winner
+changes this materially — the sweep's cost is 86% reads, and the read/extract
+models were not in play (the promo model loses to flash-lite on extraction
+price, and extraction accuracy remains unmeasurable until the capture below
+produces a gold set). Sub-$15 options the owner can pick instead: the 61-day
+walk at $5.35, or Jan-May at $13.24.
+
+### What did ship: the extraction-input capture (PRs #55, #57)
+
+`gate_ledger.capture_extract_input()` writes the exact text extraction reads
+(4,000 chars, byte-equal to `FULL_READ_CHARS`) onto the candidate's existing
+ledger line, for a deterministic 1-in-2 sample of candidates that reach
+extraction, 15/run cap, provider-name redacted (the one divergence from
+production bytes, and a replay must note it). ~60 excerpts/day at current
+caps, ~7 MB/open month next to the ledger's current 5.8 MB, gzipped with its
+shard on month close, deleted after KEEP_MONTHS, off switch
+TIT_EXTRACT_CAPTURE=off. In about a week this is enough input text to label
+the extraction gold set that step 0 of the $5 plan has been blocked on.
+Plus: `ab-models.yml` gained the `gate-gold` mode (the one mode a swap may be
+taken on), and `tests/test_extract_capture.py` (10 tests, red before).
+
+---
+
 ## 2026-08-14 - the run publishes, the commit step unpublishes
 
 **No deploy. Nothing dispatched, nothing spent, the database not touched by
