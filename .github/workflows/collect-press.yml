@@ -52,7 +52,8 @@ on:
     # unrelated: the 21:15 run that evening pulled 10,225 candidates and stored
     # 55 rows normally, and the cancelled runs were killed before their first
     # step.
-    - cron: '0 11,21 * * *'
+    # Once daily since 2026-08-14, same owner decision as collect.yml.
+    - cron: '0 11 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
