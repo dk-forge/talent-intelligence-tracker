@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-14T18:08:13Z",
-  "last_tick": "2026-08-14T18:08:13Z",
+  "last_tick": "2026-08-14T18:13:32Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -190,8 +190,18 @@
       "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
       "run_id": "30990450867",
       "workflow": "collect"
+    },
+    {
+      "created_at": "2026-08-14T18:13:07Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-08-14T18:13:32Z",
+      "run_id": "31827613549",
+      "workflow": "backfill-gdelt-2026"
     }
   ],
+  "red_marks": {
+    "orphan:31827613549": "2026-08-14T18:13:32Z"
+  },
   "tickets": [
     {
       "attempts": 0,
@@ -206,6 +216,11 @@
           "at": "2026-08-14T18:08:13Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-08-14T18:13:32Z",
+          "detail": "run 31827246335",
+          "event": "bound"
         }
       ],
       "id": "20260814T175805Z-place-unplaced",
@@ -216,7 +231,7 @@
       "reason": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
       "requested_at": "2026-08-14T17:58:05Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "31827246335",
       "state": "dispatched",
       "workflow": "place-unplaced.yml"
     },
