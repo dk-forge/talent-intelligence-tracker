@@ -764,6 +764,55 @@ def test_a_rejected_finding_permanently_withholds_an_unpublished_row(
     ).fetchone()[0] is None
 
 
+def test_the_whole_accepted_backlog_ships_in_one_batch(conn, monkeypatch):
+    """The shape of the real database on 2026-08-14, in miniature.
+
+    Eight rows accepted by hand across a fortnight, two rejected, one still
+    open. publish() takes no limit and is scoped to every unpublished row and
+    not to the ones this run collected, so all eight leave together on the next
+    run whatever run first flagged them - and exactly the three stay behind.
+    """
+    _fill_lognormal(conn, n=400)
+    accepted = [f"ok{i}" for i in range(8)]
+    for i, chash in enumerate(accepted):
+        _row(conn, content_hash=chash, company=f"Accepted {i}",
+             funding_amount_usd=(i + 5) * 1_000_000_000)
+    for chash in ("nvda", "orcl"):
+        _row(conn, content_hash=chash, company=chash.upper(),
+             funding_amount_usd=709_000_000_000)
+    _row(conn, content_hash="open", company="Climate Fund Managers II",
+         funding_amount_usd=182_000_000)
+    conn.commit()
+
+    guardrails.quarantine(conn, today=TODAY)
+    for chash in accepted:
+        guardrails.review(conn, f"amount/{chash}", "accepted", "read the filing")
+    for chash in ("nvda", "orcl"):
+        guardrails.review(conn, f"amount/{chash}", "rejected", "not a round")
+
+    seen: list[str] = []
+
+    def capture(session, site, key, rows):
+        seen.extend(r["content_hash"] for r in rows)
+        return {"stored": len(rows), "duplicate": 0, "errors": []}
+
+    monkeypatch.setattr(publish, "_post_batch", capture)
+    _wp(monkeypatch)
+    result = publish.publish(conn)
+
+    assert set(accepted) <= set(seen), (
+        "an accepted row from an earlier run is still unpublished, so it "
+        "belongs in the next batch; nothing scopes the batch to this run")
+    assert {"nvda", "orcl"} & set(seen) == set(), "a rejection withholds"
+    assert "open" not in seen, "an unanswered finding holds its row back"
+    assert result["quarantined"] == 3
+
+    still_out = {r[0] for r in conn.execute(
+        "SELECT content_hash FROM signals "
+        " WHERE is_current = 1 AND published_at IS NULL")}
+    assert still_out == {"nvda", "orcl", "open"}
+
+
 def test_a_rejected_row_is_quarantined_and_stays_quarantined(conn):
     _fill_lognormal(conn)
     _row(conn, content_hash="spv", company="100 Villas Drive LLC",

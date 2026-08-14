@@ -13,7 +13,7 @@ import sqlite3
 import pytest
 
 import merge_db
-from pipeline import schema, store, validate
+from pipeline import guardrails, schema, store, validate
 
 
 def _signal(conn, company, headline, *, pillar="company_development",
@@ -318,6 +318,162 @@ def test_an_unreviewed_disagreement_resolves_to_open(two_writers):
     assert conn.execute(
         "SELECT state FROM publish_guardrails WHERE subject = 'row'"
     ).fetchone()[0] == "open"
+
+
+def test_a_publication_survives_the_merge(two_writers):
+    """The one that was really broken, measured 2026-08-14 on run 31780939430.
+
+    publish() sends a row and stamps published_at. The commit step then resets
+    to origin/main and merges, and _merge_signals skips every
+    (content_hash, revision) the destination already holds - so the stamp was
+    discarded on any row collected in an EARLIER run than the one that
+    published it. Ten such rows sat at published_at IS NULL on main while the
+    live site already held every one of them.
+
+    It is not cosmetic. enrich_published() only ever offers rows with
+    published_at IS NOT NULL, so a derived column learned later - archive_url,
+    hq_city, funding_stage - could never reach them; and guardrails reads the
+    same marker to decide whether a flagged figure is LIVE (retract it) or
+    PENDING (withholding is the whole fix), so a wrong number in public would
+    be filed as one that had never left the building.
+    """
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    conn = schema.connect(ours)
+    conn.execute("UPDATE signals SET published_at = '2026-08-14T08:04:45' "
+                 " WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    assert conn.execute(
+        "SELECT published_at FROM signals WHERE content_hash = ?", (chash,)
+    ).fetchone()[0] == "2026-08-14T08:04:45", (
+        "a row this run published must not come back unpublished; the site "
+        "already holds it and nothing downstream can tell")
+
+
+def test_the_merge_never_unpublishes_a_row(two_writers):
+    """The other direction, and the reason this is a UNION and not a copy.
+
+    Another writer published the row while we worked. Our copy still says NULL
+    because we never sent it. Carrying our NULL across would be the same defect
+    with the sides swapped."""
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    conn = schema.connect(theirs)
+    conn.execute("UPDATE signals SET published_at = '2026-08-14T06:00:00' "
+                 " WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    assert conn.execute(
+        "SELECT published_at FROM signals WHERE content_hash = ?", (chash,)
+    ).fetchone()[0] == "2026-08-14T06:00:00"
+
+
+def test_the_earlier_publication_wins(two_writers):
+    """Both sides sent it. published_at answers "when did this reach the site",
+    so the earlier stamp is the true one and a re-send must not move it
+    forward."""
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    for path, stamp in ((theirs, "2026-08-14T06:00:00"),
+                        (ours, "2026-08-14T08:04:45")):
+        conn = schema.connect(path)
+        conn.execute("UPDATE signals SET published_at = ? WHERE content_hash = ?",
+                     (stamp, chash))
+        conn.commit()
+        conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    assert conn.execute(
+        "SELECT published_at FROM signals WHERE content_hash = ?", (chash,)
+    ).fetchone()[0] == "2026-08-14T06:00:00"
+
+
+def test_a_withdrawn_row_is_not_republished_by_the_marker(two_writers):
+    """Rule 1 of _reconcile_is_current outranks this one. A retraction flips
+    is_current on the row the marker belongs to, and carrying a publication
+    stamp must not be a reason to look at a withdrawn row again."""
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    conn = schema.connect(ours)
+    conn.execute("UPDATE signals SET published_at = '2026-08-14T08:04:45', "
+                 " is_current = 0 WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = sqlite3.connect(theirs)
+    row = conn.execute(
+        "SELECT is_current, published_at FROM signals WHERE content_hash = ?",
+        (chash,)).fetchone()
+    assert row[0] == 0, "a withdrawal is sticky"
+    assert row[1] == "2026-08-14T08:04:45"
+
+
+def test_a_live_figure_is_not_filed_as_one_that_never_left(two_writers):
+    """What the lost marker costs the guardrails, end to end.
+
+    guardrails decides between two very different corrections by reading
+    published_at: a PENDING row is fixed by withholding it, a LIVE one can only
+    be fixed by `retract.py` and stays red until somebody does. Drop the marker
+    on a row the site already holds and a wrong number in public is filed as
+    "decided, never publishing, no clock" - the one bucket that never asks
+    anybody for anything.
+    """
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    conn = schema.connect(ours)
+    conn.execute("UPDATE signals SET published_at = '2026-08-14T08:04:45' "
+                 " WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = schema.connect(theirs)
+    conn.execute(
+        "INSERT INTO publish_guardrails (check_name, subject, label, value, "
+        "  state, first_seen, last_seen, seen, reviewed_at, reviewed_by, "
+        "  review_note) "
+        "VALUES ('amount', ?, 'Shared Co', 5e9, 'rejected', "
+        "        '2026-08-14T09:00:00', '2026-08-14T09:00:00', 1, "
+        "        '2026-08-14T09:30:00', 'owner', 'not a round')", (chash,))
+    conn.commit()
+
+    report = guardrails.quarantine(conn, write=False)
+    conn.close()
+
+    assert [r["subject"] for r in report["live"]] == [chash], (
+        "a rejected figure that is ALREADY on the site needs a retraction, and "
+        "saying so depends entirely on published_at surviving the merge")
+    assert report["withheld"] == [], (
+        "withholding is not available to a published figure")
 
 
 def test_a_missing_database_fails_loudly(tmp_path):
