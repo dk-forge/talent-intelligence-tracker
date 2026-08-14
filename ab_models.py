@@ -84,6 +84,13 @@ READTHROUGH_MODELS = [
     "openai/gpt-5-mini",
     "anthropic/claude-haiku-4.5",
     "anthropic/claude-sonnet-5",
+    # Owner candidates 2026-08-14. NOTE the ceiling on this whole mode: the
+    # gate gold set labels YES/NO on headline+teaser and cannot grade a prose
+    # read-through, so this surface has NO accuracy measurement — this mode is
+    # a side-by-side to be read, and a swap of READ_MODEL may not be taken on
+    # it alone (the sentence IS the product's voice).
+    "google/gemini-3.7-flash",
+    "deepseek/deepseek-v4-flash",
 ]
 
 # Deliberately smaller than the production prompt: the gate only needs a verdict,
@@ -404,13 +411,31 @@ def _gate_answer(text: str) -> bool | None:
 
 
 def _gate_call(model: str, item_text: str, key: str) -> tuple[str, dict, str]:
-    """One production-shaped gate call: GATE_SYSTEM, one word back."""
+    """One production-shaped gate call: GATE_SYSTEM, one word back.
+
+    Two deliberate divergences from `classify.gate_verdict`'s call, both
+    learned from the 2026-08-14 run, where gpt-5-nano, gpt-oss-120b and
+    gemini-3.7-flash answered 0 of 75 and deepseek-v4-flash 27 of 75:
+
+    * `reasoning: {enabled: false}` — a reasoning model spends its whole
+      completion budget thinking and returns empty content, which the
+      PRODUCTION gate would read as NO on every candidate (silent total
+      coverage loss). Off here so the model's actual verdict is measurable;
+      OpenRouter ignores the field where a model has no reasoning to disable.
+    * `max_tokens: 8` over production's 4 — headroom for a leading space or
+      quote around the one word, not for prose.
+
+    THE CONSEQUENCE FOR A SWAP: a reasoning model that wins here may only be
+    pinned as the gate if `classify._call` grows the same reasoning-off field
+    for gate calls. Without it the winner scores 0% recall in production.
+    """
     from pipeline import classify
 
     body = {
         "model": model,
         "temperature": 0,
-        "max_tokens": 4,
+        "max_tokens": 8,
+        "reasoning": {"enabled": False},
         "messages": [
             {"role": "system", "content": classify.GATE_SYSTEM},
             {"role": "user", "content": item_text[:classify.GATE_CHARS]},
