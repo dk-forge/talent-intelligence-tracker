@@ -127,7 +127,36 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # reached on every run, so that figure is structural rather than a busy week.
 # See docs/TECHLOG.md 2026-08-12 for the measurement and its basis. The route
 # back under is docs/PLAN-gate-to-five-dollars.md, not a bigger number here.
-MONTHLY_ALLOWANCE_USD = 18.0
+#
+# LOWERED 18.0 -> 6.04 on 2026-08-13, by the owner: "keep both at steady
+# state", and "close to $5 a month as possible" across BOTH trackers.
+#
+# THIS IS A DERIVED NUMBER AND NOT A ROUND ONE. The derivation lives in
+# `budget.py` (MONTHLY_TARGET_COMBINED_USD x THIS_REPO_SHARE) so it can be
+# checked rather than believed, and `test_budget_allocator.py` fails if this
+# literal and that derivation drift apart. In one line:
+#
+#   $8.00 combined x 75.52% = $6.04
+#
+# where 75.52% is this repo's share of MEASURED combined demand — $0.8020/day
+# here (the 2026-08-13 ledger, the first full un-degraded day since 08-03)
+# against $0.26/day for the sibling (the owner's shared-account reading over
+# 08-07..08-10, usable per-tracker precisely because this key's lifetime usage
+# did not move at all across that window).
+#
+# THE SUM IS THE TARGET AND ONLY HALF OF IT IS SETTABLE FROM HERE. $6.04 here
+# implies $1.96 for the AI Layoff Tracker, whose own railway/spend.py this repo
+# can neither read nor set. If the sibling is not separately brought down, the
+# combined target is not met however well this file behaves.
+#
+# AND $6.04 DOES NOT BUY TODAY'S DEPTH. Measured committed demand at the
+# current read caps is $24.06/month. What this ceiling changes is WHO the money
+# goes to first: `budget.py` splits it into a committed pot that a backfill
+# cannot touch and a discretionary pot that slows rather than stopping. Bringing
+# the committed set inside its own pot is a read-cap decision
+# (`pipeline/classify.BINDING_READ_BUDGET`) and it belongs to the owner. Run
+# `python3 budget.py` and `python3 cost_projection.py` before changing either.
+MONTHLY_ALLOWANCE_USD = 6.04
 
 # Stop collecting with headroom left, so a long run cannot overshoot mid-batch.
 STOP_AT_FRACTION = 0.9
@@ -445,11 +474,28 @@ def main() -> int:
     elif remaining is not None and remaining < 1:
         problems.append(f"under $1 left on the key (${remaining:.2f})")
 
-    over = spent_this_month >= MONTHLY_ALLOWANCE_USD * STOP_AT_FRACTION
+    # WHICH POT, not just how much. A single line over the whole allowance
+    # cannot express "pay the recurring work first", and in August it did not:
+    # a backfill campaign spent 88% of the month in 2.5 days and the scheduled
+    # collectors ran degraded for the nine days after. budget.py splits the
+    # allowance in two and measures this run against its own pot only.
+    import budget
+
+    charged = budget.charge(budget.ledger_spend(), month_total=spent_this_month)
+    kind = budget.run_kind()
+    decision = budget.decide(kind=kind, allowance=MONTHLY_ALLOWANCE_USD,
+                             charged=charged, stop_at_fraction=STOP_AT_FRACTION)
+    print()
+    print("  " + budget.status_line(allowance=MONTHLY_ALLOWANCE_USD,
+                                    charged=charged, measured_total=True))
+    print(f"  this run is {kind.upper()} work ({budget.KIND_ENV})")
+
+    over = decision.over
     if over:
         problems.append(
-            f"this month's spend ${spent_this_month:.2f} is at or past "
-            f"{int(STOP_AT_FRACTION*100)}% of the ${MONTHLY_ALLOWANCE_USD:.0f} allowance"
+            f"this month's {kind} spend ${charged[kind]:.2f} is at or past "
+            f"{int(STOP_AT_FRACTION*100)}% of the ${budget.pots(MONTHLY_ALLOWANCE_USD)[kind]:.2f} "
+            f"{kind} pot (of a ${MONTHLY_ALLOWANCE_USD:.2f} allowance)"
         )
 
     print()

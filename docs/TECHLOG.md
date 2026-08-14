@@ -13,6 +13,169 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - two pots: the month had a total and never had an owner, so catch-up work spent the collectors' budget
+
+**No deploy. No plugin change.** Budget architecture and a measurement.
+
+The owner read the OpenRouter bill and said **"keep both at steady state"**,
+and separately **"we need 95% coverage for both"**. The account is shared; the
+KEYS are not, which is what makes any of the below separable at all.
+
+### What this tracker actually costs, and how that is known
+
+There is a per-run cost ledger — `source_health.cost_usd` — and it is
+committed, so this is read rather than estimated.
+
+**2026-08-13 is the first FULL un-degraded day since the guard tripped on
+08-03**, which makes it the only clean reading of recurring cost this month:
+
+| run | UTC | cost |
+|---|---|---:|
+| collect | 08:07-08:33 | $0.2219 |
+| collect national press | 12:26 | $0.2011 |
+| collect | 19:31-19:47 | $0.2070 |
+| collect national press | 22:15 | $0.1720 |
+| | **total** | **$0.8020** |
+
+No backfill ran that day, so **$0.8020/day = $24.06/30d is the committed set
+alone**, at today's read caps. It corroborates the 2026-08-12 per-run estimate
+($0.6042/day) from the other side and is 33% above it.
+
+**The sibling's number falls out of the same window.** The owner measured
+$0.26/day over 08-07..08-10 on the shared account; this key's lifetime usage
+did not move at all across it ($26.9480, unchanged 08-03 to 08-12). A window in
+which this tracker spent nothing measures the other one cleanly: **$0.26/day,
+$7.80/30d**. Combined natural demand is **$1.062/day**, of which this repo is
+**75.52%**.
+
+**THERE IS NO OBSERVED COMBINED STEADY STATE.** Every window the owner measured
+had one tracker at zero or the other spiking — $0.26/day was this tracker
+switched OFF, and the 08-12/08-13 spikes were it switching back on after the
+allowance went to $18. Aug 13's shared-account -$1.13 reconciles as $0.802
+(here) + $0.26 (sibling) = $1.06. So the combined target is a policy choice,
+not a state to return to.
+
+**$8.00 and not $5.00**, and the reason is arithmetic rather than generosity:
+the sibling ALONE measures $7.80/month at the steady state the owner asked to
+keep, so a $5 combined target cannot be met without cutting the tracker that is
+already behaving, on top of cutting this one by 75%.
+
+**`MONTHLY_ALLOWANCE_USD` 18.0 -> 6.04** = $8.00 x 75.52%. The other $1.96 is
+the layoff tracker's, and this repo can neither read nor set it; the assumption
+is stated in `spend.py` rather than made silently.
+
+### The defect the number does not fix, and the one it does
+
+August did not overspend at a rate. **88% of it was hand-dispatched backfill
+walkers, in 2.5 days**, and the collectors were degraded for the nine days
+after. Nothing in the repo could have stopped that, because `spend.py` answers
+"is the month spent" — a question about a TOTAL — and a total cannot express
+"pay the recurring work first".
+
+`budget.py` splits it:
+
+* **COMMITTED $5.37** (88.91%) — the scheduled jobs. Measured against their own
+  pot, so catch-up spending cannot move the number at all.
+* **DISCRETIONARY $0.67** — the `backfill_*` family and `ab_models`. Per-run
+  ceiling is `remaining / days left`, so a walker runs **smaller** late in a
+  lean month rather than not at all. `backfill_gnews_2026`, `_gdelt_` and
+  `_press_` now derive their ration from that (`live_ration()`), not from a
+  static monthly constant. gnews goes 37 -> 8 at a fresh pot.
+
+The 88.91/11.09 split is derived from demand both sides have already written
+down: $24.06 measured, against the three walkers' own declared
+`MONTHLY_WALKER_BUDGET_USD` ($1.00 + $1.50 + $0.50). A test re-derives it from
+the walker modules, so a walker that changes its budget cannot leave the split
+behind.
+
+**The classification is structural, and the obvious structural rule is wrong.**
+"Has a `schedule:` in its own file" would have filed the ARMED twice-weekly
+`tripwire.yml` and the weekly `benchmark-diff.yml` as catch-up — both are
+dispatch-only files whose crons live in `schedule-link-hygiene.yml`, because a
+`schedule:` of their own would enter the `talent-collect` lock uncoordinated.
+`budget.scheduled_workflows()` follows the enqueue, and ignores comments
+(`drain-writers.yml` has a cron and names `backfill-gdelt-2026.yml` in a note
+about an incident).
+
+**No silent caps.** A skipped discretionary run exits ZERO and says it is
+"not broken and not finished". A truncated walker prints DROPPED FOR BUDGET,
+NOT FOR A VERDICT with the count and the ceiling's own derivation. A genuine
+data fault is still loudly red.
+
+**The ledger is a FLOOR and says so.** It holds $1.68 of August's $10.08+ —
+`run_tripwire`, `ab_models` and `run_benchmark_diff` call models without filing
+a priced health row. `spend.py` passes the key's authoritative delta and
+`budget.charge()` puts the unattributed remainder on DISCRETIONARY first. That
+bias is chosen: mis-charging the tripwire's ~$0.29 slows a backfill, while the
+other direction degrades the collectors. For August it happens to be exactly
+right — the missing $8.40 IS the backfill campaign.
+
+`source_health.run_kind` is the new column; `store.report_health` writes it on
+every row, priced or not, so "a discretionary run stored these and bought
+nothing" is answerable too.
+
+### What $6.04 does NOT buy, stated before anyone plans against it
+
+Committed demand is $24.06/month and the committed pot is $5.37, so **the pot
+funds about 22% of today's read depth**. The two pots stop a *backfill*
+starving the collectors; they do not make $6.04 buy what $24.06 buys. Bringing
+the committed set inside its pot is a read-cap decision
+(`classify.BINDING_READ_BUDGET`, 217 reads/run) and it is the owner's.
+`cost_projection.py` now sizes against the COMMITTED pot for that reason —
+recommending caps against the full allowance would recommend a depth the
+collectors cannot pay for.
+
+### 95%: the arithmetic, and why the cap is not what makes it unreachable
+
+Coverage is two numbers and they stay separate:
+
+| | held | Wilson 95% |
+|---|---|---|
+| worldwide (169 events) | **36, 21.3%** | 15.8 - 28.1 |
+| US (51 events) | **21, 41.2%** | 28.8 - 54.8 |
+| US, as a READER sees it | **5, 9.8%** | 4.3 - 21.0 |
+
+Gap to 95%: **73.7 points worldwide** (125 more of 169), **53.8 points US** (27
+more of 51).
+
+**Cost to close: UNKNOWN, and the measurement that would answer it is named.**
+Cost per stored ROW is measured ($0.00305 last 7d, $0.00445 over 35 runs) and
+is not cost per gold-set event; nothing in this repo converts one to the other.
+The 2026-08-12 rejection audit places 26 of the 30 US misses at
+`walked_never_read` — depth, which is money — and prices the answer at
+**$5.35** for a full-depth re-walk of 2026-06-01..07-31, after which
+`measure_recall.py --family us` against the same sealed set returns an EARNED
+number. That is the measurement, not the coverage.
+
+**Months to 95% at $6.04: the question is not well-posed, and that is the
+finding.** Recall is a RATE measured on a sealed set, not a backlog that
+drains: it depends on depth per day. At $6.04 the depth FALLS, so the measured
+rate would fall too. There is no month count at which it climbs.
+
+**What can be priced is the alternative, and it is not more money.**
+`cost_projection.py [4]`: full worldwide coverage with the conditional second
+pass costs **$40.79/month** as configured — and **$6.30/month** on the cheapest
+models with leadership offloaded to free deterministic extraction (gate $3.68 +
+extract $2.27 + read $0.35). **That is within 4% of the allowance being set
+here**, and the $3.68 of it that is the gate is what
+`docs/PLAN-gate-to-five-dollars.md` exists to remove. So the route to coverage
+is the model and gate work, not the ceiling. Note also that "full coverage" is
+throughput, not recall: the repo's own honest bound for the US is 41.2% to 96%,
+with 65-70% the number to plan against. **95% sits at the very top of that band
+and is not substantiable today at any budget.**
+
+**Nothing was armed, dispatched or deployed, and no model was called.** Every
+figure above is out of the committed ledger, the committed audits, or
+`cost_projection.py`.
+
+Tests: RED before on 8 real assertions in the new
+`tests/test_budget_allocator.py` (including
+`test_a_backfill_on_day_2_leaves_the_collectors_funded_on_day_20`, the
+load-bearing one), plus `assert 6.04 == 18.0` in `test_spend_degrades` and
+`source_health.run_kind missing from CREATE` in `test_migrations`. Green after.
+
+---
+
 ## 2026-08-13 - "rejected" was a synonym for "accepted", so saying no to a row was the one verdict that published it
 
 **Fixed in code and in the docs that taught it. No stored row was changed and

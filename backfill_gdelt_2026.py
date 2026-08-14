@@ -145,8 +145,27 @@ USD_PER_READ_ALL_IN = READ_USD_PER_ITEM + CANDIDATES_PER_READ * GATE_USD_PER_ITE
 #: month at one slice a day, and a year of 2026 history in 92 slices for about
 #: $4.60 all in — one tracker's monthly budget, spent once, for everything from
 #: 1 January to the day collection started.
-DEFAULT_MAX_READTHROUGHS = max(
+DEFAULT_MAX_READTHROUGHS_STATIC = max(
     1, int(MONTHLY_WALKER_BUDGET_USD / 30 / USD_PER_READ_ALL_IN))
+
+#: The same figure under its old name, for --plan-cost and the month-sizing
+#: arithmetic above, neither of which has a clock in it. A RUN uses
+#: live_ration(), which does.
+DEFAULT_MAX_READTHROUGHS = DEFAULT_MAX_READTHROUGHS_STATIC
+
+
+def live_ration() -> tuple[int, str]:
+    """This run's read ceiling, from what is LEFT in the discretionary pot.
+
+    See backfill_gnews_2026.live_ration and budget.py. A static monthly figure
+    cannot slow down, and a catch-up walker that will not slow down is how
+    August's collectors ended up degraded for nine days.
+    """
+    import budget
+
+    return budget.walker_ration(
+        monthly_walker_budget_usd=MONTHLY_WALKER_BUDGET_USD,
+        usd_per_unit=USD_PER_READ_ALL_IN)
 
 
 def window_cost(*, candidates: int, reads: int) -> dict:
@@ -228,13 +247,16 @@ def main() -> int:
     ap.add_argument("--start", default="2026-01-01")
     ap.add_argument("--end", default="2026-12-31")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--max-readthroughs", type=int,
-                    default=DEFAULT_MAX_READTHROUGHS,
-                    help=f"hard stop on FULL classifications for the whole run "
-                         f"(default {DEFAULT_MAX_READTHROUGHS}, DERIVED from "
-                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month at one slice a "
-                         f"day; was 1200, which is ~$1.54 a slice and ~$142 for a "
-                         f"year of history). See --plan-cost.")
+    ap.add_argument("--max-readthroughs", type=int, default=None,
+                    help=f"hard stop on FULL classifications for the whole run. "
+                         f"Blank DERIVES it from what is left in the "
+                         f"discretionary pot over the days left in the month "
+                         f"(budget.walker_ration), so a lean month runs SMALLER "
+                         f"rather than not at all; the static month-sizing "
+                         f"figure is {DEFAULT_MAX_READTHROUGHS_STATIC} at "
+                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month (was 1200, "
+                         f"which is ~$1.54 a slice and ~$142 for a year of "
+                         f"history). See --plan-cost.")
     ap.add_argument("--plan-cost", action="store_true",
                     help="print what each pace costs and exit. Fetches nothing, "
                          "calls nothing, writes nothing.")
@@ -262,6 +284,24 @@ def main() -> int:
     if args.plan_cost:
         print_cost_plan()
         return 0
+
+    # WHAT THE BUDGET WILL PAY FOR TODAY. An explicit value still wins — a
+    # number a human typed beats a derived one. With none given this is the
+    # walker's share of what REMAINS in the discretionary pot over the days
+    # left, so it shrinks instead of stopping; zero is a skip, exit ZERO.
+    if args.max_readthroughs is None:
+        args.max_readthroughs, ration_basis = live_ration()
+        print(f"[gdelt] {ration_basis}")
+        if args.max_readthroughs < 1:
+            print("[gdelt] NOTHING BOUGHT. No cursor moved, no candidate "
+                  "marked, no ticket failed. The next funded run resumes on "
+                  "the first window this one did not do.")
+            return 0
+    else:
+        ration_basis = (f"max-readthroughs {args.max_readthroughs}, set "
+                        f"explicitly, so the budget-derived figure was not "
+                        f"used.")
+        print(f"[gdelt] {ration_basis}")
 
     requested_start = date.fromisoformat(args.start)
     requested_end = min(date.fromisoformat(args.end), date.today())
@@ -364,8 +404,16 @@ def main() -> int:
                 print(f"  WOULD GATE   {item['headline'][:70]}")
                 continue
             if classify.STATS["full_calls"] >= args.max_readthroughs:
-                stopped_early = (f"--max-readthroughs ({args.max_readthroughs}) "
-                                 f"reached at {lo:%Y-%m-%d}")
+                # NO SILENT CAPS: the reason names the ceiling AND where the
+                # ceiling came from, so a short run cannot read as a finished
+                # one. The window is left unfinished and its cursor unmoved.
+                stopped_early = (
+                    f"--max-readthroughs ({args.max_readthroughs}) reached at "
+                    f"{lo:%Y-%m-%d}. Everything after this point in the window "
+                    f"was "
+                    "DROPPED FOR BUDGET, NOT FOR A VERDICT"
+                    f", and is UNMARKED for a later funded walk. "
+                    f"{ration_basis}")
                 break
 
             try:

@@ -208,8 +208,27 @@ CANDIDATE_RATE = 0.056
 
 #: Candidates gated per SLICE. DERIVED from the budget at one slice a day, so
 #: changing the budget changes this and the two can never disagree.
-SLICE_GATE_RATION = max(
+SLICE_GATE_RATION_STATIC = max(
     1, int(MONTHLY_WALKER_BUDGET_USD / 30 / USD_PER_GATED_CANDIDATE))
+
+#: The same figure under its old name, for --plan-cost and the month-sizing
+#: arithmetic above, neither of which has a clock in it. A RUN uses
+#: live_ration(), which does.
+SLICE_GATE_RATION = SLICE_GATE_RATION_STATIC
+
+
+def live_ration() -> tuple[int, str]:
+    """This run's gate ration, from what is LEFT in the discretionary pot.
+
+    See backfill_gnews_2026.live_ration and budget.py. A static monthly figure
+    cannot slow down, and a catch-up walker that will not slow down is how
+    August's collectors ended up degraded for nine days.
+    """
+    import budget
+
+    return budget.walker_ration(
+        monthly_walker_budget_usd=MONTHLY_WALKER_BUDGET_USD,
+        usd_per_unit=USD_PER_GATED_CANDIDATE)
 
 #: A per-run backstop on FULL read-throughs, for a slice whose gate survival
 #: runs far above the measured 15%. NOT the mechanism — the ration is — and
@@ -436,12 +455,16 @@ def main() -> int:
     ap.add_argument("--fetch-only", action="store_true",
                     help="enumerate, read heads and free-filter only — calls no "
                          "model, spends nothing, stores nothing")
-    ap.add_argument("--ration", type=int, default=SLICE_GATE_RATION,
-                    help=f"candidates GATED per slice (default "
-                         f"{SLICE_GATE_RATION}, DERIVED from "
-                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month at one slice a "
-                         f"day). The rest of the slice is left unmarked and a "
-                         f"later pass picks it up. See --plan-cost.")
+    ap.add_argument("--ration", type=int, default=None,
+                    help=f"candidates GATED per slice. Blank DERIVES it from "
+                         f"what is left in the discretionary pot over the days "
+                         f"left in the month (budget.walker_ration), so a lean "
+                         f"month runs SMALLER rather than not at all; the "
+                         f"static month-sizing figure is "
+                         f"{SLICE_GATE_RATION_STATIC} at "
+                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month. The rest of "
+                         f"the slice is left unmarked and a later pass picks it "
+                         f"up. See --plan-cost.")
     ap.add_argument("--max-readthroughs", type=int,
                     default=DEFAULT_MAX_READTHROUGHS,
                     help=f"per-run backstop on FULL classifications (default "
@@ -475,6 +498,24 @@ def main() -> int:
     if args.plan_cost:
         print_cost_plan()
         return 0
+
+    # WHAT THE BUDGET WILL PAY FOR TODAY. An explicit --ration still wins — a
+    # number a human typed beats a derived one. With none given this is the
+    # walker's share of what REMAINS in the discretionary pot over the days
+    # left, so it shrinks instead of stopping; zero is a skip, exit ZERO.
+    if args.ration is None:
+        args.ration, ration_basis = live_ration()
+        print(f"[press] {ration_basis}")
+        if args.ration < 1:
+            print("[press] NOTHING BOUGHT. No cursor moved, no candidate "
+                  "marked, no ticket failed. The next funded pass resumes on "
+                  "the first publisher this one did not do.")
+            return 0
+    else:
+        ration_basis = (f"ration {args.ration}/slice, set explicitly on the "
+                        f"command line, so the budget-derived figure was not "
+                        f"used.")
+        print(f"[press] {ration_basis}")
 
     window_start = args.start
     window_end = min(args.end, date.today().isoformat())
@@ -818,7 +859,14 @@ def main() -> int:
           f"candidates")
     for reason, count in filtered.most_common():
         print(f"      {count:5d}  {reason}")
+    # NO SILENT CAPS. A truncated run says what it did not do, and names the
+    # ceiling that decided it, in the same breath as what it did.
     print(f"  left for a later pass  {rationed_off} (ration {args.ration}/slice)")
+    if rationed_off:
+        print(f"      DROPPED FOR BUDGET, NOT FOR A VERDICT: {rationed_off} "
+              f"candidate(s) reached the gate and were not gated. They are "
+              f"UNMARKED, so a later funded pass reads them.")
+        print(f"      {ration_basis}")
     if deferred_unread:
         print(f"  left UNREAD (no paid path)  {deferred_unread}")
     print(f"  gate calls         {classify.STATS['gate_calls']} "

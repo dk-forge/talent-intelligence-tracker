@@ -212,6 +212,16 @@ CREATE TABLE IF NOT EXISTS source_health (
     gate_calls        INTEGER,  -- one-word screens paid for
     gate_rejects      INTEGER,  -- dropped there, at ~1/40th of a read
     budget_deferred   INTEGER,  -- kept by the gate and NOT read: the gap
+
+    -- WHOSE SPEND WAS IT. cost_usd made the month's total measurable; this
+    -- makes it SPLITTABLE. 'committed' is scheduled work that keeps the
+    -- tracker current; 'discretionary' is hand-dispatched catch-up (the
+    -- backfill walkers, ab_models). In August 2026 those were indistinguishable
+    -- here, the catch-up family spent 88% of the month in 2.5 days, and the
+    -- collectors ran degraded for the nine days after with no query able to say
+    -- why. NULL predates the column and counts as committed. budget.py owns the
+    -- rule; store.report_health writes it on every row, priced or not.
+    run_kind          TEXT,
     PRIMARY KEY (collector, run_at)
 );
 
@@ -457,6 +467,16 @@ MIGRATIONS = (
     ("source_health", "gate_calls", "INTEGER"),       # one-word screens paid for
     ("source_health", "gate_rejects", "INTEGER"),     # dropped there, cheap
     ("source_health", "budget_deferred", "INTEGER"),  # kept and NOT read: the gap
+
+    # WHOSE SPEND WAS IT. cost_usd made the month's total measurable; this makes
+    # it SPLITTABLE, which is the question August actually posed. Backfill
+    # walkers spent 88% of that month in 2.5 days and the scheduled collectors
+    # ran degraded for the nine days after, and no query over this table could
+    # have said so, because a walker's row and a collector's row are identical.
+    # `committed` (scheduled, keeps the tracker current) or `discretionary`
+    # (dispatch-only catch-up). NULL predates the column and counts as
+    # committed — see budget.ledger_spend on why not a third bucket.
+    ("source_health", "run_kind", "TEXT"),
 )
 
 

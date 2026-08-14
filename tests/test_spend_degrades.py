@@ -38,21 +38,28 @@ def stats():
 # --- the allowance -----------------------------------------------------------
 
 def test_the_allowance_is_the_number_the_owner_set():
-    """$18. Policy, in a diff, not a secret.
+    """$6.04. Policy, in a diff, not a secret.
 
     $10 -> $25 on 2026-07-30, $25 -> $5 on 2026-07-31, $5 -> $10 on 2026-08-01,
-    $10 -> $18 on 2026-08-12, all by the owner. This test exists because the
-    file kept $25 for a day after the owner had gone back to $5, and every cost
-    decision taken in that window was measured against a ceiling five times too
-    high.
+    $10 -> $18 on 2026-08-12, $18 -> $6.04 on 2026-08-13, all by the owner.
+    This test exists because the file kept $25 for a day after the owner had
+    gone back to $5, and every cost decision taken in that window was measured
+    against a ceiling five times too high.
 
-    $18 and not $20 is deliberate and load-bearing: the provider key's own cap
-    is $20 and it is a HARD stop, so the policy cap has to sit below it for our
-    graceful degrade to be the one that fires. Anyone raising this to $20 to
-    "use the whole key" is removing the guard, not widening it — read the
-    comment above the constant first.
+    $6.04 is DERIVED and not chosen: it is this repo's measured share (75.52%)
+    of an $8.00 target across BOTH trackers. The derivation lives in budget.py
+    and `tests/test_budget_allocator.py` fails if the literal and the
+    derivation drift apart, which is why this line asserts equality with the
+    derivation rather than with a number typed twice.
+
+    It must also stay under the provider key's own cap, which is a HARD stop:
+    the policy cap has to fire first for our graceful degrade to be the one
+    that happens. Anyone raising this to "use the whole key" is removing the
+    guard, not widening it — read the comment above the constant first.
     """
-    assert spend.MONTHLY_ALLOWANCE_USD == 18.0
+    import budget
+
+    assert spend.MONTHLY_ALLOWANCE_USD == budget.DERIVED_ALLOWANCE_USD == 6.04
     assert spend.STOP_AT_FRACTION == 0.9
     assert spend.MONTHLY_ALLOWANCE_USD < 20.0, (
         "the policy allowance must stay strictly under the $20 provider cap on "
