@@ -710,16 +710,144 @@ def test_a_resolved_finding_that_returns_is_open_again(conn):
                         " WHERE subject = 'huge'").fetchone()["state"] == "open"
 
 
-def test_a_rejected_finding_also_releases_the_row(conn):
-    """Rejecting records the judgement; retract.py is what removes the row, so
-    the correction stays visible on the site instead of happening silently."""
+# --------------------------------------------------------------------------
+# Rejected is a third state, and the day it was a synonym for accepted
+# --------------------------------------------------------------------------
+#
+# For as long as the ledger existed, `quarantine` read `state IN ('accepted',
+# 'rejected')` as one thing: answered, therefore released. Accepted means "the
+# figure is real, send it" and rejected means "this is not a raise" - opposite
+# verdicts with one effect. On an UNPUBLISHED row that inverted the guardrail:
+# rejecting was the only verdict that GUARANTEED publication. Measured on the
+# committed database 2026-08-13, the next publish run would have sent Nvidia's
+# $709bn (an infrastructure financing arrangement, rejected by hand that
+# morning) and Oracle's $25bn (a corporate bond issue, likewise) into a live
+# corpus totalling $521.65bn.
+
+def test_a_rejected_finding_permanently_withholds_an_unpublished_row(
+        conn, monkeypatch):
+    """THE LOAD-BEARING ONE. A human said no, so the row never goes out.
+
+    Rejecting a never-published row is the cheapest correction there is: the
+    figure has never been in public and simply never leaves. It used to be the
+    one verdict that published it.
+    """
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="bond", company="Oracle",
+         funding_amount_usd=25_000_000_000)
+    _row(conn, content_hash="real", company="Anthropic",
+         funding_amount_usd=30_000_000_000)
+    conn.commit()
+
+    guardrails.quarantine(conn, today=TODAY)
+    guardrails.review(conn, "amount/bond", "rejected", "corporate bond issue")
+    guardrails.review(conn, "amount/real", "accepted", "real round, read it")
+
+    seen: list[str] = []
+
+    def capture(session, site, key, rows):
+        seen.extend(r["content_hash"] for r in rows)
+        return {"stored": len(rows), "duplicate": 0, "errors": []}
+
+    monkeypatch.setattr(publish, "_post_batch", capture)
+    _wp(monkeypatch)
+    publish.publish(conn)
+
+    assert "bond" not in seen, (
+        "a rejected row must never be sent; rejection is the cheapest possible "
+        "correction on a row that has never published")
+    assert "real" in seen, (
+        "accepting must still release the row, or this becomes 'nothing "
+        "publishes'")
+    assert conn.execute(
+        "SELECT published_at FROM signals WHERE content_hash = 'bond'"
+    ).fetchone()[0] is None
+
+
+def test_a_rejected_row_is_quarantined_and_stays_quarantined(conn):
     _fill_lognormal(conn)
     _row(conn, content_hash="spv", company="100 Villas Drive LLC",
          funding_amount_usd=40_000_000)
     conn.commit()
     assert "spv" in guardrails.quarantine(conn, today=TODAY)["quarantined"]
-    guardrails.review(conn, "vehicle_name/spv", "rejected", "SPV, retracting")
-    assert "spv" not in guardrails.quarantine(conn, today=TODAY)["quarantined"]
+    guardrails.review(conn, "vehicle_name/spv", "rejected", "SPV, not an employer")
+
+    report = guardrails.quarantine(conn, today=TODAY)
+    assert "spv" in report["quarantined"]
+    assert [r["subject"] for r in report["withheld"]] == ["spv"]
+    assert report["held"] == [], "a decided row is not waiting on anybody"
+
+
+def test_a_rejected_row_never_escalates_and_never_nags(conn):
+    """Open and rejected are both held back, and only one of them is a queue.
+
+    An open finding escalates on a grace clock because a person has not
+    answered it. A rejected one has been answered, so it must never redden a
+    run and never appear in the unreviewed money queue however old it gets.
+    """
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="aum", company="Arch",
+         funding_amount_usd=539_000_000_000)
+    conn.commit()
+    guardrails.quarantine(conn, today=TODAY)
+    guardrails.review(conn, "amount/aum", "rejected", "assets under management")
+    _age_finding(conn, "aum", hours=guardrails.HELD_FINDING_GRACE_HOURS * 10)
+
+    report = guardrails.quarantine(conn, today=TODAY)
+    assert report["overdue"] == []
+    assert guardrails.unreviewed_amounts(
+        report["held"] + report["live"] + report["withheld"]) == []
+
+
+def test_a_rejected_row_that_is_already_live_still_needs_a_retraction(conn):
+    """The other half, and the reason rejection is not just 'never send it'.
+
+    A row already on the site cannot be withheld - the figure is in public and
+    only `retract.py` can pull it back. So a rejected LIVE row keeps the live
+    treatment: reported, on the shorter window, red until somebody retracts it.
+    """
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="ipo", company="ChangXin Memory Technologies",
+         funding_amount_usd=8_600_000_000)
+    conn.execute("UPDATE signals SET published_at = '2026-07-01' "
+                 " WHERE content_hash = 'ipo'")
+    conn.commit()
+    guardrails.quarantine(conn, today=TODAY)
+    guardrails.review(conn, "amount/ipo", "rejected", "an IPO is not funding")
+
+    report = guardrails.quarantine(conn, today=TODAY)
+    assert [r["subject"] for r in report["live"]] == ["ipo"]
+    assert report["withheld"] == []
+    assert report["live"][0]["grace_hours"] == guardrails.LIVE_FINDING_GRACE_HOURS
+
+    _age_finding(conn, "ipo", hours=guardrails.LIVE_FINDING_GRACE_HOURS + 1)
+    assert [r["subject"] for r in
+            guardrails.quarantine(conn, today=TODAY)["overdue"]] == ["ipo"], (
+        "a rejected row that is live is a wrong number in public, and nothing "
+        "but a retraction fixes it")
+
+    # Retracting is what closes it, exactly as it does today.
+    conn.execute("UPDATE signals SET is_current = 0 WHERE content_hash = 'ipo'")
+    conn.commit()
+    after = guardrails.quarantine(conn, today=TODAY)
+    assert after["overdue"] == [] and after["live"] == []
+
+
+def test_the_read_only_pass_withholds_exactly_what_the_write_path_does(conn):
+    """ops_status and the digest read without writing. A rejection that only
+    withholds on the write path is a rejection nobody can see coming."""
+    _fill_lognormal(conn, n=400)
+    _row(conn, content_hash="fundclose", company="Kingswood Capital",
+         funding_amount_usd=50_000_000_000)
+    conn.commit()
+    guardrails.quarantine(conn, today=TODAY)
+    guardrails.review(conn, "amount/fundclose", "rejected", "a fund close")
+
+    written = guardrails.quarantine(conn, today=TODAY, write=True)
+    read_only = guardrails.quarantine(conn, today=TODAY, write=False)
+    assert written["quarantined"] == read_only["quarantined"] == {"fundclose"}
+    assert ([r["subject"] for r in written["withheld"]]
+            == [r["subject"] for r in read_only["withheld"]] == ["fundclose"])
 
 
 def test_a_read_only_pass_agrees_with_a_recorded_one(conn):

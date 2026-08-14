@@ -13,6 +13,116 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-13 - "rejected" was a synonym for "accepted", so saying no to a row was the one verdict that published it
+
+**Fixed in code and in the docs that taught it. No stored row was changed and
+no guardrail verdict was touched: the eight accepted and two rejected verdicts
+in the ledger are the owner's and stand exactly as they were.**
+
+### The defect
+
+`pipeline/guardrails.quarantine()` built its set of answered findings like this,
+on both the write path (via `open_findings`, whose SQL asked for `state =
+'open'`) and the read-only one:
+
+    if row["state"] in ("accepted", "rejected"):
+        answered.add(key)
+
+Answered meant "not open", and everything downstream read "not open" as
+"released". For `accepted` that is correct and is the whole point: ChangXin
+Memory's genuine $8.6bn raise is accepted once and publishes. For `rejected` it
+is exactly backwards. On a row that has never published, rejection should be
+the cheapest correction in the system - the figure has never been in public, so
+all that is needed is to never send it - and instead it was the only verdict
+that GUARANTEED publication.
+
+Measured on the committed database this morning, the next scheduled `collect`
+would have sent:
+
+    Nvidia   $709,000,000,000   rejected by hand - an infrastructure financing
+                                arrangement, not a round
+    Oracle    $25,000,000,000   rejected by hand - a corporate bond issue
+
+$734bn of it, into a live corpus totalling $521.65bn. A dry run of the publish
+selection before the fix reported `would_send=10, quarantined=1`, with both
+rejected rows in the SEND column.
+
+### The root cause was a docstring
+
+`guardrails.py` said rejection "does not delete anything: retract the row with
+`python3 retract.py <signal_id> 'why'`". That sentence is true of a row that is
+ALREADY LIVE - a published figure cannot be withheld, only retracted - and it
+was written from the one incident where that was the case (the OpenAI $100bn
+in-progress figure, further down this log). It was then read as the general
+rule, and the code followed it. The common case is the opposite one, and the
+code had no way to express it because the ledger had two states wearing three
+names.
+
+### The fix: three states, not two
+
+Open awaits a human and escalates on a grace clock. Accepted releases the row.
+**Rejected withholds it, permanently, and is on no clock at all** - the same
+PASS / FAIL / UNKNOWN discipline this project already applies everywhere else.
+
+- `pipeline/guardrails.rejected_findings()` is the new half of
+  `open_findings()`, and `quarantine()` reads BOTH. It reads the rejected ones
+  **from the ledger and deliberately not from this pass's findings**: a figure a
+  person said no to must not become publishable because the corpus grew a longer
+  tail and the amount ceiling moved above it.
+- `_row_placement()` is one query answering where a flagged row actually is -
+  `live` / `pending` / `gone` - because the withholding, the escalation and the
+  retraction advice all turn on that one three-way answer and two of them used
+  to infer it separately. `_already_published()` is now a thin view over it.
+- A rejected row that is **already live** keeps today's behaviour exactly:
+  it lands in the `live` bucket, keeps `LIVE_FINDING_GRACE_HOURS`, is reported,
+  and goes red until somebody runs `retract.py`. Quarantine cannot pull a
+  published figure back and must not pretend to.
+- A rejected row whose hash has no current row at all (retracted or revised
+  away) is dropped from every surface. The correction is settled history.
+- `unreviewed_amounts()` skips rejected findings however old they get. A decided
+  finding cannot be neglected, so it must never nag and never redden a run.
+
+### Saying it on a surface
+
+A permanent withholding visible only in the ledger is a silent delete with a
+nicer name, which is the failure this whole design exists against. So:
+
+- `python3 guardrails.py --withheld` lists them with the reason each was
+  rejected, and exits 0 - it asks for nothing.
+- The default `guardrails.py` view, `ops_status.py [2d]` and the publish run
+  summary each carry ONE line: how many rows, how much money, nothing to do.
+  The default view stays a queue of what needs a human.
+- `health_digest.py` is deliberately NOT changed: it reads `held + live +
+  aggregate`, so the weekly email never mentions a decided row.
+- `ops_status.py` tags a rejected-and-live row `RJCT`, the one case that cannot
+  be fixed by waiting.
+
+### Which correction a rejection needs
+
+Decided by where the row is, and nowhere else. `retract.py`'s docstring and
+`guardrails.py`'s now both say so:
+
+    never published   the rejection is the whole correction. Nothing to
+                      retract; retract.py would find no published row.
+    already live      rejection records the judgement; retract.py removes the
+                      figure. Both, in that order.
+
+### Verification
+
+`tests/test_guardrails.py` gained five tests, all five RED on the old code. The
+load-bearing one seeds a rejected finding on an unpublished row, runs the real
+publish selection and asserts the row is not in what would be sent - and asserts
+in the same test that the accepted row still IS, so this cannot quietly become
+"nothing publishes". After the fix the dry run reports `would_send=8,
+quarantined=3`: Nvidia and Oracle withheld for good, Climate Fund Managers still
+held on its open finding, and all eight accepted rows sending.
+
+**No currently-live row sits on a rejected finding.** Only two rejected findings
+have a current row at all - Nvidia and Oracle - and both are `published_at IS
+NULL`, so nothing on the site changes state as a result of this.
+
+---
+
 ## 2026-08-13 - the 8-K filer name was parsed by a rule that read neither end of the string. 127 live headlines wrong, correction NOT run
 
 **Parser fixed and merged. No stored row was changed, and no published row was
@@ -3616,7 +3726,18 @@ trap.** `rejected` releases the row from quarantine exactly as `accepted` does -
 the state means "a human has answered this", not "hold it forever" - so the
 rejection alone would have PUBLISHED the $100bn figure on the next run. That is
 what `guardrails.py`'s own docstring means by "rejecting one does not delete
-anything: retract the row". Caught in a local `publish --dry-run` before the
+anything: retract the row".
+
+> **SUPERSEDED 2026-08-13, and this paragraph is the root cause of what
+> superseded it.** The trap was real and is now closed: a rejected finding
+> withholds its row permanently, so on a never-published row the rejection IS
+> the whole correction and `retract.py` is not needed. What stays true is the
+> other half - a row already on the site can only be retracted. See the entry
+> at the top of this log. Do not re-derive the "reject then retract, always"
+> rule from the paragraph above; it generalised one live-row incident into a
+> universal, and the code followed it for weeks.
+
+Caught in a local `publish --dry-run` before the
 run went out, and closed with `retract.retract_local()`: the row is
 `is_current = 0` with the reason on it, and the remote half of a retract is a
 genuine no-op here because `published_at` was NULL and the figure never reached

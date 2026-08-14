@@ -20,7 +20,7 @@ Four checks, all of them arithmetic and pattern matching:
                 nobody: a street address, a numbered series, an insurance
                 separate account, a synthetic GIC
 
-THE THREE RULES THAT SHAPE ALL OF IT.
+THE FOUR RULES THAT SHAPE ALL OF IT.
 
 1. **Flag, never silently drop.** Every finding lands in the `publish_guardrails`
    ledger and is surfaced by `ops_status.py [2d]`, `guardrails.py` and the weekly
@@ -55,7 +55,38 @@ THE THREE RULES THAT SHAPE ALL OF IT.
    NEVER weaken is the other half: an unreviewed row stays out of the batch and
    out of every figure computed from it.
 
-3. **Red means a human neglected it, not that the machine noticed.** Publishing
+3. **THREE STATES, NOT TWO: open, accepted, rejected.** Open is awaiting a
+   human and escalates on a grace clock. Accepted releases the row. REJECTED
+   WITHHOLDS IT, permanently and silently: the human has decided, so it never
+   escalates, never nags, and never publishes.
+
+   Until 2026-08-13 the ledger had two states wearing three names. Every reader
+   asked `state IN ('accepted', 'rejected')` and called it "answered, therefore
+   released", which is right for accepted and exactly backwards for rejected:
+   on a row that has never published, rejection is the CHEAPEST correction
+   there is - the figure has never been in public, so all that is needed is to
+   never send it - and instead it was the one verdict that guaranteed
+   publication. Measured on the committed database that morning, the next
+   publish run would have sent Nvidia's $709bn (an infrastructure financing
+   arrangement) and Oracle's $25bn (a corporate bond issue), both rejected by
+   hand hours earlier, into a live corpus totalling $521.65bn.
+
+   The code read that way because this docstring taught it to: it used to say
+   rejection "does not delete anything: retract the row", which assumes the row
+   is ALREADY LIVE. That case is real and unchanged - a published figure cannot
+   be withheld, only retracted - but it is one of two, and the other one is the
+   common one. Which correction a rejection needs is decided by where the row
+   is, and nowhere else:
+
+     never published   rejection alone is the whole correction. The row is
+                       withheld for good. There is nothing to retract and
+                       `retract.py` would find nothing to withdraw.
+     already live      rejection records the judgement and the figure is still
+                       on the page. It stays in the `live` bucket on the short
+                       window and stays red until somebody runs
+                       `python3 retract.py <signal_id> 'why'`.
+
+4. **Red means a human neglected it, not that the machine noticed.** Publishing
    the clean rows and exiting 0 is the success case; the guardrail worked. The
    run escalates to non-zero only once a finding has been open past its grace
    window. See `LIVE_FINDING_GRACE_HOURS` for the full reasoning, including why
@@ -1079,10 +1110,31 @@ def record(conn, findings: list[Finding], *, checks=CHECKS) -> dict:
 
 
 def open_findings(conn) -> list[dict]:
-    """Everything still waiting on a human, worst money first."""
+    """Everything still waiting on a human, worst money first.
+
+    OPEN ONLY, and the two states it leaves out are left out for opposite
+    reasons: an accepted finding releases its row, a rejected one withholds it
+    for good. `rejected_findings` is the other half and `quarantine` reads both.
+    """
     try:
         rows = conn.execute(
             "SELECT * FROM publish_guardrails WHERE state = 'open' "
+            " ORDER BY COALESCE(value, 0) DESC, check_name, subject").fetchall()
+    except Exception:
+        return []
+    return [dict(r) for r in rows]
+
+
+def rejected_findings(conn) -> list[dict]:
+    """Every finding a human has answered with NO, worst money first.
+
+    These are decided, so they are not a queue and never appear in one. They
+    are read for one purpose: their rows must not publish. See rule 3 in the
+    module docstring for why that is not the same as "released".
+    """
+    try:
+        rows = conn.execute(
+            "SELECT * FROM publish_guardrails WHERE state = 'rejected' "
             " ORDER BY COALESCE(value, 0) DESC, check_name, subject").fetchall()
     except Exception:
         return []
@@ -1104,6 +1156,36 @@ def review(conn, key: str, state: str, note: str, who: str = "") -> int:
     return cur.rowcount
 
 
+#: Where a flagged row sits, which is what decides every consequence.
+#:
+#:   live      current and on the site. The figure is in public NOW; quarantine
+#:             cannot pull it back and only `retract.py` can.
+#:   pending   current and never sent. Withholding it is the entire fix.
+#:   gone      no current row carries this hash - it was retracted or revised.
+#:             Nothing to withhold and nobody to tell.
+ROW_LIVE, ROW_PENDING, ROW_GONE = "live", "pending", "gone"
+
+
+def _row_placement(conn, subjects: set[str]) -> dict[str, str]:
+    """One query per 400 hashes: where each flagged row actually is.
+
+    ONE definition, because the escalation, the withholding and the retraction
+    advice all turn on the same three-way answer and two of them used to infer
+    it separately from "is it published".
+    """
+    out: dict[str, str] = {}
+    ordered = sorted(subjects)
+    for start in range(0, len(ordered), 400):
+        chunk = ordered[start:start + 400]
+        placeholders = ", ".join("?" for _ in chunk)
+        for row in conn.execute(
+                f"SELECT content_hash, published_at FROM signals "
+                f" WHERE content_hash IN ({placeholders}) AND is_current = 1",
+                chunk):
+            out[row[0]] = ROW_LIVE if row[1] else ROW_PENDING
+    return {s: out.get(s, ROW_GONE) for s in subjects}
+
+
 def _already_published(conn, subjects: set[str]) -> set[str]:
     """Of these content hashes, the ones the site already holds.
 
@@ -1113,18 +1195,8 @@ def _already_published(conn, subjects: set[str]) -> set[str]:
     figure that is wrong in public right now, and no amount of holding rows back
     can pull it home - only a human retraction can.
     """
-    if not subjects:
-        return set()
-    out: set[str] = set()
-    subjects = sorted(subjects)
-    for start in range(0, len(subjects), 400):
-        chunk = subjects[start:start + 400]
-        placeholders = ", ".join("?" for _ in chunk)
-        out.update(r[0] for r in conn.execute(
-            f"SELECT content_hash FROM signals "
-            f" WHERE content_hash IN ({placeholders}) AND is_current = 1 "
-            f"   AND published_at IS NOT NULL", chunk))
-    return out
+    return {s for s, where in _row_placement(conn, subjects).items()
+            if where == ROW_LIVE}
 
 
 def _hours_since(stamp: str | None) -> float | None:
@@ -1151,9 +1223,14 @@ def quarantine(conn, *, today: date | None = None, live_span: dict | None = None
     The report:
       quarantined   content hashes that must not be sent this run
       held          open row findings whose row has never reached the site
-      live          open row findings whose row is already on the site
+      live          row findings, open OR rejected, whose row is already on the
+                    site - the only place a rejection still needs a human,
+                    because a published figure can only be retracted
+      withheld      REJECTED row findings whose row has never reached the site.
+                    Decided, permanently out, on no clock and in no queue.
       aggregate     open findings that name no row (these halt)
-      overdue       open row findings past their grace window (these escalate)
+      overdue       row findings past their grace window (these escalate).
+                    Never a withheld one: a decided finding cannot be neglected.
     """
     result = evaluate(conn, today=today, live_span=live_span)
     if write:
@@ -1168,6 +1245,13 @@ def quarantine(conn, *, today: date | None = None, live_span: dict | None = None
         # otherwise every read-only caller would compute an age of zero and no
         # ops tool could ever show a finding as overdue - which is exactly where
         # an overdue finding most needs to be visible.
+        #
+        # `answered` means "not open", and accepted and rejected are both that.
+        # What they are NOT is the same outcome: below, the rejected ones come
+        # back from the ledger as `withheld` and their rows are quarantined for
+        # good. This set decides who is waiting on a human, and nothing else.
+        # It used to decide what publishes, which is the defect rule 3 is
+        # written from.
         answered: set[tuple[str, str]] = set()
         known: dict[tuple[str, str], str] = {}
         try:
@@ -1189,10 +1273,18 @@ def quarantine(conn, *, today: date | None = None, live_span: dict | None = None
     rows = [r for r in still_open if r["check_name"] in ROW_CHECKS]
     aggregate = [r for r in still_open if r["check_name"] in AGGREGATE_CHECKS]
 
-    live_subjects = _already_published(conn, {r["subject"] for r in rows})
-    held, live, overdue = [], [], []
+    # Read from the ledger on BOTH paths, and deliberately not from this pass's
+    # findings: a rejected row must stay out whether or not the check still
+    # fires on it. A figure a person said no to does not become publishable
+    # because the corpus grew a longer tail and the ceiling moved above it.
+    decided = [r for r in rejected_findings(conn) if r["check_name"] in ROW_CHECKS]
+
+    placement = _row_placement(
+        conn, {r["subject"] for r in rows} | {r["subject"] for r in decided})
+    held, live, withheld, overdue = [], [], [], []
+
     for row in rows:
-        is_live = row["subject"] in live_subjects
+        is_live = placement.get(row["subject"]) == ROW_LIVE
         row["already_live"] = is_live
         row["age_hours"] = _hours_since(row.get("first_seen"))
         row["grace_hours"] = (LIVE_FINDING_GRACE_HOURS if is_live
@@ -1201,11 +1293,39 @@ def quarantine(conn, *, today: date | None = None, live_span: dict | None = None
         if row["age_hours"] is not None and row["age_hours"] > row["grace_hours"]:
             overdue.append(row)
 
+    for row in decided:
+        where = placement.get(row["subject"], ROW_GONE)
+        if where == ROW_GONE:
+            # Already retracted or revised away. The rejection is history, not
+            # a state anything still has to act on, and listing it would fill
+            # every surface with settled corrections.
+            continue
+        row["rejected"] = True
+        row["already_live"] = where == ROW_LIVE
+        row["age_hours"] = _hours_since(row.get("first_seen"))
+        if where == ROW_LIVE:
+            # The one case rejection alone cannot finish. The figure is on the
+            # page and withholding is not available, so it keeps the live
+            # window and stays red until somebody retracts it.
+            row["grace_hours"] = LIVE_FINDING_GRACE_HOURS
+            live.append(row)
+            if row["age_hours"] is not None and row["age_hours"] > row["grace_hours"]:
+                overdue.append(row)
+        else:
+            # Never published, so the correction is complete. No clock: there
+            # is nothing left for a person to do and a countdown on a decided
+            # finding is how a red run stops meaning anything.
+            row["grace_hours"] = None
+            withheld.append(row)
+
     result.update({
         "open": still_open,
-        "quarantined": {r["subject"] for r in rows},
+        "quarantined": ({r["subject"] for r in rows}
+                        | {r["subject"] for r in withheld}
+                        | {r["subject"] for r in live if r.get("rejected")}),
         "held": held,
         "live": live,
+        "withheld": withheld,
         "aggregate": aggregate,
         "overdue": overdue,
     })
@@ -1230,9 +1350,14 @@ def unreviewed_amounts(rows: list[dict],
 
     Sorted worst money first: if a person answers exactly one of these before
     closing the laptop, it should be the biggest.
+
+    A REJECTED finding is never in here however old it is. It has been
+    answered; the queue is what nobody has answered. Passing `withheld` in with
+    `held` and `live` is therefore harmless, and this is what makes it so.
     """
     out = [r for r in rows
            if r.get("check_name") == AMOUNT
+           and not r.get("rejected")
            and r.get("age_hours") is not None
            and r["age_hours"] > deadline_hours]
     return sorted(out, key=lambda r: -(r.get("value") or 0))

@@ -49,6 +49,12 @@ def _guard(conn, *, dry_run: bool) -> dict:
 
     What does not soften: a quarantined row is not sent, so it cannot reach a
     headline figure. That was the whole point and it is unchanged.
+
+    `quarantined` covers three states and not one: open findings awaiting a
+    human, rejected findings on rows that have never published (withheld for
+    good), and rejected findings on rows already live (which quarantine cannot
+    fix - see guardrails rule 3). A rejection used to RELEASE the row, which
+    made "no" the only verdict that guaranteed publication.
     """
     report = guardrails.quarantine(conn, write=not dry_run)
     _announce(report, dry_run=dry_run)
@@ -72,18 +78,35 @@ def _announce(report: dict, *, dry_run: bool = False) -> None:
     Same mechanism health_digest.py already uses.
     """
     held, live, overdue = report["held"], report["live"], report["overdue"]
-    if not (held or live or report["aggregate"]):
+    withheld = report.get("withheld") or []
+    if not (held or live or withheld or report["aggregate"]):
         return
 
     prefix = "would quarantine" if dry_run else "QUARANTINED"
-    print(f"\n[guardrails] {prefix} {len(held) + len(live)} row(s). "
-          f"Everything else in this batch publishes normally.")
+    print(f"\n[guardrails] {prefix} {len(held) + len(live) + len(withheld)} "
+          f"row(s). Everything else in this batch publishes normally.")
+
+    # The decided ones, in one line and with no annotation. They need nobody:
+    # a person answered them, the rows are out for good and saying so twice a
+    # day on the run summary is how a real warning gets scrolled past.
+    if withheld:
+        total = sum(r.get("value") or 0 for r in withheld)
+        print(f"[guardrails] {len(withheld)} of those are permanently withheld "
+              f"by a rejection (${total / 1e9:,.2f}bn), and will never publish. "
+              f"See them:  python3 guardrails.py --withheld")
 
     for row in sorted(held + live, key=lambda r: -(r.get("value") or 0)):
         age, grace = row.get("age_hours"), row.get("grace_hours")
         left = "" if age is None else f", red in {max(0.0, grace - age):.0f}h"
-        where = ("ALREADY LIVE on the site, needs a retraction decision"
-                 if row["already_live"] else "held back, never published")
+        if row.get("rejected"):
+            # Rejected AND live: the judgement is made and the figure is still
+            # on the page. Withholding is not available to it, so this line is
+            # an instruction rather than a question.
+            where = "ALREADY LIVE and REJECTED: run retract.py to remove it"
+        elif row["already_live"]:
+            where = "ALREADY LIVE on the site, needs a retraction decision"
+        else:
+            where = "held back, never published"
         print(f"::warning::[guardrail] {row['check_name']}/{row['subject']} "
               f"{row.get('label') or ''} - {where}{left}")
 
