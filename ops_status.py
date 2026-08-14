@@ -1257,17 +1257,36 @@ def _report_guardrails(conn) -> list[str]:
 
     held, live = report["held"], report["live"]
     overdue, aggregate = report["overdue"], report["aggregate"]
+
+    # The decided ones. Not a queue and never part of the exit code - but a row
+    # that will never publish has to be visible somewhere a session actually
+    # looks, or a rejection is a silent delete with a nicer name.
+    withheld = report.get("withheld") or []
+    withheld_line = ""
+    if withheld:
+        total = sum(r.get("value") or 0 for r in withheld)
+        withheld_line = (
+            f"    withheld {len(withheld)} row(s) (${total / 1e9:,.2f}bn) by a "
+            f"rejection: decided, never publishing.  guardrails.py --withheld")
+
     if not (held or live or aggregate):
         print("    Nothing quarantined. Every row publishes.")
+        if withheld_line:
+            print(withheld_line)
         return []
 
     print(f"    quarantined {len(held) + len(live)} row(s): {len(held)} held "
           f"back, {len(live)} already live")
+    if withheld_line:
+        print(withheld_line)
 
     for row in sorted(held + live, key=lambda r: -(r.get("value") or 0))[:6]:
         age, grace = row.get("age_hours"), row.get("grace_hours")
         left = "" if age is None else f"  red in {max(0.0, grace - age):.0f}h"
-        tag = "LIVE" if row["already_live"] else "HELD"
+        # RJCT is the one that cannot be fixed by waiting: rejected AND on the
+        # site, so only a retraction removes it.
+        tag = ("RJCT" if row.get("rejected")
+               else "LIVE" if row["already_live"] else "HELD")
         print(f"    {tag}  {row['check_name']:<13} "
               f"{(row.get('label') or '')[:44]:<44}{left}")
     if len(held) + len(live) > 6:

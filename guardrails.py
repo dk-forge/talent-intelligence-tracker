@@ -2,11 +2,12 @@
 """Read and answer the pre-publish guardrails.
 
     python3 guardrails.py                        # what is open, and why
+    python3 guardrails.py --withheld             # what a rejection is holding out for good
     python3 guardrails.py --all                  # every finding ever, with its verdict
     python3 guardrails.py --check                # evaluate without writing (safe anywhere)
     python3 guardrails.py --live                 # also reconcile against the live /aggregate
     python3 guardrails.py --accept amount/<hash> --note "real raise, read the filing"
-    python3 guardrails.py --reject vehicle_name/<hash> --note "SPV, retracting"
+    python3 guardrails.py --reject vehicle_name/<hash> --note "not a company round"
 
 The guardrails themselves run on the write path (pipeline/publish.py), not here.
 This is the surface a person uses to answer them, and answering is the point:
@@ -20,11 +21,29 @@ stay green until a finding has been open past its grace window, at which point
 they publish the clean rows and THEN exit non-zero. So this queue is not
 urgent-by-default; it becomes urgent on a clock you can see below.
 
-Accepting a finding is a decision that is REMEMBERED, and it releases the row:
-it is still unpublished, so the next run sends it. ChangXin Memory's genuine
-$8.6bn raise is accepted once and never blocks a run again. Rejecting one does
-not delete anything: retract the row with `python3 retract.py <signal_id>
-"why"`, which is the path that keeps the correction visible on the site.
+THREE STATES, NOT TWO, and this is the part that was wrong until 2026-08-13.
+
+ACCEPTING is a decision that is REMEMBERED, and it RELEASES the row: it is
+still unpublished, so the next run sends it. Accepted once, never blocks a run
+again.
+
+REJECTING WITHHOLDS the row, permanently. It never publishes, never escalates
+and never appears in this queue again. What it needs next depends entirely on
+whether the row ever reached the site, and nothing else:
+
+  never published   the rejection IS the whole correction. Nothing to retract:
+                    `retract.py` withdraws a published row and would find
+                    nothing to withdraw. `--withheld` is where you see it.
+  already live      the figure is on the page and only a retraction pulls it
+                    back:  `python3 retract.py <signal_id> "why"`. Until that
+                    runs, the finding stays listed with the live rows below and
+                    the runs go red on the short window.
+
+This file used to teach the first case as if it were the second - "rejecting
+does not delete anything, retract the row" - and the code followed: a rejected
+finding was read as "answered, therefore released", so on a never-published row
+rejection was the one verdict that GUARANTEED publication. Two rows a human had
+rejected that morning, $734bn between them, were queued to go out.
 
 No model is called. No network, unless you pass --live.
 """
@@ -76,6 +95,12 @@ def _where(row: dict) -> str:
     clock = "" if age is None else (
         f", RED NOW ({age:.0f}h open, window {grace}h)" if age > grace
         else f", red in {max(0.0, grace - age):.0f}h")
+    if row.get("rejected") and row["already_live"]:
+        return (f"    ALREADY LIVE and REJECTED: withholding is not available "
+                f"to a published row, only  python3 retract.py <signal_id> "
+                f"'why'{clock}")
+    if row.get("rejected"):
+        return "    WITHHELD for good by a rejection: it will never publish"
     if row["already_live"]:
         return f"    ALREADY LIVE on the site: quarantine cannot pull it back{clock}"
     return f"    held back, never published{clock}"
@@ -102,6 +127,9 @@ def main(argv=None) -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--all", action="store_true",
                         help="every finding ever recorded, not only the open ones")
+    parser.add_argument("--withheld", action="store_true",
+                        help="the rows a rejection is holding out of the "
+                             "product for good, and why each one was rejected")
     parser.add_argument("--check", action="store_true",
                         help="evaluate the guardrails now and print, writing nothing")
     parser.add_argument("--live", action="store_true",
@@ -163,6 +191,29 @@ def main(argv=None) -> int:
         _print_findings([dict(r, state="would open") for r in rows])
         return 1 if rows else 0
 
+    if args.withheld:
+        # Decided, so it exits 0 and asks for nothing. It exists because a
+        # permanent withholding that is only visible in the ledger is a silent
+        # delete, which is the failure this whole design is written against.
+        rows = report["withheld"]
+        if not rows:
+            print("\n  Nothing is being withheld by a rejection.")
+            return 0
+        total = sum(r.get("value") or 0 for r in rows)
+        print(f"\n  {len(rows)} row(s) will NEVER publish, {_money(total)} in "
+              f"all. A human rejected each one and none of them ever reached "
+              f"the site, so the rejection is the whole correction: there is "
+              f"nothing to retract.")
+        for row in rows:
+            print(f"\n  [withheld] {row['check_name']}/{row['subject']}")
+            print(f"    {row.get('label') or ''}   {_money(row.get('value'))}")
+            print(f"    rejected {row.get('reviewed_at') or '?'}"
+                  + (f" by {row['reviewed_by']}" if row.get("reviewed_by") else "")
+                  + f": {row.get('review_note') or 'no reason recorded'}")
+        print("\n  Changed your mind?  python3 guardrails.py --accept <key> "
+              "--note 'why' releases it.")
+        return 0
+
     if args.all:
         rows = [dict(r) for r in conn.execute(
             "SELECT * FROM publish_guardrails "
@@ -171,9 +222,24 @@ def main(argv=None) -> int:
         _print_findings(rows)
         return 0
 
+    # One line, not a list. The default view is for what needs a human, and a
+    # rejection needs nobody - but a row that will never publish must be
+    # visible somewhere a person passes, or it is a silent delete.
+    withheld = report["withheld"]
+    withheld_line = ""
+    if withheld:
+        total = sum(r.get("value") or 0 for r in withheld)
+        withheld_line = (
+            f"  WITHHELD {len(withheld)} row(s) ({_money(total)}) by a "
+            f"rejection: decided, never publishing, nothing to do. "
+            f"python3 guardrails.py --withheld")
+
     rows = report["held"] + report["live"] + report["aggregate"]
     if not rows:
-        print("\n  Nothing open. Every row publishes.")
+        print("\n  Nothing open. Every row publishes"
+              + (" apart from the withheld ones." if withheld else "."))
+        if withheld_line:
+            print(withheld_line)
         return 0
 
     by_check: dict[str, int] = {}
@@ -183,6 +249,8 @@ def main(argv=None) -> int:
     print(f"  QUARANTINED {len(report['held']) + len(report['live'])} row(s) "
           f"({len(report['held'])} held back, {len(report['live'])} already live). "
           f"Every other row publishes normally.")
+    if withheld_line:
+        print(withheld_line)
     if report["aggregate"]:
         print(f"  {len(report['aggregate'])} aggregate finding(s) are HALTING "
               f"every publish: the set does not add up, so there is no clean "
@@ -196,7 +264,9 @@ def main(argv=None) -> int:
     print("\n  Accept one:  python3 guardrails.py --accept <key> --note 'why'")
     print("               (accepting releases the row: it publishes next run)")
     print("  Reject one:  python3 guardrails.py --reject <key> --note 'why'")
-    print("               then  python3 retract.py <signal_id> 'why'")
+    print("               (rejecting withholds the row for good; it never publishes)")
+    print("               If it is ALREADY LIVE, that is the only case that needs")
+    print("               more:  python3 retract.py <signal_id> 'why'")
     return 1
 
 

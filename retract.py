@@ -9,6 +9,21 @@
 Nothing is deleted. The row is marked not-current with the reason, so the
 corrections log can show what was published and when it was withdrawn.
 
+FOR PUBLISHED ROWS ONLY, and that is the whole line between this and a
+guardrail rejection. Retraction is the expensive correction: it withdraws a
+figure readers have already seen, and the corrections log says so in public.
+
+  the row is on the site    retract it. `python3 guardrails.py --reject` on its
+                            finding records WHY, and this is what removes the
+                            number. Both, in that order.
+  never published           the rejection is the entire correction. Since
+                            2026-08-13 a rejected finding withholds its row for
+                            good (pipeline/guardrails.py, rule 3), so there is
+                            nothing here to withdraw and this script would find
+                            no published row to act on. Before that date a
+                            rejection RELEASED the row, which is why these two
+                            commands used to be quoted together everywhere.
+
 ONE RUN WITHDRAWS A LIST, and that is not a convenience. retract.yml's
 concurrency group is `talent-collect` with `cancel-in-progress: false`, and
 GitHub keeps only ONE pending run per group: dispatching a 27-row correction as
