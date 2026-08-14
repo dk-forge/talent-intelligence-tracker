@@ -13,6 +13,112 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-14 - a share is not a budget, and agreement is not accuracy
+
+**No deploy. No plugin change. Nothing was dispatched and nothing was spent.**
+
+Two defects, one in each direction: a budget derived from an assumption nobody
+could check, and a model benchmark with no ground truth in it.
+
+### 1. The two repos each held a share and neither held the whole
+
+`MONTHLY_ALLOWANCE_USD` **6.04 -> 8.00**, and the derivation is retired.
+
+Yesterday's number was $8.00 combined x 75.52%, and the 75.52% was real: this
+repo's measured share of combined demand, $0.8020/day here against $0.26/day
+for the sibling. The arithmetic was sound and the answer was wrong, because
+the other half of it was an ASSUMPTION about a repository this one cannot
+read. $6.04 here implied **$1.96** for the AI Layoff Tracker. That repo's own
+`railway/spend.py` said **$7.00**. So the two trackers were together set to
+**$13.04 against a stated target of $8.00**, and no session on either side
+could see it, because each held a fraction and neither held the total.
+
+**A share only bounds a total if somebody enforces the denominator.** Across
+two repos with no shared file, nobody can. So both halves are literals now:
+`MONTHLY_TARGET_COMBINED_USD = 22.00`, `SIBLING_ALLOWANCE_USD = 14.00`,
+`DERIVED_ALLOWANCE_USD = 22.00 - 14.00 = 8.00`, the owner's own split. The sum
+is written where the next session reads it instead of re-deriving a percentage
+from a stale guess, and `test_budget_allocator.py` fails if the two halves stop
+adding up to the stated total. `THIS_REPO_SHARE` survives as a recorded
+measurement and no longer decides anything.
+
+The two-pot split is unchanged: committed $7.11, discretionary $0.89.
+
+**What the raise buys, measured.** `cost_projection.py [4]`: full coverage as
+configured is **$40.79/month**; on the cheapest models with leadership
+offloaded and free extraction taking a third of funding it is **$6.30**. At
+$6.04 that row was OVER; at $8.00 it fits inside the $6.82 collection
+allowance for the first time. It is still not full coverage as configured, and
+**$3.68 of the $6.30 is the LLM gate** — 58% of the floor, and unreachable by
+any model swap. Reads go from 35/day to 80/day against a demand of 948/day: 3%
+of full coverage to 8%.
+
+### 2. `ab_models.py` could compare models and could never say which was right
+
+Every mode in it scores a challenger's AGREEMENT with the incumbent. Its own
+output says so — "READ THIS AS A FLOOR, NOT A SCORE" — but the limit had never
+been written down as the blocker it is. Agreement is blind in two directions
+that both matter: it reads 100% when both models are wrong together, and it
+reads a CORRECTION as a regression, which is not hypothetical — it is exactly
+what the 2026-07-28 gate A/B found, and it is why "reject below 90% agreement"
+would have picked the wrong model that day.
+
+So `docs/PLAN-gate-to-five-dollars.md` step 0 ("run the extraction A/B, switch
+if it agrees >=98%") could not have been executed honestly as written. It asks
+for an agreement threshold on a metric that cannot see the failure it is meant
+to catch.
+
+**`analysis/models/gate_goldset.py` is the missing denominator**: 80 real
+captured items, each read and labelled by hand against `classify.GATE_SYSTEM`.
+75 scoreable; **5 are AMBIGUOUS and excluded rather than counted as passes** —
+a strike ballot, a planned sukuk, an appointment whose employer is not named
+in the text the gate is given. Five items the rubric cannot decide is a finding
+about the rubric, not a defect in the labeller.
+
+**The gate has an accuracy now, and it cost nothing to get.** The ledger had
+already recorded the live gate's own verdict on 36 of these items, so grading
+it called no model: **32/36 = 88.9%, Wilson 95% 74.7-95.6**, recall 95.0%,
+precision 86.4%. The four errors, all worth reading:
+
+* MISSED — "Watch Australian Scandium Miner Sunrise Energy Metals Secures $400
+  Million US Investment". A named employer receiving investment. The `Watch `
+  video prefix is the likely cause. Coverage lost outright.
+* KEPT — "XRG raises Rio Grande LNG project stake". A stake purchase, not a
+  round. A lexical trap on *raises*.
+* KEPT — "Adnoc explores $2bn raise through dim sum bonds". Explores, and debt.
+* KEPT — "Vanuatu to recruit 100 more Solomon Islands nurses". A government
+  programme, which the rubric sends to NO.
+
+All three false positives bought an extraction call and were rejected
+downstream (`outcome=model_reject` in the ledger), so the gate's precision is
+directly the extraction bill. And the set caught production contradicting
+itself: it took Ajman Bank "aims to raise $300m from sukuk" and rejected the
+identical Adnoc shape.
+
+**Read `KNOWN_LIMITS` before quoting any of this.** English only, against a
+gate whose traffic is 75% not-English; positive-heavy (56 YES / 19 NO against
+live traffic near 47% YES), so it measures recall far better than precision,
+and precision is where the money is; and 75 items can reject a model that
+misses one in ten but cannot separate 98% from 94%. The next version draws its
+negatives first.
+
+**No model swap was taken.** No key is available to a local session and the
+session was told not to dispatch anything that spends, so no candidate could
+be measured — and an unmeasured swap is the thing this entry exists to
+prevent. `ab_models.py --gate-gold` runs the comparison in one command against
+these labels, reporting accuracy with its interval beside cost per item.
+
+**Also asserted now** (`tests/test_gate_goldset.py`): every paid surface is
+pinned separately — gate `TIT_GATE_MODEL`, extraction `TIT_MODEL`,
+read-through `TIT_READ_MODEL`, discovery `TIT_TRIPWIRE_MODEL` — no two share a
+variable, none falls back to another's constant, and `cost_projection.MODELS`
+prices the ids the pipeline actually runs. They were already separate; nothing
+said they had to stay that way, and the sibling's classification model used to
+default to its extraction model, which is how one A/B silently moves three
+surfaces.
+
+---
+
 ## 2026-08-13 - two pots: the month had a total and never had an owner, so catch-up work spent the collectors' budget
 
 **No deploy. No plugin change.** Budget architecture and a measurement.

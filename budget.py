@@ -124,32 +124,55 @@ KIND_ENV = "TIT_RUN_KIND"
 # the number is used. Every window the owner measured had one tracker at zero
 # or the other spiking: $0.26/day was this tracker switched off, and the
 # 08-12/08-13 spikes were it switching back on. So the combined target is a
-# POLICY CHOICE inside the $5-$8 band, not a measurement to return to.
+# POLICY CHOICE, not a measurement to return to.
 #
-# WHY $8.00 AND NOT $5.00. The sibling ALONE measures $7.80/month at the steady
-# state the owner asked to keep. A $5 combined target cannot be met without
-# cutting the tracker that is already behaving, on top of cutting this one by
-# 75%. $8.00 is the only figure in the band that is not immediately
-# self-contradicting, and it is the figure the owner himself named as steady
-# state.
-MONTHLY_TARGET_COMBINED_USD = 8.00
+# THE SHARE DERIVATION IS RETIRED, AND WHY IT FAILED IS THE POINT
+# ---------------------------------------------------------------
+# Until 2026-08-13 this file derived its own ceiling as $8.00 combined x
+# 75.52% = $6.04, where 75.52% was the measurement above. The arithmetic was
+# sound and the answer was still wrong, because the OTHER half of it was an
+# assumption about a repository this one cannot read: $6.04 here IMPLIED
+# $1.96 for the AI Layoff Tracker, while that repo's own
+# `railway/spend.py` said $7.00. The two ceilings summed to $13.04 against a
+# target of $8.00, and no session on either side could see it, because each
+# repo held a share and neither held the whole.
+#
+# A share is only a budget if somebody enforces the denominator. Nobody does.
+# So both halves are STATED here now, and the sum is written down where the
+# next session reads it instead of re-deriving a fraction from a stale guess
+# about the other tracker.
+#
+# THE OWNER'S DECISION, 2026-08-13: **$22.00 combined per month across both
+# trackers — $14.00 for the AI Layoff Tracker, $8.00 for this one.** It is a
+# raise on both sides and it was taken with the measurement in hand: this
+# repo's committed collectors MEASURE $24.06/month at today's read caps
+# (cost_projection.py [4]), so $8.00 still does not buy today's depth and the
+# route under it is docs/PLAN-gate-to-five-dollars.md rather than a bigger
+# number here.
+MONTHLY_TARGET_COMBINED_USD = 22.00
 
-#: This repo's measured share of combined demand, 0.8020 / 1.0620.
-THIS_REPO_SHARE = 0.7552
+#: The AI Layoff Tracker's half, STATED and not derived. This repo can neither
+#: read nor set `railway/spend.py` over there, so this constant is a written
+#: assumption rather than a reading — but it is written down, which is exactly
+#: what the retired share derivation was not. If the sibling's own number ever
+#: stops being 14.00, the combined target is not met however well this file
+#: behaves, and the discrepancy is at least visible in one place.
+SIBLING_ALLOWANCE_USD = 14.00
 
-#: THE SUM IS THE TARGET, AND ONLY HALF OF IT IS SETTABLE FROM HERE.
-#: 8.00 x 0.7552 = $6.04 for this tracker implies **$1.96 for the AI Layoff
-#: Tracker**, whose own `railway/spend.py` still carries its own number. This
-#: repo cannot read or set that one. If the sibling is not also brought down,
-#: the combined target is not met however well this file behaves, and the
-#: honest statement of the budget set here is "this repo's $6.04, on the
-#: assumption the sibling is separately set to $1.96". That assumption is
-#: stated rather than made, because an unstated one is how two repos each
-#: believe they are inside a shared ceiling that neither is.
+#: This repo's half of that stated total: $22.00 - $14.00 = **$8.00**. Written
+#: as the subtraction so the whole and the other half are both in the reader's
+#: eye-line, and so a future edit cannot move one side without the sum moving
+#: with it.
 #:
 #: The literal lives in `spend.py` (one file owns the policy number, and
 #: ops_status parses it there); this is the derivation of it.
-DERIVED_ALLOWANCE_USD = round(MONTHLY_TARGET_COMBINED_USD * THIS_REPO_SHARE, 2)
+DERIVED_ALLOWANCE_USD = round(MONTHLY_TARGET_COMBINED_USD - SIBLING_ALLOWANCE_USD, 2)
+
+#: KEPT AS A MEASUREMENT, NO LONGER USED AS A LEVER. This repo's share of
+#: measured combined demand on 2026-08-13, 0.8020 / 1.0620. It still describes
+#: where the money goes; it no longer decides where the ceiling sits, for the
+#: reason in the block comment above.
+THIS_REPO_SHARE = 0.7552
 
 
 # ---------------------------------------------------------------------------
@@ -559,13 +582,15 @@ def report(allowance: float | None = None,
         for line in _wrap(d.reason):
             print(f"      {line}")
     print()
-    print(f"  target        ${MONTHLY_TARGET_COMBINED_USD:,.2f}/month across BOTH "
-          f"trackers, of which this one's measured")
-    print(f"                share of demand is {THIS_REPO_SHARE:.2%} = "
-          f"${DERIVED_ALLOWANCE_USD:,.2f}. The sibling must separately be set to "
-          f"${MONTHLY_TARGET_COMBINED_USD - DERIVED_ALLOWANCE_USD:,.2f} or the sum "
-          f"is not the target;")
-    print("                this repo cannot read or set that number.")
+    for line in _wrap(
+            f"${MONTHLY_TARGET_COMBINED_USD:,.2f}/month across BOTH trackers, "
+            f"stated by the owner and split as ${DERIVED_ALLOWANCE_USD:,.2f} "
+            f"here + ${SIBLING_ALLOWANCE_USD:,.2f} for the AI Layoff Tracker. "
+            f"Both halves are written down; this repo can set only its own. A "
+            f"SHARE is what the two repos used to hold, and it summed to "
+            f"$13.04 against a stated $8.00.", width=58):
+        print(f"  {'target':13} {line}" if line.startswith("$22")
+              else f"  {'':13} {line}")
 
 
 def _wrap(text: str, width: int = 72) -> list[str]:

@@ -41,6 +41,37 @@ using the production SCHEMA_HINT.
 - If it passes, switch extraction. $59.29 -> $18.79. If it fails, STOP and
   report; do not take the swap on vibes. Accuracy is the moat; $40/mo is not.
 
+### CORRECTION 2026-08-14: this step cannot be executed as written
+
+**An agreement threshold cannot decide this, and the sentence above already
+knows it.** It says to score a disagreement FOR the challenger when the
+challenger is right - which means the number being thresholded (98% agreement)
+and the rule being applied (hand-read every disagreement) are two different
+measurements, and only the second one answers the question. Agreement reads
+100% when both models are wrong together and reads a correction as a
+regression; the 2026-07-28 gate A/B is the standing proof, where every
+disagreement was the challenger correcting the incumbent.
+
+So there is a step -1, and it is done for the GATE and not for extraction:
+
+* **GATE - DONE.** `analysis/models/gate_goldset.py`, 80 hand-labelled real
+  items, 75 scoreable, 5 ambiguous and excluded. The live gate MEASURES
+  **88.9% (Wilson 74.7-95.6)**, recall 95.0%, precision 86.4%, graded free
+  from verdicts the ledger already held. `ab_models.py --gate-gold` scores any
+  candidate against it. Read `KNOWN_LIMITS`: English-only, positive-heavy, and
+  too small to certify 98% in either direction.
+* **EXTRACTION - BLOCKED, and the blocker is not the key.** An extraction gold
+  set needs the article body the model reads, and **this repo does not persist
+  `raw_text` anywhere**: not on `signals`, not in the gate ledger. So step 0
+  cannot be given ground truth today at any budget. Capturing raw text for a
+  few hundred stored rows is the prerequisite, and it is a collector change,
+  not a benchmark change. Until then a swap here rests on similarity to a model
+  whose own accuracy has never been measured.
+
+Do not read this as "do nothing". Read it as: the gate is measurable today and
+is $3.68 of the $6.30 floor, so it is both the bigger prize and the one with a
+denominator.
+
 ## Step 1 - Start persisting gate labels TODAY. The classifier needs food.
 
 VERIFIED 2026-07-31: pipeline/classify.py keeps only aggregate counters

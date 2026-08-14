@@ -31,21 +31,31 @@ def day(n: int) -> datetime.date:
 
 # --- the numbers, and that they were derived rather than picked -------------
 
-def test_the_allowance_is_this_repos_measured_share_of_the_combined_target():
-    """$6.04, and every factor in it is a measurement in the repo.
+def test_the_allowance_is_the_owners_stated_half_of_a_stated_combined_total():
+    """$8.00, and the WHOLE of which it is a half is written down beside it.
 
-    $8.00 combined (the owner's own "steady state" figure, and the only number
-    in the $5-$8 band that does not require cutting the sibling below the
-    steady state he asked to keep) x 75.52%, this repo's share of measured
-    combined demand: $0.8020/day here against $0.26/day there.
+    The share derivation this test used to assert ($8.00 combined x 75.52%)
+    was arithmetic over a real measurement and still produced a wrong answer,
+    because the other half of it was an ASSUMPTION about a repo this one
+    cannot read. It implied $1.96 for the AI Layoff Tracker while that repo's
+    own spend.py said $7.00, so the two ceilings summed to $13.04 against a
+    stated target of $8.00 and neither session could see it.
+
+    The owner settled it on 2026-08-13: **$22.00 combined, $14.00 sibling,
+    $8.00 here**. Both halves are now STATED, so this file carries the whole
+    and the next session reads the total instead of re-deriving a share from
+    a stale assumption about the other side.
     """
-    assert budget.MONTHLY_TARGET_COMBINED_USD == 8.00
-    assert budget.DERIVED_ALLOWANCE_USD == 6.04
+    assert budget.MONTHLY_TARGET_COMBINED_USD == 22.00
+    assert budget.SIBLING_ALLOWANCE_USD == 14.00
+    assert budget.DERIVED_ALLOWANCE_USD == 8.00
+    assert (budget.DERIVED_ALLOWANCE_USD + budget.SIBLING_ALLOWANCE_USD
+            == budget.MONTHLY_TARGET_COMBINED_USD), (
+        "the two halves must sum to the stated total, or this repo is once "
+        "again inside a ceiling that only one of the two trackers believes in")
     assert spend.MONTHLY_ALLOWANCE_USD == budget.DERIVED_ALLOWANCE_USD, (
         "spend.py owns the policy literal and budget.py owns its derivation; "
         "when they disagree the ceiling nobody derived is the one that binds")
-    # 0.8020 / (0.8020 + 0.26)
-    assert budget.THIS_REPO_SHARE == pytest.approx(0.8020 / 1.0620, abs=5e-4)
     assert spend.MONTHLY_ALLOWANCE_USD < 20.0, (
         "the policy allowance must stay strictly under the provider cap on the "
         "key; at parity the provider hard-stops a run mid-call instead of "

@@ -46,11 +46,12 @@ def test_the_allowance_is_the_number_the_owner_set():
     gone back to $5, and every cost decision taken in that window was measured
     against a ceiling five times too high.
 
-    $6.04 is DERIVED and not chosen: it is this repo's measured share (75.52%)
-    of an $8.00 target across BOTH trackers. The derivation lives in budget.py
-    and `tests/test_budget_allocator.py` fails if the literal and the
-    derivation drift apart, which is why this line asserts equality with the
-    derivation rather than with a number typed twice.
+    $8.00 is not chosen here: it is the owner's stated half of a stated
+    $22.00 combined target across BOTH trackers, the other half being $14.00
+    in the AI Layoff Tracker. The whole lives in budget.py and
+    `tests/test_budget_allocator.py` fails if the literal and the stated split
+    drift apart, which is why this line asserts equality with that split
+    rather than with a number typed twice.
 
     It must also stay under the provider key's own cap, which is a HARD stop:
     the policy cap has to fire first for our graceful degrade to be the one
@@ -59,7 +60,7 @@ def test_the_allowance_is_the_number_the_owner_set():
     """
     import budget
 
-    assert spend.MONTHLY_ALLOWANCE_USD == budget.DERIVED_ALLOWANCE_USD == 6.04
+    assert spend.MONTHLY_ALLOWANCE_USD == budget.DERIVED_ALLOWANCE_USD == 8.00
     assert spend.STOP_AT_FRACTION == 0.9
     assert spend.MONTHLY_ALLOWANCE_USD < 20.0, (
         "the policy allowance must stay strictly under the $20 provider cap on "
