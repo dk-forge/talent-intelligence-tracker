@@ -83,19 +83,63 @@ def search(phrase: str, *, days_back: int = 7, page: int = 0,
     return (resp.json().get("hits") or {}).get("hits") or []
 
 
+# EFTS renders one rigid shape, appending its own two groups to the filer's
+# conformed name:
+#
+#     {conformed name}  ({ticker}[, {ticker}...])  (CIK {digits})
+#
+# joined by exactly TWO spaces every time — 771 of 771 separators in
+# tests/fixtures/sec_edgar_display_names.json — and always ending in the CIK
+# group. So this reads the string's END rather than hunting for a ticker-shaped
+# token anywhere inside it, and the two-space delimiter is what does the work.
+# A company's own parenthetical is joined by ONE space, which is the only thing
+# separating "ACUITY INC. (DE)  (AYI)", "Super Group (SGHC) Ltd  (SGHC)" and
+# "Western Asset Diversified Income Fund (WDI)  (CIK ...)" from a ticker block:
+# in all three the two are spelled identically, so no test of the token itself
+# could ever tell them apart.
+#
+# The old rule read neither end. It substituted a single parenthesised
+# ticker-shaped token wherever it appeared, and was wrong in both directions:
+#
+#  - it never matched a ticker LIST, because "(BBBY, BBBY-WT)" has a comma in
+#    it, so 126 published headlines read "BED BATH & BEYOND, INC.  (BBBY,
+#    BBBY-WT) 8-K filing..." with the block and a doubled space left in;
+#  - it matched inside the name, so "Jerash Holdings (US), Inc." became
+#    "Jerash Holdings , Inc." and part of a real company's name was deleted.
+_CIK_GROUP = re.compile(r"\s{2,}\(CIK\s*(\d{4,10})\)\s*$")
+# A ticker as EDGAR spells one: uppercase alphanumerics with an optional class
+# suffix (BF-A, USB-PQ, EVAC-WT). The longest in the fixture is 7 characters;
+# the bound is 10 for headroom, which costs nothing because the two-space
+# delimiter above is what decides, not the token's length.
+_TICKER_GROUP = re.compile(
+    r"\s{2,}\([A-Z0-9][A-Z0-9.\-]{0,9}(?:,\s*[A-Z0-9][A-Z0-9.\-]{0,9})*\)\s*$")
+
+
 def _company_and_cik(hit: dict) -> tuple[str, str | None]:
-    """EFTS display_names look like 'Apple Inc.  (AAPL)  (CIK 0000320193)'."""
+    """EFTS display_names look like 'Apple Inc.  (AAPL)  (CIK 0000320193)'.
+
+    Returns the filer's own conformed name and its CIK. See the note above for
+    why this reads the tail of the string and not its tokens.
+    """
     names = (hit.get("_source") or {}).get("display_names") or []
     if not names:
         return "", None
     name = names[0]
-    cik = None
-    m = re.search(r"CIK\s*(\d{4,10})", name)
-    if m:
-        cik = m.group(1).lstrip("0")
-    company = re.sub(r"\s*\((?:[A-Z0-9.\-]{1,10})\)\s*", " ", name)
-    company = re.sub(r"\s*\(CIK[^)]*\)\s*$", "", company).strip()
-    return company, cik
+
+    m = _CIK_GROUP.search(name)
+    if not m:
+        # A display_name that does not end in the CIK group is a shape we have
+        # never seen. Recover the CIK if it is in there at all, because
+        # document_url() drops the filing without one — but do not strip a
+        # trailing group off a string whose structure we cannot vouch for.
+        loose = re.search(r"\(CIK\s*(\d{4,10})\)", name)
+        if not loose:
+            return name.strip(), None
+        return (name[:loose.start()] + name[loose.end():]).strip(), \
+            loose.group(1).lstrip("0")
+
+    cik = m.group(1).lstrip("0")
+    return _TICKER_GROUP.sub("", name[:m.start()]).strip(), cik
 
 
 def document_url(hit: dict) -> str | None:
