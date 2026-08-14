@@ -1,0 +1,9 @@
+{
+  "cadence": "daily",
+  "cron": "0 16 * * *",
+  "source": ".github/workflows/collect.yml on.schedule cron",
+  "utc_hours": [
+    16
+  ],
+  "utc_minute": 0
+}

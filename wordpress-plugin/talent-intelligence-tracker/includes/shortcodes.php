@@ -818,8 +818,8 @@ function tit_dashboard_html() {
             THE FRESHNESS PANEL, top-right. It absorbs the old status line and
             the old "Everything We Hold" figures: the Live pill (last
             collection, absolute time with timezone), four figures, the
-            promise line, and Roo, whose line already derives the next run
-            from the real 06:00/18:00 UTC crons (tit_next_run). dashboard.js
+            promise line, and Roo, whose line derives the next run from the
+            committed collect.yml schedule (tit_next_run). dashboard.js
             repaints the figures under the active filters, the same contract
             the old fine print had, so a filtered page never shows worldwide
             totals in its own header.
@@ -2462,14 +2462,26 @@ function tit_trust_panel_html(array $facts) {
       no "comprehensive", no "real time", and the automation claim names the
       human sliver rather than rounding it to 100%.
     */
+    /*
+      The cadence sentence is DERIVED from data/ingest-schedule.json, which is
+      generated from collect.yml's own cron: the typed "twice a day, at 06:00
+      and 18:00 UTC" it replaces stayed on the page after the schedule moved
+      to once daily at 16:00 UTC. Without a schedule file the sentence simply
+      states the last capture; an absent promise is honest, a stale one lies.
+    */
+    $cadence_phrase = tit_ingest_cadence_phrase();
+    $cadence_times  = tit_ingest_times_label();
+    $freshness_answer = ($cadence_phrase && $cadence_times)
+        ? sprintf('Collection runs %s, at %s. ', $cadence_phrase, $cadence_times)
+        : '';
+    $freshness_answer .= sprintf(
+        'The most recent capture was %s. Figures on this page are computed on '
+        . 'request and cached for five minutes, so a correction or a fresh '
+        . 'run appears immediately rather than on a schedule.',
+        $newest ? tit_local_datetime($newest) : 'not recorded yet');
+
     $faqs = array(
-        array('How often does this update?',
-              sprintf('Collection runs twice a day, at 06:00 and 18:00 UTC. '
-                    . 'The most recent capture was %s. Figures on this page are '
-                    . 'computed on request and cached for five minutes, so a '
-                    . 'correction or a fresh run appears immediately rather '
-                    . 'than on a schedule.',
-                    $newest ? tit_local_datetime($newest) : 'not recorded yet')),
+        array('How often does this update?', $freshness_answer),
         array('What do the evidence labels mean?',
               'Verified means the claim was read from a primary document, '
               . 'usually a regulatory filing or an employer\'s own statement. '
@@ -2712,7 +2724,7 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
     /*
       No "Today" column.
 
-      Collection runs at 06:00 and 18:00 UTC and every row carries the SOURCE's
+      Collection runs on collect.yml's daily cron and every row carries the SOURCE's
       own reporting date, not the moment we captured it, so "Today" is
       structurally near-empty for most of the day: it read 0 across every single
       row. A column that is always zero does not report quiet news, it teaches
@@ -4874,23 +4886,88 @@ function tit_local_datetime($utc) {
 }
 
 /**
- * When the next collection run is due.
+ * The collection schedule, read from data/ingest-schedule.json — generated
+ * from .github/workflows/collect.yml (the cron that actually runs) by
+ * generate_ingest_schedule.py, and drift-guarded by
+ * tests/test_ingest_schedule.py. Missing or malformed file returns null and
+ * every caller renders NOTHING there, because an absent schedule is honest
+ * and a stale typed one is not: the typed twice-daily hours this replaces
+ * kept promising a 6 AM run for hours after the cron moved to 16:00 UTC.
+ */
+function tit_ingest_schedule() {
+    $path = TIT_PATH . 'data/ingest-schedule.json';
+    if (!is_readable($path)) return null;
+    $j = json_decode((string) file_get_contents($path), true);
+    if (!is_array($j) || empty($j['utc_hours']) || !is_array($j['utc_hours'])) return null;
+    $hours = array();
+    foreach ($j['utc_hours'] as $h) {
+        $h = (int) $h;
+        if ($h >= 0 && $h <= 23) $hours[] = $h;
+    }
+    if (!$hours) return null;
+    sort($hours);
+    $minute = (int) ($j['utc_minute'] ?? 0);
+    if ($minute < 0 || $minute > 59) $minute = 0;
+    return array('utc_hours' => array_values(array_unique($hours)), 'utc_minute' => $minute);
+}
+
+/**
+ * When the next collection run is due, as a UTC timestamp, or 0 without a
+ * schedule file.
  *
  * "Resting until the next run" invites the obvious question and then does not
- * answer it. The schedule is a cron in collect.yml, so the times are fixed and
- * known: 06:00 and 18:00 UTC. Printed in the site's own timezone, because a
- * reader should not have to convert.
+ * answer it. The hours come from tit_ingest_schedule(), never a typed list:
+ * typed hours are how the strip promised "Next run 6:00 AM UTC" after the
+ * cron moved to 16:00. Printed in the site's own timezone by the caller,
+ * because a reader should not have to convert.
  */
 function tit_next_run() {
+    $s = tit_ingest_schedule();
+    if (!$s) return 0;
     $now = time();
     foreach (array(0, 1) as $day) {
-        foreach (array(6, 18) as $hour) {
+        foreach ($s['utc_hours'] as $hour) {
             $t = strtotime(gmdate('Y-m-d', $now + $day * DAY_IN_SECONDS)
-                           . sprintf(' %02d:00:00 UTC', $hour));
+                           . sprintf(' %02d:%02d:00 UTC', $hour, $s['utc_minute']));
             if ($t > $now) return $t;
         }
     }
     return 0;
+}
+
+/**
+ * The run times as clock times in the site's timezone: "12 PM EDT", or
+ * "6 AM and 6 PM EDT" when the cron carries two hours. Computed from today's
+ * occurrences, so daylight saving moves the label with the clock (the cron is
+ * UTC-fixed, and a typed Eastern label would be wrong half the year).
+ * Empty without a schedule, and the caller says nothing rather than guessing.
+ */
+function tit_ingest_times_label() {
+    $s = tit_ingest_schedule();
+    if (!$s) return '';
+    // On the hour reads as "12 PM EDT", not "12:00 PM EDT". Same handling of a
+    // plain-UTC site's "GMT+0000" as tit_local_datetime(): same instant, a
+    // label a person would actually write.
+    $format = $s['utc_minute'] ? 'g:i A T' : 'g A T';
+    $parts = array();
+    foreach ($s['utc_hours'] as $hour) {
+        $ts = strtotime(gmdate('Y-m-d') . sprintf(' %02d:%02d:00 UTC', $hour, $s['utc_minute']));
+        $parts[] = str_replace('GMT+0000', 'UTC', wp_date($format, $ts));
+    }
+    return implode(' and ', $parts);
+}
+
+/**
+ * "once a day" / "twice a day" from the schedule itself, so the cadence word
+ * and the cron can never disagree. Empty without a schedule.
+ */
+function tit_ingest_cadence_phrase() {
+    $s = tit_ingest_schedule();
+    if (!$s) return '';
+    $n = count($s['utc_hours']);
+    if ($n === 1) return 'once a day';
+    if ($n === 2) return 'twice a day';
+    return sprintf('%d times a day', $n);
 }
 
 /**

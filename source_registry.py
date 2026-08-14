@@ -1035,7 +1035,7 @@ SOURCES = (
            "https://asktherecruiter.com/blog/talent-intelligence-tracker/sources/",
            "live", "News publishers",
            ("Funding", "Hiring", "Leadership change", "Office opening"),
-           "593 verified feeds across 139 countries",
+           "664 publisher feeds across 163 countries, 8 of them US metro",
            notes="Publishers' own feeds, never an aggregator's database: where a "
                  "round is found through a directory, the record cites the outlet "
                  "that reported it. Every feed was fetched and parsed before "
@@ -1044,7 +1044,15 @@ SOURCES = (
                  "disallows are not requested at all, and 25 were withdrawn on "
                  "that basis. Countries with no usable publisher feed are covered "
                  "by a Google News country edition instead, marked as discovery "
-                 "backstop rather than as a named publisher."),
+                 "backstop rather than as a named publisher. Eight of these are "
+                 "US city press, added 2026-08-14, because worldwide discovery "
+                 "asks national questions and a metro funding round or a "
+                 "200 job expansion reaches us only when a national desk picks "
+                 "it up: Seattle, Boston, New York, San Francisco, Los Angeles, "
+                 "Chicago, Austin and Miami. A publisher's funding roundup "
+                 "column is refused like an aggregator, because it compiles "
+                 "other people's reporting and names many employers in one "
+                 "item."),
 
     # --- candidate: researched, real, not yet connected --------------------
     Source("SEC EDGAR 8-K (Items 1.01 / 2.01)", "https://www.sec.gov/edgar.shtml",

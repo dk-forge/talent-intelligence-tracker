@@ -291,3 +291,58 @@ it should be measured before it is believed.
 The honest bound: this catalogue moves San Francisco from 3/13 only if Pulse 2.0
 is armed as a sitemap walk **and** the read ration reaches what it surfaces.
 Arming it as an RSS feed alone would move nothing and would look like it had.
+
+---
+
+## Correction, 2026-08-14: the metro business journals are NOT closed
+
+The structural finding above says the metro business journal chain is
+"closed to automated reading" on the strength of `dead: HTTP 403 bot block`
+verdicts recorded 2026-07-29. **That verdict was about the wrong host.**
+
+The 403 is what `www.bizjournals.com/<city>/...` returns. The chain publishes
+its feeds from a separate host, `feeds.bizjournals.com/<city>`, and that host
+answers plainly. Re-probed 2026-08-14 through `national_press`'s own fetch and
+parse path, one probe per metro, robots checked first:
+
+| feed | HTTP | items | newest |
+|---|---:|---:|---|
+| feeds.bizjournals.com/boston | 200 | 25 | same-day |
+| feeds.bizjournals.com/sanfrancisco | 200 | 25 | 1 day |
+| feeds.bizjournals.com/newyork | 200 | 25 | same-day |
+| feeds.bizjournals.com/austin | 200 | 25 | same-day |
+| feeds.bizjournals.com/losangeles | 200 | 25 | 1 day |
+| feeds.bizjournals.com/chicago | 200 | 25 | same-day |
+
+All six are wired, `category` = `City Tech Press`, and all six are live in
+`data/sources_catalogue.csv`. The free portion is headline and teaser; the full
+article is behind the publisher's subscription and nothing here follows the
+link or renders the page.
+
+Two things the earlier pass got right and this does not overturn:
+
+- **A local-publisher catalogue does not by itself move a recall cell.** These
+  feeds add candidates; whether the candidates are READ is the read ration, and
+  that is unchanged. Do not read six live feeds as six points of recall.
+- **The per-metro path really is blocked.** `bizjournals.com/boston/inno/feed`
+  (BostInno's own) answers 404 now, and `feeds.bizjournals.com/boston/inno` and
+  `feeds.bizjournals.com/bizj_boston` both answer 403 AccessDenied. Boston is
+  covered by the metro edition instead, which is the same newsroom.
+
+Probed the same day and refused, with the reason recorded on the catalogue row:
+
+- **Built In** publishes no feed at all. `/feed`, `/rss` and `/rss.xml` answer
+  404 nationally; the per-city hubs redirect to `/tech-hubs/<city>` pages that
+  advertise no autodiscovery link, and two of the five named cities have no hub
+  path. There is nothing to wire, per city or nationally.
+- **Silicon Allee** (Berlin) publishes none either: `/feed`, `/blog/feed` and
+  `/rss` all 404, and its robots.txt advertises a sitemap and nothing else. The
+  sitemap lists 193 URLs including a `/news` section, so the reporting exists
+  and only the feed does not. Reading it would mean walking a page index, which
+  is the surface these collectors exist to avoid.
+
+**A funding-roundup column from any of these outlets stays refused**, now in
+code rather than by convention: `national_press.is_roundup_feed()` blocks a
+feed whose path names a roundup or deal-tracker product, for the same reason
+the aggregator blocklist exists. One such item names eight employers and eight
+figures, so whatever comes back as `company` is at best one of them.

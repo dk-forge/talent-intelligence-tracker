@@ -529,6 +529,10 @@
     "reason": "2026-08-04 not live (500, 0 items)"
    },
    {
+    "name": "Silicon Allee",
+    "reason": "2026-08-14 no feed published (404 on every path probed)"
+   },
+   {
     "name": "deutsche-startups.de",
     "reason": "2026-07-29 not live (ERR, 0 items)"
    }
@@ -2151,10 +2155,6 @@
     "reason": "2026-07-29 no feed published (404)"
    },
    {
-    "name": "Austin Business Journal",
-    "reason": "2026-07-29 dead: HTTP 403 bot block"
-   },
-   {
     "name": "Automotive News",
     "reason": "2026-07-29 dead: HTTP 404"
    },
@@ -2168,7 +2168,11 @@
    },
    {
     "name": "BostInno",
-    "reason": "2026-07-29 dead: HTTP 403 bot block"
+    "reason": "2026-08-14 dead: HTTP 404, the feed is gone"
+   },
+   {
+    "name": "Built In",
+    "reason": "2026-08-14 no feed published (404 on every path probed)"
    },
    {
     "name": "Business Wire",
@@ -2227,10 +2231,6 @@
     "reason": "2026-08-02 not live (200 but the newest item is 753d old) (https://recruitingdaily.com/feed/)"
    },
    {
-    "name": "San Francisco Business Times",
-    "reason": "2026-07-29 dead: HTTP 403 bot block"
-   },
-   {
     "name": "Silicon Valley Business Journal",
     "reason": "2026-07-29 dead: HTTP 403 bot block"
    },
@@ -2267,7 +2267,7 @@
     "reason": "2026-07-30 refused: aggregator domain (yahoo.com)"
    }
   ],
-  "researched": 85
+  "researched": 91
  },
  "UY": {
   "live": [],

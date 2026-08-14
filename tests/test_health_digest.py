@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import health_digest  # noqa: E402
+import staleness  # noqa: E402
 
 NOW = datetime(2026, 7, 28, 12, 0, tzinfo=timezone.utc)
 
@@ -52,21 +53,31 @@ class TestClassification(unittest.TestCase):
 
 
 class TestStalenessBoundary(unittest.TestCase):
-    """The leash is the 2x/day cadence (12h) plus queue slack. A missed run is
-    a coverage hole, and the old 36h let a collector skip three runs before
-    anything said so."""
+    """The leash is collect.yml's cadence plus queue slack. A missed run is a
+    coverage hole, and the old 36h let a collector skip three runs before
+    anything said so.
+
+    The boundary is READ from staleness.py rather than typed here. It used to
+    be typed as 13.9 / 14 / 14.1, correct for a 2x/day cron and wrong the day
+    the schedule went once-daily (df0efdf): the leash had to move and three
+    tests pinned it in place. A test that pins a number the schedule owns is a
+    test that argues against the schedule. tests/test_ingest_schedule.py is
+    what keeps the leash itself honest about the real cron.
+    """
+
+    LEASH = staleness.MAX_AGE_HOURS["google_news"]
 
     def test_just_inside_the_window_is_not_stale(self):
-        buckets = health_digest.classify({"google_news": entry(13.9)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(self.LEASH - 0.1)}, NOW)
         self.assertEqual(buckets["stale"], [])
         self.assertEqual(buckets["ok"], ["google_news"])
 
     def test_just_outside_the_window_is_stale(self):
-        buckets = health_digest.classify({"google_news": entry(14.1)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(self.LEASH + 0.1)}, NOW)
         self.assertEqual([n for n, _, _ in buckets["stale"]], ["google_news"])
 
     def test_exactly_at_the_window_is_not_stale(self):
-        buckets = health_digest.classify({"google_news": entry(14)}, NOW)
+        buckets = health_digest.classify({"google_news": entry(self.LEASH)}, NOW)
         self.assertEqual(buckets["stale"], [])
 
     def test_staleness_outranks_a_healthy_status(self):

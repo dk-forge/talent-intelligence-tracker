@@ -27,24 +27,31 @@ The numbers are derived from each collector's actual schedule, not picked:
 
 from __future__ import annotations
 
-# 2x/day cadence (12h) plus queue slack. Shared by everything collect.yml
-# sweeps on its 06:00/18:00 cron and by national_press on its 09:00/21:00 one.
-TWICE_DAILY_HOURS = 14
+# Once-daily cadence (24h) plus queue slack. Shared by everything collect.yml
+# sweeps on its 16:00 UTC cron and by national_press on collect-press.yml's
+# 17:00 one (the same once-daily owner decision, e60ce7f then df0efdf). The
+# old name here was TWICE_DAILY_HOURS = 14, and the day the schedule went
+# once-daily that leash became permanent noise: every collector read stale for
+# ten hours before its next scheduled run, which is the 2-day-ceiling-on-a-
+# weekly-job mistake the sibling wrote down. tests/test_ingest_schedule.py now
+# binds this number to collect.yml's real cadence.
+SCHEDULED_SWEEP_HOURS = 26
 
 MAX_AGE_HOURS = {
-    # collect.yml, 06:00 and 18:00 UTC. Since the schedule became a sweep,
-    # all four run every scheduled slot, so all four share the cron's leash.
+    # collect.yml, 16:00 UTC daily. Since the schedule became a sweep, all
+    # four run every scheduled slot, so all four share the cron's leash.
     # Before that, gdelt and the SEC pair were dispatch-only and carried 336h,
     # which stopped being honest the moment the schedule started running them.
-    "google_news": TWICE_DAILY_HOURS,
-    "gdelt": TWICE_DAILY_HOURS,
-    "sec_edgar": TWICE_DAILY_HOURS,
-    "sec_form_d": TWICE_DAILY_HOURS,
-    # collect-press.yml, 11:00 and 21:00 UTC. It was 09:00, which collided with
-    # collect-structured's daily cron inside the shared `talent-collect` lock
-    # and got the pending press run cancelled most mornings — the leash was
-    # right and the schedule was not. See the comment on that workflow's cron.
-    "national_press": TWICE_DAILY_HOURS,
+    "google_news": SCHEDULED_SWEEP_HOURS,
+    "gdelt": SCHEDULED_SWEEP_HOURS,
+    "sec_edgar": SCHEDULED_SWEEP_HOURS,
+    "sec_form_d": SCHEDULED_SWEEP_HOURS,
+    # collect-press.yml, 17:00 UTC daily, an hour behind collect by the same
+    # owner decision. It was 09:00, which collided with collect-structured's
+    # daily cron inside the shared `talent-collect` lock and got the pending
+    # press run cancelled most mornings — the leash was right and the schedule
+    # was not. See the comment on that workflow's cron.
+    "national_press": SCHEDULED_SWEEP_HOURS,
     # collect-structured.yml. ats_boards is daily and PERISHABLE: a missed day
     # is a hole in a series nothing can back-fill, so one missed run plus
     # slack is the leash. The other two are monthly (the 5th and the 6th), so
