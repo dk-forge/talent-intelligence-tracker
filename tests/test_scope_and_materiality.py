@@ -22,7 +22,16 @@ import types
 import unittest
 from pathlib import Path
 
-sys.modules.setdefault("requests", types.ModuleType("requests"))
+# Prefer the REAL requests when it is installed; the stub is only for machines
+# without it. A bare ModuleType shadows the real library for every later
+# import, and collectors subclass requests.RequestException at import time, so
+# this file alone failed 21 tests while the full suite passed.
+try:
+    import requests  # noqa: F401
+except ImportError:
+    _requests_stub = types.ModuleType("requests")
+    _requests_stub.RequestException = Exception
+    sys.modules.setdefault("requests", _requests_stub)
 
 from pipeline import prefilter, publish, schema, validate, vocab  # noqa: E402
 from tests import phpsource  # noqa: E402

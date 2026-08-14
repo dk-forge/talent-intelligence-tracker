@@ -32,10 +32,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# publish.py imports requests at module scope and requests is not installed on
-# the machine that runs these. identity.py imports it lazily for exactly that
-# reason, but validate -> publish still needs the stub in this process.
-sys.modules.setdefault("requests", types.ModuleType("requests"))
+# publish.py imports requests at module scope and requests may not be installed
+# on the machine that runs these. identity.py imports it lazily for exactly
+# that reason, but validate -> publish still needs the stub in this process.
+# Prefer the REAL library when it IS installed: a bare ModuleType shadows it
+# for every later import, and collectors subclass requests.RequestException at
+# import time, so this file alone failed while the full suite passed.
+try:
+    import requests  # noqa: F401
+except ImportError:
+    _requests_stub = types.ModuleType("requests")
+    _requests_stub.RequestException = Exception
+    sys.modules.setdefault("requests", _requests_stub)
 
 from pipeline import identity, schema, validate, vocab  # noqa: E402
 

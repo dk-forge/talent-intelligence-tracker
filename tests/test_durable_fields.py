@@ -18,10 +18,19 @@ import unittest
 from pathlib import Path
 
 # publish.py imports requests at module scope but only calls it inside a
-# function, and requests is not installed on the machine that runs these tests.
-# A stub keeps the payload allowlist testable here: skipping it instead would
-# mean the one test that catches "new column, forgot to send it" never runs.
-sys.modules.setdefault("requests", types.ModuleType("requests"))
+# function, and requests may not be installed on the machine that runs these
+# tests. A stub keeps the payload allowlist testable here: skipping it instead
+# would mean the one test that catches "new column, forgot to send it" never
+# runs. Prefer the REAL library when it IS installed: a bare ModuleType here
+# shadows it for every module imported later in this process, and collectors
+# subclass requests.RequestException at import time, so this file alone failed
+# 17 tests while the full suite (which imports real requests first) passed.
+try:
+    import requests  # noqa: F401
+except ImportError:
+    _requests_stub = types.ModuleType("requests")
+    _requests_stub.RequestException = Exception
+    sys.modules.setdefault("requests", _requests_stub)
 
 from pipeline import publish, schema, validate, vocab  # noqa: E402
 
