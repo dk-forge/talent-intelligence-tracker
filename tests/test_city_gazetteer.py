@@ -139,6 +139,86 @@ def test_two_spellings_collapse_to_one_city(alias, city):
     assert hit[0] == city
 
 
+# --- The way the city's own newsroom writes it -------------------------------
+#
+# The sibling tracker's 2026-08 defect was 45 news editions configured with a
+# local UI language and English-only search phrases, so non-English markets
+# returned global stories. This repo does not have that defect — GOOGLE_NEWS_VOCAB
+# carries sixteen language packs and source_registry admits a locale only once
+# its language has one. It has the defect ONE LAYER DOWN instead.
+#
+# `normalize_city` was a plain dict lookup on lowercase+whitespace, and of 422
+# alias keys exactly 27 were non-ASCII — every one of them Latin script with a
+# diacritic. No Japanese, Korean, Chinese, Hebrew, Arabic, Thai or Cyrillic
+# spelling of any city was in the table at all. So we ask Google News in ja, ko,
+# ar, he, vi and tr, get articles back that name their city in their own script,
+# and the column comes out NULL. Measured on the committed corpus 2026-08-13,
+# news rows by market: TR 0 of 71 placed, IL 0 of 70, VN 0 of 49, ID 0 of 47,
+# JP 1 of 56, KR 1 of 77.
+#
+# The second half is folding. 'münchen' was in the table and 'munchen' was not,
+# so a publisher that strips its own diacritics missed, and Turkish 'İzmir'
+# lowercases to a dotted i that matched nothing.
+
+@pytest.mark.parametrize("native,city,code", [
+    # CJK — the frame's biggest absent cities
+    ("東京", "Tokyo", "JP"), ("大阪", "Osaka", "JP"), ("京都", "Kyoto", "JP"),
+    ("ソウル", "Seoul", "KR"), ("서울", "Seoul", "KR"), ("부산", "Busan", "KR"),
+    ("上海", "Shanghai", "CN"), ("北京", "Beijing", "CN"),
+    ("深圳", "Shenzhen", "CN"), ("杭州", "Hangzhou", "CN"),
+    ("台北", "Taipei", "TW"), ("香港", "Hong Kong", "HK"),
+    # Hebrew and Arabic — both have live Google News editions here
+    ("תל אביב", "Tel Aviv", "IL"), ("ירושלים", "Jerusalem", "IL"),
+    ("دبي", "Dubai", "AE"), ("القاهرة", "Cairo", "EG"),
+    ("الرياض", "Riyadh", "SA"),
+    # Vietnamese, Thai — live editions, zero placed rows today
+    ("Hà Nội", "Hanoi", "VN"),
+    ("Thành phố Hồ Chí Minh", "Ho Chi Minh City", "VN"),
+    ("กรุงเทพ", "Bangkok", "TH"),
+    # Latin script, local spelling
+    ("Napoli", "Naples", "IT"), ("Warszawa", "Warsaw", "PL"),
+    ("København", "Copenhagen", "DK"), ("Bucureşti", "Bucharest", "RO"),
+    ("Bruselas", "Brussels", "BE"), ("İstanbul", "Istanbul", "TR"),
+])
+def test_a_city_written_in_its_own_language_is_the_same_city(native, city, code):
+    """We ask sixteen languages for news and then only accept English answers.
+
+    Every locale below is in GOOGLE_NEWS_LOCALES, so these spellings are what
+    the articles we already pay to read actually contain."""
+    hit = vocab.normalize_city(native)
+    assert hit is not None, f"{native} ({city}) still cannot be stored"
+    assert (hit[0], hit[2]) == (city, code), f"{native} -> {hit}"
+
+
+@pytest.mark.parametrize("stripped,city", [
+    ("Munchen", "Munich"), ("Muenchen", "Munich"), ("Zuerich", "Zurich"),
+    ("Goteborg", "Gothenburg"), ("Kobenhavn", "Copenhagen"),
+    ("Dusseldorf", "Dusseldorf"), ("Malmo", "Malmo"), ("Krakow", "Krakow"),
+    ("Izmir", "Izmir"), ("Sao Paulo", "Sao Paulo"), ("Bogota", "Bogota"),
+])
+def test_a_diacritic_a_publisher_dropped_does_not_drop_the_city(stripped, city):
+    """Half the wires transliterate their own accents. 'münchen' resolved and
+    'munchen' did not, which is a spelling difference deciding whether a market
+    exists on the dashboard."""
+    hit = vocab.normalize_city(stripped)
+    assert hit is not None, stripped
+    assert hit[0] == city, f"{stripped} -> {hit[0]}"
+
+
+def test_folding_never_puts_two_different_cities_on_one_key():
+    """The fold is a FALLBACK and it must stay unambiguous. If two cities in
+    the table fold to the same key, neither may be reachable through it —
+    guessing between them is the exact failure the ambiguous-name refusals
+    exist to prevent."""
+    folded: dict[str, set[str]] = {}
+    for alias, (city, _r, code) in vocab._CITY_ALIASES.items():
+        folded.setdefault(vocab._fold(alias), set()).add((city, code))
+    for key, cities in folded.items():
+        if len(cities) > 1:
+            assert vocab._CITY_FOLDED.get(key) is None, (
+                f"folded key {key!r} answers for {sorted(cities)}")
+
+
 # --- Still refusing to guess -------------------------------------------------
 
 @pytest.mark.parametrize("name", sorted(vocab.AMBIGUOUS_CITY_NAMES))

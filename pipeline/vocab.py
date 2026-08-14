@@ -10,6 +10,7 @@ Spec 6.3: "Bay Area" / "SF" / "San Francisco" must not be three cities.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 # --- Pillars (spec 1) ------------------------------------------------------
 
@@ -876,6 +877,118 @@ _CITY_ALIASES.update({
     "suva": ("Suva", "Oceania", "FJ"),
 })
 
+# --- The way each city's own newsroom writes it ------------------------------
+#
+# We ask Google News in sixteen languages (source_registry.GOOGLE_NEWS_VOCAB) and
+# then, until 2026-08-13, only accepted English answers. Of the 422 alias keys
+# above exactly 27 were non-ASCII, and every one of those was Latin script with
+# a diacritic: no Japanese, Korean, Chinese, Hebrew, Arabic, Thai or Cyrillic
+# spelling of any city was in the table at all.
+#
+# That is the sibling tracker's English-only defect one layer down. Its version
+# was 45 editions searched with English phrases, so the articles never arrived.
+# Ours is worse-shaped and quieter: the articles DO arrive, we pay a model to
+# read them, and then the place is dropped on a dictionary miss. Measured on the
+# committed corpus, news rows placed with a city, by market:
+#
+#   TR 0 of 71    IL 0 of 70    VN 0 of 49    ID 0 of 47
+#   JP 1 of 56    KR 1 of 77    BR 2 of 149   IT 3 of 175
+#
+# against 10-26% in the English-language markets. Nothing errored and no health
+# check moved, because a NULL city is indistinguishable from a story that named
+# no city.
+#
+# Only cities whose language has a live locale in GOOGLE_NEWS_LOCALES, plus the
+# CJK markets the frame needs. A spelling nobody sends us is dead weight that
+# still has to be right, so this list stays tied to the editions we query.
+_CITY_ALIASES.update({
+    # -- Japanese ------------------------------------------------------------
+    "東京": ("Tokyo", "Asia", "JP"),
+    "東京都": ("Tokyo", "Asia", "JP"),
+    "大阪": ("Osaka", "Asia", "JP"),
+    "大阪市": ("Osaka", "Asia", "JP"),
+    "京都": ("Kyoto", "Asia", "JP"),
+    "福岡": ("Fukuoka", "Asia", "JP"),
+    "横浜": ("Yokohama", "Asia", "JP"),
+    # -- Korean --------------------------------------------------------------
+    "서울": ("Seoul", "Asia", "KR"),
+    "서울시": ("Seoul", "Asia", "KR"),
+    "ソウル": ("Seoul", "Asia", "KR"),
+    "부산": ("Busan", "Asia", "KR"),
+    # -- Chinese (no zh edition yet; these arrive through en, ja and ko copy) --
+    "上海": ("Shanghai", "Asia", "CN"),
+    "北京": ("Beijing", "Asia", "CN"),
+    "深圳": ("Shenzhen", "Asia", "CN"),
+    "杭州": ("Hangzhou", "Asia", "CN"),
+    "广州": ("Guangzhou", "Asia", "CN"),
+    "廣州": ("Guangzhou", "Asia", "CN"),
+    "成都": ("Chengdu", "Asia", "CN"),
+    "台北": ("Taipei", "Asia", "TW"),
+    "臺北": ("Taipei", "Asia", "TW"),
+    "新竹": ("Hsinchu", "Asia", "TW"),
+    "香港": ("Hong Kong", "Asia", "HK"),
+    # -- Hebrew (he-IL is live, and it is where Israeli rounds break first) ---
+    "תל אביב": ("Tel Aviv", "Middle East", "IL"),
+    "תל־אביב": ("Tel Aviv", "Middle East", "IL"),
+    "תל אביב-יפו": ("Tel Aviv", "Middle East", "IL"),
+    "ירושלים": ("Jerusalem", "Middle East", "IL"),
+    "חיפה": ("Haifa", "Middle East", "IL"),
+    "הרצליה": ("Herzliya", "Middle East", "IL"),
+    "באר שבע": ("Beersheba", "Middle East", "IL"),
+    # -- Arabic (ar-AE, ar-SA, ar-EG, ar-QA, ar-MA are all live) -------------
+    "دبي": ("Dubai", "Middle East", "AE"),
+    "أبوظبي": ("Abu Dhabi", "Middle East", "AE"),
+    "أبو ظبي": ("Abu Dhabi", "Middle East", "AE"),
+    "الشارقة": ("Sharjah", "Middle East", "AE"),
+    "الرياض": ("Riyadh", "Middle East", "SA"),
+    "جدة": ("Jeddah", "Middle East", "SA"),
+    "الدمام": ("Dammam", "Middle East", "SA"),
+    "القاهرة": ("Cairo", "Africa", "EG"),
+    "الإسكندرية": ("Alexandria", "Africa", "EG"),
+    "الدوحة": ("Doha", "Middle East", "QA"),
+    "الدار البيضاء": ("Casablanca", "Africa", "MA"),
+    "الرباط": ("Rabat", "Africa", "MA"),
+    # -- Vietnamese (vi-VN is live and held zero placed rows) ----------------
+    "hà nội": ("Hanoi", "Asia", "VN"),
+    "ha noi": ("Hanoi", "Asia", "VN"),
+    "thành phố hồ chí minh": ("Ho Chi Minh City", "Asia", "VN"),
+    "tp hcm": ("Ho Chi Minh City", "Asia", "VN"),
+    "tp.hcm": ("Ho Chi Minh City", "Asia", "VN"),
+    "đà nẵng": ("Da Nang", "Asia", "VN"),
+    # -- Thai ----------------------------------------------------------------
+    "กรุงเทพ": ("Bangkok", "Asia", "TH"),
+    "กรุงเทพมหานคร": ("Bangkok", "Asia", "TH"),
+    "เชียงใหม่": ("Chiang Mai", "Asia", "TH"),
+    # -- Indonesian (id-ID, id-MY are live) ----------------------------------
+    "jakarta selatan": ("Jakarta", "Asia", "ID"),
+    "jakarta pusat": ("Jakarta", "Asia", "ID"),
+    "dki jakarta": ("Jakarta", "Asia", "ID"),
+    # -- Latin script, the local spelling ------------------------------------
+    "napoli": ("Naples", "Europe", "IT"),
+    "milano": ("Milan", "Europe", "IT"),
+    "warszawa": ("Warsaw", "Europe", "PL"),
+    "københavn": ("Copenhagen", "Europe", "DK"),
+    # German and Swiss wires write the umlaut out rather than dropping it, so
+    # this is a different spelling and not something a fold can reach.
+    "muenchen": ("Munich", "Europe", "DE"),
+    "koeln": ("Cologne", "Europe", "DE"),
+    "duesseldorf": ("Dusseldorf", "Europe", "DE"),
+    "nuernberg": ("Nuremberg", "Europe", "DE"),
+    "zuerich": ("Zurich", "Europe", "CH"),
+    "bruxelles": ("Brussels", "Europe", "BE"),
+    "brussel": ("Brussels", "Europe", "BE"),
+    "bruselas": ("Brussels", "Europe", "BE"),
+    "bucureşti": ("Bucharest", "Europe", "RO"),
+    "bucurești": ("Bucharest", "Europe", "RO"),
+    "estambul": ("Istanbul", "Middle East", "TR"),
+    "i̇stanbul": ("Istanbul", "Middle East", "TR"),
+    "i̇zmir": ("Izmir", "Middle East", "TR"),
+    "münih": ("Munich", "Europe", "DE"),
+    "lisboa": ("Lisbon", "Europe", "PT"),
+    "sevilla": ("Seville", "Europe", "ES"),
+    "cidade do méxico": ("Mexico City", "Latin America", "MX"),
+})
+
 # Cities whose bare name belongs to two countries, so the vocabulary refuses
 # the bare form on purpose (rule 3 above). Named rather than merely omitted so
 # a future contributor adding "cambridge" has to delete a line that says why
@@ -1212,10 +1325,62 @@ def _key(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "").strip().lower())
 
 
+# Transliterations a decomposition cannot reach: these letters carry no
+# combining mark to strip, so NFKD leaves them exactly as they are.
+_FOLD_LETTERS = {
+    "ø": "o", "æ": "ae", "œ": "oe", "ß": "ss", "ł": "l", "đ": "d",
+    "ð": "d", "þ": "th", "ı": "i", "ħ": "h", "ŋ": "n", "ə": "e",
+}
+
+
+def _fold(value: str) -> str:
+    """The alias key with every diacritic removed. ASCII in, ASCII out.
+
+    Half the wires transliterate their own accents, and the table held
+    'münchen' but not 'munchen' — a spelling difference deciding whether a
+    market appears on the dashboard at all. Turkish is the sharp case: 'İzmir'
+    lowercases to an i with a combining dot above, which matched nothing.
+
+    Non-Latin scripts fold to themselves, which is correct: there is nothing to
+    strip and the exact key above is the only way in.
+    """
+    k = _key(value)
+    k = "".join(_FOLD_LETTERS.get(ch, ch) for ch in k)
+    return "".join(ch for ch in unicodedata.normalize("NFKD", k)
+                   if not unicodedata.combining(ch))
+
+
+def _build_folded_index() -> dict:
+    """Folded key -> the one city it can only mean.
+
+    A folded key claimed by two DIFFERENT cities is dropped, not resolved.
+    This is a fallback for a spelling we cannot otherwise read, and guessing
+    between two real cities is the failure AMBIGUOUS_CITY_NAMES exists to
+    prevent — it must not come back in through the accent door.
+    """
+    claims: dict[str, set] = {}
+    for alias, hit in _CITY_ALIASES.items():
+        claims.setdefault(_fold(alias), set()).add(hit)
+    return {k: next(iter(v)) for k, v in claims.items() if len(v) == 1}
+
+
+_CITY_FOLDED = _build_folded_index()
+
+
 def normalize_city(value: str):
     """Return (city, region, iso2) or None. Never invents a city."""
-    hit = _CITY_ALIASES.get(_key(value))
-    return hit if hit else None
+    key = _key(value)
+    hit = _CITY_ALIASES.get(key)
+    if hit:
+        return hit
+    # The exact table is the authority; the fold only rescues a spelling it
+    # could not read, and only where the fold means exactly one city.
+    if key in AMBIGUOUS_CITY_NAMES:
+        return None
+    folded = _fold(key)
+    if folded in AMBIGUOUS_CITY_NAMES:
+        return None
+    return _CITY_FOLDED.get(folded)
 
 
 def normalize_country(value: str):
