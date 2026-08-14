@@ -373,6 +373,18 @@ GATE_GOLD_MODELS = [
     "openai/gpt-5-nano",
     "openai/gpt-oss-120b",
     "meta-llama/llama-3.3-70b-instruct",
+    # Owner-requested candidate 2026-08-14. Verified on OpenRouter's own
+    # listing that day: $0.375/M in, $1.875/M out (a promotional 50% off
+    # gemini-3.6-flash's $0.75/$3.75, listed through 2026-08-27). Note the
+    # promo price is still 3.75x the incumbent gate's input price, so on the
+    # GATE surface it can only win on accuracy, never on cost.
+    "google/gemini-3.7-flash",
+    # Owner-requested candidate 2026-08-14. The listed slug is
+    # deepseek/deepseek-v4-flash at $0.14/M in, $0.28/M out (verified on the
+    # OpenRouter listing that day; `-0731` is the same price pinned to a
+    # snapshot, and the `~...-latest` alias is not a pinnable route). Cheaper
+    # than the incumbent's OUTPUT price but 1.4x its input price.
+    "deepseek/deepseek-v4-flash",
 ]
 
 

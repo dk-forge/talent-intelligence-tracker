@@ -38,6 +38,28 @@ nothing that could not be read from the RSS item this pipeline was handed.
 BORME taught this repo what an unexercised scrubber is worth; the way to not
 need one is to never carry the field.
 
+ONE BOUNDED EXCEPTION (2026-08-14): THE EXTRACTION-INPUT CAPTURE
+----------------------------------------------------------------
+An extraction gold set needs the text extraction actually read, and this repo
+persisted it nowhere — which is the one thing that kept the biggest cost lever
+(the extraction A/B) unmeasurable (docs/PLAN-gate-to-five-dollars.md,
+CORRECTION 2026-08-14). So `capture_extract_input()` writes, onto the SAME
+line the gate verdict and outcome already live on, the first
+`EXTRACT_EXCERPT_CHARS` characters of the exact text sent to the extraction
+model — for a deterministic 1-in-`SAMPLE_1_IN` sample of the candidates that
+REACH extraction, capped at `EXTRACT_CAPTURE_PER_RUN` per run. Everything the
+module promises above still holds for the other fields; this one is:
+
+  * still only public text off the publisher's own page;
+  * provider-name redacted like every other free-text field here (the one
+    deliberate divergence from the production bytes — a future gold-set replay
+    must note it);
+  * bounded: at the caps below it is ~60 excerpts/day, ~4 KB each, ~7 MB in an
+    open month, gzipped ~4x when the month closes and deleted with its shard
+    after KEEP_MONTHS. Compare the text it samples FROM: ~1.5 MB/day.
+  * temporary in purpose: once the extraction gold set exists, turn it off
+    with TIT_EXTRACT_CAPTURE=off rather than letting it run forever.
+
 THE JOIN
 --------
 The classifier's real target is "did this candidate end up a STORED row", not
@@ -346,6 +368,56 @@ def record(item: dict, collector: str, verdict: str) -> None:
         STATS["recorded"] += 1
     except Exception as exc:            # never fail a run over bookkeeping
         _fail("recording a gate label", exc)
+
+
+# --- The extraction-input capture (see the module docstring's exception) -----
+
+#: Byte-equal to `classify.FULL_READ_CHARS` — the excerpt IS the extraction
+#: input, because a shorter one would let a gold set score an easier task under
+#: extraction's name. Not imported from classify (classify imports this
+#: module); tests/test_extract_capture.py holds the two equal.
+EXTRACT_EXCERPT_CHARS = 4000
+
+#: Deterministic sample: capture when int(key, 16) % SAMPLE_1_IN == 0. By key,
+#: not by coin flip, so a deferred candidate's second run agrees with its
+#: first and two collectors seeing the same URL agree with each other.
+SAMPLE_1_IN = 2
+
+#: Hard per-run ceiling. At ~4 collect runs/day this is ~60 excerpts/day —
+#: a few hundred per week, which is the gold set's appetite, at ~7 MB/month.
+EXTRACT_CAPTURE_PER_RUN = 15
+
+
+def capture_enabled() -> bool:
+    return enabled() and (os.environ.get("TIT_EXTRACT_CAPTURE") or "on") \
+        .strip().lower() not in ("off", "0", "no", "false")
+
+
+def capture_extract_input(item: dict, text: str) -> None:
+    """Attach the extraction input to this candidate's line. Never raises.
+
+    Called from `classify` immediately before the one real extraction call, so
+    what lands here is what the model was sent — up to provider-name
+    redaction, which the committed repo requires and a replay must note.
+    Silently a no-op for a candidate that was never gated, an unsampled key,
+    a full per-run quota, or a disabled capture.
+    """
+    if not capture_enabled():
+        return
+    try:
+        candidate_key = key(item)
+        line = _BUFFER.get(candidate_key)
+        if line is None or "extract_excerpt" in line:
+            return
+        if int(candidate_key, 16) % SAMPLE_1_IN != 0:
+            return
+        if STATS.get("captures", 0) >= EXTRACT_CAPTURE_PER_RUN:
+            return
+        line["extract_excerpt"] = provider_names.redact(
+            str(text or "")[:EXTRACT_EXCERPT_CHARS])
+        STATS["captures"] = STATS.get("captures", 0) + 1
+    except Exception as exc:            # never fail a run over bookkeeping
+        _fail("capturing an extraction input", exc)
 
 
 #: How much of a rejection message the ledger keeps. Long enough to hold the
