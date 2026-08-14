@@ -622,7 +622,18 @@ def _report_read_rations() -> list[str]:
     workflow deliberately overriding the rule is legitimate and the owner may
     have chosen it.
     """
-    from pipeline import classify
+    # pipeline/classify.py imports `requests` at module scope, and this script
+    # must run before any venv exists (its own header promise: no deps, no
+    # keys). Without the library this section is UNKNOWN and says so — it must
+    # not crash the eleven sections after it, and it must not read as a pass.
+    try:
+        from pipeline import classify
+    except ImportError as exc:
+        print("\n[2g] READ RATIONS  (reads follow measured conversion)")
+        print(f"    UNKNOWN — could not import pipeline.classify ({exc}).")
+        print("    Install the dev lock to check this section; everything")
+        print("    below still runs.")
+        return []
 
     print("\n[2g] READ RATIONS  (reads follow measured conversion)")
     for name, cap in sorted(classify.COLLECTOR_READ_CAPS.items()):
