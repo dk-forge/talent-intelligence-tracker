@@ -465,13 +465,37 @@ function tit_dashboard_facts($table) {
     */
     $city_expr    = function_exists('tit_city_expr') ? tit_city_expr() : 'COALESCE(city, hq_city)';
     $country_expr = function_exists('tit_country_expr') ? tit_country_expr() : 'COALESCE(country, hq_country)';
+    /*
+      AND `stated` RIDES ALONG, because the caption alone cannot say what the
+      number is made of.
+
+      {$city_expr} is COALESCE(city, hq_city). `city` is a STATED job location;
+      `hq_city` is where the employer is based. Union them and London reads
+      2,296, of which 22 state London and 2,274 are employers registered there
+      (measured 2026-08-13). A reader takes "London 2,296" as 2,296 events in
+      London, and it is not that.
+
+      THE COUNT IS NOT THE DEFECT AND MUST NOT BE "FIXED". The pill under it
+      resolves as `city = %s OR (city IS NULL AND hq_city = %s)`, so a strip
+      counting only stated cities would disagree with what its own click
+      returns -- the exact defect fixed above in item 1, arriving from the other
+      side. The union is also what /aggregate's by_city applies and what the
+      sibling exposes as country_basis=any. So the number stays and the page
+      says what it counts, which is the shape the country ribbon's own fix took
+      on 2026-08-13: make the words and the number agree, and change whichever
+      of the two is wrong.
+
+      One conditional SUM on a scan that already runs. No second query.
+    */
     $facts['cities'] = $wpdb->get_results(
-        "SELECT c.k, c.n,
+        "SELECT c.k, c.n, c.stated,
                 (SELECT {$country_expr} FROM {$table}
                   WHERE is_current = 1 AND {$city_expr} = c.k AND {$country_expr} IS NOT NULL
                   GROUP BY {$country_expr}
                   ORDER BY COUNT(*) DESC, {$country_expr} ASC LIMIT 1) cc
-           FROM (SELECT {$city_expr} k, COUNT(*) n FROM {$table}
+           FROM (SELECT {$city_expr} k, COUNT(*) n,
+                        SUM(CASE WHEN city IS NOT NULL AND city <> '' THEN 1 ELSE 0 END) stated
+                   FROM {$table}
                   WHERE is_current = 1 AND {$city_expr} IS NOT NULL AND {$city_expr} <> ''
                   GROUP BY k ORDER BY n DESC, k ASC LIMIT 10) c
           ORDER BY c.n DESC, c.k ASC", ARRAY_A) ?: array();
@@ -951,7 +975,7 @@ function tit_dashboard_html() {
                    bytes of leading spaces no reader ever sees. Wrapping this
                    paragraph the pretty way put the page over the ceiling. */ ?>
           <?php if ($tit_top || $tit_cities) : ?>
-            <p class="tit-places-note tit-places-basis">These counts are updates we hold, not a ranking of the market, and they count the routine filings the table sets aside. Where a country publishes a company registry we read in full, we hold far more updates per employer than we do where we rely on news.</p>
+            <p class="tit-places-note tit-places-basis">These counts are updates we hold, not a ranking of the market, and they count the routine filings the table sets aside. A place counts an update when the update states that job location or when the employer is based there.<?php echo tit_city_basis_note($tit_cities); ?> Where a country publishes a company registry we read in full, we hold far more updates per employer than we do where we rely on news.</p>
           <?php endif; ?>
           <?php if ($tit_top) : ?>
             <div class="tit-countries" role="group" aria-label="Filter by country">
@@ -2079,8 +2103,15 @@ function tit_dashboard_html() {
                read as a different KIND of figure rather than the same figure cut
                a third way. docs/HANDOVER.md already recorded this rename as the
                right one; this is it landing. */
+            /* The subtitle names the BASIS as well as the dimension, in the
+               same words the place ribbon uses. This chart groups by
+               tit_city_expr(), which is COALESCE(city, hq_city), so a round is
+               counted where the update states it happened OR where the
+               employer is based. Naming that here and not there would leave one
+               of two surfaces reading the same column saying what it counts. */
             'city', 'Money Raised by City',
-            "Funding rounds added up, in US dollars, by city.",
+            "Funding rounds added up, in US dollars, by the city an update"
+            . " states or, failing that, the city the employer is based in.",
             $money['by_city'], $money, 'city',
             function ($k) { return $k; }
         );
@@ -5218,6 +5249,50 @@ function tit_regions(array $counts, $view_total) {
         }
     }
     return $out;
+}
+
+/**
+ * The city ribbon's split, in a sentence, computed and never written down.
+ *
+ * The general rule above ("a place counts an update when the update states
+ * that job location or when the employer is based there") is true and abstract,
+ * and abstract is not what stops a reader taking "London 2,296" as 2,296 events
+ * in London. The instance is what does that, and on 2026-08-13 the instance was
+ * 22 stated against 2,274 registered.
+ *
+ * COMPUTED, for the same reason `tit_place_caveat` is: a figure typed into copy
+ * is a figure that goes wrong quietly the next time the denominator moves, and
+ * this repo has already paid for that once, on a coverage percentage quoted for
+ * sixteen days after the number under it changed. It names whichever city
+ * currently leads, and it disappears when the leader is mostly stated, which is
+ * the state where the sentence would be noise.
+ *
+ * The two thirds threshold is `tit_place_caveat`'s own, unchanged: a majority
+ * is not a distortion, a two-to-one imbalance is.
+ *
+ * @param array $cities Rows from $facts['cities'], each with k, n and stated.
+ * @return string A leading-space sentence, or '' when there is nothing to say.
+ */
+function tit_city_basis_note($cities) {
+    if (empty($cities) || !is_array($cities)) return '';
+    $top = reset($cities);
+    $n = isset($top['n']) ? (int) $top['n'] : 0;
+    // `stated` is absent on a bundle cached by an older build. Absent is not
+    // zero: printing "0 state it" off a missing column would be a wrong number
+    // dressed as a correction, so it prints nothing until the cache turns over.
+    if ($n < 1 || !isset($top['stated'])) return '';
+    $stated = (int) $top['stated'];
+    $based  = $n - $stated;
+    if ($based < $n * (2 / 3)) return '';
+    return sprintf(
+        ' Most of a city total is usually the second one: %1$s reads %2$s, of'
+        . ' which %3$s state %1$s as the job location and %4$s are employers'
+        . ' based there.',
+        esc_html($top['k']),
+        esc_html(number_format_i18n($n)),
+        esc_html(number_format_i18n($stated)),
+        esc_html(number_format_i18n($based))
+    );
 }
 
 /**

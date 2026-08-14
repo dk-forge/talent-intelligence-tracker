@@ -128,11 +128,28 @@ filer's own name and the record should carry it.
 WHAT IS NOT STORED, on purpose. `stock_code` is a 6-digit KRX code and is not
 written to `ticker`: that column is SEC-authoritative everywhere else in this
 tracker (`pipeline/identity.py` resolves it from `company_tickers.json`), and
-putting two vocabularies in one column is how a filter starts lying. `adres`
-from `company.json` would give a registered address, but a legal seat is not
-where an appointment happened and `identity.py` is already the single authority
-for `hq_city`. No city is guessed; Korean rows place at country level, as
-Indian ones do.
+putting two vocabularies in one column is how a filter starts lying.
+
+GEOGRAPHY: `adres` GOES IN `hq_city`, AND NEVER IN `city`. This paragraph used
+to say no city was read at all, on the grounds that a legal seat is not where an
+appointment happened. That half is still true and is why the column is `hq_city`:
+`city` in this product is a STATED job location, `pipeline/classify.py` forbids
+inferring one, and a DART filing says nothing about where the appointed person
+sits. A Korean row still carries no stated city.
+
+What was wrong was leaving `adres` unread on the grounds that `identity.py` is
+the authority for `hq_city`. That authority resolves an employer's head office
+from a curated list of 45 companies; it will never hold a Korean mid-cap, so the
+practical effect was a NULL for every Korean row for ever. A registered address
+filed by the company with its own regulator is better evidence of a head office
+than an unresolved lookup, and it costs nothing: `company.json` is already
+fetched once per company for `corp_name_eng`, so this is a second field off a
+response already paid for.
+
+`head_office_city` reads the leading administrative token only, from the two
+fixed maps below, and emits a NAME rather than a stored value; `vocab` decides
+whether the site knows the place. Nothing is transliterated here, for the same
+reason no company name is.
 
 UNPROVEN UNTIL THE FIRST REAL RUN, stated plainly because no authenticated call
 has ever been made from here: the exact `list.json` row shape (taken from FSS's
@@ -169,6 +186,52 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 #   I001  수시공시 — every KRX timely disclosure, so the allowlist below is what
 #         makes it usable at all
 DETAIL_TYPES = ("E005", "I001")
+
+# ---------------------------------------------------------------------------
+# The registered head-office address, as a fixed vocabulary rather than a parser.
+# ---------------------------------------------------------------------------
+#
+# A Korean address opens with a first-level division. EIGHT of them ARE cities
+# (one 특별시, six 광역시 and one 특별자치시) and end the question in one token;
+# the rest are provinces, where the SECOND token is the city. That is the whole
+# rule, and it is two lookups rather than a gazetteer of 226 municipalities.
+#
+# Written with the full legal suffix as well as the short form, because DART
+# holds both spellings: `서울특별시` on some records and `서울` on others. The
+# provinces carry both their old and their 특별자치도 names for the same reason:
+# a register holds whatever was filed, not whatever is current.
+FIRST_LEVEL_CITY = {
+    "서울특별시": "Seoul", "서울": "Seoul",
+    "부산광역시": "Busan", "부산": "Busan",
+    "대구광역시": "Daegu", "대구": "Daegu",
+    "인천광역시": "Incheon", "인천": "Incheon",
+    "광주광역시": "Gwangju", "광주": "Gwangju",
+    "대전광역시": "Daejeon", "대전": "Daejeon",
+    "울산광역시": "Ulsan", "울산": "Ulsan",
+    "세종특별자치시": "Sejong", "세종시": "Sejong",
+}
+
+# The provinces. Membership is not a city: it says "read the next token", and
+# is here so an unknown first token can be told from a known province.
+PROVINCES = (
+    "경기도", "강원도", "강원특별자치도", "충청북도", "충청남도", "전라북도",
+    "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주도",
+    "제주특별자치도",
+)
+
+# Second-level city names inside a province, romanised. Only the ones this file
+# can name from the province's own official English page are listed; anything
+# else places nothing rather than being transliterated here.
+PROVINCE_CITY = {
+    "성남시": "Seongnam", "수원시": "Suwon", "용인시": "Yongin",
+    "고양시": "Goyang", "화성시": "Hwaseong", "안양시": "Anyang",
+    "부천시": "Bucheon", "평택시": "Pyeongtaek", "안산시": "Ansan",
+    "시흥시": "Siheung", "파주시": "Paju", "김포시": "Gimpo",
+    "광명시": "Gwangmyeong", "이천시": "Icheon", "포항시": "Pohang",
+    "창원시": "Changwon", "천안시": "Cheonan", "청주시": "Cheongju",
+    "전주시": "Jeonju", "제주시": "Jeju", "춘천시": "Chuncheon",
+    "구미시": "Gumi", "아산시": "Asan",
+}
 
 # The exchange's own report titles, mapped to the ENGLISH label FSS itself
 # publishes for each of them. Every English string here was read off the
@@ -464,15 +527,41 @@ def fetch_company(corp_code: str, *, key: str, timeout: int = 45,
                     timeout=timeout, session=session)
 
 
-def english_name(corp_code: str, *, key: str, cache: dict, session=None) -> str:
-    """The filer's OWN registered English name, or '' if DART holds none.
+def head_office_city(address: str) -> str:
+    """The filer's head-office city from `adres`, or "" when it names none.
+
+    Returns a city NAME for `vocab.normalize_city` to judge, never a stored
+    value. The rule is two lookups against the fixed maps above:
+
+        서울특별시 종로구 세종대로 149      -> Seoul    (a first-level city)
+        경기도 성남시 분당구 판교로 235      -> Seongnam (a province, so token 2)
+        경기도 여주시 ...                    -> ""       (not a name this file
+                                                          can romanise)
+        Seoul, Korea                        -> ""       (nothing to look up)
+    """
+    tokens = _squeeze(address or "").split()
+    if not tokens:
+        return ""
+    first = tokens[0]
+    if first in FIRST_LEVEL_CITY:
+        return FIRST_LEVEL_CITY[first]
+    if first in PROVINCES and len(tokens) > 1:
+        return PROVINCE_CITY.get(tokens[1], "")
+    return ""
+
+
+def filer_profile(corp_code: str, *, key: str, cache: dict, session=None) -> dict:
+    """`{"name": registered English name, "hq_city": city or ""}` for one filer.
 
     Cached per run: one event per company is the normal case, so this is a
-    handful of extra requests a week rather than one per row.
+    handful of extra requests a week rather than one per row. Both fields come
+    off ONE `company.json`, which is why they are fetched together rather than
+    by two functions that would each pay for a request.
     """
     code = re.sub(r"\D", "", str(corp_code or ""))
+    blank = {"name": "", "hq_city": ""}
     if not re.fullmatch(r"\d{8}", code):
-        return ""
+        return blank
     if code in cache:
         return cache[code]
     try:
@@ -482,18 +571,32 @@ def english_name(corp_code: str, *, key: str, cache: dict, session=None) -> str:
         # window. The row is declined below because it has no English name,
         # and the count is printed.
         print(f"[{COLLECTOR}] company.json failed for {code}: {exc}")
-        cache[code] = ""
-        return ""
-    name = _squeeze(payload.get("corp_name_eng") or "")
-    cache[code] = name
-    return name
+        cache[code] = blank
+        return blank
+    profile = {
+        "name": _squeeze(payload.get("corp_name_eng") or ""),
+        "hq_city": head_office_city(payload.get("adres") or ""),
+    }
+    cache[code] = profile
+    return profile
 
 
-def _row(entry: dict, english: str) -> dict | None:
+def english_name(corp_code: str, *, key: str, cache: dict, session=None) -> str:
+    """The filer's OWN registered English name, or '' if DART holds none.
+
+    A view over `filer_profile`, kept because the NAMES rule in the module
+    docstring is about names alone. It makes no second request.
+    """
+    return filer_profile(corp_code, key=key, cache=cache, session=session)["name"]
+
+
+def _row(entry: dict, english: str, hq_city: str = "") -> dict | None:
     """One list.json row as a raw dict, or None if it is declined.
 
-    `english` is the filer's registered English name, supplied by the caller so
-    this stays a pure function that a test can drive without a network.
+    `english` is the filer's registered English name and `hq_city` its
+    head-office city, both supplied by the caller so this stays a pure function
+    that a test can drive without a network. `hq_city` defaults to "" so every
+    existing two-argument caller keeps working and simply places nothing.
     """
     report_nm = _squeeze(entry.get("report_nm") or "")
     if not is_wanted(report_nm):
@@ -541,6 +644,9 @@ def _row(entry: dict, english: str) -> dict | None:
         "published_date": published,
         "company": company,
         "country": "South Korea",
+        # The registered head office off company.json, never a job location.
+        # See the geography note in the module docstring.
+        "hq_city": _squeeze(hq_city or ""),
         # Listed on a Korean exchange, which is what the source IS, except for
         # corp_cls E which is a filer with no listing.
         "employer_type": "public" if corp_cls in {"Y", "K", "N"} else "",
@@ -570,7 +676,7 @@ def collect(queries=None, *, days: int | None = None,
                         today=today)
     out: list[dict] = []
     seen: set[str] = set()
-    names: dict[str, str] = {}
+    names: dict[str, dict] = {}
     read = 0
     refused = 0
     no_english = 0
@@ -594,9 +700,10 @@ def collect(queries=None, *, days: int | None = None,
                     continue
                 if not is_wanted(entry.get("report_nm") or ""):
                     continue
-                english = english_name(entry.get("corp_code") or "",
-                                       key=crtfc, cache=names, session=session)
-                item = _row(entry, english)
+                profile = filer_profile(entry.get("corp_code") or "",
+                                        key=crtfc, cache=names, session=session)
+                english = profile["name"]
+                item = _row(entry, english, profile["hq_city"])
                 if item is None:
                     if not english:
                         no_english += 1
@@ -663,6 +770,11 @@ def as_classified(item: dict) -> dict:
             "does not guess."
         ),
         "country": "South Korea",
+        # The registered head office off company.json, and deliberately not
+        # `city`: `city` is a stated job location and a DART filing states
+        # none. `validate.py` puts this through the curated gazetteer, so a
+        # municipality the site does not know stores nothing.
+        "headquarters_city": item.get("hq_city") or "",
         "employer_type": item.get("employer_type") or "",
         # A statutory disclosure made to the regulator that collects it.
         # infer_confidence caps this at what the host is worth, so it lands at

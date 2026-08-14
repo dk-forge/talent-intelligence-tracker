@@ -122,13 +122,53 @@ value that will not normalise is a rejected record rather than a new category.
 Measured 2026-07-30 on the real list: 3,428 of 3,829 listed filers carry one
 (89.5%).
 
-GEOGRAPHY IS NOT PARSED. The code list's address field is a ward-level Japanese
-address with full-width digits and, for the Tokyo wards that hold most large
-filers, no prefecture at all — `新宿区西新宿六丁目５番１号` never says Tokyo.
-Deriving a city would need a municipality vocabulary of ~1,900 entries, and
-guessing from it is how `ats_boards` once turned "Cambridge, MA" into Morocco.
-`country` is Japan by construction, because every filer here files with a
-Japanese finance bureau, and no city is stored.
+GEOGRAPHY: THE HEAD OFFICE GOES IN `hq_city`, AND NEVER IN `city`.
+
+This paragraph used to say no city was parsed at all. The reason it gave was
+sound and is still the reason the rule below is an ALLOWLIST rather than a
+parser: the code list's `Province` column is a ward-level Japanese address with
+full-width digits and, for the Tokyo wards that hold most large filers, no
+prefecture at all. `新宿区西新宿六丁目５番１号` never says Tokyo. A general
+municipality vocabulary would be ~1,900 entries and guessing from one is how
+`ats_boards` once turned "Cambridge, MA" into Morocco.
+
+What changed is that the column was measured rather than assumed. On the real
+list of 2026-08-14 (11,379 rows, 8,114 carrying an address), a bounded map of
+the 23 Tokyo special wards plus the designated cities places **5,455 of all
+rows (47.9%)** and **3,169 of the 4,359 filers that carry an English name and
+can therefore be stored at all (72.7%)**. So the address does not have to be
+parsed; it has to be RECOGNISED, from a fixed list, exactly the way
+`uk_paygap.POSTCODE_AREA_CITY` recognises a postcode area.
+
+Two measured facts hold the shape of the rule:
+
+* **A bare ward is a Tokyo ward, but only from a list.** 24 distinct ward tokens
+  appear with no city and no prefecture in front of them. 23 of them are Tokyo's
+  special wards. The 24th is `淀川区`, which is Osaka's Yodogawa ward and which
+  appears 45 times WITH `大阪市` in front of it and once without. A rule saying
+  "a bare 区 means Tokyo" would therefore be wrong on a real row in the real
+  file, which is why WARD_CITY is enumerated and `淀川区` simply falls through
+  to no city rather than to a nearby guess.
+* **A ward that follows a 市 loses to the 市.** 1,720 addresses write the ward
+  after the city (`大阪市中央区…`, `札幌市北区…`), and `中央区` and `北区` are
+  ward names in Tokyo and in half the designated cities alike. Reading the
+  leading token first, and the ward only when nothing precedes it, is what keeps
+  those apart.
+
+**It is `hq_city`, with the reason.** `Province` is 提出者の所在地, the address
+the filer is registered at, which is its head office and not the site of the
+work an extraordinary report describes. `city` in this product is a STATED job
+location and `pipeline/classify.py` forbids inferring one; a head office is a
+different fact, so it goes in the column for that fact and a Japanese row still
+carries no stated city. `country` is Japan by construction, because every filer
+here files with a Japanese finance bureau.
+
+The map only EMITS a name; `vocab.normalize_city` decides whether it is a place
+this site knows, so nothing here can invent a city the curated gazetteer has
+never heard of. Nagoya, Kobe, Sapporo, Hiroshima, Kawasaki, Saitama, Chiba and
+Sendai are recognised here and are not in that gazetteer today, so they resolve
+to nothing; they are listed anyway so that adding one to the gazetteer is the
+only step that pass would need.
 """
 
 from __future__ import annotations
@@ -190,6 +230,54 @@ DEFAULT_DAYS = 7
 MAX_DAYS = 366          # a backfill widens the window; it does not become a script
 REQUEST_DELAY = 0.5     # the terms forbid 短時間における大量のアクセス
 CODELIST_MAX_BYTES = 20 * 1024 * 1024
+
+# ---------------------------------------------------------------------------
+# The head-office address, as a fixed vocabulary. See the docstring's geography
+# section for the two measurements these two maps encode.
+# ---------------------------------------------------------------------------
+
+# A municipality token that IS the city, read as the leading token of the
+# address (after an optional prefecture). Ordered by measured volume on the
+# 2026-08-14 list so a reader sees what the map is actually for.
+MUNICIPALITY_CITY = {
+    "大阪市": "Osaka",        # 530
+    "名古屋市": "Nagoya",     # 229
+    "横浜市": "Yokohama",     # 179
+    "京都市": "Kyoto",        # 100
+    "福岡市": "Fukuoka",      # 100
+    "神戸市": "Kobe",         #  91
+    "札幌市": "Sapporo",      #  67
+    "広島市": "Hiroshima",    #  49
+    "川崎市": "Kawasaki",     #  49
+    "さいたま市": "Saitama",  #  35
+    "千葉市": "Chiba",        #  32
+    "仙台市": "Sendai",       #  29
+}
+
+# The 23 special wards of Tokyo, and ONLY those. A ward token that is not on
+# this list places nothing: 淀川区 is Osaka's and appears in this file with no
+# city in front of it, which is the whole reason the rule is a list. Ordered as
+# the Tokyo Metropolitan Government orders them, so a reader can count 23.
+WARD_CITY = {
+    ward: "Tokyo" for ward in (
+        "千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区",
+        "江東区", "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", "中野区",
+        "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区",
+        "葛飾区", "江戸川区",
+    )
+}
+
+# A leading prefecture, stripped before the municipality is read. Written out
+# rather than generated: 東京都, 北海道 and the two 府 are the four that do not
+# end in 県, and a regex that only knew 県 would read 東京都 as part of a ward
+# name. Bounded at three characters before 県 because every prefecture name is
+# one, two or three.
+_PREFECTURE = re.compile(r"^(東京都|北海道|(?:京都|大阪)府|.{1,3}県)")
+
+# The first administrative token after the prefecture. 市 before 区 is not an
+# ordering preference, it is the whole disambiguation: 大阪市中央区 must read as
+# Osaka and 中央区 alone as Tokyo.
+_MUNICIPALITY = re.compile(r"^(.{1,6}?[市区郡町村])")
 
 # Full-width to half-width digits. `currentReportReason` is typed 全半角 in the
 # specification (page 47), so the clause may legitimately arrive as
@@ -357,12 +445,51 @@ def fetch_list(day: str, key: str, *, timeout: int = 45, session=None) -> list[d
     return results
 
 
-def fetch_english_names(*, timeout: int = 60, session=None) -> dict[str, str]:
-    """EDINET code -> the filer's own English name, from the official list.
+def head_office_city(address: str) -> str:
+    """The filer's head-office city, or "" when the address does not name one.
 
-    This is the only non-API fetch, and the specification publishes it as a
-    permanent link for exactly this use (page 86). It is required rather than
-    decorative: see the romanisation note in the module docstring.
+    Reads the `Province` column of the EDINET code list, which is the address
+    the filer is registered at. The return is a city NAME and not a stored
+    value: the caller hands it to `vocab.normalize_city`, which is what decides
+    whether the site knows the place. Nothing here invents one.
+
+        新宿区西新宿六丁目５番１号        -> Tokyo
+        東京都港区赤坂１丁目             -> Tokyo
+        大阪市中央区平野町２丁目          -> Osaka   (the 市 wins over the 区)
+        札幌市北区北七条西                -> Sapporo (likewise; not Tokyo's 北区)
+        淀川区西中島１丁目９番２０号      -> ""      (Osaka's ward, written bare)
+        アメリカ合衆国４８６７４ミシガン州  -> ""      (a foreign address)
+    """
+    text = (address or "").strip()
+    if not text:
+        return ""
+    prefecture = _PREFECTURE.match(text)
+    rest = text[prefecture.end():] if prefecture else text
+
+    token = _MUNICIPALITY.match(rest)
+    if token:
+        name = token.group(1)
+        if name in MUNICIPALITY_CITY:
+            return MUNICIPALITY_CITY[name]
+        # A ward is only a Tokyo ward when nothing put it inside another city,
+        # and only when it is one of the 23. Everything else places nothing.
+        if name in WARD_CITY and (not prefecture or prefecture.group(1) == "東京都"):
+            return WARD_CITY[name]
+
+    # `東京都` with an address shape this map does not recognise is still Tokyo:
+    # the prefecture is the city there, which is true of no other prefecture in
+    # Japan and is why this is one line and not a 47-entry fallback.
+    if prefecture and prefecture.group(1) == "東京都":
+        return "Tokyo"
+    return ""
+
+
+def fetch_filer_directory(*, timeout: int = 60, session=None) -> dict[str, dict]:
+    """EDINET code -> {"name": English name, "hq_city": city or ""}.
+
+    ONE fetch for both facts. They come out of the same two columns of the same
+    row of the same download, and splitting them into two functions would mean
+    two requests to a service whose terms forbid 短時間における大量のアクセス.
     """
     get = (session or requests).get
     resp = get(CODELIST_URL,
@@ -399,18 +526,37 @@ def fetch_english_names(*, timeout: int = 60, session=None) -> dict[str, str]:
         raise EdinetError("the EDINET code list has no rows")
     reader = csv.DictReader(io.StringIO("\n".join(lines[1:])))
 
-    out: dict[str, str] = {}
+    out: dict[str, dict] = {}
     for row in reader:
         code = (row.get("EDINET Code") or "").strip()
         english = (row.get("Submitter Name（alphabetic）") or "").strip()
         if code and english:
-            out[code] = english
+            # `Province` is the header the English list gives 提出者の所在地.
+            # A missing column reads as "" and places nothing, which is the
+            # right failure: an unplaced filer is ordinary here (27% of the
+            # named ones), so this may not raise the way a missing name does.
+            out[code] = {
+                "name": english,
+                "hq_city": head_office_city(row.get("Province") or ""),
+            }
     if not out:
         raise EdinetError(
             "the EDINET code list parsed to zero English names. Its column "
             "headers have moved; this collector reads 'EDINET Code' and "
             "'Submitter Name（alphabetic）' (note the FULL-WIDTH parentheses).")
     return out
+
+
+def fetch_english_names(*, timeout: int = 60, session=None) -> dict[str, str]:
+    """EDINET code -> the filer's own English name.
+
+    Kept as its own name because the romanisation rule in the module docstring
+    is about names alone and reads better without the address beside it. It is
+    a view over `fetch_filer_directory` and makes no second request.
+    """
+    return {code: entry["name"]
+            for code, entry in fetch_filer_directory(
+                timeout=timeout, session=session).items()}
 
 
 def _squeeze(text: str) -> str:
@@ -448,8 +594,13 @@ def is_withheld(entry: dict) -> bool:
     return False
 
 
-def _row(entry: dict, english_names: dict[str, str]) -> dict | None:
-    """One document's raw dict, or None if it is not a storable officer change."""
+def _row(entry: dict, filers: dict[str, dict]) -> dict | None:
+    """One document's raw dict, or None if it is not a storable officer change.
+
+    `filers` is `fetch_filer_directory`'s map. A plain code -> name mapping is
+    still accepted, because that is what every existing caller and fixture
+    passes, and a collector should not go red over the shape of a lookup.
+    """
     if str(entry.get("docTypeCode") or "").strip() != DOC_TYPE_EXTRAORDINARY:
         return None
     reason = str(entry.get("currentReportReason") or "")
@@ -461,7 +612,11 @@ def _row(entry: dict, english_names: dict[str, str]) -> dict | None:
     doc_id = str(entry.get("docID") or "").strip()
     url = document_url(doc_id)
     edinet_code = str(entry.get("edinetCode") or "").strip()
-    company = english_names.get(edinet_code, "").strip()
+    filer = filers.get(edinet_code) or {}
+    if isinstance(filer, str):
+        filer = {"name": filer, "hq_city": ""}
+    company = (filer.get("name") or "").strip()
+    hq_city = (filer.get("hq_city") or "").strip()
     filed_at = _date(str(entry.get("submitDateTime") or ""))
     sec_code = re.sub(r"\D", "", str(entry.get("secCode") or ""))
 
@@ -510,6 +665,11 @@ def _row(entry: dict, english_names: dict[str, str]) -> dict | None:
         "published_date": filed_at,
         "company": company,
         "country": "Japan",
+        # The registered head office, never a job location. See the geography
+        # section of the module docstring: `Province` is where the filer is
+        # registered, and an extraordinary report does not say where the
+        # representative director sat.
+        "hq_city": hq_city,
         "doc_id": doc_id,
         "edinet_code": edinet_code,
         "sec_code": sec_code,
@@ -529,7 +689,7 @@ def collect(queries=None, *, days: int | None = None, today: datetime | None = N
     mandated clause IS the population.
     """
     key = api_key or api_key_from_env()
-    english_names = fetch_english_names(session=session)
+    filers = fetch_filer_directory(session=session)
     days_back = days if days is not None else days_from_env()
     wanted = window(days_back, today=today)
 
@@ -556,7 +716,7 @@ def collect(queries=None, *, days: int | None = None, today: datetime | None = N
             if not is_officer_change(str(entry.get("currentReportReason") or "")):
                 continue
             officer += 1
-            item = _row(entry, english_names)
+            item = _row(entry, filers)
             if not item:
                 declined += 1
                 continue
@@ -635,6 +795,13 @@ def as_classified(item: dict) -> dict:
             "rather than a count of it."
         ),
         "country": "Japan",
+        # The filer's REGISTERED HEAD OFFICE, read off the code list, and
+        # deliberately not `city`. `city` is a stated job location in this
+        # product; a head office is where the company is registered, which the
+        # `hq_*` columns exist to carry separately. `validate.py` puts this
+        # through the curated gazetteer, so a municipality the site does not
+        # know stores nothing rather than a new category.
+        "headquarters_city": item.get("hq_city") or "",
         # Read from the source: every filer on this endpoint files with a
         # Japanese finance bureau under the Financial Instruments and Exchange
         # Act, which is a disclosure obligation of a public issuer.

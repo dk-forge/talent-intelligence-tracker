@@ -502,10 +502,26 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 print(f"[{collector}] recency window: {window}d "
                       f"(a locale comes round every "
                       f"{len(registry.GOOGLE_NEWS_LOCALES) / LOCALES_PER_RUN / RUNS_PER_DAY:.1f}d)")
+                # The phrase packs plus the city-led slice. The two are built
+                # by one callback so an edition is fetched once, and the city
+                # half takes the edition rather than only its language: es-MX
+                # must ask about Monterrey where es-CL asks about Santiago.
+                day = date.today().timetuple().tm_yday
+
+                def _edition_queries(lang, country, _window=window, _day=day):
+                    return (registry.google_news_queries(lang, window_days=_window)
+                            + registry.google_news_city_queries(
+                                lang, country, day_of_year=_day,
+                                run_index=run_index, runs_per_day=RUNS_PER_DAY,
+                                window_days=_window))
+
+                city_slice = registry.city_terms_for_edition(
+                    *locales[0], day_of_year=day, run_index=run_index,
+                    runs_per_day=RUNS_PER_DAY) if locales else []
+                print(f"[{collector}] city terms this run, first edition: "
+                      + (", ".join(city_slice) or "none"))
                 items = module.collect(
-                    queries, locales=locales,
-                    queries_for=lambda lang: registry.google_news_queries(
-                        lang, window_days=window))
+                    queries, locales=locales, queries_for=_edition_queries)
             elif getattr(module, "ACCEPTS_DRY_RUN", False):
                 # A collector that keeps state between runs must be told, or a
                 # rehearsal consumes the very movement it is rehearsing.
