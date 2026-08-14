@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <atom:link href="https://feeds.bizjournals.com/newyork" rel="self" type="application/rss+xml" />
+        <title><![CDATA[New York Business Journal - Local New York News]]></title>
+        <link><![CDATA[https://feeds.bizjournals.com/newyork]]></link>
+        <description><![CDATA[Local business news for the New York metro area]]></description>
+        <item>
+                <title><![CDATA[WithCoverage plans to grow headquarters, create 200 jobs with state subsidy]]></title>
+                <link>https://www.bizjournals.com/newyork/news/2026/08/13/withcoverage-expected-to-create-200-jobs.html</link>
+                <description><![CDATA[WithCoverage will create 205 jobs and invest $25 million in New York as the AI insurance firm moves its headquarters to a larger office in Hudson Square.]]></description>
+                <author><![CDATA[Emily Feil]]></author>
+                <guid>https://www.bizjournals.com/newyork/news/2026/08/13/withcoverage-expected-to-create-200-jobs.html</guid>
+                <pubDate>Thu, 13 Aug 2026 12:33:54 -0400</pubDate>
+        </item>
+        <item>
+                <title><![CDATA[Torrance manufacturer Hadrian raises $1.37B to build AI-powered factories]]></title>
+                <link>https://www.bizjournals.com/losangeles/news/2026/08/06/hadrian-raises-financing-industrial-ai.html</link>
+                <description><![CDATA[Hadrian, a Torrance-based advanced manufacturer, raises $1.37 billion to build automated factories for defense and aerospace sectors.]]></description>
+                <author><![CDATA[Isabel Sami]]></author>
+                <guid>https://www.bizjournals.com/losangeles/news/2026/08/06/hadrian-raises-financing-industrial-ai.html</guid>
+                <pubDate>Thu, 06 Aug 2026 16:10:41 -0400</pubDate>
+        </item>
+        <item>
+                <title><![CDATA[Red Sox sign 100,000-square-foot office lease a block from Fenway Park]]></title>
+                <description><![CDATA[An item with no link at all, which must be dropped rather than stored bare.]]></description>
+                <pubDate>Fri, 14 Aug 2026 14:18:19 -0400</pubDate>
+        </item>
+    </channel>
+</rss>

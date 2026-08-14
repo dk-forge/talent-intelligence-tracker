@@ -225,11 +225,11 @@
    "Leadership change",
    "Office opening"
   ],
-  "coverage": "593 verified feeds across 139 countries",
+  "coverage": "664 publisher feeds across 163 countries, 8 of them US metro",
   "country": "",
   "rss": "",
   "free": true,
-  "notes": "Publishers' own feeds, never an aggregator's database: where a round is found through a directory, the record cites the outlet that reported it. Every feed was fetched and parsed before being listed, because a feed that answers 200 with zero items reads as healthy forever. Feeds a publisher's robots.txt disallows are not requested at all, and 25 were withdrawn on that basis. Countries with no usable publisher feed are covered by a Google News country edition instead, marked as discovery backstop rather than as a named publisher.",
+  "notes": "Publishers' own feeds, never an aggregator's database: where a round is found through a directory, the record cites the outlet that reported it. Every feed was fetched and parsed before being listed, because a feed that answers 200 with zero items reads as healthy forever. Feeds a publisher's robots.txt disallows are not requested at all, and 25 were withdrawn on that basis. Countries with no usable publisher feed are covered by a Google News country edition instead, marked as discovery backstop rather than as a named publisher. Eight of these are US city press, added 2026-08-14, because worldwide discovery asks national questions and a metro funding round or a 200 job expansion reaches us only when a national desk picks it up: Seattle, Boston, New York, San Francisco, Los Angeles, Chicago, Austin and Miami. A publisher's funding roundup column is refused like an aggregator, because it compiles other people's reporting and names many employers in one item.",
   "collector": "national_press"
  },
  {
@@ -1033,6 +1033,24 @@
   "collector": ""
  },
  {
+  "name": "Austin Business Journal",
+  "url": "https://www.bizjournals.com/austin",
+  "status": "candidate",
+  "category": "City Tech Press",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://feeds.bizjournals.com/austin",
+  "free": true,
+  "notes": "Wired 2026-08-14 as US city tech press. Metro business daily; the feed is the free portion, headline and teaser only, and the full article is behind the publisher's subscription. We store the headline, a short excerpt and a link to their article, which is ordinary citation. Nothing follows the link or renders the page. Verified through the collector's own fetch and parse path: robots.txt allows it and items parse.",
+  "collector": ""
+ },
+ {
   "name": "Australian Financial Review",
   "url": "https://www.afr.com",
   "status": "candidate",
@@ -1492,6 +1510,24 @@
   "rss": "https://borsen.dk/rss",
   "free": true,
   "notes": "Verified by the europe region audit, 2026-07-29. Business daily.",
+  "collector": ""
+ },
+ {
+  "name": "Boston Business Journal",
+  "url": "https://www.bizjournals.com/boston",
+  "status": "candidate",
+  "category": "City Tech Press",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://feeds.bizjournals.com/boston",
+  "free": true,
+  "notes": "Wired 2026-08-14 as US city tech press. Metro business daily; the feed is the free portion, headline and teaser only, and the full article is behind the publisher's subscription. We store the headline, a short excerpt and a link to their article, which is ordinary citation. Nothing follows the link or renders the page. Verified through the collector's own fetch and parse path: robots.txt allows it and items parse. Wired in place of BostInno, whose own feed is gone (see that row).",
   "collector": ""
  },
  {
@@ -2179,6 +2215,24 @@
   "rss": "",
   "free": true,
   "notes": "Official source URL verified on 2026-07-27.",
+  "collector": ""
+ },
+ {
+  "name": "Chicago Business Journal",
+  "url": "https://www.bizjournals.com/chicago",
+  "status": "candidate",
+  "category": "City Tech Press",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://feeds.bizjournals.com/chicago",
+  "free": true,
+  "notes": "Wired 2026-08-14 as US city tech press. Metro business daily; the feed is the free portion, headline and teaser only, and the full article is behind the publisher's subscription. We store the headline, a short excerpt and a link to their article, which is ordinary citation. Nothing follows the link or renders the page. Verified through the collector's own fetch and parse path: robots.txt allows it and items parse.",
   "collector": ""
  },
  {
@@ -6749,6 +6803,24 @@
   "collector": ""
  },
  {
+  "name": "L.A. Business First",
+  "url": "https://www.bizjournals.com/losangeles",
+  "status": "candidate",
+  "category": "City Tech Press",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://feeds.bizjournals.com/losangeles",
+  "free": true,
+  "notes": "Wired 2026-08-14 as US city tech press. Metro business daily; the feed is the free portion, headline and teaser only, and the full article is behind the publisher's subscription. We store the headline, a short excerpt and a link to their article, which is ordinary citation. Nothing follows the link or renders the page. Verified through the collector's own fetch and parse path: robots.txt allows it and items parse.",
+  "collector": ""
+ },
+ {
   "name": "LA Business Journal",
   "url": "https://labusinessjournal.com",
   "status": "candidate",
@@ -8316,6 +8388,24 @@
   "collector": ""
  },
  {
+  "name": "New York Business Journal",
+  "url": "https://www.bizjournals.com/newyork",
+  "status": "candidate",
+  "category": "City Tech Press",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://feeds.bizjournals.com/newyork",
+  "free": true,
+  "notes": "Wired 2026-08-14 as US city tech press. Metro business daily; the feed is the free portion, headline and teaser only, and the full article is behind the publisher's subscription. We store the headline, a short excerpt and a link to their article, which is ordinary citation. Nothing follows the link or renders the page. Verified through the collector's own fetch and parse path: robots.txt allows it and items parse.",
+  "collector": ""
+ },
+ {
   "name": "New York Times Business",
   "url": "https://www.nytimes.com/section/business",
   "status": "candidate",
@@ -9605,7 +9695,7 @@
   "name": "Refresh Miami",
   "url": "https://refreshmiami.com",
   "status": "candidate",
-  "category": "Startup Ecosystem",
+  "category": "City Tech Press",
   "signals": [
    "Funding",
    "Office Opening"
@@ -9614,7 +9704,7 @@
   "country": "United States",
   "rss": "https://refreshmiami.com/feed/",
   "free": true,
-  "notes": "Supplied by the owner, 2026-07-27. Not yet read by a collector.",
+  "notes": "Supplied by the owner, 2026-07-27. Verified 2026-08-14 through the collector's own fetch and parse path: robots.txt allows it and items parse. Free feed. 20 items, newest same-day.",
   "collector": ""
  },
  {
@@ -9987,6 +10077,24 @@
   "rss": "",
   "free": true,
   "notes": "No named publisher: this row is a country search, not a relationship with an outlet. One direct publisher feed, which for a whole country is a single point of failure. The discovery backstop runs alongside it and cites the publisher it resolves to, never the aggregator.",
+  "collector": ""
+ },
+ {
+  "name": "San Francisco Business Times",
+  "url": "https://www.bizjournals.com/sanfrancisco",
+  "status": "candidate",
+  "category": "City Tech Press",
+  "signals": [
+   "Funding",
+   "Executive Hire",
+   "Company Expansion",
+   "Office Opening"
+  ],
+  "coverage": "Local",
+  "country": "United States",
+  "rss": "https://feeds.bizjournals.com/sanfrancisco",
+  "free": true,
+  "notes": "Wired 2026-08-14 as US city tech press. Metro business daily; the feed is the free portion, headline and teaser only, and the full article is behind the publisher's subscription. We store the headline, a short excerpt and a link to their article, which is ordinary citation. Nothing follows the link or renders the page. Verified through the collector's own fetch and parse path: robots.txt allows it and items parse.",
   "collector": ""
  },
  {

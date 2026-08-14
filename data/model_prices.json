@@ -335,9 +335,9 @@
   "prompt": 1.4e-07
  },
  "deepseek/deepseek-v4-flash-0731": {
-  "cache_read": 1.6e-08,
-  "completion": 1.8e-07,
-  "prompt": 8e-08
+  "cache_read": 2.8e-08,
+  "completion": 2.8e-07,
+  "prompt": 1.4e-07
  },
  "deepseek/deepseek-v4-pro": {
   "cache_read": 9.855e-08,
@@ -480,14 +480,24 @@
   "prompt": 7.5e-07
  },
  "google/gemini-3.6-flash": {
-  "cache_read": 1.5e-07,
-  "completion": 7.5e-06,
-  "prompt": 1.5e-06
- },
- "google/gemini-3.6-flash:batch": {
   "cache_read": 7.5e-08,
   "completion": 3.75e-06,
   "prompt": 7.5e-07
+ },
+ "google/gemini-3.6-flash:batch": {
+  "cache_read": 3.75e-08,
+  "completion": 1.875e-06,
+  "prompt": 3.75e-07
+ },
+ "google/gemini-3.7-flash": {
+  "cache_read": 3.75e-08,
+  "completion": 1.875e-06,
+  "prompt": 3.75e-07
+ },
+ "google/gemini-3.7-flash:batch": {
+  "cache_read": 1.875e-08,
+  "completion": 9.375e-07,
+  "prompt": 1.875e-07
  },
  "google/gemma-2-27b-it": {
   "cache_read": null,
@@ -579,11 +589,6 @@
   "completion": 6.3e-08,
   "prompt": 2.1e-08
  },
- "inclusionai/ling-3.0-tiny:free": {
-  "cache_read": null,
-  "completion": 0.0,
-  "prompt": 0.0
- },
  "inclusionai/ring-2.6-1t": {
   "cache_read": 1.5e-08,
   "completion": 6.25e-07,
@@ -646,7 +651,7 @@
  },
  "meta-llama/llama-4-maverick": {
   "cache_read": null,
-  "completion": 6.96e-07,
+  "completion": 8e-07,
   "prompt": 2e-07
  },
  "meta-llama/llama-4-scout": {
@@ -840,14 +845,14 @@
   "prompt": 5.7e-07
  },
  "moonshotai/kimi-k2.6": {
-  "cache_read": 1.6e-07,
-  "completion": 4e-06,
-  "prompt": 9.5e-07
+  "cache_read": 9.44e-08,
+  "completion": 2.36e-06,
+  "prompt": 5.605e-07
  },
  "moonshotai/kimi-k2.7-code": {
   "cache_read": 1.5e-07,
-  "completion": 3.4e-06,
-  "prompt": 6.7e-07
+  "completion": 3.5e-06,
+  "prompt": 7.1e-07
  },
  "moonshotai/kimi-k2.7-code:batch": {
   "cache_read": 9.5e-08,
@@ -1630,9 +1635,9 @@
   "prompt": 7.8e-07
  },
  "qwen/qwen3-next-80b-a3b-instruct": {
-  "cache_read": null,
+  "cache_read": 7e-08,
   "completion": 1.1e-06,
-  "prompt": 9e-08
+  "prompt": 1e-07
  },
  "qwen/qwen3-next-80b-a3b-thinking": {
   "cache_read": null,
@@ -1651,8 +1656,8 @@
  },
  "qwen/qwen3-vl-30b-a3b-instruct": {
   "cache_read": null,
-  "completion": 6e-07,
-  "prompt": 1.5e-07
+  "completion": 5.2e-07,
+  "prompt": 1.3e-07
  },
  "qwen/qwen3-vl-30b-a3b-thinking": {
   "cache_read": null,
@@ -1685,14 +1690,14 @@
   "prompt": 1.95e-07
  },
  "qwen/qwen3.5-35b-a3b": {
-  "cache_read": 2.5e-07,
-  "completion": 1.25e-06,
-  "prompt": 2.5e-07
+  "cache_read": 2.25e-07,
+  "completion": 1.8e-06,
+  "prompt": 2.25e-07
  },
  "qwen/qwen3.5-397b-a17b": {
-  "cache_read": 4.5e-08,
-  "completion": 3e-06,
-  "prompt": 4.5e-07
+  "cache_read": null,
+  "completion": 2.34e-06,
+  "prompt": 3.9e-07
  },
  "qwen/qwen3.5-9b": {
   "cache_read": null,
@@ -1755,7 +1760,7 @@
   "prompt": 3.2e-07
  },
  "qwen/qwen3.8-2.4t-a95b": {
-  "cache_read": 2e-07,
+  "cache_read": 2.5e-07,
   "completion": 6e-06,
   "prompt": 2e-06
  },
@@ -1945,9 +1950,9 @@
   "prompt": 6e-07
  },
  "z-ai/glm-4.6": {
-  "cache_read": 1e-07,
-  "completion": 2e-06,
-  "prompt": 5e-07
+  "cache_read": 1.1e-07,
+  "completion": 2.2e-06,
+  "prompt": 5.5e-07
  },
  "z-ai/glm-4.6v": {
   "cache_read": 5.5e-08,
@@ -1965,9 +1970,9 @@
   "prompt": 6e-08
  },
  "z-ai/glm-5": {
-  "cache_read": 2e-07,
-  "completion": 2.55e-06,
-  "prompt": 9.5e-07
+  "cache_read": 1.2e-07,
+  "completion": 1.92e-06,
+  "prompt": 6e-07
  },
  "z-ai/glm-5-turbo": {
   "cache_read": 2.4e-07,
@@ -1980,9 +1985,9 @@
   "prompt": 1.4e-06
  },
  "z-ai/glm-5.2": {
-  "cache_read": 1e-07,
-  "completion": 3.15e-06,
-  "prompt": 5e-07
+  "cache_read": 2.21e-07,
+  "completion": 3.74e-06,
+  "prompt": 1.19e-06
  },
  "z-ai/glm-5.2:batch": {
   "cache_read": 1.3e-07,
@@ -2015,14 +2020,14 @@
   "prompt": 2e-06
  },
  "~deepseek/deepseek-v4-flash-latest": {
-  "cache_read": 2.52e-08,
-  "completion": 2.52e-07,
-  "prompt": 7.9996e-08
+  "cache_read": 1.596e-08,
+  "completion": 1.596e-07,
+  "prompt": 7.98e-08
  },
  "~google/gemini-flash-latest": {
-  "cache_read": 1.5e-07,
-  "completion": 7.5e-06,
-  "prompt": 1.5e-06
+  "cache_read": 3.75e-08,
+  "completion": 1.875e-06,
+  "prompt": 3.75e-07
  },
  "~google/gemini-pro-latest": {
   "cache_read": 2e-07,

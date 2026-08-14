@@ -192,7 +192,7 @@ DC = "{http://purl.org/dc/elements/1.1/}"
 NEWS = "{http://www.google.com/schemas/sitemap-news/0.9}"
 
 STATS = {"feeds": 0, "ok": 0, "dead": 0, "blocked": 0,
-         "items": 0, "duplicate_url": 0, "syndicated": 0}
+         "items": 0, "duplicate_url": 0, "syndicated": 0, "city_press_off": 0}
 
 # Filled by collect(). One entry per feed, whatever happened to it.
 FEED_HEALTH: list[dict] = []
@@ -262,6 +262,76 @@ _EDITORIAL_EXCEPTIONS = frozenset({
 })
 
 
+# --- US city tech press ----------------------------------------------------
+#
+# The owner's direction is that the USA must hold the most data. Worldwide
+# discovery is edition-led (google_news) and mostly national, so a metro
+# funding round or a 200-job expansion reaches us only when a national desk
+# happens to pick it up. The publishers carrying those with receipts are the
+# metro business press, and they publish ordinary first-party feeds.
+#
+# WIRED AS A NAMED CATEGORY rather than as anonymous rows, so the set has one
+# off switch and one price that can be read in one place:
+#
+#   MEASURED 2026-08-14, live, through this collector's own fetch/parse path,
+#   at the gate's own unit price ($0.000051 per call,
+#   google/gemini-2.5-flash-lite, 504 in / 2 out, priced live from OpenRouter),
+#   once daily:
+#
+#     the six NEW feeds   150 items/run, 47 (31%) survive the FREE prefilter
+#                         and reach the paid gate
+#                         -> $0.072/month measured, $0.230/month at cap
+#     whole category      195 items/run, 65 (33%) reach the gate
+#     (GeekWire and       -> $0.100/month measured, $0.300/month at cap
+#      Refresh Miami
+#      were already live)
+#
+#   "At cap" is the worst case where every fetched item is gated, which is what
+#   MAX_ITEMS_PER_FEED bounds. Both figures sit an order of magnitude inside
+#   the ~$1/month ceiling this set was allowed, so it ships ARMED.
+#
+# IT CANNOT STARVE THE REGISTERS, and that is structural rather than a promise.
+# Reads are the expensive stage, and `classify.BINDING_READ_BUDGET` is a fixed
+# total split between collectors by measured conversion: adding feeds moves no
+# money at the read stage, because national_press buys exactly the cap it
+# bought before and the structured registers (Companies House, ARES, BORME,
+# EDINET, DART, BSE) are separate collectors whose spend this cannot reach.
+# MAX_ITEMS_PER_FEED is the per-feed cap, so no one metro can crowd the others,
+# and candidate_rank decides WHICH of the survivors are read.
+# tests/test_city_press_feeds.py holds all of that.
+#
+# The switch: TIT_CITY_PRESS=off drops the whole category at LOAD time, before
+# a single request is made.
+CITY_PRESS_CATEGORY = "City Tech Press"
+
+
+def city_press_enabled() -> bool:
+    return (os.environ.get("TIT_CITY_PRESS") or "on").strip().lower() not in (
+        "off", "0", "no", "false")
+
+
+# Funding-roundup and deal-tracker PRODUCTS, refused by feed path even when the
+# outlet itself is one we read.
+#
+# The aggregator rule is about who did the reporting, and a weekly "every round
+# that closed this week" column is a compilation of other people's reporting
+# wearing a masthead we trust. It also breaks the one-employer contract the
+# rest of the pipeline depends on: one such item names eight companies and
+# eight figures, so whatever the model returns for `company` is at best one of
+# them, attached to a figure that may belong to another. Same reasoning as
+# _AGGREGATOR_HOSTS, applied one level down at the path.
+_ROUNDUP_PATH_TERMS = (
+    "funding-roundup", "funding-round-up", "funding-tracker", "deal-tracker",
+    "deals-roundup", "weekly-funding", "funding-weekly", "venture-roundup",
+    "raise-roundup", "roundup-funding",
+)
+
+
+def is_roundup_feed(url: str) -> bool:
+    path = (urlparse(url).path or "").lower()
+    return any(term in path for term in _ROUNDUP_PATH_TERMS)
+
+
 @dataclass(frozen=True)
 class Feed:
     name: str
@@ -272,6 +342,11 @@ class Feed:
     language: str
     source_type: str
     site: str = ""
+    category: str = ""
+
+    @property
+    def is_city_press(self) -> bool:
+        return self.category.strip().lower() == CITY_PRESS_CATEGORY.lower()
 
     @property
     def host(self) -> str:
@@ -359,6 +434,23 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
                 print(f"  [{COLLECTOR}] REFUSED aggregator feed: "
                       f"{row.get('name','?')} ({host}) — we store publishers, not compilers")
                 continue
+            # A funding-roundup or deal-tracker feed from an outlet we
+            # otherwise read. Refused here for the same reason and with the
+            # same loudness as an aggregator: it compiles other people's
+            # reporting, and one item names many employers.
+            if is_roundup_feed(rss):
+                STATS["blocked"] += 1
+                print(f"  [{COLLECTOR}] REFUSED roundup feed: "
+                      f"{row.get('name','?')} ({rss}) — a roundup compiles "
+                      f"reporting and names many employers in one item")
+                continue
+            category = (row.get("category") or "").strip()
+            # The city-press set is switchable as a set. Dropped at LOAD time,
+            # so `off` costs not one request.
+            if (category.lower() == CITY_PRESS_CATEGORY.lower()
+                    and not city_press_enabled()):
+                STATS["city_press_off"] += 1
+                continue
             feeds.append(Feed(
                 name=(row.get("name") or host).strip(),
                 rss=rss,
@@ -368,6 +460,7 @@ def load_feeds(path: Path | None = None) -> list[Feed]:
                 language=(row.get("language") or "").strip(),
                 source_type=(row.get("source_type") or "").strip(),
                 site=(row.get("url") or "").strip(),
+                category=category,
             ))
     return feeds
 
