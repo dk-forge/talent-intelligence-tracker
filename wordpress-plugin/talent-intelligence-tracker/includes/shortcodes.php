@@ -3745,7 +3745,7 @@ function tit_market_trend_html(array $m) {
     }
 
     ob_start(); ?>
-    <div class="tit-table-scroll">
+    <div class="tit-table-scroll tit-chart-scroll">
     <svg class="tit-market-chart" viewBox="0 0 <?php echo $w_px; ?> <?php echo $h_px; ?>"
          role="img" preserveAspectRatio="xMidYMid meet"
          aria-label="<?php echo esc_attr(($share

@@ -13,6 +13,60 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-14 - a device sweep at five widths: the chart was painted off-screen, and one word decided the width of a card (1.81.2)
+
+Every reader-facing page of both trackers rendered in real headless Chrome at
+375, 414, 768, 1024 and 1280, in light and dark, from a reader's view (live
+bare URL, browser User-Agent, no cache buster), with geometry read off the
+rendered tree and never off markup. Three defects here, all of them invisible
+to every check this repo had, because none of them is a colour, a string or a
+version.
+
+**1. The market chart and the recall chart were painted past the right edge of
+a phone with nothing to scroll.** `.tit-table-scroll` drops `overflow-x` under
+860px on purpose: a table becomes cards there and a card layout has nothing to
+side-scroll. Both inline-SVG charts are wrapped in that same shared box and
+keep `min-width:520px`, so at 375px 174px of the drawing sat off-screen and
+unreachable. The chart's own comment had promised the opposite ("so a narrow
+phone scrolls the chart inside its own box") since the day it was written. The
+wrappers now carry `tit-chart-scroll` and opt back into scrolling by name,
+not by `:has()`, so it holds wherever the chart renders at all.
+
+**2. One 51-character token decided the width of a card.** On /sources/ a
+source note carries the query string
+`dept=innovationsciencesandeconomicdevelopmentcanada`. A flex item's automatic
+minimum size is its min-content width, so that single word made its cell 362px
+wide inside a 307px row at 375px, pushing the card and the link beside it off
+the screen. Card cells now carry `min-width:0; overflow-wrap:anywhere`.
+`anywhere` and not `break-word`, because only `anywhere` is counted in the
+min-content size, and min-content was the measurement that was wrong.
+
+**3. The touch floor stopped at the filter panel.** The 899px block held the
+filters, the chrome and the jump bar to 44px. Everything a reader drives
+INSIDE the content had never been measured: ranking rows 34px (24 of them),
+at-a-glance cells 36px (24), chart icon buttons 28x28, disclosures 21px, export
+links 30px, the two hero calls to action 37px, the place directory links 26px.
+All on the floor now. Anchors styled as buttons needed a box that honours
+`min-height`, since an inline box ignores it.
+
+**The guard.** `tests/test_control_boundaries.py` gains four measurements at
+375/414/768: nothing paints past the layout viewport with no ancestor that
+scrolls it, the chart wrapper still scrolls, a card with the real long token
+does not widen the document, and every control in the content clears 44px.
+Three go red with the CSS reverted; the long-token one goes red at 26px of
+document overflow. Two details are load-bearing and were both got wrong first:
+the viewport must be read as `documentElement.clientWidth` (a document that
+overflows sideways WIDENS `innerWidth`, so measuring against it reports a clean
+page at the exact moment the page is broken), and an element is only a defect
+if NO ancestor clips or scrolls it (a wide table inside its own scroll box is
+the correct answer, and 24 rows inside a 320px scroller are on the page but not
+on the screen).
+
+Nothing on the layoff tracker's own pages failed the same sweep: no document
+overflow, no clipped or overlapping text, no collapsed chart, at any width or
+scheme.
+
+
 ## 2026-08-14 - the gate A/B ran against the gold set; nothing pinned, and the numbers say why
 
 **Owner-authorized spend (~$0.04 total across three ab-models runs, from the
