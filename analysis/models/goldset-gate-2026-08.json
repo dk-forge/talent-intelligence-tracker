@@ -1,0 +1,810 @@
+{
+ "family": "gate",
+ "version": "2026-08",
+ "assembled_at": "2026-08-14",
+ "assembled_by": "a Claude Opus 5 session, by hand, item by item",
+ "question": "Exactly the question pipeline/classify.GATE_SYSTEM asks: is this item a talent-market signal about ONE NAMED employer? YES or NO.",
+ "input_shape": "headline, then a blank line, then the teaser where the ledger captured one. That is what classify.gate() sends, truncated at GATE_CHARS=1500; no item here is near that bound.",
+ "items": [
+  {
+   "id": "ledger-00807b66d02385d1",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=00807b66d02385d1",
+   "text": "Kiwi hotel boss Gavin Faull expands Swiss-Belhotel with two new resorts in Bali\n\nThe business, partly Kiwi-owned, has 170 hotels and employs 15,000 staff in 20 countries. (Outlet: NZ Herald (Business), based in New Zealand — a hint, not a stated fact.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Swiss-Belhotel named; two new resorts in Bali is a site opening",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-115c37c2726cca21",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=115c37c2726cca21",
+   "text": "Maxis Appoints CEO Goh Seow Eng As Executive Director\n\nMaxis Bhd has appointed Chief Executive Officer Goh Seow Eng as Executive Director, expanding his leadership role to the telecommunications group’s board. Goh, 62, has led Maxis as CEO since Dec 1, 20",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Maxis names an executive director: a board appointment",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-22f868c7833f81ee",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=22f868c7833f81ee",
+   "text": "Lovable raise €343 million Series C to expand its platform, infrastructure and global team\n\nSwedish AI software creation platform Lovable has raised €343 million ($400 million) in Series C funding at a €11.4 billion ($13.3 billion) valuation, as the Stockholm-based company looks to expand it",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Lovable, EUR343M Series C: a funding round raised",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-36c8a59b9b774335",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=36c8a59b9b774335",
+   "text": "EleQtron Raises €57M To Advance Quantum Hardware\n\n(Wire record: reported by ventureburn.com (South Africa), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "EleQtron, a named employer, raises EUR57M",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-4d41a7ccc27a93c7",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=4d41a7ccc27a93c7",
+   "text": "True Heart Café opens in Nicosia to create jobs for people with autism - Philenews",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "True Heart Cafe opens a site and states it creates jobs",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-5fa337d07f2e48e1",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=5fa337d07f2e48e1",
+   "text": "Garijo's plan to revamp Sanofi: an R&D cleanup, more M&A and a China push\n\nThree months into her role as CEO of Sanofi, Belén Garijo gave some insight on how she plans to boost the French company’s mid- to long-term growth in the face of a looming patent cliff ... (Outlet: E",
+   "gold_is_talent_signal": null,
+   "hard": true,
+   "why": "Sanofi strategy interview. A named employer, but the item announces no appointment, round, site or pay action; the rubric sends opinion and roundup pieces to NO and sends corporate events to YES, and this is between them",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-720472ef468265d1",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=720472ef468265d1",
+   "text": "Swedish legaltech startup Lightbringer secures $10M Series A to expand AI - powered patent platform\n\n(Wire record: reported by arcticstartup.com (Finland), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Lightbringer, $10M Series A",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-7f67cd600c57ac91",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=7f67cd600c57ac91",
+   "text": "Ajman Bank aims to raise $300m from sukuk stock issue\n\nAjman Bank is planning to raise $300 million through a sukuk issuance this year, its CEO Mustafa Al Khalfawi has revealed (Outlet: AGBI (Arabian Gulf Business Insight), based in United Arab Emirates —",
+   "gold_is_talent_signal": null,
+   "hard": true,
+   "why": "Ajman Bank AIMS TO raise $300m via sukuk. Capital raised is YES and a planned debt issue is not raised; production itself splits on this shape, taking this one and rejecting the identical [29] Adnoc item",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-9556fc9628d65b96",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=9556fc9628d65b96",
+   "text": "Latent raises $80M for AI medication approval platform\n\n(Wire record: reported by mobihealthnews.com (United States), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Latent, a named employer, raises $80M",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-a64755c2ea94e0a1",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=a64755c2ea94e0a1",
+   "text": "Abu Dhabi-backed AI chipmaker Cerebras raises $1bn\n\nUS artificial intelligence chipmaker Cerebras Systems, in which Abu Dhabi’s G42 owns a stake, has raised $1 billion in a funding round (Outlet: AGBI (Arabian Gulf Business Insight), based in United Ar",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Cerebras, a named employer, raises $1bn",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-b95c4294cfb47de8",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=b95c4294cfb47de8",
+   "text": "John Fletcher named Willis Re CEO after court battle with rival broker\n\n(Wire record: reported by royalgazette.com (Bermuda), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Willis Re names a CEO: an appointment",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-cb51b1a20c354c61",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=cb51b1a20c354c61",
+   "text": "Emirates Plans to Hire 20,000 New Staff in Next 5 Years - Aviation A2Z",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Emirates states 20,000 new hires",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-d9a823a79b216ea2",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=d9a823a79b216ea2",
+   "text": "Coolblue opens new warehouse for TVs and home appliances in Antwerp\n\n(Wire record: reported by retaildetail.eu (Belgium), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Coolblue opens a warehouse in Antwerp: a site opening",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-e9e65cd2f3fb5e69",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=e9e65cd2f3fb5e69",
+   "text": "Exclusive: Avo raises $10M to help clinicians with workflow\n\nAvo raises $10M Series A for AI platform that helps doctors manage patient visits using health records, led by Noro-Moseley Partners, with Mass General Brigham among users. (Outlet: Endpoints News, re",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Avo, a named employer, raises $10M",
+   "production_gate": "YES",
+   "production_outcome": "stored"
+  },
+  {
+   "id": "ledger-0080a012a622ef70",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=0080a012a622ef70",
+   "text": "Congo reports Ebola death in new province, official says\n\nDemocratic Republic of Congo health authorities have identified a person who has died from Ebola in a province not previously affected by the ongoing outbreak, an official told Reuters, raising fears ",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "An Ebola death. No employer, no talent event",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-14115b16af8ba064",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=14115b16af8ba064",
+   "text": "‘Modern Slavery’: The Hidden Exploitation of Migrant Workers in Kosovo",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A feature on migrant labour. No named employer, no event",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-262bd935298da1e7",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=262bd935298da1e7",
+   "text": "Hunter Worker May Day : Thousands demand public bus ownership | The Singleton Argus\n\n(Wire record: reported by singletonargus.com.au (Australia), published in English.)",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A May Day protest demanding public ownership. No employer action",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-36f4d8f8a320d08e",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=36f4d8f8a320d08e",
+   "text": "شمار قربانیان زمین‌لرزه کلمبیا به نزدیک ۲۵۰ نفر رسید\n\nNearly 250 Killed, More Than 1,670 Injured in Colombia Earthquake najibullah.lalzoy Wed, 08/12/2026 - 17:23 Author TOLOnews Profile Photo Author Short Bio TOLOnews is Afghanistan’s first 24-hour TV/on",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "An earthquake casualty count",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-4870715fd6c26c7b",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=4870715fd6c26c7b",
+   "text": "Saudi Arabia ranks among world’s top 10 for private AI investment as data center capacity rises nearly sevenfold\n\nSaudi Arabia has entered the world’s top 10 countries for private artificial intelligence investment, supported by an expanding data-center network, a growing technology workforce and a government dat",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A country-level AI investment ranking: a roundup, no named employer raising anything",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-5bff3c5cb831c6e6",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=5bff3c5cb831c6e6",
+   "text": "OpenCFO , Confluxe , others raise early - stage funding\n\n(Wire record: reported by vccircle.com (India), published in English.)",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "'OpenCFO, Confluxe, others raise early-stage funding' is a funding ROUNDUP over several employers, and the gate is asked about ONE named employer. The sibling's 2026-07-28 A/B found a challenger correcting the incumbent on a single-company version of exactly this headline, so the distinction between the two shapes is load-bearing",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-6e771e5347db6115",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=6e771e5347db6115",
+   "text": "All Systems Ready for 2026 Tobacco Marketing Season: TIMB CEO | 263Chat\n\nThe announcement was made by Emmanuel Matsvaire, chief executive officer of the Tobacco Industry and Marketing Board (TIMB) while giving oral evidence before the Parliamentary Portfolio Committee on L",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A tobacco marketing season announcement; the CEO is only the quoted source",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-7ef70d81eeabcbab",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=7ef70d81eeabcbab",
+   "text": "New wastewater plant in five-year plan to turn sewage into irrigation - Barbados Today\n\nFarmers could soon see a major drop in irrigation expenses, as the government finalises plans to set prices for treated wastewater from the new Climate Resilient South Coast Water Reclamation… (Outlet",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A government wastewater programme",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-9228cde358148ae7",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=9228cde358148ae7",
+   "text": "‘Laid-off’ workers turn to side jobs to survive\n\nWorkers say they were dismissed by SMILSI after they were barred from reporting for work. Now, some struggle to make ends meet as they turn to side jobs while fighting for reinstatement. (Outlet: Rapp",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A story whose subject is laid-off workers. The sibling product collects those and this one must not",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-a33bc08377ca9ee7",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=a33bc08377ca9ee7",
+   "text": "Quess , IGS & IPA launch Indo - Japan GCC corridor to help Japanese firms build AI , engineering hubs in India\n\n(Wire record: reported by pakistantelegraph.com (Pakistan), published in English.)",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "Quess/IGS/IPA launch a corridor to help OTHER firms build hubs. No named employer's own site or hiring decision",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-b28a0e073b3cf1f4",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=b28a0e073b3cf1f4",
+   "text": "Who Will Fill the Two Cabinet Vacancies?\n\nWith the resignations of the Home Minister and the Minister for Energy and Natural Resources, attention has quickly shifted to […] (Outlet: Business Bhutan, based in Bhutan — a hint, not a stated fact",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "Speculation about government cabinet vacancies",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-c6ba3f7f9a932b39",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=c6ba3f7f9a932b39",
+   "text": "Interim wage hike announced as Noida protest remains largely peaceful : Police\n\n(Wire record: reported by calcuttanews.net (India), published in English.)",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "A wage hike IS a pay action, but no employer is named: it is a protest reported by the police",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-d8ce418b84020a7d",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=d8ce418b84020a7d",
+   "text": "Watch Australian Scandium Miner Sunrise Energy Metals Secures $400 Million US Investment - Bloomberg",
+   "gold_is_talent_signal": true,
+   "hard": true,
+   "why": "Sunrise Energy Metals, a named employer, SECURES $400 million of investment. Investment received is YES. The production gate answered NO, which is a miss, and the 'Watch ...' video prefix is the likely cause",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-e9543474f9f7150e",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=e9543474f9f7150e",
+   "text": "Government seeks $16 million loan to digitize civil service systems\n\nBy Breaking Belize News Staff (HP): Government has taken a loan motion to the House of Representatives for 16 million dollars (8 million US) from the Inter-American Development Bank to support the civ",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A government loan to digitise the civil service",
+   "production_gate": "NO",
+   "production_outcome": "gate_reject"
+  },
+  {
+   "id": "ledger-0061a7768b0e7b71",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=0061a7768b0e7b71",
+   "text": "[ Watch ] Over 1 , 000 People Queued Two Kilometres In The Heat For Up To 500 Jobs The Company Only Expected 100\n\n(Wire record: reported by therakyatpost.com (Malaysia), published in English.)",
+   "gold_is_talent_signal": null,
+   "hard": true,
+   "why": "1,000 people queue for 500 jobs. It is a hiring event, but the headline is truncated at 'The Company Only Expec' and no employer is named in the text the gate is given",
+   "production_gate": "YES",
+   "production_outcome": "model_reject"
+  },
+  {
+   "id": "ledger-268560dcc988e80c",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=268560dcc988e80c",
+   "text": "Abu Dhabi's XRG raises Rio Grande LNG project stake\n\nAbu Dhabi state energy company XRG has said it is buying an additional 7.6% stake in two LNG trains at the Rio Grande project in Texas (Outlet: AGBI (Arabian Gulf Business Insight), based in United Ar",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "'XRG raises Rio Grande LNG project stake' is a stake purchase, not a round raised. A lexical trap on 'raises'",
+   "production_gate": "YES",
+   "production_outcome": "model_reject"
+  },
+  {
+   "id": "ledger-52f4d7606ff12ca8",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=52f4d7606ff12ca8",
+   "text": "Adnoc explores $2bn raise through Chinese 'dim sum' bonds\n\nAdnoc is reportedly planning to issue its first-ever yuan-denominated bond amid growing ties between the UAE and China (Outlet: AGBI (Arabian Gulf Business Insight), based in United Arab Emirates — a ",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "Adnoc EXPLORES a bond issue: neither raised nor equity. See [7], which production took",
+   "production_gate": "YES",
+   "production_outcome": "model_reject"
+  },
+  {
+   "id": "ledger-7abffb984a4e8ffb",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=7abffb984a4e8ffb",
+   "text": "Vanuatu to recruit 100 more Solomon Islands nurses\n\n(Wire record: reported by dailypost.vu (Vanuatu), published in English.)",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "Vanuatu recruiting nurses is a government programme, which the rubric sends to NO even though it states 100 roles",
+   "production_gate": "YES",
+   "production_outcome": "model_reject"
+  },
+  {
+   "id": "ledger-a9f5d6462de19b84",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=a9f5d6462de19b84",
+   "text": "Indian quarry workers wages “settled in full”\n\nThe Indian quarry company, EKAA HRIM Earth Resources Management Inc, on Monday said all outstanding wages for April and May (Outlet: Demerara Waves, based in Guyana — a hint, not a stated fact.)",
+   "gold_is_talent_signal": true,
+   "hard": true,
+   "why": "EKAA HRIM Earth Resources Management is named and the item is a wages settlement: a pay action at a named employer",
+   "production_gate": "YES",
+   "production_outcome": "model_reject"
+  },
+  {
+   "id": "ledger-c9d640f241c799f2",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=c9d640f241c799f2",
+   "text": "Peabody Energy : United Wambo pay dispute resolved after months | Newcastle Herald\n\n(Wire record: reported by newcastleherald.com.au, published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": true,
+   "why": "Peabody Energy is named and a pay dispute is resolved: a pay action at a named employer",
+   "production_gate": "YES",
+   "production_outcome": "model_reject"
+  },
+  {
+   "id": "ledger-00993da6893b3048",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=00993da6893b3048",
+   "text": "Orqa raises €12 . 7m Series A led by Expeditions to scale its Global Manufacturing Program\n\n(Wire record: reported by suasnews.com (United States), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Orqa, a named employer, raises EUR12.7m",
+   "production_gate": "YES",
+   "production_outcome": "validate_reject"
+  },
+  {
+   "id": "ledger-37a0912a6f5d64c8",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=37a0912a6f5d64c8",
+   "text": "Christian Wichert appointed Chief Executive Officer to lead next phase of growth\n\n(Wire record: reported by manilatimes.net (Philippines), published in English.)",
+   "gold_is_talent_signal": null,
+   "hard": true,
+   "why": "A CEO appointment with no employer named in the headline the gate is given; the name is presumably in the body",
+   "production_gate": "YES",
+   "production_outcome": "validate_reject"
+  },
+  {
+   "id": "ledger-817ed58d3536574f",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=817ed58d3536574f",
+   "text": "eMabler raises €5 . 5M Series A to scale API - based EV charging infrastructure beyond the Nordics\n\n(Wire record: reported by arcticstartup.com (Finland), published in English.)",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "eMabler, EUR5.5M Series A",
+   "production_gate": "YES",
+   "production_outcome": "validate_reject"
+  },
+  {
+   "id": "ledger-ab27ef678f4449a6",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=ab27ef678f4449a6",
+   "text": "Zhongji Innolight raises $6.8 billion in Hong Kong IPO amid strong retail demand\n\nZhongji Innolight has priced its Hong Kong H-share offering at HK$980 per share and raised HK$53.41 billion, or about $6.81 billion. Trading is scheduled to begin on July 30, making the deal one of Ho",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Zhongji Innolight raises $6.81bn in its Hong Kong IPO: capital raised, and funding_stage carries 'ipo'",
+   "production_gate": "YES",
+   "production_outcome": "validate_reject"
+  },
+  {
+   "id": "ledger-035be982ab70f313",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=035be982ab70f313",
+   "text": "Satellite maker K2 Space secures $6.8 billion valuation in new funding round - TradingView",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "K2 Space, a new funding round",
+   "production_gate": "YES",
+   "production_outcome": "duplicate"
+  },
+  {
+   "id": "ledger-7fad90194f3707de",
+   "provenance": "data/gate_labels/labels-2026-08.jsonl key=7fad90194f3707de",
+   "text": "Backslash Security: $19 Million Series A Raised For Protecting AI-Driven Software Development - Pulse 2.0",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Backslash Security, $19M Series A",
+   "production_gate": "YES",
+   "production_outcome": "duplicate"
+  },
+  {
+   "id": "abfixture-00",
+   "provenance": "tests/fixtures/ab_headlines.txt line 1",
+   "text": "Published by: aol.co.uk | V & A workers hold ballot to strike over pay and heatwave conditions",
+   "gold_is_talent_signal": null,
+   "hard": true,
+   "why": "V&A workers ballot to strike over pay and heat. A pay dispute at a named employer is YES under 'a pay, equity or benefits action'; a strike ballot is the workers' action rather than the employer's, and the rubric does not say which way that falls",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-01",
+   "provenance": "tests/fixtures/ab_headlines.txt line 2",
+   "text": "Published by: namibtimes.net | Rössing Donation and Recruitment Drive Boost Desert Foxe Ambitions",
+   "gold_is_talent_signal": true,
+   "hard": true,
+   "why": "Rossing, a named employer, runs a recruitment drive",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-02",
+   "provenance": "tests/fixtures/ab_headlines.txt line 3",
+   "text": "Published by: thailand-business-news.com | TriNetX Appoints August Calhoun Chief Executive Officer",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "TriNetX appoints a CEO: an appointment",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-03",
+   "provenance": "tests/fixtures/ab_headlines.txt line 4",
+   "text": "Published by: Stock Titan | Two leaders appointed to advance Livengood's 13.6M ounces in gold resources",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Livengood appoints two leaders",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-04",
+   "provenance": "tests/fixtures/ab_headlines.txt line 5",
+   "text": "Published by: LSM | Latvian ammo maker Ammunity names new CEO",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Ammunity names a CEO: an appointment",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-05",
+   "provenance": "tests/fixtures/ab_headlines.txt line 6",
+   "text": "Published by: CNBC TV18 | Tata Electronics emerges as Tata Group's biggest job creator in FY26",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Tata Electronics named as the group's biggest job creator: a headcount claim at a named employer",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-06",
+   "provenance": "tests/fixtures/ab_headlines.txt line 7",
+   "text": "Published by: Bdaily | CSSC appoints chief executive",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "CSSC appoints a chief executive",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-07",
+   "provenance": "tests/fixtures/ab_headlines.txt line 8",
+   "text": "Published by: AI Insider | Voice AI Startup Rime Raises $24M Series A to Advance Speech-to-Speech Models",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Rime, a named employer, raises $24M",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-08",
+   "provenance": "tests/fixtures/ab_headlines.txt line 9",
+   "text": "Published by: Prittle Prattle News | Trustee and fiduciary services expand in GIFT City as Axis Trustee opens new office",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Axis Trustee opens a new office in GIFT City",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-09",
+   "provenance": "tests/fixtures/ab_headlines.txt line 10",
+   "text": "Published by: Bitcoin World | Gopax Names New CEO To Drive GoFi Repayment Resolution And Regulatory Talks",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Gopax names a CEO: an appointment",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-10",
+   "provenance": "tests/fixtures/ab_headlines.txt line 11",
+   "text": "Published by: FinSMEs | Pilot Protocol Raises $4.5M in Seed Funding",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Pilot Protocol, $4.5M seed",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-11",
+   "provenance": "tests/fixtures/ab_headlines.txt line 12",
+   "text": "Published by: The Straits Times | OpenAI expands AI workforce in Dublin",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "OpenAI expands its Dublin workforce",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-12",
+   "provenance": "tests/fixtures/ab_headlines.txt line 13",
+   "text": "Published by: Investing.com | International Tower Hill Mines names new CEO and president",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "International Tower Hill Mines names a CEO and president",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-13",
+   "provenance": "tests/fixtures/ab_headlines.txt line 14",
+   "text": "Published by: The News Mill | Eaton India plans to hire 700 employees by the end of 2021",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Eaton India states a plan to hire 700",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-14",
+   "provenance": "tests/fixtures/ab_headlines.txt line 15",
+   "text": "Published by: FinSMEs | Freight Hero Raises $5M in Seed Funding",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Freight Hero, a named employer, raises $5M",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-15",
+   "provenance": "tests/fixtures/ab_headlines.txt line 16",
+   "text": "Published by: citybiz | Crystalys Therapeutics Raises $130 Million Series B, Strengthening Fortress Biotech's Dotinurad Stake",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Crystalys Therapeutics, $130M Series B",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-16",
+   "provenance": "tests/fixtures/ab_headlines.txt line 17",
+   "text": "Published by: Dallas Express | Klyde Warren Park Names New CEO Ahead Of $200M Expansion",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Klyde Warren Park names a CEO",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-17",
+   "provenance": "tests/fixtures/ab_headlines.txt line 18",
+   "text": "Published by: nextbillion.net | Egyptian E-Health Startup Reme-D Raises $1.45 Million Pre-Series a Funding",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Reme-D, $1.45M pre-Series A",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-18",
+   "provenance": "tests/fixtures/ab_headlines.txt line 19",
+   "text": "Published by: The Edge Singapore | HSBC plans to hire 100 AI specialists and 100 more RMs for wealth management",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "HSBC states a plan to hire 200",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-19",
+   "provenance": "tests/fixtures/ab_headlines.txt line 20",
+   "text": "Published by: AI Insider | Axis Robotics Raises $12M in Seed Funding to Develop Physical AI Data Engine",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Axis Robotics, a named employer, raises $12M",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-20",
+   "provenance": "tests/fixtures/ab_headlines.txt line 21",
+   "text": "Published by: TalkOfTitusville.com | Sidus Space Names New CEO",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Sidus Space names a CEO: an appointment",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-21",
+   "provenance": "tests/fixtures/ab_headlines.txt line 22",
+   "text": "Published by: Business Wire | Dopl Technologies Raises $6.3M in Seed Funding to Advance Proprietary Telerobotic Ultrasound Toward FDA Clearance",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Dopl Technologies, $6.3M seed",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-22",
+   "provenance": "tests/fixtures/ab_headlines.txt line 23",
+   "text": "Published by: Philstar.com | Marcos says Pax Silica hub to create jobs, boost competitiveness",
+   "gold_is_talent_signal": false,
+   "hard": false,
+   "why": "A government competitiveness programme; Pax Silica is a hub the president is announcing, not an employer action",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-23",
+   "provenance": "tests/fixtures/ab_headlines.txt line 24",
+   "text": "Published by: Post and Courier | USTA SC names new CEO",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "USTA SC names a CEO: an appointment",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-24",
+   "provenance": "tests/fixtures/ab_headlines.txt line 25",
+   "text": "Published by: FinSMEs | Enigma Raises $71M in Seed Funding",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Enigma, $71M seed. The sibling's 2026-07-28 gate A/B found the incumbent rejecting this exact item and the challenger correcting it, which is why it is in this set",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-25",
+   "provenance": "tests/fixtures/ab_headlines.txt line 26",
+   "text": "Published by: The Robot Report | Kraken Technology raises Series B funding for autonomous vessels",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Kraken Technology raises a Series B",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-26",
+   "provenance": "tests/fixtures/ab_headlines.txt line 27",
+   "text": "Published by: Ocean News & Technology | Kraken Technology US Names New CEO To Drive Domestic Expansion",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Kraken Technology US names a CEO",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-27",
+   "provenance": "tests/fixtures/ab_headlines.txt line 28",
+   "text": "Published by: Behavioral Health Business | Flourish Health Raises $26M Series A to Scale High-Acuity Youth Psychiatric Care",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Flourish Health, $26M Series A",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-28",
+   "provenance": "tests/fixtures/ab_headlines.txt line 29",
+   "text": "Published by: The Courier Express | Growing with Purpose: JHA Companies opens new office at DuBois Airport",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "JHA Companies opens a new office at DuBois Airport",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-29",
+   "provenance": "tests/fixtures/ab_headlines.txt line 30",
+   "text": "Published by: News4JAX | Cracker Barrel names new CEO amid leadership transition 1 year after logo controversy",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Cracker Barrel names a CEO",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-30",
+   "provenance": "tests/fixtures/ab_headlines.txt line 31",
+   "text": "Published by: AOL.com | Tim Cook Steps Down as CEO in September After 15 Years and Hands the Reins to John Ternus",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Tim Cook steps down as Apple CEO, Ternus takes over: a departure and an appointment",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-31",
+   "provenance": "tests/fixtures/ab_headlines.txt line 32",
+   "text": "Published by: Indianmasterminds | Arunachal Pradesh Transfers 7 IAS Officers; Vishal Shah Appointed CEO of HAPDA",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "Arunachal Pradesh transfers IAS officers. Civil-service postings are a government programme, which the rubric sends to NO, even though HAPDA gets a named CEO",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-32",
+   "provenance": "tests/fixtures/ab_headlines.txt line 33",
+   "text": "Published by: The News Mill | Anurag Jain appointed CEO of NITI Aayog in India",
+   "gold_is_talent_signal": false,
+   "hard": true,
+   "why": "NITI Aayog is an Indian government policy body; the same government-programme exclusion",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-33",
+   "provenance": "tests/fixtures/ab_headlines.txt line 34",
+   "text": "Published by: Airline Routes & Ground Services | Lorenza Maggio appointed CEO of Brussels Airlines",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Brussels Airlines appoints a CEO",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-34",
+   "provenance": "tests/fixtures/ab_headlines.txt line 35",
+   "text": "Published by: SEC EDGAR (Form D) | Peace Coffee PBC raised $1.9M in a private placement",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Peace Coffee PBC raised $1.9M: capital raised, from the employer's own Form D",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-35",
+   "provenance": "tests/fixtures/ab_headlines.txt line 36",
+   "text": "Published by: SEC EDGAR (Form D) | Holobiome, Inc. raised $10M in a private placement",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Holobiome raised $10M, from its own Form D",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-36",
+   "provenance": "tests/fixtures/ab_headlines.txt line 37",
+   "text": "Published by: SEC EDGAR (Form D) | LOOPTWORKS, INC raised $3.6M in a private placement",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Looptworks raised $3.6M, from its own Form D",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-37",
+   "provenance": "tests/fixtures/ab_headlines.txt line 38",
+   "text": "Published by: SEC EDGAR | Chief Executive Officer Transition at USA Rare Earth, Inc.",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "USA Rare Earth announces a CEO transition",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-38",
+   "provenance": "tests/fixtures/ab_headlines.txt line 39",
+   "text": "Published by: SEC EDGAR | Jonathan E. Benfield appointed as Chief Financial Officer of CrossAmerica Partners LP",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "CrossAmerica Partners appoints a CFO",
+   "production_gate": null,
+   "production_outcome": null
+  },
+  {
+   "id": "abfixture-39",
+   "provenance": "tests/fixtures/ab_headlines.txt line 40",
+   "text": "Published by: SEC EDGAR | Neuronetics Appoints Nir Naor Chief Financial Officer; Announces Additional Management Changes",
+   "gold_is_talent_signal": true,
+   "hard": false,
+   "why": "Neuronetics appoints a CFO and further management changes",
+   "production_gate": null,
+   "production_outcome": null
+  }
+ ]
+}

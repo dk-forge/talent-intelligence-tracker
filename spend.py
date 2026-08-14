@@ -128,35 +128,37 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # See docs/TECHLOG.md 2026-08-12 for the measurement and its basis. The route
 # back under is docs/PLAN-gate-to-five-dollars.md, not a bigger number here.
 #
-# LOWERED 18.0 -> 6.04 on 2026-08-13, by the owner: "keep both at steady
-# state", and "close to $5 a month as possible" across BOTH trackers.
+# 18.0 -> 6.04 -> 8.00 on 2026-08-13. Both moves are the owner's.
 #
-# THIS IS A DERIVED NUMBER AND NOT A ROUND ONE. The derivation lives in
-# `budget.py` (MONTHLY_TARGET_COMBINED_USD x THIS_REPO_SHARE) so it can be
-# checked rather than believed, and `test_budget_allocator.py` fails if this
-# literal and that derivation drift apart. In one line:
+# **THIS IS ONE HALF OF A STATED $22.00/MONTH TOTAL ACROSS BOTH TRACKERS. The
+# other half is $14.00 in the AI Layoff Tracker's own railway/spend.py.**
+# $22.00 = $14.00 sibling + $8.00 here. Read that sentence before changing this
+# number, because the whole is the thing being managed and only half of it is
+# settable from this repository.
 #
-#   $8.00 combined x 75.52% = $6.04
+# WHY IT IS STATED AND NO LONGER DERIVED — the defect this replaces. Between
+# 08-13 morning and 08-13 evening this constant was $6.04, computed as $8.00
+# combined x 75.52%, that percentage being this repo's genuinely MEASURED share
+# of combined demand ($0.8020/day here against $0.26/day for the sibling). The
+# arithmetic was right and the budget was wrong, because a share only bounds a
+# total if somebody enforces the denominator, and nobody could: the sibling's
+# own file said $7.00, not the $1.96 this derivation implied, so the two
+# trackers together were set to $13.04 against a target of $8.00 and neither
+# session could see the other's half. Now both halves are literals, the sum is
+# written beside them in `budget.py`, and `test_budget_allocator.py` fails if
+# they stop adding up.
 #
-# where 75.52% is this repo's share of MEASURED combined demand — $0.8020/day
-# here (the 2026-08-13 ledger, the first full un-degraded day since 08-03)
-# against $0.26/day for the sibling (the owner's shared-account reading over
-# 08-07..08-10, usable per-tracker precisely because this key's lifetime usage
-# did not move at all across that window).
-#
-# THE SUM IS THE TARGET AND ONLY HALF OF IT IS SETTABLE FROM HERE. $6.04 here
-# implies $1.96 for the AI Layoff Tracker, whose own railway/spend.py this repo
-# can neither read nor set. If the sibling is not separately brought down, the
-# combined target is not met however well this file behaves.
-#
-# AND $6.04 DOES NOT BUY TODAY'S DEPTH. Measured committed demand at the
-# current read caps is $24.06/month. What this ceiling changes is WHO the money
-# goes to first: `budget.py` splits it into a committed pot that a backfill
-# cannot touch and a discretionary pot that slows rather than stopping. Bringing
-# the committed set inside its own pot is a read-cap decision
-# (`pipeline/classify.BINDING_READ_BUDGET`) and it belongs to the owner. Run
-# `python3 budget.py` and `python3 cost_projection.py` before changing either.
-MONTHLY_ALLOWANCE_USD = 6.04
+# AND $8.00 STILL DOES NOT BUY TODAY'S DEPTH. Measured committed demand at the
+# current read caps is $24.06/month (cost_projection.py [4]; full coverage as
+# configured is $40.79). What this ceiling changes is WHO the money goes to
+# first: `budget.py` splits it into a committed pot that a backfill cannot
+# touch and a discretionary pot that slows rather than stopping. Bringing the
+# committed set inside its own pot is a read-cap decision
+# (`pipeline/classify.BINDING_READ_BUDGET`) and it belongs to the owner; the
+# route to needing fewer dollars for the same coverage is
+# docs/PLAN-gate-to-five-dollars.md. Run `python3 budget.py` and
+# `python3 cost_projection.py` before changing either.
+MONTHLY_ALLOWANCE_USD = 8.00
 
 # Stop collecting with headroom left, so a long run cannot overshoot mid-batch.
 STOP_AT_FRACTION = 0.9

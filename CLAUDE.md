@@ -363,17 +363,25 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Cost discipline
 
-Budget is **$6.04/month** (`spend.MONTHLY_ALLOWANCE_USD`; $10 on 2026-07-29,
+Budget is **$8.00/month** (`spend.MONTHLY_ALLOWANCE_USD`; $10 on 2026-07-29,
 $25 on 2026-07-30, $5 on 2026-07-31, $10 on 2026-08-01, $18 on 2026-08-12,
-$6.04 on 2026-08-13), all LLM.
+$6.04 then $8.00 on 2026-08-13), all LLM.
 
-**$6.04 is DERIVED, not chosen**, and the derivation is in `budget.py`:
-**$8.00 combined across BOTH trackers x 75.52%**, this repo's share of measured
-combined demand ($0.8020/day here on 2026-08-13, the first full un-degraded
-day, against $0.26/day for the sibling, measurable because this key spent
-nothing across the window the owner read it in). **The sum is the target and
-only half of it is settable from here**: $6.04 here implies $1.96 for the AI
-Layoff Tracker, whose own number this repo can neither read nor set.
+**$8.00 is ONE HALF OF A STATED $22.00/MONTH TOTAL** across both trackers, the
+other half being **$14.00** in the AI Layoff Tracker's own `railway/spend.py`.
+Both halves are written down in `budget.py` (`MONTHLY_TARGET_COMBINED_USD`,
+`SIBLING_ALLOWANCE_USD`, `DERIVED_ALLOWANCE_USD`) so a session reads the whole
+instead of a fraction.
+
+**A SHARE IS NOT A BUDGET, and that is why it is stated now.** For one day this
+file derived its ceiling as $8.00 combined x 75.52% = $6.04, where 75.52% was
+genuinely measured ($0.8020/day here on 2026-08-13, the first full un-degraded
+day, against $0.26/day for the sibling). The arithmetic was right and the
+budget was wrong: $6.04 here IMPLIED $1.96 for the sibling, whose own file said
+$7.00, so the two trackers were set to $13.04 against a stated target of $8.00
+and neither side could see it. A share only bounds a total if somebody enforces
+the denominator, and nobody can across two repos. Do not re-derive a share
+here; change a literal and check the sum.
 
 **THERE ARE TWO POTS AND ONLY ONE CAN BE RAIDED** (`budget.py`, 2026-08-13).
 `spend.py` answers "is the month spent", which is a question about a total, and
@@ -403,23 +411,49 @@ the authoritative total from the key and reconciles; the unattributed remainder
 is charged to DISCRETIONARY first, deliberately, because that errs toward
 protecting the collectors.
 
-**$6.04 STILL DOES NOT FUND FULL COVERAGE, and that is the honest state of
-this project rather than a bug to tune away.** Measured committed demand at
-today's read caps is **$24.06/month**, so the committed pot funds about 22% of
-today's depth; the two pots stop a *backfill* starving the collectors, they do
-not make $6.04 buy what $24.06 buys. Bringing the committed set inside its pot
-is a read-cap decision (`classify.BINDING_READ_BUDGET`, 217 reads/run) and it
-is the owner's. `cost_projection.py [5]` at the
-$5 ceiling: the LLM gate alone costs **$4.41/month**, leaving $0.59 for
-read-throughs — 14 reads/day against a demand of 1,102/day, which is **1% of
-full coverage**, and per-source caps of `1` for both google_news and
-national_press. Full coverage is $49.14. Tuning caps cannot close a gap that
-the gate has already spent.
+**$8.00 STILL DOES NOT FUND FULL COVERAGE AS CONFIGURED, and that is the
+honest state of this project rather than a bug to tune away.** Measured
+committed demand at today's read caps is **$24.06/month**, so the committed pot
+($7.11) funds about 30% of today's depth; the two pots stop a *backfill*
+starving the collectors, they do not make $8.00 buy what $24.06 buys. Bringing
+the committed set inside its pot is a read-cap decision
+(`classify.BINDING_READ_BUDGET`, 217 reads/run) and it is the owner's.
+`cost_projection.py [4]/[5]` measured 2026-08-14:
 
-So the road to $5 is **making the gate free**, not rationing reads: replace the
-paid LLM gate with a trained classifier (`docs/PLAN-gate-to-five-dollars.md`,
+| configuration | cost/month |
+|---|---|
+| FULL coverage, second pass conditional (as configured today) | **$40.79** |
+| ... extraction on gemini-2.5-flash-lite | $13.20 |
+| ... leadership offloaded + free extraction takes 33% of funding | $18.01 |
+| ... all of it, on the cheapest models | **$6.30** |
+
+**The last row now FITS inside the collection allowance ($6.82) for the first
+time** — at $6.04 it did not. That is what the raise bought, and it is bounded:
+**$3.68 of that $6.30 is the LLM gate**, which is 58% of the floor and is not
+reachable by any model swap. `[5]`: the gate costs $3.68/month, leaving $3.14
+for reads = 80 reads/day against a demand of 948/day, **8% of full coverage**.
+Tuning caps cannot close a gap the gate has already spent.
+
+So the road under $5 is **making the gate free**, not rationing reads: replace
+the paid LLM gate with a trained classifier (`docs/PLAN-gate-to-five-dollars.md`,
 steps 2-5). That needs labelled gate decisions, which `pipeline/gate_ledger.py`
 records — see the warning on that module before assuming it is collecting them.
+
+**AND BEFORE THE GATE IS REPLACED, IT HAS TO BE MEASURED.** Until 2026-08-14
+this repo knew what the gate COST and not whether it was RIGHT: every mode of
+`ab_models.py` scores a challenger's AGREEMENT with the incumbent, which is
+blind when both are wrong and reads a correction as a regression.
+`analysis/models/gate_goldset.py` is the ground truth — 80 real captured items
+hand-labelled against `classify.GATE_SYSTEM`, of which 75 are scoreable and 5
+are ambiguous and excluded rather than counted as passes. Graded **for free**
+against the verdicts the ledger already holds, the live gate scores **32/36 =
+88.9% (Wilson 95% 74.7-95.6)**, recall 95.0%, precision 86.4%. Run
+`python3 -m analysis.models.gate_goldset` (offline) or `ab_models.py
+--gate-gold` (paid, discretionary pot). **Read `KNOWN_LIMITS` before quoting
+any of it**: the set is English-only against a gate that answers in 43
+languages, it is positive-heavy so it measures recall far better than
+precision, and at 75 items it can reject a model but cannot certify one at 98%.
+Extend it; do not re-derive it.
 
 Until the gate is free, `spend.py --degrade` is what keeps the promise: it
 switches paid reads off partway through the month and lets every free

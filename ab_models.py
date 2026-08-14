@@ -11,9 +11,20 @@ Answers two questions with measurements rather than estimates:
    reports what a run genuinely costs.
 
     python ab_models.py                 # gate comparison across candidates
+    python ab_models.py --gate-gold     # gate ACCURACY against hand labels
     python ab_models.py --readthrough   # quality comparison on survivors only
     python ab_models.py --extraction    # the REAL schema, field by field
     python ab_models.py --cache-check   # does the extraction prefix REALLY cache?
+
+EVERY MODE EXCEPT --gate-gold SCORES AGREEMENT, NOT ACCURACY (2026-08-14)
+------------------------------------------------------------------------
+That is a real limit and it took until 2026-08-14 to write down. Agreement
+with the incumbent cannot see the two models being wrong together, and it
+scores a CORRECTION as a regression — which is not a hypothetical, it is what
+the 2026-07-28 gate A/B found, and it is why "reject below 90% agreement"
+would have picked the wrong model. `--gate-gold` is the mode with a human in
+the denominator; see `analysis/models/gate_goldset.py`. Do not take a model
+swap on the other modes alone.
 
 WHY --extraction EXISTS (2026-07-30)
 ------------------------------------
@@ -341,6 +352,153 @@ def run_extraction(key: str, headlines: list[str]) -> int:
     return 0
 
 
+# --- ACCURACY, not agreement -------------------------------------------------
+#
+# Every mode above scores a challenger against the INCUMBENT. This one scores
+# both against a human, using `analysis/models/gate_goldset.py`. Read that
+# module's docstring before reading a number out of here: agreement cannot see
+# two models being wrong together, and it reads a correction as a regression,
+# which is exactly what happened in the 2026-07-28 gate A/B.
+#
+# THE SET IS THE PRODUCTION QUESTION AND THE PRODUCTION INPUT. `classify.
+# GATE_SYSTEM` byte for byte, on headline+teaser, so a score here is a score on
+# the surface that costs $3.68/month rather than on a reduced stand-in.
+
+#: Gate candidates, incumbent first. Same slugs as GATE_MODELS; kept separate
+#: so a change to the exploratory list cannot silently change what the accuracy
+#: measurement was taken on.
+GATE_GOLD_MODELS = [
+    "google/gemini-2.5-flash-lite",   # the incumbent gate
+    "deepseek/deepseek-chat",
+    "openai/gpt-5-nano",
+    "openai/gpt-oss-120b",
+    "meta-llama/llama-3.3-70b-instruct",
+]
+
+
+def _gate_answer(text: str) -> bool | None:
+    """YES/NO out of a one-word reply. None when the model said neither.
+
+    None is NOT False. A model that answers something else has failed to
+    answer, and `score()` counts an unanswered item as a miss; folding it into
+    NO here would hide a broken model as a conservative one.
+    """
+    head = (text or "").strip().upper()
+    if head.startswith("YES"):
+        return True
+    if head.startswith("NO"):
+        return False
+    return None
+
+
+def _gate_call(model: str, item_text: str, key: str) -> tuple[str, dict, str]:
+    """One production-shaped gate call: GATE_SYSTEM, one word back."""
+    from pipeline import classify
+
+    body = {
+        "model": model,
+        "temperature": 0,
+        "max_tokens": 4,
+        "messages": [
+            {"role": "system", "content": classify.GATE_SYSTEM},
+            {"role": "user", "content": item_text[:classify.GATE_CHARS]},
+        ],
+    }
+    try:
+        resp = requests.post(
+            ENDPOINT,
+            headers={"Authorization": f"Bearer {key}",
+                     "Content-Type": "application/json",
+                     "User-Agent": USER_AGENT},
+            json=body, timeout=90)
+    except requests.RequestException as exc:
+        return "", {}, f"network: {exc}"
+    if resp.status_code >= 400:
+        return "", {}, f"HTTP {resp.status_code}: {resp.text[:120]}"
+    payload = resp.json()
+    content = ((payload.get("choices") or [{}])[0]
+               .get("message") or {}).get("content") or ""
+    return content, payload.get("usage") or {}, ""
+
+
+def run_gate_gold(key: str) -> int:
+    """Accuracy against the hand labels, beside cost per item, per model."""
+    from analysis.models import gate_goldset
+
+    doc = gate_goldset.load()
+    items = gate_goldset.scoreable(doc)
+    prices = _prices()
+
+    base = gate_goldset.production_baseline(doc)
+    print("=" * 78)
+    print("GATE ACCURACY AGAINST HAND LABELS")
+    print("=" * 78)
+    print(f"{len(items)} scoreable items of {len(doc['items'])}; "
+          f"{len(doc['items']) - len(items)} ambiguous and excluded.")
+    print(f"\nFREE BASELINE — the live gate's OWN recorded verdicts on the "
+          f"{base['total']} ledger items:")
+    print(f"  {base['correct']}/{base['total']} = {base['accuracy']:.1%} "
+          f"(Wilson 95% {base['accuracy_lo']:.1%}-{base['accuracy_hi']:.1%}), "
+          f"recall {base['recall']:.1%}, precision {base['precision']:.1%}")
+
+    results = {}
+    for model in GATE_GOLD_MODELS:
+        print(f"\n=== {model} ===", flush=True)
+        answers, cost, unparsed = {}, 0.0, 0
+        for item in items:
+            content, usage, err = _gate_call(model, item["text"], key)
+            if err:
+                print(f"  ERROR {err[:90]}")
+                continue
+            if model in prices and usage:
+                pin, pout = prices[model]
+                cost += (usage.get("prompt_tokens", 0) * pin
+                         + usage.get("completion_tokens", 0) * pout)
+            verdict = _gate_answer(content)
+            if verdict is None:
+                unparsed += 1
+                continue
+            answers[item["id"]] = verdict
+            time.sleep(0.2)
+        s = gate_goldset.score(doc, answers)
+        s["cost"] = cost
+        s["unparsed"] = unparsed
+        results[model] = s
+        print(f"  {s['correct']}/{s['total']} = {s['accuracy']:.1%}, "
+              f"${cost:.5f} for the set")
+
+    print("\n" + "=" * 78)
+    print(f"{'model':34} {'acc':>7} {'95% interval':>15} {'recall':>7} "
+          f"{'prec':>7} {'$/item':>10}")
+    for model, s in results.items():
+        per_item = s["cost"] / max(s["total"], 1)
+        print(f"{model:34} {s['accuracy']:6.1%} "
+              f"{s['accuracy_lo']:6.1%}-{s['accuracy_hi']:<6.1%} "
+              f"{s['recall']:6.1%} {s['precision']:6.1%} {per_item:10.6f}")
+
+    print("\nWHAT A CHEAPER MODEL HAS TO CLEAR. The gate's whole job is to stop "
+          "\npaying for items that will not store, so its two errors cost "
+          "different things:")
+    print("  a FALSE POSITIVE buys an extraction call and then gets rejected "
+          "downstream")
+    print("  a FALSE NEGATIVE loses the event, and coverage is the product")
+    print("So read RECALL first and only then the price. Every disagreement is "
+          "\nprinted below to be read rather than counted:")
+    for model, s in results.items():
+        for item, why in s["wrong"]:
+            print(f"\n  {model}: {why}")
+            print(f"    {item['text'].splitlines()[0][:72]}")
+            print(f"    gold: {item['why'][:150]}")
+        if s["unanswered"]:
+            print(f"\n  {model}: {len(s['unanswered'])} item(s) unanswered, "
+                  f"counted as misses")
+
+    print("\nAND THE CEILING ON ALL OF IT:")
+    for limit in gate_goldset.KNOWN_LIMITS:
+        print(f"  * {limit}")
+    return 0
+
+
 def _same_value(a, b) -> bool:
     """Compared the way the pipeline compares them: case and surrounding space
     are normalised away by `vocab` before anything is stored, so counting them
@@ -493,6 +651,10 @@ def main() -> int:
                         help="compare read-through quality instead of gate verdicts")
     parser.add_argument("--extraction", action="store_true",
                         help="compare the REAL extraction schema, field by field")
+    parser.add_argument("--gate-gold", action="store_true",
+                        help="score gate models against the HAND LABELS "
+                             "(analysis/models/goldset-gate-2026-08.json) "
+                             "rather than against each other")
     parser.add_argument("--cache-check", nargs="?", const="google/gemini-2.5-flash-lite",
                         default=None, metavar="MODEL",
                         help="send the production extraction prompt twice and report "
@@ -507,6 +669,8 @@ def main() -> int:
 
     if args.cache_check:
         return run_cache_check(key, args.cache_check)
+    if args.gate_gold:
+        return run_gate_gold(key)
 
     headlines = load_headlines()
     print(f"{len(headlines)} real headlines from live runs")
