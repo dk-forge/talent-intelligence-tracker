@@ -234,8 +234,20 @@ def report_health(
         "detail": detail,
     }
 
+    present = {r[1] for r in conn.execute("PRAGMA table_info(source_health)")}
+
+    # Which pot paid for this run. Recorded on EVERY row, not only priced ones,
+    # so the ledger can say "a discretionary run stored these and bought
+    # nothing" as well as "it cost this much". One place, so no collector has
+    # to remember; budget.run_kind() reads the workflow's own declaration and
+    # defaults to committed, which is the direction that protects the
+    # scheduled collectors.
+    if "run_kind" in present:
+        import budget
+
+        row["run_kind"] = budget.run_kind()
+
     if usage:
-        present = {r[1] for r in conn.execute("PRAGMA table_info(source_health)")}
         for name in USAGE_COLUMNS:
             if name in present and name in usage:
                 row[name] = usage[name]

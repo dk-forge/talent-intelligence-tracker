@@ -953,7 +953,9 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             f"{month_deferred} candidate(s) were deferred unread and unmarked. "
             f"They are read on a later run — this costs depth, not coverage. "
             f"Free collectors, deterministic extraction and both dedup layers "
-            f"ran as normal. Raise MONTHLY_ALLOWANCE_USD in spend.py to change it."
+            f"ran as normal. This is the COMMITTED pot, which no backfill can "
+            f"touch: `python3 budget.py` shows it, and spend.py's "
+            f"MONTHLY_ALLOWANCE_USD is where it changes."
         )
     # Spend visibility, cheapest stage first. Every line here is money NOT
     # spent: deterministic closes and known rounds cost nothing at all,

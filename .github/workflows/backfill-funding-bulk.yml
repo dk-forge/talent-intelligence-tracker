@@ -44,6 +44,14 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
+    # WHICH POT THIS SPENDS FROM (budget.py). Catch-up work: dispatched by
+    # hand, never on a schedule, so it draws on the DISCRETIONARY pot and
+    # cannot touch the committed one the scheduled collectors run on. In
+    # August 2026 there was one pot, this family spent 88% of the month in
+    # 2.5 days, and the collectors ran degraded for the nine days after.
+    # Deleting this line does not save money; it moves the spend onto them.
+    env:
+      TIT_RUN_KIND: discretionary
     # A SLICE ceiling, not a backfill ceiling. Below
     # writer_queue.LONG_HOLD_MINUTES (120), so this can no longer be what
     # starves the queue however many quarters are asked for.

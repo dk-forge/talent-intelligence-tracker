@@ -195,8 +195,36 @@ MEASURED_CANDIDATES_PER_DAY = 395
 #: Printed by --plan-cost together with what fraction of a day it actually
 #: reads, because a ration that does not say how much it is leaving behind is a
 #: coverage claim rather than a budget.
-DAILY_GATE_RATION = max(
+DAILY_GATE_RATION_STATIC = max(
     1, int(MONTHLY_WALKER_BUDGET_USD / 30 / SLICE_DAYS / USD_PER_GATED_CANDIDATE))
+
+#: The same figure under its old name, for --plan-cost and for the sizing
+#: arithmetic above — both of which are about a WHOLE month and have no clock
+#: in them. A RUN uses live_ration() instead.
+DAILY_GATE_RATION = DAILY_GATE_RATION_STATIC
+
+
+def live_ration() -> tuple[int, str]:
+    """The ration this run may actually buy, and the sentence that says why.
+
+    The static figure above assumes a fresh month and one slice a day. Neither
+    is true late in a month somebody has already spent, and a walker that
+    keeps taking a whole month's ration on the 28th is how catch-up work ends
+    up starving the collectors — which is exactly what August did.
+
+    So the ration comes from `budget.walker_ration`: this walker's share of
+    what is LEFT in the discretionary pot, spread over the days actually left.
+    It gets smaller as the month tightens and reaches 0 only when the pot is
+    gone, which is a skip and not a failure. Returns `(units, disclosure)`;
+    0 units means buy nothing, say so, exit zero.
+    """
+    import budget
+
+    return budget.walker_ration(
+        monthly_walker_budget_usd=MONTHLY_WALKER_BUDGET_USD,
+        usd_per_unit=USD_PER_GATED_CANDIDATE,
+        per_slice_days=SLICE_DAYS)
+
 
 #: A per-run backstop on FULL read-throughs, in case a window's gate survival
 #: runs far above the measured 15%. It is NOT the mechanism — the ration is —
@@ -392,12 +420,16 @@ def main() -> int:
     ap.add_argument("--fetch-only", action="store_true",
                     help="fetch, resolve and free-filter only — calls no model, "
                          "spends nothing, stores nothing")
-    ap.add_argument("--ration", type=int, default=DAILY_GATE_RATION,
-                    help=f"candidates GATED per day-window (default "
-                         f"{DAILY_GATE_RATION}, DERIVED from "
-                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month at one slice a "
-                         f"day). The rest of the day is left unmarked and a "
-                         f"later walk picks it up. See --plan-cost.")
+    ap.add_argument("--ration", type=int, default=None,
+                    help=f"candidates GATED per day-window. Blank DERIVES it "
+                         f"from what is left in the discretionary pot over the "
+                         f"days left in the month (budget.walker_ration), so a "
+                         f"lean month runs SMALLER rather than not at all; the "
+                         f"static month-sizing figure is "
+                         f"{DAILY_GATE_RATION_STATIC} at "
+                         f"${MONTHLY_WALKER_BUDGET_USD:.2f}/month. The rest of "
+                         f"the day is left unmarked and a later walk picks it "
+                         f"up. See --plan-cost.")
     ap.add_argument("--max-readthroughs", type=int,
                     default=DEFAULT_MAX_READTHROUGHS,
                     help=f"per-run backstop on FULL classifications (default "
@@ -426,6 +458,27 @@ def main() -> int:
     if args.plan_cost:
         print_cost_plan()
         return 0
+
+    # WHAT THE BUDGET WILL PAY FOR TODAY. An explicit --ration still wins: a
+    # number a human typed beats a derived one, which is the same precedence
+    # classify.read_cap uses and for the same reason. With none given, the
+    # ration is this walker's share of what REMAINS in the discretionary pot,
+    # spread over the days left. A run with no headroom left buys nothing and
+    # exits ZERO — it is not broken and not finished, and a red run here would
+    # manufacture an alert for the budget behaving as designed.
+    if args.ration is None:
+        args.ration, ration_basis = live_ration()
+        print(f"[gnews] {ration_basis}")
+        if args.ration < 1:
+            print("[gnews] NOTHING BOUGHT. No cursor moved, no candidate "
+                  "marked, no ticket failed. The next funded run resumes on "
+                  "the first window this one did not do.")
+            return 0
+    else:
+        ration_basis = (f"ration {args.ration}/day-window, set explicitly on "
+                        f"the command line, so the budget-derived figure was "
+                        f"not used.")
+        print(f"[gnews] {ration_basis}")
 
     locales = parse_locales(args.locales) if args.locales else all_locales()
     requested_start = date.fromisoformat(args.start)
@@ -685,8 +738,15 @@ def main() -> int:
     print(f"  free filter        {fetched} -> {candidates} candidates")
     for reason, count in filtered.most_common():
         print(f"      {count:5d}  {reason}")
+    # NO SILENT CAPS. A truncated run has to say what it did not do, in the
+    # same breath as what it did, and name the ceiling that decided it.
     print(f"  left for a later walk  {rationed_off} "
           f"(ration {args.ration}/day)")
+    if rationed_off:
+        print(f"      DROPPED FOR BUDGET, NOT FOR A VERDICT: {rationed_off} "
+              f"candidate(s) reached the gate and were not gated. They are "
+              f"UNMARKED, so a later funded walk of the same range reads them.")
+        print(f"      {ration_basis}")
     print(f"  gate calls         {classify.STATS['gate_calls']} "
           f"({classify.STATS['gate_rejects']} rejected there, cost avoided)")
     print(f"  read-throughs      {classify.STATS['full_calls']}   "

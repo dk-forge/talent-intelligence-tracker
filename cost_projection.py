@@ -316,14 +316,30 @@ def main() -> int:
                     help="use the committed price snapshot")
     ap.add_argument("--allowance", type=float, default=None,
                     help="the monthly ceiling to size the cap against "
-                         "(default: spend.MONTHLY_ALLOWANCE_USD)")
+                         "(default: the COMMITTED pot, budget.pots of "
+                         "spend.MONTHLY_ALLOWANCE_USD)")
     args = ap.parse_args()
 
     allowance = args.allowance
     if allowance is None:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import spend
-        allowance = spend.MONTHLY_ALLOWANCE_USD
+
+        # THE COMMITTED POT, NOT THE WHOLE ALLOWANCE. Everything this program
+        # sizes — the read caps, "what the allowance actually buys", the
+        # full-coverage verdict — is about the SCHEDULED collectors, and since
+        # 2026-08-13 they do not have the whole allowance to spend: the
+        # catch-up walkers hold a pot of their own, and neither side can borrow
+        # from the other. Sizing the caps against the full figure would
+        # recommend a depth the collectors cannot pay for.
+        import budget
+
+        allowance = budget.pots(spend.MONTHLY_ALLOWANCE_USD)[budget.COMMITTED]
+        print(f"[sizing against the COMMITTED pot: ${allowance:,.2f} of a "
+              f"${spend.MONTHLY_ALLOWANCE_USD:,.2f} allowance. The remaining "
+              f"${spend.MONTHLY_ALLOWANCE_USD - allowance:,.2f} is the "
+              f"discretionary pot the backfill walkers draw on, and the "
+              f"collectors cannot spend it. See budget.py.]")
 
     # COLLECTION IS NOT THE ONLY THING THAT SPENDS, AND THIS FILE USED TO SAY IT
     # WAS. The discovery tripwire has been armed since 2026-07-30 — twice a

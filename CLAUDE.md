@@ -363,11 +363,53 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Cost discipline
 
-Budget is **$10/month** (`spend.MONTHLY_ALLOWANCE_USD`, the owner's number:
-$10 on 2026-07-29, $25 on 2026-07-30, $5 on 2026-07-31, $10 on 2026-08-01), all LLM.
+Budget is **$6.04/month** (`spend.MONTHLY_ALLOWANCE_USD`; $10 on 2026-07-29,
+$25 on 2026-07-30, $5 on 2026-07-31, $10 on 2026-08-01, $18 on 2026-08-12,
+$6.04 on 2026-08-13), all LLM.
 
-**$10 STILL DOES NOT FUND FULL COVERAGE, and that is the honest state of
-this project rather than a bug to tune away.** `cost_projection.py [5]` at the
+**$6.04 is DERIVED, not chosen**, and the derivation is in `budget.py`:
+**$8.00 combined across BOTH trackers x 75.52%**, this repo's share of measured
+combined demand ($0.8020/day here on 2026-08-13, the first full un-degraded
+day, against $0.26/day for the sibling, measurable because this key spent
+nothing across the window the owner read it in). **The sum is the target and
+only half of it is settable from here**: $6.04 here implies $1.96 for the AI
+Layoff Tracker, whose own number this repo can neither read nor set.
+
+**THERE ARE TWO POTS AND ONLY ONE CAN BE RAIDED** (`budget.py`, 2026-08-13).
+`spend.py` answers "is the month spent", which is a question about a total, and
+a total could not answer the one August posed: **whose spend was it**. Backfill
+walkers took 88% of that month in 2.5 days, the single 90% line closed over
+everything, and the scheduled collectors ran degraded from 08-03 to 08-12.
+
+* **COMMITTED** ($5.37, 88.91%) — the scheduled jobs. Measured against their
+  OWN pot, so no amount of catch-up spending can degrade them.
+* **DISCRETIONARY** ($0.67) — the `backfill_*` family and `ab_models`. Per-run
+  ceiling is `remaining / days left`, so a walker **slows** in a lean month
+  instead of racing to the ceiling and stopping. Zero headroom is a SKIP that
+  exits **zero** and says why; a red run there would manufacture an alert for
+  the budget working.
+
+The classification is **structural, never a list**: a workflow that runs on a
+timer is committed, and that includes the ones whose cron lives in
+`schedule-link-hygiene.yml` rather than in their own file (`tripwire.yml`,
+`benchmark-diff.yml` — `budget.scheduled_workflows()` is the one rule).
+Dispatch-only paid workflows export `TIT_RUN_KIND: discretionary`, which lands
+on `source_health.run_kind` so the ledger has a split and not just a total.
+Read the split with `python3 budget.py`; it is `ops_status.py [5]`'s one line.
+
+The ledger is a **FLOOR**: jobs that call a model without filing a priced
+health row are not in it (it holds $1.68 of August's $10.08+). `spend.py` has
+the authoritative total from the key and reconciles; the unattributed remainder
+is charged to DISCRETIONARY first, deliberately, because that errs toward
+protecting the collectors.
+
+**$6.04 STILL DOES NOT FUND FULL COVERAGE, and that is the honest state of
+this project rather than a bug to tune away.** Measured committed demand at
+today's read caps is **$24.06/month**, so the committed pot funds about 22% of
+today's depth; the two pots stop a *backfill* starving the collectors, they do
+not make $6.04 buy what $24.06 buys. Bringing the committed set inside its pot
+is a read-cap decision (`classify.BINDING_READ_BUDGET`, 217 reads/run) and it
+is the owner's. `cost_projection.py [5]` at the
 $5 ceiling: the LLM gate alone costs **$4.41/month**, leaving $0.59 for
 read-throughs — 14 reads/day against a demand of 1,102/day, which is **1% of
 full coverage**, and per-source caps of `1` for both google_news and
@@ -401,8 +443,13 @@ reachable: the GATE alone is $5.70 and is how we know what is worth reading. So 
 place before any country's second. Do not quote a cost figure from memory:
 
 ```bash
+python3 budget.py              # the two pots, offline, no key
 python3 cost_projection.py     # exits 2 when full coverage does not fit
 ```
+
+`cost_projection.py` now sizes against the **committed pot**, not the whole
+allowance: the caps it recommends are for the scheduled collectors, and they
+cannot spend the walkers' pot.
 
 **Hitting the ceiling degrades, it does not halt.** `spend.py --degrade` sets
 `TIT_PAID_READS=off`; the free collectors, the free prefilter, deterministic

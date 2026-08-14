@@ -470,23 +470,14 @@ def _monthly_allowance() -> float | None:
 
     None when it cannot be read, which prints as "no policy figure" rather than
     quietly comparing against a default nobody set.
-    """
-    import ast
 
-    try:
-        tree = ast.parse((ROOT / "spend.py").read_text())
-    except (OSError, SyntaxError):
-        return None
-    for node in tree.body:
-        if not isinstance(node, ast.Assign):
-            continue
-        for target in node.targets:
-            if isinstance(target, ast.Name) and target.id == "MONTHLY_ALLOWANCE_USD":
-                try:
-                    return float(ast.literal_eval(node.value))
-                except (ValueError, TypeError):
-                    return None
-    return None
+    The parser itself now lives in `budget.py`, which is stdlib-only for the
+    same reason this file is and needs the same number. Two parsers for one
+    policy figure is how they come to disagree.
+    """
+    import budget
+
+    return budget.monthly_allowance()
 
 
 def _report_run_cost(conn) -> list[str]:
@@ -1684,8 +1675,28 @@ def _report_spend() -> list[str]:
 
     print(f"    allowance           ${allowance:,.2f} per UTC calendar month, stop at "
           f"{int(stop * 100)}% (policy, spend.py)")
-    print("    month to date       run `python spend.py` with OPENROUTER_API_KEY; "
-          "it is not readable from here")
+
+    # THE ONE LINE. `source_health.cost_usd` is a committed per-run ledger, so
+    # month-to-date spend IS readable from here — offline, keyless, and split
+    # by pot. This used to say "run spend.py with the key", which meant the
+    # section a session reads first could not answer the question the owner
+    # asks most.
+    import budget
+
+    ledger = budget.ledger_spend()
+    print("    " + budget.status_line(allowance=allowance, charged=ledger))
+    pot = budget.pots(allowance)
+    print(f"    TWO POTS            ${pot[budget.COMMITTED]:,.2f} committed "
+          f"(the scheduled collectors, paid first) and "
+          f"${pot[budget.DISCRETIONARY]:,.2f} discretionary (the backfill "
+          f"walkers, ab-models,")
+    print("                        benchmark-diff). A catch-up job spends only "
+          "the second, and its per-run ceiling is what remains divided by the "
+          "days left, so it slows rather than stopping. No backfill can "
+          "degrade the collectors.")
+    print("    authoritative total run `python spend.py` with OPENROUTER_API_KEY: "
+          "the ledger above misses jobs that call a model without filing a "
+          "priced health row, so it is a floor.")
     print(f"    FUNDED FIRST        paid extraction and discovery for {forward_from} "
           f"onward, and every correction, retraction and guardrail check on rows "
           f"already published, at ANY date")
