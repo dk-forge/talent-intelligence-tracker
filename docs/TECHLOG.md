@@ -13,6 +13,83 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-14 - the run publishes, the commit step unpublishes
+
+**No deploy. Nothing dispatched, nothing spent, the database not touched by
+hand.** One function in `merge_db.py`, five tests.
+
+### What it looked like
+
+Eleven current rows on main sat at `published_at IS NULL`, eight of them
+funding figures a human had ACCEPTED — OpenAI $122bn, Anthropic $65bn/$30bn/
+$13bn, xAI $20bn, Waymo $16bn, DeepSeek $7.4bn, Databricks $5bn, $278.4bn
+between them — some accepted a fortnight earlier. Every collect run since
+looked like it had ignored them.
+
+### What was actually true
+
+They were all already on the live site, with their amounts, and the money total
+already counted them. The **local marker** was the thing that was wrong, and it
+had been wrong every run since the beginning.
+
+`publish()` stamps `published_at` with an `UPDATE` on an existing row. The
+commit step in collect.yml then does `git reset --hard origin/main` and
+`merge_db.py`, and `_merge_signals` **skips every (content_hash, revision) the
+destination already holds**. So the stamp survived only on rows collected and
+published in the SAME run — those arrive through the INSERT and carry it as
+data. Any row that WAITED, which is every row a guardrail held until somebody
+accepted it, was stamped by the run that sent it and reset to NULL fifteen
+minutes later, permanently.
+
+Run 31780939430's own log says so and nobody could read it: `[publish] sent=84
+stored=75 duplicate=9`. The nine duplicates were the backlog being re-sent to a
+site that already had it. Nothing was ever red.
+
+The class of defect was already known — `archive-sources.yml` re-derives its
+`archive_url` projection after the merge and `retract.yml` refuses to use
+merge_db at all, both with comments saying "an UPDATE to an existing row does
+not travel". collect.yml had no such workaround for the one column publishing
+turns on.
+
+### What it cost
+
+- `enrich_published()` only offers rows with `published_at IS NOT NULL`, so a
+  value learned after a row went out could never reach exactly the rows a human
+  had cleared. Measured against the live site: `archive_url` missing on xAI,
+  Waymo and DeepSeek; `hq_city`/`hq_country` missing on DeepSeek and
+  Databricks.
+- `guardrails._row_placement()` reads the same marker to choose between "hold
+  it back, that is the whole fix" and "it is LIVE, only `retract.py` can fix
+  it". A wrong figure in public on such a row would have been filed as
+  `withheld` — decided, no clock, nobody asked for anything. Latent today only
+  because neither rejected row (Nvidia $709bn, Oracle $25bn) is on the site.
+
+### The fix
+
+`merge_db._carry_publications()`. `published_at` joins `is_current` as the
+second one-way marker that travels onto a row the destination already holds:
+union, earlier stamp wins, a NULL on either side can never erase the other's
+answer. Everything else about the merge is unchanged — a value learned about an
+existing row is still either re-derived after the merge or written as a new
+revision.
+
+Five tests, three of them red before this. The load-bearing one publishes an
+existing row in `ours` and asserts the stamp is still there after the merge;
+another asserts a rejected finding on such a row lands in `live` (retract it)
+and not `withheld`, so the fix cannot become a silent withholding of a live
+figure.
+
+### It heals itself, and nothing had to be forced
+
+No run was dispatched and `data/talent_intel.db` was not edited. The next
+scheduled collect re-offers the same eight, WordPress answers `duplicate` as it
+has been doing, `publish()` stamps them and **the merge now keeps the stamp**.
+Measured against the committed database: `sent=8 quarantined=3`, and Nvidia,
+Oracle and Climate Fund Managers stay exactly where they are. The money total
+does not move, because it never was missing the money.
+
+---
+
 ## 2026-08-14 - we ask in sixteen languages and only accept English answers
 
 **No deploy. No plugin change. Nothing was dispatched and nothing was spent.**

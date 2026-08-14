@@ -23,11 +23,19 @@ causes it. Only merging can.
 
 What merges, and on what key:
 
-  signals            append-plus-revision, never updated in place. Keyed on
-                     (content_hash, revision), which is already the table's one
-                     UNIQUE index. row_id is an autoincrement local to each
-                     file, so it is reassigned and supersedes_row_id is remapped
-                     onto the new numbering.
+  signals            append-plus-revision. Keyed on (content_hash, revision),
+                     which is already the table's one UNIQUE index. row_id is
+                     an autoincrement local to each file, so it is reassigned
+                     and supersedes_row_id is remapped onto the new numbering.
+
+                     TWO columns on an EXISTING row still have to travel, and
+                     both are one-way markers rather than data: `is_current`,
+                     because a withdrawal is sticky (_reconcile_is_current),
+                     and `published_at`, because a row this run sent is on the
+                     site whether or not the destination knows it
+                     (_carry_publications). Nothing else does: a value learned
+                     about an existing row is either re-derived after the merge
+                     (archive-sources.yml) or written as a new revision.
   seen_urls          pure cache, PK url. Union; the earlier first_seen wins.
   employer_identity  pure cache, PK company_key. The later resolved_at wins,
                      which is what identity.py's INSERT OR REPLACE means.
@@ -122,7 +130,51 @@ def _merge_signals(ours: sqlite3.Connection, into: sqlite3.Connection) -> dict[s
         existing[key] = cursor.lastrowid
         inserted += 1
 
-    return {"inserted": inserted, "withdrawn": _reconcile_is_current(ours, into)}
+    return {"inserted": inserted,
+            "withdrawn": _reconcile_is_current(ours, into),
+            "published": _carry_publications(ours, into)}
+
+
+def _carry_publications(ours: sqlite3.Connection, into: sqlite3.Connection) -> int:
+    """A row this run PUBLISHED is on the site, so the marker has to survive.
+
+    publish() sets published_at with an UPDATE on an existing row, and the loop
+    above skips every (content_hash, revision) the destination already holds.
+    So the marker survived only on rows collected and published in the SAME
+    run, which arrive here through the INSERT and carry it as data. Every row
+    that waited - anything held by a guardrail until a human accepted it, which
+    is every mega-round we have ever published - was stamped by the run that
+    sent it and reset back to NULL by the commit step, for good.
+
+    Measured on run 31780939430 (2026-08-14): ten current rows sat at
+    published_at IS NULL on main while the live site held all ten, one of them
+    since 2026-07-30. Nothing was red; publish() re-offered them every run and
+    WordPress answered `duplicate`, which is what `sent=84 stored=75
+    duplicate=9` in that log actually was.
+
+    It is not bookkeeping. `enrich_published()` only offers rows with
+    published_at IS NOT NULL, so a value learned after the row went out -
+    archive_url, hq_city, funding_stage - could never reach exactly the rows a
+    human had cleared; and guardrails._row_placement reads the same marker to
+    choose between "withhold it" and "it is live, retract it", so a wrong
+    figure in public would be filed as one that never left the building.
+
+    Union, and the EARLIER stamp wins: published_at answers "when did this
+    reach the site", so a re-send must not move it forward, and a NULL on
+    either side can never erase the other's answer.
+    """
+    rows = list(ours.execute(
+        "SELECT content_hash, revision, published_at FROM signals "
+        " WHERE published_at IS NOT NULL"))
+    if not rows:
+        return 0
+    cursor = into.executemany(
+        "UPDATE signals SET published_at = ? "
+        " WHERE content_hash = ? AND revision = ? "
+        "   AND (published_at IS NULL OR published_at > ?)",
+        [(r["published_at"], r["content_hash"], r["revision"], r["published_at"])
+         for r in rows])
+    return cursor.rowcount
 
 
 def _reconcile_is_current(ours: sqlite3.Connection, into: sqlite3.Connection) -> int:
@@ -248,6 +300,7 @@ def merge(ours_path: Path, into_path: Path) -> dict[str, int]:
             report = {
                 "signals_inserted": signals["inserted"],
                 "signals_withdrawn": signals["withdrawn"],
+                "signals_published": signals["published"],
                 "seen_urls_added": _merge_cache(
                     ours, into, "seen_urls",
                     newer_column="first_seen", newer_wins=False),
