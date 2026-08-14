@@ -78,6 +78,22 @@ manufacturing four extra red runs while it was. Three things now hold:
   not redden `host-watch`** — a red run there would fire the CI alert, which
   posts to the down host, which is the loop this design exists to break.
 
+**A NEW code-shaped red on main can also propose its own fix — as a DRAFT a
+human merges.** `.github/workflows/self-heal.yml` + `self_heal.py`: the gate
+refuses every red that is an alarm working as designed (drain-writers' red-once
+signal, the live contrast audit, landmarks/recall, evictions/self-timeouts,
+budget stops, guardrail findings awaiting adjudication, host outages, branch
+reds); for the rest, the pinned
+claude-code-action reproduces the failure from the run log and opens a draft PR
+with red-before/green-after evidence, an adversarial second pass posts a review
+comment, and the `guard` job re-diffs the branch against `self_heal.FORBIDDEN`
+(data/, spend.py, budget.py, guardrails.py, the locks, HANDOVER, itself) and
+goes red on a violation. It never merges, never dispatches a workflow, and is
+deliberately NOT in the talent-collect lock. One healer at a time, one open PR
+per cause, ceiling 3. Dormant until the `CLAUDE_CODE_OAUTH_TOKEN` secret
+exists; disable with repository variable `SELF_HEAL_DISABLED=true` or delete
+the file. TECHLOG 2026-08-14 is the full design.
+
 ## The 60-second model
 
 ```

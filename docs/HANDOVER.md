@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-08-14: the self-healer is installed, draft-only and DORMANT
+
+Branch `feat/self-heal-draft-only`. `.github/workflows/self-heal.yml` +
+`self_heal.py` + `tests/test_self_heal.py`. A NEW code-shaped red on main gets
+a DRAFT PR (pinned claude-code-action) with red-before/green-after evidence,
+an adversarial review comment, and a guard job that goes red if the branch
+touches `data/`, the pots, the locks, this file, or the healer itself. It
+never merges, never dispatches a workflow, and is NOT in the talent-collect
+lock. **Nothing changed in collection, the database, or the site.** DORMANT
+until the owner adds `CLAUDE_CODE_OAUTH_TOKEN`; kill switch
+`SELF_HEAL_DISABLED=true`. Details: TECHLOG 2026-08-14, CLAUDE.md summary.
+
 ## 2026-08-13: the money charts now say WHY they are empty. 1.78.0 is merged and NOT deployed.
 
 Branch `fix/money-chart-empty-state`. Copy plus one probe query that runs only
