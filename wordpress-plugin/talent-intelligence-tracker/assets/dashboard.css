@@ -999,6 +999,14 @@
    --------------------------------------------------------------------------- */
 @media (max-width:860px){
   .tit-table-scroll { overflow-x:visible; border:0; border-radius:0; }
+  /* A DRAWING DOES NOT BECOME CARDS. The rule above drops the scrollbar
+     because a TABLE turns into cards here and a card layout has nothing to
+     scroll. The two inline-SVG charts are wrapped in the same shared box and
+     keep min-width:520px, so on a 375px phone they were painted 174px past
+     the right edge of the screen with no way to reach the half that was cut
+     off. They opt back in by name rather than by :has(), so the rule holds in
+     any browser that renders the chart at all. */
+  .tit-chart-scroll { overflow-x:auto; }
   /* .tit-wrap on purpose: `.tit-sources .tit-table` sets min-width:720px and
      at equal specificity would keep the sources table 720px wide inside a
      375px phone, side-scrolling with its header row hidden. */
@@ -1020,7 +1028,15 @@
      plain stacked row.
      `.tit-wrap` also beats the 9px/12px cell padding set later in this file,
      which is what made a 9px row gap measure forty. */
-  .tit-wrap .tit-table td { display:block; border:0; padding:0; flex:1 0 100%; }
+  .tit-wrap .tit-table td { display:block; border:0; padding:0; flex:1 0 100%;
+    /* ONE LONG TOKEN DECIDED THE WIDTH OF THE CARD. A flex item's automatic
+       minimum size is its min-content width, and one source note carries the
+       query string `dept=innovationsciencesandeconomicdevelopmentcanada`. At
+       375px that single 51-character word made the cell 362px wide inside a
+       307px row, so the card and the link beside it were pushed off the right
+       of the screen. `anywhere`, not `break-word`: only `anywhere` is counted
+       in the min-content size, which is the measurement that was wrong. */
+    min-width:0; overflow-wrap:anywhere; }
 
   /* A stacked cell wears its column name, because with thead hidden nothing
      else says what it is. Opted-out cells are the ones that speak for
@@ -3691,6 +3707,40 @@ html:has(.tit-main), body:has(.tit-main) {
   /* The one button offered to a reader whose data did not load. It is the
      worst possible moment to hand somebody a 36px target. */
   .tit-wrap .tit-load-retry { min-height:44px; }
+
+  /* THE REST OF THE PAGE, measured on the live site at 375 and 414 on
+     2026-08-14. The block above took the filter controls and the chrome a
+     reader drives; these are the controls INSIDE the content, and they were
+     never measured because nothing walked the whole page:
+
+       ranking rows (24 of them)        313 x 34
+       at-a-glance matrix cells (24)    270 x 36
+       chart icon buttons (4 per card)   28 x 28
+       the two hero calls to action     196 x 37, 139 x 37
+       "copy" under the daily glance    104 x 32
+       the help disclosure              187 x 32
+       place directory links (35+)       ~x 26
+
+     A ranking row IS a filter, the same way the sibling tracker's bar rows
+     are, so it takes the same floor rather than a smaller one for being in a
+     list. The place directory is a run of links that are their own line, not
+     words inside a sentence, so 2.5.8's inline exception does not reach them:
+     the padding grows the hit box and the type does not move. */
+  .tit-wrap .tit-rank-row, .tit-wrap .tit-cell, .tit-wrap .tit-cta,
+  .tit-wrap #tit-dg-copy, .tit-wrap .tit-help-s,
+  .tit-wrap .tit-pillar, .tit-wrap .tit-tab,
+  .tit-wrap .tit-export-link { min-height:44px; }
+  /* An anchor styled as a button is laid out inline, and min-height does
+     nothing to an inline box. These three are buttons in every other respect,
+     so they take the box that honours the floor. */
+  .tit-wrap .tit-fine-money, .tit-wrap .tit-btn {
+    display:inline-flex; align-items:center; min-height:44px; }
+  .tit-wrap .tit-ctl { min-width:44px; min-height:44px; }
+  .tit-wrap .tit-place-list li > a { display:inline-block; padding:9px 0; }
+  /* Every disclosure on the page is a control a reader is invited to open,
+     and they measured 21px. box-sizing so the floor is the box, not the box
+     plus its padding. */
+  .tit-wrap details > summary { min-height:44px; box-sizing:border-box; }
 }
 /* One edge for these too: --tit-line as a control border is the 1.28:1
    hairline the whole of this pass is about. */

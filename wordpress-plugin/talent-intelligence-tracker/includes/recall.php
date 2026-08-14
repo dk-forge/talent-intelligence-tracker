@@ -536,7 +536,7 @@ function tit_recall_sparkline($points) {
     }
 
     ob_start(); ?>
-    <div class="tit-table-scroll">
+    <div class="tit-table-scroll tit-chart-scroll">
     <svg class="tit-recall-chart" viewBox="0 0 <?php echo $w; ?> <?php echo $h; ?>"
          role="img" preserveAspectRatio="xMidYMid meet"
          aria-label="Recall over time. <?php echo esc_attr($described); ?>">

@@ -96,6 +96,73 @@ PAGE = """<!doctype html>
 </div></div></main></div><script>%(js)s</script></body></html>
 """
 
+# WHAT THE PAGE MEASURES AS ON A NARROW SCREEN. Three questions in one pass,
+# because each needs the same rendered tree: what paints past the right edge
+# with nothing to scroll it, which chart wrappers still scroll, and which
+# controls a thumb cannot land on.
+GEOMETRY_JS = r"""
+(function () {
+  // The LAYOUT viewport, not window.innerWidth. A document that overflows
+  // sideways widens innerWidth to cover the overflow, so measuring against it
+  // reports a clean page at the exact moment the page is broken.
+  var doc = document.documentElement;
+  var W = Math.min(window.innerWidth, doc.clientWidth);
+  var out = {bleed: [], small: [], chartScroll: [],
+             docOverflow: doc.scrollWidth - doc.clientWidth};
+  function cs(el) { return getComputedStyle(el); }
+  function sig(el) {
+    var c = (typeof el.className === 'string') ? el.className : '';
+    return el.tagName.toLowerCase() + (c ? '.' + c.trim().split(/\s+/)
+      .slice(0, 2).join('.') : '');
+  }
+  function clippedByAncestor(el) {
+    for (var p = el.parentElement; p && p !== document.body; p = p.parentElement)
+      if (/(auto|scroll|hidden|clip)/.test(cs(p).overflowX)) return true;
+    return false;
+  }
+  function shown(el) {
+    var s = cs(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    return el.getClientRects().length > 0;
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.tit-wrap, .tit-wrap *'),
+    function (el) {
+      if (!shown(el)) return;
+      var r = el.getBoundingClientRect();
+      if (r.width <= 2 || r.height <= 2) return;
+      if (r.right <= W + 2) return;
+      if (clippedByAncestor(el)) return;          // scrolls inside its own box
+      // Report the OUTERMOST offender only: a cell and the six spans inside it
+      // are one defect, not seven.
+      if (el.parentElement &&
+          el.parentElement.getBoundingClientRect().right > W + 2) return;
+      out.bleed.push({sel: sig(el), l: Math.round(r.left), r: Math.round(r.right)});
+    });
+  Array.prototype.forEach.call(document.querySelectorAll('.tit-chart-scroll'),
+    function (el) {
+      if (!shown(el)) return;
+      out.chartScroll.push({ovx: cs(el).overflowX,
+                            w: Math.round(el.getBoundingClientRect().width),
+                            scrollW: el.scrollWidth});
+    });
+  Array.prototype.forEach.call(document.querySelectorAll(
+      '.tit-wrap a, .tit-wrap button, .tit-wrap select, .tit-wrap summary,'
+      + ' .tit-wrap input:not([type=hidden])'), function (el) {
+    if (!shown(el)) return;
+    var r = el.getBoundingClientRect();
+    if (!r.height || !r.width) return;
+    if (r.height >= 44) return;
+    // 2.5.8 exempts a target inside a sentence. The place directory is a run
+    // of links that are each their own line, so it is not exempt.
+    var inline = cs(el).display === 'inline'
+      && el.closest('p, li, td, th, figcaption, small, dd, dt');
+    if (inline && !el.closest('.tit-place-list')) return;
+    out.small.push({sel: sig(el), w: Math.round(r.width), h: Math.round(r.height)});
+  });
+  return JSON.stringify(out);
+})()
+"""
+
 BOUNDARY_JS = r"""
 (function () {
   function parse(c) {
@@ -320,6 +387,116 @@ class ControlBoundaries(unittest.TestCase):
                 'at %dpx. A closed panel still has textContent, so this is '
                 'read as innerText off the rendered element.'
                 % (state['panelInnerTextLen'], width))
+
+    def _geometry(self, width, height):
+        with Browser(width=width, height=height) as p:
+            p.navigate(self.url, settle=1.5)
+            return json.loads(p.eval_js(GEOMETRY_JS))
+
+    def test_nothing_bleeds_past_the_screen_edge(self):
+        """A DEVICE SWEEP ON 2026-08-14 FOUND THE CHART PAINTED OFF-SCREEN.
+
+        `.tit-table-scroll` drops its scrollbar under 860px because a TABLE
+        becomes cards there. The market chart is wrapped in the same shared
+        box and keeps min-width:520px, so on a 375px phone 174px of it was
+        painted past the right edge with nothing to scroll: not a table that
+        had become cards, a drawing with half of itself unreachable.
+
+        Measured, not read: an element is only a defect here if NO ancestor
+        clips or scrolls it. A wide table inside its own scroll box is the
+        correct answer and must not be reported as a failure."""
+        for width, height in ((375, 812), (414, 896), (768, 1024)):
+            bleed = self._geometry(width, height)['bleed']
+            self.assertEqual(
+                bleed, [],
+                'at %dpx these paint past the right edge of the screen with '
+                'no ancestor that scrolls or clips them, so a reader cannot '
+                'reach what is cut off: %s'
+                % (width, ', '.join('%s (%d..%d)' % (b['sel'], b['l'], b['r'])
+                                    for b in bleed[:6])))
+
+    def test_a_drawing_keeps_its_scroll_box_on_a_phone(self):
+        """The fix above, stated as the rule rather than as its effect: the
+        chart's wrapper still scrolls at a phone width. If a later pass takes
+        the opt-in class off the wrapper, this fails before the bleed does."""
+        for width, height in ((375, 812), (768, 1024)):
+            g = self._geometry(width, height)
+            self.assertTrue(
+                g['chartScroll'],
+                'no .tit-chart-scroll wrapper rendered at %dpx: the chart '
+                'is back inside a box that stops scrolling under 860px'
+                % width)
+            for box in g['chartScroll']:
+                self.assertIn(
+                    box['ovx'], ('auto', 'scroll'),
+                    'the chart wrapper has overflow-x:%s at %dpx, so the part '
+                    'of the drawing wider than the screen cannot be reached'
+                    % (box['ovx'], width))
+
+    def test_a_long_token_cannot_widen_a_card_off_the_screen(self):
+        """ONE WORD DECIDED THE WIDTH OF THE CARD.
+
+        A flex item's automatic minimum size is its min-content width. One
+        source note carries the query string
+        `dept=innovationsciencesandeconomicdevelopmentcanada`, and at 375px
+        that single 51-character word made its cell 362px wide inside a 307px
+        row, pushing the card and the link beside it off the right of the
+        screen (/sources/, measured live 2026-08-14).
+
+        The fixture is the real class names in the real nesting; the token is
+        the real token. `overflow-wrap:anywhere` is what fixes it, and only
+        `anywhere` counts toward min-content, which is the measurement that
+        was wrong."""
+        frag = (
+            '<div class="tit-wrap tit-sources"><div class="tit-table-scroll">'
+            '<table class="tit-table"><thead><tr><th>Source</th></tr></thead>'
+            '<tbody><tr><td class="tit-headline">'
+            '<span class="tit-h"><a href="#">Government of Canada newsroom '
+            '(all depts)</a></span> <span class="tit-rt">LIVE. Atom API over '
+            'all departments; the per-department feed is '
+            'dept=innovationsciencesandeconomicdevelopmentcanada and it is '
+            'one word.</span></td></tr></tbody></table></div></div>')
+        html = PAGE % {'theme': THEME_SHIM,
+                       'plugin': CSS.read_text(encoding='utf-8'),
+                       'site': SITE_OVERRIDE, 'frag': frag, 'js': ''}
+        path = tempfile.mktemp(suffix='.html')
+        open(path, 'w', encoding='utf-8').write(html)
+        try:
+            for width in (375, 414):
+                with Browser(width=width, height=812) as p:
+                    p.navigate('file://' + path, settle=0.8)
+                    g = json.loads(p.eval_js(GEOMETRY_JS))
+                self.assertEqual(
+                    g['docOverflow'], 0,
+                    'at %dpx one long token in a source note makes the whole '
+                    'document %dpx wider than the screen, so the page scrolls '
+                    'sideways' % (width, g['docOverflow']))
+                self.assertEqual(
+                    g['bleed'], [],
+                    'at %dpx one long token in a source note pushes the card '
+                    'past the screen edge: %s'
+                    % (width, ', '.join('%s (%d..%d)' % (b['sel'], b['l'],
+                                                         b['r'])
+                                        for b in g['bleed'][:4])))
+        finally:
+            os.unlink(path)
+
+    def test_every_control_in_the_content_is_thumb_sized_on_a_phone(self):
+        """The test below holds the FILTER controls to 44px. This holds every
+        other control a reader drives, which is where the 2026-08-14 sweep
+        found them: ranking rows at 34px, at-a-glance cells at 36px, chart
+        icon buttons at 28px, disclosures at 21px, the export links at 30px.
+        Links inside a sentence keep 2.5.8's inline exception and are not
+        counted here; the place directory is a run of links that are each
+        their own line, so it is."""
+        for width, height in ((375, 812), (414, 896)):
+            small = self._geometry(width, height)['small']
+            self.assertEqual(
+                small, [],
+                'these controls are under %dpx tall at %dpx: %s'
+                % (MIN_TAP, width,
+                   ', '.join('%s (%dx%d)' % (s['sel'], s['w'], s['h'])
+                             for s in small[:12])))
 
     def test_every_control_is_a_thumb_sized_target_on_a_phone(self):
         rows, _ = self._measure(375, 812, 'light', None)
