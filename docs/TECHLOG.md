@@ -13,6 +13,70 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-14 - we ask in sixteen languages and only accept English answers
+
+**No deploy. No plugin change. Nothing was dispatched and nothing was spent.**
+This is a vocabulary change and a fold; it costs no model call and buys no
+extra read.
+
+### The finding
+
+The sibling tracker had just proved that 45 of its news editions were
+configured with a local UI language and English-only search phrases, so
+non-English markets returned global stories and Chile held zero rows. This repo
+was checked for the identical defect and **does not have it**:
+`GOOGLE_NEWS_VOCAB` carries sixteen language packs, `source_registry` admits a
+locale to the rotation only once its language has one, and the comment above
+`GOOGLE_NEWS_ANCHOR` records the 2026-07-27 measurement that forced the design
+(US:en 23 items, DE:de 2, BR:pt 0, and 20 for the German phrasing).
+
+It has the same defect one layer down, and quieter. `normalize_city` was a
+plain dict lookup on lowercase-plus-whitespace, and of 422 alias keys exactly
+27 were non-ASCII — every one of those Latin script with a diacritic. **No
+Japanese, Korean, Chinese, Hebrew, Arabic, Thai or Cyrillic spelling of any
+city was in the table at all.** So the articles arrive, a model is paid to read
+them, and the place is dropped on a dictionary miss. News rows placed with a
+city, by market, on the committed corpus:
+
+    TR   0 of 71     IL   0 of 70     VN  0 of 49     ID  0 of 47
+    JP   1 of 56     KR   1 of 77     BR  2 of 149    IT  3 of 175
+
+against 10.0% (US), 12.4% (GB), 22.6% (CA), 25.7% (IE), 47.1% (SG). Nothing
+errored and no health check moved: a NULL city is indistinguishable from a
+story that named no city.
+
+Second half, folding. `münchen` was in the table and `munchen` was not, so a
+wire that transliterates its own accents missed. Turkish is the sharp case:
+`İzmir` lowercases to an i with a combining dot above and matched nothing.
+
+### What is NOT claimed
+
+This is not sized as a large recovery. `measure_city_placement.py` says only 14
+stored rows can be newly placed from sourced text, because `raw_text` is not
+persisted and most stored headlines genuinely name no city. Measured on the
+zero-placement markets, a gazetteer city appears in the stored text of 3 of 71
+Turkish rows and 0 of 49 Vietnamese ones. **The dominant cause of thin city
+coverage is that the source text does not name a city, not that we cannot read
+it** — this fixes the second, smaller cause, forward-looking, for free.
+
+### The guards
+
+- `test_a_city_written_in_its_own_language_is_the_same_city` — 26 native
+  spellings, every one from a language with a live locale in
+  `GOOGLE_NEWS_LOCALES`. A spelling nobody sends us is dead weight that still
+  has to be right, so the list stays tied to the editions we query.
+- `test_a_diacritic_a_publisher_dropped_does_not_drop_the_city`.
+- `test_folding_never_puts_two_different_cities_on_one_key` — the fold is a
+  FALLBACK and `_build_folded_index` drops any folded key claimed by two
+  different cities rather than resolving it. Guessing between two real cities
+  is what `AMBIGUOUS_CITY_NAMES` exists to prevent and it must not return
+  through the accent door. `normalize_city` also refuses an ambiguous bare name
+  before and after folding.
+- German and Swiss `ue`/`oe`/`ae` spellings are explicit aliases, not folds: a
+  written-out umlaut is a different spelling and no decomposition reaches it.
+
+---
+
 ## 2026-08-14 - a share is not a budget, and agreement is not accuracy
 
 **No deploy. No plugin change. Nothing was dispatched and nothing was spent.**
