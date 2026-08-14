@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-08-14T18:08:13Z",
-  "last_tick": "2026-08-14T18:31:48Z",
+  "last_tick": "2026-08-14T18:36:10Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -203,80 +203,6 @@
     "orphan:31827613549": "2026-08-14T18:13:32Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-14T18:08:13Z",
-      "history": [
-        {
-          "at": "2026-08-14T17:58:05Z",
-          "detail": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-14T18:08:13Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-14T18:13:32Z",
-          "detail": "run 31827246335",
-          "event": "bound"
-        }
-      ],
-      "id": "20260814T175805Z-place-unplaced",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
-      "requested_at": "2026-08-14T17:58:05Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31827246335",
-      "state": "dispatched",
-      "workflow": "place-unplaced.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-05T20:56:18Z",
-      "history": [
-        {
-          "at": "2026-08-05T20:55:46Z",
-          "detail": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 12)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-05T20:56:18Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-05T21:02:53Z",
-          "detail": "run 31046434929",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-05T21:22:17Z",
-          "detail": "run 31046434929",
-          "event": "landed"
-        }
-      ],
-      "id": "20260805T205546Z-backfill-press-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-30",
-        "fetch_only": "false",
-        "ration": "75",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-08-05T21:22:17Z",
-      "priority": 10,
-      "reason": "next slice of backfill-press-2026:2026-01-01..2026-07-30:0..16 (resumes at 12)",
-      "requested_at": "2026-08-05T20:55:46Z",
-      "requested_by": "backfill-slices",
-      "run_id": "31046434929",
-      "state": "landed",
-      "workflow": "backfill-press-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-05T21:22:17Z",
@@ -2558,6 +2484,44 @@
       "run_id": "31826857112",
       "state": "landed",
       "workflow": "correct-sec-filer-name.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-14T18:08:13Z",
+      "history": [
+        {
+          "at": "2026-08-14T17:58:05Z",
+          "detail": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-14T18:08:13Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-14T18:13:32Z",
+          "detail": "run 31827246335",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-14T18:36:10Z",
+          "detail": "run 31827246335",
+          "event": "landed"
+        }
+      ],
+      "id": "20260814T175805Z-place-unplaced",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-14T18:36:10Z",
+      "priority": 0,
+      "reason": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
+      "requested_at": "2026-08-14T17:58:05Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31827246335",
+      "state": "landed",
+      "workflow": "place-unplaced.yml"
     }
   ],
   "version": 1
