@@ -43,6 +43,14 @@ permissions:
   pull-requests: write   # opens the draft PR; the reviewer comments on it
   actions: read          # reads the failing run's log
   checks: read
+  # claude-code-action requests an OIDC token at startup regardless of how it
+  # authenticates, so without this the job dies before it reads a single log
+  # line: "Could not fetch an OIDC token". It grants the run an identity, not
+  # any additional access to this repo. The sibling ai-layoff-tracker hit this
+  # for real on 2026-08-15; here it was latent because every run so far was
+  # skipped by the gate, and it would have fired the first time healing was
+  # actually needed.
+  id-token: write
 
 concurrency:
   group: self-heal
