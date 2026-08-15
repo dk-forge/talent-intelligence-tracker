@@ -13,6 +13,61 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-15 - the digest signup had no route, and the hero got one (1.83.1)
+
+The shared email-digest signup renders at the foot of this dashboard and
+nothing above it said so. Measured on the live page, bare URL, browser
+User-Agent, no cache buster: the section began **13,995px** down at 1280x900
+on a 15,093px document, and **32,224px** down at 375x812 on a 33,895px one.
+Sixteen screens and forty. `tests/test_digest_signup_embed.py` had been green
+throughout, because "does the dashboard render it" and "can anybody find it"
+are different questions and only the first was ever asked.
+
+This is the sibling's press-kit defect on a third surface (its press page was
+13,252px and 31,707px down, fixed on 2026-08-13 by putting a button in the
+hero), so it takes the same fix rather than a new pattern: a third
+`.tit-cta` beside "Search N updates" and "How this is built", reading
+**"WEEKLY OR DAILY Email digest"** and jumping to `#alt-digest`.
+
+- **The label is the destination's own h2**, behind a tag answering the first
+  question anybody asks of a signup, in the words its own radio buttons use.
+  Not "Subscribe to our newsletter": nobody wants a newsletter.
+- **A third shape, not a third copy of either neighbour.** Blue-tinted fill
+  (`--tit-blue-tint`) so it reads as related to the accent without competing
+  with it, edged in `--tit-ctl-line`, the boundary colour this repo already
+  proved. Its hover holds fill and edge and moves only the shadow:
+  `.tit-cta-how:hover` repaints its edge in `--tit-blue`, which on a
+  blue-tinted fill is a wash, and inheriting it would have dissolved the
+  control's outline while somebody was pointing at it.
+- **Cost to the first screen, measured rather than claimed:** 0px at 1280
+  (one flex row still), 72.0px at 375 and at 414 (one 64px row plus the 8px
+  gap, and 64px is what the two actions beside it already measure there). The
+  hero heading does not move at any width.
+- **The jump lands, and that half is not optional** - the sibling shipped a
+  press-page jump menu that ended 847px down an 812px screen and called it a
+  fix. Measured live with the page settled: section top 0px, email field ends
+  **697px** down at 375x812 and **474px** down at 1280x900. `#alt-digest`
+  takes no scroll offset here, which matches the existing `#tit-trust` jump.
+
+`tests/test_digest_route_is_findable.py` is the guard: 13 assertions off a
+real headless Chrome render of the real shortcode, controls found by rendered
+`innerText` and never by class, contrast read from the **painted pixels**
+composited down the ancestor chain in light, dark-by-choice and dark-by-OS,
+with the pointer away and with the pointer on the control. Proven RED on
+8149fad: 12 failed, 1 passed. Measured after: boundary **4.35:1** light and
+**6.95:1** dark (floor 3.0), label 14.52:1 / 12.58:1 and the tag 5.99:1 /
+7.27:1 (floor 4.5), unchanged under the pointer; 44x44 clear at 375 and 414;
+no horizontal overflow at 375, 414, 768, 1024 or 1280.
+
+The signup component itself is the sibling's, so its height budget is fixed
+and tested over there; the same commit there stops its intro paragraph losing
+its size to the theme's `.entry-content p` override, which is what makes the
+landing fit on a phone. A follow-up on the sibling side (2.20.53) also stops
+the signup's email row wrapping under 560px, so the Subscribe button lands on
+screen on a phone here too.
+
+---
+
 ## 2026-08-14 - the job boards were already telling us where the work happens and what it pays, and we were throwing both away (1.83.0)
 
 `how_we_work` was 717 rows against `leadership_change`'s 15,575: 2.4% of the

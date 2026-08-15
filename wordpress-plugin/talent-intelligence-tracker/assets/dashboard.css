@@ -2294,8 +2294,32 @@ body:has(.tit-main) header.wp-block-template-part {
   font-family:var(--tit-serif); font-weight:700; letter-spacing:-.015em;
   color:var(--tit-fg); }
 @media (min-width:900px){ .tit-wrap .tit-hero-head h2 { font-size:34px; } }
-/* Exactly two actions under the thesis, per the design. The search button is
-   the accent (a control, so blue); the methodology link is the quiet twin. */
+/* Three actions under the thesis. The search button is the accent (a control,
+   so blue); the methodology link is the quiet twin; the digest route is the
+   third, added 2026-08-14.
+
+   WHY A THIRD. The signup has been live, working and reachable only by
+   scrolling to the end of the page. Measured on the live dashboard, bare URL,
+   browser User-Agent, no cache buster, 2026-08-14: the section began
+   13,995px down at 1280 and 32,224px down at 375, which is sixteen screens
+   and forty. Nothing above it pointed at it.
+
+   IT IS A THIRD SHAPE AND NOT A THIRD COPY OF EITHER. A second .tit-cta-how
+   beside the first is the same control twice, and a reader scanning for it
+   would have to read both. This one keeps the blue FAMILY without taking the
+   accent's weight: a blue-tinted fill, so it reads as related to the search
+   button rather than competing with it, and --tit-ctl-line, the edge this
+   repo already proved clears 3:1 against both the page ground and a white
+   fill.
+
+   1.4.11 IS THE BAR THAT BITES, AND THE HOVER IS WHERE IT WOULD HAVE BEEN
+   LOST. .tit-cta-how:hover repaints its edge in --tit-blue, which on a
+   blue-tinted fill is a wash: inheriting the neighbouring hover would have
+   dissolved this button's outline at the moment a pointer was on it, with
+   every text check still green. So this hover holds fill and edge and moves
+   only the shadow. Measured composited in a real browser, in light,
+   dark-by-choice and dark-by-OS, in tests/test_digest_route_is_findable.py;
+   nothing about it is asserted from this comment. */
 .tit-hero-cta { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 0; }
 .tit-wrap .tit-cta { display:inline-flex; align-items:center; gap:6px;
   font:inherit; font-size:14px; font-weight:650; line-height:1.2;
@@ -2307,6 +2331,15 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-wrap .tit-cta-how { background:var(--tit-surface-1); border:1px solid var(--tit-line);
   color:var(--tit-fg); }
 .tit-wrap .tit-cta-how:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
+.tit-wrap .tit-cta-digest { background:var(--tit-blue-tint);
+  border:1px solid var(--tit-ctl-line); color:var(--tit-fg); }
+.tit-wrap .tit-cta-digest:hover { background:var(--tit-blue-tint);
+  border-color:var(--tit-ctl-line); box-shadow:0 1px 2px rgba(0,0,0,.12); }
+/* The tag is a label, not a badge: no pill, no fill of its own, no glyph. It
+   answers the first question anybody asks of a signup, in the same words the
+   form's own radio buttons use. */
+.tit-wrap .tit-cta-tag { font-size:11px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--tit-accent-ink); white-space:nowrap; }
 .tit-wrap .tit-cta:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
 
 /* --- The freshness panel, top-right of the hero -------------------------

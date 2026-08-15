@@ -811,6 +811,50 @@ function tit_dashboard_html() {
                 <span id="tit-cta-n"><?php echo esc_html(number_format_i18n($total)); ?></span>
                 updates</button>
               <a class="tit-cta tit-cta-how" href="#tit-trust">How this is built</a>
+              <?php /* THE THIRD ACTION, AND THE SIBLING'S PRESS DEFECT ON A
+                       THIRD SURFACE. The shared digest signup renders at the
+                       foot of this dashboard and nothing above it said so.
+                       Measured live, bare URL, browser UA, no cache buster,
+                       2026-08-14:
+
+                           viewport     signup top   document
+                           1280 x 900   13,995px     15,093px
+                            375 x 812   32,224px     33,895px
+
+                       Sixteen screens and forty. The sibling learned this
+                       with its press kit, which was 13,252px down at 1280
+                       and 31,707px down at 375, and the fix that worked
+                       there was a button in the hero.
+
+                       THE LABEL IS THE SIGNUP'S OWN H2, "Email digest",
+                       behind a "Weekly or daily" tag that answers the first
+                       question anybody asks of a signup, in the same words
+                       its own radio buttons use. Not "Subscribe to our
+                       newsletter": nobody wants a newsletter, and the thing
+                       on offer is a digest.
+
+                       THE JUMP LANDS, and that is measured rather than
+                       assumed. On this page #alt-digest takes no scroll
+                       offset (nothing here declares one, and the existing
+                       "How this is built" jump to #tit-trust does the same),
+                       so the section arrives at the top of the screen: with
+                       the page settled, the email field ends 697px down at
+                       375x812 and 474px down at 1280x900. The sibling's
+                       press page shipped a jump menu that ended 847px down
+                       an 812px screen, so this half is not optional.
+
+                       COST TO THE FIRST SCREEN, measured rather than
+                       claimed: 0px at 1280, where the three actions still
+                       share one flex row, and 72.0px at 375 and at 414,
+                       where they stack. That 72 is one 64px row plus the
+                       8px gap, and 64px is what the two actions beside it
+                       already measure at those widths, so it is the floor
+                       rather than a choice. Do not "save" it by shrinking
+                       this control below its neighbours, and do not save it
+                       by moving the route back down the page, which is the
+                       defect. The hero heading is above it and does not
+                       move at any width. */ ?>
+              <a class="tit-cta tit-cta-digest" id="tit-cta-digest" href="#alt-digest"><span class="tit-cta-tag">Weekly or daily</span> Email digest</a>
             </div>
           </div>
           <?php
