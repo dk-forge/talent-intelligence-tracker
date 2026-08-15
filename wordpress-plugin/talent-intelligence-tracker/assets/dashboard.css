@@ -2333,8 +2333,12 @@ body:has(.tit-main) header.wp-block-template-part {
 .tit-wrap .tit-cta-how:hover { border-color:var(--tit-blue); color:var(--tit-ink-blue); }
 .tit-wrap .tit-cta-digest { background:var(--tit-blue-tint);
   border:1px solid var(--tit-ctl-line); color:var(--tit-fg); }
+/* --tit-shadow-bar and not a literal: this stylesheet has two palettes and a
+   hard-coded rgba() participates in neither, which test_theme_light_dark's
+   g2 refuses. It also means the hover reads correctly on the dark ground,
+   where a black wash does nothing. */
 .tit-wrap .tit-cta-digest:hover { background:var(--tit-blue-tint);
-  border-color:var(--tit-ctl-line); box-shadow:0 1px 2px rgba(0,0,0,.12); }
+  border-color:var(--tit-ctl-line); box-shadow:var(--tit-shadow-bar); }
 /* The tag is a label, not a badge: no pill, no fill of its own, no glyph. It
    answers the first question anybody asks of a signup, in the same words the
    form's own radio buttons use. */
