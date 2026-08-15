@@ -14,13 +14,14 @@ Recorded fixtures, never a live call.
 
 from __future__ import annotations
 
+import collections
 import json
 import unittest
 from pathlib import Path
 from urllib.parse import urlparse
 
 from collectors import ats_boards
-from pipeline import validate
+from pipeline import dedupe, validate
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -325,18 +326,30 @@ class PostedPay(_Boards):
         self.assertEqual(signal.pillar, "rewards_comp")
         self.assertEqual(signal.signal_direction, "comp_shift")
 
-    def test_only_annual_usd_salary_components_are_averaged(self):
-        """Mixing currencies into one median produces a number that describes
-        nothing, and converting them would be a guessed rate on a pay figure."""
-        self.assertIsNone(ats_boards._salary({"compensation": {"summaryComponents": [
+    def test_only_annual_salary_components_are_read_and_the_currency_is_kept(self):
+        """A band is read in the currency the posting states, and only when the
+        component is an annual SALARY.
+
+        This used to discard everything that was not USD, which was the right
+        instinct expressed as the wrong rule: the danger is POOLING currencies
+        into one median, not reading them. Keeping the code makes sterling and
+        euro boards readable without converting anything, and `snapshot` is
+        where the no-pooling half is enforced."""
+        self.assertEqual(ats_boards._salary({"compensation": {"summaryComponents": [
             {"compensationType": "Salary", "interval": "1 YEAR",
-             "currencyCode": "GBP", "minValue": 80000, "maxValue": 100000}]}}))
+             "currencyCode": "GBP", "minValue": 80000, "maxValue": 100000}]}}),
+            (80000, 100000, "GBP"))
+        self.assertEqual(ats_boards._salary({"compensation": {"summaryComponents": [
+            {"compensationType": "Salary", "interval": "1 YEAR",
+             "currencyCode": "USD", "minValue": 100000, "maxValue": 200000}]}}),
+            (100000, 200000, "USD"))
+        # Equity is not salary, and an hourly component is not an annual band.
         self.assertIsNone(ats_boards._salary({"compensation": {"summaryComponents": [
             {"compensationType": "EquityPercentage", "interval": "NONE",
              "currencyCode": None, "minValue": None, "maxValue": None}]}}))
-        self.assertEqual(ats_boards._salary({"compensation": {"summaryComponents": [
-            {"compensationType": "Salary", "interval": "1 YEAR",
-             "currencyCode": "USD", "minValue": 100, "maxValue": 200}]}}), (100, 200))
+        self.assertIsNone(ats_boards._salary({"compensation": {"summaryComponents": [
+            {"compensationType": "Salary", "interval": "1 HOUR",
+             "currencyCode": "USD", "minValue": 40, "maxValue": 60}]}}))
 
     def test_an_unmoved_band_is_not_republished(self):
         state = {"version": 1, "boards": {}}
@@ -488,13 +501,14 @@ class LeverIsNotLikeTheOthers(_Boards):
         self.assertTrue(any(p["salary"] for p in postings))
         self.assertTrue(any(p["function"] for p in postings))
 
-    def test_only_annual_usd_lever_bands_are_read(self):
+    def test_only_annual_lever_bands_are_read_and_the_currency_is_kept(self):
         self.assertEqual(ats_boards._lever_salary({"salaryRange": {
             "interval": "per-year-salary", "currency": "USD",
-            "min": 150000, "max": 180000}}), (150000, 180000))
-        self.assertIsNone(ats_boards._lever_salary({"salaryRange": {
+            "min": 150000, "max": 180000}}), (150000, 180000, "USD"))
+        self.assertEqual(ats_boards._lever_salary({"salaryRange": {
             "interval": "per-year-salary", "currency": "GBP",
-            "min": 90000, "max": 110000}}))
+            "min": 90000, "max": 110000}}), (90000, 110000, "GBP"))
+        # An hourly wage is not an annual band, and is never scaled into one.
         self.assertIsNone(ats_boards._lever_salary({"salaryRange": {
             "interval": "per-hour-wage", "currency": "USD",
             "min": 40, "max": 60}}))
@@ -517,6 +531,322 @@ class LeverIsNotLikeTheOthers(_Boards):
                            today="2026-07-01", persist=False)
         self.assertEqual(ats_boards.LAST_RUN["failed"], 1)
         self.assertEqual(ats_boards.LAST_RUN["read"], len(self.entries) - 1)
+
+
+class _NewerBoards(_Boards):
+    """The same offline machinery, over payloads captured for the work-mode and
+    pay-range work. Two providers in their REAL shape, and deliberately not the
+    same two:
+
+        ashby:netgear      43 roles, every one of them carrying the ATS's own
+                           typed `workplaceType`, across all three values, and
+                           a `compensation` object priced in three currencies.
+        greenhouse:dropbox 35 roles from a provider that types NO work-mode
+                           field at all, so every mode here is read out of
+                           location prose, and `pay_input_ranges` bands in four
+                           currencies.
+        greenhouse:airtable a board whose postings publish an on-target-earnings
+                           range and a base-salary range side by side, which is
+                           the case that decides whether a sales commission
+                           plan gets published as somebody's salary.
+    """
+
+    payloads = {
+        "greenhouse:dropbox": "ats_greenhouse_dropbox.json",
+        "greenhouse:airtable": "ats_greenhouse_airtable.json",
+        "ashby:netgear": "ats_ashby_netgear.json",
+        "ashby:havocai": "ats_ashby_havocai.json",
+        "lever:matchgroup": "ats_lever_matchgroup.json",
+    }
+    entries = [
+        {"ats": "greenhouse", "slug": "dropbox", "company": "Dropbox"},
+        {"ats": "greenhouse", "slug": "airtable", "company": "Airtable"},
+        {"ats": "ashby", "slug": "netgear", "company": "Netgear"},
+        {"ats": "ashby", "slug": "havocai", "company": "HavocAI"},
+        {"ats": "lever", "slug": "matchgroup", "company": "Match Group"},
+    ]
+
+    def entry(self, slug):
+        return next(e for e in self.entries if e["slug"] == slug)
+
+    def snap(self, slug):
+        return ats_boards.snapshot(self.postings(self.entry(slug)))
+
+    def items(self, slugs, *, state=None, today="2026-08-14"):
+        return ats_boards.collect(
+            watchlist=[self.entry(s) for s in slugs],
+            state=state if state is not None else {"version": 1, "boards": {}},
+            today=today, persist=False)
+
+
+class WorkModeIsReadNeverInferred(_NewerBoards):
+    """Every posting states remote, hybrid or onsite, or it states nothing.
+
+    The pillar this feeds (`how_we_work`) is the thinnest in the corpus, which
+    is exactly the condition under which a source starts inventing evidence to
+    fill it. So the assertions here are mostly about SILENCE: what happens to a
+    posting that does not say, and to a board where too few of them do.
+    """
+
+    def test_a_typed_field_is_preferred_and_all_three_values_survive(self):
+        postings = self.postings(self.entry("netgear"))
+        modes = collections.Counter(p["mode"] for p in postings)
+        self.assertEqual(set(modes), {"remote", "hybrid", "onsite"})
+        self.assertTrue(all(p["mode_source"] == "structured" for p in postings))
+
+    def test_ashbys_isremote_boolean_is_never_read_as_the_mode(self):
+        """Ashby publishes `isRemote` AND `workplaceType`, and on a role typed
+        Hybrid `isRemote` is still true — it means remote-ELIGIBLE. Reading the
+        boolean files hybrid roles as fully remote, which is a wrong number
+        rather than a missing one."""
+        hybrid_but_remote_eligible = [
+            j for j in _fixture("ats_ashby_ramp.json")["jobs"]
+            if j.get("workplaceType") == "Hybrid" and j.get("isRemote") is True]
+        self.assertTrue(hybrid_but_remote_eligible,
+                        "the fixture no longer covers the case this guards")
+        for job in hybrid_but_remote_eligible:
+            self.assertEqual(ats_boards.structured_work_mode(job["workplaceType"]),
+                             "hybrid")
+
+    def test_a_provider_that_types_nothing_is_read_from_prose_and_says_so(self):
+        snap = self.snap("dropbox")
+        self.assertEqual(snap["mode_structured"], 0)
+        self.assertGreaterEqual(snap["mode_known"], 20)
+
+    def test_a_posting_that_does_not_say_is_unknown_and_never_onsite(self):
+        """The single most damaging reading available to this collector. Most
+        Greenhouse postings state nothing about work mode, and calling that
+        onsite would label thousands of roles off an absence."""
+        self.assertIsNone(ats_boards.work_mode_from_text("San Francisco, CA"))
+        self.assertIsNone(ats_boards.work_mode_from_text(""))
+        self.assertIsNone(ats_boards.work_mode_from_text("Austin, TX; New York, NY"))
+        # And nothing in a real board's counts is attributed to a silent posting.
+        snap = self.snap("airtable")
+        self.assertEqual(sum(snap["modes"].values()), snap["mode_known"])
+        self.assertLess(snap["mode_known"], snap["total"])
+
+    def test_hybrid_wins_over_remote_when_a_posting_says_both(self):
+        """'Hybrid - 2 days remote' is a hybrid role. A remote-first test reads
+        it as fully remote and loses the more specific of the two claims."""
+        self.assertEqual(ats_boards.work_mode_from_text("Hybrid - 2 days remote"),
+                         "hybrid")
+        self.assertEqual(ats_boards.work_mode_from_text("Remote - US"), "remote")
+        self.assertEqual(ats_boards.work_mode_from_text("London (On-site)"), "onsite")
+
+    def test_a_board_that_mostly_says_nothing_publishes_no_mix(self):
+        """Airtable states a mode on 9 of 17 roles. Publishing "100% remote"
+        off nine postings, when eight said nothing, would be the most
+        misleading row this collector could produce."""
+        snap = self.snap("airtable")
+        self.assertFalse(ats_boards._mode_qualifies(snap))
+        items = self.items(["airtable"])
+        self.assertEqual([i for i in items if i["kind"] == "work_mode"], [])
+
+    def test_a_qualifying_board_publishes_one_employer_level_row(self):
+        items = [i for i in self.items(["netgear"]) if i["kind"] == "work_mode"]
+        self.assertEqual(len(items), 1)
+        item = items[0]
+        self.assertEqual(item["counted"], 43)
+        self.assertTrue(item["baseline"])
+        signal = validate.build_signal(ats_boards.as_classified(item), item,
+                                       ats_boards.COLLECTOR)
+        self.assertEqual(signal.pillar, "how_we_work")
+        self.assertEqual(signal.signal_direction, "neutral")
+        self.assertEqual(signal.confidence, "reported")
+
+    def test_the_row_states_the_denominator_it_was_measured_on(self):
+        """A share with no denominator is not a measurement. Both numbers have
+        to be on the row, because 44% of 43 roles and 44% of 4 are not the same
+        claim and the reader cannot tell them apart otherwise."""
+        item = [i for i in self.items(["netgear"]) if i["kind"] == "work_mode"][0]
+        self.assertIn("43", item["raw_text"])
+        summary = ats_boards.as_classified(item)["summary"]
+        validate.assert_figures_are_sourced(summary, item["raw_text"])
+        self.assertIn(str(item["counted"]), summary)
+
+    def test_a_second_look_at_an_unmoved_board_publishes_nothing(self):
+        state = {"version": 1, "boards": {}}
+        self.items(["netgear"], state=state, today="2026-08-14")
+        again = self.items(["netgear"], state=state, today="2026-08-15")
+        self.assertEqual([i for i in again if i["kind"] == "work_mode"], [])
+
+    def test_a_material_shift_publishes_a_change_row_and_states_both_ends(self):
+        state = {"version": 1, "boards": {}}
+        self.items(["netgear"], state=state, today="2026-08-14")
+        # The same board as it was a quarter ago: onsite-heavy rather than
+        # hybrid-heavy. Only the baseline is rewritten — the payload is the
+        # real one, so what is under test is the emit rule and not a fixture.
+        record = state["boards"]["ashby:netgear"]
+        record["mode_baseline"] = {"date": "2026-05-14", "total": 40,
+                                   "modes": {"onsite": 30, "hybrid": 6, "remote": 4},
+                                   "mode_known": 40, "mode_structured": 40,
+                                   "mode_place": ""}
+        items = [i for i in self.items(["netgear"], state=state, today="2026-08-14")
+                 if i["kind"] == "work_mode"]
+        self.assertEqual(len(items), 1)
+        item = items[0]
+        self.assertFalse(item["baseline"])
+        self.assertEqual(item["mode"], "onsite")
+        # Both ends of the move, so the row is a change and not a restatement.
+        self.assertIn("75%", item["headline"])
+        self.assertIn("23%", item["headline"])
+        self.assertIn("2026-05-14", item["raw_text"])
+
+    def test_a_shift_under_the_floor_is_churn_and_publishes_nothing(self):
+        state = {"version": 1, "boards": {}}
+        self.items(["netgear"], state=state, today="2026-08-14")
+        record = state["boards"]["ashby:netgear"]
+        # Ten points on the largest-moving mode, under the fifteen the rule
+        # calls a change. Roles turn over; a policy does not move that fast.
+        record["mode_baseline"] = {"date": "2026-08-01", "total": 43,
+                                   "modes": {"hybrid": 23, "remote": 12, "onsite": 8},
+                                   "mode_known": 43, "mode_structured": 43,
+                                   "mode_place": ""}
+        items = [i for i in self.items(["netgear"], state=state, today="2026-08-14")
+                 if i["kind"] == "work_mode"]
+        self.assertEqual(items, [])
+
+    def test_no_vacancy_title_or_url_reaches_a_work_mode_row(self):
+        """The same bar every other row here clears. A ways-of-working row is
+        derived from postings and must not become a way of publishing them."""
+        for item in self.items(["netgear", "dropbox"]):
+            signal = validate.build_signal(ats_boards.as_classified(item), item,
+                                           ats_boards.COLLECTOR)
+            path = urlparse(signal.source_url).path
+            self.assertEqual(len(path.strip("/").split("/")), 1, signal.source_url)
+            text = f"{signal.headline} {signal.summary}"
+            for job in _fixture("ats_ashby_netgear.json")["jobs"][:10]:
+                self.assertNotIn(job["title"], text)
+
+
+class PostedPayIsBaseAnnualPayOrNothing(_NewerBoards):
+    def test_greenhouse_pay_ranges_are_read_from_the_transparency_field(self):
+        """203 of the 286 boards on the watchlist are Greenhouse, and until now
+        every one of them contributed zero pay evidence."""
+        self.assertIn("pay_transparency=true", ats_boards.API_URLS["greenhouse"])
+        snap = self.snap("dropbox")
+        self.assertGreaterEqual(snap["salary"]["listed"], 10)
+
+    def test_an_on_target_earnings_range_is_never_published_as_a_salary(self):
+        """Airtable prices its sales roles with an OTE range and its other
+        roles with a base range, in the same field, told apart only by the
+        title the employer typed. An OTE counted as salary inflates the band by
+        whatever the commission plan is worth."""
+        for title in ("For work locations in Austin, the on-target earning "
+                      "range for this role is:",
+                      "Annual OTE Salary", "Total Targeted Cash",
+                      "Total Compensation Range", "Hourly Pay Range",
+                      "Monthly Salary Range"):
+            self.assertFalse(ats_boards._is_base_pay_title(title), title)
+        # 17 of Airtable's postings carry a range; only the base-salary ones
+        # are counted.
+        snap = self.snap("airtable")
+        self.assertEqual(snap["total"], 17)
+        self.assertLess(snap["salary"]["listed"], 17)
+
+    def test_an_exclusion_clause_is_the_employer_confirming_it_is_base_pay(self):
+        """"Annual base salary range (excluding equity and bonus)" is a base
+        band. A naive bonus/equity keyword list threw away 161 real postings
+        for naming what the figure does NOT include."""
+        for title in ("Annual base salary range (excluding equity and bonus):",
+                      "The US base salary range for this position (this does "
+                      "not include bonus, equity and benefits)",
+                      "At the Trade Desk, Base Salary is one part of our "
+                      "competitive total compensation and benefits package"):
+            self.assertTrue(ats_boards._is_base_pay_title(title), title)
+
+    def test_a_range_with_no_currency_stores_nothing_rather_than_a_guess(self):
+        self.assertIsNone(ats_boards._greenhouse_salary({"pay_input_ranges": [
+            {"min_cents": 12000000, "max_cents": 16000000, "title": "Pay Range"}]}))
+        self.assertIsNone(ats_boards._greenhouse_salary({"pay_input_ranges": [
+            {"min_cents": 12000000, "max_cents": 16000000,
+             "currency_type": "", "title": "Pay Range"}]}))
+        # "Competitive salary" is not a range: there is no field at all.
+        self.assertIsNone(ats_boards._greenhouse_salary({"pay_input_ranges": []}))
+        self.assertIsNone(ats_boards._greenhouse_salary({}))
+
+    def test_an_hourly_band_is_unknown_and_is_never_scaled_into_a_year(self):
+        """Greenhouse's field carries NO interval, so a $28-$45 hourly band and
+        a $28,000-$45,000 annual band are the same two numbers to a parser. The
+        magnitude floor is the only honest way to tell them apart, and the
+        answer for the hourly one is nothing, not 2,080 times something."""
+        hourly = {"pay_input_ranges": [
+            {"min_cents": 2800, "max_cents": 4500, "currency_type": "USD",
+             "title": "Pay Range"}]}
+        self.assertIsNone(ats_boards._greenhouse_salary(hourly))
+        annual = {"pay_input_ranges": [
+            {"min_cents": 2800000, "max_cents": 4500000, "currency_type": "USD",
+             "title": "Pay Range"}]}
+        self.assertEqual(ats_boards._greenhouse_salary(annual), (28000, 45000, "USD"))
+
+    def test_currencies_are_bucketed_and_never_pooled_into_one_median(self):
+        """Dropbox prices in four currencies on one board. A median across them
+        would be an unstated exchange rate inside a published pay figure."""
+        snap = self.snap("dropbox")
+        self.assertEqual(snap["salary"]["currency"], "USD")
+        self.assertTrue(snap["salary"]["other_currencies"])
+        listed = snap["salary"]["listed"]
+        priced = sum(1 for p in self.postings(self.entry("dropbox")) if p["salary"])
+        self.assertLess(listed, priced,
+                        "the dominant-currency band swallowed the other buckets")
+
+    def test_a_non_usd_board_gets_its_own_band_rather_than_no_band(self):
+        """US-first does not mean US-only: the pay-transparency laws that put
+        these ranges on the page are US-state, UK and EU, and a sterling board
+        is readable the moment nothing is converted."""
+        postings = [{"place": "city:London", "function": None, "mode": None,
+                     "salary": (90000, 110000, "GBP")} for _ in range(6)]
+        snap = ats_boards.snapshot(postings)
+        self.assertEqual(snap["salary"]["currency"], "GBP")
+        item = ats_boards._pay_item({"ats": "greenhouse", "slug": "x",
+                                     "company": "Example Ltd"},
+                                    snap, None, "2026-08-14")
+        self.assertIn("£90,000", item["headline"])
+        self.assertIn("pounds sterling", item["raw_text"])
+        self.assertNotIn("$", item["raw_text"])
+
+    def test_a_band_only_republishes_when_the_currency_matches(self):
+        """A board that priced in USD last week and GBP this week has not moved
+        its bands by the ratio between two currencies."""
+        usd = ats_boards.snapshot([{"place": "", "function": None, "mode": None,
+                                    "salary": (100000, 120000, "USD")}
+                                   for _ in range(6)])
+        gbp = ats_boards.snapshot([{"place": "", "function": None, "mode": None,
+                                    "salary": (100000, 120000, "GBP")}
+                                   for _ in range(6)])
+        entry = {"ats": "greenhouse", "slug": "x", "company": "Example"}
+        self.assertIsNone(ats_boards._pay_item(entry, usd, usd, "2026-08-14"))
+        self.assertIsNotNone(ats_boards._pay_item(entry, gbp, usd, "2026-08-14"))
+
+
+class TheCorpusIsNotInflated(_NewerBoards):
+    def test_one_run_publishes_at_most_one_row_per_employer_per_pillar(self):
+        """A job board is 25,752 postings a day. The whole design rests on a
+        row being about an EMPLOYER, so no run may ever emit two rows of one
+        kind for one board."""
+        items = self.items([e["slug"] for e in self.entries])
+        seen = collections.Counter((i["company"], i["kind"]) for i in items)
+        self.assertTrue(all(n == 1 for n in seen.values()), seen)
+
+    def test_a_steady_board_publishes_once_and_then_never_again(self):
+        """The row that would inflate the corpus is the periodic restatement.
+        Ten more readings of an unchanged board must add nothing."""
+        state = {"version": 1, "boards": {}}
+        first = self.items(["netgear"], state=state, today="2026-08-14")
+        self.assertTrue([i for i in first if i["kind"] == "work_mode"])
+        later = []
+        for day in range(15, 25):
+            later += self.items(["netgear"], state=state, today=f"2026-08-{day}")
+        self.assertEqual([i for i in later if i["kind"] == "work_mode"], [])
+
+    def test_two_change_rows_for_one_employer_are_not_near_identical(self):
+        """`dedupe.fuzzy_duplicate` collapses same-employer, same-pillar rows
+        whose headlines overlap 85% across 400 days. A templated row would
+        either be suppressed or, worse, suppress the next real movement. These
+        are the two headlines the change path actually produces."""
+        first = ("Netgear moved from 75% to 23% of open roles advertised as onsite")
+        second = ("Netgear moved from 23% to 44% of open roles advertised as onsite")
+        self.assertLess(dedupe._token_overlap(first, second), 0.85)
 
 
 class TheDirectionIsARule(unittest.TestCase):
