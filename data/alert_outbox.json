@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "attempts": 1,
+      "key": "resolve:card-contract:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-15T06:52:01+00:00",
+      "last_error": "HTTP 503 from /alert: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back in a minute.\",\"data\":{\"status\":503},\"additional_errors\":[]}",
+      "payload": {
+        "body": "'Card contract' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31870270127\n\nWhatever was failing is no longer failing. Nothing to do.",
+        "resolve_scope": "card-contract:main",
+        "subject": "RECOVERED: Card contract is green again"
+      },
+      "raised_at": "2026-08-15T06:52:01+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31870270127",
+      "scope": "card-contract:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -133,6 +149,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-11T18:39:37+00:00",
+  "updated_at": "2026-08-15T06:52:01+00:00",
   "version": 1
 }
