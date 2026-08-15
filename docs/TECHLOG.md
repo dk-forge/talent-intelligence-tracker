@@ -97,9 +97,33 @@ could evict a pending writer) and never dispatches workflows at all.
 **Budget is structural** (one healer at a time, one open PR per cause
 fingerprint, ceiling 3 open drafts) and the model spend is the operator's
 Claude subscription token, not OPENROUTER_API_KEY, so neither pot in
-spend.py/budget.py is touched. Dormant until CLAUDE_CODE_OAUTH_TOKEN is added;
-kill switch: repository variable SELF_HEAL_DISABLED=true. CLAUDE.md carries
-the operating summary.
+spend.py/budget.py is touched.
+
+**THE HEALER MERGES ITS OWN DRAFT, under conditions it cannot relax** (owner
+authorization 2026-08-14: "a human clicks merge - I want you to click merge,
+I'm okay with that"). `merge-gate` requires all four, and every UNKNOWN
+resolves to "stay a draft": the guard job passed; the reviewer's verdict is
+exactly `SELF-HEAL-REVIEW-VERDICT: LOOKS SOUND` (absent or ambiguous is not,
+and two markers in one comment IS ambiguous); the diff is source/test only,
+never `.github/` and never a FORBIDDEN path, so data/, the pots and the locks
+cannot reach the merge step whatever the verdict says; and the MERGED PREVIEW
+introduces no test failure main does not already have - a standing red fails
+both runs and subtracts out, anything new blocks, and it closes the gap where
+a branch pushed with GITHUB_TOKEN triggers no checks at all. A blocked merge
+is a decision, not a red run.
+
+**Every heal writes its own revert index.** `docs/HEALING-LOG.md` (new) gets
+a terse entry per auto-merge - UTC stamp, workflow, run URL, one-line cause,
+PR, merge SHA, files, reviewer verdict, and the literal
+`git revert <merge sha>` - and docs/TECHLOG.md gets the narrative under the
+same date. Both are appended AFTER the merge, best-effort: a failure to
+record warns loudly and never fails a heal, so an empty stretch in the log is
+not proof nothing merged (`git log --grep 'self-heal: auto-merged'` is).
+
+Dormant until CLAUDE_CODE_OAUTH_TOKEN is added. Kill switches:
+`SELF_HEAL_AUTOMERGE_DISABLED=true` keeps the drafts and returns the click to
+a human; `SELF_HEAL_DISABLED=true` stops the healer. CLAUDE.md carries the
+operating summary.
 
 ## 2026-08-14 - the gate A/B ran against the gold set; nothing pinned, and the numbers say why
 

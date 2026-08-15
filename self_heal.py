@@ -318,6 +318,225 @@ def check(args) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------
+# The MERGE GATE — owner-authorized auto-merge, 2026-08-14 ("a human clicks
+# merge — I want you to click merge, I'm okay with that"). The click is
+# delegated; the CONDITIONS are not, and every one resolves UNKNOWN to "stay
+# a draft", never to a pass:
+#
+#   1. the adversarial reviewer's LATEST machine-readable verdict is exactly
+#      LOOKS SOUND (absent, ambiguous, or anything else = no merge);
+#   2. the forbidden-path guard passed (wired in the workflow: the automerge
+#      job `needs` the guard job's success);
+#   3. the branch's diff is source/test files only — never workflows, and
+#      never anything in FORBIDDEN (so data/, the pots and the locks cannot
+#      reach the merge step whatever the verdict says);
+#   4. the merged preview runs the offline suite and produces NO failure that
+#      main does not already have. A standing red fails BOTH runs and is
+#      subtracted; anything new blocks. This also closes the gap where a
+#      branch pushed with GITHUB_TOKEN triggers no checks at all.
+#
+# Kill switch: repository variable SELF_HEAL_AUTOMERGE_DISABLED=true turns
+# only the merge off; the healer keeps drafting for a human.
+# --------------------------------------------------------------------------
+
+#: The first line of the adversarial reviewer's PR comment. Anything that does
+#: not match, or matches with a different verdict, keeps the draft.
+VERDICT_MARKER = "SELF-HEAL-REVIEW-VERDICT:"
+_VERDICT = re.compile(
+    rf"^{re.escape(VERDICT_MARKER)}\s*(LOOKS SOUND|NEEDS WORK|DO NOT MERGE)\s*$",
+    re.MULTILINE)
+
+
+def review_verdict(comment_bodies) -> str | None:
+    """The LATEST verdict across a PR's comments, or None. A comment carrying
+    several markers is ambiguous and counts as no verdict at all."""
+    verdict = None
+    for body in comment_bodies:
+        found = _VERDICT.findall(body or "")
+        if len(found) == 1:
+            verdict = found[0]
+        elif len(found) > 1:
+            verdict = None
+    return verdict
+
+
+def fetch_review_verdict(repo: str, pr: str) -> str | None:
+    out = _gh(["api", f"repos/{repo}/issues/{pr}/comments",
+               "--paginate", "-q", "[.[].body]"])
+    if not out:
+        return None
+    bodies: list = []
+    try:
+        for chunk in out.strip().splitlines():
+            bodies.extend(json.loads(chunk))
+    except ValueError:
+        return None
+    return review_verdict(bodies)
+
+
+def automergeable_paths(changed: list[str]) -> tuple[bool, str]:
+    """Stricter than the guard: auto-merge additionally refuses ANY workflow
+    or CI change — a human can merge those from the draft."""
+    bad = violations(changed)
+    if bad:
+        return False, f"forbidden paths changed: {', '.join(bad)}"
+    ci = [p for p in changed if p.strip().startswith(".github/")]
+    if ci:
+        return False, ("the fix edits CI/workflows "
+                       f"({', '.join(ci)}); auto-merge never ships those")
+    if not changed:
+        return False, "the branch changes nothing"
+    return True, "source/test files only"
+
+
+#: pytest -q / unittest failure headers, one per failing test.
+_SUITE_FAIL = re.compile(
+    r"^FAILED\s+(\S+::\S+)"
+    r"|^(?:FAIL|ERROR):\s+(\S+(?:\s+\([^)]*\))?)\s*$",
+    re.MULTILINE)
+
+
+def suite_failures(output: str) -> set:
+    """The set of failing test identities in a suite run's output."""
+    return {a or b for a, b in _SUITE_FAIL.findall(output or "")}
+
+
+def run_suite(test_cmd: str, cwd: str):
+    proc = subprocess.run(["bash", "-c", test_cmd], capture_output=True,
+                          text=True, timeout=3600, cwd=cwd)
+    return suite_failures(proc.stdout + "\n" + proc.stderr), proc.returncode
+
+
+def merge_gate(args) -> int:
+    """Exit 0 = every condition holds and the PR may be merged. Anything else
+    prints why and exits 1, which the workflow treats as 'stays a draft' — a
+    decision, not a red run."""
+    repo = args.repo
+
+    verdict = fetch_review_verdict(repo, args.pr)
+    if verdict != "LOOKS SOUND":
+        print(f"no merge: the reviewer's verdict is "
+              f"{verdict or 'absent/ambiguous'}, and only LOOKS SOUND merges. "
+              "UNKNOWN is never a pass.")
+        return 1
+    print("reviewer verdict: LOOKS SOUND")
+
+    changed = changed_between("origin/main", f"origin/{args.branch}")
+    ok, reason = automergeable_paths(changed)
+    if not ok:
+        print(f"no merge: {reason}")
+        return 1
+    print(f"paths: {reason} ({len(changed)} changed)")
+
+    base_fail, _ = run_suite(args.test_cmd, args.test_cwd)
+    print(f"main baseline: {len(base_fail)} failing test(s)")
+    merge = subprocess.run(
+        ["git", "merge", "--no-commit", "--no-ff", f"origin/{args.branch}"],
+        capture_output=True, text=True, timeout=120)
+    if merge.returncode != 0:
+        print(f"no merge: the branch does not merge cleanly onto main: "
+              f"{merge.stderr.strip()[:200]}")
+        return 1
+    head_fail, _ = run_suite(args.test_cmd, args.test_cwd)
+    print(f"merged preview: {len(head_fail)} failing test(s)")
+    new = sorted(head_fail - base_fail)
+    if new:
+        print("no merge: the fix introduces failures main does not have:")
+        for name in new[:10]:
+            print(f"  {name}")
+        return 1
+    fixed = sorted(base_fail - head_fail)
+    print(f"no new failures; {len(fixed)} baseline failure(s) fixed"
+          + (f": {', '.join(fixed[:5])}" if fixed else ""))
+    print("merge-gate: ALL CONDITIONS HOLD")
+    return 0
+
+
+# --------------------------------------------------------------------------
+# THE HEALING LEDGER — "if things break it's easy to backtrack and fix fast".
+# Every auto-merge appends a terse revert-index entry to docs/HEALING-LOG.md
+# and a narrative entry to docs/TECHLOG.md. BEST-EFFORT: the workflow step
+# warns loudly on failure and stays green, because a heal that merged is not
+# undone by a docs write that did not. Both files are append-only newest-
+# first; each run inserts only its own entry, so a racing merge keeps BOTH.
+# --------------------------------------------------------------------------
+
+HEALING_LOG = "docs/HEALING-LOG.md"
+TECHLOG = "docs/TECHLOG.md"
+
+_HEALING_HEADER = """# Healing log — auto-merged fixes
+
+The terse revert index for everything the self-healer merged on its own
+(owner authorization 2026-08-14). **Every heal is ONE squash commit: the
+revert is `git revert <merge sha>`.** Draft-only mode is one line: set the
+repository variable `SELF_HEAL_AUTOMERGE_DISABLED=true`. Newest first; if two
+merges race, keep BOTH entries. The narrative for each heal lives in
+docs/TECHLOG.md under the same date.
+"""
+
+
+def _insert_entry(path: str, header: str, entry: str) -> None:
+    """Prepend `entry` before the first '## ' heading (newest-first),
+    creating the file with `header` when absent."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except FileNotFoundError:
+        text = header
+    lines = text.splitlines(keepends=True)
+    at = next((i for i, ln in enumerate(lines) if ln.startswith("## ")),
+              len(lines))
+    lines[at:at] = [entry if entry.endswith("\n") else entry + "\n"]
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write("".join(lines))
+
+
+def record(args) -> int:
+    """Append the two ledger entries for one auto-merged heal. 0 on success,
+    1 on any problem — and the CALLER treats 1 as a warning, never as a
+    failed heal."""
+    import datetime
+    now = datetime.datetime.now(datetime.timezone.utc)
+    stamp = now.strftime("%Y-%m-%dT%H:%MZ")
+    day = now.strftime("%Y-%m-%d")
+    files = [f for f in (args.files or []) if f.strip()]
+    filelist = ", ".join(files) if files else "(unrecorded)"
+
+    ledger_entry = (
+        f"## {stamp} — {args.workflow} — PR #{args.pr} — merge {args.merge_sha}\n"
+        f"- run:      {args.run_url or '(unrecorded)'}\n"
+        f"- cause:    {args.cause or '(no cause line extracted)'}\n"
+        f"- files:    {filelist}\n"
+        f"- reviewer: {VERDICT_MARKER} {args.verdict}\n"
+        f"- revert:   `git revert {args.merge_sha}`\n\n")
+
+    techlog_entry = (
+        f"## {day} - self-heal: auto-merged fix for '{args.workflow}' (PR #{args.pr})\n\n"
+        f"**What failed:** {args.cause or 'no cause line could be extracted'} "
+        f"({args.run_url or 'run url unrecorded'}).\n\n"
+        f"**The fix:** {filelist}. PR #{args.pr} carries the diff and the "
+        f"red-before/green-after evidence; the squash merge is "
+        f"{args.merge_sha}.\n\n"
+        f"**Adversarial review:** {args.verdict} — the reviewer's PR comment "
+        f"records what it tried in order to break the fix.\n\n"
+        f"**Revert:** `git revert {args.merge_sha}`. Auto-merged under the "
+        f"owner's 2026-08-14 authorization; the kill switch is the repository "
+        f"variable `SELF_HEAL_AUTOMERGE_DISABLED=true` (draft-only mode).\n\n")
+
+    ok = True
+    for path, header, entry in ((args.healing_log, _HEALING_HEADER, ledger_entry),
+                                (args.techlog, "# Tech Log\n\n", techlog_entry)):
+        try:
+            _insert_entry(path, header, entry)
+            print(f"recorded in {path}")
+        except OSError as exc:
+            print(f"::warning::could not record the heal in {path}: {exc}. "
+                  "The merge itself is unaffected; add the entry by hand.")
+            ok = False
+    return 0 if ok else 1
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -335,8 +554,37 @@ def main(argv=None) -> int:
     c.add_argument("--head", default="HEAD")
     c.add_argument("--files", nargs="*", default=None)
 
+    m = sub.add_parser("merge-gate",
+                       help="exit 0 only if every owner-authorized "
+                            "auto-merge condition holds")
+    m.add_argument("--pr", required=True)
+    m.add_argument("--branch", required=True)
+    m.add_argument("--test-cmd", default=".venv/bin/pytest -q")
+    m.add_argument("--test-cwd", default=".")
+    m.add_argument("--repo", default=os.environ.get(
+        "GITHUB_REPOSITORY", "dk-forge/talent-intelligence-tracker"))
+
+    r = sub.add_parser("record",
+                       help="append one auto-merged heal to the ledgers "
+                            "(best-effort; never fails the heal)")
+    r.add_argument("--pr", required=True)
+    r.add_argument("--workflow", required=True)
+    r.add_argument("--merge-sha", required=True)
+    r.add_argument("--run-url", default="")
+    r.add_argument("--cause", default="")
+    r.add_argument("--verdict", default="LOOKS SOUND")
+    r.add_argument("--files", nargs="*", default=None)
+    r.add_argument("--healing-log", default=HEALING_LOG)
+    r.add_argument("--techlog", default=TECHLOG)
+
     args = ap.parse_args(argv)
-    return gate(args) if args.cmd == "gate" else check(args)
+    if args.cmd == "gate":
+        return gate(args)
+    if args.cmd == "merge-gate":
+        return merge_gate(args)
+    if args.cmd == "record":
+        return record(args)
+    return check(args)
 
 
 if __name__ == "__main__":

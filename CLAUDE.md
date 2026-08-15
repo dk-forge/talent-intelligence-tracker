@@ -88,11 +88,22 @@ claude-code-action reproduces the failure from the run log and opens a draft PR
 with red-before/green-after evidence, an adversarial second pass posts a review
 comment, and the `guard` job re-diffs the branch against `self_heal.FORBIDDEN`
 (data/, spend.py, budget.py, guardrails.py, the locks, HANDOVER, itself) and
-goes red on a violation. It never merges, never dispatches a workflow, and is
-deliberately NOT in the talent-collect lock. One healer at a time, one open PR
-per cause, ceiling 3. Dormant until the `CLAUDE_CODE_OAUTH_TOKEN` secret
-exists; disable with repository variable `SELF_HEAL_DISABLED=true` or delete
-the file. TECHLOG 2026-08-14 is the full design.
+goes red on a violation. It never dispatches a workflow and is deliberately
+NOT in the talent-collect lock. One healer at a time, one open PR per cause,
+ceiling 3.
+
+**It MERGES its own draft when every condition holds** (owner authorization
+2026-08-14): guard passed, reviewer verdict exactly
+`SELF-HEAL-REVIEW-VERDICT: LOOKS SOUND` (absent or ambiguous is not),
+source/test-only diff (never `.github/`, never a FORBIDDEN path), and a
+merged preview that introduces no test failure main does not already have.
+Every UNKNOWN resolves to "stay a draft". Each auto-merge then appends
+`docs/HEALING-LOG.md` (the revert index: `git revert <merge sha>`) and a
+narrative TECHLOG entry, best-effort — recording can never fail a heal.
+Dormant until the `CLAUDE_CODE_OAUTH_TOKEN` secret exists. Kill switches:
+`SELF_HEAL_AUTOMERGE_DISABLED=true` keeps the drafts and returns the click to
+a human; `SELF_HEAL_DISABLED=true` stops the healer. TECHLOG 2026-08-14 is
+the full design.
 
 ## The 60-second model
 

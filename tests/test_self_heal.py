@@ -175,6 +175,97 @@ def test_the_forbidden_list_names_real_paths():
         assert target.exists(), pattern
 
 
+# -- the merge gate resolves UNKNOWN to "stay a draft" ----------------------
+
+def test_only_an_unambiguous_looks_sound_merges():
+    m = self_heal.VERDICT_MARKER
+    assert self_heal.review_verdict([f"{m} LOOKS SOUND\nevidence"]) == "LOOKS SOUND"
+    assert self_heal.review_verdict([f"{m} DO NOT MERGE\n."]) == "DO NOT MERGE"
+    assert self_heal.review_verdict(["lgtm!"]) is None
+    # two markers in one comment is ambiguous, and ambiguous never merges
+    assert self_heal.review_verdict([f"{m} LOOKS SOUND\n{m} DO NOT MERGE"]) is None
+
+
+def test_the_latest_verdict_wins():
+    m = self_heal.VERDICT_MARKER
+    assert self_heal.review_verdict(
+        [f"{m} LOOKS SOUND\n.", f"{m} NEEDS WORK\n."]) == "NEEDS WORK"
+
+
+@pytest.mark.parametrize("path", [
+    ".github/workflows/tests.yml",   # never auto-merge CI
+    "data/talent_intel.db",          # never auto-merge state
+    "spend.py",                      # never auto-merge a pot
+])
+def test_the_merge_gate_refuses_these_whatever_the_verdict(path):
+    ok, _ = self_heal.automergeable_paths(["pipeline/classify.py", path])
+    assert not ok
+
+
+def test_an_empty_diff_is_never_automerged():
+    assert not self_heal.automergeable_paths([])[0]
+
+
+def test_a_source_and_test_diff_is_automergeable():
+    ok, reason = self_heal.automergeable_paths(
+        ["collectors/sec_edgar.py", "tests/test_sec_edgar_filer_name.py"])
+    assert ok, reason
+
+
+def test_suite_failures_reads_both_test_runners():
+    out = ("FAILED tests/test_z.py::test_c - AssertionError\n"
+           "FAIL: test_a (tests.test_x.C.test_a)\n"
+           "ERROR: test_b (tests.test_y.D.test_b)\n")
+    assert self_heal.suite_failures(out) == {
+        "tests/test_z.py::test_c",
+        "test_a (tests.test_x.C.test_a)",
+        "test_b (tests.test_y.D.test_b)"}
+
+
+def test_a_standing_red_subtracts_and_a_new_red_blocks():
+    baseline = {"tests/test_live.py::test_known"}
+    assert {"tests/test_live.py::test_known"} - baseline == set()
+    assert ({"tests/test_live.py::test_known", "tests/test_new.py::test_x"}
+            - baseline) == {"tests/test_new.py::test_x"}
+
+
+# -- the healing ledger -----------------------------------------------------
+
+def _record(tmp):
+    return self_heal.main(
+        ["record", "--pr", "7", "--workflow", "collect",
+         "--merge-sha", "abc1234",
+         "--run-url", "https://github.com/x/y/actions/runs/1",
+         "--cause", "AssertionError: the real line",
+         "--files", "pipeline/classify.py",
+         "--healing-log", str(tmp / "HEALING-LOG.md"),
+         "--techlog", str(tmp / "TECHLOG.md")])
+
+
+def test_the_ledger_carries_the_revert_and_the_kill_switch(tmp_path, capsys):
+    (tmp_path / "TECHLOG.md").write_text("# Tech Log\n\n## old\n")
+    assert _record(tmp_path) == 0
+    ledger = (tmp_path / "HEALING-LOG.md").read_text()
+    assert "git revert abc1234" in ledger
+    assert "SELF_HEAL_AUTOMERGE_DISABLED" in ledger
+    assert "PR #7" in ledger
+
+
+def test_entries_go_newest_first_and_a_second_heal_appends(tmp_path):
+    (tmp_path / "TECHLOG.md").write_text("# Tech Log\n\n## old entry\n")
+    _record(tmp_path)
+    tech = (tmp_path / "TECHLOG.md").read_text()
+    assert tech.index("self-heal: auto-merged") < tech.index("## old entry")
+    _record(tmp_path)
+    assert (tmp_path / "HEALING-LOG.md").read_text().count("- revert:") == 2
+
+
+def test_a_failed_record_is_a_warning_not_a_crash(tmp_path):
+    # The CALLER downgrades a 1 to a warning; a heal that merged is never
+    # undone by a docs write that did not.
+    assert _record(tmp_path / "not" / "there") == 1
+
+
 # -- the workflow file keeps its shape --------------------------------------
 
 def test_the_action_is_pinned_to_a_full_commit_sha():
@@ -202,6 +293,42 @@ def test_the_kill_switch_and_the_dormant_notice_exist():
     assert "SELF_HEAL_DISABLED" in WORKFLOW
     assert "CLAUDE_CODE_OAUTH_TOKEN" in WORKFLOW
     assert "DORMANT" in WORKFLOW
+
+
+def test_the_automerge_kill_switch_is_separate_from_the_healer_switch():
+    # Two switches on purpose: one keeps the drafts and returns the click to
+    # a human, the other stops the healer entirely.
+    assert "SELF_HEAL_AUTOMERGE_DISABLED" in WORKFLOW
+
+
+def test_the_owner_authorization_and_date_are_recorded_in_the_workflow():
+    assert "2026-08-14" in WORKFLOW
+    assert "owner" in WORKFLOW.lower()
+
+
+def test_the_reviewer_is_asked_for_the_machine_readable_verdict():
+    assert self_heal.VERDICT_MARKER in WORKFLOW
+
+
+def test_the_heal_is_recorded_in_the_ledgers():
+    assert "self_heal.py record" in WORKFLOW
+    assert "docs/HEALING-LOG.md" in WORKFLOW
+
+
+def test_automerge_is_gated_by_the_guard_and_the_review():
+    """Asserted structurally, not by grep: a fix must never merge without
+    both the forbidden-path guard and the adversarial review having run."""
+    import yaml
+    parsed = yaml.safe_load(WORKFLOW)
+    jobs = parsed["jobs"]
+    assert set(jobs) == {"heal", "guard", "review", "automerge", "summary"}
+    needs = jobs["automerge"]["needs"]
+    for required in ("heal", "guard", "review"):
+        assert required in needs
+    gate = jobs["automerge"]["if"]
+    assert "needs.guard.result == 'success'" in gate
+    assert "needs.review.result == 'success'" in gate
+    assert "SELF_HEAL_AUTOMERGE_DISABLED" in gate
 
 
 def test_the_guard_runs_the_real_check():

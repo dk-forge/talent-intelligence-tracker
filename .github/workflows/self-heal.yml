@@ -63,6 +63,7 @@ jobs:
     outputs:
       heal: ${{ steps.gate.outputs.heal }}
       branch: ${{ steps.gate.outputs.branch }}
+      cause: ${{ steps.gate.outputs.cause }}
       pr: ${{ steps.pr.outputs.pr }}
     steps:
       - uses: actions/checkout@v5
@@ -233,9 +234,103 @@ jobs:
             3. Check the branch out locally and run the relevant tests
                yourself (.venv/bin/pytest, installed from the dev lock exactly as the
                healer was told to); verify red-before/green-after.
-            4. Post your findings as ONE comment with `gh pr comment` —
-               verdict first (LOOKS SOUND / DO NOT MERGE / NEEDS WORK), then
-               the evidence. The human merges; you never do.
+            4. Post your findings as ONE comment with `gh pr comment`. The
+               comment's FIRST line must be exactly one of these three, alone
+               on the line — it is machine-read by the merge gate, and
+               anything ambiguous is treated as DO NOT MERGE:
+                 SELF-HEAL-REVIEW-VERDICT: LOOKS SOUND
+                 SELF-HEAL-REVIEW-VERDICT: NEEDS WORK
+                 SELF-HEAL-REVIEW-VERDICT: DO NOT MERGE
+               Then the evidence. Say LOOKS SOUND only when you tried to
+               break the fix and could not.
+
+  # OWNER-AUTHORIZED AUTO-MERGE (2026-08-14, his words: "a human clicks
+  # merge — I want you to click merge, I'm okay with that"). The click is
+  # delegated; the conditions are not, and each resolves UNKNOWN to "stay a
+  # draft": the guard passed (needs:), the reviewer's machine-readable
+  # verdict is exactly LOOKS SOUND, the diff is source/test only (no
+  # workflows, nothing in FORBIDDEN — so data/, the pots and the locks can
+  # never reach this step whatever the verdict says), and the merged preview
+  # introduces no test failure main does not already have. A blocked merge is
+  # a decision, not a failure: this job stays green and says why. Kill
+  # switch: repository variable SELF_HEAL_AUTOMERGE_DISABLED=true keeps the
+  # healer drafting and returns the click to a human.
+  automerge:
+    needs: [heal, guard, review]
+    if: >-
+      needs.heal.outputs.pr != '' &&
+      needs.guard.result == 'success' &&
+      needs.review.result == 'success' &&
+      vars.SELF_HEAL_AUTOMERGE_DISABLED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the dev lock (the merged preview runs the suite)
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --require-hashes -r requirements-dev.lock
+      - name: Every condition, or it stays a draft
+        id: merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ needs.heal.outputs.pr }}
+          BRANCH: ${{ needs.heal.outputs.branch }}
+        run: |
+          git fetch origin "$BRANCH"
+          if python3 self_heal.py merge-gate --pr "$PR" --branch "$BRANCH"; then
+            git merge --abort 2>/dev/null || true
+            gh pr ready "$PR"
+            gh pr merge "$PR" --squash --delete-branch \
+              --subject "self-heal: auto-merged fix from draft PR #$PR" \
+              --body "Merged by the self-heal merge gate under the owner's 2026-08-14 authorization: guard passed, reviewer verdict LOOKS SOUND, source/test-only diff, merged preview introduced no failure main did not already have."
+            gh pr comment "$PR" --body "Auto-merged by the self-heal merge gate (owner authorization 2026-08-14). Conditions held: forbidden-path guard passed; adversarial reviewer verdict LOOKS SOUND; source/test-only diff; merged preview introduced no test failure main did not already have. Kill switch: repository variable SELF_HEAL_AUTOMERGE_DISABLED=true."
+            echo "merged=yes" >> "$GITHUB_OUTPUT"
+          else
+            gh pr comment "$PR" --body "The self-heal merge gate did NOT merge this draft — at least one condition failed (see the automerge job log). It stays a draft for a human."
+            echo "the draft stays for a human; the gate's log above says which condition failed."
+          fi
+
+      # THE HEALING LEDGER — "if things break it's easy to backtrack and fix
+      # fast". A terse revert-index entry in docs/HEALING-LOG.md plus the
+      # narrative in docs/TECHLOG.md, committed onto main AFTER the merge.
+      # BEST-EFFORT BY DESIGN: nothing here may fail the heal, so every
+      # failure path is a loud warning and a green exit. A racing push is
+      # retried by re-deriving on current main, and since each run inserts
+      # only its own entry, a race keeps BOTH.
+      - name: Record the heal in the ledgers
+        if: steps.merge.outputs.merged == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ needs.heal.outputs.pr }}
+          WORKFLOW: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          CAUSE: ${{ needs.heal.outputs.cause }}
+        run: |
+          set +e
+          git config user.name  'talent-tracker-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          SHA=$(gh pr view "$PR" --json mergeCommit -q .mergeCommit.oid)
+          FILES=$(gh pr view "$PR" --json files -q '.files[].path' | tr '\n' ' ')
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main && git reset --hard origin/main
+            python3 self_heal.py record --pr "$PR" \
+              --workflow "${WORKFLOW:-unknown}" --merge-sha "${SHA:-unknown}" \
+              --run-url "$RUN_URL" --cause "$CAUSE" \
+              --verdict "LOOKS SOUND" --files $FILES
+            git add docs/HEALING-LOG.md docs/TECHLOG.md
+            git commit -q -m "self-heal: ledger entry for PR #$PR [auto]" && \
+              git push origin HEAD:main && { echo "ledger recorded."; exit 0; }
+            sleep $((attempt * 5))
+          done
+          echo "::warning::the heal MERGED but its ledger entry could not be pushed after 5 attempts. Add docs/HEALING-LOG.md + docs/TECHLOG.md entries for PR #$PR by hand. This step never fails the heal."
+          exit 0
 
   summary:
     needs: heal
