@@ -611,7 +611,13 @@
     'Advertised bands move before published pay data does, because ' +
     'they are set by what an employer thinks it must offer to fill ' +
     'a role today. Read the direction across postings rather than ' +
-    'any one band, and remember this is the ask, not the settlement.'
+    'any one band, and remember this is the ask, not the settlement.',
+    'What an employer advertises is the offer a candidate can ' +
+    'accept today. It moves before any return-to-office ' +
+    'announcement, because a policy reaches the job postings ' +
+    'before it reaches a press release. Read it as the shape of ' +
+    'the roles being hired for, not of the whole workforce, and ' +
+    'read the direction rather than the exact share.'
   ];
 
   // ONE RESULT CARD, TO THE SHARED CONTRACT IN docs/card-contract.json.

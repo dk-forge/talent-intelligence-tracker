@@ -13,6 +13,81 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-14 - the job boards were already telling us where the work happens and what it pays, and we were throwing both away (1.83.0)
+
+`how_we_work` was 717 rows against `leadership_change`'s 15,575: 2.4% of the
+corpus and the tracker's thinnest claim. The fix was not a new source. It was
+reading the two fields `ats_boards` had been discarding on all 25,752 postings
+it already fetches twice a day.
+
+**Work mode.** Ashby and Lever both type `workplaceType` as a three-state field
+(remote / hybrid / onsite) and it was never read. Greenhouse types nothing, so
+its mode is read out of the location string and most of its postings say
+nothing at all. Measured on the whole watchlist: Ashby states a mode on 82% of
+its postings, Lever on 100%, Greenhouse on 19%.
+
+**Posted pay.** 203 of the 286 boards are Greenhouse and every one of them
+contributed zero pay evidence, because the collector called the plain endpoint.
+`?pay_transparency=true` adds `pay_input_ranges` — the band US state
+pay-transparency law puts on the page — for **3% more bytes**. Deliberately not
+`content=true`, which serves the same flag and takes Stripe's board from 374KB
+to 4.4MB. That one query parameter is 6,281 priced postings.
+
+Four decisions worth the next session's time:
+
+**A posting that does not say is UNKNOWN, and never onsite.** Reading silence
+as onsite would be true about the world and false about the document, and it
+would label most of the corpus off an absence. A board publishes a mix only
+when 20+ of its postings state a mode AND that is at least half the board: 82
+of 284 boards, on 7,288 postings. Airtable states a mode on 9 of 17 roles and
+publishes nothing, which is the rule working — "100% remote" off nine postings
+when eight said nothing would be the most misleading row this collector could
+produce.
+
+**The mix row is a BASELINE once, then only CHANGES.** A monthly restatement
+would be 3,408 near-identical rows a year, and `dedupe.fuzzy_duplicate` would
+collapse most of them (same employer, same pillar, 0.85 headline overlap across
+400 days) leaving the accidents. So the first qualifying reading states the mix
+and every row after it has to clear 15 points of movement on the largest-moving
+mode against the last row we PUBLISHED. Work mode carries its own baseline, not
+the hiring one: a board can double without its mix moving, and a board that
+never grows can go onsite-required in a quarter.
+
+**An OTE is not a salary, and an exclusion clause is not an OTE.** Greenhouse's
+range carries no compensation type and no interval — only cents, a currency and
+a free-text title the employer typed. A single keyword list gets this wrong in
+both directions, measured against all 164 distinct titles live on the
+watchlist: refusing every title mentioning bonus or equity throws away 161 real
+base ranges reading "Annual base salary range (excluding equity and bonus)",
+because naming what a figure EXCLUDES is the employer confirming what it is. So
+an explicit "base salary" assertion wins first, and only then does the OTE /
+total-cash / hourly / monthly list refuse the remaining 401. And with no
+interval field at all, a $28-$45 hourly band and a $28,000-$45,000 annual band
+are the same two numbers to a parser: below `MIN_ANNUAL_PAY` the answer is
+nothing, never 2,080 times something.
+
+**Currencies are bucketed, never pooled.** The old rule discarded everything
+that was not USD — the right instinct as the wrong rule. The danger is an
+unstated exchange rate inside a published pay figure, which is pooling, not
+reading. A board now gets a median in its own dominant currency and names the
+others it also prices in. That is what makes UK and EU boards readable without
+converting anything, and it is currently worth 2 boards of 130: the watchlist
+is US-heavy, so the constraint is the employer pool and not the mechanism,
+exactly as it is for the European ATSs this collector chose not to wire.
+
+Measured on the live watchlist, 2026-08-14, against the committed state:
+286 boards in 2.3 minutes, 122.6MB, **zero model calls and $0.00** — this whole
+path is deterministic parsing and cannot spend a cent from either pot. 173
+movements emitted, 0 rejected by `validate`, 5 caught as duplicates by the live
+dedup layers. `how_we_work` 717 -> 799, `rewards_comp` 8,841 -> 8,924. The 82
+work-mode rows are a one-time baseline; the steady state is change-only.
+
+Fixtures are real captured payloads from two providers that type the field
+differently (`ats_ashby_netgear.json`, all three values typed, priced in three
+currencies; `ats_greenhouse_dropbox.json`, no typed field at all, priced in
+four) plus `ats_greenhouse_airtable.json`, which publishes an OTE range and a
+base range side by side. 20 tests red before, 69 green after.
+
 ## 2026-08-14 - a device sweep at five widths: the chart was painted off-screen, and one word decided the width of a card (1.82.1)
 
 Every reader-facing page of both trackers rendered in real headless Chrome at

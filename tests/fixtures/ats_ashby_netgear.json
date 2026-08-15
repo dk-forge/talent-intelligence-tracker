@@ -1,0 +1,1987 @@
+{
+ "jobs": [
+  {
+   "id": "c6e0cf92-f88f-4a6d-867c-af6bf9634da0",
+   "title": "SQA Automation Engineer",
+   "department": "Enterprise",
+   "team": "Engineering",
+   "employmentType": "FullTime",
+   "location": "Taipei, Taiwan",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-03-03T04:00:01.908+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "114",
+     "addressRegion": "Nei-Hu District",
+     "streetAddress": "3F, No. 9, Lane 3, Ji-Hu Road",
+     "addressCountry": "Taiwan",
+     "addressLocality": "Taipei"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/c6e0cf92-f88f-4a6d-867c-af6bf9634da0",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/c6e0cf92-f88f-4a6d-867c-af6bf9634da0/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "ed85c6fb-beca-4fc5-af9c-73541cfe4855",
+   "title": "Staff SW Engineer",
+   "department": "Enterprise",
+   "team": "Engineering",
+   "employmentType": "FullTime",
+   "location": "Taipei, Taiwan",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2025-12-11T04:00:14.963+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "114",
+     "addressRegion": "Nei-Hu District",
+     "streetAddress": "3F, No. 9, Lane 3, Ji-Hu Road",
+     "addressCountry": "Taiwan",
+     "addressLocality": "Taipei"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/ed85c6fb-beca-4fc5-af9c-73541cfe4855",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/ed85c6fb-beca-4fc5-af9c-73541cfe4855/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "16f0cdfd-3779-4a07-9e5b-ce62330c5025",
+   "title": "Senior Systems Engineer",
+   "department": "Enterprise",
+   "team": "Systems Engineering",
+   "employmentType": "FullTime",
+   "location": "Japan",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-23T13:14:15.485+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "104-0031",
+     "addressRegion": "Tokyo",
+     "streetAddress": "3-7-5 Kyobashi Square, 12F, Kyobashi Chuo-Ku",
+     "addressCountry": "Japan",
+     "addressLocality": "Tokyo"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/16f0cdfd-3779-4a07-9e5b-ce62330c5025",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/16f0cdfd-3779-4a07-9e5b-ce62330c5025/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "17ad0c67-6f4e-4cea-8b5b-cde4cb32fd25",
+   "title": "Sr. Engineer Product Security ",
+   "department": "Legal/Security",
+   "team": "Product Security",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-03-16T08:12:41.725+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/17ad0c67-6f4e-4cea-8b5b-cde4cb32fd25",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/17ad0c67-6f4e-4cea-8b5b-cde4cb32fd25/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "1302c796-67be-443a-9560-62abd066d7ca",
+   "title": "Staff Engineer Embedded Firmware",
+   "department": "Enterprise",
+   "team": "SMB Engineering",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-04-01T09:12:58.361+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/1302c796-67be-443a-9560-62abd066d7ca",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/1302c796-67be-443a-9560-62abd066d7ca/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "733c809c-f2cc-49d1-bad0-6832b4a5e093",
+   "title": "Engineer III, System Validation Test",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-03-26T12:14:40.756+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/733c809c-f2cc-49d1-bad0-6832b4a5e093",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/733c809c-f2cc-49d1-bad0-6832b4a5e093/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "839fc29c-06e8-427e-80b3-7d733e239d72",
+   "title": "Senior Engineer Software Development, I",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-03-26T12:26:02.434+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/839fc29c-06e8-427e-80b3-7d733e239d72",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/839fc29c-06e8-427e-80b3-7d733e239d72/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "35957df1-0c8c-4e52-90b4-76dba72965f6",
+   "title": "Manager Software Development",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-04-10T14:43:59.093+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/35957df1-0c8c-4e52-90b4-76dba72965f6",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/35957df1-0c8c-4e52-90b4-76dba72965f6/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "67baacd4-81bd-4a01-adb3-13b93ce5f54f",
+   "title": "Senior Engineer Embedded Firmware",
+   "department": "Enterprise",
+   "team": "SMB Engineering",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-04-01T09:14:21.316+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/67baacd4-81bd-4a01-adb3-13b93ce5f54f",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/67baacd4-81bd-4a01-adb3-13b93ce5f54f/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "fc447095-658e-4116-b0d6-85ba430ce779",
+   "title": "Engineer IV,  System validation Test",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-03-30T06:32:48.184+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/fc447095-658e-4116-b0d6-85ba430ce779",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/fc447095-658e-4116-b0d6-85ba430ce779/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "514243d7-d4af-43d8-8633-3f00f6b015ea",
+   "title": "Engineer Software Development, III",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-04-02T09:11:29.748+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/514243d7-d4af-43d8-8633-3f00f6b015ea",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/514243d7-d4af-43d8-8633-3f00f6b015ea/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "3c31fb8b-c864-467a-b257-48725d0a084d",
+   "title": "Broadcast Sales Manager",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-04-07T23:04:19.361+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/3c31fb8b-c864-467a-b257-48725d0a084d",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/3c31fb8b-c864-467a-b257-48725d0a084d/application",
+   "compensation": {
+    "compensationTierSummary": "$170K – $200K • Offers Equity",
+    "scrapeableCompensationSalarySummary": "$170K - $200K",
+    "compensationTiers": [
+     {
+      "id": "bc21fc7d-d977-467e-b223-c9c41beb9b62",
+      "tierSummary": "On Target Earnings (60/40 split) $170K – $200K • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "1fcd1736-6fcc-4aa3-b110-4eca7a0ae2ff",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "1c7056ad-61f6-485b-8d7c-efefb80698bf",
+        "summary": "On Target Earnings (60/40 split) $170K – $200K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 170000,
+        "maxValue": 200000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 170000,
+      "maxValue": 200000
+     }
+    ]
+   }
+  },
+  {
+   "id": "7544af66-51b1-40e2-a15c-cef804054763",
+   "title": "Senior Engineer II, Software Development ",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-04-16T05:54:55.528+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/7544af66-51b1-40e2-a15c-cef804054763",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/7544af66-51b1-40e2-a15c-cef804054763/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "59e2f44c-aae6-4271-9a62-b2e90a562ba7",
+   "title": "Staff  Engineer II - Software Development",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-05-25T07:00:23.118+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/59e2f44c-aae6-4271-9a62-b2e90a562ba7",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/59e2f44c-aae6-4271-9a62-b2e90a562ba7/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "f92f851f-026f-42e8-a633-f2053c7c2c93",
+   "title": "Sr. Systems Engineer, Enterprise, France",
+   "department": "Enterprise",
+   "team": "Systems Engineering",
+   "employmentType": "FullTime",
+   "location": "Le Chesnay, France",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-27T19:41:50.375+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "78150",
+     "addressRegion": "Le Chesnay",
+     "streetAddress": "2 Rue de Marly",
+     "addressCountry": "France",
+     "addressLocality": "Le Chesnay"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/f92f851f-026f-42e8-a633-f2053c7c2c93",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/f92f851f-026f-42e8-a633-f2053c7c2c93/application",
+   "compensation": {
+    "compensationTierSummary": "€76,250 – €90,000 • Offers Equity",
+    "scrapeableCompensationSalarySummary": "€76,250 - €90,000",
+    "compensationTiers": [
+     {
+      "id": "08b15ded-8018-40aa-95c4-75a42abd6558",
+      "tierSummary": "On Target Earnings (80/20 split) €76,250 – €90,000 • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "cb9d6729-79ad-4a05-a0f2-c1636a9916c4",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "1d4380aa-d3e8-47f9-bd75-8421e3aca865",
+        "summary": "On Target Earnings (80/20 split) €76,250 – €90,000",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "EUR",
+        "minValue": 76250,
+        "maxValue": 90000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": 76250,
+      "maxValue": 90000
+     }
+    ]
+   }
+  },
+  {
+   "id": "4109e9bf-8692-4186-b5e9-715788fe4a2a",
+   "title": "L2 Technical Support Engineer",
+   "department": "Enterprise",
+   "team": "Technical Support",
+   "employmentType": "FullTime",
+   "location": "Taipei, Taiwan",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-20T16:04:21.170+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "postalCode": "114",
+     "addressRegion": "Nei-Hu District",
+     "streetAddress": "3F, No. 9, Lane 3, Ji-Hu Road",
+     "addressCountry": "Taiwan",
+     "addressLocality": "Taipei"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/4109e9bf-8692-4186-b5e9-715788fe4a2a",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/4109e9bf-8692-4186-b5e9-715788fe4a2a/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "a19705d7-8cab-46a1-bad4-e2c70f0a0b97",
+   "title": "Sr. Systems Engineer, AV & Enterprise, MEA",
+   "department": "Enterprise",
+   "team": "Systems Engineering",
+   "employmentType": "FullTime",
+   "location": "Dubai",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-14T15:53:17.214+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United Arab Emirates"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/a19705d7-8cab-46a1-bad4-e2c70f0a0b97",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/a19705d7-8cab-46a1-bad4-e2c70f0a0b97/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "44dadadc-311f-44cb-a0ce-6701c4eb1ce5",
+   "title": "Sr. Territory Account Manager, Enterprise Sales",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Australia",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-17T11:04:19.725+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "postalCode": "2067",
+     "addressRegion": "New South Wales",
+     "streetAddress": "821 Pacific Way",
+     "addressCountry": "Australia",
+     "addressLocality": "Chatswood"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/44dadadc-311f-44cb-a0ce-6701c4eb1ce5",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/44dadadc-311f-44cb-a0ce-6701c4eb1ce5/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "ea6cb463-c197-4014-a0a2-87385cccdc40",
+   "title": "  Sr Cybersecurity Manager",
+   "department": "Legal/Security",
+   "team": "Product Security",
+   "employmentType": "FullTime",
+   "location": "San Jose, CA",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-01T14:10:13.556+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "95134",
+     "addressRegion": "California",
+     "streetAddress": "350 E Plumeria Drive",
+     "addressCountry": "United States",
+     "addressLocality": "San Jose"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/ea6cb463-c197-4014-a0a2-87385cccdc40",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/ea6cb463-c197-4014-a0a2-87385cccdc40/application",
+   "compensation": {
+    "compensationTierSummary": "$200K – $230K • Offers Equity • Offers Bonus",
+    "scrapeableCompensationSalarySummary": "$200K - $230K",
+    "compensationTiers": [
+     {
+      "id": "086da1c7-d621-49ac-96b8-bb99ca7a58e9",
+      "tierSummary": "$200K – $230K • Offers Equity • Offers Bonus",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "0e2d7cf6-3a7d-47f9-b747-a76d1f3ad031",
+        "summary": "$200K – $230K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 200000,
+        "maxValue": 230000
+       },
+       {
+        "id": "1ff22784-a5ee-4f25-a5e1-b1abf4353670",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "3f4b3022-5986-42fa-bfe9-cd0b370b9be4",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 200000,
+      "maxValue": 230000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "7309fd01-2904-440d-918b-dda7a327272d",
+   "title": "Territory Account Manager, Enterprise Sales, Nordics",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Sweden",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-05T15:31:48.370+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "postalCode": "17173",
+     "addressRegion": "Solna",
+     "streetAddress": "Sundbybergsvägen 1",
+     "addressCountry": "Sweden",
+     "addressLocality": "Stockholm"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/7309fd01-2904-440d-918b-dda7a327272d",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/7309fd01-2904-440d-918b-dda7a327272d/application",
+   "compensation": {
+    "compensationTierSummary": "SEK 1,006,000 – SEK 1,198,000 • Offers Equity",
+    "scrapeableCompensationSalarySummary": "SEK 1,006,000 - SEK 1,198,000",
+    "compensationTiers": [
+     {
+      "id": "06fdadfb-5145-483b-b0e3-a324661e8012",
+      "tierSummary": "On Target Earnings (60/40 split) SEK 1,006,000 – SEK 1,198,000 • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "3ea631cd-df1b-470d-8bd6-441863f8afa4",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "8df5085b-cf6f-4349-b26c-58f0c95c017f",
+        "summary": "On Target Earnings (60/40 split) SEK 1,006,000 – SEK 1,198,000",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "SEK",
+        "minValue": 1006000,
+        "maxValue": 1198000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "SEK",
+      "minValue": 1006000,
+      "maxValue": 1198000
+     }
+    ]
+   }
+  },
+  {
+   "id": "383c7f23-55bf-469e-86d2-9149766b7ca4",
+   "title": "Ecommerce & Retail Sales Manager, Benelux",
+   "department": "Consumer",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "The Netherlands",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-12T14:08:19.971+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "2719EK",
+     "addressRegion": "South Holland",
+     "streetAddress": "Louis Braillelaan 80 (8th floor)",
+     "addressCountry": "Netherlands",
+     "addressLocality": "Zoetermeer"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/383c7f23-55bf-469e-86d2-9149766b7ca4",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/383c7f23-55bf-469e-86d2-9149766b7ca4/application",
+   "compensation": {
+    "compensationTierSummary": "€96K – €115K • Offers Equity",
+    "scrapeableCompensationSalarySummary": "€96K - €115K",
+    "compensationTiers": [
+     {
+      "id": "87bf9617-8e21-4436-bf10-7ccb112af754",
+      "tierSummary": "On Target Earnings (60/40 split) €96K – €115K • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "18cc2271-ca42-4a1b-b7de-458f07aeac81",
+        "summary": "On Target Earnings (60/40 split) €96K – €115K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "EUR",
+        "minValue": 96000,
+        "maxValue": 115000
+       },
+       {
+        "id": "adec6f91-d4e5-493e-9139-c98c073a980f",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": 96000,
+      "maxValue": 115000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "4d2d03a3-071f-4fc3-8817-a65c4e3597f9",
+   "title": "Sr. Territory Account Manager, Enterprise AV",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Australia",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-01T17:37:43.657+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "postalCode": "2067",
+     "addressRegion": "New South Wales",
+     "streetAddress": "821 Pacific Way",
+     "addressCountry": "Australia",
+     "addressLocality": "Chatswood"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/4d2d03a3-071f-4fc3-8817-a65c4e3597f9",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/4d2d03a3-071f-4fc3-8817-a65c4e3597f9/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "cf870cc9-3adb-476e-ab2b-b64e50b64989",
+   "title": "Sr QA Engineer",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-22T09:47:41.427+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/cf870cc9-3adb-476e-ab2b-b64e50b64989",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/cf870cc9-3adb-476e-ab2b-b64e50b64989/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "443267ef-e819-4113-b514-6fd05fa07838",
+   "title": "Staff Engineer, Salesforce",
+   "department": "Consumer",
+   "team": "Corporate Systems",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-15T06:18:35.345+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/443267ef-e819-4113-b514-6fd05fa07838",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/443267ef-e819-4113-b514-6fd05fa07838/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "7ce4b8e4-254e-40c5-8368-9ea5021c5ea8",
+   "title": "Engineer IV, Product Security",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-02T10:00:27.365+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/7ce4b8e4-254e-40c5-8368-9ea5021c5ea8",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/7ce4b8e4-254e-40c5-8368-9ea5021c5ea8/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "1bb1a9c5-70d4-4551-82bc-e50097399447",
+   "title": "AV Product Line Manager",
+   "department": "Enterprise",
+   "team": "PLM / Product Management",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [
+    {
+     "location": "San Jose, CA",
+     "address": {
+      "postalAddress": {
+       "postalCode": "95134",
+       "addressRegion": "California",
+       "streetAddress": "350 E Plumeria Drive",
+       "addressCountry": "United States",
+       "addressLocality": "San Jose"
+      }
+     }
+    }
+   ],
+   "publishedAt": "2026-08-05T18:58:14.801+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/1bb1a9c5-70d4-4551-82bc-e50097399447",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/1bb1a9c5-70d4-4551-82bc-e50097399447/application",
+   "compensation": {
+    "compensationTierSummary": "$125K – $170K • Offers Equity • Offers Bonus",
+    "scrapeableCompensationSalarySummary": "$125K - $170K",
+    "compensationTiers": [
+     {
+      "id": "4f5305b7-600c-42c7-b587-63585d5f3298",
+      "tierSummary": "Base Salary $125K – $170K • Offers Equity • Offers Bonus",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "aff0a45d-5d02-4468-92ae-2e9aaab4d3ac",
+        "summary": "Base Salary $125K – $170K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 125000,
+        "maxValue": 170000
+       },
+       {
+        "id": "39aa0b22-7b85-4e75-a45f-f8699621affa",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "35ed510b-6033-40e1-8d3d-4bbc5c823572",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 125000,
+      "maxValue": 170000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "cff174fa-3ca8-4a7d-90de-b7f3fdb8e202",
+   "title": "Talent Management and Development Director (Contract)",
+   "department": "Human Resources",
+   "team": "People Team",
+   "employmentType": "Temporary",
+   "location": "San Jose, CA",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-10T15:03:18.240+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "95134",
+     "addressRegion": "California",
+     "streetAddress": "350 E Plumeria Drive",
+     "addressCountry": "United States",
+     "addressLocality": "San Jose"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/cff174fa-3ca8-4a7d-90de-b7f3fdb8e202",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/cff174fa-3ca8-4a7d-90de-b7f3fdb8e202/application",
+   "compensation": {
+    "compensationTierSummary": "$110 – $125 per hour",
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [
+     {
+      "id": "851cade7-d4dd-4283-9d5b-9c66f8e1c005",
+      "tierSummary": "Hourly Rate $110 – $125 per hour",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "1137b618-b784-45db-9ccb-7cd4c0e5a558",
+        "summary": "Hourly Rate $110 – $125 per hour",
+        "compensationType": "Salary",
+        "interval": "1 HOUR",
+        "currencyCode": "USD",
+        "minValue": 110,
+        "maxValue": 125
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 HOUR",
+      "currencyCode": "USD",
+      "minValue": 110,
+      "maxValue": 125
+     }
+    ]
+   }
+  },
+  {
+   "id": "631adf39-3fe1-4aa5-a7f4-f8bbe1578083",
+   "title": "Sr. Territory Account Manager, Enterprise Sales, France",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Le Chesnay, France",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-21T17:04:02.866+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "78150",
+     "addressRegion": "Le Chesnay",
+     "streetAddress": "2 Rue de Marly",
+     "addressCountry": "France",
+     "addressLocality": "Le Chesnay"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/631adf39-3fe1-4aa5-a7f4-f8bbe1578083",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/631adf39-3fe1-4aa5-a7f4-f8bbe1578083/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "449995d6-1274-485b-b199-3f80fbf4a5a0",
+   "title": "Cloud Engineer, IV",
+   "department": "Enterprise",
+   "team": "SMB Engineering",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-22T11:17:02.325+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/449995d6-1274-485b-b199-3f80fbf4a5a0",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/449995d6-1274-485b-b199-3f80fbf4a5a0/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "c6e9d3e0-1a13-41d0-a964-455fc1c81291",
+   "title": "  AV Consultant Liaison",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-24T21:04:42.516+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/c6e9d3e0-1a13-41d0-a964-455fc1c81291",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/c6e9d3e0-1a13-41d0-a964-455fc1c81291/application",
+   "compensation": {
+    "compensationTierSummary": "$175K – $200K • Offers Equity",
+    "scrapeableCompensationSalarySummary": "$175K - $200K",
+    "compensationTiers": [
+     {
+      "id": "902c88d0-0b9e-407e-a068-0afe5c72a2ae",
+      "tierSummary": "On Target Earnings (60/40 split) $175K – $200K • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "0dfe7024-11bd-4511-80a3-a88053427365",
+        "summary": "On Target Earnings (60/40 split) $175K – $200K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 175000,
+        "maxValue": 200000
+       },
+       {
+        "id": "174df708-d0cf-4c1f-b3c3-d5f073d4e3d7",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 175000,
+      "maxValue": 200000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "bfe00d0b-d5a9-4eb4-907a-a926d62c460c",
+   "title": "Territory Account Manager, Enterprise AV - Rocky Mountains",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-24T22:06:03.310+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/bfe00d0b-d5a9-4eb4-907a-a926d62c460c",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/bfe00d0b-d5a9-4eb4-907a-a926d62c460c/application",
+   "compensation": {
+    "compensationTierSummary": "$175K – $200K • Offers Equity",
+    "scrapeableCompensationSalarySummary": "$175K - $200K",
+    "compensationTiers": [
+     {
+      "id": "4ba4c58d-91e9-49d9-8a55-45d0fd42dfdb",
+      "tierSummary": "On Target Earnings (60/40 split) $175K – $200K • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "b9c1a80d-afe7-4540-9ec2-e245a8581ca4",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "b2505501-f0c9-4605-85e9-022040cb233f",
+        "summary": "On Target Earnings (60/40 split) $175K – $200K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 175000,
+        "maxValue": 200000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 175000,
+      "maxValue": 200000
+     }
+    ]
+   }
+  },
+  {
+   "id": "9a2c27a3-7542-49e9-8721-8cfecffc6f9f",
+   "title": "Senior Broadcast Systems Engineer, EMEA",
+   "department": "Enterprise",
+   "team": "Systems Engineering",
+   "employmentType": "FullTime",
+   "location": "Berkshire, UK",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-04T19:52:33.554+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "RG12 1HL",
+     "addressRegion": "Berkshire",
+     "streetAddress": "Reflex, Cain Road",
+     "addressCountry": "United Kingdom",
+     "addressLocality": "Bracknell"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/9a2c27a3-7542-49e9-8721-8cfecffc6f9f",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/9a2c27a3-7542-49e9-8721-8cfecffc6f9f/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "adc6c148-9f96-47b2-90ef-3b33bee97e44",
+   "title": "Sr. Engineer, Mobile Applications (Android)",
+   "department": "Consumer",
+   "team": "Mobile Apps & Cloud",
+   "employmentType": "FullTime",
+   "location": "Cork, Ireland",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-29T11:55:33.447+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "T23 YY09",
+     "addressRegion": "Cork",
+     "streetAddress": "6th Floor, Penrose Two, Penrose Dock",
+     "addressCountry": "Ireland",
+     "addressLocality": "Cork"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/adc6c148-9f96-47b2-90ef-3b33bee97e44",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/adc6c148-9f96-47b2-90ef-3b33bee97e44/application",
+   "compensation": {
+    "compensationTierSummary": "€85K – €95K • Offers Equity • Offers Bonus",
+    "scrapeableCompensationSalarySummary": "€85K - €95K",
+    "compensationTiers": [
+     {
+      "id": "beee433d-6d5a-4923-b9b2-9ef15142312f",
+      "tierSummary": "€85K – €95K • Offers Equity • Offers Bonus",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "7450abea-2d64-4069-a01e-7ccc11785d95",
+        "summary": "€85K – €95K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "EUR",
+        "minValue": 85000,
+        "maxValue": 95000
+       },
+       {
+        "id": "37c06083-5831-4ac3-bdd4-00d529960ea3",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "28866644-21bf-4145-b902-9f16262f6517",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "EUR",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": 85000,
+      "maxValue": 95000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "ff47de3c-5f0c-4edd-9bd4-79914af2b5ae",
+   "title": "Technical Support Engineer (French or German)",
+   "department": "Enterprise",
+   "team": "Technical Support",
+   "employmentType": "FullTime",
+   "location": "Cork, Ireland",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-04T15:47:08.388+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "postalCode": "T23 YY09",
+     "addressRegion": "Cork",
+     "streetAddress": "6th Floor, Penrose Two, Penrose Dock",
+     "addressCountry": "Ireland",
+     "addressLocality": "Cork"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/ff47de3c-5f0c-4edd-9bd4-79914af2b5ae",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/ff47de3c-5f0c-4edd-9bd4-79914af2b5ae/application",
+   "compensation": {
+    "compensationTierSummary": "€40K – €46K • Offers Equity • Offers Bonus",
+    "scrapeableCompensationSalarySummary": "€40K - €46K",
+    "compensationTiers": [
+     {
+      "id": "8d9638c3-50e8-45d9-a292-30bfe761f5a9",
+      "tierSummary": "€40K – €46K • Offers Equity • Offers Bonus",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "21afbdd2-25b7-4bf2-8f1e-9093ed3c52e9",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "6b32eec2-fe02-4cbf-9c19-d0e39a11941e",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "EUR",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "d377c58a-b63f-48ee-a9bf-fbd3d7675f72",
+        "summary": "€40K – €46K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "EUR",
+        "minValue": 40000,
+        "maxValue": 46000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "EUR",
+      "minValue": 40000,
+      "maxValue": 46000
+     }
+    ]
+   }
+  },
+  {
+   "id": "c2af0192-0147-4f1b-a714-9cac214983df",
+   "title": "Global HR Generalist - Contract",
+   "department": "Human Resources",
+   "team": "People Team",
+   "employmentType": "Temporary",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-12T04:37:47.996+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/c2af0192-0147-4f1b-a714-9cac214983df",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/c2af0192-0147-4f1b-a714-9cac214983df/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "adb11f12-1fdf-4e6e-98e6-83ab3af502b0",
+   "title": " EMEA Channel Marketing Manager",
+   "department": "Enterprise",
+   "team": "Product Marketing",
+   "employmentType": "FullTime",
+   "location": "Berkshire, UK",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-12T18:50:57.159+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "postalCode": "RG12 1HL",
+     "addressRegion": "Berkshire",
+     "streetAddress": "Reflex, Cain Road",
+     "addressCountry": "United Kingdom",
+     "addressLocality": "Bracknell"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/adb11f12-1fdf-4e6e-98e6-83ab3af502b0",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/adb11f12-1fdf-4e6e-98e6-83ab3af502b0/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "107ab4fd-dd4f-48e9-bc88-c8dd8b458809",
+   "title": "Channel Marketing Manager, Americas",
+   "department": "Enterprise",
+   "team": "Product Marketing",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-04T18:11:10.180+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/107ab4fd-dd4f-48e9-bc88-c8dd8b458809",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/107ab4fd-dd4f-48e9-bc88-c8dd8b458809/application",
+   "compensation": {
+    "compensationTierSummary": "$106K – $145K • Offers Equity • Offers Bonus",
+    "scrapeableCompensationSalarySummary": "$106K - $145K",
+    "compensationTiers": [
+     {
+      "id": "452b6782-842e-4733-8110-f9f48afeea71",
+      "tierSummary": "Base Salary $106K – $145K • Offers Equity • Offers Bonus",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "0ab1fa1a-e321-4a65-af54-3d13884bd3bb",
+        "summary": "Base Salary $106K – $145K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 106000,
+        "maxValue": 145000
+       },
+       {
+        "id": "4b2ae573-63fe-4078-ab2a-24fff4e9c37b",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "065c13f9-0ed9-4ba6-936a-d67c60a91639",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 106000,
+      "maxValue": 145000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "2c243962-aa1c-41ff-b86b-eb8e70ee71b9",
+   "title": "Enterprise Networking Account Manager",
+   "department": "Enterprise",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-04T21:10:57.235+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/2c243962-aa1c-41ff-b86b-eb8e70ee71b9",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/2c243962-aa1c-41ff-b86b-eb8e70ee71b9/application",
+   "compensation": {
+    "compensationTierSummary": "$180K – $220K • Offers Equity",
+    "scrapeableCompensationSalarySummary": "$180K - $220K",
+    "compensationTiers": [
+     {
+      "id": "48d582aa-037f-43ad-8df6-0884df504c37",
+      "tierSummary": "On Target Earnings $180K – $220K • Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "65ad5534-9b11-4e64-9fe1-4e6f60d395db",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "c5abb399-a753-46f9-a862-bfbc00ba1037",
+        "summary": "On Target Earnings $180K – $220K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 180000,
+        "maxValue": 220000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 180000,
+      "maxValue": 220000
+     }
+    ]
+   }
+  },
+  {
+   "id": "b4aa9643-d5e1-4890-9a04-2abf379688e3",
+   "title": "Engineer III, Smart Switch Software Development",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-07T09:16:53.031+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/b4aa9643-d5e1-4890-9a04-2abf379688e3",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/b4aa9643-d5e1-4890-9a04-2abf379688e3/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "ec42d4b3-fca1-4400-a891-db1a397da17d",
+   "title": "Senior Engineer I, Smart Switch Software Development",
+   "department": "Enterprise",
+   "team": "Software Engineering - India",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-07T09:18:07.079+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/ec42d4b3-fca1-4400-a891-db1a397da17d",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/ec42d4b3-fca1-4400-a891-db1a397da17d/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "16d96e28-d6bd-4353-ad2f-835dbdb0e3ae",
+   "title": "WiFi SW Engineer (Staff)",
+   "department": "Consumer",
+   "team": "Home Networking /Wireless R&D",
+   "employmentType": "FullTime",
+   "location": "Bengaluru, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-12T20:30:00.066+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "postalCode": "560052",
+     "addressRegion": "Karnataka",
+     "streetAddress": "5th Floor, Embassy Star, No:8, Palace Road, Vasanth Nagar",
+     "addressCountry": "India",
+     "addressLocality": "Bengaluru"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/16d96e28-d6bd-4353-ad2f-835dbdb0e3ae",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/16d96e28-d6bd-4353-ad2f-835dbdb0e3ae/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "444f1d79-4c9f-4b9f-984c-d91dc02d392b",
+   "title": "WiFi SW Director",
+   "department": "Consumer",
+   "team": "Home Networking /Wireless R&D",
+   "employmentType": "FullTime",
+   "location": "Chennai, India",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-12T20:37:34.539+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "postalCode": "600096",
+     "addressRegion": "Tamil Nadu",
+     "streetAddress": "Campus -3B, 6th floor, Co-Works, RMZ Millenia Business Park 2, MGR Main Road, Kodandarama Nagar, Perungudi",
+     "addressCountry": "India",
+     "addressLocality": "Chennai"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/444f1d79-4c9f-4b9f-984c-d91dc02d392b",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/444f1d79-4c9f-4b9f-984c-d91dc02d392b/application",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "23218dcd-ba12-49ab-9c9d-ad726dba4785",
+   "title": "Sr. Sales Planning & Forecast Manager ",
+   "department": "Consumer",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "US Remote",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-13T22:48:22.059+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/netgear/23218dcd-ba12-49ab-9c9d-ad726dba4785",
+   "applyUrl": "https://jobs.ashbyhq.com/netgear/23218dcd-ba12-49ab-9c9d-ad726dba4785/application",
+   "compensation": {
+    "compensationTierSummary": "$114K – $156K • Offers Equity • Offers Bonus",
+    "scrapeableCompensationSalarySummary": "$114K - $156K",
+    "compensationTiers": [
+     {
+      "id": "07f9daaf-45a7-4aa4-80ee-893e6c5658b5",
+      "tierSummary": "Base Salary $114K – $156K • Offers Equity • Offers Bonus",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "53423ac1-9d44-4d0c-9bd7-5613b8de5f0d",
+        "summary": "Base Salary $114K – $156K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 114000,
+        "maxValue": 156000
+       },
+       {
+        "id": "bbda8a76-6f2c-4c41-b7d9-e60bfbe292d1",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "8250b799-2e38-44b7-9430-681d80073363",
+        "summary": "Offers Bonus",
+        "compensationType": "Bonus",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 114000,
+      "maxValue": 156000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Bonus",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  }
+ ],
+ "apiVersion": "1"
+}

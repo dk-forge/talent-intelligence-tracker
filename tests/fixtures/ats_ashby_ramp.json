@@ -44,18 +44,18 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$211.4K \u2013 $290.6K \u2022 Offers Equity",
+    "compensationTierSummary": "$211.4K – $290.6K • Offers Equity",
     "scrapeableCompensationSalarySummary": "$211.4K - $290.6K",
     "compensationTiers": [
      {
       "id": "5f7a903e-36e4-492c-ac09-f2745d717daa",
-      "tierSummary": "$211.4K \u2013 $290.6K \u2022 Offers Equity",
+      "tierSummary": "$211.4K – $290.6K • Offers Equity",
       "title": null,
       "additionalInformation": null,
       "components": [
        {
         "id": "3481c194-45fd-4b89-8592-e8f4d4b51f20",
-        "summary": "$211.4K \u2013 $290.6K",
+        "summary": "$211.4K – $290.6K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -91,7 +91,9 @@
      }
     ]
    },
-   "publishedAt": "2026-04-07T17:12:35.753+00:00"
+   "publishedAt": "2026-04-07T17:12:35.753+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Mobile Engineer, Android",
@@ -136,12 +138,12 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+    "compensationTierSummary": "$189K – $330K • Offers Equity",
     "scrapeableCompensationSalarySummary": "$189K - $330K",
     "compensationTiers": [
      {
       "id": "0283497e-f83b-42ef-9a0a-6215891aa062",
-      "tierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+      "tierSummary": "$189K – $330K • Offers Equity",
       "title": null,
       "additionalInformation": null,
       "components": [
@@ -156,7 +158,7 @@
        },
        {
         "id": "104095ff-c915-4e77-b3fa-5472d81297ef",
-        "summary": "$189K \u2013 $330K",
+        "summary": "$189K – $330K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -183,7 +185,9 @@
      }
     ]
    },
-   "publishedAt": "2025-07-31T21:58:34.674+00:00"
+   "publishedAt": "2025-07-31T21:58:34.674+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Software Engineer, Frontend",
@@ -238,12 +242,12 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$143.2K \u2013 $284K \u2022 Offers Equity",
+    "compensationTierSummary": "$143.2K – $284K • Offers Equity",
     "scrapeableCompensationSalarySummary": "$143.2K - $284K",
     "compensationTiers": [
      {
       "id": "d9eaeb56-51d9-4be4-86c9-b26349916689",
-      "tierSummary": "$143.2K \u2013 $284K \u2022 Offers Equity",
+      "tierSummary": "$143.2K – $284K • Offers Equity",
       "title": null,
       "additionalInformation": null,
       "components": [
@@ -258,7 +262,7 @@
        },
        {
         "id": "80691622-cb25-464e-bdc0-24de33568581",
-        "summary": "$143.2K \u2013 $284K",
+        "summary": "$143.2K – $284K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -285,7 +289,9 @@
      }
     ]
    },
-   "publishedAt": "2023-03-09T17:44:00.817+00:00"
+   "publishedAt": "2023-03-09T17:44:00.817+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Technical Program Manager",
@@ -303,18 +309,18 @@
    },
    "secondaryLocations": [],
    "compensation": {
-    "compensationTierSummary": "$144.6K \u2013 $269K \u2022 Offers Equity",
+    "compensationTierSummary": "$144.6K – $269K • Offers Equity",
     "scrapeableCompensationSalarySummary": "$144.6K - $269K",
     "compensationTiers": [
      {
       "id": "97bad625-8f51-4571-8594-3cdfecdc1162",
-      "tierSummary": "$144.6K \u2013 $269K \u2022 Offers Equity",
+      "tierSummary": "$144.6K – $269K • Offers Equity",
       "title": null,
       "additionalInformation": null,
       "components": [
        {
         "id": "e52db553-48d7-4349-b593-faf587498de8",
-        "summary": "$144.6K \u2013 $269K",
+        "summary": "$144.6K – $269K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -350,7 +356,9 @@
      }
     ]
    },
-   "publishedAt": "2026-05-22T16:15:13.252+00:00"
+   "publishedAt": "2026-05-22T16:15:13.252+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Mobile Engineer, iOS",
@@ -395,12 +403,12 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+    "compensationTierSummary": "$189K – $330K • Offers Equity",
     "scrapeableCompensationSalarySummary": "$189K - $330K",
     "compensationTiers": [
      {
       "id": "65be7456-6f35-43c6-aa22-aa7cfaf63a95",
-      "tierSummary": "$189K \u2013 $330K \u2022 Offers Equity",
+      "tierSummary": "$189K – $330K • Offers Equity",
       "title": null,
       "additionalInformation": null,
       "components": [
@@ -415,7 +423,7 @@
        },
        {
         "id": "075f33a8-5bc7-4d9a-8ec8-ed8f95a79c67",
-        "summary": "$189K \u2013 $330K",
+        "summary": "$189K – $330K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -442,7 +450,9 @@
      }
     ]
    },
-   "publishedAt": "2025-07-31T21:50:51.242+00:00"
+   "publishedAt": "2025-07-31T21:50:51.242+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "GTM Systems Engineer, Salesforce",
@@ -471,12 +481,12 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$122.2K \u2013 $183.4K \u2022 Offers Equity",
+    "compensationTierSummary": "$122.2K – $183.4K • Offers Equity",
     "scrapeableCompensationSalarySummary": "$122.2K - $183.4K",
     "compensationTiers": [
      {
       "id": "432ca5aa-ba7b-468a-85d1-0f2beb6dd4f3",
-      "tierSummary": "$122.2K \u2013 $183.4K \u2022 Offers Equity",
+      "tierSummary": "$122.2K – $183.4K • Offers Equity",
       "title": null,
       "additionalInformation": null,
       "components": [
@@ -491,7 +501,7 @@
        },
        {
         "id": "0bded62d-0904-497f-b996-16865f4215f2",
-        "summary": "$122.2K \u2013 $183.4K",
+        "summary": "$122.2K – $183.4K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -518,7 +528,9 @@
      }
     ]
    },
-   "publishedAt": "2026-07-11T20:22:52.649+00:00"
+   "publishedAt": "2026-07-11T20:22:52.649+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Partner Development Representative | Accounting ",
@@ -545,12 +557,12 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$110K \u2013 $120K \u2022 Offers Equity \u2022 Offers Commission \u2022 Total OTE with 70/30 split",
+    "compensationTierSummary": "$110K – $120K • Offers Equity • Offers Commission • Total OTE with 70/30 split",
     "scrapeableCompensationSalarySummary": "$110K - $120K",
     "compensationTiers": [
      {
       "id": "bffa61b5-4dd5-4a37-98f5-fc6a56bdbb1e",
-      "tierSummary": "$110K \u2013 $120K \u2022 Offers Equity \u2022 Offers Commission \u2022 Total OTE with 70/30 split",
+      "tierSummary": "$110K – $120K • Offers Equity • Offers Commission • Total OTE with 70/30 split",
       "title": null,
       "additionalInformation": "Total OTE with 70/30 split",
       "components": [
@@ -565,7 +577,7 @@
        },
        {
         "id": "91b97903-f009-496d-9649-8e26e9b31d8d",
-        "summary": "$110K \u2013 $120K",
+        "summary": "$110K – $120K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -608,7 +620,9 @@
      }
     ]
    },
-   "publishedAt": "2025-07-25T17:14:33.373+00:00"
+   "publishedAt": "2025-07-25T17:14:33.373+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Manager, Account Executive | Mid-Market",
@@ -637,12 +651,12 @@
     }
    ],
    "compensation": {
-    "compensationTierSummary": "$284K \u2013 $390K \u2022 Offers Equity \u2022 Offers Commission \u2022 Offers Bonus \u2022 45/55 split",
+    "compensationTierSummary": "$284K – $390K • Offers Equity • Offers Commission • Offers Bonus • 45/55 split",
     "scrapeableCompensationSalarySummary": "$284K - $390K",
     "compensationTiers": [
      {
       "id": "847cf3ba-41c2-4331-9f6c-7889019f8981",
-      "tierSummary": "Target Base Salary $284K \u2013 $390K \u2022 Offers Equity \u2022 Offers Commission \u2022 Offers Bonus \u2022 45/55 split",
+      "tierSummary": "Target Base Salary $284K – $390K • Offers Equity • Offers Commission • Offers Bonus • 45/55 split",
       "title": "SF/NY",
       "additionalInformation": "45/55 split",
       "components": [
@@ -675,7 +689,7 @@
        },
        {
         "id": "f924711e-093a-48fd-9a4d-368ede8eb029",
-        "summary": "Target Base Salary $284K \u2013 $390K",
+        "summary": "Target Base Salary $284K – $390K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "USD",
@@ -716,7 +730,9 @@
      }
     ]
    },
-   "publishedAt": "2026-06-23T15:09:33.356+00:00"
+   "publishedAt": "2026-06-23T15:09:33.356+00:00",
+   "workplaceType": "Hybrid",
+   "isRemote": true
   },
   {
    "title": "Account Executive, SMB | Canada",
@@ -732,12 +748,12 @@
    },
    "secondaryLocations": [],
    "compensation": {
-    "compensationTierSummary": "CA$121.5K \u2013 CA$166.6K \u2022 Offers Equity \u2022 Offers Commission \u2022 60/40 split",
+    "compensationTierSummary": "CA$121.5K – CA$166.6K • Offers Equity • Offers Commission • 60/40 split",
     "scrapeableCompensationSalarySummary": "CA$121.5K - CA$166.6K",
     "compensationTiers": [
      {
       "id": "f3275686-ffb5-46c5-a2c5-d80fcc671376",
-      "tierSummary": "OTE CA$121.5K \u2013 CA$166.6K \u2022 Offers Equity \u2022 Offers Commission \u2022 60/40 split",
+      "tierSummary": "OTE CA$121.5K – CA$166.6K • Offers Equity • Offers Commission • 60/40 split",
       "title": "Canada",
       "additionalInformation": "60/40 split",
       "components": [
@@ -761,7 +777,7 @@
        },
        {
         "id": "446e7f63-06c7-4699-b606-71191a2f71b9",
-        "summary": "OTE CA$121.5K \u2013 CA$166.6K",
+        "summary": "OTE CA$121.5K – CA$166.6K",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "CAD",
@@ -795,7 +811,9 @@
      }
     ]
    },
-   "publishedAt": "2026-04-27T18:27:05.517+00:00"
+   "publishedAt": "2026-04-27T18:27:05.517+00:00",
+   "workplaceType": "OnSite",
+   "isRemote": false
   },
   {
    "title": "Software Engineer, Argentina",
@@ -840,7 +858,9 @@
     "compensationTiers": [],
     "summaryComponents": []
    },
-   "publishedAt": "2026-06-08T19:17:53.481+00:00"
+   "publishedAt": "2026-06-08T19:17:53.481+00:00",
+   "workplaceType": "OnSite",
+   "isRemote": false
   },
   {
    "title": "Money Laundering Reporting Officer, AML",
@@ -858,18 +878,18 @@
    },
    "secondaryLocations": [],
    "compensation": {
-    "compensationTierSummary": "SEK\u00a0836,400 \u2013 SEK\u00a01,131,600 \u2022 Offers Equity",
-    "scrapeableCompensationSalarySummary": "SEK\u00a0836,400 - SEK\u00a01,131,600",
+    "compensationTierSummary": "SEK 836,400 – SEK 1,131,600 • Offers Equity",
+    "scrapeableCompensationSalarySummary": "SEK 836,400 - SEK 1,131,600",
     "compensationTiers": [
      {
       "id": "c4efc452-f97f-4b49-807d-ef7b730f3d4f",
-      "tierSummary": "Target Base Salary SEK\u00a0836,400 \u2013 SEK\u00a01,131,600 \u2022 Offers Equity",
+      "tierSummary": "Target Base Salary SEK 836,400 – SEK 1,131,600 • Offers Equity",
       "title": "Sweden",
       "additionalInformation": null,
       "components": [
        {
         "id": "9cf31bec-0602-40dc-97a2-c43ec9409e76",
-        "summary": "Target Base Salary SEK\u00a0836,400 \u2013 SEK\u00a01,131,600",
+        "summary": "Target Base Salary SEK 836,400 – SEK 1,131,600",
         "compensationType": "Salary",
         "interval": "1 YEAR",
         "currencyCode": "SEK",
@@ -905,7 +925,9 @@
      }
     ]
    },
-   "publishedAt": "2026-07-21T19:20:17.701+00:00"
+   "publishedAt": "2026-07-21T19:20:17.701+00:00",
+   "workplaceType": "Remote",
+   "isRemote": true
   }
  ]
 }

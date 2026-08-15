@@ -914,18 +914,28 @@ SOURCES = (
     # presented like a filed one is the easiest lie in this product to tell.
     Source("Employer job boards (Greenhouse, Lever, Ashby)",
            "https://boards-api.greenhouse.io/", "live",
-           "Employer publications", ("Hiring", "Posted pay", "Location"),
+           "Employer publications",
+           ("Hiring", "Posted pay", "Work mode", "Location"),
            "Global, per employer",
            notes="Keyless JSON, no model, no cost: an employer's own open roles, "
-                 "counted once a day. Three honest limits. The count is OUR "
-                 "measurement of a page on two dates, so rows are reported and "
-                 "never verified. Nothing can be back-filled, because these APIs "
-                 "publish no history and no archive holds snapshots of them, so "
-                 "every series starts the day we began counting. And a board "
-                 "that shrinks is never read as job cuts: roles leave a board "
-                 "when they are filled, withdrawn or reposted, so only growth is "
-                 "published. SmartRecruiters was dropped in July 2026 because "
-                 "its API robots.txt disallows every agent but LinkedIn's."),
+                 "counted once a day. Three things are read off them and each is "
+                 "a count rather than a copy: how many roles are open, what "
+                 "annual base salary range they advertise, and how many are "
+                 "advertised as remote, hybrid or onsite. Four honest limits. "
+                 "The figures are OUR measurement of a page on two dates, so "
+                 "rows are reported and never verified. Nothing can be "
+                 "back-filled, because these APIs publish no history and no "
+                 "archive holds snapshots of them, so every series starts the "
+                 "day we began counting. A board that shrinks is never read as "
+                 "job cuts: roles leave a board when they are filled, withdrawn "
+                 "or reposted, so only growth is published. And a posting that "
+                 "does not say where the work happens is counted in neither "
+                 "direction, so the work-mode mix is published only for the "
+                 "employers whose postings mostly say, and never inferred from "
+                 "silence. Pay is bucketed by the currency the posting states "
+                 "and never converted. SmartRecruiters was dropped in July 2026 "
+                 "because its API robots.txt disallows every agent but "
+                 "LinkedIn's."),
 
     # Added 2026-08-04, the same day its first rows stored, because this page
     # names EXACTLY the live collectors and a collector holding rows that
