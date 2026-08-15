@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "attempts": 1,
+      "key": "resolve:tests:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-15T07:23:48+00:00",
+      "last_error": "HTTP 500 from /alert: ",
+      "payload": {
+        "body": "'tests' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31871519836\n\nWhatever was failing is no longer failing. Nothing to do.",
+        "resolve_scope": "tests:main",
+        "subject": "RECOVERED: tests is green again"
+      },
+      "raised_at": "2026-08-15T07:23:48+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/31871519836",
+      "scope": "tests:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -146,6 +162,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-15T06:58:28+00:00",
+  "updated_at": "2026-08-15T07:23:48+00:00",
   "version": 1
 }
