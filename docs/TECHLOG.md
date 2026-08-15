@@ -66,6 +66,64 @@ Nothing on the layoff tracker's own pages failed the same sweep: no document
 overflow, no clipped or overlapping text, no collapsed chart, at any width or
 scheme.
 
+## 2026-08-14 - self-heal: red CI can now propose its own fix, as a draft a human merges
+
+**`.github/workflows/self-heal.yml` + `self_heal.py` + `tests/test_self_heal.py`.**
+When a workflow fails on MAIN with a NEW code-shaped cause, the pinned
+`anthropics/claude-code-action` (v1.0.192, by full commit SHA) reproduces it
+from the run log and opens a DRAFT PR with red-before/green-after evidence;
+a second adversarial pass posts a review comment; a human merges, always.
+
+**The gate says no first, and its refusals are this repo's own alarm design:**
+drain-writers (red-once IS the needs-a-human signal; never guess a lost run's
+inputs), the Rendered contrast audit (measures the LIVE site; red between a
+merged CSS fix and the manual deploy is correct), landmarks/recall (a
+regression is a data event), anything `cancelled` (evictions and self-timeouts
+belong to ci_alert/ops_status [2b]), budget-shaped causes (the ceiling
+working), guardrail findings past their grace window (adjudication is the
+owner's, only ever the owner's), host-outage-shaped causes (host-watch owns
+them), and any branch but
+main (a branch red has an author). The cause line comes from
+`ci_alert.extract_cause` - one extraction, reused.
+
+**A prompt is a request; the guard is the fact.** The `guard` job diffs the
+healer's branch against `self_heal.FORBIDDEN` - data/ in its entirety (the
+repo IS the memory), spend.py, budget.py, guardrails.py, both hash-pinned
+locks, docs/HANDOVER.md, the healer itself - and goes red on a violation,
+which ci-alert then emails. The healer is deliberately NOT in the
+talent-collect concurrency group (a healer queueing behind the writer lock
+could evict a pending writer) and never dispatches workflows at all.
+
+**Budget is structural** (one healer at a time, one open PR per cause
+fingerprint, ceiling 3 open drafts) and the model spend is the operator's
+Claude subscription token, not OPENROUTER_API_KEY, so neither pot in
+spend.py/budget.py is touched.
+
+**THE HEALER MERGES ITS OWN DRAFT, under conditions it cannot relax** (owner
+authorization 2026-08-14: "a human clicks merge - I want you to click merge,
+I'm okay with that"). `merge-gate` requires all four, and every UNKNOWN
+resolves to "stay a draft": the guard job passed; the reviewer's verdict is
+exactly `SELF-HEAL-REVIEW-VERDICT: LOOKS SOUND` (absent or ambiguous is not,
+and two markers in one comment IS ambiguous); the diff is source/test only,
+never `.github/` and never a FORBIDDEN path, so data/, the pots and the locks
+cannot reach the merge step whatever the verdict says; and the MERGED PREVIEW
+introduces no test failure main does not already have - a standing red fails
+both runs and subtracts out, anything new blocks, and it closes the gap where
+a branch pushed with GITHUB_TOKEN triggers no checks at all. A blocked merge
+is a decision, not a red run.
+
+**Every heal writes its own revert index.** `docs/HEALING-LOG.md` (new) gets
+a terse entry per auto-merge - UTC stamp, workflow, run URL, one-line cause,
+PR, merge SHA, files, reviewer verdict, and the literal
+`git revert <merge sha>` - and docs/TECHLOG.md gets the narrative under the
+same date. Both are appended AFTER the merge, best-effort: a failure to
+record warns loudly and never fails a heal, so an empty stretch in the log is
+not proof nothing merged (`git log --grep 'self-heal: auto-merged'` is).
+
+Dormant until CLAUDE_CODE_OAUTH_TOKEN is added. Kill switches:
+`SELF_HEAL_AUTOMERGE_DISABLED=true` keeps the drafts and returns the click to
+a human; `SELF_HEAL_DISABLED=true` stops the healer. CLAUDE.md carries the
+operating summary.
 
 ## 2026-08-14 - the gate A/B ran against the gold set; nothing pinned, and the numbers say why
 
