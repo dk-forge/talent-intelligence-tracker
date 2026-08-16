@@ -204,77 +204,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-16T02:39:26Z",
-      "history": [
-        {
-          "at": "2026-08-16T02:00:13Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-16T02:39:26Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260816T020013Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-16T02:00:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "deferred_at": "2026-08-06T09:17:09Z",
-      "deferred_reason": "the monthly spend allowance was already exhausted ($10.08 of $10), so no query was bought",
-      "dispatched_at": "2026-08-06T09:16:26Z",
-      "history": [
-        {
-          "at": "2026-08-06T07:53:14Z",
-          "detail": "scheduled link hygiene (0 7 * * 1,4)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-06T09:16:26Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-06T09:17:09Z",
-          "detail": "run 31088398613",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-06T09:17:09Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-08-06T16:27:12Z",
-          "detail": "reclassified by hand: run 31088398613 went red only because spend.py --enforce exited 1 on the budget ceiling. No query was bought and nothing was broken, so this is a deferral, not a failure. The tripwire now gates instead of enforcing and records this itself.",
-          "event": "deferred"
-        }
-      ],
-      "id": "20260806T075314Z-tripwire",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (0 7 * * 1,4)",
-      "requested_at": "2026-08-06T07:53:14Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31088398613",
-      "state": "deferred",
-      "workflow": "tripwire.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-06T09:09:39Z",
       "history": [
         {
@@ -2530,6 +2459,44 @@
       "requested_at": "2026-08-15T16:44:22Z",
       "requested_by": "dakotta-labs",
       "run_id": "31897418080",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-16T02:39:26Z",
+      "history": [
+        {
+          "at": "2026-08-16T02:00:13Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-16T02:39:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-16T03:05:44Z",
+          "detail": "run 31922399418",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-16T03:05:44Z",
+          "detail": "run 31922399418",
+          "event": "landed"
+        }
+      ],
+      "id": "20260816T020013Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-16T03:05:44Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-16T02:00:13Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "31922399418",
       "state": "landed",
       "workflow": "archive-sources.yml"
     }
