@@ -3963,3 +3963,89 @@ html:has(.tit-main), body:has(.tit-main) {
     --wp--preset--color--contrast: var(--tit-fg);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   THE SHARED DIGEST SIGNUP, WHICH ASKED THIS PAGE FOR ITS COLOURS AND GOT NO
+   ANSWER.
+
+   `alt_digest_subscribe_form()` lives in the sibling plugin and the dashboard
+   calls it (tests/test_digest_signup_embed.py). Every colour it paints is a
+   component token that reads a SITE token and carries the sibling's light
+   literal as the fallback, e.g. `--alt-dg-ink: var(--alt-ink, #16181d)`. That
+   indirection is right, and on the sibling's own surfaces it resolves, because
+   they load layoffs.css and layoffs.css declares `--alt-ink`.
+
+   THIS STYLESHEET IS NOT layoffs.css. It declares `--tit-ink`, and no
+   `--alt-` name has ever existed on a talent page, so every one of those
+   var() calls fell through to its fallback: a light palette painted onto a
+   page whose ground in dark is #14161b. The sibling's own comment reasons that
+   no dark block is needed because "the surfaces that have a dark mode all load
+   layoffs.css". That was true when it was written on 2026-08-14 and stopped
+   being true on 2026-08-15, when the signup was added to the pages readers
+   land on and this dashboard became a surface with a dark mode and no
+   `--alt-` tokens.
+
+   MEASURED, live, in the 2026-08-16 audit: `--alt-ink` resolved to its
+   fallback #16181d and inherited into the seven labels, two legends and one
+   summary, which are the ten elements in the form with no ink of their own.
+   #16181d on #14161b is 1.02:1, four times over (dark and dark-chosen, 1280
+   and 375) for the forty the run reported. The paragraphs, the h2, the link
+   and the bold lead in the same box read 15.03:1 throughout, because the
+   block a few hundred lines up already re-inks `p`, `h2` and `strong` inside
+   .tit-wrap. Nothing re-inks a <label>.
+
+   THE FIX IS THE ANSWER, NOT AN OVERRIDE. We declare the site tokens the
+   component politely asked for, pointed at this page's own theme-aware ones,
+   in exactly the idiom the block above uses for --wp--preset--color--contrast.
+   No `!important`, no reaching into the sibling's selectors, and the day the
+   sibling adds a token, its fallback is the only thing that breaks rather than
+   the page.
+
+   ONE BLOCK AND NOT THREE, deliberately. A hard-coded dark literal would need
+   declaring under both `prefers-color-scheme: dark` AND
+   `:root[data-theme="dark"]`, since a reader who picks Dark on a light OS gets
+   nothing from the media query. Every value here is `var(--tit-*)`, and those
+   are redefined in BOTH dark blocks already, under a test that fails if either
+   is missed. So this rule is theme-aware by construction rather than by
+   remembering.
+
+   THE RATIOS THESE RESOLVE TO, computed from the token values this file
+   ships, light then dark:
+     label / legend / summary ink on the page ground   15.26   15.03  (was 16.87 / 1.02)
+     typed address on the email field                  16.07   13.85
+     email field edge, WCAG 1.4.11 wants 3              4.58    6.40
+     Subscribe label on the Subscribe fill              5.19    8.88  (was 16.75 / 4.95)
+     Subscribe fill against the page ground             4.93    8.42
+     the same, on hover                                 7.82   11.36
+     the confirmation panel's own ink on its fill       9.66    9.95
+     the error panel's own ink on its fill              5.06    7.30
+   ONE NAME IS A TRAP. The sibling's `--alt-on-accent` is the INK on a filled
+   button, and this file's `--tit-on-accent` is a translucent wash laid over a
+   filled chip (rgba(0,0,0,.28)). They read alike and are not the same thing;
+   mapping to the wash would paint the Subscribe label in 28 percent black. The
+   ink here is `--tit-ink-invert`, which is what this stylesheet already puts on
+   its own filled accents.
+
+   The two status panels are hidden until the form is submitted, so the audit
+   never sees them and they are mapped from the arithmetic rather than from a
+   measurement. Their tint EDGES sit near 1.4:1 on the ground in both themes,
+   which is the sibling's own light figure and is left there on purpose: a
+   panel whose meaning is carried by the sentence inside it is decoration, and
+   1.4.11 is about controls. The field edge and the button are controls, and
+   both clear 3 with room.
+   --------------------------------------------------------------------------- */
+.alt-digest {
+  --alt-ink: var(--tit-ink);
+  --alt-border: var(--tit-line);
+  --alt-control-border: var(--tit-ctl-line);
+  --alt-surface: var(--tit-surface-1);
+  --alt-blue: var(--tit-blue);
+  --alt-blue-dark: var(--tit-blue-strong);
+  --alt-on-accent: var(--tit-ink-invert);
+  --alt-ok-bg: var(--tit-toast-bg);
+  --alt-ok-ink: var(--tit-toast-fg);
+  --alt-tint-border: var(--tit-toast-line);
+  --alt-red-tint: var(--tit-red-tint);
+  --alt-crit: var(--tit-cutting);
+  --alt-crit-border: var(--tit-red-ring);
+}

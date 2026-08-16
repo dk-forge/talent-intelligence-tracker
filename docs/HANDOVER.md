@@ -2,6 +2,74 @@
 
 ---
 
+## 2026-08-16: the dark dashboard's signup form was a light form. 1.83.2 is PUSHED, NOT DEPLOYED.
+
+The scheduled contrast audit went red on main with `RESULT: FAIL, 40 contrast
+violation(s)`. Forty is four, not forty: the SAME ten elements in dark and
+dark-chosen at 1280 and 375. Seven labels, two legends and one summary in the
+shared email-digest signup, all at 1.02:1, `rgb(22,24,29)` on `rgb(20,22,27)`.
+
+**It was not a theme change and it was not 1.83.0 or 1.83.1.** The sibling
+repo shipped 2.20.60 at 2026-08-15T17:27Z, which put the signup on the pages
+readers land on, and this dashboard is now one of them. The audit before that
+was 13:26Z the same day, the audit after it was red. Both talent deploys on
+08-15 predate the sibling commit and neither touched a colour.
+
+**The mechanism, which is worth carrying forward.** Every colour in
+`alt_digest_subscribe_form()` is a component token reading a SITE token with
+the sibling's light literal as its fallback: `--alt-dg-ink: var(--alt-ink,
+#16181d)`. That is correct on the sibling's own pages, which load layoffs.css,
+and layoffs.css declares `--alt-ink`. This stylesheet declares `--tit-ink`, and
+no `--alt-` name has ever existed on a talent page, so all thirteen fell
+through to a light palette on a #14161b ground. **Neither repository is wrong
+when read as text.** The sibling's own comment reasons that no dark block is
+needed because "the surfaces that have a dark mode all load layoffs.css", and
+that sentence was true on the day it was written. The defect exists only where
+the two plugins meet, which is in a browser.
+
+The paragraphs, the h2, the links and the bold leads inside the same box read
+15.03:1 throughout. The block that re-inks `p`, `h2` and `strong` inside
+`.tit-wrap` already covers them; nothing re-inks a `<label>`. That asymmetry is
+what makes the ten exactly ten.
+
+**The fix answers the question rather than overriding the answer.**
+`dashboard.css` now declares the thirteen site tokens the component asks for,
+pointed at this page's own theme-aware ones, in the same idiom the file already
+uses to re-point `--wp--preset--color--contrast`. One block and not three: every
+value is `var(--tit-*)`, and those are redefined under both the media query and
+the attribute selector under a test that fails if either is missed, so it is
+theme-aware by construction rather than by remembering. No threshold moved, no
+selector was exempted, no assertion was deleted.
+
+Measured in a browser, before then after, at 1280 and 375:
+
+| pair | light | dark |
+|---|---|---|
+| the ten labels/legends/summary on the ground | 16.87 -> 15.26 | **1.02 -> 15.03** |
+| Subscribe label on its own fill | 16.75 -> 5.19 | 4.95 -> 8.88 |
+
+Computed from the tokens for the parts a reader cannot see until they submit:
+typed address on the email field 16.07 / 13.85, field edge 4.58 / 6.40 against
+a 3 bar, Subscribe fill against the ground 4.93 / 8.42, confirmation panel ink
+9.66 / 9.95, error panel ink 5.06 / 7.30. The two status panels' tint EDGES sit
+near 1.4:1 in both themes, which is the sibling's own light figure and is left
+there: a panel whose meaning is its sentence is decoration, and 1.4.11 is about
+controls.
+
+`tests/test_rendered_contrast.py` now carries the form and the sibling's own
+stylesheet in its fixture, and reproduces the live failure exactly, the same ten
+rows at the same 1.02, before the fix. `_strip_alt_bridge` takes the fix back
+out and the guard must still report it. Two cheap structural tests came with it:
+one insists every `var(--alt-*)` in the pinned copy of the sibling's stylesheet
+has an answer here, which is the only half that can catch the two hidden status
+panels or a token the sibling adds tomorrow, and one insists no value in the
+bridge is a literal.
+
+**Still open.** The sibling's "no dark block here" reasoning is now documented
+as conditional rather than permanent, and nothing in that repo says so. A third
+surface that has a dark mode and does not load layoffs.css would repeat this
+exactly, silently, and only a rendered audit would find it.
+
 ## 2026-08-14: the self-healer is installed, draft-only and DORMANT
 
 Branch `feat/self-heal-draft-only`. `.github/workflows/self-heal.yml` +
