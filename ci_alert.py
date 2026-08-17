@@ -146,6 +146,25 @@ _PYTEST_SUMMARY = re.compile(r"^FAILED\s+\S+::\S+.*$")
 _UNITTEST_HEAD = re.compile(r"^(?:FAIL|ERROR):\s+\w+\s+\(.*\)\s*$")
 _LOOSE_ERROR = re.compile(r"(?i)(?:^|\s)(?:error|fatal|failed)[: ]")
 
+# THE PHP RENDER HARNESSES, which are half of what `tests` runs and which mailed
+# NOTHING USEFUL until 2026-08-17. Every file in tests/php/ fails in one shape:
+#
+#   dashboard FAILED:
+#     - the markup must stay inside 184,600 bytes and was 185,146 ...
+#
+# The header matched _LOOSE_ERROR and became the cause; the bullet under it
+# matched no pattern here at all and was dropped. So run 32059349793 mailed
+# "dashboard FAILED:" with a trailing colon and an empty tail. The measured
+# value, the bound and the name of the thing that exceeded it were all in the
+# log, and none of the three was in the email. A cause line carrying no number
+# cannot be triaged from a phone, and being triaged from a phone is the only
+# reason this module exists.
+#
+# The bullet is recognised ONLY inside a block the header opened. A build log is
+# full of indented list items and not one of them is a diagnosis.
+_HARNESS_HEAD = re.compile(r"^\S.*\bFAILED\b.*:$")
+_HARNESS_BULLET = re.compile(r"^-\s+(\S.*)$")
+
 # Applied IN ORDER to reduce a message to its cause. Anything that can change
 # run-to-run while the underlying defect stays the same must die here, or the
 # same broken thing mails twice.
@@ -234,9 +253,25 @@ def extract_cause(raw_log: str) -> tuple[str, list[str]]:
     exceptions: list[str] = []
     pytest_detail: list[str] = []
     test_heads: list[str] = []
+    harness_heads: list[str] = []
+    harness_detail: list[str] = []
     loose: list[str] = []
+    in_harness = False
     for ln in body_lines:
         stripped = ln.strip()
+        # pytest's own summary line starts with FAILED too, and a parametrised
+        # id can end in a colon. It has a bucket of its own; never steal it.
+        if _HARNESS_HEAD.match(stripped) and not _PYTEST_SUMMARY.match(stripped):
+            harness_heads.append(stripped)
+            in_harness = True
+            continue
+        if in_harness:
+            bullet = _HARNESS_BULLET.match(stripped)
+            if bullet:
+                harness_detail.append(bullet.group(1).strip())
+                continue
+            # The block ends at the first line that is not one of its bullets.
+            in_harness = False
         m = _ANNOTATION.match(stripped)
         if m and m.group(1).strip() and not _GENERIC_ERROR.match(m.group(1).strip()):
             annotations.append(m.group(1).strip())
@@ -254,19 +289,29 @@ def extract_cause(raw_log: str) -> tuple[str, list[str]]:
         if _LOOSE_ERROR.search(stripped):
             loose.append(stripped)
 
-    # Most specific wins. A traceback's LAST exception line is the one that
-    # actually stopped the run; earlier ones are usually chained or captured.
-    for bucket in (exceptions, pytest_detail, annotations, test_heads, loose):
+    # Most specific wins, and WHICH END of a bucket is the specific one differs
+    # by bucket. A traceback's LAST exception line is the one that actually
+    # stopped the run; earlier ones are usually chained or captured. A php
+    # harness prints its bullets in the order the assertions failed and keeps
+    # going, so the FIRST bullet is the thing that went wrong and the rest are
+    # usually knock-on from it.
+    for bucket, lead_with_first in ((exceptions, False), (pytest_detail, False),
+                                    (harness_detail, True), (annotations, False),
+                                    (test_heads, False), (harness_heads, False),
+                                    (loose, False)):
         if bucket:
-            cause = bucket[-1]
+            cause = bucket[0] if lead_with_first else bucket[-1]
             break
     else:
         # No recognisable error shape. The last real output line still beats
         # "a job failed", and saying so honestly beats inventing a diagnosis.
         cause = body_lines[-1].strip() if body_lines else ""
 
+    # The header names which harness broke, which the bullet on its own does
+    # not, so it leads the context whenever there is one.
     context: list[str] = []
-    for bucket in (test_heads, exceptions, pytest_detail, annotations):
+    for bucket in (harness_heads, test_heads, exceptions, pytest_detail,
+                   harness_detail, annotations):
         for ln in bucket[-3:]:
             if ln != cause and ln not in context:
                 context.append(ln)
