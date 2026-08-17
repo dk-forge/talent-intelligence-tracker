@@ -13,6 +13,121 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-17 - the dashboard budget was measuring the calendar, and the alert about it said nothing
+
+`tests` went red on main, run 32059349793, step "Render the dashboard and count
+its queries and bytes". The email the owner woke to said, in full:
+
+```
+dashboard FAILED:
+```
+
+A trailing colon and an empty tail. The measured value, the bound and the name
+of the thing that exceeded it were all sitting in the run log. None of the
+three reached the inbox. Two defects, and the second is the bigger one.
+
+### The failure: a byte budget that answered differently on a Tuesday
+
+`TIT_DASH_BYTE_BUDGET` was 184,600 and the render measured 185,146. The bound
+was not raised on the strength of that, because the first thing measured was
+the measurement.
+
+This fixture's rows are dated relative to `TIT_FIXTURE_NOW`, which tracks the
+real date, and the market chart buckets forty days of that history into a
+sliding twelve-week window. Which weekday the harness runs on decides whether
+those forty days fall across six week buckets or seven, and a drawn week is a
+stacked bar whose every segment carries a `<title>`. Measured at 1.83.2 across
+seventy consecutive dates, identical code:
+
+| | bytes |
+|---|---|
+| Mon | 185,082-185,151 |
+| Tue | 185,055-185,147 |
+| Wed | 185,075-185,162 |
+| Thu | 184,850-184,939 |
+| Fri | 184,384-184,466 |
+| Sat | 184,384-184,464 |
+| Sun | 184,380-184,460 |
+
+A 782-byte swing against a ceiling whose stated headroom was 480. The assertion
+failed Monday to Thursday and passed Friday to Sunday. That is the same class of
+defect as the 00:00-01:00 UTC ordering flake the clock comment at the top of
+`render_dashboard.php` was written about, arriving again through the one
+measurement the clock fix never covered: a red that re-runs green is a red that
+gets filed as flaky.
+
+It is also why nobody saw it coming. On a pinned Wednesday basis the ceiling was
+first crossed at **1.77.1** and every single commit since has been over it. Each
+one landed on a day the render happened to be light, and CI agreed each time.
+
+**The byte budget now runs in the budget subprocess with `TIT_FIXTURE_CLOCK`
+pinned to `TIT_DASH_BYTE_CLOCK` (`2026-08-19`, a Wednesday).** The pin overrides
+an explicit caller override, deliberately: that knob exists to run the
+date-shaped assertions in the main process at a chosen instant, and a byte count
+is not a date-shaped claim. Wednesday because Monday to Wednesday is the
+HEAVIEST alignment, so the budget bounds the worst page rather than a lucky one.
+A pin chosen for a low number would be gaming the ceiling. The main process
+keeps the real clock and still reports what the page weighs today; it no longer
+asserts on it.
+
+### The raise, argued rather than slipped in
+
+On that pinned basis, like for like with the 184,118 the 2026-08-05 entry
+measured: 1.72.0 rendered **184,167**, 1.83.2 renders **185,150**. That is
+**983 bytes across six commits, never once written down**, and all of it is
+shipped copy: the place ribbon's basis sentence (~348), "a row is an entry"
+(~176), the city ribbon's totals (~176), the digest call to action (~167), the
+ribbon's unit (~47), and ~69 net of the rest.
+
+Raised to **185,600** = measured 185,150 + 450 headroom, and the headroom is
+real now instead of being eaten by whatever day it is.
+
+The precedent that had to be answered is 1.74.6, where this ceiling was 79 bytes
+short and was NOT raised: the paragraph went onto one source line, two grown
+aria-labels went back, and the page landed at 184,579. Right then, and it does
+not scale to 550. There is no 550 bytes of wrapping left to reclaim, and behind
+it is the copy itself. Four of those six additions answer "what does this number
+actually count", which is the question this tracker exists to answer honestly.
+
+### The mute: every php harness mailed its header and dropped its assertion
+
+`tests/php/` is half of what `tests` runs, and all ten harnesses fail in one
+shape: a header, then one indented bullet per failed assertion. `extract_cause`
+matched the header on `_LOOSE_ERROR` and made it the cause; the bullet under it
+matched no pattern in the module at all and was dropped on the floor. So every
+php harness failure since these harnesses existed has mailed a name and no
+diagnosis.
+
+`_HARNESS_HEAD` and `_HARNESS_BULLET` now read the block, and:
+
+- **The bullet is the cause, the header is the context.** The header alone says
+  which harness; the bullet is the only line carrying a number.
+- **The FIRST bullet leads**, unlike every other bucket in that function, which
+  takes the last. A harness prints its bullets in the order the assertions
+  failed and keeps going, so the first is what went wrong and the rest are
+  usually knock-on. `extract_cause` now says which end of each bucket is the
+  specific one instead of assuming.
+- **A bullet only counts inside a block a header opened.** A build log is full
+  of indented list items and not one of them is a diagnosis.
+- pytest's own `FAILED tests/x.py::y` summary is explicitly excluded from the
+  header pattern. It has a bucket of its own and must not be stolen.
+
+Deduping is unharmed: the bullet's numbers normalise to `<N>`, so a budget over
+by a different amount every day is still one cause and one email.
+
+Replayed against the real log of 32059349793, the email would now lead with:
+
+> the markup must stay inside 184,600 bytes and was 185,146 (fixture prefixes
+> excluded). This page is read on phones; a new card is not free.
+
+Six assertions in `tests/test_ci_alert.py::TestPhpHarnessCause`, four of them
+proven red against the pre-fix tree. `ci_status.py` shares `extract_cause`, so
+the session-facing dashboard gets the same line by construction.
+
+No plugin file changed, so no version bump and **no deploy is needed**.
+
+---
+
 ## 2026-08-15 - the digest signup had no route, and the hero got one (1.83.1)
 
 The shared email-digest signup renders at the foot of this dashboard and

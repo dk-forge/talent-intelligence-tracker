@@ -73,6 +73,74 @@ class TestCauseExtraction:
         assert ci_alert.extract_cause(empty) == ("", [])
 
 
+#: The shape EVERY php harness in tests/php/ fails in: a header naming the
+#: harness, then one indented bullet per failed assertion. Copied verbatim from
+#: run 32059349793, which mailed the header and nothing else.
+PHP_HARNESS_FAILURE = _log(
+    "jsonld_xss OK",
+    "dashboard FAILED:",
+    "  - the markup must stay inside 184,600 bytes and was 185,146 (fixture "
+    "prefixes excluded). This page is read on phones; a new card is not free.",
+    "##[error]Process completed with exit code 1.",
+    "Post job cleanup.",
+)
+
+PHP_HARNESS_MULTI = _log(
+    "place pages FAILED in phase 'budget':",
+    "  - the first cold render in a process must cost exactly 12 queries and cost 19",
+    "  - a warm render must cost no queries at all, and cost 4",
+    "##[error]Process completed with exit code 1.",
+)
+
+
+class TestPhpHarnessCause:
+    """The php render harnesses are half of what `tests` runs, and until
+    2026-08-17 a failure in any of them mailed `dashboard FAILED:` with an empty
+    tail. The header matches `_LOOSE_ERROR` and the assertion underneath it
+    matched nothing at all, so the one line worth reading was the one line
+    dropped. An alert that names no measured value cannot be triaged from a
+    phone, which is the whole promise this module makes."""
+
+    def test_the_bullet_is_the_cause_not_the_header(self):
+        cause, _ = ci_alert.extract_cause(PHP_HARNESS_FAILURE)
+        assert cause.startswith("the markup must stay inside"), cause
+
+    def test_the_cause_carries_the_measured_value_and_the_bound(self):
+        cause, _ = ci_alert.extract_cause(PHP_HARNESS_FAILURE)
+        assert "184,600" in cause and "185,146" in cause, cause
+
+    def test_the_header_is_kept_as_context_so_the_harness_is_named(self):
+        _, context = ci_alert.extract_cause(PHP_HARNESS_FAILURE)
+        assert any("dashboard FAILED" in c for c in context), context
+
+    def test_the_first_failed_assertion_leads_and_the_rest_are_context(self):
+        """Later bullets are usually knock-on. The earliest one went wrong
+        first, so it is what the subject line has to carry."""
+        cause, context = ci_alert.extract_cause(PHP_HARNESS_MULTI)
+        assert cause.startswith("the first cold render"), cause
+        assert any("a warm render" in c for c in context), context
+
+    def test_two_harness_failures_that_differ_only_in_numbers_are_one_cause(self):
+        """The bullet carries measured values, and a budget that is over by a
+        different amount every day is still one defect."""
+        one, _ = ci_alert.extract_cause(PHP_HARNESS_FAILURE)
+        two, _ = ci_alert.extract_cause(_log(
+            "dashboard FAILED:",
+            "  - the markup must stay inside 184,600 bytes and was 185,150 (fixture "
+            "prefixes excluded). This page is read on phones; a new card is not free.",
+            "##[error]Process completed with exit code 1."))
+        assert ci_alert.normalise(one) == ci_alert.normalise(two)
+
+    def test_a_bare_list_item_in_ordinary_output_is_not_a_cause(self):
+        """The bullet only means something under a harness header. A build log
+        full of `  - something` must not start manufacturing diagnoses."""
+        cause, _ = ci_alert.extract_cause(_log(
+            "installing:", "  - requests", "  - certifi",
+            "curl: (22) The requested URL returned 503",
+            "##[error]Process completed with exit code 22."))
+        assert "503" in cause, cause
+
+
 class TestDedupeByCause:
     """The single most important property. Eight identical emails would train
     the owner to filter this sender, which recreates the original problem."""

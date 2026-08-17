@@ -360,6 +360,18 @@ FLOOR_REFUSALS = {
                "string we hold does not finish the word, and reading a "
                "truncated stem as a known scale would be a guess. Refusing "
                "is correct.",
+    "$20–25 million": "QpiAI, YourStory, arrived 2026-08-17. Not a truncation: "
+                      "a RANGE. The publisher states no single figure, the "
+                      "reader reaches '20' and the scale word belongs to the "
+                      "other end, so the uncapped read is twenty dollars and "
+                      "the floor refuses it. Nothing is stored and the row "
+                      "keeps its verbatim amount, which is right. NOTE this is "
+                      "the first of a CLASS, not a one-off: every '$X to $Y "
+                      "million' headline lands here and will need its own line "
+                      "until somebody decides what a range means. Which end is "
+                      "the raise is a data-correctness call for the owner, not "
+                      "a parser tweak, and guessing one would be the model "
+                      "inventing a number.",
 }
 
 

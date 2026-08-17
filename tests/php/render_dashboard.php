@@ -480,7 +480,89 @@ function check($condition, $message) {
  * collapsed old one. Headroom ~480 bytes: the next addition raises this
  * number and writes down why.
  */
-const TIT_DASH_BYTE_BUDGET = 184600;
+/*
+ * RAISED 184,600 -> 185,600 on 2026-08-17, AND MOVED ONTO A PINNED CLOCK, which
+ * is the more important half. Read both halves before touching this number.
+ *
+ * FIRST, WHAT THE NUMBER WAS MEASURING. It was measuring the calendar. This
+ * fixture's rows are dated relative to TIT_FIXTURE_NOW, which tracks the real
+ * date, and the market chart buckets forty days of that history into a sliding
+ * twelve-week window. Which WEEKDAY the harness runs on decides whether those
+ * forty days land across six week buckets or seven, and a drawn week is a
+ * stacked bar whose every segment carries a <title>. Measured at 1.83.2 over
+ * seventy consecutive dates:
+ *
+ *   Mon 185,082-185,151   Tue 185,055-185,147   Wed 185,075-185,162
+ *   Thu 184,850-184,939   Fri 184,384-184,466   Sat 184,384-184,464
+ *   Sun 184,380-184,460
+ *
+ * A 782-byte swing on a ceiling whose stated headroom was 480. So the assertion
+ * failed Monday to Thursday and passed Friday to Sunday, on identical code.
+ * That is exactly the "re-run it and it goes green, file it as flaky" defect the clock
+ * comment at the top of this file was written about, arriving again through the
+ * one measurement the clock fix did not cover.
+ *
+ * It is why nobody saw this coming: the ceiling was first crossed at 1.77.1
+ * (436549e, 184,767 on a Wednesday basis) and EVERY commit since has been over
+ * it. Each landed on a day the render happened to be light, and CI agreed.
+ *
+ * So the byte budget now runs in the budget subprocess with TIT_FIXTURE_CLOCK
+ * pinned to TIT_DASH_BYTE_CLOCK. The number below is a constant of the code
+ * rather than of the day, and a diff that does not touch the markup cannot move
+ * it. The main process keeps the real clock, because the assertions there ARE
+ * about the page moving with the calendar.
+ *
+ * SECOND, THE RAISE, on that pinned basis and therefore like for like with the
+ * 184,118 the 2026-08-05 entry above measured. 1.72.0 rendered 184,167; 1.83.2
+ * renders 185,150. That is 983 bytes, spent by six commits and never once
+ * written down, and every byte of it is shipped copy:
+ *
+ *   ~348  1.74.6, the place ribbon's basis sentence: these counts are updates
+ *         we hold, not a ranking of the market, and they count the routine
+ *         filings the table sets aside.
+ *   ~176  1.77.1, "a row is an entry": the board's definition line, which
+ *         says what one entry is and which row counts dollars.
+ *   ~176  1.81.1, the city ribbon carrying city totals and its own label.
+ *   ~167  1.82.2, the email-digest call to action in the hero.
+ *    ~47  1.80.0, the ribbon counting the updates it says it holds.
+ *    ~69  net of 1.73.0 / 1.74.1 / the loading states / the mobile pass.
+ *
+ * NOT ONE OF THOSE IS FAT. They are five sentences and one link that a reader
+ * asked for, four of them answering "what does this number actually count",
+ * which is the question this whole tracker is built to answer honestly. The
+ * alternative to raising the ceiling is deleting published copy to satisfy a
+ * test, and that is the wrong way round: the budget exists to make the cost of
+ * a card VISIBLE, not to make the page silent.
+ *
+ * THE PRECEDENT THIS HAS TO ANSWER is 1.74.6, where the same ceiling was 79
+ * bytes short and was NOT raised (TECHLOG): the paragraph was printed on one
+ * source line, two aria-labels that had grown were put back, and the page
+ * landed at 184,579. That was the right call and it does not scale to 550
+ * bytes. There is no 550 bytes of wrapping and grown labels left to reclaim,
+ * and what sits behind them is the copy itself. Squeezing the markup was the
+ * cheaper answer once; treating it as the answer every time is how a page loses
+ * the sentences that make its numbers mean anything.
+ *
+ * 185,600 is the measured 185,150 plus 450 of headroom, and the headroom is
+ * real now rather than being eaten by whatever day it is. The next addition
+ * raises this number and writes down why.
+ */
+const TIT_DASH_BYTE_BUDGET = 185600;
+
+/*
+ * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.
+ *
+ * Any fixed date would make the measurement deterministic, which is the whole
+ * point. This one is the HEAVIEST alignment: Monday to Wednesday put the
+ * fixture's forty days of history across the most week buckets the market chart
+ * can draw, so the budget bounds the worst page rather than a lucky one. A pin
+ * chosen for a low number would be gaming the ceiling, and would leave the
+ * heaviest render unbounded.
+ *
+ * Changing this date changes what every byte figure in the comments above
+ * means. Re-measure and re-derive the ceiling if you ever do.
+ */
+const TIT_DASH_BYTE_CLOCK = '2026-08-19';
 
 /*
  * RAISED 174,000 -> 177,000 on 2026-08-02, for the archive pending state and
@@ -1513,23 +1595,20 @@ check(($GLOBALS['tit_enqueued']['script_data']['tit-dashboard']['strategy'] ?? '
 /* --- the byte budget ---------------------------------------------------- */
 
 /*
- * MEASURED WITH THE FIXTURE PREFIX STRIPPED, and that is not a way of gaming the
- * budget. "TEST FIXTURE " exists so no human mistakes this render for the live
- * page, it appears once per row plus once per employer link, and it is about
- * 2.1KB that PRODUCTION NEVER SHIPS. Counting it would spend real headroom on a
- * test artefact and would eventually fail a legitimate change for a reason
- * nobody could find. The budget has to measure the page.
+ * THE ASSERTION LIVES IN budget_phase(), on a pinned clock. See
+ * TIT_DASH_BYTE_CLOCK: measured here, on whatever day CI happened to run, the
+ * same markup weighed anywhere from 184,380 to 185,162 bytes, so the number was
+ * as much about the calendar as about the page.
+ *
+ * The render is still measured here, because the figure this process prints at
+ * the end is the one a session reading its output is looking at, and because a
+ * gap between the two would be a real defect: the budget subprocess renders the
+ * same fixture and must reach the same page. It is reported, never asserted.
  */
-$bytes = strlen(str_replace('TEST FIXTURE ', '', $html));
-$GLOBALS['tit_bytes'] = $bytes;
+$GLOBALS['tit_bytes'] = measure_bytes($html);
 // The full-corpus render, kept for the optional browser dump in finish(). Not
 // the trimmed one below it, which exists only to prove a suppression.
 $GLOBALS['tit_dump_html'] = $html;
-check($bytes <= TIT_DASH_BYTE_BUDGET,
-      'the markup must stay inside ' . number_format(TIT_DASH_BYTE_BUDGET)
-      . ' bytes and was ' . number_format($bytes)
-      . ' (fixture prefixes excluded). This page is read on phones; a new card '
-      . 'is not free.');
 
 /* --- Title Case on control labels, as an assertion ----------------------- */
 
@@ -1753,6 +1832,18 @@ function trace(array $log) {
     return ":\n      " . implode("\n      ", array_map(fn($q) => substr($q, 0, 120), $log));
 }
 
+/*
+ * MEASURED WITH THE FIXTURE PREFIX STRIPPED, and that is not a way of gaming the
+ * budget. "TEST FIXTURE " exists so no human mistakes this render for the live
+ * page, it appears once per row plus once per employer link, and it is about
+ * 2.1KB that PRODUCTION NEVER SHIPS. Counting it would spend real headroom on a
+ * test artefact and would eventually fail a legitimate change for a reason
+ * nobody could find. The budget has to measure the page.
+ */
+function measure_bytes($html) {
+    return strlen(str_replace('TEST FIXTURE ', '', $html));
+}
+
 function budget_phase() {
     global $wpdb;
 
@@ -1763,11 +1854,26 @@ function budget_phase() {
     // being true the number below is where it shows up.
     $GLOBALS['tit_transients'] = array();
     $wpdb->reset_reads();
-    render();
+    $html = render();
     check($wpdb->reads === TIT_DASH_QUERY_BUDGET,
           'the first cold render in a process must cost exactly '
           . TIT_DASH_QUERY_BUDGET . ' queries and cost ' . $wpdb->reads
           . trace($wpdb->log));
+
+    /*
+     * THE BYTE BUDGET, measured on the first cold render of a pinned clock and
+     * nowhere else. TIT_DASH_BYTE_CLOCK says why the clock is pinned; this is
+     * the process it is pinned in, because this one already exists, already
+     * starts from a database nothing has touched, and is already spawned with
+     * an environment of our own choosing.
+     */
+    $bytes = measure_bytes($html);
+    $GLOBALS['tit_bytes'] = $bytes;
+    check($bytes <= TIT_DASH_BYTE_BUDGET,
+          'the markup must stay inside ' . number_format(TIT_DASH_BYTE_BUDGET)
+          . ' bytes and was ' . number_format($bytes)
+          . ' (fixture prefixes excluded, measured at ' . TIT_DASH_BYTE_CLOCK
+          . '). This page is read on phones; a new card is not free.');
 
     $GLOBALS['tit_transients'] = array();
     $wpdb->reset_reads();
@@ -1828,7 +1934,9 @@ function finish($phase) {
         exit(1);
     }
     if ($phase === 'budget') {
-        printf("  budget ok: %d queries cold, none warm.\n", TIT_DASH_QUERY_BUDGET);
+        printf("  budget ok: %d queries cold, none warm, %s bytes of markup at %s.\n",
+               TIT_DASH_QUERY_BUDGET, number_format($GLOBALS['tit_bytes']),
+               TIT_DASH_BYTE_CLOCK);
         exit(0);
     }
     /*
@@ -1869,11 +1977,24 @@ function finish($phase) {
         fwrite(STDERR, "wrote /aggregate to {$agg}\n");
     }
 
-    // The budget needs a process where nothing has rendered yet.
-    $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' budget';
+    /*
+     * The budget needs a process where nothing has rendered yet, AND a clock
+     * that is the same every day.
+     *
+     * TIT_FIXTURE_CLOCK is set here rather than inherited, and it overrides an
+     * explicit one from the caller on purpose. The override exists to run the
+     * assertions in THIS process at a chosen instant, which is what the
+     * 00:00-01:00 UTC ordering defect needed; the byte and query budgets are
+     * not date-shaped claims and must not answer differently on a Tuesday. The
+     * child announces the pin on STDERR either way, so nothing about it is
+     * silent.
+     */
+    $command = 'TIT_FIXTURE_CLOCK=' . escapeshellarg(TIT_DASH_BYTE_CLOCK) . ' '
+               . escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' budget';
     passthru($command, $status);
     if ($status !== 0) exit(1);
-    printf("dashboard ok: markup, controls, %s bytes of it, and a %d-query cold render.\n",
+    printf("dashboard ok: markup, controls, %s bytes of it today, and a %d-query "
+           . "cold render.\n",
            number_format($GLOBALS['tit_bytes']), TIT_DASH_QUERY_BUDGET);
     exit(0);
 }
