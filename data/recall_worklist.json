@@ -1,16 +1,25 @@
 {
- "generated_at": "2026-08-10T08:44:08+00:00",
- "measured_on": "2026-08-10",
+ "generated_at": "2026-08-17T08:52:29+00:00",
+ "measured_on": "2026-08-17",
  "goldset_version": "2026-07-v2",
  "overall": {
   "total": 169,
-  "found": 13,
+  "found": 14,
   "found_partial": 23,
-  "missed": 133,
-  "held": 36,
-  "held_pct": 21.3,
-  "clean_pct": 7.7
+  "missed": 132,
+  "held": 37,
+  "held_pct": 21.9,
+  "clean_pct": 8.3,
+  "held_interval": {
+   "pct": 21.9,
+   "low_pct": 16.3,
+   "high_pct": 28.7,
+   "width_pct": 12.4,
+   "successes": 37,
+   "total": 169
+  }
  },
+ "spread_group": "by_country",
  "zero_countries": [
   {
    "key": "JP",
@@ -389,8 +398,8 @@
   {
    "key": "US",
    "total": 34,
-   "held": 13,
-   "held_pct": 38.2
+   "held": 14,
+   "held_pct": 41.2
   },
   {
    "key": "IL",
@@ -451,8 +460,8 @@
   {
    "key": "press_release",
    "total": 30,
-   "held": 8,
-   "held_pct": 26.7
+   "held": 9,
+   "held_pct": 30.0
   },
   {
    "key": "filing",
@@ -477,8 +486,8 @@
   {
    "key": "US funding",
    "total": 22,
-   "held": 8,
-   "held_pct": 36.4
+   "held": 9,
+   "held_pct": 40.9
   },
   {
    "key": "US leadership",
@@ -488,10 +497,10 @@
   }
  ],
  "field_defects": {
-  "country_missing": 17,
+  "country_missing": 16,
   "amount_missing": 6,
-  "amount_mismatch": 1,
-  "country_wrong": 1
+  "country_wrong": 2,
+  "amount_mismatch": 1
  },
  "missed_examples": [
   {
@@ -727,14 +736,6 @@
    "event_date": "2026-07-14"
   },
   {
-   "company": "BRINC",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/brinc-raises-125m-to-put-a-911-response-drone-on-every-police-and-fire-station-roof-302824451.html",
-   "event_date": "2026-07-14"
-  },
-  {
    "company": "Pact Labs",
    "country": "US",
    "signal_type": "funding",
@@ -813,9 +814,17 @@
    "source_name": "Tech.eu",
    "source_url": "https://tech.eu/2026/07/15/float-raises-eur45m-series-a-to-bridge-europes-funding-gap/",
    "event_date": "2026-07-15"
+  },
+  {
+   "company": "Senra Systems",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/senra-systems-announces-65-million-series-b-plans-for-third-manufacturing-facility-302825664.html",
+   "event_date": "2026-07-15"
   }
  ],
- "missed_total": 133,
+ "missed_total": 132,
  "next_goldset": {
   "due": false,
   "reason": "the current set is still current and still moving",
@@ -823,6 +832,6 @@
    "start": "2026-07-01",
    "end": "2026-07-31"
   },
-  "instruction": "Build a new recall gold set for 2026-07-01 to 2026-07-31 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-07.json with sealed=true and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
+  "instruction": "Build a new recall gold set for 2026-07-01 to 2026-07-31 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-07.json with sealed=true, family=\"world\" and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
  }
 }

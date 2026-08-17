@@ -1,0 +1,1386 @@
+{
+ "measured_at": "2026-08-17T08:53:59Z",
+ "measured_on": "2026-08-17",
+ "api_base": "https://asktherecruiter.com/blog/wp-json/talent/v1",
+ "goldset": {
+  "version": "2026-06-us-v1",
+  "digest": "87aa6b62e0a542ef",
+  "window": {
+   "start": "2026-06-01",
+   "end": "2026-07-31"
+  },
+  "assembled_on": "2026-08-12",
+  "url": "https://github.com/dk-forge/talent-intelligence-tracker/blob/main/analysis/recall/us/goldset-us-2026-06.json",
+  "signal_types": [
+   "funding"
+  ],
+  "held_out": "Sampled independently of our own coverage. No pass saw our database, our stored rows or our collector list. Crucially, no pass was allowed to enumerate from SEC EDGAR full-text search: that is the index our sec_edgar collector itself walks, so a set built from it would score the tracker against its own feed. Three leadership passes did reach for it, and all three were discarded rather than used.",
+  "caveats": [
+   "This set covers FUNDING ONLY. Leadership changes, pay actions and ways-of-working signals are not tested here and their US coverage is unmeasured. That is a real gap and not a rounding of scope: US leadership events at privately held employers could not be enumerated from original sources at all. Open web search returns executive-moves databases, which may never be cited; the only free chronological index that remains is SEC EDGAR, which is our own feed. Every leadership pass attempted came back either over 90% exchange-listed filings or empty.",
+   "Discovery ran through public web search, so the set is biased toward employers whose round was written up in English by an indexed publisher. A round announced only on a company blog with no pickup is under-represented, and so is any round covered exclusively by a deal database.",
+   "The single largest cause of a verified event being dropped was that no fetchable page stated the company's headquarters. Modern startup coverage has largely stopped writing 'San Francisco-based', and small rounds get the shortest write-ups, so this bias runs against small employers specifically. The set is 35% small-band and the true population is far more than that.",
+   "Several publishers refuse an automated fetch. Business Wire, GlobeNewswire, sec.gov, CNBC, Reuters, Fierce Biotech, Endpoints News and a number of metro dailies were unreachable during assembly, and verified events behind them were dropped. Coverage of this set therefore reflects which publishers allow a fetcher as much as where events happened.",
+   "Three of the four passes stopped on an exhausted search budget rather than on an exhausted window. San Francisco reached 13 of a 16 target and rest-of-US 14 of 16, and eight named metros in the rest-of-US cell were never enumerated at all. The set is a valid sample of what the method reaches; it is not the complete list of US rounds in the window.",
+   "Metro cells carry 8 to 16 events each, so a metro cell is an indication and not a rate. At eight events the 95% interval is about fifty points wide. The metro breakdown is a work list, and only the overall figure and its interval should be read as a measurement.",
+   "51 events resolve the headline to a 95% interval about 26 points wide at worst. That is roughly the resolution of the sibling layoff tracker's 57-filing benchmark and it is not enough to separate two cells that differ by ten points.",
+   "The window ends 2026-07-31 and the corpus is still backfilling into that period, so a result measured soon after sealing understates what the tracker will eventually hold for this window."
+  ],
+  "counts": {
+   "total": 51,
+   "signal_type": {
+    "funding": 51
+   },
+   "geography": {
+    "US": 51
+   },
+   "country": {
+    "US": 51
+   },
+   "source_type": {
+    "national_news": 2,
+    "trade_press": 24,
+    "press_release": 25
+   },
+   "size_band": {
+    "large": 33,
+    "small": 18
+   },
+   "metro": {
+    "San Francisco": 13,
+    "New York": 16,
+    "Austin": 8,
+    "Rest of US": 14
+   }
+  }
+ },
+ "summary": {
+  "overall": {
+   "total": 51,
+   "found": 5,
+   "found_partial": 17,
+   "missed": 29,
+   "held": 22,
+   "held_pct": 43.1,
+   "clean_pct": 9.8,
+   "held_interval": {
+    "pct": 43.1,
+    "low_pct": 30.5,
+    "high_pct": 56.7,
+    "width_pct": 26.2,
+    "successes": 22,
+    "total": 51
+   }
+  },
+  "by_signal_type": {
+   "funding": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 17,
+    "missed": 29,
+    "held": 22,
+    "held_pct": 43.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 43.1,
+     "low_pct": 30.5,
+     "high_pct": 56.7,
+     "width_pct": 26.2,
+     "successes": 22,
+     "total": 51
+    }
+   }
+  },
+  "by_geography": {
+   "US": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 17,
+    "missed": 29,
+    "held": 22,
+    "held_pct": 43.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 43.1,
+     "low_pct": 30.5,
+     "high_pct": 56.7,
+     "width_pct": 26.2,
+     "successes": 22,
+     "total": 51
+    }
+   }
+  },
+  "by_country": {
+   "US": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 17,
+    "missed": 29,
+    "held": 22,
+    "held_pct": 43.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 43.1,
+     "low_pct": 30.5,
+     "high_pct": 56.7,
+     "width_pct": 26.2,
+     "successes": 22,
+     "total": 51
+    }
+   }
+  },
+  "by_source_type": {
+   "national_news": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 2,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 65.8,
+     "width_pct": 65.8,
+     "successes": 0,
+     "total": 2
+    }
+   },
+   "press_release": {
+    "total": 25,
+    "found": 3,
+    "found_partial": 9,
+    "missed": 13,
+    "held": 12,
+    "held_pct": 48.0,
+    "clean_pct": 12.0,
+    "held_interval": {
+     "pct": 48.0,
+     "low_pct": 30.0,
+     "high_pct": 66.5,
+     "width_pct": 36.5,
+     "successes": 12,
+     "total": 25
+    }
+   },
+   "trade_press": {
+    "total": 24,
+    "found": 2,
+    "found_partial": 8,
+    "missed": 14,
+    "held": 10,
+    "held_pct": 41.7,
+    "clean_pct": 8.3,
+    "held_interval": {
+     "pct": 41.7,
+     "low_pct": 24.5,
+     "high_pct": 61.2,
+     "width_pct": 36.7,
+     "successes": 10,
+     "total": 24
+    }
+   }
+  },
+  "by_size_band": {
+   "large": {
+    "total": 33,
+    "found": 4,
+    "found_partial": 12,
+    "missed": 17,
+    "held": 16,
+    "held_pct": 48.5,
+    "clean_pct": 12.1,
+    "held_interval": {
+     "pct": 48.5,
+     "low_pct": 32.5,
+     "high_pct": 64.8,
+     "width_pct": 32.3,
+     "successes": 16,
+     "total": 33
+    }
+   },
+   "small": {
+    "total": 18,
+    "found": 1,
+    "found_partial": 5,
+    "missed": 12,
+    "held": 6,
+    "held_pct": 33.3,
+    "clean_pct": 5.6,
+    "held_interval": {
+     "pct": 33.3,
+     "low_pct": 16.3,
+     "high_pct": 56.3,
+     "width_pct": 40.0,
+     "successes": 6,
+     "total": 18
+    }
+   }
+  },
+  "by_segment": {
+   "US funding": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 17,
+    "missed": 29,
+    "held": 22,
+    "held_pct": 43.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 43.1,
+     "low_pct": 30.5,
+     "high_pct": 56.7,
+     "width_pct": 26.2,
+     "successes": 22,
+     "total": 51
+    }
+   }
+  },
+  "defects": {
+   "country_missing": 13,
+   "country_wrong": 3,
+   "amount_mismatch": 1
+  },
+  "by_metro": {
+   "Austin": {
+    "total": 8,
+    "found": 0,
+    "found_partial": 5,
+    "missed": 3,
+    "held": 5,
+    "held_pct": 62.5,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 62.5,
+     "low_pct": 30.6,
+     "high_pct": 86.3,
+     "width_pct": 55.7,
+     "successes": 5,
+     "total": 8
+    }
+   },
+   "New York": {
+    "total": 16,
+    "found": 2,
+    "found_partial": 6,
+    "missed": 8,
+    "held": 8,
+    "held_pct": 50.0,
+    "clean_pct": 12.5,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 28.0,
+     "high_pct": 72.0,
+     "width_pct": 44.0,
+     "successes": 8,
+     "total": 16
+    }
+   },
+   "Rest of US": {
+    "total": 14,
+    "found": 3,
+    "found_partial": 3,
+    "missed": 8,
+    "held": 6,
+    "held_pct": 42.9,
+    "clean_pct": 21.4,
+    "held_interval": {
+     "pct": 42.9,
+     "low_pct": 21.4,
+     "high_pct": 67.4,
+     "width_pct": 46.0,
+     "successes": 6,
+     "total": 14
+    }
+   },
+   "San Francisco": {
+    "total": 13,
+    "found": 0,
+    "found_partial": 3,
+    "missed": 10,
+    "held": 3,
+    "held_pct": 23.1,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 23.1,
+     "low_pct": 8.2,
+     "high_pct": 50.3,
+     "width_pct": 42.1,
+     "successes": 3,
+     "total": 13
+    }
+   }
+  },
+  "by_metro_segment": {
+   "Austin funding": {
+    "total": 8,
+    "found": 0,
+    "found_partial": 5,
+    "missed": 3,
+    "held": 5,
+    "held_pct": 62.5,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 62.5,
+     "low_pct": 30.6,
+     "high_pct": 86.3,
+     "width_pct": 55.7,
+     "successes": 5,
+     "total": 8
+    }
+   },
+   "New York funding": {
+    "total": 16,
+    "found": 2,
+    "found_partial": 6,
+    "missed": 8,
+    "held": 8,
+    "held_pct": 50.0,
+    "clean_pct": 12.5,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 28.0,
+     "high_pct": 72.0,
+     "width_pct": 44.0,
+     "successes": 8,
+     "total": 16
+    }
+   },
+   "Rest of US funding": {
+    "total": 14,
+    "found": 3,
+    "found_partial": 3,
+    "missed": 8,
+    "held": 6,
+    "held_pct": 42.9,
+    "clean_pct": 21.4,
+    "held_interval": {
+     "pct": 42.9,
+     "low_pct": 21.4,
+     "high_pct": 67.4,
+     "width_pct": 46.0,
+     "successes": 6,
+     "total": 14
+    }
+   },
+   "San Francisco funding": {
+    "total": 13,
+    "found": 0,
+    "found_partial": 3,
+    "missed": 10,
+    "held": 3,
+    "held_pct": 23.1,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 23.1,
+     "low_pct": 8.2,
+     "high_pct": 50.3,
+     "width_pct": 42.1,
+     "successes": 3,
+     "total": 13
+    }
+   }
+  }
+ },
+ "candidates_seen_total": 201,
+ "items": [
+  {
+   "id": "sf_funding-01-bland",
+   "company": "Bland",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "Fortune",
+   "source_url": "https://fortune.com/2026/06/16/voice-ai-bland-50-million-after-being-rejected-by-180-investors/",
+   "event_date": "2026-06-16",
+   "detail": "Series C led by Dell Technologies Capital for the voice AI company",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-02-odyssey",
+   "company": "Odyssey",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/17/world-model-maker-odyssey-nabs-1-45b-valuation-backed-by-amazon-and-other-big-names/",
+   "event_date": "2026-06-17",
+   "detail": "Series B led by Natural Capital at a $1.45B valuation, with Amazon, GV, AMD Ventures, EQT and IQT participating; world-model AI lab founded by Oliver Cameron and Jeff Hawke",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-03-peregrine-technologies",
+   "company": "Peregrine Technologies",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "Peregrine Technologies",
+   "source_url": "https://peregrine.io/resources/peregrine-technologies-raises-250-million-series-d-at-68-billion-valuation",
+   "event_date": "2026-06-22",
+   "detail": "Series D at a $6.8B valuation, backed by Fifth Down Capital, Sequoia Capital, OG Venture Partners, Goldcrest Capital, XYZ Ventures and Godfrey Capital",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-04-osanni-bio",
+   "company": "Osanni Bio",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "Osanni Bio (press release carried by BioSpace)",
+   "source_url": "https://www.biospace.com/press-releases/osanni-bio-closes-190-million-series-b-financing-led-by-patient-square-capital",
+   "event_date": "2026-06-23",
+   "detail": "Series B led by Patient Square Capital with participation from the Horowitz Group, Invus Opportunities and the Retinal Degeneration Fund",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-05-hang-ten-systems",
+   "company": "Hang Ten Systems",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/24/former-infosys-chief-has-a-new-startup-that-wants-to-challenge-the-it-services-world/",
+   "event_date": "2026-06-24",
+   "detail": "Seed round led by Mayfield with a strategic investment from Aramco Ventures; IT services startup from a former Infosys chief",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-06-patronus-ai",
+   "company": "Patronus AI",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/25/patronus-ai-lands-50m-to-build-digital-worlds-that-stress-test-ai-agents/",
+   "event_date": "2026-06-25",
+   "detail": "Series B led by Greenfield Partners with Notable Capital, Lightspeed, Datadog and Samsung participating; brings total funding to $70M",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-07-mirendil",
+   "company": "Mirendil",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Unite.AI",
+   "source_url": "https://www.unite.ai/former-anthropic-researchers-launch-mirendil-at-1-billion-valuation-with-200-m-seed-round/",
+   "event_date": "2026-06-25",
+   "detail": "Seed round at a $1B valuation led by Andreessen Horowitz and Kleiner Perkins with NVIDIA participating; founded by former Anthropic researchers",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "2fd4e2e88287a60928f6105d3c45fb96",
+    "company": "Mirendil",
+    "headline": "Mirendil Raises $200 Million Seed Round To Build Self-Accelerating AI R&D Systems - Pulse 2.0",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "200000000",
+    "published_date": "2026-06-27",
+    "source_url": "https://pulse2.com/mirendil-raises-200-million-seed-round-to-build-self-accelerating-ai-rd-systems/"
+   }
+  },
+  {
+   "id": "sf_funding-08-aseon-labs",
+   "company": "Aseon Labs",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/26/this-silicon-valley-startup-has-raised-10m-to-build-pitstops-to-clean-and-charge-robotaxis/",
+   "event_date": "2026-06-26",
+   "detail": "Seed round led by Crane Venture Partners; automated pods that inspect, clean and charge robotaxis; Y Combinator spring 2026 cohort",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-09-queue",
+   "company": "Queue",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Robot Report",
+   "source_url": "https://www.therobotreport.com/queue-raises-funding-fully-autonomous-pharmacy/",
+   "event_date": "2026-06-30",
+   "detail": "Seed round led by AlleyCorp, following a $6M pre-seed led by Riot Ventures; autonomous robotic pharmacy kiosks",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-10-prime-intellect",
+   "company": "Prime Intellect",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/07/08/prime-intellect-raises-130m-series-a-to-help-enterprises-build-their-own-ai-agents/",
+   "event_date": "2026-07-08",
+   "detail": "Series A led by Radical Ventures; distributed compute and agent-training platform",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-11-chai-discovery",
+   "company": "Chai Discovery",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Pulse 2.0",
+   "source_url": "https://pulse2.com/chai-discovery-raises-400-million-series-c-to-advance-ai-driven-molecular-design/",
+   "event_date": "2026-07-14",
+   "detail": "Series C led by Index Ventures at a $3.8B valuation, with Kleiner Perkins, Sequoia Capital and Dimension; AI molecular design used by Lilly, Novartis and Pfizer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "sf_funding-12-rime",
+   "company": "Rime",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/07/15/rime-picks-up-24m-series-a-to-help-enterprises-field-customer-calls/",
+   "event_date": "2026-07-15",
+   "detail": "Series A led by M13; voice AI models for enterprise phone calls, founded by Lily Clifford",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "aae3e0589c2b1d060f09376f613a4be6",
+    "company": "Rime",
+    "headline": "Voice AI Startup Rime Raises $24M Series A to Advance Speech-to-Speech Models",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "24000000",
+    "published_date": "2026-07-27",
+    "source_url": "https://theaiinsider.tech/2026/07/27/voice-ai-startup-rime-raises-24m-series-a-to-advance-speech-to-speech-models/"
+   }
+  },
+  {
+   "id": "sf_funding-13-fish-audio",
+   "company": "Fish Audio",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/07/28/fish-audio-raises-50m-seed-to-build-ai-voice-models-for-creators-and-enterprises/",
+   "event_date": "2026-07-28",
+   "detail": "Seed round led by Coreline Ventures and Capital Today; AI voice models for creators and enterprises, customers include HeyGen",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong"
+   ],
+   "matched": {
+    "signal_id": "beb1fa2b848d101d22c8a60c5b2d41b1",
+    "company": "Fish Audio",
+    "headline": "Na corrida por IA de \u00e1udio, startup de Palo Alto capta US$ 52M em Seed",
+    "country": "BR",
+    "hq_country": null,
+    "funding_amount_usd": "52000000",
+    "published_date": "2026-07-28",
+    "source_url": "https://startups.com.br/la-fora/na-corrida-por-ia-de-audio-startup-de-palo-alto-capta-us-52m-em-seed/"
+   }
+  },
+  {
+   "id": "nyc_funding-01-alphasense",
+   "company": "AlphaSense",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "AlphaSense newsroom",
+   "source_url": "https://www.alpha-sense.com/press/alphasense-raises-350m-at-7-5b-valuation-and-surpasses-600m-in-annual-recurring-revenue/",
+   "event_date": "2026-06-03",
+   "detail": "$350M round at a $7.5B valuation led by Vitruvian Partners, Accenture Ventures and J.P. Morgan Asset Management, with D. E. Shaw Ventures, Pinegrove Opportunity Partners, CapitalG, Goldman Sachs Alternatives and Viking Global Investors",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "031753d42e364e380377214557c1da8c",
+    "company": "AlphaSense",
+    "headline": "AlphaSense Raises $350 Million At $7.5 Billion Valuation While Surpassing $600 Million In Annual Recurring Revenue - Pulse 2.0",
+    "country": null,
+    "hq_country": "US",
+    "funding_amount_usd": "350000000",
+    "published_date": "2026-06-07",
+    "source_url": "https://pulse2.com/alphasense-raises-350-million-at-7-5-billion-valuation-while-surpassing-600-million-in-annual-recurring-revenue/"
+   }
+  },
+  {
+   "id": "nyc_funding-02-ramp",
+   "company": "Ramp",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/ramp-raises-series-f-at-44-billion-valuation-302791103.html",
+   "event_date": "2026-06-04",
+   "detail": "Series F at a $44B valuation, jointly led by ICONIQ, GIC and Ontario Teachers' Pension Plan; total equity financing now over $3B",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "d3233d92e401082c58f9b17bcdc37ad8",
+    "company": "Ramp Business Corp",
+    "headline": "Ramp Business Corp raised $782M in a private placement",
+    "country": "US",
+    "hq_country": null,
+    "funding_amount_usd": "781998720",
+    "published_date": "2026-06-17",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1803782/000180378226000002/primary_doc.xml"
+   }
+  },
+  {
+   "id": "nyc_funding-03-standard-bots",
+   "company": "Standard Bots",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "The Robot Report",
+   "source_url": "https://www.therobotreport.com/standard-bots-raises-200m-expand-u-s-manufacturing-footprint/",
+   "event_date": "2026-06-09",
+   "detail": "Series C at a $1B valuation led by RoboStrategy with existing investors including General Catalyst; funds expansion of the Glen Cove, NY plant to 70,000 sq ft",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong"
+   ],
+   "matched": {
+    "signal_id": "fc86c70d2ee61a13583ab3df29aa5c36",
+    "company": "Standard Bots",
+    "headline": "Standard Bots Raises $200M for AI Robotics Expansion",
+    "country": "ZA",
+    "hq_country": null,
+    "funding_amount_usd": "200000000",
+    "published_date": "2026-06-10",
+    "source_url": "https://ventureburn.com/standard-bots-raises-200m-series-c-robotics/"
+   }
+  },
+  {
+   "id": "nyc_funding-04-digital-asset",
+   "company": "Digital Asset",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/digital-asset-raises-355-million-to-accelerate-cantons-role-as-onchain-infrastructure-for-capital-markets-302797427.html",
+   "event_date": "2026-06-11",
+   "detail": "$355M round led by a16z crypto, with participation from BNP Paribas, HSBC, Citadel Securities, Apollo Funds, ABN Amro, SBI Group, Abu Dhabi Investment Authority and others, to expand the Canton Network",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "83fa2111d46e8fb803ba68e829990c78",
+    "company": "Digital Asset",
+    "headline": "Digital Asset lands $355m in a16z crypto-led funding round - fintechfutures.com",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "355000000",
+    "published_date": "2026-06-12",
+    "source_url": "https://www.fintechfutures.com/venture-capital-funding/digital-asset-355m-funding-round"
+   }
+  },
+  {
+   "id": "nyc_funding-05-taktile",
+   "company": "Taktile",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "Fortune",
+   "source_url": "https://fortune.com/2026/06/24/exclusive-taktile-goldman-sachs-ai-bank-insurance-funding/",
+   "event_date": "2026-06-24",
+   "detail": "Series C led by Growth Equity at Goldman Sachs Alternatives, with Tiger Global, Index Ventures, Balderton Capital, Y Combinator and Dig Ventures",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-06-general-intuition",
+   "company": "General Intuition",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "TechCrunch",
+   "source_url": "https://techcrunch.com/2026/06/25/general-intuitions-2-3b-bet-that-video-games-can-train-ai-agents-for-the-real-world/",
+   "event_date": "2026-06-25",
+   "detail": "$320M round at a $2.3B valuation led by Khosla Ventures, with General Catalyst, Jeff Bezos and Eric Schmidt; spun out of Medal, training agents on gameplay data",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "0027f9b22f344c824c59a91379e0daa0",
+    "company": "General Intuition",
+    "headline": "General Intuition raises $320 million to develop AI from gaming - Axios",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "320000000",
+    "published_date": "2026-06-26",
+    "source_url": "https://www.axios.com/2026/06/26/general-intuition-ai-gaming"
+   }
+  },
+  {
+   "id": "nyc_funding-07-premier-lacrosse-league",
+   "company": "Premier Lacrosse League",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/pll-announces-100-million-series-e-financing-led-by-ares-and-joe-tsai-302814791.html",
+   "event_date": "2026-06-30",
+   "detail": "Series E led by Ares and Joe Tsai, with a subsequent minority equity investment from ESPN and individual investors including Glen Powell and Rob McElhenney",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "ef60b6d562af661453d699b0c941b123",
+    "company": "Premier Lacrosse League",
+    "headline": "Premier Lacrosse League Raises $100 Million In Series E Funding Round - forbes.com",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "100000000",
+    "published_date": "2026-06-30",
+    "source_url": "https://www.forbes.com/sites/timcasey/2026/06/30/premier-lacrosse-league-raises-100-million-in-series-e-funding-round/"
+   }
+  },
+  {
+   "id": "nyc_funding-08-norm-ai",
+   "company": "Norm Ai",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/norm-ai-raises-120-million-at-a-1-2-billion-valuation-led-by-khosla-ventures-to-deliver-the-full-stack-model-for-legal-ai-302819152.html",
+   "event_date": "2026-07-07",
+   "detail": "Series C at a $1.2B valuation led by Khosla Ventures, with Blackstone, Bain Capital Ventures, Coatue, Vanguard, New York Life, TIAA and Fenwick",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-09-pearl-health",
+   "company": "Pearl Health",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/pearl-health-raises-110-million-to-expand-its-ai-platform-helping-providers-deliver-better-outcomes-at-lower-cost-for-medicare-patients-302820795.html",
+   "event_date": "2026-07-08",
+   "detail": "$50M equity led by Andreessen Horowitz (with Viking Global Investors, AlleyCorp, Ulysses Capital) alongside a separate $60M credit facility led by Trinity Capital; $110M total",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-10-vendelux",
+   "company": "Vendelux",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "Vendelux newsroom",
+   "source_url": "https://vendelux.com/series-b-announcement",
+   "event_date": "2026-07-08",
+   "detail": "Series B led by Tribeca Venture Partners with S3, Pelion Ventures, HubSpot Ventures, FirstMark and Cervin Ventures; total funding $71M",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-11-gauntlet",
+   "company": "Gauntlet",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "Gauntlet newsroom",
+   "source_url": "https://www.gauntlet.xyz/resources/gauntlet-closes-125-million-series-c",
+   "event_date": "2026-07-09",
+   "detail": "Series C led by sole investor SBI Holdings through its U.S. subsidiary SBI Holdings USA; funds expansion of stablecoin coverage and vault infrastructure",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "03d070b8d9ed7661e3adcde3a516b6c5",
+    "company": "Gauntlet",
+    "headline": "Gauntlet Raises $125 Million to Power Institutional Crypto Vaults - PYMNTS.com",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "125000000",
+    "published_date": "2026-07-13",
+    "source_url": "https://www.pymnts.com/news/investment-tracker/2026/gauntlet-raises-125-million-to-power-institutional-crypto-vaults/"
+   }
+  },
+  {
+   "id": "nyc_funding-12-instalily-ai",
+   "company": "InstaLILY AI",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "ACCESS Newswire",
+   "source_url": "https://www.accessnewswire.com/newsroom/en/computers-technology-and-internet/instalily-raises-60-million-series-b-and-launches-lily-the-worlds-1190835",
+   "event_date": "2026-07-14",
+   "detail": "Series B led by Energize Capital with Insight Partners and strategic investors Home Depot Ventures and United Rentals; total raised near $100M",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-13-speakeasy",
+   "company": "Speakeasy",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/speakeasy-announces-8-8mm-raise-to-power-the-growing-irl-economy--live-experience-industry-302825648.html",
+   "event_date": "2026-07-15",
+   "detail": "Oversubscribed first institutional round led by Positive Sum, with Yamaha's Music Innovations Fund; brings total funding to $8.8M for the live-experience operations platform",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-14-wonder",
+   "company": "Wonder",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/wonder-announces-650-million-series-d-round-at-a-9-billion-pre-money-valuation-302827208.html",
+   "event_date": "2026-07-16",
+   "detail": "Series D at a $9B pre-money valuation with Accel, GV and NEA returning and new investors AllianceBernstein funds, ARK Invest and Kayne Anderson Rudnick",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-15-fora",
+   "company": "Fora",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/fora-raises-60m-at-1-billion-valuation-defining-a-new-category-of-entrepreneurs-302827629.html",
+   "event_date": "2026-07-16",
+   "detail": "Series D at a $1B post-money valuation led by Forerunner and Tactile Ventures, with Thrive Capital, Insight Partners, Heartcore, PLUS Capital, BlackPines and Tribeca Venture Partners",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "nyc_funding-16-harmony",
+   "company": "Harmony",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "ACCESS Newswire",
+   "source_url": "https://www.accessnewswire.com/newsroom/en/computers-technology-and-internet/harmony-raises-34-million-to-reinvent-employee-experience-powered-1193998",
+   "event_date": "2026-07-28",
+   "detail": "Seed round led by Lightspeed Venture Partners with Hitachi Ventures, Fin Capital, Mercer Ventures and Operator Partners; AI employee-support platform for IT, HR, finance, procurement and legal",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "d3f9fb5c796d1000728737b7918fa4b8",
+    "company": "Harmony",
+    "headline": "Harmony Raises $34 Million Seed Round Led By Lightspeed To Scale AI Employee Support Platform - Pulse 2.0",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "34000000",
+    "published_date": "2026-07-29",
+    "source_url": "https://pulse2.com/harmony-raises-34-million-seed-round-led-by-lightspeed-to-scale-ai-employee-support-platform/"
+   }
+  },
+  {
+   "id": "austin_funding-01-allen-control-systems",
+   "company": "Allen Control Systems",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "Allen Control Systems",
+   "source_url": "https://www.allencontrolsystems.com/blog/series-b",
+   "event_date": "2026-06-05",
+   "detail": "$200 million Series B led by Smash Capital at a $2.2 billion post-money valuation, to scale manufacturing of the Bullfrog autonomous weapon station",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong"
+   ],
+   "matched": {
+    "signal_id": "ed095439d7fdc26930bfe3a4ef4d1df3",
+    "company": "Allen Control Systems",
+    "headline": "Allen Control Systems Raises $200M Series B Funding",
+    "country": "ZA",
+    "hq_country": null,
+    "funding_amount_usd": "200000000",
+    "published_date": "2026-06-08",
+    "source_url": "https://ventureburn.com/allen-control-systems-raises-200m-series-b-funding/"
+   }
+  },
+  {
+   "id": "austin_funding-02-artis",
+   "company": "Artis",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "National Law Review (Business Wire release)",
+   "source_url": "https://natlawreview.com/press-releases/artis-raises-73m-led-liveoak-ventures-handle-work-pulls-residential",
+   "event_date": "2026-06-11",
+   "detail": "$7.3 million seed led by LiveOak Ventures, with participation from mark vc and Capital Factory; the release also cites up to $3 million in additional revolving credit",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "2d32db65d2104cbaf7d0bb3eba0f6d46",
+    "company": "Artis",
+    "headline": "Artis Raises $7.3M in Seed Funding - FinSMEs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "7300000",
+    "published_date": "2026-06-12",
+    "source_url": "https://www.finsmes.com/2026/06/artis-raises-7-3m-in-seed-funding.html"
+   }
+  },
+  {
+   "id": "austin_funding-03-traysar",
+   "company": "Traysar",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "Traysar",
+   "source_url": "https://traysar.com/news/traysar-raises-25m-seed",
+   "event_date": "2026-06-16",
+   "detail": "$25 million seed led by Silent Ventures; subterranean defense technology company emerging from stealth at the Reindustrialize summit",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "austin_funding-04-intellectible",
+   "company": "Intellectible",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/intellectible-closes-3-million-seed-round-to-scale-ai-revenue-operations-for-enterprise-service-providers-302803624.html",
+   "event_date": "2026-06-17",
+   "detail": "$3 million seed led by Bread & Butter Ventures, with Victorum Capital, Gray Ventures, Circadian Ventures, Allied VC, High Street Equity Partners and angel investor Adam Burgoon",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "austin_funding-05-ollin-biosciences",
+   "company": "Ollin Biosciences",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "Ollin Biosciences",
+   "source_url": "https://ollin.bio/press-releases/ollin-biosciences-announces-oversubscribed-330-million-series-b-financing-to-advance-global-phase-3-development-of-oln324-in-dme-and-wet-amd-studies-commencing-in-second-half-of-2026/",
+   "event_date": "2026-06-24",
+   "detail": "Oversubscribed $330 million Series B co-led by TCGX and ARCH Venture Partners, with a16z Bio+Health, Blackstone Multi-Asset Investing, Commodore Capital, CPP Investments, RA Capital Management and others, to fund Phase 3 development of OLN324 in DME and wet AMD",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_mismatch"
+   ],
+   "matched": {
+    "signal_id": "d02ada84dc9194c99f5073675233459c",
+    "company": "Ollin Biosciences, Inc.",
+    "headline": "Ollin Biosciences, Inc. raised $156.2M in a private placement",
+    "country": "US",
+    "hq_country": null,
+    "funding_amount_usd": "156249990",
+    "published_date": "2026-06-24",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/2141184/000214118426000002/primary_doc.xml"
+   }
+  },
+  {
+   "id": "austin_funding-06-adaptive-insurance",
+   "company": "Adaptive Insurance",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Insurance Innovation Reporter",
+   "source_url": "https://iireporter.com/adaptive-raises-5m-for-specialty-climate-products/",
+   "event_date": "2026-07-09",
+   "detail": "Additional $5 million financing from new investors IAG Firemark Ventures, Sunna Ventures, Room & Pillar and Connecticut Innovations alongside existing backers Congruent Ventures and Seraphim Space; brings total funding to $10 million",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "austin_funding-07-terrafirma",
+   "company": "TerraFirma",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "The Robot Report",
+   "source_url": "https://www.therobotreport.com/terrafirma-raises-115m-build-robotic-infrastructure-construction/",
+   "event_date": "2026-07-14",
+   "detail": "Approximately $115 million raised, including a $100 million Series A led by Kleiner Perkins with Bain Capital Ventures, Glade Brook Capital Partners, BANNER VC, Saga Ventures, Trust Ventures, Definition, PEAK6, Magnetar Capital and Ravelin Capital; semi-autonomous heavy construction equipment",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "b2ab7ae5536c649f973955d7f7dce3b1",
+    "company": "TerraFirma",
+    "headline": "TerraFirma Raises $115M to Accelerate Construction on Earth and Beyond - Business Wire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "115000000",
+    "published_date": "2026-07-14",
+    "source_url": "https://www.businesswire.com/news/home/20260714397606/en/TerraFirma-Raises-%24115M-to-Accelerate-Construction-on-Earth-and-Beyond"
+   }
+  },
+  {
+   "id": "austin_funding-08-throne-science",
+   "company": "Throne Science",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "Rutland Herald (Business Wire release)",
+   "source_url": "https://www.rutlandherald.com/news/business/throne-science-maker-of-smart-toilet-sensor-announces-10-million-series-a-fundraise/article_58f9557c-dab1-5b78-b09b-a3efc8ccfcb2.html",
+   "event_date": "2026-07-28",
+   "detail": "$10 million Series A led by Will Ventures with Emerson Collective, Workshop, LEAD VC, Salt VC, Accomplice, Moxxie, Ventures Together, Symphony, Felix Capital, Cosmic Venture Partners, Offscript, V1.VC and Morrison Seger; smart toilet sensor for gut health",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "07c0802a4af97333e48f44788ac20c30",
+    "company": "Throne Science",
+    "headline": "Throne Science Raises $10M in Series A Funding",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-07-29",
+    "source_url": "https://www.finsmes.com/2026/07/throne-science-raises-10m-in-series-a-funding.html"
+   }
+  },
+  {
+   "id": "rest_funding-01-arpio",
+   "company": "Arpio",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "Arpio newsroom",
+   "source_url": "https://arpio.io/series-a-announcement/",
+   "event_date": "2026-06-03",
+   "detail": "Series A co-led by S3 Ventures and Paladin Capital Group, with Draper Associates, Uncorrelated, Valor Ventures, CreativeCo Capital and Lookout Ventures participating; AI-native cloud disaster-recovery and cyber-resilience platform",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-02-hydra-host",
+   "company": "Hydra Host",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Refresh Miami",
+   "source_url": "https://refreshmiami.com/news/hydra-host-raises-100m-to-turn-overlooked-data-centers-into-ai-powerhouses/",
+   "event_date": "2026-06-15",
+   "detail": "Round backed by Nvidia, ARK Invest, Kindred Ventures, Magnetar, Founders Fund and Flume Ventures at a valuation near $800M; marketplace connecting GPU owners with compute renters across roughly 50 data-centre locations",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-03-mantle-energy",
+   "company": "Mantle Energy",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Dallas Innovates",
+   "source_url": "https://dallasinnovates.com/hunt-energys-dallas-based-subsidiary-mantle-energy-raises-5m-seed-funding/",
+   "event_date": "2026-06-24",
+   "detail": "Seed round led by Dallas-based 17Shoals Inc.; geothermal spinout of Hunt Energy converting depleted oil and gas reservoirs into baseload thermal power",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-04-auger",
+   "company": "Auger",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/supply-chain-startup-auger-led-by-ex-amazon-operations-chief-raises-50m-and-lands-big-customers/",
+   "event_date": "2026-07-09",
+   "detail": "Series B led by Eclipse, bringing total raised to $150M; supply-chain operating layer founded by former Amazon operations chief Dave Clark, with Meta, Fanatics and Kimberly-Clark as customers",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-05-databento",
+   "company": "Databento",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/databento-raises-97-million-series-b-led-by-nea-302821464.html",
+   "event_date": "2026-07-09",
+   "detail": "Series B led by New Enterprise Associates, with DRW VC among participants; market-data infrastructure and APIs for trading firms",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "b0e4e93d0334ce3d8d4bdf8c4e0a11b1",
+    "company": "Databento",
+    "headline": "Databento Raises $97 Million Series B Led by NEA - PR Newswire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "97000000",
+    "published_date": "2026-07-09",
+    "source_url": "https://www.prnewswire.com/news-releases/databento-raises-97-million-series-b-led-by-nea-302821464.html"
+   }
+  },
+  {
+   "id": "rest_funding-06-auxilium-health",
+   "company": "Auxilium Health",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/auxilium-health-closes-oversubscribed-3-4-million-seed-round-to-advance-its-aer-biomaterial-platform-302824986.html",
+   "event_date": "2026-07-14",
+   "detail": "Oversubscribed seed round from returning and new regional and strategic investors, more than doubling its earlier pre-seed; Aer biomaterial platform based at Cleveland Clinic's Global Innovation Center",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-07-brinc-drones",
+   "company": "Brinc Drones",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/motorola-leads-125m-round-for-brinc-fueling-911-drone-expansion-amid-u-s-import-crackdown/",
+   "event_date": "2026-07-14",
+   "detail": "Growth round led by Motorola Solutions; 911-response drone maker used by more than 900 public safety agencies",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "2706a058e5d4ad866793b61ca45b16b2",
+    "company": "BRINC",
+    "headline": "BRINC Raises $125M to Put a 911 Response Drone on Every Police and Fire Station Roof - PR Newswire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "125000000",
+    "published_date": "2026-07-14",
+    "source_url": "https://www.prnewswire.com/news-releases/brinc-raises-125m-to-put-a-911-response-drone-on-every-police-and-fire-station-roof-302824451.html"
+   }
+  },
+  {
+   "id": "rest_funding-08-rapidpulse",
+   "company": "RapidPulse",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Refresh Miami",
+   "source_url": "https://refreshmiami.com/news/miami-based-rapidpulse-secures-48m-series-b-co-led-by-medtronic-to-transform-stroke-treatment/",
+   "event_date": "2026-07-16",
+   "detail": "Series B co-led by Medtronic, TechWald Next S.p.A. and S3 Ventures, with SBI Investment, Florida Opportunity Fund, Sante Ventures, Syntheon, Hatteras Venture Partners and Epidarex Capital participating; mechanical thrombectomy system for acute ischemic stroke",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "150344b6bc71fc5cfc434c26e55ce954",
+    "company": "RapidPulse",
+    "headline": "Miami-based RapidPulse secures $48M Series B co-led by Medtronic to transform stroke treatment",
+    "country": "US",
+    "hq_country": null,
+    "funding_amount_usd": "48000000",
+    "published_date": "2026-07-16",
+    "source_url": "https://refreshmiami.com/news/miami-based-rapidpulse-secures-48m-series-b-co-led-by-medtronic-to-transform-stroke-treatment/"
+   }
+  },
+  {
+   "id": "rest_funding-09-logcat-ai",
+   "company": "logcat.ai",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/the-code-ai-forgot-logcat-ai-raises-2-55m-to-put-agents-to-work-on-device-operating-systems/",
+   "event_date": "2026-07-16",
+   "detail": "Pre-seed led by Founders' Co-op with Act One Ventures, TheFounderVC, Shorewind Capital, Clayoquot Capital and Alumni Ventures; AI agents that find bugs in Android and Linux kernel, modem and firmware code",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-10-singularity",
+   "company": "Singularity",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "dot.LA",
+   "source_url": "https://dot.la/hadrian-valar-ai-infrastructure-funding-2677671747.html",
+   "event_date": "2026-07-17",
+   "detail": "Series A led by Khosla Ventures and Felicis at a $400M valuation; manufacturer of low-cost air defense systems",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "af655f75e7e99e1975b7b2ffd2f91f06",
+    "company": "Singularity",
+    "headline": "LA\u2019s New Defense Startup Comes Out Swinging",
+    "country": "US",
+    "hq_country": "US",
+    "funding_amount_usd": "80000000",
+    "published_date": "2026-07-17",
+    "source_url": "https://dot.la/singularity-low-cost-air-defense-2677239837.html"
+   }
+  },
+  {
+   "id": "rest_funding-11-crystalys-therapeutics",
+   "company": "Crystalys Therapeutics",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire",
+   "source_url": "https://www.prnewswire.com/news-releases/crystalys-therapeutics-announces-130-million-series-b-financing-to-advance-global-phase-3-development-and-commercialization-of-dotinurad-for-gout-302826763.html",
+   "event_date": "2026-07-22",
+   "detail": "Series B led by Frazier Life Sciences with Wellington Management, HBM Healthcare Investments, Soleus Capital and existing backers Novo Holdings and SR One; funds Phase 3 development of dotinurad for gout",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "4ac4e3f727c3db25cbef35e6d577c159",
+    "company": "Crystalys Therapeutics",
+    "headline": "Crystalys Therapeutics Raises $130 Million Series B, Strengthening Fortress Biotech's Dotinurad Stake",
+    "country": "US",
+    "hq_country": null,
+    "funding_amount_usd": "130000000",
+    "published_date": "2026-07-27",
+    "source_url": "https://www.citybiz.co/article/879288/crystalys-therapeutics-raises-130-million-series-b-strengthening-fortress-biotechs-dotinurad-stake/"
+   }
+  },
+  {
+   "id": "rest_funding-12-atoms",
+   "company": "Atoms",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "dot.LA",
+   "source_url": "https://dot.la/hadrian-valar-ai-infrastructure-funding-2677671747.html",
+   "event_date": "2026-07-24",
+   "detail": "Equity investment led by Andreessen Horowitz; Travis Kalanick's industrial AI company for producing, storing and transporting physical goods",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-13-tybr-health",
+   "company": "TYBR Health",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "InnovationMap",
+   "source_url": "https://houston.innovationmap.com/tybr-health-30m-series-a-2677279203.html",
+   "event_date": "2026-07-28",
+   "detail": "Series A led by Vensana Capital and Mutual Capital Partners; B3 GEL hydrogel that protects tendons and soft tissue after orthopedic surgery, FDA 510(k) cleared June 2025",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "rest_funding-14-buildforce",
+   "company": "Buildforce",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "InnovationMap",
+   "source_url": "https://houston.innovationmap.com/buildforce-10m-series-a-2677295592.html",
+   "event_date": "2026-07-31",
+   "detail": "Series A led by Houston-based Saepio Capital; tech-enabled staffing platform matching electricians with commercial and industrial electrical contractors",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "f1bf8ffdbb5094629fb42cf80f200925",
+    "company": "Buildforce",
+    "headline": "Buildforce Raises $10M Series A to Staff Electricians Nationally",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-07-28",
+    "source_url": "https://www.prnewswire.com/news-releases/buildforce-raises-10m-series-a-to-staff-electricians-nationally-302837071.html"
+   }
+  }
+ ],
+ "family": "us"
+}
